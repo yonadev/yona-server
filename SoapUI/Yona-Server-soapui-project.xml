@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright (c) 2015 Stichting Yona Foundation
+   
+    This Source Code Form is subject to the terms of the Mozilla Public
+    License, v. 2.0. If a copy of the MPL was not distributed with this
+    file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ -->
+
+<con:soapui-project id="7c8385ac-e833-4dc7-aece-0a1fd114cb5c" activeEnvironment="Default" name="Yona server" resourceRoot="" soapui-version="5.2.0" abortOnError="false" runType="SEQUENTIAL" xmlns:con="http://eviware.com/soapui/config"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.actions.iface.tools.soapui.TestRunnerAction@values-local"><![CDATA[<xml-fragment xmlns:con="http://eviware.com/soapui/config">
+  <con:entry key="Environment" value="Default"/>
+  <con:entry key="Global Properties" value=""/>
+  <con:entry key="TestSuite" value="Initialize"/>
+  <con:entry key="Password" value=""/>
+  <con:entry key="TestRunner Path" value=""/>
+  <con:entry key="Tool Args" value=""/>
+  <con:entry key="Ignore Errors" value="false"/>
+  <con:entry key="Host:Port" value=""/>
+  <con:entry key="user-settings.xml Password" value=""/>
+  <con:entry key="WSS Password Type" value=""/>
+  <con:entry key="Save Project" value="false"/>
+  <con:entry key="Enable UI" value="false"/>
+  <con:entry key="System Properties" value=""/>
+  <con:entry key="Domain" value=""/>
+  <con:entry key="Coverage Report" value="false"/>
+  <con:entry key="Export JUnit Results" value="false"/>
+  <con:entry key="Open Report" value="false"/>
+  <con:entry key="Project Properties" value=""/>
+  <con:entry key="Export All" value="false"/>
+  <con:entry key="Project Password" value=""/>
+  <con:entry key="Report Format(s)" value=""/>
+  <con:entry key="TestCase" value="&lt;all>"/>
+  <con:entry key="Print Report" value="false"/>
+  <con:entry key="Username" value=""/>
+  <con:entry key="Root Folder" value=""/>
+  <con:entry key="Save After" value="false"/>
+  <con:entry key="Add Settings" value="false"/>
+  <con:entry key="Endpoint" value=""/>
+  <con:entry key="Select Report Type" value=""/>
+</xml-fragment>]]></con:setting></con:settings><con:interface xsi:type="con:RestService" id="fa52c6f6-c75f-49bd-88b9-0632e08f5003" wadlVersion="http://wadl.dev.java.net/2009/02" name="http://localhost:8080" type="rest" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:settings/><con:definitionCache type="TEXT" rootPart=""/><con:endpoints><con:endpoint>http://localhost:8080</con:endpoint></con:endpoints><con:resource name="goal" path="/goal" id="b355bb14-c0d7-429a-ad3e-83db94908b5d"><con:settings/><con:parameters/><con:method name="Goal" id="4c94a6f4-3ec8-4083-b26a-6c8fcd9a35ea" method="POST"><con:settings/><con:parameters/><con:representation type="REQUEST"><con:mediaType>application/json</con:mediaType><con:params/></con:representation><con:representation type="FAULT"><con:mediaType>application/json;charset=UTF-8</con:mediaType><con:status>500</con:status><con:params/><con:element xmlns:goal="http://localhost/goal">goal:Fault</con:element></con:representation><con:representation type="RESPONSE"><con:mediaType>application/hal+json;charset=UTF-8</con:mediaType><con:status>200</con:status><con:params/><con:element xmlns:goal="http://localhost/goal">goal:Response</con:element></con:representation><con:representation type="RESPONSE"><con:mediaType xsi:nil="true"/><con:status>0</con:status><con:params/><con:element>data</con:element></con:representation><con:request name="Create goal gambling" id="9d7d35e6-233e-46f1-8cd5-0da69d8a94ea" mediaType="application/json" postQueryString="false"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:endpoint>http://localhost:8080</con:endpoint><con:request>{
+    "name":"gambling",
+    "categories":[
+        "poker",
+        "lotto"
+    ]
+}</con:request><con:originalUri>http://localhost/goal</con:originalUri><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:parameters/><con:parameterOrder/></con:request><con:request name="Create goal shopping" id="6eb0ee9f-2de5-4b21-95be-ce0d181439ac" mediaType="application/json" postQueryString="false"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:endpoint>http://localhost:8080</con:endpoint><con:request>{
+    "name":"shopping",
+    "categories":[
+        "shoes",
+        "chocolate"
+    ]
+}
+</con:request><con:originalUri>http://localhost/goal</con:originalUri><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:parameters/><con:parameterOrder/></con:request></con:method></con:resource><con:resource name="user" path="/user" id="1db3da4b-64ed-448b-a832-8e631fd2d72b"><con:settings/><con:parameters/><con:method name="User" id="15b13c39-3829-4baf-baab-8f3819e9e9ab" method="POST"><con:settings/><con:parameters/><con:representation type="FAULT"><con:mediaType>application/json;charset=UTF-8</con:mediaType><con:status>500 400</con:status><con:params/><con:element xmlns:user="http://localhost/user">user:Fault</con:element></con:representation><con:representation type="REQUEST"><con:mediaType>application/json</con:mediaType><con:params/></con:representation><con:representation type="RESPONSE"><con:mediaType>application/hal+json;charset=UTF-8</con:mediaType><con:status>200</con:status><con:params/><con:element xmlns:user="http://localhost/user">user:Response</con:element></con:representation><con:representation type="RESPONSE"><con:mediaType xsi:nil="true"/><con:status>0</con:status><con:params/><con:element>data</con:element></con:representation><con:representation type="RESPONSE"><con:mediaType xsi:nil="true"/><con:status>0</con:status><con:params/><con:element>data</con:element></con:representation><con:representation type="RESPONSE"><con:mediaType xsi:nil="true"/><con:status>0</con:status><con:params/><con:element>data</con:element></con:representation><con:request name="Create user Bert" id="4a5b62c1-cf44-48a2-96e1-61b0ac6d87f0" mediaType="application/json" postQueryString="false"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;entry key="Yona-Password" value="0123456789012345" xmlns="http://eviware.com/soapui/config"/></con:setting></con:settings><con:endpoint>http://localhost:8080</con:endpoint><con:request>{
+    "firstName":"Bert",
+    "lastName":"Roos",
+    "nickName":"BR",
+    "emailAddress":"bert@famroos.nu",
+    "mobileNumber":"+31618190609",
+    "devices":[
+        "A", "B"
+    ],
+    "goals":[
+        "gambling"
+    ]
+}
+</con:request><con:originalUri>http://localhost/user</con:originalUri><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:parameters/></con:request><con:request name="Create user Gerda" id="7600c3cf-3bde-4d8f-9db6-76913a69eab1" mediaType="application/json" postQueryString="false"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;entry key="Yona-Password" value="abcdefghijklmnop" xmlns="http://eviware.com/soapui/config"/></con:setting></con:settings><con:endpoint>http://localhost:8080</con:endpoint><con:request>{
+    "firstName":"Gerda",
+    "lastName":"Roos",
+    "nickName":"GR",
+    "emailAddress":"gerda@famroos.nu",
+    "mobileNumber":"+31342422582",
+    "devices":[
+        "C"
+    ],
+    "goals":[
+        "shopping"
+    ]
+}
+</con:request><con:originalUri>http://localhost/user</con:originalUri><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:parameters/></con:request></con:method></con:resource><con:resource name="buddy" path="/user/1/buddy" id="18e4aa85-d4d3-4199-8b32-7dc882f3dbd2"><con:settings/><con:parameters/><con:method name="Buddy" id="f580cd1c-8dfb-4a38-8a0d-62daa935e970" method="POST"><con:settings/><con:parameters/><con:representation type="REQUEST"><con:mediaType>application/json</con:mediaType><con:params/></con:representation><con:representation type="RESPONSE"><con:mediaType>application/hal+json;charset=UTF-8</con:mediaType><con:status>200</con:status><con:params/><con:element xmlns:bud="http://localhost/user/1/buddy">bud:Response</con:element></con:representation><con:representation type="FAULT"><con:mediaType>application/json;charset=UTF-8</con:mediaType><con:status>500</con:status><con:params/><con:element xmlns:bud="http://localhost/user/1/buddy">bud:Fault</con:element></con:representation><con:representation type="RESPONSE"><con:mediaType xsi:nil="true"/><con:status>0</con:status><con:params/><con:element>data</con:element></con:representation><con:representation type="RESPONSE"><con:mediaType xsi:nil="true"/><con:status>0</con:status><con:params/><con:element>data</con:element></con:representation><con:representation type="RESPONSE"><con:mediaType xsi:nil="true"/><con:status>0</con:status><con:params/><con:element>data</con:element></con:representation><con:request name="Add Gerda as buddy for Bert" id="a5e7606e-c0a0-453f-85fa-1de71a669ca3" mediaType="application/json" postQueryString="false"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;entry key="Yona-Password" value="0123456789012345" xmlns="http://eviware.com/soapui/config"/></con:setting></con:settings><con:endpoint>http://localhost:8080</con:endpoint><con:request>{
+    "_embedded":{
+        "user":{
+            "firstName":"Gerda",
+            "lastName":"Roos",
+            "emailAddress":"gerda@famroos.nu",
+            "mobileNumber":"+31342422582"
+        }
+    },
+    "message":"Would you like to be my buddy?",
+    "password":"Geheim"
+}</con:request><con:originalUri>http://localhost/user/1/buddy</con:originalUri><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:parameters/></con:request></con:method></con:resource><con:resource name="1" path="/user/1/buddy/1" id="7f538b6f-444e-45aa-aa42-5711bca94c64"><con:settings/><con:parameters/><con:method name="Buddy" id="effc914f-52b9-42f2-a956-065881703f35" method="GET"><con:settings/><con:parameters/><con:representation type="RESPONSE"><con:mediaType>application/hal+json;charset=UTF-8</con:mediaType><con:status>200</con:status><con:params/><con:element xmlns:ns="http://localhost/user/1/buddy/1">ns:Response</con:element></con:representation><con:representation type="FAULT"><con:mediaType>application/json;charset=UTF-8</con:mediaType><con:status>404</con:status><con:params/><con:element xmlns:ns="http://localhost/user/1/buddy/1">ns:Fault</con:element></con:representation><con:request name="Get buddy 1 of Bert" id="f5d89cb5-cc69-4123-ae66-7b6e14cd4464" mediaType="application/json"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;entry key="Yona-Password" value="0123456789012345" xmlns="http://eviware.com/soapui/config"/></con:setting></con:settings><con:endpoint>http://localhost:8080</con:endpoint><con:request/><con:originalUri>http://localhost/user/1/buddy/1</con:originalUri><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:parameters/></con:request></con:method></con:resource></con:interface><con:testSuite id="a9de7fa9-a16f-4151-9950-afa2c4610795" name="Initialize"><con:settings/><con:runType>SEQUENTIAL</con:runType><con:testCase id="b3c4517b-9b43-4848-a90a-094fb634243a" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Create goal gambling" searchProperties="true"><con:settings/><con:testStep type="restrequest" name="Goal - Create goal gambling" id="74312d5e-419c-43b3-a92b-e018904a328b"><con:settings/><con:config service="http://localhost:8080" resourcePath="/goal" methodName="Goal" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:restRequest name="Goal - Create goal gambling" id="9d7d35e6-233e-46f1-8cd5-0da69d8a94ea" mediaType="application/json" postQueryString="false"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:endpoint>http://localhost:8080</con:endpoint><con:request>{
+    "name":"gambling",
+    "categories":[
+        "poker",
+        "lotto"
+    ]
+}</con:request><con:originalUri>http://localhost/goal</con:originalUri><con:assertion type="JsonPath Match" id="46af60c0-00c8-48ea-9d61-936f7b8349db" name="JsonPath Match"><con:configuration><path>$.name</path><content>gambling</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:parameters/><con:parameterOrder/></con:restRequest></con:config></con:testStep><con:properties/></con:testCase><con:testCase id="07176912-e59b-4ccd-846f-65a5f0029a2c" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Create goal shopping" searchProperties="true"><con:settings/><con:testStep type="restrequest" name="Goal - Create goal shopping" id="84bd7610-f638-4168-8f80-33d6417dc4d4"><con:settings/><con:config service="http://localhost:8080" resourcePath="/goal" methodName="Goal" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:restRequest name="Goal - Create goal shopping" id="6eb0ee9f-2de5-4b21-95be-ce0d181439ac" mediaType="application/json" postQueryString="false"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:endpoint>http://localhost:8080</con:endpoint><con:request>{
+    "name":"shopping",
+    "categories":[
+        "shoes",
+        "chocolate"
+    ]
+}
+</con:request><con:originalUri>http://localhost/goal</con:originalUri><con:assertion type="JsonPath Match" id="2cd8a943-7f83-4e45-adbb-f814d96ef9b6" name="JsonPath Match"><con:configuration><path>$.name</path><content>shopping</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:parameters/><con:parameterOrder/></con:restRequest></con:config></con:testStep><con:properties/></con:testCase><con:testCase id="e3e55ba8-37d2-45e5-9600-6066a55c3b19" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Create user Bert" searchProperties="true"><con:settings/><con:testStep type="restrequest" name="User - Create user Bert" id="0d04903f-e03c-4f93-ac3b-8b159b8918e4"><con:settings/><con:config service="http://localhost:8080" resourcePath="/user" methodName="User" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:restRequest name="User - Create user Bert" id="4a5b62c1-cf44-48a2-96e1-61b0ac6d87f0" mediaType="application/json" postQueryString="false"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;entry key="Yona-Password" value="0123456789012345" xmlns="http://eviware.com/soapui/config"/></con:setting></con:settings><con:endpoint>http://localhost:8080</con:endpoint><con:request>{
+    "firstName":"Bert",
+    "lastName":"Roos",
+    "nickName":"BR",
+    "emailAddress":"bert@famroos.nu",
+    "mobileNumber":"+31618190609",
+    "devices":[
+        "A", "B"
+    ],
+    "goals":[
+        "gambling"
+    ]
+}
+</con:request><con:originalUri>http://localhost/user</con:originalUri><con:assertion type="JsonPath Match" id="55a1fd11-d5c7-4e9c-99d2-153e3998c2e0" name="JsonPath Match"><con:configuration><path>$.goals[0]</path><content>gambling</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:parameters/></con:restRequest></con:config></con:testStep><con:properties/></con:testCase><con:testCase id="9641bddb-ce4b-41d7-8610-4424fa2cd0a0" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Create user Gerda" searchProperties="true"><con:settings/><con:testStep type="restrequest" name="User - Create user Gerda" id="7d247937-dff1-449b-ac12-d912fd3a218d"><con:settings/><con:config service="http://localhost:8080" resourcePath="/user" methodName="User" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:restRequest name="User - Create user Gerda" id="7600c3cf-3bde-4d8f-9db6-76913a69eab1" mediaType="application/json" postQueryString="false"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;entry key="Yona-Password" value="abcdefghijklmnop" xmlns="http://eviware.com/soapui/config"/></con:setting></con:settings><con:endpoint>http://localhost:8080</con:endpoint><con:request>{
+    "firstName":"Gerda",
+    "lastName":"Roos",
+    "nickName":"GR",
+    "emailAddress":"gerda@famroos.nu",
+    "mobileNumber":"+31342422582",
+    "devices":[
+        "C"
+    ],
+    "goals":[
+        "shopping"
+    ]
+}
+</con:request><con:originalUri>http://localhost/user</con:originalUri><con:assertion type="JsonPath Match" id="24c47167-86c5-4732-82fe-f2ed6fc022c6" name="JsonPath Match"><con:configuration><path>$.goals[0]</path><content>shopping</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:parameters/></con:restRequest></con:config></con:testStep><con:properties/></con:testCase><con:testCase id="adba66df-16eb-4705-9b30-921daf7980f1" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Add Gerda as buddy for Bert" searchProperties="true"><con:settings/><con:testStep type="restrequest" name="Buddy - Add Gerda as buddy for Bert" id="79cf2429-28c0-4315-9678-57699fb0dfe0"><con:settings/><con:config service="http://localhost:8080" resourcePath="/user/1/buddy" methodName="Buddy" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:restRequest name="Buddy - Add Gerda as buddy for Bert" id="a5e7606e-c0a0-453f-85fa-1de71a669ca3" mediaType="application/json" postQueryString="false"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;entry key="Yona-Password" value="0123456789012345" xmlns="http://eviware.com/soapui/config"/></con:setting></con:settings><con:endpoint>http://localhost:8080</con:endpoint><con:request>{
+    "_embedded":{
+        "user":{
+            "firstName":"Gerda",
+            "lastName":"Roos",
+            "emailAddress":"gerda@famroos.nu",
+            "mobileNumber":"+31342422582"
+        }
+    },
+    "message":"Would you like to be my buddy?",
+    "password":"Geheim"
+}</con:request><con:originalUri>http://localhost/user/1/buddy</con:originalUri><con:assertion type="JsonPath Match" id="3039f893-95ed-430f-a6fe-d05e66cc1727" name="JsonPath Match"><con:configuration><path>$_links.self.href</path><content>http://localhost:8080/user/1/buddy/1</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:parameters/></con:restRequest></con:config></con:testStep><con:properties/></con:testCase><con:testCase id="cd986bbc-cff6-46ff-b464-05dac8d61e63" failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Verify result" searchProperties="true"><con:settings/><con:testStep type="restrequest" name="Buddy - Get buddy 1 of Bert" id="64bdfbfc-4db4-42fb-abe1-e1467cfb9d66"><con:settings/><con:config service="http://localhost:8080" resourcePath="/user/1/buddy/1" methodName="Buddy" xsi:type="con:RestRequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:restRequest name="Buddy - Get buddy 1 of Bert" id="f5d89cb5-cc69-4123-ae66-7b6e14cd4464" mediaType="application/json"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;entry key="Yona-Password" value="0123456789012345" xmlns="http://eviware.com/soapui/config"/></con:setting></con:settings><con:endpoint>http://localhost:8080</con:endpoint><con:request/><con:originalUri>http://localhost/user/1/buddy/1</con:originalUri><con:assertion type="JsonPath Match" id="ce9794e1-db06-49e4-b22c-a485083a67d2" name="firstName"><con:configuration><path>$._embedded.user.firstName</path><content>Gerda</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:assertion type="JsonPath Match" id="82eb6028-8cf3-4cde-bb2a-95441173fb3f" name="lastName"><con:configuration><path>$._embedded.user.lastName</path><content>Roos</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:assertion type="JsonPath Match" id="ed845972-744e-4e78-9ab1-0fdae3b06ae4" name="Self-link of user"><con:configuration><path>$._embedded.user._links.self.href</path><content>http://localhost:8080/user/2?full=false</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:assertion type="JsonPath Match" id="a39d0492-f10b-410b-8ab3-98c013f4882c" name="Self-link of buddy"><con:configuration><path>$._links.self.href</path><content>http://localhost:8080/user/1/buddy/1</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:parameters/></con:restRequest></con:config></con:testStep><con:properties/></con:testCase><con:properties/></con:testSuite><con:properties/><con:wssContainer/><con:oAuth2ProfileContainer/></con:soapui-project>

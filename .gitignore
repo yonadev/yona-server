@@ -1,0 +1,54 @@
+# Entries taken from https://github.com/github/gitignore/blob/master/Gradle.gitignore
+/.gradle
+/build/
+
+# Ignore Gradle GUI config
+gradle-app.setting
+
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
+
+# Entries taken from https://github.com/spring-projects/spring-framework/blob/master/.gitignore
+*.java.hsp
+*.sonarj
+*.sw*
+.DS_Store
+.settings
+.springBeans
+bin
+build.sh
+integration-repo
+ivy-cache
+jxl.log
+jmx.log
+derby.log
+spring-test/test-output/
+argfile*
+pom.xml
+activemq-data/
+
+buildSrc/build
+/spring-*/build
+/src/asciidoc/build
+target/
+
+# Eclipse artifacts, including WTP generated manifests
+.classpath
+.project
+spring-*/src/main/java/META-INF/MANIFEST.MF
+
+# IDEA artifacts and output dirs
+*.iml
+*.ipr
+*.iws
+.idea
+out
+test-output
+atlassian-ide-plugin.xml
+.gradletasknamecache
+
+# Entries below exclude the HSQL database
+/YonaDB.lck
+/YonaDB.log
+/YonaDB.properties
+/YonaDB.script
