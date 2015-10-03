@@ -30,7 +30,7 @@ public class PublicKeyUtil {
 	public static KeyPair generateKeyPair() {
 		try {
 			KeyPairGenerator keyGen = KeyPairGenerator.getInstance(KEY_ALGORITHM);
-			SecureRandom random = SecureRandom.getInstance("SHA1PRNG", "SUN");
+			SecureRandom random = CryptoUtil.getSecureRandomInstance();
 			keyGen.initialize(1024, random);
 			KeyPair pair = keyGen.generateKeyPair();
 			return pair;

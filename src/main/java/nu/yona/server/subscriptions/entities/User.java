@@ -186,4 +186,8 @@ public class User {
 	public Set<Buddy> getBuddies() {
 		return encrypted.getBuddies();
 	}
+
+	public boolean canAccessPrivateData() {
+		return encrypted.isDecryptedProperly();
+	}
 }

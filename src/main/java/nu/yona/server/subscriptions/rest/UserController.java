@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.UserDTO;
@@ -45,27 +44,14 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 
-	// TODO: Do we need this? It implies a security vulnerability
-	@RequestMapping(method = RequestMethod.GET)
-	@ResponseBody
-	public HttpEntity<UserResource> getUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@RequestParam(value = "emailAddress", required = false) String emailAddress,
-			@RequestParam(value = "mobileNumber", required = false) String mobileNumber) {
-
-		try (CryptoSession cryptoSession = CryptoSession.start(getPassword(password))) {
-			return createOKResponse(userService.getUser(emailAddress, mobileNumber), true);
-		}
-	}
-
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "full", defaultValue = "false") String fullEntityStr, @PathVariable long id) {
 		boolean fullEntity = Boolean.TRUE.toString().equals(fullEntityStr);
 		if (fullEntity) {
-			try (CryptoSession cryptoSession = CryptoSession.start(getPassword(password))) {
-				return createOKResponse(userService.getPrivateUser(id), fullEntity);
-			}
+			return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+					() -> createOKResponse(userService.getPrivateUser(id), fullEntity));
 		} else {
 			return createOKResponse(userService.getPublicUser(id), fullEntity);
 
@@ -77,9 +63,8 @@ public class UserController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public HttpEntity<UserResource> addUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@RequestBody UserDTO user) {
-		try (CryptoSession cryptoSession = CryptoSession.start(getPassword(password))) {
-			return createResponse(userService.addUser(user), true, HttpStatus.CREATED);
-		}
+		return CryptoSession.execute(password,
+				() -> createResponse(userService.addUser(user), true, HttpStatus.CREATED));
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
@@ -87,9 +72,8 @@ public class UserController {
 	public HttpEntity<UserResource> updateUser(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable long id,
 			@RequestBody UserDTO userResource) {
-		try (CryptoSession cryptoSession = CryptoSession.start(getPassword(password))) {
-			return createOKResponse(userService.updateUser(id, userResource), true);
-		}
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+				() -> createOKResponse(userService.updateUser(id, userResource), true));
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
@@ -97,13 +81,10 @@ public class UserController {
 	@ResponseStatus(HttpStatus.OK)
 	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable long id) {
-		try (CryptoSession cryptoSession = CryptoSession.start(getPassword(password))) {
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
 			userService.deleteUser(password, id);
-		}
-	}
-
-	public static String getPassword(Optional<String> password) {
-		return password.orElseThrow(() -> new YonaException("Missing '" + Constants.PASSWORD_HEADER + "' header"));
+			return null;
+		});
 	}
 
 	private HttpEntity<UserResource> createResponse(UserDTO user, boolean fullEntity, HttpStatus status) {

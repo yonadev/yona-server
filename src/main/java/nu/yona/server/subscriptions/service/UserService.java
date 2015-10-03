@@ -19,7 +19,7 @@ import nu.yona.server.subscriptions.entities.User;
 
 @Component
 public class UserService {
-	// TODO: Do we need this? It implies a security vulnerability
+	// TODO: Do we need this? Currently unused.
 	public UserDTO getUser(String emailAddress, String mobileNumber) {
 
 		if (emailAddress != null && mobileNumber != null) {
@@ -31,6 +31,10 @@ public class UserService {
 
 		User userEntity = findUserByEmailAddressOrMobileNumber(emailAddress, mobileNumber);
 		return UserDTO.createFullyInitializedInstance(userEntity);
+	}
+
+	public boolean canAccessPrivateData(long id) {
+		return getEntityByID(id).canAccessPrivateData();
 	}
 
 	public UserDTO getPublicUser(long id) {
@@ -92,14 +96,17 @@ public class UserService {
 		}
 	}
 
-	private UpdatedEntities updateUserWithTempPassword(UserDTO userResource, User originalUserEntity) {
-		try (CryptoSession cryptoSession = CryptoSession.start(userResource.getPassword())) {
-			User updatedUserEntity = userResource.updateUser(originalUserEntity);
-			MessageSource touchedNameMessageSource = touchMessageSource(updatedUserEntity.getNamedMessageSource());
-			MessageSource touchedAnonymousMessageSource = touchMessageSource(
-					updatedUserEntity.getAnonymousMessageSource());
-			return new UpdatedEntities(updatedUserEntity, touchedNameMessageSource, touchedAnonymousMessageSource);
-		}
+	private UpdatedEntities updateUserWithTempPassword(UserDTO userDTO, User originalUserEntity) {
+		return CryptoSession.execute(Optional.of(userDTO.getPassword()), () -> canAccessPrivateData(userDTO.getID()),
+				() -> {
+					User updatedUserEntity = userDTO.updateUser(originalUserEntity);
+					MessageSource touchedNameMessageSource = touchMessageSource(
+							updatedUserEntity.getNamedMessageSource());
+					MessageSource touchedAnonymousMessageSource = touchMessageSource(
+							updatedUserEntity.getAnonymousMessageSource());
+					return new UpdatedEntities(updatedUserEntity, touchedNameMessageSource,
+							touchedAnonymousMessageSource);
+				});
 	}
 
 	private MessageSource touchMessageSource(MessageSource messageSource) {
@@ -108,13 +115,15 @@ public class UserService {
 	}
 
 	private UserDTO saveUserWithDevicePassword(String password, UpdatedEntities updatedEntities) {
-		UserDTO savedUser;
-		try (CryptoSession cryptoSession = CryptoSession.start(password)) {
-			MessageSource.getRepository().save(updatedEntities.namedMessageSource);
-			MessageSource.getRepository().save(updatedEntities.anonymousMessageSource);
-			savedUser = UserDTO.createFullyInitializedInstance(User.getRepository().save(updatedEntities.userEntity));
-		}
-		return savedUser;
+		return CryptoSession.execute(Optional.of(password),
+				() -> canAccessPrivateData(updatedEntities.userEntity.getID()), () -> {
+					UserDTO savedUser;
+					MessageSource.getRepository().save(updatedEntities.namedMessageSource);
+					MessageSource.getRepository().save(updatedEntities.anonymousMessageSource);
+					savedUser = UserDTO
+							.createFullyInitializedInstance(User.getRepository().save(updatedEntities.userEntity));
+					return savedUser;
+				});
 	}
 
 	private UserDTO handleUserUpdate(UserDTO userResource, User originalUserEntity) {
@@ -124,9 +133,7 @@ public class UserService {
 
 	public void deleteUser(Optional<String> password, long id) {
 
-		try (CryptoSession cryptoSession = CryptoSession.start(getPassword(password))) {
-			User.getRepository().delete(id);
-		}
+		User.getRepository().delete(id);
 	}
 
 	public User getEntityByID(long id) {
@@ -135,10 +142,6 @@ public class UserService {
 			throw UserNotFoundException.notFoundByID(id);
 		}
 		return entity;
-	}
-
-	public void verifyExistence(long id) {
-		getEntityByID(id);
 	}
 
 	public static String getPassword(Optional<String> password) {

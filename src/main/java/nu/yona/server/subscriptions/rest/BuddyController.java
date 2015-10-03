@@ -33,9 +33,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(BuddyResource.class)
@@ -44,20 +46,25 @@ public class BuddyController {
 	@Autowired
 	private BuddyService buddyService;
 
+	@Autowired
+	private UserService userService;
+
 	@RequestMapping(value = "/buddy/{buddyID}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable long requestingUserID, @PathVariable long buddyID) {
 
-		return createOKResponse(requestingUserID, buddyService.getBuddy(password, requestingUserID, buddyID));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
+				() -> createOKResponse(requestingUserID, buddyService.getBuddy(password, requestingUserID, buddyID)));
 	}
 
 	@RequestMapping(value = "/buddy", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable long requestingUserID, @RequestBody BuddyDTO buddy) {
-		return createResponse(requestingUserID, buddyService.addBuddy(password, requestingUserID, buddy),
-				HttpStatus.CREATED);
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
+				() -> createResponse(requestingUserID, buddyService.addBuddy(password, requestingUserID, buddy),
+						HttpStatus.CREATED));
 	}
 
 	private HttpEntity<BuddyResource> createOKResponse(long requestingUserID, BuddyDTO buddy) {

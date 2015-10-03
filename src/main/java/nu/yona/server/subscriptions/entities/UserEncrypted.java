@@ -23,6 +23,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.LongFieldEncrypter;
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.crypto.UUIDFieldEncrypter;
@@ -33,9 +34,14 @@ import nu.yona.server.messaging.entities.MessageSource;
 @Table(name = "USERS_ENCRYPTED")
 public class UserEncrypted {
 
+	private static final String DECRYPTION_CHECK_STRING = "Decrypted properly#";
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
+
+	@Convert(converter = StringFieldEncrypter.class)
+	private String decryptionCheck;
 
 	@Convert(converter = StringFieldEncrypter.class)
 	private String nickname;
@@ -73,12 +79,17 @@ public class UserEncrypted {
 
 	private UserEncrypted(String nickname, Set<String> deviceNames, Set<Goal> goals, UUID accessorID,
 			long anonymousMessageSourceID, long namedMessageSourceID) {
+		this.decryptionCheck = buildDecryptionCheck();
 		this.nickname = nickname;
 		this.deviceNames = deviceNames;
 		setGoals(new HashSet<>(goals));
 		this.accessorID = accessorID;
 		this.anonymousMessageSourceID = anonymousMessageSourceID;
 		this.namedMessageSourceID = namedMessageSourceID;
+	}
+
+	private static String buildDecryptionCheck() {
+		return DECRYPTION_CHECK_STRING + CryptoUtil.getRandomString(DECRYPTION_CHECK_STRING.length());
 	}
 
 	public static UserEncrypted createInstance(String nickname, Set<String> deviceNames, Set<Goal> goals,
@@ -141,5 +152,13 @@ public class UserEncrypted {
 
 	public MessageSource getAnonymousMessageSource() {
 		return MessageSource.getRepository().findOne(anonymousMessageSourceID);
+	}
+
+	public boolean isDecryptedProperly() {
+		return isDecrypted() && decryptionCheck.startsWith(DECRYPTION_CHECK_STRING);
+	}
+
+	private boolean isDecrypted() {
+		return decryptionCheck != null;
 	}
 }

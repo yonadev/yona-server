@@ -38,21 +38,24 @@ import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService;
-import nu.yona.server.subscriptions.rest.UserController;
+import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 public class MessageController {
 	@Autowired
 	private MessageService messageService;
 
+	@Autowired
+	private UserService userService;
+
 	@RequestMapping(value = "/user/{userID}/message/direct/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<Resources<Resource<MessageDTO>>> getDirectMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable long userID) {
 
-		try (CryptoSession cryptoSession = CryptoSession.start(UserController.getPassword(password))) {
-			return buildResponse("message/direct/", userID, messageService.getDirectMessages(userID));
-		}
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> buildResponse("message/direct/", userID, messageService.getDirectMessages(userID)));
+
 	}
 
 	@RequestMapping(value = "/user/{userID}/message/direct/{id}/{action}", method = RequestMethod.POST)
@@ -61,9 +64,8 @@ public class MessageController {
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable long userID,
 			@PathVariable UUID id, @PathVariable String action, @RequestBody MessageActionDTO requestPayload) {
 
-		try (CryptoSession cryptoSession = CryptoSession.start(UserController.getPassword(password))) {
-			return buildResponse(messageService.handleMessageAction(userID, id, action, requestPayload));
-		}
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> buildResponse(messageService.handleMessageAction(userID, id, action, requestPayload)));
 	}
 
 	@RequestMapping(value = "/user/{userID}/message/anonymous/", method = RequestMethod.GET)
@@ -71,9 +73,8 @@ public class MessageController {
 	public HttpEntity<Resources<Resource<MessageDTO>>> getAnonymousMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable long userID) {
 
-		try (CryptoSession cryptoSession = CryptoSession.start(UserController.getPassword(password))) {
-			return buildResponse("message/anonymous/", userID, messageService.getAnonymousMessages(userID));
-		}
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> buildResponse("message/anonymous/", userID, messageService.getAnonymousMessages(userID)));
 	}
 
 	private ResponseEntity<Resource<MessageActionDTO>> buildResponse(MessageActionDTO dto) {

@@ -12,7 +12,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.Buddy.Status;
@@ -26,38 +25,29 @@ public class BuddyService {
 	UserService userService;
 
 	public BuddyDTO getBuddy(Optional<String> password, long idOfRequestingUser, long buddyID) {
-
-		try (CryptoSession cryptoSession = CryptoSession.start(UserService.getPassword(password))) {
-			userService.verifyExistence(idOfRequestingUser);
-			return BuddyDTO.createInstance(getEntityByID(buddyID));
-		}
+		return BuddyDTO.createInstance(getEntityByID(buddyID));
 	}
 
 	public BuddyDTO addBuddy(Optional<String> password, long idOfRequestingUser, BuddyDTO buddyResource) {
-		try (CryptoSession cryptoSession = CryptoSession.start(UserService.getPassword(password))) {
-			User requestingUserEntity = userService.getEntityByID(idOfRequestingUser);
-			User buddyUserEntity = getBuddyUser(buddyResource);
-			Buddy newBuddyEntity;
-			if (buddyUserEntity == null) {
-				newBuddyEntity = handleBuddyRequestForNewUser(requestingUserEntity, buddyResource);
-			} else {
-				newBuddyEntity = handleBuddyRequestForExistingUser(requestingUserEntity, buddyResource,
-						buddyUserEntity);
-			}
-			return BuddyDTO.createInstance(newBuddyEntity);
+		User requestingUserEntity = userService.getEntityByID(idOfRequestingUser);
+		User buddyUserEntity = getBuddyUser(buddyResource);
+		Buddy newBuddyEntity;
+		if (buddyUserEntity == null) {
+			newBuddyEntity = handleBuddyRequestForNewUser(requestingUserEntity, buddyResource);
+		} else {
+			newBuddyEntity = handleBuddyRequestForExistingUser(requestingUserEntity, buddyResource, buddyUserEntity);
 		}
+		return BuddyDTO.createInstance(newBuddyEntity);
 	}
 
 	private Buddy handleBuddyRequestForNewUser(User requestingUserEntity, BuddyDTO buddyResource) {
-		try (CryptoSession cryptoSession = CryptoSession.start(buddyResource.getPassword())) {
-			UserDTO buddyUserResource = buddyResource.getUser();
-			User buddyUserEntity = User.createInstanceOnBuddyRequest(buddyUserResource.getFirstName(),
-					buddyUserResource.getLastName(), buddyUserResource.getNickName(),
-					buddyUserResource.getEmailAddress(), buddyUserResource.getMobileNumber());
-			User savedBuddyUserEntity = User.getRepository().save(buddyUserEntity);
-			sendInvitationMessage(savedBuddyUserEntity, buddyResource);
-			return handleBuddyRequestForExistingUser(requestingUserEntity, buddyResource, buddyUserEntity);
-		}
+		UserDTO buddyUserResource = buddyResource.getUser();
+		User buddyUserEntity = User.createInstanceOnBuddyRequest(buddyUserResource.getFirstName(),
+				buddyUserResource.getLastName(), buddyUserResource.getNickName(), buddyUserResource.getEmailAddress(),
+				buddyUserResource.getMobileNumber());
+		User savedBuddyUserEntity = User.getRepository().save(buddyUserEntity);
+		sendInvitationMessage(savedBuddyUserEntity, buddyResource);
+		return handleBuddyRequestForExistingUser(requestingUserEntity, buddyResource, buddyUserEntity);
 	}
 
 	private void sendInvitationMessage(User buddyUserEntity, BuddyDTO buddyResource) {

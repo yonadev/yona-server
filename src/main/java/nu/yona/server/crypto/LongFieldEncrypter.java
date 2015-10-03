@@ -21,6 +21,11 @@ public class LongFieldEncrypter implements AttributeConverter<Long, String> {
 
 	@Override
 	public Long convertToEntityAttribute(String dbData) {
-		return (dbData == null) ? null : Long.parseLong(stringFieldEncrypter.convertToEntityAttribute(dbData));
+		return (dbData == null) ? null : decryptToLong(dbData);
+	}
+
+	private long decryptToLong(String dbData) {
+		String decryptedString = stringFieldEncrypter.convertToEntityAttribute(dbData);
+		return (decryptedString == null) ? 0 : Long.parseLong(decryptedString);
 	}
 }

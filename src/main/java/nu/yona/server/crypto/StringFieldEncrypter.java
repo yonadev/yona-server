@@ -22,6 +22,11 @@ public class StringFieldEncrypter implements AttributeConverter<String, String> 
 
 	@Override
 	public String convertToEntityAttribute(String dbData) {
-		return (dbData == null) ? null : new String(new ByteFieldEncrypter().convertToEntityAttribute(dbData));
+		return (dbData == null) ? null : decryptToString(dbData);
+	}
+
+	private String decryptToString(String dbData) {
+		byte[] decryptedBytes = new ByteFieldEncrypter().convertToEntityAttribute(dbData);
+		return (decryptedBytes == null) ? null : new String(decryptedBytes);
 	}
 }

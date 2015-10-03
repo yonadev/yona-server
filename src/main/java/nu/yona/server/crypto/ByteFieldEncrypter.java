@@ -30,7 +30,11 @@ public class ByteFieldEncrypter implements AttributeConverter<byte[], String> {
 			return null;
 		}
 
-		byte[] ciphertext = Base64.getDecoder().decode(dbData);
-		return CryptoSession.getCurrent().decrypt(ciphertext);
+		try {
+			byte[] ciphertext = Base64.getDecoder().decode(dbData);
+			return CryptoSession.getCurrent().decrypt(ciphertext);
+		} catch (RuntimeException ex) {
+			return null;
+		}
 	}
 }
