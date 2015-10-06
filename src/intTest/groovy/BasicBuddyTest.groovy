@@ -76,7 +76,7 @@ class RestSpecification extends Specification {
 				"emailAddress":"rich@quin.net",
 				"mobileNumber":"+12345678",
 				"devices":[
-					"Nexus 6",
+					"Nexus 6"
 				],
 				"goals":[
 					"gambling"
@@ -99,7 +99,7 @@ class RestSpecification extends Specification {
 				"emailAddress":"bob@dunn.net",
 				"mobileNumber":"+13456789",
 				"devices":[
-					"iPhone 6",
+					"iPhone 6"
 				],
 				"goals":[
 					"programming"
