@@ -30,7 +30,6 @@ class RestSpecification extends Specification {
 	JsonSlurper jsonSlurper = new JsonSlurper()
 	RESTClient restClient = new RESTClient(baseURL)
 
-	//@Ignore
 	def 'Add goal Gambling'(){
 		given:
 
@@ -47,7 +46,6 @@ class RestSpecification extends Specification {
 			gamblingURL.startsWith(baseURL + goalPath)
 	}
 
-	//@Ignore
 	def 'Add goal Programming'(){
 		given:
 
@@ -64,7 +62,6 @@ class RestSpecification extends Specification {
 			programmingURL.startsWith(baseURL + goalPath)
 	}
 
-	//@Ignore
 	def 'Add user Richard Quin'(){
 		given:
 
@@ -87,7 +84,6 @@ class RestSpecification extends Specification {
 			richardQuinURL.startsWith(baseURL + baseUserPath)
 	}
 
-	//@Ignore
 	def 'Add user Bob Dunn'(){
 		given:
 
@@ -110,7 +106,6 @@ class RestSpecification extends Specification {
 			bobDunnURL.startsWith(baseURL + baseUserPath)
 	}
 
-	//@Ignore
 	def 'Richard requests Bob to become his buddy'(){
 		given:
 
@@ -131,7 +126,6 @@ class RestSpecification extends Specification {
 			richardQuinBobBuddyURL.startsWith(richardQuinURL)
 	}
 
-	//@Ignore
 	def 'Bob checks his direct messages'(){
 		given:
 
@@ -145,7 +139,6 @@ class RestSpecification extends Specification {
 			bobDunnBuddyMessageAcceptURL.startsWith(message._embedded.buddyConnectRequestMessages[0]._links.self.href)
 	}
 
-	//@Ignore
 	def 'Bob accepts Richard\'s buddy request'(){
 		given:
 
@@ -160,7 +153,6 @@ class RestSpecification extends Specification {
 			message.properties.status == "done"
 	}
 
-	//@Ignore
 	def 'Richard checks his direct messages'(){
 		given:
 
@@ -174,7 +166,6 @@ class RestSpecification extends Specification {
 			richardQuinBuddyMessageProcessURL.startsWith(message._embedded.buddyConnectResponseMessages[0]._links.self.href) 
 	}
 
-	//@Ignore
 	def 'Richard processes Bob\'s buddy acceptance'(){
 		given:
 
