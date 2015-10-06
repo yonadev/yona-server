@@ -67,9 +67,8 @@ public class CryptoSession implements AutoCloseable {
 		return execute(password, null, executable);
 	}
 
-	public static <T> T execute(Optional<String> passwordOpt, VoidPredicate passwordChecker, Executable<T> executable) {
-		String password = getPassword(passwordOpt);
-		try (CryptoSession cryptoSession = CryptoSession.start(password)) {
+	public static <T> T execute(Optional<String> password, VoidPredicate passwordChecker, Executable<T> executable) {
+		try (CryptoSession cryptoSession = CryptoSession.start(getPassword(password))) {
 			if (passwordChecker != null && !passwordChecker.test()) {
 				throw new DecryptionException();
 			}
