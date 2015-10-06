@@ -41,7 +41,7 @@ public class BuddyConnectResponseMessageDTO extends MessageDTO {
 		this.isProcessed = isProcessed;
 	}
 
-	public UserDTO getRequestingUser() {
+	public UserDTO getRespondingUser() {
 		return respondingUserResource;
 	}
 
