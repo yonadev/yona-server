@@ -12,12 +12,19 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
+import nu.yona.server.messaging.service.MessageService.DTOFactory;
+import nu.yona.server.messaging.service.MessageService.TheDTOFactory;
 import nu.yona.server.rest.BadRequestException;
 import nu.yona.server.subscriptions.entities.Accessor;
 import nu.yona.server.subscriptions.entities.Buddy;
@@ -103,5 +110,22 @@ public class BuddyConnectResponseMessageDTO extends MessageDTO {
 	private void updateMessageStatusAsProcessed() {
 		messageEntity.setProcessed();
 		Message.getRepository().save(messageEntity);
+	}
+
+	@Component
+	private static class Factory implements DTOFactory {
+		@Autowired
+		private TheDTOFactory theDTOFactory;
+
+		@PostConstruct
+		private void init() {
+			theDTOFactory.addFactory(BuddyConnectResponseMessage.class, this);
+		}
+
+		@Override
+		public MessageDTO createInstance(User actingUserEntity, Message messageEntity) {
+			return BuddyConnectResponseMessageDTO.createInstance(actingUserEntity,
+					(BuddyConnectResponseMessage) messageEntity);
+		}
 	}
 }

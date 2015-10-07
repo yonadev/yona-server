@@ -11,12 +11,20 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.model.GoalConflictMessage;
+import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
+import nu.yona.server.messaging.service.MessageService.DTOFactory;
+import nu.yona.server.messaging.service.MessageService.TheDTOFactory;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.User;
 
@@ -74,5 +82,21 @@ public class GoalConflictMessageDTO extends MessageDTO {
 	@Override
 	public MessageActionDTO handleAction(User requestingUserEntity, String action, MessageActionDTO payload) {
 		throw new IllegalArgumentException("Action '" + action + "' is not supported");
+	}
+
+	@Component
+	private static class Factory implements DTOFactory {
+		@Autowired
+		private TheDTOFactory theDTOFactory;
+
+		@PostConstruct
+		private void init() {
+			theDTOFactory.addFactory(GoalConflictMessage.class, this);
+		}
+
+		@Override
+		public MessageDTO createInstance(User actingUserEntity, Message messageEntity) {
+			return GoalConflictMessageDTO.createInstance(actingUserEntity, (GoalConflictMessage) messageEntity);
+		}
 	}
 }
