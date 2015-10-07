@@ -8,6 +8,7 @@
 package nu.yona.server.goals.rest;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.util.Set;
 import java.util.UUID;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
+import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
@@ -31,22 +33,21 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import nu.yona.server.goals.rest.GoalController.GoalResource;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.goals.service.GoalService;
-import nu.yona.server.rest.RestUtil;
 
 @Controller
 @ExposesResourceFor(GoalResource.class)
-@RequestMapping(value = "/goal")
+@RequestMapping(value = "/goal/")
 public class GoalController {
 	@Autowired
 	private GoalService goalService;
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
+	@RequestMapping(value = "{id}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<GoalResource> getGoal(@PathVariable UUID id) {
 		return createOKResponse(goalService.getGoal(id));
 	}
 
-	@RequestMapping(value = "/", method = RequestMethod.GET)
+	@RequestMapping(method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<Resources<GoalResource>> getAllGoals() {
 		return createOKResponse(goalService.getAllGoals());
@@ -58,13 +59,13 @@ public class GoalController {
 		return createResponse(goalService.addGoal(goal), HttpStatus.CREATED);
 	}
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<GoalResource> updateGoal(@PathVariable UUID id, @RequestBody GoalDTO goal) {
 		return createOKResponse(goalService.updateGoal(id, goal));
 	}
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "{id}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
 	public void deleteGoal(@PathVariable UUID id) {
 		goalService.deleteGoal(id);
@@ -83,8 +84,12 @@ public class GoalController {
 	}
 
 	private Resources<GoalResource> wrapGoalsAsResourceList(Set<GoalDTO> goals) {
-		return new Resources<>(new GoalResourceAssembler().toResources(goals),
-				RestUtil.selfLinkWithTrailingSlash(linkTo(GoalController.class)));
+		return new Resources<>(new GoalResourceAssembler().toResources(goals), getAllGoalsLinkBuilder().withSelfRel());
+	}
+
+	static ControllerLinkBuilder getAllGoalsLinkBuilder() {
+		GoalController methodOn = methodOn(GoalController.class);
+		return linkTo(methodOn.getAllGoals());
 	}
 
 	static class GoalResource extends Resource<GoalDTO> {

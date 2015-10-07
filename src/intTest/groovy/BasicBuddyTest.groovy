@@ -9,7 +9,7 @@ import groovy.json.*
 class RestSpecification extends Specification {
 
 	def baseURL = "http://localhost:8080"
-	def goalPath = "/goal"
+	def goalPath = "/goal/"
 	def baseUserPath = "/user"
 	def directMessagesPathFragment = "/message/direct/"
 	def anonymousMessagesPathFragment = "/message/anonymous/"
@@ -62,6 +62,18 @@ class RestSpecification extends Specification {
 
 		then:
 			programmingURL.startsWith(baseURL + goalPath)
+	}
+
+	def 'Get all goals'(){
+		given:
+
+		when:
+			def goals = getAllGoals()
+
+		then:
+			goals._links.self.href == baseURL + goalPath
+			goals._embedded.Goals.size() == 2
+			
 	}
 
 	def 'Add user Richard Quin'(){
@@ -199,6 +211,12 @@ class RestSpecification extends Specification {
 	{
 		def responseData = createResourceWithPassword(userPath + "/buddy", jsonString, password)
 		responseData._links.self.href
+	}
+
+	def getAllGoals()
+	{
+		def responseData = getResource(goalPath)
+		responseData
 	}
 
 	def getDirectMessages(userPath, password)
