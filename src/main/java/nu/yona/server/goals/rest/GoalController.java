@@ -38,7 +38,7 @@ import nu.yona.server.rest.RestUtil;
 @RequestMapping(value = "/goal")
 public class GoalController {
 	@Autowired
-	GoalService goalService;
+	private GoalService goalService;
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	@ResponseBody

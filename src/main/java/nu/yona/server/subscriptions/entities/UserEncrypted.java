@@ -48,24 +48,24 @@ public class UserEncrypted {
 
 	@ElementCollection(fetch = FetchType.EAGER)
 	@Convert(converter = StringFieldEncrypter.class)
-	Set<String> deviceNames;
+	private Set<String> deviceNames;
 
 	@Convert(converter = UUIDFieldEncrypter.class)
 	private UUID accessorID;
 
 	@ElementCollection(fetch = FetchType.EAGER)
 	@Convert(converter = UUIDFieldEncrypter.class)
-	Set<UUID> goalIDs;
+	private Set<UUID> goalIDs;
 
 	@Transient
-	Set<Goal> goals = new HashSet<>();
+	private Set<Goal> goals = new HashSet<>();
 
 	@ElementCollection(fetch = FetchType.EAGER)
 	@Convert(converter = LongFieldEncrypter.class)
-	Set<Long> buddyIDs;
+	private Set<Long> buddyIDs;
 
 	@Transient
-	Set<Buddy> buddies = new HashSet<>();
+	private Set<Buddy> buddies = new HashSet<>();
 
 	@Convert(converter = LongFieldEncrypter.class)
 	private long anonymousMessageSourceID;

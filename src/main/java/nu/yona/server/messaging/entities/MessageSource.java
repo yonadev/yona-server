@@ -42,7 +42,7 @@ public class MessageSource {
 
 	@Convert(converter = ByteFieldEncrypter.class)
 	@Column(length = 1024)
-	byte[] privateKeyBytes;
+	private byte[] privateKeyBytes;
 
 	@OneToOne(cascade = CascadeType.ALL)
 	private MessageDestination messageDestination;

@@ -50,7 +50,7 @@ public class User {
 	private boolean createdOnBuddyRequest;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	UserEncrypted encrypted;
+	private UserEncrypted encrypted;
 
 	@OneToOne
 	private MessageDestination messageDestination;

@@ -21,7 +21,7 @@ import nu.yona.server.analysis.service.PotentialConflictDTO;
 @Controller
 public class AnalysisEngineController {
 	@Autowired
-	AnalysisEngineService analysisEngineService;
+	private AnalysisEngineService analysisEngineService;
 
 	@RequestMapping(value = "/analysisEngine", method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)

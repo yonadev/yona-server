@@ -44,7 +44,7 @@ public class Buddy {
 	private long id;
 
 	@Convert(converter = LongFieldEncrypter.class)
-	long userID;
+	private long userID;
 
 	@Convert(converter = UUIDFieldEncrypter.class)
 	private UUID accessorID;

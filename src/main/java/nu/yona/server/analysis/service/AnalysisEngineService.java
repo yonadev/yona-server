@@ -23,7 +23,7 @@ import nu.yona.server.subscriptions.entities.Accessor;
 @Component
 public class AnalysisEngineService {
 	@Autowired
-	GoalService goalService;
+	private GoalService goalService;
 
 	public void analyze(PotentialConflictDTO potentialConflictPayload) {
 

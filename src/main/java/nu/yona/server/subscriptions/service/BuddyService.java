@@ -22,7 +22,7 @@ import nu.yona.server.subscriptions.rest.UserController;
 @Component
 public class BuddyService {
 	@Autowired
-	UserService userService;
+	private UserService userService;
 
 	public BuddyDTO getBuddy(Optional<String> password, long idOfRequestingUser, long buddyID) {
 		return BuddyDTO.createInstance(getEntityByID(buddyID));

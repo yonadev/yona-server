@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
  */
 public class JsonRootRelProvider implements RelProvider {
 
-	DefaultRelProvider defaultRelProvider = new DefaultRelProvider();
+	private DefaultRelProvider defaultRelProvider = new DefaultRelProvider();
 
 	@Override
 	public String getItemResourceRelFor(Class<?> type) {
