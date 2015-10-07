@@ -41,7 +41,7 @@ import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(BuddyResource.class)
-@RequestMapping(value = "/user/{requestingUserID}/buddy/")
+@RequestMapping(value = "/users/{requestingUserID}/buddies/")
 public class BuddyController {
 	@Autowired
 	private BuddyService buddyService;

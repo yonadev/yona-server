@@ -41,7 +41,7 @@ import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(MessageResource.class)
-@RequestMapping(value = "/user/{userID}/message")
+@RequestMapping(value = "/users/{userID}/messages")
 public class MessageController {
 	@Autowired
 	private MessageService messageService;

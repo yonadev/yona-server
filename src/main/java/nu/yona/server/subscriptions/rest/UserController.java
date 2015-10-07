@@ -39,12 +39,12 @@ import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(UserResource.class)
-@RequestMapping(value = "/user")
+@RequestMapping(value = "/users/")
 public class UserController {
 	@Autowired
 	private UserService userService;
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
+	@RequestMapping(value = "{id}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "full", defaultValue = "false") String fullEntityStr, @PathVariable long id) {
@@ -67,7 +67,7 @@ public class UserController {
 				() -> createResponse(userService.addUser(user), true, HttpStatus.CREATED));
 	}
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable long id,
@@ -76,7 +76,7 @@ public class UserController {
 				() -> createOKResponse(userService.updateUser(id, userResource), true));
 	}
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "{id}", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,

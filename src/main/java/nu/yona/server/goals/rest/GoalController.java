@@ -36,7 +36,7 @@ import nu.yona.server.goals.service.GoalService;
 
 @Controller
 @ExposesResourceFor(GoalResource.class)
-@RequestMapping(value = "/goal/")
+@RequestMapping(value = "/goals/")
 public class GoalController {
 	@Autowired
 	private GoalService goalService;

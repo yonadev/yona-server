@@ -9,11 +9,11 @@ import groovy.json.*
 class RestSpecification extends Specification {
 
 	def baseURL = "http://localhost:8080"
-	def goalPath = "/goal/"
-	def baseUserPath = "/user"
-	def buddyPathFragment = "/buddy/"
-	def directMessagesPathFragment = "/message/direct/"
-	def anonymousMessagesPathFragment = "/message/anonymous/"
+	def goalsPath = "/goals/"
+	def usersPath = "/users/"
+	def buddiesPathFragment = "/buddies/"
+	def directMessagesPathFragment = "/messages/direct/"
+	def anonymousMessagesPathFragment = "/messages/anonymous/"
 	@Shared
 	def gamblingURL
 	@Shared
@@ -46,7 +46,7 @@ class RestSpecification extends Specification {
 			}""")
 
 		then:
-			gamblingURL.startsWith(baseURL + goalPath)
+			gamblingURL.startsWith(baseURL + goalsPath)
 	}
 
 	def 'Add goal Programming'(){
@@ -62,7 +62,7 @@ class RestSpecification extends Specification {
 			}""")
 
 		then:
-			programmingURL.startsWith(baseURL + goalPath)
+			programmingURL.startsWith(baseURL + goalsPath)
 	}
 
 	def 'Get all goals'(){
@@ -72,7 +72,7 @@ class RestSpecification extends Specification {
 			def goals = getAllGoals()
 
 		then:
-			goals._links.self.href == baseURL + goalPath
+			goals._links.self.href == baseURL + goalsPath
 			goals._embedded.Goals.size() == 2
 			
 	}
@@ -96,7 +96,7 @@ class RestSpecification extends Specification {
 			}""", richardQuinPassword)
 
 		then:
-			richardQuinURL.startsWith(baseURL + baseUserPath)
+			richardQuinURL.startsWith(baseURL + usersPath)
 	}
 
 	def 'Add user Bob Dunn'(){
@@ -118,7 +118,7 @@ class RestSpecification extends Specification {
 			}""", bobDunnPassword)
 
 		then:
-			bobDunnURL.startsWith(baseURL + baseUserPath)
+			bobDunnURL.startsWith(baseURL + usersPath)
 	}
 
 	def 'Richard requests Bob to become his buddy'(){
@@ -200,24 +200,24 @@ class RestSpecification extends Specification {
 
 	def addGoal(jsonString)
 	{
-		def responseData = createResource(goalPath, jsonString)
+		def responseData = createResource(goalsPath, jsonString)
 		responseData._links.self.href
 	}
 
 	def addUser(jsonString, password)
 	{
-		def responseData = createResourceWithPassword(baseUserPath, jsonString, password)
+		def responseData = createResourceWithPassword(usersPath, jsonString, password)
 		stripQueryString(responseData._links.self.href)
 	}
 
 	def requestBuddy(userPath, jsonString, password)
 	{
-		def responseData = createResourceWithPassword(userPath + buddyPathFragment, jsonString, password)
+		def responseData = createResourceWithPassword(userPath + buddiesPathFragment, jsonString, password)
 	}
 
 	def getAllGoals()
 	{
-		def responseData = getResource(goalPath)
+		def responseData = getResource(goalsPath)
 		responseData
 	}
 
