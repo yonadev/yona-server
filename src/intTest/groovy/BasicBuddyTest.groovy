@@ -10,7 +10,7 @@ class RestSpecification extends Specification {
 
 	def baseURL = "http://localhost:8080"
 	def goalsPath = "/goals/"
-	def usersPath = "/users/"
+	def usersPath = "/users/" 
 	def buddiesPathFragment = "/buddies/"
 	def directMessagesPathFragment = "/messages/direct/"
 	def anonymousMessagesPathFragment = "/messages/anonymous/"
