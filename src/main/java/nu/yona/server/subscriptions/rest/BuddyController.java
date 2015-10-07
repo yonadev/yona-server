@@ -17,8 +17,8 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
@@ -76,6 +76,11 @@ public class BuddyController {
 				status);
 	}
 
+	static ControllerLinkBuilder getBuddyLinkBuilder(long userID, long buddyID) {
+		BuddyController methodOn = methodOn(BuddyController.class);
+		return linkTo(methodOn.getBuddy(Optional.empty(), userID, buddyID));
+	}
+
 	static class BuddyResource extends Resource<BuddyDTO> {
 		public BuddyResource(BuddyDTO buddy) {
 			super(buddy);
@@ -99,7 +104,8 @@ public class BuddyController {
 		@Override
 		public BuddyResource toResource(BuddyDTO buddy) {
 			BuddyResource buddyResource = instantiateResource(buddy);
-			addSelfLink(buddyResource);
+			ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(buddy.getID());
+			addSelfLink(selfLinkBuilder, buddyResource);
 			return buddyResource;
 		}
 
@@ -108,13 +114,12 @@ public class BuddyController {
 			return new BuddyResource(buddy);
 		}
 
-		private void addSelfLink(Resource<BuddyDTO> buddyResource) {
-			BuddyController methodOn = methodOn(BuddyController.class);
-			BuddyDTO buddy = buddyResource.getContent();
-			HttpEntity<BuddyResource> buddyHttpEntity = methodOn.getBuddy(Optional.empty(), requestingUserID,
-					buddy.getID());
-			Link withSelfRel = linkTo(buddyHttpEntity).withSelfRel();
-			buddyResource.add(withSelfRel);
+		private ControllerLinkBuilder getSelfLinkBuilder(long buddyID) {
+			return getBuddyLinkBuilder(requestingUserID, buddyID);
+		}
+
+		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, BuddyResource buddyResource) {
+			buddyResource.add(selfLinkBuilder.withSelfRel());
 		}
 	}
 }

@@ -164,7 +164,7 @@ public class MessageController {
 		}
 
 		private ControllerLinkBuilder getSelfLinkBuilder(UUID messageID) {
-			return MessageController.getMessageLinkBuilder(isDirect, userID, messageID);
+			return getMessageLinkBuilder(isDirect, userID, messageID);
 		}
 
 		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, MessageResource messageResource) {
