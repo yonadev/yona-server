@@ -83,8 +83,6 @@ public class GoalController {
 	}
 
 	private Resources<GoalResource> wrapGoalsAsResourceList(Set<GoalDTO> goals) {
-		// TODO: use standard REL and move code to util, consider not passing
-		// the REL to the Link constructor
 		return new Resources<>(new GoalResourceAssembler().toResources(goals),
 				RestUtil.selfLinkWithTrailingSlash(linkTo(GoalController.class)));
 	}

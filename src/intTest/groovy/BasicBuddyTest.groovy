@@ -11,6 +11,8 @@ class RestSpecification extends Specification {
 	def baseURL = "http://localhost:8080"
 	def goalPath = "/goal"
 	def baseUserPath = "/user"
+	def directMessagesPathFragment = "/message/direct/"
+	def anonymousMessagesPathFragment = "/message/anonymous/"
 	@Shared
 	def gamblingURL
 	@Shared
@@ -134,8 +136,9 @@ class RestSpecification extends Specification {
 			bobDunnBuddyMessageAcceptURL = message._embedded.buddyConnectRequestMessages[0]._links.accept.href
 
 		then:
-			message._links.self.href.startsWith(bobDunnURL)
+			message._links.self.href == bobDunnURL + directMessagesPathFragment
 			message._embedded.buddyConnectRequestMessages[0].requestingUser.firstName == "Richard"
+			message._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(message._links.self.href)
 			bobDunnBuddyMessageAcceptURL.startsWith(message._embedded.buddyConnectRequestMessages[0]._links.self.href)
 	}
 
@@ -161,8 +164,9 @@ class RestSpecification extends Specification {
 			richardQuinBuddyMessageProcessURL = message._embedded.buddyConnectResponseMessages[0]._links.process.href
 
 		then:
-			message._links.self.href.startsWith(richardQuinURL)
+			message._links.self.href == richardQuinURL + directMessagesPathFragment
 			message._embedded.buddyConnectResponseMessages[0].respondingUser.firstName == "Bob"
+			message._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(message._links.self.href)
 			richardQuinBuddyMessageProcessURL.startsWith(message._embedded.buddyConnectResponseMessages[0]._links.self.href) 
 	}
 
@@ -199,7 +203,7 @@ class RestSpecification extends Specification {
 
 	def getDirectMessages(userPath, password)
 	{
-		def responseData = getResourceWithPassword(userPath + "/message/direct/", password)
+		def responseData = getResourceWithPassword(userPath + directMessagesPathFragment, password)
 		responseData
 	}
 

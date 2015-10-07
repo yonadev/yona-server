@@ -9,15 +9,14 @@ package nu.yona.server.messaging.rest;
 
 import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Link;
+import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
@@ -34,13 +33,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.goals.rest.GoalController;
+import nu.yona.server.messaging.rest.MessageController.MessageResource;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
+@ExposesResourceFor(MessageResource.class)
+@RequestMapping(value = "/user/{userID}/message")
 public class MessageController {
 	@Autowired
 	private MessageService messageService;
@@ -48,80 +49,88 @@ public class MessageController {
 	@Autowired
 	private UserService userService;
 
-	@RequestMapping(value = "/user/{userID}/message/direct/", method = RequestMethod.GET)
+	@RequestMapping(value = "/direct/", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<Resources<Resource<MessageDTO>>> getDirectMessages(
+	public HttpEntity<Resources<MessageResource>> getDirectMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable long userID) {
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> buildResponse("message/direct/", userID, messageService.getDirectMessages(userID)));
+				() -> createOKResponse(true, userID, messageService.getDirectMessages(userID)));
 
 	}
 
-	@RequestMapping(value = "/user/{userID}/message/direct/{id}/{action}", method = RequestMethod.POST)
+	@RequestMapping(value = "/direct/{messageID}", method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<MessageResource> getDirectMessage(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable long userID,
+			@PathVariable UUID messageID) {
+
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> createOKResponse(true, userID, messageService.getDirectMessage(userID, messageID)));
+
+	}
+
+	@RequestMapping(value = "/direct/{id}/{action}", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<Resource<MessageActionDTO>> handleMessageAction(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable long userID,
 			@PathVariable UUID id, @PathVariable String action, @RequestBody MessageActionDTO requestPayload) {
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> buildResponse(messageService.handleMessageAction(userID, id, action, requestPayload)));
+				() -> createOKResponse(messageService.handleMessageAction(userID, id, action, requestPayload)));
 	}
 
-	@RequestMapping(value = "/user/{userID}/message/anonymous/", method = RequestMethod.GET)
+	@RequestMapping(value = "/anonymous/", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<Resources<Resource<MessageDTO>>> getAnonymousMessages(
+	public HttpEntity<Resources<MessageResource>> getAnonymousMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable long userID) {
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> buildResponse("message/anonymous/", userID, messageService.getAnonymousMessages(userID)));
+				() -> createOKResponse(false, userID, messageService.getAnonymousMessages(userID)));
 	}
 
-	private ResponseEntity<Resource<MessageActionDTO>> buildResponse(MessageActionDTO dto) {
-		return new ResponseEntity<Resource<MessageActionDTO>>(new Resource<>(dto), HttpStatus.OK);
+	@RequestMapping(value = "/anonymous/{messageID}", method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<MessageResource> getAnonymousMessage(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable long userID,
+			@PathVariable UUID messageID) {
+
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> createOKResponse(false, userID, messageService.getAnonymousMessage(userID, messageID)));
+
 	}
 
-	private ResponseEntity<Resources<Resource<MessageDTO>>> buildResponse(String path, long userID,
+	private HttpEntity<Resources<MessageResource>> createOKResponse(boolean isDirect, long userID,
 			List<MessageDTO> messages) {
-		return new ResponseEntity<Resources<Resource<MessageDTO>>>(wrapMessagesAsResourceList(path, userID, messages),
+		return new ResponseEntity<Resources<MessageResource>>(wrapMessagesAsResourceList(isDirect, userID, messages),
 				HttpStatus.OK);
 	}
 
-	private Resources<Resource<MessageDTO>> wrapMessagesAsResourceList(String path, long userID,
+	private HttpEntity<MessageResource> createOKResponse(boolean isDirect, long userID, MessageDTO message) {
+		return new ResponseEntity<MessageResource>(new MessageResourceAssembler(isDirect, userID).toResource(message),
+				HttpStatus.OK);
+	}
+
+	private HttpEntity<Resource<MessageActionDTO>> createOKResponse(MessageActionDTO dto) {
+		return new ResponseEntity<Resource<MessageActionDTO>>(new Resource<>(dto), HttpStatus.OK);
+	}
+
+	private Resources<MessageResource> wrapMessagesAsResourceList(boolean isDirect, long userID,
 			List<MessageDTO> messages) {
-		// TODO: Use message resource assembler here
-		// TODO: Check whether trailing slash is retained
-		ControllerLinkBuilder directMessagesRootLinkBuilder = createDirectMessagesRootLinkBuilder(path, userID);
-		List<Resource<MessageDTO>> resources = wrapMessagesAsResources(userID, messages, directMessagesRootLinkBuilder);
-
-		return new Resources<>(resources, directMessagesRootLinkBuilder.withSelfRel());
+		return new Resources<>(new MessageResourceAssembler(isDirect, userID).toResources(messages),
+				getMessagesLinkBuilder(isDirect, userID).withSelfRel());
 	}
 
-	private ControllerLinkBuilder createDirectMessagesRootLinkBuilder(String path, long userID) {
-		return linkTo(MessageController.class).slash("/user").slash(userID).slash(path);
+	private static ControllerLinkBuilder getMessagesLinkBuilder(boolean isDirect, long userID) {
+		MessageController methodOn = methodOn(MessageController.class);
+		return linkTo(isDirect ? methodOn.getDirectMessages(Optional.empty(), userID)
+				: methodOn.getAnonymousMessages(Optional.empty(), userID));
 	}
 
-	private List<Resource<MessageDTO>> wrapMessagesAsResources(long userID, List<MessageDTO> messages,
-			ControllerLinkBuilder directMessagesRootLinkBuilder) {
-		List<Resource<MessageDTO>> messageResources = messages.stream()
-				.map(mr -> wrapMessageAsResource(directMessagesRootLinkBuilder, mr)).collect(Collectors.toList());
-		return messageResources;
-	}
-
-	private Resource<MessageDTO> wrapMessageAsResource(ControllerLinkBuilder directMessagesRootLinkBuilder,
-			MessageDTO message) {
-		ControllerLinkBuilder thisMessageLinkBuilder = directMessagesRootLinkBuilder.slash(message.getID());
-		Collection<Link> allLinks = createActionLinks(thisMessageLinkBuilder, message);
-		Link selfLink = thisMessageLinkBuilder.withSelfRel();
-		allLinks.add(selfLink);
-		Collection<Link> allLinksExpanded = allLinks.stream().map(l -> l.expand(message.getID()))
-				.collect(Collectors.toList());
-		return new Resource<MessageDTO>(message, allLinksExpanded);
-	}
-
-	private Collection<Link> createActionLinks(ControllerLinkBuilder thisMessageLinkBuilder, MessageDTO message) {
-		return message.getPossibleActions().stream().map(a -> thisMessageLinkBuilder.slash(a).withRel(a))
-				.collect(Collectors.toList());
+	static ControllerLinkBuilder getMessageLinkBuilder(boolean isDirect, long userID, UUID messageID) {
+		MessageController methodOn = methodOn(MessageController.class);
+		return linkTo(isDirect ? methodOn.getDirectMessage(Optional.empty(), userID, messageID)
+				: methodOn.getAnonymousMessage(Optional.empty(), userID, messageID));
 	}
 
 	static class MessageResource extends Resource<MessageDTO> {
@@ -131,18 +140,40 @@ public class MessageController {
 	}
 
 	private static class MessageResourceAssembler extends ResourceAssemblerSupport<MessageDTO, MessageResource> {
-		public MessageResourceAssembler() {
-			super(GoalController.class, MessageResource.class);
+		private long userID;
+		private boolean isDirect;
+
+		public MessageResourceAssembler(boolean isDirect, long userID) {
+			super(MessageController.class, MessageResource.class);
+			this.isDirect = isDirect;
+			this.userID = userID;
 		}
 
 		@Override
 		public MessageResource toResource(MessageDTO message) {
-			return super.createResourceWithId(message.getID(), message);
+			MessageResource messageResource = instantiateResource(message);
+			ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(message.getID());
+			addSelfLink(selfLinkBuilder, messageResource);
+			addActionLinks(selfLinkBuilder, messageResource);
+			return messageResource;
 		}
 
 		@Override
 		protected MessageResource instantiateResource(MessageDTO message) {
 			return new MessageResource(message);
+		}
+
+		private ControllerLinkBuilder getSelfLinkBuilder(UUID messageID) {
+			return MessageController.getMessageLinkBuilder(isDirect, userID, messageID);
+		}
+
+		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, MessageResource messageResource) {
+			messageResource.add(selfLinkBuilder.withSelfRel());
+		}
+
+		private void addActionLinks(ControllerLinkBuilder selfLinkBuilder, MessageResource messageResource) {
+			messageResource.getContent().getPossibleActions().stream()
+					.forEach(a -> messageResource.add(selfLinkBuilder.slash(a).withRel(a)));
 		}
 	}
 }

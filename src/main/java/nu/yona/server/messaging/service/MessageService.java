@@ -32,38 +32,50 @@ public class MessageService {
 
 	public List<MessageDTO> getDirectMessages(long userID) {
 
-		User actingUserEntity = userService.getEntityByID(userID);
-		MessageSource messageSource = actingUserEntity.getNamedMessageSource();
-		return wrapAllMessagesAsDTOs(actingUserEntity, messageSource);
+		User userEntity = userService.getEntityByID(userID);
+		MessageSource messageSource = userEntity.getNamedMessageSource();
+		return wrapAllMessagesAsDTOs(userEntity, messageSource);
 	}
 
-	private List<MessageDTO> wrapAllMessagesAsDTOs(User actingUserEntity, MessageSource messageSource) {
-		return wrapMessagesAsDTOs(actingUserEntity, messageSource.getAllMessages());
+	public MessageDTO getDirectMessage(long userID, UUID messageID) {
+		User userEntity = userService.getEntityByID(userID);
+		MessageSource messageSource = userEntity.getNamedMessageSource();
+		return dtoFactory.createInstance(userEntity, messageSource.getMessage(messageID));
+	}
+
+	private List<MessageDTO> wrapAllMessagesAsDTOs(User userEntity, MessageSource messageSource) {
+		return wrapMessagesAsDTOs(userEntity, messageSource.getAllMessages());
 	}
 
 	public MessageActionDTO handleMessageAction(long userID, UUID id, String action, MessageActionDTO requestPayload) {
-		User actingUserEntity = userService.getEntityByID(userID);
-		MessageSource messageSource = actingUserEntity.getNamedMessageSource();
-		MessageActionDTO responsePayload = dtoFactory.createInstance(actingUserEntity, messageSource.getMessage(id))
-				.handleAction(actingUserEntity, action, requestPayload);
+		User userEntity = userService.getEntityByID(userID);
+		MessageSource messageSource = userEntity.getNamedMessageSource();
+		MessageActionDTO responsePayload = dtoFactory.createInstance(userEntity, messageSource.getMessage(id))
+				.handleAction(userEntity, action, requestPayload);
 		return responsePayload;
 	}
 
 	public List<MessageDTO> getAnonymousMessages(long userID) {
 
-		User actingUserEntity = userService.getEntityByID(userID);
-		MessageSource messageSource = actingUserEntity.getAnonymousMessageSource();
-		return wrapAllMessagesAsDTOs(actingUserEntity, messageSource);
+		User userEntity = userService.getEntityByID(userID);
+		MessageSource messageSource = userEntity.getAnonymousMessageSource();
+		return wrapAllMessagesAsDTOs(userEntity, messageSource);
 	}
 
-	private List<MessageDTO> wrapMessagesAsDTOs(User actingUserEntity, List<Message> messageEntities) {
+	public MessageDTO getAnonymousMessage(long userID, UUID messageID) {
+		User userEntity = userService.getEntityByID(userID);
+		MessageSource messageSource = userEntity.getAnonymousMessageSource();
+		return dtoFactory.createInstance(userEntity, messageSource.getMessage(messageID));
+	}
+
+	private List<MessageDTO> wrapMessagesAsDTOs(User userEntity, List<Message> messageEntities) {
 		List<MessageDTO> allMessagePayloads = messageEntities.stream()
-				.map(m -> dtoFactory.createInstance(actingUserEntity, m)).collect(Collectors.toList());
+				.map(m -> dtoFactory.createInstance(userEntity, m)).collect(Collectors.toList());
 		return allMessagePayloads;
 	}
 
 	public static interface DTOFactory {
-		MessageDTO createInstance(User actingUserEntity, Message messageEntity);
+		MessageDTO createInstance(User userEntity, Message messageEntity);
 	}
 
 	@Component
@@ -71,12 +83,12 @@ public class MessageService {
 		private Map<Class<? extends Message>, DTOFactory> factories = new HashMap<>();
 
 		@Override
-		public MessageDTO createInstance(User actingUserEntity, Message messageEntity) {
+		public MessageDTO createInstance(User userEntity, Message messageEntity) {
 			assert messageEntity != null;
 
 			for (Class<? extends Message> dtoClass : factories.keySet()) {
 				if (dtoClass.isInstance(messageEntity)) {
-					return factories.get(dtoClass).createInstance(actingUserEntity, messageEntity);
+					return factories.get(dtoClass).createInstance(userEntity, messageEntity);
 				}
 			}
 			throw new IllegalArgumentException("No DTO factory registered for class " + messageEntity.getClass());
