@@ -11,12 +11,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import nu.yona.server.goals.entities.Goal;
 
-@Component
+@Service
 public class GoalService {
 	public GoalDTO getGoal(UUID id) {
 		Goal goalEntity = getEntityByID(id);

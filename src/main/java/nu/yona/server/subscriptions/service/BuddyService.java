@@ -10,7 +10,7 @@ package nu.yona.server.subscriptions.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.subscriptions.entities.Buddy;
@@ -19,7 +19,7 @@ import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.rest.UserController;
 
-@Component
+@Service
 public class BuddyService {
 	@Autowired
 	private UserService userService;

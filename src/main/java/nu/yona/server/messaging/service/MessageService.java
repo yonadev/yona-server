@@ -15,13 +15,14 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.UserService;
 
-@Component
+@Service
 public class MessageService {
 	@Autowired
 	private UserService userService;

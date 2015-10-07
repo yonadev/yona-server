@@ -9,7 +9,7 @@ package nu.yona.server.subscriptions.service;
 
 import java.util.Optional;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.YonaException;
@@ -17,7 +17,7 @@ import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.subscriptions.entities.User;
 
-@Component
+@Service
 public class UserService {
 	// TODO: Do we need this? Currently unused.
 	public UserDTO getUser(String emailAddress, String mobileNumber) {

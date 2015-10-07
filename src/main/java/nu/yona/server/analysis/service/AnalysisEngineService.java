@@ -12,7 +12,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.model.GoalConflictMessage;
 import nu.yona.server.goals.entities.Goal;
@@ -20,7 +20,7 @@ import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.subscriptions.entities.Accessor;
 
-@Component
+@Service
 public class AnalysisEngineService {
 	@Autowired
 	private GoalService goalService;
