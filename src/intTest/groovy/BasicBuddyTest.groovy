@@ -11,6 +11,7 @@ class RestSpecification extends Specification {
 	def baseURL = "http://localhost:8080"
 	def goalPath = "/goal/"
 	def baseUserPath = "/user"
+	def buddyPathFragment = "/buddy/"
 	def directMessagesPathFragment = "/message/direct/"
 	def anonymousMessagesPathFragment = "/message/anonymous/"
 	@Shared
@@ -124,7 +125,7 @@ class RestSpecification extends Specification {
 		given:
 
 		when:
-			richardQuinBobBuddyURL = requestBuddy(richardQuinURL, """{
+			def buddy = requestBuddy(richardQuinURL, """{
 				"_embedded":{
 					"user":{
 						"firstName":"Bob",
@@ -135,8 +136,10 @@ class RestSpecification extends Specification {
 				},
 				"message":"Would you like to be my buddy?",
 			}""", richardQuinPassword)
+			richardQuinBobBuddyURL = buddy._links.self.href
 
 		then:
+			buddy._embedded.user.firstName == "Bob"
 			richardQuinBobBuddyURL.startsWith(richardQuinURL)
 	}
 
@@ -158,14 +161,14 @@ class RestSpecification extends Specification {
 		given:
 
 		when:
-			def message = postMessageActionWithPassword(bobDunnBuddyMessageAcceptURL, """{
+			def actionResponse = postMessageActionWithPassword(bobDunnBuddyMessageAcceptURL, """{
 				"properties":{
 					"message":"Yes, great idea!"
 				}
 			}""", bobDunnPassword)
 
 		then:
-			message.properties.status == "done"
+			actionResponse.properties.status == "done"
 	}
 
 	def 'Richard checks his direct messages'(){
@@ -186,13 +189,13 @@ class RestSpecification extends Specification {
 		given:
 
 		when:
-			def message = postMessageActionWithPassword(richardQuinBuddyMessageProcessURL, """{
+			def actionResponse = postMessageActionWithPassword(richardQuinBuddyMessageProcessURL, """{
 				"properties":{
 				}
 			}""", richardQuinPassword)
 
 		then:
-			message.properties.status == "done"
+			actionResponse.properties.status == "done"
 	}
 
 	def addGoal(jsonString)
@@ -209,8 +212,7 @@ class RestSpecification extends Specification {
 
 	def requestBuddy(userPath, jsonString, password)
 	{
-		def responseData = createResourceWithPassword(userPath + "/buddy", jsonString, password)
-		responseData._links.self.href
+		def responseData = createResourceWithPassword(userPath + buddyPathFragment, jsonString, password)
 	}
 
 	def getAllGoals()

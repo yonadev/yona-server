@@ -41,7 +41,7 @@ import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(BuddyResource.class)
-@RequestMapping(value = "/user/{requestingUserID}")
+@RequestMapping(value = "/user/{requestingUserID}/buddy/")
 public class BuddyController {
 	@Autowired
 	private BuddyService buddyService;
@@ -49,7 +49,7 @@ public class BuddyController {
 	@Autowired
 	private UserService userService;
 
-	@RequestMapping(value = "/buddy/{buddyID}", method = RequestMethod.GET)
+	@RequestMapping(value = "{buddyID}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable long requestingUserID, @PathVariable long buddyID) {
@@ -58,7 +58,7 @@ public class BuddyController {
 				() -> createOKResponse(requestingUserID, buddyService.getBuddy(password, requestingUserID, buddyID)));
 	}
 
-	@RequestMapping(value = "/buddy", method = RequestMethod.POST)
+	@RequestMapping(method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable long requestingUserID, @RequestBody BuddyDTO buddy) {
