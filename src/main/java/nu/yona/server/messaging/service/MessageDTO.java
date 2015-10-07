@@ -26,6 +26,7 @@ public abstract class MessageDTO {
 		return id;
 	}
 
+	@JsonIgnore
 	public abstract Set<String> getPossibleActions();
 
 	public abstract MessageActionDTO handleAction(User actingUserEntity, String action, MessageActionDTO actionDTO);
