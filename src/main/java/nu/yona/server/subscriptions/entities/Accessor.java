@@ -13,26 +13,20 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Type;
-
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.model.EntityWithID;
 import nu.yona.server.model.RepositoryProvider;
 
 @Entity
 @Table(name = "ACCESSORS")
-public class Accessor {
+public class Accessor extends EntityWithID {
 	public static AccessorRepository getRepository() {
 		return (AccessorRepository) RepositoryProvider.getRepository(Accessor.class, UUID.class);
 	}
-
-	@Id
-	@Type(type = "uuid-char")
-	private UUID id;
 
 	@ManyToMany
 	private Set<Goal> goals;
@@ -40,18 +34,15 @@ public class Accessor {
 	@ManyToMany
 	private Set<MessageDestination> destinations;
 
+	// Default constructor is required for JPA
 	public Accessor() {
-		// Default constructor is required for JPA
+		super(null);
 	}
 
 	public Accessor(UUID id, Set<Goal> goals) {
-		this.id = id;
+		super(id);
 		this.goals = new HashSet<>(goals);
 		this.destinations = new HashSet<>();
-	}
-
-	public UUID getID() {
-		return id;
 	}
 
 	public Set<Goal> getGoals() {
