@@ -8,6 +8,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,7 @@ public class BuddyService {
 	@Autowired
 	private UserService userService;
 
-	public BuddyDTO getBuddy(Optional<String> password, long idOfRequestingUser, long buddyID) {
+	public BuddyDTO getBuddy(Optional<String> password, long idOfRequestingUser, UUID buddyID) {
 		return BuddyDTO.createInstance(getEntityByID(buddyID));
 	}
 
@@ -74,7 +75,7 @@ public class BuddyService {
 		return savedBuddyEntity;
 	}
 
-	private Buddy getEntityByID(long id) {
+	private Buddy getEntityByID(UUID id) {
 		Buddy entity = Buddy.getRepository().findOne(id);
 		if (entity == null) {
 			throw new BuddyNotFoundException(id);

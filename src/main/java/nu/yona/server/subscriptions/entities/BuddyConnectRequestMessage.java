@@ -43,7 +43,7 @@ public class BuddyConnectRequestMessage extends Message {
 	private byte[] messageCiphertext;
 
 	@Transient
-	private long buddyID;
+	private UUID buddyID;
 	private byte[] buddyIDCiphertext;
 
 	private Status status = Status.NOT_REQUESTED;
@@ -54,7 +54,7 @@ public class BuddyConnectRequestMessage extends Message {
 	}
 
 	private BuddyConnectRequestMessage(UUID id, User requestingUser, UUID accessorID, Set<Goal> goals, String nickname,
-			String message, long buddyID) {
+			String message, UUID buddyID) {
 		super(id);
 		this.buddyID = buddyID;
 		if (requestingUser == null) {
@@ -93,7 +93,7 @@ public class BuddyConnectRequestMessage extends Message {
 		return message;
 	}
 
-	public long getBuddyID() {
+	public UUID getBuddyID() {
 		return buddyID;
 	}
 
@@ -106,7 +106,7 @@ public class BuddyConnectRequestMessage extends Message {
 	}
 
 	public static BuddyConnectRequestMessage createInstance(User requestingUser, String nickname, String message,
-			Set<Goal> goals, long buddyID) {
+			Set<Goal> goals, UUID buddyID) {
 		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUser, requestingUser.getAccessorID(), goals,
 				nickname, message, buddyID);
 	}
@@ -124,6 +124,6 @@ public class BuddyConnectRequestMessage extends Message {
 		message = decryptor.decryptString(messageCiphertext);
 		accessorID = decryptor.decryptUUID(accessorIDCiphertext);
 		nickname = decryptor.decryptString(nicknameCiphertext);
-		buddyID = decryptor.decryptLong(buddyIDCiphertext);
+		buddyID = decryptor.decryptUUID(buddyIDCiphertext);
 	}
 }

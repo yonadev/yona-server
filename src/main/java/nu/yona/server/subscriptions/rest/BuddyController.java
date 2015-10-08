@@ -14,6 +14,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
@@ -52,7 +53,7 @@ public class BuddyController {
 	@RequestMapping(value = "{buddyID}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable long requestingUserID, @PathVariable long buddyID) {
+			@PathVariable long requestingUserID, @PathVariable UUID buddyID) {
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
 				() -> createOKResponse(requestingUserID, buddyService.getBuddy(password, requestingUserID, buddyID)));
@@ -76,7 +77,7 @@ public class BuddyController {
 				status);
 	}
 
-	static ControllerLinkBuilder getBuddyLinkBuilder(long userID, long buddyID) {
+	static ControllerLinkBuilder getBuddyLinkBuilder(long userID, UUID buddyID) {
 		BuddyController methodOn = methodOn(BuddyController.class);
 		return linkTo(methodOn.getBuddy(Optional.empty(), userID, buddyID));
 	}
@@ -114,7 +115,7 @@ public class BuddyController {
 			return new BuddyResource(buddy);
 		}
 
-		private ControllerLinkBuilder getSelfLinkBuilder(long buddyID) {
+		private ControllerLinkBuilder getSelfLinkBuilder(UUID buddyID) {
 			return getBuddyLinkBuilder(requestingUserID, buddyID);
 		}
 

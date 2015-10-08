@@ -16,9 +16,6 @@ import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -26,22 +23,19 @@ import nu.yona.server.crypto.LongFieldEncrypter;
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.crypto.UUIDFieldEncrypter;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.model.EntityWithID;
 import nu.yona.server.model.RepositoryProvider;
 
 @Entity
 @Table(name = "BUDDIES")
-public class Buddy {
+public class Buddy extends EntityWithID {
 	public static BuddyRepository getRepository() {
-		return (BuddyRepository) RepositoryProvider.getRepository(Buddy.class, Long.class);
+		return (BuddyRepository) RepositoryProvider.getRepository(Buddy.class, UUID.class);
 	}
 
 	public enum Status {
 		NOT_REQUESTED, REQUESTED, ACCEPTED, REJECTED
 	};
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
 
 	@Convert(converter = LongFieldEncrypter.class)
 	private long userID;
@@ -65,21 +59,19 @@ public class Buddy {
 	private Status sendingStatus = Status.NOT_REQUESTED;
 	private Status receivingStatus = Status.NOT_REQUESTED;
 
+	// Default constructor is required for JPA
 	public Buddy() {
-		// Default constructor is required for JPA
+		super(null);
 	}
 
-	private Buddy(long userID, String nickName) {
+	private Buddy(UUID id, long userID, String nickName) {
+		super(id);
 		this.userID = userID;
 		this.nickName = nickName;
 	}
 
 	public static Buddy createInstance(User user, String nickName) {
-		return new Buddy(user.getID(), nickName);
-	}
-
-	public long getID() {
-		return id;
+		return new Buddy(UUID.randomUUID(), user.getID(), nickName);
 	}
 
 	public UUID getAccessorID() {

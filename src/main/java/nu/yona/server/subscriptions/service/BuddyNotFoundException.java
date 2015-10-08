@@ -7,6 +7,8 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -14,7 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class BuddyNotFoundException extends RuntimeException {
 	private static final long serialVersionUID = -5211242495003355230L;
 
-	public BuddyNotFoundException(long id) {
+	public BuddyNotFoundException(UUID id) {
 		super("Buddy with ID '" + id + "' not found");
 	}
 }

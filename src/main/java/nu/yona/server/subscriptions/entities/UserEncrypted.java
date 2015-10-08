@@ -21,7 +21,6 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import nu.yona.server.crypto.CryptoUtil;
-import nu.yona.server.crypto.LongFieldEncrypter;
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.crypto.UUIDFieldEncrypter;
 import nu.yona.server.goals.entities.Goal;
@@ -55,8 +54,8 @@ public class UserEncrypted extends EntityWithID {
 	private Set<Goal> goals = new HashSet<>();
 
 	@ElementCollection(fetch = FetchType.EAGER)
-	@Convert(converter = LongFieldEncrypter.class)
-	private Set<Long> buddyIDs;
+	@Convert(converter = UUIDFieldEncrypter.class)
+	private Set<UUID> buddyIDs;
 
 	@Transient
 	private Set<Buddy> buddies = new HashSet<>();

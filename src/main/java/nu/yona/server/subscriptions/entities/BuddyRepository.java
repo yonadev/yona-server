@@ -7,7 +7,9 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.util.UUID;
+
 import org.springframework.data.repository.CrudRepository;
 
-public interface BuddyRepository extends CrudRepository<Buddy, Long> {
+public interface BuddyRepository extends CrudRepository<Buddy, UUID> {
 }
