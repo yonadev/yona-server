@@ -11,31 +11,26 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import nu.yona.server.crypto.PublicKeyEncryptor;
 import nu.yona.server.crypto.PublicKeyUtil;
+import nu.yona.server.model.EntityWithID;
 import nu.yona.server.model.RepositoryProvider;
 
 @Entity
 @Table(name = "MESSAGE_DESTINATIONS")
-public class MessageDestination {
+public class MessageDestination extends EntityWithID {
 	public static MessageDestinationRepository getRepository() {
-		return (MessageDestinationRepository) RepositoryProvider.getRepository(MessageDestination.class, Long.class);
+		return (MessageDestinationRepository) RepositoryProvider.getRepository(MessageDestination.class, UUID.class);
 	}
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
 
 	@Column(length = 1024)
 	private byte[] publicKeyBytes;
@@ -46,17 +41,19 @@ public class MessageDestination {
 	@Transient
 	private PublicKey publicKey;
 
+	// Default constructor is required for JPA
 	public MessageDestination() {
-		// Default constructor is required for JPA
+		super(null);
 	}
 
-	public MessageDestination(PublicKey publicKey) {
+	public MessageDestination(UUID id, PublicKey publicKey) {
+		super(id);
 		this.publicKeyBytes = PublicKeyUtil.publicKeyToBytes(publicKey);
 		this.messages = new ArrayList<>();
 	}
 
-	public long getID() {
-		return id;
+	public static MessageDestination createInstance(PublicKey publicKey) {
+		return new MessageDestination(UUID.randomUUID(), publicKey);
 	}
 
 	public void send(Message message) {

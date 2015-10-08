@@ -101,7 +101,7 @@ public class BuddyConnectResponseMessageDTO extends MessageDTO {
 		Buddy.getRepository().save(buddy);
 	}
 
-	private void addDestinationOfBuddyToAccessor(UUID accessorID, long destinationID) {
+	private void addDestinationOfBuddyToAccessor(UUID accessorID, UUID destinationID) {
 		Accessor accessor = Accessor.getRepository().findOne(accessorID);
 		accessor.addDestination(MessageDestination.getRepository().findOne(destinationID));
 		Accessor.getRepository().save(accessor);

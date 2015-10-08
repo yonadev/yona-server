@@ -7,10 +7,12 @@
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
+import java.util.UUID;
+
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface MessageSourceRepository extends CrudRepository<MessageSource, Long> {
+public interface MessageSourceRepository extends CrudRepository<MessageSource, UUID> {
 
 }

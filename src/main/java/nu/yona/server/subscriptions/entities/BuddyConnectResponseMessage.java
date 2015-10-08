@@ -40,7 +40,7 @@ public class BuddyConnectResponseMessage extends Message {
 	private boolean isProcessed;
 
 	@Transient
-	private long destinationID;
+	private UUID destinationID;
 	private byte[] destinationIDCiphertext;
 
 	// Default constructor is required for JPA
@@ -48,7 +48,7 @@ public class BuddyConnectResponseMessage extends Message {
 		super(null);
 	}
 
-	private BuddyConnectResponseMessage(UUID id, User respondingUser, UUID accessorID, long destinationID,
+	private BuddyConnectResponseMessage(UUID id, User respondingUser, UUID accessorID, UUID destinationID,
 			String message, long buddyID, Status status) {
 		super(id);
 		this.respondingUser = respondingUser;
@@ -67,7 +67,7 @@ public class BuddyConnectResponseMessage extends Message {
 		return accessorID;
 	}
 
-	public long getDestinationID() {
+	public UUID getDestinationID() {
 		return destinationID;
 	}
 
@@ -91,7 +91,7 @@ public class BuddyConnectResponseMessage extends Message {
 		this.isProcessed = true;
 	}
 
-	public static BuddyConnectResponseMessage createInstance(User respondingUser, long destinationID, String message,
+	public static BuddyConnectResponseMessage createInstance(User respondingUser, UUID destinationID, String message,
 			long buddyID, Status status) {
 		return new BuddyConnectResponseMessage(UUID.randomUUID(), respondingUser, respondingUser.getAccessorID(),
 				destinationID, message, buddyID, status);
@@ -110,6 +110,6 @@ public class BuddyConnectResponseMessage extends Message {
 		message = decryptor.decryptString(messageCiphertext);
 		accessorID = decryptor.decryptUUID(accessorIDCiphertext);
 		buddyID = decryptor.decryptLong(buddyIDCiphertext);
-		destinationID = decryptor.decryptLong(destinationIDCiphertext);
+		destinationID = decryptor.decryptUUID(destinationIDCiphertext);
 	}
 }

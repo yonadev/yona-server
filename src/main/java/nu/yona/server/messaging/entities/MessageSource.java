@@ -17,9 +17,6 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -27,18 +24,15 @@ import javax.persistence.Transient;
 import nu.yona.server.crypto.ByteFieldEncrypter;
 import nu.yona.server.crypto.PublicKeyDecryptor;
 import nu.yona.server.crypto.PublicKeyUtil;
+import nu.yona.server.model.EntityWithID;
 import nu.yona.server.model.RepositoryProvider;
 
 @Entity
 @Table(name = "MESSAGE_SOURCES")
-public class MessageSource {
+public class MessageSource extends EntityWithID {
 	public static MessageSourceRepository getRepository() {
-		return (MessageSourceRepository) RepositoryProvider.getRepository(MessageSource.class, Long.class);
+		return (MessageSourceRepository) RepositoryProvider.getRepository(MessageSource.class, UUID.class);
 	}
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
 
 	@Convert(converter = ByteFieldEncrypter.class)
 	@Column(length = 1024)
@@ -50,11 +44,13 @@ public class MessageSource {
 	@Transient
 	private PrivateKey privateKey;
 
+	// Default constructor is required for JPA
 	public MessageSource() {
-		// Default constructor is required for JPA
+		super(null);
 	}
 
-	public MessageSource(PrivateKey privateKey, MessageDestination messageDestination) {
+	public MessageSource(UUID id, PrivateKey privateKey, MessageDestination messageDestination) {
+		super(id);
 		this.messageDestination = messageDestination;
 		this.privateKeyBytes = PublicKeyUtil.privateKeyToBytes(privateKey);
 	}
@@ -62,16 +58,12 @@ public class MessageSource {
 	public static MessageSource createInstance() {
 		KeyPair pair = PublicKeyUtil.generateKeyPair();
 
-		MessageDestination messageDestination = new MessageDestination(pair.getPublic());
-		return new MessageSource(pair.getPrivate(), messageDestination);
+		MessageDestination messageDestination = MessageDestination.createInstance(pair.getPublic());
+		return new MessageSource(UUID.randomUUID(), pair.getPrivate(), messageDestination);
 	}
 
 	public MessageDestination getDestination() {
 		return messageDestination;
-	}
-
-	public long getID() {
-		return id;
 	}
 
 	public List<Message> getAllMessages() {

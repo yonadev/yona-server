@@ -49,8 +49,8 @@ public class Buddy {
 	@Convert(converter = UUIDFieldEncrypter.class)
 	private UUID accessorID;
 
-	@Convert(converter = LongFieldEncrypter.class)
-	private long destinationID;
+	@Convert(converter = UUIDFieldEncrypter.class)
+	private UUID destinationID;
 
 	@Convert(converter = StringFieldEncrypter.class)
 	private String nickName;
@@ -90,11 +90,11 @@ public class Buddy {
 		this.accessorID = accessorID;
 	}
 
-	public long getDestinationID() {
+	public UUID getDestinationID() {
 		return destinationID;
 	}
 
-	public void setDestinationID(long destinationID) {
+	public void setDestinationID(UUID destinationID) {
 		this.destinationID = destinationID;
 	}
 

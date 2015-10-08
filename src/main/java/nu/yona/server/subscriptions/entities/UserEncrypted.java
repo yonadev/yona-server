@@ -17,9 +17,6 @@ import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -29,16 +26,13 @@ import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.crypto.UUIDFieldEncrypter;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.model.EntityWithID;
 
 @Entity
 @Table(name = "USERS_ENCRYPTED")
-public class UserEncrypted {
+public class UserEncrypted extends EntityWithID {
 
 	private static final String DECRYPTION_CHECK_STRING = "Decrypted properly#";
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
 
 	@Convert(converter = StringFieldEncrypter.class)
 	private String decryptionCheck;
@@ -67,18 +61,20 @@ public class UserEncrypted {
 	@Transient
 	private Set<Buddy> buddies = new HashSet<>();
 
-	@Convert(converter = LongFieldEncrypter.class)
-	private long anonymousMessageSourceID;
+	@Convert(converter = UUIDFieldEncrypter.class)
+	private UUID anonymousMessageSourceID;
 
-	@Convert(converter = LongFieldEncrypter.class)
-	private long namedMessageSourceID;
+	@Convert(converter = UUIDFieldEncrypter.class)
+	private UUID namedMessageSourceID;
 
+	// Default constructor is required for JPA
 	public UserEncrypted() {
-		// Default constructor is required for JPA
+		super(null);
 	}
 
-	private UserEncrypted(String nickname, Set<String> deviceNames, Set<Goal> goals, UUID accessorID,
-			long anonymousMessageSourceID, long namedMessageSourceID) {
+	private UserEncrypted(UUID id, String nickname, Set<String> deviceNames, Set<Goal> goals, UUID accessorID,
+			UUID anonymousMessageSourceID, UUID namedMessageSourceID) {
+		super(id);
 		this.decryptionCheck = buildDecryptionCheck();
 		this.nickname = nickname;
 		this.deviceNames = deviceNames;
@@ -94,12 +90,8 @@ public class UserEncrypted {
 
 	public static UserEncrypted createInstance(String nickname, Set<String> deviceNames, Set<Goal> goals,
 			Accessor accessor, MessageSource anonymousMessageSource, MessageSource namedMessageSource) {
-		return new UserEncrypted(nickname, deviceNames, goals, accessor.getID(), anonymousMessageSource.getID(),
-				namedMessageSource.getID());
-	}
-
-	public long getId() {
-		return id;
+		return new UserEncrypted(UUID.randomUUID(), nickname, deviceNames, goals, accessor.getID(),
+				anonymousMessageSource.getID(), namedMessageSource.getID());
 	}
 
 	public String getNickname() {
