@@ -19,7 +19,6 @@ import javax.persistence.FetchType;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import nu.yona.server.crypto.LongFieldEncrypter;
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.crypto.UUIDFieldEncrypter;
 import nu.yona.server.goals.entities.Goal;
@@ -37,8 +36,8 @@ public class Buddy extends EntityWithID {
 		NOT_REQUESTED, REQUESTED, ACCEPTED, REJECTED
 	};
 
-	@Convert(converter = LongFieldEncrypter.class)
-	private long userID;
+	@Convert(converter = UUIDFieldEncrypter.class)
+	private UUID userID;
 
 	@Convert(converter = UUIDFieldEncrypter.class)
 	private UUID accessorID;
@@ -64,7 +63,7 @@ public class Buddy extends EntityWithID {
 		super(null);
 	}
 
-	private Buddy(UUID id, long userID, String nickName) {
+	private Buddy(UUID id, UUID userID, String nickName) {
 		super(id);
 		this.userID = userID;
 		this.nickName = nickName;

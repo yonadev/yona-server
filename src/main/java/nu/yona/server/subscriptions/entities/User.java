@@ -15,27 +15,21 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.model.EntityWithID;
 import nu.yona.server.model.RepositoryProvider;
 
 @Entity
 @Table(name = "USERS")
-public class User {
+public class User extends EntityWithID {
 	public static UserRepository getRepository() {
-		return (UserRepository) RepositoryProvider.getRepository(User.class, Long.class);
+		return (UserRepository) RepositoryProvider.getRepository(User.class, UUID.class);
 	}
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
 
 	private String firstName;
 
@@ -55,12 +49,14 @@ public class User {
 	@OneToOne
 	private MessageDestination messageDestination;
 
+	// Default constructor is required for JPA
 	public User() {
-		// Default constructor is required for JPA
+		super(null);
 	}
 
-	private User(boolean createdOnBuddyRequest, String firstName, String lastName, String emailAddress,
+	private User(UUID id, boolean createdOnBuddyRequest, String firstName, String lastName, String emailAddress,
 			String mobileNumber, UserEncrypted encrypted, MessageDestination messageDestination) {
+		super(id);
 		this.createdOnBuddyRequest = createdOnBuddyRequest;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -79,7 +75,7 @@ public class User {
 		Accessor.getRepository().save(accessor);
 		UserEncrypted encrypted = UserEncrypted.createInstance(nickName, deviceNames, goals, accessor,
 				anonymousMessageSource, namedMessageSource);
-		return new User(false, firstName, lastName, emailAddress, mobileNumber, encrypted,
+		return new User(UUID.randomUUID(), false, firstName, lastName, emailAddress, mobileNumber, encrypted,
 				namedMessageSource.getDestination());
 	}
 
@@ -95,12 +91,8 @@ public class User {
 		Accessor.getRepository().save(accessor);
 		UserEncrypted encrypted = UserEncrypted.createInstance(nickName, devices, goals, accessor,
 				anonymousMessageSource, namedMessageSource);
-		return new User(true, firstName, lastName, emailAddress, mobileNumber, encrypted,
+		return new User(UUID.randomUUID(), true, firstName, lastName, emailAddress, mobileNumber, encrypted,
 				namedMessageSource.getDestination());
-	}
-
-	public long getID() {
-		return id;
 	}
 
 	public boolean isCreatedOnBuddyRequest() {

@@ -52,7 +52,7 @@ public class MessageController {
 	@RequestMapping(value = "/direct/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<Resources<MessageResource>> getDirectMessages(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable long userID) {
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID) {
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> createOKResponse(true, userID, messageService.getDirectMessages(userID)));
@@ -62,7 +62,7 @@ public class MessageController {
 	@RequestMapping(value = "/direct/{messageID}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<MessageResource> getDirectMessage(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable long userID,
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
 			@PathVariable UUID messageID) {
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
@@ -73,7 +73,7 @@ public class MessageController {
 	@RequestMapping(value = "/direct/{id}/{action}", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<Resource<MessageActionDTO>> handleMessageAction(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable long userID,
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
 			@PathVariable UUID id, @PathVariable String action, @RequestBody MessageActionDTO requestPayload) {
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
@@ -83,7 +83,7 @@ public class MessageController {
 	@RequestMapping(value = "/anonymous/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<Resources<MessageResource>> getAnonymousMessages(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable long userID) {
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID) {
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> createOKResponse(false, userID, messageService.getAnonymousMessages(userID)));
@@ -92,7 +92,7 @@ public class MessageController {
 	@RequestMapping(value = "/anonymous/{messageID}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<MessageResource> getAnonymousMessage(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable long userID,
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
 			@PathVariable UUID messageID) {
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
@@ -100,13 +100,13 @@ public class MessageController {
 
 	}
 
-	private HttpEntity<Resources<MessageResource>> createOKResponse(boolean isDirect, long userID,
+	private HttpEntity<Resources<MessageResource>> createOKResponse(boolean isDirect, UUID userID,
 			List<MessageDTO> messages) {
 		return new ResponseEntity<Resources<MessageResource>>(wrapMessagesAsResourceList(isDirect, userID, messages),
 				HttpStatus.OK);
 	}
 
-	private HttpEntity<MessageResource> createOKResponse(boolean isDirect, long userID, MessageDTO message) {
+	private HttpEntity<MessageResource> createOKResponse(boolean isDirect, UUID userID, MessageDTO message) {
 		return new ResponseEntity<MessageResource>(new MessageResourceAssembler(isDirect, userID).toResource(message),
 				HttpStatus.OK);
 	}
@@ -115,19 +115,19 @@ public class MessageController {
 		return new ResponseEntity<Resource<MessageActionDTO>>(new Resource<>(dto), HttpStatus.OK);
 	}
 
-	private Resources<MessageResource> wrapMessagesAsResourceList(boolean isDirect, long userID,
+	private Resources<MessageResource> wrapMessagesAsResourceList(boolean isDirect, UUID userID,
 			List<MessageDTO> messages) {
 		return new Resources<>(new MessageResourceAssembler(isDirect, userID).toResources(messages),
 				getMessagesLinkBuilder(isDirect, userID).withSelfRel());
 	}
 
-	private static ControllerLinkBuilder getMessagesLinkBuilder(boolean isDirect, long userID) {
+	private static ControllerLinkBuilder getMessagesLinkBuilder(boolean isDirect, UUID userID) {
 		MessageController methodOn = methodOn(MessageController.class);
 		return linkTo(isDirect ? methodOn.getDirectMessages(Optional.empty(), userID)
 				: methodOn.getAnonymousMessages(Optional.empty(), userID));
 	}
 
-	static ControllerLinkBuilder getMessageLinkBuilder(boolean isDirect, long userID, UUID messageID) {
+	static ControllerLinkBuilder getMessageLinkBuilder(boolean isDirect, UUID userID, UUID messageID) {
 		MessageController methodOn = methodOn(MessageController.class);
 		return linkTo(isDirect ? methodOn.getDirectMessage(Optional.empty(), userID, messageID)
 				: methodOn.getAnonymousMessage(Optional.empty(), userID, messageID));
@@ -140,10 +140,10 @@ public class MessageController {
 	}
 
 	private static class MessageResourceAssembler extends ResourceAssemblerSupport<MessageDTO, MessageResource> {
-		private long userID;
+		private UUID userID;
 		private boolean isDirect;
 
-		public MessageResourceAssembler(boolean isDirect, long userID) {
+		public MessageResourceAssembler(boolean isDirect, UUID userID) {
 			super(MessageController.class, MessageResource.class);
 			this.isDirect = isDirect;
 			this.userID = userID;

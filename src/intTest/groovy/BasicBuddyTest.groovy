@@ -10,7 +10,7 @@ class RestSpecification extends Specification {
 
 	def baseURL = "http://localhost:8080"
 	def goalsPath = "/goals/"
-	def usersPath = "/users/" 
+	def usersPath = "/users/"
 	def buddiesPathFragment = "/buddies/"
 	def directMessagesPathFragment = "/messages/direct/"
 	def anonymousMessagesPathFragment = "/messages/anonymous/"
@@ -18,8 +18,8 @@ class RestSpecification extends Specification {
 	def gamblingURL
 	@Shared
 	def programmingURL
-	def richardQuinPassword = "s e c r e t"
-	def bobDunnPassword = "u_n_k_n_o_w_n"
+	def richardQuinPassword = "R i c h a r d"
+	def bobDunnPassword = "B o b"
 	@Shared
 	def richardQuinURL
 	@Shared
@@ -97,6 +97,9 @@ class RestSpecification extends Specification {
 
 		then:
 			richardQuinURL.startsWith(baseURL + usersPath)
+
+		cleanup:
+			println "URL Richard: " + richardQuinURL
 	}
 
 	def 'Add user Bob Dunn'(){
@@ -119,6 +122,9 @@ class RestSpecification extends Specification {
 
 		then:
 			bobDunnURL.startsWith(baseURL + usersPath)
+
+		cleanup:
+			println "URL Bob: " + bobDunnURL
 	}
 
 	def 'Richard requests Bob to become his buddy'(){

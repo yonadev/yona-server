@@ -7,29 +7,28 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.http.HttpStatus;
+import java.util.UUID;
 
-@ResponseStatus(value=HttpStatus.NOT_FOUND, reason="No such user")
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No such user")
 public class UserNotFoundException extends RuntimeException {
 	private static final long serialVersionUID = -4519219401062670885L;
 
 	private UserNotFoundException(String msg) {
 		super(msg);
 	}
-	
-	public static UserNotFoundException notFoundByEmailAddress(String emailAddress)
-	{
+
+	public static UserNotFoundException notFoundByEmailAddress(String emailAddress) {
 		return new UserNotFoundException("User with e-mail address '" + emailAddress + "' not found");
 	}
-	
-	public static UserNotFoundException notFoundByMobileNumber(String mobileNumber)
-	{
+
+	public static UserNotFoundException notFoundByMobileNumber(String mobileNumber) {
 		return new UserNotFoundException("User with mobile number '" + mobileNumber + "' not found");
 	}
-	
-	public static UserNotFoundException notFoundByID(long id)
-	{
+
+	public static UserNotFoundException notFoundByID(UUID id) {
 		return new UserNotFoundException("User with ID '" + id + "' not found");
 	}
 }

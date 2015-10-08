@@ -30,14 +30,14 @@ public class MessageService {
 	@Autowired
 	private TheDTOFactory dtoFactory;
 
-	public List<MessageDTO> getDirectMessages(long userID) {
+	public List<MessageDTO> getDirectMessages(UUID userID) {
 
 		User userEntity = userService.getEntityByID(userID);
 		MessageSource messageSource = userEntity.getNamedMessageSource();
 		return wrapAllMessagesAsDTOs(userEntity, messageSource);
 	}
 
-	public MessageDTO getDirectMessage(long userID, UUID messageID) {
+	public MessageDTO getDirectMessage(UUID userID, UUID messageID) {
 		User userEntity = userService.getEntityByID(userID);
 		MessageSource messageSource = userEntity.getNamedMessageSource();
 		return dtoFactory.createInstance(userEntity, messageSource.getMessage(messageID));
@@ -47,7 +47,7 @@ public class MessageService {
 		return wrapMessagesAsDTOs(userEntity, messageSource.getAllMessages());
 	}
 
-	public MessageActionDTO handleMessageAction(long userID, UUID id, String action, MessageActionDTO requestPayload) {
+	public MessageActionDTO handleMessageAction(UUID userID, UUID id, String action, MessageActionDTO requestPayload) {
 		User userEntity = userService.getEntityByID(userID);
 		MessageSource messageSource = userEntity.getNamedMessageSource();
 		MessageActionDTO responsePayload = dtoFactory.createInstance(userEntity, messageSource.getMessage(id))
@@ -55,14 +55,14 @@ public class MessageService {
 		return responsePayload;
 	}
 
-	public List<MessageDTO> getAnonymousMessages(long userID) {
+	public List<MessageDTO> getAnonymousMessages(UUID userID) {
 
 		User userEntity = userService.getEntityByID(userID);
 		MessageSource messageSource = userEntity.getAnonymousMessageSource();
 		return wrapAllMessagesAsDTOs(userEntity, messageSource);
 	}
 
-	public MessageDTO getAnonymousMessage(long userID, UUID messageID) {
+	public MessageDTO getAnonymousMessage(UUID userID, UUID messageID) {
 		User userEntity = userService.getEntityByID(userID);
 		MessageSource messageSource = userEntity.getAnonymousMessageSource();
 		return dtoFactory.createInstance(userEntity, messageSource.getMessage(messageID));

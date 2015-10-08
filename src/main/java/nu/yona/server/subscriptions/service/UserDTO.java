@@ -12,6 +12,7 @@ import static java.util.stream.Collectors.toSet;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -29,7 +30,7 @@ import nu.yona.server.subscriptions.entities.User;
 @JsonRootName("User")
 public class UserDTO {
 	private static final Logger LOGGER = Logger.getLogger(UserDTO.class.getName());
-	private final long id;
+	private final UUID id;
 	private final String firstName;
 	private final String lastName;
 	private final String nickName;
@@ -39,7 +40,7 @@ public class UserDTO {
 	private Set<String> goalNames;
 	private final String password;
 
-	private UserDTO(long id, String firstName, String lastName, String nickName, String emailAddress,
+	private UserDTO(UUID id, String firstName, String lastName, String nickName, String emailAddress,
 			String mobileNumber, Set<String> deviceNames, Set<String> goalNames, String password) {
 		this.id = id;
 		this.firstName = firstName;
@@ -59,16 +60,16 @@ public class UserDTO {
 			@JsonProperty("devices") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> deviceNames,
 			@JsonProperty("goals") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> goalNames,
 			@JsonProperty("password") String password) {
-		this(0, firstName, lastName, nickName, emailAddress, mobileNumber, deviceNames, goalNames, password);
+		this(null, firstName, lastName, nickName, emailAddress, mobileNumber, deviceNames, goalNames, password);
 	}
 
-	private UserDTO(long id, String firstName, String lastName, String emailAddress, String mobileNumber) {
+	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber) {
 		this(id, firstName, lastName, null, emailAddress, mobileNumber, Collections.emptySet(), Collections.emptySet(),
 				null);
 	}
 
 	@JsonIgnore
-	public long getID() {
+	public UUID getID() {
 		return id;
 	}
 

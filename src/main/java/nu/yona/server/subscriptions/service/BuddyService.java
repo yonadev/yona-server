@@ -25,11 +25,11 @@ public class BuddyService {
 	@Autowired
 	private UserService userService;
 
-	public BuddyDTO getBuddy(Optional<String> password, long idOfRequestingUser, UUID buddyID) {
+	public BuddyDTO getBuddy(Optional<String> password, UUID idOfRequestingUser, UUID buddyID) {
 		return BuddyDTO.createInstance(getEntityByID(buddyID));
 	}
 
-	public BuddyDTO addBuddy(Optional<String> password, long idOfRequestingUser, BuddyDTO buddyResource) {
+	public BuddyDTO addBuddy(Optional<String> password, UUID idOfRequestingUser, BuddyDTO buddyResource) {
 		User requestingUserEntity = userService.getEntityByID(idOfRequestingUser);
 		User buddyUserEntity = getBuddyUser(buddyResource);
 		Buddy newBuddyEntity;

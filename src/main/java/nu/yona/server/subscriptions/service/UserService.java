@@ -8,6 +8,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -33,15 +34,15 @@ public class UserService {
 		return UserDTO.createFullyInitializedInstance(userEntity);
 	}
 
-	public boolean canAccessPrivateData(long id) {
+	public boolean canAccessPrivateData(UUID id) {
 		return getEntityByID(id).canAccessPrivateData();
 	}
 
-	public UserDTO getPublicUser(long id) {
+	public UserDTO getPublicUser(UUID id) {
 		return UserDTO.createMinimallyInitializedInstance(getEntityByID(id));
 	}
 
-	public UserDTO getPrivateUser(long id) {
+	public UserDTO getPrivateUser(UUID id) {
 		return UserDTO.createFullyInitializedInstance(getEntityByID(id));
 	}
 
@@ -52,7 +53,7 @@ public class UserService {
 		return savedUser;
 	}
 
-	public UserDTO updateUser(long id, UserDTO userResource) {
+	public UserDTO updateUser(UUID id, UserDTO userResource) {
 		User originalUserEntity = getEntityByID(id);
 		UserDTO savedUser;
 		if (originalUserEntity.isCreatedOnBuddyRequest()) {
@@ -131,12 +132,12 @@ public class UserService {
 				.createFullyInitializedInstance(User.getRepository().save(userResource.updateUser(originalUserEntity)));
 	}
 
-	public void deleteUser(Optional<String> password, long id) {
+	public void deleteUser(Optional<String> password, UUID id) {
 
 		User.getRepository().delete(id);
 	}
 
-	public User getEntityByID(long id) {
+	public User getEntityByID(UUID id) {
 		User entity = User.getRepository().findOne(id);
 		if (entity == null) {
 			throw UserNotFoundException.notFoundByID(id);

@@ -53,7 +53,7 @@ public class BuddyController {
 	@RequestMapping(value = "{buddyID}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable long requestingUserID, @PathVariable UUID buddyID) {
+			@PathVariable UUID requestingUserID, @PathVariable UUID buddyID) {
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
 				() -> createOKResponse(requestingUserID, buddyService.getBuddy(password, requestingUserID, buddyID)));
@@ -62,22 +62,22 @@ public class BuddyController {
 	@RequestMapping(method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable long requestingUserID, @RequestBody BuddyDTO buddy) {
+			@PathVariable UUID requestingUserID, @RequestBody BuddyDTO buddy) {
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
 				() -> createResponse(requestingUserID, buddyService.addBuddy(password, requestingUserID, buddy),
 						HttpStatus.CREATED));
 	}
 
-	private HttpEntity<BuddyResource> createOKResponse(long requestingUserID, BuddyDTO buddy) {
+	private HttpEntity<BuddyResource> createOKResponse(UUID requestingUserID, BuddyDTO buddy) {
 		return createResponse(requestingUserID, buddy, HttpStatus.OK);
 	}
 
-	private HttpEntity<BuddyResource> createResponse(long requestingUserID, BuddyDTO buddy, HttpStatus status) {
+	private HttpEntity<BuddyResource> createResponse(UUID requestingUserID, BuddyDTO buddy, HttpStatus status) {
 		return new ResponseEntity<BuddyResource>(new BuddyResourceAssembler(requestingUserID).toResource(buddy),
 				status);
 	}
 
-	static ControllerLinkBuilder getBuddyLinkBuilder(long userID, UUID buddyID) {
+	static ControllerLinkBuilder getBuddyLinkBuilder(UUID userID, UUID buddyID) {
 		BuddyController methodOn = methodOn(BuddyController.class);
 		return linkTo(methodOn.getBuddy(Optional.empty(), userID, buddyID));
 	}
@@ -95,9 +95,9 @@ public class BuddyController {
 	}
 
 	private static class BuddyResourceAssembler extends ResourceAssemblerSupport<BuddyDTO, BuddyResource> {
-		private long requestingUserID;
+		private UUID requestingUserID;
 
-		public BuddyResourceAssembler(long requestingUserID) {
+		public BuddyResourceAssembler(UUID requestingUserID) {
 			super(BuddyController.class, BuddyResource.class);
 			this.requestingUserID = requestingUserID;
 		}

@@ -12,6 +12,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
@@ -47,7 +48,7 @@ public class UserController {
 	@RequestMapping(value = "{id}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@RequestParam(value = "full", defaultValue = "false") String fullEntityStr, @PathVariable long id) {
+			@RequestParam(value = "full", defaultValue = "false") String fullEntityStr, @PathVariable UUID id) {
 		boolean fullEntity = Boolean.TRUE.toString().equals(fullEntityStr);
 		if (fullEntity) {
 			return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
@@ -70,7 +71,7 @@ public class UserController {
 	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable long id,
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
 			@RequestBody UserDTO userResource) {
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
 				() -> createOKResponse(userService.updateUser(id, userResource), true));
@@ -80,7 +81,7 @@ public class UserController {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable long id) {
+			@PathVariable UUID id) {
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
 			userService.deleteUser(password, id);
 			return null;
@@ -95,7 +96,7 @@ public class UserController {
 		return createResponse(user, fullEntity, HttpStatus.OK);
 	}
 
-	public static Link getUserLink(long userID, boolean fullEntity) {
+	public static Link getUserLink(UUID userID, boolean fullEntity) {
 		return linkTo(
 				methodOn(UserController.class).getUser(Optional.empty(), ((Boolean) fullEntity).toString(), userID))
 						.withSelfRel();
