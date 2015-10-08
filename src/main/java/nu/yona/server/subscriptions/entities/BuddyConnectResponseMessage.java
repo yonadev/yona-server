@@ -43,8 +43,9 @@ public class BuddyConnectResponseMessage extends Message {
 	private long destinationID;
 	private byte[] destinationIDCiphertext;
 
+	// Default constructor is required for JPA
 	public BuddyConnectResponseMessage() {
-		// Default constructor is required for JPA
+		super(null);
 	}
 
 	private BuddyConnectResponseMessage(UUID id, User respondingUser, UUID accessorID, long destinationID,

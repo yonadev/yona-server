@@ -15,23 +15,17 @@ import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Type;
-
+import nu.yona.server.model.EntityWithID;
 import nu.yona.server.model.RepositoryProvider;
 
 @Entity
 @Table(name = "GOALS")
-public class Goal {
+public class Goal extends EntityWithID {
 	public static GoalRepository getRepository() {
 		return (GoalRepository) RepositoryProvider.getRepository(Goal.class, UUID.class);
 	}
-
-	@Id
-	@Type(type = "uuid-char")
-	private UUID id;
 
 	@Column(unique = true)
 	private String name;
@@ -39,12 +33,13 @@ public class Goal {
 	@ElementCollection
 	private Set<String> categories;
 
+	// Default constructor is required for JPA
 	public Goal() {
-		// Default constructor is required for JPA
+		super(null);
 	}
 
 	public Goal(UUID id, String name, Set<String> categories) {
-		this.id = id;
+		super(id);
 		this.name = name;
 		this.categories = new HashSet<>(categories);
 	}
@@ -55,10 +50,6 @@ public class Goal {
 
 	public Set<String> getCategories() {
 		return Collections.unmodifiableSet(categories);
-	}
-
-	public UUID getID() {
-		return id;
 	}
 
 	public void setName(String name) {

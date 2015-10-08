@@ -49,6 +49,7 @@ public class BuddyConnectRequestMessage extends Message {
 	private Status status = Status.NOT_REQUESTED;
 
 	public BuddyConnectRequestMessage() {
+		super(null);
 		// Default constructor is required for JPA
 	}
 

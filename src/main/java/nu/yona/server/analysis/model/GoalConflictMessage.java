@@ -32,8 +32,9 @@ public class GoalConflictMessage extends Message {
 	private String url;
 	private byte[] urlCiphertext;
 
+	// Default constructor is required for JPA
 	public GoalConflictMessage() {
-		// Default constructor is required for JPA
+		super(null);
 	}
 
 	public GoalConflictMessage(UUID id, UUID accessorID, Goal goal, String url) {

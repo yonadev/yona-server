@@ -10,36 +10,29 @@ package nu.yona.server.messaging.entities;
 import java.util.UUID;
 
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.Table;
-
-import org.hibernate.annotations.Type;
 
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
+import nu.yona.server.model.EntityWithID;
 import nu.yona.server.model.RepositoryProvider;
 
 @Entity
 @Table(name = "MESSAGES")
-public abstract class Message {
+public abstract class Message extends EntityWithID {
 	public static MessageRepository getRepository() {
 		return (MessageRepository) RepositoryProvider.getRepository(Message.class, UUID.class);
 	}
 
-	@Id
-	@Type(type = "uuid-char")
-	private UUID id;
-
-	public Message() {
-		// Default constructor is required for JPA
-	}
-
+	/**
+	 * This is the only constructor, to ensure that subclasses don't
+	 * accidentally omit the ID.
+	 * 
+	 * @param id
+	 *            The ID of the entity
+	 */
 	protected Message(UUID id) {
-		this.id = id;
-	}
-
-	public UUID getID() {
-		return id;
+		super(id);
 	}
 
 	public abstract void encrypt(Encryptor encryptor);
