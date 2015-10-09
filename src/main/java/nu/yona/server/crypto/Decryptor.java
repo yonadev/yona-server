@@ -7,6 +7,7 @@
  *******************************************************************************/
 package nu.yona.server.crypto;
 
+import java.util.Set;
 import java.util.UUID;
 
 public interface Decryptor {
@@ -17,4 +18,6 @@ public interface Decryptor {
 	UUID decryptUUID(byte[] ciphertext);
 
 	long decryptLong(byte[] ciphertext);
+
+	Set<UUID> decryptUUIDSet(byte[] ciphertext);
 }

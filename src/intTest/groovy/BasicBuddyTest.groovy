@@ -147,6 +147,9 @@ class RestSpecification extends Specification {
 		then:
 			buddy._embedded.user.firstName == "Bob"
 			richardQuinBobBuddyURL.startsWith(richardQuinURL)
+
+		cleanup:
+			println "URL buddy Richard: " + richardQuinBobBuddyURL
 	}
 
 	def 'Bob checks his direct messages'(){

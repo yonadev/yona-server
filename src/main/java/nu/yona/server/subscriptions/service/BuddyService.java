@@ -67,8 +67,8 @@ public class BuddyService {
 
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
 		messageDestination.send(
-				BuddyConnectRequestMessage.createInstance(requestingUserEntity, requestingUserEntity.getNickName(),
-						buddyResource.getMessage(), requestingUserEntity.getGoals(), savedBuddyEntity.getID()));
+				BuddyConnectRequestMessage.createInstance(requestingUserEntity, requestingUserEntity.getGoals(),
+						requestingUserEntity.getNickName(), buddyResource.getMessage(), savedBuddyEntity.getID()));
 		MessageDestination.getRepository().save(messageDestination);
 		User.getRepository().save(requestingUserEntity);
 

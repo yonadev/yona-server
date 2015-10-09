@@ -7,6 +7,7 @@
  *******************************************************************************/
 package nu.yona.server.crypto;
 
+import java.util.Set;
 import java.util.UUID;
 
 public interface Encryptor {
@@ -17,5 +18,7 @@ public interface Encryptor {
 	byte[] encrypt(UUID plaintext);
 
 	byte[] encrypt(long plaintext);
+
+	byte[] encrypt(Set<UUID> plaintext);
 
 }

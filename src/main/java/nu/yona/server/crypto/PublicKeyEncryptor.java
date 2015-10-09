@@ -7,9 +7,13 @@
  *******************************************************************************/
 package nu.yona.server.crypto;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.PublicKey;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.crypto.Cipher;
@@ -56,5 +60,28 @@ public class PublicKeyEncryptor implements Encryptor {
 	@Override
 	public byte[] encrypt(long plaintext) {
 		return encrypt(Long.toString(plaintext));
+	}
+
+	@Override
+	public byte[] encrypt(Set<UUID> plaintext) {
+		try {
+			ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+			DataOutputStream dataStream = new DataOutputStream(byteStream);
+			dataStream.writeInt(plaintext.size());
+			plaintext.stream().forEach(id -> writeUUID(dataStream, id));
+
+			return encrypt(byteStream.toByteArray());
+		} catch (IOException e) {
+			throw new YonaException(e);
+		}
+	}
+
+	private void writeUUID(DataOutputStream dataStream, UUID id) {
+		try {
+			dataStream.writeLong(id.getMostSignificantBits());
+			dataStream.writeLong(id.getLeastSignificantBits());
+		} catch (IOException e) {
+			throw new YonaException(e);
+		}
 	}
 }

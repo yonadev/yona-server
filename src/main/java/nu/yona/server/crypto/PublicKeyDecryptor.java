@@ -7,9 +7,14 @@
  *******************************************************************************/
 package nu.yona.server.crypto;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.crypto.Cipher;
@@ -56,5 +61,29 @@ public class PublicKeyDecryptor implements Decryptor {
 	@Override
 	public long decryptLong(byte[] ciphertext) {
 		return Long.parseLong(decryptString(ciphertext));
+	}
+
+	@Override
+	public Set<UUID> decryptUUIDSet(byte[] ciphertext) {
+		try {
+			byte[] plaintext = decrypt(ciphertext);
+			DataInputStream stream = new DataInputStream(new ByteArrayInputStream(plaintext));
+			int length = stream.readInt();
+			Set<UUID> ids = new HashSet<>(length);
+			for (int i = 0; (i < length); i++) {
+				ids.add(readUUID(stream));
+			}
+			return ids;
+		} catch (IOException e) {
+			throw new YonaException(e);
+		}
+	}
+
+	private UUID readUUID(DataInputStream stream) {
+		try {
+			return new UUID(stream.readLong(), stream.readLong());
+		} catch (IOException e) {
+			throw new YonaException(e);
+		}
 	}
 }
