@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
@@ -45,7 +46,7 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 
-	@RequestMapping(value = "{id}", method = RequestMethod.GET)
+	@RequestMapping(value = "{id}", params = { "full" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "full", defaultValue = "false") String fullEntityStr, @PathVariable UUID id) {
@@ -54,9 +55,15 @@ public class UserController {
 			return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
 					() -> createOKResponse(userService.getPrivateUser(id), fullEntity));
 		} else {
-			return createOKResponse(userService.getPublicUser(id), fullEntity);
-
+			return getPublicUser(password, id);
 		}
+	}
+
+	@RequestMapping(value = "{id}", method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<UserResource> getPublicUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID id) {
+		return createOKResponse(userService.getPublicUser(id), false);
 	}
 
 	@RequestMapping(method = RequestMethod.POST)
@@ -97,9 +104,14 @@ public class UserController {
 	}
 
 	public static Link getUserLink(UUID userID, boolean fullEntity) {
-		return linkTo(
-				methodOn(UserController.class).getUser(Optional.empty(), ((Boolean) fullEntity).toString(), userID))
-						.withSelfRel();
+		ControllerLinkBuilder linkBuilder;
+		if (fullEntity) {
+			linkBuilder = linkTo(
+					methodOn(UserController.class).getUser(Optional.empty(), Boolean.TRUE.toString(), userID));
+		} else {
+			linkBuilder = linkTo(methodOn(UserController.class).getPublicUser(Optional.empty(), userID));
+		}
+		return linkBuilder.withSelfRel();
 	}
 
 	static class UserResource extends Resource<UserDTO> {
