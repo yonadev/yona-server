@@ -10,7 +10,6 @@ package nu.yona.server.analysis.model;
 import java.util.UUID;
 
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
 import nu.yona.server.crypto.Decryptor;
@@ -25,8 +24,9 @@ public class GoalConflictMessage extends Message {
 	private UUID accessorID;
 	private byte[] accessorIDCiphertext;
 
-	@ManyToOne
-	private Goal goal;
+	@Transient
+	private UUID goalID;
+	private byte[] goalIDCiphertext;
 
 	@Transient
 	private String url;
@@ -37,16 +37,16 @@ public class GoalConflictMessage extends Message {
 		super(null);
 	}
 
-	public GoalConflictMessage(UUID id, UUID accessorID, Goal goal, String url) {
+	public GoalConflictMessage(UUID id, UUID accessorID, UUID goalID, String url) {
 		super(id);
 
 		this.accessorID = accessorID;
-		this.goal = goal;
+		this.goalID = goalID;
 		this.url = url;
 	}
 
 	public Goal getGoal() {
-		return goal;
+		return Goal.getRepository().findOne(goalID);
 	}
 
 	public String getURL() {
@@ -60,16 +60,18 @@ public class GoalConflictMessage extends Message {
 	@Override
 	public void encrypt(Encryptor encryptor) {
 		accessorIDCiphertext = encryptor.encrypt(accessorID);
+		goalIDCiphertext = encryptor.encrypt(goalID);
 		urlCiphertext = encryptor.encrypt(url);
 	}
 
 	@Override
 	public void decrypt(Decryptor decryptor) {
 		accessorID = decryptor.decryptUUID(accessorIDCiphertext);
+		goalID = decryptor.decryptUUID(goalIDCiphertext);
 		url = decryptor.decryptString(urlCiphertext);
 	}
 
 	public static GoalConflictMessage createInstance(UUID accessorID, Goal goal, String url) {
-		return new GoalConflictMessage(UUID.randomUUID(), accessorID, goal, url);
+		return new GoalConflictMessage(UUID.randomUUID(), accessorID, goal.getID(), url);
 	}
 }
