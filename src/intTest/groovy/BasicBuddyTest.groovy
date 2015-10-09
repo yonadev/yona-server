@@ -11,6 +11,7 @@ class RestSpecification extends Specification {
 	def baseURL = "http://localhost:8080"
 	def goalsPath = "/goals/"
 	def usersPath = "/users/"
+	def analysisEnginePath = "/analysisEngine/"
 	def buddiesPathFragment = "/buddies/"
 	def directMessagesPathFragment = "/messages/direct/"
 	def anonymousMessagesPathFragment = "/messages/anonymous/"
@@ -23,7 +24,11 @@ class RestSpecification extends Specification {
 	@Shared
 	def richardQuinURL
 	@Shared
+	def richardQuinUsername
+	@Shared
 	def bobDunnURL
+	@Shared
+	def bobDunnUsername
 	@Shared
 	def richardQuinBobBuddyURL
 	@Shared
@@ -81,7 +86,7 @@ class RestSpecification extends Specification {
 		given:
 
 		when:
-			richardQuinURL = addUser("""{
+			def responseData = addUser("""{
 				"firstName":"Richard",
 				"lastName":"Quin",
 				"nickName":"RQ",
@@ -94,6 +99,8 @@ class RestSpecification extends Specification {
 					"gambling"
 				]
 			}""", richardQuinPassword)
+			richardQuinURL = stripQueryString(responseData._links.self.href)
+			richardQuinUsername = responseData.vpnProfile.username;
 
 		then:
 			richardQuinURL.startsWith(baseURL + usersPath)
@@ -106,7 +113,7 @@ class RestSpecification extends Specification {
 		given:
 
 		when:
-			bobDunnURL = addUser("""{
+			def responseData = addUser("""{
 				"firstName":"Bob",
 				"lastName":"Dunn",
 				"nickName":"BD",
@@ -119,6 +126,8 @@ class RestSpecification extends Specification {
 					"programming"
 				]
 			}""", bobDunnPassword)
+			bobDunnURL = stripQueryString(responseData._links.self.href)
+			bobDunnUsername = responseData.vpnProfile.username;
 
 		then:
 			bobDunnURL.startsWith(baseURL + usersPath)
@@ -156,55 +165,115 @@ class RestSpecification extends Specification {
 		given:
 
 		when:
-			def message = getDirectMessages(bobDunnURL, bobDunnPassword)
-			bobDunnBuddyMessageAcceptURL = message._embedded.buddyConnectRequestMessages[0]._links.accept.href
+			def responseData = getDirectMessages(bobDunnURL, bobDunnPassword)
+			bobDunnBuddyMessageAcceptURL = responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
 
 		then:
-			message._links.self.href == bobDunnURL + directMessagesPathFragment
-			message._embedded.buddyConnectRequestMessages[0].requestingUser.firstName == "Richard"
-			message._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(message._links.self.href)
-			bobDunnBuddyMessageAcceptURL.startsWith(message._embedded.buddyConnectRequestMessages[0]._links.self.href)
+			responseData._links.self.href == bobDunnURL + directMessagesPathFragment
+			responseData._embedded.buddyConnectRequestMessages[0].requestingUser.firstName == "Richard"
+			responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(responseData._links.self.href)
+			bobDunnBuddyMessageAcceptURL.startsWith(responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
 	}
 
 	def 'Bob accepts Richard\'s buddy request'(){
 		given:
 
 		when:
-			def actionResponse = postMessageActionWithPassword(bobDunnBuddyMessageAcceptURL, """{
+			def responseData = postMessageActionWithPassword(bobDunnBuddyMessageAcceptURL, """{
 				"properties":{
 					"message":"Yes, great idea!"
 				}
 			}""", bobDunnPassword)
 
 		then:
-			actionResponse.properties.status == "done"
+			responseData.properties.status == "done"
 	}
 
 	def 'Richard checks his direct messages'(){
 		given:
 
 		when:
-			def message = getDirectMessages(richardQuinURL, richardQuinPassword)
-			richardQuinBuddyMessageProcessURL = message._embedded.buddyConnectResponseMessages[0]._links.process.href
+			def responseData = getDirectMessages(richardQuinURL, richardQuinPassword)
+			richardQuinBuddyMessageProcessURL = responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
 
 		then:
-			message._links.self.href == richardQuinURL + directMessagesPathFragment
-			message._embedded.buddyConnectResponseMessages[0].respondingUser.firstName == "Bob"
-			message._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(message._links.self.href)
-			richardQuinBuddyMessageProcessURL.startsWith(message._embedded.buddyConnectResponseMessages[0]._links.self.href) 
+			responseData._links.self.href == richardQuinURL + directMessagesPathFragment
+			responseData._embedded.buddyConnectResponseMessages[0].respondingUser.firstName == "Bob"
+			responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(responseData._links.self.href)
+			richardQuinBuddyMessageProcessURL.startsWith(responseData._embedded.buddyConnectResponseMessages[0]._links.self.href) 
 	}
 
 	def 'Richard processes Bob\'s buddy acceptance'(){
 		given:
 
 		when:
-			def actionResponse = postMessageActionWithPassword(richardQuinBuddyMessageProcessURL, """{
+			def responseData = postMessageActionWithPassword(richardQuinBuddyMessageProcessURL, """{
 				"properties":{
 				}
 			}""", richardQuinPassword)
 
 		then:
-			actionResponse.properties.status == "done"
+			responseData.properties.status == "done"
+	}
+
+	def 'Richard checks he has no anonymous messages'(){
+		given:
+
+		when:
+			def responseData = getAnonymousMessages(richardQuinURL, richardQuinPassword)
+
+		then:
+			responseData._embedded == null
+	}
+
+	def 'Bob checks he has no anonymous messages'(){
+		given:
+
+		when:
+			def responseData = getAnonymousMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+			responseData._embedded == null
+	}
+
+	def 'Classification engine detects a potential conflict for Richard'(){
+		given:
+
+		when:
+			def response = postToAnalysisEngine("""{
+			"accessorID":"${richardQuinUsername}",
+			"category":"poker",
+			"url":"http://www.poker.com"
+			}""")
+
+		then:
+			response.status == 200
+	}
+
+	def 'Bob checks he has anonymous messages and finds a conflict for Richard'(){
+		given:
+
+		when:
+			def responseData = getAnonymousMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+			responseData._embedded.goalConflictMessages.size() == 1
+			responseData._embedded.goalConflictMessages[0].nickname == "RQ"
+			responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			responseData._embedded.goalConflictMessages[0].url =~ /poker/
+	}
+
+	def 'Richard checks he has anonymous messages and finds a conflict for himself'(){
+		given:
+
+		when:
+			def responseData = getAnonymousMessages(richardQuinURL, richardQuinPassword)
+
+		then:
+			responseData._embedded.goalConflictMessages.size() == 1
+			responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			responseData._embedded.goalConflictMessages[0].url =~ /poker/
 	}
 
 	def addGoal(jsonString)
@@ -215,8 +284,7 @@ class RestSpecification extends Specification {
 
 	def addUser(jsonString, password)
 	{
-		def responseData = createResourceWithPassword(usersPath, jsonString, password)
-		stripQueryString(responseData._links.self.href)
+		createResourceWithPassword(usersPath, jsonString, password)
 	}
 
 	def requestBuddy(userPath, jsonString, password)
@@ -233,6 +301,12 @@ class RestSpecification extends Specification {
 	def getDirectMessages(userPath, password)
 	{
 		def responseData = getResourceWithPassword(userPath + directMessagesPathFragment, password)
+		responseData
+	}
+
+	def getAnonymousMessages(userPath, password)
+	{
+		def responseData = getResourceWithPassword(userPath + anonymousMessagesPathFragment, password)
 		responseData
 	}
 
@@ -282,6 +356,11 @@ class RestSpecification extends Specification {
 		def response = postJson(path, jsonString, headers);
 		assert response.status == 200
 		response.responseData
+	}
+
+	def postToAnalysisEngine(jsonString)
+	{
+		postJson(analysisEnginePath, jsonString);
 	}
 
 	def stripQueryString(url)
