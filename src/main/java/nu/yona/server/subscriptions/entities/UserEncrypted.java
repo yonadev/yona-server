@@ -39,26 +39,29 @@ public class UserEncrypted extends EntityWithID {
 	@Convert(converter = StringFieldEncrypter.class)
 	private String nickname;
 
-	@ElementCollection(fetch = FetchType.EAGER)
-	@Convert(converter = StringFieldEncrypter.class)
-	private Set<String> deviceNames;
-
 	@Convert(converter = UUIDFieldEncrypter.class)
 	private UUID accessorID;
 
-	@ElementCollection(fetch = FetchType.EAGER)
 	@Convert(converter = UUIDFieldEncrypter.class)
-	private Set<UUID> goalIDs;
+	private UUID vpnProfileID;
+
+	@ElementCollection(fetch = FetchType.EAGER)
+	@Convert(converter = StringFieldEncrypter.class)
+	private Set<String> deviceNames;
 
 	@Transient
 	private Set<Goal> goals = new HashSet<>();
 
 	@ElementCollection(fetch = FetchType.EAGER)
 	@Convert(converter = UUIDFieldEncrypter.class)
-	private Set<UUID> buddyIDs;
+	private Set<UUID> goalIDs;
 
 	@Transient
 	private Set<Buddy> buddies = new HashSet<>();
+
+	@ElementCollection(fetch = FetchType.EAGER)
+	@Convert(converter = UUIDFieldEncrypter.class)
+	private Set<UUID> buddyIDs;
 
 	@Convert(converter = UUIDFieldEncrypter.class)
 	private UUID anonymousMessageSourceID;
@@ -71,14 +74,15 @@ public class UserEncrypted extends EntityWithID {
 		super(null);
 	}
 
-	private UserEncrypted(UUID id, String nickname, Set<String> deviceNames, Set<Goal> goals, UUID accessorID,
-			UUID anonymousMessageSourceID, UUID namedMessageSourceID) {
+	private UserEncrypted(UUID id, String nickname, UUID accessorID, UUID vpnProfileID, Set<String> deviceNames,
+			Set<Goal> goals, UUID anonymousMessageSourceID, UUID namedMessageSourceID) {
 		super(id);
 		this.decryptionCheck = buildDecryptionCheck();
 		this.nickname = nickname;
+		this.accessorID = accessorID;
+		this.vpnProfileID = vpnProfileID;
 		this.deviceNames = deviceNames;
 		setGoals(new HashSet<>(goals));
-		this.accessorID = accessorID;
 		this.anonymousMessageSourceID = anonymousMessageSourceID;
 		this.namedMessageSourceID = namedMessageSourceID;
 	}
@@ -87,10 +91,16 @@ public class UserEncrypted extends EntityWithID {
 		return DECRYPTION_CHECK_STRING + CryptoUtil.getRandomString(DECRYPTION_CHECK_STRING.length());
 	}
 
-	public static UserEncrypted createInstance(String nickname, Set<String> deviceNames, Set<Goal> goals,
-			Accessor accessor, MessageSource anonymousMessageSource, MessageSource namedMessageSource) {
-		return new UserEncrypted(UUID.randomUUID(), nickname, deviceNames, goals, accessor.getID(),
+	public static UserEncrypted createInstance(String nickname, Accessor accessor, Set<String> deviceNames,
+			Set<Goal> goals, MessageSource anonymousMessageSource, MessageSource namedMessageSource) {
+		VPNProfile vpnProfile = VPNProfile.createInstance(accessor.getID().toString());
+		VPNProfile.getRepository().save(vpnProfile);
+		return new UserEncrypted(UUID.randomUUID(), nickname, accessor.getID(), vpnProfile.getID(), deviceNames, goals,
 				anonymousMessageSource.getID(), namedMessageSource.getID());
+	}
+
+	public boolean isDecryptedProperly() {
+		return isDecrypted() && decryptionCheck.startsWith(DECRYPTION_CHECK_STRING);
 	}
 
 	public String getNickname() {
@@ -101,16 +111,20 @@ public class UserEncrypted extends EntityWithID {
 		this.nickname = nickname;
 	}
 
+	public UUID getAccessorID() {
+		return accessorID;
+	}
+
+	public VPNProfile getVPNProfile() {
+		return VPNProfile.getRepository().findOne(vpnProfileID);
+	}
+
 	public Set<String> getDeviceNames() {
 		return Collections.unmodifiableSet(deviceNames);
 	}
 
 	public void setDeviceNames(Set<String> deviceNames) {
 		this.deviceNames = deviceNames;
-	}
-
-	public UUID getAccessorID() {
-		return accessorID;
 	}
 
 	public Set<Goal> getGoals() {
@@ -137,16 +151,12 @@ public class UserEncrypted extends EntityWithID {
 		buddyIDs.add(buddy.getID());
 	}
 
-	public MessageSource getNamedMessageSource() {
-		return MessageSource.getRepository().findOne(namedMessageSourceID);
-	}
-
 	public MessageSource getAnonymousMessageSource() {
 		return MessageSource.getRepository().findOne(anonymousMessageSourceID);
 	}
 
-	public boolean isDecryptedProperly() {
-		return isDecrypted() && decryptionCheck.startsWith(DECRYPTION_CHECK_STRING);
+	public MessageSource getNamedMessageSource() {
+		return MessageSource.getRepository().findOne(namedMessageSourceID);
 	}
 
 	private boolean isDecrypted() {

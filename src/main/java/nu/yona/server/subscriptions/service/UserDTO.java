@@ -39,9 +39,11 @@ public class UserDTO {
 	private final Set<String> deviceNames;
 	private Set<String> goalNames;
 	private final String password;
+	private VPNProfileDTO vpnProfile;
 
 	private UserDTO(UUID id, String firstName, String lastName, String nickName, String emailAddress,
-			String mobileNumber, Set<String> deviceNames, Set<String> goalNames, String password) {
+			String mobileNumber, Set<String> deviceNames, Set<String> goalNames, String password,
+			VPNProfileDTO vpnProfile) {
 		this.id = id;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -51,6 +53,7 @@ public class UserDTO {
 		this.deviceNames = (deviceNames == null) ? Collections.emptySet() : deviceNames;
 		this.goalNames = (goalNames == null) ? Collections.emptySet() : goalNames;
 		this.password = password;
+		this.vpnProfile = vpnProfile;
 	}
 
 	@JsonCreator
@@ -60,12 +63,12 @@ public class UserDTO {
 			@JsonProperty("devices") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> deviceNames,
 			@JsonProperty("goals") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> goalNames,
 			@JsonProperty("password") String password) {
-		this(null, firstName, lastName, nickName, emailAddress, mobileNumber, deviceNames, goalNames, password);
+		this(null, firstName, lastName, nickName, emailAddress, mobileNumber, deviceNames, goalNames, password, null);
 	}
 
 	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber) {
 		this(id, firstName, lastName, null, emailAddress, mobileNumber, Collections.emptySet(), Collections.emptySet(),
-				null);
+				null, null);
 	}
 
 	@JsonIgnore
@@ -111,6 +114,11 @@ public class UserDTO {
 		return password;
 	}
 
+	@JsonInclude(Include.NON_EMPTY)
+	public VPNProfileDTO getVPNProfile() {
+		return vpnProfile;
+	}
+
 	User createUserEntity() {
 		return User.createInstance(firstName, lastName, nickName, emailAddress, mobileNumber, deviceNames, getGoals());
 	}
@@ -154,6 +162,7 @@ public class UserDTO {
 	static UserDTO createFullyInitializedInstance(User userEntity) {
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(),
 				userEntity.getNickName(), userEntity.getEmailAddress(), userEntity.getMobileNumber(),
-				userEntity.getDeviceNames(), getGoalNames(userEntity.getGoals()), null);
+				userEntity.getDeviceNames(), getGoalNames(userEntity.getGoals()), null,
+				VPNProfileDTO.createInstance(userEntity.getVPNProfile()));
 	}
 }

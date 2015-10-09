@@ -73,7 +73,7 @@ public class User extends EntityWithID {
 		Accessor accessor = Accessor.createInstance(goals);
 		accessor.addDestination(anonymousMessageSource.getDestination());
 		Accessor.getRepository().save(accessor);
-		UserEncrypted encrypted = UserEncrypted.createInstance(nickName, deviceNames, goals, accessor,
+		UserEncrypted encrypted = UserEncrypted.createInstance(nickName, accessor, deviceNames, goals,
 				anonymousMessageSource, namedMessageSource);
 		return new User(UUID.randomUUID(), false, firstName, lastName, emailAddress, mobileNumber, encrypted,
 				namedMessageSource.getDestination());
@@ -89,7 +89,7 @@ public class User extends EntityWithID {
 		Accessor accessor = Accessor.createInstance(goals);
 		accessor.addDestination(anonymousMessageSource.getDestination());
 		Accessor.getRepository().save(accessor);
-		UserEncrypted encrypted = UserEncrypted.createInstance(nickName, devices, goals, accessor,
+		UserEncrypted encrypted = UserEncrypted.createInstance(nickName, accessor, devices, goals,
 				anonymousMessageSource, namedMessageSource);
 		return new User(UUID.randomUUID(), true, firstName, lastName, emailAddress, mobileNumber, encrypted,
 				namedMessageSource.getDestination());
@@ -181,5 +181,9 @@ public class User extends EntityWithID {
 
 	public boolean canAccessPrivateData() {
 		return encrypted.isDecryptedProperly();
+	}
+
+	public VPNProfile getVPNProfile() {
+		return encrypted.getVPNProfile();
 	}
 }
