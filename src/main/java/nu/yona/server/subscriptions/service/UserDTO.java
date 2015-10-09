@@ -114,6 +114,7 @@ public class UserDTO {
 		return password;
 	}
 
+	@JsonProperty("vpnProfile")
 	@JsonInclude(Include.NON_EMPTY)
 	public VPNProfileDTO getVPNProfile() {
 		return vpnProfile;
