@@ -155,12 +155,12 @@ public class UserDTO {
 		return goals.stream().map(Goal::getName).collect(toSet());
 	}
 
-	static UserDTO createMinimallyInitializedInstance(User userEntity) {
+	static UserDTO createInstance(User userEntity) {
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(),
 				userEntity.getEmailAddress(), userEntity.getMobileNumber());
 	}
 
-	static UserDTO createFullyInitializedInstance(User userEntity) {
+	static UserDTO createInstanceWithPrivateData(User userEntity) {
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(),
 				userEntity.getNickName(), userEntity.getEmailAddress(), userEntity.getMobileNumber(),
 				userEntity.getDeviceNames(), getGoalNames(userEntity.getGoals()), null,

@@ -63,7 +63,7 @@ public class BuddyDTO {
 	}
 
 	public static BuddyDTO createInstance(Buddy buddyEntity) {
-		return new BuddyDTO(buddyEntity.getID(), UserDTO.createMinimallyInitializedInstance(buddyEntity.getUser()));
+		return new BuddyDTO(buddyEntity.getID(), UserDTO.createInstance(buddyEntity.getUser()));
 	}
 
 	@JsonInclude(Include.NON_EMPTY)

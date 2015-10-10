@@ -31,7 +31,7 @@ public class UserService {
 		}
 
 		User userEntity = findUserByEmailAddressOrMobileNumber(emailAddress, mobileNumber);
-		return UserDTO.createFullyInitializedInstance(userEntity);
+		return UserDTO.createInstanceWithPrivateData(userEntity);
 	}
 
 	public boolean canAccessPrivateData(UUID id) {
@@ -39,16 +39,16 @@ public class UserService {
 	}
 
 	public UserDTO getPublicUser(UUID id) {
-		return UserDTO.createMinimallyInitializedInstance(getEntityByID(id));
+		return UserDTO.createInstance(getEntityByID(id));
 	}
 
 	public UserDTO getPrivateUser(UUID id) {
-		return UserDTO.createFullyInitializedInstance(getEntityByID(id));
+		return UserDTO.createInstanceWithPrivateData(getEntityByID(id));
 	}
 
 	public UserDTO addUser(UserDTO userResource) {
 		UserDTO savedUser = UserDTO
-				.createFullyInitializedInstance(User.getRepository().save(userResource.createUserEntity()));
+				.createInstanceWithPrivateData(User.getRepository().save(userResource.createUserEntity()));
 
 		return savedUser;
 	}
@@ -122,14 +122,14 @@ public class UserService {
 					MessageSource.getRepository().save(updatedEntities.namedMessageSource);
 					MessageSource.getRepository().save(updatedEntities.anonymousMessageSource);
 					savedUser = UserDTO
-							.createFullyInitializedInstance(User.getRepository().save(updatedEntities.userEntity));
+							.createInstanceWithPrivateData(User.getRepository().save(updatedEntities.userEntity));
 					return savedUser;
 				});
 	}
 
 	private UserDTO handleUserUpdate(UserDTO userResource, User originalUserEntity) {
 		return UserDTO
-				.createFullyInitializedInstance(User.getRepository().save(userResource.updateUser(originalUserEntity)));
+				.createInstanceWithPrivateData(User.getRepository().save(userResource.updateUser(originalUserEntity)));
 	}
 
 	public void deleteUser(Optional<String> password, UUID id) {
