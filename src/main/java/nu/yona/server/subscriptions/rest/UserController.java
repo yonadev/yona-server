@@ -46,14 +46,15 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 
-	@RequestMapping(value = "{id}", params = { "full" }, method = RequestMethod.GET)
+	@RequestMapping(value = "{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@RequestParam(value = "full", defaultValue = "false") String fullEntityStr, @PathVariable UUID id) {
-		boolean fullEntity = Boolean.TRUE.toString().equals(fullEntityStr);
-		if (fullEntity) {
+			@RequestParam(value = "includePrivateData", defaultValue = "false") String includePrivateDataStr,
+			@PathVariable UUID id) {
+		boolean includePrivateData = Boolean.TRUE.toString().equals(includePrivateDataStr);
+		if (includePrivateData) {
 			return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
-					() -> createOKResponse(userService.getPrivateUser(id), fullEntity));
+					() -> createOKResponse(userService.getPrivateUser(id), includePrivateData));
 		} else {
 			return getPublicUser(password, id);
 		}
@@ -95,17 +96,17 @@ public class UserController {
 		});
 	}
 
-	private HttpEntity<UserResource> createResponse(UserDTO user, boolean fullEntity, HttpStatus status) {
-		return new ResponseEntity<UserResource>(new UserResourceAssembler(fullEntity).toResource(user), status);
+	private HttpEntity<UserResource> createResponse(UserDTO user, boolean includePrivateData, HttpStatus status) {
+		return new ResponseEntity<UserResource>(new UserResourceAssembler(includePrivateData).toResource(user), status);
 	}
 
-	private HttpEntity<UserResource> createOKResponse(UserDTO user, boolean fullEntity) {
-		return createResponse(user, fullEntity, HttpStatus.OK);
+	private HttpEntity<UserResource> createOKResponse(UserDTO user, boolean includePrivateData) {
+		return createResponse(user, includePrivateData, HttpStatus.OK);
 	}
 
-	public static Link getUserLink(UUID userID, boolean fullEntity) {
+	public static Link getUserLink(UUID userID, boolean includePrivateData) {
 		ControllerLinkBuilder linkBuilder;
-		if (fullEntity) {
+		if (includePrivateData) {
 			linkBuilder = linkTo(
 					methodOn(UserController.class).getUser(Optional.empty(), Boolean.TRUE.toString(), userID));
 		} else {
@@ -121,17 +122,17 @@ public class UserController {
 	}
 
 	static class UserResourceAssembler extends ResourceAssemblerSupport<UserDTO, UserResource> {
-		private final boolean fullEntity;
+		private final boolean includePrivateData;
 
-		public UserResourceAssembler(boolean fullEntity) {
+		public UserResourceAssembler(boolean includePrivateData) {
 			super(UserController.class, UserResource.class);
-			this.fullEntity = fullEntity;
+			this.includePrivateData = includePrivateData;
 		}
 
 		@Override
 		public UserResource toResource(UserDTO user) {
 			UserResource userResource = instantiateResource(user);
-			addSelfLink(userResource, fullEntity);
+			addSelfLink(userResource, includePrivateData);
 			return userResource;
 		}
 
@@ -140,8 +141,8 @@ public class UserController {
 			return new UserResource(user);
 		}
 
-		private static void addSelfLink(Resource<UserDTO> userResource, boolean fullEntity) {
-			userResource.add(UserController.getUserLink(userResource.getContent().getID(), fullEntity));
+		private static void addSelfLink(Resource<UserDTO> userResource, boolean includePrivateData) {
+			userResource.add(UserController.getUserLink(userResource.getContent().getID(), includePrivateData));
 		}
 	}
 }
