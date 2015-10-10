@@ -44,6 +44,7 @@ class InitialGoalCreationTest extends Specification {
 			}""")
 
 		then:
+			response.status == 201
 			response.responseData._links.self.href.startsWith(baseURL + yonaServer.GOALS_PATH)
 	}
 
@@ -51,11 +52,12 @@ class InitialGoalCreationTest extends Specification {
 		given:
 
 		when:
-			def goals = yonaServer.getAllGoals()
+			def response = yonaServer.getAllGoals()
 
 		then:
-			goals._links.self.href == baseURL + yonaServer.GOALS_PATH
-			goals._embedded.Goals.size() == 2
+			response.status == 200
+			response.responseData._links.self.href == baseURL + yonaServer.GOALS_PATH
+			response.responseData._embedded.Goals.size() == 2
 			
 	}
 }

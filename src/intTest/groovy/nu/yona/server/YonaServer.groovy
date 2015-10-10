@@ -37,6 +37,20 @@ class YonaServer {
 		createResourceWithPassword(USERS_PATH, jsonString, password)
 	}
 
+	def getUser(userURL, boolean includePrivateData, password = null)
+	{
+		if (includePrivateData) {
+			getResourceWithPassword(userURL, password, ["includePrivateData": "true"])
+		} else {
+			getResourceWithPassword(userURL, password)
+		}
+	}
+
+	def deleteUser(userURL, password)
+	{
+		deleteResourceWithPassword(userURL, password)
+	}
+
 	def requestBuddy(userPath, jsonString, password)
 	{
 		createResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, jsonString, password)
@@ -44,20 +58,17 @@ class YonaServer {
 
 	def getAllGoals()
 	{
-		def responseData = getResource(GOALS_PATH)
-		responseData
+		getResource(GOALS_PATH)
 	}
 
 	def getDirectMessages(userPath, password)
 	{
-		def responseData = getResourceWithPassword(userPath + DIRECT_MESSAGE_PATH_FRAGMENT, password)
-		responseData
+		getResourceWithPassword(userPath + DIRECT_MESSAGE_PATH_FRAGMENT, password)
 	}
 
 	def getAnonymousMessages(userPath, password)
 	{
-		def responseData = getResourceWithPassword(userPath + ANONYMOUS_MESSAGES_PATH_FRAGMENT, password)
-		responseData
+		getResourceWithPassword(userPath + ANONYMOUS_MESSAGES_PATH_FRAGMENT, password)
 	}
 
 	def createResourceWithPassword(path, jsonString, password)
@@ -70,9 +81,19 @@ class YonaServer {
 		postJson(path, jsonString, headers);
 	}
 
-	def getResourceWithPassword(path, password)
+	def deleteResourceWithPassword(path, password)
 	{
-		getResource(path, ["Yona-Password": password])
+		deleteResource(path, ["Yona-Password": password])
+	}
+
+	def deleteResource(path, headers = [:])
+	{
+		restClient.delete(path: path, headers: headers)
+	}
+
+	def getResourceWithPassword(path, password, parameters = [:])
+	{
+		getResource(path, password ?  ["Yona-Password": password] : [ : ], parameters)
 	}
 
 	def postMessageActionWithPassword(path, jsonString, password)
@@ -82,32 +103,29 @@ class YonaServer {
 
 	def postMessageAction(path, jsonString, headers = [:])
 	{
-		def response = postJson(path, jsonString, headers);
-		assert response.status == 200
-		response.responseData
+		postJson(path, jsonString, headers);
 	}
 
 	def postToAnalysisEngine(jsonString)
 	{
 		postJson(ANALYSIS_ENGINE_PATH, jsonString);
 	}
-	def getResource(path, headers = [:])
+
+	def getResource(path, headers = [:], parameters = [:])
 	{
-		def response = restClient.get(path: path,
+		restClient.get(path: path,
 			contentType:'application/json',
-			headers: headers)
-		assert response.status == 200
-		response.responseData
+			headers: headers,
+			query: parameters)
 	}
 
 	def postJson(path, jsonString, headers = [:])
 	{
 		def object = jsonSlurper.parseText(jsonString)
-		def response = restClient.post(path: path,
+		restClient.post(path: path,
 			body: object,
 			contentType:'application/json',
 			headers: headers)
-		response
 	}
 
 	def stripQueryString(url)

@@ -117,75 +117,81 @@ class BasicBuddyTest extends Specification {
 		given:
 
 		when:
-			def responseData = yonaServer.getDirectMessages(bobDunnURL, bobDunnPassword)
-			bobDunnBuddyMessageAcceptURL = responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
+			def response = yonaServer.getDirectMessages(bobDunnURL, bobDunnPassword)
+			bobDunnBuddyMessageAcceptURL = response.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
 
 		then:
-			responseData._links.self.href == bobDunnURL + yonaServer.DIRECT_MESSAGE_PATH_FRAGMENT
-			responseData._embedded.buddyConnectRequestMessages[0].requestingUser.firstName == "Richard"
-			responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(responseData._links.self.href)
-			bobDunnBuddyMessageAcceptURL.startsWith(responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
+			response.status == 200
+			response.responseData._links.self.href == bobDunnURL + yonaServer.DIRECT_MESSAGE_PATH_FRAGMENT
+			response.responseData._embedded.buddyConnectRequestMessages[0].requestingUser.firstName == "Richard"
+			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+			bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
 	}
 
 	def 'Bob accepts Richard\'s buddy request'(){
 		given:
 
 		when:
-			def responseData = yonaServer.postMessageActionWithPassword(bobDunnBuddyMessageAcceptURL, """{
+			def response = yonaServer.postMessageActionWithPassword(bobDunnBuddyMessageAcceptURL, """{
 				"properties":{
 					"message":"Yes, great idea!"
 				}
 			}""", bobDunnPassword)
 
 		then:
-			responseData.properties.status == "done"
+			response.status == 200
+			response.responseData.properties.status == "done"
 	}
 
 	def 'Richard checks his direct messages'(){
 		given:
 
 		when:
-			def responseData = yonaServer.getDirectMessages(richardQuinURL, richardQuinPassword)
-			richardQuinBuddyMessageProcessURL = responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
+			def response = yonaServer.getDirectMessages(richardQuinURL, richardQuinPassword)
+			richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
 
 		then:
-			responseData._links.self.href == richardQuinURL + yonaServer.DIRECT_MESSAGE_PATH_FRAGMENT
-			responseData._embedded.buddyConnectResponseMessages[0].respondingUser.firstName == "Bob"
-			responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(responseData._links.self.href)
-			richardQuinBuddyMessageProcessURL.startsWith(responseData._embedded.buddyConnectResponseMessages[0]._links.self.href) 
+			response.status == 200
+			response.responseData._links.self.href == richardQuinURL + yonaServer.DIRECT_MESSAGE_PATH_FRAGMENT
+			response.responseData._embedded.buddyConnectResponseMessages[0].respondingUser.firstName == "Bob"
+			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href) 
 	}
 
 	def 'Richard processes Bob\'s buddy acceptance'(){
 		given:
 
 		when:
-			def responseData = yonaServer.postMessageActionWithPassword(richardQuinBuddyMessageProcessURL, """{
+			def response = yonaServer.postMessageActionWithPassword(richardQuinBuddyMessageProcessURL, """{
 				"properties":{
 				}
 			}""", richardQuinPassword)
 
 		then:
-			responseData.properties.status == "done"
+			response.status == 200
+			response.responseData.properties.status == "done"
 	}
 
 	def 'Richard checks he has no anonymous messages'(){
 		given:
 
 		when:
-			def responseData = yonaServer.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+			def response = yonaServer.getAnonymousMessages(richardQuinURL, richardQuinPassword)
 
 		then:
-			responseData._embedded == null
+			response.status == 200
+			response.responseData._embedded == null
 	}
 
 	def 'Bob checks he has no anonymous messages'(){
 		given:
 
 		when:
-			def responseData = yonaServer.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+			def response = yonaServer.getAnonymousMessages(bobDunnURL, bobDunnPassword)
 
 		then:
-			responseData._embedded == null
+			response.status == 200
+			response.responseData._embedded == null
 	}
 
 	def 'Classification engine detects a potential conflict for Richard'(){
@@ -206,25 +212,27 @@ class BasicBuddyTest extends Specification {
 		given:
 
 		when:
-			def responseData = yonaServer.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+			def response = yonaServer.getAnonymousMessages(bobDunnURL, bobDunnPassword)
 
 		then:
-			responseData._embedded.goalConflictMessages.size() == 1
-			responseData._embedded.goalConflictMessages[0].nickname == "RQ"
-			responseData._embedded.goalConflictMessages[0].goalName == "gambling"
-			responseData._embedded.goalConflictMessages[0].url =~ /poker/
+			response.status == 200
+			response.responseData._embedded.goalConflictMessages.size() == 1
+			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
 	}
 
 	def 'Richard checks he has anonymous messages and finds a conflict for himself'(){
 		given:
 
 		when:
-			def responseData = yonaServer.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+			def response = yonaServer.getAnonymousMessages(richardQuinURL, richardQuinPassword)
 
 		then:
-			responseData._embedded.goalConflictMessages.size() == 1
-			responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-			responseData._embedded.goalConflictMessages[0].goalName == "gambling"
-			responseData._embedded.goalConflictMessages[0].url =~ /poker/
+			response.status == 200
+			response.responseData._embedded.goalConflictMessages.size() == 1
+			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
 	}
 }
