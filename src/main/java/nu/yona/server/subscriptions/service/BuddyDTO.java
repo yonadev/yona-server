@@ -59,7 +59,7 @@ public class BuddyDTO {
 	}
 
 	Buddy createBuddyEntity(User buddyUserEntity) {
-		return Buddy.createInstance(buddyUserEntity, user.getNickName());
+		return Buddy.createInstance(buddyUserEntity, user.getPrivateData().getNickName());
 	}
 
 	public static BuddyDTO createInstance(Buddy buddyEntity) {

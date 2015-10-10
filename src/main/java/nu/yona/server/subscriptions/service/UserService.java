@@ -57,7 +57,9 @@ public class UserService {
 		User originalUserEntity = getEntityByID(id);
 		UserDTO savedUser;
 		if (originalUserEntity.isCreatedOnBuddyRequest()) {
-			savedUser = handleUserSignupUponBuddyRequest(userResource.getPassword(), userResource, originalUserEntity);
+			// TODO: the password needs to come from the URL, not from the
+			// payload
+			savedUser = handleUserSignupUponBuddyRequest("TODO", userResource, originalUserEntity);
 		} else {
 			savedUser = handleUserUpdate(userResource, originalUserEntity);
 		}
@@ -98,16 +100,15 @@ public class UserService {
 	}
 
 	private UpdatedEntities updateUserWithTempPassword(UserDTO userDTO, User originalUserEntity) {
-		return CryptoSession.execute(Optional.of(userDTO.getPassword()), () -> canAccessPrivateData(userDTO.getID()),
-				() -> {
-					User updatedUserEntity = userDTO.updateUser(originalUserEntity);
-					MessageSource touchedNameMessageSource = touchMessageSource(
-							updatedUserEntity.getNamedMessageSource());
-					MessageSource touchedAnonymousMessageSource = touchMessageSource(
-							updatedUserEntity.getAnonymousMessageSource());
-					return new UpdatedEntities(updatedUserEntity, touchedNameMessageSource,
-							touchedAnonymousMessageSource);
-				});
+		// TODO: the password needs to come from the URL, not from the
+		// payload
+		return CryptoSession.execute(Optional.of("TODO"), () -> canAccessPrivateData(userDTO.getID()), () -> {
+			User updatedUserEntity = userDTO.updateUser(originalUserEntity);
+			MessageSource touchedNameMessageSource = touchMessageSource(updatedUserEntity.getNamedMessageSource());
+			MessageSource touchedAnonymousMessageSource = touchMessageSource(
+					updatedUserEntity.getAnonymousMessageSource());
+			return new UpdatedEntities(updatedUserEntity, touchedNameMessageSource, touchedAnonymousMessageSource);
+		});
 	}
 
 	private MessageSource touchMessageSource(MessageSource messageSource) {

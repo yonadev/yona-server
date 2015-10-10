@@ -9,66 +9,52 @@ package nu.yona.server.subscriptions.service;
 
 import static java.util.stream.Collectors.toSet;
 
-import java.util.Collections;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.rest.BadRequestException;
 import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("User")
 public class UserDTO {
-	private static final Logger LOGGER = Logger.getLogger(UserDTO.class.getName());
 	private final UUID id;
 	private final String firstName;
 	private final String lastName;
-	private final String nickName;
 	private final String emailAddress;
 	private final String mobileNumber;
-	private final Set<String> deviceNames;
-	private Set<String> goalNames;
-	private final String password;
-	private VPNProfileDTO vpnProfile;
+	private final UserPrivateDTO privateData;
 
 	private UserDTO(UUID id, String firstName, String lastName, String nickName, String emailAddress,
-			String mobileNumber, Set<String> deviceNames, Set<String> goalNames, String password,
-			VPNProfileDTO vpnProfile) {
-		this.id = id;
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.nickName = nickName;
-		this.emailAddress = emailAddress;
-		this.mobileNumber = mobileNumber;
-		this.deviceNames = (deviceNames == null) ? Collections.emptySet() : deviceNames;
-		this.goalNames = (goalNames == null) ? Collections.emptySet() : goalNames;
-		this.password = password;
-		this.vpnProfile = vpnProfile;
+			String mobileNumber, Set<String> deviceNames, Set<String> goalNames, VPNProfileDTO vpnProfile) {
+		this(id, firstName, lastName, emailAddress, mobileNumber,
+				new UserPrivateDTO(nickName, deviceNames, goalNames, vpnProfile));
+	}
+
+	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber) {
+		this(id, firstName, lastName, emailAddress, mobileNumber, null);
 	}
 
 	@JsonCreator
 	public UserDTO(@JsonProperty("firstName") String firstName, @JsonProperty("lastName") String lastName,
-			@JsonProperty("nickName") String nickName, @JsonProperty("emailAddress") String emailAddress,
-			@JsonProperty("mobileNumber") String mobileNumber,
-			@JsonProperty("devices") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> deviceNames,
-			@JsonProperty("goals") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> goalNames,
-			@JsonProperty("password") String password) {
-		this(null, firstName, lastName, nickName, emailAddress, mobileNumber, deviceNames, goalNames, password, null);
+			@JsonProperty("emailAddress") String emailAddress, @JsonProperty("mobileNumber") String mobileNumber,
+			@JsonUnwrapped UserPrivateDTO privateData) {
+		this(null, firstName, lastName, emailAddress, mobileNumber, privateData);
 	}
 
-	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber) {
-		this(id, firstName, lastName, null, emailAddress, mobileNumber, Collections.emptySet(), Collections.emptySet(),
-				null, null);
+	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber,
+			UserPrivateDTO privateData) {
+		this.id = id;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.emailAddress = emailAddress;
+		this.mobileNumber = mobileNumber;
+		this.privateData = privateData;
 	}
 
 	@JsonIgnore
@@ -84,11 +70,6 @@ public class UserDTO {
 		return lastName;
 	}
 
-	@JsonInclude(Include.NON_EMPTY)
-	public String getNickName() {
-		return nickName;
-	}
-
 	public String getEmailAddress() {
 		return emailAddress;
 	}
@@ -97,58 +78,25 @@ public class UserDTO {
 		return mobileNumber;
 	}
 
-	@JsonProperty("devices")
-	@JsonInclude(Include.NON_EMPTY)
-	public Set<String> getDeviceNames() {
-		return Collections.unmodifiableSet(deviceNames);
-	}
-
-	@JsonProperty("goals")
-	@JsonInclude(Include.NON_EMPTY)
-	public Set<String> getGoalNames() {
-		return Collections.unmodifiableSet(goalNames);
-	}
-
-	@JsonInclude(Include.NON_EMPTY)
-	public String getPassword() {
-		return password;
-	}
-
-	@JsonProperty("vpnProfile")
-	@JsonInclude(Include.NON_EMPTY)
-	public VPNProfileDTO getVPNProfile() {
-		return vpnProfile;
+	@JsonUnwrapped
+	public UserPrivateDTO getPrivateData() {
+		return privateData;
 	}
 
 	User createUserEntity() {
-		return User.createInstance(firstName, lastName, nickName, emailAddress, mobileNumber, deviceNames, getGoals());
+		return User.createInstance(firstName, lastName, privateData.getNickName(), emailAddress, mobileNumber,
+				privateData.getDeviceNames(), privateData.getGoals());
 	}
 
 	User updateUser(User originalUserEntity) {
 		originalUserEntity.setFirstName(firstName);
 		originalUserEntity.setLastName(lastName);
-		originalUserEntity.setNickName(nickName);
+		originalUserEntity.setNickName(privateData.getNickName());
 		originalUserEntity.setEmailAddress(emailAddress);
 		originalUserEntity.setMobileNumber(mobileNumber);
-		originalUserEntity.setDeviceNames(deviceNames);
+		originalUserEntity.setDeviceNames(privateData.getDeviceNames());
 
 		return originalUserEntity;
-	}
-
-	private Set<Goal> getGoals() {
-		return goalNames.stream().map(n -> findGoal(n)).collect(toSet());
-	}
-
-	private Goal findGoal(String goalName) {
-		Goal goal = Goal.getRepository().findByName(goalName);
-		if (goal == null) {
-			String message = "Goal '" + goalName + "' does not exist";
-			LOGGER.warning(message);
-			throw new BadRequestException(message);
-		}
-
-		return goal;
-
 	}
 
 	private static Set<String> getGoalNames(Set<Goal> goals) {
@@ -163,7 +111,7 @@ public class UserDTO {
 	static UserDTO createInstanceWithPrivateData(User userEntity) {
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(),
 				userEntity.getNickName(), userEntity.getEmailAddress(), userEntity.getMobileNumber(),
-				userEntity.getDeviceNames(), getGoalNames(userEntity.getGoals()), null,
+				userEntity.getDeviceNames(), getGoalNames(userEntity.getGoals()),
 				VPNProfileDTO.createInstance(userEntity.getVPNProfile()));
 	}
 }

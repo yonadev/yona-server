@@ -44,8 +44,8 @@ public class BuddyService {
 	private Buddy handleBuddyRequestForNewUser(User requestingUserEntity, BuddyDTO buddyResource) {
 		UserDTO buddyUserResource = buddyResource.getUser();
 		User buddyUserEntity = User.createInstanceOnBuddyRequest(buddyUserResource.getFirstName(),
-				buddyUserResource.getLastName(), buddyUserResource.getNickName(), buddyUserResource.getEmailAddress(),
-				buddyUserResource.getMobileNumber());
+				buddyUserResource.getLastName(), buddyUserResource.getPrivateData().getNickName(),
+				buddyUserResource.getEmailAddress(), buddyUserResource.getMobileNumber());
 		User savedBuddyUserEntity = User.getRepository().save(buddyUserEntity);
 		sendInvitationMessage(savedBuddyUserEntity, buddyResource);
 		return handleBuddyRequestForExistingUser(requestingUserEntity, buddyResource, buddyUserEntity);
@@ -66,8 +66,8 @@ public class BuddyService {
 		requestingUserEntity.addBuddy(savedBuddyEntity);
 
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
-		messageDestination.send(
-				BuddyConnectRequestMessage.createInstance(requestingUserEntity, requestingUserEntity.getGoals(),
+		messageDestination
+				.send(BuddyConnectRequestMessage.createInstance(requestingUserEntity, requestingUserEntity.getGoals(),
 						requestingUserEntity.getNickName(), buddyResource.getMessage(), savedBuddyEntity.getID()));
 		MessageDestination.getRepository().save(messageDestination);
 		User.getRepository().save(requestingUserEntity);
