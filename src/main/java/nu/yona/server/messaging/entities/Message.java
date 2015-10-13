@@ -14,8 +14,8 @@ import javax.persistence.Table;
 
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
-import nu.yona.server.model.EntityWithID;
-import nu.yona.server.model.RepositoryProvider;
+import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.RepositoryProvider;
 
 @Entity
 @Table(name = "MESSAGES")

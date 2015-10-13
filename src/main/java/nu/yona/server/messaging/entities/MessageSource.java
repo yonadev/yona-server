@@ -24,8 +24,8 @@ import javax.persistence.Transient;
 import nu.yona.server.crypto.ByteFieldEncrypter;
 import nu.yona.server.crypto.PublicKeyDecryptor;
 import nu.yona.server.crypto.PublicKeyUtil;
-import nu.yona.server.model.EntityWithID;
-import nu.yona.server.model.RepositoryProvider;
+import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.RepositoryProvider;
 
 @Entity
 @Table(name = "MESSAGE_SOURCES")

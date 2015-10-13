@@ -23,9 +23,9 @@ import javax.persistence.Transient;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.crypto.UUIDFieldEncrypter;
+import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageSource;
-import nu.yona.server.model.EntityWithID;
 
 @Entity
 @Table(name = "USERS_ENCRYPTED")

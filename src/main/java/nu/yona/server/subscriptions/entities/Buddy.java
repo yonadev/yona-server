@@ -21,9 +21,9 @@ import javax.persistence.Transient;
 
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.crypto.UUIDFieldEncrypter;
+import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.model.EntityWithID;
-import nu.yona.server.model.RepositoryProvider;
 
 @Entity
 @Table(name = "BUDDIES")

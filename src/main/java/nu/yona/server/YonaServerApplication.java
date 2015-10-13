@@ -14,7 +14,7 @@ import org.springframework.hateoas.RelProvider;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
 
-import nu.yona.server.model.RepositoryProvider;
+import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.rest.JsonRootRelProvider;
 
 @SpringBootApplication

@@ -16,10 +16,10 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
+import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
-import nu.yona.server.model.EntityWithID;
-import nu.yona.server.model.RepositoryProvider;
 
 @Entity
 @Table(name = "ACCESSORS")

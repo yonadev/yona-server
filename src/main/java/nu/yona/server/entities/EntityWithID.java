@@ -1,4 +1,4 @@
-package nu.yona.server.model;
+package nu.yona.server.entities;
 
 import java.util.UUID;
 
