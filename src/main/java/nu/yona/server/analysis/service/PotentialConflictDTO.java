@@ -7,21 +7,26 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 public class PotentialConflictDTO {
 	private UUID accessorID;
-	private String category;
+	private Set<String> categories;
 	private String url;
 
 	@JsonCreator
 	public PotentialConflictDTO(@JsonProperty("accessorID") UUID accessorID,
-			@JsonProperty("category") String category, @JsonProperty("url") String url) {
+			@JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories,
+			@JsonProperty("url") String url) {
 		this.accessorID = accessorID;
-		this.category = category;
+		this.categories = categories;
 		this.url = url;
 	}
 
@@ -29,8 +34,8 @@ public class PotentialConflictDTO {
 		return accessorID;
 	}
 
-	public String getCategory() {
-		return category;
+	public Set<String> getCategories() {
+		return Collections.unmodifiableSet(categories);
 	}
 
 	public String getURL() {

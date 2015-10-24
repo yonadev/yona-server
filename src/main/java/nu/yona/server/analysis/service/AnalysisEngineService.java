@@ -7,6 +7,7 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -29,7 +30,7 @@ public class AnalysisEngineService {
 
 		Accessor accessor = getAccessorByID(potentialConflictPayload.getAccessorID());
 		Set<Goal> conflictingGoalsOfAccessor = determineConflictingGoalsForAccessor(accessor,
-				potentialConflictPayload.getCategory());
+				potentialConflictPayload.getCategories());
 		if (!conflictingGoalsOfAccessor.isEmpty()) {
 			sendConflictMessageToAllDestinationsOfAccessor(potentialConflictPayload, accessor,
 					conflictingGoalsOfAccessor);
@@ -49,10 +50,13 @@ public class AnalysisEngineService {
 				payload.getURL());
 	}
 
-	private Set<Goal> determineConflictingGoalsForAccessor(Accessor accessor, String category) {
+	private Set<Goal> determineConflictingGoalsForAccessor(Accessor accessor, Set<String> categories) {
 		Set<Goal> allGoals = goalService.getAllGoalEntities();
-		Set<Goal> conflictingGoals = allGoals.stream().filter(g -> g.getCategories().contains(category))
-				.collect(Collectors.toSet());
+		Set<Goal> conflictingGoals = allGoals.stream().filter(g -> {
+			Set<String> goalCategories = new HashSet<>(g.getCategories());
+			goalCategories.retainAll(categories);
+			return !goalCategories.isEmpty();
+		}).collect(Collectors.toSet());
 		Set<Goal> goalsOfAccessor = accessor.getGoals();
 		Set<Goal> conflictingGoalsOfAccessor = conflictingGoals.stream().filter(g -> goalsOfAccessor.contains(g))
 				.collect(Collectors.toSet());

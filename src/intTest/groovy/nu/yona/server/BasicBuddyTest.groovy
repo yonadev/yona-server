@@ -200,7 +200,7 @@ class BasicBuddyTest extends Specification {
 		when:
 			def response = yonaServer.postToAnalysisEngine("""{
 			"accessorID":"${richardQuinUsername}",
-			"category":"poker",
+			"categories": ["poker"],
 			"url":"http://www.poker.com"
 			}""")
 
