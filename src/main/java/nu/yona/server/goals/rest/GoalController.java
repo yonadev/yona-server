@@ -92,7 +92,7 @@ public class GoalController {
 		return linkTo(methodOn.getAllGoals());
 	}
 
-	static class GoalResource extends Resource<GoalDTO> {
+	public static class GoalResource extends Resource<GoalDTO> {
 		public GoalResource(GoalDTO goal) {
 			super(goal);
 		}
