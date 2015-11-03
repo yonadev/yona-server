@@ -41,7 +41,7 @@ dependencies {
 	compile("org.springframework.boot:spring-boot-starter-web")
 	compile("io.springfox:springfox-swagger2:2.2.2")
 	compile("io.springfox:springfox-swagger-ui:2.2.2")
-	compile("com.fasterxml.jackson.core:jackson-databind:2.6.3")
+	compile("com.fasterxml.jackson.core:jackson-databind:2.6.3") // Required as the Spring Hateaos version pulled in by Swagger is incompatible with Jackson 2.4
 	
 
 	runtime("org.hsqldb:hsqldb") 
@@ -68,7 +68,7 @@ eclipse {
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = '2.3'
+	gradleVersion = '2.8'
 }
 
 test {
