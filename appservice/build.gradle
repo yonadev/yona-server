@@ -7,6 +7,7 @@ buildscript {
 	dependencies {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:$project.ext.springBootVersion")
 		classpath("io.spring.gradle:dependency-management-plugin:0.5.3.RELEASE")
+		classpath('se.transmode.gradle:gradle-docker:1.2')
 	}
 }
 
@@ -16,10 +17,11 @@ apply plugin: 'idea'
 apply plugin: 'spring-boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'war'
+apply plugin: 'docker'
 
 
 war {
-	baseName = 'yona-server'
+	baseName = 'appservice'
 	version = '0.0.1-SNAPSHOT'
 }
 
@@ -63,6 +65,21 @@ run {
 	systemProperties = [
 		'server.port': System.getProperty('server.port', project.ext.yona_appservice_port)
 	]
+}
+
+group = 'yonadev'
+
+task buildDocker(type: Docker, dependsOn: build) {
+  push = true
+  applicationName = jar.baseName
+  dockerfile = file('src/main/docker/Dockerfile')
+  doFirst {
+    copy {
+      from jar
+      into stageDir
+	  rename jar.archiveName, jar.baseName +".jar"
+    }
+  }
 }
 
 sourceSets {
