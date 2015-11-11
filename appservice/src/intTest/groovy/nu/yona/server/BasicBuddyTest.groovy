@@ -106,7 +106,7 @@ class BasicBuddyTest extends Specification {
 						"mobileNumber":"+13456789"
 					}
 				},
-				"message":"Would you like to be my buddy?",
+				"message":"Would you like to be my buddy?"
 			}""", richardQuinPassword)
 			richardQuinBobBuddyURL = response.responseData._links.self.href
 
