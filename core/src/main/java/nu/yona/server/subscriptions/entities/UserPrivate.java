@@ -13,10 +13,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -56,12 +58,8 @@ public class UserPrivate extends EntityWithID {
 	@Convert(converter = UUIDFieldEncrypter.class)
 	private Set<UUID> goalIDs;
 
-	@Transient
-	private Set<Buddy> buddies = new HashSet<>();
-
-	@ElementCollection(fetch = FetchType.EAGER)
-	@Convert(converter = UUIDFieldEncrypter.class)
-	private Set<UUID> buddyIDs;
+	@OneToMany(cascade = CascadeType.ALL)
+	private Set<Buddy> buddies;
 
 	@Convert(converter = UUIDFieldEncrypter.class)
 	private UUID anonymousMessageSourceID;
@@ -83,6 +81,7 @@ public class UserPrivate extends EntityWithID {
 		this.vpnProfileID = vpnProfileID;
 		this.deviceNames = deviceNames;
 		setGoals(new HashSet<>(goals));
+		this.buddies = new HashSet<>();
 		this.anonymousMessageSourceID = anonymousMessageSourceID;
 		this.namedMessageSourceID = namedMessageSourceID;
 	}
@@ -140,15 +139,11 @@ public class UserPrivate extends EntityWithID {
 	}
 
 	public Set<Buddy> getBuddies() {
-		if (buddies.size() == 0) {
-			buddies = buddyIDs.stream().map(id -> Buddy.getRepository().findOne(id)).collect(Collectors.toSet());
-		}
 		return Collections.unmodifiableSet(buddies);
 	}
 
 	public void addBuddy(Buddy buddy) {
 		buddies.add(buddy);
-		buddyIDs.add(buddy.getID());
 	}
 
 	public MessageSource getAnonymousMessageSource() {
