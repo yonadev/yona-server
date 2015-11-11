@@ -28,8 +28,8 @@ import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageSource;
 
 @Entity
-@Table(name = "USERS_ENCRYPTED")
-public class UserEncrypted extends EntityWithID {
+@Table(name = "USERS_PRIVATE")
+public class UserPrivate extends EntityWithID {
 
 	private static final String DECRYPTION_CHECK_STRING = "Decrypted properly#";
 
@@ -70,11 +70,11 @@ public class UserEncrypted extends EntityWithID {
 	private UUID namedMessageSourceID;
 
 	// Default constructor is required for JPA
-	public UserEncrypted() {
+	public UserPrivate() {
 		super(null);
 	}
 
-	private UserEncrypted(UUID id, String nickname, UUID accessorID, UUID vpnProfileID, Set<String> deviceNames,
+	private UserPrivate(UUID id, String nickname, UUID accessorID, UUID vpnProfileID, Set<String> deviceNames,
 			Set<Goal> goals, UUID anonymousMessageSourceID, UUID namedMessageSourceID) {
 		super(id);
 		this.decryptionCheck = buildDecryptionCheck();
@@ -91,11 +91,11 @@ public class UserEncrypted extends EntityWithID {
 		return DECRYPTION_CHECK_STRING + CryptoUtil.getRandomString(DECRYPTION_CHECK_STRING.length());
 	}
 
-	public static UserEncrypted createInstance(String nickname, Accessor accessor, Set<String> deviceNames,
+	public static UserPrivate createInstance(String nickname, Accessor accessor, Set<String> deviceNames,
 			Set<Goal> goals, MessageSource anonymousMessageSource, MessageSource namedMessageSource) {
 		VPNProfile vpnProfile = VPNProfile.createInstance(accessor.getID().toString());
 		VPNProfile.getRepository().save(vpnProfile);
-		return new UserEncrypted(UUID.randomUUID(), nickname, accessor.getID(), vpnProfile.getID(), deviceNames, goals,
+		return new UserPrivate(UUID.randomUUID(), nickname, accessor.getID(), vpnProfile.getID(), deviceNames, goals,
 				anonymousMessageSource.getID(), namedMessageSource.getID());
 	}
 
