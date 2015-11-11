@@ -8,7 +8,7 @@ before_script:
 
 script:
   - chmod +x gradlew
-  - ./gradlew test distzip
+  - ./gradlew test buildDocker
   - cp ./build/test-results/*.xml ./shippable/testresults
 
 after_script:
