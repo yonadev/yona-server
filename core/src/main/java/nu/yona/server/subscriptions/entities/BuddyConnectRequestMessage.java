@@ -106,9 +106,9 @@ public class BuddyConnectRequestMessage extends Message {
 		this.status = status;
 	}
 
-	public static BuddyConnectRequestMessage createInstance(User requestingUser, Set<Goal> goals, String nickname,
-			String message, UUID buddyID) {
-		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUser.getID(), requestingUser.getAccessorID(),
+	public static BuddyConnectRequestMessage createInstance(UUID requestingUserID, UUID requestingUserLoginID,
+			Set<Goal> goals, String nickname, String message, UUID buddyID) {
+		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserLoginID,
 				goals.stream().map(g -> g.getID()).collect(Collectors.toSet()), nickname, message, buddyID);
 	}
 

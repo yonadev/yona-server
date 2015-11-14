@@ -92,7 +92,7 @@ public class UserPrivate extends EntityWithID {
 
 	public static UserPrivate createInstance(String nickname, Accessor accessor, Set<String> deviceNames,
 			Set<Goal> goals, MessageSource anonymousMessageSource, MessageSource namedMessageSource) {
-		VPNProfile vpnProfile = VPNProfile.createInstance(accessor.getID().toString());
+		VPNProfile vpnProfile = VPNProfile.createInstance(accessor.getID());
 		VPNProfile.getRepository().save(vpnProfile);
 		return new UserPrivate(UUID.randomUUID(), nickname, accessor.getID(), vpnProfile.getID(), deviceNames, goals,
 				anonymousMessageSource.getID(), namedMessageSource.getID());

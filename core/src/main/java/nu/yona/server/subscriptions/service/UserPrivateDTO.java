@@ -12,9 +12,11 @@ import static java.util.stream.Collectors.toSet;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
@@ -26,18 +28,30 @@ public class UserPrivateDTO {
 	private final Set<String> deviceNames;
 	private Set<String> goalNames;
 	private VPNProfileDTO vpnProfile;
+	private UUID namedMessageSourceID;
+	private UUID namedMessageDestinationID;
+	private UUID anonymousMessageSourceID;
+	private UUID anonymousMessageDestinationID;
+	private Set<UUID> buddyIDs;
 
 	@JsonCreator
 	public UserPrivateDTO(@JsonProperty("nickName") String nickName,
 			@JsonProperty("devices") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> deviceNames,
 			@JsonProperty("goals") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> goalNames) {
-		this(nickName, deviceNames, goalNames, null);
+		this(nickName, null, null, null, null, deviceNames, goalNames, null, null);
 	}
 
-	UserPrivateDTO(String nickName, Set<String> deviceNames, Set<String> goalNames, VPNProfileDTO vpnProfile) {
+	UserPrivateDTO(String nickName, UUID namedMessageSourceID, UUID namedMessageDestinationID,
+			UUID anonymousMessageSourceID, UUID anonymousMessageDestinationID, Set<String> deviceNames,
+			Set<String> goalNames, Set<UUID> buddyIDs, VPNProfileDTO vpnProfile) {
 		this.nickName = nickName;
+		this.namedMessageSourceID = namedMessageSourceID;
+		this.namedMessageDestinationID = namedMessageDestinationID;
+		this.anonymousMessageSourceID = anonymousMessageSourceID;
+		this.anonymousMessageDestinationID = anonymousMessageDestinationID;
 		this.deviceNames = (deviceNames == null) ? Collections.emptySet() : deviceNames;
 		this.goalNames = (goalNames == null) ? Collections.emptySet() : goalNames;
+		this.buddyIDs = (buddyIDs == null) ? Collections.emptySet() : buddyIDs;
 		this.vpnProfile = vpnProfile;
 	}
 
@@ -72,5 +86,30 @@ public class UserPrivateDTO {
 		}
 
 		return goal;
+	}
+
+	@JsonIgnore
+	public UUID getNamedMessageSourceID() {
+		return namedMessageSourceID;
+	}
+
+	@JsonIgnore
+	public UUID getNamedMessageDestinationID() {
+		return namedMessageDestinationID;
+	}
+
+	@JsonIgnore
+	public UUID getAnonymousMessageSourceID() {
+		return anonymousMessageSourceID;
+	}
+
+	@JsonIgnore
+	public UUID getAnonymousMessageDestinationID() {
+		return anonymousMessageDestinationID;
+	}
+
+	@JsonIgnore
+	public Set<UUID> getBuddyIDs() {
+		return Collections.unmodifiableSet(buddyIDs);
 	}
 }

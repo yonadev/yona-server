@@ -69,8 +69,8 @@ public class Buddy extends EntityWithID {
 		this.nickName = nickName;
 	}
 
-	public static Buddy createInstance(User user, String nickName) {
-		return new Buddy(UUID.randomUUID(), user.getID(), nickName);
+	public static Buddy createInstance(UUID buddyUserID, String nickName) {
+		return new Buddy(UUID.randomUUID(), buddyUserID, nickName);
 	}
 
 	public UUID getAccessorID() {
@@ -103,6 +103,10 @@ public class Buddy extends EntityWithID {
 
 	public void setGoalNames(Set<String> goalNames) {
 		goals = goalNames.stream().map(Goal.getRepository()::findByName).collect(Collectors.toSet());
+	}
+
+	public void setGoals(Set<Goal> goals) {
+		goals = new HashSet<>(goals);
 	}
 
 	public Status getSendingStatus() {

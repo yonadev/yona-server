@@ -17,16 +17,16 @@ import nu.yona.server.subscriptions.entities.VPNProfile;
 
 public class VPNProfileDTO {
 	private final UUID id;
-	private String username;
+	private UUID loginID;
 
-	public VPNProfileDTO(UUID id, String username) {
+	public VPNProfileDTO(UUID id, UUID loginID) {
 		this.id = id;
-		this.username = username;
+		this.loginID = loginID;
 	}
 
 	@JsonCreator
-	public VPNProfileDTO(@JsonProperty("username") String username) {
-		this(null, username);
+	public VPNProfileDTO(@JsonProperty("loginID") UUID loginID) {
+		this(null, loginID);
 	}
 
 	@JsonIgnore
@@ -34,11 +34,11 @@ public class VPNProfileDTO {
 		return id;
 	}
 
-	public String getUsername() {
-		return username;
+	public UUID getLoginID() {
+		return loginID;
 	}
 
 	public static VPNProfileDTO createInstance(VPNProfile vpnProfileEntity) {
-		return new VPNProfileDTO(vpnProfileEntity.getID(), vpnProfileEntity.getUsername());
+		return new VPNProfileDTO(vpnProfileEntity.getID(), vpnProfileEntity.getLoginID());
 	}
 }
