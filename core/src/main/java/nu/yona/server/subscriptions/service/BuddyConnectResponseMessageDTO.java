@@ -23,47 +23,23 @@ import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
-import nu.yona.server.messaging.service.MessageService.DTOFactory;
-import nu.yona.server.messaging.service.MessageService.TheDTOFactory;
+import nu.yona.server.messaging.service.MessageService.DTOManager;
+import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.subscriptions.entities.Accessor;
-import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
-import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("buddyConnectResponseMessage")
 public class BuddyConnectResponseMessageDTO extends MessageDTO {
 	private static final String PROCESS = "process";
-	private UserDTO respondingUserResource;
+	private UserDTO respondingUser;
 	private final String message;
 	private boolean isProcessed;
-	private BuddyConnectResponseMessage messageEntity;
 
-	private BuddyConnectResponseMessageDTO(BuddyConnectResponseMessage buddyConnectResponseMessageEntity, UUID id,
-			UserDTO respondingUserResource, String message, boolean isProcessed) {
+	private BuddyConnectResponseMessageDTO(UUID id, UserDTO respondingUser, String message, boolean isProcessed) {
 		super(id);
-		this.messageEntity = buddyConnectResponseMessageEntity;
-		this.respondingUserResource = respondingUserResource;
+		this.respondingUser = respondingUser;
 		this.message = message;
 		this.isProcessed = isProcessed;
-	}
-
-	public UserDTO getRespondingUser() {
-		return respondingUserResource;
-	}
-
-	public String getMessage() {
-		return message;
-	}
-
-	public boolean isProcessed() {
-		return isProcessed;
-	}
-
-	public static BuddyConnectResponseMessageDTO createInstance(User actingUserEntity,
-			BuddyConnectResponseMessage messageEntity) {
-		return new BuddyConnectResponseMessageDTO(messageEntity, messageEntity.getID(),
-				UserDTO.createInstance(messageEntity.getRespondingUser()),
-				messageEntity.getMessage(), messageEntity.isProcessed());
 	}
 
 	@Override
@@ -75,56 +51,78 @@ public class BuddyConnectResponseMessageDTO extends MessageDTO {
 		return possibleActions;
 	}
 
-	@Override
-	public MessageActionDTO handleAction(User requestingUserEntity, String action, MessageActionDTO payload) {
-		switch (action) {
-		case PROCESS:
-			return handleAction_Process(requestingUserEntity);
-		default:
-			throw new IllegalArgumentException("Action '" + action + "' is not supported");
-		}
+	public UserDTO getRespondingUser() {
+		return respondingUser;
 	}
 
-	private MessageActionDTO handleAction_Process(User requestingUserEntity) {
-		updateBuddyWithSecretUserInfo();
-		addDestinationOfBuddyToAccessor(requestingUserEntity.getAccessorID(), messageEntity.getDestinationID());
-		updateMessageStatusAsProcessed();
-
-		return new MessageActionDTO(Collections.singletonMap("status", "done"));
+	public String getMessage() {
+		return message;
 	}
 
-	private void updateBuddyWithSecretUserInfo() {
-		Buddy buddy = Buddy.getRepository().findOne(messageEntity.getBuddyID());
-		buddy.setAccessorID(messageEntity.getAccessorID());
-		buddy.setDestinationID(messageEntity.getDestinationID());
-		Buddy.getRepository().save(buddy);
+	public boolean isProcessed() {
+		return isProcessed;
 	}
 
-	private void addDestinationOfBuddyToAccessor(UUID accessorID, UUID destinationID) {
-		Accessor accessor = Accessor.getRepository().findOne(accessorID);
-		accessor.addDestination(MessageDestination.getRepository().findOne(destinationID));
-		Accessor.getRepository().save(accessor);
-	}
-
-	private void updateMessageStatusAsProcessed() {
-		messageEntity.setProcessed();
-		Message.getRepository().save(messageEntity);
+	public static BuddyConnectResponseMessageDTO createInstance(UserDTO requestingUser,
+			BuddyConnectResponseMessage messageEntity) {
+		return new BuddyConnectResponseMessageDTO(messageEntity.getID(),
+				UserDTO.createInstance(messageEntity.getRespondingUser()), messageEntity.getMessage(),
+				messageEntity.isProcessed());
 	}
 
 	@Component
-	private static class Factory implements DTOFactory {
+	private static class Factory implements DTOManager {
 		@Autowired
-		private TheDTOFactory theDTOFactory;
+		private TheDTOManager theDTOFactory;
+
+		@Autowired
+		private BuddyService buddyService;
 
 		@PostConstruct
 		private void init() {
-			theDTOFactory.addFactory(BuddyConnectResponseMessage.class, this);
+			theDTOFactory.addManager(BuddyConnectResponseMessage.class, this);
 		}
 
 		@Override
-		public MessageDTO createInstance(User actingUserEntity, Message messageEntity) {
-			return BuddyConnectResponseMessageDTO.createInstance(actingUserEntity,
+		public MessageDTO createInstance(UserDTO requestingUser, Message messageEntity) {
+			return BuddyConnectResponseMessageDTO.createInstance(requestingUser,
 					(BuddyConnectResponseMessage) messageEntity);
+		}
+
+		@Override
+		public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
+				MessageActionDTO requestPayload) {
+			switch (action) {
+			case PROCESS:
+				return handleAction_Process(actingUser, (BuddyConnectResponseMessage) messageEntity, requestPayload);
+			default:
+				throw new IllegalArgumentException("Action '" + action + "' is not supported");
+			}
+		}
+
+		private MessageActionDTO handleAction_Process(UserDTO requestingUser,
+				BuddyConnectResponseMessage connectResponseMessageEntity, MessageActionDTO payload) {
+
+			buddyService.updateBuddyWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
+					connectResponseMessageEntity.getAccessorID(), connectResponseMessageEntity.getDestinationID());
+
+			addDestinationOfBuddyToAccessor(requestingUser.getPrivateData().getVpnProfile().getLoginID(),
+					connectResponseMessageEntity.getDestinationID());
+
+			updateMessageStatusAsProcessed(connectResponseMessageEntity);
+
+			return new MessageActionDTO(Collections.singletonMap("status", "done"));
+		}
+
+		private void addDestinationOfBuddyToAccessor(UUID accessorID, UUID destinationID) {
+			Accessor accessor = Accessor.getRepository().findOne(accessorID);
+			accessor.addDestination(MessageDestination.getRepository().findOne(destinationID));
+			Accessor.getRepository().save(accessor);
+		}
+
+		private void updateMessageStatusAsProcessed(BuddyConnectResponseMessage connectResponseMessageEntity) {
+			connectResponseMessageEntity.setProcessed();
+			Message.getRepository().save(connectResponseMessageEntity);
 		}
 	}
 }

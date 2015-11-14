@@ -7,12 +7,14 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.Buddy.Status;
@@ -24,56 +26,68 @@ public class BuddyService {
 	@Autowired
 	private UserService userService;
 
-	public BuddyDTO getBuddy(Optional<String> password, UUID idOfRequestingUser, UUID buddyID) {
+	public BuddyDTO getBuddy(UUID buddyID) {
 		return BuddyDTO.createInstance(getEntityByID(buddyID));
 	}
 
-	public BuddyDTO addBuddy(Optional<String> password, UUID idOfRequestingUser, BuddyDTO buddyResource) {
-		User requestingUserEntity = userService.getEntityByID(idOfRequestingUser);
-		User buddyUserEntity = getBuddyUser(buddyResource);
-		Buddy newBuddyEntity;
+	public BuddyDTO addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDTO buddy) {
+		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
+		User buddyUserEntity = getBuddyUser(buddy);
+		BuddyDTO newBuddyEntity;
 		if (buddyUserEntity == null) {
-			newBuddyEntity = handleBuddyRequestForNewUser(requestingUserEntity, buddyResource);
+			newBuddyEntity = handleBuddyRequestForNewUser(requestingUser, buddy);
 		} else {
-			newBuddyEntity = handleBuddyRequestForExistingUser(requestingUserEntity, buddyResource, buddyUserEntity);
+			newBuddyEntity = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
 		}
-		return BuddyDTO.createInstance(newBuddyEntity);
+		return newBuddyEntity;
 	}
 
-	private Buddy handleBuddyRequestForNewUser(User requestingUserEntity, BuddyDTO buddyResource) {
-		UserDTO buddyUserResource = buddyResource.getUser();
-		User buddyUserEntity = User.createInstanceOnBuddyRequest(buddyUserResource.getFirstName(),
-				buddyUserResource.getLastName(), buddyUserResource.getPrivateData().getNickName(),
-				buddyUserResource.getEmailAddress(), buddyUserResource.getMobileNumber());
+	public BuddyDTO addBuddyToAcceptingUser(UUID buddyUserID, String buddyNickName, Set<Goal> buddyGoals,
+			UUID buddyAccessorID) {
+		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName);
+		buddy.setGoals(buddyGoals);
+		buddy.setAccessorID(buddyAccessorID);
+		buddy.setReceivingStatus(Status.ACCEPTED);
+
+		return BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
+	}
+
+	private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy) {
+		UserDTO buddyUser = buddy.getUser();
+		User buddyUserEntity = User.createInstanceOnBuddyRequest(buddyUser.getFirstName(), buddyUser.getLastName(),
+				buddyUser.getPrivateData().getNickName(), buddyUser.getEmailAddress(), buddyUser.getMobileNumber());
 		User savedBuddyUserEntity = User.getRepository().save(buddyUserEntity);
-		sendInvitationMessage(savedBuddyUserEntity, buddyResource);
-		return handleBuddyRequestForExistingUser(requestingUserEntity, buddyResource, buddyUserEntity);
+		sendInvitationMessage(savedBuddyUserEntity, buddy);
+		return handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
 	}
 
-	private void sendInvitationMessage(User buddyUserEntity, BuddyDTO buddyResource) {
+	private void sendInvitationMessage(User buddyUserEntity, BuddyDTO buddy) {
 		/*
-		String userURL = UserController.getUserLink(buddyUserEntity.getID(), false).getHref();
-		System.out.println(buddyResource.getMessage());
-		System.out.println("\nTo accept this request, install the Yona app");
-		System.out.println("\nTo mimic the Yona app, post the appropriate message to this URL: " + userURL);
-		*/
+		 * String userURL = UserController.getUserLink(buddyUserEntity.getID(),
+		 * false).getHref(); System.out.println(buddy.getMessage());
+		 * System.out.println("\nTo accept this request, install the Yona app");
+		 * System.out.println(
+		 * "\nTo mimic the Yona app, post the appropriate message to this URL: "
+		 * + userURL);
+		 */
 	}
 
-	private Buddy handleBuddyRequestForExistingUser(User requestingUserEntity, BuddyDTO buddyResource,
-			User buddyUserEntity) {
-		Buddy buddyEntity = buddyResource.createBuddyEntity(buddyUserEntity);
+	private BuddyDTO handleBuddyRequestForExistingUser(UserDTO requestingUser, BuddyDTO buddy, User buddyUserEntity) {
+		buddy.getUser().setUserID(buddyUserEntity.getID());
+		Buddy buddyEntity = buddy.createBuddyEntity();
 		buddyEntity.setSendingStatus(Status.REQUESTED);
 		Buddy savedBuddyEntity = Buddy.getRepository().save(buddyEntity);
-		requestingUserEntity.addBuddy(savedBuddyEntity);
+		BuddyDTO savedBuddy = BuddyDTO.createInstance(savedBuddyEntity);
+		userService.addBuddy(requestingUser, savedBuddy);
 
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
-		messageDestination
-				.send(BuddyConnectRequestMessage.createInstance(requestingUserEntity, requestingUserEntity.getGoals(),
-						requestingUserEntity.getNickName(), buddyResource.getMessage(), savedBuddyEntity.getID()));
+		messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
+				requestingUser.getPrivateData().getVpnProfile().getLoginID(),
+				requestingUser.getPrivateData().getGoals(), requestingUser.getPrivateData().getNickName(),
+				buddy.getMessage(), savedBuddyEntity.getID()));
 		MessageDestination.getRepository().save(messageDestination);
-		User.getRepository().save(requestingUserEntity);
 
-		return savedBuddyEntity;
+		return savedBuddy;
 	}
 
 	private Buddy getEntityByID(UUID id) {
@@ -84,12 +98,23 @@ public class BuddyService {
 		return entity;
 	}
 
-	private User getBuddyUser(BuddyDTO buddyResource) {
+	private User getBuddyUser(BuddyDTO buddy) {
 		try {
-			return UserService.findUserByEmailAddressOrMobileNumber(buddyResource.getUser().getEmailAddress(),
-					buddyResource.getUser().getMobileNumber());
+			return UserService.findUserByEmailAddressOrMobileNumber(buddy.getUser().getEmailAddress(),
+					buddy.getUser().getMobileNumber());
 		} catch (UserNotFoundException e) {
 			return null;
 		}
+	}
+
+	public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID accessorID, UUID destinationID) {
+		Buddy buddy = Buddy.getRepository().findOne(buddyID);
+		buddy.setAccessorID(accessorID);
+		buddy.setDestinationID(destinationID);
+		Buddy.getRepository().save(buddy);
+	}
+
+	public Set<BuddyDTO> getBuddies(Set<UUID> buddyIDs) {
+		return buddyIDs.stream().map(id -> getBuddy(id)).collect(Collectors.toSet());
 	}
 }

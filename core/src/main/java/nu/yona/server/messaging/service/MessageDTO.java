@@ -12,8 +12,6 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import nu.yona.server.subscriptions.entities.User;
-
 public abstract class MessageDTO {
 	private final UUID id;
 
@@ -26,8 +24,5 @@ public abstract class MessageDTO {
 		return id;
 	}
 
-	@JsonIgnore
 	public abstract Set<String> getPossibleActions();
-
-	public abstract MessageActionDTO handleAction(User actingUserEntity, String action, MessageActionDTO actionDTO);
 }

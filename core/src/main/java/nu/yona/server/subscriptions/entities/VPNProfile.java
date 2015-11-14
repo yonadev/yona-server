@@ -13,7 +13,7 @@ import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import nu.yona.server.crypto.StringFieldEncrypter;
+import nu.yona.server.crypto.UUIDFieldEncrypter;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
 
@@ -24,24 +24,24 @@ public class VPNProfile extends EntityWithID {
 		return (VPNProfileRepository) RepositoryProvider.getRepository(VPNProfile.class, UUID.class);
 	}
 
-	@Convert(converter = StringFieldEncrypter.class)
-	private String username;
+	@Convert(converter = UUIDFieldEncrypter.class)
+	private UUID loginID;
 
 	// Default constructor is required for JPA
 	public VPNProfile() {
 		super(null);
 	}
 
-	public VPNProfile(UUID id, String username) {
+	public VPNProfile(UUID id, UUID loginID) {
 		super(id);
-		this.username = username;
+		this.loginID = loginID;
 	}
 
-	public String getUsername() {
-		return username;
+	public UUID getLoginID() {
+		return loginID;
 	}
 
-	public static VPNProfile createInstance(String username) {
-		return new VPNProfile(UUID.randomUUID(), username);
+	public static VPNProfile createInstance(UUID loginID) {
+		return new VPNProfile(UUID.randomUUID(), loginID);
 	}
 }
