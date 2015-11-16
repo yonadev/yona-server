@@ -19,7 +19,6 @@ public class CategoriesDTO {
 		this.categories = new HashSet<>(categories);
 	}
 	
-	@JsonProperty("categories")
 	public Set<String> getCategories() {
 		return Collections.unmodifiableSet(categories);
 	}

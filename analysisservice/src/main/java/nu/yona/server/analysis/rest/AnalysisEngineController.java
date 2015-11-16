@@ -13,7 +13,6 @@ import java.util.Set;
 
 import nu.yona.server.analysis.service.AnalysisEngineService;
 import nu.yona.server.analysis.service.PotentialConflictDTO;
-import nu.yona.server.goals.service.GoalService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resource;
@@ -33,9 +32,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class AnalysisEngineController {
 	@Autowired
 	private AnalysisEngineService analysisEngineService;
-
-	@Autowired
-	private GoalService goalService;
 	
 	@RequestMapping(method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
@@ -46,7 +42,7 @@ public class AnalysisEngineController {
 	@RequestMapping(value = "/relevantCategories/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<CategoriesResource> getRelevantCategories() {
-		CategoriesDTO categories = new CategoriesDTO(goalService.getAllCategories());
+		CategoriesDTO categories = new CategoriesDTO(analysisEngineService.getRelevantCategories());
 		return new ResponseEntity<CategoriesResource>(
 				new CategoriesResource(categories), 
 				HttpStatus.OK);

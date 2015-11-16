@@ -36,6 +36,12 @@ public class AnalysisEngineService {
 					conflictingGoalsOfAccessor);
 		}
 	}
+	
+	public Set<String> getRelevantCategories()
+	{
+		return goalService.getAllGoals().stream().flatMap(g -> g.getCategories().stream())
+                .collect(Collectors.toSet());
+	}
 
 	private void sendConflictMessageToAllDestinationsOfAccessor(PotentialConflictDTO payload, Accessor accessor,
 			Set<Goal> conflictingGoalsOfAccessor) {

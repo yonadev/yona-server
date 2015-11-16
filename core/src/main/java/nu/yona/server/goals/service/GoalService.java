@@ -23,16 +23,6 @@ public class GoalService {
 		Goal goalEntity = getEntityByID(id);
 		return GoalDTO.createInstance(goalEntity);
 	}
-
-	public Set<String> getAllCategories() {
-		Set<String> categories = new HashSet<String>();
-		for (Goal goal : Goal.getRepository().findAll()) {
-			for(String category : goal.getCategories()) {
-				categories.add(category);
-			}
-		}
-		return categories;
-	}
 	
 	public Set<GoalDTO> getAllGoals() {
 		Set<GoalDTO> goals = new HashSet<GoalDTO>();
