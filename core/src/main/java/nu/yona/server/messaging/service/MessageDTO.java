@@ -11,7 +11,9 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonRootName;
 
+@JsonRootName("message")
 public abstract class MessageDTO {
 	private final UUID id;
 

@@ -10,6 +10,7 @@ package nu.yona.server.subscriptions.service;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -18,10 +19,12 @@ import java.util.logging.Logger;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import nu.yona.server.goals.entities.Goal;
 
+@JsonRootName("userPrivate")
 public class UserPrivateDTO {
 	private static final Logger LOGGER = Logger.getLogger(UserPrivateDTO.class.getName());
 	private final String nickName;
@@ -33,7 +36,8 @@ public class UserPrivateDTO {
 	private UUID anonymousMessageSourceID;
 	private UUID anonymousMessageDestinationID;
 	private Set<UUID> buddyIDs;
-
+	private Optional<Set<BuddyDTO>> buddies;
+	
 	@JsonCreator
 	public UserPrivateDTO(@JsonProperty("nickName") String nickName,
 			@JsonProperty("devices") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> deviceNames,
@@ -111,5 +115,14 @@ public class UserPrivateDTO {
 	@JsonIgnore
 	public Set<UUID> getBuddyIDs() {
 		return Collections.unmodifiableSet(buddyIDs);
+	}
+	
+	public void setBuddies(Set<BuddyDTO> buddies) {
+		this.buddies = Optional.of(buddies);
+	}
+	
+	@JsonIgnore
+	public Optional<Set<BuddyDTO>> getBuddies() {
+		return buddies.isPresent() ? Optional.of(Collections.unmodifiableSet(buddies.get())) : Optional.empty();
 	}
 }
