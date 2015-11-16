@@ -10,13 +10,13 @@ package nu.yona.server.crypto;
 import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.SEVERE;
 
-import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
 import java.security.spec.KeySpec;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -45,14 +45,14 @@ public class CryptoSession implements AutoCloseable {
 	private static final byte[] SALT = "0123456789012345".getBytes();
 	private static final int INITIALIZATION_VECTOR_LENGTH = 16;
 	private static ThreadLocal<CryptoSession> threadLocal = new ThreadLocal<>();
-	private final Cipher encryptionCipher;
-	private byte[] initializationVector;
+	private Cipher encryptionCipher;
+	private Optional<byte[]> initializationVector = Optional.empty();
 	private final SecretKey secretKey;
 	private CryptoSession previousCryptoSession;
+	private Cipher decryptionCipher;
 
 	private CryptoSession(String password, CryptoSession previousCryptoSession) {
 		secretKey = getSecretKey(password.toCharArray());
-		encryptionCipher = getEncryptionCipher();
 		this.previousCryptoSession = previousCryptoSession;
 		threadLocal.set(this);
 	}
@@ -78,10 +78,18 @@ public class CryptoSession implements AutoCloseable {
 
 	private Cipher getEncryptionCipher() {
 		try {
-			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-			cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-			return cipher;
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
+			if (encryptionCipher == null) {
+				encryptionCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+				if (!isInitializationVectorSet()) {
+					encryptionCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+				} else {
+					encryptionCipher.init(Cipher.ENCRYPT_MODE, secretKey,
+							new IvParameterSpec(initializationVector.get()));
+				}
+			}
+			return encryptionCipher;
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException
+				| InvalidAlgorithmParameterException e) {
 			LOGGER.log(SEVERE, "Unexpected exception", e);
 			throw new YonaException(e);
 		}
@@ -103,27 +111,16 @@ public class CryptoSession implements AutoCloseable {
 
 	public byte[] encrypt(byte[] plaintext) {
 		try {
-			byte[] ciphertext = encryptionCipher.doFinal(plaintext);
-			byte[] initializationVectorPlusCiphertext = new byte[INITIALIZATION_VECTOR_LENGTH + ciphertext.length];
-			System.arraycopy(getInitializationVector(), 0, initializationVectorPlusCiphertext, 0,
-					INITIALIZATION_VECTOR_LENGTH);
-			System.arraycopy(ciphertext, 0, initializationVectorPlusCiphertext, INITIALIZATION_VECTOR_LENGTH,
-					ciphertext.length);
-			return initializationVectorPlusCiphertext;
+			return getEncryptionCipher().doFinal(plaintext);
 		} catch (IllegalBlockSizeException | BadPaddingException e) {
 			LOGGER.log(SEVERE, "Unexpected exception", e);
 			throw new YonaException(e);
 		}
 	}
 
-	public byte[] decrypt(byte[] initializationVectorPlusCiphertext) {
+	public byte[] decrypt(byte[] ciphertext) {
 		try {
-			byte[] decryptionInitializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
-			System.arraycopy(initializationVectorPlusCiphertext, 0, decryptionInitializationVector, 0,
-					INITIALIZATION_VECTOR_LENGTH);
-			return getDecryptionCipher(decryptionInitializationVector).doFinal(initializationVectorPlusCiphertext,
-					INITIALIZATION_VECTOR_LENGTH,
-					initializationVectorPlusCiphertext.length - INITIALIZATION_VECTOR_LENGTH);
+			return getDecryptionCipher().doFinal(ciphertext);
 		} catch (IllegalBlockSizeException | BadPaddingException e) {
 			LOGGER.log(SEVERE, "Unexpected exception", e);
 			throw new DecryptionException(e);
@@ -142,29 +139,56 @@ public class CryptoSession implements AutoCloseable {
 		}
 	}
 
-	private byte[] getInitializationVector() {
+	public byte[] generateInitializationVector() {
 		try {
-			if (initializationVector == null) {
-				AlgorithmParameters params = encryptionCipher.getParameters();
-				initializationVector = params.getParameterSpec(IvParameterSpec.class).getIV();
-				if (initializationVector.length != INITIALIZATION_VECTOR_LENGTH) {
-					throw new YonaException(
-							"Wrong assumption! Expected the initialization vector to be " + INITIALIZATION_VECTOR_LENGTH
-									+ " bytes but current vector is " + initializationVector.length + " bytes");
-				}
+			if (isInitializationVectorSet()) {
+				throw new IllegalStateException("Initialization vector is already set");
 			}
-			return initializationVector;
+			byte[] newInitializationVector = getEncryptionCipher().getParameters()
+					.getParameterSpec(IvParameterSpec.class).getIV();
+			setInitializationVector(newInitializationVector);
+			return getInitializationVector();
 		} catch (InvalidParameterSpecException e) {
 			LOGGER.log(SEVERE, "Unexpected exception", e);
 			throw new YonaException(e);
 		}
 	}
 
-	private Cipher getDecryptionCipher(byte[] initializationVector) {
+	private byte[] getInitializationVector() {
+		if (!isInitializationVectorSet()) {
+			throw new IllegalStateException("Initializatiion vector is not set");
+		}
+		return initializationVector.get();
+	}
+
+	public void setInitializationVector(byte[] initializationVector) {
+		if (initializationVector == null) {
+			throw new IllegalArgumentException("initializationVector cannot be null");
+		}
+		if (initializationVector.length != INITIALIZATION_VECTOR_LENGTH) {
+			throw new IllegalArgumentException("Initialization vector length (" + initializationVector.length
+					+ ") is wrong. Must be " + INITIALIZATION_VECTOR_LENGTH);
+		}
+		if (isInitializationVectorSet() && !Arrays.equals(initializationVector, getInitializationVector())) {
+			throw new IllegalStateException("Cannot overwrite the initialization vector with different one");
+		}
+		this.initializationVector = Optional.of(initializationVector);
+	}
+
+	private boolean isInitializationVectorSet() {
+		return initializationVector.isPresent();
+	}
+
+	private Cipher getDecryptionCipher() {
 		try {
-			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-			cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(initializationVector));
-			return cipher;
+			if (decryptionCipher == null) {
+				if (!isInitializationVectorSet()) {
+					throw new IllegalStateException("Initialization vector must be set before invoking decrypt");
+				}
+				decryptionCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+				decryptionCipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(getInitializationVector()));
+			}
+			return decryptionCipher;
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException
 				| InvalidAlgorithmParameterException e) {
 			LOGGER.log(SEVERE, "Unexpected exception", e);

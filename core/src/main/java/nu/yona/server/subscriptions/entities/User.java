@@ -18,6 +18,7 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
@@ -41,6 +42,8 @@ public class User extends EntityWithID {
 	@Column(unique = true)
 	private String mobileNumber;
 
+	private byte[] initializationVector;
+
 	private boolean createdOnBuddyRequest;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -54,20 +57,22 @@ public class User extends EntityWithID {
 		super(null);
 	}
 
-	private User(UUID id, boolean createdOnBuddyRequest, String firstName, String lastName, String emailAddress,
-			String mobileNumber, UserPrivate userPrivate, MessageDestination messageDestination) {
+	private User(UUID id, byte[] initializationVector, boolean createdOnBuddyRequest, String firstName, String lastName,
+			String emailAddress, String mobileNumber, UserPrivate userPrivate, MessageDestination messageDestination) {
 		super(id);
+		this.initializationVector = initializationVector;
 		this.createdOnBuddyRequest = createdOnBuddyRequest;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.emailAddress = emailAddress;
 		this.mobileNumber = mobileNumber;
-		this.userPrivate = userPrivate;
+		this.setUserPrivate(userPrivate);
 		this.messageDestination = messageDestination;
 	}
 
 	public static User createInstance(String firstName, String lastName, String nickName, String emailAddress,
 			String mobileNumber, Set<String> deviceNames, Set<Goal> goals) {
+		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		Accessor accessor = Accessor.createInstance(goals);
@@ -75,12 +80,13 @@ public class User extends EntityWithID {
 		Accessor.getRepository().save(accessor);
 		UserPrivate userPrivate = UserPrivate.createInstance(nickName, accessor, deviceNames, goals,
 				anonymousMessageSource, namedMessageSource);
-		return new User(UUID.randomUUID(), false, firstName, lastName, emailAddress, mobileNumber, userPrivate,
-				namedMessageSource.getDestination());
+		return new User(UUID.randomUUID(), initializationVector, false, firstName, lastName, emailAddress, mobileNumber,
+				userPrivate, namedMessageSource.getDestination());
 	}
 
 	public static User createInstanceOnBuddyRequest(String firstName, String lastName, String nickName,
 			String emailAddress, String mobileNumber) {
+		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		Set<Goal> goals = Collections.emptySet();
 		Set<String> devices = Collections.emptySet();
 
@@ -89,10 +95,10 @@ public class User extends EntityWithID {
 		Accessor accessor = Accessor.createInstance(goals);
 		accessor.addDestination(anonymousMessageSource.getDestination());
 		Accessor.getRepository().save(accessor);
-		UserPrivate userPrivate = UserPrivate.createInstance(nickName, accessor, devices, goals,
-				anonymousMessageSource, namedMessageSource);
-		return new User(UUID.randomUUID(), true, firstName, lastName, emailAddress, mobileNumber, userPrivate,
-				namedMessageSource.getDestination());
+		UserPrivate userPrivate = UserPrivate.createInstance(nickName, accessor, devices, goals, anonymousMessageSource,
+				namedMessageSource);
+		return new User(UUID.randomUUID(), initializationVector, true, firstName, lastName, emailAddress, mobileNumber,
+				userPrivate, namedMessageSource.getDestination());
 	}
 
 	public boolean isCreatedOnBuddyRequest() {
@@ -116,11 +122,11 @@ public class User extends EntityWithID {
 	}
 
 	public String getNickName() {
-		return userPrivate.getNickname();
+		return getUserPrivate().getNickname();
 	}
 
 	public void setNickName(String nickName) {
-		userPrivate.setNickname(nickName);
+		getUserPrivate().setNickname(nickName);
 	}
 
 	public String getEmailAddress() {
@@ -139,20 +145,29 @@ public class User extends EntityWithID {
 		this.mobileNumber = mobileNumber;
 	}
 
+	private UserPrivate getUserPrivate() {
+		CryptoSession.getCurrent().setInitializationVector(initializationVector);
+		return userPrivate;
+	}
+
+	private void setUserPrivate(UserPrivate userPrivate) {
+		this.userPrivate = userPrivate;
+	}
+
 	public Set<String> getDeviceNames() {
-		return userPrivate.getDeviceNames();
+		return getUserPrivate().getDeviceNames();
 	}
 
 	public void setDeviceNames(Set<String> deviceNames) {
-		userPrivate.setDeviceNames(deviceNames);
+		getUserPrivate().setDeviceNames(deviceNames);
 	}
 
 	public Set<Goal> getGoals() {
-		return userPrivate.getGoals();
+		return getUserPrivate().getGoals();
 	}
 
 	public UUID getAccessorID() {
-		return userPrivate.getAccessorID();
+		return getUserPrivate().getAccessorID();
 	}
 
 	public MessageDestination getNamedMessageDestination() {
@@ -160,15 +175,15 @@ public class User extends EntityWithID {
 	}
 
 	public void addBuddy(Buddy buddy) {
-		userPrivate.addBuddy(buddy);
+		getUserPrivate().addBuddy(buddy);
 	}
 
 	public MessageSource getNamedMessageSource() {
-		return userPrivate.getNamedMessageSource();
+		return getUserPrivate().getNamedMessageSource();
 	}
 
 	public MessageSource getAnonymousMessageSource() {
-		return userPrivate.getAnonymousMessageSource();
+		return getUserPrivate().getAnonymousMessageSource();
 	}
 
 	public MessageDestination getAnonymousMessageDestination() {
@@ -176,14 +191,14 @@ public class User extends EntityWithID {
 	}
 
 	public Set<Buddy> getBuddies() {
-		return userPrivate.getBuddies();
+		return getUserPrivate().getBuddies();
 	}
 
 	public boolean canAccessPrivateData() {
-		return userPrivate.isDecryptedProperly();
+		return getUserPrivate().isDecryptedProperly();
 	}
 
 	public VPNProfile getVPNProfile() {
-		return userPrivate.getVPNProfile();
+		return getUserPrivate().getVPNProfile();
 	}
 }
