@@ -14,11 +14,13 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
@@ -49,7 +51,16 @@ public class BuddyController {
 
 	@Autowired
 	private UserService userService;
+	
+	@RequestMapping(method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<Resources<BuddyResource>> getAllBuddies(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID requestingUserID) {
 
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
+				() -> createOKResponse(requestingUserID, buddyService.getBuddiesOfUser(requestingUserID)));
+	}
+	
 	@RequestMapping(value = "{buddyID}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
@@ -74,6 +85,15 @@ public class BuddyController {
 
 	private HttpEntity<BuddyResource> createResponse(UUID requestingUserID, BuddyDTO buddy, HttpStatus status) {
 		return new ResponseEntity<BuddyResource>(new BuddyResourceAssembler(requestingUserID).toResource(buddy),
+				status);
+	}
+	
+	private HttpEntity<Resources<BuddyResource>> createOKResponse(UUID requestingUserID, Set<BuddyDTO> buddies) {
+		return createResponse(requestingUserID, buddies, HttpStatus.OK);
+	}
+
+	private HttpEntity<Resources<BuddyResource>> createResponse(UUID requestingUserID, Set<BuddyDTO> buddies, HttpStatus status) {
+		return new ResponseEntity<Resources<BuddyResource>>(new Resources<>(new BuddyResourceAssembler(requestingUserID).toResources(buddies)),
 				status);
 	}
 

@@ -177,6 +177,32 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData.properties.status == "done"
 	}
+	
+	def 'Richard checks his buddy list and will find Bob there'(){
+		given:
+
+		when:
+			def response = appService.getBuddies(richardQuinURL, richardQuinPassword);
+
+		then:
+			response.status == 200
+			response.responseData._embedded.buddies.size() == 1
+			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Bob"
+			response.responseData.properties.status == "done"
+	}
+	
+	def 'Bob checks his buddy list and will find Richard there'(){
+		given:
+
+		when:
+			def response = appService.getBuddies(bobDunnURL, bobDunnPassword);
+
+		then:
+			response.status == 200
+			response.responseData._embedded.buddies.size() == 1
+			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Richard"
+			response.responseData.properties.status == "done"
+	}
 
 	def 'Richard checks he has no anonymous messages'(){
 		given:
