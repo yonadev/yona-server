@@ -17,6 +17,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
+import nu.yona.server.subscriptions.service.BuddyDTO;
+import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.UserService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Resource;
@@ -36,12 +42,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
-import nu.yona.server.subscriptions.service.BuddyDTO;
-import nu.yona.server.subscriptions.service.BuddyService;
-import nu.yona.server.subscriptions.service.UserService;
-
 @Controller
 @ExposesResourceFor(BuddyResource.class)
 @RequestMapping(value = "/users/{requestingUserID}/buddies/")
@@ -58,7 +58,12 @@ public class BuddyController {
 			@PathVariable UUID requestingUserID) {
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
-				() -> createOKResponse(requestingUserID, buddyService.getBuddiesOfUser(requestingUserID)));
+				() -> createOKResponse(requestingUserID, buddyService.getBuddiesOfUser(requestingUserID), getAllBuddiesLinkBuilder(requestingUserID)));
+	}
+	
+	static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID) {
+		BuddyController methodOn = methodOn(BuddyController.class);
+		return linkTo(methodOn.getAllBuddies(null, requestingUserID));
 	}
 	
 	@RequestMapping(value = "{buddyID}", method = RequestMethod.GET)
@@ -87,14 +92,10 @@ public class BuddyController {
 		return new ResponseEntity<BuddyResource>(new BuddyResourceAssembler(requestingUserID).toResource(buddy),
 				status);
 	}
-	
-	private HttpEntity<Resources<BuddyResource>> createOKResponse(UUID requestingUserID, Set<BuddyDTO> buddies) {
-		return createResponse(requestingUserID, buddies, HttpStatus.OK);
-	}
 
-	private HttpEntity<Resources<BuddyResource>> createResponse(UUID requestingUserID, Set<BuddyDTO> buddies, HttpStatus status) {
-		return new ResponseEntity<Resources<BuddyResource>>(new Resources<>(new BuddyResourceAssembler(requestingUserID).toResources(buddies)),
-				status);
+	private HttpEntity<Resources<BuddyResource>> createOKResponse(UUID requestingUserID, Set<BuddyDTO> buddies, ControllerLinkBuilder controllerMethodLinkBuilder) {
+		return new ResponseEntity<Resources<BuddyResource>>(new Resources<>(new BuddyResourceAssembler(requestingUserID).toResources(buddies), controllerMethodLinkBuilder.withSelfRel()),
+				HttpStatus.OK);
 	}
 
 	static ControllerLinkBuilder getBuddyLinkBuilder(UUID userID, UUID buddyID) {
@@ -114,7 +115,7 @@ public class BuddyController {
 		}
 	}
 
-	private static class BuddyResourceAssembler extends ResourceAssemblerSupport<BuddyDTO, BuddyResource> {
+	static class BuddyResourceAssembler extends ResourceAssemblerSupport<BuddyDTO, BuddyResource> {
 		private UUID requestingUserID;
 
 		public BuddyResourceAssembler(UUID requestingUserID) {

@@ -11,13 +11,25 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+
+import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.rest.Constants;
+import nu.yona.server.subscriptions.rest.UserController.UserResource;
+import nu.yona.server.subscriptions.service.BuddyDTO;
+import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.subscriptions.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
@@ -33,11 +45,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.rest.Constants;
-import nu.yona.server.subscriptions.rest.UserController.UserResource;
-import nu.yona.server.subscriptions.service.UserDTO;
-import nu.yona.server.subscriptions.service.UserService;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Controller
 @ExposesResourceFor(UserResource.class)
@@ -46,6 +54,9 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 
+	@Autowired
+	private BuddyService buddyService;
+	
 	@RequestMapping(value = "{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
@@ -97,6 +108,11 @@ public class UserController {
 	}
 
 	private HttpEntity<UserResource> createResponse(UserDTO user, boolean includePrivateData, HttpStatus status) {
+		if(includePrivateData)
+		{
+			Set<BuddyDTO> buddies = buddyService.getBuddiesOfUser(user.getID());
+			user.getPrivateData().setBuddies(buddies);
+		}
 		return new ResponseEntity<UserResource>(new UserResourceAssembler(includePrivateData).toResource(user), status);
 	}
 
@@ -118,6 +134,24 @@ public class UserController {
 	static class UserResource extends Resource<UserDTO> {
 		public UserResource(UserDTO user) {
 			super(user);
+		}
+		
+		@JsonProperty("_embedded")
+		public Map<String, Resources<BuddyController.BuddyResource>> getEmbeddedResources() {
+			if(getContent().getPrivateData() != null)
+			{
+				Optional<Set<BuddyDTO>> buddies = getContent().getPrivateData().getBuddies();
+				if(buddies.isPresent()) return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME,
+											new Resources<BuddyController.BuddyResource>(
+													new BuddyController.BuddyResourceAssembler(getContent().getID()).toResources(buddies.get()), 
+													getAllBuddiesLinkBuilder(getContent().getID()).withSelfRel()));
+			}
+			return Collections.emptyMap();
+		}
+		
+		static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID) {
+			BuddyController methodOn = methodOn(BuddyController.class);
+			return linkTo(methodOn.getAllBuddies(null, requestingUserID));
 		}
 	}
 
