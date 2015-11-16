@@ -1,0 +1,16 @@
+language: java
+jdk:
+  - oraclejdk8
+
+before_script:
+  - mkdir -p shippable/testresults
+  - mkdir -p shippable/codecoverage
+
+script:
+  - chmod +x gradlew
+  - ./gradlew test buildDocker
+  - cp ./build/test-results/*.xml ./shippable/testresults
+
+after_script:
+  - mkdir -p ./shippable/buildoutput
+  - cp -r build ./shippable/buildoutput/.

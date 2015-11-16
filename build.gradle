@@ -1,110 +1,47 @@
-buildscript {
-    ext {
-        springBootVersion = '1.2.5.RELEASE'
+description = 'Yona server'
+
+allprojects {
+    apply plugin: 'eclipse'
+
+    group = 'yona-server'
+    version = '0.0.1-SNAPSHOT'
+}
+
+subprojects {
+
+    apply plugin: 'java'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    project.ext {
+		springBootVersion = '1.2.7.RELEASE'
+		yona_adminservice_scheme='http'
+		yona_adminservice_host='localhost'
+		yona_adminservice_port='8080'
+		yona_adminservice_url="${yona_adminservice_scheme}://${yona_adminservice_host}:${yona_adminservice_port}"
+		yona_analysisservice_scheme='http'
+		yona_analysisservice_host='localhost'
+		yona_analysisservice_port='8081'
+		yona_analysisservice_url="${yona_analysisservice_scheme}://${yona_analysisservice_host}:${yona_analysisservice_port}"
+		yona_appservice_scheme='http'
+		yona_appservice_host='localhost'
+		yona_appservice_port='8082'
+		yona_appservice_url="${yona_appservice_scheme}://${yona_appservice_host}:${yona_appservice_port}"
     }
+
     repositories {
         mavenCentral()
     }
-    dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}") 
-        classpath("io.spring.gradle:dependency-management-plugin:0.5.2.RELEASE")
-    }
-}
-
-apply plugin: 'java'
-apply plugin: "groovy"
-apply plugin: 'eclipse-wtp'
-apply plugin: 'idea'
-apply plugin: 'spring-boot' 
-apply plugin: 'io.spring.dependency-management' 
-apply plugin: 'war'
-
-
-war {
-    baseName = 'yona-server'
-    version = '0.0.1-SNAPSHOT'
-}
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-repositories {
-    mavenCentral()
-}
-
-configurations {
-    providedRuntime
-}
-
-dependencies {
-    compile("org.springframework.boot:spring-boot-starter-data-jpa")
-    compile("org.springframework.boot:spring-boot-starter-hateoas")
-    compile("org.springframework.boot:spring-boot-starter-web")
-    runtime("org.hsqldb:hsqldb") 
-    providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
-    testCompile("org.springframework.boot:spring-boot-starter-test") 
-    testCompile("junit:junit:4.12") 
-
-	// mandatory dependencies for using Spock
-	testCompile "org.codehaus.groovy:groovy-all:2.4.5"
-	testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
-
-	// optional dependencies for using Spock
-	testCompile "org.hamcrest:hamcrest-core:1.3" // only necessary if Hamcrest matchers are used
-	testRuntime "cglib:cglib-nodep:3.1"          // allows mocking of classes (in addition to interfaces)
-	testRuntime "org.objenesis:objenesis:2.2"    // allows mocking of classes without default constructor (together with CGLIB)
-	testCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 }
 
 eclipse {
-    classpath {
-         containers.remove('org.eclipse.jdt.launching.JRE_CONTAINER')
-         containers 'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8'
-    }
+	classpath {
+		 containers.remove('org.eclipse.jdt.launching.JRE_CONTAINER')
+		 containers 'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8'
+	}
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.3'
+    gradleVersion = '2.8'
 }
-
-test {
-	// Enable assertions
-	jvmArgs '-ea'
-}
-
-run {
-	// Enable assertions
-	jvmArgs '-ea'
-}
-
-sourceSets {
-    intTest {
-        java {
-            compileClasspath += main.output
-            runtimeClasspath += main.output
-        }
-    }
-}
-
-configurations {
-    intTestCompile.extendsFrom testCompile
-    intTestRuntime.extendsFrom testRuntime
-}
-
-task intTest(type:Test){
-    description = "Run integration tests (located in src/intTest/...)."
-    testClassesDir = project.sourceSets.intTest.output.classesDir
-    classpath = project.sourceSets.intTest.runtimeClasspath
-}
-
-task setupIntTest(type: Test) {
-    include '**/InitialGoalCreationTest.*'
-    description = "Run tintegration test setup."
-    testClassesDir = project.sourceSets.intTest.output.classesDir
-    classpath = project.sourceSets.intTest.runtimeClasspath
-}
-
-intTest {
-    exclude '**/InitialGoalCreationTest.*'
-}
-
-intTest.dependsOn setupIntTest
