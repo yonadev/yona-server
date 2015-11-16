@@ -12,6 +12,7 @@ class YonaServer {
 	final BUDDIES_PATH_FRAGMENT = "/buddies/"
 	final DIRECT_MESSAGE_PATH_FRAGMENT = "/messages/direct/"
 	final ANONYMOUS_MESSAGES_PATH_FRAGMENT = "/messages/anonymous/"
+	final RELEVANT_CATEGORIES_PATH_FRAGMENT = "/relevantCategories/"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 	RESTClient restClient
@@ -54,6 +55,11 @@ class YonaServer {
 	def requestBuddy(userPath, jsonString, password)
 	{
 		createResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, jsonString, password)
+	}
+
+	def getRelevantCategories()
+	{
+		getResource(ANALYSIS_ENGINE_PATH + RELEVANT_CATEGORIES_PATH_FRAGMENT)
 	}
 
 	def getAllGoals()
