@@ -12,10 +12,11 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.crypto.Constants;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageSource;
-import nu.yona.server.crypto.Constants;
+import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.User;
 
 @Service
@@ -138,7 +139,7 @@ public class UserService {
 		User.getRepository().delete(id);
 	}
 
-	public User getEntityByID(UUID id) {
+	private User getEntityByID(UUID id) {
 		User entity = User.getRepository().findOne(id);
 		if (entity == null) {
 			throw UserNotFoundException.notFoundByID(id);
@@ -148,5 +149,12 @@ public class UserService {
 
 	public static String getPassword(Optional<String> password) {
 		return password.orElseThrow(() -> new YonaException("Missing '" + Constants.PASSWORD_HEADER + "' header"));
+	}
+
+	public void addBuddy(UserDTO user, BuddyDTO buddy) {
+		User userEntity = getEntityByID(user.getID());
+		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getID());
+		userEntity.addBuddy(buddyEntity);
+		User.getRepository().save(userEntity);
 	}
 }

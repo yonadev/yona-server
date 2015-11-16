@@ -44,7 +44,7 @@ public class User extends EntityWithID {
 	private boolean createdOnBuddyRequest;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private UserEncrypted encrypted;
+	private UserPrivate userPrivate;
 
 	@OneToOne
 	private MessageDestination messageDestination;
@@ -55,14 +55,14 @@ public class User extends EntityWithID {
 	}
 
 	private User(UUID id, boolean createdOnBuddyRequest, String firstName, String lastName, String emailAddress,
-			String mobileNumber, UserEncrypted encrypted, MessageDestination messageDestination) {
+			String mobileNumber, UserPrivate userPrivate, MessageDestination messageDestination) {
 		super(id);
 		this.createdOnBuddyRequest = createdOnBuddyRequest;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.emailAddress = emailAddress;
 		this.mobileNumber = mobileNumber;
-		this.encrypted = encrypted;
+		this.userPrivate = userPrivate;
 		this.messageDestination = messageDestination;
 	}
 
@@ -73,9 +73,9 @@ public class User extends EntityWithID {
 		Accessor accessor = Accessor.createInstance(goals);
 		accessor.addDestination(anonymousMessageSource.getDestination());
 		Accessor.getRepository().save(accessor);
-		UserEncrypted encrypted = UserEncrypted.createInstance(nickName, accessor, deviceNames, goals,
+		UserPrivate userPrivate = UserPrivate.createInstance(nickName, accessor, deviceNames, goals,
 				anonymousMessageSource, namedMessageSource);
-		return new User(UUID.randomUUID(), false, firstName, lastName, emailAddress, mobileNumber, encrypted,
+		return new User(UUID.randomUUID(), false, firstName, lastName, emailAddress, mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
 	}
 
@@ -89,9 +89,9 @@ public class User extends EntityWithID {
 		Accessor accessor = Accessor.createInstance(goals);
 		accessor.addDestination(anonymousMessageSource.getDestination());
 		Accessor.getRepository().save(accessor);
-		UserEncrypted encrypted = UserEncrypted.createInstance(nickName, accessor, devices, goals,
+		UserPrivate userPrivate = UserPrivate.createInstance(nickName, accessor, devices, goals,
 				anonymousMessageSource, namedMessageSource);
-		return new User(UUID.randomUUID(), true, firstName, lastName, emailAddress, mobileNumber, encrypted,
+		return new User(UUID.randomUUID(), true, firstName, lastName, emailAddress, mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
 	}
 
@@ -116,11 +116,11 @@ public class User extends EntityWithID {
 	}
 
 	public String getNickName() {
-		return encrypted.getNickname();
+		return userPrivate.getNickname();
 	}
 
 	public void setNickName(String nickName) {
-		encrypted.setNickname(nickName);
+		userPrivate.setNickname(nickName);
 	}
 
 	public String getEmailAddress() {
@@ -140,19 +140,19 @@ public class User extends EntityWithID {
 	}
 
 	public Set<String> getDeviceNames() {
-		return encrypted.getDeviceNames();
+		return userPrivate.getDeviceNames();
 	}
 
 	public void setDeviceNames(Set<String> deviceNames) {
-		encrypted.setDeviceNames(deviceNames);
+		userPrivate.setDeviceNames(deviceNames);
 	}
 
 	public Set<Goal> getGoals() {
-		return encrypted.getGoals();
+		return userPrivate.getGoals();
 	}
 
 	public UUID getAccessorID() {
-		return encrypted.getAccessorID();
+		return userPrivate.getAccessorID();
 	}
 
 	public MessageDestination getNamedMessageDestination() {
@@ -160,15 +160,15 @@ public class User extends EntityWithID {
 	}
 
 	public void addBuddy(Buddy buddy) {
-		encrypted.addBuddy(buddy);
+		userPrivate.addBuddy(buddy);
 	}
 
 	public MessageSource getNamedMessageSource() {
-		return encrypted.getNamedMessageSource();
+		return userPrivate.getNamedMessageSource();
 	}
 
 	public MessageSource getAnonymousMessageSource() {
-		return encrypted.getAnonymousMessageSource();
+		return userPrivate.getAnonymousMessageSource();
 	}
 
 	public MessageDestination getAnonymousMessageDestination() {
@@ -176,14 +176,14 @@ public class User extends EntityWithID {
 	}
 
 	public Set<Buddy> getBuddies() {
-		return encrypted.getBuddies();
+		return userPrivate.getBuddies();
 	}
 
 	public boolean canAccessPrivateData() {
-		return encrypted.isDecryptedProperly();
+		return userPrivate.isDecryptedProperly();
 	}
 
 	public VPNProfile getVPNProfile() {
-		return encrypted.getVPNProfile();
+		return userPrivate.getVPNProfile();
 	}
 }

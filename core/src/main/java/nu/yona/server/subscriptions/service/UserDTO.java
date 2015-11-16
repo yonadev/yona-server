@@ -11,6 +11,7 @@ import static java.util.stream.Collectors.toSet;
 
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -23,7 +24,7 @@ import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("User")
 public class UserDTO {
-	private final UUID id;
+	private UUID id;
 	private final String firstName;
 	private final String lastName;
 	private final String emailAddress;
@@ -31,9 +32,12 @@ public class UserDTO {
 	private final UserPrivateDTO privateData;
 
 	private UserDTO(UUID id, String firstName, String lastName, String nickName, String emailAddress,
-			String mobileNumber, Set<String> deviceNames, Set<String> goalNames, VPNProfileDTO vpnProfile) {
+			String mobileNumber, UUID namedMessageSourceID, UUID namedMessageDestinationID,
+			UUID anonymousMessageSourceID, UUID anonymousMessageDestinationID, Set<String> deviceNames,
+			Set<String> goalNames, Set<UUID> buddyIDs, VPNProfileDTO vpnProfile) {
 		this(id, firstName, lastName, emailAddress, mobileNumber,
-				new UserPrivateDTO(nickName, deviceNames, goalNames, vpnProfile));
+				new UserPrivateDTO(nickName, namedMessageSourceID, namedMessageDestinationID, anonymousMessageSourceID,
+						anonymousMessageDestinationID, deviceNames, goalNames, buddyIDs, vpnProfile));
 	}
 
 	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber) {
@@ -60,6 +64,11 @@ public class UserDTO {
 	@JsonIgnore
 	public UUID getID() {
 		return id;
+	}
+
+	@JsonIgnore
+	public void setUserID(UUID id) {
+		this.id = id;
 	}
 
 	public String getFirstName() {
@@ -111,7 +120,14 @@ public class UserDTO {
 	static UserDTO createInstanceWithPrivateData(User userEntity) {
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(),
 				userEntity.getNickName(), userEntity.getEmailAddress(), userEntity.getMobileNumber(),
-				userEntity.getDeviceNames(), getGoalNames(userEntity.getGoals()),
+				userEntity.getNamedMessageSource().getID(), userEntity.getNamedMessageDestination().getID(),
+				userEntity.getAnonymousMessageSource().getID(),
+				userEntity.getAnonymousMessageSource().getDestination().getID(), userEntity.getDeviceNames(),
+				getGoalNames(userEntity.getGoals()), getBuddyIDs(userEntity),
 				VPNProfileDTO.createInstance(userEntity.getVPNProfile()));
+	}
+
+	private static Set<UUID> getBuddyIDs(User userEntity) {
+		return userEntity.getBuddies().stream().map(b -> b.getID()).collect(Collectors.toSet());
 	}
 }

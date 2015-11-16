@@ -90,10 +90,10 @@ public class BuddyConnectResponseMessage extends Message {
 		this.isProcessed = true;
 	}
 
-	public static BuddyConnectResponseMessage createInstance(User respondingUser, UUID destinationID, String message,
-			UUID buddyID, Status status) {
-		return new BuddyConnectResponseMessage(UUID.randomUUID(), respondingUser.getID(),
-				respondingUser.getAccessorID(), message, buddyID, destinationID, status);
+	public static BuddyConnectResponseMessage createInstance(UUID respondingUserID, UUID respondingUserLoginID,
+			UUID destinationID, String message, UUID buddyID, Status status) {
+		return new BuddyConnectResponseMessage(UUID.randomUUID(), respondingUserID, respondingUserLoginID, message,
+				buddyID, destinationID, status);
 	}
 
 	@Override

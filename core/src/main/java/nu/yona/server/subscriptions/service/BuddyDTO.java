@@ -17,7 +17,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.subscriptions.entities.Buddy;
-import nu.yona.server.subscriptions.entities.User;
 
 public class BuddyDTO {
 	public static final String USER_REL_NAME = "user";
@@ -25,22 +24,26 @@ public class BuddyDTO {
 	private UserDTO user;
 	private String message;
 	private String password;
+	private String nickName;
+	private UUID loginID;
 
-	public BuddyDTO(UUID id, UserDTO userResource, String message, String password) {
+	public BuddyDTO(UUID id, UserDTO user, String message, String password, String nickName, UUID loginID) {
 		this.id = id;
-		this.user = userResource;
+		this.user = user;
 		this.message = message;
 		this.password = password;
+		this.nickName = nickName;
+		this.loginID = loginID;
 	}
 
-	public BuddyDTO(UUID id, UserDTO userResource) {
-		this(id, userResource, null, null);
+	public BuddyDTO(UUID id, UserDTO user, String nickName, UUID loginID) {
+		this(id, user, null, null, nickName, loginID);
 	}
 
 	@JsonCreator
 	public BuddyDTO(@JsonProperty("_embedded") Map<String, UserDTO> userInMap, @JsonProperty("message") String message,
 			@JsonProperty("password") String password) {
-		this(null, userInMap.get(USER_REL_NAME), message, password);
+		this(null, userInMap.get(USER_REL_NAME), message, password, null, null);
 	}
 
 	@JsonIgnore
@@ -58,16 +61,27 @@ public class BuddyDTO {
 		return user;
 	}
 
-	Buddy createBuddyEntity(User buddyUserEntity) {
-		return Buddy.createInstance(buddyUserEntity, user.getPrivateData().getNickName());
+	Buddy createBuddyEntity() {
+		return Buddy.createInstance(user.getID(), user.getPrivateData().getNickName());
 	}
 
 	public static BuddyDTO createInstance(Buddy buddyEntity) {
-		return new BuddyDTO(buddyEntity.getID(), UserDTO.createInstance(buddyEntity.getUser()));
+		return new BuddyDTO(buddyEntity.getID(), UserDTO.createInstance(buddyEntity.getUser()),
+				buddyEntity.getNickName(), buddyEntity.getAccessorID());
 	}
 
 	@JsonInclude(Include.NON_EMPTY)
 	public String getPassword() {
 		return password;
+	}
+
+	@JsonIgnore
+	public UUID getLoginID() {
+		return loginID;
+	}
+
+	@JsonIgnore
+	public String getNickName() {
+		return nickName;
 	}
 }

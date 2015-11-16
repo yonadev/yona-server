@@ -25,11 +25,11 @@ class BasicBuddyTest extends Specification {
 	@Shared
 	def richardQuinURL
 	@Shared
-	def richardQuinUsername
+	def richardQuinLoginID
 	@Shared
 	def bobDunnURL
 	@Shared
-	def bobDunnUsername
+	def bobDunnLoginID
 	@Shared
 	def richardQuinBobBuddyURL
 	@Shared
@@ -55,7 +55,7 @@ class BasicBuddyTest extends Specification {
 				]
 			}""", richardQuinPassword)
 			richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
-			richardQuinUsername = response.responseData.vpnProfile.username;
+			richardQuinLoginID = response.responseData.vpnProfile.loginID;
 
 		then:
 			response.status == 201
@@ -83,7 +83,7 @@ class BasicBuddyTest extends Specification {
 				]
 			}""", bobDunnPassword)
 			bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
-			bobDunnUsername = response.responseData.vpnProfile.username;
+			bobDunnLoginID = response.responseData.vpnProfile.loginID;
 
 		then:
 			response.status == 201
@@ -205,7 +205,7 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = analysisService.postToAnalysisEngine("""{
-			"accessorID":"${richardQuinUsername}",
+			"accessorID":"${richardQuinLoginID}",
 			"categories": ["poker"],
 			"url":"http://www.poker.com"
 			}""")

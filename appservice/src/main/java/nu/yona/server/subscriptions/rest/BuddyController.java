@@ -56,7 +56,7 @@ public class BuddyController {
 			@PathVariable UUID requestingUserID, @PathVariable UUID buddyID) {
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
-				() -> createOKResponse(requestingUserID, buddyService.getBuddy(password, requestingUserID, buddyID)));
+				() -> createOKResponse(requestingUserID, buddyService.getBuddy(buddyID)));
 	}
 
 	@RequestMapping(method = RequestMethod.POST)
@@ -64,7 +64,7 @@ public class BuddyController {
 	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID requestingUserID, @RequestBody BuddyDTO buddy) {
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
-				() -> createResponse(requestingUserID, buddyService.addBuddy(password, requestingUserID, buddy),
+				() -> createResponse(requestingUserID, buddyService.addBuddyToRequestingUser(requestingUserID, buddy),
 						HttpStatus.CREATED));
 	}
 
