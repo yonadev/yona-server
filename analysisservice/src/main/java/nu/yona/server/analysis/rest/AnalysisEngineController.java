@@ -32,13 +32,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class AnalysisEngineController {
 	@Autowired
 	private AnalysisEngineService analysisEngineService;
-	
+
 	@RequestMapping(method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
 	public void analyze(@RequestBody PotentialConflictDTO potentialConflictPayload) {
 		analysisEngineService.analyze(potentialConflictPayload);
 	}
-	
+
 	@RequestMapping(value = "/relevantCategories/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<CategoriesResource> getRelevantCategories() {
@@ -47,7 +47,7 @@ public class AnalysisEngineController {
 				new CategoriesResource(categories), 
 				HttpStatus.OK);
 	}
-	
+
 	public static class CategoriesResource extends Resource<CategoriesDTO> {
 		public CategoriesResource(CategoriesDTO categories) {
 			super(categories);
