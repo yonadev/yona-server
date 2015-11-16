@@ -10,6 +10,8 @@ package nu.yona.server.subscriptions.service;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.crypto.Constants;
@@ -22,6 +24,7 @@ import nu.yona.server.subscriptions.entities.User;
 @Service
 public class UserService {
 	// TODO: Do we need this? Currently unused.
+	@Transactional
 	public UserDTO getUser(String emailAddress, String mobileNumber) {
 
 		if (emailAddress != null && mobileNumber != null) {
@@ -35,18 +38,22 @@ public class UserService {
 		return UserDTO.createInstanceWithPrivateData(userEntity);
 	}
 
+	@Transactional
 	public boolean canAccessPrivateData(UUID id) {
 		return getEntityByID(id).canAccessPrivateData();
 	}
 
+	@Transactional
 	public UserDTO getPublicUser(UUID id) {
 		return UserDTO.createInstance(getEntityByID(id));
 	}
 
+	@Transactional
 	public UserDTO getPrivateUser(UUID id) {
 		return UserDTO.createInstanceWithPrivateData(getEntityByID(id));
 	}
 
+	@Transactional
 	public UserDTO addUser(UserDTO userResource) {
 		UserDTO savedUser = UserDTO
 				.createInstanceWithPrivateData(User.getRepository().save(userResource.createUserEntity()));
@@ -54,6 +61,7 @@ public class UserService {
 		return savedUser;
 	}
 
+	@Transactional
 	public UserDTO updateUser(UUID id, UserDTO userResource) {
 		User originalUserEntity = getEntityByID(id);
 		UserDTO savedUser;
