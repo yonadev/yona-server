@@ -22,7 +22,8 @@ dependencies {
 	compile("org.springframework.boot:spring-boot-starter-data-jpa")
 	compile("org.springframework.boot:spring-boot-starter-web")
 	compile("com.fasterxml.jackson.core:jackson-databind:2.6.3") // Required as the Spring Hateaos version pulled in by Swagger is incompatible with Jackson 2.4
-
+	compile("org.atteo:evo-inflector:1.2.1")
+	
 	compile "org.codehaus.groovy:groovy-all:2.4.5"
 	compile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 

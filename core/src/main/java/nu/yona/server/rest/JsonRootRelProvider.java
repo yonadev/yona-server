@@ -7,6 +7,7 @@
  *******************************************************************************/
 package nu.yona.server.rest;
 
+import org.atteo.evo.inflector.English;
 import org.springframework.hateoas.RelProvider;
 import org.springframework.hateoas.core.DefaultRelProvider;
 
@@ -33,8 +34,7 @@ public class JsonRootRelProvider implements RelProvider {
 
 	@Override
 	public String getCollectionResourceRelFor(Class<?> type) {
-		return getItemResourceRelFor(type) + "s"; // Simplistic pluralization,
-													// but good enough for now
+		return English.plural(getItemResourceRelFor(type));
 	}
 
 	@Override
