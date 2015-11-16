@@ -7,16 +7,11 @@
  *******************************************************************************/
 package nu.yona.server.analysis.rest;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import nu.yona.server.analysis.service.AnalysisEngineService;
 import nu.yona.server.analysis.service.PotentialConflictDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
