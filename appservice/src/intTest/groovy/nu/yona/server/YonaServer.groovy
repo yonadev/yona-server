@@ -67,6 +67,11 @@ class YonaServer {
 		getResource(GOALS_PATH)
 	}
 
+	def getBuddies(userPath, password)
+	{
+		getResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, password)
+	}
+
 	def getDirectMessages(userPath, password)
 	{
 		getResourceWithPassword(userPath + DIRECT_MESSAGE_PATH_FRAGMENT, password)

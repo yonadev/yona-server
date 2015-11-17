@@ -12,9 +12,11 @@ import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.subscriptions.entities.VPNProfile;
 
+@JsonRootName("vpnProfile")
 public class VPNProfileDTO {
 	private final UUID id;
 	private UUID loginID;
