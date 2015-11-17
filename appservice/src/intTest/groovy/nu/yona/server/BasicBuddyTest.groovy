@@ -203,6 +203,19 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Richard"
 			response.responseData.properties.status == "done"
 	}
+	
+	def 'When Richard would retrieve his user, Bob would be embedded as buddy'(){
+		given:
+
+		when:
+			def response = appService.getUser(richardQuinURL, true, richardQuinPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded.buddies != null
+			response.responseData._embedded.buddies.size() == 1
+			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Bob"
+	}
 
 	def 'Richard checks he has no anonymous messages'(){
 		given:

@@ -12,6 +12,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -29,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
@@ -137,14 +137,14 @@ public class UserController {
 		}
 		
 		@JsonProperty("_embedded")
-		public Map<String, Resources<BuddyController.BuddyResource>> getEmbeddedResources() {
+		public Map<String, List<BuddyController.BuddyResource>> getEmbeddedResources() {
 			if(getContent().getPrivateData() != null)
 			{
 				Optional<Set<BuddyDTO>> buddies = getContent().getPrivateData().getBuddies();
-				if(buddies.isPresent()) return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME,
-											new Resources<BuddyController.BuddyResource>(
-													new BuddyController.BuddyResourceAssembler(getContent().getID()).toResources(buddies.get()), 
-													getAllBuddiesLinkBuilder(getContent().getID()).withSelfRel()));
+				if(buddies.isPresent()) {
+					return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME,
+						new BuddyController.BuddyResourceAssembler(getContent().getID()).toResources(buddies.get())); 
+				}					
 			}
 			return Collections.emptyMap();
 		}
