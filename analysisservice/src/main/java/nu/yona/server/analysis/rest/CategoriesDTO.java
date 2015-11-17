@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-@JsonRootName("Categories")
+@JsonRootName("categories")
 public class CategoriesDTO {
 	private Set<String> categories;
 

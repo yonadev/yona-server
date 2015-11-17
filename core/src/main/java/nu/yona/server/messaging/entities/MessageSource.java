@@ -69,7 +69,7 @@ public class MessageSource extends EntityWithID {
 	public List<Message> getAllMessages() {
 		List<Message> decryptedMessages = messageDestination.getAllMessages();
 		PublicKeyDecryptor decryptor = PublicKeyDecryptor.createInstance(loadPrivateKey());
-		decryptedMessages.stream().forEach(m -> m.decrypt(decryptor));
+		decryptedMessages.stream().forEach(m -> m.decryptMessage(decryptor));
 		return decryptedMessages;
 	}
 
@@ -82,7 +82,7 @@ public class MessageSource extends EntityWithID {
 
 	public Message getMessage(UUID idToFetch) {
 		Message message = Message.getRepository().findOne(idToFetch);
-		message.decrypt(PublicKeyDecryptor.createInstance(loadPrivateKey()));
+		message.decryptMessage(PublicKeyDecryptor.createInstance(loadPrivateKey()));
 		return message;
 	}
 

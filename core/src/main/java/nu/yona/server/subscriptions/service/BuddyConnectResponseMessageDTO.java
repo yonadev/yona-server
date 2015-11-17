@@ -20,12 +20,10 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
-import nu.yona.server.subscriptions.entities.Accessor;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 
 @JsonRootName("buddyConnectResponseMessage")
@@ -104,20 +102,11 @@ public class BuddyConnectResponseMessageDTO extends MessageDTO {
 				BuddyConnectResponseMessage connectResponseMessageEntity, MessageActionDTO payload) {
 
 			buddyService.updateBuddyWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
-					connectResponseMessageEntity.getAccessorID(), connectResponseMessageEntity.getDestinationID());
-
-			addDestinationOfBuddyToAccessor(requestingUser.getPrivateData().getVpnProfile().getLoginID(),
-					connectResponseMessageEntity.getDestinationID());
+					connectResponseMessageEntity.getRelatedLoginID());
 
 			updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
-		}
-
-		private void addDestinationOfBuddyToAccessor(UUID accessorID, UUID destinationID) {
-			Accessor accessor = Accessor.getRepository().findOne(accessorID);
-			accessor.addDestination(MessageDestination.getRepository().findOne(destinationID));
-			Accessor.getRepository().save(accessor);
 		}
 
 		private void updateMessageStatusAsProcessed(BuddyConnectResponseMessage connectResponseMessageEntity) {
