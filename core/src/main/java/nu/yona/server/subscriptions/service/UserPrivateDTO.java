@@ -125,6 +125,6 @@ public class UserPrivateDTO {
 	
 	@JsonIgnore
 	public Set<BuddyDTO> getBuddies() {
-		return Collections.unmodifiableSet(buddies.get());
+		return Collections.unmodifiableSet(buddies);
 	}
 }
