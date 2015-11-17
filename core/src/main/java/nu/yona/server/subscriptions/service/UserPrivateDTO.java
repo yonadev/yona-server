@@ -36,7 +36,7 @@ public class UserPrivateDTO {
 	private UUID anonymousMessageSourceID;
 	private UUID anonymousMessageDestinationID;
 	private Set<UUID> buddyIDs;
-	private Optional<Set<BuddyDTO>> buddies;
+	private Set<BuddyDTO> buddies;
 	
 	@JsonCreator
 	public UserPrivateDTO(@JsonProperty("nickName") String nickName,
@@ -57,6 +57,8 @@ public class UserPrivateDTO {
 		this.goalNames = (goalNames == null) ? Collections.emptySet() : goalNames;
 		this.buddyIDs = (buddyIDs == null) ? Collections.emptySet() : buddyIDs;
 		this.vpnProfile = vpnProfile;
+
+		this.buddies = Collections.emptySet();
 	}
 
 	public String getNickName() {
@@ -118,11 +120,11 @@ public class UserPrivateDTO {
 	}
 	
 	public void setBuddies(Set<BuddyDTO> buddies) {
-		this.buddies = Optional.of(buddies);
+		this.buddies = buddies;
 	}
 	
 	@JsonIgnore
-	public Optional<Set<BuddyDTO>> getBuddies() {
-		return buddies.isPresent() ? Optional.of(Collections.unmodifiableSet(buddies.get())) : Optional.empty();
+	public Set<BuddyDTO> getBuddies() {
+		return Collections.unmodifiableSet(buddies.get());
 	}
 }

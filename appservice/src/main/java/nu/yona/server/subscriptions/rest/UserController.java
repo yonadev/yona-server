@@ -138,15 +138,14 @@ public class UserController {
 		
 		@JsonProperty("_embedded")
 		public Map<String, List<BuddyController.BuddyResource>> getEmbeddedResources() {
-			if(getContent().getPrivateData() != null)
-			{
-				Optional<Set<BuddyDTO>> buddies = getContent().getPrivateData().getBuddies();
-				if(buddies.isPresent()) {
-					return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME,
-						new BuddyController.BuddyResourceAssembler(getContent().getID()).toResources(buddies.get())); 
-				}					
+			if(getContent().getPrivateData() == null) {
+				return Collections.emptyMap();
 			}
-			return Collections.emptyMap();
+			else {
+				Set<BuddyDTO> buddies = getContent().getPrivateData().getBuddies();
+				return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME,
+					new BuddyController.BuddyResourceAssembler(getContent().getID()).toResources(buddies)); 					
+			}
 		}
 		
 		static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID) {
