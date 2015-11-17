@@ -24,6 +24,7 @@ import nu.yona.server.crypto.UUIDFieldEncrypter;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 
 @Entity
 @Table(name = "BUDDIES")
@@ -32,18 +33,11 @@ public class Buddy extends EntityWithID {
 		return (BuddyRepository) RepositoryProvider.getRepository(Buddy.class, UUID.class);
 	}
 
-	public enum Status {
-		NOT_REQUESTED, REQUESTED, ACCEPTED, REJECTED
-	};
-
 	@Convert(converter = UUIDFieldEncrypter.class)
 	private UUID userID;
 
 	@Convert(converter = UUIDFieldEncrypter.class)
-	private UUID accessorID;
-
-	@Convert(converter = UUIDFieldEncrypter.class)
-	private UUID destinationID;
+	private UUID buddyAnonymizedID;
 
 	@Convert(converter = StringFieldEncrypter.class)
 	private String nickName;
@@ -55,38 +49,30 @@ public class Buddy extends EntityWithID {
 	@Transient
 	private Set<Goal> goals = new HashSet<>();
 
-	private Status sendingStatus = Status.NOT_REQUESTED;
-	private Status receivingStatus = Status.NOT_REQUESTED;
-
 	// Default constructor is required for JPA
 	public Buddy() {
 		super(null);
 	}
 
-	private Buddy(UUID id, UUID userID, String nickName) {
+	private Buddy(UUID id, UUID userID, String nickName, UUID buddyAnonymizedID) {
 		super(id);
 		this.userID = userID;
 		this.nickName = nickName;
+		this.buddyAnonymizedID = buddyAnonymizedID;
 	}
 
 	public static Buddy createInstance(UUID buddyUserID, String nickName) {
-		return new Buddy(UUID.randomUUID(), buddyUserID, nickName);
+		BuddyAnonymized buddyAnonymized = BuddyAnonymized.createInstance();
+		buddyAnonymized = BuddyAnonymized.getRepository().save(buddyAnonymized);
+		return new Buddy(UUID.randomUUID(), buddyUserID, nickName, buddyAnonymized.getID());
 	}
 
-	public UUID getAccessorID() {
-		return accessorID;
+	public UUID getBuddyAnonymizedID() {
+		return buddyAnonymizedID;
 	}
 
-	public void setAccessorID(UUID accessorID) {
-		this.accessorID = accessorID;
-	}
-
-	public UUID getDestinationID() {
-		return destinationID;
-	}
-
-	public void setDestinationID(UUID destinationID) {
-		this.destinationID = destinationID;
+	BuddyAnonymized getBuddyAnonymized() {
+		return BuddyAnonymized.getRepository().findOne(buddyAnonymizedID);
 	}
 
 	public String getNickName() {
@@ -109,19 +95,29 @@ public class Buddy extends EntityWithID {
 		goals = new HashSet<>(goals);
 	}
 
-	public Status getSendingStatus() {
-		return sendingStatus;
-	}
-
-	public void setSendingStatus(Status sendingStatus) {
-		this.sendingStatus = sendingStatus;
+	public UUID getLoginID() {
+		return getBuddyAnonymized().getLoginID();
 	}
 
 	public Status getReceivingStatus() {
-		return receivingStatus;
+		return getBuddyAnonymized().getReceivingStatus();
 	}
 
-	public void setReceivingStatus(Status receivingStatus) {
-		this.receivingStatus = receivingStatus;
+	public void setReceivingStatus(Status status) {
+		getBuddyAnonymized().setReceivingStatus(status);
+	}
+
+	public void setSendingStatus(Status status) {
+		getBuddyAnonymized().setSendingStatus(status);
+	}
+
+	public Status getSendingStatus() {
+		return getBuddyAnonymized().getSendingStatus();
+	}
+
+	public void setLoginID(UUID loginID) {
+		BuddyAnonymized buddyAnonymized = getBuddyAnonymized();
+		buddyAnonymized.setLoginID(loginID);
+		BuddyAnonymized.getRepository().save(buddyAnonymized);
 	}
 }

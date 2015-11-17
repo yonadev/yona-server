@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
@@ -20,6 +21,10 @@ import nu.yona.server.entities.RepositoryProvider;
 @Entity
 @Table(name = "MESSAGES")
 public abstract class Message extends EntityWithID {
+	@Transient
+	private UUID relatedLoginID;
+	private byte[] relatedUserAnonymizedIDCiphertext;
+
 	public static MessageRepository getRepository() {
 		return (MessageRepository) RepositoryProvider.getRepository(Message.class, UUID.class);
 	}
@@ -31,11 +36,29 @@ public abstract class Message extends EntityWithID {
 	 * @param id
 	 *            The ID of the entity
 	 */
-	protected Message(UUID id) {
+	protected Message(UUID id, UUID relatedUserAnonymizedID) {
 		super(id);
+		if (id != null && relatedUserAnonymizedID == null) {
+			throw new IllegalArgumentException("relatedUserAnonymizedID cannot be null");
+		}
+		this.relatedLoginID = relatedUserAnonymizedID;
 	}
 
-	public abstract void encrypt(Encryptor encryptor);
+	public void encryptMessage(Encryptor encryptor) {
+		relatedUserAnonymizedIDCiphertext = encryptor.encrypt(relatedLoginID);
+		encrypt(encryptor);
+	}
 
-	public abstract void decrypt(Decryptor decryptor);
+	public void decryptMessage(Decryptor decryptor) {
+		relatedLoginID = decryptor.decryptUUID(relatedUserAnonymizedIDCiphertext);
+		decrypt(decryptor);
+	}
+
+	public UUID getRelatedLoginID() {
+		return relatedLoginID;
+	}
+
+	protected abstract void encrypt(Encryptor encryptor);
+
+	protected abstract void decrypt(Decryptor decryptor);
 }

@@ -19,7 +19,7 @@ import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageDestination;
-import nu.yona.server.subscriptions.entities.Accessor;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Service
 public class AnalysisEngineService {
@@ -28,7 +28,7 @@ public class AnalysisEngineService {
 
 	public void analyze(PotentialConflictDTO potentialConflictPayload) {
 
-		Accessor accessor = getAccessorByID(potentialConflictPayload.getAccessorID());
+		UserAnonymized accessor = getAccessorByID(potentialConflictPayload.getAccessorID());
 		Set<Goal> conflictingGoalsOfAccessor = determineConflictingGoalsForAccessor(accessor,
 				potentialConflictPayload.getCategories());
 		if (!conflictingGoalsOfAccessor.isEmpty()) {
@@ -36,16 +36,14 @@ public class AnalysisEngineService {
 					conflictingGoalsOfAccessor);
 		}
 	}
-	
-	public Set<String> getRelevantCategories()
-	{
-		return goalService.getAllGoals().stream().flatMap(g -> g.getCategories().stream())
-                .collect(Collectors.toSet());
+
+	public Set<String> getRelevantCategories() {
+		return goalService.getAllGoals().stream().flatMap(g -> g.getCategories().stream()).collect(Collectors.toSet());
 	}
 
-	private void sendConflictMessageToAllDestinationsOfAccessor(PotentialConflictDTO payload, Accessor accessor,
-			Set<Goal> conflictingGoalsOfAccessor) {
-		Set<MessageDestination> destinations = accessor.getDestinations();
+	private void sendConflictMessageToAllDestinationsOfAccessor(PotentialConflictDTO payload,
+			UserAnonymized userAnonymized, Set<Goal> conflictingGoalsOfAccessor) {
+		Set<MessageDestination> destinations = userAnonymized.getAllRelatedDestinations();
 		destinations.stream().forEach(d -> d.send(createConflictMessage(payload, conflictingGoalsOfAccessor)));
 		destinations.stream().forEach(d -> MessageDestination.getRepository().save(d));
 	}
@@ -56,7 +54,7 @@ public class AnalysisEngineService {
 				payload.getURL());
 	}
 
-	private Set<Goal> determineConflictingGoalsForAccessor(Accessor accessor, Set<String> categories) {
+	private Set<Goal> determineConflictingGoalsForAccessor(UserAnonymized accessor, Set<String> categories) {
 		Set<Goal> allGoals = goalService.getAllGoalEntities();
 		Set<Goal> conflictingGoals = allGoals.stream().filter(g -> {
 			Set<String> goalCategories = new HashSet<>(g.getCategories());
@@ -69,8 +67,8 @@ public class AnalysisEngineService {
 		return conflictingGoalsOfAccessor;
 	}
 
-	private Accessor getAccessorByID(UUID id) {
-		Accessor entity = Accessor.getRepository().findOne(id);
+	private UserAnonymized getAccessorByID(UUID id) {
+		UserAnonymized entity = UserAnonymized.getRepository().findOne(id);
 		if (entity == null) {
 			throw new AccessorNotFoundException(id);
 		}

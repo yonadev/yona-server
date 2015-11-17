@@ -124,7 +124,7 @@ public class UserDTO {
 				userEntity.getAnonymousMessageSource().getID(),
 				userEntity.getAnonymousMessageSource().getDestination().getID(), userEntity.getDeviceNames(),
 				getGoalNames(userEntity.getGoals()), getBuddyIDs(userEntity),
-				VPNProfileDTO.createInstance(userEntity.getVPNProfile()));
+				VPNProfileDTO.createInstance(userEntity.getAnonymized()));
 	}
 
 	private static Set<UUID> getBuddyIDs(User userEntity) {

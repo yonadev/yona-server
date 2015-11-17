@@ -11,5 +11,5 @@ import java.util.UUID;
 
 import org.springframework.data.repository.CrudRepository;
 
-public interface VPNProfileRepository extends CrudRepository<VPNProfile, UUID> {
+public interface BuddyAnonymizedRepository extends CrudRepository<BuddyAnonymized, UUID> {
 }

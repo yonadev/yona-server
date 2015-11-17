@@ -26,7 +26,7 @@ import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
-import nu.yona.server.subscriptions.entities.Buddy.Status;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 
@@ -85,7 +85,7 @@ public class BuddyConnectRequestMessageDTO extends MessageDTO {
 	public static BuddyConnectRequestMessageDTO createInstance(UserDTO requestingUser,
 			BuddyConnectRequestMessage messageEntity) {
 		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(),
-				UserDTO.createInstance(messageEntity.getRequestingUser()), messageEntity.getAccessorID(),
+				UserDTO.createInstance(messageEntity.getRequestingUser()), messageEntity.getRelatedLoginID(),
 				messageEntity.getNickname(), messageEntity.getMessage(),
 				messageEntity.getGoals().stream().map(g -> g.getName()).collect(Collectors.toSet()),
 				messageEntity.isAccepted());
@@ -128,7 +128,7 @@ public class BuddyConnectRequestMessageDTO extends MessageDTO {
 
 			BuddyDTO buddy = buddyService.addBuddyToAcceptingUser(
 					connectRequestMessageEntity.getRequestingUser().getID(), connectRequestMessageEntity.getNickname(),
-					connectRequestMessageEntity.getGoals(), connectRequestMessageEntity.getAccessorID());
+					connectRequestMessageEntity.getGoals(), connectRequestMessageEntity.getRelatedLoginID());
 
 			userService.addBuddy(acceptingUser, buddy);
 
@@ -141,7 +141,7 @@ public class BuddyConnectRequestMessageDTO extends MessageDTO {
 		}
 
 		private void updateMessageStatusAsAccepted(BuddyConnectRequestMessage connectRequestMessageEntity) {
-			connectRequestMessageEntity.setStatus(Status.ACCEPTED);
+			connectRequestMessageEntity.setStatus(BuddyAnonymized.Status.ACCEPTED);
 			Message.getRepository().save(connectRequestMessageEntity);
 		}
 
@@ -153,7 +153,7 @@ public class BuddyConnectRequestMessageDTO extends MessageDTO {
 			messageDestination.send(BuddyConnectResponseMessage.createInstance(acceptingUser.getID(),
 					acceptingUser.getPrivateData().getVpnProfile().getLoginID(),
 					acceptingUser.getPrivateData().getAnonymousMessageDestinationID(), responseMessage,
-					connectRequestMessageEntity.getBuddyID(), Status.ACCEPTED));
+					connectRequestMessageEntity.getBuddyID(), BuddyAnonymized.Status.ACCEPTED));
 			MessageDestination.getRepository().save(messageDestination);
 		}
 	}

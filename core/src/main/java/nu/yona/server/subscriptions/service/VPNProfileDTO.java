@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import nu.yona.server.subscriptions.entities.VPNProfile;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 public class VPNProfileDTO {
 	private final UUID id;
@@ -38,7 +38,7 @@ public class VPNProfileDTO {
 		return loginID;
 	}
 
-	public static VPNProfileDTO createInstance(VPNProfile vpnProfileEntity) {
-		return new VPNProfileDTO(vpnProfileEntity.getID(), vpnProfileEntity.getLoginID());
+	public static VPNProfileDTO createInstance(UserAnonymized userAnonymized) {
+		return new VPNProfileDTO(userAnonymized.getID(), userAnonymized.getLoginID());
 	}
 }
