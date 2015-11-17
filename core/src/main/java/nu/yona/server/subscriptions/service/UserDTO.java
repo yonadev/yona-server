@@ -22,8 +22,9 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.User;
 
-@JsonRootName("User")
+@JsonRootName("user")
 public class UserDTO {
+	public static final String BUDDIES_REL_NAME = "buddies";
 	private UUID id;
 	private final String firstName;
 	private final String lastName;

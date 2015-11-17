@@ -14,8 +14,10 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonRootName("potentialConflict")
 public class PotentialConflictDTO {
 	private UUID loginID;
 	private Set<String> categories;

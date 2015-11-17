@@ -31,6 +31,11 @@ public class BuddyService {
 	public BuddyDTO getBuddy(UUID buddyID) {
 		return BuddyDTO.createInstance(getEntityByID(buddyID));
 	}
+	
+	public Set<BuddyDTO> getBuddiesOfUser(UUID forUserID) {
+		UserDTO user = userService.getPrivateUser(forUserID);
+		return getBuddies(user.getPrivateData().getBuddyIDs());
+	}
 
 	public BuddyDTO addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDTO buddy) {
 		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);

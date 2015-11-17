@@ -24,11 +24,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.goals.rest.GoalController.GoalResource;
 import nu.yona.server.goals.service.GoalDTO;
@@ -53,29 +51,6 @@ public class GoalController {
 		return createOKResponse(goalService.getAllGoals(), getAllGoalsLinkBuilder());
 	}
 
-	static ControllerLinkBuilder getAllGoalsLinkBuilder() {
-		GoalController methodOn = methodOn(GoalController.class);
-		return linkTo(methodOn.getAllGoals());
-	}
-
-	@RequestMapping(method = RequestMethod.POST)
-	@ResponseBody
-	public HttpEntity<GoalResource> addGoal(@RequestBody GoalDTO goal) {
-		return createResponse(goalService.addGoal(goal), HttpStatus.CREATED);
-	}
-
-	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
-	@ResponseBody
-	public HttpEntity<GoalResource> updateGoal(@PathVariable UUID id, @RequestBody GoalDTO goal) {
-		return createOKResponse(goalService.updateGoal(id, goal));
-	}
-
-	@RequestMapping(value = "{id}", method = RequestMethod.DELETE)
-	@ResponseStatus(HttpStatus.OK)
-	public void deleteGoal(@PathVariable UUID id) {
-		goalService.deleteGoal(id);
-	}
-
 	private HttpEntity<GoalResource> createOKResponse(GoalDTO goal) {
 		return createResponse(goal, HttpStatus.OK);
 	}
@@ -88,8 +63,13 @@ public class GoalController {
 		return new ResponseEntity<Resources<GoalResource>>(wrapGoalsAsResourceList(goals, controllerMethodLinkBuilder), HttpStatus.OK);
 	}
 
-	private Resources<GoalResource> wrapGoalsAsResourceList(Set<GoalDTO> goals, ControllerLinkBuilder controllerMethodLinkBuilder) { 
+	private Resources<GoalResource> wrapGoalsAsResourceList(Set<GoalDTO> goals, ControllerLinkBuilder controllerMethodLinkBuilder) {
 		return new Resources<>(new GoalResourceAssembler().toResources(goals), controllerMethodLinkBuilder.withSelfRel());
+	}
+
+	static ControllerLinkBuilder getAllGoalsLinkBuilder() {
+		GoalController methodOn = methodOn(GoalController.class);
+		return linkTo(methodOn.getAllGoals());
 	}
 
 	public static class GoalResource extends Resource<GoalDTO> {
