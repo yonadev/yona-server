@@ -8,11 +8,11 @@
 package nu.yona.server.subscriptions.service;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import javax.transaction.Transactional;
-
-import org.springframework.stereotype.Service;
 
 import nu.yona.server.crypto.Constants;
 import nu.yona.server.crypto.CryptoSession;
@@ -20,6 +20,8 @@ import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.User;
+
+import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
@@ -59,6 +61,26 @@ public class UserService {
 				.createInstanceWithPrivateData(User.getRepository().save(userResource.createUserEntity()));
 
 		return savedUser;
+	}
+	
+	@Transactional
+	public Set<String> addDeviceForUser(UUID forUserID, String deviceName) {
+		User originalUserEntity = getEntityByID(forUserID);
+		Set<String> deviceNames = new TreeSet<String>(originalUserEntity.getDeviceNames());
+		deviceNames.add(deviceName);
+		originalUserEntity.setDeviceNames(deviceNames);
+		User updatedUserEntity = User.getRepository().save(originalUserEntity);
+		return updatedUserEntity.getDeviceNames();
+	}
+	
+	@Transactional
+	public Set<String> deleteDeviceForUser(UUID forUserID, String deviceName) {
+		User originalUserEntity = getEntityByID(forUserID);
+		Set<String> deviceNames = new TreeSet<String>(originalUserEntity.getDeviceNames());
+		deviceNames.remove(deviceName);
+		originalUserEntity.setDeviceNames(deviceNames);
+		User updatedUserEntity = User.getRepository().save(originalUserEntity);
+		return updatedUserEntity.getDeviceNames();
 	}
 
 	@Transactional
