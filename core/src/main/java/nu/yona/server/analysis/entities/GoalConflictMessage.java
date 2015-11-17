@@ -60,7 +60,7 @@ public class GoalConflictMessage extends Message {
 		url = decryptor.decryptString(urlCiphertext);
 	}
 
-	public static GoalConflictMessage createInstance(UUID accessorID, Goal goal, String url) {
-		return new GoalConflictMessage(UUID.randomUUID(), accessorID, goal.getID(), url);
+	public static GoalConflictMessage createInstance(UUID loginID, Goal goal, String url) {
+		return new GoalConflictMessage(UUID.randomUUID(), loginID, goal.getID(), url);
 	}
 }

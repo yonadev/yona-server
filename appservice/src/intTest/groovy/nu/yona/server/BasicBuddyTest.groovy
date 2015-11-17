@@ -205,7 +205,7 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = analysisService.postToAnalysisEngine("""{
-			"accessorID":"${richardQuinLoginID}",
+			"loginID":"${richardQuinLoginID}",
 			"categories": ["poker"],
 			"url":"http://www.poker.com"
 			}""")

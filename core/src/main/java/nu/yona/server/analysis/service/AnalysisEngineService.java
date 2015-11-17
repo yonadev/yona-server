@@ -28,12 +28,12 @@ public class AnalysisEngineService {
 
 	public void analyze(PotentialConflictDTO potentialConflictPayload) {
 
-		UserAnonymized accessor = getAccessorByID(potentialConflictPayload.getAccessorID());
-		Set<Goal> conflictingGoalsOfAccessor = determineConflictingGoalsForAccessor(accessor,
+		UserAnonymized userAnonimized = getUserAnonymizedByID(potentialConflictPayload.getLoginID());
+		Set<Goal> conflictingGoalsOfUser = determineConflictingGoalsForUser(userAnonimized,
 				potentialConflictPayload.getCategories());
-		if (!conflictingGoalsOfAccessor.isEmpty()) {
-			sendConflictMessageToAllDestinationsOfAccessor(potentialConflictPayload, accessor,
-					conflictingGoalsOfAccessor);
+		if (!conflictingGoalsOfUser.isEmpty()) {
+			sendConflictMessageToAllDestinationsOfUser(potentialConflictPayload, userAnonimized,
+					conflictingGoalsOfUser);
 		}
 	}
 
@@ -41,36 +41,35 @@ public class AnalysisEngineService {
 		return goalService.getAllGoals().stream().flatMap(g -> g.getCategories().stream()).collect(Collectors.toSet());
 	}
 
-	private void sendConflictMessageToAllDestinationsOfAccessor(PotentialConflictDTO payload,
-			UserAnonymized userAnonymized, Set<Goal> conflictingGoalsOfAccessor) {
+	private void sendConflictMessageToAllDestinationsOfUser(PotentialConflictDTO payload, UserAnonymized userAnonymized,
+			Set<Goal> conflictingGoalsOfUser) {
 		Set<MessageDestination> destinations = userAnonymized.getAllRelatedDestinations();
-		destinations.stream().forEach(d -> d.send(createConflictMessage(payload, conflictingGoalsOfAccessor)));
+		destinations.stream().forEach(d -> d.send(createConflictMessage(payload, conflictingGoalsOfUser)));
 		destinations.stream().forEach(d -> MessageDestination.getRepository().save(d));
 	}
 
-	private GoalConflictMessage createConflictMessage(PotentialConflictDTO payload,
-			Set<Goal> conflictingGoalsOfAccessor) {
-		return GoalConflictMessage.createInstance(payload.getAccessorID(), conflictingGoalsOfAccessor.iterator().next(),
+	private GoalConflictMessage createConflictMessage(PotentialConflictDTO payload, Set<Goal> conflictingGoalsOfUser) {
+		return GoalConflictMessage.createInstance(payload.getLoginID(), conflictingGoalsOfUser.iterator().next(),
 				payload.getURL());
 	}
 
-	private Set<Goal> determineConflictingGoalsForAccessor(UserAnonymized accessor, Set<String> categories) {
+	private Set<Goal> determineConflictingGoalsForUser(UserAnonymized userAnonymized, Set<String> categories) {
 		Set<Goal> allGoals = goalService.getAllGoalEntities();
 		Set<Goal> conflictingGoals = allGoals.stream().filter(g -> {
 			Set<String> goalCategories = new HashSet<>(g.getCategories());
 			goalCategories.retainAll(categories);
 			return !goalCategories.isEmpty();
 		}).collect(Collectors.toSet());
-		Set<Goal> goalsOfAccessor = accessor.getGoals();
-		Set<Goal> conflictingGoalsOfAccessor = conflictingGoals.stream().filter(g -> goalsOfAccessor.contains(g))
+		Set<Goal> goalsOfUser = userAnonymized.getGoals();
+		Set<Goal> conflictingGoalsOfUser = conflictingGoals.stream().filter(g -> goalsOfUser.contains(g))
 				.collect(Collectors.toSet());
-		return conflictingGoalsOfAccessor;
+		return conflictingGoalsOfUser;
 	}
 
-	private UserAnonymized getAccessorByID(UUID id) {
+	private UserAnonymized getUserAnonymizedByID(UUID id) {
 		UserAnonymized entity = UserAnonymized.getRepository().findOne(id);
 		if (entity == null) {
-			throw new AccessorNotFoundException(id);
+			throw new LoginIDNotFoundException(id);
 		}
 		return entity;
 	}

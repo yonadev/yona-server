@@ -39,7 +39,7 @@ public class BuddyConnectRequestMessageDTO extends MessageDTO {
 	private boolean isAccepted;
 
 	private BuddyConnectRequestMessageDTO(BuddyConnectRequestMessage buddyConnectRequestMessageEntity, UUID id,
-			UserDTO requestingUser, UUID accessorID, String nickname, String message, Set<String> goals,
+			UserDTO requestingUser, UUID loginID, String nickname, String message, Set<String> goals,
 			boolean isAccepted) {
 		super(id);
 		if (buddyConnectRequestMessageEntity == null) {
@@ -48,8 +48,8 @@ public class BuddyConnectRequestMessageDTO extends MessageDTO {
 		if (requestingUser == null) {
 			throw new IllegalArgumentException("requestingUser cannot be null");
 		}
-		if (accessorID == null) {
-			throw new IllegalArgumentException("accessorID cannot be null");
+		if (loginID == null) {
+			throw new IllegalArgumentException("loginID cannot be null");
 		}
 		this.requestingUser = requestingUser;
 		this.message = message;
