@@ -62,6 +62,10 @@ test {
 run {
 	enableAssertions=true
 
+    if ( project.hasProperty('appservice.debug') || project.hasProperty('debug.all')) {
+        jvmArgs "-Xdebug", "-Xrunjdwp:transport=dt_socket,address=" + project.ext.yona_appservice_debug_port + ",server=y,suspend=n"
+    }
+    
 	systemProperties = [
 		'server.port': System.getProperty('server.port', project.ext.yona_appservice_port)
 	]
@@ -100,6 +104,8 @@ task intTest(type:Test){
 	description = "Run integration tests (located in src/intTest/...)."
 	testClassesDir = project.sourceSets.intTest.output.classesDir
 	classpath = project.sourceSets.intTest.runtimeClasspath
+    
+    systemProperties = System.getProperties()
 
 	systemProperties = [
 		'yona.adminservice.url': project.ext.yona_adminservice_url,
