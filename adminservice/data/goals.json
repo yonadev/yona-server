@@ -1,0 +1,16 @@
+[
+  {
+    "name": "porn",
+    "categories": [
+      "pornography",
+      "nudity"
+    ]
+  },
+  {
+    "name": "news",
+    "categories": [
+      "news/media",
+      "newsgroups/forums"
+    ]
+  }
+]
