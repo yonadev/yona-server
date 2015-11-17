@@ -57,7 +57,7 @@ public class MessageDestination extends EntityWithID {
 	}
 
 	public void send(Message message) {
-		message.encrypt(PublicKeyEncryptor.createInstance(loadPublicKey()));
+		message.encryptMessage(PublicKeyEncryptor.createInstance(loadPublicKey()));
 		messages.add(message);
 	}
 

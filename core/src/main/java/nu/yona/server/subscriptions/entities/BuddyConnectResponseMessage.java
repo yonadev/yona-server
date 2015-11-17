@@ -15,7 +15,6 @@ import javax.persistence.Transient;
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.subscriptions.entities.Buddy.Status;
 
 @Entity
 public class BuddyConnectResponseMessage extends Message {
@@ -23,10 +22,6 @@ public class BuddyConnectResponseMessage extends Message {
 	@Transient
 	private UUID respondingUserID;
 	private byte[] respondingUserIDCiphertext;
-
-	@Transient
-	private UUID accessorID;
-	private byte[] accessorIDCiphertext;
 
 	@Transient
 	private String message;
@@ -39,19 +34,18 @@ public class BuddyConnectResponseMessage extends Message {
 	@Transient
 	private UUID destinationID;
 	private byte[] destinationIDCiphertext;
-	private Status status = Status.NOT_REQUESTED;
+	private BuddyAnonymized.Status status = BuddyAnonymized.Status.NOT_REQUESTED;
 	private boolean isProcessed;
 
 	// Default constructor is required for JPA
 	public BuddyConnectResponseMessage() {
-		super(null);
+		super(null, null);
 	}
 
-	private BuddyConnectResponseMessage(UUID id, UUID respondingUserID, UUID accessorID, String message, UUID buddyID,
-			UUID destinationID, Status status) {
-		super(id);
+	private BuddyConnectResponseMessage(UUID id, UUID respondingUserID, UUID loginID, String message, UUID buddyID,
+			UUID destinationID, BuddyAnonymized.Status status) {
+		super(id, loginID);
 		this.respondingUserID = respondingUserID;
-		this.accessorID = accessorID;
 		this.message = message;
 		this.buddyID = buddyID;
 		this.destinationID = destinationID;
@@ -60,10 +54,6 @@ public class BuddyConnectResponseMessage extends Message {
 
 	public User getRespondingUser() {
 		return User.getRepository().findOne(respondingUserID);
-	}
-
-	public UUID getAccessorID() {
-		return accessorID;
 	}
 
 	public String getMessage() {
@@ -78,7 +68,7 @@ public class BuddyConnectResponseMessage extends Message {
 		return destinationID;
 	}
 
-	public Status getStatus() {
+	public BuddyAnonymized.Status getStatus() {
 		return status;
 	}
 
@@ -91,7 +81,7 @@ public class BuddyConnectResponseMessage extends Message {
 	}
 
 	public static BuddyConnectResponseMessage createInstance(UUID respondingUserID, UUID respondingUserLoginID,
-			UUID destinationID, String message, UUID buddyID, Status status) {
+			UUID destinationID, String message, UUID buddyID, BuddyAnonymized.Status status) {
 		return new BuddyConnectResponseMessage(UUID.randomUUID(), respondingUserID, respondingUserLoginID, message,
 				buddyID, destinationID, status);
 	}
@@ -99,7 +89,6 @@ public class BuddyConnectResponseMessage extends Message {
 	@Override
 	public void encrypt(Encryptor encryptor) {
 		respondingUserIDCiphertext = encryptor.encrypt(respondingUserID);
-		accessorIDCiphertext = encryptor.encrypt(accessorID);
 		messageCiphertext = encryptor.encrypt(message);
 		buddyIDCiphertext = encryptor.encrypt(buddyID);
 		destinationIDCiphertext = encryptor.encrypt(destinationID);
@@ -108,7 +97,6 @@ public class BuddyConnectResponseMessage extends Message {
 	@Override
 	public void decrypt(Decryptor decryptor) {
 		respondingUserID = decryptor.decryptUUID(respondingUserIDCiphertext);
-		accessorID = decryptor.decryptUUID(accessorIDCiphertext);
 		message = decryptor.decryptString(messageCiphertext);
 		buddyID = decryptor.decryptUUID(buddyIDCiphertext);
 		destinationID = decryptor.decryptUUID(destinationIDCiphertext);

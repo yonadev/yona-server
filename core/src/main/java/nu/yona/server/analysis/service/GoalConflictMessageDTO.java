@@ -90,7 +90,7 @@ public class GoalConflictMessageDTO extends MessageDTO {
 		}
 
 		private String getNickname(UserDTO actingUser, GoalConflictMessage messageEntity) {
-			UUID loginID = messageEntity.getAccessorID();
+			UUID loginID = messageEntity.getRelatedLoginID();
 			if (actingUser.getPrivateData().getVpnProfile().getLoginID().equals(loginID)) {
 				return "<self>";
 			}

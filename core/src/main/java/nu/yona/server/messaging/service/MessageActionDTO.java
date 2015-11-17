@@ -13,8 +13,10 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonRootName("messageAction")
 public class MessageActionDTO {
 
 	private Map<String, String> properties;

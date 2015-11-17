@@ -13,21 +13,28 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.subscriptions.entities.Buddy;
-import nu.yona.server.subscriptions.entities.Buddy.Status;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.User;
 
 @Service
+@Transactional
 public class BuddyService {
 	@Autowired
 	private UserService userService;
 
 	public BuddyDTO getBuddy(UUID buddyID) {
 		return BuddyDTO.createInstance(getEntityByID(buddyID));
+	}
+	
+	public Set<BuddyDTO> getBuddiesOfUser(UUID forUserID) {
+		UserDTO user = userService.getPrivateUser(forUserID);
+		return getBuddies(user.getPrivateData().getBuddyIDs());
 	}
 
 	public BuddyDTO addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDTO buddy) {
@@ -43,11 +50,11 @@ public class BuddyService {
 	}
 
 	public BuddyDTO addBuddyToAcceptingUser(UUID buddyUserID, String buddyNickName, Set<Goal> buddyGoals,
-			UUID buddyAccessorID) {
+			UUID buddyLoginID) {
 		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName);
 		buddy.setGoals(buddyGoals);
-		buddy.setAccessorID(buddyAccessorID);
-		buddy.setReceivingStatus(Status.ACCEPTED);
+		buddy.setReceivingStatus(BuddyAnonymized.Status.ACCEPTED);
+		buddy.setLoginID(buddyLoginID);
 
 		return BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
 	}
@@ -75,7 +82,7 @@ public class BuddyService {
 	private BuddyDTO handleBuddyRequestForExistingUser(UserDTO requestingUser, BuddyDTO buddy, User buddyUserEntity) {
 		buddy.getUser().setUserID(buddyUserEntity.getID());
 		Buddy buddyEntity = buddy.createBuddyEntity();
-		buddyEntity.setSendingStatus(Status.REQUESTED);
+		buddyEntity.setSendingStatus(BuddyAnonymized.Status.REQUESTED);
 		Buddy savedBuddyEntity = Buddy.getRepository().save(buddyEntity);
 		BuddyDTO savedBuddy = BuddyDTO.createInstance(savedBuddyEntity);
 		userService.addBuddy(requestingUser, savedBuddy);
@@ -107,11 +114,9 @@ public class BuddyService {
 		}
 	}
 
-	public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID accessorID, UUID destinationID) {
+	public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID loginID) {
 		Buddy buddy = Buddy.getRepository().findOne(buddyID);
-		buddy.setAccessorID(accessorID);
-		buddy.setDestinationID(destinationID);
-		Buddy.getRepository().save(buddy);
+		buddy.setLoginID(loginID);
 	}
 
 	public Set<BuddyDTO> getBuddies(Set<UUID> buddyIDs) {

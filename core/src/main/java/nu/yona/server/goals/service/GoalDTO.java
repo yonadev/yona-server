@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import nu.yona.server.goals.entities.Goal;
 
-@JsonRootName("Goal")
+@JsonRootName("goal")
 public class GoalDTO {
 	private final UUID id;
 	private final String name;

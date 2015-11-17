@@ -14,24 +14,26 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonRootName("potentialConflict")
 public class PotentialConflictDTO {
-	private UUID accessorID;
+	private UUID loginID;
 	private Set<String> categories;
 	private String url;
 
 	@JsonCreator
-	public PotentialConflictDTO(@JsonProperty("accessorID") UUID accessorID,
+	public PotentialConflictDTO(@JsonProperty("loginID") UUID loginID,
 			@JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories,
 			@JsonProperty("url") String url) {
-		this.accessorID = accessorID;
+		this.loginID = loginID;
 		this.categories = categories;
 		this.url = url;
 	}
 
-	public UUID getAccessorID() {
-		return accessorID;
+	public UUID getLoginID() {
+		return loginID;
 	}
 
 	public Set<String> getCategories() {

@@ -14,11 +14,19 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+
+import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
+import nu.yona.server.subscriptions.service.BuddyDTO;
+import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
@@ -34,12 +42,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
-import nu.yona.server.subscriptions.service.BuddyDTO;
-import nu.yona.server.subscriptions.service.BuddyService;
-import nu.yona.server.subscriptions.service.UserService;
-
 @Controller
 @ExposesResourceFor(BuddyResource.class)
 @RequestMapping(value = "/users/{requestingUserID}/buddies/")
@@ -49,7 +51,28 @@ public class BuddyController {
 
 	@Autowired
 	private UserService userService;
+	
+	/**
+	 * This method returns all the buddies that the given user has.
+	 *  
+	 * @param password The Yona password as passed on in the header of the request.
+	 * @param requestingUserID The ID of the user. This is part of the URL.
+	 * @return the list of buddies for the current user
+	 */
+	@RequestMapping(method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<Resources<BuddyResource>> getAllBuddies(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID requestingUserID) {
 
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
+				() -> createOKResponse(requestingUserID, buddyService.getBuddiesOfUser(requestingUserID), getAllBuddiesLinkBuilder(requestingUserID)));
+	}
+	
+	static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID) {
+		BuddyController methodOn = methodOn(BuddyController.class);
+		return linkTo(methodOn.getAllBuddies(null, requestingUserID));
+	}
+	
 	@RequestMapping(value = "{buddyID}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
@@ -77,6 +100,11 @@ public class BuddyController {
 				status);
 	}
 
+	private HttpEntity<Resources<BuddyResource>> createOKResponse(UUID requestingUserID, Set<BuddyDTO> buddies, ControllerLinkBuilder controllerMethodLinkBuilder) {
+		return new ResponseEntity<Resources<BuddyResource>>(new Resources<>(new BuddyResourceAssembler(requestingUserID).toResources(buddies), controllerMethodLinkBuilder.withSelfRel()),
+				HttpStatus.OK);
+	}
+
 	static ControllerLinkBuilder getBuddyLinkBuilder(UUID userID, UUID buddyID) {
 		BuddyController methodOn = methodOn(BuddyController.class);
 		return linkTo(methodOn.getBuddy(Optional.empty(), userID, buddyID));
@@ -94,7 +122,7 @@ public class BuddyController {
 		}
 	}
 
-	private static class BuddyResourceAssembler extends ResourceAssemblerSupport<BuddyDTO, BuddyResource> {
+	static class BuddyResourceAssembler extends ResourceAssemblerSupport<BuddyDTO, BuddyResource> {
 		private UUID requestingUserID;
 
 		public BuddyResourceAssembler(UUID requestingUserID) {

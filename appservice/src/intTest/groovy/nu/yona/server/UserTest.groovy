@@ -111,6 +111,9 @@ class UserTest extends Specification {
 			assert responseData.devices[0] == "Galaxy mini"
 			assert responseData.goals.size() == 1
 			assert responseData.goals[0] == "gambling"
+			
+			assert responseData._embedded.buddies != null
+			assert responseData._embedded.buddies.size() == 0
 		} else {
 			assert responseData.nickName == null
 			assert responseData.devices == null
