@@ -141,11 +141,10 @@ public class UserController {
 			if(getContent().getPrivateData() == null) {
 				return Collections.emptyMap();
 			}
-			else {
-				Set<BuddyDTO> buddies = getContent().getPrivateData().getBuddies();
-				return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME,
-					new BuddyController.BuddyResourceAssembler(getContent().getID()).toResources(buddies)); 					
-			}
+			
+			Set<BuddyDTO> buddies = getContent().getPrivateData().getBuddies();
+			return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME,
+				new BuddyController.BuddyResourceAssembler(getContent().getID()).toResources(buddies));
 		}
 		
 		static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID) {
