@@ -48,7 +48,7 @@ public class GoalController {
 	@RequestMapping(method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<Resources<GoalResource>> getAllGoals() {
-		return createOKResponse(goalService.getAllGoals());
+		return createOKResponse(goalService.getAllGoals(), getAllGoalsLinkBuilder());
 	}
 
 	private HttpEntity<GoalResource> createOKResponse(GoalDTO goal) {
@@ -59,12 +59,12 @@ public class GoalController {
 		return new ResponseEntity<GoalResource>(new GoalResourceAssembler().toResource(goal), status);
 	}
 
-	private HttpEntity<Resources<GoalResource>> createOKResponse(Set<GoalDTO> goals) {
-		return new ResponseEntity<Resources<GoalResource>>(wrapGoalsAsResourceList(goals), HttpStatus.OK);
+	private HttpEntity<Resources<GoalResource>> createOKResponse(Set<GoalDTO> goals, ControllerLinkBuilder controllerMethodLinkBuilder) {
+		return new ResponseEntity<Resources<GoalResource>>(wrapGoalsAsResourceList(goals, controllerMethodLinkBuilder), HttpStatus.OK);
 	}
 
-	private Resources<GoalResource> wrapGoalsAsResourceList(Set<GoalDTO> goals) {
-		return new Resources<>(new GoalResourceAssembler().toResources(goals), getAllGoalsLinkBuilder().withSelfRel());
+	private Resources<GoalResource> wrapGoalsAsResourceList(Set<GoalDTO> goals, ControllerLinkBuilder controllerMethodLinkBuilder) {
+		return new Resources<>(new GoalResourceAssembler().toResources(goals), controllerMethodLinkBuilder.withSelfRel());
 	}
 
 	static ControllerLinkBuilder getAllGoalsLinkBuilder() {
