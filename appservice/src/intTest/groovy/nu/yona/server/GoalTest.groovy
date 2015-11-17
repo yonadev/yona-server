@@ -17,7 +17,7 @@ class GoalTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._links.self.href == appServiceBaseURL + appService.GOALS_PATH
-			response.responseData._embedded.Goals.size() == 2
+			response.responseData._embedded.goals.size() == 2
 			
 	}
 }
