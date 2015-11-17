@@ -17,10 +17,9 @@ import javax.persistence.Transient;
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.messaging.entities.Message;
 
 @Entity
-public class BuddyConnectRequestMessage extends Message {
+public class BuddyConnectRequestMessage extends BuddyConnectMessage {
 
 	@Transient
 	private UUID requestingUserID;
@@ -34,32 +33,22 @@ public class BuddyConnectRequestMessage extends Message {
 	private String nickname;
 	private byte[] nicknameCiphertext;
 
-	@Transient
-	private String message;
-	private byte[] messageCiphertext;
-
-	@Transient
-	private UUID buddyID;
-	private byte[] buddyIDCiphertext;
-
 	private BuddyAnonymized.Status status = BuddyAnonymized.Status.NOT_REQUESTED;
 
 	// Default constructor is required for JPA
 	public BuddyConnectRequestMessage() {
-		super(null, null);
+		super();
 	}
 
 	private BuddyConnectRequestMessage(UUID id, UUID requestingUserID, UUID loginID, Set<UUID> goalIDs, String nickname,
 			String message, UUID buddyID) {
-		super(id, loginID);
-		this.buddyID = buddyID;
+		super(id, loginID, message, buddyID);
 		if (requestingUserID == null) {
 			throw new IllegalArgumentException("requestingUserID cannot be null");
 		}
 		this.requestingUserID = requestingUserID;
 		this.goalIDs = goalIDs;
 		this.nickname = nickname;
-		this.message = message;
 	}
 
 	public User getRequestingUser() {
@@ -72,14 +61,6 @@ public class BuddyConnectRequestMessage extends Message {
 
 	public String getNickname() {
 		return nickname;
-	}
-
-	public String getMessage() {
-		return message;
-	}
-
-	public UUID getBuddyID() {
-		return buddyID;
 	}
 
 	public boolean isAccepted() {
@@ -98,19 +79,17 @@ public class BuddyConnectRequestMessage extends Message {
 
 	@Override
 	public void encrypt(Encryptor encryptor) {
+		super.encrypt(encryptor);
 		requestingUserIDCiphertext = encryptor.encrypt(requestingUserID);
 		goalIDsCiphertext = encryptor.encrypt(goalIDs);
 		nicknameCiphertext = encryptor.encrypt(nickname);
-		messageCiphertext = encryptor.encrypt(message);
-		buddyIDCiphertext = encryptor.encrypt(buddyID);
 	}
 
 	@Override
 	public void decrypt(Decryptor decryptor) {
+		super.decrypt(decryptor);
 		requestingUserID = decryptor.decryptUUID(requestingUserIDCiphertext);
 		goalIDs = decryptor.decryptUUIDSet(goalIDsCiphertext);
 		nickname = decryptor.decryptString(nicknameCiphertext);
-		message = decryptor.decryptString(messageCiphertext);
-		buddyID = decryptor.decryptUUID(buddyIDCiphertext);
 	}
 }
