@@ -188,7 +188,6 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.buddies.size() == 1
 			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Bob"
-			response.responseData.properties.status == "done"
 	}
 	
 	def 'Bob checks his buddy list and will find Richard there'(){
@@ -201,7 +200,6 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.buddies.size() == 1
 			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Richard"
-			response.responseData.properties.status == "done"
 	}
 	
 	def 'When Richard would retrieve his user, Bob would be embedded as buddy'(){
