@@ -31,7 +31,7 @@ public class BuddyService {
 	public BuddyDTO getBuddy(UUID buddyID) {
 		return BuddyDTO.createInstance(getEntityByID(buddyID));
 	}
-	
+
 	public Set<BuddyDTO> getBuddiesOfUser(UUID forUserID) {
 		UserDTO user = userService.getPrivateUser(forUserID);
 		return getBuddies(user.getPrivateData().getBuddyIDs());
@@ -62,7 +62,7 @@ public class BuddyService {
 	private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy) {
 		UserDTO buddyUser = buddy.getUser();
 		User buddyUserEntity = User.createInstanceOnBuddyRequest(buddyUser.getFirstName(), buddyUser.getLastName(),
-				buddyUser.getPrivateData().getNickName(), buddyUser.getEmailAddress(), buddyUser.getMobileNumber());
+				buddyUser.getPrivateData().getNickName(), buddyUser.getMobileNumber());
 		User savedBuddyUserEntity = User.getRepository().save(buddyUserEntity);
 		sendInvitationMessage(savedBuddyUserEntity, buddy);
 		return handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
@@ -107,8 +107,7 @@ public class BuddyService {
 
 	private User getBuddyUser(BuddyDTO buddy) {
 		try {
-			return UserService.findUserByEmailAddressOrMobileNumber(buddy.getUser().getEmailAddress(),
-					buddy.getUser().getMobileNumber());
+			return UserService.findUserByMobileNumber(buddy.getUser().getMobileNumber());
 		} catch (UserNotFoundException e) {
 			return null;
 		}

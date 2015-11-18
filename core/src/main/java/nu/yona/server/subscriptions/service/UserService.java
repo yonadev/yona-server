@@ -25,16 +25,12 @@ import nu.yona.server.subscriptions.entities.User;
 public class UserService {
 	// TODO: Do we need this? Currently unused.
 	@Transactional
-	public UserDTO getUser(String emailAddress, String mobileNumber) {
-
-		if (emailAddress != null && mobileNumber != null) {
-			throw new IllegalArgumentException("Either emailAddress or mobileNumber must be non-null");
-		}
-		if (emailAddress == null && mobileNumber == null) {
-			throw new IllegalArgumentException("One of emailAddress and mobileNumber must be null");
+	public UserDTO getUser(String mobileNumber) {
+		if (mobileNumber == null) {
+			throw new IllegalArgumentException("mobileNumber cannot be null");
 		}
 
-		User userEntity = findUserByEmailAddressOrMobileNumber(emailAddress, mobileNumber);
+		User userEntity = findUserByMobileNumber(mobileNumber);
 		return UserDTO.createInstanceWithPrivateData(userEntity);
 	}
 
@@ -75,18 +71,11 @@ public class UserService {
 		return savedUser;
 	}
 
-	static User findUserByEmailAddressOrMobileNumber(String emailAddress, String mobileNumber) {
+	static User findUserByMobileNumber(String mobileNumber) {
 		User userEntity;
-		if (emailAddress == null) {
-			userEntity = User.getRepository().findByMobileNumber(mobileNumber);
-			if (userEntity == null) {
-				throw UserNotFoundException.notFoundByMobileNumber(mobileNumber);
-			}
-		} else {
-			userEntity = User.getRepository().findByEmailAddress(emailAddress);
-			if (userEntity == null) {
-				throw UserNotFoundException.notFoundByEmailAddress(emailAddress);
-			}
+		userEntity = User.getRepository().findByMobileNumber(mobileNumber);
+		if (userEntity == null) {
+			throw UserNotFoundException.notFoundByMobileNumber(mobileNumber);
 		}
 		return userEntity;
 	}

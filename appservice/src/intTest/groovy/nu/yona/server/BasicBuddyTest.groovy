@@ -51,7 +51,6 @@ class BasicBuddyTest extends Specification {
 				"firstName":"Richard",
 				"lastName":"Quin",
 				"nickName":"RQ",
-				"emailAddress":"rich@quin.net",
 				"mobileNumber":"+12345678",
 				"devices":[
 					"Nexus 6"
@@ -79,7 +78,6 @@ class BasicBuddyTest extends Specification {
 				"firstName":"Bob",
 				"lastName":"Dunn",
 				"nickName":"BD",
-				"emailAddress":"bob@dunn.net",
 				"mobileNumber":"+13456789",
 				"devices":[
 					"iPhone 6"

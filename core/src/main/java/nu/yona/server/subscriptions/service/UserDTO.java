@@ -32,17 +32,17 @@ public class UserDTO {
 	private final String mobileNumber;
 	private final UserPrivateDTO privateData;
 
-	private UserDTO(UUID id, String firstName, String lastName, String nickName, String emailAddress,
-			String mobileNumber, UUID namedMessageSourceID, UUID namedMessageDestinationID,
-			UUID anonymousMessageSourceID, UUID anonymousMessageDestinationID, Set<String> deviceNames,
-			Set<String> goalNames, Set<UUID> buddyIDs, VPNProfileDTO vpnProfile) {
-		this(id, firstName, lastName, emailAddress, mobileNumber,
+	private UserDTO(UUID id, String firstName, String lastName, String nickName, String mobileNumber,
+			UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
+			UUID anonymousMessageDestinationID, Set<String> deviceNames, Set<String> goalNames, Set<UUID> buddyIDs,
+			VPNProfileDTO vpnProfile) {
+		this(id, firstName, lastName, mobileNumber,
 				new UserPrivateDTO(nickName, namedMessageSourceID, namedMessageDestinationID, anonymousMessageSourceID,
 						anonymousMessageDestinationID, deviceNames, goalNames, buddyIDs, vpnProfile));
 	}
 
-	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber) {
-		this(id, firstName, lastName, emailAddress, mobileNumber, null);
+	private UserDTO(UUID id, String firstName, String lastName, String mobileNumber) {
+		this(id, firstName, lastName, mobileNumber, null);
 	}
 
 	@JsonCreator
@@ -50,6 +50,10 @@ public class UserDTO {
 			@JsonProperty("emailAddress") String emailAddress, @JsonProperty("mobileNumber") String mobileNumber,
 			@JsonUnwrapped UserPrivateDTO privateData) {
 		this(null, firstName, lastName, emailAddress, mobileNumber, privateData);
+	}
+
+	private UserDTO(UUID id, String firstName, String lastName, String mobileNumber, UserPrivateDTO privateData) {
+		this(id, firstName, lastName, null, mobileNumber, privateData);
 	}
 
 	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber,
@@ -94,7 +98,7 @@ public class UserDTO {
 	}
 
 	User createUserEntity() {
-		return User.createInstance(firstName, lastName, privateData.getNickName(), emailAddress, mobileNumber,
+		return User.createInstance(firstName, lastName, privateData.getNickName(), mobileNumber,
 				privateData.getDeviceNames(), privateData.getGoals());
 	}
 
@@ -102,7 +106,6 @@ public class UserDTO {
 		originalUserEntity.setFirstName(firstName);
 		originalUserEntity.setLastName(lastName);
 		originalUserEntity.setNickName(privateData.getNickName());
-		originalUserEntity.setEmailAddress(emailAddress);
 		originalUserEntity.setMobileNumber(mobileNumber);
 		originalUserEntity.setDeviceNames(privateData.getDeviceNames());
 
@@ -115,14 +118,13 @@ public class UserDTO {
 
 	static UserDTO createInstance(User userEntity) {
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(),
-				userEntity.getEmailAddress(), userEntity.getMobileNumber());
+				userEntity.getMobileNumber());
 	}
 
 	static UserDTO createInstanceWithPrivateData(User userEntity) {
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(),
-				userEntity.getNickName(), userEntity.getEmailAddress(), userEntity.getMobileNumber(),
-				userEntity.getNamedMessageSource().getID(), userEntity.getNamedMessageDestination().getID(),
-				userEntity.getAnonymousMessageSource().getID(),
+				userEntity.getNickName(), userEntity.getMobileNumber(), userEntity.getNamedMessageSource().getID(),
+				userEntity.getNamedMessageDestination().getID(), userEntity.getAnonymousMessageSource().getID(),
 				userEntity.getAnonymousMessageSource().getDestination().getID(), userEntity.getDeviceNames(),
 				getGoalNames(userEntity.getGoals()), getBuddyIDs(userEntity),
 				VPNProfileDTO.createInstance(userEntity.getAnonymized()));
