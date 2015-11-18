@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
@@ -18,29 +15,34 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonRootName("potentialConflict")
-public class PotentialConflictDTO {
-	private UUID loginID;
-	private Set<String> categories;
-	private String url;
+public class PotentialConflictDTO
+{
+    private UUID loginID;
+    private Set<String> categories;
+    private String url;
 
-	@JsonCreator
-	public PotentialConflictDTO(@JsonProperty("loginID") UUID loginID,
-			@JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories,
-			@JsonProperty("url") String url) {
-		this.loginID = loginID;
-		this.categories = categories;
-		this.url = url;
-	}
+    @JsonCreator
+    public PotentialConflictDTO(@JsonProperty("loginID") UUID loginID,
+            @JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories,
+            @JsonProperty("url") String url)
+    {
+        this.loginID = loginID;
+        this.categories = categories;
+        this.url = url;
+    }
 
-	public UUID getLoginID() {
-		return loginID;
-	}
+    public UUID getLoginID()
+    {
+        return loginID;
+    }
 
-	public Set<String> getCategories() {
-		return Collections.unmodifiableSet(categories);
-	}
+    public Set<String> getCategories()
+    {
+        return Collections.unmodifiableSet(categories);
+    }
 
-	public String getURL() {
-		return url;
-	}
+    public String getURL()
+    {
+        return url;
+    }
 }

@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -31,130 +28,127 @@ import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 
 @JsonRootName("buddyConnectRequestMessage")
-public class BuddyConnectRequestMessageDTO extends MessageDTO {
-	private static final String ACCEPT = "accept";
-	private UserDTO requestingUser;
-	private final String message;
-	private Set<String> goals;
-	private boolean isAccepted;
+public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
+{
+    private static final String ACCEPT = "accept";
+    private Set<String> goals;
+    private boolean isAccepted;
 
-	private BuddyConnectRequestMessageDTO(BuddyConnectRequestMessage buddyConnectRequestMessageEntity, UUID id,
-			UserDTO requestingUser, UUID loginID, String nickname, String message, Set<String> goals,
-			boolean isAccepted) {
-		super(id);
-		if (buddyConnectRequestMessageEntity == null) {
-			throw new IllegalArgumentException("buddyConnectRequestMessageEntity cannot be null");
-		}
-		if (requestingUser == null) {
-			throw new IllegalArgumentException("requestingUser cannot be null");
-		}
-		if (loginID == null) {
-			throw new IllegalArgumentException("loginID cannot be null");
-		}
-		this.requestingUser = requestingUser;
-		this.message = message;
-		this.goals = goals;
-		this.isAccepted = isAccepted;
-	}
+    private BuddyConnectRequestMessageDTO(BuddyConnectRequestMessage buddyConnectRequestMessageEntity, UUID id, UserDTO user,
+            UUID loginID, String nickname, String message, Set<String> goals, boolean isAccepted)
+    {
+        super(id, user, message);
+        if (buddyConnectRequestMessageEntity == null)
+        {
+            throw new IllegalArgumentException("buddyConnectRequestMessageEntity cannot be null");
+        }
+        if (loginID == null)
+        {
+            throw new IllegalArgumentException("loginID cannot be null");
+        }
+        this.goals = goals;
+        this.isAccepted = isAccepted;
+    }
 
-	@Override
-	public Set<String> getPossibleActions() {
-		Set<String> possibleActions = new HashSet<>();
-		if (!isAccepted) {
-			possibleActions.add(ACCEPT);
-		}
-		return possibleActions;
-	}
+    @Override
+    public Set<String> getPossibleActions()
+    {
+        Set<String> possibleActions = new HashSet<>();
+        if (!isAccepted)
+        {
+            possibleActions.add(ACCEPT);
+        }
+        return possibleActions;
+    }
 
-	public UserDTO getRequestingUser() {
-		return requestingUser;
-	}
+    public Set<String> getGoals()
+    {
+        return Collections.unmodifiableSet(goals);
+    }
 
-	public String getMessage() {
-		return message;
-	}
+    public boolean isAccepted()
+    {
+        return isAccepted;
+    }
 
-	public Set<String> getGoals() {
-		return Collections.unmodifiableSet(goals);
-	}
+    public static BuddyConnectRequestMessageDTO createInstance(UserDTO requestingUser, BuddyConnectRequestMessage messageEntity)
+    {
+        return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(),
+                UserDTO.createInstance(messageEntity.getUser()), messageEntity.getRelatedLoginID(), messageEntity.getNickname(),
+                messageEntity.getMessage(), messageEntity.getGoals().stream().map(g -> g.getName()).collect(Collectors.toSet()),
+                messageEntity.isAccepted());
+    }
 
-	public boolean isAccepted() {
-		return isAccepted;
-	}
+    @Component
+    private static class Factory implements DTOManager
+    {
+        @Autowired
+        private TheDTOManager theDTOFactory;
 
-	public static BuddyConnectRequestMessageDTO createInstance(UserDTO requestingUser,
-			BuddyConnectRequestMessage messageEntity) {
-		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(),
-				UserDTO.createInstance(messageEntity.getRequestingUser()), messageEntity.getRelatedLoginID(),
-				messageEntity.getNickname(), messageEntity.getMessage(),
-				messageEntity.getGoals().stream().map(g -> g.getName()).collect(Collectors.toSet()),
-				messageEntity.isAccepted());
-	}
+        @Autowired
+        private BuddyService buddyService;
 
-	@Component
-	private static class Factory implements DTOManager {
-		@Autowired
-		private TheDTOManager theDTOFactory;
+        @Autowired
+        private UserService userService;
 
-		@Autowired
-		private BuddyService buddyService;
+        @PostConstruct
+        private void init()
+        {
+            theDTOFactory.addManager(BuddyConnectRequestMessage.class, this);
+        }
 
-		@Autowired
-		private UserService userService;
+        @Override
+        public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
+        {
+            return BuddyConnectRequestMessageDTO.createInstance(actingUser, (BuddyConnectRequestMessage) messageEntity);
+        }
 
-		@PostConstruct
-		private void init() {
-			theDTOFactory.addManager(BuddyConnectRequestMessage.class, this);
-		}
+        @Override
+        public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
+                MessageActionDTO requestPayload)
+        {
+            switch (action)
+            {
+                case ACCEPT:
+                    return handleAction_Accept(actingUser, (BuddyConnectRequestMessage) messageEntity, requestPayload);
+                default:
+                    throw new IllegalArgumentException("Action '" + action + "' is not supported");
+            }
+        }
 
-		@Override
-		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity) {
-			return BuddyConnectRequestMessageDTO.createInstance(actingUser, (BuddyConnectRequestMessage) messageEntity);
-		}
+        private MessageActionDTO handleAction_Accept(UserDTO acceptingUser,
+                BuddyConnectRequestMessage connectRequestMessageEntity, MessageActionDTO payload)
+        {
 
-		@Override
-		public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
-				MessageActionDTO requestPayload) {
-			switch (action) {
-			case ACCEPT:
-				return handleAction_Accept(actingUser, (BuddyConnectRequestMessage) messageEntity, requestPayload);
-			default:
-				throw new IllegalArgumentException("Action '" + action + "' is not supported");
-			}
-		}
+            BuddyDTO buddy = buddyService.addBuddyToAcceptingUser(connectRequestMessageEntity.getUser().getID(),
+                    connectRequestMessageEntity.getNickname(), connectRequestMessageEntity.getGoals(),
+                    connectRequestMessageEntity.getRelatedLoginID());
 
-		private MessageActionDTO handleAction_Accept(UserDTO acceptingUser,
-				BuddyConnectRequestMessage connectRequestMessageEntity, MessageActionDTO payload) {
+            userService.addBuddy(acceptingUser, buddy);
 
-			BuddyDTO buddy = buddyService.addBuddyToAcceptingUser(
-					connectRequestMessageEntity.getRequestingUser().getID(), connectRequestMessageEntity.getNickname(),
-					connectRequestMessageEntity.getGoals(), connectRequestMessageEntity.getRelatedLoginID());
+            updateMessageStatusAsAccepted(connectRequestMessageEntity);
 
-			userService.addBuddy(acceptingUser, buddy);
+            sendResponseMessageToRequestingUser(acceptingUser, connectRequestMessageEntity, payload.getProperty("message"));
 
-			updateMessageStatusAsAccepted(connectRequestMessageEntity);
+            return new MessageActionDTO(Collections.singletonMap("status", "done"));
+        }
 
-			sendResponseMessageToRequestingUser(acceptingUser, connectRequestMessageEntity,
-					payload.getProperty("message"));
+        private void updateMessageStatusAsAccepted(BuddyConnectRequestMessage connectRequestMessageEntity)
+        {
+            connectRequestMessageEntity.setStatus(BuddyAnonymized.Status.ACCEPTED);
+            Message.getRepository().save(connectRequestMessageEntity);
+        }
 
-			return new MessageActionDTO(Collections.singletonMap("status", "done"));
-		}
-
-		private void updateMessageStatusAsAccepted(BuddyConnectRequestMessage connectRequestMessageEntity) {
-			connectRequestMessageEntity.setStatus(BuddyAnonymized.Status.ACCEPTED);
-			Message.getRepository().save(connectRequestMessageEntity);
-		}
-
-		private void sendResponseMessageToRequestingUser(UserDTO acceptingUser,
-				BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage) {
-			MessageDestination messageDestination = connectRequestMessageEntity.getRequestingUser()
-					.getNamedMessageDestination();
-			assert messageDestination != null;
-			messageDestination.send(BuddyConnectResponseMessage.createInstance(acceptingUser.getID(),
-					acceptingUser.getPrivateData().getVpnProfile().getLoginID(),
-					acceptingUser.getPrivateData().getAnonymousMessageDestinationID(), responseMessage,
-					connectRequestMessageEntity.getBuddyID(), BuddyAnonymized.Status.ACCEPTED));
-			MessageDestination.getRepository().save(messageDestination);
-		}
-	}
+        private void sendResponseMessageToRequestingUser(UserDTO acceptingUser,
+                BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage)
+        {
+            MessageDestination messageDestination = connectRequestMessageEntity.getUser().getNamedMessageDestination();
+            assert messageDestination != null;
+            messageDestination.send(BuddyConnectResponseMessage.createInstance(acceptingUser.getID(),
+                    acceptingUser.getPrivateData().getVpnProfile().getLoginID(),
+                    acceptingUser.getPrivateData().getAnonymousMessageDestinationID(), responseMessage,
+                    connectRequestMessageEntity.getBuddyID(), BuddyAnonymized.Status.ACCEPTED));
+            MessageDestination.getRepository().save(messageDestination);
+        }
+    }
 }

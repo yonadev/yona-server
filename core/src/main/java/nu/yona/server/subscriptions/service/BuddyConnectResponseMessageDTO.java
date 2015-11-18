@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -27,91 +24,89 @@ import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 
 @JsonRootName("buddyConnectResponseMessage")
-public class BuddyConnectResponseMessageDTO extends MessageDTO {
-	private static final String PROCESS = "process";
-	private UserDTO respondingUser;
-	private final String message;
-	private boolean isProcessed;
+public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
+{
+    private static final String PROCESS = "process";
+    private boolean isProcessed;
 
-	private BuddyConnectResponseMessageDTO(UUID id, UserDTO respondingUser, String message, boolean isProcessed) {
-		super(id);
-		this.respondingUser = respondingUser;
-		this.message = message;
-		this.isProcessed = isProcessed;
-	}
+    private BuddyConnectResponseMessageDTO(UUID id, UserDTO user, String message, boolean isProcessed)
+    {
+        super(id, user, message);
+        this.isProcessed = isProcessed;
+    }
 
-	@Override
-	public Set<String> getPossibleActions() {
-		Set<String> possibleActions = new HashSet<>();
-		if (!isProcessed) {
-			possibleActions.add(PROCESS);
-		}
-		return possibleActions;
-	}
+    @Override
+    public Set<String> getPossibleActions()
+    {
+        Set<String> possibleActions = new HashSet<>();
+        if (!isProcessed)
+        {
+            possibleActions.add(PROCESS);
+        }
+        return possibleActions;
+    }
 
-	public UserDTO getRespondingUser() {
-		return respondingUser;
-	}
+    public boolean isProcessed()
+    {
+        return isProcessed;
+    }
 
-	public String getMessage() {
-		return message;
-	}
+    public static BuddyConnectResponseMessageDTO createInstance(UserDTO requestingUser, BuddyConnectResponseMessage messageEntity)
+    {
+        return new BuddyConnectResponseMessageDTO(messageEntity.getID(), UserDTO.createInstance(messageEntity.getUser()),
+                messageEntity.getMessage(), messageEntity.isProcessed());
+    }
 
-	public boolean isProcessed() {
-		return isProcessed;
-	}
+    @Component
+    private static class Factory implements DTOManager
+    {
+        @Autowired
+        private TheDTOManager theDTOFactory;
 
-	public static BuddyConnectResponseMessageDTO createInstance(UserDTO requestingUser,
-			BuddyConnectResponseMessage messageEntity) {
-		return new BuddyConnectResponseMessageDTO(messageEntity.getID(),
-				UserDTO.createInstance(messageEntity.getRespondingUser()), messageEntity.getMessage(),
-				messageEntity.isProcessed());
-	}
+        @Autowired
+        private BuddyService buddyService;
 
-	@Component
-	private static class Factory implements DTOManager {
-		@Autowired
-		private TheDTOManager theDTOFactory;
+        @PostConstruct
+        private void init()
+        {
+            theDTOFactory.addManager(BuddyConnectResponseMessage.class, this);
+        }
 
-		@Autowired
-		private BuddyService buddyService;
+        @Override
+        public MessageDTO createInstance(UserDTO requestingUser, Message messageEntity)
+        {
+            return BuddyConnectResponseMessageDTO.createInstance(requestingUser, (BuddyConnectResponseMessage) messageEntity);
+        }
 
-		@PostConstruct
-		private void init() {
-			theDTOFactory.addManager(BuddyConnectResponseMessage.class, this);
-		}
+        @Override
+        public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
+                MessageActionDTO requestPayload)
+        {
+            switch (action)
+            {
+                case PROCESS:
+                    return handleAction_Process(actingUser, (BuddyConnectResponseMessage) messageEntity, requestPayload);
+                default:
+                    throw new IllegalArgumentException("Action '" + action + "' is not supported");
+            }
+        }
 
-		@Override
-		public MessageDTO createInstance(UserDTO requestingUser, Message messageEntity) {
-			return BuddyConnectResponseMessageDTO.createInstance(requestingUser,
-					(BuddyConnectResponseMessage) messageEntity);
-		}
+        private MessageActionDTO handleAction_Process(UserDTO requestingUser,
+                BuddyConnectResponseMessage connectResponseMessageEntity, MessageActionDTO payload)
+        {
 
-		@Override
-		public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
-				MessageActionDTO requestPayload) {
-			switch (action) {
-			case PROCESS:
-				return handleAction_Process(actingUser, (BuddyConnectResponseMessage) messageEntity, requestPayload);
-			default:
-				throw new IllegalArgumentException("Action '" + action + "' is not supported");
-			}
-		}
+            buddyService.updateBuddyWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
+                    connectResponseMessageEntity.getRelatedLoginID());
 
-		private MessageActionDTO handleAction_Process(UserDTO requestingUser,
-				BuddyConnectResponseMessage connectResponseMessageEntity, MessageActionDTO payload) {
+            updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
-			buddyService.updateBuddyWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
-					connectResponseMessageEntity.getRelatedLoginID());
+            return new MessageActionDTO(Collections.singletonMap("status", "done"));
+        }
 
-			updateMessageStatusAsProcessed(connectResponseMessageEntity);
-
-			return new MessageActionDTO(Collections.singletonMap("status", "done"));
-		}
-
-		private void updateMessageStatusAsProcessed(BuddyConnectResponseMessage connectResponseMessageEntity) {
-			connectResponseMessageEntity.setProcessed();
-			Message.getRepository().save(connectResponseMessageEntity);
-		}
-	}
+        private void updateMessageStatusAsProcessed(BuddyConnectResponseMessage connectResponseMessageEntity)
+        {
+            connectResponseMessageEntity.setProcessed();
+            Message.getRepository().save(connectResponseMessageEntity);
+        }
+    }
 }

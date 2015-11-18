@@ -13,7 +13,8 @@ class UserTest extends Specification {
 
 	def appServiceBaseURL = System.properties.'yona.appservice.url'
 	def YonaServer appService = new YonaServer(appServiceBaseURL)
-	def timestamp = appService.getTimeStamp()
+	@Shared
+	def timestamp = YonaServer.getTimeStamp()
     def userCreationJSON = """{
                 "firstName":"John",
                 "lastName":"Doe ${timestamp}",

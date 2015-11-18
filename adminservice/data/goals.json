@@ -1,0 +1,16 @@
+[
+  {
+    "name": "gambling",
+    "categories": [
+      "poker",
+      "lotto"
+    ]
+  },
+  {
+    "name": "news",
+    "categories": [
+      "news/media",
+      "newsgroups/forums"
+    ]
+  }
+]

@@ -26,15 +26,25 @@ class YonaServer {
         restClient.handler.failure = restClient.handler.success 
 	}
 
-	def getTimeStamp()
+	def static getTimeStamp()
 	{
 		def formatter = new SimpleDateFormat("yyyyMMddhhmmss")
 		formatter.format(new Date())
 	}
 
+	def deleteGoal(goalURL)
+	{
+		deleteResource(goalURL)
+	}
+
 	def addGoal(jsonString)
 	{
 		createResource(GOALS_PATH, jsonString)
+	}
+	
+	def getGoal(goalURL)
+	{
+		getResource(goalURL)
 	}
 
 	def addUser(jsonString, password)
