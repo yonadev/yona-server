@@ -129,7 +129,7 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
-			response.responseData._embedded.buddyConnectRequestMessages[0].requestingUser.firstName == "Richard"
+			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard"
 			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
 			bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
 	}
@@ -159,7 +159,7 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
-			response.responseData._embedded.buddyConnectResponseMessages[0].respondingUser.firstName == "Bob"
+			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob"
 			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
 			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href) 
 	}

@@ -14,22 +14,9 @@ import javax.persistence.Transient;
 
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
-import nu.yona.server.messaging.entities.Message;
 
 @Entity
-public class BuddyConnectResponseMessage extends Message {
-
-	@Transient
-	private UUID respondingUserID;
-	private byte[] respondingUserIDCiphertext;
-
-	@Transient
-	private String message;
-	private byte[] messageCiphertext;
-
-	@Transient
-	private UUID buddyID;
-	private byte[] buddyIDCiphertext;
+public class BuddyConnectResponseMessage extends BuddyConnectMessage {
 
 	@Transient
 	private UUID destinationID;
@@ -39,29 +26,14 @@ public class BuddyConnectResponseMessage extends Message {
 
 	// Default constructor is required for JPA
 	public BuddyConnectResponseMessage() {
-		super(null, null);
+		super();
 	}
 
-	private BuddyConnectResponseMessage(UUID id, UUID respondingUserID, UUID loginID, String message, UUID buddyID,
+	private BuddyConnectResponseMessage(UUID id, UUID userID, UUID loginID, String message, UUID buddyID,
 			UUID destinationID, BuddyAnonymized.Status status) {
-		super(id, loginID);
-		this.respondingUserID = respondingUserID;
-		this.message = message;
-		this.buddyID = buddyID;
+		super(id, loginID, userID, message, buddyID);
 		this.destinationID = destinationID;
 		this.status = status;
-	}
-
-	public User getRespondingUser() {
-		return User.getRepository().findOne(respondingUserID);
-	}
-
-	public String getMessage() {
-		return message;
-	}
-
-	public UUID getBuddyID() {
-		return buddyID;
 	}
 
 	public UUID getDestinationID() {
@@ -88,17 +60,13 @@ public class BuddyConnectResponseMessage extends Message {
 
 	@Override
 	public void encrypt(Encryptor encryptor) {
-		respondingUserIDCiphertext = encryptor.encrypt(respondingUserID);
-		messageCiphertext = encryptor.encrypt(message);
-		buddyIDCiphertext = encryptor.encrypt(buddyID);
+		super.encrypt(encryptor);
 		destinationIDCiphertext = encryptor.encrypt(destinationID);
 	}
 
 	@Override
 	public void decrypt(Decryptor decryptor) {
-		respondingUserID = decryptor.decryptUUID(respondingUserIDCiphertext);
-		message = decryptor.decryptString(messageCiphertext);
-		buddyID = decryptor.decryptUUID(buddyIDCiphertext);
+		super.decrypt(decryptor);
 		destinationID = decryptor.decryptUUID(destinationIDCiphertext);
 	}
 }
