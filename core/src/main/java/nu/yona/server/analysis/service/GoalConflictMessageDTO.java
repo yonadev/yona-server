@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
@@ -29,79 +26,93 @@ import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserDTO;
 
 @JsonRootName("goalConflictMessage")
-public class GoalConflictMessageDTO extends MessageDTO {
-	private final String nickname;
-	private final String goalName;
-	private final String url;
+public class GoalConflictMessageDTO extends MessageDTO
+{
+    private final String nickname;
+    private final String goalName;
+    private final String url;
 
-	private GoalConflictMessageDTO(UUID id, String nickname, String goalName, String url) {
-		super(id);
-		this.nickname = nickname;
-		this.goalName = goalName;
-		this.url = url;
-	}
+    private GoalConflictMessageDTO(UUID id, String nickname, String goalName, String url)
+    {
+        super(id);
+        this.nickname = nickname;
+        this.goalName = goalName;
+        this.url = url;
+    }
 
-	@Override
-	public Set<String> getPossibleActions() {
-		return new HashSet<>();
-	}
+    @Override
+    public Set<String> getPossibleActions()
+    {
+        return new HashSet<>();
+    }
 
-	public String getNickname() {
-		return nickname;
-	}
+    public String getNickname()
+    {
+        return nickname;
+    }
 
-	public String getGoalName() {
-		return goalName;
-	}
+    public String getGoalName()
+    {
+        return goalName;
+    }
 
-	public String getUrl() {
-		return url;
-	}
+    public String getUrl()
+    {
+        return url;
+    }
 
-	public static GoalConflictMessageDTO createInstance(UserDTO actingUser, GoalConflictMessage messageEntity,
-			String nickname) {
-		return new GoalConflictMessageDTO(messageEntity.getID(), nickname, messageEntity.getGoal().getName(),
-				messageEntity.getURL());
-	}
+    public static GoalConflictMessageDTO createInstance(UserDTO actingUser, GoalConflictMessage messageEntity, String nickname)
+    {
+        return new GoalConflictMessageDTO(messageEntity.getID(), nickname, messageEntity.getGoal().getName(),
+                messageEntity.getURL());
+    }
 
-	@Component
-	private static class Manager implements DTOManager {
-		@Autowired
-		private TheDTOManager theDTOFactory;
+    @Component
+    private static class Manager implements DTOManager
+    {
+        @Autowired
+        private TheDTOManager theDTOFactory;
 
-		@Autowired
-		private BuddyService buddyService;
+        @Autowired
+        private BuddyService buddyService;
 
-		@PostConstruct
-		private void init() {
-			theDTOFactory.addManager(GoalConflictMessage.class, this);
-		}
+        @PostConstruct
+        private void init()
+        {
+            theDTOFactory.addManager(GoalConflictMessage.class, this);
+        }
 
-		@Override
-		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity) {
-			return GoalConflictMessageDTO.createInstance(actingUser, (GoalConflictMessage) messageEntity,
-					getNickname(actingUser, (GoalConflictMessage) messageEntity));
-		}
+        @Override
+        public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
+        {
+            return GoalConflictMessageDTO.createInstance(actingUser, (GoalConflictMessage) messageEntity,
+                    getNickname(actingUser, (GoalConflictMessage) messageEntity));
+        }
 
-		@Override
-		public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
-				MessageActionDTO requestPayload) {
-			throw new IllegalArgumentException("Action '" + action + "' is not supported");
-		}
+        @Override
+        public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
+                MessageActionDTO requestPayload)
+        {
+            throw new IllegalArgumentException("Action '" + action + "' is not supported");
+        }
 
-		private String getNickname(UserDTO actingUser, GoalConflictMessage messageEntity) {
-			UUID loginID = messageEntity.getRelatedLoginID();
-			if (actingUser.getPrivateData().getVpnProfile().getLoginID().equals(loginID)) {
-				return "<self>";
-			}
+        private String getNickname(UserDTO actingUser, GoalConflictMessage messageEntity)
+        {
+            UUID loginID = messageEntity.getRelatedLoginID();
+            if (actingUser.getPrivateData().getVpnProfile().getLoginID().equals(loginID))
+            {
+                return "<self>";
+            }
 
-			Set<BuddyDTO> buddies = buddyService.getBuddies(actingUser.getPrivateData().getBuddyIDs());
-			for (BuddyDTO buddy : buddies) {
-				if (loginID.equals(buddy.getLoginID())) {
-					return buddy.getNickName();
-				}
-			}
-			throw new IllegalStateException("Cannot find buddy for login ID '" + loginID + "'");
-		}
-	}
+            Set<BuddyDTO> buddies = buddyService.getBuddies(actingUser.getPrivateData().getBuddyIDs());
+            for (BuddyDTO buddy : buddies)
+            {
+                if (loginID.equals(buddy.getLoginID()))
+                {
+                    return buddy.getNickName();
+                }
+            }
+            throw new IllegalStateException("Cannot find buddy for login ID '" + loginID + "'");
+        }
+    }
 }
