@@ -21,10 +21,6 @@ import nu.yona.server.messaging.entities.Message;
 public class GoalConflictMessage extends Message {
 
 	@Transient
-	private UUID accessorID;
-	private byte[] accessorIDCiphertext;
-
-	@Transient
 	private UUID goalID;
 	private byte[] goalIDCiphertext;
 
@@ -34,13 +30,12 @@ public class GoalConflictMessage extends Message {
 
 	// Default constructor is required for JPA
 	public GoalConflictMessage() {
-		super(null);
+		super(null, null);
 	}
 
-	public GoalConflictMessage(UUID id, UUID accessorID, UUID goalID, String url) {
-		super(id);
+	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedID, UUID goalID, String url) {
+		super(id, relatedUserAnonymizedID);
 
-		this.accessorID = accessorID;
 		this.goalID = goalID;
 		this.url = url;
 	}
@@ -53,25 +48,19 @@ public class GoalConflictMessage extends Message {
 		return url;
 	}
 
-	public UUID getAccessorID() {
-		return accessorID;
-	}
-
 	@Override
 	public void encrypt(Encryptor encryptor) {
-		accessorIDCiphertext = encryptor.encrypt(accessorID);
 		goalIDCiphertext = encryptor.encrypt(goalID);
 		urlCiphertext = encryptor.encrypt(url);
 	}
 
 	@Override
 	public void decrypt(Decryptor decryptor) {
-		accessorID = decryptor.decryptUUID(accessorIDCiphertext);
 		goalID = decryptor.decryptUUID(goalIDCiphertext);
 		url = decryptor.decryptString(urlCiphertext);
 	}
 
-	public static GoalConflictMessage createInstance(UUID accessorID, Goal goal, String url) {
-		return new GoalConflictMessage(UUID.randomUUID(), accessorID, goal.getID(), url);
+	public static GoalConflictMessage createInstance(UUID loginID, Goal goal, String url) {
+		return new GoalConflictMessage(UUID.randomUUID(), loginID, goal.getID(), url);
 	}
 }

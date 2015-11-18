@@ -57,7 +57,7 @@ class BasicBuddyTest extends Specification {
 					"Nexus 6"
 				],
 				"goals":[
-					"gambling"
+					"news"
 				]
 			}""", richardQuinPassword)
 			richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
@@ -85,7 +85,7 @@ class BasicBuddyTest extends Specification {
 					"iPhone 6"
 				],
 				"goals":[
-					"programming"
+					"gambling"
 				]
 			}""", bobDunnPassword)
 			bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
@@ -135,7 +135,7 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
-			response.responseData._embedded.buddyConnectRequestMessages[0].requestingUser.firstName == "Richard"
+			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard"
 			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
 			bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
 	}
@@ -165,7 +165,7 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
-			response.responseData._embedded.buddyConnectResponseMessages[0].respondingUser.firstName == "Bob"
+			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob"
 			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
 			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href) 
 	}
@@ -248,9 +248,9 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = analysisService.postToAnalysisEngine("""{
-			"accessorID":"${richardQuinLoginID}",
-			"categories": ["poker"],
-			"url":"http://www.poker.com"
+			"loginID":"${richardQuinLoginID}",
+			"categories": ["news/media"],
+			"url":"http://www.refdag.nl"
 			}""")
 
 		then:
@@ -267,8 +267,8 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 1
 			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
 	}
 
 	def 'Richard checks he has anonymous messages and finds a conflict for himself'(){
@@ -281,8 +281,8 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 1
 			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
 	}
 	
 	def 'Bob requests Richard to become his buddy (automatic pairing)'(){

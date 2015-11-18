@@ -11,5 +11,5 @@ import java.util.UUID;
 
 import org.springframework.data.repository.CrudRepository;
 
-public interface AccessorRepository extends CrudRepository<Accessor, UUID> {
+public interface UserAnonymizedRepository extends CrudRepository<UserAnonymized, UUID> {
 }

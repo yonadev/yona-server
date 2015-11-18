@@ -30,7 +30,7 @@ sub transform_log_record ($) {
 	}
 
 	my $analysis_event = {
-		'accessorID' => $username,
+		'loginID' => $username,
 		'categories' => [@relevant_url_categories_logged],
 		'url' => $url
 	};

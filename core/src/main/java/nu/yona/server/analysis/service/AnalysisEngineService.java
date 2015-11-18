@@ -19,7 +19,7 @@ import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageDestination;
-import nu.yona.server.subscriptions.entities.Accessor;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Service
 public class AnalysisEngineService {
@@ -28,51 +28,48 @@ public class AnalysisEngineService {
 
 	public void analyze(PotentialConflictDTO potentialConflictPayload) {
 
-		Accessor accessor = getAccessorByID(potentialConflictPayload.getAccessorID());
-		Set<Goal> conflictingGoalsOfAccessor = determineConflictingGoalsForAccessor(accessor,
+		UserAnonymized userAnonimized = getUserAnonymizedByID(potentialConflictPayload.getLoginID());
+		Set<Goal> conflictingGoalsOfUser = determineConflictingGoalsForUser(userAnonimized,
 				potentialConflictPayload.getCategories());
-		if (!conflictingGoalsOfAccessor.isEmpty()) {
-			sendConflictMessageToAllDestinationsOfAccessor(potentialConflictPayload, accessor,
-					conflictingGoalsOfAccessor);
+		if (!conflictingGoalsOfUser.isEmpty()) {
+			sendConflictMessageToAllDestinationsOfUser(potentialConflictPayload, userAnonimized,
+					conflictingGoalsOfUser);
 		}
 	}
-	
-	public Set<String> getRelevantCategories()
-	{
-		return goalService.getAllGoals().stream().flatMap(g -> g.getCategories().stream())
-                .collect(Collectors.toSet());
+
+	public Set<String> getRelevantCategories() {
+		return goalService.getAllGoals().stream().flatMap(g -> g.getCategories().stream()).collect(Collectors.toSet());
 	}
 
-	private void sendConflictMessageToAllDestinationsOfAccessor(PotentialConflictDTO payload, Accessor accessor,
-			Set<Goal> conflictingGoalsOfAccessor) {
-		Set<MessageDestination> destinations = accessor.getDestinations();
-		destinations.stream().forEach(d -> d.send(createConflictMessage(payload, conflictingGoalsOfAccessor)));
+	private void sendConflictMessageToAllDestinationsOfUser(PotentialConflictDTO payload, UserAnonymized userAnonymized,
+			Set<Goal> conflictingGoalsOfUser) {
+		Set<MessageDestination> destinations = userAnonymized.getAllRelatedDestinations();
+		destinations.stream().forEach(d -> d.send(createConflictMessage(payload, conflictingGoalsOfUser)));
 		destinations.stream().forEach(d -> MessageDestination.getRepository().save(d));
 	}
 
-	private GoalConflictMessage createConflictMessage(PotentialConflictDTO payload,
-			Set<Goal> conflictingGoalsOfAccessor) {
-		return GoalConflictMessage.createInstance(payload.getAccessorID(), conflictingGoalsOfAccessor.iterator().next(),
+	private GoalConflictMessage createConflictMessage(PotentialConflictDTO payload, Set<Goal> conflictingGoalsOfUser) {
+		return GoalConflictMessage.createInstance(payload.getLoginID(), conflictingGoalsOfUser.iterator().next(),
 				payload.getURL());
 	}
 
-	private Set<Goal> determineConflictingGoalsForAccessor(Accessor accessor, Set<String> categories) {
+	private Set<Goal> determineConflictingGoalsForUser(UserAnonymized userAnonymized, Set<String> categories) {
 		Set<Goal> allGoals = goalService.getAllGoalEntities();
 		Set<Goal> conflictingGoals = allGoals.stream().filter(g -> {
 			Set<String> goalCategories = new HashSet<>(g.getCategories());
 			goalCategories.retainAll(categories);
 			return !goalCategories.isEmpty();
 		}).collect(Collectors.toSet());
-		Set<Goal> goalsOfAccessor = accessor.getGoals();
-		Set<Goal> conflictingGoalsOfAccessor = conflictingGoals.stream().filter(g -> goalsOfAccessor.contains(g))
+		Set<Goal> goalsOfUser = userAnonymized.getGoals();
+		Set<Goal> conflictingGoalsOfUser = conflictingGoals.stream().filter(g -> goalsOfUser.contains(g))
 				.collect(Collectors.toSet());
-		return conflictingGoalsOfAccessor;
+		return conflictingGoalsOfUser;
 	}
 
-	private Accessor getAccessorByID(UUID id) {
-		Accessor entity = Accessor.getRepository().findOne(id);
+	private UserAnonymized getUserAnonymizedByID(UUID id) {
+		UserAnonymized entity = UserAnonymized.getRepository().findOne(id);
 		if (entity == null) {
-			throw new AccessorNotFoundException(id);
+			throw new LoginIDNotFoundException(id);
 		}
 		return entity;
 	}

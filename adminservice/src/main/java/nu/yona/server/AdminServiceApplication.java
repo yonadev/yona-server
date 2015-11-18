@@ -53,6 +53,9 @@ public class AdminServiceApplication {
 		SpringApplication.run(AdminServiceApplication.class, args);
 	}
 
+	@Autowired
+	GoalFileLoader goalFileLoader;
+
 	@Bean
 	public Docket yonaApi() {
 		ApiInfo apiInfo = new ApiInfo("Yona Administration", "Administrative APIs of Yona server", "1.0", null, null, "MPL",

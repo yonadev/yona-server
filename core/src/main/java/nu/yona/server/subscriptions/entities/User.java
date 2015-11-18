@@ -75,11 +75,8 @@ public class User extends EntityWithID {
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		Accessor accessor = Accessor.createInstance(goals);
-		accessor.addDestination(anonymousMessageSource.getDestination());
-		Accessor.getRepository().save(accessor);
-		UserPrivate userPrivate = UserPrivate.createInstance(nickName, accessor, deviceNames, goals,
-				anonymousMessageSource, namedMessageSource);
+		UserPrivate userPrivate = UserPrivate.createInstance(nickName, deviceNames, goals, anonymousMessageSource,
+				namedMessageSource);
 		return new User(UUID.randomUUID(), initializationVector, false, firstName, lastName, emailAddress, mobileNumber,
 				userPrivate, namedMessageSource.getDestination());
 	}
@@ -92,10 +89,7 @@ public class User extends EntityWithID {
 
 		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		Accessor accessor = Accessor.createInstance(goals);
-		accessor.addDestination(anonymousMessageSource.getDestination());
-		Accessor.getRepository().save(accessor);
-		UserPrivate userPrivate = UserPrivate.createInstance(nickName, accessor, devices, goals, anonymousMessageSource,
+		UserPrivate userPrivate = UserPrivate.createInstance(nickName, devices, goals, anonymousMessageSource,
 				namedMessageSource);
 		return new User(UUID.randomUUID(), initializationVector, true, firstName, lastName, emailAddress, mobileNumber,
 				userPrivate, namedMessageSource.getDestination());
@@ -163,11 +157,11 @@ public class User extends EntityWithID {
 	}
 
 	public Set<Goal> getGoals() {
-		return getUserPrivate().getGoals();
+		return getUserPrivate().getUserAnonymized().getGoals();
 	}
 
-	public UUID getAccessorID() {
-		return getUserPrivate().getAccessorID();
+	public UUID getLoginID() {
+		return getUserPrivate().getLoginID();
 	}
 
 	public MessageDestination getNamedMessageDestination() {
@@ -198,7 +192,7 @@ public class User extends EntityWithID {
 		return getUserPrivate().isDecryptedProperly();
 	}
 
-	public VPNProfile getVPNProfile() {
-		return getUserPrivate().getVPNProfile();
+	public UserAnonymized getAnonymized() {
+		return getUserPrivate().getUserAnonymized();
 	}
 }

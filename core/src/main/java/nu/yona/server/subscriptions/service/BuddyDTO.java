@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.subscriptions.entities.Buddy;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 
 @JsonRootName("buddy")
 public class BuddyDTO {
@@ -69,7 +70,12 @@ public class BuddyDTO {
 
 	public static BuddyDTO createInstance(Buddy buddyEntity) {
 		return new BuddyDTO(buddyEntity.getID(), UserDTO.createInstance(buddyEntity.getUser()),
-				buddyEntity.getNickName(), buddyEntity.getAccessorID());
+				buddyEntity.getNickName(), getBuddyLoginID(buddyEntity));
+	}
+
+	private static UUID getBuddyLoginID(Buddy buddyEntity) {
+		return (buddyEntity.getReceivingStatus() == Status.ACCEPTED)
+				|| (buddyEntity.getSendingStatus() == Status.ACCEPTED) ? buddyEntity.getLoginID() : null;
 	}
 
 	@JsonInclude(Include.NON_EMPTY)
@@ -78,12 +84,12 @@ public class BuddyDTO {
 	}
 
 	@JsonIgnore
-	public UUID getLoginID() {
-		return loginID;
+	public String getNickName() {
+		return nickName;
 	}
 
 	@JsonIgnore
-	public String getNickName() {
-		return nickName;
+	public UUID getLoginID() {
+		return loginID;
 	}
 }

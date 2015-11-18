@@ -61,6 +61,10 @@ test {
 run {
 	enableAssertions=true
 
+    if ( project.hasProperty('adminservice.debug') || project.hasProperty('debug.all')) {
+        jvmArgs "-Xdebug", "-Xrunjdwp:transport=dt_socket,address=" + project.ext.yona_adminservice_debug_port + ",server=y,suspend=n"
+    }
+
 	systemProperties = [
 		'server.port': System.getProperty('server.port', project.ext.yona_adminservice_port)
 	]

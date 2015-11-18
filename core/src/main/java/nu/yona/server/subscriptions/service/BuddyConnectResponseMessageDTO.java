@@ -20,25 +20,19 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
-import nu.yona.server.subscriptions.entities.Accessor;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 
 @JsonRootName("buddyConnectResponseMessage")
-public class BuddyConnectResponseMessageDTO extends MessageDTO {
+public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO {
 	private static final String PROCESS = "process";
-	private UserDTO respondingUser;
-	private final String message;
 	private boolean isProcessed;
 
-	private BuddyConnectResponseMessageDTO(UUID id, UserDTO respondingUser, String message, boolean isProcessed) {
-		super(id);
-		this.respondingUser = respondingUser;
-		this.message = message;
+	private BuddyConnectResponseMessageDTO(UUID id, UserDTO user, String message, boolean isProcessed) {
+		super(id, user, message);
 		this.isProcessed = isProcessed;
 	}
 
@@ -51,14 +45,6 @@ public class BuddyConnectResponseMessageDTO extends MessageDTO {
 		return possibleActions;
 	}
 
-	public UserDTO getRespondingUser() {
-		return respondingUser;
-	}
-
-	public String getMessage() {
-		return message;
-	}
-
 	public boolean isProcessed() {
 		return isProcessed;
 	}
@@ -66,7 +52,7 @@ public class BuddyConnectResponseMessageDTO extends MessageDTO {
 	public static BuddyConnectResponseMessageDTO createInstance(UserDTO requestingUser,
 			BuddyConnectResponseMessage messageEntity) {
 		return new BuddyConnectResponseMessageDTO(messageEntity.getID(),
-				UserDTO.createInstance(messageEntity.getRespondingUser()), messageEntity.getMessage(),
+				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getMessage(),
 				messageEntity.isProcessed());
 	}
 
@@ -104,20 +90,11 @@ public class BuddyConnectResponseMessageDTO extends MessageDTO {
 				BuddyConnectResponseMessage connectResponseMessageEntity, MessageActionDTO payload) {
 
 			buddyService.updateBuddyWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
-					connectResponseMessageEntity.getAccessorID(), connectResponseMessageEntity.getDestinationID());
-
-			addDestinationOfBuddyToAccessor(requestingUser.getPrivateData().getVpnProfile().getLoginID(),
-					connectResponseMessageEntity.getDestinationID());
+					connectResponseMessageEntity.getRelatedLoginID());
 
 			updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
-		}
-
-		private void addDestinationOfBuddyToAccessor(UUID accessorID, UUID destinationID) {
-			Accessor accessor = Accessor.getRepository().findOne(accessorID);
-			accessor.addDestination(MessageDestination.getRepository().findOne(destinationID));
-			Accessor.getRepository().save(accessor);
 		}
 
 		private void updateMessageStatusAsProcessed(BuddyConnectResponseMessage connectResponseMessageEntity) {

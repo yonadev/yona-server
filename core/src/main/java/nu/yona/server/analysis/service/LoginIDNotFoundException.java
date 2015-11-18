@@ -12,11 +12,11 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No accessor")
-public class AccessorNotFoundException extends RuntimeException {
+@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Unknown login ID")
+public class LoginIDNotFoundException extends RuntimeException {
 	private static final long serialVersionUID = 390243834481224180L;
 
-	public AccessorNotFoundException(UUID id) {
-		super("Accessor with ID '" + id + "' not found");
+	public LoginIDNotFoundException(UUID id) {
+		super("Login ID '" + id + "' not found");
 	}
 }

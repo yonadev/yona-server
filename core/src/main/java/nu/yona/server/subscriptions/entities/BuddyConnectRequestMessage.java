@@ -17,19 +17,9 @@ import javax.persistence.Transient;
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.subscriptions.entities.Buddy.Status;
 
 @Entity
-public class BuddyConnectRequestMessage extends Message {
-
-	@Transient
-	private UUID requestingUserID;
-	private byte[] requestingUserIDCiphertext;
-
-	@Transient
-	private UUID accessorID;
-	private byte[] accessorIDCiphertext;
+public class BuddyConnectRequestMessage extends BuddyConnectMessage {
 
 	@Transient
 	private Set<UUID> goalIDs;
@@ -39,47 +29,21 @@ public class BuddyConnectRequestMessage extends Message {
 	private String nickname;
 	private byte[] nicknameCiphertext;
 
-	@Transient
-	private String message;
-	private byte[] messageCiphertext;
-
-	@Transient
-	private UUID buddyID;
-	private byte[] buddyIDCiphertext;
-
-	private Status status = Status.NOT_REQUESTED;
+	private BuddyAnonymized.Status status = BuddyAnonymized.Status.NOT_REQUESTED;
 
 	// Default constructor is required for JPA
 	public BuddyConnectRequestMessage() {
-		super(null);
+		super();
 	}
 
-	private BuddyConnectRequestMessage(UUID id, UUID requestingUserID, UUID accessorID, Set<UUID> goalIDs,
-			String nickname, String message, UUID buddyID) {
-		super(id);
-		this.buddyID = buddyID;
-		if (requestingUserID == null) {
+	private BuddyConnectRequestMessage(UUID id, UUID userID, UUID loginID, Set<UUID> goalIDs, String nickname,
+			String message, UUID buddyID) {
+		super(id, loginID, userID, message, buddyID);
+		if (userID == null) {
 			throw new IllegalArgumentException("requestingUserID cannot be null");
 		}
-		if (accessorID == null) {
-			throw new IllegalArgumentException("accessorID cannot be null");
-		}
-		this.requestingUserID = requestingUserID;
-		this.accessorID = accessorID;
 		this.goalIDs = goalIDs;
 		this.nickname = nickname;
-		this.message = message;
-	}
-
-	public User getRequestingUser() {
-		return User.getRepository().findOne(requestingUserID);
-	}
-
-	public UUID getAccessorID() {
-		if (accessorID == null) {
-			throw new IllegalStateException("Message has not been decrypted");
-		}
-		return accessorID;
 	}
 
 	public Set<Goal> getGoals() {
@@ -90,19 +54,11 @@ public class BuddyConnectRequestMessage extends Message {
 		return nickname;
 	}
 
-	public String getMessage() {
-		return message;
-	}
-
-	public UUID getBuddyID() {
-		return buddyID;
-	}
-
 	public boolean isAccepted() {
-		return status == Status.ACCEPTED;
+		return status == BuddyAnonymized.Status.ACCEPTED;
 	}
 
-	public void setStatus(Status status) {
+	public void setStatus(BuddyAnonymized.Status status) {
 		this.status = status;
 	}
 
@@ -114,21 +70,15 @@ public class BuddyConnectRequestMessage extends Message {
 
 	@Override
 	public void encrypt(Encryptor encryptor) {
-		requestingUserIDCiphertext = encryptor.encrypt(requestingUserID);
-		accessorIDCiphertext = encryptor.encrypt(accessorID);
+		super.encrypt(encryptor);
 		goalIDsCiphertext = encryptor.encrypt(goalIDs);
 		nicknameCiphertext = encryptor.encrypt(nickname);
-		messageCiphertext = encryptor.encrypt(message);
-		buddyIDCiphertext = encryptor.encrypt(buddyID);
 	}
 
 	@Override
 	public void decrypt(Decryptor decryptor) {
-		requestingUserID = decryptor.decryptUUID(requestingUserIDCiphertext);
-		accessorID = decryptor.decryptUUID(accessorIDCiphertext);
+		super.decrypt(decryptor);
 		goalIDs = decryptor.decryptUUIDSet(goalIDsCiphertext);
 		nickname = decryptor.decryptString(nicknameCiphertext);
-		message = decryptor.decryptString(messageCiphertext);
-		buddyID = decryptor.decryptUUID(buddyIDCiphertext);
 	}
 }
