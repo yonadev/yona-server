@@ -243,6 +243,48 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded == null || response.responseData._embedded.user == null
 	}
 	
+	def 'Classification engine detects a potential conflict for Richard'(){
+		given:
+
+		when:
+			def response = analysisService.postToAnalysisEngine("""{
+			"accessorID":"${richardQuinLoginID}",
+			"categories": ["poker"],
+			"url":"http://www.poker.com"
+			}""")
+
+		then:
+			response.status == 200
+	}
+	
+	def 'Bob checks he has anonymous messages and finds a conflict for Richard'(){
+		given:
+
+		when:
+			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded.goalConflictMessages.size() == 1
+			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+	}
+
+	def 'Richard checks he has anonymous messages and finds a conflict for himself'(){
+		given:
+
+		when:
+			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded.goalConflictMessages.size() == 1
+			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+	}
+	
 	def 'Bob requests Richard to become his buddy (automatic pairing)'(){
 		given:
 
@@ -327,70 +369,6 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData.properties.status == "done"
 	}
-
-	def 'Bob checks he has no anonymous messages (automatic pairing)'(){
-		given:
-
-		when:
-			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
-
-		then:
-			response.status == 200
-			response.responseData._embedded == null
-	}
-
-	def 'Richard checks he has no anonymous messages (automatic pairing)'(){
-		given:
-
-		when:
-			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
-
-		then:
-			response.status == 200
-			response.responseData._embedded == null
-	}
-
-	def 'Classification engine detects a potential conflict for Richard'(){
-		given:
-
-		when:
-			def response = analysisService.postToAnalysisEngine("""{
-			"accessorID":"${richardQuinLoginID}",
-			"categories": ["poker"],
-			"url":"http://www.poker.com"
-			}""")
-
-		then:
-			response.status == 200
-	}
-
-	def 'Bob checks he has anonymous messages and finds a conflict for Richard'(){
-		given:
-
-		when:
-			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
-
-		then:
-			response.status == 200
-			response.responseData._embedded.goalConflictMessages.size() == 1
-			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
-	}
-
-	def 'Richard checks he has anonymous messages and finds a conflict for himself'(){
-		given:
-
-		when:
-			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
-
-		then:
-			response.status == 200
-			response.responseData._embedded.goalConflictMessages.size() == 1
-			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
-	}
 	
 	def 'Classification engine detects a potential conflict for Bob'(){
 		given:
@@ -415,6 +393,9 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 2
+			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
 			response.responseData._embedded.goalConflictMessages[1].nickname == "BD"
 			response.responseData._embedded.goalConflictMessages[1].goalName == "programming"
 			response.responseData._embedded.goalConflictMessages[1].url =~ /java/
@@ -429,6 +410,9 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 2
+			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
 			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
 			response.responseData._embedded.goalConflictMessages[1].goalName == "programming"
 			response.responseData._embedded.goalConflictMessages[1].url =~ /java/

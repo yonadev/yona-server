@@ -44,15 +44,18 @@ public class BuddyService {
 		} else {
 			newBuddyEntity = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
 		}
+		assert newBuddyEntity.getNickName() != null;
 		return newBuddyEntity;
 	}
 
 	public BuddyDTO addBuddyToAcceptingUser(UUID buddyUserID, String buddyNickName, Set<Goal> buddyGoals,
 			UUID buddyAccessorID) {
+		
 		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName);
 		buddy.setGoals(buddyGoals);
 		buddy.setAccessorID(buddyAccessorID);
 		buddy.setReceivingStatus(Status.ACCEPTED);
+		assert buddy.getNickName() != null;
 
 		return BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
 	}
