@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.rest;
 
@@ -37,62 +34,78 @@ import nu.yona.server.goals.service.GoalService;
 @Controller
 @ExposesResourceFor(GoalResource.class)
 @RequestMapping(value = "/goals/")
-public class GoalController {
-	@Autowired
-	private GoalService goalService;
+public class GoalController
+{
+    @Autowired
+    private GoalService goalService;
 
-	@RequestMapping(value = "{id}", method = RequestMethod.GET)
-	@ResponseBody
-	public HttpEntity<GoalResource> getGoal(@PathVariable UUID id) {
-		return createOKResponse(goalService.getGoal(id));
-	}
+    @RequestMapping(value = "{id}", method = RequestMethod.GET)
+    @ResponseBody
+    public HttpEntity<GoalResource> getGoal(@PathVariable UUID id)
+    {
+        return createOKResponse(goalService.getGoal(id));
+    }
 
-	@RequestMapping(method = RequestMethod.GET)
-	@ResponseBody
-	public HttpEntity<Resources<GoalResource>> getAllGoals() {
-		return createOKResponse(goalService.getAllGoals(), getAllGoalsLinkBuilder());
-	}
+    @RequestMapping(method = RequestMethod.GET)
+    @ResponseBody
+    public HttpEntity<Resources<GoalResource>> getAllGoals()
+    {
+        return createOKResponse(goalService.getAllGoals(), getAllGoalsLinkBuilder());
+    }
 
-	static ControllerLinkBuilder getAllGoalsLinkBuilder() {
-		GoalController methodOn = methodOn(GoalController.class);
-		return linkTo(methodOn.getAllGoals());
-	}
+    static ControllerLinkBuilder getAllGoalsLinkBuilder()
+    {
+        GoalController methodOn = methodOn(GoalController.class);
+        return linkTo(methodOn.getAllGoals());
+    }
 
-	private HttpEntity<GoalResource> createOKResponse(GoalDTO goal) {
-		return createResponse(goal, HttpStatus.OK);
-	}
+    private HttpEntity<GoalResource> createOKResponse(GoalDTO goal)
+    {
+        return createResponse(goal, HttpStatus.OK);
+    }
 
-	private HttpEntity<GoalResource> createResponse(GoalDTO goal, HttpStatus status) {
-		return new ResponseEntity<GoalResource>(new GoalResourceAssembler().toResource(goal), status);
-	}
+    private HttpEntity<GoalResource> createResponse(GoalDTO goal, HttpStatus status)
+    {
+        return new ResponseEntity<GoalResource>(new GoalResourceAssembler().toResource(goal), status);
+    }
 
-	private HttpEntity<Resources<GoalResource>> createOKResponse(Set<GoalDTO> goals, ControllerLinkBuilder controllerMethodLinkBuilder) {
-		return new ResponseEntity<Resources<GoalResource>>(wrapGoalsAsResourceList(goals, controllerMethodLinkBuilder), HttpStatus.OK);
-	}
+    private HttpEntity<Resources<GoalResource>> createOKResponse(Set<GoalDTO> goals,
+            ControllerLinkBuilder controllerMethodLinkBuilder)
+    {
+        return new ResponseEntity<Resources<GoalResource>>(wrapGoalsAsResourceList(goals, controllerMethodLinkBuilder),
+                HttpStatus.OK);
+    }
 
-	private Resources<GoalResource> wrapGoalsAsResourceList(Set<GoalDTO> goals, ControllerLinkBuilder controllerMethodLinkBuilder) { 
-		return new Resources<>(new GoalResourceAssembler().toResources(goals), controllerMethodLinkBuilder.withSelfRel());
-	}
+    private Resources<GoalResource> wrapGoalsAsResourceList(Set<GoalDTO> goals, ControllerLinkBuilder controllerMethodLinkBuilder)
+    {
+        return new Resources<>(new GoalResourceAssembler().toResources(goals), controllerMethodLinkBuilder.withSelfRel());
+    }
 
-	public static class GoalResource extends Resource<GoalDTO> {
-		public GoalResource(GoalDTO goal) {
-			super(goal);
-		}
-	}
+    public static class GoalResource extends Resource<GoalDTO>
+    {
+        public GoalResource(GoalDTO goal)
+        {
+            super(goal);
+        }
+    }
 
-	private static class GoalResourceAssembler extends ResourceAssemblerSupport<GoalDTO, GoalResource> {
-		public GoalResourceAssembler() {
-			super(GoalController.class, GoalResource.class);
-		}
+    private static class GoalResourceAssembler extends ResourceAssemblerSupport<GoalDTO, GoalResource>
+    {
+        public GoalResourceAssembler()
+        {
+            super(GoalController.class, GoalResource.class);
+        }
 
-		@Override
-		public GoalResource toResource(GoalDTO goal) {
-			return super.createResourceWithId(goal.getID(), goal);
-		}
+        @Override
+        public GoalResource toResource(GoalDTO goal)
+        {
+            return super.createResourceWithId(goal.getID(), goal);
+        }
 
-		@Override
-		protected GoalResource instantiateResource(GoalDTO goal) {
-			return new GoalResource(goal);
-		}
-	}
+        @Override
+        protected GoalResource instantiateResource(GoalDTO goal)
+        {
+            return new GoalResource(goal);
+        }
+    }
 }
