@@ -51,7 +51,7 @@ class BasicBuddyTest extends Specification {
 					"Nexus 6"
 				],
 				"goals":[
-					"gambling"
+					"news"
 				]
 			}""", richardQuinPassword)
 			richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
@@ -79,7 +79,7 @@ class BasicBuddyTest extends Specification {
 					"iPhone 6"
 				],
 				"goals":[
-					"programming"
+					"gambling"
 				]
 			}""", bobDunnPassword)
 			bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
@@ -243,8 +243,8 @@ class BasicBuddyTest extends Specification {
 		when:
 			def response = analysisService.postToAnalysisEngine("""{
 			"loginID":"${richardQuinLoginID}",
-			"categories": ["poker"],
-			"url":"http://www.poker.com"
+			"categories": ["news/media"],
+			"url":"http://www.refdag.nl"
 			}""")
 
 		then:
@@ -261,8 +261,8 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 1
 			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
 	}
 
 	def 'Richard checks he has anonymous messages and finds a conflict for himself'(){
@@ -275,7 +275,7 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 1
 			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
 	}
 }

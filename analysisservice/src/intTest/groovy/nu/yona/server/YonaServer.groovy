@@ -28,9 +28,19 @@ class YonaServer {
 		formatter.format(new Date())
 	}
 
+	def deleteGoal(goalURL)
+	{
+		deleteResource(goalURL)
+	}
+
 	def addGoal(jsonString)
 	{
 		createResource(GOALS_PATH, jsonString)
+	}
+	
+	def getGoal(goalURL)
+	{
+		getResource(goalURL)
 	}
 
 	def addUser(jsonString, password)
