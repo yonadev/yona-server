@@ -321,7 +321,7 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
-			response.responseData._embedded.buddyConnectRequestMessages[0].requestingUser.firstName == "Bob"
+			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Bob"
 			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
 			richardQuinBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
 	}
@@ -351,7 +351,7 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
-			response.responseData._embedded.buddyConnectResponseMessages[0].respondingUser.firstName == "Richard"
+			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Richard"
 			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
 			bobDunnBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
 	}
@@ -375,9 +375,9 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = analysisService.postToAnalysisEngine("""{
-			"accessorID":"${bobDunnLoginID}",
-			"categories": ["Java"],
-			"url":"http://www.java.com"
+			"loginID":"${bobDunnLoginID}",
+			"categories": ["poker"],
+			"url":"http://www.poker.com"
 			}""")
 
 		then:
@@ -394,11 +394,11 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 2
 			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
 			response.responseData._embedded.goalConflictMessages[1].nickname == "BD"
-			response.responseData._embedded.goalConflictMessages[1].goalName == "programming"
-			response.responseData._embedded.goalConflictMessages[1].url =~ /java/
+			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
 	}
 
 	def 'Bob checks he has anonymous messages and finds a conflict for himself'(){
@@ -411,10 +411,10 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 2
 			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
 			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[1].goalName == "programming"
-			response.responseData._embedded.goalConflictMessages[1].url =~ /java/
+			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
 	}
 }
