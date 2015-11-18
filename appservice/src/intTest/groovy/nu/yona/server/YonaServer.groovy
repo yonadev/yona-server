@@ -22,7 +22,7 @@ class YonaServer {
 		restClient = new RESTClient(baseURL)
 	}
 
-	def getTimeStamp()
+	def static getTimeStamp()
 	{
 		def formatter = new SimpleDateFormat("yyyyMMddhhmmss")
 		formatter.format(new Date())
