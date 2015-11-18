@@ -17,14 +17,9 @@ import javax.persistence.Transient;
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.messaging.entities.Message;
 
 @Entity
-public class BuddyConnectRequestMessage extends Message {
-
-	@Transient
-	private UUID requestingUserID;
-	private byte[] requestingUserIDCiphertext;
+public class BuddyConnectRequestMessage extends BuddyConnectMessage {
 
 	@Transient
 	private Set<UUID> goalIDs;
@@ -34,36 +29,21 @@ public class BuddyConnectRequestMessage extends Message {
 	private String nickname;
 	private byte[] nicknameCiphertext;
 
-	@Transient
-	private String message;
-	private byte[] messageCiphertext;
-
-	@Transient
-	private UUID buddyID;
-	private byte[] buddyIDCiphertext;
-
 	private BuddyAnonymized.Status status = BuddyAnonymized.Status.NOT_REQUESTED;
 
 	// Default constructor is required for JPA
 	public BuddyConnectRequestMessage() {
-		super(null, null);
+		super();
 	}
 
-	private BuddyConnectRequestMessage(UUID id, UUID requestingUserID, UUID loginID, Set<UUID> goalIDs, String nickname,
+	private BuddyConnectRequestMessage(UUID id, UUID userID, UUID loginID, Set<UUID> goalIDs, String nickname,
 			String message, UUID buddyID) {
-		super(id, loginID);
-		this.buddyID = buddyID;
-		if (requestingUserID == null) {
+		super(id, loginID, userID, message, buddyID);
+		if (userID == null) {
 			throw new IllegalArgumentException("requestingUserID cannot be null");
 		}
-		this.requestingUserID = requestingUserID;
 		this.goalIDs = goalIDs;
 		this.nickname = nickname;
-		this.message = message;
-	}
-
-	public User getRequestingUser() {
-		return User.getRepository().findOne(requestingUserID);
 	}
 
 	public Set<Goal> getGoals() {
@@ -72,14 +52,6 @@ public class BuddyConnectRequestMessage extends Message {
 
 	public String getNickname() {
 		return nickname;
-	}
-
-	public String getMessage() {
-		return message;
-	}
-
-	public UUID getBuddyID() {
-		return buddyID;
 	}
 
 	public boolean isAccepted() {
@@ -98,19 +70,15 @@ public class BuddyConnectRequestMessage extends Message {
 
 	@Override
 	public void encrypt(Encryptor encryptor) {
-		requestingUserIDCiphertext = encryptor.encrypt(requestingUserID);
+		super.encrypt(encryptor);
 		goalIDsCiphertext = encryptor.encrypt(goalIDs);
 		nicknameCiphertext = encryptor.encrypt(nickname);
-		messageCiphertext = encryptor.encrypt(message);
-		buddyIDCiphertext = encryptor.encrypt(buddyID);
 	}
 
 	@Override
 	public void decrypt(Decryptor decryptor) {
-		requestingUserID = decryptor.decryptUUID(requestingUserIDCiphertext);
+		super.decrypt(decryptor);
 		goalIDs = decryptor.decryptUUIDSet(goalIDsCiphertext);
 		nickname = decryptor.decryptString(nicknameCiphertext);
-		message = decryptor.decryptString(messageCiphertext);
-		buddyID = decryptor.decryptUUID(buddyIDCiphertext);
 	}
 }

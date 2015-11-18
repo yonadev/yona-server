@@ -52,6 +52,13 @@ public class BuddyController {
 	@Autowired
 	private UserService userService;
 	
+	/**
+	 * This method returns all the buddies that the given user has.
+	 *  
+	 * @param password The Yona password as passed on in the header of the request.
+	 * @param requestingUserID The ID of the user. This is part of the URL.
+	 * @return the list of buddies for the current user
+	 */
 	@RequestMapping(method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<Resources<BuddyResource>> getAllBuddies(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,

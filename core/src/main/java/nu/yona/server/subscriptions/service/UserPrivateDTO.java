@@ -36,7 +36,7 @@ public class UserPrivateDTO {
 	private UUID anonymousMessageDestinationID;
 	private Set<UUID> buddyIDs;
 	private Set<BuddyDTO> buddies;
-	
+
 	@JsonCreator
 	public UserPrivateDTO(@JsonProperty("nickName") String nickName,
 			@JsonProperty("devices") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> deviceNames,
@@ -117,11 +117,11 @@ public class UserPrivateDTO {
 	public Set<UUID> getBuddyIDs() {
 		return Collections.unmodifiableSet(buddyIDs);
 	}
-	
+
 	public void setBuddies(Set<BuddyDTO> buddies) {
 		this.buddies = buddies;
 	}
-	
+
 	@JsonIgnore
 	public Set<BuddyDTO> getBuddies() {
 		return Collections.unmodifiableSet(buddies);

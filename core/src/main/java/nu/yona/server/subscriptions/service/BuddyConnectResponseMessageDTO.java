@@ -27,16 +27,12 @@ import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 
 @JsonRootName("buddyConnectResponseMessage")
-public class BuddyConnectResponseMessageDTO extends MessageDTO {
+public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO {
 	private static final String PROCESS = "process";
-	private UserDTO respondingUser;
-	private final String message;
 	private boolean isProcessed;
 
-	private BuddyConnectResponseMessageDTO(UUID id, UserDTO respondingUser, String message, boolean isProcessed) {
-		super(id);
-		this.respondingUser = respondingUser;
-		this.message = message;
+	private BuddyConnectResponseMessageDTO(UUID id, UserDTO user, String message, boolean isProcessed) {
+		super(id, user, message);
 		this.isProcessed = isProcessed;
 	}
 
@@ -49,14 +45,6 @@ public class BuddyConnectResponseMessageDTO extends MessageDTO {
 		return possibleActions;
 	}
 
-	public UserDTO getRespondingUser() {
-		return respondingUser;
-	}
-
-	public String getMessage() {
-		return message;
-	}
-
 	public boolean isProcessed() {
 		return isProcessed;
 	}
@@ -64,7 +52,7 @@ public class BuddyConnectResponseMessageDTO extends MessageDTO {
 	public static BuddyConnectResponseMessageDTO createInstance(UserDTO requestingUser,
 			BuddyConnectResponseMessage messageEntity) {
 		return new BuddyConnectResponseMessageDTO(messageEntity.getID(),
-				UserDTO.createInstance(messageEntity.getRespondingUser()), messageEntity.getMessage(),
+				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getMessage(),
 				messageEntity.isProcessed());
 	}
 
