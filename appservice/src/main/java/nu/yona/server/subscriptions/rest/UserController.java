@@ -23,6 +23,7 @@ import nu.yona.server.rest.Constants;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -87,33 +88,46 @@ public class UserController {
 				() -> createResponse(userService.addUser(user), true, HttpStatus.CREATED));
 	}
 	
-	@RequestMapping(value = "{id}/devices/", method = RequestMethod.POST)
-	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
-	public HttpEntity<DevicesResource> addDeviceForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID id, @RequestBody String deviceName) {
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
-				() -> createUserDevicesResponse(new DevicesDTO(userService.addDeviceForUser(id, deviceName))));
+	private void CheckPassword(Optional<String> password, UUID id) {
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+				() -> null);
 	}
 	
-	@RequestMapping(value = "{id}/devices/{deviceName}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "{id}/newDeviceRequest", method = RequestMethod.PUT)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	public HttpEntity<DevicesResource> deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID id, @PathVariable String deviceName) {
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), 
-				() -> createUserDevicesResponse(new DevicesDTO(userService.deleteDeviceForUser(id, deviceName))));
+	public HttpEntity<NewDeviceRequestResource> setNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID id, @RequestBody CreateNewDeviceRequestDTO createNewDeviceRequest) {
+		CheckPassword(password, id);
+		return createNewDeviceRequestResponse(userService.setNewDeviceRequestForUser(id, password.get(), createNewDeviceRequest.getUserSecret()));
 	}
 	
-	private HttpEntity<DevicesResource> createUserDevicesResponse(DevicesDTO devices) {
-		return new ResponseEntity<DevicesResource>(
-				new DevicesResource(devices), 
+	@RequestMapping(value = "{id}/newDeviceRequest", params = { "userSecret" }, method = RequestMethod.GET)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(
+			@PathVariable UUID id, @RequestParam(value = "userSecret") String userSecret) {
+		return createNewDeviceRequestResponse(userService.getNewDeviceRequestForUser(id, userSecret));
+	}
+	
+	@RequestMapping(value = "{id}/newDeviceRequest", method = RequestMethod.DELETE)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	public void clearNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID id) {
+		CheckPassword(password, id);
+		userService.clearNewDeviceRequestForUser(id);
+	}
+		
+	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(NewDeviceRequestDTO newDeviceRequest) {
+		return new ResponseEntity<NewDeviceRequestResource>(
+				new NewDeviceRequestResource(newDeviceRequest), 
 				HttpStatus.OK);
 	}
 	
-	public static class DevicesResource extends Resource<DevicesDTO> {
-		public DevicesResource(DevicesDTO devices) {
-			super(devices);
+	public static class NewDeviceRequestResource extends Resource<NewDeviceRequestDTO> {
+		public NewDeviceRequestResource(NewDeviceRequestDTO newDeviceRequest) {
+			super(newDeviceRequest);
 		}
 	}
 

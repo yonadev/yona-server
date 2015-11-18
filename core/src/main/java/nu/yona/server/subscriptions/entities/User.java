@@ -48,6 +48,9 @@ public class User extends EntityWithID {
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private UserPrivate userPrivate;
+	
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private NewDeviceRequest newDeviceRequest;
 
 	@OneToOne
 	private MessageDestination messageDestination;
@@ -137,6 +140,14 @@ public class User extends EntityWithID {
 
 	public void setMobileNumber(String mobileNumber) {
 		this.mobileNumber = mobileNumber;
+	}
+	
+	public NewDeviceRequest getNewDeviceRequest() {
+		return newDeviceRequest;
+	}
+	
+	public void setNewDeviceRequest(NewDeviceRequest newDeviceRequest) {
+		this.newDeviceRequest = newDeviceRequest;
 	}
 
 	private UserPrivate getUserPrivate() {

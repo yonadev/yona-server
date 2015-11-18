@@ -7,6 +7,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -19,6 +20,7 @@ import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.entities.Buddy;
+import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
 
 import org.springframework.stereotype.Service;
@@ -186,5 +188,55 @@ public class UserService {
 		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getID());
 		userEntity.addBuddy(buddyEntity);
 		User.getRepository().save(userEntity);
+	}
+
+	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID id,
+			String password, String userSecret) {
+		return CryptoSession.execute(Optional.of(userSecret), null,
+				() -> {
+					User userEntity = getEntityByID(id);
+					NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
+					if(existingNewDeviceRequestEntity != null) {
+						NewDeviceRequest.getRepository().delete(existingNewDeviceRequestEntity);
+					}
+					LocalDateTime expirationDateTime = LocalDateTime.now().plusDays(1);
+					userEntity.setNewDeviceRequest(NewDeviceRequest.createInstance(password, expirationDateTime));
+					return NewDeviceRequestDTO.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest());
+				});
+	}
+
+	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID id, String userSecret) {
+		if(userSecret == null)
+		{
+			User userEntity = getEntityByID(id);
+			return NewDeviceRequestDTO.createInstance(userEntity.getNewDeviceRequest());
+		}
+		else
+		{
+			return getNewDeviceRequestWithPasswordForUser(id, userSecret);
+		}
+	}
+
+	private NewDeviceRequestDTO getNewDeviceRequestWithPasswordForUser(UUID id,
+			String userSecret) {
+		return CryptoSession.execute(Optional.of(userSecret), null,
+				() -> {
+					User userEntity = getEntityByID(id);
+					NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
+					if(newDeviceRequestEntity == null) {
+						throw new NewDeviceRequestNotPresentException(id);
+					}
+					return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
+				});
+	}
+
+	public void clearNewDeviceRequestForUser(UUID id) {
+		User userEntity = getEntityByID(id);
+		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
+		if(existingNewDeviceRequestEntity != null) {
+			NewDeviceRequest.getRepository().delete(existingNewDeviceRequestEntity);
+			userEntity.setNewDeviceRequest(null);
+			User.getRepository().save(userEntity);
+		}
 	}
 }
