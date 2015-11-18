@@ -79,7 +79,7 @@ class BasicBuddyTest extends Specification {
 					"iPhone 6"
 				],
 				"goals":[
-					"porn"
+					"gambling"
 				]
 			}""", bobDunnPassword)
 			bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)

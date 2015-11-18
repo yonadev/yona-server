@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -82,8 +83,8 @@ public class GoalService {
 	}
 
 	private void addOrUpdateNewGoals(Set<GoalDTO> goalDTOs, Set<Goal> goalsInRepository) {
-		Map<String, Goal> goalsInRepositoryMap = new HashMap<String, Goal>();
-		for(Goal goalInRepository : goalsInRepository) goalsInRepositoryMap.put(goalInRepository.getName(), goalInRepository);
+		Map<String, Goal> goalsInRepositoryMap = goalsInRepository.stream()
+				.collect(Collectors.toMap(g -> g.getName(), g -> g));
 		
 		for(GoalDTO goalDTO : goalDTOs) {
 			Goal goalInRepository = goalsInRepositoryMap.get(goalDTO.getName());
@@ -99,13 +100,11 @@ public class GoalService {
 	}
 
 	private void deleteRemovedGoals(Set<Goal> goalsInRepository, Set<GoalDTO> goalDTOs) {
-		Map<String, GoalDTO> goalDTOsMap = new HashMap<String, GoalDTO>();
-		for(GoalDTO goalDTO : goalDTOs) goalDTOsMap.put(goalDTO.getName(), goalDTO);
+		Map<String, GoalDTO> goalDTOsMap = goalDTOs.stream()
+				.collect(Collectors.toMap(g -> g.getName(), g -> g));
 		
-		for(Goal goalInRepository : goalsInRepository) {
-			if(!goalDTOsMap.containsKey(goalInRepository.getName())) {
-				deleteGoal(goalInRepository);
-			}
-		}
+		goalsInRepository.stream()
+			.filter(g -> !goalDTOsMap.containsKey(g.getName()))
+			.forEach(this::deleteGoal);
 	}
 }

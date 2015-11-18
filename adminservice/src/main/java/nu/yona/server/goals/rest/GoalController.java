@@ -58,24 +58,6 @@ public class GoalController {
 		return linkTo(methodOn.getAllGoals());
 	}
 
-	@RequestMapping(method = RequestMethod.POST)
-	@ResponseBody
-	public HttpEntity<GoalResource> addGoal(@RequestBody GoalDTO goal) {
-		return createResponse(goalService.addGoal(goal), HttpStatus.CREATED);
-	}
-
-	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
-	@ResponseBody
-	public HttpEntity<GoalResource> updateGoal(@PathVariable UUID id, @RequestBody GoalDTO goal) {
-		return createOKResponse(goalService.updateGoal(id, goal));
-	}
-
-	@RequestMapping(value = "{id}", method = RequestMethod.DELETE)
-	@ResponseStatus(HttpStatus.OK)
-	public void deleteGoal(@PathVariable UUID id) {
-		goalService.deleteGoal(id);
-	}
-
 	private HttpEntity<GoalResource> createOKResponse(GoalDTO goal) {
 		return createResponse(goal, HttpStatus.OK);
 	}

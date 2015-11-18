@@ -24,7 +24,7 @@ class UserTest extends Specification {
 					"Galaxy mini"
 				],
 				"goals":[
-					"porn"
+					"gambling"
 				]}"""
 	def password = "John Doe"
 
@@ -110,7 +110,7 @@ class UserTest extends Specification {
 			assert responseData.devices.size() == 1
 			assert responseData.devices[0] == "Galaxy mini"
 			assert responseData.goals.size() == 1
-			assert responseData.goals[0] == "porn"
+			assert responseData.goals[0] == "gambling"
 			
 			assert responseData._embedded.buddies != null
 			assert responseData._embedded.buddies.size() == 0
