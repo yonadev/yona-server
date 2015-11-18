@@ -54,7 +54,7 @@ class BasicBuddyTest extends Specification {
 				"lastName":"Quin ${timestamp}",
 				"nickName":"RQ ${timestamp}",
 				"emailAddress":"rich${timestamp}@quin.net",
-				"mobileNumber":"+${timestamp}-RQ",
+				"mobileNumber":"+${timestamp}1",
 				"devices":[
 					"Nexus 6"
 				],
@@ -82,7 +82,7 @@ class BasicBuddyTest extends Specification {
 				"lastName":"Dunn ${timestamp}",
 				"nickName":"BD ${timestamp}",
 				"emailAddress":"bob${timestamp}@dunn.net",
-				"mobileNumber":"+${timestamp}-BD",
+				"mobileNumber":"+${timestamp}2",
 				"devices":[
 					"iPhone 6"
 				],
@@ -111,7 +111,7 @@ class BasicBuddyTest extends Specification {
 						"firstName":"Bob ${timestamp}",
 						"lastName":"Dun ${timestamp}n",
 						"emailAddress":"bob${timestamp}@dunn.net",
-						"mobileNumber":"+ ${timestamp}-BD"
+						"mobileNumber":"+ ${timestamp}2"
 					}
 				},
 				"message":"Would you like to be my buddy?"
@@ -231,7 +231,7 @@ class BasicBuddyTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._embedded == null || response.responseData._embedded.user == null
+			response.responseData._embedded == null
 	}
 
 	def 'Bob checks he has no anonymous messages'(){
@@ -242,7 +242,7 @@ class BasicBuddyTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._embedded == null || response.responseData._embedded.user == null
+			response.responseData._embedded == null
 	}
 	
 	def 'Classification engine detects a potential conflict for Richard'(){
@@ -297,7 +297,7 @@ class BasicBuddyTest extends Specification {
 						"firstName":"Richard ${timestamp}",
 						"lastName":"Quin ${timestamp}",
 						"emailAddress":"rich${timestamp}@quin.net",
-						"mobileNumber":"+${timestamp}-RQ",
+						"mobileNumber":"+${timestamp}1",
 					}
 				},
 				"message":"Would you like to be my buddy?"
