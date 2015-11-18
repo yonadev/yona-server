@@ -31,28 +31,20 @@ import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 
 @JsonRootName("buddyConnectRequestMessage")
-public class BuddyConnectRequestMessageDTO extends MessageDTO {
+public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO {
 	private static final String ACCEPT = "accept";
-	private UserDTO requestingUser;
-	private final String message;
 	private Set<String> goals;
 	private boolean isAccepted;
 
 	private BuddyConnectRequestMessageDTO(BuddyConnectRequestMessage buddyConnectRequestMessageEntity, UUID id,
-			UserDTO requestingUser, UUID loginID, String nickname, String message, Set<String> goals,
-			boolean isAccepted) {
-		super(id);
+			UserDTO user, UUID loginID, String nickname, String message, Set<String> goals, boolean isAccepted) {
+		super(id, user, message);
 		if (buddyConnectRequestMessageEntity == null) {
 			throw new IllegalArgumentException("buddyConnectRequestMessageEntity cannot be null");
-		}
-		if (requestingUser == null) {
-			throw new IllegalArgumentException("requestingUser cannot be null");
 		}
 		if (loginID == null) {
 			throw new IllegalArgumentException("loginID cannot be null");
 		}
-		this.requestingUser = requestingUser;
-		this.message = message;
 		this.goals = goals;
 		this.isAccepted = isAccepted;
 	}
@@ -64,14 +56,6 @@ public class BuddyConnectRequestMessageDTO extends MessageDTO {
 			possibleActions.add(ACCEPT);
 		}
 		return possibleActions;
-	}
-
-	public UserDTO getRequestingUser() {
-		return requestingUser;
-	}
-
-	public String getMessage() {
-		return message;
 	}
 
 	public Set<String> getGoals() {
@@ -126,9 +110,9 @@ public class BuddyConnectRequestMessageDTO extends MessageDTO {
 		private MessageActionDTO handleAction_Accept(UserDTO acceptingUser,
 				BuddyConnectRequestMessage connectRequestMessageEntity, MessageActionDTO payload) {
 
-			BuddyDTO buddy = buddyService.addBuddyToAcceptingUser(
-					connectRequestMessageEntity.getUser().getID(), connectRequestMessageEntity.getNickname(),
-					connectRequestMessageEntity.getGoals(), connectRequestMessageEntity.getRelatedLoginID());
+			BuddyDTO buddy = buddyService.addBuddyToAcceptingUser(connectRequestMessageEntity.getUser().getID(),
+					connectRequestMessageEntity.getNickname(), connectRequestMessageEntity.getGoals(),
+					connectRequestMessageEntity.getRelatedLoginID());
 
 			userService.addBuddy(acceptingUser, buddy);
 
@@ -147,8 +131,7 @@ public class BuddyConnectRequestMessageDTO extends MessageDTO {
 
 		private void sendResponseMessageToRequestingUser(UserDTO acceptingUser,
 				BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage) {
-			MessageDestination messageDestination = connectRequestMessageEntity.getUser()
-					.getNamedMessageDestination();
+			MessageDestination messageDestination = connectRequestMessageEntity.getUser().getNamedMessageDestination();
 			assert messageDestination != null;
 			messageDestination.send(BuddyConnectResponseMessage.createInstance(acceptingUser.getID(),
 					acceptingUser.getPrivateData().getVpnProfile().getLoginID(),
