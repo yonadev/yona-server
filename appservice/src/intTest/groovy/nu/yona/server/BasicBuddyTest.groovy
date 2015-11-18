@@ -33,7 +33,13 @@ class BasicBuddyTest extends Specification {
 	@Shared
 	def richardQuinBobBuddyURL
 	@Shared
+	def bobDunnRichardBuddyURL
+	@Shared
 	def bobDunnBuddyMessageAcceptURL
+	@Shared
+	def bobDunnBuddyMessageProcessURL
+	@Shared
+	def richardQuinBuddyMessageAcceptURL
 	@Shared
 	def richardQuinBuddyMessageProcessURL 
 
@@ -223,7 +229,7 @@ class BasicBuddyTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._embedded == null
+			response.responseData._embedded == null || response.responseData._embedded.user == null
 	}
 
 	def 'Bob checks he has no anonymous messages'(){
@@ -234,9 +240,9 @@ class BasicBuddyTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._embedded == null
+			response.responseData._embedded == null || response.responseData._embedded.user == null
 	}
-
+	
 	def 'Classification engine detects a potential conflict for Richard'(){
 		given:
 
@@ -250,7 +256,7 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 	}
-
+	
 	def 'Bob checks he has anonymous messages and finds a conflict for Richard'(){
 		given:
 
@@ -277,5 +283,138 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
 			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+	}
+	
+	def 'Bob requests Richard to become his buddy (automatic pairing)'(){
+		given:
+
+		when:
+			def response = appService.requestBuddy(bobDunnURL, """{
+				"_embedded":{
+					"user":{
+						"firstName":"Richard",
+						"lastName":"Quin",
+						"emailAddress":"rich@quin.net",
+						"mobileNumber":"+12345678",
+					}
+				},
+				"message":"Would you like to be my buddy?"
+			}""", bobDunnPassword)
+			bobDunnRichardBuddyURL = response.responseData._links.self.href
+
+		then:
+			response.status == 201
+			response.responseData._embedded.user.firstName == "Richard"
+			bobDunnRichardBuddyURL.startsWith(bobDunnURL)
+
+		cleanup:
+			println "URL buddy Richard: " + bobDunnRichardBuddyURL
+	}
+
+	def 'Richard checks his direct messages (automatic pairing)'(){
+		given:
+
+		when:
+			def response = appService.getDirectMessages(richardQuinURL, richardQuinPassword)
+			richardQuinBuddyMessageAcceptURL = response.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
+
+		then:
+			response.status == 200
+			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
+			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Bob"
+			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+			richardQuinBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
+	}
+
+	def 'Richard accepts Bob\'s buddy request (automatic pairing)'(){
+		given:
+
+		when:
+			def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageAcceptURL, """{
+				"properties":{
+					"message":"Yes, great idea!"
+				}
+			}""", richardQuinPassword)
+
+		then:
+			response.status == 200
+			response.responseData.properties.status == "done"
+	}
+
+	def 'Bob checks his direct messages (automatic pairing)'(){
+		given:
+
+		when:
+			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
+			bobDunnBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
+
+		then:
+			response.status == 200
+			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
+			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Richard"
+			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+			bobDunnBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
+	}
+
+	def 'Bob processes Richard\'s buddy acceptance (automatic pairing)'(){
+		given:
+
+		when:
+			def response = appService.postMessageActionWithPassword(bobDunnBuddyMessageProcessURL, """{
+				"properties":{
+				}
+			}""", bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData.properties.status == "done"
+	}
+	
+	def 'Classification engine detects a potential conflict for Bob'(){
+		given:
+
+		when:
+			def response = analysisService.postToAnalysisEngine("""{
+			"loginID":"${bobDunnLoginID}",
+			"categories": ["poker"],
+			"url":"http://www.poker.com"
+			}""")
+
+		then:
+			response.status == 200
+	}
+
+	def 'Richard checks he has anonymous messages and finds a conflict for Bob'(){
+		given:
+
+		when:
+			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded.goalConflictMessages.size() == 2
+			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+			response.responseData._embedded.goalConflictMessages[1].nickname == "BD"
+			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
+	}
+
+	def 'Bob checks he has anonymous messages and finds a conflict for himself'(){
+		given:
+
+		when:
+			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded.goalConflictMessages.size() == 2
+			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
 	}
 }
