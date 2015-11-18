@@ -27,7 +27,7 @@ import nu.yona.server.subscriptions.entities.User;
 public class BuddyService {
 	@Autowired
 	private UserService userService;
-
+	
 	public BuddyDTO getBuddy(UUID buddyID) {
 		return BuddyDTO.createInstance(getEntityByID(buddyID));
 	}

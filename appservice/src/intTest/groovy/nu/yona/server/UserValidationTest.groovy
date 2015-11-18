@@ -9,13 +9,14 @@ import spock.lang.Specification
 import spock.lang.Unroll
 import groovy.json.*
 
-class UserTest extends Specification {
+class UserValidationTest extends Specification {
 
 	def appServiceBaseURL = System.properties.'yona.appservice.url'
 	def YonaServer appService = new YonaServer(appServiceBaseURL)
 	def timestamp = appService.getTimeStamp()
+    def jsonSlurper = new JsonSlurper()
     def userCreationJSON = """{
-                "firstName":"John",
+                "firstName":"First ${timestamp}",
                 "lastName":"Doe ${timestamp}",
                 "nickName":"JD ${timestamp}",
                 "emailAddress":"john${timestamp}@hotmail.com",
@@ -28,75 +29,15 @@ class UserTest extends Specification {
                 ]}"""
 	def password = "John Doe"
 
-	def 'Create John Doe'(){
-		given:
-
+	def 'Create - empty first name'(){
 		when:
-			def response = appService.addUser(userCreationJSON, password)
+            def object = jsonSlurper.parseText(userCreationJSON)
+			def response = appService.addUser(object, password)
 
 		then:
-			response.status == 201
-			testUser(response.responseData, true)
-
-		cleanup:
-			appService.deleteUser(appService.stripQueryString(response.responseData._links.self.href), password)
-	}
-
-	def 'Get John Doe with private data'(){
-		given:
-			def userURL = appService.stripQueryString(appService.addUser(userCreationJSON, password).responseData._links.self.href);
-
-		when:
-			def response = appService.getUser(userURL, true, password)
-
-		then:
-			response.status == 200
-			testUser(response.responseData, true)
-
-		cleanup:
-			appService.deleteUser(userURL, password)
-	}
-
-	def 'Try to get John Doe\'s private data with a bad password'(){
-		given:
-			def userURL = appService.stripQueryString(appService.addUser(userCreationJSON, password).responseData._links.self.href);
-
-		when:
-			def response = appService.getUser(userURL, true, "nonsense")
-
-		then:
-			HttpResponseException e = thrown()
-			e.statusCode == 400
-
-		cleanup:
-			appService.deleteUser(userURL, password)
-	}
-
-	def 'Get John Doe without private data'(){
-		given:
-			def userURL = appService.stripQueryString(appService.addUser(userCreationJSON, password).responseData._links.self.href);
-
-		when:
-			def response = appService.getUser(userURL, false)
-
-		then:
-			response.status == 200
-			testUser(response.responseData, false)
-
-		cleanup:
-			appService.deleteUser(userURL, password)
-	}
-
-	def 'Delete John Doe'(){
-		given:
-			def userURL = appService.stripQueryString(appService.addUser(userCreationJSON, password).responseData._links.self.href);
-
-		when:
-			def response = appService.deleteUser(userURL, password)
-
-		then:
-			response.status == 200
-			verifyUserDoesNotExist(userURL)
+            response.status == 400
+            response.responseData.type == "ERROR"
+            response.responseData.code == "error.user.firstname"
 	}
 
 	void testUser(responseData, includePrivateData)
