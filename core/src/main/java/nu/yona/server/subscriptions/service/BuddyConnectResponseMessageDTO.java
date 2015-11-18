@@ -64,7 +64,7 @@ public class BuddyConnectResponseMessageDTO extends MessageDTO {
 	public static BuddyConnectResponseMessageDTO createInstance(UserDTO requestingUser,
 			BuddyConnectResponseMessage messageEntity) {
 		return new BuddyConnectResponseMessageDTO(messageEntity.getID(),
-				UserDTO.createInstance(messageEntity.getRespondingUser()), messageEntity.getMessage(),
+				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getMessage(),
 				messageEntity.isProcessed());
 	}
 

@@ -19,10 +19,6 @@ import nu.yona.server.crypto.Encryptor;
 public class BuddyConnectResponseMessage extends BuddyConnectMessage {
 
 	@Transient
-	private UUID respondingUserID;
-	private byte[] respondingUserIDCiphertext;
-
-	@Transient
 	private UUID destinationID;
 	private byte[] destinationIDCiphertext;
 	private BuddyAnonymized.Status status = BuddyAnonymized.Status.NOT_REQUESTED;
@@ -33,16 +29,11 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage {
 		super();
 	}
 
-	private BuddyConnectResponseMessage(UUID id, UUID respondingUserID, UUID loginID, String message, UUID buddyID,
+	private BuddyConnectResponseMessage(UUID id, UUID userID, UUID loginID, String message, UUID buddyID,
 			UUID destinationID, BuddyAnonymized.Status status) {
-		super(id, loginID, message, buddyID);
-		this.respondingUserID = respondingUserID;
+		super(id, loginID, userID, message, buddyID);
 		this.destinationID = destinationID;
 		this.status = status;
-	}
-
-	public User getRespondingUser() {
-		return User.getRepository().findOne(respondingUserID);
 	}
 
 	public UUID getDestinationID() {
@@ -70,14 +61,12 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage {
 	@Override
 	public void encrypt(Encryptor encryptor) {
 		super.encrypt(encryptor);
-		respondingUserIDCiphertext = encryptor.encrypt(respondingUserID);
 		destinationIDCiphertext = encryptor.encrypt(destinationID);
 	}
 
 	@Override
 	public void decrypt(Decryptor decryptor) {
 		super.decrypt(decryptor);
-		respondingUserID = decryptor.decryptUUID(respondingUserIDCiphertext);
 		destinationID = decryptor.decryptUUID(destinationIDCiphertext);
 	}
 }

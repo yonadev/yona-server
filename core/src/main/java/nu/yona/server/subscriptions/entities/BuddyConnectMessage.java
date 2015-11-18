@@ -19,6 +19,10 @@ import nu.yona.server.messaging.entities.Message;
 @Entity
 public class BuddyConnectMessage extends Message {
 	@Transient
+	private UUID userID;
+	private byte[] userIDCiphertext;
+
+	@Transient
 	private String message;
 	private byte[] messageCiphertext;
 
@@ -31,10 +35,15 @@ public class BuddyConnectMessage extends Message {
 		super(null, null);
 	}
 
-	protected BuddyConnectMessage(UUID id, UUID loginID, String message, UUID buddyID) {
+	protected BuddyConnectMessage(UUID id, UUID loginID, UUID userID, String message, UUID buddyID) {
 		super(id, loginID);
+		this.userID = userID;
 		this.buddyID = buddyID;
 		this.message = message;
+	}
+
+	public User getUser() {
+		return User.getRepository().findOne(userID);
 	}
 
 	public String getMessage() {
@@ -47,12 +56,14 @@ public class BuddyConnectMessage extends Message {
 
 	@Override
 	public void encrypt(Encryptor encryptor) {
+		userIDCiphertext = encryptor.encrypt(userID);
 		messageCiphertext = encryptor.encrypt(message);
 		buddyIDCiphertext = encryptor.encrypt(buddyID);
 	}
 
 	@Override
 	public void decrypt(Decryptor decryptor) {
+		userID = decryptor.decryptUUID(userIDCiphertext);
 		message = decryptor.decryptString(messageCiphertext);
 		buddyID = decryptor.decryptUUID(buddyIDCiphertext);
 	}

@@ -22,10 +22,6 @@ import nu.yona.server.goals.entities.Goal;
 public class BuddyConnectRequestMessage extends BuddyConnectMessage {
 
 	@Transient
-	private UUID requestingUserID;
-	private byte[] requestingUserIDCiphertext;
-
-	@Transient
 	private Set<UUID> goalIDs;
 	private byte[] goalIDsCiphertext;
 
@@ -40,19 +36,14 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage {
 		super();
 	}
 
-	private BuddyConnectRequestMessage(UUID id, UUID requestingUserID, UUID loginID, Set<UUID> goalIDs, String nickname,
+	private BuddyConnectRequestMessage(UUID id, UUID userID, UUID loginID, Set<UUID> goalIDs, String nickname,
 			String message, UUID buddyID) {
-		super(id, loginID, message, buddyID);
-		if (requestingUserID == null) {
+		super(id, loginID, userID, message, buddyID);
+		if (userID == null) {
 			throw new IllegalArgumentException("requestingUserID cannot be null");
 		}
-		this.requestingUserID = requestingUserID;
 		this.goalIDs = goalIDs;
 		this.nickname = nickname;
-	}
-
-	public User getRequestingUser() {
-		return User.getRepository().findOne(requestingUserID);
 	}
 
 	public Set<Goal> getGoals() {
@@ -80,7 +71,6 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage {
 	@Override
 	public void encrypt(Encryptor encryptor) {
 		super.encrypt(encryptor);
-		requestingUserIDCiphertext = encryptor.encrypt(requestingUserID);
 		goalIDsCiphertext = encryptor.encrypt(goalIDs);
 		nicknameCiphertext = encryptor.encrypt(nickname);
 	}
@@ -88,7 +78,6 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage {
 	@Override
 	public void decrypt(Decryptor decryptor) {
 		super.decrypt(decryptor);
-		requestingUserID = decryptor.decryptUUID(requestingUserIDCiphertext);
 		goalIDs = decryptor.decryptUUIDSet(goalIDsCiphertext);
 		nickname = decryptor.decryptString(nicknameCiphertext);
 	}

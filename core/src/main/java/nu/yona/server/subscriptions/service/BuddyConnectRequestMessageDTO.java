@@ -85,7 +85,7 @@ public class BuddyConnectRequestMessageDTO extends MessageDTO {
 	public static BuddyConnectRequestMessageDTO createInstance(UserDTO requestingUser,
 			BuddyConnectRequestMessage messageEntity) {
 		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(),
-				UserDTO.createInstance(messageEntity.getRequestingUser()), messageEntity.getRelatedLoginID(),
+				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getRelatedLoginID(),
 				messageEntity.getNickname(), messageEntity.getMessage(),
 				messageEntity.getGoals().stream().map(g -> g.getName()).collect(Collectors.toSet()),
 				messageEntity.isAccepted());
@@ -127,7 +127,7 @@ public class BuddyConnectRequestMessageDTO extends MessageDTO {
 				BuddyConnectRequestMessage connectRequestMessageEntity, MessageActionDTO payload) {
 
 			BuddyDTO buddy = buddyService.addBuddyToAcceptingUser(
-					connectRequestMessageEntity.getRequestingUser().getID(), connectRequestMessageEntity.getNickname(),
+					connectRequestMessageEntity.getUser().getID(), connectRequestMessageEntity.getNickname(),
 					connectRequestMessageEntity.getGoals(), connectRequestMessageEntity.getRelatedLoginID());
 
 			userService.addBuddy(acceptingUser, buddy);
@@ -147,7 +147,7 @@ public class BuddyConnectRequestMessageDTO extends MessageDTO {
 
 		private void sendResponseMessageToRequestingUser(UserDTO acceptingUser,
 				BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage) {
-			MessageDestination messageDestination = connectRequestMessageEntity.getRequestingUser()
+			MessageDestination messageDestination = connectRequestMessageEntity.getUser()
 					.getNamedMessageDestination();
 			assert messageDestination != null;
 			messageDestination.send(BuddyConnectResponseMessage.createInstance(acceptingUser.getID(),
