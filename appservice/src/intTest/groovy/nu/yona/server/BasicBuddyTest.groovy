@@ -41,7 +41,7 @@ class BasicBuddyTest extends Specification {
 	@Shared
 	def richardQuinBuddyMessageAcceptURL
 	@Shared
-	def richardQuinBuddyMessageProcessURL 
+	def richardQuinBuddyMessageProcessURL
 
 	def 'Add user Richard Quin'(){
 		given:
@@ -167,7 +167,7 @@ class BasicBuddyTest extends Specification {
 			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
 			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob"
 			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
-			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href) 
+			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
 	}
 
 	def 'Richard processes Bob\'s buddy acceptance'(){
@@ -183,7 +183,7 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData.properties.status == "done"
 	}
-	
+
 	def 'Richard checks his buddy list and will find Bob there'(){
 		given:
 
@@ -195,7 +195,7 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.buddies.size() == 1
 			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Bob"
 	}
-	
+
 	def 'Bob checks his buddy list and will find Richard there'(){
 		given:
 
@@ -207,7 +207,7 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.buddies.size() == 1
 			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Richard"
 	}
-	
+
 	def 'When Richard would retrieve his user, Bob would be embedded as buddy'(){
 		given:
 
@@ -229,7 +229,7 @@ class BasicBuddyTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._embedded == null || response.responseData._embedded.user == null
+			response.responseData._embedded == null
 	}
 
 	def 'Bob checks he has no anonymous messages'(){
@@ -240,9 +240,9 @@ class BasicBuddyTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._embedded == null || response.responseData._embedded.user == null
+			response.responseData._embedded == null
 	}
-	
+
 	def 'Classification engine detects a potential conflict for Richard'(){
 		given:
 
@@ -256,7 +256,7 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 	}
-	
+
 	def 'Bob checks he has anonymous messages and finds a conflict for Richard'(){
 		given:
 
@@ -284,7 +284,7 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
 			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
 	}
-	
+
 	def 'Bob requests Richard to become his buddy (automatic pairing)'(){
 		given:
 
@@ -369,7 +369,7 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData.properties.status == "done"
 	}
-	
+
 	def 'Classification engine detects a potential conflict for Bob'(){
 		given:
 
