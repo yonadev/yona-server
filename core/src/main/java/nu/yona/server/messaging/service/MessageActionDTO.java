@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
@@ -17,21 +14,25 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonRootName("messageAction")
-public class MessageActionDTO {
+public class MessageActionDTO
+{
 
-	private Map<String, String> properties;
+    private Map<String, String> properties;
 
-	@JsonCreator
-	public MessageActionDTO(
-			@JsonProperty("properties") @JsonDeserialize(as = HashMap.class, contentAs = String.class) Map<String, String> properties) {
-		this.properties = new HashMap<>(properties);
-	}
+    @JsonCreator
+    public MessageActionDTO(
+            @JsonProperty("properties") @JsonDeserialize(as = HashMap.class, contentAs = String.class) Map<String, String> properties)
+    {
+        this.properties = new HashMap<>(properties);
+    }
 
-	public Map<String, String> getProperties() {
-		return Collections.unmodifiableMap(properties);
-	}
+    public Map<String, String> getProperties()
+    {
+        return Collections.unmodifiableMap(properties);
+    }
 
-	public String getProperty(String name) {
-		return properties.get(name);
-	}
+    public String getProperty(String name)
+    {
+        return properties.get(name);
+    }
 }

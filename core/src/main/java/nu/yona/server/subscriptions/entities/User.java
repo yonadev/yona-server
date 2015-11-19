@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
@@ -27,160 +24,188 @@ import nu.yona.server.messaging.entities.MessageSource;
 
 @Entity
 @Table(name = "USERS")
-public class User extends EntityWithID {
-	public static UserRepository getRepository() {
-		return (UserRepository) RepositoryProvider.getRepository(User.class, UUID.class);
-	}
+public class User extends EntityWithID
+{
+    public static UserRepository getRepository()
+    {
+        return (UserRepository) RepositoryProvider.getRepository(User.class, UUID.class);
+    }
 
-	private String firstName;
+    private String firstName;
 
-	private String lastName;
+    private String lastName;
 
-	@Column(unique = true)
-	private String mobileNumber;
+    @Column(unique = true)
+    private String mobileNumber;
 
-	private byte[] initializationVector;
+    private byte[] initializationVector;
 
-	private boolean createdOnBuddyRequest;
+    private boolean createdOnBuddyRequest;
 
-	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private UserPrivate userPrivate;
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private UserPrivate userPrivate;
 
-	@OneToOne
-	private MessageDestination messageDestination;
+    @OneToOne
+    private MessageDestination messageDestination;
 
-	// Default constructor is required for JPA
-	public User() {
-		super(null);
-	}
+    // Default constructor is required for JPA
+    public User()
+    {
+        super(null);
+    }
 
-	private User(UUID id, byte[] initializationVector, boolean createdOnBuddyRequest, String firstName, String lastName,
-			String mobileNumber, UserPrivate userPrivate, MessageDestination messageDestination) {
-		super(id);
-		this.initializationVector = initializationVector;
-		this.createdOnBuddyRequest = createdOnBuddyRequest;
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.mobileNumber = mobileNumber;
-		this.setUserPrivate(userPrivate);
-		this.messageDestination = messageDestination;
-	}
+    private User(UUID id, byte[] initializationVector, boolean createdOnBuddyRequest, String firstName, String lastName,
+            String mobileNumber, UserPrivate userPrivate, MessageDestination messageDestination)
+    {
+        super(id);
+        this.initializationVector = initializationVector;
+        this.createdOnBuddyRequest = createdOnBuddyRequest;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.mobileNumber = mobileNumber;
+        this.setUserPrivate(userPrivate);
+        this.messageDestination = messageDestination;
+    }
 
-	public static User createInstance(String firstName, String lastName, String nickName, String mobileNumber,
-			Set<String> deviceNames, Set<Goal> goals) {
-		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
-		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		UserPrivate userPrivate = UserPrivate.createInstance(nickName, deviceNames, goals, anonymousMessageSource,
-				namedMessageSource);
-		return new User(UUID.randomUUID(), initializationVector, false, firstName, lastName, mobileNumber, userPrivate,
-				namedMessageSource.getDestination());
-	}
+    public static User createInstance(String firstName, String lastName, String nickName, String mobileNumber,
+            Set<String> deviceNames, Set<Goal> goals)
+    {
+        byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
+        MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
+        MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
+        UserPrivate userPrivate = UserPrivate.createInstance(nickName, deviceNames, goals, anonymousMessageSource,
+                namedMessageSource);
+        return new User(UUID.randomUUID(), initializationVector, false, firstName, lastName, mobileNumber, userPrivate,
+                namedMessageSource.getDestination());
+    }
 
-	public static User createInstanceOnBuddyRequest(String firstName, String lastName, String nickName,
-			String mobileNumber) {
-		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
-		Set<Goal> goals = Collections.emptySet();
-		Set<String> devices = Collections.emptySet();
+    public static User createInstanceOnBuddyRequest(String firstName, String lastName, String nickName, String mobileNumber)
+    {
+        byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
+        Set<Goal> goals = Collections.emptySet();
+        Set<String> devices = Collections.emptySet();
 
-		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		UserPrivate userPrivate = UserPrivate.createInstance(nickName, devices, goals, anonymousMessageSource,
-				namedMessageSource);
-		return new User(UUID.randomUUID(), initializationVector, true, firstName, lastName, mobileNumber, userPrivate,
-				namedMessageSource.getDestination());
-	}
+        MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
+        MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
+        UserPrivate userPrivate = UserPrivate.createInstance(nickName, devices, goals, anonymousMessageSource,
+                namedMessageSource);
+        return new User(UUID.randomUUID(), initializationVector, true, firstName, lastName, mobileNumber, userPrivate,
+                namedMessageSource.getDestination());
+    }
 
-	public boolean isCreatedOnBuddyRequest() {
-		return createdOnBuddyRequest;
-	}
+    public boolean isCreatedOnBuddyRequest()
+    {
+        return createdOnBuddyRequest;
+    }
 
-	public String getFirstName() {
-		return firstName;
-	}
+    public String getFirstName()
+    {
+        return firstName;
+    }
 
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
+    public void setFirstName(String firstName)
+    {
+        this.firstName = firstName;
+    }
 
-	public String getLastName() {
-		return lastName;
-	}
+    public String getLastName()
+    {
+        return lastName;
+    }
 
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
+    public void setLastName(String lastName)
+    {
+        this.lastName = lastName;
+    }
 
-	public String getNickName() {
-		return getUserPrivate().getNickname();
-	}
+    public String getNickName()
+    {
+        return getUserPrivate().getNickname();
+    }
 
-	public void setNickName(String nickName) {
-		getUserPrivate().setNickname(nickName);
-	}
+    public void setNickName(String nickName)
+    {
+        getUserPrivate().setNickname(nickName);
+    }
 
-	public String getMobileNumber() {
-		return mobileNumber;
-	}
+    public String getMobileNumber()
+    {
+        return mobileNumber;
+    }
 
-	public void setMobileNumber(String mobileNumber) {
-		this.mobileNumber = mobileNumber;
-	}
+    public void setMobileNumber(String mobileNumber)
+    {
+        this.mobileNumber = mobileNumber;
+    }
 
-	private UserPrivate getUserPrivate() {
-		CryptoSession.getCurrent().setInitializationVector(initializationVector);
-		return userPrivate;
-	}
+    private UserPrivate getUserPrivate()
+    {
+        CryptoSession.getCurrent().setInitializationVector(initializationVector);
+        return userPrivate;
+    }
 
-	private void setUserPrivate(UserPrivate userPrivate) {
-		this.userPrivate = userPrivate;
-	}
+    private void setUserPrivate(UserPrivate userPrivate)
+    {
+        this.userPrivate = userPrivate;
+    }
 
-	public Set<String> getDeviceNames() {
-		return getUserPrivate().getDeviceNames();
-	}
+    public Set<String> getDeviceNames()
+    {
+        return getUserPrivate().getDeviceNames();
+    }
 
-	public void setDeviceNames(Set<String> deviceNames) {
-		getUserPrivate().setDeviceNames(deviceNames);
-	}
+    public void setDeviceNames(Set<String> deviceNames)
+    {
+        getUserPrivate().setDeviceNames(deviceNames);
+    }
 
-	public Set<Goal> getGoals() {
-		return getUserPrivate().getUserAnonymized().getGoals();
-	}
+    public Set<Goal> getGoals()
+    {
+        return getUserPrivate().getUserAnonymized().getGoals();
+    }
 
-	public UUID getLoginID() {
-		return getUserPrivate().getLoginID();
-	}
+    public UUID getLoginID()
+    {
+        return getUserPrivate().getLoginID();
+    }
 
-	public MessageDestination getNamedMessageDestination() {
-		return messageDestination;
-	}
+    public MessageDestination getNamedMessageDestination()
+    {
+        return messageDestination;
+    }
 
-	public void addBuddy(Buddy buddy) {
-		getUserPrivate().addBuddy(buddy);
-	}
+    public void addBuddy(Buddy buddy)
+    {
+        getUserPrivate().addBuddy(buddy);
+    }
 
-	public MessageSource getNamedMessageSource() {
-		return getUserPrivate().getNamedMessageSource();
-	}
+    public MessageSource getNamedMessageSource()
+    {
+        return getUserPrivate().getNamedMessageSource();
+    }
 
-	public MessageSource getAnonymousMessageSource() {
-		return getUserPrivate().getAnonymousMessageSource();
-	}
+    public MessageSource getAnonymousMessageSource()
+    {
+        return getUserPrivate().getAnonymousMessageSource();
+    }
 
-	public MessageDestination getAnonymousMessageDestination() {
-		return getAnonymousMessageSource().getDestination();
-	}
+    public MessageDestination getAnonymousMessageDestination()
+    {
+        return getAnonymousMessageSource().getDestination();
+    }
 
-	public Set<Buddy> getBuddies() {
-		return getUserPrivate().getBuddies();
-	}
+    public Set<Buddy> getBuddies()
+    {
+        return getUserPrivate().getBuddies();
+    }
 
-	public boolean canAccessPrivateData() {
-		return getUserPrivate().isDecryptedProperly();
-	}
+    public boolean canAccessPrivateData()
+    {
+        return getUserPrivate().isDecryptedProperly();
+    }
 
-	public UserAnonymized getAnonymized() {
-		return getUserPrivate().getUserAnonymized();
-	}
+    public UserAnonymized getAnonymized()
+    {
+        return getUserPrivate().getUserAnonymized();
+    }
 }
