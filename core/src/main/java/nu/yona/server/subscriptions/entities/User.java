@@ -36,9 +36,6 @@ public class User extends EntityWithID
 	private String lastName;
 
 	@Column(unique = true)
-	private String emailAddress;
-
-	@Column(unique = true)
 	private String mobileNumber;
 
 	private byte[] initializationVector;
@@ -61,33 +58,31 @@ public class User extends EntityWithID
 	}
 
 	private User(UUID id, byte[] initializationVector, boolean createdOnBuddyRequest, String firstName, String lastName,
-			String emailAddress, String mobileNumber, UserPrivate userPrivate, MessageDestination messageDestination)
+			String mobileNumber, UserPrivate userPrivate, MessageDestination messageDestination)
 	{
 		super(id);
 		this.initializationVector = initializationVector;
 		this.createdOnBuddyRequest = createdOnBuddyRequest;
 		this.firstName = firstName;
 		this.lastName = lastName;
-		this.emailAddress = emailAddress;
 		this.mobileNumber = mobileNumber;
 		this.setUserPrivate(userPrivate);
 		this.messageDestination = messageDestination;
 	}
 
-	public static User createInstance(String firstName, String lastName, String nickName, String emailAddress,
-			String mobileNumber, Set<String> deviceNames, Set<Goal> goals)
+	public static User createInstance(String firstName, String lastName, String nickName, String mobileNumber,
+			Set<String> deviceNames, Set<Goal> goals)
 	{
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		UserPrivate userPrivate = UserPrivate.createInstance(nickName, deviceNames, goals, anonymousMessageSource,
 				namedMessageSource);
-		return new User(UUID.randomUUID(), initializationVector, false, firstName, lastName, emailAddress, mobileNumber,
-				userPrivate, namedMessageSource.getDestination());
+		return new User(UUID.randomUUID(), initializationVector, false, firstName, lastName, mobileNumber, userPrivate,
+				namedMessageSource.getDestination());
 	}
 
-	public static User createInstanceOnBuddyRequest(String firstName, String lastName, String nickName, String emailAddress,
-			String mobileNumber)
+	public static User createInstanceOnBuddyRequest(String firstName, String lastName, String nickName, String mobileNumber)
 	{
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		Set<Goal> goals = Collections.emptySet();
@@ -97,8 +92,8 @@ public class User extends EntityWithID
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		UserPrivate userPrivate = UserPrivate
 				.createInstance(nickName, devices, goals, anonymousMessageSource, namedMessageSource);
-		return new User(UUID.randomUUID(), initializationVector, true, firstName, lastName, emailAddress, mobileNumber,
-				userPrivate, namedMessageSource.getDestination());
+		return new User(UUID.randomUUID(), initializationVector, true, firstName, lastName, mobileNumber, userPrivate,
+				namedMessageSource.getDestination());
 	}
 
 	public boolean isCreatedOnBuddyRequest()
@@ -134,16 +129,6 @@ public class User extends EntityWithID
 	public void setNickName(String nickName)
 	{
 		getUserPrivate().setNickname(nickName);
-	}
-
-	public String getEmailAddress()
-	{
-		return emailAddress;
-	}
-
-	public void setEmailAddress(String emailAddress)
-	{
-		this.emailAddress = emailAddress;
 	}
 
 	public String getMobileNumber()
