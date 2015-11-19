@@ -49,7 +49,7 @@ public class User extends EntityWithID {
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private UserPrivate userPrivate;
 	
-	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval=true)
 	private NewDeviceRequest newDeviceRequest;
 
 	@OneToOne

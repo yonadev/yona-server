@@ -1,12 +1,14 @@
 package nu.yona.server.subscriptions.entities;
 
-import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 
-import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
+import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
@@ -17,23 +19,21 @@ import nu.yona.server.entities.RepositoryProvider;
  * Therefore we have to transfer the user 'password' to the new device and obviously encrypt it (with a secret entered by the user, e.g. her PIN or a one time password) while transferring.
  */
 @Entity
-@Table(name = "ADD_DEVICE_REQUESTS")
+@Table(name = "NEW_DEVICE_REQUESTS")
 public class NewDeviceRequest extends EntityWithID {
 	public static NewDeviceRequestRepository getRepository() {
 		return (NewDeviceRequestRepository) RepositoryProvider.getRepository(NewDeviceRequest.class, UUID.class);
 	}
 	
-	private LocalDateTime expirationDateTime;
+	private Date expirationDateTime;
 	
-	/* 
-	 * The user 'password' (auto-generated key that is passed with every request),
-	 * encrypted with a user secret (e.g. her PIN or a one time password).
-	 * Notice a different CryptoSession will be used in this case.
-	 */
-	@Convert(converter = StringFieldEncrypter.class)
+	@Transient
 	private String userPassword;
+	private String userPasswordCipherText;
 
-	public LocalDateTime getExpirationTime() {
+	private byte[] initializationVector;
+	
+	public Date getExpirationTime() {
 		return expirationDateTime;
 	}
 
@@ -46,13 +46,30 @@ public class NewDeviceRequest extends EntityWithID {
 		super(null);
 	}
 	
-	private NewDeviceRequest(UUID id, String userPassword, LocalDateTime expirationDateTime) {
+	private NewDeviceRequest(UUID id, String userPassword, Date expirationDateTime) {
 		super(id);
 		this.userPassword = userPassword;
 		this.expirationDateTime = expirationDateTime;
 	}
 	
-	public static NewDeviceRequest createInstance(String userPassword, LocalDateTime expirationDateTime) {
+	public static NewDeviceRequest createInstance(String userPassword, Date expirationDateTime) {
 		return new NewDeviceRequest(UUID.randomUUID(), userPassword, expirationDateTime);
+	}
+	
+	public void encryptUserPassword(String userSecret) {
+		this.userPasswordCipherText = CryptoSession.execute(Optional.of(userSecret), null,
+				() -> {
+					this.initializationVector = CryptoSession.getCurrent().generateInitializationVector();
+					CryptoSession.getCurrent().setInitializationVector(this.initializationVector);
+					return new StringFieldEncrypter().convertToDatabaseColumn(this.userPassword);
+				});
+	}
+	
+	public void decryptUserPassword(String userSecret) {
+		this.userPassword = CryptoSession.execute(Optional.of(userSecret), null,
+				() -> {
+					CryptoSession.getCurrent().setInitializationVector(this.initializationVector);
+					return new StringFieldEncrypter().convertToEntityAttribute(this.userPasswordCipherText);
+				});
 	}
 }

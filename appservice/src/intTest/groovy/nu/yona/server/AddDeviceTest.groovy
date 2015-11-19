@@ -58,6 +58,21 @@ class AddDeviceTest extends Specification {
 
 		then:
 			response.status == 200
+			response.responseData.expirationDateTime != null
+			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL, richardQuinPassword)
+			getResponseAfter.status == 200
+			getResponseAfter.responseData.expirationDateTime == newDeviceRequestExpirationDateTime
+	}
+	
+	def 'Get new device request with user secret'(){
+		given:
+
+		when:
+			def response = appService.getNewDeviceRequest(richardQuinURL, richardQuinPassword, "unknown secret")
+			
+		then:
+			response.status == 200
+			response.responseData.userPassword == richardQuinPassword
 	}
 	
 	def 'Try set new device request with wrong password'(){
@@ -84,7 +99,7 @@ class AddDeviceTest extends Specification {
 
 		when:
 			def response = appService.setNewDeviceRequest(richardQuinURL, richardQuinPassword, """{
-				"userSecret":"unknown new secret"
+				"userSecret":"unknown overwritten secret"
 			}""")
 			
 		then:
@@ -94,11 +109,11 @@ class AddDeviceTest extends Specification {
 			getResponseAfter.responseData.expirationDateTime > newDeviceRequestExpirationDateTime
 	}
 	
-	def 'Get new device request with user secret'(){
+	def 'Get overwritten device request with user secret'(){
 		given:
 
 		when:
-			def response = appService.getNewDeviceRequest(richardQuinURL, richardQuinPassword, "unknown new secret")
+			def response = appService.getNewDeviceRequest(richardQuinURL, richardQuinPassword, "unknown overwritten secret")
 			
 		then:
 			response.status == 200
@@ -113,6 +128,9 @@ class AddDeviceTest extends Specification {
 
 		then:
 			response.status == 200
+			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL, richardQuinPassword)
+			getResponseAfter.status == 200
+			getResponseAfter.responseData.expirationDateTime == null
 	}
 	
 	def 'Delete Richard Quin'(){
