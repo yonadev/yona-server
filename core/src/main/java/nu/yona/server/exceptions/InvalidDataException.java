@@ -9,13 +9,13 @@ package nu.yona.server.exceptions;
 public class InvalidDataException extends ResourceBasedException
 {
 
-    public InvalidDataException(String messageId, Object... parameters)
-    {
-        super(messageId, parameters);
-    }
+	public InvalidDataException(String messageId, Object... parameters)
+	{
+		super(messageId, parameters);
+	}
 
-    public InvalidDataException(Throwable t, String messageId, Object... parameters)
-    {
-        super(t, messageId, parameters);
-    }
+	public InvalidDataException(Throwable t, String messageId, Object... parameters)
+	{
+		super(t, messageId, parameters);
+	}
 }

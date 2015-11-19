@@ -29,123 +29,123 @@ import nu.yona.server.messaging.entities.MessageSource;
 public class UserPrivate extends EntityWithID
 {
 
-    private static final String DECRYPTION_CHECK_STRING = "Decrypted properly#";
+	private static final String DECRYPTION_CHECK_STRING = "Decrypted properly#";
 
-    @Convert(converter = StringFieldEncrypter.class)
-    private String decryptionCheck;
+	@Convert(converter = StringFieldEncrypter.class)
+	private String decryptionCheck;
 
-    @Convert(converter = StringFieldEncrypter.class)
-    private String nickname;
+	@Convert(converter = StringFieldEncrypter.class)
+	private String nickname;
 
-    @Convert(converter = UUIDFieldEncrypter.class)
-    private UUID userAnonymizedID;
+	@Convert(converter = UUIDFieldEncrypter.class)
+	private UUID userAnonymizedID;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Convert(converter = StringFieldEncrypter.class)
-    private Set<String> deviceNames;
+	@ElementCollection(fetch = FetchType.EAGER)
+	@Convert(converter = StringFieldEncrypter.class)
+	private Set<String> deviceNames;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    private Set<Buddy> buddies;
+	@OneToMany(cascade = CascadeType.ALL)
+	private Set<Buddy> buddies;
 
-    @Convert(converter = UUIDFieldEncrypter.class)
-    private UUID anonymousMessageSourceID;
+	@Convert(converter = UUIDFieldEncrypter.class)
+	private UUID anonymousMessageSourceID;
 
-    @Convert(converter = UUIDFieldEncrypter.class)
-    private UUID namedMessageSourceID;
+	@Convert(converter = UUIDFieldEncrypter.class)
+	private UUID namedMessageSourceID;
 
-    // Default constructor is required for JPA
-    public UserPrivate()
-    {
-        super(null);
-    }
+	// Default constructor is required for JPA
+	public UserPrivate()
+	{
+		super(null);
+	}
 
-    private UserPrivate(UUID id, String nickname, UUID userAnonymizedID, Set<String> deviceNames, UUID anonymousMessageSourceID,
-            UUID namedMessageSourceID)
-    {
-        super(id);
-        this.decryptionCheck = buildDecryptionCheck();
-        this.nickname = nickname;
-        this.userAnonymizedID = userAnonymizedID;
-        this.deviceNames = deviceNames;
-        this.buddies = new HashSet<>();
-        this.anonymousMessageSourceID = anonymousMessageSourceID;
-        this.namedMessageSourceID = namedMessageSourceID;
-    }
+	private UserPrivate(UUID id, String nickname, UUID userAnonymizedID, Set<String> deviceNames, UUID anonymousMessageSourceID,
+			UUID namedMessageSourceID)
+	{
+		super(id);
+		this.decryptionCheck = buildDecryptionCheck();
+		this.nickname = nickname;
+		this.userAnonymizedID = userAnonymizedID;
+		this.deviceNames = deviceNames;
+		this.buddies = new HashSet<>();
+		this.anonymousMessageSourceID = anonymousMessageSourceID;
+		this.namedMessageSourceID = namedMessageSourceID;
+	}
 
-    private static String buildDecryptionCheck()
-    {
-        return DECRYPTION_CHECK_STRING + CryptoUtil.getRandomString(DECRYPTION_CHECK_STRING.length());
-    }
+	private static String buildDecryptionCheck()
+	{
+		return DECRYPTION_CHECK_STRING + CryptoUtil.getRandomString(DECRYPTION_CHECK_STRING.length());
+	}
 
-    public static UserPrivate createInstance(String nickname, Set<String> deviceNames, Set<Goal> goals,
-            MessageSource anonymousMessageSource, MessageSource namedMessageSource)
-    {
-        UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
-        UserAnonymized.getRepository().save(userAnonymized);
-        return new UserPrivate(UUID.randomUUID(), nickname, userAnonymized.getID(), deviceNames, anonymousMessageSource.getID(),
-                namedMessageSource.getID());
-    }
+	public static UserPrivate createInstance(String nickname, Set<String> deviceNames, Set<Goal> goals,
+			MessageSource anonymousMessageSource, MessageSource namedMessageSource)
+	{
+		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
+		UserAnonymized.getRepository().save(userAnonymized);
+		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymized.getID(), deviceNames, anonymousMessageSource.getID(),
+				namedMessageSource.getID());
+	}
 
-    public boolean isDecryptedProperly()
-    {
-        return isDecrypted() && decryptionCheck.startsWith(DECRYPTION_CHECK_STRING);
-    }
+	public boolean isDecryptedProperly()
+	{
+		return isDecrypted() && decryptionCheck.startsWith(DECRYPTION_CHECK_STRING);
+	}
 
-    public String getNickname()
-    {
-        return nickname;
-    }
+	public String getNickname()
+	{
+		return nickname;
+	}
 
-    public void setNickname(String nickname)
-    {
-        this.nickname = nickname;
-    }
+	public void setNickname(String nickname)
+	{
+		this.nickname = nickname;
+	}
 
-    public UserAnonymized getUserAnonymized()
-    {
-        return UserAnonymized.getRepository().findOne(userAnonymizedID);
-    }
+	public UserAnonymized getUserAnonymized()
+	{
+		return UserAnonymized.getRepository().findOne(userAnonymizedID);
+	}
 
-    public Set<String> getDeviceNames()
-    {
-        return Collections.unmodifiableSet(deviceNames);
-    }
+	public Set<String> getDeviceNames()
+	{
+		return Collections.unmodifiableSet(deviceNames);
+	}
 
-    public void setDeviceNames(Set<String> deviceNames)
-    {
-        this.deviceNames = deviceNames;
-    }
+	public void setDeviceNames(Set<String> deviceNames)
+	{
+		this.deviceNames = deviceNames;
+	}
 
-    public Set<Buddy> getBuddies()
-    {
-        return Collections.unmodifiableSet(buddies);
-    }
+	public Set<Buddy> getBuddies()
+	{
+		return Collections.unmodifiableSet(buddies);
+	}
 
-    public void addBuddy(Buddy buddy)
-    {
-        buddies.add(buddy);
-        UserAnonymized userAnonymized = getUserAnonymized();
-        userAnonymized.addBuddyAnonymized(buddy.getBuddyAnonymized());
-        UserAnonymized.getRepository().save(userAnonymized);
-    }
+	public void addBuddy(Buddy buddy)
+	{
+		buddies.add(buddy);
+		UserAnonymized userAnonymized = getUserAnonymized();
+		userAnonymized.addBuddyAnonymized(buddy.getBuddyAnonymized());
+		UserAnonymized.getRepository().save(userAnonymized);
+	}
 
-    public MessageSource getAnonymousMessageSource()
-    {
-        return MessageSource.getRepository().findOne(anonymousMessageSourceID);
-    }
+	public MessageSource getAnonymousMessageSource()
+	{
+		return MessageSource.getRepository().findOne(anonymousMessageSourceID);
+	}
 
-    public MessageSource getNamedMessageSource()
-    {
-        return MessageSource.getRepository().findOne(namedMessageSourceID);
-    }
+	public MessageSource getNamedMessageSource()
+	{
+		return MessageSource.getRepository().findOne(namedMessageSourceID);
+	}
 
-    public UUID getLoginID()
-    {
-        return getUserAnonymized().getLoginID();
-    }
+	public UUID getLoginID()
+	{
+		return getUserAnonymized().getLoginID();
+	}
 
-    private boolean isDecrypted()
-    {
-        return decryptionCheck != null;
-    }
+	private boolean isDecrypted()
+	{
+		return decryptionCheck != null;
+	}
 }

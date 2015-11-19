@@ -14,17 +14,17 @@ import org.springframework.data.repository.support.Repositories;
 
 public class RepositoryProvider implements ApplicationContextAware
 {
-    private static Repositories repositories;
+	private static Repositories repositories;
 
-    @SuppressWarnings("unchecked")
-    public static <E, K extends Serializable> CrudRepository<E, K> getRepository(Class<E> entityClass, Class<K> keyClass)
-    {
-        return (CrudRepository<E, K>) repositories.getRepositoryFor(entityClass);
-    }
+	@SuppressWarnings("unchecked")
+	public static <E, K extends Serializable> CrudRepository<E, K> getRepository(Class<E> entityClass, Class<K> keyClass)
+	{
+		return (CrudRepository<E, K>) repositories.getRepositoryFor(entityClass);
+	}
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException
-    {
-        repositories = new Repositories(applicationContext);
-    }
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException
+	{
+		repositories = new Repositories(applicationContext);
+	}
 }

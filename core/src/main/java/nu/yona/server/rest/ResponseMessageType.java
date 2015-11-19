@@ -7,5 +7,5 @@ package nu.yona.server.rest;
  */
 public enum ResponseMessageType
 {
-    OK, INFO, WARNING, ERROR
+	OK, INFO, WARNING, ERROR
 }

@@ -23,29 +23,29 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping(value = "/analysisEngine/")
 public class AnalysisEngineController
 {
-    @Autowired
-    private AnalysisEngineService analysisEngineService;
+	@Autowired
+	private AnalysisEngineService analysisEngineService;
 
-    @RequestMapping(method = RequestMethod.POST)
-    @ResponseStatus(value = HttpStatus.OK)
-    public void analyze(@RequestBody PotentialConflictDTO potentialConflictPayload)
-    {
-        analysisEngineService.analyze(potentialConflictPayload);
-    }
+	@RequestMapping(method = RequestMethod.POST)
+	@ResponseStatus(value = HttpStatus.OK)
+	public void analyze(@RequestBody PotentialConflictDTO potentialConflictPayload)
+	{
+		analysisEngineService.analyze(potentialConflictPayload);
+	}
 
-    @RequestMapping(value = "/relevantCategories/", method = RequestMethod.GET)
-    @ResponseBody
-    public HttpEntity<CategoriesResource> getRelevantCategories()
-    {
-        CategoriesDTO categories = new CategoriesDTO(analysisEngineService.getRelevantCategories());
-        return new ResponseEntity<CategoriesResource>(new CategoriesResource(categories), HttpStatus.OK);
-    }
+	@RequestMapping(value = "/relevantCategories/", method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<CategoriesResource> getRelevantCategories()
+	{
+		CategoriesDTO categories = new CategoriesDTO(analysisEngineService.getRelevantCategories());
+		return new ResponseEntity<CategoriesResource>(new CategoriesResource(categories), HttpStatus.OK);
+	}
 
-    public static class CategoriesResource extends Resource<CategoriesDTO>
-    {
-        public CategoriesResource(CategoriesDTO categories)
-        {
-            super(categories);
-        }
-    }
+	public static class CategoriesResource extends Resource<CategoriesDTO>
+	{
+		public CategoriesResource(CategoriesDTO categories)
+		{
+			super(categories);
+		}
+	}
 }

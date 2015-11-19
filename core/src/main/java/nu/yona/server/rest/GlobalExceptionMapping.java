@@ -18,22 +18,22 @@ import nu.yona.server.exceptions.InvalidDataException;
 @ControllerAdvice
 public class GlobalExceptionMapping
 {
-    /** The source for the messages to use */
-    @Autowired
-    private MessageSource msgSource;
+	/** The source for the messages to use */
+	@Autowired
+	private MessageSource msgSource;
 
-    /**
-     * This method generically handles the illegal argument exceptions. They are translated into nice ResponseMessage objects so
-     * the response data is properly organized and JSON parseable.
-     * 
-     * @param ide The exception
-     * @return The response object to return.
-     */
-    @ExceptionHandler(InvalidDataException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    public ResponseMessageDTO handle(InvalidDataException ide)
-    {
-        return new ResponseMessageDTO(ResponseMessageType.ERROR, ide.getMessageId(), ide.getLocalizedMessage(msgSource));
-    }
+	/**
+	 * This method generically handles the illegal argument exceptions. They are translated into nice ResponseMessage objects so
+	 * the response data is properly organized and JSON parseable.
+	 * 
+	 * @param ide The exception
+	 * @return The response object to return.
+	 */
+	@ExceptionHandler(InvalidDataException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ResponseBody
+	public ResponseMessageDTO handle(InvalidDataException ide)
+	{
+		return new ResponseMessageDTO(ResponseMessageType.ERROR, ide.getMessageId(), ide.getLocalizedMessage(msgSource));
+	}
 }

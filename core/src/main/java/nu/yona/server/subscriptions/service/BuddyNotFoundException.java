@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No such buddy")
 public class BuddyNotFoundException extends RuntimeException
 {
-    private static final long serialVersionUID = -5211242495003355230L;
+	private static final long serialVersionUID = -5211242495003355230L;
 
-    public BuddyNotFoundException(UUID id)
-    {
-        super("Buddy with ID '" + id + "' not found");
-    }
+	public BuddyNotFoundException(UUID id)
+	{
+		super("Buddy with ID '" + id + "' not found");
+	}
 }

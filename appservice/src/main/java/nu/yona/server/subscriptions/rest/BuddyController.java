@@ -44,129 +44,129 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @RequestMapping(value = "/users/{requestingUserID}/buddies/")
 public class BuddyController
 {
-    @Autowired
-    private BuddyService buddyService;
+	@Autowired
+	private BuddyService buddyService;
 
-    @Autowired
-    private UserService userService;
+	@Autowired
+	private UserService userService;
 
-    /**
-     * This method returns all the buddies that the given user has.
-     * 
-     * @param password The Yona password as passed on in the header of the request.
-     * @param requestingUserID The ID of the user. This is part of the URL.
-     * @return the list of buddies for the current user
-     */
-    @RequestMapping(method = RequestMethod.GET)
-    @ResponseBody
-    public HttpEntity<Resources<BuddyResource>> getAllBuddies(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-            @PathVariable UUID requestingUserID)
-    {
+	/**
+	 * This method returns all the buddies that the given user has.
+	 * 
+	 * @param password The Yona password as passed on in the header of the request.
+	 * @param requestingUserID The ID of the user. This is part of the URL.
+	 * @return the list of buddies for the current user
+	 */
+	@RequestMapping(method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<Resources<BuddyResource>> getAllBuddies(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID requestingUserID)
+	{
 
-        return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
-                () -> createOKResponse(requestingUserID, buddyService.getBuddiesOfUser(requestingUserID),
-                        getAllBuddiesLinkBuilder(requestingUserID)));
-    }
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
+				() -> createOKResponse(requestingUserID, buddyService.getBuddiesOfUser(requestingUserID),
+						getAllBuddiesLinkBuilder(requestingUserID)));
+	}
 
-    static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID)
-    {
-        BuddyController methodOn = methodOn(BuddyController.class);
-        return linkTo(methodOn.getAllBuddies(null, requestingUserID));
-    }
+	static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID)
+	{
+		BuddyController methodOn = methodOn(BuddyController.class);
+		return linkTo(methodOn.getAllBuddies(null, requestingUserID));
+	}
 
-    @RequestMapping(value = "{buddyID}", method = RequestMethod.GET)
-    @ResponseBody
-    public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-            @PathVariable UUID requestingUserID, @PathVariable UUID buddyID)
-    {
+	@RequestMapping(value = "{buddyID}", method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID requestingUserID, @PathVariable UUID buddyID)
+	{
 
-        return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
-                () -> createOKResponse(requestingUserID, buddyService.getBuddy(buddyID)));
-    }
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
+				() -> createOKResponse(requestingUserID, buddyService.getBuddy(buddyID)));
+	}
 
-    @RequestMapping(method = RequestMethod.POST)
-    @ResponseBody
-    public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-            @PathVariable UUID requestingUserID, @RequestBody BuddyDTO buddy)
-    {
-        return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
-                () -> createResponse(requestingUserID, buddyService.addBuddyToRequestingUser(requestingUserID, buddy),
-                        HttpStatus.CREATED));
-    }
+	@RequestMapping(method = RequestMethod.POST)
+	@ResponseBody
+	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID requestingUserID, @RequestBody BuddyDTO buddy)
+	{
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
+				() -> createResponse(requestingUserID, buddyService.addBuddyToRequestingUser(requestingUserID, buddy),
+						HttpStatus.CREATED));
+	}
 
-    private HttpEntity<BuddyResource> createOKResponse(UUID requestingUserID, BuddyDTO buddy)
-    {
-        return createResponse(requestingUserID, buddy, HttpStatus.OK);
-    }
+	private HttpEntity<BuddyResource> createOKResponse(UUID requestingUserID, BuddyDTO buddy)
+	{
+		return createResponse(requestingUserID, buddy, HttpStatus.OK);
+	}
 
-    private HttpEntity<BuddyResource> createResponse(UUID requestingUserID, BuddyDTO buddy, HttpStatus status)
-    {
-        return new ResponseEntity<BuddyResource>(new BuddyResourceAssembler(requestingUserID).toResource(buddy), status);
-    }
+	private HttpEntity<BuddyResource> createResponse(UUID requestingUserID, BuddyDTO buddy, HttpStatus status)
+	{
+		return new ResponseEntity<BuddyResource>(new BuddyResourceAssembler(requestingUserID).toResource(buddy), status);
+	}
 
-    private HttpEntity<Resources<BuddyResource>> createOKResponse(UUID requestingUserID, Set<BuddyDTO> buddies,
-            ControllerLinkBuilder controllerMethodLinkBuilder)
-    {
-        return new ResponseEntity<Resources<BuddyResource>>(
-                new Resources<>(new BuddyResourceAssembler(requestingUserID).toResources(buddies),
-                        controllerMethodLinkBuilder.withSelfRel()),
-                HttpStatus.OK);
-    }
+	private HttpEntity<Resources<BuddyResource>> createOKResponse(UUID requestingUserID, Set<BuddyDTO> buddies,
+			ControllerLinkBuilder controllerMethodLinkBuilder)
+	{
+		return new ResponseEntity<Resources<BuddyResource>>(
+				new Resources<>(new BuddyResourceAssembler(requestingUserID).toResources(buddies),
+						controllerMethodLinkBuilder.withSelfRel()),
+				HttpStatus.OK);
+	}
 
-    static ControllerLinkBuilder getBuddyLinkBuilder(UUID userID, UUID buddyID)
-    {
-        BuddyController methodOn = methodOn(BuddyController.class);
-        return linkTo(methodOn.getBuddy(Optional.empty(), userID, buddyID));
-    }
+	static ControllerLinkBuilder getBuddyLinkBuilder(UUID userID, UUID buddyID)
+	{
+		BuddyController methodOn = methodOn(BuddyController.class);
+		return linkTo(methodOn.getBuddy(Optional.empty(), userID, buddyID));
+	}
 
-    static class BuddyResource extends Resource<BuddyDTO>
-    {
-        public BuddyResource(BuddyDTO buddy)
-        {
-            super(buddy);
-        }
+	static class BuddyResource extends Resource<BuddyDTO>
+	{
+		public BuddyResource(BuddyDTO buddy)
+		{
+			super(buddy);
+		}
 
-        @JsonProperty("_embedded")
-        public Map<String, UserController.UserResource> getEmbeddedResources()
-        {
-            return Collections.singletonMap(BuddyDTO.USER_REL_NAME,
-                    new UserController.UserResourceAssembler(false).toResource(getContent().getUser()));
-        }
-    }
+		@JsonProperty("_embedded")
+		public Map<String, UserController.UserResource> getEmbeddedResources()
+		{
+			return Collections.singletonMap(BuddyDTO.USER_REL_NAME,
+					new UserController.UserResourceAssembler(false).toResource(getContent().getUser()));
+		}
+	}
 
-    static class BuddyResourceAssembler extends ResourceAssemblerSupport<BuddyDTO, BuddyResource>
-    {
-        private UUID requestingUserID;
+	static class BuddyResourceAssembler extends ResourceAssemblerSupport<BuddyDTO, BuddyResource>
+	{
+		private UUID requestingUserID;
 
-        public BuddyResourceAssembler(UUID requestingUserID)
-        {
-            super(BuddyController.class, BuddyResource.class);
-            this.requestingUserID = requestingUserID;
-        }
+		public BuddyResourceAssembler(UUID requestingUserID)
+		{
+			super(BuddyController.class, BuddyResource.class);
+			this.requestingUserID = requestingUserID;
+		}
 
-        @Override
-        public BuddyResource toResource(BuddyDTO buddy)
-        {
-            BuddyResource buddyResource = instantiateResource(buddy);
-            ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(buddy.getID());
-            addSelfLink(selfLinkBuilder, buddyResource);
-            return buddyResource;
-        }
+		@Override
+		public BuddyResource toResource(BuddyDTO buddy)
+		{
+			BuddyResource buddyResource = instantiateResource(buddy);
+			ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(buddy.getID());
+			addSelfLink(selfLinkBuilder, buddyResource);
+			return buddyResource;
+		}
 
-        @Override
-        protected BuddyResource instantiateResource(BuddyDTO buddy)
-        {
-            return new BuddyResource(buddy);
-        }
+		@Override
+		protected BuddyResource instantiateResource(BuddyDTO buddy)
+		{
+			return new BuddyResource(buddy);
+		}
 
-        private ControllerLinkBuilder getSelfLinkBuilder(UUID buddyID)
-        {
-            return getBuddyLinkBuilder(requestingUserID, buddyID);
-        }
+		private ControllerLinkBuilder getSelfLinkBuilder(UUID buddyID)
+		{
+			return getBuddyLinkBuilder(requestingUserID, buddyID);
+		}
 
-        private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
-        {
-            buddyResource.add(selfLinkBuilder.withSelfRel());
-        }
-    }
+		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
+		{
+			buddyResource.add(selfLinkBuilder.withSelfRel());
+		}
+	}
 }

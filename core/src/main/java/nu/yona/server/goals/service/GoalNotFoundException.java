@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No such goal")
 public class GoalNotFoundException extends RuntimeException
 {
-    private static final long serialVersionUID = -5303422277177893152L;
+	private static final long serialVersionUID = -5303422277177893152L;
 
-    public GoalNotFoundException(UUID id)
-    {
-        super("Goal with ID '" + id + "' not found");
-    }
+	public GoalNotFoundException(UUID id)
+	{
+		super("Goal with ID '" + id + "' not found");
+	}
 }

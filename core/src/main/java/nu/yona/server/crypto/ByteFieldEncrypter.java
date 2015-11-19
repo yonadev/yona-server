@@ -12,34 +12,34 @@ import javax.persistence.Converter;
 @Converter
 public class ByteFieldEncrypter implements AttributeConverter<byte[], String>
 {
-    @Override
-    public String convertToDatabaseColumn(byte[] plaintext)
-    {
-        if (plaintext == null)
-        {
-            return null;
-        }
+	@Override
+	public String convertToDatabaseColumn(byte[] plaintext)
+	{
+		if (plaintext == null)
+		{
+			return null;
+		}
 
-        byte[] ciphertext = CryptoSession.getCurrent().encrypt(plaintext);
-        return Base64.getEncoder().encodeToString(ciphertext);
-    }
+		byte[] ciphertext = CryptoSession.getCurrent().encrypt(plaintext);
+		return Base64.getEncoder().encodeToString(ciphertext);
+	}
 
-    @Override
-    public byte[] convertToEntityAttribute(String dbData)
-    {
-        if (dbData == null)
-        {
-            return null;
-        }
+	@Override
+	public byte[] convertToEntityAttribute(String dbData)
+	{
+		if (dbData == null)
+		{
+			return null;
+		}
 
-        try
-        {
-            byte[] ciphertext = Base64.getDecoder().decode(dbData);
-            return CryptoSession.getCurrent().decrypt(ciphertext);
-        }
-        catch (RuntimeException ex)
-        {
-            return null;
-        }
-    }
+		try
+		{
+			byte[] ciphertext = Base64.getDecoder().decode(dbData);
+			return CryptoSession.getCurrent().decrypt(ciphertext);
+		}
+		catch (RuntimeException ex)
+		{
+			return null;
+		}
+	}
 }
