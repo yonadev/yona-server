@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.crypto.Constants;
@@ -180,16 +179,6 @@ public class UserService
 		if (StringUtils.isBlank(userResource.getLastName()))
 		{
 			throw new InvalidDataException("error.user.lastname");
-		}
-
-		if (StringUtils.isBlank(userResource.getEmailAddress()))
-		{
-			throw new InvalidDataException("error.user.email.address");
-		}
-
-		if (!EmailValidator.getInstance().isValid(userResource.getEmailAddress()))
-		{
-			throw new InvalidDataException("error.user.email.address.invalid", userResource.getEmailAddress());
 		}
 
 		if (StringUtils.isBlank(userResource.getMobileNumber()))

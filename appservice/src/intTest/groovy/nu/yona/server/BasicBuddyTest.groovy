@@ -61,8 +61,10 @@ class BasicBuddyTest extends Specification {
 					"news"
 				]
 			}""", richardQuinPassword)
-			richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
-			richardQuinLoginID = response.responseData.vpnProfile.loginID;
+			if (response.status == 201) {
+				richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
+				richardQuinLoginID = response.responseData.vpnProfile.loginID;
+			}
 
 		then:
 			response.status == 201
@@ -88,8 +90,10 @@ class BasicBuddyTest extends Specification {
 					"gambling"
 				]
 			}""", bobDunnPassword)
-			bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
-			bobDunnLoginID = response.responseData.vpnProfile.loginID;
+			if (response.status == 201) {
+				bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
+				bobDunnLoginID = response.responseData.vpnProfile.loginID;
+			}
 
 		then:
 			response.status == 201

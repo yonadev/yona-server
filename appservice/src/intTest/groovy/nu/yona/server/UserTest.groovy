@@ -102,7 +102,6 @@ class UserTest extends Specification {
 	{
 		assert responseData.firstName == "John"
 		assert responseData.lastName == "Doe ${timestamp}"
-		assert responseData.emailAddress == "john${timestamp}@hotmail.com"
 		assert responseData.mobileNumber == "+${timestamp}"
 		if (includePrivateData) {
 			assert responseData.nickName == "JD ${timestamp}"
