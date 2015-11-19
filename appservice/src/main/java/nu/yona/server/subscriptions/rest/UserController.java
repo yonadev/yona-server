@@ -99,46 +99,54 @@ public class UserController
 	@RequestMapping(value = "{id}/newDeviceRequest", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<NewDeviceRequestResource> setNewDeviceRequestForUser(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
 			@RequestBody CreateNewDeviceRequestDTO createNewDeviceRequest)
 	{
-		checkPassword(password, id);
-		NewDeviceRequestDTO newDeviceRequestResult = userService.setNewDeviceRequestForUser(id, password.get(),
+		checkPassword(password, userID);
+		NewDeviceRequestDTO newDeviceRequestResult = userService.setNewDeviceRequestForUser(userID, password.get(),
 				createNewDeviceRequest.getUserSecret());
-		return createNewDeviceRequestResponse(newDeviceRequestResult,
+		return createNewDeviceRequestResponse(newDeviceRequestResult, getNewDeviceRequestLinkBuilder(userID),
 				newDeviceRequestResult.getIsUpdatingExistingRequest() ? HttpStatus.OK : HttpStatus.CREATED);
 	}
 
 	@RequestMapping(value = "{id}/newDeviceRequest", params = { "userSecret" }, method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(@PathVariable UUID id,
+	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(@PathVariable UUID userID,
 			@RequestParam(value = "userSecret") String userSecret)
 	{
-		return createNewDeviceRequestResponse(userService.getNewDeviceRequestForUser(id, userSecret), HttpStatus.OK);
+		return createNewDeviceRequestResponse(userService.getNewDeviceRequestForUser(userID, userSecret),
+				getNewDeviceRequestLinkBuilder(userID), HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "{id}/newDeviceRequest", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public void clearNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID id)
+			@PathVariable UUID userID)
 	{
-		checkPassword(password, id);
-		userService.clearNewDeviceRequestForUser(id);
+		checkPassword(password, userID);
+		userService.clearNewDeviceRequestForUser(userID);
+	}
+
+	static ControllerLinkBuilder getNewDeviceRequestLinkBuilder(UUID userID)
+	{
+		UserController methodOn = methodOn(UserController.class);
+		return linkTo(methodOn.getNewDeviceRequestForUser(userID, null));
 	}
 
 	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(NewDeviceRequestDTO newDeviceRequest,
-			HttpStatus statusCode)
+			ControllerLinkBuilder entityLinkBuilder, HttpStatus statusCode)
 	{
-		return new ResponseEntity<NewDeviceRequestResource>(new NewDeviceRequestResource(newDeviceRequest), statusCode);
+		return new ResponseEntity<NewDeviceRequestResource>(new NewDeviceRequestResource(newDeviceRequest, entityLinkBuilder),
+				statusCode);
 	}
 
 	public static class NewDeviceRequestResource extends Resource<NewDeviceRequestDTO>
 	{
-		public NewDeviceRequestResource(NewDeviceRequestDTO newDeviceRequest)
+		public NewDeviceRequestResource(NewDeviceRequestDTO newDeviceRequest, ControllerLinkBuilder entityLinkBuilder)
 		{
-			super(newDeviceRequest);
+			super(newDeviceRequest, entityLinkBuilder.withSelfRel());
 		}
 	}
 
