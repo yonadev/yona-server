@@ -45,6 +45,9 @@ public class User extends EntityWithID
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private UserPrivate userPrivate;
 
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+	private NewDeviceRequest newDeviceRequest;
+
 	@OneToOne
 	private MessageDestination messageDestination;
 
@@ -87,8 +90,8 @@ public class User extends EntityWithID
 
 		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		UserPrivate userPrivate = UserPrivate.createInstance(nickName, devices, goals, anonymousMessageSource,
-				namedMessageSource);
+		UserPrivate userPrivate = UserPrivate
+				.createInstance(nickName, devices, goals, anonymousMessageSource, namedMessageSource);
 		return new User(UUID.randomUUID(), initializationVector, true, firstName, lastName, mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
 	}
@@ -136,6 +139,16 @@ public class User extends EntityWithID
 	public void setMobileNumber(String mobileNumber)
 	{
 		this.mobileNumber = mobileNumber;
+	}
+
+	public NewDeviceRequest getNewDeviceRequest()
+	{
+		return newDeviceRequest;
+	}
+
+	public void setNewDeviceRequest(NewDeviceRequest newDeviceRequest)
+	{
+		this.newDeviceRequest = newDeviceRequest;
 	}
 
 	private UserPrivate getUserPrivate()
