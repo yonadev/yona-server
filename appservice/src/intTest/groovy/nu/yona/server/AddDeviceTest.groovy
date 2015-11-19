@@ -20,8 +20,6 @@ class AddDeviceTest extends Specification {
 	def richardQuinURL
 	@Shared
 	def richardQuinPassword = "R i c h a r d"
-	@Shared
-	def newDeviceRequestExpirationDateTime
 	
 	def 'Add user Richard Quin'(){
 		given:
@@ -59,17 +57,11 @@ class AddDeviceTest extends Specification {
 			def response = appService.setNewDeviceRequest(richardQuinURL, richardQuinPassword, """{
 				"userSecret":"unknown secret"
 			}""")
-			if(response.status == 201)
-			{
-				newDeviceRequestExpirationDateTime = response.responseData.expirationDateTime
-			}
 
 		then:
 			response.status == 201
-			response.responseData.expirationDateTime != null
 			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL)
 			getResponseAfter.status == 200
-			getResponseAfter.responseData.expirationDateTime == newDeviceRequestExpirationDateTime
 	}
 	
 	def 'Get new device request with user secret'(){
@@ -105,7 +97,6 @@ class AddDeviceTest extends Specification {
 			response.status == 400
 			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL)
 			getResponseAfter.status == 200
-			getResponseAfter.responseData.expirationDateTime == newDeviceRequestExpirationDateTime
 	}
 	
 	def 'Overwrite new device request'(){
@@ -120,7 +111,6 @@ class AddDeviceTest extends Specification {
 			response.status == 200
 			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL)
 			getResponseAfter.status == 200
-			getResponseAfter.responseData.expirationDateTime > newDeviceRequestExpirationDateTime
 	}
 	
 	def 'Get overwritten device request with user secret'(){

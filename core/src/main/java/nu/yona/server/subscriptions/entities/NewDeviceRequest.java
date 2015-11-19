@@ -28,7 +28,7 @@ public class NewDeviceRequest extends EntityWithID
 		return (NewDeviceRequestRepository) RepositoryProvider.getRepository(NewDeviceRequest.class, UUID.class);
 	}
 
-	private Date expirationDateTime;
+	private Date creationDateTime;
 
 	@Transient
 	private String userPassword;
@@ -36,9 +36,9 @@ public class NewDeviceRequest extends EntityWithID
 
 	private byte[] initializationVector;
 
-	public Date getExpirationTime()
+	public Date getCreationTime()
 	{
-		return expirationDateTime;
+		return creationDateTime;
 	}
 
 	public String getUserPassword()
@@ -52,16 +52,16 @@ public class NewDeviceRequest extends EntityWithID
 		super(null);
 	}
 
-	private NewDeviceRequest(UUID id, String userPassword, Date expirationDateTime)
+	private NewDeviceRequest(UUID id, String userPassword, Date creationDateTime)
 	{
 		super(id);
 		this.userPassword = userPassword;
-		this.expirationDateTime = expirationDateTime;
+		this.creationDateTime = creationDateTime;
 	}
 
-	public static NewDeviceRequest createInstance(String userPassword, Date expirationDateTime)
+	public static NewDeviceRequest createInstance(String userPassword)
 	{
-		return new NewDeviceRequest(UUID.randomUUID(), userPassword, expirationDateTime);
+		return new NewDeviceRequest(UUID.randomUUID(), userPassword, new Date());
 	}
 
 	public void encryptUserPassword(String userSecret)
@@ -84,10 +84,5 @@ public class NewDeviceRequest extends EntityWithID
 		{
 			throw new NewDeviceRequestInvalidUserSecretException();
 		}
-	}
-
-	public boolean hasExpired()
-	{
-		return expirationDateTime.before(new Date());
 	}
 }

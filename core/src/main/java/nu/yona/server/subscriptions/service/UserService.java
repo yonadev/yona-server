@@ -4,13 +4,15 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.validator.routines.EmailValidator;
+import org.springframework.stereotype.Service;
 
 import nu.yona.server.crypto.Constants;
 import nu.yona.server.crypto.CryptoSession;
@@ -20,10 +22,6 @@ import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.validator.routines.EmailValidator;
-import org.springframework.stereotype.Service;
 
 @Service
 public class UserService
@@ -238,23 +236,12 @@ public class UserService
 	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID userID, String userPassword, String userSecret)
 	{
 		User userEntity = getEntityByID(userID);
-		Date expirationDateTime = getNewDeviceRequestExpirationDateTime();
-		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(userPassword, expirationDateTime);
+		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(userPassword);
 		newDeviceRequestEntity.encryptUserPassword(userSecret);
 		boolean isUpdatingExistingRequest = userEntity.getNewDeviceRequest() != null;
 		userEntity.setNewDeviceRequest(newDeviceRequestEntity);
 		return NewDeviceRequestDTO.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest(),
 				isUpdatingExistingRequest);
-	}
-
-	private Date getNewDeviceRequestExpirationDateTime()
-	{
-		Date now = new Date();
-		Calendar c = Calendar.getInstance();
-		c.setTime(now);
-		c.add(Calendar.DATE, 1);
-		Date expirationDateTime = c.getTime();
-		return expirationDateTime;
 	}
 
 	@Transactional
@@ -265,10 +252,6 @@ public class UserService
 		if (newDeviceRequestEntity == null)
 		{
 			throw new NewDeviceRequestNotPresentException(userID);
-		}
-		else if (newDeviceRequestEntity.hasExpired())
-		{
-			throw new NewDeviceRequestExpiredException(userID);
 		}
 
 		if (StringUtils.isBlank(userSecret))

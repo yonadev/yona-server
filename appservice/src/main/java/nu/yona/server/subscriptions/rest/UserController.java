@@ -100,11 +100,11 @@ public class UserController
 	@ResponseBody
 	public HttpEntity<NewDeviceRequestResource> setNewDeviceRequestForUser(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
-			@RequestBody CreateNewDeviceRequestDTO createNewDeviceRequest)
+			@RequestBody NewDeviceRequestCreationDTO newDeviceRequestCreation)
 	{
 		checkPassword(password, userID);
 		NewDeviceRequestDTO newDeviceRequestResult = userService.setNewDeviceRequestForUser(userID, password.get(),
-				createNewDeviceRequest.getUserSecret());
+				newDeviceRequestCreation.getUserSecret());
 		return createNewDeviceRequestResponse(newDeviceRequestResult, getNewDeviceRequestLinkBuilder(userID),
 				newDeviceRequestResult.getIsUpdatingExistingRequest() ? HttpStatus.OK : HttpStatus.CREATED);
 	}

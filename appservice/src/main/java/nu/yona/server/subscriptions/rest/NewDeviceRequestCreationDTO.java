@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
-@JsonRootName("createNewDeviceRequest")
-public class CreateNewDeviceRequestDTO
+@JsonRootName("NewDeviceCreationRequest")
+public class NewDeviceRequestCreationDTO
 {
 	private String userSecret;
 
@@ -15,7 +15,7 @@ public class CreateNewDeviceRequestDTO
 	}
 
 	@JsonCreator
-	public CreateNewDeviceRequestDTO(@JsonProperty("userSecret") String userSecret)
+	public NewDeviceRequestCreationDTO(@JsonProperty("userSecret") String userSecret)
 	{
 		this.userSecret = userSecret;
 	}
