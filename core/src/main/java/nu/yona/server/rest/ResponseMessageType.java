@@ -5,7 +5,7 @@ package nu.yona.server.rest;
  * 
  * @author pgussow
  */
-public enum EResponseMessageType
+public enum ResponseMessageType
 {
     OK, INFO, WARNING, ERROR
 }

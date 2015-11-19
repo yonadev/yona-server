@@ -34,6 +34,6 @@ public class GlobalExceptionMapping
     @ResponseBody
     public ResponseMessageDTO handle(InvalidDataException ide)
     {
-        return new ResponseMessageDTO(EResponseMessageType.ERROR, ide.getMessageId(), ide.getLocalizedMessage(msgSource));
+        return new ResponseMessageDTO(ResponseMessageType.ERROR, ide.getMessageId(), ide.getLocalizedMessage(msgSource));
     }
 }

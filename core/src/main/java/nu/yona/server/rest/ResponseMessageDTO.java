@@ -8,7 +8,7 @@ package nu.yona.server.rest;
 public class ResponseMessageDTO
 {
     /** Holds the type of message */
-    private EResponseMessageType type;
+    private ResponseMessageType type;
     /** Holds the actual message */
     private String message;
     /** Holds the detailed message. */
@@ -28,7 +28,7 @@ public class ResponseMessageDTO
      * @param type The type of message.
      * @param message The actual message to display.
      */
-    public ResponseMessageDTO(EResponseMessageType type, String code, String message)
+    public ResponseMessageDTO(ResponseMessageType type, String code, String message)
     {
         this.type = type;
         this.code = code;
@@ -60,7 +60,7 @@ public class ResponseMessageDTO
      * 
      * @return The type of the message.
      */
-    public EResponseMessageType getType()
+    public ResponseMessageType getType()
     {
         return type;
     }
@@ -70,7 +70,7 @@ public class ResponseMessageDTO
      * 
      * @param type The type of the message.
      */
-    public void setType(EResponseMessageType type)
+    public void setType(ResponseMessageType type)
     {
         this.type = type;
     }

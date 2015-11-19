@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.stereotype.Service;
 
@@ -67,12 +68,10 @@ public class UserService
     {
         validateUserFields(userResource);
 
-        User user = userResource.createUserEntity();
-        user = User.getRepository().save(user);
+        User userEntity = userResource.createUserEntity();
+        userEntity = User.getRepository().save(userEntity);
         
-        UserDTO savedUser = UserDTO.createInstanceWithPrivateData(user);
-
-        return savedUser;
+        return UserDTO.createInstanceWithPrivateData(userEntity);
     }
 
     @Transactional
@@ -188,17 +187,17 @@ public class UserService
     
     private void validateUserFields(UserDTO userResource)
     {
-        if (userResource.getFirstName() == null || userResource.getFirstName().trim().length() == 0)
+        if (StringUtils.isBlank(userResource.getFirstName()))
         {
             throw new InvalidDataException("error.user.firstname");
         }
 
-        if (userResource.getLastName() == null || userResource.getLastName().trim().length() == 0)
+        if (StringUtils.isBlank(userResource.getLastName()))
         {
             throw new InvalidDataException("error.user.lastname");
         }
         
-        if (userResource.getEmailAddress() == null || userResource.getEmailAddress().trim().length() == 0)
+        if (StringUtils.isBlank(userResource.getEmailAddress()))
         {
             throw new InvalidDataException("error.user.email.address");
         }
@@ -208,7 +207,7 @@ public class UserService
             throw new InvalidDataException("error.user.email.address.invalid", userResource.getEmailAddress());
         }
         
-        if (userResource.getMobileNumber() == null || userResource.getMobileNumber().trim().length() == 0)
+        if (StringUtils.isBlank(userResource.getMobileNumber()))
         {
             throw new InvalidDataException("error.user.mobile.number");
         }
