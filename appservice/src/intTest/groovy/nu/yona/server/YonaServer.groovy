@@ -16,7 +16,6 @@ class YonaServer {
 	final ANONYMOUS_MESSAGES_PATH_FRAGMENT = "/messages/anonymous/"
 	final RELEVANT_CATEGORIES_PATH_FRAGMENT = "/relevantCategories/"
 	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
-	final DEVICE_LIST_REQUEST_PATH_FRAGMENT = "/devices/"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 	RESTClient restClient
@@ -96,21 +95,6 @@ class YonaServer {
 	def getAnonymousMessages(userPath, password)
 	{
 		getResourceWithPassword(userPath + ANONYMOUS_MESSAGES_PATH_FRAGMENT, password)
-	}
-
-	def getDeviceList(userPath, password)
-	{
-		getResourceWithPassword(userPath + DEVICE_LIST_REQUEST_PATH_FRAGMENT, password)
-	}
-	
-	def addDeviceToList(userPath, jsonString, password)
-	{
-		createResourceWithPassword(userPath + DEVICE_LIST_REQUEST_PATH_FRAGMENT, jsonString, password)
-	}
-	
-	def removeDeviceFromList(userPath, deviceName, password)
-	{
-		deleteResourceWithPassword(userPath + DEVICE_LIST_REQUEST_PATH_FRAGMENT + deviceName, password)
 	}
 
 	def setNewDeviceRequest(userPath, password, jsonString)
