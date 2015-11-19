@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -27,15 +24,19 @@ import nu.yona.server.subscriptions.entities.User;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserService {
+public class UserService
+{
 	// TODO: Do we need this? Currently unused.
 	@Transactional
-	public UserDTO getUser(String emailAddress, String mobileNumber) {
+	public UserDTO getUser(String emailAddress, String mobileNumber)
+	{
 
-		if (emailAddress != null && mobileNumber != null) {
+		if (emailAddress != null && mobileNumber != null)
+		{
 			throw new IllegalArgumentException("Either emailAddress or mobileNumber must be non-null");
 		}
-		if (emailAddress == null && mobileNumber == null) {
+		if (emailAddress == null && mobileNumber == null)
+		{
 			throw new IllegalArgumentException("One of emailAddress and mobileNumber must be null");
 		}
 
@@ -44,36 +45,41 @@ public class UserService {
 	}
 
 	@Transactional
-	public boolean canAccessPrivateData(UUID id) {
+	public boolean canAccessPrivateData(UUID id)
+	{
 		return getEntityByID(id).canAccessPrivateData();
 	}
 
 	@Transactional
-	public UserDTO getPublicUser(UUID id) {
+	public UserDTO getPublicUser(UUID id)
+	{
 		return UserDTO.createInstance(getEntityByID(id));
 	}
 
 	@Transactional
-	public UserDTO getPrivateUser(UUID id) {
+	public UserDTO getPrivateUser(UUID id)
+	{
 		return UserDTO.createInstanceWithPrivateData(getEntityByID(id));
 	}
 
 	@Transactional
-	public UserDTO addUser(UserDTO userResource) {
-		UserDTO savedUser = UserDTO
-				.createInstanceWithPrivateData(User.getRepository().save(userResource.createUserEntity()));
+	public UserDTO addUser(UserDTO userResource)
+	{
+		UserDTO savedUser = UserDTO.createInstanceWithPrivateData(User.getRepository().save(userResource.createUserEntity()));
 
 		return savedUser;
 	}
-	
+
 	@Transactional
-	public Set<String> getDevicesForUser(UUID forUserID) {
+	public Set<String> getDevicesForUser(UUID forUserID)
+	{
 		User userEntity = getEntityByID(forUserID);
 		return userEntity.getDeviceNames();
 	}
-	
+
 	@Transactional
-	public Set<String> addDeviceForUser(UUID forUserID, String deviceName) {
+	public Set<String> addDeviceForUser(UUID forUserID, String deviceName)
+	{
 		User originalUserEntity = getEntityByID(forUserID);
 		Set<String> deviceNames = new TreeSet<String>(originalUserEntity.getDeviceNames());
 		deviceNames.add(deviceName);
@@ -81,9 +87,10 @@ public class UserService {
 		User updatedUserEntity = User.getRepository().save(originalUserEntity);
 		return updatedUserEntity.getDeviceNames();
 	}
-	
+
 	@Transactional
-	public Set<String> deleteDeviceForUser(UUID forUserID, String deviceName) {
+	public Set<String> deleteDeviceForUser(UUID forUserID, String deviceName)
+	{
 		User originalUserEntity = getEntityByID(forUserID);
 		Set<String> deviceNames = new TreeSet<String>(originalUserEntity.getDeviceNames());
 		deviceNames.remove(deviceName);
@@ -93,104 +100,123 @@ public class UserService {
 	}
 
 	@Transactional
-	public UserDTO updateUser(UUID id, UserDTO userResource) {
+	public UserDTO updateUser(UUID id, UserDTO userResource)
+	{
 		User originalUserEntity = getEntityByID(id);
 		UserDTO savedUser;
-		if (originalUserEntity.isCreatedOnBuddyRequest()) {
+		if (originalUserEntity.isCreatedOnBuddyRequest())
+		{
 			// TODO: the password needs to come from the URL, not from the
 			// payload
 			savedUser = handleUserSignupUponBuddyRequest("TODO", userResource, originalUserEntity);
-		} else {
+		}
+		else
+		{
 			savedUser = handleUserUpdate(userResource, originalUserEntity);
 		}
 		return savedUser;
 	}
 
-	static User findUserByEmailAddressOrMobileNumber(String emailAddress, String mobileNumber) {
+	static User findUserByEmailAddressOrMobileNumber(String emailAddress, String mobileNumber)
+	{
 		User userEntity;
-		if (emailAddress == null) {
+		if (emailAddress == null)
+		{
 			userEntity = User.getRepository().findByMobileNumber(mobileNumber);
-			if (userEntity == null) {
+			if (userEntity == null)
+			{
 				throw UserNotFoundException.notFoundByMobileNumber(mobileNumber);
 			}
-		} else {
+		}
+		else
+		{
 			userEntity = User.getRepository().findByEmailAddress(emailAddress);
-			if (userEntity == null) {
+			if (userEntity == null)
+			{
 				throw UserNotFoundException.notFoundByEmailAddress(emailAddress);
 			}
 		}
 		return userEntity;
 	}
 
-	private UserDTO handleUserSignupUponBuddyRequest(String password, UserDTO userResource, User originalUserEntity) {
+	private UserDTO handleUserSignupUponBuddyRequest(String password, UserDTO userResource, User originalUserEntity)
+	{
 		UpdatedEntities updatedEntities = updateUserWithTempPassword(userResource, originalUserEntity);
 		return saveUserWithDevicePassword(password, updatedEntities);
 	}
 
-	static class UpdatedEntities {
+	static class UpdatedEntities
+	{
 		final User userEntity;
 		final MessageSource namedMessageSource;
 		final MessageSource anonymousMessageSource;
 
-		UpdatedEntities(User userEntity, MessageSource namedMessageSource, MessageSource anonymousMessageSource) {
+		UpdatedEntities(User userEntity, MessageSource namedMessageSource, MessageSource anonymousMessageSource)
+		{
 			this.userEntity = userEntity;
 			this.namedMessageSource = namedMessageSource;
 			this.anonymousMessageSource = anonymousMessageSource;
 		}
 	}
 
-	private UpdatedEntities updateUserWithTempPassword(UserDTO userDTO, User originalUserEntity) {
+	private UpdatedEntities updateUserWithTempPassword(UserDTO userDTO, User originalUserEntity)
+	{
 		// TODO: the password needs to come from the URL, not from the
 		// payload
 		return CryptoSession.execute(Optional.of("TODO"), () -> canAccessPrivateData(userDTO.getID()), () -> {
 			User updatedUserEntity = userDTO.updateUser(originalUserEntity);
 			MessageSource touchedNameMessageSource = touchMessageSource(updatedUserEntity.getNamedMessageSource());
-			MessageSource touchedAnonymousMessageSource = touchMessageSource(
-					updatedUserEntity.getAnonymousMessageSource());
+			MessageSource touchedAnonymousMessageSource = touchMessageSource(updatedUserEntity.getAnonymousMessageSource());
 			return new UpdatedEntities(updatedUserEntity, touchedNameMessageSource, touchedAnonymousMessageSource);
 		});
 	}
 
-	private MessageSource touchMessageSource(MessageSource messageSource) {
+	private MessageSource touchMessageSource(MessageSource messageSource)
+	{
 		messageSource.touch();
 		return messageSource;
 	}
 
-	private UserDTO saveUserWithDevicePassword(String password, UpdatedEntities updatedEntities) {
-		return CryptoSession.execute(Optional.of(password),
-				() -> canAccessPrivateData(updatedEntities.userEntity.getID()), () -> {
+	private UserDTO saveUserWithDevicePassword(String password, UpdatedEntities updatedEntities)
+	{
+		return CryptoSession.execute(Optional.of(password), () -> canAccessPrivateData(updatedEntities.userEntity.getID()),
+				() -> {
 					UserDTO savedUser;
 					MessageSource.getRepository().save(updatedEntities.namedMessageSource);
 					MessageSource.getRepository().save(updatedEntities.anonymousMessageSource);
-					savedUser = UserDTO
-							.createInstanceWithPrivateData(User.getRepository().save(updatedEntities.userEntity));
+					savedUser = UserDTO.createInstanceWithPrivateData(User.getRepository().save(updatedEntities.userEntity));
 					return savedUser;
 				});
 	}
 
-	private UserDTO handleUserUpdate(UserDTO userResource, User originalUserEntity) {
-		return UserDTO
-				.createInstanceWithPrivateData(User.getRepository().save(userResource.updateUser(originalUserEntity)));
+	private UserDTO handleUserUpdate(UserDTO userResource, User originalUserEntity)
+	{
+		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(userResource.updateUser(originalUserEntity)));
 	}
 
-	public void deleteUser(Optional<String> password, UUID id) {
+	public void deleteUser(Optional<String> password, UUID id)
+	{
 
 		User.getRepository().delete(id);
 	}
 
-	private User getEntityByID(UUID id) {
+	private User getEntityByID(UUID id)
+	{
 		User entity = User.getRepository().findOne(id);
-		if (entity == null) {
+		if (entity == null)
+		{
 			throw UserNotFoundException.notFoundByID(id);
 		}
 		return entity;
 	}
 
-	public static String getPassword(Optional<String> password) {
+	public static String getPassword(Optional<String> password)
+	{
 		return password.orElseThrow(() -> new YonaException("Missing '" + Constants.PASSWORD_HEADER + "' header"));
 	}
 
-	public void addBuddy(UserDTO user, BuddyDTO buddy) {
+	public void addBuddy(UserDTO user, BuddyDTO buddy)
+	{
 		User userEntity = getEntityByID(user.getID());
 		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getID());
 		userEntity.addBuddy(buddyEntity);
@@ -198,8 +224,8 @@ public class UserService {
 	}
 
 	@Transactional
-	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID id,
-			String userPassword, String userSecret) {
+	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID id, String userPassword, String userSecret)
+	{
 		User userEntity = getEntityByID(id);
 		Date expirationDateTime = getNewDeviceRequestExpirationDateTime();
 		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(userPassword, expirationDateTime);
@@ -208,18 +234,20 @@ public class UserService {
 		return NewDeviceRequestDTO.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest());
 	}
 
-	private Date getNewDeviceRequestExpirationDateTime() {
+	private Date getNewDeviceRequestExpirationDateTime()
+	{
 		Date now = new Date();
-		Calendar c = Calendar.getInstance(); 
-		c.setTime(now); 
+		Calendar c = Calendar.getInstance();
+		c.setTime(now);
 		c.add(Calendar.DATE, 1);
 		Date expirationDateTime = c.getTime();
 		return expirationDateTime;
 	}
 
 	@Transactional
-	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID id, String userSecret) {
-		if(userSecret == null || userSecret.isEmpty())
+	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID id, String userSecret)
+	{
+		if (userSecret == null || userSecret.isEmpty())
 		{
 			User userEntity = getEntityByID(id);
 			return NewDeviceRequestDTO.createInstance(userEntity.getNewDeviceRequest());
@@ -230,11 +258,12 @@ public class UserService {
 		}
 	}
 
-	private NewDeviceRequestDTO getNewDeviceRequestWithPasswordForUser(UUID id,
-			String userSecret) {
+	private NewDeviceRequestDTO getNewDeviceRequestWithPasswordForUser(UUID id, String userSecret)
+	{
 		User userEntity = getEntityByID(id);
 		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
-		if(newDeviceRequestEntity == null) {
+		if (newDeviceRequestEntity == null)
+		{
 			throw new NewDeviceRequestNotPresentException(id);
 		}
 		newDeviceRequestEntity.decryptUserPassword(userSecret);
@@ -242,10 +271,12 @@ public class UserService {
 	}
 
 	@Transactional
-	public void clearNewDeviceRequestForUser(UUID id) {
+	public void clearNewDeviceRequestForUser(UUID id)
+	{
 		User userEntity = getEntityByID(id);
 		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
-		if(existingNewDeviceRequestEntity != null) {
+		if (existingNewDeviceRequestEntity != null)
+		{
 			userEntity.setNewDeviceRequest(null);
 			User.getRepository().save(userEntity);
 		}

@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.data.repository.CrudRepository;
 
-public interface NewDeviceRequestRepository extends CrudRepository<NewDeviceRequest, UUID> {
-	
+public interface NewDeviceRequestRepository extends CrudRepository<NewDeviceRequest, UUID>
+{
+
 }

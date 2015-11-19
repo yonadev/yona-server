@@ -11,15 +11,18 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonRootName("devices")
-public class DevicesDTO {
+public class DevicesDTO
+{
 	private Set<String> devices;
 
 	@JsonCreator
-	public DevicesDTO(@JsonProperty("devices") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> devices) {
+	public DevicesDTO(@JsonProperty("devices") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> devices)
+	{
 		this.devices = new HashSet<>(devices);
 	}
-	
-	public Set<String> getDevices() {
+
+	public Set<String> getDevices()
+	{
 		return Collections.unmodifiableSet(devices);
 	}
 }

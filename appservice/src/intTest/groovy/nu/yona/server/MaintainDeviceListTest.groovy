@@ -51,7 +51,7 @@ class MaintainDeviceListTest extends Specification {
 
 		when:
 			def response = appService.getDeviceList(richardQuinURL, richardQuinPassword)
-
+			
 		then:
 			response.status == 200
 			response.responseData.devices.size() == 2

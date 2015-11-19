@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
@@ -51,23 +48,28 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Controller
 @ExposesResourceFor(UserResource.class)
 @RequestMapping(value = "/users/")
-public class UserController {
+public class UserController
+{
 	@Autowired
 	private UserService userService;
 
 	@Autowired
 	private BuddyService buddyService;
-	
+
 	@RequestMapping(value = "{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "includePrivateData", defaultValue = "false") String includePrivateDataStr,
-			@PathVariable UUID id) {
+			@PathVariable UUID id)
+	{
 		boolean includePrivateData = Boolean.TRUE.toString().equals(includePrivateDataStr);
-		if (includePrivateData) {
+		if (includePrivateData)
+		{
 			return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
 					() -> createOKResponse(userService.getPrivateUser(id), includePrivateData));
-		} else {
+		}
+		else
+		{
 			return getPublicUser(password, id);
 		}
 	}
@@ -75,7 +77,8 @@ public class UserController {
 	@RequestMapping(value = "{id}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getPublicUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID id) {
+			@PathVariable UUID id)
+	{
 		return createOKResponse(userService.getPublicUser(id), false);
 	}
 
@@ -83,92 +86,103 @@ public class UserController {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
 	public HttpEntity<UserResource> addUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@RequestBody UserDTO user) {
-		return CryptoSession.execute(password,
-				() -> createResponse(userService.addUser(user), true, HttpStatus.CREATED));
+			@RequestBody UserDTO user)
+	{
+		return CryptoSession.execute(password, () -> createResponse(userService.addUser(user), true, HttpStatus.CREATED));
 	}
-	
-	private void CheckPassword(Optional<String> password, UUID id) {
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
-				() -> null);
+
+	private void CheckPassword(Optional<String> password, UUID id)
+	{
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> null);
 	}
-	
+
 	@RequestMapping(value = "{id}/newDeviceRequest", method = RequestMethod.PUT)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	public HttpEntity<NewDeviceRequestResource> setNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID id, @RequestBody CreateNewDeviceRequestDTO createNewDeviceRequest) {
+	public HttpEntity<NewDeviceRequestResource> setNewDeviceRequestForUser(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
+			@RequestBody CreateNewDeviceRequestDTO createNewDeviceRequest)
+	{
 		CheckPassword(password, id);
-		return createNewDeviceRequestResponse(userService.setNewDeviceRequestForUser(id, password.get(), createNewDeviceRequest.getUserSecret()));
+		return createNewDeviceRequestResponse(userService.setNewDeviceRequestForUser(id, password.get(),
+				createNewDeviceRequest.getUserSecret()));
 	}
-	
+
 	@RequestMapping(value = "{id}/newDeviceRequest", params = { "userSecret" }, method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(
-			@PathVariable UUID id, @RequestParam(value = "userSecret") String userSecret) {
+	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(@PathVariable UUID id,
+			@RequestParam(value = "userSecret") String userSecret)
+	{
 		return createNewDeviceRequestResponse(userService.getNewDeviceRequestForUser(id, userSecret));
 	}
-	
+
 	@RequestMapping(value = "{id}/newDeviceRequest", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public void clearNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID id) {
+			@PathVariable UUID id)
+	{
 		CheckPassword(password, id);
 		userService.clearNewDeviceRequestForUser(id);
 	}
-		
-	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(NewDeviceRequestDTO newDeviceRequest) {
-		return new ResponseEntity<NewDeviceRequestResource>(
-				new NewDeviceRequestResource(newDeviceRequest), 
-				HttpStatus.OK);
+
+	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(NewDeviceRequestDTO newDeviceRequest)
+	{
+		return new ResponseEntity<NewDeviceRequestResource>(new NewDeviceRequestResource(newDeviceRequest), HttpStatus.OK);
 	}
-	
-	public static class NewDeviceRequestResource extends Resource<NewDeviceRequestDTO> {
-		public NewDeviceRequestResource(NewDeviceRequestDTO newDeviceRequest) {
+
+	public static class NewDeviceRequestResource extends Resource<NewDeviceRequestDTO>
+	{
+		public NewDeviceRequestResource(NewDeviceRequestDTO newDeviceRequest)
+		{
 			super(newDeviceRequest);
 		}
 	}
 
 	@RequestMapping(value = "{id}/devices/", method = RequestMethod.GET)
-	public HttpEntity<DevicesResource> getDevicesForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID id) {
+	public HttpEntity<DevicesResource> getDevicesForUser(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
+	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
 				() -> createUserDevicesResponse(new DevicesDTO(userService.getDevicesForUser(id))));
 	}
-	
+
 	@RequestMapping(value = "{id}/devices/", method = RequestMethod.POST)
-	public HttpEntity<DevicesResource> addDeviceForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID id, @RequestBody String deviceName) {
+	public HttpEntity<DevicesResource> addDeviceForUser(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
+			@RequestBody String deviceName)
+	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
 				() -> createUserDevicesResponse(new DevicesDTO(userService.addDeviceForUser(id, deviceName))));
 	}
-	
+
 	@RequestMapping(value = "{id}/devices/{deviceName}", method = RequestMethod.DELETE)
 	public void deleteDeviceForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID id, @PathVariable String deviceName) {
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), 
+			@PathVariable UUID id, @PathVariable String deviceName)
+	{
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
 				() -> createUserDevicesResponse(new DevicesDTO(userService.deleteDeviceForUser(id, deviceName))));
 	}
-	
-	private HttpEntity<DevicesResource> createUserDevicesResponse(DevicesDTO devices) {
-		return new ResponseEntity<DevicesResource>(
-				new DevicesResource(devices),
-				HttpStatus.OK);
+
+	private HttpEntity<DevicesResource> createUserDevicesResponse(DevicesDTO devices)
+	{
+		return new ResponseEntity<DevicesResource>(new DevicesResource(devices), HttpStatus.OK);
 	}
-	
-	public static class DevicesResource extends Resource<DevicesDTO> {
-		public DevicesResource(DevicesDTO devices) {
+
+	public static class DevicesResource extends Resource<DevicesDTO>
+	{
+		public DevicesResource(DevicesDTO devices)
+		{
 			super(devices);
 		}
 	}
 
 	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
 	@ResponseBody
-	public HttpEntity<UserResource> updateUser(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
-			@RequestBody UserDTO userResource) {
+	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID id, @RequestBody UserDTO userResource)
+	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
 				() -> createOKResponse(userService.updateUser(id, userResource), true));
 	}
@@ -176,16 +190,17 @@ public class UserController {
 	@RequestMapping(value = "{id}", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID id) {
+	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
+	{
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
 			userService.deleteUser(password, id);
 			return null;
 		});
 	}
 
-	private HttpEntity<UserResource> createResponse(UserDTO user, boolean includePrivateData, HttpStatus status) {
-		if(includePrivateData)
+	private HttpEntity<UserResource> createResponse(UserDTO user, boolean includePrivateData, HttpStatus status)
+	{
+		if (includePrivateData)
 		{
 			Set<BuddyDTO> buddies = buddyService.getBuddiesOfUser(user.getID());
 			user.getPrivateData().setBuddies(buddies);
@@ -193,64 +208,78 @@ public class UserController {
 		return new ResponseEntity<UserResource>(new UserResourceAssembler(includePrivateData).toResource(user), status);
 	}
 
-	private HttpEntity<UserResource> createOKResponse(UserDTO user, boolean includePrivateData) {
+	private HttpEntity<UserResource> createOKResponse(UserDTO user, boolean includePrivateData)
+	{
 		return createResponse(user, includePrivateData, HttpStatus.OK);
 	}
 
-	public static Link getUserLink(UUID userID, boolean includePrivateData) {
+	public static Link getUserLink(UUID userID, boolean includePrivateData)
+	{
 		ControllerLinkBuilder linkBuilder;
-		if (includePrivateData) {
-			linkBuilder = linkTo(
-					methodOn(UserController.class).getUser(Optional.empty(), Boolean.TRUE.toString(), userID));
-		} else {
+		if (includePrivateData)
+		{
+			linkBuilder = linkTo(methodOn(UserController.class).getUser(Optional.empty(), Boolean.TRUE.toString(), userID));
+		}
+		else
+		{
 			linkBuilder = linkTo(methodOn(UserController.class).getPublicUser(Optional.empty(), userID));
 		}
 		return linkBuilder.withSelfRel();
 	}
 
-	static class UserResource extends Resource<UserDTO> {
-		public UserResource(UserDTO user) {
+	static class UserResource extends Resource<UserDTO>
+	{
+		public UserResource(UserDTO user)
+		{
 			super(user);
 		}
-		
+
 		@JsonProperty("_embedded")
-		public Map<String, List<BuddyController.BuddyResource>> getEmbeddedResources() {
-			if(getContent().getPrivateData() == null) {
+		public Map<String, List<BuddyController.BuddyResource>> getEmbeddedResources()
+		{
+			if (getContent().getPrivateData() == null)
+			{
 				return Collections.emptyMap();
 			}
-			
+
 			Set<BuddyDTO> buddies = getContent().getPrivateData().getBuddies();
-			return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME,
-				new BuddyController.BuddyResourceAssembler(getContent().getID()).toResources(buddies));
+			return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME, new BuddyController.BuddyResourceAssembler(getContent()
+					.getID()).toResources(buddies));
 		}
-		
-		static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID) {
+
+		static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID)
+		{
 			BuddyController methodOn = methodOn(BuddyController.class);
 			return linkTo(methodOn.getAllBuddies(null, requestingUserID));
 		}
 	}
 
-	static class UserResourceAssembler extends ResourceAssemblerSupport<UserDTO, UserResource> {
+	static class UserResourceAssembler extends ResourceAssemblerSupport<UserDTO, UserResource>
+	{
 		private final boolean includePrivateData;
 
-		public UserResourceAssembler(boolean includePrivateData) {
+		public UserResourceAssembler(boolean includePrivateData)
+		{
 			super(UserController.class, UserResource.class);
 			this.includePrivateData = includePrivateData;
 		}
 
 		@Override
-		public UserResource toResource(UserDTO user) {
+		public UserResource toResource(UserDTO user)
+		{
 			UserResource userResource = instantiateResource(user);
 			addSelfLink(userResource, includePrivateData);
 			return userResource;
 		}
 
 		@Override
-		protected UserResource instantiateResource(UserDTO user) {
+		protected UserResource instantiateResource(UserDTO user)
+		{
 			return new UserResource(user);
 		}
 
-		private static void addSelfLink(Resource<UserDTO> userResource, boolean includePrivateData) {
+		private static void addSelfLink(Resource<UserDTO> userResource, boolean includePrivateData)
+		{
 			userResource.add(UserController.getUserLink(userResource.getContent().getID(), includePrivateData));
 		}
 	}
