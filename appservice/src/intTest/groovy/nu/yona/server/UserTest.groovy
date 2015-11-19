@@ -15,18 +15,18 @@ class UserTest extends Specification {
 	def YonaServer appService = new YonaServer(appServiceBaseURL)
 	@Shared
 	def timestamp = YonaServer.getTimeStamp()
-	def userCreationJSON = """{
-				"firstName":"John",
-				"lastName":"Doe ${timestamp}",
-				"nickName":"JD ${timestamp}",
-				"emailAddress":"john${timestamp}@hotmail.com",
-				"mobileNumber":"+${timestamp}",
-				"devices":[
-					"Galaxy mini"
-				],
-				"goals":[
-					"gambling"
-				]}"""
+    def userCreationJSON = """{
+                "firstName":"John",
+                "lastName":"Doe ${timestamp}",
+                "nickName":"JD ${timestamp}",
+                "emailAddress":"john${timestamp}@hotmail.com",
+                "mobileNumber":"+${timestamp}",
+                "devices":[
+                    "Galaxy mini"
+                ],
+                "goals":[
+                    "gambling"
+                ]}"""
 	def password = "John Doe"
 
 	def 'Create John Doe'(){
@@ -66,8 +66,7 @@ class UserTest extends Specification {
 			def response = appService.getUser(userURL, true, "nonsense")
 
 		then:
-			HttpResponseException e = thrown()
-			e.statusCode == 400
+			response.status == 400
 
 		cleanup:
 			appService.deleteUser(userURL, password)
@@ -124,11 +123,7 @@ class UserTest extends Specification {
 
 	void verifyUserDoesNotExist(userURL)
 	{
-		try {
-			def response = appService.getUser(userURL, false)
-			assert false;
-		} catch (HttpResponseException e) {
-			assert e.statusCode == 404
-		}
+		def response = appService.getUser(userURL, false)
+		assert response.status == 400 || response.status == 404;
 	}
 }

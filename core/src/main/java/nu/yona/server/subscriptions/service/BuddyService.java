@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -24,33 +21,40 @@ import nu.yona.server.subscriptions.entities.User;
 
 @Service
 @Transactional
-public class BuddyService {
+public class BuddyService
+{
 	@Autowired
 	private UserService userService;
 
-	public BuddyDTO getBuddy(UUID buddyID) {
+	public BuddyDTO getBuddy(UUID buddyID)
+	{
 		return BuddyDTO.createInstance(getEntityByID(buddyID));
 	}
-	
-	public Set<BuddyDTO> getBuddiesOfUser(UUID forUserID) {
+
+	public Set<BuddyDTO> getBuddiesOfUser(UUID forUserID)
+	{
 		UserDTO user = userService.getPrivateUser(forUserID);
 		return getBuddies(user.getPrivateData().getBuddyIDs());
 	}
 
-	public BuddyDTO addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDTO buddy) {
+	public BuddyDTO addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDTO buddy)
+	{
 		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
 		User buddyUserEntity = getBuddyUser(buddy);
 		BuddyDTO newBuddyEntity;
-		if (buddyUserEntity == null) {
+		if (buddyUserEntity == null)
+		{
 			newBuddyEntity = handleBuddyRequestForNewUser(requestingUser, buddy);
-		} else {
+		}
+		else
+		{
 			newBuddyEntity = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
 		}
 		return newBuddyEntity;
 	}
 
-	public BuddyDTO addBuddyToAcceptingUser(UUID buddyUserID, String buddyNickName, Set<Goal> buddyGoals,
-			UUID buddyLoginID) {
+	public BuddyDTO addBuddyToAcceptingUser(UUID buddyUserID, String buddyNickName, Set<Goal> buddyGoals, UUID buddyLoginID)
+	{
 		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName);
 		buddy.setGoals(buddyGoals);
 		buddy.setReceivingStatus(BuddyAnonymized.Status.ACCEPTED);
@@ -59,7 +63,8 @@ public class BuddyService {
 		return BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
 	}
 
-	private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy) {
+	private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy)
+	{
 		UserDTO buddyUser = buddy.getUser();
 		User buddyUserEntity = User.createInstanceOnBuddyRequest(buddyUser.getFirstName(), buddyUser.getLastName(),
 				buddyUser.getPrivateData().getNickName(), buddyUser.getEmailAddress(), buddyUser.getMobileNumber());
@@ -68,18 +73,17 @@ public class BuddyService {
 		return handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
 	}
 
-	private void sendInvitationMessage(User buddyUserEntity, BuddyDTO buddy) {
+	private void sendInvitationMessage(User buddyUserEntity, BuddyDTO buddy)
+	{
 		/*
-		 * String userURL = UserController.getUserLink(buddyUserEntity.getID(),
-		 * false).getHref(); System.out.println(buddy.getMessage());
-		 * System.out.println("\nTo accept this request, install the Yona app");
-		 * System.out.println(
-		 * "\nTo mimic the Yona app, post the appropriate message to this URL: "
-		 * + userURL);
+		 * String userURL = UserController.getUserLink(buddyUserEntity.getID(), false).getHref();
+		 * System.out.println(buddy.getMessage()); System.out.println("\nTo accept this request, install the Yona app");
+		 * System.out.println( "\nTo mimic the Yona app, post the appropriate message to this URL: " + userURL);
 		 */
 	}
 
-	private BuddyDTO handleBuddyRequestForExistingUser(UserDTO requestingUser, BuddyDTO buddy, User buddyUserEntity) {
+	private BuddyDTO handleBuddyRequestForExistingUser(UserDTO requestingUser, BuddyDTO buddy, User buddyUserEntity)
+	{
 		buddy.getUser().setUserID(buddyUserEntity.getID());
 		Buddy buddyEntity = buddy.createBuddyEntity();
 		buddyEntity.setSendingStatus(BuddyAnonymized.Status.REQUESTED);
@@ -89,37 +93,44 @@ public class BuddyService {
 
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
 		messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
-				requestingUser.getPrivateData().getVpnProfile().getLoginID(),
-				requestingUser.getPrivateData().getGoals(), requestingUser.getPrivateData().getNickName(),
-				buddy.getMessage(), savedBuddyEntity.getID()));
+				requestingUser.getPrivateData().getVpnProfile().getLoginID(), requestingUser.getPrivateData().getGoals(),
+				requestingUser.getPrivateData().getNickName(), buddy.getMessage(), savedBuddyEntity.getID()));
 		MessageDestination.getRepository().save(messageDestination);
 
 		return savedBuddy;
 	}
 
-	private Buddy getEntityByID(UUID id) {
+	private Buddy getEntityByID(UUID id)
+	{
 		Buddy entity = Buddy.getRepository().findOne(id);
-		if (entity == null) {
+		if (entity == null)
+		{
 			throw new BuddyNotFoundException(id);
 		}
 		return entity;
 	}
 
-	private User getBuddyUser(BuddyDTO buddy) {
-		try {
+	private User getBuddyUser(BuddyDTO buddy)
+	{
+		try
+		{
 			return UserService.findUserByEmailAddressOrMobileNumber(buddy.getUser().getEmailAddress(),
 					buddy.getUser().getMobileNumber());
-		} catch (UserNotFoundException e) {
+		}
+		catch (UserNotFoundException e)
+		{
 			return null;
 		}
 	}
 
-	public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID loginID) {
+	public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID loginID)
+	{
 		Buddy buddy = Buddy.getRepository().findOne(buddyID);
 		buddy.setLoginID(loginID);
 	}
 
-	public Set<BuddyDTO> getBuddies(Set<UUID> buddyIDs) {
+	public Set<BuddyDTO> getBuddies(Set<UUID> buddyIDs)
+	{
 		return buddyIDs.stream().map(id -> getBuddy(id)).collect(Collectors.toSet());
 	}
 }

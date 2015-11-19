@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server;
 
@@ -12,6 +9,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.hateoas.RelProvider;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
@@ -31,13 +29,16 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication
 @EnableSwagger2
 @EnableHypermediaSupport(type = HypermediaType.HAL)
-public class AppServiceApplication {
-	public static void main(String[] args) {
+public class AppServiceApplication
+{
+	public static void main(String[] args)
+	{
 		SpringApplication.run(AppServiceApplication.class, args);
 	}
 
 	@Bean
-	public Docket yonaApi() {
+	public Docket yonaApi()
+	{
 		ApiInfo apiInfo = new ApiInfo("Yona Server", "Server backing the Yona mobile app", "1.0", null, null, "MPL",
 				"https://www.mozilla.org/en-US/MPL/2.0/");
 		return new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo).select().apis(RequestHandlerSelectors.any())
@@ -47,12 +48,30 @@ public class AppServiceApplication {
 	}
 
 	@Bean
-	RelProvider relProvider() {
+	RelProvider relProvider()
+	{
 		return new JsonRootRelProvider();
 	}
 
 	@Bean
-	RepositoryProvider repositoryProvider() {
+	RepositoryProvider repositoryProvider()
+	{
 		return new RepositoryProvider();
+	}
+
+	/**
+	 * This bean tells the application which message bunble to use.
+	 * 
+	 * @return The message bundle source
+	 */
+	@Bean(name = "messageSource")
+	public ReloadableResourceBundleMessageSource messageSource()
+	{
+		ReloadableResourceBundleMessageSource messageBundle = new ReloadableResourceBundleMessageSource();
+
+		messageBundle.setBasename("classpath:messages/messages");
+		messageBundle.setDefaultEncoding("UTF-8");
+
+		return messageBundle;
 	}
 }

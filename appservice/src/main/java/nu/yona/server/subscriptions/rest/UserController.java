@@ -243,8 +243,8 @@ public class UserController
 			}
 
 			Set<BuddyDTO> buddies = getContent().getPrivateData().getBuddies();
-			return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME, new BuddyController.BuddyResourceAssembler(getContent()
-					.getID()).toResources(buddies));
+			return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME,
+					new BuddyController.BuddyResourceAssembler(getContent().getID()).toResources(buddies));
 		}
 
 		static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID)

@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
@@ -29,7 +26,8 @@ import nu.yona.server.messaging.entities.MessageSource;
 
 @Entity
 @Table(name = "USERS_PRIVATE")
-public class UserPrivate extends EntityWithID {
+public class UserPrivate extends EntityWithID
+{
 
 	private static final String DECRYPTION_CHECK_STRING = "Decrypted properly#";
 
@@ -56,12 +54,14 @@ public class UserPrivate extends EntityWithID {
 	private UUID namedMessageSourceID;
 
 	// Default constructor is required for JPA
-	public UserPrivate() {
+	public UserPrivate()
+	{
 		super(null);
 	}
 
-	private UserPrivate(UUID id, String nickname, UUID userAnonymizedID, Set<String> deviceNames,
-			UUID anonymousMessageSourceID, UUID namedMessageSourceID) {
+	private UserPrivate(UUID id, String nickname, UUID userAnonymizedID, Set<String> deviceNames, UUID anonymousMessageSourceID,
+			UUID namedMessageSourceID)
+	{
 		super(id);
 		this.decryptionCheck = buildDecryptionCheck();
 		this.nickname = nickname;
@@ -72,66 +72,80 @@ public class UserPrivate extends EntityWithID {
 		this.namedMessageSourceID = namedMessageSourceID;
 	}
 
-	private static String buildDecryptionCheck() {
+	private static String buildDecryptionCheck()
+	{
 		return DECRYPTION_CHECK_STRING + CryptoUtil.getRandomString(DECRYPTION_CHECK_STRING.length());
 	}
 
 	public static UserPrivate createInstance(String nickname, Set<String> deviceNames, Set<Goal> goals,
-			MessageSource anonymousMessageSource, MessageSource namedMessageSource) {
+			MessageSource anonymousMessageSource, MessageSource namedMessageSource)
+	{
 		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
 		UserAnonymized.getRepository().save(userAnonymized);
-		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymized.getID(), deviceNames,
-				anonymousMessageSource.getID(), namedMessageSource.getID());
+		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymized.getID(), deviceNames, anonymousMessageSource.getID(),
+				namedMessageSource.getID());
 	}
 
-	public boolean isDecryptedProperly() {
+	public boolean isDecryptedProperly()
+	{
 		return isDecrypted() && decryptionCheck.startsWith(DECRYPTION_CHECK_STRING);
 	}
 
-	public String getNickname() {
+	public String getNickname()
+	{
 		return nickname;
 	}
 
-	public void setNickname(String nickname) {
+	public void setNickname(String nickname)
+	{
 		this.nickname = nickname;
 	}
 
-	public UserAnonymized getUserAnonymized() {
+	public UserAnonymized getUserAnonymized()
+	{
 		return UserAnonymized.getRepository().findOne(userAnonymizedID);
 	}
 
-	public Set<String> getDeviceNames() {
+	public Set<String> getDeviceNames()
+	{
 		return Collections.unmodifiableSet(deviceNames);
 	}
 
-	public void setDeviceNames(Set<String> deviceNames) {
+	public void setDeviceNames(Set<String> deviceNames)
+	{
 		this.deviceNames = deviceNames;
 	}
 
-	public Set<Buddy> getBuddies() {
+	public Set<Buddy> getBuddies()
+	{
 		return Collections.unmodifiableSet(buddies);
 	}
 
-	public void addBuddy(Buddy buddy) {
+	public void addBuddy(Buddy buddy)
+	{
 		buddies.add(buddy);
 		UserAnonymized userAnonymized = getUserAnonymized();
 		userAnonymized.addBuddyAnonymized(buddy.getBuddyAnonymized());
 		UserAnonymized.getRepository().save(userAnonymized);
 	}
 
-	public MessageSource getAnonymousMessageSource() {
+	public MessageSource getAnonymousMessageSource()
+	{
 		return MessageSource.getRepository().findOne(anonymousMessageSourceID);
 	}
 
-	public MessageSource getNamedMessageSource() {
+	public MessageSource getNamedMessageSource()
+	{
 		return MessageSource.getRepository().findOne(namedMessageSourceID);
 	}
 
-	public UUID getLoginID() {
+	public UUID getLoginID()
+	{
 		return getUserAnonymized().getLoginID();
 	}
 
-	private boolean isDecrypted() {
+	private boolean isDecrypted()
+	{
 		return decryptionCheck != null;
 	}
 }

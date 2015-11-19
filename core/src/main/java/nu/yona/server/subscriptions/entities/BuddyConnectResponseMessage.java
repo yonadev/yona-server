@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
@@ -16,7 +13,8 @@ import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 
 @Entity
-public class BuddyConnectResponseMessage extends BuddyConnectMessage {
+public class BuddyConnectResponseMessage extends BuddyConnectMessage
+{
 
 	@Transient
 	private UUID destinationID;
@@ -25,47 +23,56 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage {
 	private boolean isProcessed;
 
 	// Default constructor is required for JPA
-	public BuddyConnectResponseMessage() {
+	public BuddyConnectResponseMessage()
+	{
 		super();
 	}
 
-	private BuddyConnectResponseMessage(UUID id, UUID userID, UUID loginID, String message, UUID buddyID,
-			UUID destinationID, BuddyAnonymized.Status status) {
+	private BuddyConnectResponseMessage(UUID id, UUID userID, UUID loginID, String message, UUID buddyID, UUID destinationID,
+			BuddyAnonymized.Status status)
+	{
 		super(id, loginID, userID, message, buddyID);
 		this.destinationID = destinationID;
 		this.status = status;
 	}
 
-	public UUID getDestinationID() {
+	public UUID getDestinationID()
+	{
 		return destinationID;
 	}
 
-	public BuddyAnonymized.Status getStatus() {
+	public BuddyAnonymized.Status getStatus()
+	{
 		return status;
 	}
 
-	public boolean isProcessed() {
+	public boolean isProcessed()
+	{
 		return isProcessed;
 	}
 
-	public void setProcessed() {
+	public void setProcessed()
+	{
 		this.isProcessed = true;
 	}
 
 	public static BuddyConnectResponseMessage createInstance(UUID respondingUserID, UUID respondingUserLoginID,
-			UUID destinationID, String message, UUID buddyID, BuddyAnonymized.Status status) {
-		return new BuddyConnectResponseMessage(UUID.randomUUID(), respondingUserID, respondingUserLoginID, message,
-				buddyID, destinationID, status);
+			UUID destinationID, String message, UUID buddyID, BuddyAnonymized.Status status)
+	{
+		return new BuddyConnectResponseMessage(UUID.randomUUID(), respondingUserID, respondingUserLoginID, message, buddyID,
+				destinationID, status);
 	}
 
 	@Override
-	public void encrypt(Encryptor encryptor) {
+	public void encrypt(Encryptor encryptor)
+	{
 		super.encrypt(encryptor);
 		destinationIDCiphertext = encryptor.encrypt(destinationID);
 	}
 
 	@Override
-	public void decrypt(Decryptor decryptor) {
+	public void decrypt(Decryptor decryptor)
+	{
 		super.decrypt(decryptor);
 		destinationID = decryptor.decryptUUID(destinationIDCiphertext);
 	}

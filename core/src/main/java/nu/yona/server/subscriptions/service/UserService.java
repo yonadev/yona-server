@@ -10,11 +10,17 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.validator.routines.EmailValidator;
+import org.springframework.stereotype.Service;
+
 import nu.yona.server.crypto.Constants;
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.entities.Buddy;
@@ -26,11 +32,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService
 {
+	/** Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers */
+	private static Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
+
 	// TODO: Do we need this? Currently unused.
 	@Transactional
 	public UserDTO getUser(String emailAddress, String mobileNumber)
 	{
-
 		if (emailAddress != null && mobileNumber != null)
 		{
 			throw new IllegalArgumentException("Either emailAddress or mobileNumber must be non-null");
@@ -65,9 +73,12 @@ public class UserService
 	@Transactional
 	public UserDTO addUser(UserDTO userResource)
 	{
-		UserDTO savedUser = UserDTO.createInstanceWithPrivateData(User.getRepository().save(userResource.createUserEntity()));
+		validateUserFields(userResource);
 
-		return savedUser;
+		User userEntity = userResource.createUserEntity();
+		userEntity = User.getRepository().save(userEntity);
+
+		return UserDTO.createInstanceWithPrivateData(userEntity);
 	}
 
 	@Transactional
@@ -208,6 +219,39 @@ public class UserService
 			throw UserNotFoundException.notFoundByID(id);
 		}
 		return entity;
+	}
+
+	private void validateUserFields(UserDTO userResource)
+	{
+		if (StringUtils.isBlank(userResource.getFirstName()))
+		{
+			throw new InvalidDataException("error.user.firstname");
+		}
+
+		if (StringUtils.isBlank(userResource.getLastName()))
+		{
+			throw new InvalidDataException("error.user.lastname");
+		}
+
+		if (StringUtils.isBlank(userResource.getEmailAddress()))
+		{
+			throw new InvalidDataException("error.user.email.address");
+		}
+
+		if (!EmailValidator.getInstance().isValid(userResource.getEmailAddress()))
+		{
+			throw new InvalidDataException("error.user.email.address.invalid", userResource.getEmailAddress());
+		}
+
+		if (StringUtils.isBlank(userResource.getMobileNumber()))
+		{
+			throw new InvalidDataException("error.user.mobile.number");
+		}
+
+		if (!REGEX_PHONE.matcher(userResource.getMobileNumber()).matches())
+		{
+			throw new InvalidDataException("error.user.mobile.number.invalid");
+		}
 	}
 
 	public static String getPassword(Optional<String> password)

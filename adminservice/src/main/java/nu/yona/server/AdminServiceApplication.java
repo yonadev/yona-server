@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server;
 
@@ -44,12 +41,14 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication
 @EnableSwagger2
 @EnableHypermediaSupport(type = HypermediaType.HAL)
-public class AdminServiceApplication {
+public class AdminServiceApplication
+{
 
 	@Autowired
 	private TypeResolver typeResolver;
 
-	public static void main(String[] args) {
+	public static void main(String[] args)
+	{
 		SpringApplication.run(AdminServiceApplication.class, args);
 	}
 
@@ -57,7 +56,8 @@ public class AdminServiceApplication {
 	GoalFileLoader goalFileLoader;
 
 	@Bean
-	public Docket yonaApi() {
+	public Docket yonaApi()
+	{
 		ApiInfo apiInfo = new ApiInfo("Yona Administration", "Administrative APIs of Yona server", "1.0", null, null, "MPL",
 				"https://www.mozilla.org/en-US/MPL/2.0/");
 		AlternateTypeRule goalResourcesRule = newRule(
@@ -71,12 +71,14 @@ public class AdminServiceApplication {
 	}
 
 	@Bean
-	RelProvider relProvider() {
+	RelProvider relProvider()
+	{
 		return new JsonRootRelProvider();
 	}
 
 	@Bean
-	RepositoryProvider repositoryProvider() {
+	RepositoryProvider repositoryProvider()
+	{
 		return new RepositoryProvider();
 	}
 }

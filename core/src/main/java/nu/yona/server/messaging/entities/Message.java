@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
@@ -20,41 +17,46 @@ import nu.yona.server.entities.RepositoryProvider;
 
 @Entity
 @Table(name = "MESSAGES")
-public abstract class Message extends EntityWithID {
+public abstract class Message extends EntityWithID
+{
 	@Transient
 	private UUID relatedLoginID;
 	private byte[] relatedUserAnonymizedIDCiphertext;
 
-	public static MessageRepository getRepository() {
+	public static MessageRepository getRepository()
+	{
 		return (MessageRepository) RepositoryProvider.getRepository(Message.class, UUID.class);
 	}
 
 	/**
-	 * This is the only constructor, to ensure that subclasses don't
-	 * accidentally omit the ID.
+	 * This is the only constructor, to ensure that subclasses don't accidentally omit the ID.
 	 * 
-	 * @param id
-	 *            The ID of the entity
+	 * @param id The ID of the entity
 	 */
-	protected Message(UUID id, UUID relatedUserAnonymizedID) {
+	protected Message(UUID id, UUID relatedUserAnonymizedID)
+	{
 		super(id);
-		if (id != null && relatedUserAnonymizedID == null) {
+		if (id != null && relatedUserAnonymizedID == null)
+		{
 			throw new IllegalArgumentException("relatedUserAnonymizedID cannot be null");
 		}
 		this.relatedLoginID = relatedUserAnonymizedID;
 	}
 
-	public void encryptMessage(Encryptor encryptor) {
+	public void encryptMessage(Encryptor encryptor)
+	{
 		relatedUserAnonymizedIDCiphertext = encryptor.encrypt(relatedLoginID);
 		encrypt(encryptor);
 	}
 
-	public void decryptMessage(Decryptor decryptor) {
+	public void decryptMessage(Decryptor decryptor)
+	{
 		relatedLoginID = decryptor.decryptUUID(relatedUserAnonymizedIDCiphertext);
 		decrypt(decryptor);
 	}
 
-	public UUID getRelatedLoginID() {
+	public UUID getRelatedLoginID()
+	{
 		return relatedLoginID;
 	}
 

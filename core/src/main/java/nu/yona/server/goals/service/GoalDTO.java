@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
@@ -22,12 +19,14 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import nu.yona.server.goals.entities.Goal;
 
 @JsonRootName("goal")
-public class GoalDTO {
+public class GoalDTO
+{
 	private final UUID id;
 	private final String name;
 	private Set<String> categories;
 
-	private GoalDTO(UUID id, String name, Set<String> categories) {
+	private GoalDTO(UUID id, String name, Set<String> categories)
+	{
 		this.id = id;
 		this.name = name;
 		this.categories = new HashSet<>(categories);
@@ -35,33 +34,40 @@ public class GoalDTO {
 
 	@JsonCreator
 	public GoalDTO(@JsonProperty("name") String name,
-			@JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories) {
+			@JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories)
+	{
 		this(null, name, categories);
 	}
 
 	@JsonIgnore
-	public UUID getID() {
+	public UUID getID()
+	{
 		return id;
 	}
 
-	public String getName() {
+	public String getName()
+	{
 		return name;
 	}
 
 	@JsonProperty("categories")
-	public Set<String> getCategories() {
+	public Set<String> getCategories()
+	{
 		return Collections.unmodifiableSet(categories);
 	}
 
-	public static GoalDTO createInstance(Goal goalEntity) {
+	public static GoalDTO createInstance(Goal goalEntity)
+	{
 		return new GoalDTO(goalEntity.getID(), goalEntity.getName(), goalEntity.getCategories());
 	}
 
-	public Goal createGoalEntity() {
+	public Goal createGoalEntity()
+	{
 		return Goal.createInstance(name, categories);
 	}
 
-	public Goal updateGoal(Goal originalGoalEntity) {
+	public Goal updateGoal(Goal originalGoalEntity)
+	{
 		originalGoalEntity.setName(name);
 		originalGoalEntity.setCategories(categories);
 

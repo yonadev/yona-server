@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
@@ -29,8 +26,10 @@ import nu.yona.server.entities.RepositoryProvider;
 
 @Entity
 @Table(name = "MESSAGE_SOURCES")
-public class MessageSource extends EntityWithID {
-	public static MessageSourceRepository getRepository() {
+public class MessageSource extends EntityWithID
+{
+	public static MessageSourceRepository getRepository()
+	{
 		return (MessageSourceRepository) RepositoryProvider.getRepository(MessageSource.class, UUID.class);
 	}
 
@@ -45,48 +44,57 @@ public class MessageSource extends EntityWithID {
 	private PrivateKey privateKey;
 
 	// Default constructor is required for JPA
-	public MessageSource() {
+	public MessageSource()
+	{
 		super(null);
 	}
 
-	public MessageSource(UUID id, PrivateKey privateKey, MessageDestination messageDestination) {
+	public MessageSource(UUID id, PrivateKey privateKey, MessageDestination messageDestination)
+	{
 		super(id);
 		this.messageDestination = messageDestination;
 		this.privateKeyBytes = PublicKeyUtil.privateKeyToBytes(privateKey);
 	}
 
-	public static MessageSource createInstance() {
+	public static MessageSource createInstance()
+	{
 		KeyPair pair = PublicKeyUtil.generateKeyPair();
 
 		MessageDestination messageDestination = MessageDestination.createInstance(pair.getPublic());
 		return new MessageSource(UUID.randomUUID(), pair.getPrivate(), messageDestination);
 	}
 
-	public MessageDestination getDestination() {
+	public MessageDestination getDestination()
+	{
 		return messageDestination;
 	}
 
-	public List<Message> getAllMessages() {
+	public List<Message> getAllMessages()
+	{
 		List<Message> decryptedMessages = messageDestination.getAllMessages();
 		PublicKeyDecryptor decryptor = PublicKeyDecryptor.createInstance(loadPrivateKey());
 		decryptedMessages.stream().forEach(m -> m.decryptMessage(decryptor));
 		return decryptedMessages;
 	}
 
-	private PrivateKey loadPrivateKey() {
-		if (privateKey == null) {
+	private PrivateKey loadPrivateKey()
+	{
+		if (privateKey == null)
+		{
 			privateKey = PublicKeyUtil.privateKeyFromBytes(privateKeyBytes);
 		}
 		return privateKey;
 	}
 
-	public Message getMessage(UUID idToFetch) {
+	public Message getMessage(UUID idToFetch)
+	{
 		Message message = Message.getRepository().findOne(idToFetch);
 		message.decryptMessage(PublicKeyDecryptor.createInstance(loadPrivateKey()));
 		return message;
 	}
 
-	public void touch() {
+	public void touch()
+	{
 		privateKeyBytes = Arrays.copyOf(privateKeyBytes, privateKeyBytes.length);
 	}
 }

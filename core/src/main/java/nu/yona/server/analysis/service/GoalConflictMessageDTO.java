@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
@@ -29,12 +26,14 @@ import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserDTO;
 
 @JsonRootName("goalConflictMessage")
-public class GoalConflictMessageDTO extends MessageDTO {
+public class GoalConflictMessageDTO extends MessageDTO
+{
 	private final String nickname;
 	private final String goalName;
 	private final String url;
 
-	private GoalConflictMessageDTO(UUID id, String nickname, String goalName, String url) {
+	private GoalConflictMessageDTO(UUID id, String nickname, String goalName, String url)
+	{
 		super(id);
 		this.nickname = nickname;
 		this.goalName = goalName;
@@ -42,30 +41,35 @@ public class GoalConflictMessageDTO extends MessageDTO {
 	}
 
 	@Override
-	public Set<String> getPossibleActions() {
+	public Set<String> getPossibleActions()
+	{
 		return new HashSet<>();
 	}
 
-	public String getNickname() {
+	public String getNickname()
+	{
 		return nickname;
 	}
 
-	public String getGoalName() {
+	public String getGoalName()
+	{
 		return goalName;
 	}
 
-	public String getUrl() {
+	public String getUrl()
+	{
 		return url;
 	}
 
-	public static GoalConflictMessageDTO createInstance(UserDTO actingUser, GoalConflictMessage messageEntity,
-			String nickname) {
+	public static GoalConflictMessageDTO createInstance(UserDTO actingUser, GoalConflictMessage messageEntity, String nickname)
+	{
 		return new GoalConflictMessageDTO(messageEntity.getID(), nickname, messageEntity.getGoal().getName(),
 				messageEntity.getURL());
 	}
 
 	@Component
-	private static class Manager implements DTOManager {
+	private static class Manager implements DTOManager
+	{
 		@Autowired
 		private TheDTOManager theDTOFactory;
 
@@ -73,31 +77,38 @@ public class GoalConflictMessageDTO extends MessageDTO {
 		private BuddyService buddyService;
 
 		@PostConstruct
-		private void init() {
+		private void init()
+		{
 			theDTOFactory.addManager(GoalConflictMessage.class, this);
 		}
 
 		@Override
-		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity) {
+		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
+		{
 			return GoalConflictMessageDTO.createInstance(actingUser, (GoalConflictMessage) messageEntity,
 					getNickname(actingUser, (GoalConflictMessage) messageEntity));
 		}
 
 		@Override
 		public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
-				MessageActionDTO requestPayload) {
+				MessageActionDTO requestPayload)
+		{
 			throw new IllegalArgumentException("Action '" + action + "' is not supported");
 		}
 
-		private String getNickname(UserDTO actingUser, GoalConflictMessage messageEntity) {
+		private String getNickname(UserDTO actingUser, GoalConflictMessage messageEntity)
+		{
 			UUID loginID = messageEntity.getRelatedLoginID();
-			if (actingUser.getPrivateData().getVpnProfile().getLoginID().equals(loginID)) {
+			if (actingUser.getPrivateData().getVpnProfile().getLoginID().equals(loginID))
+			{
 				return "<self>";
 			}
 
 			Set<BuddyDTO> buddies = buddyService.getBuddies(actingUser.getPrivateData().getBuddyIDs());
-			for (BuddyDTO buddy : buddies) {
-				if (loginID.equals(buddy.getLoginID())) {
+			for (BuddyDTO buddy : buddies)
+			{
+				if (loginID.equals(buddy.getLoginID()))
+				{
 					return buddy.getNickName();
 				}
 			}

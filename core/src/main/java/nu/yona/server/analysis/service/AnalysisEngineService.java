@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
@@ -22,38 +19,44 @@ import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Service
-public class AnalysisEngineService {
+public class AnalysisEngineService
+{
 	@Autowired
 	private GoalService goalService;
 
-	public void analyze(PotentialConflictDTO potentialConflictPayload) {
+	public void analyze(PotentialConflictDTO potentialConflictPayload)
+	{
 
 		UserAnonymized userAnonimized = getUserAnonymizedByID(potentialConflictPayload.getLoginID());
 		Set<Goal> conflictingGoalsOfUser = determineConflictingGoalsForUser(userAnonimized,
 				potentialConflictPayload.getCategories());
-		if (!conflictingGoalsOfUser.isEmpty()) {
-			sendConflictMessageToAllDestinationsOfUser(potentialConflictPayload, userAnonimized,
-					conflictingGoalsOfUser);
+		if (!conflictingGoalsOfUser.isEmpty())
+		{
+			sendConflictMessageToAllDestinationsOfUser(potentialConflictPayload, userAnonimized, conflictingGoalsOfUser);
 		}
 	}
 
-	public Set<String> getRelevantCategories() {
+	public Set<String> getRelevantCategories()
+	{
 		return goalService.getAllGoals().stream().flatMap(g -> g.getCategories().stream()).collect(Collectors.toSet());
 	}
 
 	private void sendConflictMessageToAllDestinationsOfUser(PotentialConflictDTO payload, UserAnonymized userAnonymized,
-			Set<Goal> conflictingGoalsOfUser) {
+			Set<Goal> conflictingGoalsOfUser)
+	{
 		Set<MessageDestination> destinations = userAnonymized.getAllRelatedDestinations();
 		destinations.stream().forEach(d -> d.send(createConflictMessage(payload, conflictingGoalsOfUser)));
 		destinations.stream().forEach(d -> MessageDestination.getRepository().save(d));
 	}
 
-	private GoalConflictMessage createConflictMessage(PotentialConflictDTO payload, Set<Goal> conflictingGoalsOfUser) {
+	private GoalConflictMessage createConflictMessage(PotentialConflictDTO payload, Set<Goal> conflictingGoalsOfUser)
+	{
 		return GoalConflictMessage.createInstance(payload.getLoginID(), conflictingGoalsOfUser.iterator().next(),
 				payload.getURL());
 	}
 
-	private Set<Goal> determineConflictingGoalsForUser(UserAnonymized userAnonymized, Set<String> categories) {
+	private Set<Goal> determineConflictingGoalsForUser(UserAnonymized userAnonymized, Set<String> categories)
+	{
 		Set<Goal> allGoals = goalService.getAllGoalEntities();
 		Set<Goal> conflictingGoals = allGoals.stream().filter(g -> {
 			Set<String> goalCategories = new HashSet<>(g.getCategories());
@@ -66,9 +69,11 @@ public class AnalysisEngineService {
 		return conflictingGoalsOfUser;
 	}
 
-	private UserAnonymized getUserAnonymizedByID(UUID id) {
+	private UserAnonymized getUserAnonymizedByID(UUID id)
+	{
 		UserAnonymized entity = UserAnonymized.getRepository().findOne(id);
-		if (entity == null) {
+		if (entity == null)
+		{
 			throw new LoginIDNotFoundException(id);
 		}
 		return entity;

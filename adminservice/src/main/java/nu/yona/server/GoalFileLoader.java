@@ -20,26 +20,34 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
-public class GoalFileLoader implements ApplicationListener<ContextRefreshedEvent> {
+public class GoalFileLoader implements ApplicationListener<ContextRefreshedEvent>
+{
 
-	private static final Logger LOGGER = Logger.getLogger(GoalFileLoader.class.getName());	
-	
+	private static final Logger LOGGER = Logger.getLogger(GoalFileLoader.class.getName());
+
 	@Autowired
 	private GoalService goalService;
-	
+
 	@Override
-	public void onApplicationEvent(ContextRefreshedEvent event) {
+	public void onApplicationEvent(ContextRefreshedEvent event)
+	{
 		loadGoalsFromFile();
 	}
-	
-	private void loadGoalsFromFile() {
-		try {
-			try (InputStream input = new FileInputStream("data/goals.json")) {
+
+	private void loadGoalsFromFile()
+	{
+		try
+		{
+			try (InputStream input = new FileInputStream("data/goals.json"))
+			{
 				ObjectMapper mapper = new ObjectMapper();
-				Set<GoalDTO> goalsFromFile = mapper.readValue(input, new TypeReference<Set<GoalDTO>>(){});
+				Set<GoalDTO> goalsFromFile = mapper.readValue(input, new TypeReference<Set<GoalDTO>>() {
+				});
 				goalService.importGoals(goalsFromFile);
 			}
-		} catch (IOException e) {
+		}
+		catch (IOException e)
+		{
 			LOGGER.log(WARNING, "Error loading goals from file " + e);
 		}
 	}
