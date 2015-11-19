@@ -241,8 +241,10 @@ public class UserService
 		Date expirationDateTime = getNewDeviceRequestExpirationDateTime();
 		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(userPassword, expirationDateTime);
 		newDeviceRequestEntity.encryptUserPassword(userSecret);
+		boolean isUpdatingExistingRequest = userEntity.getNewDeviceRequest() != null;
 		userEntity.setNewDeviceRequest(newDeviceRequestEntity);
-		return NewDeviceRequestDTO.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest());
+		return NewDeviceRequestDTO.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest(),
+				isUpdatingExistingRequest);
 	}
 
 	private Date getNewDeviceRequestExpirationDateTime()

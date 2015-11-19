@@ -59,13 +59,13 @@ class AddDeviceTest extends Specification {
 			def response = appService.setNewDeviceRequest(richardQuinURL, richardQuinPassword, """{
 				"userSecret":"unknown secret"
 			}""")
-			if(response.status == 200)
+			if(response.status == 201)
 			{
 				newDeviceRequestExpirationDateTime = response.responseData.expirationDateTime
 			}
 
 		then:
-			response.status == 200
+			response.status == 201
 			response.responseData.expirationDateTime != null
 			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL)
 			getResponseAfter.status == 200

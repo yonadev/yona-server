@@ -98,14 +98,15 @@ public class UserController
 
 	@RequestMapping(value = "{id}/newDeviceRequest", method = RequestMethod.PUT)
 	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
 	public HttpEntity<NewDeviceRequestResource> setNewDeviceRequestForUser(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
 			@RequestBody CreateNewDeviceRequestDTO createNewDeviceRequest)
 	{
 		checkPassword(password, id);
-		return createNewDeviceRequestResponse(userService.setNewDeviceRequestForUser(id, password.get(),
-				createNewDeviceRequest.getUserSecret()));
+		NewDeviceRequestDTO newDeviceRequestResult = userService.setNewDeviceRequestForUser(id, password.get(),
+				createNewDeviceRequest.getUserSecret());
+		return createNewDeviceRequestResponse(newDeviceRequestResult,
+				newDeviceRequestResult.getIsUpdatingExistingRequest() ? HttpStatus.OK : HttpStatus.CREATED);
 	}
 
 	@RequestMapping(value = "{id}/newDeviceRequest", params = { "userSecret" }, method = RequestMethod.GET)
@@ -114,7 +115,7 @@ public class UserController
 	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(@PathVariable UUID id,
 			@RequestParam(value = "userSecret") String userSecret)
 	{
-		return createNewDeviceRequestResponse(userService.getNewDeviceRequestForUser(id, userSecret));
+		return createNewDeviceRequestResponse(userService.getNewDeviceRequestForUser(id, userSecret), HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "{id}/newDeviceRequest", method = RequestMethod.DELETE)
@@ -127,9 +128,10 @@ public class UserController
 		userService.clearNewDeviceRequestForUser(id);
 	}
 
-	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(NewDeviceRequestDTO newDeviceRequest)
+	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(NewDeviceRequestDTO newDeviceRequest,
+			HttpStatus statusCode)
 	{
-		return new ResponseEntity<NewDeviceRequestResource>(new NewDeviceRequestResource(newDeviceRequest), HttpStatus.OK);
+		return new ResponseEntity<NewDeviceRequestResource>(new NewDeviceRequestResource(newDeviceRequest), statusCode);
 	}
 
 	public static class NewDeviceRequestResource extends Resource<NewDeviceRequestDTO>
