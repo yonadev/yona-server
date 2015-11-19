@@ -91,9 +91,9 @@ public class UserController
 		return CryptoSession.execute(password, () -> createResponse(userService.addUser(user), true, HttpStatus.CREATED));
 	}
 
-	private void CheckPassword(Optional<String> password, UUID id)
+	private void checkPassword(Optional<String> password, UUID userID)
 	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> null);
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> null);
 	}
 
 	@RequestMapping(value = "{id}/newDeviceRequest", method = RequestMethod.PUT)
@@ -103,7 +103,7 @@ public class UserController
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
 			@RequestBody CreateNewDeviceRequestDTO createNewDeviceRequest)
 	{
-		CheckPassword(password, id);
+		checkPassword(password, id);
 		return createNewDeviceRequestResponse(userService.setNewDeviceRequestForUser(id, password.get(),
 				createNewDeviceRequest.getUserSecret()));
 	}
@@ -123,7 +123,7 @@ public class UserController
 	public void clearNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID id)
 	{
-		CheckPassword(password, id);
+		checkPassword(password, id);
 		userService.clearNewDeviceRequestForUser(id);
 	}
 
@@ -205,8 +205,8 @@ public class UserController
 			}
 
 			Set<BuddyDTO> buddies = getContent().getPrivateData().getBuddies();
-			return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME,
-					new BuddyController.BuddyResourceAssembler(getContent().getID()).toResources(buddies));
+			return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME, new BuddyController.BuddyResourceAssembler(getContent()
+					.getID()).toResources(buddies));
 		}
 
 		static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID)
