@@ -14,4 +14,4 @@ services:
 
 before_script:
   - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && ./gradlew buildDocker || ./gradlew check
+  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && ./gradlew buildDocker || ./gradlew check'
