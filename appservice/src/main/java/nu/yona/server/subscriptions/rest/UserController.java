@@ -96,7 +96,7 @@ public class UserController
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> null);
 	}
 
-	@RequestMapping(value = "{id}/newDeviceRequest", method = RequestMethod.PUT)
+	@RequestMapping(value = "{userID}/newDeviceRequest", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<NewDeviceRequestResource> setNewDeviceRequestForUser(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
@@ -109,17 +109,17 @@ public class UserController
 				newDeviceRequestResult.getIsUpdatingExistingRequest() ? HttpStatus.OK : HttpStatus.CREATED);
 	}
 
-	@RequestMapping(value = "{id}/newDeviceRequest", params = { "userSecret" }, method = RequestMethod.GET)
+	@RequestMapping(value = "{userID}/newDeviceRequest", params = { "userSecret" }, method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(@PathVariable UUID userID,
-			@RequestParam(value = "userSecret") String userSecret)
+			@RequestParam(value = "userSecret", required = false) String userSecret)
 	{
 		return createNewDeviceRequestResponse(userService.getNewDeviceRequestForUser(userID, userSecret),
 				getNewDeviceRequestLinkBuilder(userID), HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "{id}/newDeviceRequest", method = RequestMethod.DELETE)
+	@RequestMapping(value = "{userID}/newDeviceRequest", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public void clearNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,

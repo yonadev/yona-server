@@ -9,7 +9,6 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.crypto.DecryptionException;
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
@@ -83,7 +82,7 @@ public class NewDeviceRequest extends EntityWithID
 
 		if (this.userPassword == null)
 		{
-			throw new DecryptionException();
+			throw new NewDeviceRequestInvalidUserSecretException();
 		}
 	}
 
