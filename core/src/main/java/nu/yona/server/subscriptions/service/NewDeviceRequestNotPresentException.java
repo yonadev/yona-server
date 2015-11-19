@@ -10,8 +10,8 @@ public class NewDeviceRequestNotPresentException extends RuntimeException
 {
 	private static final long serialVersionUID = -7070143633618007280L;
 
-	public NewDeviceRequestNotPresentException(UUID id)
+	public NewDeviceRequestNotPresentException(UUID userID)
 	{
-		super("No new device request present for user with ID '" + id + "'");
+		super("No new device request present for user with ID '" + userID + "'");
 	}
 }

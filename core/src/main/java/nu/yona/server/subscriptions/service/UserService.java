@@ -7,8 +7,6 @@ package nu.yona.server.subscriptions.service;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -77,28 +75,6 @@ public class UserService
 		userEntity = User.getRepository().save(userEntity);
 
 		return UserDTO.createInstanceWithPrivateData(userEntity);
-	}
-
-	@Transactional
-	public Set<String> addDeviceForUser(UUID forUserID, String deviceName)
-	{
-		User originalUserEntity = getEntityByID(forUserID);
-		Set<String> deviceNames = new TreeSet<String>(originalUserEntity.getDeviceNames());
-		deviceNames.add(deviceName);
-		originalUserEntity.setDeviceNames(deviceNames);
-		User updatedUserEntity = User.getRepository().save(originalUserEntity);
-		return updatedUserEntity.getDeviceNames();
-	}
-
-	@Transactional
-	public Set<String> deleteDeviceForUser(UUID forUserID, String deviceName)
-	{
-		User originalUserEntity = getEntityByID(forUserID);
-		Set<String> deviceNames = new TreeSet<String>(originalUserEntity.getDeviceNames());
-		deviceNames.remove(deviceName);
-		originalUserEntity.setDeviceNames(deviceNames);
-		User updatedUserEntity = User.getRepository().save(originalUserEntity);
-		return updatedUserEntity.getDeviceNames();
 	}
 
 	@Transactional
@@ -259,9 +235,9 @@ public class UserService
 	}
 
 	@Transactional
-	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID id, String userPassword, String userSecret)
+	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID userID, String userPassword, String userSecret)
 	{
-		User userEntity = getEntityByID(id);
+		User userEntity = getEntityByID(userID);
 		Date expirationDateTime = getNewDeviceRequestExpirationDateTime();
 		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(userPassword, expirationDateTime);
 		newDeviceRequestEntity.encryptUserPassword(userSecret);
@@ -280,35 +256,30 @@ public class UserService
 	}
 
 	@Transactional
-	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID id, String userSecret)
+	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID userID, String userSecret)
 	{
+		User userEntity = getEntityByID(userID);
+		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
+		if (newDeviceRequestEntity == null)
+		{
+			throw new NewDeviceRequestNotPresentException(userID);
+		}
+
 		if (StringUtils.isBlank(userSecret))
 		{
-			User userEntity = getEntityByID(id);
 			return NewDeviceRequestDTO.createInstance(userEntity.getNewDeviceRequest());
 		}
 		else
 		{
-			return getNewDeviceRequestWithPasswordForUser(id, userSecret);
+			newDeviceRequestEntity.decryptUserPassword(userSecret);
+			return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
 		}
-	}
-
-	private NewDeviceRequestDTO getNewDeviceRequestWithPasswordForUser(UUID id, String userSecret)
-	{
-		User userEntity = getEntityByID(id);
-		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
-		if (newDeviceRequestEntity == null)
-		{
-			throw new NewDeviceRequestNotPresentException(id);
-		}
-		newDeviceRequestEntity.decryptUserPassword(userSecret);
-		return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
 	}
 
 	@Transactional
-	public void clearNewDeviceRequestForUser(UUID id)
+	public void clearNewDeviceRequestForUser(UUID userID)
 	{
-		User userEntity = getEntityByID(id);
+		User userEntity = getEntityByID(userID);
 		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
 		if (existingNewDeviceRequestEntity != null)
 		{

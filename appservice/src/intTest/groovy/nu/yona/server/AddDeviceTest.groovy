@@ -26,11 +26,10 @@ class AddDeviceTest extends Specification {
 
 		when:
 			def response = appService.addUser("""{
-				"firstName":"Richard",
-				"lastName":"Quin",
-				"nickName":"RQ",
-				"emailAddress":"rich@quin.net",
-				"mobileNumber":"+12345678",
+				"firstName":"Richard ${timestamp}",
+				"lastName":"Quin ${timestamp}",
+				"nickName":"RQ ${timestamp}",
+				"mobileNumber":"+${timestamp}1",
 				"devices":[
 					"Nexus 6"
 				],
@@ -38,7 +37,10 @@ class AddDeviceTest extends Specification {
 					"gambling"
 				]
 			}""", richardQuinPassword)
-			richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
+			if(response.status == 201)
+			{
+				richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
+			}
 
 		then:
 			response.status == 201
@@ -54,12 +56,15 @@ class AddDeviceTest extends Specification {
 			def response = appService.setNewDeviceRequest(richardQuinURL, richardQuinPassword, """{
 				"userSecret":"unknown secret"
 			}""")
-			newDeviceRequestExpirationDateTime = response.responseData.expirationDateTime
+			if(response.status == 200)
+			{
+				newDeviceRequestExpirationDateTime = response.responseData.expirationDateTime
+			}
 
 		then:
 			response.status == 200
 			response.responseData.expirationDateTime != null
-			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL, richardQuinPassword)
+			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL)
 			getResponseAfter.status == 200
 			getResponseAfter.responseData.expirationDateTime == newDeviceRequestExpirationDateTime
 	}
@@ -68,11 +73,22 @@ class AddDeviceTest extends Specification {
 		given:
 
 		when:
-			def response = appService.getNewDeviceRequest(richardQuinURL, richardQuinPassword, "unknown secret")
+			def response = appService.getNewDeviceRequest(richardQuinURL, "unknown secret")
 			
 		then:
 			response.status == 200
 			response.responseData.userPassword == richardQuinPassword
+	}
+	
+	def 'Get new device request with wrong user secret'(){
+		given:
+
+		when:
+			def response = appService.getNewDeviceRequest(richardQuinURL, "wrong secret")
+			
+		then:
+			response.status == 400
+			response.responseData == null
 	}
 	
 	def 'Try set new device request with wrong password'(){
@@ -89,7 +105,7 @@ class AddDeviceTest extends Specification {
 			}
 
 		then:
-			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL, richardQuinPassword)
+			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL)
 			getResponseAfter.status == 200
 			getResponseAfter.responseData.expirationDateTime == newDeviceRequestExpirationDateTime
 	}
@@ -104,7 +120,7 @@ class AddDeviceTest extends Specification {
 			
 		then:
 			response.status == 200
-			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL, richardQuinPassword)
+			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL)
 			getResponseAfter.status == 200
 			getResponseAfter.responseData.expirationDateTime > newDeviceRequestExpirationDateTime
 	}
@@ -113,7 +129,7 @@ class AddDeviceTest extends Specification {
 		given:
 
 		when:
-			def response = appService.getNewDeviceRequest(richardQuinURL, richardQuinPassword, "unknown overwritten secret")
+			def response = appService.getNewDeviceRequest(richardQuinURL, "unknown overwritten secret")
 			
 		then:
 			response.status == 200
@@ -128,9 +144,8 @@ class AddDeviceTest extends Specification {
 
 		then:
 			response.status == 200
-			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL, richardQuinPassword)
-			getResponseAfter.status == 200
-			getResponseAfter.responseData.expirationDateTime == null
+			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL)
+			getResponseAfter.status == 404
 	}
 	
 	def 'Delete Richard Quin'(){

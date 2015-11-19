@@ -102,9 +102,9 @@ class YonaServer {
 		updateResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, jsonString, password)
 	}
 	
-	def getNewDeviceRequest(userPath, password, userSecret = null)
+	def getNewDeviceRequest(userPath, userSecret = null)
 	{
-		getResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, password, ["userSecret": userSecret])
+		getResource(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, [:], ["userSecret": userSecret])
 	}
 	
 	def clearNewDeviceRequest(userPath, password)
