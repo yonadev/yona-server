@@ -13,6 +13,7 @@ class YonaServer {
 	final DIRECT_MESSAGE_PATH_FRAGMENT = "/messages/direct/"
 	final ANONYMOUS_MESSAGES_PATH_FRAGMENT = "/messages/anonymous/"
 	final RELEVANT_CATEGORIES_PATH_FRAGMENT = "/relevantCategories/"
+	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 	RESTClient restClient
@@ -92,6 +93,21 @@ class YonaServer {
 		getResourceWithPassword(userPath + ANONYMOUS_MESSAGES_PATH_FRAGMENT, password)
 	}
 
+	def setNewDeviceRequest(userPath, password, jsonString)
+	{
+		updateResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, jsonString, password)
+	}
+	
+	def getNewDeviceRequest(userPath, password, userSecret = null)
+	{
+		getResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, password, ["userSecret": userSecret])
+	}
+	
+	def clearNewDeviceRequest(userPath, password)
+	{
+		deleteResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, password)
+	}
+
 	def createResourceWithPassword(path, jsonString, password)
 	{
 		createResource(path, jsonString, ["Yona-Password": password])
@@ -100,6 +116,20 @@ class YonaServer {
 	def createResource(path, jsonString, headers = [:])
 	{
 		postJson(path, jsonString, headers);
+	}
+
+	def updateResourceWithPassword(path, jsonString, password)
+	{
+		updateResource(path, jsonString, ["Yona-Password": password])
+	}
+
+	def updateResource(path, jsonString, headers = [:])
+	{
+		def object = jsonSlurper.parseText(jsonString)
+		restClient.put(path: path, 
+			body: object, 
+			contentType:'application/json',
+			headers: headers)
 	}
 
 	def deleteResourceWithPassword(path, password)

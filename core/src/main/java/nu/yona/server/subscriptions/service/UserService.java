@@ -14,10 +14,6 @@ import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.validator.routines.EmailValidator;
-import org.springframework.stereotype.Service;
-
 import nu.yona.server.crypto.Constants;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.InvalidDataException;
@@ -27,6 +23,8 @@ import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -260,6 +258,7 @@ public class UserService
 		User.getRepository().save(userEntity);
 	}
 
+	@Transactional
 	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID id, String userPassword, String userSecret)
 	{
 		User userEntity = getEntityByID(id);
@@ -280,9 +279,10 @@ public class UserService
 		return expirationDateTime;
 	}
 
+	@Transactional
 	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID id, String userSecret)
 	{
-		if (userSecret == null || userSecret.isEmpty())
+		if (StringUtils.isNotBlank(userSecret))
 		{
 			User userEntity = getEntityByID(id);
 			return NewDeviceRequestDTO.createInstance(userEntity.getNewDeviceRequest());
@@ -305,6 +305,7 @@ public class UserService
 		return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
 	}
 
+	@Transactional
 	public void clearNewDeviceRequestForUser(UUID id)
 	{
 		User userEntity = getEntityByID(id);
