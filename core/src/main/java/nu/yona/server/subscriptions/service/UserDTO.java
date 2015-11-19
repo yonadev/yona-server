@@ -34,13 +34,14 @@ public class UserDTO
 			UUID namedMessageDestinationID, UUID anonymousMessageSourceID, UUID anonymousMessageDestinationID,
 			Set<String> deviceNames, Set<String> goalNames, Set<UUID> buddyIDs, VPNProfileDTO vpnProfile)
 	{
-		this(id, firstName, lastName, mobileNumber, new UserPrivateDTO(nickName, namedMessageSourceID, namedMessageDestinationID,
-				anonymousMessageSourceID, anonymousMessageDestinationID, deviceNames, goalNames, buddyIDs, vpnProfile));
+		this(id, firstName, lastName, null, mobileNumber,
+				new UserPrivateDTO(nickName, namedMessageSourceID, namedMessageDestinationID, anonymousMessageSourceID,
+						anonymousMessageDestinationID, deviceNames, goalNames, buddyIDs, vpnProfile));
 	}
 
 	private UserDTO(UUID id, String firstName, String lastName, String mobileNumber)
 	{
-		this(id, firstName, lastName, mobileNumber, null);
+		this(id, firstName, lastName, null, mobileNumber, null);
 	}
 
 	@JsonCreator
@@ -49,11 +50,6 @@ public class UserDTO
 			@JsonUnwrapped UserPrivateDTO privateData)
 	{
 		this(null, firstName, lastName, emailAddress, mobileNumber, privateData);
-	}
-
-	private UserDTO(UUID id, String firstName, String lastName, String mobileNumber, UserPrivateDTO privateData)
-	{
-		this(id, firstName, lastName, null, mobileNumber, privateData);
 	}
 
 	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber,
