@@ -13,27 +13,27 @@ import nu.yona.server.messaging.service.MessageDTO;
 @JsonRootName("buddyConnectMessage")
 public abstract class BuddyConnectMessageDTO extends MessageDTO
 {
-    private UserDTO user;
-    private final String message;
+	private UserDTO user;
+	private final String message;
 
-    protected BuddyConnectMessageDTO(UUID id, UserDTO user, String message)
-    {
-        super(id);
-        if (user == null)
-        {
-            throw new IllegalArgumentException("user cannot be null");
-        }
-        this.user = user;
-        this.message = message;
-    }
+	protected BuddyConnectMessageDTO(UUID id, UserDTO user, String message)
+	{
+		super(id);
+		if (user == null)
+		{
+			throw new IllegalArgumentException("user cannot be null");
+		}
+		this.user = user;
+		this.message = message;
+	}
 
-    public UserDTO getUser()
-    {
-        return user;
-    }
+	public UserDTO getUser()
+	{
+		return user;
+	}
 
-    public String getMessage()
-    {
-        return message;
-    }
+	public String getMessage()
+	{
+		return message;
+	}
 }

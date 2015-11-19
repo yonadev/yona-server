@@ -6,10 +6,10 @@ package nu.yona.server.crypto;
 
 public final class Constants
 {
-    public static final String PASSWORD_HEADER = "Yona-Password";
+	public static final String PASSWORD_HEADER = "Yona-Password";
 
-    private Constants()
-    {
-        // No instances;
-    }
+	private Constants()
+	{
+		// No instances;
+	}
 }

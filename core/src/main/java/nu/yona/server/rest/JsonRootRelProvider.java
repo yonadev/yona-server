@@ -19,25 +19,25 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 public class JsonRootRelProvider implements RelProvider
 {
 
-    private DefaultRelProvider defaultRelProvider = new DefaultRelProvider();
+	private DefaultRelProvider defaultRelProvider = new DefaultRelProvider();
 
-    @Override
-    public String getItemResourceRelFor(Class<?> type)
-    {
-        JsonRootName[] jsonRootNameAnnotations = type.getAnnotationsByType(JsonRootName.class);
-        JsonRootName rootName = (jsonRootNameAnnotations.length == 0) ? null : jsonRootNameAnnotations[0];
-        return (rootName == null) ? defaultRelProvider.getItemResourceRelFor(type) : rootName.value();
-    }
+	@Override
+	public String getItemResourceRelFor(Class<?> type)
+	{
+		JsonRootName[] jsonRootNameAnnotations = type.getAnnotationsByType(JsonRootName.class);
+		JsonRootName rootName = (jsonRootNameAnnotations.length == 0) ? null : jsonRootNameAnnotations[0];
+		return (rootName == null) ? defaultRelProvider.getItemResourceRelFor(type) : rootName.value();
+	}
 
-    @Override
-    public String getCollectionResourceRelFor(Class<?> type)
-    {
-        return English.plural(getItemResourceRelFor(type));
-    }
+	@Override
+	public String getCollectionResourceRelFor(Class<?> type)
+	{
+		return English.plural(getItemResourceRelFor(type));
+	}
 
-    @Override
-    public boolean supports(Class<?> delimiter)
-    {
-        return defaultRelProvider.supports(delimiter);
-    }
+	@Override
+	public boolean supports(Class<?> delimiter)
+	{
+		return defaultRelProvider.supports(delimiter);
+	}
 }

@@ -14,10 +14,10 @@ import nu.yona.server.crypto.Constants;
 public class MissingPasswordException extends YonaException
 {
 
-    private static final long serialVersionUID = 1989876591001478378L;
+	private static final long serialVersionUID = 1989876591001478378L;
 
-    public MissingPasswordException()
-    {
-        super("Password not provided");
-    }
+	public MissingPasswordException()
+	{
+		super("Password not provided");
+	}
 }

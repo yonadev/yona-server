@@ -26,87 +26,87 @@ import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 @JsonRootName("buddyConnectResponseMessage")
 public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 {
-    private static final String PROCESS = "process";
-    private boolean isProcessed;
+	private static final String PROCESS = "process";
+	private boolean isProcessed;
 
-    private BuddyConnectResponseMessageDTO(UUID id, UserDTO user, String message, boolean isProcessed)
-    {
-        super(id, user, message);
-        this.isProcessed = isProcessed;
-    }
+	private BuddyConnectResponseMessageDTO(UUID id, UserDTO user, String message, boolean isProcessed)
+	{
+		super(id, user, message);
+		this.isProcessed = isProcessed;
+	}
 
-    @Override
-    public Set<String> getPossibleActions()
-    {
-        Set<String> possibleActions = new HashSet<>();
-        if (!isProcessed)
-        {
-            possibleActions.add(PROCESS);
-        }
-        return possibleActions;
-    }
+	@Override
+	public Set<String> getPossibleActions()
+	{
+		Set<String> possibleActions = new HashSet<>();
+		if (!isProcessed)
+		{
+			possibleActions.add(PROCESS);
+		}
+		return possibleActions;
+	}
 
-    public boolean isProcessed()
-    {
-        return isProcessed;
-    }
+	public boolean isProcessed()
+	{
+		return isProcessed;
+	}
 
-    public static BuddyConnectResponseMessageDTO createInstance(UserDTO requestingUser, BuddyConnectResponseMessage messageEntity)
-    {
-        return new BuddyConnectResponseMessageDTO(messageEntity.getID(), UserDTO.createInstance(messageEntity.getUser()),
-                messageEntity.getMessage(), messageEntity.isProcessed());
-    }
+	public static BuddyConnectResponseMessageDTO createInstance(UserDTO requestingUser, BuddyConnectResponseMessage messageEntity)
+	{
+		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), UserDTO.createInstance(messageEntity.getUser()),
+				messageEntity.getMessage(), messageEntity.isProcessed());
+	}
 
-    @Component
-    private static class Factory implements DTOManager
-    {
-        @Autowired
-        private TheDTOManager theDTOFactory;
+	@Component
+	private static class Factory implements DTOManager
+	{
+		@Autowired
+		private TheDTOManager theDTOFactory;
 
-        @Autowired
-        private BuddyService buddyService;
+		@Autowired
+		private BuddyService buddyService;
 
-        @PostConstruct
-        private void init()
-        {
-            theDTOFactory.addManager(BuddyConnectResponseMessage.class, this);
-        }
+		@PostConstruct
+		private void init()
+		{
+			theDTOFactory.addManager(BuddyConnectResponseMessage.class, this);
+		}
 
-        @Override
-        public MessageDTO createInstance(UserDTO requestingUser, Message messageEntity)
-        {
-            return BuddyConnectResponseMessageDTO.createInstance(requestingUser, (BuddyConnectResponseMessage) messageEntity);
-        }
+		@Override
+		public MessageDTO createInstance(UserDTO requestingUser, Message messageEntity)
+		{
+			return BuddyConnectResponseMessageDTO.createInstance(requestingUser, (BuddyConnectResponseMessage) messageEntity);
+		}
 
-        @Override
-        public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
-                MessageActionDTO requestPayload)
-        {
-            switch (action)
-            {
-                case PROCESS:
-                    return handleAction_Process(actingUser, (BuddyConnectResponseMessage) messageEntity, requestPayload);
-                default:
-                    throw new IllegalArgumentException("Action '" + action + "' is not supported");
-            }
-        }
+		@Override
+		public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
+				MessageActionDTO requestPayload)
+		{
+			switch (action)
+			{
+				case PROCESS:
+					return handleAction_Process(actingUser, (BuddyConnectResponseMessage) messageEntity, requestPayload);
+				default:
+					throw new IllegalArgumentException("Action '" + action + "' is not supported");
+			}
+		}
 
-        private MessageActionDTO handleAction_Process(UserDTO requestingUser,
-                BuddyConnectResponseMessage connectResponseMessageEntity, MessageActionDTO payload)
-        {
+		private MessageActionDTO handleAction_Process(UserDTO requestingUser,
+				BuddyConnectResponseMessage connectResponseMessageEntity, MessageActionDTO payload)
+		{
 
-            buddyService.updateBuddyWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
-                    connectResponseMessageEntity.getRelatedLoginID());
+			buddyService.updateBuddyWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
+					connectResponseMessageEntity.getRelatedLoginID());
 
-            updateMessageStatusAsProcessed(connectResponseMessageEntity);
+			updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
-            return new MessageActionDTO(Collections.singletonMap("status", "done"));
-        }
+			return new MessageActionDTO(Collections.singletonMap("status", "done"));
+		}
 
-        private void updateMessageStatusAsProcessed(BuddyConnectResponseMessage connectResponseMessageEntity)
-        {
-            connectResponseMessageEntity.setProcessed();
-            Message.getRepository().save(connectResponseMessageEntity);
-        }
-    }
+		private void updateMessageStatusAsProcessed(BuddyConnectResponseMessage connectResponseMessageEntity)
+		{
+			connectResponseMessageEntity.setProcessed();
+			Message.getRepository().save(connectResponseMessageEntity);
+		}
+	}
 }

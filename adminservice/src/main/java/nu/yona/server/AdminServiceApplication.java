@@ -44,41 +44,41 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 public class AdminServiceApplication
 {
 
-    @Autowired
-    private TypeResolver typeResolver;
+	@Autowired
+	private TypeResolver typeResolver;
 
-    public static void main(String[] args)
-    {
-        SpringApplication.run(AdminServiceApplication.class, args);
-    }
+	public static void main(String[] args)
+	{
+		SpringApplication.run(AdminServiceApplication.class, args);
+	}
 
-    @Autowired
-    GoalFileLoader goalFileLoader;
+	@Autowired
+	GoalFileLoader goalFileLoader;
 
-    @Bean
-    public Docket yonaApi()
-    {
-        ApiInfo apiInfo = new ApiInfo("Yona Administration", "Administrative APIs of Yona server", "1.0", null, null, "MPL",
-                "https://www.mozilla.org/en-US/MPL/2.0/");
-        AlternateTypeRule goalResourcesRule = newRule(
-                typeResolver.resolve(HttpEntity.class, typeResolver.resolve(Resources.class, GoalResource.class)),
-                typeResolver.resolve(List.class, GoalDTO.class));
-        return new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo).select().apis(RequestHandlerSelectors.any())
-                .paths(PathSelectors.any()).build().pathMapping("/").alternateTypeRules(goalResourcesRule)
-                .useDefaultResponseMessages(false)
-                .globalResponseMessage(RequestMethod.GET, newArrayList(new ResponseMessageBuilder().code(500)
-                        .message("500 message").responseModel(new ModelRef("Error")).build()));
-    }
+	@Bean
+	public Docket yonaApi()
+	{
+		ApiInfo apiInfo = new ApiInfo("Yona Administration", "Administrative APIs of Yona server", "1.0", null, null, "MPL",
+				"https://www.mozilla.org/en-US/MPL/2.0/");
+		AlternateTypeRule goalResourcesRule = newRule(
+				typeResolver.resolve(HttpEntity.class, typeResolver.resolve(Resources.class, GoalResource.class)),
+				typeResolver.resolve(List.class, GoalDTO.class));
+		return new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo).select().apis(RequestHandlerSelectors.any())
+				.paths(PathSelectors.any()).build().pathMapping("/").alternateTypeRules(goalResourcesRule)
+				.useDefaultResponseMessages(false)
+				.globalResponseMessage(RequestMethod.GET, newArrayList(new ResponseMessageBuilder().code(500)
+						.message("500 message").responseModel(new ModelRef("Error")).build()));
+	}
 
-    @Bean
-    RelProvider relProvider()
-    {
-        return new JsonRootRelProvider();
-    }
+	@Bean
+	RelProvider relProvider()
+	{
+		return new JsonRootRelProvider();
+	}
 
-    @Bean
-    RepositoryProvider repositoryProvider()
-    {
-        return new RepositoryProvider();
-    }
+	@Bean
+	RepositoryProvider repositoryProvider()
+	{
+		return new RepositoryProvider();
+	}
 }

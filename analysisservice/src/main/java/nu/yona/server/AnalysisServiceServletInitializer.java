@@ -10,10 +10,10 @@ import org.springframework.boot.context.web.SpringBootServletInitializer;
 public class AnalysisServiceServletInitializer extends SpringBootServletInitializer
 {
 
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder application)
-    {
-        return application.sources(AnalysisServiceApplication.class);
-    }
+	@Override
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder application)
+	{
+		return application.sources(AnalysisServiceApplication.class);
+	}
 
 }

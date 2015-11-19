@@ -12,20 +12,20 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No such user")
 public class UserNotFoundException extends RuntimeException
 {
-    private static final long serialVersionUID = -4519219401062670885L;
+	private static final long serialVersionUID = -4519219401062670885L;
 
-    private UserNotFoundException(String msg)
-    {
-        super(msg);
-    }
+	private UserNotFoundException(String msg)
+	{
+		super(msg);
+	}
 
-    public static UserNotFoundException notFoundByMobileNumber(String mobileNumber)
-    {
-        return new UserNotFoundException("User with mobile number '" + mobileNumber + "' not found");
-    }
+	public static UserNotFoundException notFoundByMobileNumber(String mobileNumber)
+	{
+		return new UserNotFoundException("User with mobile number '" + mobileNumber + "' not found");
+	}
 
-    public static UserNotFoundException notFoundByID(UUID id)
-    {
-        return new UserNotFoundException("User with ID '" + id + "' not found");
-    }
+	public static UserNotFoundException notFoundByID(UUID id)
+	{
+		return new UserNotFoundException("User with ID '" + id + "' not found");
+	}
 }

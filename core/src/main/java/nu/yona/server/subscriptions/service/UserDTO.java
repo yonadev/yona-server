@@ -22,128 +22,128 @@ import nu.yona.server.subscriptions.entities.User;
 @JsonRootName("user")
 public class UserDTO
 {
-    public static final String BUDDIES_REL_NAME = "buddies";
-    private UUID id;
-    private final String firstName;
-    private final String lastName;
-    private final String emailAddress;
-    private final String mobileNumber;
-    private final UserPrivateDTO privateData;
+	public static final String BUDDIES_REL_NAME = "buddies";
+	private UUID id;
+	private final String firstName;
+	private final String lastName;
+	private final String emailAddress;
+	private final String mobileNumber;
+	private final UserPrivateDTO privateData;
 
-    private UserDTO(UUID id, String firstName, String lastName, String nickName, String mobileNumber, UUID namedMessageSourceID,
-            UUID namedMessageDestinationID, UUID anonymousMessageSourceID, UUID anonymousMessageDestinationID,
-            Set<String> deviceNames, Set<String> goalNames, Set<UUID> buddyIDs, VPNProfileDTO vpnProfile)
-    {
-        this(id, firstName, lastName, mobileNumber, new UserPrivateDTO(nickName, namedMessageSourceID, namedMessageDestinationID,
-                anonymousMessageSourceID, anonymousMessageDestinationID, deviceNames, goalNames, buddyIDs, vpnProfile));
-    }
+	private UserDTO(UUID id, String firstName, String lastName, String nickName, String mobileNumber, UUID namedMessageSourceID,
+			UUID namedMessageDestinationID, UUID anonymousMessageSourceID, UUID anonymousMessageDestinationID,
+			Set<String> deviceNames, Set<String> goalNames, Set<UUID> buddyIDs, VPNProfileDTO vpnProfile)
+	{
+		this(id, firstName, lastName, mobileNumber, new UserPrivateDTO(nickName, namedMessageSourceID, namedMessageDestinationID,
+				anonymousMessageSourceID, anonymousMessageDestinationID, deviceNames, goalNames, buddyIDs, vpnProfile));
+	}
 
-    private UserDTO(UUID id, String firstName, String lastName, String mobileNumber)
-    {
-        this(id, firstName, lastName, mobileNumber, null);
-    }
+	private UserDTO(UUID id, String firstName, String lastName, String mobileNumber)
+	{
+		this(id, firstName, lastName, mobileNumber, null);
+	}
 
-    @JsonCreator
-    public UserDTO(@JsonProperty("firstName") String firstName, @JsonProperty("lastName") String lastName,
-            @JsonProperty("emailAddress") String emailAddress, @JsonProperty("mobileNumber") String mobileNumber,
-            @JsonUnwrapped UserPrivateDTO privateData)
-    {
-        this(null, firstName, lastName, emailAddress, mobileNumber, privateData);
-    }
+	@JsonCreator
+	public UserDTO(@JsonProperty("firstName") String firstName, @JsonProperty("lastName") String lastName,
+			@JsonProperty("emailAddress") String emailAddress, @JsonProperty("mobileNumber") String mobileNumber,
+			@JsonUnwrapped UserPrivateDTO privateData)
+	{
+		this(null, firstName, lastName, emailAddress, mobileNumber, privateData);
+	}
 
-    private UserDTO(UUID id, String firstName, String lastName, String mobileNumber, UserPrivateDTO privateData)
-    {
-        this(id, firstName, lastName, null, mobileNumber, privateData);
-    }
+	private UserDTO(UUID id, String firstName, String lastName, String mobileNumber, UserPrivateDTO privateData)
+	{
+		this(id, firstName, lastName, null, mobileNumber, privateData);
+	}
 
-    private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber,
-            UserPrivateDTO privateData)
-    {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.emailAddress = emailAddress;
-        this.mobileNumber = mobileNumber;
-        this.privateData = privateData;
-    }
+	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber,
+			UserPrivateDTO privateData)
+	{
+		this.id = id;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.emailAddress = emailAddress;
+		this.mobileNumber = mobileNumber;
+		this.privateData = privateData;
+	}
 
-    @JsonIgnore
-    public UUID getID()
-    {
-        return id;
-    }
+	@JsonIgnore
+	public UUID getID()
+	{
+		return id;
+	}
 
-    @JsonIgnore
-    public void setUserID(UUID id)
-    {
-        this.id = id;
-    }
+	@JsonIgnore
+	public void setUserID(UUID id)
+	{
+		this.id = id;
+	}
 
-    public String getFirstName()
-    {
-        return firstName;
-    }
+	public String getFirstName()
+	{
+		return firstName;
+	}
 
-    public String getLastName()
-    {
-        return lastName;
-    }
+	public String getLastName()
+	{
+		return lastName;
+	}
 
-    public String getEmailAddress()
-    {
-        return emailAddress;
-    }
+	public String getEmailAddress()
+	{
+		return emailAddress;
+	}
 
-    public String getMobileNumber()
-    {
-        return mobileNumber;
-    }
+	public String getMobileNumber()
+	{
+		return mobileNumber;
+	}
 
-    @JsonUnwrapped
-    public UserPrivateDTO getPrivateData()
-    {
-        return privateData;
-    }
+	@JsonUnwrapped
+	public UserPrivateDTO getPrivateData()
+	{
+		return privateData;
+	}
 
-    User createUserEntity()
-    {
-        return User.createInstance(firstName, lastName, privateData.getNickName(), mobileNumber, privateData.getDeviceNames(),
-                privateData.getGoals());
-    }
+	User createUserEntity()
+	{
+		return User.createInstance(firstName, lastName, privateData.getNickName(), mobileNumber, privateData.getDeviceNames(),
+				privateData.getGoals());
+	}
 
-    User updateUser(User originalUserEntity)
-    {
-        originalUserEntity.setFirstName(firstName);
-        originalUserEntity.setLastName(lastName);
-        originalUserEntity.setNickName(privateData.getNickName());
-        originalUserEntity.setMobileNumber(mobileNumber);
-        originalUserEntity.setDeviceNames(privateData.getDeviceNames());
+	User updateUser(User originalUserEntity)
+	{
+		originalUserEntity.setFirstName(firstName);
+		originalUserEntity.setLastName(lastName);
+		originalUserEntity.setNickName(privateData.getNickName());
+		originalUserEntity.setMobileNumber(mobileNumber);
+		originalUserEntity.setDeviceNames(privateData.getDeviceNames());
 
-        return originalUserEntity;
-    }
+		return originalUserEntity;
+	}
 
-    private static Set<String> getGoalNames(Set<Goal> goals)
-    {
-        return goals.stream().map(Goal::getName).collect(toSet());
-    }
+	private static Set<String> getGoalNames(Set<Goal> goals)
+	{
+		return goals.stream().map(Goal::getName).collect(toSet());
+	}
 
-    static UserDTO createInstance(User userEntity)
-    {
-        return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getMobileNumber());
-    }
+	static UserDTO createInstance(User userEntity)
+	{
+		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getMobileNumber());
+	}
 
-    static UserDTO createInstanceWithPrivateData(User userEntity)
-    {
-        return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickName(),
-                userEntity.getMobileNumber(), userEntity.getNamedMessageSource().getID(),
-                userEntity.getNamedMessageDestination().getID(), userEntity.getAnonymousMessageSource().getID(),
-                userEntity.getAnonymousMessageSource().getDestination().getID(), userEntity.getDeviceNames(),
-                getGoalNames(userEntity.getGoals()), getBuddyIDs(userEntity),
-                VPNProfileDTO.createInstance(userEntity.getAnonymized()));
-    }
+	static UserDTO createInstanceWithPrivateData(User userEntity)
+	{
+		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickName(),
+				userEntity.getMobileNumber(), userEntity.getNamedMessageSource().getID(),
+				userEntity.getNamedMessageDestination().getID(), userEntity.getAnonymousMessageSource().getID(),
+				userEntity.getAnonymousMessageSource().getDestination().getID(), userEntity.getDeviceNames(),
+				getGoalNames(userEntity.getGoals()), getBuddyIDs(userEntity),
+				VPNProfileDTO.createInstance(userEntity.getAnonymized()));
+	}
 
-    private static Set<UUID> getBuddyIDs(User userEntity)
-    {
-        return userEntity.getBuddies().stream().map(b -> b.getID()).collect(Collectors.toSet());
-    }
+	private static Set<UUID> getBuddyIDs(User userEntity)
+	{
+		return userEntity.getBuddies().stream().map(b -> b.getID()).collect(Collectors.toSet());
+	}
 }

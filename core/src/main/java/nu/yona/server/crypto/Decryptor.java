@@ -9,13 +9,13 @@ import java.util.UUID;
 
 public interface Decryptor
 {
-    byte[] decrypt(byte[] ciphertext);
+	byte[] decrypt(byte[] ciphertext);
 
-    String decryptString(byte[] ciphertext);
+	String decryptString(byte[] ciphertext);
 
-    UUID decryptUUID(byte[] ciphertext);
+	UUID decryptUUID(byte[] ciphertext);
 
-    long decryptLong(byte[] ciphertext);
+	long decryptLong(byte[] ciphertext);
 
-    Set<UUID> decryptUUIDSet(byte[] ciphertext);
+	Set<UUID> decryptUUIDSet(byte[] ciphertext);
 }

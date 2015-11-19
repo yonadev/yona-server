@@ -12,23 +12,23 @@ import javax.persistence.Converter;
 @Converter
 public class UUIDFieldEncrypter implements AttributeConverter<UUID, String>
 {
-    private StringFieldEncrypter stringFieldEncrypter = new StringFieldEncrypter();
+	private StringFieldEncrypter stringFieldEncrypter = new StringFieldEncrypter();
 
-    @Override
-    public String convertToDatabaseColumn(UUID attribute)
-    {
-        return (attribute == null) ? null : stringFieldEncrypter.convertToDatabaseColumn(attribute.toString());
-    }
+	@Override
+	public String convertToDatabaseColumn(UUID attribute)
+	{
+		return (attribute == null) ? null : stringFieldEncrypter.convertToDatabaseColumn(attribute.toString());
+	}
 
-    @Override
-    public UUID convertToEntityAttribute(String dbData)
-    {
-        return (dbData == null) ? null : decryptToUUID(dbData);
-    }
+	@Override
+	public UUID convertToEntityAttribute(String dbData)
+	{
+		return (dbData == null) ? null : decryptToUUID(dbData);
+	}
 
-    private UUID decryptToUUID(String dbData)
-    {
-        String decryptedString = stringFieldEncrypter.convertToEntityAttribute(dbData);
-        return (decryptedString == null) ? null : UUID.fromString(decryptedString);
-    }
+	private UUID decryptToUUID(String dbData)
+	{
+		String decryptedString = stringFieldEncrypter.convertToEntityAttribute(dbData);
+		return (decryptedString == null) ? null : UUID.fromString(decryptedString);
+	}
 }

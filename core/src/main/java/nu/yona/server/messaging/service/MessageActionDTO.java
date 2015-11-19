@@ -17,22 +17,22 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 public class MessageActionDTO
 {
 
-    private Map<String, String> properties;
+	private Map<String, String> properties;
 
-    @JsonCreator
-    public MessageActionDTO(
-            @JsonProperty("properties") @JsonDeserialize(as = HashMap.class, contentAs = String.class) Map<String, String> properties)
-    {
-        this.properties = new HashMap<>(properties);
-    }
+	@JsonCreator
+	public MessageActionDTO(
+			@JsonProperty("properties") @JsonDeserialize(as = HashMap.class, contentAs = String.class) Map<String, String> properties)
+	{
+		this.properties = new HashMap<>(properties);
+	}
 
-    public Map<String, String> getProperties()
-    {
-        return Collections.unmodifiableMap(properties);
-    }
+	public Map<String, String> getProperties()
+	{
+		return Collections.unmodifiableMap(properties);
+	}
 
-    public String getProperty(String name)
-    {
-        return properties.get(name);
-    }
+	public String getProperty(String name)
+	{
+		return properties.get(name);
+	}
 }

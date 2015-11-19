@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Unknown login ID")
 public class LoginIDNotFoundException extends RuntimeException
 {
-    private static final long serialVersionUID = 390243834481224180L;
+	private static final long serialVersionUID = 390243834481224180L;
 
-    public LoginIDNotFoundException(UUID id)
-    {
-        super("Login ID '" + id + "' not found");
-    }
+	public LoginIDNotFoundException(UUID id)
+	{
+		super("Login ID '" + id + "' not found");
+	}
 }

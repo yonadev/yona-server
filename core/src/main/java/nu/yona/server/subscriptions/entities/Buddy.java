@@ -27,112 +27,112 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 @Table(name = "BUDDIES")
 public class Buddy extends EntityWithID
 {
-    public static BuddyRepository getRepository()
-    {
-        return (BuddyRepository) RepositoryProvider.getRepository(Buddy.class, UUID.class);
-    }
+	public static BuddyRepository getRepository()
+	{
+		return (BuddyRepository) RepositoryProvider.getRepository(Buddy.class, UUID.class);
+	}
 
-    @Convert(converter = UUIDFieldEncrypter.class)
-    private UUID userID;
+	@Convert(converter = UUIDFieldEncrypter.class)
+	private UUID userID;
 
-    @Convert(converter = UUIDFieldEncrypter.class)
-    private UUID buddyAnonymizedID;
+	@Convert(converter = UUIDFieldEncrypter.class)
+	private UUID buddyAnonymizedID;
 
-    @Convert(converter = StringFieldEncrypter.class)
-    private String nickName;
+	@Convert(converter = StringFieldEncrypter.class)
+	private String nickName;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Convert(converter = UUIDFieldEncrypter.class)
-    private Set<UUID> goalIDs;
+	@ElementCollection(fetch = FetchType.EAGER)
+	@Convert(converter = UUIDFieldEncrypter.class)
+	private Set<UUID> goalIDs;
 
-    @Transient
-    private Set<Goal> goals = new HashSet<>();
+	@Transient
+	private Set<Goal> goals = new HashSet<>();
 
-    // Default constructor is required for JPA
-    public Buddy()
-    {
-        super(null);
-    }
+	// Default constructor is required for JPA
+	public Buddy()
+	{
+		super(null);
+	}
 
-    private Buddy(UUID id, UUID userID, String nickName, UUID buddyAnonymizedID)
-    {
-        super(id);
-        this.userID = userID;
-        this.nickName = nickName;
-        this.buddyAnonymizedID = buddyAnonymizedID;
-    }
+	private Buddy(UUID id, UUID userID, String nickName, UUID buddyAnonymizedID)
+	{
+		super(id);
+		this.userID = userID;
+		this.nickName = nickName;
+		this.buddyAnonymizedID = buddyAnonymizedID;
+	}
 
-    public static Buddy createInstance(UUID buddyUserID, String nickName)
-    {
-        BuddyAnonymized buddyAnonymized = BuddyAnonymized.createInstance();
-        buddyAnonymized = BuddyAnonymized.getRepository().save(buddyAnonymized);
-        return new Buddy(UUID.randomUUID(), buddyUserID, nickName, buddyAnonymized.getID());
-    }
+	public static Buddy createInstance(UUID buddyUserID, String nickName)
+	{
+		BuddyAnonymized buddyAnonymized = BuddyAnonymized.createInstance();
+		buddyAnonymized = BuddyAnonymized.getRepository().save(buddyAnonymized);
+		return new Buddy(UUID.randomUUID(), buddyUserID, nickName, buddyAnonymized.getID());
+	}
 
-    public UUID getBuddyAnonymizedID()
-    {
-        return buddyAnonymizedID;
-    }
+	public UUID getBuddyAnonymizedID()
+	{
+		return buddyAnonymizedID;
+	}
 
-    BuddyAnonymized getBuddyAnonymized()
-    {
-        return BuddyAnonymized.getRepository().findOne(buddyAnonymizedID);
-    }
+	BuddyAnonymized getBuddyAnonymized()
+	{
+		return BuddyAnonymized.getRepository().findOne(buddyAnonymizedID);
+	}
 
-    public String getNickName()
-    {
-        return nickName;
-    }
+	public String getNickName()
+	{
+		return nickName;
+	}
 
-    public void setNickName(String nickName)
-    {
-        this.nickName = nickName;
-    }
+	public void setNickName(String nickName)
+	{
+		this.nickName = nickName;
+	}
 
-    public User getUser()
-    {
-        return User.getRepository().findOne(userID);
-    }
+	public User getUser()
+	{
+		return User.getRepository().findOne(userID);
+	}
 
-    public void setGoalNames(Set<String> goalNames)
-    {
-        goals = goalNames.stream().map(Goal.getRepository()::findByName).collect(Collectors.toSet());
-    }
+	public void setGoalNames(Set<String> goalNames)
+	{
+		goals = goalNames.stream().map(Goal.getRepository()::findByName).collect(Collectors.toSet());
+	}
 
-    public void setGoals(Set<Goal> goals)
-    {
-        goals = new HashSet<>(goals);
-    }
+	public void setGoals(Set<Goal> goals)
+	{
+		goals = new HashSet<>(goals);
+	}
 
-    public UUID getLoginID()
-    {
-        return getBuddyAnonymized().getLoginID();
-    }
+	public UUID getLoginID()
+	{
+		return getBuddyAnonymized().getLoginID();
+	}
 
-    public Status getReceivingStatus()
-    {
-        return getBuddyAnonymized().getReceivingStatus();
-    }
+	public Status getReceivingStatus()
+	{
+		return getBuddyAnonymized().getReceivingStatus();
+	}
 
-    public void setReceivingStatus(Status status)
-    {
-        getBuddyAnonymized().setReceivingStatus(status);
-    }
+	public void setReceivingStatus(Status status)
+	{
+		getBuddyAnonymized().setReceivingStatus(status);
+	}
 
-    public void setSendingStatus(Status status)
-    {
-        getBuddyAnonymized().setSendingStatus(status);
-    }
+	public void setSendingStatus(Status status)
+	{
+		getBuddyAnonymized().setSendingStatus(status);
+	}
 
-    public Status getSendingStatus()
-    {
-        return getBuddyAnonymized().getSendingStatus();
-    }
+	public Status getSendingStatus()
+	{
+		return getBuddyAnonymized().getSendingStatus();
+	}
 
-    public void setLoginID(UUID loginID)
-    {
-        BuddyAnonymized buddyAnonymized = getBuddyAnonymized();
-        buddyAnonymized.setLoginID(loginID);
-        BuddyAnonymized.getRepository().save(buddyAnonymized);
-    }
+	public void setLoginID(UUID loginID)
+	{
+		BuddyAnonymized buddyAnonymized = getBuddyAnonymized();
+		buddyAnonymized.setLoginID(loginID);
+		BuddyAnonymized.getRepository().save(buddyAnonymized);
+	}
 }
