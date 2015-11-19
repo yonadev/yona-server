@@ -65,6 +65,13 @@ public class BuddyService
 
     public void removeBuddyAfterConnectRejection(UUID idOfRequestingUser, UUID buddyID)
     {
+        User user = User.getRepository().findOne(idOfRequestingUser);
+        Buddy buddy = getEntityByID(buddyID);
+
+        if (buddy != null)
+        {
+            user.removeBuddy(buddy);
+        }
     }
 
     private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy)
