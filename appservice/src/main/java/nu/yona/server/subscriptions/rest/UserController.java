@@ -131,6 +131,39 @@ public class UserController {
 		}
 	}
 
+	@RequestMapping(value = "{id}/devices/", method = RequestMethod.GET)
+	public HttpEntity<DevicesResource> getDevicesForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID id) {
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+				() -> createUserDevicesResponse(new DevicesDTO(userService.getDevicesForUser(id))));
+	}
+	
+	@RequestMapping(value = "{id}/devices/", method = RequestMethod.POST)
+	public HttpEntity<DevicesResource> addDeviceForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID id, @RequestBody String deviceName) {
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+				() -> createUserDevicesResponse(new DevicesDTO(userService.addDeviceForUser(id, deviceName))));
+	}
+	
+	@RequestMapping(value = "{id}/devices/{deviceName}", method = RequestMethod.DELETE)
+	public void deleteDeviceForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID id, @PathVariable String deviceName) {
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), 
+				() -> createUserDevicesResponse(new DevicesDTO(userService.deleteDeviceForUser(id, deviceName))));
+	}
+	
+	private HttpEntity<DevicesResource> createUserDevicesResponse(DevicesDTO devices) {
+		return new ResponseEntity<DevicesResource>(
+				new DevicesResource(devices),
+				HttpStatus.OK);
+	}
+	
+	public static class DevicesResource extends Resource<DevicesDTO> {
+		public DevicesResource(DevicesDTO devices) {
+			super(devices);
+		}
+	}
+
 	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(

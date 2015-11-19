@@ -67,6 +67,12 @@ public class UserService {
 	}
 	
 	@Transactional
+	public Set<String> getDevicesForUser(UUID forUserID) {
+		User userEntity = getEntityByID(forUserID);
+		return userEntity.getDeviceNames();
+	}
+	
+	@Transactional
 	public Set<String> addDeviceForUser(UUID forUserID, String deviceName) {
 		User originalUserEntity = getEntityByID(forUserID);
 		Set<String> deviceNames = new TreeSet<String>(originalUserEntity.getDeviceNames());
@@ -191,6 +197,7 @@ public class UserService {
 		User.getRepository().save(userEntity);
 	}
 
+	@Transactional
 	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID id,
 			String userPassword, String userSecret) {
 		User userEntity = getEntityByID(id);
@@ -210,6 +217,7 @@ public class UserService {
 		return expirationDateTime;
 	}
 
+	@Transactional
 	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID id, String userSecret) {
 		if(userSecret == null || userSecret.isEmpty())
 		{
@@ -233,6 +241,7 @@ public class UserService {
 		return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
 	}
 
+	@Transactional
 	public void clearNewDeviceRequestForUser(UUID id) {
 		User userEntity = getEntityByID(id);
 		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
