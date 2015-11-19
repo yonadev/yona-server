@@ -23,6 +23,7 @@ import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
@@ -55,22 +56,37 @@ public class UserController
 	@Autowired
 	private BuddyService buddyService;
 
-	@RequestMapping(value = "{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
+	@RequestMapping(value = "{id}", params = { "includePrivateData", "tempPassword" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@RequestParam(value = "tempPassword", required = false) String tempPassword,
 			@RequestParam(value = "includePrivateData", defaultValue = "false") String includePrivateDataStr,
 			@PathVariable UUID id)
 	{
+		Optional<String> passwordToUse = getPasswordToUse(password, tempPassword);
 		boolean includePrivateData = Boolean.TRUE.toString().equals(includePrivateDataStr);
 		if (includePrivateData)
 		{
-			return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+			return CryptoSession.execute(passwordToUse, () -> userService.canAccessPrivateData(id),
 					() -> createOKResponse(userService.getPrivateUser(id), includePrivateData));
 		}
 		else
 		{
-			return getPublicUser(password, id);
+			return getPublicUser(passwordToUse, id);
 		}
+	}
+
+	private Optional<String> getPasswordToUse(Optional<String> password, String tempPassword)
+	{
+		if (password.isPresent())
+		{
+			return password;
+		}
+		if (StringUtils.isNotBlank(tempPassword))
+		{
+			return Optional.of(tempPassword);
+		}
+		return null;
 	}
 
 	@RequestMapping(value = "{id}", method = RequestMethod.GET)
@@ -90,13 +106,22 @@ public class UserController
 		return CryptoSession.execute(password, () -> createResponse(userService.addUser(user), true, HttpStatus.CREATED));
 	}
 
-	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
+	@RequestMapping(value = "{id}", method = RequestMethod.PUT, params = { "tempPassword" })
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID id, @RequestBody UserDTO userResource)
+			@RequestParam(value = "tempPassword", required = false) String tempPassword, @PathVariable UUID id,
+			@RequestBody UserDTO userResource)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
-				() -> createOKResponse(userService.updateUser(id, userResource), true));
+		if (StringUtils.isBlank(tempPassword))
+		{
+			return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+					() -> createOKResponse(userService.updateUser(id, userResource), true));
+		}
+		else
+		{
+			return createOKResponse(userService.updateUserCreatedOnBuddyRequest(id, tempPassword, password.get(), userResource),
+					true);
+		}
 	}
 
 	@RequestMapping(value = "{id}", method = RequestMethod.DELETE)
@@ -125,12 +150,19 @@ public class UserController
 		return createResponse(user, includePrivateData, HttpStatus.OK);
 	}
 
+	public static Link getUserLinkWithTempPassword(UUID userID, String tempPassword)
+	{
+		ControllerLinkBuilder linkBuilder = linkTo(methodOn(UserController.class).updateUser(Optional.empty(), tempPassword,
+				userID, null));
+		return linkBuilder.withSelfRel();
+	}
+
 	public static Link getUserLink(UUID userID, boolean includePrivateData)
 	{
 		ControllerLinkBuilder linkBuilder;
 		if (includePrivateData)
 		{
-			linkBuilder = linkTo(methodOn(UserController.class).getUser(Optional.empty(), Boolean.TRUE.toString(), userID));
+			linkBuilder = linkTo(methodOn(UserController.class).getUser(Optional.empty(), null, Boolean.TRUE.toString(), userID));
 		}
 		else
 		{
@@ -155,8 +187,8 @@ public class UserController
 			}
 
 			Set<BuddyDTO> buddies = getContent().getPrivateData().getBuddies();
-			return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME,
-					new BuddyController.BuddyResourceAssembler(getContent().getID()).toResources(buddies));
+			return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME, new BuddyController.BuddyResourceAssembler(getContent()
+					.getID()).toResources(buddies));
 		}
 
 		static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID)

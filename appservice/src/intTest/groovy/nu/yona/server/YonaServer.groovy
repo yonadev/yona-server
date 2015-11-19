@@ -5,6 +5,9 @@ import groovy.json.*
 
 import java.text.SimpleDateFormat
 
+import javax.mail.*
+import javax.mail.search.*
+
 import javax.management.InstanceOfQueryExp;
 
 class YonaServer {
@@ -60,6 +63,11 @@ class YonaServer {
 			getResourceWithPassword(userURL, password)
 		}
 	}
+	
+	def updateUser(userURL, jsonString, password)
+	{
+		updateResourceWithPassword(userURL, jsonString, password)
+	}
 
 	def deleteUser(userURL, password)
 	{
@@ -104,6 +112,16 @@ class YonaServer {
 	def createResource(path, jsonString, headers = [:])
 	{
 		postJson(path, jsonString, headers);
+	}
+	
+	def updateResourceWithPassword(path, jsonString, password)
+	{
+		createResource(path, jsonString, ["Yona-Password": password])
+	}
+
+	def updateResource(path, jsonString, headers = [:])
+	{
+		putJson(path, jsonString, headers);
 	}
 
 	def deleteResourceWithPassword(path, password)
@@ -161,10 +179,74 @@ class YonaServer {
 			contentType:'application/json',
 			headers: headers)
 	}
+	
+	def putJson(path, jsonString, headers = [:])
+	{
+        def object = null
+        if (jsonString instanceof Map)
+        {
+            object = jsonString;
+        }
+        else
+        {
+            object = jsonSlurper.parseText(jsonString)
+        }
+        
+		restClient.post(path: path,
+			body: object,
+			contentType:'application/json',
+			headers: headers)
+	}
 
 	def stripQueryString(url)
 	{
 		url - ~/\?.*/
 	}
 
+	def getLastMessageFromGmail(email, pwd)
+	{
+		Properties props = new Properties()
+		props.setProperty("mail.store.protocol", "imap")
+		props.setProperty("mail.imap.host", "imap.gmail.com")
+		props.setProperty("mail.imap.port", "993")
+		props.setProperty("mail.imap.ssl.enable", "true");
+		def session = Session.getDefaultInstance(props, null)
+		def store = session.getStore("imap")
+		
+		def inbox
+		def lastMessage
+		try 
+		{
+			store.connect(host, email, pwd)
+			inbox = store.getFolder("INBOX")
+			inbox.open(Folder.READ_WRITE)
+			def maxWaitSeconds = 15
+			def pollSeconds = 3
+			def retries = maxWaitSeconds / pollSeconds
+			sleep(1000)
+			for (i = 0; i <retries; i++) 
+			{
+				def messages = inbox.search(
+					new FlagTerm(new Flags(Flags.Flag.SEEN), false))
+				if(messages.size() > 0)
+				{
+					lastMessage = inbox.messages[0]
+					lastMessage.setFlag(Flags.Flag.SEEN, true)
+					break;
+				}
+				sleep(pollSeconds * 1000)
+			}
+			assert lastMessage
+		}
+		finally
+		{
+			 if(inbox) 
+			 {
+			    inbox.close(true)
+			 }
+			 store.close()
+		}
+		
+		lastMessage
+	}
 }

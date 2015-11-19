@@ -10,9 +10,6 @@ import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
 
-import org.apache.commons.lang.StringUtils;
-import org.springframework.stereotype.Service;
-
 import nu.yona.server.crypto.Constants;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.InvalidDataException;
@@ -20,6 +17,9 @@ import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.User;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Service;
 
 @Service
 public class UserService
@@ -73,18 +73,11 @@ public class UserService
 	public UserDTO updateUser(UUID id, UserDTO userResource)
 	{
 		User originalUserEntity = getEntityByID(id);
-		UserDTO savedUser;
 		if (originalUserEntity.isCreatedOnBuddyRequest())
 		{
-			// TODO: the password needs to come from the URL, not from the
-			// payload
-			savedUser = handleUserSignupUponBuddyRequest("TODO", userResource, originalUserEntity);
+			throw new YonaException("User is created on buddy request, use other method");
 		}
-		else
-		{
-			savedUser = handleUserUpdate(userResource, originalUserEntity);
-		}
-		return savedUser;
+		return handleUserUpdate(userResource, originalUserEntity);
 	}
 
 	static User findUserByMobileNumber(String mobileNumber)
@@ -98,10 +91,16 @@ public class UserService
 		return userEntity;
 	}
 
-	private UserDTO handleUserSignupUponBuddyRequest(String password, UserDTO userResource, User originalUserEntity)
+	@Transactional
+	public UserDTO updateUserCreatedOnBuddyRequest(UUID id, String tempPassword, String newPassword, UserDTO userResource)
 	{
-		UpdatedEntities updatedEntities = updateUserWithTempPassword(userResource, originalUserEntity);
-		return saveUserWithDevicePassword(password, updatedEntities);
+		User originalUserEntity = getEntityByID(id);
+		if (!originalUserEntity.isCreatedOnBuddyRequest())
+		{
+			throw new YonaException("User is not created on buddy request");
+		}
+		UpdatedEntities updatedEntities = updateUserWithTempPassword(userResource, originalUserEntity, tempPassword);
+		return saveUserWithDevicePassword(newPassword, updatedEntities);
 	}
 
 	static class UpdatedEntities
@@ -118,11 +117,9 @@ public class UserService
 		}
 	}
 
-	private UpdatedEntities updateUserWithTempPassword(UserDTO userDTO, User originalUserEntity)
+	private UpdatedEntities updateUserWithTempPassword(UserDTO userDTO, User originalUserEntity, String tempPassword)
 	{
-		// TODO: the password needs to come from the URL, not from the
-		// payload
-		return CryptoSession.execute(Optional.of("TODO"), () -> canAccessPrivateData(userDTO.getID()), () -> {
+		return CryptoSession.execute(Optional.of(tempPassword), () -> canAccessPrivateData(userDTO.getID()), () -> {
 			User updatedUserEntity = userDTO.updateUser(originalUserEntity);
 			MessageSource touchedNameMessageSource = touchMessageSource(updatedUserEntity.getNamedMessageSource());
 			MessageSource touchedAnonymousMessageSource = touchMessageSource(updatedUserEntity.getAnonymousMessageSource());
@@ -203,5 +200,10 @@ public class UserService
 		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getID());
 		userEntity.addBuddy(buddyEntity);
 		User.getRepository().save(userEntity);
+	}
+
+	public String generateTempPassword()
+	{
+		return "FOO"; // TODO
 	}
 }

@@ -4,14 +4,12 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.subscriptions.entities.Buddy;
@@ -19,12 +17,19 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.User;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @Transactional
 public class BuddyService
 {
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	EmailService emailService;
 
 	public BuddyDTO getBuddy(UUID buddyID)
 	{
@@ -37,14 +42,19 @@ public class BuddyService
 		return getBuddies(user.getPrivateData().getBuddyIDs());
 	}
 
-	public BuddyDTO addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDTO buddy)
+	public interface InviteURLGetter
+	{
+		String getInviteURL(UUID newUserID, String tempPassword);
+	}
+
+	public BuddyDTO addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDTO buddy, InviteURLGetter inviteURLGetter)
 	{
 		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
 		User buddyUserEntity = getBuddyUser(buddy);
 		BuddyDTO newBuddyEntity;
 		if (buddyUserEntity == null)
 		{
-			newBuddyEntity = handleBuddyRequestForNewUser(requestingUser, buddy);
+			newBuddyEntity = handleBuddyRequestForNewUser(requestingUser, buddy, inviteURLGetter);
 		}
 		else
 		{
@@ -63,23 +73,25 @@ public class BuddyService
 		return BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
 	}
 
-	private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy)
+	private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy, InviteURLGetter inviteURLGetter)
 	{
 		UserDTO buddyUser = buddy.getUser();
-		User buddyUserEntity = User.createInstanceOnBuddyRequest(buddyUser.getFirstName(), buddyUser.getLastName(),
-				buddyUser.getPrivateData().getNickName(), buddyUser.getMobileNumber());
-		User savedBuddyUserEntity = User.getRepository().save(buddyUserEntity);
-		sendInvitationMessage(savedBuddyUserEntity, buddy);
-		return handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
+		User buddyUserEntity = User.createInstanceOnBuddyRequest(buddyUser.getFirstName(), buddyUser.getLastName(), buddyUser
+				.getPrivateData().getNickName(), buddyUser.getMobileNumber());
+		String tempPassword = userService.generateTempPassword();
+		User savedBuddyUserEntity = CryptoSession.execute(Optional.of(tempPassword), null,
+				() -> User.getRepository().save(buddyUserEntity));
+
+		String inviteURL = inviteURLGetter.getInviteURL(savedBuddyUserEntity.getID(), tempPassword);
+		sendInvitationMessage(savedBuddyUserEntity, buddy, inviteURL);
+
+		return handleBuddyRequestForExistingUser(requestingUser, buddy, savedBuddyUserEntity);
 	}
 
-	private void sendInvitationMessage(User buddyUserEntity, BuddyDTO buddy)
+	private void sendInvitationMessage(User buddyUserEntity, BuddyDTO buddy, String inviteURL)
 	{
-		/*
-		 * String userURL = UserController.getUserLink(buddyUserEntity.getID(), false).getHref();
-		 * System.out.println(buddy.getMessage()); System.out.println("\nTo accept this request, install the Yona app");
-		 * System.out.println( "\nTo mimic the Yona app, post the appropriate message to this URL: " + userURL);
-		 */
+		emailService.sendEmail(buddy.getUser().getEmailAddress(), "Become my buddy for Yona!",
+				"Install the app! Open this URL with the app! " + inviteURL);
 	}
 
 	private BuddyDTO handleBuddyRequestForExistingUser(UserDTO requestingUser, BuddyDTO buddy, User buddyUserEntity)
@@ -92,9 +104,9 @@ public class BuddyService
 		userService.addBuddy(requestingUser, savedBuddy);
 
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
-		messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
-				requestingUser.getPrivateData().getVpnProfile().getLoginID(), requestingUser.getPrivateData().getGoals(),
-				requestingUser.getPrivateData().getNickName(), buddy.getMessage(), savedBuddyEntity.getID()));
+		messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(), requestingUser.getPrivateData()
+				.getVpnProfile().getLoginID(), requestingUser.getPrivateData().getGoals(), requestingUser.getPrivateData()
+				.getNickName(), buddy.getMessage(), savedBuddyEntity.getID()));
 		MessageDestination.getRepository().save(messageDestination);
 
 		return savedBuddy;
