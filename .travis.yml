@@ -5,6 +5,10 @@ jdk:
 
 sudo: required
 
+branches:
+  only:
+    - master
+
 services:
   - docker
 
