@@ -19,6 +19,7 @@ import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.entities.Buddy;
+import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
 
 @Service
@@ -203,5 +204,50 @@ public class UserService
 		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getID());
 		userEntity.addBuddy(buddyEntity);
 		User.getRepository().save(userEntity);
+	}
+
+	@Transactional
+	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID userID, String userPassword, String userSecret)
+	{
+		User userEntity = getEntityByID(userID);
+		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(userPassword);
+		newDeviceRequestEntity.encryptUserPassword(userSecret);
+		boolean isUpdatingExistingRequest = userEntity.getNewDeviceRequest() != null;
+		userEntity.setNewDeviceRequest(newDeviceRequestEntity);
+		return NewDeviceRequestDTO.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest(),
+				isUpdatingExistingRequest);
+	}
+
+	@Transactional
+	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID userID, String userSecret)
+	{
+		User userEntity = getEntityByID(userID);
+		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
+		if (newDeviceRequestEntity == null)
+		{
+			throw new NewDeviceRequestNotPresentException(userID);
+		}
+
+		if (StringUtils.isBlank(userSecret))
+		{
+			return NewDeviceRequestDTO.createInstance(userEntity.getNewDeviceRequest());
+		}
+		else
+		{
+			newDeviceRequestEntity.decryptUserPassword(userSecret);
+			return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
+		}
+	}
+
+	@Transactional
+	public void clearNewDeviceRequestForUser(UUID userID)
+	{
+		User userEntity = getEntityByID(userID);
+		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
+		if (existingNewDeviceRequestEntity != null)
+		{
+			userEntity.setNewDeviceRequest(null);
+			User.getRepository().save(userEntity);
+		}
 	}
 }
