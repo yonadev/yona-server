@@ -266,6 +266,10 @@ public class UserService
 		{
 			throw new NewDeviceRequestNotPresentException(userID);
 		}
+		else if (newDeviceRequestEntity.hasExpired())
+		{
+			throw new NewDeviceRequestExpiredException(userID);
+		}
 
 		if (StringUtils.isBlank(userSecret))
 		{

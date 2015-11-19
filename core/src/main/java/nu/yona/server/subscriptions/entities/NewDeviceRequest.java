@@ -86,4 +86,9 @@ public class NewDeviceRequest extends EntityWithID
 			throw new DecryptionException();
 		}
 	}
+
+	public boolean hasExpired()
+	{
+		return expirationDateTime.before(new Date());
+	}
 }
