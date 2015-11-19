@@ -18,6 +18,7 @@ public class EmailService
 	public void sendEmail(String to, String subject, String text)
 	{
 		Properties props = new Properties();
+		props.put("mail.smtp.ssl.enable", "true");
 		props.put("mail.smtp.host", "smtp.gmail.com"); // TODO: replace by local SMTP server
 		props.put("mail.smtp.socketFactory.port", "465");
 		props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
