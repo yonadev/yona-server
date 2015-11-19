@@ -10,10 +10,10 @@ import org.springframework.boot.context.web.SpringBootServletInitializer;
 public class AppServiceServletInitializer extends SpringBootServletInitializer
 {
 
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder application)
-    {
-        return application.sources(AppServiceApplication.class);
-    }
+	@Override
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder application)
+	{
+		return application.sources(AppServiceApplication.class);
+	}
 
 }

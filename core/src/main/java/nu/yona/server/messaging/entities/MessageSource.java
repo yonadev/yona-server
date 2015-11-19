@@ -28,73 +28,73 @@ import nu.yona.server.entities.RepositoryProvider;
 @Table(name = "MESSAGE_SOURCES")
 public class MessageSource extends EntityWithID
 {
-    public static MessageSourceRepository getRepository()
-    {
-        return (MessageSourceRepository) RepositoryProvider.getRepository(MessageSource.class, UUID.class);
-    }
+	public static MessageSourceRepository getRepository()
+	{
+		return (MessageSourceRepository) RepositoryProvider.getRepository(MessageSource.class, UUID.class);
+	}
 
-    @Convert(converter = ByteFieldEncrypter.class)
-    @Column(length = 1024)
-    private byte[] privateKeyBytes;
+	@Convert(converter = ByteFieldEncrypter.class)
+	@Column(length = 1024)
+	private byte[] privateKeyBytes;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    private MessageDestination messageDestination;
+	@OneToOne(cascade = CascadeType.ALL)
+	private MessageDestination messageDestination;
 
-    @Transient
-    private PrivateKey privateKey;
+	@Transient
+	private PrivateKey privateKey;
 
-    // Default constructor is required for JPA
-    public MessageSource()
-    {
-        super(null);
-    }
+	// Default constructor is required for JPA
+	public MessageSource()
+	{
+		super(null);
+	}
 
-    public MessageSource(UUID id, PrivateKey privateKey, MessageDestination messageDestination)
-    {
-        super(id);
-        this.messageDestination = messageDestination;
-        this.privateKeyBytes = PublicKeyUtil.privateKeyToBytes(privateKey);
-    }
+	public MessageSource(UUID id, PrivateKey privateKey, MessageDestination messageDestination)
+	{
+		super(id);
+		this.messageDestination = messageDestination;
+		this.privateKeyBytes = PublicKeyUtil.privateKeyToBytes(privateKey);
+	}
 
-    public static MessageSource createInstance()
-    {
-        KeyPair pair = PublicKeyUtil.generateKeyPair();
+	public static MessageSource createInstance()
+	{
+		KeyPair pair = PublicKeyUtil.generateKeyPair();
 
-        MessageDestination messageDestination = MessageDestination.createInstance(pair.getPublic());
-        return new MessageSource(UUID.randomUUID(), pair.getPrivate(), messageDestination);
-    }
+		MessageDestination messageDestination = MessageDestination.createInstance(pair.getPublic());
+		return new MessageSource(UUID.randomUUID(), pair.getPrivate(), messageDestination);
+	}
 
-    public MessageDestination getDestination()
-    {
-        return messageDestination;
-    }
+	public MessageDestination getDestination()
+	{
+		return messageDestination;
+	}
 
-    public List<Message> getAllMessages()
-    {
-        List<Message> decryptedMessages = messageDestination.getAllMessages();
-        PublicKeyDecryptor decryptor = PublicKeyDecryptor.createInstance(loadPrivateKey());
-        decryptedMessages.stream().forEach(m -> m.decryptMessage(decryptor));
-        return decryptedMessages;
-    }
+	public List<Message> getAllMessages()
+	{
+		List<Message> decryptedMessages = messageDestination.getAllMessages();
+		PublicKeyDecryptor decryptor = PublicKeyDecryptor.createInstance(loadPrivateKey());
+		decryptedMessages.stream().forEach(m -> m.decryptMessage(decryptor));
+		return decryptedMessages;
+	}
 
-    private PrivateKey loadPrivateKey()
-    {
-        if (privateKey == null)
-        {
-            privateKey = PublicKeyUtil.privateKeyFromBytes(privateKeyBytes);
-        }
-        return privateKey;
-    }
+	private PrivateKey loadPrivateKey()
+	{
+		if (privateKey == null)
+		{
+			privateKey = PublicKeyUtil.privateKeyFromBytes(privateKeyBytes);
+		}
+		return privateKey;
+	}
 
-    public Message getMessage(UUID idToFetch)
-    {
-        Message message = Message.getRepository().findOne(idToFetch);
-        message.decryptMessage(PublicKeyDecryptor.createInstance(loadPrivateKey()));
-        return message;
-    }
+	public Message getMessage(UUID idToFetch)
+	{
+		Message message = Message.getRepository().findOne(idToFetch);
+		message.decryptMessage(PublicKeyDecryptor.createInstance(loadPrivateKey()));
+		return message;
+	}
 
-    public void touch()
-    {
-        privateKeyBytes = Arrays.copyOf(privateKeyBytes, privateKeyBytes.length);
-    }
+	public void touch()
+	{
+		privateKeyBytes = Arrays.copyOf(privateKeyBytes, privateKeyBytes.length);
+	}
 }

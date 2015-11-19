@@ -12,22 +12,22 @@ import javax.persistence.Converter;
 @Converter
 public class StringFieldEncrypter implements AttributeConverter<String, String>
 {
-    @Override
-    public String convertToDatabaseColumn(String attribute)
-    {
-        return (attribute == null) ? null
-                : new ByteFieldEncrypter().convertToDatabaseColumn(attribute.getBytes(StandardCharsets.UTF_8));
-    }
+	@Override
+	public String convertToDatabaseColumn(String attribute)
+	{
+		return (attribute == null) ? null
+				: new ByteFieldEncrypter().convertToDatabaseColumn(attribute.getBytes(StandardCharsets.UTF_8));
+	}
 
-    @Override
-    public String convertToEntityAttribute(String dbData)
-    {
-        return (dbData == null) ? null : decryptToString(dbData);
-    }
+	@Override
+	public String convertToEntityAttribute(String dbData)
+	{
+		return (dbData == null) ? null : decryptToString(dbData);
+	}
 
-    private String decryptToString(String dbData)
-    {
-        byte[] decryptedBytes = new ByteFieldEncrypter().convertToEntityAttribute(dbData);
-        return (decryptedBytes == null) ? null : new String(decryptedBytes);
-    }
+	private String decryptToString(String dbData)
+	{
+		byte[] decryptedBytes = new ByteFieldEncrypter().convertToEntityAttribute(dbData);
+		return (decryptedBytes == null) ? null : new String(decryptedBytes);
+	}
 }

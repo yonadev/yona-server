@@ -13,18 +13,18 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 @JsonRootName("message")
 public abstract class MessageDTO
 {
-    private final UUID id;
+	private final UUID id;
 
-    protected MessageDTO(UUID id)
-    {
-        this.id = id;
-    }
+	protected MessageDTO(UUID id)
+	{
+		this.id = id;
+	}
 
-    @JsonIgnore
-    public UUID getID()
-    {
-        return id;
-    }
+	@JsonIgnore
+	public UUID getID()
+	{
+		return id;
+	}
 
-    public abstract Set<String> getPossibleActions();
+	public abstract Set<String> getPossibleActions();
 }

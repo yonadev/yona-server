@@ -21,56 +21,56 @@ import nu.yona.server.goals.entities.Goal;
 @JsonRootName("goal")
 public class GoalDTO
 {
-    private final UUID id;
-    private final String name;
-    private Set<String> categories;
+	private final UUID id;
+	private final String name;
+	private Set<String> categories;
 
-    private GoalDTO(UUID id, String name, Set<String> categories)
-    {
-        this.id = id;
-        this.name = name;
-        this.categories = new HashSet<>(categories);
-    }
+	private GoalDTO(UUID id, String name, Set<String> categories)
+	{
+		this.id = id;
+		this.name = name;
+		this.categories = new HashSet<>(categories);
+	}
 
-    @JsonCreator
-    public GoalDTO(@JsonProperty("name") String name,
-            @JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories)
-    {
-        this(null, name, categories);
-    }
+	@JsonCreator
+	public GoalDTO(@JsonProperty("name") String name,
+			@JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories)
+	{
+		this(null, name, categories);
+	}
 
-    @JsonIgnore
-    public UUID getID()
-    {
-        return id;
-    }
+	@JsonIgnore
+	public UUID getID()
+	{
+		return id;
+	}
 
-    public String getName()
-    {
-        return name;
-    }
+	public String getName()
+	{
+		return name;
+	}
 
-    @JsonProperty("categories")
-    public Set<String> getCategories()
-    {
-        return Collections.unmodifiableSet(categories);
-    }
+	@JsonProperty("categories")
+	public Set<String> getCategories()
+	{
+		return Collections.unmodifiableSet(categories);
+	}
 
-    public static GoalDTO createInstance(Goal goalEntity)
-    {
-        return new GoalDTO(goalEntity.getID(), goalEntity.getName(), goalEntity.getCategories());
-    }
+	public static GoalDTO createInstance(Goal goalEntity)
+	{
+		return new GoalDTO(goalEntity.getID(), goalEntity.getName(), goalEntity.getCategories());
+	}
 
-    public Goal createGoalEntity()
-    {
-        return Goal.createInstance(name, categories);
-    }
+	public Goal createGoalEntity()
+	{
+		return Goal.createInstance(name, categories);
+	}
 
-    public Goal updateGoal(Goal originalGoalEntity)
-    {
-        originalGoalEntity.setName(name);
-        originalGoalEntity.setCategories(categories);
+	public Goal updateGoal(Goal originalGoalEntity)
+	{
+		originalGoalEntity.setName(name);
+		originalGoalEntity.setCategories(categories);
 
-        return originalGoalEntity;
-    }
+		return originalGoalEntity;
+	}
 }

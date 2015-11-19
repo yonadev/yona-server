@@ -16,34 +16,34 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 @JsonRootName("vpnProfile")
 public class VPNProfileDTO
 {
-    private final UUID id;
-    private UUID loginID;
+	private final UUID id;
+	private UUID loginID;
 
-    public VPNProfileDTO(UUID id, UUID loginID)
-    {
-        this.id = id;
-        this.loginID = loginID;
-    }
+	public VPNProfileDTO(UUID id, UUID loginID)
+	{
+		this.id = id;
+		this.loginID = loginID;
+	}
 
-    @JsonCreator
-    public VPNProfileDTO(@JsonProperty("loginID") UUID loginID)
-    {
-        this(null, loginID);
-    }
+	@JsonCreator
+	public VPNProfileDTO(@JsonProperty("loginID") UUID loginID)
+	{
+		this(null, loginID);
+	}
 
-    @JsonIgnore
-    public UUID getID()
-    {
-        return id;
-    }
+	@JsonIgnore
+	public UUID getID()
+	{
+		return id;
+	}
 
-    public UUID getLoginID()
-    {
-        return loginID;
-    }
+	public UUID getLoginID()
+	{
+		return loginID;
+	}
 
-    public static VPNProfileDTO createInstance(UserAnonymized userAnonymized)
-    {
-        return new VPNProfileDTO(userAnonymized.getID(), userAnonymized.getLoginID());
-    }
+	public static VPNProfileDTO createInstance(UserAnonymized userAnonymized)
+	{
+		return new VPNProfileDTO(userAnonymized.getID(), userAnonymized.getLoginID());
+	}
 }

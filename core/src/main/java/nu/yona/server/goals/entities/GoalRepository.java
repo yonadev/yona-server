@@ -10,5 +10,5 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface GoalRepository extends CrudRepository<Goal, UUID>
 {
-    Goal findByName(String name);
+	Goal findByName(String name);
 }

@@ -5,6 +5,8 @@ import groovy.json.*
 
 import java.text.SimpleDateFormat
 
+import javax.management.InstanceOfQueryExp;
+
 class YonaServer {
 	final GOALS_PATH = "/goals/"
 	final USERS_PATH = "/users/"
@@ -20,6 +22,8 @@ class YonaServer {
 	YonaServer (baseURL)
 	{
 		restClient = new RESTClient(baseURL)
+        
+        restClient.handler.failure = restClient.handler.success 
 	}
 
 	def static getTimeStamp()
@@ -142,7 +146,16 @@ class YonaServer {
 
 	def postJson(path, jsonString, headers = [:])
 	{
-		def object = jsonSlurper.parseText(jsonString)
+        def object = null
+        if (jsonString instanceof Map)
+        {
+            object = jsonString;
+        }
+        else
+        {
+            object = jsonSlurper.parseText(jsonString)
+        }
+        
 		restClient.post(path: path,
 			body: object,
 			contentType:'application/json',

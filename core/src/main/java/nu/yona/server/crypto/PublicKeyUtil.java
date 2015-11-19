@@ -19,82 +19,82 @@ import nu.yona.server.exceptions.YonaException;
 public class PublicKeyUtil
 {
 
-    public static final String KEY_ALGORITHM = "RSA";
+	public static final String KEY_ALGORITHM = "RSA";
 
-    public PublicKeyUtil()
-    {
-        // TODO Auto-generated constructor stub
-    }
+	public PublicKeyUtil()
+	{
+		// TODO Auto-generated constructor stub
+	}
 
-    public static KeyPair generateKeyPair()
-    {
-        try
-        {
-            KeyPairGenerator keyGen = KeyPairGenerator.getInstance(KEY_ALGORITHM);
-            SecureRandom random = CryptoUtil.getSecureRandomInstance();
-            keyGen.initialize(1024, random);
-            KeyPair pair = keyGen.generateKeyPair();
-            return pair;
-        }
-        catch (GeneralSecurityException e)
-        {
-            throw new YonaException(e);
-        }
-    }
+	public static KeyPair generateKeyPair()
+	{
+		try
+		{
+			KeyPairGenerator keyGen = KeyPairGenerator.getInstance(KEY_ALGORITHM);
+			SecureRandom random = CryptoUtil.getSecureRandomInstance();
+			keyGen.initialize(1024, random);
+			KeyPair pair = keyGen.generateKeyPair();
+			return pair;
+		}
+		catch (GeneralSecurityException e)
+		{
+			throw new YonaException(e);
+		}
+	}
 
-    public static byte[] privateKeyToBytes(PrivateKey privateKey)
-    {
-        try
-        {
-            KeyFactory fact = KeyFactory.getInstance(PublicKeyUtil.KEY_ALGORITHM);
-            PKCS8EncodedKeySpec spec = fact.getKeySpec(privateKey, PKCS8EncodedKeySpec.class);
-            return spec.getEncoded();
-        }
-        catch (GeneralSecurityException e)
-        {
-            throw new YonaException(e);
-        }
-    }
+	public static byte[] privateKeyToBytes(PrivateKey privateKey)
+	{
+		try
+		{
+			KeyFactory fact = KeyFactory.getInstance(PublicKeyUtil.KEY_ALGORITHM);
+			PKCS8EncodedKeySpec spec = fact.getKeySpec(privateKey, PKCS8EncodedKeySpec.class);
+			return spec.getEncoded();
+		}
+		catch (GeneralSecurityException e)
+		{
+			throw new YonaException(e);
+		}
+	}
 
-    public static PrivateKey privateKeyFromBytes(byte[] privateKeyBytes)
-    {
-        try
-        {
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
-            KeyFactory fact = KeyFactory.getInstance(PublicKeyUtil.KEY_ALGORITHM);
-            return fact.generatePrivate(keySpec);
-        }
-        catch (GeneralSecurityException e)
-        {
-            throw new YonaException(e);
-        }
-    }
+	public static PrivateKey privateKeyFromBytes(byte[] privateKeyBytes)
+	{
+		try
+		{
+			PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
+			KeyFactory fact = KeyFactory.getInstance(PublicKeyUtil.KEY_ALGORITHM);
+			return fact.generatePrivate(keySpec);
+		}
+		catch (GeneralSecurityException e)
+		{
+			throw new YonaException(e);
+		}
+	}
 
-    public static PublicKey publicKeyFromBytes(byte[] publicKeyBytes)
-    {
-        try
-        {
-            X509EncodedKeySpec spec = new X509EncodedKeySpec(publicKeyBytes);
-            KeyFactory fact = KeyFactory.getInstance(KEY_ALGORITHM);
-            return fact.generatePublic(spec);
-        }
-        catch (GeneralSecurityException e)
-        {
-            throw new YonaException(e);
-        }
-    }
+	public static PublicKey publicKeyFromBytes(byte[] publicKeyBytes)
+	{
+		try
+		{
+			X509EncodedKeySpec spec = new X509EncodedKeySpec(publicKeyBytes);
+			KeyFactory fact = KeyFactory.getInstance(KEY_ALGORITHM);
+			return fact.generatePublic(spec);
+		}
+		catch (GeneralSecurityException e)
+		{
+			throw new YonaException(e);
+		}
+	}
 
-    public static byte[] publicKeyToBytes(PublicKey publicKey)
-    {
-        try
-        {
-            KeyFactory factory = KeyFactory.getInstance(KEY_ALGORITHM);
-            X509EncodedKeySpec spec = factory.getKeySpec(publicKey, X509EncodedKeySpec.class);
-            return spec.getEncoded();
-        }
-        catch (GeneralSecurityException e)
-        {
-            throw new YonaException(e);
-        }
-    }
+	public static byte[] publicKeyToBytes(PublicKey publicKey)
+	{
+		try
+		{
+			KeyFactory factory = KeyFactory.getInstance(KEY_ALGORITHM);
+			X509EncodedKeySpec spec = factory.getKeySpec(publicKey, X509EncodedKeySpec.class);
+			return spec.getEncoded();
+		}
+		catch (GeneralSecurityException e)
+		{
+			throw new YonaException(e);
+		}
+	}
 }

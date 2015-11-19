@@ -12,15 +12,15 @@ import nu.yona.server.exceptions.YonaException;
 @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Decryption failed")
 public class DecryptionException extends YonaException
 {
-    private static final long serialVersionUID = -8007474934276158682L;
+	private static final long serialVersionUID = -8007474934276158682L;
 
-    public DecryptionException(Throwable cause)
-    {
-        super("Decryption failed", cause);
-    }
+	public DecryptionException(Throwable cause)
+	{
+		super("Decryption failed", cause);
+	}
 
-    public DecryptionException()
-    {
-        this(null);
-    }
+	public DecryptionException()
+	{
+		this(null);
+	}
 }

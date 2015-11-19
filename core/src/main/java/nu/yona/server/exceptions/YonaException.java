@@ -7,20 +7,20 @@ package nu.yona.server.exceptions;
 public class YonaException extends RuntimeException
 {
 
-    private static final long serialVersionUID = 6332689175661269736L;
+	private static final long serialVersionUID = 6332689175661269736L;
 
-    public YonaException(String message)
-    {
-        super(message);
-    }
+	public YonaException(String message)
+	{
+		super(message);
+	}
 
-    public YonaException(Throwable cause)
-    {
-        super(cause);
-    }
+	public YonaException(Throwable cause)
+	{
+		super(cause);
+	}
 
-    public YonaException(String message, Throwable cause)
-    {
-        super(message, cause);
-    }
+	public YonaException(String message, Throwable cause)
+	{
+		super(message, cause);
+	}
 }

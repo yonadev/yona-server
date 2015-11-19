@@ -9,6 +9,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.hateoas.RelProvider;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
@@ -30,31 +31,47 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableHypermediaSupport(type = HypermediaType.HAL)
 public class AppServiceApplication
 {
-    public static void main(String[] args)
-    {
-        SpringApplication.run(AppServiceApplication.class, args);
-    }
+	public static void main(String[] args)
+	{
+		SpringApplication.run(AppServiceApplication.class, args);
+	}
 
-    @Bean
-    public Docket yonaApi()
-    {
-        ApiInfo apiInfo = new ApiInfo("Yona Server", "Server backing the Yona mobile app", "1.0", null, null, "MPL",
-                "https://www.mozilla.org/en-US/MPL/2.0/");
-        return new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo).select().apis(RequestHandlerSelectors.any())
-                .paths(PathSelectors.any()).build().pathMapping("/").useDefaultResponseMessages(false)
-                .globalResponseMessage(RequestMethod.GET, newArrayList(new ResponseMessageBuilder().code(500)
-                        .message("500 message").responseModel(new ModelRef("Error")).build()));
-    }
+	@Bean
+	public Docket yonaApi()
+	{
+		ApiInfo apiInfo = new ApiInfo("Yona Server", "Server backing the Yona mobile app", "1.0", null, null, "MPL",
+				"https://www.mozilla.org/en-US/MPL/2.0/");
+		return new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo).select().apis(RequestHandlerSelectors.any())
+				.paths(PathSelectors.any()).build().pathMapping("/").useDefaultResponseMessages(false)
+				.globalResponseMessage(RequestMethod.GET, newArrayList(new ResponseMessageBuilder().code(500)
+						.message("500 message").responseModel(new ModelRef("Error")).build()));
+	}
 
-    @Bean
-    RelProvider relProvider()
-    {
-        return new JsonRootRelProvider();
-    }
+	@Bean
+	RelProvider relProvider()
+	{
+		return new JsonRootRelProvider();
+	}
 
-    @Bean
-    RepositoryProvider repositoryProvider()
-    {
-        return new RepositoryProvider();
-    }
+	@Bean
+	RepositoryProvider repositoryProvider()
+	{
+		return new RepositoryProvider();
+	}
+
+	/**
+	 * This bean tells the application which message bunble to use.
+	 * 
+	 * @return The message bundle source
+	 */
+	@Bean(name = "messageSource")
+	public ReloadableResourceBundleMessageSource messageSource()
+	{
+		ReloadableResourceBundleMessageSource messageBundle = new ReloadableResourceBundleMessageSource();
+
+		messageBundle.setBasename("classpath:messages/messages");
+		messageBundle.setDefaultEncoding("UTF-8");
+
+		return messageBundle;
+	}
 }

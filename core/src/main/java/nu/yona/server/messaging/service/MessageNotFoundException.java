@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No such message")
 public class MessageNotFoundException extends RuntimeException
 {
-    private static final long serialVersionUID = -5889584804067081374L;
+	private static final long serialVersionUID = -5889584804067081374L;
 
-    public MessageNotFoundException(UUID id)
-    {
-        super("Message with ID '" + id + "' not found");
-    }
+	public MessageNotFoundException(UUID id)
+	{
+		super("Message with ID '" + id + "' not found");
+	}
 }

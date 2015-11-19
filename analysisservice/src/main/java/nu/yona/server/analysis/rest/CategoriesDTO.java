@@ -13,17 +13,17 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @JsonRootName("categories")
 public class CategoriesDTO
 {
-    private Set<String> categories;
+	private Set<String> categories;
 
-    @JsonCreator
-    public CategoriesDTO(
-            @JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories)
-    {
-        this.categories = new HashSet<>(categories);
-    }
+	@JsonCreator
+	public CategoriesDTO(
+			@JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories)
+	{
+		this.categories = new HashSet<>(categories);
+	}
 
-    public Set<String> getCategories()
-    {
-        return Collections.unmodifiableSet(categories);
-    }
+	public Set<String> getCategories()
+	{
+		return Collections.unmodifiableSet(categories);
+	}
 }

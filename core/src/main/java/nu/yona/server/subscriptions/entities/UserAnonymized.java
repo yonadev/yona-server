@@ -26,70 +26,70 @@ import nu.yona.server.messaging.entities.MessageDestination;
 @Table(name = "USERS_ANONYMIZED")
 public class UserAnonymized extends EntityWithID
 {
-    public static UserAnonymizedRepository getRepository()
-    {
-        return (UserAnonymizedRepository) RepositoryProvider.getRepository(UserAnonymized.class, UUID.class);
-    }
+	public static UserAnonymizedRepository getRepository()
+	{
+		return (UserAnonymizedRepository) RepositoryProvider.getRepository(UserAnonymized.class, UUID.class);
+	}
 
-    @ManyToOne
-    private MessageDestination anonymousDestination;
+	@ManyToOne
+	private MessageDestination anonymousDestination;
 
-    @ManyToMany
-    private Set<Goal> goals;
+	@ManyToMany
+	private Set<Goal> goals;
 
-    @OneToMany
-    private Set<BuddyAnonymized> buddiesAnonymized;
+	@OneToMany
+	private Set<BuddyAnonymized> buddiesAnonymized;
 
-    // Default constructor is required for JPA
-    public UserAnonymized()
-    {
-        super(null);
-    }
+	// Default constructor is required for JPA
+	public UserAnonymized()
+	{
+		super(null);
+	}
 
-    public UserAnonymized(UUID id, MessageDestination anonymousDestination, Set<Goal> goals)
-    {
-        super(id);
-        this.anonymousDestination = anonymousDestination;
-        this.goals = new HashSet<>(goals);
-        this.buddiesAnonymized = new HashSet<>();
-    }
+	public UserAnonymized(UUID id, MessageDestination anonymousDestination, Set<Goal> goals)
+	{
+		super(id);
+		this.anonymousDestination = anonymousDestination;
+		this.goals = new HashSet<>(goals);
+		this.buddiesAnonymized = new HashSet<>();
+	}
 
-    public Set<Goal> getGoals()
-    {
-        return Collections.unmodifiableSet(goals);
-    }
+	public Set<Goal> getGoals()
+	{
+		return Collections.unmodifiableSet(goals);
+	}
 
-    public MessageDestination getAnonymousDestination()
-    {
-        return anonymousDestination;
-    }
+	public MessageDestination getAnonymousDestination()
+	{
+		return anonymousDestination;
+	}
 
-    public Set<MessageDestination> getAllRelatedDestinations()
-    {
-        Set<MessageDestination> relatedDestinations = new HashSet<>(Arrays.asList(anonymousDestination));
-        relatedDestinations.addAll(buddiesAnonymized.stream().map(ba -> ba.getUserAnonymized())
-                .map(ua -> ua.getAnonymousDestination()).collect(Collectors.toSet()));
-        return relatedDestinations;
-    }
+	public Set<MessageDestination> getAllRelatedDestinations()
+	{
+		Set<MessageDestination> relatedDestinations = new HashSet<>(Arrays.asList(anonymousDestination));
+		relatedDestinations.addAll(buddiesAnonymized.stream().map(ba -> ba.getUserAnonymized())
+				.map(ua -> ua.getAnonymousDestination()).collect(Collectors.toSet()));
+		return relatedDestinations;
+	}
 
-    public void addBuddyAnonymized(BuddyAnonymized buddyAnonimized)
-    {
-        buddiesAnonymized.add(buddyAnonimized);
-    }
+	public void addBuddyAnonymized(BuddyAnonymized buddyAnonimized)
+	{
+		buddiesAnonymized.add(buddyAnonimized);
+	}
 
-    public void removeBuddyAnonymized(BuddyAnonymized buddyAnonimized)
-    {
-        boolean removed = buddiesAnonymized.remove(buddyAnonimized);
-        assert removed;
-    }
+	public void removeBuddyAnonymized(BuddyAnonymized buddyAnonimized)
+	{
+		boolean removed = buddiesAnonymized.remove(buddyAnonimized);
+		assert removed;
+	}
 
-    public UUID getLoginID()
-    {
-        return getID();
-    }
+	public UUID getLoginID()
+	{
+		return getID();
+	}
 
-    public static UserAnonymized createInstance(MessageDestination anonymousDestination, Set<Goal> goals)
-    {
-        return new UserAnonymized(UUID.randomUUID(), anonymousDestination, goals);
-    }
+	public static UserAnonymized createInstance(MessageDestination anonymousDestination, Set<Goal> goals)
+	{
+		return new UserAnonymized(UUID.randomUUID(), anonymousDestination, goals);
+	}
 }

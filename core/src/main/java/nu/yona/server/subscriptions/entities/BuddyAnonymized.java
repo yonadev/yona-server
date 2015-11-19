@@ -16,78 +16,78 @@ import nu.yona.server.entities.RepositoryProvider;
 @Table(name = "BUDDIES")
 public class BuddyAnonymized extends EntityWithID
 {
-    public enum Status
-    {
-        NOT_REQUESTED, REQUESTED, ACCEPTED, REJECTED
-    }
+	public enum Status
+	{
+		NOT_REQUESTED, REQUESTED, ACCEPTED, REJECTED
+	}
 
-    public static BuddyAnonymizedRepository getRepository()
-    {
-        return (BuddyAnonymizedRepository) RepositoryProvider.getRepository(BuddyAnonymized.class, UUID.class);
-    }
+	public static BuddyAnonymizedRepository getRepository()
+	{
+		return (BuddyAnonymizedRepository) RepositoryProvider.getRepository(BuddyAnonymized.class, UUID.class);
+	}
 
-    private UUID userAnonymizedID;
+	private UUID userAnonymizedID;
 
-    private Status sendingStatus = Status.NOT_REQUESTED;
-    private Status receivingStatus = Status.NOT_REQUESTED;
+	private Status sendingStatus = Status.NOT_REQUESTED;
+	private Status receivingStatus = Status.NOT_REQUESTED;
 
-    // Default constructor is required for JPA
-    public BuddyAnonymized()
-    {
-        super(null);
-    }
+	// Default constructor is required for JPA
+	public BuddyAnonymized()
+	{
+		super(null);
+	}
 
-    private BuddyAnonymized(UUID id)
-    {
-        super(id);
-    }
+	private BuddyAnonymized(UUID id)
+	{
+		super(id);
+	}
 
-    public static BuddyAnonymized createInstance()
-    {
-        return new BuddyAnonymized(UUID.randomUUID());
-    }
+	public static BuddyAnonymized createInstance()
+	{
+		return new BuddyAnonymized(UUID.randomUUID());
+	}
 
-    public UserAnonymized getUserAnonymized()
-    {
-        if (userAnonymizedID == null)
-        {
-            throw new IllegalStateException("UserAnonymized is not available in this state");
-        }
-        return UserAnonymized.getRepository().findOne(userAnonymizedID);
-    }
+	public UserAnonymized getUserAnonymized()
+	{
+		if (userAnonymizedID == null)
+		{
+			throw new IllegalStateException("UserAnonymized is not available in this state");
+		}
+		return UserAnonymized.getRepository().findOne(userAnonymizedID);
+	}
 
-    public void setUserAnonymizedID(UUID userAnonymizedID)
-    {
-        this.userAnonymizedID = userAnonymizedID;
-    }
+	public void setUserAnonymizedID(UUID userAnonymizedID)
+	{
+		this.userAnonymizedID = userAnonymizedID;
+	}
 
-    public Status getSendingStatus()
-    {
-        return sendingStatus;
-    }
+	public Status getSendingStatus()
+	{
+		return sendingStatus;
+	}
 
-    public void setSendingStatus(Status sendingStatus)
-    {
-        this.sendingStatus = sendingStatus;
-    }
+	public void setSendingStatus(Status sendingStatus)
+	{
+		this.sendingStatus = sendingStatus;
+	}
 
-    public Status getReceivingStatus()
-    {
-        return receivingStatus;
-    }
+	public Status getReceivingStatus()
+	{
+		return receivingStatus;
+	}
 
-    public void setReceivingStatus(Status receivingStatus)
-    {
-        this.receivingStatus = receivingStatus;
-    }
+	public void setReceivingStatus(Status receivingStatus)
+	{
+		this.receivingStatus = receivingStatus;
+	}
 
-    public UUID getLoginID()
-    {
-        return getUserAnonymized().getLoginID();
-    }
+	public UUID getLoginID()
+	{
+		return getUserAnonymized().getLoginID();
+	}
 
-    public void setLoginID(UUID loginID)
-    {
-        setUserAnonymizedID(loginID);
-    }
+	public void setLoginID(UUID loginID)
+	{
+		setUserAnonymizedID(loginID);
+	}
 }

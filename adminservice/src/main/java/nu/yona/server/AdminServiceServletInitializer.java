@@ -10,10 +10,10 @@ import org.springframework.boot.context.web.SpringBootServletInitializer;
 public class AdminServiceServletInitializer extends SpringBootServletInitializer
 {
 
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder application)
-    {
-        return application.sources(AdminServiceApplication.class);
-    }
+	@Override
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder application)
+	{
+		return application.sources(AdminServiceApplication.class);
+	}
 
 }

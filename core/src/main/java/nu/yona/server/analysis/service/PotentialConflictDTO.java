@@ -17,32 +17,32 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @JsonRootName("potentialConflict")
 public class PotentialConflictDTO
 {
-    private UUID loginID;
-    private Set<String> categories;
-    private String url;
+	private UUID loginID;
+	private Set<String> categories;
+	private String url;
 
-    @JsonCreator
-    public PotentialConflictDTO(@JsonProperty("loginID") UUID loginID,
-            @JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories,
-            @JsonProperty("url") String url)
-    {
-        this.loginID = loginID;
-        this.categories = categories;
-        this.url = url;
-    }
+	@JsonCreator
+	public PotentialConflictDTO(@JsonProperty("loginID") UUID loginID,
+			@JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories,
+			@JsonProperty("url") String url)
+	{
+		this.loginID = loginID;
+		this.categories = categories;
+		this.url = url;
+	}
 
-    public UUID getLoginID()
-    {
-        return loginID;
-    }
+	public UUID getLoginID()
+	{
+		return loginID;
+	}
 
-    public Set<String> getCategories()
-    {
-        return Collections.unmodifiableSet(categories);
-    }
+	public Set<String> getCategories()
+	{
+		return Collections.unmodifiableSet(categories);
+	}
 
-    public String getURL()
-    {
-        return url;
-    }
+	public String getURL()
+	{
+		return url;
+	}
 }

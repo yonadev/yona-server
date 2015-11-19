@@ -23,125 +23,125 @@ import nu.yona.server.subscriptions.entities.User;
 @Transactional
 public class BuddyService
 {
-    @Autowired
-    private UserService userService;
+	@Autowired
+	private UserService userService;
 
-    public BuddyDTO getBuddy(UUID buddyID)
-    {
-        return BuddyDTO.createInstance(getEntityByID(buddyID));
-    }
+	public BuddyDTO getBuddy(UUID buddyID)
+	{
+		return BuddyDTO.createInstance(getEntityByID(buddyID));
+	}
 
-    public Set<BuddyDTO> getBuddiesOfUser(UUID forUserID)
-    {
-        UserDTO user = userService.getPrivateUser(forUserID);
-        return getBuddies(user.getPrivateData().getBuddyIDs());
-    }
+	public Set<BuddyDTO> getBuddiesOfUser(UUID forUserID)
+	{
+		UserDTO user = userService.getPrivateUser(forUserID);
+		return getBuddies(user.getPrivateData().getBuddyIDs());
+	}
 
-    public BuddyDTO addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDTO buddy)
-    {
-        UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
-        User buddyUserEntity = getBuddyUser(buddy);
-        BuddyDTO newBuddyEntity;
-        if (buddyUserEntity == null)
-        {
-            newBuddyEntity = handleBuddyRequestForNewUser(requestingUser, buddy);
-        }
-        else
-        {
-            newBuddyEntity = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
-        }
-        return newBuddyEntity;
-    }
+	public BuddyDTO addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDTO buddy)
+	{
+		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
+		User buddyUserEntity = getBuddyUser(buddy);
+		BuddyDTO newBuddyEntity;
+		if (buddyUserEntity == null)
+		{
+			newBuddyEntity = handleBuddyRequestForNewUser(requestingUser, buddy);
+		}
+		else
+		{
+			newBuddyEntity = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
+		}
+		return newBuddyEntity;
+	}
 
-    public BuddyDTO addBuddyToAcceptingUser(UUID buddyUserID, String buddyNickName, Set<Goal> buddyGoals, UUID buddyLoginID)
-    {
-        Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName);
-        buddy.setGoals(buddyGoals);
-        buddy.setReceivingStatus(BuddyAnonymized.Status.ACCEPTED);
-        buddy.setLoginID(buddyLoginID);
+	public BuddyDTO addBuddyToAcceptingUser(UUID buddyUserID, String buddyNickName, Set<Goal> buddyGoals, UUID buddyLoginID)
+	{
+		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName);
+		buddy.setGoals(buddyGoals);
+		buddy.setReceivingStatus(BuddyAnonymized.Status.ACCEPTED);
+		buddy.setLoginID(buddyLoginID);
 
-        return BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
-    }
+		return BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
+	}
 
-    public void removeBuddyAfterConnectRejection(UUID idOfRequestingUser, UUID buddyID)
-    {
-        User user = User.getRepository().findOne(idOfRequestingUser);
-        Buddy buddy = getEntityByID(buddyID);
+	public void removeBuddyAfterConnectRejection(UUID idOfRequestingUser, UUID buddyID)
+	{
+		User user = User.getRepository().findOne(idOfRequestingUser);
+		Buddy buddy = getEntityByID(buddyID);
 
-        if (buddy != null)
-        {
-            user.removeBuddy(buddy);
-        }
-    }
+		if (buddy != null)
+		{
+			user.removeBuddy(buddy);
+		}
+	}
 
-    private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy)
-    {
-        UserDTO buddyUser = buddy.getUser();
-        User buddyUserEntity = User.createInstanceOnBuddyRequest(buddyUser.getFirstName(), buddyUser.getLastName(),
-                buddyUser.getPrivateData().getNickName(), buddyUser.getEmailAddress(), buddyUser.getMobileNumber());
-        User savedBuddyUserEntity = User.getRepository().save(buddyUserEntity);
-        sendInvitationMessage(savedBuddyUserEntity, buddy);
-        return handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
-    }
+	private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy)
+	{
+		UserDTO buddyUser = buddy.getUser();
+		User buddyUserEntity = User.createInstanceOnBuddyRequest(buddyUser.getFirstName(), buddyUser.getLastName(),
+				buddyUser.getPrivateData().getNickName(), buddyUser.getEmailAddress(), buddyUser.getMobileNumber());
+		User savedBuddyUserEntity = User.getRepository().save(buddyUserEntity);
+		sendInvitationMessage(savedBuddyUserEntity, buddy);
+		return handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
+	}
 
-    private void sendInvitationMessage(User buddyUserEntity, BuddyDTO buddy)
-    {
-        /*
-         * String userURL = UserController.getUserLink(buddyUserEntity.getID(), false).getHref();
-         * System.out.println(buddy.getMessage()); System.out.println("\nTo accept this request, install the Yona app");
-         * System.out.println( "\nTo mimic the Yona app, post the appropriate message to this URL: " + userURL);
-         */
-    }
+	private void sendInvitationMessage(User buddyUserEntity, BuddyDTO buddy)
+	{
+		/*
+		 * String userURL = UserController.getUserLink(buddyUserEntity.getID(), false).getHref();
+		 * System.out.println(buddy.getMessage()); System.out.println("\nTo accept this request, install the Yona app");
+		 * System.out.println( "\nTo mimic the Yona app, post the appropriate message to this URL: " + userURL);
+		 */
+	}
 
-    private BuddyDTO handleBuddyRequestForExistingUser(UserDTO requestingUser, BuddyDTO buddy, User buddyUserEntity)
-    {
-        buddy.getUser().setUserID(buddyUserEntity.getID());
-        Buddy buddyEntity = buddy.createBuddyEntity();
-        buddyEntity.setSendingStatus(BuddyAnonymized.Status.REQUESTED);
-        Buddy savedBuddyEntity = Buddy.getRepository().save(buddyEntity);
-        BuddyDTO savedBuddy = BuddyDTO.createInstance(savedBuddyEntity);
-        userService.addBuddy(requestingUser, savedBuddy);
+	private BuddyDTO handleBuddyRequestForExistingUser(UserDTO requestingUser, BuddyDTO buddy, User buddyUserEntity)
+	{
+		buddy.getUser().setUserID(buddyUserEntity.getID());
+		Buddy buddyEntity = buddy.createBuddyEntity();
+		buddyEntity.setSendingStatus(BuddyAnonymized.Status.REQUESTED);
+		Buddy savedBuddyEntity = Buddy.getRepository().save(buddyEntity);
+		BuddyDTO savedBuddy = BuddyDTO.createInstance(savedBuddyEntity);
+		userService.addBuddy(requestingUser, savedBuddy);
 
-        MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
-        messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
-                requestingUser.getPrivateData().getVpnProfile().getLoginID(), requestingUser.getPrivateData().getGoals(),
-                requestingUser.getPrivateData().getNickName(), buddy.getMessage(), savedBuddyEntity.getID()));
-        MessageDestination.getRepository().save(messageDestination);
+		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
+		messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
+				requestingUser.getPrivateData().getVpnProfile().getLoginID(), requestingUser.getPrivateData().getGoals(),
+				requestingUser.getPrivateData().getNickName(), buddy.getMessage(), savedBuddyEntity.getID()));
+		MessageDestination.getRepository().save(messageDestination);
 
-        return savedBuddy;
-    }
+		return savedBuddy;
+	}
 
-    private Buddy getEntityByID(UUID id)
-    {
-        Buddy entity = Buddy.getRepository().findOne(id);
-        if (entity == null)
-        {
-            throw new BuddyNotFoundException(id);
-        }
-        return entity;
-    }
+	private Buddy getEntityByID(UUID id)
+	{
+		Buddy entity = Buddy.getRepository().findOne(id);
+		if (entity == null)
+		{
+			throw new BuddyNotFoundException(id);
+		}
+		return entity;
+	}
 
-    private User getBuddyUser(BuddyDTO buddy)
-    {
-        try
-        {
-            return UserService.findUserByEmailAddressOrMobileNumber(buddy.getUser().getEmailAddress(),
-                    buddy.getUser().getMobileNumber());
-        }
-        catch (UserNotFoundException e)
-        {
-            return null;
-        }
-    }
+	private User getBuddyUser(BuddyDTO buddy)
+	{
+		try
+		{
+			return UserService.findUserByEmailAddressOrMobileNumber(buddy.getUser().getEmailAddress(),
+					buddy.getUser().getMobileNumber());
+		}
+		catch (UserNotFoundException e)
+		{
+			return null;
+		}
+	}
 
-    public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID loginID)
-    {
-        Buddy buddy = Buddy.getRepository().findOne(buddyID);
-        buddy.setLoginID(loginID);
-    }
+	public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID loginID)
+	{
+		Buddy buddy = Buddy.getRepository().findOne(buddyID);
+		buddy.setLoginID(loginID);
+	}
 
-    public Set<BuddyDTO> getBuddies(Set<UUID> buddyIDs)
-    {
-        return buddyIDs.stream().map(id -> getBuddy(id)).collect(Collectors.toSet());
-    }
+	public Set<BuddyDTO> getBuddies(Set<UUID> buddyIDs)
+	{
+		return buddyIDs.stream().map(id -> getBuddy(id)).collect(Collectors.toSet());
+	}
 }

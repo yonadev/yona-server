@@ -9,14 +9,14 @@ import java.util.UUID;
 
 public interface Encryptor
 {
-    byte[] encrypt(byte[] plaintext);
+	byte[] encrypt(byte[] plaintext);
 
-    byte[] encrypt(String plaintext);
+	byte[] encrypt(String plaintext);
 
-    byte[] encrypt(UUID plaintext);
+	byte[] encrypt(UUID plaintext);
 
-    byte[] encrypt(long plaintext);
+	byte[] encrypt(long plaintext);
 
-    byte[] encrypt(Set<UUID> plaintext);
+	byte[] encrypt(Set<UUID> plaintext);
 
 }
