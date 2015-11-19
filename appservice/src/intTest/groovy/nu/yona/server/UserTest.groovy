@@ -15,18 +15,17 @@ class UserTest extends Specification {
 	def YonaServer appService = new YonaServer(appServiceBaseURL)
 	@Shared
 	def timestamp = YonaServer.getTimeStamp()
-    def userCreationJSON = """{
-                "firstName":"John",
-                "lastName":"Doe ${timestamp}",
-                "nickName":"JD ${timestamp}",
-                "emailAddress":"john${timestamp}@hotmail.com",
-                "mobileNumber":"+${timestamp}",
-                "devices":[
-                    "Galaxy mini"
-                ],
-                "goals":[
-                    "gambling"
-                ]}"""
+	def userCreationJSON = """{
+				"firstName":"John",
+				"lastName":"Doe ${timestamp}",
+				"nickName":"JD ${timestamp}",
+				"mobileNumber":"+${timestamp}",
+				"devices":[
+					"Galaxy mini"
+				],
+				"goals":[
+					"gambling"
+				]}"""
 	def password = "John Doe"
 
 	def 'Create John Doe'(){
@@ -103,7 +102,6 @@ class UserTest extends Specification {
 	{
 		assert responseData.firstName == "John"
 		assert responseData.lastName == "Doe ${timestamp}"
-		assert responseData.emailAddress == "john${timestamp}@hotmail.com"
 		assert responseData.mobileNumber == "+${timestamp}"
 		if (includePrivateData) {
 			assert responseData.nickName == "JD ${timestamp}"
