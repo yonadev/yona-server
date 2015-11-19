@@ -16,13 +16,19 @@ import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.messaging.entities.MessageDestinationRepository;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.entities.UserAnonymizedRepository;
 
 @Service
 public class AnalysisEngineService
 {
 	@Autowired
 	private GoalService goalService;
+	@Autowired
+	private UserAnonymizedRepository userAnonymizedRepository;
+	@Autowired
+	private MessageDestinationRepository messageDestinationRepository;
 
 	public void analyze(PotentialConflictDTO potentialConflictPayload)
 	{
@@ -46,7 +52,7 @@ public class AnalysisEngineService
 	{
 		Set<MessageDestination> destinations = userAnonymized.getAllRelatedDestinations();
 		destinations.stream().forEach(d -> d.send(createConflictMessage(payload, conflictingGoalsOfUser)));
-		destinations.stream().forEach(d -> MessageDestination.getRepository().save(d));
+		destinations.stream().forEach(d -> messageDestinationRepository.save(d));
 	}
 
 	private GoalConflictMessage createConflictMessage(PotentialConflictDTO payload, Set<Goal> conflictingGoalsOfUser)
@@ -71,7 +77,7 @@ public class AnalysisEngineService
 
 	private UserAnonymized getUserAnonymizedByID(UUID id)
 	{
-		UserAnonymized entity = UserAnonymized.getRepository().findOne(id);
+		UserAnonymized entity = userAnonymizedRepository.findOne(id);
 		if (entity == null)
 		{
 			throw new LoginIDNotFoundException(id);
