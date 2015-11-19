@@ -95,10 +95,10 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			}""", richardQuinPassword)
 			richardQuinBobBuddyURL = response.responseData._links.self.href
 			
-			def bobDunnInviteEmail = getLastMessageFromGmail(bobDunnGmail, bobDunnGmailPassword)
+			def bobDunnInviteEmail = appService.getLastMessageFromGmail(bobDunnGmail, bobDunnGmailPassword)
 			def bobDunnInviteURLMatch = bobDunnInviteEmail =~ /$appServiceBaseURL[^" ]+/
-			assert bobDunnInviteURLMatch.size() == 1
-			bobDunnInviteURL = bobDunnInviteURLMatch[0]
+			assert bobDunnInviteURLMatch
+			bobDunnInviteURL = bobDunnInviteURLMatch.group()
 
 		then:
 			response.status == 201

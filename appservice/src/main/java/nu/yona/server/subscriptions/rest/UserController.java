@@ -56,7 +56,7 @@ public class UserController
 	@Autowired
 	private BuddyService buddyService;
 
-	@RequestMapping(value = "{id}", params = { "includePrivateData", "tempPassword" }, method = RequestMethod.GET)
+	@RequestMapping(value = "{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "tempPassword", required = false) String tempPassword,

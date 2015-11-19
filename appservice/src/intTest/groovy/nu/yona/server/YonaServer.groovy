@@ -203,11 +203,13 @@ class YonaServer {
 		url - ~/\?.*/
 	}
 
-	def getLastMessageFromGmail(email, pwd)
+	def getLastMessageFromGmail(login, password)
 	{
+		def host = "imap.gmail.com";
+	
 		Properties props = new Properties()
 		props.setProperty("mail.store.protocol", "imap")
-		props.setProperty("mail.imap.host", "imap.gmail.com")
+		props.setProperty("mail.imap.host", host)
 		props.setProperty("mail.imap.port", "993")
 		props.setProperty("mail.imap.ssl.enable", "true");
 		def session = Session.getDefaultInstance(props, null)
@@ -215,28 +217,13 @@ class YonaServer {
 		
 		def inbox
 		def lastMessage
-		try 
+		try
 		{
-			store.connect(host, email, pwd)
+			println "Connecting to imap store"
+			store.connect(host, login, password)
 			inbox = store.getFolder("INBOX")
 			inbox.open(Folder.READ_WRITE)
-			def maxWaitSeconds = 15
-			def pollSeconds = 3
-			def retries = maxWaitSeconds / pollSeconds
-			sleep(1000)
-			for (i = 0; i <retries; i++) 
-			{
-				def messages = inbox.search(
-					new FlagTerm(new Flags(Flags.Flag.SEEN), false))
-				if(messages.size() > 0)
-				{
-					lastMessage = inbox.messages[0]
-					lastMessage.setFlag(Flags.Flag.SEEN, true)
-					break;
-				}
-				sleep(pollSeconds * 1000)
-			}
-			assert lastMessage
+			return getLastMessageFromInbox(inbox)
 		}
 		finally
 		{
@@ -246,7 +233,28 @@ class YonaServer {
 			 }
 			 store.close()
 		}
-		
-		lastMessage
+	}
+	
+	def getLastMessageFromInbox(inbox)
+	{
+		def maxWaitSeconds = 15
+		def pollSeconds = 3
+		def retries = maxWaitSeconds / pollSeconds
+		sleep(100)
+		for (def i = 0; i <retries; i++) 
+		{
+			println "Reading messages from inbox"
+			def messages = inbox.search(
+				new FlagTerm(new Flags(Flags.Flag.SEEN), false))
+			if(messages.size() > 0)
+			{
+				def lastMessage = inbox.messages[0]
+				lastMessage.setFlag(Flags.Flag.SEEN, true)
+				println "Found message: " + lastMessage
+				return lastMessage
+			}
+			sleep(pollSeconds * 1000)
+		}
+		assert false
 	}
 }
