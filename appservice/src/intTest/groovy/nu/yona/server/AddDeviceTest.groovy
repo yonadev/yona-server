@@ -13,6 +13,8 @@ class AddDeviceTest extends Specification {
 
 	def appServiceBaseURL = System.properties.'yona.appservice.url'
 	def YonaServer appService = new YonaServer(appServiceBaseURL)
+	@Shared
+	def timestamp = YonaServer.getTimeStamp()
 	
 	@Shared
 	def richardQuinURL
@@ -29,6 +31,7 @@ class AddDeviceTest extends Specification {
 				"firstName":"Richard ${timestamp}",
 				"lastName":"Quin ${timestamp}",
 				"nickName":"RQ ${timestamp}",
+				"emailAddress":"rich${timestamp}@quin.net",
 				"mobileNumber":"+${timestamp}1",
 				"devices":[
 					"Nexus 6"
@@ -80,7 +83,7 @@ class AddDeviceTest extends Specification {
 			response.responseData.userPassword == richardQuinPassword
 	}
 	
-	def 'Get new device request with wrong user secret'(){
+	def 'Try get new device request with wrong user secret'(){
 		given:
 
 		when:
@@ -88,23 +91,18 @@ class AddDeviceTest extends Specification {
 			
 		then:
 			response.status == 400
-			response.responseData == null
 	}
 	
 	def 'Try set new device request with wrong password'(){
 		given:
 
 		when:
-			try {
-				appService.setNewDeviceRequest(richardQuinURL, "foo", """{
-					"userSecret":"known secret"
-				}""")
-				assert false;
-			} catch (HttpResponseException e) {
-				assert e.statusCode == 400
-			}
-
+			def response = appService.setNewDeviceRequest(richardQuinURL, "foo", """{
+				"userSecret":"known secret"
+			}""")
+			
 		then:
+			response.status == 400
 			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL)
 			getResponseAfter.status == 200
 			getResponseAfter.responseData.expirationDateTime == newDeviceRequestExpirationDateTime

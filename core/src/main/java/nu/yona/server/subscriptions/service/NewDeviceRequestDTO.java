@@ -30,19 +30,11 @@ public class NewDeviceRequestDTO
 
 	public static NewDeviceRequestDTO createInstance(NewDeviceRequest newDeviceRequestEntity)
 	{
-		if (newDeviceRequestEntity == null)
-		{
-			return new NewDeviceRequestDTO(null, null);
-		}
 		return new NewDeviceRequestDTO(newDeviceRequestEntity.getExpirationTime(), null);
 	}
 
 	public static NewDeviceRequestDTO createInstanceWithPassword(NewDeviceRequest newDeviceRequestEntity)
 	{
-		if (newDeviceRequestEntity == null)
-		{
-			return new NewDeviceRequestDTO(null, null);
-		}
 		return new NewDeviceRequestDTO(newDeviceRequestEntity.getExpirationTime(), newDeviceRequestEntity.getUserPassword());
 	}
 }
