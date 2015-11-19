@@ -282,7 +282,7 @@ public class UserService
 	@Transactional
 	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID id, String userSecret)
 	{
-		if (StringUtils.isNotBlank(userSecret))
+		if (StringUtils.isBlank(userSecret))
 		{
 			User userEntity = getEntityByID(id);
 			return NewDeviceRequestDTO.createInstance(userEntity.getNewDeviceRequest());
