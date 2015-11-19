@@ -141,9 +141,6 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
-			response.responseData._embedded
-			response.responseData._embedded.buddyConnectRequestMessages
-			response.responseData._embedded.buddyConnectRequestMessages[0].user
 			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard ${timestamp}"
 			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
 			bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
@@ -176,9 +173,6 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
-			response.responseData._embedded
-			response.responseData._embedded.buddyConnectResponseMessages
-			response.responseData._embedded.buddyConnectResponseMessages[0].user
 			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
 			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
 			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
@@ -279,8 +273,6 @@ class BasicBuddyTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._embedded
-			response.responseData._embedded.goalConflictMessages
 			response.responseData._embedded.goalConflictMessages.size() == 1
 			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
@@ -295,8 +287,6 @@ class BasicBuddyTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._embedded
-			response.responseData._embedded.goalConflictMessages
 			response.responseData._embedded.goalConflictMessages.size() == 1
 			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
@@ -341,8 +331,6 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
-			response.responseData._embedded
-			response.responseData._embedded.buddyConnectRequestMessages
 			response.responseData._embedded.buddyConnectRequestMessages[0].user
 			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Bob ${timestamp}"
 			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
@@ -376,8 +364,6 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
-			response.responseData._embedded
-			response.responseData._embedded.buddyConnectResponseMessages
 			response.responseData._embedded.buddyConnectResponseMessages[0].user
 			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Richard ${timestamp}"
 			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
@@ -420,8 +406,6 @@ class BasicBuddyTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._embedded
-			response.responseData._embedded.goalConflictMessages
 			response.responseData._embedded.goalConflictMessages.size() == 2
 			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
@@ -439,8 +423,6 @@ class BasicBuddyTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._embedded
-			response.responseData._embedded.goalConflictMessages
 			response.responseData._embedded.goalConflictMessages.size() == 2
 			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
