@@ -16,6 +16,22 @@ apply plugin: 'idea'
 apply plugin: 'spring-boot'
 apply plugin: 'io.spring.dependency-management'
 
+configurations {
+	testutils.extendsFrom testRuntime
+}
+
+sourceSets {
+	testutils
+}
+
+task testutilsJar(type: Jar) {
+    classifier "testutils"
+    from sourceSets.testutils.output
+}
+
+artifacts {
+    testutils testutilsJar
+}
 
 dependencies {
 	compile("org.springframework.boot:spring-boot-starter-hateoas")
@@ -31,6 +47,9 @@ dependencies {
 
 	testCompile("org.springframework.boot:spring-boot-starter-test")
 	testCompile("junit:junit:4.12")
+	
+	testutilsCompile "org.codehaus.groovy:groovy-all:2.4.5"
+	testutilsCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 }
 
 test {
