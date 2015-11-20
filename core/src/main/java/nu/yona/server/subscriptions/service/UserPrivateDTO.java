@@ -12,13 +12,13 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+import nu.yona.server.goals.entities.Goal;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
-import nu.yona.server.goals.entities.Goal;
 
 @JsonRootName("userPrivate")
 public class UserPrivateDTO

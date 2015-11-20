@@ -16,6 +16,22 @@ apply plugin: 'idea'
 apply plugin: 'spring-boot'
 apply plugin: 'io.spring.dependency-management'
 
+configurations {
+	testutils.extendsFrom testRuntime
+}
+
+sourceSets {
+	testutils
+}
+
+task testutilsJar(type: Jar) {
+    classifier "testutils"
+    from sourceSets.testutils.output
+}
+
+artifacts {
+    testutils testutilsJar
+}
 
 dependencies {
 	compile("org.springframework.boot:spring-boot-starter-hateoas")
@@ -23,13 +39,17 @@ dependencies {
 	compile("org.springframework.boot:spring-boot-starter-web")
 	compile("com.fasterxml.jackson.core:jackson-databind:2.6.3") // Required as the Spring Hateaos version pulled in by Swagger is incompatible with Jackson 2.4
 	compile("org.atteo:evo-inflector:1.2.1")
-    compile("commons-validator:commons-validator:1.4.1")
+	compile("commons-validator:commons-validator:1.4.1")
+	compile("commons-lang:commons-lang:2.4")
 	
 	compile "org.codehaus.groovy:groovy-all:2.4.5"
 	compile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 
 	testCompile("org.springframework.boot:spring-boot-starter-test")
 	testCompile("junit:junit:4.12")
+	
+	testutilsCompile "org.codehaus.groovy:groovy-all:2.4.5"
+	testutilsCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 }
 
 test {
@@ -40,5 +60,5 @@ test {
 mainClassName = 'not.used'
 
 bootRepackage {
-    enabled = false
+	enabled = false
 }
