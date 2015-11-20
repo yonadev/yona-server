@@ -106,7 +106,7 @@ public class UserController
 		return CryptoSession.execute(password, () -> createResponse(userService.addUser(user), true, HttpStatus.CREATED));
 	}
 
-	@RequestMapping(value = "{id}", method = RequestMethod.PUT, params = { "tempPassword" })
+	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "tempPassword", required = false) String tempPassword, @PathVariable UUID id,
@@ -119,8 +119,8 @@ public class UserController
 		}
 		else
 		{
-			return createOKResponse(userService.updateUserCreatedOnBuddyRequest(id, tempPassword, password.get(), userResource),
-					true);
+			return CryptoSession.execute(password, null,
+					() -> createOKResponse(userService.updateUserCreatedOnBuddyRequest(id, tempPassword, userResource), true));
 		}
 	}
 

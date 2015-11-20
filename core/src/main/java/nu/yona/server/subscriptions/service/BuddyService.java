@@ -4,12 +4,10 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.subscriptions.entities.Buddy;
@@ -76,16 +74,14 @@ public class BuddyService
 	private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy, InviteURLGetter inviteURLGetter)
 	{
 		UserDTO buddyUser = buddy.getUser();
-		User buddyUserEntity = User.createInstanceOnBuddyRequest(buddyUser.getFirstName(), buddyUser.getLastName(), buddyUser
-				.getPrivateData().getNickName(), buddyUser.getMobileNumber());
+
 		String tempPassword = userService.generateTempPassword();
-		User savedBuddyUserEntity = CryptoSession.execute(Optional.of(tempPassword), null,
-				() -> User.getRepository().save(buddyUserEntity));
+		User buddyUserEntity = userService.addUserCreatedOnBuddyRequest(buddyUser, tempPassword);
 
-		String inviteURL = inviteURLGetter.getInviteURL(savedBuddyUserEntity.getID(), tempPassword);
-		sendInvitationMessage(savedBuddyUserEntity, buddy, inviteURL);
+		String inviteURL = inviteURLGetter.getInviteURL(buddyUserEntity.getID(), tempPassword);
+		sendInvitationMessage(buddyUserEntity, buddy, inviteURL);
 
-		return handleBuddyRequestForExistingUser(requestingUser, buddy, savedBuddyUserEntity);
+		return handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
 	}
 
 	private void sendInvitationMessage(User buddyUserEntity, BuddyDTO buddy, String inviteURL)

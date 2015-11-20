@@ -10,14 +10,14 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.subscriptions.entities.User;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
-import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("user")
 public class UserDTO
@@ -34,9 +34,9 @@ public class UserDTO
 			UUID namedMessageDestinationID, UUID anonymousMessageSourceID, UUID anonymousMessageDestinationID,
 			Set<String> deviceNames, Set<String> goalNames, Set<UUID> buddyIDs, VPNProfileDTO vpnProfile)
 	{
-		this(id, firstName, lastName, null, mobileNumber,
-				new UserPrivateDTO(nickName, namedMessageSourceID, namedMessageDestinationID, anonymousMessageSourceID,
-						anonymousMessageDestinationID, deviceNames, goalNames, buddyIDs, vpnProfile));
+		this(id, firstName, lastName, null, mobileNumber, new UserPrivateDTO(nickName, namedMessageSourceID,
+				namedMessageDestinationID, anonymousMessageSourceID, anonymousMessageDestinationID, deviceNames, goalNames,
+				buddyIDs, vpnProfile));
 	}
 
 	private UserDTO(UUID id, String firstName, String lastName, String mobileNumber)
@@ -111,9 +111,9 @@ public class UserDTO
 	{
 		originalUserEntity.setFirstName(firstName);
 		originalUserEntity.setLastName(lastName);
-		originalUserEntity.setNickName(privateData.getNickName());
 		originalUserEntity.setMobileNumber(mobileNumber);
-		originalUserEntity.setDeviceNames(privateData.getDeviceNames());
+
+		privateData.updateUserPrivate(originalUserEntity.getUserPrivate());
 
 		return originalUserEntity;
 	}
@@ -131,11 +131,10 @@ public class UserDTO
 	static UserDTO createInstanceWithPrivateData(User userEntity)
 	{
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickName(),
-				userEntity.getMobileNumber(), userEntity.getNamedMessageSource().getID(),
-				userEntity.getNamedMessageDestination().getID(), userEntity.getAnonymousMessageSource().getID(),
-				userEntity.getAnonymousMessageSource().getDestination().getID(), userEntity.getDeviceNames(),
-				getGoalNames(userEntity.getGoals()), getBuddyIDs(userEntity),
-				VPNProfileDTO.createInstance(userEntity.getAnonymized()));
+				userEntity.getMobileNumber(), userEntity.getNamedMessageSource().getID(), userEntity.getNamedMessageDestination()
+						.getID(), userEntity.getAnonymousMessageSource().getID(), userEntity.getAnonymousMessageSource()
+						.getDestination().getID(), userEntity.getDeviceNames(), getGoalNames(userEntity.getGoals()),
+				getBuddyIDs(userEntity), VPNProfileDTO.createInstance(userEntity.getAnonymized()));
 	}
 
 	private static Set<UUID> getBuddyIDs(User userEntity)

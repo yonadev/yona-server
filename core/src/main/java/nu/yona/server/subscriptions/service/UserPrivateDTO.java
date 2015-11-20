@@ -12,13 +12,14 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.subscriptions.entities.UserPrivate;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
-import nu.yona.server.goals.entities.Goal;
 
 @JsonRootName("userPrivate")
 public class UserPrivateDTO
@@ -139,5 +140,13 @@ public class UserPrivateDTO
 	public Set<BuddyDTO> getBuddies()
 	{
 		return Collections.unmodifiableSet(buddies);
+	}
+
+	UserPrivate updateUserPrivate(UserPrivate originalUserPrivateEntity)
+	{
+		originalUserPrivateEntity.setNickname(nickName);
+		originalUserPrivateEntity.setDeviceNames(deviceNames);
+
+		return originalUserPrivateEntity;
 	}
 }

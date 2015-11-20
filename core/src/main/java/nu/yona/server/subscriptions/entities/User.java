@@ -87,8 +87,8 @@ public class User extends EntityWithID
 
 		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		UserPrivate userPrivate = UserPrivate.createInstance(nickName, devices, goals, anonymousMessageSource,
-				namedMessageSource);
+		UserPrivate userPrivate = UserPrivate
+				.createInstance(nickName, devices, goals, anonymousMessageSource, namedMessageSource);
 		return new User(UUID.randomUUID(), initializationVector, true, firstName, lastName, mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
 	}
@@ -138,7 +138,7 @@ public class User extends EntityWithID
 		this.mobileNumber = mobileNumber;
 	}
 
-	private UserPrivate getUserPrivate()
+	public UserPrivate getUserPrivate()
 	{
 		CryptoSession.getCurrent().setInitializationVector(initializationVector);
 		return userPrivate;

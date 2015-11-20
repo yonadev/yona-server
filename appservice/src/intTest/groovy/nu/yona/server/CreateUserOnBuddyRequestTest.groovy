@@ -59,7 +59,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 				"firstName":"Richard ${timestamp}",
 				"lastName":"Quin ${timestamp}",
 				"nickName":"RQ ${timestamp}",
-				"mobileNumber":"+${timestamp}1",
+				"mobileNumber":"+${timestamp}11",
 				"devices":[
 					"Nexus 6"
 				],
@@ -82,21 +82,22 @@ class CreateUserOnBuddyRequestTest extends Specification {
 		given:
 
 		when:
+			def beforeRequestDateTime = new Date()
 			def response = appService.requestBuddy(richardQuinURL, """{
 				"_embedded":{
 					"user":{
 						"firstName":"Bob ${timestamp}",
-						"lastName":"Dun ${timestamp}n",
+						"lastName":"Dun ${timestamp}",
 						"emailAddress":"${bobDunnGmail}",
-						"mobileNumber":"+ ${timestamp}2"
+						"mobileNumber":"+${timestamp}12"
 					}
 				},
 				"message":"Would you like to be my buddy?"
 			}""", richardQuinPassword)
 			richardQuinBobBuddyURL = response.responseData._links.self.href
 			
-			def bobDunnInviteEmail = appService.getLastMessageFromGmail(bobDunnGmail, bobDunnGmailPassword)
-			def bobDunnInviteURLMatch = bobDunnInviteEmail =~ /$appServiceBaseURL[^" ]+/
+			def bobDunnInviteEmail = appService.getMessageFromGmail(bobDunnGmail, bobDunnGmailPassword, beforeRequestDateTime)
+			def bobDunnInviteURLMatch = bobDunnInviteEmail.content =~ /$appServiceBaseURL[\w\-\/=\?&+]+/
 			assert bobDunnInviteURLMatch
 			bobDunnInviteURL = bobDunnInviteURLMatch.group()
 
@@ -107,6 +108,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 
 		cleanup:
 			println "URL buddy Richard: " + richardQuinBobBuddyURL
+			println "Invite URL Bob: " + bobDunnInviteURL
 
 	}
 	
@@ -118,6 +120,9 @@ class CreateUserOnBuddyRequestTest extends Specification {
 
 		then:
 			response.status == 200
+			response.responseData.firstName == "Bob ${timestamp}"
+			response.responseData.lastName == "Dun ${timestamp}"
+			response.responseData.mobileNumber == "+${timestamp}12"
 	}
 	
 	def 'Bob Dunn adjusts data and submits; app saves with new password'(){
@@ -128,7 +133,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 				"firstName":"Bob ${timestamp}",
 				"lastName":"Dunn ${timestamp}",
 				"nickName":"BD ${timestamp}",
-				"mobileNumber":"+${timestamp}2",
+				"mobileNumber":"+${timestamp}12",
 				"devices":[
 					"iPhone 6"
 				],
@@ -136,9 +141,43 @@ class CreateUserOnBuddyRequestTest extends Specification {
 					"gambling"
 				]
 			}""", bobDunnPassword)
+			if(response.status == 200)
+			{
+				bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
+			}
 
 		then:
 			response.status == 200
+			response.responseData.firstName == "Bob ${timestamp}"
+			response.responseData.lastName == "Dunn ${timestamp}"
+			response.responseData.mobileNumber == "+${timestamp}12"
+			response.responseData.nickName == "BD ${timestamp}"
+			response.responseData.devices.size() == 1
+			response.responseData.devices[0] == "iPhone 6"
+			response.responseData.goals.size() == 1
+			response.responseData.goals[0] == "gambling"
+			//response.responseData._embedded.buddies != null
+			//response.responseData._embedded.buddies.size() == 1
+	}
+	
+	def 'Check if user is now retrievable with new password'(){
+		given:
+
+		when:
+			def response = appService.getUser(bobDunnURL, true, bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData.firstName == "Bob ${timestamp}"
+			response.responseData.lastName == "Dunn ${timestamp}"
+			response.responseData.mobileNumber == "+${timestamp}12"
+			response.responseData.nickName == "BD ${timestamp}"
+			response.responseData.devices.size() == 1
+			response.responseData.devices[0] == "iPhone 6"
+			response.responseData.goals.size() == 1
+			response.responseData.goals[0] == "gambling"
+			//response.responseData._embedded.buddies != null
+			//response.responseData._embedded.buddies.size() == 1
 	}
 	
 	def 'Delete users'(){

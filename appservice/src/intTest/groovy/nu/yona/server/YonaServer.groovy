@@ -1,6 +1,7 @@
 package nu.yona.server
 
 import groovyx.net.http.RESTClient
+import groovyx.net.http.URIBuilder
 import groovy.json.*
 
 import java.text.SimpleDateFormat
@@ -58,7 +59,7 @@ class YonaServer {
 	def getUser(userURL, boolean includePrivateData, password = null)
 	{
 		if (includePrivateData) {
-			getResourceWithPassword(userURL, password, ["includePrivateData": "true"])
+			getResourceWithPassword(stripQueryString(userURL), password, getQueryParams(userURL) + ["includePrivateData": "true"])
 		} else {
 			getResourceWithPassword(userURL, password)
 		}
@@ -66,7 +67,7 @@ class YonaServer {
 	
 	def updateUser(userURL, jsonString, password)
 	{
-		updateResourceWithPassword(userURL, jsonString, password)
+		updateResourceWithPassword(stripQueryString(userURL), jsonString, password, getQueryParams(userURL))
 	}
 
 	def deleteUser(userURL, password)
@@ -114,14 +115,14 @@ class YonaServer {
 		postJson(path, jsonString, headers);
 	}
 	
-	def updateResourceWithPassword(path, jsonString, password)
+	def updateResourceWithPassword(path, jsonString, password, parameters = [:])
 	{
-		createResource(path, jsonString, ["Yona-Password": password])
+		updateResource(path, jsonString, ["Yona-Password": password], parameters)
 	}
 
-	def updateResource(path, jsonString, headers = [:])
+	def updateResource(path, jsonString, headers = [:], parameters = [:])
 	{
-		putJson(path, jsonString, headers);
+		putJson(path, jsonString, headers, parameters);
 	}
 
 	def deleteResourceWithPassword(path, password)
@@ -180,7 +181,7 @@ class YonaServer {
 			headers: headers)
 	}
 	
-	def putJson(path, jsonString, headers = [:])
+	def putJson(path, jsonString, headers = [:], parameters = [:])
 	{
         def object = null
         if (jsonString instanceof Map)
@@ -192,10 +193,24 @@ class YonaServer {
             object = jsonSlurper.parseText(jsonString)
         }
         
-		restClient.post(path: path,
+		restClient.put(path: path,
 			body: object,
 			contentType:'application/json',
-			headers: headers)
+			headers: headers,
+			query: parameters)
+	}
+
+	def getQueryParams(url)
+	{
+		def uriBuilder = new URIBuilder(url)
+		if(uriBuilder.query)
+		{
+			return uriBuilder.query
+		}
+		else
+		{
+			return [ : ]
+		}
 	}
 
 	def stripQueryString(url)
@@ -203,7 +218,7 @@ class YonaServer {
 		url - ~/\?.*/
 	}
 
-	def getLastMessageFromGmail(login, password)
+	def getMessageFromGmail(login, password, sentAfterDateTime)
 	{
 		def host = "imap.gmail.com";
 	
@@ -223,7 +238,7 @@ class YonaServer {
 			store.connect(host, login, password)
 			inbox = store.getFolder("INBOX")
 			inbox.open(Folder.READ_WRITE)
-			return getLastMessageFromInbox(inbox)
+			return getMessageFromInbox(inbox, sentAfterDateTime)
 		}
 		finally
 		{
@@ -235,7 +250,7 @@ class YonaServer {
 		}
 	}
 	
-	def getLastMessageFromInbox(inbox)
+	def getMessageFromInbox(inbox, sentAfterDateTime)
 	{
 		def maxWaitSeconds = 15
 		def pollSeconds = 3
@@ -245,13 +260,15 @@ class YonaServer {
 		{
 			println "Reading messages from inbox"
 			def messages = inbox.search(
+				//new ReceivedDateTerm(ComparisonTerm.GT,sentAfterDateTime))
 				new FlagTerm(new Flags(Flags.Flag.SEEN), false))
 			if(messages.size() > 0)
 			{
-				def lastMessage = inbox.messages[0]
-				lastMessage.setFlag(Flags.Flag.SEEN, true)
-				println "Found message: " + lastMessage
-				return lastMessage
+				def lastMessage = messages[0]
+				def lastMessageMap = [subject:lastMessage.getSubject(), content:lastMessage.getContent()]
+				println "Found message: " + lastMessageMap.subject
+				println lastMessageMap.content
+				return lastMessageMap
 			}
 			sleep(pollSeconds * 1000)
 		}

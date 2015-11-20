@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
@@ -31,6 +32,9 @@ public class Buddy extends EntityWithID
 	{
 		return (BuddyRepository) RepositoryProvider.getRepository(Buddy.class, UUID.class);
 	}
+
+	@Column(nullable = true)
+	private int touchVersion;
 
 	@Convert(converter = UUIDFieldEncrypter.class)
 	private UUID userID;
@@ -134,5 +138,11 @@ public class Buddy extends EntityWithID
 		BuddyAnonymized buddyAnonymized = getBuddyAnonymized();
 		buddyAnonymized.setLoginID(loginID);
 		BuddyAnonymized.getRepository().save(buddyAnonymized);
+	}
+
+	public Buddy touch()
+	{
+		touchVersion++;
+		return this;
 	}
 }
