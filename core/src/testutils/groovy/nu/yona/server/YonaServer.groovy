@@ -138,20 +138,6 @@ class YonaServer {
 		putJson(path, jsonString, headers, parameters);
 	}
 
-	def updateResourceWithPassword(path, jsonString, password)
-	{
-		updateResource(path, jsonString, ["Yona-Password": password])
-	}
-
-	def updateResource(path, jsonString, headers = [:])
-	{
-		def object = jsonSlurper.parseText(jsonString)
-		restClient.put(path: path, 
-			body: object, 
-			contentType:'application/json',
-			headers: headers)
-	}
-
 	def deleteResourceWithPassword(path, password)
 	{
 		deleteResource(path, ["Yona-Password": password])
