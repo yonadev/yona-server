@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.crypto.Constants;
@@ -20,6 +19,7 @@ import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.entities.Buddy;
+import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
 
 @Service
@@ -30,18 +30,14 @@ public class UserService
 
 	// TODO: Do we need this? Currently unused.
 	@Transactional
-	public UserDTO getUser(String emailAddress, String mobileNumber)
+	public UserDTO getUser(String mobileNumber)
 	{
-		if (emailAddress != null && mobileNumber != null)
+		if (mobileNumber == null)
 		{
-			throw new IllegalArgumentException("Either emailAddress or mobileNumber must be non-null");
-		}
-		if (emailAddress == null && mobileNumber == null)
-		{
-			throw new IllegalArgumentException("One of emailAddress and mobileNumber must be null");
+			throw new IllegalArgumentException("mobileNumber cannot be null");
 		}
 
-		User userEntity = findUserByEmailAddressOrMobileNumber(emailAddress, mobileNumber);
+		User userEntity = findUserByMobileNumber(mobileNumber);
 		return UserDTO.createInstanceWithPrivateData(userEntity);
 	}
 
@@ -92,24 +88,13 @@ public class UserService
 		return savedUser;
 	}
 
-	static User findUserByEmailAddressOrMobileNumber(String emailAddress, String mobileNumber)
+	static User findUserByMobileNumber(String mobileNumber)
 	{
 		User userEntity;
-		if (emailAddress == null)
+		userEntity = User.getRepository().findByMobileNumber(mobileNumber);
+		if (userEntity == null)
 		{
-			userEntity = User.getRepository().findByMobileNumber(mobileNumber);
-			if (userEntity == null)
-			{
-				throw UserNotFoundException.notFoundByMobileNumber(mobileNumber);
-			}
-		}
-		else
-		{
-			userEntity = User.getRepository().findByEmailAddress(emailAddress);
-			if (userEntity == null)
-			{
-				throw UserNotFoundException.notFoundByEmailAddress(emailAddress);
-			}
+			throw UserNotFoundException.notFoundByMobileNumber(mobileNumber);
 		}
 		return userEntity;
 	}
@@ -197,16 +182,6 @@ public class UserService
 			throw new InvalidDataException("error.user.lastname");
 		}
 
-		if (StringUtils.isBlank(userResource.getEmailAddress()))
-		{
-			throw new InvalidDataException("error.user.email.address");
-		}
-
-		if (!EmailValidator.getInstance().isValid(userResource.getEmailAddress()))
-		{
-			throw new InvalidDataException("error.user.email.address.invalid", userResource.getEmailAddress());
-		}
-
 		if (StringUtils.isBlank(userResource.getMobileNumber()))
 		{
 			throw new InvalidDataException("error.user.mobile.number");
@@ -229,5 +204,50 @@ public class UserService
 		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getID());
 		userEntity.addBuddy(buddyEntity);
 		User.getRepository().save(userEntity);
+	}
+
+	@Transactional
+	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID userID, String userPassword, String userSecret)
+	{
+		User userEntity = getEntityByID(userID);
+		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(userPassword);
+		newDeviceRequestEntity.encryptUserPassword(userSecret);
+		boolean isUpdatingExistingRequest = userEntity.getNewDeviceRequest() != null;
+		userEntity.setNewDeviceRequest(newDeviceRequestEntity);
+		return NewDeviceRequestDTO.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest(),
+				isUpdatingExistingRequest);
+	}
+
+	@Transactional
+	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID userID, String userSecret)
+	{
+		User userEntity = getEntityByID(userID);
+		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
+		if (newDeviceRequestEntity == null)
+		{
+			throw new NewDeviceRequestNotPresentException(userID);
+		}
+
+		if (StringUtils.isBlank(userSecret))
+		{
+			return NewDeviceRequestDTO.createInstance(userEntity.getNewDeviceRequest());
+		}
+		else
+		{
+			newDeviceRequestEntity.decryptUserPassword(userSecret);
+			return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
+		}
+	}
+
+	@Transactional
+	public void clearNewDeviceRequestForUser(UUID userID)
+	{
+		User userEntity = getEntityByID(userID);
+		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
+		if (existingNewDeviceRequestEntity != null)
+		{
+			userEntity.setNewDeviceRequest(null);
+			User.getRepository().save(userEntity);
+		}
 	}
 }

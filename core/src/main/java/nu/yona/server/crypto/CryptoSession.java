@@ -170,10 +170,6 @@ public class CryptoSession implements AutoCloseable
 	{
 		try
 		{
-			if (isInitializationVectorSet())
-			{
-				throw new IllegalStateException("Initialization vector is already set");
-			}
 			byte[] newInitializationVector = getEncryptionCipher().getParameters().getParameterSpec(IvParameterSpec.class)
 					.getIV();
 			setInitializationVector(newInitializationVector);
@@ -190,7 +186,7 @@ public class CryptoSession implements AutoCloseable
 	{
 		if (!isInitializationVectorSet())
 		{
-			throw new IllegalStateException("Initializatiion vector is not set");
+			throw new IllegalStateException("Initialization vector is not set");
 		}
 		return initializationVector.get();
 	}
@@ -206,8 +202,12 @@ public class CryptoSession implements AutoCloseable
 			throw new IllegalArgumentException("Initialization vector length (" + initializationVector.length
 					+ ") is wrong. Must be " + INITIALIZATION_VECTOR_LENGTH);
 		}
-		if (isInitializationVectorSet() && !Arrays.equals(initializationVector, getInitializationVector()))
+		if (isInitializationVectorSet())
 		{
+			if (Arrays.equals(initializationVector, getInitializationVector()))
+			{
+				return;
+			}
 			throw new IllegalStateException("Cannot overwrite the initialization vector with different one");
 		}
 		this.initializationVector = Optional.of(initializationVector);
