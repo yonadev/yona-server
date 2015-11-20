@@ -17,20 +17,20 @@ apply plugin: 'spring-boot'
 apply plugin: 'io.spring.dependency-management'
 
 configurations {
-	testutils.extendsFrom testRuntime
+	testUtils.extendsFrom testRuntime
 }
 
 sourceSets {
-	testutils
+	testUtils
 }
 
-task testutilsJar(type: Jar) {
-    classifier "testutils"
-    from sourceSets.testutils.output
+task testUtilsJar(type: Jar) {
+    classifier "testUtils"
+    from sourceSets.testUtils.output
 }
 
 artifacts {
-    testutils testutilsJar
+    testUtils testUtilsJar
 }
 
 dependencies {
@@ -48,8 +48,8 @@ dependencies {
 	testCompile("org.springframework.boot:spring-boot-starter-test")
 	testCompile("junit:junit:4.12")
 	
-	testutilsCompile "org.codehaus.groovy:groovy-all:2.4.5"
-	testutilsCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
+	testUtilsCompile "org.codehaus.groovy:groovy-all:2.4.5"
+	testUtilsCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 }
 
 test {
