@@ -60,6 +60,11 @@ public abstract class Message extends EntityWithID
 		return relatedLoginID;
 	}
 
+	public byte[] getRelatedUserAnonymizedIDCiphertext()
+	{
+		return relatedUserAnonymizedIDCiphertext;
+	}
+
 	protected abstract void encrypt(Encryptor encryptor);
 
 	protected abstract void decrypt(Decryptor decryptor);

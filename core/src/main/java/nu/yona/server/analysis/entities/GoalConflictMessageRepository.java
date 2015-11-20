@@ -1,0 +1,25 @@
+/*******************************************************************************
+ * Copyright (c) 2015 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
+package nu.yona.server.analysis.entities;
+
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface GoalConflictMessageRepository extends CrudRepository<GoalConflictMessage, UUID>
+{
+	@Query("select m from MessageDestination d join d.messages m where TYPE(m) = :type and d.id = :destinationID")
+	// + " and m.relatedUserAnonymizedIDCiphertext = :relatedUserAnonymizedIDCiphertext")
+	// + " and m.goalIDCiphertext = :goalIDCiphertext")
+	GoalConflictMessage findLatestGoalConflictMessageFromDestination(
+			/*
+			 * @Param("relatedUserAnonymizedIDCiphertext") byte[] relatedUserAnonymizedIDCiphertext,
+			 * @Param("goalIDCiphertext") byte[] goalIDCiphertext,
+			 */ @Param("destinationID") UUID destinationID, @Param("type") Class<GoalConflictMessage> type);
+}
