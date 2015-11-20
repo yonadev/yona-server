@@ -1,16 +1,19 @@
+buildscript {
+	  repositories {
+		mavenCentral()
+	  }
+
+	  dependencies {
+		classpath 'net.researchgate:gradle-release:2.3.4'
+	  }
+	}
+
 description = 'Yona server'
 
 allprojects {
     apply plugin: 'eclipse'
 
     group = 'yona-server'
-	
-	release {
-		failOnCommitNeeded = true
-		git {
-			requireBranch = 'yd-40-changes-for-building|master'
-		}
-	}
 }
 
 subprojects {
