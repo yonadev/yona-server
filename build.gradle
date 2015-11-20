@@ -4,6 +4,13 @@ allprojects {
     apply plugin: 'eclipse'
 
     group = 'yona-server'
+	
+	release {
+		failOnCommitNeeded = true
+		git {
+			requireBranch = 'yd-40-changes-for-building|master'
+		}
+	}
 }
 
 subprojects {

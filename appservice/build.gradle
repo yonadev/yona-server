@@ -29,14 +29,6 @@ war {
 	version = '0.0.1-SNAPSHOT'
 }
 
-release {
-	failOnCommitNeeded = false
-	git {
-		requireBranch = 'yd-40-changes-for-building|master'
-	}
-}
-
-
 configurations {
 	providedRuntime
 }
