@@ -21,9 +21,7 @@ configurations {
 }
 
 sourceSets {
-	testutils {
-		groovy { srcDir 'src/testutils/groovy' }
-	}
+	testutils
 }
 
 task testutilsJar(type: Jar) {
