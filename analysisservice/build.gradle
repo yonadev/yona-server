@@ -28,7 +28,10 @@ war {
 }
 
 release {
-	failOnCommitNeeded = false
+	failOnCommitNeeded = true
+	git {
+		requireBranch = 'yd-40-changes-for-building|master'
+	}
 }
 
 configurations {
