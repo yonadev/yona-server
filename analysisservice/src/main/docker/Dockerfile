@@ -1,4 +1,4 @@
-FROM anapsix/alpine-java:8
+FROM java:8
 
 WORKDIR /opt/analysisservice
 
@@ -9,4 +9,4 @@ VOLUME /tmp
 ADD analysisservice.jar app.jar
 
 RUN bash -c 'touch /app.jar'
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","app.jar"]

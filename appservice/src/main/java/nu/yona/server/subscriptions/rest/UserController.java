@@ -20,6 +20,7 @@ import nu.yona.server.rest.Constants;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -104,6 +105,65 @@ public class UserController
 			@RequestBody UserDTO user)
 	{
 		return CryptoSession.execute(password, () -> createResponse(userService.addUser(user), true, HttpStatus.CREATED));
+	}
+
+	private void checkPassword(Optional<String> password, UUID userID)
+	{
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> null);
+	}
+
+	@RequestMapping(value = "{userID}/newDeviceRequest", method = RequestMethod.PUT)
+	@ResponseBody
+	public HttpEntity<NewDeviceRequestResource> setNewDeviceRequestForUser(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@RequestBody NewDeviceRequestCreationDTO newDeviceRequestCreation)
+	{
+		checkPassword(password, userID);
+		NewDeviceRequestDTO newDeviceRequestResult = userService.setNewDeviceRequestForUser(userID, password.get(),
+				newDeviceRequestCreation.getUserSecret());
+		return createNewDeviceRequestResponse(newDeviceRequestResult, getNewDeviceRequestLinkBuilder(userID),
+				newDeviceRequestResult.getIsUpdatingExistingRequest() ? HttpStatus.OK : HttpStatus.CREATED);
+	}
+
+	@RequestMapping(value = "{userID}/newDeviceRequest", params = { "userSecret" }, method = RequestMethod.GET)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(@PathVariable UUID userID,
+			@RequestParam(value = "userSecret", required = false) String userSecret)
+	{
+		return createNewDeviceRequestResponse(userService.getNewDeviceRequestForUser(userID, userSecret),
+				getNewDeviceRequestLinkBuilder(userID), HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "{userID}/newDeviceRequest", method = RequestMethod.DELETE)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	public void clearNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userID)
+	{
+		checkPassword(password, userID);
+		userService.clearNewDeviceRequestForUser(userID);
+	}
+
+	static ControllerLinkBuilder getNewDeviceRequestLinkBuilder(UUID userID)
+	{
+		UserController methodOn = methodOn(UserController.class);
+		return linkTo(methodOn.getNewDeviceRequestForUser(userID, null));
+	}
+
+	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(NewDeviceRequestDTO newDeviceRequest,
+			ControllerLinkBuilder entityLinkBuilder, HttpStatus statusCode)
+	{
+		return new ResponseEntity<NewDeviceRequestResource>(new NewDeviceRequestResource(newDeviceRequest, entityLinkBuilder),
+				statusCode);
+	}
+
+	public static class NewDeviceRequestResource extends Resource<NewDeviceRequestDTO>
+	{
+		public NewDeviceRequestResource(NewDeviceRequestDTO newDeviceRequest, ControllerLinkBuilder entityLinkBuilder)
+		{
+			super(newDeviceRequest, entityLinkBuilder.withSelfRel());
+		}
 	}
 
 	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
