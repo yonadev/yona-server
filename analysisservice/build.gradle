@@ -29,6 +29,7 @@ war {
 
 release {
 	failOnCommitNeeded = true
+	tagTemplate = 'analysisservice-${version}'
 	git {
 		requireBranch = 'yd-40-changes-for-building|master'
 	}
