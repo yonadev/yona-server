@@ -76,8 +76,9 @@ public class UserService
 
 	public User addUserCreatedOnBuddyRequest(UserDTO buddyUserResource, String tempPassword)
 	{
-		return CryptoSession.execute(Optional.of(tempPassword), null,
-				() -> tempEncryptionContextExecutor.addUserCreatedOnBuddyRequestFlush(buddyUserResource));
+		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null, () -> tempEncryptionContextExecutor
+				.addUserCreatedOnBuddyRequestFlush(buddyUserResource).getID());
+		return getEntityByID(savedUserID);
 	}
 
 	@Transactional

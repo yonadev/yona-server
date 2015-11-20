@@ -97,7 +97,7 @@ public class BuddyService
 		buddyEntity.setSendingStatus(BuddyAnonymized.Status.REQUESTED);
 		Buddy savedBuddyEntity = Buddy.getRepository().save(buddyEntity);
 		BuddyDTO savedBuddy = BuddyDTO.createInstance(savedBuddyEntity);
-		userService.addBuddy(requestingUser, savedBuddy);
+		userService.addBuddy(requestingUser, savedBuddy); // TODO: how can we do this without using the user password?
 
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
 		messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(), requestingUser.getPrivateData()
