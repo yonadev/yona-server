@@ -6,9 +6,6 @@ import groovy.json.*
 
 import java.text.SimpleDateFormat
 
-import javax.mail.*
-import javax.mail.search.*
-
 import javax.management.InstanceOfQueryExp;
 
 class YonaServer {
@@ -216,62 +213,5 @@ class YonaServer {
 	def stripQueryString(url)
 	{
 		url - ~/\?.*/
-	}
-
-	def getMessageFromGmail(login, password, sentAfterDateTime)
-	{
-		def host = "imap.gmail.com";
-	
-		Properties props = new Properties()
-		props.setProperty("mail.store.protocol", "imap")
-		props.setProperty("mail.imap.host", host)
-		props.setProperty("mail.imap.port", "993")
-		props.setProperty("mail.imap.ssl.enable", "true");
-		def session = Session.getDefaultInstance(props, null)
-		def store = session.getStore("imap")
-		
-		def inbox
-		def lastMessage
-		try
-		{
-			println "Connecting to imap store"
-			store.connect(host, login, password)
-			inbox = store.getFolder("INBOX")
-			inbox.open(Folder.READ_WRITE)
-			return getMessageFromInbox(inbox, sentAfterDateTime)
-		}
-		finally
-		{
-			 if(inbox) 
-			 {
-			    inbox.close(true)
-			 }
-			 store.close()
-		}
-	}
-	
-	def getMessageFromInbox(inbox, sentAfterDateTime)
-	{
-		def maxWaitSeconds = 15
-		def pollSeconds = 3
-		def retries = maxWaitSeconds / pollSeconds
-		sleep(100)
-		for (def i = 0; i <retries; i++) 
-		{
-			println "Reading messages from inbox"
-			def messages = inbox.search(
-				//new ReceivedDateTerm(ComparisonTerm.GT,sentAfterDateTime))
-				new FlagTerm(new Flags(Flags.Flag.SEEN), false))
-			if(messages.size() > 0)
-			{
-				def lastMessage = messages[0]
-				def lastMessageMap = [subject:lastMessage.getSubject(), content:lastMessage.getContent()]
-				println "Found message: " + lastMessageMap.subject
-				println lastMessageMap.content
-				return lastMessageMap
-			}
-			sleep(pollSeconds * 1000)
-		}
-		assert false
 	}
 }
