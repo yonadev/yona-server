@@ -8,6 +8,7 @@ buildscript {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:$project.ext.springBootVersion")
 		classpath("io.spring.gradle:dependency-management-plugin:0.5.3.RELEASE")
 		classpath('se.transmode.gradle:gradle-docker:1.2')
+		classpath 'net.researchgate:gradle-release:2.3.4'
 	}
 }
 
@@ -18,10 +19,19 @@ apply plugin: 'spring-boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'war'
 apply plugin: 'docker'
+apply plugin: 'net.researchgate.release'
 
 war {
 	baseName = 'adminservice'
 	version = '0.0.1-SNAPSHOT'
+}
+
+release {
+	failOnCommitNeeded = true
+	tagTemplate = 'adminservice-${version}'
+	git {
+		requireBranch = 'yd-40-changes-for-building|master'
+	}
 }
 
 configurations {
@@ -83,6 +93,10 @@ task buildDocker(type: Docker, dependsOn: build) {
       from jar
       into stageDir
 	  rename jar.archiveName, jar.baseName +".jar"
+    }
+    copy {
+      from 'data'
+      into "$stageDir/data"
     }
   }
 }
