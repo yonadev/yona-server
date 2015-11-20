@@ -1,25 +1,25 @@
-hsqldb_docker:
-  build: ./hsql_docker
+hsqldb:
+  image: yonadev/hsqldb
   expose:
     - "9001"
 
 adminservice:
   image: yonadev/adminservice:0.0.8-SNAPSHOT
   links:
-    - hsqldb_docker:yonadbserver
+    - hsqldb:yonadbserver
   ports:
     - 8080:8080
 
 analysisservice:
   image: yonadev/analysisservice:0.0.8-SNAPSHOT
   links:
-    - hsqldb_docker:yonadbserver
+    - hsqldb:yonadbserver
   ports:
     - 8081:8080
 
 appservice:
   image: yonadev/appservice:0.0.8-SNAPSHOT
   links:
-    - hsqldb_docker:yonadbserver
+    - hsqldb:yonadbserver
   ports:
     - 80:8080
