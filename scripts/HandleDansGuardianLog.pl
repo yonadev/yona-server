@@ -29,9 +29,16 @@ sub transform_log_record ($) {
 	if ($username == $map_from_username) {
 		$username = $map_to_username;
 	}
+
+	if (!$log_message->{'requesttags'}->{'urlcategory'}) {
+		# Unclassified request. Probably an HTTPS site
+		return undef;
+	}
+
 	my @url_categories_logged = keys $log_message->{'requesttags'}->{'urlcategory'};
 	my @relevant_url_categories_logged = filter_relevant_url_categories \@url_categories_logged;
 	if (!@relevant_url_categories_logged) {
+		# Categories are not relevant
 		return undef;
 	}
 
