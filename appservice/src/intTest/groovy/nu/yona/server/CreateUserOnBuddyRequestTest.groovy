@@ -134,7 +134,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 		when:
 			def response = appService.updateUser(bobDunnInviteURL, """{
 				"firstName":"Bob ${timestamp}",
-				"lastName":"Dunn ${timestamp}",
+				"lastName":"Dun ${timestamp}",
 				"nickName":"BD ${timestamp}",
 				"mobileNumber":"+${timestamp}12",
 				"devices":[
@@ -152,7 +152,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData.firstName == "Bob ${timestamp}"
-			response.responseData.lastName == "Dunn ${timestamp}"
+			response.responseData.lastName == "Dun ${timestamp}"
 			response.responseData.mobileNumber == "+${timestamp}12"
 			response.responseData.nickName == "BD ${timestamp}"
 			response.responseData.devices.size() == 1
@@ -174,7 +174,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData.firstName == "Bob ${timestamp}"
-			response.responseData.lastName == "Dunn ${timestamp}"
+			response.responseData.lastName == "Dun ${timestamp}"
 			response.responseData.mobileNumber == "+${timestamp}12"
 			response.responseData.nickName == "BD ${timestamp}"
 			response.responseData.devices.size() == 1
@@ -185,6 +185,37 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			//TODO: buddy is not added yet, needs to be fixed
 			//response.responseData._embedded.buddies != null
 			//response.responseData._embedded.buddies.size() == 1
+	}
+	
+	def 'Richard checks his direct messages'(){
+		given:
+
+		when:
+			def response = appService.getDirectMessages(richardQuinURL, richardQuinPassword)
+			if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
+				richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
+			}
+
+		then:
+			response.status == 200
+			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
+			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
+			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
+	}
+	
+	def 'Richard processes Bob\'s buddy acceptance'(){
+		given:
+
+		when:
+			def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageProcessURL, """{
+				"properties":{
+				}
+			}""", richardQuinPassword)
+
+		then:
+			response.status == 200
+			response.responseData.properties.status == "done"
 	}
 	
 	def 'Delete users'(){

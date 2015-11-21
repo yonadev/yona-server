@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -116,10 +118,12 @@ public class UserService
 		return saveUserEncryptedDataWithNewPassword(retrievedEntitySet, userResource);
 	}
 
+	/*
+	 * Gathers all entities that contain encrypted data from the database.
+	 */
 	static class UserEncryptedEntitySet
 	{
 		final User userEntity;
-		final UserAnonymized userAnonymizedEntity;
 		final MessageSource namedMessageSource;
 		final MessageSource anonymousMessageSource;
 
@@ -127,7 +131,6 @@ public class UserService
 				MessageSource anonymousMessageSource)
 		{
 			this.userEntity = userEntity;
-			this.userAnonymizedEntity = userAnonymizedEntity;
 			this.namedMessageSource = namedMessageSource;
 			this.anonymousMessageSource = anonymousMessageSource;
 		}
@@ -218,9 +221,12 @@ public class UserService
 		User.getRepository().save(userEntity);
 	}
 
+	private SecureRandom random = new SecureRandom();
+
 	public String generateTempPassword()
 	{
-		return "FOO"; // TODO
+		// see http://stackoverflow.com/questions/41107/how-to-generate-a-random-alpha-numeric-string
+		return new BigInteger(130, random).toString(32);
 	}
 
 	@Transactional

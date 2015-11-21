@@ -17,6 +17,8 @@ public class EmailService
 {
 	public void sendEmail(String to, String subject, String text)
 	{
+		// TODO queue and continue because it may take time to send
+
 		Properties props = new Properties();
 		props.put("mail.smtp.ssl.enable", "true");
 		props.put("mail.smtp.host", "smtp.gmail.com"); // TODO: replace by local SMTP server
