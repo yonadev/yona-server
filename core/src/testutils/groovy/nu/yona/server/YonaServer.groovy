@@ -23,8 +23,8 @@ class YonaServer {
 	YonaServer (baseURL)
 	{
 		restClient = new RESTClient(baseURL)
-        
-        restClient.handler.failure = restClient.handler.success 
+
+		restClient.handler.failure = restClient.handler.success
 	}
 
 	def static getTimeStamp()
@@ -42,7 +42,7 @@ class YonaServer {
 	{
 		createResource(GOALS_PATH, jsonString)
 	}
-	
+
 	def getGoal(goalURL)
 	{
 		getResource(goalURL)
@@ -101,12 +101,12 @@ class YonaServer {
 	{
 		updateResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, jsonString, password)
 	}
-	
+
 	def getNewDeviceRequest(userPath, userSecret = null)
 	{
 		getResource(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, [:], ["userSecret": userSecret])
 	}
-	
+
 	def clearNewDeviceRequest(userPath, password)
 	{
 		deleteResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, password)
@@ -130,8 +130,8 @@ class YonaServer {
 	def updateResource(path, jsonString, headers = [:])
 	{
 		def object = jsonSlurper.parseText(jsonString)
-		restClient.put(path: path, 
-			body: object, 
+		restClient.put(path: path,
+			body: object,
 			contentType:'application/json',
 			headers: headers)
 	}
@@ -148,7 +148,7 @@ class YonaServer {
 
 	def getResourceWithPassword(path, password, parameters = [:])
 	{
-		getResource(path, password ?  ["Yona-Password": password] : [ : ], parameters)
+		getResource(path, password ? ["Yona-Password": password] : [ : ], parameters)
 	}
 
 	def postMessageActionWithPassword(path, jsonString, password)
@@ -176,16 +176,16 @@ class YonaServer {
 
 	def postJson(path, jsonString, headers = [:])
 	{
-        def object = null
-        if (jsonString instanceof Map)
-        {
-            object = jsonString;
-        }
-        else
-        {
-            object = jsonSlurper.parseText(jsonString)
-        }
-        
+		def object = null
+		if (jsonString instanceof Map)
+		{
+			object = jsonString;
+		}
+		else
+		{
+			object = jsonSlurper.parseText(jsonString)
+		}
+
 		restClient.post(path: path,
 			body: object,
 			contentType:'application/json',
