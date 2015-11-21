@@ -8,6 +8,9 @@ use Getopt::Long;
 my %relevant_url_categories;
 my $ua = LWP::UserAgent->new;
 
+my $map_from_username;
+my $map_to_username;
+
 sub filter_relevant_url_categories {
 	my $listS = shift;
 	my @list = @$listS;
@@ -23,18 +26,31 @@ sub transform_log_record ($) {
 		return undef;
 	}
 	my $username = (keys $log_message->{'tagset'}->{'username'}) [0];
-	my @url_categories_logged = keys $log_message->{'requesttags'}->{'urlcategory'};
-	my @relevant_url_categories_logged = filter_relevant_url_categories \@url_categories_logged;
-	if (!@relevant_url_categories_logged) {
-		return undef;
+	if ($username == $map_from_username) {
+		$username = $map_to_username;
 	}
+	my @url_tags = keys $log_message->{'requesttags'};
+	foreach $tag (@url_tags) {
+		if ($tag eq "urlcategory") {
+			my @url_categories_logged = keys $log_message->{'requesttags'}->{'urlcategory'};
+			print "cats: @url_categories_logged\n";
+			foreach my $cat (@url_categories_logged) {
+				print "Cat: $cat\n";
+			}
+			my @relevant_url_categories_logged = filter_relevant_url_categories \@url_categories_logged;
+			if (!@relevant_url_categories_logged) {
+				return undef;
+			}
 
-	my $analysis_event = {
-		'loginID' => $username,
-		'categories' => [@relevant_url_categories_logged],
-		'url' => $url
-	};
-	return encode_json $analysis_event;
+			my $analysis_event = {
+				'loginID' => $username,
+				'categories' => [@relevant_url_categories_logged],
+				'url' => $url
+			};
+			return encode_json $analysis_event;
+		}
+	}
+	return undef;
 }
 
 sub fetch_relevant_url_categories {
@@ -78,7 +94,9 @@ sub handle_records_from_file {
 }
 
 my $analysis_engine_url = 'http://localhost:8081/analysisEngine/';
-GetOptions ('analysisEngineURL=s' => \$analysis_engine_url) or die "Usage: $0 [--analysisEngineURL <URL>] [<input file>]";
+GetOptions ('mapFromUsername=s' => \$map_from_username,
+'mapToUsername=s' => \$map_to_username,
+'analysisEngineURL=s' => \$analysis_engine_url) or die "Usage: $0 [--mapFromUsername <name>] [--mapToUsername <name>] [--analysisEngineURL <URL>] [<input file>]";
 my $input_file = $ARGV[0];
 if ($input_file) {
 	if (! -e $input_file) {
