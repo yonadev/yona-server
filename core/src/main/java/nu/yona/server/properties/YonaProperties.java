@@ -18,4 +18,16 @@ public class YonaProperties
 	{
 		this.newDeviceRequestExpirationDays = newDeviceRequestExpiration;
 	}
+
+	private boolean isRunningInTestMode = false;
+
+	public boolean getIsRunningInTestMode()
+	{
+		return isRunningInTestMode;
+	}
+
+	public void setIsRunningInTestMode(boolean isRunningInTestMode)
+	{
+		this.isRunningInTestMode = isRunningInTestMode;
+	}
 }

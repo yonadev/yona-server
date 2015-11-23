@@ -63,7 +63,9 @@ public class BuddyController
 			@PathVariable UUID requestingUserID)
 	{
 
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
+		return CryptoSession.execute(
+				password,
+				() -> userService.canAccessPrivateData(requestingUserID),
 				() -> createOKResponse(requestingUserID, buddyService.getBuddiesOfUser(requestingUserID),
 						getAllBuddiesLinkBuilder(requestingUserID)));
 	}
@@ -89,9 +91,16 @@ public class BuddyController
 	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID requestingUserID, @RequestBody BuddyDTO buddy)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
-				() -> createResponse(requestingUserID, buddyService.addBuddyToRequestingUser(requestingUserID, buddy),
-						HttpStatus.CREATED));
+		return CryptoSession.execute(
+				password,
+				() -> userService.canAccessPrivateData(requestingUserID),
+				() -> createResponse(requestingUserID,
+						buddyService.addBuddyToRequestingUser(requestingUserID, buddy, this::getInviteURL), HttpStatus.CREATED));
+	}
+
+	public String getInviteURL(UUID newUserID, String tempPassword)
+	{
+		return UserController.getUserSelfLinkWithTempPassword(newUserID, tempPassword).getHref();
 	}
 
 	private HttpEntity<BuddyResource> createOKResponse(UUID requestingUserID, BuddyDTO buddy)
@@ -107,9 +116,8 @@ public class BuddyController
 	private HttpEntity<Resources<BuddyResource>> createOKResponse(UUID requestingUserID, Set<BuddyDTO> buddies,
 			ControllerLinkBuilder controllerMethodLinkBuilder)
 	{
-		return new ResponseEntity<Resources<BuddyResource>>(
-				new Resources<>(new BuddyResourceAssembler(requestingUserID).toResources(buddies),
-						controllerMethodLinkBuilder.withSelfRel()),
+		return new ResponseEntity<Resources<BuddyResource>>(new Resources<>(
+				new BuddyResourceAssembler(requestingUserID).toResources(buddies), controllerMethodLinkBuilder.withSelfRel()),
 				HttpStatus.OK);
 	}
 
