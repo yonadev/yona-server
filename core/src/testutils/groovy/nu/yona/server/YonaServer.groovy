@@ -127,7 +127,7 @@ class YonaServer {
 	{
 		postJson(path, jsonString, headers);
 	}
-	
+
 	def updateResourceWithPassword(path, jsonString, password, parameters = [:])
 	{
 		updateResource(path, jsonString, ["Yona-Password": password], parameters)
