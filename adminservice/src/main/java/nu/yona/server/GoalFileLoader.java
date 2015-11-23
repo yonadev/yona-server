@@ -44,6 +44,7 @@ public class GoalFileLoader implements ApplicationListener<ContextRefreshedEvent
 		}
 		catch (IOException e)
 		{
+			LOGGER.severe("Error loading goals from file '" + inputFileName + "'");
 			throw GoalFileLoaderException.loadingGoalsFromFile(inputFileName);
 		}
 	}
