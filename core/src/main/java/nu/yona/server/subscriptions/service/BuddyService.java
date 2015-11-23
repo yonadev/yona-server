@@ -6,7 +6,12 @@ package nu.yona.server.subscriptions.service;
 
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -14,10 +19,6 @@ import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.User;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
@@ -40,12 +41,8 @@ public class BuddyService
 		return getBuddies(user.getPrivateData().getBuddyIDs());
 	}
 
-	public interface InviteURLGetter
-	{
-		String getInviteURL(UUID newUserID, String tempPassword);
-	}
-
-	public BuddyDTO addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDTO buddy, InviteURLGetter inviteURLGetter)
+	public BuddyDTO addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDTO buddy,
+			BiFunction<UUID, String, String> inviteURLGetter)
 	{
 		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
 		User buddyUserEntity = getBuddyUser(buddy);
@@ -71,14 +68,15 @@ public class BuddyService
 		return BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
 	}
 
-	private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy, InviteURLGetter inviteURLGetter)
+	private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy,
+			BiFunction<UUID, String, String> inviteURLGetter)
 	{
 		UserDTO buddyUser = buddy.getUser();
 
 		String tempPassword = userService.generateTempPassword();
 		User buddyUserEntity = userService.addUserCreatedOnBuddyRequest(buddyUser, tempPassword);
 
-		String inviteURL = inviteURLGetter.getInviteURL(buddyUserEntity.getID(), tempPassword);
+		String inviteURL = inviteURLGetter.apply(buddyUserEntity.getID(), tempPassword);
 		sendInvitationMessage(buddyUserEntity, buddy, inviteURL);
 
 		return handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
@@ -100,9 +98,9 @@ public class BuddyService
 		userService.addBuddy(requestingUser, savedBuddy); // TODO: how can we do this without using the user password?
 
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
-		messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(), requestingUser.getPrivateData()
-				.getVpnProfile().getLoginID(), requestingUser.getPrivateData().getGoals(), requestingUser.getPrivateData()
-				.getNickName(), buddy.getMessage(), savedBuddyEntity.getID()));
+		messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
+				requestingUser.getPrivateData().getVpnProfile().getLoginID(), requestingUser.getPrivateData().getGoals(),
+				requestingUser.getPrivateData().getNickName(), buddy.getMessage(), savedBuddyEntity.getID()));
 		MessageDestination.getRepository().save(messageDestination);
 
 		return savedBuddy;
