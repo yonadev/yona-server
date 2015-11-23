@@ -133,7 +133,9 @@ class AddDeviceTest extends Specification {
 		then:
 			response.status == 200
 			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL)
-			getResponseAfter.status == 404
+			getResponseAfter.status == 400
+			getResponseAfter.data.containsKey("code")
+			getResponseAfter.data["code"] == "error.no.device.request.present"
 	}
 	
 	def 'Delete Richard Quin'(){
