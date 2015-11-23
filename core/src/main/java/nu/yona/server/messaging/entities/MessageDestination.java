@@ -60,18 +60,13 @@ public class MessageDestination extends EntityWithID
 
 	public void send(Message message)
 	{
-		encryptMessage(message);
+		message.encryptMessage(PublicKeyEncryptor.createInstance(loadPublicKey()));
 		messages.add(message);
 	}
 
 	public List<Message> getAllMessages()
 	{
 		return Collections.unmodifiableList(messages);
-	}
-
-	public void encryptMessage(Message message)
-	{
-		message.encryptMessage(PublicKeyEncryptor.createInstance(loadPublicKey()));
 	}
 
 	private PublicKey loadPublicKey()
