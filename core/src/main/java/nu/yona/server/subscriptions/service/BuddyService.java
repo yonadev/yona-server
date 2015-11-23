@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
@@ -29,6 +30,9 @@ public class BuddyService
 
 	@Autowired
 	EmailService emailService;
+
+	@Autowired
+	YonaProperties properties;
 
 	public BuddyDTO getBuddy(UUID buddyID)
 	{
@@ -75,11 +79,18 @@ public class BuddyService
 
 		String tempPassword = userService.generateTempPassword();
 		User buddyUserEntity = userService.addUserCreatedOnBuddyRequest(buddyUser, tempPassword);
+		BuddyDTO savedBuddy = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
 
 		String inviteURL = inviteURLGetter.apply(buddyUserEntity.getID(), tempPassword);
-		sendInvitationMessage(buddyUserEntity, buddy, inviteURL);
-
-		return handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
+		if (properties.getIsRunningInTestMode())
+		{
+			savedBuddy.setUserCreatedInviteURL(inviteURL);
+		}
+		else
+		{
+			sendInvitationMessage(buddyUserEntity, buddy, inviteURL);
+		}
+		return savedBuddy;
 	}
 
 	private void sendInvitationMessage(User buddyUserEntity, BuddyDTO buddy, String inviteURL)
