@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import nu.yona.server.exceptions.InvalidDataException;
+import nu.yona.server.exceptions.YonaException;
 
 /**
  * This class contains the mapping for the different exceptions and how they should be mapped to an http response
@@ -29,10 +29,10 @@ public class GlobalExceptionMapping
 	 * @param ide The exception
 	 * @return The response object to return.
 	 */
-	@ExceptionHandler(InvalidDataException.class)
+	@ExceptionHandler(YonaException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
-	public ResponseMessageDTO handle(InvalidDataException ide)
+	public ResponseMessageDTO handle(YonaException ide)
 	{
 		return new ResponseMessageDTO(ResponseMessageType.ERROR, ide.getMessageId(), ide.getLocalizedMessage(msgSource));
 	}

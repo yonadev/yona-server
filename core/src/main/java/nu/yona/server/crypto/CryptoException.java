@@ -36,6 +36,11 @@ public class CryptoException extends YonaException
 		return new CryptoException(e, "error.decrypting.data");
 	}
 
+	public static CryptoException decryptingData()
+	{
+		return new CryptoException("error.decrypting.data");
+	}
+
 	public static CryptoException creatingSecretKey(Throwable e)
 	{
 		return new CryptoException(e, "error.creating.secret.key");

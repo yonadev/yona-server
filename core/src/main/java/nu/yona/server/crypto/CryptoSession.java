@@ -77,7 +77,7 @@ public class CryptoSession implements AutoCloseable
 		{
 			if (passwordChecker != null && !passwordChecker.test())
 			{
-				throw DecryptionException.decryptingData();
+				throw CryptoException.decryptingData();
 			}
 			return executable.execute();
 		}
