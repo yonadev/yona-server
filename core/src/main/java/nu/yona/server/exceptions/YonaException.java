@@ -4,23 +4,22 @@
  *******************************************************************************/
 package nu.yona.server.exceptions;
 
-public class YonaException extends RuntimeException
+/**
+ * Generic exception class for any Yona exception.
+ * 
+ * @author pgussow
+ */
+public class YonaException extends ResourceBasedException
 {
-
 	private static final long serialVersionUID = 6332689175661269736L;
 
-	public YonaException(String message)
+	public YonaException(String messageId, Object... parameters)
 	{
-		super(message);
+		super(messageId, parameters);
 	}
 
-	public YonaException(Throwable cause)
+	public YonaException(Throwable t, String messageId, Object... parameters)
 	{
-		super(cause);
-	}
-
-	public YonaException(String message, Throwable cause)
-	{
-		super(message, cause);
+		super(t, messageId, parameters);
 	}
 }

@@ -105,7 +105,7 @@ public class BuddyService
 		Buddy entity = Buddy.getRepository().findOne(id);
 		if (entity == null)
 		{
-			throw new BuddyNotFoundException(id);
+			throw BuddyNotFoundException.notFound(id);
 		}
 		return entity;
 	}

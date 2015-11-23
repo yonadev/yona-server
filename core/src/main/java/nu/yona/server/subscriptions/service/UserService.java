@@ -174,22 +174,22 @@ public class UserService
 	{
 		if (StringUtils.isBlank(userResource.getFirstName()))
 		{
-			throw new InvalidDataException("error.user.firstname");
+			throw InvalidDataException.blankFirstName();
 		}
 
 		if (StringUtils.isBlank(userResource.getLastName()))
 		{
-			throw new InvalidDataException("error.user.lastname");
+			throw InvalidDataException.blankLastName();
 		}
 
 		if (StringUtils.isBlank(userResource.getMobileNumber()))
 		{
-			throw new InvalidDataException("error.user.mobile.number");
+			throw InvalidDataException.blankMobileNumber();
 		}
 
 		if (!REGEX_PHONE.matcher(userResource.getMobileNumber()).matches())
 		{
-			throw new InvalidDataException("error.user.mobile.number.invalid");
+			throw InvalidDataException.invalidMobileNumber(userResource.getMobileNumber());
 		}
 	}
 
@@ -225,7 +225,7 @@ public class UserService
 		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
 		if (newDeviceRequestEntity == null)
 		{
-			throw new NewDeviceRequestNotPresentException(userID);
+			throw DeviceRequestException.noDeviceRequestPresent(userID);
 		}
 
 		if (StringUtils.isBlank(userSecret))

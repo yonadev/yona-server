@@ -49,7 +49,7 @@ public class PublicKeyDecryptor implements Decryptor
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw new YonaException(e);
+			throw new YonaException(e, "error.decrypting.data");
 		}
 	}
 
@@ -88,7 +88,7 @@ public class PublicKeyDecryptor implements Decryptor
 		}
 		catch (IOException e)
 		{
-			throw new YonaException(e);
+			throw new YonaException(e, "error.decrypting.data");
 		}
 	}
 
@@ -100,7 +100,7 @@ public class PublicKeyDecryptor implements Decryptor
 		}
 		catch (IOException e)
 		{
-			throw new YonaException(e);
+			throw new YonaException(e, "error.reading.uuid");
 		}
 	}
 }

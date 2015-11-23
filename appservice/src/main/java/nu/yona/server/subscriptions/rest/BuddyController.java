@@ -14,12 +14,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
-import nu.yona.server.subscriptions.service.BuddyDTO;
-import nu.yona.server.subscriptions.service.BuddyService;
-import nu.yona.server.subscriptions.service.UserService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Resource;
@@ -38,6 +32,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
+import nu.yona.server.subscriptions.service.BuddyDTO;
+import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(BuddyResource.class)

@@ -9,8 +9,10 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import nu.yona.server.exceptions.YonaException;
+
 @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No such goal")
-public class GoalNotFoundException extends RuntimeException
+public class GoalNotFoundException extends YonaException
 {
 	private static final long serialVersionUID = -5303422277177893152L;
 

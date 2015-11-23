@@ -6,26 +6,24 @@ package nu.yona.server.subscriptions.service;
 
 import java.util.UUID;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import nu.yona.server.exceptions.YonaException;
 
-@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No such user")
-public class UserNotFoundException extends RuntimeException
+public class UserNotFoundException extends YonaException
 {
 	private static final long serialVersionUID = -4519219401062670885L;
 
-	private UserNotFoundException(String msg)
+	private UserNotFoundException(String messageId, Object... parameters)
 	{
-		super(msg);
+		super(messageId, parameters);
 	}
 
 	public static UserNotFoundException notFoundByMobileNumber(String mobileNumber)
 	{
-		return new UserNotFoundException("User with mobile number '" + mobileNumber + "' not found");
+		return new UserNotFoundException("error.user.not.found.mobile", mobileNumber);
 	}
 
 	public static UserNotFoundException notFoundByID(UUID id)
 	{
-		return new UserNotFoundException("User with ID '" + id + "' not found");
+		return new UserNotFoundException("error.user.not.found.mobile", id);
 	}
 }

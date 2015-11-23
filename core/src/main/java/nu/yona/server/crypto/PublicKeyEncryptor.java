@@ -48,7 +48,7 @@ public class PublicKeyEncryptor implements Encryptor
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw new YonaException(e);
+			throw new YonaException(e, "error.encrypting.data");
 		}
 	}
 
@@ -84,7 +84,7 @@ public class PublicKeyEncryptor implements Encryptor
 		}
 		catch (IOException e)
 		{
-			throw new YonaException(e);
+			throw new YonaException(e, "error.encrypting.data");
 		}
 	}
 
@@ -97,7 +97,7 @@ public class PublicKeyEncryptor implements Encryptor
 		}
 		catch (IOException e)
 		{
-			throw new YonaException(e);
+			throw new YonaException(e, "error.writing.data");
 		}
 	}
 }

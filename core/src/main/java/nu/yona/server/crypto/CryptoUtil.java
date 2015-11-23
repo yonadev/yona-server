@@ -35,7 +35,7 @@ public class CryptoUtil
 		}
 		catch (NoSuchAlgorithmException | NoSuchProviderException e)
 		{
-			throw new YonaException(e);
+			throw new YonaException(e, "error.getting.random.instance");
 		}
 	}
 }

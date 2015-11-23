@@ -38,7 +38,7 @@ public class PublicKeyUtil
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw new YonaException(e);
+			throw new YonaException(e, "error.generating.key.pair");
 		}
 	}
 
@@ -52,7 +52,7 @@ public class PublicKeyUtil
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw new YonaException(e);
+			throw new YonaException(e, "error.encoding.private.key");
 		}
 	}
 
@@ -66,21 +66,7 @@ public class PublicKeyUtil
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw new YonaException(e);
-		}
-	}
-
-	public static PublicKey publicKeyFromBytes(byte[] publicKeyBytes)
-	{
-		try
-		{
-			X509EncodedKeySpec spec = new X509EncodedKeySpec(publicKeyBytes);
-			KeyFactory fact = KeyFactory.getInstance(KEY_ALGORITHM);
-			return fact.generatePublic(spec);
-		}
-		catch (GeneralSecurityException e)
-		{
-			throw new YonaException(e);
+			throw new YonaException(e, "error.decoding.private.key");
 		}
 	}
 
@@ -94,7 +80,21 @@ public class PublicKeyUtil
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw new YonaException(e);
+			throw new YonaException(e, "error.encoding.public.key");
+		}
+	}
+
+	public static PublicKey publicKeyFromBytes(byte[] publicKeyBytes)
+	{
+		try
+		{
+			X509EncodedKeySpec spec = new X509EncodedKeySpec(publicKeyBytes);
+			KeyFactory fact = KeyFactory.getInstance(KEY_ALGORITHM);
+			return fact.generatePublic(spec);
+		}
+		catch (GeneralSecurityException e)
+		{
+			throw new YonaException(e, "error.decoding.public.key");
 		}
 	}
 }

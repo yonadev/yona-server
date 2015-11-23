@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -74,7 +75,7 @@ public class AnalysisEngineService
 		UserAnonymized entity = UserAnonymized.getRepository().findOne(id);
 		if (entity == null)
 		{
-			throw new LoginIDNotFoundException(id);
+			throw InvalidDataException.analysisUserNotFound(id);
 		}
 		return entity;
 	}
