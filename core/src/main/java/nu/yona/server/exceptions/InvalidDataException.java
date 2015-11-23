@@ -22,9 +22,9 @@ public class InvalidDataException extends YonaException
 		super(t, messageId, parameters);
 	}
 
-	public static InvalidDataException analysisUserNotFound(UUID id)
+	public static InvalidDataException loginIDNotFound(UUID id)
 	{
-		return new InvalidDataException("error.analysis.user.not.found", id);
+		return new InvalidDataException("error.login.ID.not.found", id);
 	}
 
 	public static InvalidDataException blankFirstName()

@@ -75,7 +75,7 @@ public class AnalysisEngineService
 		UserAnonymized entity = UserAnonymized.getRepository().findOne(id);
 		if (entity == null)
 		{
-			throw InvalidDataException.analysisUserNotFound(id);
+			throw InvalidDataException.loginIDNotFound(id);
 		}
 		return entity;
 	}
