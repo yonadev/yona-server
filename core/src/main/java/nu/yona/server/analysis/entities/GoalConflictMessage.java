@@ -26,7 +26,6 @@ public class GoalConflictMessage extends Message
 	private String url;
 	private byte[] urlCiphertext;
 
-	private Date startTime;
 	private Date endTime;
 
 	// Default constructor is required for JPA
@@ -41,7 +40,7 @@ public class GoalConflictMessage extends Message
 
 		this.goalID = goalID;
 		this.url = url;
-		this.startTime = this.endTime = new Date();
+		this.endTime = new Date();
 	}
 
 	public Goal getGoal()
@@ -64,16 +63,6 @@ public class GoalConflictMessage extends Message
 	public void decrypt(Decryptor decryptor)
 	{
 		url = decryptor.decryptString(urlCiphertext);
-	}
-
-	public Date getStartTime()
-	{
-		return startTime;
-	}
-
-	public void setStartTime(Date startTime)
-	{
-		this.startTime = startTime;
 	}
 
 	public Date getEndTime()

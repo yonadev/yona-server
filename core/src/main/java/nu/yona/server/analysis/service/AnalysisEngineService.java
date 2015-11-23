@@ -29,9 +29,9 @@ public class AnalysisEngineService
 	@Autowired
 	private AnalysisEngineCacheService cacheService;
 	@Value("${yona.analysisservice.conflict.interval}")
-	private int conflictInterval;
+	private int conflictInterval = 300000;
 	@Value("${yona.analysisservice.update.skip.window}")
-	private int updateSkipWindow;
+	private int updateSkipWindow = 5000;
 
 	public void analyze(PotentialConflictDTO potentialConflictPayload)
 	{
@@ -67,26 +67,34 @@ public class AnalysisEngineService
 
 		if (message == null || message.getEndTime().before(minEndTime))
 		{
-			message = GoalConflictMessage.createInstance(payload.getLoginID(), conflictingGoal, payload.getURL());
-			destination.send(message);
+			message = sendNewGoalConflictMessage(payload, conflictingGoal, destination);
+			cacheService.updateLatestGoalConflictMessageForUser(message, destination);
 		}
 		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
 		else if (now.getTime() - message.getEndTime().getTime() >= updateSkipWindow)
 		{
-			assert payload.getLoginID().equals(message.getRelatedLoginID());
-			assert conflictingGoal.getID().equals(message.getGoal().getID());
-
-			message.setEndTime(now);
+			updateLastGoalConflictMessage(payload, now, conflictingGoal, message);
+			cacheService.updateLatestGoalConflictMessageForUser(message, destination);
 		}
-		else
-		{
-			// No change needed.
-			return message;
-		}
-
-		cacheService.updateLatestGoalConflictMessageForUser(message, destination);
 
 		return message;
+	}
+
+	private GoalConflictMessage sendNewGoalConflictMessage(PotentialConflictDTO payload, Goal conflictingGoal,
+			MessageDestination destination)
+	{
+		GoalConflictMessage message = GoalConflictMessage.createInstance(payload.getLoginID(), conflictingGoal, payload.getURL());
+		destination.send(message);
+		return message;
+	}
+
+	private void updateLastGoalConflictMessage(PotentialConflictDTO payload, Date messageEndTime, Goal conflictingGoal,
+			GoalConflictMessage message)
+	{
+		assert payload.getLoginID().equals(message.getRelatedLoginID());
+		assert conflictingGoal.getID().equals(message.getGoal().getID());
+
+		message.setEndTime(messageEndTime);
 	}
 
 	private Set<Goal> determineConflictingGoalsForUser(UserAnonymized userAnonymized, Set<String> categories)

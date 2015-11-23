@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
+import java.util.Date;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -19,6 +20,7 @@ import nu.yona.server.entities.RepositoryProvider;
 public abstract class Message extends EntityWithID
 {
 	private UUID relatedLoginID;
+	private Date creationTime;
 
 	public static MessageRepository getRepository()
 	{
@@ -38,6 +40,7 @@ public abstract class Message extends EntityWithID
 			throw new IllegalArgumentException("relatedUserAnonymizedID cannot be null");
 		}
 		this.relatedLoginID = relatedUserAnonymizedID;
+		this.creationTime = new Date();
 	}
 
 	public void encryptMessage(Encryptor encryptor)
@@ -48,6 +51,11 @@ public abstract class Message extends EntityWithID
 	public void decryptMessage(Decryptor decryptor)
 	{
 		decrypt(decryptor);
+	}
+
+	public Date getCreationTime()
+	{
+		return creationTime;
 	}
 
 	public UUID getRelatedLoginID()
