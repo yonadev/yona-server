@@ -1,12 +1,8 @@
 package nu.yona.server
 
-import groovyx.net.http.RESTClient
-import spock.lang.Ignore
-import spock.lang.IgnoreRest
+import groovy.json.*
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
-import groovy.json.*
 
 class BasicBuddyTest extends Specification {
 
@@ -50,17 +46,17 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.addUser("""{
-				"firstName":"Richard ${timestamp}",
-				"lastName":"Quin ${timestamp}",
-				"nickName":"RQ ${timestamp}",
-				"mobileNumber":"+${timestamp}1",
-				"devices":[
-					"Nexus 6"
-				],
-				"goals":[
-					"news"
-				]
-			}""", richardQuinPassword)
+					"firstName":"Richard ${timestamp}",
+					"lastName":"Quin ${timestamp}",
+					"nickName":"RQ ${timestamp}",
+					"mobileNumber":"+${timestamp}1",
+					"devices":[
+						"Nexus 6"
+					],
+					"goals":[
+						"news"
+					]
+				}""", richardQuinPassword)
 			if (response.status == 201) {
 				richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
 				richardQuinLoginID = response.responseData.vpnProfile.loginID;
@@ -79,17 +75,17 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.addUser("""{
-				"firstName":"Bob ${timestamp}",
-				"lastName":"Dunn ${timestamp}",
-				"nickName":"BD ${timestamp}",
-				"mobileNumber":"+${timestamp}2",
-				"devices":[
-					"iPhone 6"
-				],
-				"goals":[
-					"gambling"
-				]
-			}""", bobDunnPassword)
+					"firstName":"Bob ${timestamp}",
+					"lastName":"Dunn ${timestamp}",
+					"nickName":"BD ${timestamp}",
+					"mobileNumber":"+${timestamp}2",
+					"devices":[
+						"iPhone 6"
+					],
+					"goals":[
+						"gambling"
+					]
+				}""", bobDunnPassword)
 			if (response.status == 201) {
 				bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
 				bobDunnLoginID = response.responseData.vpnProfile.loginID;
@@ -108,16 +104,16 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.requestBuddy(richardQuinURL, """{
-				"_embedded":{
-					"user":{
-						"firstName":"Bob ${timestamp}",
-						"lastName":"Dun ${timestamp}",
-						"emailAddress":"bob${timestamp}@dunn.net",
-						"mobileNumber":"+${timestamp}2"
-					}
-				},
-				"message":"Would you like to be my buddy?"
-			}""", richardQuinPassword)
+					"_embedded":{
+						"user":{
+							"firstName":"Bob ${timestamp}",
+							"lastName":"Dun ${timestamp}",
+							"emailAddress":"bob${timestamp}@dunn.net",
+							"mobileNumber":"+${timestamp}2"
+						}
+					},
+					"message":"Would you like to be my buddy?"
+				}""", richardQuinPassword)
 			richardQuinBobBuddyURL = response.responseData._links.self.href
 
 		then:
@@ -151,10 +147,10 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.postMessageActionWithPassword(bobDunnBuddyMessageAcceptURL, """{
-				"properties":{
-					"message":"Yes, great idea!"
-				}
-			}""", bobDunnPassword)
+					"properties":{
+						"message":"Yes, great idea!"
+					}
+				}""", bobDunnPassword)
 
 		then:
 			response.status == 200
@@ -183,9 +179,9 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageProcessURL, """{
-				"properties":{
-				}
-			}""", richardQuinPassword)
+					"properties":{
+					}
+				}""", richardQuinPassword)
 
 		then:
 			response.status == 200
@@ -237,7 +233,7 @@ class BasicBuddyTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._embedded == null || response.responseData._embedded.goalConflictMessages == null 
+			response.responseData._embedded == null || response.responseData._embedded.goalConflictMessages == null
 	}
 
 	def 'Bob checks he has no anonymous messages'(){
@@ -248,7 +244,7 @@ class BasicBuddyTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._embedded == null || response.responseData._embedded.goalConflictMessages == null 
+			response.responseData._embedded == null || response.responseData._embedded.goalConflictMessages == null
 	}
 
 	def 'Classification engine detects a potential conflict for Richard'(){
@@ -256,10 +252,10 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = analysisService.postToAnalysisEngine("""{
-			"loginID":"${richardQuinLoginID}",
-			"categories": ["news/media"],
-			"url":"http://www.refdag.nl"
-			}""")
+				"loginID":"${richardQuinLoginID}",
+				"categories": ["news/media"],
+				"url":"http://www.refdag.nl"
+				}""")
 
 		then:
 			response.status == 200
@@ -293,21 +289,63 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
 	}
 
+	def 'Classification engine detects a potential conflict for Richard (second conflict message)'(){
+		given:
+
+		when:
+			def response = analysisService.postToAnalysisEngine("""{
+				"loginID":"${richardQuinLoginID}",
+				"categories": ["news/media"],
+				"url":"http://www.refdag.nl"
+				}""")
+
+		then:
+			response.status == 200
+	}
+
+	def 'Bob checks he has anonymous messages and finds a conflict for Richard (second conflict message)'(){
+		given:
+
+		when:
+			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded.goalConflictMessages.size() == 1
+			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+	}
+
+	def 'Richard checks he has anonymous messages and finds a conflict for himself (second conflict message)'(){
+		given:
+
+		when:
+			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded.goalConflictMessages.size() == 1
+			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+	}
+
 	def 'Bob requests Richard to become his buddy (automatic pairing)'(){
 		given:
 
 		when:
 			def response = appService.requestBuddy(bobDunnURL, """{
-				"_embedded":{
-					"user":{
-						"firstName":"Richard ${timestamp}",
-						"lastName":"Quin ${timestamp}",
-						"emailAddress":"rich${timestamp}@quin.net",
-						"mobileNumber":"+${timestamp}1",
-					}
-				},
-				"message":"Would you like to be my buddy?"
-			}""", bobDunnPassword)
+					"_embedded":{
+						"user":{
+							"firstName":"Richard ${timestamp}",
+							"lastName":"Quin ${timestamp}",
+							"emailAddress":"rich${timestamp}@quin.net",
+							"mobileNumber":"+${timestamp}1",
+						}
+					},
+					"message":"Would you like to be my buddy?"
+				}""", bobDunnPassword)
 			bobDunnRichardBuddyURL = response.responseData._links.self.href
 
 		then:
@@ -342,10 +380,10 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageAcceptURL, """{
-				"properties":{
-					"message":"Yes, great idea!"
-				}
-			}""", richardQuinPassword)
+					"properties":{
+						"message":"Yes, great idea!"
+					}
+				}""", richardQuinPassword)
 
 		then:
 			response.status == 200
@@ -375,9 +413,9 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.postMessageActionWithPassword(bobDunnBuddyMessageProcessURL, """{
-				"properties":{
-				}
-			}""", bobDunnPassword)
+					"properties":{
+					}
+				}""", bobDunnPassword)
 
 		then:
 			response.status == 200
@@ -389,10 +427,10 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = analysisService.postToAnalysisEngine("""{
-			"loginID":"${bobDunnLoginID}",
-			"categories": ["Gambling"],
-			"url":"http://www.poker.com"
-			}""")
+				"loginID":"${bobDunnLoginID}",
+				"categories": ["Gambling"],
+				"url":"http://www.poker.com"
+				}""")
 
 		then:
 			response.status == 200
@@ -416,6 +454,54 @@ class BasicBuddyTest extends Specification {
 	}
 
 	def 'Bob checks he has anonymous messages and finds a conflict for himself'(){
+		given:
+
+		when:
+			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded.goalConflictMessages.size() == 2
+			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
+	}
+
+	def 'Classification engine detects a potential conflict for Bob (second conflict message)'(){
+		given:
+
+		when:
+			def response = analysisService.postToAnalysisEngine("""{
+				"loginID":"${bobDunnLoginID}",
+				"categories": ["Gambling"],
+				"url":"http://www.poker.com"
+				}""")
+
+		then:
+			response.status == 200
+	}
+
+	def 'Richard checks he has anonymous messages and finds a conflict for Bob (second conflict message)'(){
+		given:
+
+		when:
+			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded.goalConflictMessages.size() == 2
+			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+			response.responseData._embedded.goalConflictMessages[1].nickname == "BD ${timestamp}"
+			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
+	}
+
+	def 'Bob checks he has anonymous messages and finds a conflict for himself (second conflict message)'(){
 		given:
 
 		when:
