@@ -72,6 +72,14 @@ public class BuddyService
 		return BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
 	}
 
+	public void removeBuddyAfterConnectRejection(UUID idOfRequestingUser, UUID buddyID)
+	{
+		User user = User.getRepository().findOne(idOfRequestingUser);
+		Buddy buddy = getEntityByID(buddyID);
+
+		user.removeBuddy(buddy);
+	}
+
 	private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy,
 			BiFunction<UUID, String, String> inviteURLGetter)
 	{

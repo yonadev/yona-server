@@ -21,6 +21,7 @@ import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 
 @JsonRootName("buddyConnectResponseMessage")
@@ -95,8 +96,15 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 				BuddyConnectResponseMessage connectResponseMessageEntity, MessageActionDTO payload)
 		{
 
-			buddyService.updateBuddyWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
-					connectResponseMessageEntity.getRelatedLoginID());
+			if (connectResponseMessageEntity.getStatus() == Status.REJECTED)
+			{
+				buddyService.removeBuddyAfterConnectRejection(requestingUser.getID(), connectResponseMessageEntity.getBuddyID());
+			}
+			else
+			{
+				buddyService.updateBuddyWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
+						connectResponseMessageEntity.getRelatedLoginID());
+			}
 
 			updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
