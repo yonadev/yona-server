@@ -8,6 +8,7 @@ buildscript {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:$project.ext.springBootVersion")
 		classpath("io.spring.gradle:dependency-management-plugin:0.5.3.RELEASE")
 		classpath('se.transmode.gradle:gradle-docker:1.2')
+		classpath 'net.researchgate:gradle-release:2.3.4'
 	}
 }
 
@@ -18,11 +19,20 @@ apply plugin: 'spring-boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'war'
 apply plugin: 'docker'
+apply plugin: 'net.researchgate.release'
 
 
 war {
 	baseName = 'analysisservice'
 	version = '0.0.1-SNAPSHOT'
+}
+
+release {
+	failOnCommitNeeded = true
+	tagTemplate = 'analysisservice-${version}'
+	git {
+		requireBranch = 'yd-40-changes-for-building|master'
+	}
 }
 
 configurations {
@@ -37,12 +47,14 @@ dependencies {
 	compile("io.springfox:springfox-swagger2:2.2.2")
 	compile("io.springfox:springfox-swagger-ui:2.2.2")
 	compile("com.fasterxml.jackson.core:jackson-databind:2.6.3") // Required as the Spring Hateaos version pulled in by Swagger is incompatible with Jackson 2.4
-	
 
-	runtime("org.hsqldb:hsqldb") 
+
+	runtime("org.hsqldb:hsqldb")
 	providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
-	testCompile("org.springframework.boot:spring-boot-starter-test") 
-	testCompile("junit:junit:4.12") 
+
+	testCompile project(path: ':core', configuration: 'testUtils')
+	testCompile("org.springframework.boot:spring-boot-starter-test")
+	testCompile("junit:junit:4.12")
 
 	// mandatory dependencies for using Spock
 	testCompile "org.codehaus.groovy:groovy-all:2.4.5"
@@ -62,10 +74,10 @@ test {
 run {
 	enableAssertions=true
 
-    if ( project.hasProperty('analysisservice.debug') || project.hasProperty('debug.all')) {
-        jvmArgs "-Xdebug", "-Xrunjdwp:transport=dt_socket,address=" + project.ext.yona_analysisservice_debug_port + ",server=y,suspend=n"
-    }
-   
+	if ( project.hasProperty('analysisservice.debug') || project.hasProperty('debug.all')) {
+		jvmArgs "-Xdebug", "-Xrunjdwp:transport=dt_socket,address=" + project.ext.yona_analysisservice_debug_port + ",server=y,suspend=n"
+	}
+
 	systemProperties = [
 		'server.port': System.getProperty('server.port', project.ext.yona_analysisservice_port)
 	]
@@ -74,16 +86,16 @@ run {
 group = 'yonadev'
 
 task buildDocker(type: Docker, dependsOn: build) {
-  push = true
-  applicationName = jar.baseName
-  dockerfile = file('src/main/docker/Dockerfile')
-  doFirst {
-    copy {
-      from jar
-      into stageDir
-	  rename jar.archiveName, jar.baseName +".jar"
-    }
-  }
+	push = true
+	applicationName = jar.baseName
+	dockerfile = file('src/main/docker/Dockerfile')
+	doFirst {
+		copy {
+			from jar
+			into stageDir
+		rename jar.archiveName, jar.baseName +".jar"
+		}
+	}
 }
 
 sourceSets {

@@ -19,11 +19,6 @@ public class UserNotFoundException extends RuntimeException
 		super(msg);
 	}
 
-	public static UserNotFoundException notFoundByEmailAddress(String emailAddress)
-	{
-		return new UserNotFoundException("User with e-mail address '" + emailAddress + "' not found");
-	}
-
 	public static UserNotFoundException notFoundByMobileNumber(String mobileNumber)
 	{
 		return new UserNotFoundException("User with mobile number '" + mobileNumber + "' not found");

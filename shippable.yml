@@ -7,10 +7,12 @@ before_script:
   - mkdir -p shippable/codecoverage
 
 script:
-  - chmod +x gradlew
-  - ./gradlew test buildDocker
-  - cp ./build/test-results/*.xml ./shippable/testresults
+  - ./gradlew check
+  - cp ./core/build/test-results/*.xml ./shippable/testresults
 
 after_script:
   - mkdir -p ./shippable/buildoutput
-  - cp -r build ./shippable/buildoutput/.
+  - cp -r core/build ./shippable/buildoutput/.
+  - cp -r adminservice/build ./shippable/buildoutput/.
+  - cp -r analysisservice/build ./shippable/buildoutput/.
+  - cp -r appservice/build ./shippable/buildoutput/.
