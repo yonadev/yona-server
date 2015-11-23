@@ -1,7 +1,5 @@
 package nu.yona.server;
 
-import static java.util.logging.Level.SEVERE;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +14,6 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.goals.service.GoalService;
 
@@ -47,8 +44,7 @@ public class GoalFileLoader implements ApplicationListener<ContextRefreshedEvent
 		}
 		catch (IOException e)
 		{
-			LOGGER.log(SEVERE, "Error loading goals from file '" + inputFileName + "'", e);
-			throw new YonaException("Error loading goals from file '" + inputFileName + "'");
+			throw GoalFileLoaderException.loadingGoalsFromFile(inputFileName);
 		}
 	}
 }

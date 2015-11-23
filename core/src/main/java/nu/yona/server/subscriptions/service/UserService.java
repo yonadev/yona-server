@@ -227,7 +227,7 @@ public class UserService
 		}
 		if (isExpired(newDeviceRequestEntity))
 		{
-			throw new NewDeviceRequestExpiredException(userID);
+			throw DeviceRequestException.deviceRequestExpired(userID);
 		}
 
 		if (StringUtils.isBlank(userSecret))
