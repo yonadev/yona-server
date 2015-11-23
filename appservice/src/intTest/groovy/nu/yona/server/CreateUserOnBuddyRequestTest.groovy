@@ -54,11 +54,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 	@Shared
 	def richardQuinBuddyMessageProcessURL 
 
-	def 'Add user Richard Quin'(){
-		given:
-
-		when:
-			def response = appService.addUser("""{
+	def richardQuinCreationJSON = """{
 				"firstName":"Richard ${timestamp}",
 				"lastName":"Quin ${timestamp}",
 				"nickName":"RQ ${timestamp}",
@@ -69,7 +65,13 @@ class CreateUserOnBuddyRequestTest extends Specification {
 				"goals":[
 					"news"
 				]
-			}""", richardQuinPassword)
+			}"""
+	
+	def 'Add user Richard Quin'(){
+		given:
+
+		when:
+			def response = appService.addUser(richardQuinCreationJSON, richardQuinPassword)
 			if (response.status == 201) {
 				richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
 				richardQuinLoginID = response.responseData.vpnProfile.loginID;
@@ -112,6 +114,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 				}
 				*/
 				bobDunnInviteURL = response.responseData.userCreatedInviteURL;
+				bobDunnURL = appService.stripQueryString(bobDunnInviteURL)
 			}
 
 		then:
@@ -124,6 +127,57 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			println "URL buddy Richard: " + richardQuinBobBuddyURL
 			println "Invite URL Bob: " + bobDunnInviteURL
 
+	}
+	
+	def 'Hacking attempt: Try to get Bob Dunn with an invalid temp password'(){
+		given:
+
+		when:
+			def response = appService.getResource(bobDunnURL, [:], ["tempPassword": "hack", "includePrivateData": "true"])
+
+		then:
+			response.status != 200
+	}
+	
+	def 'Hacking attempt: Try to update Bob Dunn with an invalid temp password'(){
+		given:
+
+		when:
+			def response = appService.updateResource(bobDunnURL, """{
+				"firstName":"Richard ${timestamp}",
+				"lastName":"Quin ${timestamp}",
+				"nickName":"RQ ${timestamp}",
+				"mobileNumber":"+${timestamp}11",
+				"devices":[
+					"Nexus 6"
+				],
+				"goals":[
+					"news"
+				]
+			}""", [:], ["tempPassword": "hack"])
+
+		then:
+			response.status != 200
+	}
+	
+	def 'Hacking attempt: Try to get a normal user with a temp password'(){
+		given:
+
+		when:
+			def response = appService.getResource(richardQuinURL, [:], ["tempPassword": "hack", "includePrivateData": "true"])
+
+		then:
+			response.status != 200
+	}
+	
+	def 'Hacking attempt: Try to update a normal user with a temp password'(){
+		given:
+
+		when:
+			def response = appService.updateResource(richardQuinURL, richardQuinCreationJSON, [:], ["tempPassword": "hack"])
+
+		then:
+			response.status != 200
 	}
 	
 	def 'Bob Dunn downloads the app and opens the link sent in the email with the app; app retrieves data to prefill'(){
