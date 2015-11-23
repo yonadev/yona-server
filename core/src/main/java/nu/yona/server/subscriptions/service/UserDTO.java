@@ -111,8 +111,8 @@ public class UserDTO
 	{
 		originalUserEntity.setFirstName(firstName);
 		originalUserEntity.setLastName(lastName);
-		originalUserEntity.setNickName(privateData.getNickName());
 		originalUserEntity.setMobileNumber(mobileNumber);
+		originalUserEntity.setNickname(privateData.getNickName());
 		originalUserEntity.setDeviceNames(privateData.getDeviceNames());
 
 		return originalUserEntity;

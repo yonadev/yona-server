@@ -1,29 +1,29 @@
 buildscript {
-	  repositories {
+	repositories {
 		mavenCentral()
-	  }
-
-	  dependencies {
-		classpath 'net.researchgate:gradle-release:2.3.4'
-	  }
 	}
+
+	dependencies {
+		classpath 'net.researchgate:gradle-release:2.3.4'
+	}
+}
 
 description = 'Yona server'
 
 allprojects {
-    apply plugin: 'eclipse'
+	apply plugin: 'eclipse'
 
-    group = 'yona-server'
+	group = 'yona-server'
 }
 
 subprojects {
 
-    apply plugin: 'java'
+	apply plugin: 'java'
 
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+	sourceCompatibility = 1.8
+	targetCompatibility = 1.8
 
-    project.ext {
+	project.ext {
 		springBootVersion = '1.2.7.RELEASE'
 		yona_adminservice_scheme='http'
 		yona_adminservice_host='localhost'
@@ -40,11 +40,11 @@ subprojects {
 		yona_appservice_port='8082'
 		yona_appservice_debug_port='8842'
 		yona_appservice_url="${yona_appservice_scheme}://${yona_appservice_host}:${yona_appservice_port}"
-    }
+	}
 
-    repositories {
-        mavenCentral()
-    }
+	repositories {
+		mavenCentral()
+	}
 }
 
 eclipse {
@@ -55,5 +55,5 @@ eclipse {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.8'
+	gradleVersion = '2.8'
 }

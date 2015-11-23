@@ -14,8 +14,6 @@ import java.security.SecureRandom;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-import nu.yona.server.exceptions.YonaException;
-
 public class PublicKeyUtil
 {
 
@@ -38,7 +36,7 @@ public class PublicKeyUtil
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw new YonaException(e);
+			throw CryptoException.generatingKeyPair(e);
 		}
 	}
 
@@ -52,7 +50,7 @@ public class PublicKeyUtil
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw new YonaException(e);
+			throw CryptoException.encodingPrivateKey(e);
 		}
 	}
 
@@ -66,21 +64,7 @@ public class PublicKeyUtil
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw new YonaException(e);
-		}
-	}
-
-	public static PublicKey publicKeyFromBytes(byte[] publicKeyBytes)
-	{
-		try
-		{
-			X509EncodedKeySpec spec = new X509EncodedKeySpec(publicKeyBytes);
-			KeyFactory fact = KeyFactory.getInstance(KEY_ALGORITHM);
-			return fact.generatePublic(spec);
-		}
-		catch (GeneralSecurityException e)
-		{
-			throw new YonaException(e);
+			throw CryptoException.decodingPrivateKey(e);
 		}
 	}
 
@@ -94,7 +78,21 @@ public class PublicKeyUtil
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw new YonaException(e);
+			throw CryptoException.encodingPublicKey(e);
+		}
+	}
+
+	public static PublicKey publicKeyFromBytes(byte[] publicKeyBytes)
+	{
+		try
+		{
+			X509EncodedKeySpec spec = new X509EncodedKeySpec(publicKeyBytes);
+			KeyFactory fact = KeyFactory.getInstance(KEY_ALGORITHM);
+			return fact.generatePublic(spec);
+		}
+		catch (GeneralSecurityException e)
+		{
+			throw CryptoException.decodingPublicKey(e);
 		}
 	}
 }

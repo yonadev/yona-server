@@ -90,8 +90,8 @@ public class User extends EntityWithID
 
 		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		UserPrivate userPrivate = UserPrivate
-				.createInstance(nickName, devices, goals, anonymousMessageSource, namedMessageSource);
+		UserPrivate userPrivate = UserPrivate.createInstance(nickName, devices, goals, anonymousMessageSource,
+				namedMessageSource);
 		return new User(UUID.randomUUID(), initializationVector, true, firstName, lastName, mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
 	}
@@ -99,6 +99,11 @@ public class User extends EntityWithID
 	public boolean isCreatedOnBuddyRequest()
 	{
 		return createdOnBuddyRequest;
+	}
+
+	public void unsetIsCreatedOnBuddyRequest()
+	{
+		createdOnBuddyRequest = false;
 	}
 
 	public String getFirstName()
@@ -162,6 +167,11 @@ public class User extends EntityWithID
 		this.userPrivate = userPrivate;
 	}
 
+	public void setNickname(String nickName)
+	{
+		getUserPrivate().setNickname(nickName);
+	}
+
 	public Set<String> getDeviceNames()
 	{
 		return getUserPrivate().getDeviceNames();
@@ -192,6 +202,11 @@ public class User extends EntityWithID
 		getUserPrivate().addBuddy(buddy);
 	}
 
+	public void removeBuddy(Buddy buddy)
+	{
+		getUserPrivate().removeBuddy(buddy);
+	}
+
 	public MessageSource getNamedMessageSource()
 	{
 		return getUserPrivate().getNamedMessageSource();
@@ -220,5 +235,15 @@ public class User extends EntityWithID
 	public UserAnonymized getAnonymized()
 	{
 		return getUserPrivate().getUserAnonymized();
+	}
+
+	public void touch()
+	{
+		getUserPrivate().touch();
+	}
+
+	public void loadFully()
+	{
+		getUserPrivate();
 	}
 }

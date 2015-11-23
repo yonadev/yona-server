@@ -7,15 +7,15 @@ package nu.yona.server.subscriptions.service;
 import java.util.Map;
 import java.util.UUID;
 
+import nu.yona.server.subscriptions.entities.Buddy;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import nu.yona.server.subscriptions.entities.Buddy;
-import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
+import com.fasterxml.jackson.annotation.JsonRootName;
 
 @JsonRootName("buddy")
 public class BuddyDTO
@@ -27,6 +27,11 @@ public class BuddyDTO
 	private String password;
 	private String nickName;
 	private UUID loginID;
+
+	/*
+	 * Only intended for test purposes.
+	 */
+	private String userCreatedInviteURL;
 
 	public BuddyDTO(UUID id, UserDTO user, String message, String password, String nickName, UUID loginID)
 	{
@@ -81,8 +86,8 @@ public class BuddyDTO
 
 	private static UUID getBuddyLoginID(Buddy buddyEntity)
 	{
-		return (buddyEntity.getReceivingStatus() == Status.ACCEPTED) || (buddyEntity.getSendingStatus() == Status.ACCEPTED)
-				? buddyEntity.getLoginID() : null;
+		return (buddyEntity.getReceivingStatus() == Status.ACCEPTED) || (buddyEntity.getSendingStatus() == Status.ACCEPTED) ? buddyEntity
+				.getLoginID() : null;
 	}
 
 	@JsonInclude(Include.NON_EMPTY)
@@ -101,5 +106,22 @@ public class BuddyDTO
 	public UUID getLoginID()
 	{
 		return loginID;
+	}
+
+	/*
+	 * Only intended for test purposes.
+	 */
+	public void setUserCreatedInviteURL(String userCreatedInviteURL)
+	{
+		this.userCreatedInviteURL = userCreatedInviteURL;
+	}
+
+	/*
+	 * Only intended for test purposes.
+	 */
+	@JsonInclude(Include.NON_EMPTY)
+	public String getUserCreatedInviteURL()
+	{
+		return userCreatedInviteURL;
 	}
 }

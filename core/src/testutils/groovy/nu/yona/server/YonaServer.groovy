@@ -1,6 +1,7 @@
 package nu.yona.server
 
 import groovyx.net.http.RESTClient
+import groovyx.net.http.URIBuilder
 import groovy.json.*
 
 import java.text.SimpleDateFormat
@@ -23,8 +24,8 @@ class YonaServer {
 	YonaServer (baseURL)
 	{
 		restClient = new RESTClient(baseURL)
-        
-        restClient.handler.failure = restClient.handler.success 
+
+		restClient.handler.failure = restClient.handler.success
 	}
 
 	def static getTimeStamp()
@@ -42,7 +43,7 @@ class YonaServer {
 	{
 		createResource(GOALS_PATH, jsonString)
 	}
-	
+
 	def getGoal(goalURL)
 	{
 		getResource(goalURL)
@@ -56,10 +57,15 @@ class YonaServer {
 	def getUser(userURL, boolean includePrivateData, password = null)
 	{
 		if (includePrivateData) {
-			getResourceWithPassword(userURL, password, ["includePrivateData": "true"])
+			getResourceWithPassword(stripQueryString(userURL), password, getQueryParams(userURL) + ["includePrivateData": "true"])
 		} else {
 			getResourceWithPassword(userURL, password)
 		}
+	}
+	
+	def updateUser(userURL, jsonString, password)
+	{
+		updateResourceWithPassword(stripQueryString(userURL), jsonString, password, getQueryParams(userURL))
 	}
 
 	def deleteUser(userURL, password)
@@ -101,12 +107,12 @@ class YonaServer {
 	{
 		updateResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, jsonString, password)
 	}
-	
+
 	def getNewDeviceRequest(userPath, userSecret = null)
 	{
 		getResource(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, [:], ["userSecret": userSecret])
 	}
-	
+
 	def clearNewDeviceRequest(userPath, password)
 	{
 		deleteResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, password)
@@ -122,18 +128,14 @@ class YonaServer {
 		postJson(path, jsonString, headers);
 	}
 
-	def updateResourceWithPassword(path, jsonString, password)
+	def updateResourceWithPassword(path, jsonString, password, parameters = [:])
 	{
-		updateResource(path, jsonString, ["Yona-Password": password])
+		updateResource(path, jsonString, ["Yona-Password": password], parameters)
 	}
 
-	def updateResource(path, jsonString, headers = [:])
+	def updateResource(path, jsonString, headers = [:], parameters = [:])
 	{
-		def object = jsonSlurper.parseText(jsonString)
-		restClient.put(path: path, 
-			body: object, 
-			contentType:'application/json',
-			headers: headers)
+		putJson(path, jsonString, headers, parameters);
 	}
 
 	def deleteResourceWithPassword(path, password)
@@ -148,7 +150,7 @@ class YonaServer {
 
 	def getResourceWithPassword(path, password, parameters = [:])
 	{
-		getResource(path, password ?  ["Yona-Password": password] : [ : ], parameters)
+		getResource(path, password ? ["Yona-Password": password] : [ : ], parameters)
 	}
 
 	def postMessageActionWithPassword(path, jsonString, password)
@@ -176,6 +178,24 @@ class YonaServer {
 
 	def postJson(path, jsonString, headers = [:])
 	{
+		def object = null
+		if (jsonString instanceof Map)
+		{
+			object = jsonString;
+		}
+		else
+		{
+			object = jsonSlurper.parseText(jsonString)
+		}
+
+		restClient.post(path: path,
+			body: object,
+			contentType:'application/json',
+			headers: headers)
+	}
+
+	def putJson(path, jsonString, headers = [:], parameters = [:])
+	{
         def object = null
         if (jsonString instanceof Map)
         {
@@ -186,15 +206,28 @@ class YonaServer {
             object = jsonSlurper.parseText(jsonString)
         }
         
-		restClient.post(path: path,
+		restClient.put(path: path,
 			body: object,
 			contentType:'application/json',
-			headers: headers)
+			headers: headers,
+			query: parameters)
+	}
+
+	def getQueryParams(url)
+	{
+		def uriBuilder = new URIBuilder(url)
+		if(uriBuilder.query)
+		{
+			return uriBuilder.query
+		}
+		else
+		{
+			return [ : ]
+		}
 	}
 
 	def stripQueryString(url)
 	{
 		url - ~/\?.*/
 	}
-
 }
