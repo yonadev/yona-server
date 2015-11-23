@@ -181,7 +181,7 @@ public class CryptoSession implements AutoCloseable
 	{
 		if (!isInitializationVectorSet())
 		{
-			throw CryptoException.initializingVector();
+			throw CryptoException.initializationVectorNotSet();
 		}
 
 		return initializationVector.get();
@@ -191,11 +191,11 @@ public class CryptoSession implements AutoCloseable
 	{
 		if (initializationVector == null)
 		{
-			throw CryptoException.initializingVectorNull();
+			throw CryptoException.initializationVectorParameterNull();
 		}
 		if (initializationVector.length != INITIALIZATION_VECTOR_LENGTH)
 		{
-			throw CryptoException.initializingVectorWrongSize(initializationVector.length, INITIALIZATION_VECTOR_LENGTH);
+			throw CryptoException.initializationVectorWrongSize(initializationVector.length, INITIALIZATION_VECTOR_LENGTH);
 		}
 		if (isInitializationVectorSet())
 		{
@@ -203,7 +203,7 @@ public class CryptoSession implements AutoCloseable
 			{
 				return;
 			}
-			throw CryptoException.initializingVectorOverwrite();
+			throw CryptoException.initializationVectorOverwrite();
 		}
 
 		this.initializationVector = Optional.of(initializationVector);
@@ -222,7 +222,7 @@ public class CryptoSession implements AutoCloseable
 			{
 				if (!isInitializationVectorSet())
 				{
-					throw CryptoException.initializingVectorNotSet();
+					throw CryptoException.initializationVectorNotSet();
 				}
 				decryptionCipher = Cipher.getInstance(CIPHER_TYPE);
 				decryptionCipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(getInitializationVector()));

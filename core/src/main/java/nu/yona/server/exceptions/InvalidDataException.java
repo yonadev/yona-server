@@ -10,6 +10,8 @@ import java.util.UUID;
  */
 public class InvalidDataException extends YonaException
 {
+	private static final long serialVersionUID = -7917208280838423613L;
+
 	private InvalidDataException(String messageId, Object... parameters)
 	{
 		super(messageId, parameters);

@@ -12,6 +12,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
  */
 public abstract class ResourceBasedException extends RuntimeException
 {
+	private static final long serialVersionUID = 8031973645020363969L;
 	/** Holds the parameters for the exception message. */
 	private Object[] parameters;
 	/** Holds the message id. */

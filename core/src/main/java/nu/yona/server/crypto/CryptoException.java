@@ -4,6 +4,8 @@ import nu.yona.server.exceptions.YonaException;
 
 public class CryptoException extends YonaException
 {
+	private static final long serialVersionUID = -1379944976933747626L;
+
 	protected CryptoException(String messageId, Object... parameters)
 	{
 		super(messageId, parameters);
@@ -39,29 +41,24 @@ public class CryptoException extends YonaException
 		return new CryptoException(e, "error.creating.secret.key");
 	}
 
-	public static CryptoException initializingVector()
+	public static CryptoException initializationVectorNotSet()
 	{
-		return new CryptoException("error.initializing.vector");
+		return new CryptoException("error.initialization.vector.not.set");
 	}
 
-	public static CryptoException initializingVectorWrongSize(int length, int initializationVectorLength)
+	public static CryptoException initializationVectorWrongSize(int length, int initializationVectorLength)
 	{
-		return new CryptoException("error.initializing.vector.wrong.size", length, initializationVectorLength);
+		return new CryptoException("error.initialization.vector.wrong.size", length, initializationVectorLength);
 	}
 
-	public static CryptoException initializingVectorNull()
+	public static CryptoException initializationVectorParameterNull()
 	{
-		return new CryptoException("error.initializing.vector.null");
+		return new CryptoException("error.initialization.vector.parameter.null");
 	}
 
-	public static CryptoException initializingVectorOverwrite()
+	public static CryptoException initializationVectorOverwrite()
 	{
-		return new CryptoException("error.initializing.vector.overwrite");
-	}
-
-	public static CryptoException initializingVectorNotSet()
-	{
-		return new CryptoException("error.initializing.vector.not.set");
+		return new CryptoException("error.initialization.vector.overwrite");
 	}
 
 	public static CryptoException gettingRandomInstance(Throwable e)
