@@ -29,28 +29,25 @@ sub transform_log_record ($) {
 	if ($username == $map_from_username) {
 		$username = $map_to_username;
 	}
-	my @url_tags = keys $log_message->{'requesttags'};
-	foreach $tag (@url_tags) {
-		if ($tag eq "urlcategory") {
-			my @url_categories_logged = keys $log_message->{'requesttags'}->{'urlcategory'};
-			print "cats: @url_categories_logged\n";
-			foreach my $cat (@url_categories_logged) {
-				print "Cat: $cat\n";
-			}
-			my @relevant_url_categories_logged = filter_relevant_url_categories \@url_categories_logged;
-			if (!@relevant_url_categories_logged) {
-				return undef;
-			}
 
-			my $analysis_event = {
-				'loginID' => $username,
-				'categories' => [@relevant_url_categories_logged],
-				'url' => $url
-			};
-			return encode_json $analysis_event;
-		}
+	if (!$log_message->{'requesttags'}->{'urlcategory'}) {
+		# Unclassified request. Probably an HTTPS site
+		return undef;
 	}
-	return undef;
+
+	my @url_categories_logged = keys $log_message->{'requesttags'}->{'urlcategory'};
+	my @relevant_url_categories_logged = filter_relevant_url_categories \@url_categories_logged;
+	if (!@relevant_url_categories_logged) {
+		# Categories are not relevant
+		return undef;
+	}
+
+	my $analysis_event = {
+		'loginID' => $username,
+		'categories' => [@relevant_url_categories_logged],
+		'url' => $url
+	};
+	return encode_json $analysis_event;
 }
 
 sub fetch_relevant_url_categories {

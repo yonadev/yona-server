@@ -46,14 +46,14 @@ dependencies {
 	compile("io.springfox:springfox-swagger2:2.2.2")
 	compile("io.springfox:springfox-swagger-ui:2.2.2")
 	compile("com.fasterxml.jackson.core:jackson-databind:2.6.3") // Required as the Spring Hateaos version pulled in by Swagger is incompatible with Jackson 2.4
-	
 
-	runtime("org.hsqldb:hsqldb") 
+
+	runtime("org.hsqldb:hsqldb")
 	providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
 
 	testCompile project(path: ':core', configuration: 'testUtils')
-	testCompile("org.springframework.boot:spring-boot-starter-test") 
-	testCompile("junit:junit:4.12") 
+	testCompile("org.springframework.boot:spring-boot-starter-test")
+	testCompile("junit:junit:4.12")
 
 	// mandatory dependencies for using Spock
 	testCompile "org.codehaus.groovy:groovy-all:2.4.5"
@@ -73,9 +73,9 @@ test {
 run {
 	enableAssertions=true
 
-    if ( project.hasProperty('adminservice.debug') || project.hasProperty('debug.all')) {
-        jvmArgs "-Xdebug", "-Xrunjdwp:transport=dt_socket,address=" + project.ext.yona_adminservice_debug_port + ",server=y,suspend=n"
-    }
+	if ( project.hasProperty('adminservice.debug') || project.hasProperty('debug.all')) {
+		jvmArgs "-Xdebug", "-Xrunjdwp:transport=dt_socket,address=" + project.ext.yona_adminservice_debug_port + ",server=y,suspend=n"
+	}
 
 	systemProperties = [
 		'server.port': System.getProperty('server.port', project.ext.yona_adminservice_port)
@@ -85,20 +85,20 @@ run {
 group = 'yonadev'
 
 task buildDocker(type: Docker, dependsOn: build) {
-  push = true
-  applicationName = jar.baseName
-  dockerfile = file('src/main/docker/Dockerfile')
-  doFirst {
-    copy {
-      from jar
-      into stageDir
-	  rename jar.archiveName, jar.baseName +".jar"
-    }
-    copy {
-      from 'data'
-      into "$stageDir/data"
-    }
-  }
+	push = true
+	applicationName = jar.baseName
+	dockerfile = file('src/main/docker/Dockerfile')
+	doFirst {
+		copy {
+			from jar
+			into stageDir
+		rename jar.archiveName, jar.baseName +".jar"
+		}
+		copy {
+			from 'data'
+			into "$stageDir/data"
+		}
+	}
 }
 
 sourceSets {
