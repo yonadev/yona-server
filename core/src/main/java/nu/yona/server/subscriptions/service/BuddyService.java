@@ -68,10 +68,7 @@ public class BuddyService
 		User user = User.getRepository().findOne(idOfRequestingUser);
 		Buddy buddy = getEntityByID(buddyID);
 
-		if (buddy != null)
-		{
-			user.removeBuddy(buddy);
-		}
+		user.removeBuddy(buddy);
 	}
 
 	private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy)
