@@ -23,7 +23,7 @@ class RelevantCategoriesTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData.categories.size() == 4
-			response.responseData.categories.contains("poker")
+			response.responseData.categories.contains("Gambling")
 			response.responseData.categories.contains("lotto")
 			response.responseData.categories.contains("news/media")
 			response.responseData.categories.contains("newsgroups/forums")
