@@ -88,10 +88,6 @@ public class UserService
 	public UserDTO updateUser(UUID id, UserDTO userResource)
 	{
 		User originalUserEntity = getEntityByID(id);
-		if (originalUserEntity.isCreatedOnBuddyRequest())
-		{
-			throw new YonaException("User is created on buddy request, use other method");
-		}
 		return handleUserUpdate(userResource, originalUserEntity);
 	}
 

@@ -187,6 +187,16 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			//response.responseData._embedded.buddies.size() == 1
 	}
 	
+	def 'User should no longer be accessible by temp password'(){
+		given:
+
+		when:
+			def response = appService.getUser(bobDunnInviteURL, true, null)
+
+		then:
+			response.status == 400
+	}
+	
 	def 'Richard checks his direct messages'(){
 		given:
 
@@ -216,6 +226,19 @@ class CreateUserOnBuddyRequestTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData.properties.status == "done"
+	}
+	
+	def 'Bob\'s user data will contain Richard as buddy'(){
+		given:
+
+		when:
+			def response = appService.getUser(bobDunnURL, true, bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded.buddies != null
+			response.responseData._embedded.buddies.size() == 1
+			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Richard ${timestamp}"
 	}
 	
 	def 'Delete users'(){
