@@ -192,6 +192,11 @@ public class User extends EntityWithID
 		getUserPrivate().addBuddy(buddy);
 	}
 
+	public void removeBuddy(Buddy buddy)
+	{
+		getUserPrivate().removeBuddy(buddy);
+	}
+
 	public MessageSource getNamedMessageSource()
 	{
 		return getUserPrivate().getNamedMessageSource();
