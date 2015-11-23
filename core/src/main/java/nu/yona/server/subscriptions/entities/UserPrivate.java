@@ -117,7 +117,7 @@ public class UserPrivate extends EntityWithID
 
 	public void setDeviceNames(Set<String> deviceNames)
 	{
-		this.deviceNames = deviceNames;
+		this.deviceNames = new HashSet<>(deviceNames);
 	}
 
 	public Set<Buddy> getBuddies()

@@ -193,7 +193,7 @@ class YonaServer {
 			contentType:'application/json',
 			headers: headers)
 	}
-	
+
 	def putJson(path, jsonString, headers = [:], parameters = [:])
 	{
         def object = null

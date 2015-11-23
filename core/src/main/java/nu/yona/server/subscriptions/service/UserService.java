@@ -34,6 +34,8 @@ public class UserService
 	/** Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers */
 	private static Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
 
+	private SecureRandom random = new SecureRandom();
+
 	@Autowired
 	YonaProperties properties;
 
@@ -86,7 +88,7 @@ public class UserService
 	public User addUserCreatedOnBuddyRequest(UserDTO buddyUserResource, String tempPassword)
 	{
 		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null,
-				() -> tempEncryptionContextExecutor.addUserCreatedOnBuddyRequestFlush(buddyUserResource).getID());
+				() -> tempEncryptionContextExecutor.addUserCreatedOnBuddyRequest(buddyUserResource).getID());
 		return getEntityByID(savedUserID);
 	}
 
@@ -122,44 +124,17 @@ public class UserService
 			// security check: should not be able to replace the password on an existing user
 			throw new IllegalArgumentException("User is not created on buddy request");
 		}
-		UserEncryptedEntitySet retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
+		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
 		return saveUserEncryptedDataWithNewPassword(retrievedEntitySet, userResource);
 	}
 
-	/*
-	 * Gathers all entities that contain encrypted data from the database.
-	 */
-	static class UserEncryptedEntitySet
-	{
-		final User userEntity;
-		final MessageSource namedMessageSource;
-		final MessageSource anonymousMessageSource;
-
-		UserEncryptedEntitySet(User userEntity, UserAnonymized userAnonymizedEntity, MessageSource namedMessageSource,
-				MessageSource anonymousMessageSource)
-		{
-			this.userEntity = userEntity;
-			this.namedMessageSource = namedMessageSource;
-			this.anonymousMessageSource = anonymousMessageSource;
-		}
-
-		public void loadLazyEncryptedData()
-		{
-			// load encrypted data fully, also from lazy relations
-			// see architecture overview for which classes contain encrypted data
-			// the relation to user private is currently the only lazy relation
-			// (this could also be achieved with very complex reflection)
-			this.userEntity.loadFully();
-		}
-	}
-
-	private UserEncryptedEntitySet retrieveUserEncryptedData(User originalUserEntity, String password)
+	private EncryptedUserData retrieveUserEncryptedData(User originalUserEntity, String password)
 	{
 		return CryptoSession.execute(Optional.of(password), () -> canAccessPrivateData(originalUserEntity.getID()),
-				() -> tempEncryptionContextExecutor.retrieveUserEncryptedDataFlush(originalUserEntity));
+				() -> tempEncryptionContextExecutor.retrieveUserEncryptedData(originalUserEntity));
 	}
 
-	private UserDTO saveUserEncryptedDataWithNewPassword(UserEncryptedEntitySet retrievedEntitySet, UserDTO userResource)
+	private UserDTO saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDTO userResource)
 	{
 		// touch and save all user related data containing encryption
 		// see architecture overview for which classes contain encrypted data
@@ -225,8 +200,6 @@ public class UserService
 		User.getRepository().save(userEntity);
 	}
 
-	private SecureRandom random = new SecureRandom();
-
 	public String generateTempPassword()
 	{
 		// see http://stackoverflow.com/questions/41107/how-to-generate-a-random-alpha-numeric-string
@@ -290,6 +263,33 @@ public class UserService
 		{
 			userEntity.setNewDeviceRequest(null);
 			User.getRepository().save(userEntity);
+		}
+	}
+
+	/*
+	 * Gathers all entities that contain encrypted data from the database.
+	 */
+	static class EncryptedUserData
+	{
+		final User userEntity;
+		final MessageSource namedMessageSource;
+		final MessageSource anonymousMessageSource;
+
+		EncryptedUserData(User userEntity, UserAnonymized userAnonymizedEntity, MessageSource namedMessageSource,
+				MessageSource anonymousMessageSource)
+		{
+			this.userEntity = userEntity;
+			this.namedMessageSource = namedMessageSource;
+			this.anonymousMessageSource = anonymousMessageSource;
+		}
+
+		public void loadLazyEncryptedData()
+		{
+			// load encrypted data fully, also from lazy relations
+			// see architecture overview for which classes contain encrypted data
+			// the relation to user private is currently the only lazy relation
+			// (this could also be achieved with very complex reflection)
+			this.userEntity.loadFully();
 		}
 	}
 }
