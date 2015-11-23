@@ -16,7 +16,7 @@ logstash:
     expose:
         - "12201"
     ports:
-    	- "12201:12201"
+        - "12201:12201"
         - "12201:12201/udp"
     volumes:
         - ./conf:/conf
