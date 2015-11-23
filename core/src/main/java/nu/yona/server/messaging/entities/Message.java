@@ -8,7 +8,6 @@ import java.util.UUID;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
@@ -19,9 +18,7 @@ import nu.yona.server.entities.RepositoryProvider;
 @Table(name = "MESSAGES")
 public abstract class Message extends EntityWithID
 {
-	@Transient
 	private UUID relatedLoginID;
-	private byte[] relatedUserAnonymizedIDCiphertext;
 
 	public static MessageRepository getRepository()
 	{
@@ -45,24 +42,17 @@ public abstract class Message extends EntityWithID
 
 	public void encryptMessage(Encryptor encryptor)
 	{
-		relatedUserAnonymizedIDCiphertext = encryptor.encrypt(relatedLoginID);
 		encrypt(encryptor);
 	}
 
 	public void decryptMessage(Decryptor decryptor)
 	{
-		relatedLoginID = decryptor.decryptUUID(relatedUserAnonymizedIDCiphertext);
 		decrypt(decryptor);
 	}
 
 	public UUID getRelatedLoginID()
 	{
 		return relatedLoginID;
-	}
-
-	public byte[] getRelatedUserAnonymizedIDCiphertext()
-	{
-		return relatedUserAnonymizedIDCiphertext;
 	}
 
 	protected abstract void encrypt(Encryptor encryptor);

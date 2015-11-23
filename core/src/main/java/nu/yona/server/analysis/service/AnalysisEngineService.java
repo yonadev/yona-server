@@ -25,12 +25,15 @@ public class AnalysisEngineService
 {
 	@Autowired
 	private GoalService goalService;
+	@Autowired
+	private AnalysisEngineCacheService cacheService;
 	@Value("${yona.analysisservice.conflict.interval}")
 	private int conflictInterval;
+	@Value("${yona.analysisservice.update.skip.window}")
+	private int updateSkipWindow;
 
 	public void analyze(PotentialConflictDTO potentialConflictPayload)
 	{
-
 		UserAnonymized userAnonimized = getUserAnonymizedByID(potentialConflictPayload.getLoginID());
 		Set<Goal> conflictingGoalsOfUser = determineConflictingGoalsForUser(userAnonimized,
 				potentialConflictPayload.getCategories());
@@ -50,30 +53,37 @@ public class AnalysisEngineService
 	{
 		Set<MessageDestination> destinations = userAnonymized.getAllRelatedDestinations();
 		destinations.stream().forEach(d -> sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser, d));
-		destinations.stream().forEach(d -> MessageDestination.getRepository().save(d));
 	}
 
 	private GoalConflictMessage sendOrUpdateConflictMessage(PotentialConflictDTO payload, Set<Goal> conflictingGoalsOfUser,
 			MessageDestination destination)
 	{
 		Date now = new Date();
+		Date minEndTime = new Date(now.getTime() - conflictInterval);
 		Goal conflictingGoal = conflictingGoalsOfUser.iterator().next();
-		GoalConflictMessage message = GoalConflictMessage.createInstance(payload.getLoginID(), conflictingGoal, payload.getURL());
+		GoalConflictMessage message = cacheService.fetchLatestGoalConflictMessageForUser(payload.getLoginID(),
+				conflictingGoal.getID(), destination, minEndTime);
 
-		// Encrypt the message, so we get encrypted related user and goal IDs.
-		destination.encryptMessage(message);
-
-		GoalConflictMessage existingMessage = GoalConflictMessage.getGoalConflictMessageRepository()
-				.findLatestGoalConflictMessageFromDestination(/* message.getRelatedUserAnonymizedIDCiphertext(),
-						message.getGoalIDCiphertext(), */destination.getID(), GoalConflictMessage.class);
-
-		if (existingMessage != null && now.getTime() - existingMessage.getEndTime().getTime() <= conflictInterval * 1000L)
+		if (message == null || message.getEndTime().before(minEndTime))
 		{
-			existingMessage.setEndTime(now);
-			return existingMessage;
+			message = GoalConflictMessage.createInstance(payload.getLoginID(), conflictingGoal, payload.getURL());
+			destination.send(message);
+		}
+		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
+		else if (now.getTime() - message.getEndTime().getTime() >= updateSkipWindow)
+		{
+			assert payload.getLoginID().equals(message.getRelatedLoginID());
+			assert conflictingGoal.getID().equals(message.getGoal().getID());
+
+			message.setEndTime(now);
+		}
+		else
+		{
+			// No change needed.
+			return message;
 		}
 
-		destination.send(message);
+		cacheService.updateLatestGoalConflictMessageForUser(message, destination);
 
 		return message;
 	}

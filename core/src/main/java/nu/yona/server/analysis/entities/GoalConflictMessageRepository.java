@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
+import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.Query;
@@ -14,12 +16,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface GoalConflictMessageRepository extends CrudRepository<GoalConflictMessage, UUID>
 {
-	@Query("select m from MessageDestination d join d.messages m where TYPE(m) = :type and d.id = :destinationID")
-	// + " and m.relatedUserAnonymizedIDCiphertext = :relatedUserAnonymizedIDCiphertext")
-	// + " and m.goalIDCiphertext = :goalIDCiphertext")
-	GoalConflictMessage findLatestGoalConflictMessageFromDestination(
-			/*
-			 * @Param("relatedUserAnonymizedIDCiphertext") byte[] relatedUserAnonymizedIDCiphertext,
-			 * @Param("goalIDCiphertext") byte[] goalIDCiphertext,
-			 */ @Param("destinationID") UUID destinationID, @Param("type") Class<GoalConflictMessage> type);
+	@Query("select m from MessageDestination d join d.messages m where TYPE(m) = :type and d.id = :destinationID"
+			+ " and m.relatedLoginID = :relatedLoginID and m.goalID = :goalID and m.endTime > :minEndTime order by m.endTime desc")
+	List<GoalConflictMessage> findLatestGoalConflictMessageFromDestination(@Param("relatedLoginID") UUID relatedLoginID,
+			@Param("goalID") UUID goalID, @Param("destinationID") UUID destinationID, @Param("minEndTime") Date minEndTime,
+			@Param("type") Class<GoalConflictMessage> type);
 }

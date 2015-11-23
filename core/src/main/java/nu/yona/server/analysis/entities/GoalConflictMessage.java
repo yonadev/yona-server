@@ -20,9 +20,7 @@ import nu.yona.server.messaging.entities.Message;
 public class GoalConflictMessage extends Message
 {
 
-	@Transient
 	private UUID goalID;
-	private byte[] goalIDCiphertext;
 
 	@Transient
 	private String url;
@@ -59,20 +57,13 @@ public class GoalConflictMessage extends Message
 	@Override
 	public void encrypt(Encryptor encryptor)
 	{
-		goalIDCiphertext = encryptor.encrypt(goalID);
 		urlCiphertext = encryptor.encrypt(url);
 	}
 
 	@Override
 	public void decrypt(Decryptor decryptor)
 	{
-		goalID = decryptor.decryptUUID(goalIDCiphertext);
 		url = decryptor.decryptString(urlCiphertext);
-	}
-
-	public byte[] getGoalIDCiphertext()
-	{
-		return goalIDCiphertext;
 	}
 
 	public Date getStartTime()
@@ -93,6 +84,11 @@ public class GoalConflictMessage extends Message
 	public void setEndTime(Date endTime)
 	{
 		this.endTime = endTime;
+	}
+
+	public UUID getGoalID()
+	{
+		return goalID;
 	}
 
 	public static GoalConflictMessage createInstance(UUID loginID, Goal goal, String url)
