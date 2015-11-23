@@ -9,6 +9,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
@@ -28,6 +29,12 @@ public class NewDeviceRequest extends EntityWithID
 	{
 		return (NewDeviceRequestRepository) RepositoryProvider.getRepository(NewDeviceRequest.class, UUID.class);
 	}
+
+	private static final String DECRYPTION_CHECK_STRING = "Decrypted properly#";
+
+	@Transient
+	private String decryptionCheck;
+	private String decryptionCheckCipherText;
 
 	private Date creationDateTime;
 
@@ -58,6 +65,7 @@ public class NewDeviceRequest extends EntityWithID
 		super(id);
 		this.userPassword = userPassword;
 		this.creationDateTime = creationDateTime;
+		this.decryptionCheck = buildDecryptionCheck();
 	}
 
 	public static NewDeviceRequest createInstance(String userPassword)
@@ -65,23 +73,42 @@ public class NewDeviceRequest extends EntityWithID
 		return new NewDeviceRequest(UUID.randomUUID(), userPassword, new Date());
 	}
 
+	private static String buildDecryptionCheck()
+	{
+		return DECRYPTION_CHECK_STRING + CryptoUtil.getRandomString(DECRYPTION_CHECK_STRING.length());
+	}
+
+	private boolean isDecrypted()
+	{
+		return decryptionCheck != null;
+	}
+
+	public boolean isDecryptedProperly()
+	{
+		return isDecrypted() && decryptionCheck.startsWith(DECRYPTION_CHECK_STRING);
+	}
+
 	public void encryptUserPassword(String userSecret)
 	{
-		this.userPasswordCipherText = CryptoSession.execute(Optional.of(userSecret), null, () -> {
+		CryptoSession.execute(Optional.of(userSecret), null, () -> {
 			this.initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 			CryptoSession.getCurrent().setInitializationVector(this.initializationVector);
-			return new StringFieldEncrypter().convertToDatabaseColumn(this.userPassword);
+			this.userPasswordCipherText = new StringFieldEncrypter().convertToDatabaseColumn(this.userPassword);
+			this.decryptionCheckCipherText = new StringFieldEncrypter().convertToDatabaseColumn(this.decryptionCheck);
+			return null;
 		});
 	}
 
 	public void decryptUserPassword(String userSecret)
 	{
-		this.userPassword = CryptoSession.execute(Optional.of(userSecret), null, () -> {
+		CryptoSession.execute(Optional.of(userSecret), null, () -> {
 			CryptoSession.getCurrent().setInitializationVector(this.initializationVector);
-			return new StringFieldEncrypter().convertToEntityAttribute(this.userPasswordCipherText);
+			this.userPassword = new StringFieldEncrypter().convertToEntityAttribute(this.userPasswordCipherText);
+			this.decryptionCheck = new StringFieldEncrypter().convertToEntityAttribute(this.decryptionCheckCipherText);
+			return null;
 		});
 
-		if (this.userPassword == null)
+		if (!this.isDecryptedProperly())
 		{
 			throw DeviceRequestException.invalidSecret();
 		}
