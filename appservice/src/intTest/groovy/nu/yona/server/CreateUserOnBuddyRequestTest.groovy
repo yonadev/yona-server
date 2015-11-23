@@ -70,8 +70,10 @@ class CreateUserOnBuddyRequestTest extends Specification {
 					"news"
 				]
 			}""", richardQuinPassword)
-			richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
-			richardQuinLoginID = response.responseData.vpnProfile.loginID;
+			if (response.status == 201) {
+				richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
+				richardQuinLoginID = response.responseData.vpnProfile.loginID;
+			}
 
 		then:
 			response.status == 201
@@ -97,17 +99,26 @@ class CreateUserOnBuddyRequestTest extends Specification {
 				},
 				"message":"Would you like to be my buddy?"
 			}""", richardQuinPassword)
-			richardQuinBobBuddyURL = response.responseData._links.self.href
-			
-			def bobDunnInviteEmail = getMessageFromGmail(bobDunnGmail, bobDunnGmailPassword, beforeRequestDateTime)
-			def bobDunnInviteURLMatch = bobDunnInviteEmail.content =~ /$appServiceBaseURL[\w\-\/=\?&+]+/
-			assert bobDunnInviteURLMatch
-			bobDunnInviteURL = bobDunnInviteURLMatch.group()
+			if (response.status == 201) {
+				richardQuinBobBuddyURL = response.responseData._links.self.href
+				
+				/*
+				def bobDunnInviteEmail = getMessageFromGmail(bobDunnGmail, bobDunnGmailPassword, beforeRequestDateTime)
+				if(bobDunnInviteEmail) {
+					def bobDunnInviteURLMatch = bobDunnInviteEmail.content =~ /$appServiceBaseURL[\w\-\/=\?&+]+/
+					if(bobDunnInviteURLMatch) {
+						bobDunnInviteURL = bobDunnInviteURLMatch.group()
+					}
+				}
+				*/
+				bobDunnInviteURL = response.responseData.userCreatedInviteURL;
+			}
 
 		then:
 			response.status == 201
 			response.responseData._embedded.user.firstName == "Bob ${timestamp}"
 			richardQuinBobBuddyURL.startsWith(richardQuinURL)
+			bobDunnInviteURL
 
 		cleanup:
 			println "URL buddy Richard: " + richardQuinBobBuddyURL
@@ -158,11 +169,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.devices.size() == 1
 			response.responseData.devices[0] == "iPhone 6"
 			//TODO: updating of goals is not yet supported
-			//response.responseData.goals.size() == 1
-			//response.responseData.goals[0] == "gambling"
-			//TODO: buddy is not added yet, needs to be fixed
-			//response.responseData._embedded.buddies != null
-			//response.responseData._embedded.buddies.size() == 1
+			response.responseData.goals.size() == 0
 	}
 	
 	def 'Check if user is now retrievable with new password'(){
@@ -179,13 +186,37 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.nickName == "BD ${timestamp}"
 			response.responseData.devices.size() == 1
 			response.responseData.devices[0] == "iPhone 6"
-			//TODO: updating of goals is not yet supported
-			//response.responseData.goals.size() == 1
-			//response.responseData.goals[0] == "gambling"
-			//TODO: buddy is not added yet, needs to be fixed
-			//response.responseData._embedded.buddies != null
-			//response.responseData._embedded.buddies.size() == 1
+			response.responseData.goals.size() == 0
 	}
+	
+	def 'Check if user is now modifiable with new password'(){
+		given:
+
+		when:
+			def response = appService.updateUser(bobDunnURL, """{
+				"firstName":"Bob ${timestamp}",
+				"lastName":"Dunn ${timestamp}",
+				"nickName":"BD ${timestamp}",
+				"mobileNumber":"+${timestamp}12",
+				"devices":[
+					"iPhone 6"
+				],
+				"goals":[
+					"gambling"
+				]
+			}""", bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData.firstName == "Bob ${timestamp}"
+			response.responseData.lastName == "Dunn ${timestamp}"
+			response.responseData.mobileNumber == "+${timestamp}12"
+			response.responseData.nickName == "BD ${timestamp}"
+			response.responseData.devices.size() == 1
+			response.responseData.devices[0] == "iPhone 6"
+			response.responseData.goals.size() == 0
+	}
+	
 	
 	def 'User should no longer be accessible by temp password'(){
 		given:
@@ -285,6 +316,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			responseBob.status == 200
 	}
 	
+	/*
 	def getMessageFromGmail(login, password, sentAfterDateTime)
 	{
 		def host = "imap.gmail.com";
@@ -341,4 +373,5 @@ class CreateUserOnBuddyRequestTest extends Specification {
 		}
 		assert false
 	}
+	*/
 }
