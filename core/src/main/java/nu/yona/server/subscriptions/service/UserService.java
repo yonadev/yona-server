@@ -13,10 +13,8 @@ import javax.transaction.Transactional;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
-import nu.yona.server.crypto.Constants;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.InvalidDataException;
-import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
@@ -94,7 +92,7 @@ public class UserService
 		userEntity = User.getRepository().findByMobileNumber(mobileNumber);
 		if (userEntity == null)
 		{
-			throw UserNotFoundException.notFoundByMobileNumber(mobileNumber);
+			throw UserServiceException.notFoundByMobileNumber(mobileNumber);
 		}
 		return userEntity;
 	}
@@ -165,7 +163,7 @@ public class UserService
 		User entity = User.getRepository().findOne(id);
 		if (entity == null)
 		{
-			throw UserNotFoundException.notFoundByID(id);
+			throw UserServiceException.notFoundByID(id);
 		}
 		return entity;
 	}
@@ -195,7 +193,7 @@ public class UserService
 
 	public static String getPassword(Optional<String> password)
 	{
-		return password.orElseThrow(() -> new YonaException("Missing '" + Constants.PASSWORD_HEADER + "' header"));
+		return password.orElseThrow(() -> UserServiceException.missingPasswordHeader());
 	}
 
 	public void addBuddy(UserDTO user, BuddyDTO buddy)

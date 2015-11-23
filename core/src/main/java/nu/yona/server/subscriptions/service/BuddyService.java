@@ -116,7 +116,7 @@ public class BuddyService
 		{
 			return UserService.findUserByMobileNumber(buddy.getUser().getMobileNumber());
 		}
-		catch (UserNotFoundException e)
+		catch (UserServiceException e)
 		{
 			return null;
 		}

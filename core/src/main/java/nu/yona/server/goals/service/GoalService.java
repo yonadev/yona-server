@@ -69,7 +69,7 @@ public class GoalService
 		Goal entity = Goal.getRepository().findOne(id);
 		if (entity == null)
 		{
-			throw new GoalNotFoundException(id);
+			throw GoalNotFoundException.notFound(id);
 		}
 		return entity;
 	}

@@ -6,24 +6,30 @@ package nu.yona.server.subscriptions.service;
 
 import java.util.UUID;
 
+import nu.yona.server.crypto.Constants;
 import nu.yona.server.exceptions.YonaException;
 
-public class UserNotFoundException extends YonaException
+public class UserServiceException extends YonaException
 {
 	private static final long serialVersionUID = -4519219401062670885L;
 
-	private UserNotFoundException(String messageId, Object... parameters)
+	private UserServiceException(String messageId, Object... parameters)
 	{
 		super(messageId, parameters);
 	}
 
-	public static UserNotFoundException notFoundByMobileNumber(String mobileNumber)
+	public static UserServiceException notFoundByMobileNumber(String mobileNumber)
 	{
-		return new UserNotFoundException("error.user.not.found.mobile", mobileNumber);
+		return new UserServiceException("error.user.not.found.mobile", mobileNumber);
 	}
 
-	public static UserNotFoundException notFoundByID(UUID id)
+	public static UserServiceException notFoundByID(UUID id)
 	{
-		return new UserNotFoundException("error.user.not.found.mobile", id);
+		return new UserServiceException("error.user.not.found.mobile", id);
+	}
+
+	public static UserServiceException missingPasswordHeader()
+	{
+		return new UserServiceException("error.missing.password.header", Constants.PASSWORD_HEADER);
 	}
 }

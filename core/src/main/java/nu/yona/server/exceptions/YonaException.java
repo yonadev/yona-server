@@ -13,13 +13,18 @@ public class YonaException extends ResourceBasedException
 {
 	private static final long serialVersionUID = 6332689175661269736L;
 
-	public YonaException(String messageId, Object... parameters)
+	protected YonaException(String messageId, Object... parameters)
 	{
 		super(messageId, parameters);
 	}
 
-	public YonaException(Throwable t, String messageId, Object... parameters)
+	protected YonaException(Throwable t, String messageId, Object... parameters)
 	{
 		super(t, messageId, parameters);
+	}
+
+	public static YonaException unexpected(Throwable e)
+	{
+		return new YonaException(e, "error.unexpected");
 	}
 }

@@ -14,8 +14,6 @@ import java.security.SecureRandom;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-import nu.yona.server.exceptions.YonaException;
-
 public class PublicKeyUtil
 {
 
@@ -38,7 +36,7 @@ public class PublicKeyUtil
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw new YonaException(e, "error.generating.key.pair");
+			throw CryptoException.generatingKeyPair(e);
 		}
 	}
 
@@ -52,7 +50,7 @@ public class PublicKeyUtil
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw new YonaException(e, "error.encoding.private.key");
+			throw CryptoException.encodingPrivateKey(e);
 		}
 	}
 
@@ -66,7 +64,7 @@ public class PublicKeyUtil
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw new YonaException(e, "error.decoding.private.key");
+			throw CryptoException.decodingPrivateKey(e);
 		}
 	}
 
@@ -80,7 +78,7 @@ public class PublicKeyUtil
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw new YonaException(e, "error.encoding.public.key");
+			throw CryptoException.encodingPublicKey(e);
 		}
 	}
 
@@ -94,7 +92,7 @@ public class PublicKeyUtil
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw new YonaException(e, "error.decoding.public.key");
+			throw CryptoException.decodingPublicKey(e);
 		}
 	}
 }

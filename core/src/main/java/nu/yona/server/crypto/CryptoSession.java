@@ -103,7 +103,7 @@ public class CryptoSession implements AutoCloseable
 		}
 		catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e)
 		{
-			throw new YonaException(e, "error.getting.cipher", CIPHER_TYPE);
+			throw CryptoException.gettingCipher(CIPHER_TYPE);
 		}
 	}
 
@@ -118,7 +118,7 @@ public class CryptoSession implements AutoCloseable
 		CryptoSession cryptoSession = threadLocal.get();
 		if (cryptoSession == null)
 		{
-			throw new YonaException("error.no.active.crypto.session", Thread.currentThread());
+			throw CryptoException.noActiveCryptoSession(Thread.currentThread());
 		}
 		return cryptoSession;
 	}
@@ -131,7 +131,7 @@ public class CryptoSession implements AutoCloseable
 		}
 		catch (IllegalBlockSizeException | BadPaddingException e)
 		{
-			throw new YonaException(e, "error.encrypting.data");
+			throw CryptoException.encryptingData(e);
 		}
 	}
 
@@ -143,7 +143,7 @@ public class CryptoSession implements AutoCloseable
 		}
 		catch (IllegalBlockSizeException | BadPaddingException e)
 		{
-			throw new YonaException(e, "error.decrypting.data");
+			throw CryptoException.decryptingData(e);
 		}
 	}
 
@@ -158,7 +158,7 @@ public class CryptoSession implements AutoCloseable
 		}
 		catch (NoSuchAlgorithmException | InvalidKeySpecException e)
 		{
-			throw new YonaException(e, "error.creating.secret.key");
+			throw CryptoException.creatingSecretKey(e);
 		}
 	}
 
@@ -173,7 +173,7 @@ public class CryptoSession implements AutoCloseable
 		}
 		catch (InvalidParameterSpecException e)
 		{
-			throw new YonaException(e, "error.unexpected");
+			throw YonaException.unexpected(e);
 		}
 	}
 
@@ -181,7 +181,7 @@ public class CryptoSession implements AutoCloseable
 	{
 		if (!isInitializationVectorSet())
 		{
-			throw new YonaException("error.initializing.vector");
+			throw CryptoException.initializingVector();
 		}
 
 		return initializationVector.get();
@@ -191,12 +191,11 @@ public class CryptoSession implements AutoCloseable
 	{
 		if (initializationVector == null)
 		{
-			throw new YonaException("error.initializing.vector.null");
+			throw CryptoException.initializingVectorNull();
 		}
 		if (initializationVector.length != INITIALIZATION_VECTOR_LENGTH)
 		{
-			throw new YonaException("error.initializing.vector.wrong.size", initializationVector.length,
-					INITIALIZATION_VECTOR_LENGTH);
+			throw CryptoException.initializingVectorWrongSize(initializationVector.length, INITIALIZATION_VECTOR_LENGTH);
 		}
 		if (isInitializationVectorSet())
 		{
@@ -204,7 +203,7 @@ public class CryptoSession implements AutoCloseable
 			{
 				return;
 			}
-			throw new YonaException("error.initializing.vector.overwrite");
+			throw CryptoException.initializingVectorOverwrite();
 		}
 
 		this.initializationVector = Optional.of(initializationVector);
@@ -223,7 +222,7 @@ public class CryptoSession implements AutoCloseable
 			{
 				if (!isInitializationVectorSet())
 				{
-					throw new YonaException("error.initializing.vector.not.set");
+					throw CryptoException.initializingVectorNotSet();
 				}
 				decryptionCipher = Cipher.getInstance(CIPHER_TYPE);
 				decryptionCipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(getInitializationVector()));
@@ -232,7 +231,7 @@ public class CryptoSession implements AutoCloseable
 		}
 		catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e)
 		{
-			throw new YonaException(e, "error.getting.cipher", CIPHER_TYPE);
+			throw CryptoException.gettingCipher(CIPHER_TYPE);
 		}
 	}
 
