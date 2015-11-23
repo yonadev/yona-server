@@ -12,6 +12,7 @@ import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.subscriptions.service.DeviceRequestException;
 
 /*
  * A request to add another device for an existing user. The data cannot be encrypted with the user 'password' or auto-generated
@@ -82,7 +83,7 @@ public class NewDeviceRequest extends EntityWithID
 
 		if (this.userPassword == null)
 		{
-			throw new NewDeviceRequestInvalidUserSecretException();
+			throw DeviceRequestException.invalidSecret();
 		}
 	}
 }

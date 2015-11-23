@@ -17,10 +17,8 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import nu.yona.server.crypto.Constants;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.InvalidDataException;
-import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.Buddy;
@@ -110,7 +108,7 @@ public class UserService
 		userEntity = User.getRepository().findByMobileNumber(mobileNumber);
 		if (userEntity == null)
 		{
-			throw UserNotFoundException.notFoundByMobileNumber(mobileNumber);
+			throw UserServiceException.notFoundByMobileNumber(mobileNumber);
 		}
 		return userEntity;
 	}
@@ -159,7 +157,7 @@ public class UserService
 		User entity = User.getRepository().findOne(id);
 		if (entity == null)
 		{
-			throw UserNotFoundException.notFoundByID(id);
+			throw UserServiceException.notFoundByID(id);
 		}
 		return entity;
 	}
@@ -168,28 +166,28 @@ public class UserService
 	{
 		if (StringUtils.isBlank(userResource.getFirstName()))
 		{
-			throw new InvalidDataException("error.user.firstname");
+			throw InvalidDataException.blankFirstName();
 		}
 
 		if (StringUtils.isBlank(userResource.getLastName()))
 		{
-			throw new InvalidDataException("error.user.lastname");
+			throw InvalidDataException.blankLastName();
 		}
 
 		if (StringUtils.isBlank(userResource.getMobileNumber()))
 		{
-			throw new InvalidDataException("error.user.mobile.number");
+			throw InvalidDataException.blankMobileNumber();
 		}
 
 		if (!REGEX_PHONE.matcher(userResource.getMobileNumber()).matches())
 		{
-			throw new InvalidDataException("error.user.mobile.number.invalid");
+			throw InvalidDataException.invalidMobileNumber(userResource.getMobileNumber());
 		}
 	}
 
 	public static String getPassword(Optional<String> password)
 	{
-		return password.orElseThrow(() -> new YonaException("Missing '" + Constants.PASSWORD_HEADER + "' header"));
+		return password.orElseThrow(() -> UserServiceException.missingPasswordHeader());
 	}
 
 	public void addBuddy(UserDTO user, BuddyDTO buddy)
@@ -225,7 +223,7 @@ public class UserService
 		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
 		if (newDeviceRequestEntity == null)
 		{
-			throw new NewDeviceRequestNotPresentException(userID);
+			throw DeviceRequestException.noDeviceRequestPresent(userID);
 		}
 		if (isExpired(newDeviceRequestEntity))
 		{

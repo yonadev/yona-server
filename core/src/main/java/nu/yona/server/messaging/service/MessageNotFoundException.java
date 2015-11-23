@@ -6,16 +6,19 @@ package nu.yona.server.messaging.service;
 
 import java.util.UUID;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import nu.yona.server.exceptions.YonaException;
 
-@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No such message")
-public class MessageNotFoundException extends RuntimeException
+public class MessageNotFoundException extends YonaException
 {
 	private static final long serialVersionUID = -5889584804067081374L;
 
-	public MessageNotFoundException(UUID id)
+	private MessageNotFoundException(String messageId, Object... parameters)
 	{
-		super("Message with ID '" + id + "' not found");
+		super(messageId, parameters);
+	}
+
+	public static MessageNotFoundException messageNotFound(UUID id)
+	{
+		return new MessageNotFoundException("error.message.not.found", id);
 	}
 }
