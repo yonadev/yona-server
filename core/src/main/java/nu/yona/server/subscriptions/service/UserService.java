@@ -4,9 +4,9 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.util.Date;
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -27,10 +27,6 @@ import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
-
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 @Service
 public class UserService
@@ -88,8 +84,8 @@ public class UserService
 
 	public User addUserCreatedOnBuddyRequest(UserDTO buddyUserResource, String tempPassword)
 	{
-		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null, () -> tempEncryptionContextExecutor
-				.addUserCreatedOnBuddyRequestFlush(buddyUserResource).getID());
+		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null,
+				() -> tempEncryptionContextExecutor.addUserCreatedOnBuddyRequestFlush(buddyUserResource).getID());
 		return getEntityByID(savedUserID);
 	}
 
@@ -150,7 +146,7 @@ public class UserService
 			// see architecture overview for which classes contain encrypted data
 			// the relation to user private is currently the only lazy relation
 			// (this could also be achieved with very complex reflection)
-			this.userEntity.getUserPrivate();
+			this.userEntity.loadFully();
 		}
 	}
 
@@ -165,12 +161,12 @@ public class UserService
 		// touch and save all user related data containing encryption
 		// see architecture overview for which classes contain encrypted data
 		// (this could also be achieved with very complex reflection)
-		retrievedEntitySet.userEntity.getUserPrivate().getBuddies().forEach(buddy -> Buddy.getRepository().save(buddy.touch()));
+		retrievedEntitySet.userEntity.getBuddies().forEach(buddy -> Buddy.getRepository().save(buddy.touch()));
 		MessageSource.getRepository().save(retrievedEntitySet.namedMessageSource.touch());
 		MessageSource.getRepository().save(retrievedEntitySet.anonymousMessageSource.touch());
 		userResource.updateUser(retrievedEntitySet.userEntity);
 		retrievedEntitySet.userEntity.removeIsCreatedOnBuddyRequest();
-		retrievedEntitySet.userEntity.getUserPrivate().touch();
+		retrievedEntitySet.userEntity.touch();
 		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(retrievedEntitySet.userEntity));
 	}
 
