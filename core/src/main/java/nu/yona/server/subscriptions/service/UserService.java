@@ -4,18 +4,14 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.util.Date;
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
-
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import nu.yona.server.crypto.Constants;
 import nu.yona.server.crypto.CryptoSession;
@@ -86,6 +82,7 @@ public class UserService
 	@Autowired
 	UserServiceTempEncryptionContextExecutor tempEncryptionContextExecutor;
 
+	@Transactional
 	public User addUserCreatedOnBuddyRequest(UserDTO buddyUserResource, String tempPassword)
 	{
 		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null, () -> tempEncryptionContextExecutor
@@ -99,9 +96,10 @@ public class UserService
 		User originalUserEntity = getEntityByID(id);
 		if (originalUserEntity.isCreatedOnBuddyRequest())
 		{
-			throw new YonaException("User is created on buddy request, use other method");
+			// security check: should not be able to update a user created on buddy request with its temp password
+			throw new IllegalArgumentException("User is created on buddy request, use other method");
 		}
-		return handleUserUpdate(userResource, originalUserEntity);
+		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(userResource.updateUser(originalUserEntity)));
 	}
 
 	static User findUserByMobileNumber(String mobileNumber)
@@ -121,7 +119,8 @@ public class UserService
 		User originalUserEntity = getEntityByID(id);
 		if (!originalUserEntity.isCreatedOnBuddyRequest())
 		{
-			throw new YonaException("User is not created on buddy request");
+			// security check: should not be able to replace the password on an existing user
+			throw new IllegalArgumentException("User is not created on buddy request");
 		}
 		UserEncryptedEntitySet retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
 		return saveUserEncryptedDataWithNewPassword(retrievedEntitySet, userResource);
@@ -169,14 +168,9 @@ public class UserService
 		MessageSource.getRepository().save(retrievedEntitySet.namedMessageSource.touch());
 		MessageSource.getRepository().save(retrievedEntitySet.anonymousMessageSource.touch());
 		userResource.updateUser(retrievedEntitySet.userEntity);
-		retrievedEntitySet.userEntity.removeIsCreatedOnBuddyRequest();
+		retrievedEntitySet.userEntity.unsetIsCreatedOnBuddyRequest();
 		retrievedEntitySet.userEntity.getUserPrivate().touch();
 		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(retrievedEntitySet.userEntity));
-	}
-
-	private UserDTO handleUserUpdate(UserDTO userResource, User originalUserEntity)
-	{
-		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(userResource.updateUser(originalUserEntity)));
 	}
 
 	public void deleteUser(Optional<String> password, UUID id)

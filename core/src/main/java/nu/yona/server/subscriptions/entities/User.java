@@ -101,7 +101,7 @@ public class User extends EntityWithID
 		return createdOnBuddyRequest;
 	}
 
-	public void removeIsCreatedOnBuddyRequest()
+	public void unsetIsCreatedOnBuddyRequest()
 	{
 		createdOnBuddyRequest = false;
 	}

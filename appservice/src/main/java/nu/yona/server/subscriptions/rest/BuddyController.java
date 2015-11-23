@@ -14,6 +14,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
+import nu.yona.server.subscriptions.service.BuddyDTO;
+import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.UserService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Resource;
@@ -32,12 +38,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
-import nu.yona.server.subscriptions.service.BuddyDTO;
-import nu.yona.server.subscriptions.service.BuddyService;
-import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(BuddyResource.class)
@@ -63,7 +63,9 @@ public class BuddyController
 			@PathVariable UUID requestingUserID)
 	{
 
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
+		return CryptoSession.execute(
+				password,
+				() -> userService.canAccessPrivateData(requestingUserID),
 				() -> createOKResponse(requestingUserID, buddyService.getBuddiesOfUser(requestingUserID),
 						getAllBuddiesLinkBuilder(requestingUserID)));
 	}
@@ -89,16 +91,16 @@ public class BuddyController
 	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID requestingUserID, @RequestBody BuddyDTO buddy)
 	{
-		return CryptoSession
-				.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
-						() -> createResponse(requestingUserID,
-								buddyService.addBuddyToRequestingUser(requestingUserID, buddy, this::getInviteURL),
-								HttpStatus.CREATED));
+		return CryptoSession.execute(
+				password,
+				() -> userService.canAccessPrivateData(requestingUserID),
+				() -> createResponse(requestingUserID,
+						buddyService.addBuddyToRequestingUser(requestingUserID, buddy, this::getInviteURL), HttpStatus.CREATED));
 	}
 
 	public String getInviteURL(UUID newUserID, String tempPassword)
 	{
-		return UserController.getUserLinkWithTempPassword(newUserID, tempPassword).getHref();
+		return UserController.getUserSelfLinkWithTempPassword(newUserID, tempPassword).getHref();
 	}
 
 	private HttpEntity<BuddyResource> createOKResponse(UUID requestingUserID, BuddyDTO buddy)
@@ -114,9 +116,8 @@ public class BuddyController
 	private HttpEntity<Resources<BuddyResource>> createOKResponse(UUID requestingUserID, Set<BuddyDTO> buddies,
 			ControllerLinkBuilder controllerMethodLinkBuilder)
 	{
-		return new ResponseEntity<Resources<BuddyResource>>(
-				new Resources<>(new BuddyResourceAssembler(requestingUserID).toResources(buddies),
-						controllerMethodLinkBuilder.withSelfRel()),
+		return new ResponseEntity<Resources<BuddyResource>>(new Resources<>(
+				new BuddyResourceAssembler(requestingUserID).toResources(buddies), controllerMethodLinkBuilder.withSelfRel()),
 				HttpStatus.OK);
 	}
 

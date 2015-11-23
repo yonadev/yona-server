@@ -24,7 +24,6 @@ import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
@@ -60,10 +59,11 @@ public class UserController
 	@RequestMapping(value = "{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@RequestParam(value = "tempPassword", required = false) String tempPassword,
+			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr,
 			@RequestParam(value = "includePrivateData", defaultValue = "false") String includePrivateDataStr,
 			@PathVariable UUID id)
 	{
+		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
 		Optional<String> passwordToUse = getPasswordToUse(password, tempPassword);
 		boolean includePrivateData = Boolean.TRUE.toString().equals(includePrivateDataStr);
 		if (includePrivateData)
@@ -77,17 +77,17 @@ public class UserController
 		}
 	}
 
-	private Optional<String> getPasswordToUse(Optional<String> password, String tempPassword)
+	private Optional<String> getPasswordToUse(Optional<String> password, Optional<String> tempPassword)
 	{
 		if (password.isPresent())
 		{
 			return password;
 		}
-		if (StringUtils.isNotBlank(tempPassword))
+		if (tempPassword.isPresent())
 		{
-			return Optional.of(tempPassword);
+			return tempPassword;
 		}
-		return null;
+		return Optional.empty();
 	}
 
 	@RequestMapping(value = "{id}", method = RequestMethod.GET)
@@ -169,18 +169,22 @@ public class UserController
 	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@RequestParam(value = "tempPassword", required = false) String tempPassword, @PathVariable UUID id,
+			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr, @PathVariable UUID id,
 			@RequestBody UserDTO userResource)
 	{
-		if (StringUtils.isBlank(tempPassword))
+		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
+		if (tempPassword.isPresent())
 		{
-			return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
-					() -> createOKResponse(userService.updateUser(id, userResource), true));
+			return CryptoSession.execute(
+					password,
+					null,
+					() -> createOKResponse(userService.updateUserCreatedOnBuddyRequest(id, tempPassword.get(), userResource),
+							true));
 		}
 		else
 		{
-			return CryptoSession.execute(password, null,
-					() -> createOKResponse(userService.updateUserCreatedOnBuddyRequest(id, tempPassword, userResource), true));
+			return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+					() -> createOKResponse(userService.updateUser(id, userResource), true));
 		}
 	}
 
@@ -210,14 +214,14 @@ public class UserController
 		return createResponse(user, includePrivateData, HttpStatus.OK);
 	}
 
-	public static Link getUserLinkWithTempPassword(UUID userID, String tempPassword)
+	static Link getUserSelfLinkWithTempPassword(UUID userID, String tempPassword)
 	{
 		ControllerLinkBuilder linkBuilder = linkTo(methodOn(UserController.class).updateUser(Optional.empty(), tempPassword,
 				userID, null));
 		return linkBuilder.withSelfRel();
 	}
 
-	public static Link getUserLink(UUID userID, boolean includePrivateData)
+	private static Link getUserSelfLink(UUID userID, boolean includePrivateData)
 	{
 		ControllerLinkBuilder linkBuilder;
 		if (includePrivateData)
@@ -284,7 +288,7 @@ public class UserController
 
 		private static void addSelfLink(Resource<UserDTO> userResource, boolean includePrivateData)
 		{
-			userResource.add(UserController.getUserLink(userResource.getContent().getID(), includePrivateData));
+			userResource.add(UserController.getUserSelfLink(userResource.getContent().getID(), includePrivateData));
 		}
 	}
 }

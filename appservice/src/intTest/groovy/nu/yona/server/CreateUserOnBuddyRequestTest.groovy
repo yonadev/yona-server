@@ -189,6 +189,35 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.goals.size() == 0
 	}
 	
+	def 'Check if user is now modifiable with new password'(){
+		given:
+
+		when:
+			def response = appService.updateUser(bobDunnURL, """{
+				"firstName":"Bob ${timestamp}",
+				"lastName":"Dunn ${timestamp}",
+				"nickName":"BD ${timestamp}",
+				"mobileNumber":"+${timestamp}12",
+				"devices":[
+					"iPhone 6"
+				],
+				"goals":[
+					"gambling"
+				]
+			}""", bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData.firstName == "Bob ${timestamp}"
+			response.responseData.lastName == "Dunn ${timestamp}"
+			response.responseData.mobileNumber == "+${timestamp}12"
+			response.responseData.nickName == "BD ${timestamp}"
+			response.responseData.devices.size() == 1
+			response.responseData.devices[0] == "iPhone 6"
+			response.responseData.goals.size() == 0
+	}
+	
+	
 	def 'User should no longer be accessible by temp password'(){
 		given:
 
