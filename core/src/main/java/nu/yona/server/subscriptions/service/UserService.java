@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.Date;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Optional;
@@ -12,11 +13,16 @@ import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
 
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import nu.yona.server.crypto.Constants;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
@@ -31,6 +37,9 @@ public class UserService
 {
 	/** Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers */
 	private static Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
+
+	@Autowired
+	YonaProperties properties;
 
 	// TODO: Do we need this? Currently unused.
 	@Transactional
@@ -251,6 +260,10 @@ public class UserService
 		{
 			throw new NewDeviceRequestNotPresentException(userID);
 		}
+		if (isExpired(newDeviceRequestEntity))
+		{
+			throw new NewDeviceRequestExpiredException(userID);
+		}
 
 		if (StringUtils.isBlank(userSecret))
 		{
@@ -261,6 +274,17 @@ public class UserService
 			newDeviceRequestEntity.decryptUserPassword(userSecret);
 			return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
 		}
+	}
+
+	private boolean isExpired(NewDeviceRequest newDeviceRequestEntity)
+	{
+		Date creationTime = newDeviceRequestEntity.getCreationTime();
+		return (creationTime.getTime() + getExpirationIntervalMillis() < System.currentTimeMillis());
+	}
+
+	private long getExpirationIntervalMillis()
+	{
+		return properties.getNewDeviceRequestExpirationDays() * 24 * 60 * 60 * 1000;
 	}
 
 	@Transactional
