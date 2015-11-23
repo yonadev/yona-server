@@ -197,6 +197,38 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.status == 400
 	}
 	
+	def 'Bob checks his direct messages'(){
+		given:
+
+		when:
+			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
+			if (response.responseData._embedded && response.responseData._embedded.buddyConnectRequestMessages) {
+				bobDunnBuddyMessageAcceptURL = response.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
+			}
+
+		then:
+			response.status == 200
+			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
+			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard ${timestamp}"
+			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+			bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
+	}
+
+	def 'Bob accepts Richard\'s buddy request'(){
+		given:
+
+		when:
+			def response = appService.postMessageActionWithPassword(bobDunnBuddyMessageAcceptURL, """{
+				"properties":{
+					"message":"Yes, great idea!"
+				}
+			}""", bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData.properties.status == "done"
+	}
+	
 	def 'Richard checks his direct messages'(){
 		given:
 

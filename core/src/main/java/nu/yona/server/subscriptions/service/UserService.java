@@ -88,6 +88,10 @@ public class UserService
 	public UserDTO updateUser(UUID id, UserDTO userResource)
 	{
 		User originalUserEntity = getEntityByID(id);
+		if (originalUserEntity.isCreatedOnBuddyRequest())
+		{
+			throw new YonaException("User is created on buddy request, use other method");
+		}
 		return handleUserUpdate(userResource, originalUserEntity);
 	}
 
@@ -156,6 +160,7 @@ public class UserService
 		MessageSource.getRepository().save(retrievedEntitySet.namedMessageSource.touch());
 		MessageSource.getRepository().save(retrievedEntitySet.anonymousMessageSource.touch());
 		userResource.updateUser(retrievedEntitySet.userEntity);
+		retrievedEntitySet.userEntity.removeIsCreatedOnBuddyRequest();
 		retrievedEntitySet.userEntity.getUserPrivate().touch();
 		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(retrievedEntitySet.userEntity));
 	}

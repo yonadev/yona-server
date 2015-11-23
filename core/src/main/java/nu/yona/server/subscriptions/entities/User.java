@@ -101,6 +101,11 @@ public class User extends EntityWithID
 		return createdOnBuddyRequest;
 	}
 
+	public void removeIsCreatedOnBuddyRequest()
+	{
+		createdOnBuddyRequest = false;
+	}
+
 	public String getFirstName()
 	{
 		return firstName;
