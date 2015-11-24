@@ -7,15 +7,15 @@ package nu.yona.server.subscriptions.service;
 import java.util.Map;
 import java.util.UUID;
 
-import nu.yona.server.subscriptions.entities.Buddy;
-import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+
+import nu.yona.server.subscriptions.entities.Buddy;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 
 @JsonRootName("buddy")
 public class BuddyDTO
@@ -49,10 +49,10 @@ public class BuddyDTO
 	}
 
 	@JsonCreator
-	public BuddyDTO(@JsonProperty("_embedded") Map<String, UserDTO> userInMap, @JsonProperty("message") String message,
-			@JsonProperty("password") String password)
+	public BuddyDTO(@JsonProperty("_embedded") Map<String, UserDTO> userInMap, @JsonProperty("nickName") String nickName,
+			@JsonProperty("message") String message, @JsonProperty("password") String password)
 	{
-		this(null, userInMap.get(USER_REL_NAME), message, password, null, null);
+		this(null, userInMap.get(USER_REL_NAME), message, password, nickName, null);
 	}
 
 	@JsonIgnore
@@ -86,8 +86,8 @@ public class BuddyDTO
 
 	private static UUID getBuddyLoginID(Buddy buddyEntity)
 	{
-		return (buddyEntity.getReceivingStatus() == Status.ACCEPTED) || (buddyEntity.getSendingStatus() == Status.ACCEPTED) ? buddyEntity
-				.getLoginID() : null;
+		return (buddyEntity.getReceivingStatus() == Status.ACCEPTED) || (buddyEntity.getSendingStatus() == Status.ACCEPTED)
+				? buddyEntity.getLoginID() : null;
 	}
 
 	@JsonInclude(Include.NON_EMPTY)
@@ -96,7 +96,6 @@ public class BuddyDTO
 		return password;
 	}
 
-	@JsonIgnore
 	public String getNickName()
 	{
 		return nickName;
