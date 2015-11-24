@@ -101,6 +101,17 @@ public class MessageController
 
 	}
 
+	@RequestMapping(value = "/anonymous/{id}/{action}", method = RequestMethod.POST)
+	@ResponseBody
+	public HttpEntity<Resource<MessageActionDTO>> handleAnonymousMessageAction(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, @PathVariable UUID id,
+			@PathVariable String action, @RequestBody MessageActionDTO requestPayload)
+	{
+
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> createOKResponse(messageService.handleAnonymousMessageAction(userID, id, action, requestPayload)));
+	}
+
 	private HttpEntity<Resources<MessageResource>> createOKResponse(boolean isDirect, UUID userID, List<MessageDTO> messages)
 	{
 		return new ResponseEntity<Resources<MessageResource>>(wrapMessagesAsResourceList(isDirect, userID, messages),

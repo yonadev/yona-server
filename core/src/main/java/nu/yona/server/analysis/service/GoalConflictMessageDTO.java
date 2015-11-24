@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -17,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
@@ -28,6 +30,7 @@ import nu.yona.server.subscriptions.service.UserDTO;
 @JsonRootName("goalConflictMessage")
 public class GoalConflictMessageDTO extends MessageDTO
 {
+	private static final String DELETE = "delete";
 	private final String nickname;
 	private final String goalName;
 	private final String url;
@@ -43,7 +46,9 @@ public class GoalConflictMessageDTO extends MessageDTO
 	@Override
 	public Set<String> getPossibleActions()
 	{
-		return new HashSet<>();
+		Set<String> possibleActions = new HashSet<>();
+		possibleActions.add(DELETE);
+		return possibleActions;
 	}
 
 	public String getNickname()
@@ -93,7 +98,25 @@ public class GoalConflictMessageDTO extends MessageDTO
 		public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
 				MessageActionDTO requestPayload)
 		{
-			throw new IllegalArgumentException("Action '" + action + "' is not supported");
+			switch (action)
+			{
+				case DELETE:
+					return handleAction_Delete(actingUser, (GoalConflictMessage) messageEntity, requestPayload);
+				default:
+					throw new IllegalArgumentException("Action '" + action + "' is not supported");
+			}
+		}
+
+		private MessageActionDTO handleAction_Delete(UserDTO actingUser, GoalConflictMessage messageEntity,
+				MessageActionDTO payload)
+		{
+			MessageDestination destination = MessageDestination.getRepository()
+					.findOne(actingUser.getPrivateData().getAnonymousMessageDestinationID());
+			destination.remove(messageEntity);
+			MessageDestination.getRepository().save(destination);
+			Message.getRepository().delete(messageEntity);
+
+			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}
 
 		private String getNickname(UserDTO actingUser, GoalConflictMessage messageEntity)
