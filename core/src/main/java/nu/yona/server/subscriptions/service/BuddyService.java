@@ -147,10 +147,11 @@ public class BuddyService
 		}
 	}
 
-	public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID loginID)
+	public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID loginID, String nickname)
 	{
 		Buddy buddy = Buddy.getRepository().findOne(buddyID);
 		buddy.setLoginID(loginID);
+		buddy.setNickName(nickname);
 	}
 
 	public Set<BuddyDTO> getBuddies(Set<UUID> buddyIDs)

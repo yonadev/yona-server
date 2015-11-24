@@ -4,12 +4,14 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
@@ -24,10 +26,15 @@ public class AnalysisEngineService
 {
 	@Autowired
 	private GoalService goalService;
+	@Autowired
+	private AnalysisEngineCacheService cacheService;
+	@Value("${yona.analysisservice.conflict.interval}")
+	private int conflictInterval = 300000;
+	@Value("${yona.analysisservice.update.skip.window}")
+	private int updateSkipWindow = 5000;
 
 	public void analyze(PotentialConflictDTO potentialConflictPayload)
 	{
-
 		UserAnonymized userAnonimized = getUserAnonymizedByID(potentialConflictPayload.getLoginID());
 		Set<Goal> conflictingGoalsOfUser = determineConflictingGoalsForUser(userAnonimized,
 				potentialConflictPayload.getCategories());
@@ -46,14 +53,48 @@ public class AnalysisEngineService
 			Set<Goal> conflictingGoalsOfUser)
 	{
 		Set<MessageDestination> destinations = userAnonymized.getAllRelatedDestinations();
-		destinations.stream().forEach(d -> d.send(createConflictMessage(payload, conflictingGoalsOfUser)));
-		destinations.stream().forEach(d -> MessageDestination.getRepository().save(d));
+		destinations.stream().forEach(d -> sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser, d));
 	}
 
-	private GoalConflictMessage createConflictMessage(PotentialConflictDTO payload, Set<Goal> conflictingGoalsOfUser)
+	private GoalConflictMessage sendOrUpdateConflictMessage(PotentialConflictDTO payload, Set<Goal> conflictingGoalsOfUser,
+			MessageDestination destination)
 	{
-		return GoalConflictMessage.createInstance(payload.getLoginID(), conflictingGoalsOfUser.iterator().next(),
-				payload.getURL());
+		Date now = new Date();
+		Date minEndTime = new Date(now.getTime() - conflictInterval);
+		Goal conflictingGoal = conflictingGoalsOfUser.iterator().next();
+		GoalConflictMessage message = cacheService.fetchLatestGoalConflictMessageForUser(payload.getLoginID(),
+				conflictingGoal.getID(), destination, minEndTime);
+
+		if (message == null || message.getEndTime().before(minEndTime))
+		{
+			message = sendNewGoalConflictMessage(payload, conflictingGoal, destination);
+			cacheService.updateLatestGoalConflictMessageForUser(message, destination);
+		}
+		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
+		else if (now.getTime() - message.getEndTime().getTime() >= updateSkipWindow)
+		{
+			updateLastGoalConflictMessage(payload, now, conflictingGoal, message);
+			cacheService.updateLatestGoalConflictMessageForUser(message, destination);
+		}
+
+		return message;
+	}
+
+	private GoalConflictMessage sendNewGoalConflictMessage(PotentialConflictDTO payload, Goal conflictingGoal,
+			MessageDestination destination)
+	{
+		GoalConflictMessage message = GoalConflictMessage.createInstance(payload.getLoginID(), conflictingGoal, payload.getURL());
+		destination.send(message);
+		return message;
+	}
+
+	private void updateLastGoalConflictMessage(PotentialConflictDTO payload, Date messageEndTime, Goal conflictingGoal,
+			GoalConflictMessage message)
+	{
+		assert payload.getLoginID().equals(message.getRelatedLoginID());
+		assert conflictingGoal.getID().equals(message.getGoal().getID());
+
+		message.setEndTime(messageEndTime);
 	}
 
 	private Set<Goal> determineConflictingGoalsForUser(UserAnonymized userAnonymized, Set<String> categories)
