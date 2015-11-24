@@ -130,7 +130,7 @@ public class BuddyService
 		Buddy entity = Buddy.getRepository().findOne(id);
 		if (entity == null)
 		{
-			throw new BuddyNotFoundException(id);
+			throw BuddyNotFoundException.notFound(id);
 		}
 		return entity;
 	}
@@ -141,7 +141,7 @@ public class BuddyService
 		{
 			return UserService.findUserByMobileNumber(buddy.getUser().getMobileNumber());
 		}
-		catch (UserNotFoundException e)
+		catch (UserServiceException e)
 		{
 			return null;
 		}
