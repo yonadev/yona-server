@@ -136,7 +136,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			def response = appService.getResource(bobDunnURL, [:], ["tempPassword": "hack", "includePrivateData": "true"])
 
 		then:
-			response.status != 200
+			response.status == 400
 	}
 	
 	def 'Hacking attempt: Try to update Bob Dunn with an invalid temp password'(){
@@ -157,7 +157,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			}""", [:], ["tempPassword": "hack"])
 
 		then:
-			response.status != 200
+			response.status == 400
 	}
 	
 	def 'Hacking attempt: Try to get a normal user with a temp password'(){
@@ -167,7 +167,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			def response = appService.getResource(richardQuinURL, [:], ["tempPassword": "hack", "includePrivateData": "true"])
 
 		then:
-			response.status != 200
+			response.status == 400
 	}
 	
 	def 'Hacking attempt: Try to update a normal user with a temp password'(){
@@ -177,7 +177,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			def response = appService.updateResource(richardQuinURL, richardQuinCreationJSON, [:], ["tempPassword": "hack"])
 
 		then:
-			response.status != 200
+			response.status == 400
 	}
 	
 	def 'Bob Dunn downloads the app and opens the link sent in the email with the app; app retrieves data to prefill'(){
