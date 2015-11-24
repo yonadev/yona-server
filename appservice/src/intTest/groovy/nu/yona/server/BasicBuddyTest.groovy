@@ -40,12 +40,20 @@ class BasicBuddyTest extends Specification {
 	def richardQuinBuddyMessageAcceptURL
 	@Shared
 	def richardQuinBuddyMessageProcessURL
+	@Shared
+	def previousGoalConflictStartTimeForBob
+	@Shared
+	def previousGoalConflictEndTimeForBob
+	@Shared
+	def previousGoalConflictStartTimeForRichard
+	@Shared
+	def previousGoalConflictEndTimeForRichard
 
 	def 'Add user Richard Quin'(){
 		given:
 
 		when:
-			def response = appService.addUser("""{
+			 def response = appService.addUser("""{
 					"firstName":"Richard ${timestamp}",
 					"lastName":"Quin ${timestamp}",
 					"nickName":"RQ ${timestamp}",
@@ -195,7 +203,7 @@ class BasicBuddyTest extends Specification {
 			def response = appService.getBuddies(richardQuinURL, richardQuinPassword);
 
 		then:
-			response.status == 200
+			 response.status == 200
 			response.responseData._embedded.buddies.size() == 1
 			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Bob ${timestamp}"
 	}
@@ -266,6 +274,8 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+			previousGoalConflictStartTimeForBob = response.responseData?._embedded?.goalConflictMessages[0]?.creationTime
+			previousGoalConflictEndTimeForBob = response.responseData?._embedded?.goalConflictMessages[0]?.endTime
 
 		then:
 			response.status == 200
@@ -273,6 +283,8 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
 			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+			previousGoalConflictStartTimeForBob != null
+			previousGoalConflictEndTimeForBob != null
 	}
 
 	def 'Richard checks he has anonymous messages and finds a conflict for himself'(){
@@ -280,6 +292,8 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+			previousGoalConflictStartTimeForRichard = response.responseData?._embedded?.goalConflictMessages[0]?.creationTime
+			previousGoalConflictEndTimeForRichard = response.responseData?._embedded?.goalConflictMessages[0]?.endTime
 
 		then:
 			response.status == 200
@@ -287,6 +301,8 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
 			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+			previousGoalConflictStartTimeForRichard != null
+			previousGoalConflictEndTimeForRichard != null
 	}
 
 	def 'Classification engine detects a potential conflict for Richard (second conflict message)'(){
@@ -308,6 +324,8 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+			def goalConflictStartTime = response.responseData?._embedded?.goalConflictMessages[0]?.creationTime
+			def goalConflictEndTime = response.responseData?._embedded?.goalConflictMessages[0]?.endTime
 
 		then:
 			response.status == 200
@@ -315,6 +333,10 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
 			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+			goalConflictStartTime != null
+			goalConflictEndTime != null
+			goalConflictStartTime == previousGoalConflictStartTimeForBob
+			goalConflictEndTime >= previousGoalConflictEndTimeForBob
 	}
 
 	def 'Richard checks he has anonymous messages and finds a conflict for himself (second conflict message)'(){
@@ -322,6 +344,8 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+			def goalConflictStartTime = response.responseData?._embedded?.goalConflictMessages[0]?.creationTime
+			def goalConflictEndTime = response.responseData?._embedded?.goalConflictMessages[0]?.endTime
 
 		then:
 			response.status == 200
@@ -329,6 +353,10 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
 			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+			goalConflictStartTime != null
+			goalConflictEndTime != null
+			goalConflictStartTime == previousGoalConflictStartTimeForRichard
+			goalConflictEndTime >= previousGoalConflictEndTimeForRichard
 	}
 
 	def 'Bob requests Richard to become his buddy (automatic pairing)'(){
@@ -441,6 +469,8 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+			previousGoalConflictStartTimeForRichard = response.responseData?._embedded?.goalConflictMessages[0]?.creationTime
+			previousGoalConflictEndTimeForRichard = response.responseData?._embedded?.goalConflictMessages[0]?.endTime
 
 		then:
 			response.status == 200
@@ -451,6 +481,8 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[1].nickname == "BD ${timestamp}"
 			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
 			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
+			previousGoalConflictStartTimeForRichard != null
+			previousGoalConflictEndTimeForRichard != null
 	}
 
 	def 'Bob checks he has anonymous messages and finds a conflict for himself'(){
@@ -458,6 +490,8 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+			previousGoalConflictStartTimeForBob = response.responseData?._embedded?.goalConflictMessages[0]?.creationTime
+			previousGoalConflictEndTimeForBob = response.responseData?._embedded?.goalConflictMessages[0]?.endTime
 
 		then:
 			response.status == 200
@@ -468,6 +502,8 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
 			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
 			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
+			previousGoalConflictStartTimeForBob != null
+			previousGoalConflictEndTimeForBob != null
 	}
 
 	def 'Classification engine detects a potential conflict for Bob (second conflict message)'(){
@@ -489,6 +525,8 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+			def goalConflictStartTime = response.responseData?._embedded?.goalConflictMessages[0]?.creationTime
+			def goalConflictEndTime = response.responseData?._embedded?.goalConflictMessages[0]?.endTime
 
 		then:
 			response.status == 200
@@ -499,6 +537,10 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[1].nickname == "BD ${timestamp}"
 			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
 			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
+			goalConflictStartTime != null
+			goalConflictEndTime != null
+			goalConflictStartTime == previousGoalConflictStartTimeForRichard
+			goalConflictEndTime >= previousGoalConflictEndTimeForRichard
 	}
 
 	def 'Bob checks he has anonymous messages and finds a conflict for himself (second conflict message)'(){
@@ -506,6 +548,8 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+			def goalConflictStartTime = response.responseData?._embedded?.goalConflictMessages[0]?.creationTime
+			def goalConflictEndTime = response.responseData?._embedded?.goalConflictMessages[0]?.endTime
 
 		then:
 			response.status == 200
@@ -516,5 +560,9 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
 			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
 			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
+			goalConflictStartTime != null
+			goalConflictEndTime != null
+			goalConflictStartTime == previousGoalConflictStartTimeForBob
+			goalConflictEndTime >= previousGoalConflictEndTimeForBob
 	}
 }
