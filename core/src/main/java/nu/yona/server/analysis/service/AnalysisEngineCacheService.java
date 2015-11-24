@@ -13,6 +13,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
+import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 
 @Service
@@ -30,11 +31,18 @@ public class AnalysisEngineCacheService
 	}
 
 	@CachePut(value = "goalConflictMessages", key = "{#message.relatedLoginID,#message.goalID,#destination.ID}")
+	public GoalConflictMessage insertLatestGoalConflictMessageForUser(GoalConflictMessage message, MessageDestination destination)
+	{
+		// Message is not used in this method as the cascading update of the destination will save the message.
+		MessageDestination.getRepository().save(destination);
+
+		return message;
+	}
+
+	@CachePut(value = "goalConflictMessages", key = "{#message.relatedLoginID,#message.goalID,#destination.ID}")
 	public GoalConflictMessage updateLatestGoalConflictMessageForUser(GoalConflictMessage message, MessageDestination destination)
 	{
-		// This will save the message as it has already been added to the destination. The message is passed
-		// to this method in order to update the cache properly after the update.
-		MessageDestination.getRepository().save(destination);
+		Message.getRepository().save(message);
 
 		return message;
 	}

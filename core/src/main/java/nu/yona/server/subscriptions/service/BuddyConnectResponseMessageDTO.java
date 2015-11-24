@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -30,9 +31,9 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 	private static final String PROCESS = "process";
 	private boolean isProcessed;
 
-	private BuddyConnectResponseMessageDTO(UUID id, UserDTO user, String message, boolean isProcessed)
+	private BuddyConnectResponseMessageDTO(UUID id, UserDTO user, String message, boolean isProcessed, Date creationTime)
 	{
-		super(id, user, message);
+		super(id, user, message, creationTime);
 		this.isProcessed = isProcessed;
 	}
 
@@ -55,7 +56,7 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 	public static BuddyConnectResponseMessageDTO createInstance(UserDTO requestingUser, BuddyConnectResponseMessage messageEntity)
 	{
 		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), UserDTO.createInstance(messageEntity.getUser()),
-				messageEntity.getMessage(), messageEntity.isProcessed());
+				messageEntity.getMessage(), messageEntity.isProcessed(), messageEntity.getCreationTime());
 	}
 
 	@Component

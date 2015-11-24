@@ -68,7 +68,7 @@ public class AnalysisEngineService
 		if (message == null || message.getEndTime().before(minEndTime))
 		{
 			message = sendNewGoalConflictMessage(payload, conflictingGoal, destination);
-			cacheService.updateLatestGoalConflictMessageForUser(message, destination);
+			cacheService.insertLatestGoalConflictMessageForUser(message, destination);
 		}
 		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
 		else if (now.getTime() - message.getEndTime().getTime() >= updateSkipWindow)

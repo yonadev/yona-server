@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -37,9 +38,10 @@ public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
 	private boolean isRejected;
 
 	private BuddyConnectRequestMessageDTO(BuddyConnectRequestMessage buddyConnectRequestMessageEntity, UUID id, UserDTO user,
-			UUID loginID, String nickname, String message, Set<String> goals, boolean isAccepted, boolean isRejected)
+			UUID loginID, String nickname, String message, Set<String> goals, boolean isAccepted, boolean isRejected,
+			Date creationTime)
 	{
-		super(id, user, message);
+		super(id, user, message, creationTime);
 		if (buddyConnectRequestMessageEntity == null)
 		{
 			throw new IllegalArgumentException("buddyConnectRequestMessageEntity cannot be null");
@@ -85,7 +87,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
 		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(),
 				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getRelatedLoginID(), messageEntity.getNickname(),
 				messageEntity.getMessage(), messageEntity.getGoals().stream().map(g -> g.getName()).collect(Collectors.toSet()),
-				messageEntity.isAccepted(), messageEntity.isRejected());
+				messageEntity.isAccepted(), messageEntity.isRejected(), messageEntity.getCreationTime());
 	}
 
 	@Component
