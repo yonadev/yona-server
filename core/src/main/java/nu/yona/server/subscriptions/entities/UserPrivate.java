@@ -141,6 +141,11 @@ public class UserPrivate extends EntityWithID
 		UserAnonymized.getRepository().save(userAnonymized);
 	}
 
+	public void removeBuddiesFromUser(UUID fromUserLoginID)
+	{
+		buddies.removeIf(buddy -> buddy.getLoginID().equals(fromUserLoginID));
+	}
+
 	public MessageSource getAnonymousMessageSource()
 	{
 		return MessageSource.getRepository().findOne(anonymousMessageSourceID);

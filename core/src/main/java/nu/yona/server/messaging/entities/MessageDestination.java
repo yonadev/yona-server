@@ -77,4 +77,9 @@ public class MessageDestination extends EntityWithID
 		}
 		return publicKey;
 	}
+
+	public void removeMessagesFromUser(UUID fromUserLoginID)
+	{
+		messages.removeIf(message -> message.getRelatedLoginID().equals(fromUserLoginID));
+	}
 }

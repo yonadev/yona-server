@@ -4,11 +4,13 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,7 @@ import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
+import nu.yona.server.subscriptions.entities.BuddyConnectRemoveMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.User;
 
@@ -45,6 +48,7 @@ public class BuddyService
 		return getBuddies(user.getPrivateData().getBuddyIDs());
 	}
 
+	@Transactional
 	public BuddyDTO addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDTO buddy,
 			BiFunction<UUID, String, String> inviteURLGetter)
 	{
@@ -62,22 +66,94 @@ public class BuddyService
 		return newBuddyEntity;
 	}
 
-	public BuddyDTO addBuddyToAcceptingUser(UUID buddyUserID, String buddyNickName, Set<Goal> buddyGoals, UUID buddyLoginID)
+	@Transactional
+	public BuddyDTO addBuddyToAcceptingUser(UserDTO acceptingUser, UUID buddyUserID, String buddyNickName, Set<Goal> buddyGoals,
+			UUID buddyLoginID)
 	{
 		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName);
 		buddy.setGoals(buddyGoals);
 		buddy.setReceivingStatus(BuddyAnonymized.Status.ACCEPTED);
-		buddy.setLoginID(buddyLoginID);
-
-		return BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
+		buddy.setUserAnonymizedID(buddyLoginID);
+		BuddyDTO buddyDTO = BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
+		userService.addBuddy(acceptingUser, buddyDTO);
+		return buddyDTO;
 	}
 
+	@Transactional
 	public void removeBuddyAfterConnectRejection(UUID idOfRequestingUser, UUID buddyID)
 	{
 		User user = User.getRepository().findOne(idOfRequestingUser);
 		Buddy buddy = getEntityByID(buddyID);
 
 		user.removeBuddy(buddy);
+		User.getRepository().save(user);
+	}
+
+	@Transactional
+	public void removeBuddy(UUID idOfRequestingUser, UUID buddyID, Optional<String> message)
+	{
+		User user = User.getRepository().findOne(idOfRequestingUser);
+		Buddy buddy = getEntityByID(buddyID);
+
+		clearMessagesAndSendDropBuddyMessage(user, buddy, message, DropBuddyReason.USER_REMOVED_BUDDY);
+
+		user.removeBuddy(buddy);
+		User.getRepository().save(user);
+	}
+
+	@Transactional
+	void clearMessagesAndSendDropBuddyMessage(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
+			DropBuddyReason reason)
+	{
+		if (requestingUserBuddy.getUser() == null)
+		{
+			// buddy account was removed in the meantime; nothing to do
+			return;
+		}
+		removeMessagesFromUser(requestingUserBuddy, requestingUser.getLoginID());
+		sendDropBuddyMessage(requestingUser, requestingUserBuddy, message, reason);
+	}
+
+	@Transactional
+	public void removeBuddyAfterBuddyRemovedConnection(UUID idOfRequestingUser, UUID relatedUserLoginID)
+	{
+		User user = User.getRepository().findOne(idOfRequestingUser);
+		user.removeBuddiesFromUser(relatedUserLoginID);
+		User.getRepository().save(user);
+	}
+
+	private void sendDropBuddyMessage(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
+			DropBuddyReason reason)
+	{
+		MessageDestination messageDestination = requestingUserBuddy.getUser().getNamedMessageDestination();
+		messageDestination.send(BuddyConnectRemoveMessage.createInstance(requestingUser.getID(), requestingUser.getLoginID(),
+				requestingUser.getNickName(), getDropBuddyMessage(reason, message), reason));
+		MessageDestination.getRepository().save(messageDestination);
+	}
+
+	private void removeMessagesFromUser(Buddy buddy, UUID requestingUserLoginID)
+	{
+		MessageDestination namedMessageDestination = buddy.getUser().getNamedMessageDestination();
+		namedMessageDestination.removeMessagesFromUser(requestingUserLoginID);
+		MessageDestination.getRepository().save(namedMessageDestination);
+	}
+
+	private String getDropBuddyMessage(DropBuddyReason reason, Optional<String> message)
+	{
+		if (message.isPresent())
+		{
+			return message.get();
+		}
+
+		switch (reason)
+		{
+			case USER_ACCOUNT_DELETED:
+				return "User account was deleted.";
+			case USER_REMOVED_BUDDY:
+				return "User removed you as a buddy.";
+			default:
+				throw new NotImplementedException();
+		}
 	}
 
 	private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy,
@@ -101,6 +177,11 @@ public class BuddyService
 		return savedBuddy;
 	}
 
+	public enum DropBuddyReason
+	{
+		USER_ACCOUNT_DELETED, USER_REMOVED_BUDDY
+	}
+
 	private void sendInvitationMessage(User buddyUserEntity, BuddyDTO buddy, String inviteURL)
 	{
 		emailService.sendEmail(buddy.getUser().getEmailAddress(), "Become my buddy for Yona!",
@@ -114,7 +195,7 @@ public class BuddyService
 		buddyEntity.setSendingStatus(BuddyAnonymized.Status.REQUESTED);
 		Buddy savedBuddyEntity = Buddy.getRepository().save(buddyEntity);
 		BuddyDTO savedBuddy = BuddyDTO.createInstance(savedBuddyEntity);
-		userService.addBuddy(requestingUser, savedBuddy); // TODO: how can we do this without using the user password?
+		userService.addBuddy(requestingUser, savedBuddy);
 
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
 		messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
@@ -150,7 +231,7 @@ public class BuddyService
 	public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID loginID, String nickname)
 	{
 		Buddy buddy = Buddy.getRepository().findOne(buddyID);
-		buddy.setLoginID(loginID);
+		buddy.setUserAnonymizedID(loginID);
 		buddy.setNickName(nickname);
 	}
 

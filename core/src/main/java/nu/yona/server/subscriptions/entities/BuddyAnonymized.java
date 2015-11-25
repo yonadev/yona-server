@@ -81,13 +81,8 @@ public class BuddyAnonymized extends EntityWithID
 		this.receivingStatus = receivingStatus;
 	}
 
-	public UUID getLoginID()
+	public UUID getUserAnonymizedID()
 	{
-		return getUserAnonymized().getLoginID();
-	}
-
-	public void setLoginID(UUID loginID)
-	{
-		setUserAnonymizedID(loginID);
+		return userAnonymizedID;
 	}
 }

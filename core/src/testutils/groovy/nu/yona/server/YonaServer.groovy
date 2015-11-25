@@ -68,14 +68,19 @@ class YonaServer {
 		updateResourceWithPassword(stripQueryString(userURL), jsonString, password, getQueryParams(userURL))
 	}
 
-	def deleteUser(userURL, password)
+	def deleteUser(userURL, password, message = "")
 	{
-		deleteResourceWithPassword(userURL, password)
+		deleteResourceWithPassword(userURL, password, ["message":message])
 	}
 
 	def requestBuddy(userPath, jsonString, password)
 	{
 		createResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, jsonString, password)
+	}
+	
+	def removeBuddy(buddyURL, password, message)
+	{
+		deleteResourceWithPassword(buddyURL, password, ["message":message])
 	}
 
 	def getRelevantCategories()
@@ -138,14 +143,14 @@ class YonaServer {
 		putJson(path, jsonString, headers, parameters);
 	}
 
-	def deleteResourceWithPassword(path, password)
+	def deleteResourceWithPassword(path, password, parameters = [:])
 	{
-		deleteResource(path, ["Yona-Password": password])
+		deleteResource(path, ["Yona-Password": password], parameters)
 	}
 
-	def deleteResource(path, headers = [:])
+	def deleteResource(path, headers = [:], parameters = [:])
 	{
-		restClient.delete(path: path, headers: headers)
+		restClient.delete(path: path, headers: headers, query:parameters)
 	}
 
 	def getResourceWithPassword(path, password, parameters = [:])

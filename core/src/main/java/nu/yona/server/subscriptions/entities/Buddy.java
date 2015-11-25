@@ -93,6 +93,11 @@ public class Buddy extends EntityWithID
 		this.nickName = nickName;
 	}
 
+	public UUID getUserID()
+	{
+		return userID;
+	}
+
 	public User getUser()
 	{
 		return User.getRepository().findOne(userID);
@@ -110,7 +115,7 @@ public class Buddy extends EntityWithID
 
 	public UUID getLoginID()
 	{
-		return getBuddyAnonymized().getLoginID();
+		return getBuddyAnonymized().getUserAnonymizedID();
 	}
 
 	public Status getReceivingStatus()
@@ -133,10 +138,10 @@ public class Buddy extends EntityWithID
 		return getBuddyAnonymized().getSendingStatus();
 	}
 
-	public void setLoginID(UUID loginID)
+	public void setUserAnonymizedID(UUID userAnonymizedID)
 	{
 		BuddyAnonymized buddyAnonymized = getBuddyAnonymized();
-		buddyAnonymized.setLoginID(loginID);
+		buddyAnonymized.setUserAnonymizedID(userAnonymizedID);
 		BuddyAnonymized.getRepository().save(buddyAnonymized);
 	}
 

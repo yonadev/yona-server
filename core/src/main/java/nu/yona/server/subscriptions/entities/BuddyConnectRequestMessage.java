@@ -23,10 +23,6 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	private Set<UUID> goalIDs;
 	private byte[] goalIDsCiphertext;
 
-	@Transient
-	private String nickname;
-	private byte[] nicknameCiphertext;
-
 	private BuddyAnonymized.Status status = BuddyAnonymized.Status.NOT_REQUESTED;
 
 	// Default constructor is required for JPA
@@ -38,23 +34,17 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	private BuddyConnectRequestMessage(UUID id, UUID userID, UUID loginID, Set<UUID> goalIDs, String nickname, String message,
 			UUID buddyID)
 	{
-		super(id, loginID, userID, message, buddyID);
+		super(id, loginID, userID, nickname, message, buddyID);
 		if (userID == null)
 		{
 			throw new IllegalArgumentException("requestingUserID cannot be null");
 		}
 		this.goalIDs = goalIDs;
-		this.nickname = nickname;
 	}
 
 	public Set<Goal> getGoals()
 	{
 		return goalIDs.stream().map(id -> Goal.getRepository().findOne(id)).collect(Collectors.toSet());
-	}
-
-	public String getNickname()
-	{
-		return nickname;
 	}
 
 	public boolean isAccepted()
@@ -89,7 +79,6 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	{
 		super.encrypt(encryptor);
 		goalIDsCiphertext = encryptor.encrypt(goalIDs);
-		nicknameCiphertext = encryptor.encrypt(nickname);
 	}
 
 	@Override
@@ -97,6 +86,5 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	{
 		super.decrypt(decryptor);
 		goalIDs = decryptor.decryptUUIDSet(goalIDsCiphertext);
-		nickname = decryptor.decryptString(nicknameCiphertext);
 	}
 }

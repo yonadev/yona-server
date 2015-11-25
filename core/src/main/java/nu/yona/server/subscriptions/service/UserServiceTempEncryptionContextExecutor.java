@@ -3,12 +3,11 @@ package nu.yona.server.subscriptions.service;
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
 
+import org.springframework.stereotype.Service;
+
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.entities.User;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserService.EncryptedUserData;
-
-import org.springframework.stereotype.Service;
 
 /*
  * Triggers the use of new subtransactions. See
@@ -21,8 +20,8 @@ class UserServiceTempEncryptionContextExecutor
 	@Transactional(value = TxType.REQUIRES_NEW)
 	public User addUserCreatedOnBuddyRequest(UserDTO buddyUserResource)
 	{
-		return User.getRepository().save(
-				User.createInstanceOnBuddyRequest(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
+		return User.getRepository()
+				.save(User.createInstanceOnBuddyRequest(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
 						buddyUserResource.getPrivateData().getNickName(), buddyUserResource.getMobileNumber()));
 	}
 
@@ -30,11 +29,10 @@ class UserServiceTempEncryptionContextExecutor
 	@Transactional(value = TxType.REQUIRES_NEW)
 	public EncryptedUserData retrieveUserEncryptedData(User originalUserEntity)
 	{
-		UserAnonymized userAnonymizedEntity = originalUserEntity.getAnonymized();
 		MessageSource namedMessageSource = originalUserEntity.getNamedMessageSource();
 		MessageSource anonymousMessageSource = originalUserEntity.getAnonymousMessageSource();
-		EncryptedUserData userEncryptedData = new EncryptedUserData(originalUserEntity, userAnonymizedEntity,
-				namedMessageSource, anonymousMessageSource);
+		EncryptedUserData userEncryptedData = new EncryptedUserData(originalUserEntity, namedMessageSource,
+				anonymousMessageSource);
 		userEncryptedData.loadLazyEncryptedData();
 		return userEncryptedData;
 	}
