@@ -173,8 +173,9 @@ public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
 			assert messageDestination != null;
 			messageDestination.send(BuddyConnectResponseMessage.createInstance(respondingUser.getID(),
 					respondingUser.getPrivateData().getVpnProfile().getLoginID(),
-					respondingUser.getPrivateData().getAnonymousMessageDestinationID(), responseMessage,
-					connectRequestMessageEntity.getBuddyID(), connectRequestMessageEntity.getStatus()));
+					respondingUser.getPrivateData().getAnonymousMessageDestinationID(),
+					respondingUser.getPrivateData().getNickName(), responseMessage, connectRequestMessageEntity.getBuddyID(),
+					connectRequestMessageEntity.getStatus()));
 			MessageDestination.getRepository().save(messageDestination);
 		}
 	}

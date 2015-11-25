@@ -170,6 +170,7 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
 			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
+			response.responseData._embedded.buddyConnectResponseMessages[0].nickname == "BD ${timestamp}"
 			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
 			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
 	}
@@ -198,6 +199,7 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.buddies.size() == 1
 			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Bob ${timestamp}"
+			response.responseData._embedded.buddies[0].nickName == "BD ${timestamp}"
 	}
 
 	def 'Bob checks his buddy list and will find Richard there'(){
@@ -210,6 +212,7 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.buddies.size() == 1
 			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Richard ${timestamp}"
+			response.responseData._embedded.buddies[0].nickName == "RQ ${timestamp}"
 	}
 
 	def 'When Richard would retrieve his user, Bob would be embedded as buddy'(){
@@ -223,6 +226,7 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.buddies != null
 			response.responseData._embedded.buddies.size() == 1
 			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Bob ${timestamp}"
+			response.responseData._embedded.buddies[0].nickName == "BD ${timestamp}"
 	}
 
 	def 'Richard checks he has no anonymous messages'(){
@@ -404,6 +408,7 @@ class BasicBuddyTest extends Specification {
 			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
 			response.responseData._embedded.buddyConnectResponseMessages[0].user
 			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Richard ${timestamp}"
+			response.responseData._embedded.buddyConnectResponseMessages[0].nickname == "RQ ${timestamp}"
 			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
 			bobDunnBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
 	}
