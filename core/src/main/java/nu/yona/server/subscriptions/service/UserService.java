@@ -32,6 +32,9 @@ public class UserService
 	private static Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
 
 	@Autowired
+	private LDAPUserService ldapUserService;
+
+	@Autowired
 	private YonaProperties yonaProperties;
 
 	@Autowired
@@ -77,6 +80,7 @@ public class UserService
 
 		User userEntity = user.createUserEntity();
 		userEntity = User.getRepository().save(userEntity);
+		ldapUserService.createVPNAccount(userEntity.getLoginID().toString(), userEntity.getPassword());
 
 		return UserDTO.createInstanceWithPrivateData(userEntity);
 	}
