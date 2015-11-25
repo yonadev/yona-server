@@ -39,7 +39,7 @@ public class User extends EntityWithID
 
 	private byte[] initializationVector;
 
-	private boolean createdOnBuddyRequest;
+	private boolean isCreatedOnBuddyRequest;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private UserPrivate userPrivate;
@@ -56,12 +56,11 @@ public class User extends EntityWithID
 		super(null);
 	}
 
-	private User(UUID id, byte[] initializationVector, boolean createdOnBuddyRequest, String firstName, String lastName,
-			String mobileNumber, UserPrivate userPrivate, MessageDestination messageDestination)
+	private User(UUID id, byte[] initializationVector, String firstName, String lastName, String mobileNumber,
+			UserPrivate userPrivate, MessageDestination messageDestination)
 	{
 		super(id);
 		this.initializationVector = initializationVector;
-		this.createdOnBuddyRequest = createdOnBuddyRequest;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.mobileNumber = mobileNumber;
@@ -77,18 +76,18 @@ public class User extends EntityWithID
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		UserPrivate userPrivate = UserPrivate.createInstance(nickName, password, deviceNames, goals, anonymousMessageSource,
 				namedMessageSource);
-		return new User(UUID.randomUUID(), initializationVector, false, firstName, lastName, mobileNumber, userPrivate,
+		return new User(UUID.randomUUID(), initializationVector, firstName, lastName, mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
 	}
 
 	public boolean isCreatedOnBuddyRequest()
 	{
-		return createdOnBuddyRequest;
+		return isCreatedOnBuddyRequest;
 	}
 
 	public void unsetIsCreatedOnBuddyRequest()
 	{
-		createdOnBuddyRequest = false;
+		isCreatedOnBuddyRequest = false;
 	}
 
 	public String getFirstName()
@@ -235,5 +234,10 @@ public class User extends EntityWithID
 	public void loadFully()
 	{
 		getUserPrivate();
+	}
+
+	public void setIsCreatedOnBuddyRequest()
+	{
+		isCreatedOnBuddyRequest = true;
 	}
 }

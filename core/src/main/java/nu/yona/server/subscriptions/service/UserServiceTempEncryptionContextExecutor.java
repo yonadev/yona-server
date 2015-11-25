@@ -32,11 +32,11 @@ class UserServiceTempEncryptionContextExecutor
 	@Transactional(value = TxType.REQUIRES_NEW)
 	public User addUserCreatedOnBuddyRequest(UserDTO buddyUserResource)
 	{
-		User savedUser = User.getRepository()
-				.save(User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
-						buddyUserResource.getPrivateData().getNickName(), buddyUserResource.getMobileNumber(),
-						CryptoUtil.getRandomString(yonaProperties.getPasswordLength()), Collections.emptySet(),
-						Collections.emptySet()));
+		User newUser = User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
+				buddyUserResource.getPrivateData().getNickName(), buddyUserResource.getMobileNumber(),
+				CryptoUtil.getRandomString(yonaProperties.getPasswordLength()), Collections.emptySet(), Collections.emptySet());
+		newUser.setIsCreatedOnBuddyRequest();
+		User savedUser = User.getRepository().save(newUser);
 		ldapUserService.createVPNAccount(savedUser.getLoginID().toString(), savedUser.getPassword());
 		return savedUser;
 	}
