@@ -26,6 +26,11 @@ import nu.yona.server.messaging.entities.MessageSource;
 @Table(name = "USERS")
 public class User extends EntityWithID
 {
+	public enum Status
+	{
+		UNCONFIRMED, INACTIVE, ACTIVE
+	}
+
 	public static UserRepository getRepository()
 	{
 		return (UserRepository) RepositoryProvider.getRepository(User.class, UUID.class);
@@ -41,6 +46,9 @@ public class User extends EntityWithID
 	private byte[] initializationVector;
 
 	private boolean createdOnBuddyRequest;
+
+	private Status status;
+	private String confirmationCode;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private UserPrivate userPrivate;
@@ -61,6 +69,7 @@ public class User extends EntityWithID
 			String mobileNumber, UserPrivate userPrivate, MessageDestination messageDestination)
 	{
 		super(id);
+		this.status = Status.UNCONFIRMED;
 		this.initializationVector = initializationVector;
 		this.createdOnBuddyRequest = createdOnBuddyRequest;
 		this.firstName = firstName;
@@ -154,6 +163,26 @@ public class User extends EntityWithID
 	public void setNewDeviceRequest(NewDeviceRequest newDeviceRequest)
 	{
 		this.newDeviceRequest = newDeviceRequest;
+	}
+
+	public Status getStatus()
+	{
+		return status;
+	}
+
+	public void setStatus(Status status)
+	{
+		this.status = status;
+	}
+
+	public String getConfirmationCode()
+	{
+		return confirmationCode;
+	}
+
+	public void setConfirmationCode(String confirmationCode)
+	{
+		this.confirmationCode = confirmationCode;
 	}
 
 	private UserPrivate getUserPrivate()

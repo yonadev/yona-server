@@ -42,6 +42,25 @@ class UserTest extends Specification {
 			appService.deleteUser(appService.stripQueryString(response.responseData._links.self.href), password)
 	}
 
+	def 'Send sign-in confirmation code'(){
+		given:
+			def userAddResponse = appService.addUser(userCreationJSON, password);
+			def userURL = appService.stripQueryString(userAddResponse.responseData._links.self.href);
+			def confirmationCode = userAddResponse.responseData.confirmationCode;
+
+		when:
+			def response = appService.addUserConfimation(userURL, """ { "code":"${confirmationCode}" } """, password)
+
+		then:
+			response.status == 200
+
+		cleanup:
+			if (userURL)
+			{
+				appService.deleteUser(userURL, password)
+			}
+	}
+
 	def 'Get John Doe with private data'(){
 		given:
 			def userURL = appService.stripQueryString(appService.addUser(userCreationJSON, password).responseData._links.self.href);
@@ -109,7 +128,7 @@ class UserTest extends Specification {
 			assert responseData.devices[0] == "Galaxy mini"
 			assert responseData.goals.size() == 1
 			assert responseData.goals[0] == "gambling"
-			
+
 			assert responseData._embedded.buddies != null
 			assert responseData._embedded.buddies.size() == 0
 		} else {

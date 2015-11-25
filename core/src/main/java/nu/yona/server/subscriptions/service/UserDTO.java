@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
@@ -29,6 +31,10 @@ public class UserDTO
 	private final String emailAddress;
 	private final String mobileNumber;
 	private final UserPrivateDTO privateData;
+	/*
+	 * Only intended for test purposes.
+	 */
+	private String confirmationCode;
 
 	private UserDTO(UUID id, String firstName, String lastName, String nickName, String mobileNumber, UUID namedMessageSourceID,
 			UUID namedMessageDestinationID, UUID anonymousMessageSourceID, UUID anonymousMessageDestinationID,
@@ -99,6 +105,23 @@ public class UserDTO
 	public UserPrivateDTO getPrivateData()
 	{
 		return privateData;
+	}
+
+	/*
+	 * Only intended for test purposes.
+	 */
+	public void setConfirmationCode(String confirmationCode)
+	{
+		this.confirmationCode = confirmationCode;
+	}
+
+	/*
+	 * Only intended for test purposes.
+	 */
+	@JsonInclude(Include.NON_EMPTY)
+	public String getConfirmationCode()
+	{
+		return confirmationCode;
 	}
 
 	User createUserEntity()

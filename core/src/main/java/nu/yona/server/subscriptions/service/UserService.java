@@ -6,6 +6,7 @@ package nu.yona.server.subscriptions.service;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,12 +16,16 @@ import javax.transaction.Transactional;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
+import nu.yona.server.exceptions.SignInValidationException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.sms.SmsService;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
@@ -36,6 +41,10 @@ public class UserService
 
 	@Autowired
 	YonaProperties properties;
+	@Autowired
+	private SmsService smsService;
+	@Value("${yona.sms.sign-in.confirmation.message}")
+	private String signInConfirmationMessage;
 
 	// TODO: Do we need this? Currently unused.
 	@Transactional
@@ -74,9 +83,55 @@ public class UserService
 		validateUserFields(userResource);
 
 		User userEntity = userResource.createUserEntity();
+		userEntity.setConfirmationCode(createConfirmationCode());
 		userEntity = User.getRepository().save(userEntity);
+		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(userEntity);
+		if (properties.getIsRunningInTestMode())
+		{
+			userDTO.setConfirmationCode(userEntity.getConfirmationCode());
+		}
+		else
+		{
+			sendSignConfirmationMessage(userEntity);
+		}
+		return userDTO;
+	}
 
-		return UserDTO.createInstanceWithPrivateData(userEntity);
+	private String createConfirmationCode()
+	{
+		SecureRandom random = CryptoUtil.getSecureRandomInstance();
+		return "" + (random.nextInt(90000) + 10000); // Generate 5 digits in range 10000 - 99999.
+	}
+
+	private void sendSignConfirmationMessage(User userEntity)
+	{
+		String message = MessageFormat.format(signInConfirmationMessage, userEntity.getConfirmationCode());
+		smsService.send(userEntity.getMobileNumber(), message);
+	}
+
+	@Transactional
+	public void confirmSignIn(UUID userID, String code)
+	{
+		User userEntity = getEntityByID(userID);
+
+		if (userEntity.getConfirmationCode() == null)
+		{
+			throw SignInValidationException.signInCodeNotSet();
+		}
+
+		if (!userEntity.getConfirmationCode().equals(code))
+		{
+			throw SignInValidationException.signInCodeMismatch();
+		}
+
+		if (userEntity.getStatus() != User.Status.UNCONFIRMED)
+		{
+			throw SignInValidationException.userCannotBeActivated();
+		}
+
+		userEntity.setConfirmationCode(null);
+		userEntity.setStatus(User.Status.ACTIVE);
+		User.getRepository().save(userEntity);
 	}
 
 	@Autowired

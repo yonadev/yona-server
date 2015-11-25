@@ -25,7 +25,7 @@ public class CryptoUtil
 		return randomString.substring(0, Math.min(length, randomString.length()));
 	}
 
-	static SecureRandom getSecureRandomInstance()
+	public static SecureRandom getSecureRandomInstance()
 	{
 		try
 		{
