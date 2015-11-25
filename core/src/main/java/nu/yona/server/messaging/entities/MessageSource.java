@@ -93,8 +93,9 @@ public class MessageSource extends EntityWithID
 		return message;
 	}
 
-	public void touch()
+	public MessageSource touch()
 	{
 		privateKeyBytes = Arrays.copyOf(privateKeyBytes, privateKeyBytes.length);
+		return this;
 	}
 }

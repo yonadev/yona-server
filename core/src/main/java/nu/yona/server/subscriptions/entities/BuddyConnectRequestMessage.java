@@ -62,9 +62,19 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		return status == BuddyAnonymized.Status.ACCEPTED;
 	}
 
+	public boolean isRejected()
+	{
+		return status == BuddyAnonymized.Status.REJECTED;
+	}
+
 	public void setStatus(BuddyAnonymized.Status status)
 	{
 		this.status = status;
+	}
+
+	public BuddyAnonymized.Status getStatus()
+	{
+		return this.status;
 	}
 
 	public static BuddyConnectRequestMessage createInstance(UUID requestingUserID, UUID requestingUserLoginID, Set<Goal> goals,

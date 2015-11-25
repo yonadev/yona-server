@@ -9,8 +9,6 @@ import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
-import nu.yona.server.exceptions.YonaException;
-
 public class CryptoUtil
 {
 
@@ -35,7 +33,7 @@ public class CryptoUtil
 		}
 		catch (NoSuchAlgorithmException | NoSuchProviderException e)
 		{
-			throw new YonaException(e);
+			throw CryptoException.gettingRandomInstance(e);
 		}
 	}
 }

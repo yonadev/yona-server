@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
@@ -30,6 +31,9 @@ public class UserPrivate extends EntityWithID
 {
 
 	private static final String DECRYPTION_CHECK_STRING = "Decrypted properly#";
+
+	@Column(nullable = true)
+	private int touchVersion;
 
 	@Convert(converter = StringFieldEncrypter.class)
 	private String decryptionCheck;
@@ -113,7 +117,7 @@ public class UserPrivate extends EntityWithID
 
 	public void setDeviceNames(Set<String> deviceNames)
 	{
-		this.deviceNames = deviceNames;
+		this.deviceNames = new HashSet<>(deviceNames);
 	}
 
 	public Set<Buddy> getBuddies()
@@ -126,6 +130,14 @@ public class UserPrivate extends EntityWithID
 		buddies.add(buddy);
 		UserAnonymized userAnonymized = getUserAnonymized();
 		userAnonymized.addBuddyAnonymized(buddy.getBuddyAnonymized());
+		UserAnonymized.getRepository().save(userAnonymized);
+	}
+
+	public void removeBuddy(Buddy buddy)
+	{
+		buddies.remove(buddy);
+		UserAnonymized userAnonymized = getUserAnonymized();
+		userAnonymized.removeBuddyAnonymized(buddy.getBuddyAnonymized());
 		UserAnonymized.getRepository().save(userAnonymized);
 	}
 
@@ -147,5 +159,10 @@ public class UserPrivate extends EntityWithID
 	private boolean isDecrypted()
 	{
 		return decryptionCheck != null;
+	}
+
+	public void touch()
+	{
+		touchVersion++;
 	}
 }

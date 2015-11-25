@@ -59,19 +59,35 @@ public class UserController
 	@RequestMapping(value = "{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr,
 			@RequestParam(value = "includePrivateData", defaultValue = "false") String includePrivateDataStr,
 			@PathVariable UUID id)
 	{
+		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
+		Optional<String> passwordToUse = getPasswordToUse(password, tempPassword);
 		boolean includePrivateData = Boolean.TRUE.toString().equals(includePrivateDataStr);
 		if (includePrivateData)
 		{
-			return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+			return CryptoSession.execute(passwordToUse, () -> userService.canAccessPrivateData(id),
 					() -> createOKResponse(userService.getPrivateUser(id), includePrivateData));
 		}
 		else
 		{
-			return getPublicUser(password, id);
+			return getPublicUser(passwordToUse, id);
 		}
+	}
+
+	private Optional<String> getPasswordToUse(Optional<String> password, Optional<String> tempPassword)
+	{
+		if (password.isPresent())
+		{
+			return password;
+		}
+		if (tempPassword.isPresent())
+		{
+			return tempPassword;
+		}
+		return Optional.empty();
 	}
 
 	@RequestMapping(value = "{id}", method = RequestMethod.GET)
@@ -153,10 +169,23 @@ public class UserController
 	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID id, @RequestBody UserDTO userResource)
+			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr, @PathVariable UUID id,
+			@RequestBody UserDTO userResource)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
-				() -> createOKResponse(userService.updateUser(id, userResource), true));
+		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
+		if (tempPassword.isPresent())
+		{
+			return CryptoSession.execute(
+					password,
+					null,
+					() -> createOKResponse(userService.updateUserCreatedOnBuddyRequest(id, tempPassword.get(), userResource),
+							true));
+		}
+		else
+		{
+			return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+					() -> createOKResponse(userService.updateUser(id, userResource), true));
+		}
 	}
 
 	@RequestMapping(value = "{id}", method = RequestMethod.DELETE)
@@ -185,12 +214,19 @@ public class UserController
 		return createResponse(user, includePrivateData, HttpStatus.OK);
 	}
 
-	public static Link getUserLink(UUID userID, boolean includePrivateData)
+	static Link getUserSelfLinkWithTempPassword(UUID userID, String tempPassword)
+	{
+		ControllerLinkBuilder linkBuilder = linkTo(methodOn(UserController.class).updateUser(Optional.empty(), tempPassword,
+				userID, null));
+		return linkBuilder.withSelfRel();
+	}
+
+	private static Link getUserSelfLink(UUID userID, boolean includePrivateData)
 	{
 		ControllerLinkBuilder linkBuilder;
 		if (includePrivateData)
 		{
-			linkBuilder = linkTo(methodOn(UserController.class).getUser(Optional.empty(), Boolean.TRUE.toString(), userID));
+			linkBuilder = linkTo(methodOn(UserController.class).getUser(Optional.empty(), null, Boolean.TRUE.toString(), userID));
 		}
 		else
 		{
@@ -252,7 +288,7 @@ public class UserController
 
 		private static void addSelfLink(Resource<UserDTO> userResource, boolean includePrivateData)
 		{
-			userResource.add(UserController.getUserLink(userResource.getContent().getID(), includePrivateData));
+			userResource.add(UserController.getUserSelfLink(userResource.getContent().getID(), includePrivateData));
 		}
 	}
 }

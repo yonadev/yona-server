@@ -1,16 +1,11 @@
 package nu.yona.server
 
-import groovyx.net.http.RESTClient
-import spock.lang.Ignore
-import spock.lang.IgnoreRest
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Unroll
 import groovy.json.*
+import spock.lang.Specification
 
 class RelevantCategoriesTest extends Specification {
 
-	def baseURL = "http://localhost:8081"
+	def baseURL = System.getProperty("yona.analysisservice.url", "http://localhost:8081")
 
 	YonaServer yonaServer = new YonaServer(baseURL)
 
@@ -23,7 +18,7 @@ class RelevantCategoriesTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData.categories.size() == 4
-			response.responseData.categories.contains("poker")
+			response.responseData.categories.contains("Gambling")
 			response.responseData.categories.contains("lotto")
 			response.responseData.categories.contains("news/media")
 			response.responseData.categories.contains("newsgroups/forums")
