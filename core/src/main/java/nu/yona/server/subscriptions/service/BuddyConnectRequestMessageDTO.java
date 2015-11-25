@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageActionDTO;
@@ -32,6 +33,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
 {
 	private static final String ACCEPT = "accept";
 	private static final String REJECT = "reject";
+	private static final String DELETE = "delete";
 	private Set<String> goals;
 	private boolean isAccepted;
 	private boolean isRejected;
@@ -61,6 +63,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
 		{
 			possibleActions.add(ACCEPT);
 			possibleActions.add(REJECT);
+			possibleActions.add(DELETE);
 		}
 		return possibleActions;
 	}
@@ -122,6 +125,8 @@ public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
 					return handleAction_Accept(actingUser, (BuddyConnectRequestMessage) messageEntity, requestPayload);
 				case REJECT:
 					return handleAction_Reject(actingUser, (BuddyConnectRequestMessage) messageEntity, requestPayload);
+				case DELETE:
+					return handleAction_Delete(actingUser, (BuddyConnectRequestMessage) messageEntity, requestPayload);
 				default:
 					throw new IllegalArgumentException("Action '" + action + "' is not supported");
 			}
@@ -150,6 +155,23 @@ public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
 			updateMessageStatusAsRejected(connectRequestMessageEntity);
 
 			sendResponseMessageToRequestingUser(rejectingUser, connectRequestMessageEntity, payload.getProperty("message"));
+
+			return new MessageActionDTO(Collections.singletonMap("status", "done"));
+		}
+
+		private MessageActionDTO handleAction_Delete(UserDTO user, BuddyConnectRequestMessage connectRequestMessageEntity,
+				MessageActionDTO payload)
+		{
+			if (!connectRequestMessageEntity.isAccepted() && !connectRequestMessageEntity.isRejected())
+			{
+				throw InvalidMessageActionException.unprocessedMessageCannotBeDeleted();
+			}
+
+			MessageDestination destination = MessageDestination.getRepository()
+					.findOne(user.getPrivateData().getNamedMessageDestinationID());
+			destination.remove(connectRequestMessageEntity);
+			MessageDestination.getRepository().save(destination);
+			Message.getRepository().delete(connectRequestMessageEntity);
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}

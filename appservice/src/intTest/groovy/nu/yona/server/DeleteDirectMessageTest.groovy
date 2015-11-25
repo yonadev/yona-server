@@ -35,6 +35,8 @@ class DeleteDirectMessageTest extends Specification {
 	@Shared
 	def bobDunnBuddyMessageAcceptURL
 	@Shared
+	def bobDunnBuddyConnectRequestDeleteURL
+	@Shared
 	def bobDunnBuddyMessageProcessURL
 	@Shared
 	def richardQuinBuddyMessageAcceptURL
@@ -42,6 +44,8 @@ class DeleteDirectMessageTest extends Specification {
 	def richardQuinBuddyMessageProcessURL
 	@Shared
 	def richardQuinGoalConflictMessageDeleteUrl
+	@Shared
+	def richardQuinBuddyMessageDeleteURL
 
 	def 'Add user Richard Quin'(){
 		given:
@@ -134,6 +138,7 @@ class DeleteDirectMessageTest extends Specification {
 			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
 			if (response.responseData._embedded && response.responseData._embedded.buddyConnectRequestMessages) {
 				bobDunnBuddyMessageAcceptURL = response.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
+				bobDunnBuddyConnectRequestDeleteURL = response.responseData._embedded.buddyConnectRequestMessages[0]._links.delete.href
 			}
 
 		then:
@@ -142,6 +147,21 @@ class DeleteDirectMessageTest extends Specification {
 			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard ${timestamp}"
 			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
 			bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
+			bobDunnBuddyConnectRequestDeleteURL != null
+	}
+
+	def 'Bob tries to delete Richard\'s buddy request before it is processed'(){
+		given:
+
+		when:
+			def response = appService.postMessageActionWithPassword(bobDunnBuddyConnectRequestDeleteURL, """{
+					"properties":{
+					}
+				}""", bobDunnPassword)
+
+		then:
+			response.status == 400
+			response.responseData?.code == "error.cannot.delete.unprocessed.message"
 	}
 
 	def 'Bob accepts Richard\'s buddy request'(){
@@ -166,6 +186,7 @@ class DeleteDirectMessageTest extends Specification {
 			def response = appService.getDirectMessages(richardQuinURL, richardQuinPassword)
 			if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
 				richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
+				richardQuinBuddyMessageDeleteURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.delete.href
 			}
 
 		then:
@@ -174,6 +195,21 @@ class DeleteDirectMessageTest extends Specification {
 			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
 			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
 			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
+			richardQuinBuddyMessageDeleteURL != null
+	}
+
+	def 'Richard tries to delete Bob\'s buddy acceptance before it is processed'(){
+		given:
+
+		when:
+			def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageDeleteURL, """{
+					"properties":{
+					}
+				}""", richardQuinPassword)
+
+		then:
+			response.status == 400
+			response.responseData?.code == "error.cannot.delete.unprocessed.message"
 	}
 
 	def 'Richard processes Bob\'s buddy acceptance'(){
@@ -292,5 +328,55 @@ class DeleteDirectMessageTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
 			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+	}
+
+	def 'Bob deletes Richard\'s buddy request'(){
+		given:
+
+		when:
+			def response = appService.postMessageActionWithPassword(bobDunnBuddyConnectRequestDeleteURL, """{
+					"properties":{
+					}
+				}""", bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData.properties.status == "done"
+	}
+
+	def 'Bob checks his direct messages to see that the buddy request message was deleted'(){
+		given:
+
+		when:
+			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded?.buddyConnectRequestMessages?.length ?: 0 == 0
+	}
+
+	def 'Richard deletes Bob\'s buddy acceptance message'(){
+		given:
+
+		when:
+			def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageDeleteURL, """{
+					"properties":{
+					}
+				}""", richardQuinPassword)
+
+		then:
+			response.status == 200
+			response.responseData.properties.status == "done"
+	}
+
+	def 'Richard checks his direct messages to see that the buddy acceptance message was deleted'(){
+		given:
+
+		when:
+			def response = appService.getDirectMessages(richardQuinURL, richardQuinPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded?.buddyConnectRequestMessages?.length ?: 0 == 0
 	}
 }

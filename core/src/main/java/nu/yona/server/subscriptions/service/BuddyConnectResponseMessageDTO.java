@@ -16,7 +16,9 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
@@ -28,6 +30,7 @@ import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 {
 	private static final String PROCESS = "process";
+	private static final String DELETE = "delete";
 	private final String nickname;
 	private boolean isProcessed;
 
@@ -45,6 +48,7 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 		if (!isProcessed)
 		{
 			possibleActions.add(PROCESS);
+			possibleActions.add(DELETE);
 		}
 		return possibleActions;
 	}
@@ -94,6 +98,8 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 			{
 				case PROCESS:
 					return handleAction_Process(actingUser, (BuddyConnectResponseMessage) messageEntity, requestPayload);
+				case DELETE:
+					return handleAction_Delete(actingUser, (BuddyConnectResponseMessage) messageEntity, requestPayload);
 				default:
 					throw new IllegalArgumentException("Action '" + action + "' is not supported");
 			}
@@ -114,6 +120,23 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 			}
 
 			updateMessageStatusAsProcessed(connectResponseMessageEntity);
+
+			return new MessageActionDTO(Collections.singletonMap("status", "done"));
+		}
+
+		private MessageActionDTO handleAction_Delete(UserDTO user, BuddyConnectResponseMessage connectResponseMessageEntity,
+				MessageActionDTO payload)
+		{
+			if (!connectResponseMessageEntity.isProcessed())
+			{
+				throw InvalidMessageActionException.unprocessedMessageCannotBeDeleted();
+			}
+
+			MessageDestination destination = MessageDestination.getRepository()
+					.findOne(user.getPrivateData().getNamedMessageDestinationID());
+			destination.remove(connectResponseMessageEntity);
+			MessageDestination.getRepository().save(destination);
+			Message.getRepository().delete(connectResponseMessageEntity);
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}
