@@ -52,7 +52,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 	@Shared
 	def richardQuinBuddyMessageAcceptURL
 	@Shared
-	def richardQuinBuddyMessageProcessURL 
+	def richardQuinBuddyMessageProcessURL
 
 	def richardQuinCreationJSON = """{
 				"firstName":"Richard ${timestamp}",
@@ -66,7 +66,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 					"news"
 				]
 			}"""
-	
+
 	def 'Add user Richard Quin'(){
 		given:
 
@@ -103,7 +103,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			}""", richardQuinPassword)
 			if (response.status == 201) {
 				richardQuinBobBuddyURL = response.responseData._links.self.href
-				
+
 				/*
 				def bobDunnInviteEmail = getMessageFromGmail(bobDunnGmail, bobDunnGmailPassword, beforeRequestDateTime)
 				if(bobDunnInviteEmail) {
@@ -128,7 +128,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			println "Invite URL Bob: " + bobDunnInviteURL
 
 	}
-	
+
 	def 'Hacking attempt: Try to get Bob Dunn with an invalid temp password'(){
 		given:
 
@@ -138,7 +138,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 		then:
 			response.status == 400
 	}
-	
+
 	def 'Hacking attempt: Try to update Bob Dunn with an invalid temp password'(){
 		given:
 
@@ -159,7 +159,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 		then:
 			response.status == 400
 	}
-	
+
 	def 'Hacking attempt: Try to get a normal user with a temp password'(){
 		given:
 
@@ -169,7 +169,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 		then:
 			response.status == 400
 	}
-	
+
 	def 'Hacking attempt: Try to update a normal user with a temp password'(){
 		given:
 
@@ -179,7 +179,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 		then:
 			response.status == 400
 	}
-	
+
 	def 'Bob Dunn downloads the app and opens the link sent in the email with the app; app retrieves data to prefill'(){
 		given:
 
@@ -192,7 +192,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.lastName == "Dun ${timestamp}"
 			response.responseData.mobileNumber == "+${timestamp}12"
 	}
-	
+
 	def 'Bob Dunn adjusts data and submits; app saves with new password'(){
 		given:
 
@@ -225,7 +225,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			//TODO: updating of goals is not yet supported
 			response.responseData.goals.size() == 0
 	}
-	
+
 	def 'Check if user is now retrievable with new password'(){
 		given:
 
@@ -242,7 +242,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.devices[0] == "iPhone 6"
 			response.responseData.goals.size() == 0
 	}
-	
+
 	def 'Check if user is now modifiable with new password'(){
 		given:
 
@@ -270,8 +270,8 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.devices[0] == "iPhone 6"
 			response.responseData.goals.size() == 0
 	}
-	
-	
+
+
 	def 'User should no longer be accessible by temp password'(){
 		given:
 
@@ -281,7 +281,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 		then:
 			response.status == 400
 	}
-	
+
 	def 'Bob checks his direct messages'(){
 		given:
 
@@ -313,7 +313,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.status == 200
 			response.responseData.properties.status == "done"
 	}
-	
+
 	def 'Richard checks his direct messages'(){
 		given:
 
@@ -330,7 +330,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
 			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
 	}
-	
+
 	def 'Richard processes Bob\'s buddy acceptance'(){
 		given:
 
@@ -344,7 +344,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.status == 200
 			response.responseData.properties.status == "done"
 	}
-	
+
 	def 'Bob\'s user data will contain Richard as buddy'(){
 		given:
 
@@ -357,7 +357,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData._embedded.buddies.size() == 1
 			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Richard ${timestamp}"
 	}
-	
+
 	def 'Delete users'(){
 		given:
 
@@ -369,12 +369,12 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			responseRichard.status == 200
 			responseBob.status == 200
 	}
-	
+
 	/*
 	def getMessageFromGmail(login, password, sentAfterDateTime)
 	{
 		def host = "imap.gmail.com";
-	
+
 		Properties props = new Properties()
 		props.setProperty("mail.store.protocol", "imap")
 		props.setProperty("mail.imap.host", host)
@@ -382,7 +382,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 		props.setProperty("mail.imap.ssl.enable", "true");
 		def session = Session.getDefaultInstance(props, null)
 		def store = session.getStore("imap")
-		
+
 		def inbox
 		def lastMessage
 		try
@@ -395,21 +395,21 @@ class CreateUserOnBuddyRequestTest extends Specification {
 		}
 		finally
 		{
-			 if(inbox) 
+			 if(inbox)
 			 {
-			    inbox.close(true)
+				inbox.close(true)
 			 }
 			 store.close()
 		}
 	}
-	
+
 	def getMessageFromInbox(inbox, sentAfterDateTime)
 	{
 		def maxWaitSeconds = 15
 		def pollSeconds = 3
 		def retries = maxWaitSeconds / pollSeconds
 		sleep(100)
-		for (def i = 0; i <retries; i++) 
+		for (def i = 0; i <retries; i++)
 		{
 			println "Reading messages from inbox"
 			def messages = inbox.search(
