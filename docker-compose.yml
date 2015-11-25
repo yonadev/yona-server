@@ -1,6 +1,6 @@
-#############################################
+##############################################
 # Logging: ELK stack copied from http://www.labouisse.com/how-to/2015/09/23/elk-docker-and-spring-boot/
-#############################################
+##############################################
 
 elasticsearch:
     image: elasticsearch
