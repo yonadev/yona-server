@@ -4,11 +4,11 @@
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
+import java.util.Date;
 import java.util.UUID;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
@@ -19,9 +19,8 @@ import nu.yona.server.entities.RepositoryProvider;
 @Table(name = "MESSAGES")
 public abstract class Message extends EntityWithID
 {
-	@Transient
 	private UUID relatedLoginID;
-	private byte[] relatedUserAnonymizedIDCiphertext;
+	private Date creationTime;
 
 	public static MessageRepository getRepository()
 	{
@@ -41,18 +40,22 @@ public abstract class Message extends EntityWithID
 			throw new IllegalArgumentException("relatedUserAnonymizedID cannot be null");
 		}
 		this.relatedLoginID = relatedUserAnonymizedID;
+		this.creationTime = new Date();
 	}
 
 	public void encryptMessage(Encryptor encryptor)
 	{
-		relatedUserAnonymizedIDCiphertext = encryptor.encrypt(relatedLoginID);
 		encrypt(encryptor);
 	}
 
 	public void decryptMessage(Decryptor decryptor)
 	{
-		relatedLoginID = decryptor.decryptUUID(relatedUserAnonymizedIDCiphertext);
 		decrypt(decryptor);
+	}
+
+	public Date getCreationTime()
+	{
+		return creationTime;
 	}
 
 	public UUID getRelatedLoginID()

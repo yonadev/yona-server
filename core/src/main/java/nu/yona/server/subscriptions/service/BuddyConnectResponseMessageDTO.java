@@ -28,12 +28,14 @@ import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 {
 	private static final String PROCESS = "process";
+	private final String nickname;
 	private boolean isProcessed;
 
-	private BuddyConnectResponseMessageDTO(UUID id, UserDTO user, String message, boolean isProcessed)
+	private BuddyConnectResponseMessageDTO(UUID id, UserDTO user, String nickname, String message, boolean isProcessed)
 	{
 		super(id, user, message);
 		this.isProcessed = isProcessed;
+		this.nickname = nickname;
 	}
 
 	@Override
@@ -47,6 +49,11 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 		return possibleActions;
 	}
 
+	public String getNickname()
+	{
+		return nickname;
+	}
+
 	public boolean isProcessed()
 	{
 		return isProcessed;
@@ -55,7 +62,7 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 	public static BuddyConnectResponseMessageDTO createInstance(UserDTO requestingUser, BuddyConnectResponseMessage messageEntity)
 	{
 		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), UserDTO.createInstance(messageEntity.getUser()),
-				messageEntity.getMessage(), messageEntity.isProcessed());
+				messageEntity.getNickname(), messageEntity.getMessage(), messageEntity.isProcessed());
 	}
 
 	@Component
@@ -103,7 +110,7 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 			else
 			{
 				buddyService.updateBuddyWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
-						connectResponseMessageEntity.getRelatedLoginID());
+						connectResponseMessageEntity.getRelatedLoginID(), connectResponseMessageEntity.getNickname());
 			}
 
 			updateMessageStatusAsProcessed(connectResponseMessageEntity);
