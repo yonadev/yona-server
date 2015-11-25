@@ -4,6 +4,7 @@ package nu.yona.server;
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
@@ -12,11 +13,15 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.JsonRootRelProvider;
 
 @Configuration
 public class CoreConfiguration
 {
+	@Autowired
+	private YonaProperties yonaProperties;
+
 	@Bean
 	RelProvider relProvider()
 	{
@@ -30,7 +35,7 @@ public class CoreConfiguration
 	}
 
 	/**
-	 * This bean tells the application which message bunble to use.
+	 * This bean tells the application which message bundle to use.
 	 * 
 	 * @return The message bundle source
 	 */
@@ -49,11 +54,10 @@ public class CoreConfiguration
 	public LdapTemplate ldapTemplate()
 	{
 		LdapContextSource contextSource = new LdapContextSource();
-		contextSource.setUrl("ldap://185.3.210.233:389");
-		String base = "DC=yonadir1,DC=nu";
-		contextSource.setBase(base);
-		contextSource.setUserDn("CN=Manager," + base);
-		contextSource.setPassword("Yona7890!");
+		contextSource.setUrl(yonaProperties.getLdapURL());
+		contextSource.setBase(yonaProperties.getLdapBaseDN());
+		contextSource.setUserDn(yonaProperties.getLdapAccessUserDN());
+		contextSource.setPassword(yonaProperties.getLdapAccessUserPassword());
 		contextSource.afterPropertiesSet();
 		return new LdapTemplate(contextSource);
 	}

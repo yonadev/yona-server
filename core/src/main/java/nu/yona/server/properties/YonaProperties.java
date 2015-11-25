@@ -8,10 +8,12 @@ import org.springframework.context.annotation.Configuration;
 public class YonaProperties
 {
 	private int newDeviceRequestExpirationDays = 1;
-
 	private boolean isRunningInTestMode = false;
-
 	private int passwordLength = 32;
+	private String ldapURL = "ldap://localhost:389";
+	private String ldapBaseDN = "DC=yona,DC=nu";
+	private String ldapAccessUserDN = "CN=Manager," + ldapBaseDN;
+	private String ldapAccessUserPassword = "Top secret";
 
 	public int getNewDeviceRequestExpirationDays()
 	{
@@ -41,5 +43,45 @@ public class YonaProperties
 	public void setPasswordLength(int passwordLength)
 	{
 		this.passwordLength = passwordLength;
+	}
+
+	public String getLdapURL()
+	{
+		return ldapURL;
+	}
+
+	public void setLdapURL(String ldapURL)
+	{
+		this.ldapURL = ldapURL;
+	}
+
+	public String getLdapBaseDN()
+	{
+		return ldapBaseDN;
+	}
+
+	public void setLdapBaseDN(String ldapBaseDN)
+	{
+		this.ldapBaseDN = ldapBaseDN;
+	}
+
+	public String getLdapAccessUserDN()
+	{
+		return ldapAccessUserDN;
+	}
+
+	public void setLdapAccessUserDN(String ldapAccessUserDN)
+	{
+		this.ldapAccessUserDN = ldapAccessUserDN;
+	}
+
+	public String getLdapAccessUserPassword()
+	{
+		return ldapAccessUserPassword;
+	}
+
+	public void setLdapAccessUserPassword(String ldapAccessUserPassword)
+	{
+		this.ldapAccessUserPassword = ldapAccessUserPassword;
 	}
 }
