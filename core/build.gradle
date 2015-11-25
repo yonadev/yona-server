@@ -44,6 +44,7 @@ dependencies {
 	compile("javax.mail:mail:1.4.7")
 	compile("org.springframework.ldap:spring-ldap-core:2.0.4.RELEASE")
 	compile("org.springframework.security:spring-security-web:4.0.3.RELEASE")
+	compile("com.google.guava:guava:18.0")
 	
 	compile "org.codehaus.groovy:groovy-all:2.4.5"
 	compile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
