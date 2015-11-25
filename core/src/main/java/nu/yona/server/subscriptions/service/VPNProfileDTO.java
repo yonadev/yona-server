@@ -11,24 +11,26 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
-import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("vpnProfile")
 public class VPNProfileDTO
 {
 	private final UUID id;
 	private UUID loginID;
+	private String password;
 
-	public VPNProfileDTO(UUID id, UUID loginID)
+	public VPNProfileDTO(UUID id, UUID loginID, String password)
 	{
 		this.id = id;
 		this.loginID = loginID;
+		this.password = password;
 	}
 
 	@JsonCreator
 	public VPNProfileDTO(@JsonProperty("loginID") UUID loginID)
 	{
-		this(null, loginID);
+		this(null, loginID, null);
 	}
 
 	@JsonIgnore
@@ -42,8 +44,18 @@ public class VPNProfileDTO
 		return loginID;
 	}
 
-	public static VPNProfileDTO createInstance(UserAnonymized userAnonymized)
+	public String getPassword()
 	{
-		return new VPNProfileDTO(userAnonymized.getID(), userAnonymized.getLoginID());
+		return password;
+	}
+
+	public void setPassword(String password)
+	{
+		this.password = password;
+	}
+
+	public static VPNProfileDTO createInstance(User user)
+	{
+		return new VPNProfileDTO(user.getAnonymized().getID(), user.getLoginID(), user.getPassword());
 	}
 }

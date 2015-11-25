@@ -32,9 +32,6 @@ public class UserService
 	private static Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
 
 	@Autowired
-	private LDAPUserService ldapUserService;
-
-	@Autowired
 	private YonaProperties yonaProperties;
 
 	@Autowired
@@ -76,7 +73,7 @@ public class UserService
 	{
 		validateUserFields(user);
 
-		user.getPrivateData().setPassword(generatePassword());
+		user.getPrivateData().getVpnProfile().setPassword(generatePassword());
 
 		User userEntity = user.createUserEntity();
 		userEntity = User.getRepository().save(userEntity);
@@ -92,9 +89,7 @@ public class UserService
 	{
 		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null,
 				() -> tempEncryptionContextExecutor.addUserCreatedOnBuddyRequest(buddyUser).getID());
-		User savedUser = getEntityByID(savedUserID);
-		ldapUserService.createVPNAccount(savedUser.getLoginID().toString(), savedUser.getPassword());
-		return savedUser;
+		return getEntityByID(savedUserID);
 	}
 
 	@Transactional

@@ -25,13 +25,20 @@ class UserServiceTempEncryptionContextExecutor
 	@Autowired
 	private YonaProperties yonaProperties;
 
+	@Autowired
+	private LDAPUserService ldapUserService;
+
 	// use a separate transaction to commit within the crypto session
 	@Transactional(value = TxType.REQUIRES_NEW)
 	public User addUserCreatedOnBuddyRequest(UserDTO buddyUserResource)
 	{
-		return User.getRepository().save(User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
-				buddyUserResource.getPrivateData().getNickName(), buddyUserResource.getMobileNumber(),
-				CryptoUtil.getRandomString(yonaProperties.getPasswordLength()), Collections.emptySet(), Collections.emptySet()));
+		User savedUser = User.getRepository()
+				.save(User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
+						buddyUserResource.getPrivateData().getNickName(), buddyUserResource.getMobileNumber(),
+						CryptoUtil.getRandomString(yonaProperties.getPasswordLength()), Collections.emptySet(),
+						Collections.emptySet()));
+		ldapUserService.createVPNAccount(savedUser.getLoginID().toString(), savedUser.getPassword());
+		return savedUser;
 	}
 
 	// use a separate transaction to read within the crypto session

@@ -31,12 +31,12 @@ public class UserDTO
 	private final UserPrivateDTO privateData;
 
 	private UserDTO(UUID id, String firstName, String lastName, String nickName, String mobileNumber, UUID namedMessageSourceID,
-			UUID namedMessageDestinationID, UUID anonymousMessageSourceID, UUID anonymousMessageDestinationID, String password,
+			UUID namedMessageDestinationID, UUID anonymousMessageSourceID, UUID anonymousMessageDestinationID,
 			Set<String> deviceNames, Set<String> goalNames, Set<UUID> buddyIDs, VPNProfileDTO vpnProfile)
 	{
 		this(id, firstName, lastName, null, mobileNumber,
 				new UserPrivateDTO(nickName, namedMessageSourceID, namedMessageDestinationID, anonymousMessageSourceID,
-						anonymousMessageDestinationID, password, deviceNames, goalNames, buddyIDs, vpnProfile));
+						anonymousMessageDestinationID, deviceNames, goalNames, buddyIDs, vpnProfile));
 	}
 
 	private UserDTO(UUID id, String firstName, String lastName, String mobileNumber)
@@ -103,8 +103,8 @@ public class UserDTO
 
 	User createUserEntity()
 	{
-		return User.createInstance(firstName, lastName, privateData.getNickName(), mobileNumber, privateData.getPassword(),
-				privateData.getDeviceNames(), privateData.getGoals());
+		return User.createInstance(firstName, lastName, privateData.getNickName(), mobileNumber,
+				privateData.getVpnProfile().getPassword(), privateData.getDeviceNames(), privateData.getGoals());
 	}
 
 	User updateUser(User originalUserEntity)
@@ -133,9 +133,8 @@ public class UserDTO
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickName(),
 				userEntity.getMobileNumber(), userEntity.getNamedMessageSource().getID(),
 				userEntity.getNamedMessageDestination().getID(), userEntity.getAnonymousMessageSource().getID(),
-				userEntity.getAnonymousMessageSource().getDestination().getID(), userEntity.getPassword(),
-				userEntity.getDeviceNames(), getGoalNames(userEntity.getGoals()), getBuddyIDs(userEntity),
-				VPNProfileDTO.createInstance(userEntity.getAnonymized()));
+				userEntity.getAnonymousMessageSource().getDestination().getID(), userEntity.getDeviceNames(),
+				getGoalNames(userEntity.getGoals()), getBuddyIDs(userEntity), VPNProfileDTO.createInstance(userEntity));
 	}
 
 	private static Set<UUID> getBuddyIDs(User userEntity)
