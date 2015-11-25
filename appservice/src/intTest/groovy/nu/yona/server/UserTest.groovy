@@ -49,7 +49,7 @@ class UserTest extends Specification {
 			def confirmationCode = userAddResponse.responseData.confirmationCode;
 
 		when:
-			def response = appService.addUserConfimation(userURL, """ { "code":"${confirmationCode}" } """, password)
+			def response = appService.confirmUser(userURL, """ { "code":"${confirmationCode}" } """, password)
 
 		then:
 			response.status == 200

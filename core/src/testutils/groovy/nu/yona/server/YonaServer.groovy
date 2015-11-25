@@ -17,7 +17,7 @@ class YonaServer {
 	final ANONYMOUS_MESSAGES_PATH_FRAGMENT = "/messages/anonymous/"
 	final RELEVANT_CATEGORIES_PATH_FRAGMENT = "/relevantCategories/"
 	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
-	final SIGN_IN_CONFIRMATION_PATH_FRAGMENT = "/signInConfimation"
+	final USER_CONFIRMATION_PATH_FRAGMENT = "/confirm"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 	RESTClient restClient
@@ -55,9 +55,9 @@ class YonaServer {
 		createResourceWithPassword(USERS_PATH, jsonString, password)
 	}
 	
-	def addUserConfimation(userURL, jsonString, password)
+	def confirmUser(userURL, jsonString, password)
 	{
-		createResourceWithPassword(stripQueryString(userURL) + SIGN_IN_CONFIRMATION_PATH_FRAGMENT, jsonString, password)
+		createResourceWithPassword(stripQueryString(userURL) + USER_CONFIRMATION_PATH_FRAGMENT, jsonString, password)
 	}
 
 	def getUser(userURL, boolean includePrivateData, password = null)

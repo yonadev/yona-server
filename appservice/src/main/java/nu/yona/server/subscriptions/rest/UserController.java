@@ -112,7 +112,7 @@ public class UserController
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> null);
 	}
 
-	@RequestMapping(value = "{userID}/signInConfimation", method = RequestMethod.POST)
+	@RequestMapping(value = "{userID}/confirm", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<UserResource> addUserConfimation(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
