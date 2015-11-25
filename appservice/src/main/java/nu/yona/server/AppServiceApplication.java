@@ -13,6 +13,8 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 import org.springframework.hateoas.RelProvider;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
+import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import nu.yona.server.entities.RepositoryProvider;
@@ -24,10 +26,9 @@ import springfox.documentation.schema.ModelRef;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
-@EnableSwagger2
+// @EnableSwagger2
 @EnableHypermediaSupport(type = HypermediaType.HAL)
 public class AppServiceApplication
 {
@@ -73,5 +74,18 @@ public class AppServiceApplication
 		messageBundle.setDefaultEncoding("UTF-8");
 
 		return messageBundle;
+	}
+
+	@Bean
+	public LdapTemplate ldapTemplate()
+	{
+		LdapContextSource contextSource = new LdapContextSource();
+		contextSource.setUrl("ldap://185.3.210.233:389");
+		String base = "DC=yonadir1,DC=nu";
+		contextSource.setBase(base);
+		contextSource.setUserDn("CN=Manager," + base);
+		contextSource.setPassword("Yona7890!");
+		contextSource.afterPropertiesSet();
+		return new LdapTemplate(contextSource);
 	}
 }

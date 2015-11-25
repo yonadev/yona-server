@@ -9,6 +9,10 @@ public class YonaProperties
 {
 	private int newDeviceRequestExpirationDays = 1;
 
+	private boolean isRunningInTestMode = false;
+
+	private int passwordLength = 32;
+
 	public int getNewDeviceRequestExpirationDays()
 	{
 		return newDeviceRequestExpirationDays;
@@ -19,8 +23,6 @@ public class YonaProperties
 		this.newDeviceRequestExpirationDays = newDeviceRequestExpiration;
 	}
 
-	private boolean isRunningInTestMode = false;
-
 	public boolean getIsRunningInTestMode()
 	{
 		return isRunningInTestMode;
@@ -29,5 +31,15 @@ public class YonaProperties
 	public void setIsRunningInTestMode(boolean isRunningInTestMode)
 	{
 		this.isRunningInTestMode = isRunningInTestMode;
+	}
+
+	public int getPasswordLength()
+	{
+		return passwordLength;
+	}
+
+	public void setPasswordLength(int passwordLength)
+	{
+		this.passwordLength = passwordLength;
 	}
 }

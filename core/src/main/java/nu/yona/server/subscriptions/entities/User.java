@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
@@ -70,29 +69,15 @@ public class User extends EntityWithID
 		this.messageDestination = messageDestination;
 	}
 
-	public static User createInstance(String firstName, String lastName, String nickName, String mobileNumber,
+	public static User createInstance(String firstName, String lastName, String nickName, String mobileNumber, String password,
 			Set<String> deviceNames, Set<Goal> goals)
 	{
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		UserPrivate userPrivate = UserPrivate.createInstance(nickName, deviceNames, goals, anonymousMessageSource,
+		UserPrivate userPrivate = UserPrivate.createInstance(nickName, password, deviceNames, goals, anonymousMessageSource,
 				namedMessageSource);
 		return new User(UUID.randomUUID(), initializationVector, false, firstName, lastName, mobileNumber, userPrivate,
-				namedMessageSource.getDestination());
-	}
-
-	public static User createInstanceOnBuddyRequest(String firstName, String lastName, String nickName, String mobileNumber)
-	{
-		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
-		Set<Goal> goals = Collections.emptySet();
-		Set<String> devices = Collections.emptySet();
-
-		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		UserPrivate userPrivate = UserPrivate.createInstance(nickName, devices, goals, anonymousMessageSource,
-				namedMessageSource);
-		return new User(UUID.randomUUID(), initializationVector, true, firstName, lastName, mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
 	}
 
@@ -190,6 +175,11 @@ public class User extends EntityWithID
 	public UUID getLoginID()
 	{
 		return getUserPrivate().getLoginID();
+	}
+
+	public String getPassword()
+	{
+		return getUserPrivate().getPassword();
 	}
 
 	public MessageDestination getNamedMessageDestination()

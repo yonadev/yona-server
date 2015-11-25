@@ -25,6 +25,7 @@ public class UserPrivateDTO
 {
 	private static final Logger LOGGER = Logger.getLogger(UserPrivateDTO.class.getName());
 	private final String nickName;
+	private String password;
 	private final Set<String> deviceNames;
 	private Set<String> goalNames;
 	private VPNProfileDTO vpnProfile;
@@ -36,22 +37,23 @@ public class UserPrivateDTO
 	private Set<BuddyDTO> buddies;
 
 	@JsonCreator
-	public UserPrivateDTO(@JsonProperty("nickName") String nickName,
+	public UserPrivateDTO(@JsonProperty("nickName") String nickName, String password,
 			@JsonProperty("devices") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> deviceNames,
 			@JsonProperty("goals") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> goalNames)
 	{
-		this(nickName, null, null, null, null, deviceNames, goalNames, null, null);
+		this(nickName, null, null, null, null, password, deviceNames, goalNames, null, null);
 	}
 
 	UserPrivateDTO(String nickName, UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
-			UUID anonymousMessageDestinationID, Set<String> deviceNames, Set<String> goalNames, Set<UUID> buddyIDs,
-			VPNProfileDTO vpnProfile)
+			UUID anonymousMessageDestinationID, String password, Set<String> deviceNames, Set<String> goalNames,
+			Set<UUID> buddyIDs, VPNProfileDTO vpnProfile)
 	{
 		this.nickName = nickName;
 		this.namedMessageSourceID = namedMessageSourceID;
 		this.namedMessageDestinationID = namedMessageDestinationID;
 		this.anonymousMessageSourceID = anonymousMessageSourceID;
 		this.anonymousMessageDestinationID = anonymousMessageDestinationID;
+		this.password = password;
 		this.deviceNames = (deviceNames == null) ? Collections.emptySet() : deviceNames;
 		this.goalNames = (goalNames == null) ? Collections.emptySet() : goalNames;
 		this.buddyIDs = (buddyIDs == null) ? Collections.emptySet() : buddyIDs;
@@ -63,6 +65,16 @@ public class UserPrivateDTO
 	public String getNickName()
 	{
 		return nickName;
+	}
+
+	public String getPassword()
+	{
+		return password;
+	}
+
+	public void setPassword(String password)
+	{
+		this.password = password;
 	}
 
 	@JsonProperty("devices")

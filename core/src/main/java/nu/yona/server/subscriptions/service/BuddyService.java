@@ -85,7 +85,7 @@ public class BuddyService
 	{
 		UserDTO buddyUser = buddy.getUser();
 
-		String tempPassword = userService.generateTempPassword();
+		String tempPassword = userService.generatePassword();
 		User buddyUserEntity = userService.addUserCreatedOnBuddyRequest(buddyUser, tempPassword);
 		BuddyDTO savedBuddy = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
 

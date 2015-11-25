@@ -57,19 +57,23 @@ public class UserPrivate extends EntityWithID
 	@Convert(converter = UUIDFieldEncrypter.class)
 	private UUID namedMessageSourceID;
 
+	@Convert(converter = StringFieldEncrypter.class)
+	private String password;
+
 	// Default constructor is required for JPA
 	public UserPrivate()
 	{
 		super(null);
 	}
 
-	private UserPrivate(UUID id, String nickname, UUID userAnonymizedID, Set<String> deviceNames, UUID anonymousMessageSourceID,
-			UUID namedMessageSourceID)
+	private UserPrivate(UUID id, String nickname, UUID userAnonymizedID, String password, Set<String> deviceNames,
+			UUID anonymousMessageSourceID, UUID namedMessageSourceID)
 	{
 		super(id);
 		this.decryptionCheck = buildDecryptionCheck();
 		this.nickname = nickname;
 		this.userAnonymizedID = userAnonymizedID;
+		this.password = password;
 		this.deviceNames = deviceNames;
 		this.buddies = new HashSet<>();
 		this.anonymousMessageSourceID = anonymousMessageSourceID;
@@ -81,13 +85,13 @@ public class UserPrivate extends EntityWithID
 		return DECRYPTION_CHECK_STRING + CryptoUtil.getRandomString(DECRYPTION_CHECK_STRING.length());
 	}
 
-	public static UserPrivate createInstance(String nickname, Set<String> deviceNames, Set<Goal> goals,
+	public static UserPrivate createInstance(String nickname, String password, Set<String> deviceNames, Set<Goal> goals,
 			MessageSource anonymousMessageSource, MessageSource namedMessageSource)
 	{
 		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
 		UserAnonymized.getRepository().save(userAnonymized);
-		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymized.getID(), deviceNames, anonymousMessageSource.getID(),
-				namedMessageSource.getID());
+		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymized.getID(), password, deviceNames,
+				anonymousMessageSource.getID(), namedMessageSource.getID());
 	}
 
 	public boolean isDecryptedProperly()
@@ -154,6 +158,11 @@ public class UserPrivate extends EntityWithID
 	public UUID getLoginID()
 	{
 		return getUserAnonymized().getLoginID();
+	}
+
+	public String getPassword()
+	{
+		return password;
 	}
 
 	private boolean isDecrypted()
