@@ -9,16 +9,10 @@ import static com.google.common.collect.Lists.newArrayList;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.support.ReloadableResourceBundleMessageSource;
-import org.springframework.hateoas.RelProvider;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
-import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import nu.yona.server.entities.RepositoryProvider;
-import nu.yona.server.rest.JsonRootRelProvider;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.builders.ResponseMessageBuilder;
@@ -26,9 +20,10 @@ import springfox.documentation.schema.ModelRef;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
-// @EnableSwagger2
+@EnableSwagger2
 @EnableHypermediaSupport(type = HypermediaType.HAL)
 public class AppServiceApplication
 {
@@ -46,46 +41,5 @@ public class AppServiceApplication
 				.paths(PathSelectors.any()).build().pathMapping("/").useDefaultResponseMessages(false)
 				.globalResponseMessage(RequestMethod.GET, newArrayList(new ResponseMessageBuilder().code(500)
 						.message("500 message").responseModel(new ModelRef("Error")).build()));
-	}
-
-	@Bean
-	RelProvider relProvider()
-	{
-		return new JsonRootRelProvider();
-	}
-
-	@Bean
-	RepositoryProvider repositoryProvider()
-	{
-		return new RepositoryProvider();
-	}
-
-	/**
-	 * This bean tells the application which message bunble to use.
-	 * 
-	 * @return The message bundle source
-	 */
-	@Bean(name = "messageSource")
-	public ReloadableResourceBundleMessageSource messageSource()
-	{
-		ReloadableResourceBundleMessageSource messageBundle = new ReloadableResourceBundleMessageSource();
-
-		messageBundle.setBasename("classpath:messages/messages");
-		messageBundle.setDefaultEncoding("UTF-8");
-
-		return messageBundle;
-	}
-
-	@Bean
-	public LdapTemplate ldapTemplate()
-	{
-		LdapContextSource contextSource = new LdapContextSource();
-		contextSource.setUrl("ldap://185.3.210.233:389");
-		String base = "DC=yonadir1,DC=nu";
-		contextSource.setBase(base);
-		contextSource.setUserDn("CN=Manager," + base);
-		contextSource.setPassword("Yona7890!");
-		contextSource.afterPropertiesSet();
-		return new LdapTemplate(contextSource);
 	}
 }
