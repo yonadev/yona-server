@@ -4,13 +4,18 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import com.google.common.io.Resources;
 
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("vpnProfile")
@@ -52,6 +57,19 @@ public class VPNProfileDTO
 	public void setPassword(String password)
 	{
 		this.password = password;
+	}
+
+	public String getOpenVPNProfile()
+	{
+		try
+		{
+			URL url = Resources.getResource("OpenVPNProfile.ovpn");
+			return Resources.toString(url, StandardCharsets.UTF_8).replace("\n", "\\n");
+		}
+		catch (IOException e)
+		{
+			throw YonaException.unexpected(e);
+		}
 	}
 
 	public static VPNProfileDTO createInstance(User user)
