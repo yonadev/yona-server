@@ -71,7 +71,7 @@ class MessagingTest extends Specification {
 						"iPhone 6"
 					],
 					"goals":[
-						"gambling"
+						"gambling", "news"
 					]
 				}""", bobDunnPassword)
 		if (response.status == 201) {
@@ -87,7 +87,7 @@ class MessagingTest extends Specification {
 		println "URL Bob: " + bobDunnURL
 	}
 
-	def 'Richard requests Bob to become his buddy'(){
+	def 'Richard requests Bob to become his buddy (generates a BuddyConnectRequestMessage)'(){
 		given:
 
 		when:
@@ -122,19 +122,6 @@ class MessagingTest extends Specification {
 		response.status == 200
 	}
 
-	def 'Classification engine detects a potential conflict for Bob (second conflict message)'(){
-		given:
-
-		when:
-		def response = analysisService.postToAnalysisEngine("""{
-				"vpnLoginID":"${bobDunnVPNLoginID}",
-				"categories": ["Gambling"],
-				"url":"http://www.poker.com"
-				}""")
-
-		then:
-		response.status == 200
-	}
 
 	def 'Bob checks his message list'(){
 		given:
@@ -145,6 +132,43 @@ class MessagingTest extends Specification {
 		then:
 		response.status == 200
 		response.responseData._embedded.buddyConnectRequestMessages.size() == 1
+		response.responseData._embedded.goalConflictMessages.size() == 1
+	}
+
+	def 'Delete user Richard (generates a BuddyDisconnectMessage)'(){
+		given:
+
+		when:
+		def response = appService.deleteUser(richardQuinURL, richardQuinPassword)
+
+		then:
+		response.status == 200
+	}
+
+	def 'Classification engine detects a potential conflict for Bob (second conflict message)'(){
+		given:
+
+		when:
+		def response = analysisService.postToAnalysisEngine("""{
+				"vpnLoginID":"${bobDunnVPNLoginID}",
+				"categories": ["news/media"],
+				"url":"http://www.refdag.nl"
+				}""")
+
+		then:
+		response.status == 200
+	}
+
+	def 'Bob checks his message list (second attempt)'(){
+		given:
+
+		when:
+		def response = appService.getAllMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+		response.status == 200
+		response.responseData._embedded.buddyDisconnectMessages.size() == 1
+		response.responseData._embedded.buddyConnectRequestMessages == null //removed after removing Richard
 		response.responseData._embedded.goalConflictMessages.size() == 2
 	}
 
@@ -152,11 +176,9 @@ class MessagingTest extends Specification {
 		given:
 
 		when:
-		def responseRichard = appService.deleteUser(richardQuinURL, richardQuinPassword)
-		def responseBob = appService.deleteUser(bobDunnURL, bobDunnPassword)
+		def response = appService.deleteUser(bobDunnURL, bobDunnPassword)
 
 		then:
-		responseRichard.status == 200
-		responseBob.status == 200
+		response.status == 200
 	}
 }
