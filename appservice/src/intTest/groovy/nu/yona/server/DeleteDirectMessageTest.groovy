@@ -23,11 +23,11 @@ class DeleteDirectMessageTest extends Specification {
 	@Shared
 	def richardQuinURL
 	@Shared
-	def richardQuinLoginID
+	def richardQuinVPNLoginID
 	@Shared
 	def bobDunnURL
 	@Shared
-	def bobDunnLoginID
+	def bobDunnVPNLoginID
 	@Shared
 	def richardQuinBobBuddyURL
 	@Shared
@@ -65,7 +65,7 @@ class DeleteDirectMessageTest extends Specification {
 				}""", richardQuinPassword)
 			if (response.status == 201) {
 				richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
-				richardQuinLoginID = response.responseData.vpnProfile.loginID;
+				richardQuinVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
 			}
 
 		then:
@@ -94,7 +94,7 @@ class DeleteDirectMessageTest extends Specification {
 				}""", bobDunnPassword)
 			if (response.status == 201) {
 				bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
-				bobDunnLoginID = response.responseData.vpnProfile.loginID;
+				bobDunnVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
 			}
 
 		then:
@@ -247,7 +247,7 @@ class DeleteDirectMessageTest extends Specification {
 
 		when:
 			def response = analysisService.postToAnalysisEngine("""{
-				"loginID":"${richardQuinLoginID}",
+				"vpnLoginID":"${richardQuinVPNLoginID}",
 				"categories": ["news/media"],
 				"url":"http://www.refdag.nl"
 				}""")
