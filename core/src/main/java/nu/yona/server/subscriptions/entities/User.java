@@ -68,13 +68,13 @@ public class User extends EntityWithID
 		this.messageDestination = messageDestination;
 	}
 
-	public static User createInstance(String firstName, String lastName, String nickName, String mobileNumber, String password,
+	public static User createInstance(String firstName, String lastName, String nickName, String mobileNumber, String vpnPassword,
 			Set<String> deviceNames, Set<Goal> goals)
 	{
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		UserPrivate userPrivate = UserPrivate.createInstance(nickName, password, deviceNames, goals, anonymousMessageSource,
+		UserPrivate userPrivate = UserPrivate.createInstance(nickName, vpnPassword, deviceNames, goals, anonymousMessageSource,
 				namedMessageSource);
 		return new User(UUID.randomUUID(), initializationVector, firstName, lastName, mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
@@ -176,9 +176,9 @@ public class User extends EntityWithID
 		return getUserPrivate().getVPNLoginID();
 	}
 
-	public String getPassword()
+	public String getVPNPassword()
 	{
-		return getUserPrivate().getPassword();
+		return getUserPrivate().getVPNPassword();
 	}
 
 	public MessageDestination getNamedMessageDestination()

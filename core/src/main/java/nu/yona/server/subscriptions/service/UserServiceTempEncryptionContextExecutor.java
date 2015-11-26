@@ -37,7 +37,7 @@ class UserServiceTempEncryptionContextExecutor
 				CryptoUtil.getRandomString(yonaProperties.getPasswordLength()), Collections.emptySet(), Collections.emptySet());
 		newUser.setIsCreatedOnBuddyRequest();
 		User savedUser = User.getRepository().save(newUser);
-		ldapUserService.createVPNAccount(savedUser.getVPNLoginID().toString(), savedUser.getPassword());
+		ldapUserService.createVPNAccount(savedUser.getVPNLoginID().toString(), savedUser.getVPNPassword());
 		return savedUser;
 	}
 

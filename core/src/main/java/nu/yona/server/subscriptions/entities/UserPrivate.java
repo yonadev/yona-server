@@ -58,7 +58,7 @@ public class UserPrivate extends EntityWithID
 	private UUID namedMessageSourceID;
 
 	@Convert(converter = StringFieldEncrypter.class)
-	private String password;
+	private String vpnPassword;
 
 	// Default constructor is required for JPA
 	public UserPrivate()
@@ -66,14 +66,14 @@ public class UserPrivate extends EntityWithID
 		super(null);
 	}
 
-	private UserPrivate(UUID id, String nickname, UUID userAnonymizedID, String password, Set<String> deviceNames,
+	private UserPrivate(UUID id, String nickname, UUID userAnonymizedID, String vpnPassword, Set<String> deviceNames,
 			UUID anonymousMessageSourceID, UUID namedMessageSourceID)
 	{
 		super(id);
 		this.decryptionCheck = buildDecryptionCheck();
 		this.nickname = nickname;
 		this.userAnonymizedID = userAnonymizedID;
-		this.password = password;
+		this.vpnPassword = vpnPassword;
 		this.deviceNames = deviceNames;
 		this.buddies = new HashSet<>();
 		this.anonymousMessageSourceID = anonymousMessageSourceID;
@@ -85,12 +85,12 @@ public class UserPrivate extends EntityWithID
 		return DECRYPTION_CHECK_STRING + CryptoUtil.getRandomString(DECRYPTION_CHECK_STRING.length());
 	}
 
-	public static UserPrivate createInstance(String nickname, String password, Set<String> deviceNames, Set<Goal> goals,
+	public static UserPrivate createInstance(String nickname, String vpnPassword, Set<String> deviceNames, Set<Goal> goals,
 			MessageSource anonymousMessageSource, MessageSource namedMessageSource)
 	{
 		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
 		UserAnonymized.getRepository().save(userAnonymized);
-		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymized.getID(), password, deviceNames,
+		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymized.getID(), vpnPassword, deviceNames,
 				anonymousMessageSource.getID(), namedMessageSource.getID());
 	}
 
@@ -160,9 +160,9 @@ public class UserPrivate extends EntityWithID
 		return getUserAnonymized().getVPNLoginID();
 	}
 
-	public String getPassword()
+	public String getVPNPassword()
 	{
-		return password;
+		return vpnPassword;
 	}
 
 	private boolean isDecrypted()

@@ -111,7 +111,7 @@ class UserTest extends Specification {
 			assert responseData.goals[0] == "gambling"
 			
 			assert responseData.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
-			assert responseData.vpnProfile.password.length() == 32
+			assert responseData.vpnProfile.vpnPassword.length() == 32
 			assert responseData.vpnProfile.openVPNProfile.length() > 10
 
 			assert responseData._embedded.buddies != null

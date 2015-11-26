@@ -23,13 +23,13 @@ public class VPNProfileDTO
 {
 	private final UUID id;
 	private UUID vpnLoginID;
-	private String password;
+	private String vpnPassword;
 
-	public VPNProfileDTO(UUID id, UUID vpnLoginID, String password)
+	public VPNProfileDTO(UUID id, UUID vpnLoginID, String vpnPassword)
 	{
 		this.id = id;
 		this.vpnLoginID = vpnLoginID;
-		this.password = password;
+		this.vpnPassword = vpnPassword;
 	}
 
 	@JsonCreator
@@ -50,14 +50,15 @@ public class VPNProfileDTO
 		return vpnLoginID;
 	}
 
-	public String getPassword()
+	@JsonProperty("vpnPassword")
+	public String getVpnPassword()
 	{
-		return password;
+		return vpnPassword;
 	}
 
-	public void setPassword(String password)
+	public void setVpnPassword(String vpnPassword)
 	{
-		this.password = password;
+		this.vpnPassword = vpnPassword;
 	}
 
 	public String getOpenVPNProfile()
@@ -75,6 +76,6 @@ public class VPNProfileDTO
 
 	public static VPNProfileDTO createInstance(User user)
 	{
-		return new VPNProfileDTO(user.getAnonymized().getID(), user.getVPNLoginID(), user.getPassword());
+		return new VPNProfileDTO(user.getAnonymized().getID(), user.getVPNLoginID(), user.getVPNPassword());
 	}
 }

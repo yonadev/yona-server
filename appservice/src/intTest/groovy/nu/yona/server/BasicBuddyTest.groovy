@@ -255,7 +255,6 @@ class BasicBuddyTest extends Specification {
 		given:
 
 		when:
-			println "VPN login ID Richard: " + richardQuinVPNLoginID
 			def response = analysisService.postToAnalysisEngine("""{
 				"vpnLoginID":"${richardQuinVPNLoginID}",
 				"categories": ["news/media"],

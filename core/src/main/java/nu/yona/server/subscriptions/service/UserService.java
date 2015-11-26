@@ -76,11 +76,11 @@ public class UserService
 	{
 		validateUserFields(user);
 
-		user.getPrivateData().getVpnProfile().setPassword(generatePassword());
+		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
 
 		User userEntity = user.createUserEntity();
 		userEntity = User.getRepository().save(userEntity);
-		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getPassword());
+		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getVPNPassword());
 
 		return UserDTO.createInstanceWithPrivateData(userEntity);
 	}

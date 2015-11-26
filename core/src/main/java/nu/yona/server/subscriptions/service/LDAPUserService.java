@@ -19,9 +19,9 @@ public class LDAPUserService
 	@Autowired
 	private LdapTemplate ldapTemplate;
 
-	public void createVPNAccount(String vpnLoginID, String password)
+	public void createVPNAccount(String vpnLoginID, String vpnPassword)
 	{
-		create(new User(vpnLoginID, password));
+		create(new User(vpnLoginID, vpnPassword));
 	}
 
 	public void deleteVPNAccount(String vpnLoginID)
@@ -71,17 +71,17 @@ public class LDAPUserService
 			// Default constructor used by Spring
 		}
 
-		User(String vpnLoginID, String password)
+		User(String vpnLoginID, String vpnPassword)
 		{
 			cn = uid = vpnLoginID;
 
-			userPassword = generateSaltedPassword(password);
+			userPassword = generateSaltedPassword(vpnPassword);
 		}
 
-		private static String generateSaltedPassword(String password)
+		private static String generateSaltedPassword(String vpnPassword)
 		{
 			LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder();
-			return ldapShaPasswordEncoder.encodePassword(password, CryptoUtil.getRandomBytes(64));
+			return ldapShaPasswordEncoder.encodePassword(vpnPassword, CryptoUtil.getRandomBytes(64));
 		}
 	}
 }

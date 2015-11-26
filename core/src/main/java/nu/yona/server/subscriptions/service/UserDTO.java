@@ -104,7 +104,7 @@ public class UserDTO
 	User createUserEntity()
 	{
 		return User.createInstance(firstName, lastName, privateData.getNickName(), mobileNumber,
-				privateData.getVpnProfile().getPassword(), privateData.getDeviceNames(), privateData.getGoals());
+				privateData.getVpnProfile().getVpnPassword(), privateData.getDeviceNames(), privateData.getGoals());
 	}
 
 	User updateUser(User originalUserEntity)
