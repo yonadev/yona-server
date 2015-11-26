@@ -99,7 +99,9 @@ class CreateUserOnBuddyRequestTest extends Specification {
 						"mobileNumber":"+${timestamp}12"
 					}
 				},
-				"message":"Would you like to be my buddy?"
+				"message":"Would you like to be my buddy?",
+				"sendingStatus":"REQUESTED",
+				"receivingStatus":"REQUESTED"
 			}""", richardQuinPassword)
 			if (response.status == 201) {
 				richardQuinBobBuddyURL = response.responseData._links.self.href
@@ -360,6 +362,8 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData._embedded.buddies != null
 			response.responseData._embedded.buddies.size() == 1
 			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Richard ${timestamp}"
+			response.responseData._embedded.buddies[0].sendingStatus == "ACCEPTED"
+			response.responseData._embedded.buddies[0].receivingStatus == "ACCEPTED"
 	}
 
 	def 'Delete users'(){

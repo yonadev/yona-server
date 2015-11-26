@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.Buddy;
-import nu.yona.server.subscriptions.entities.BuddyAnonymized;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
 import nu.yona.server.subscriptions.entities.User;
@@ -66,10 +66,12 @@ public class BuddyService
 	}
 
 	@Transactional
-	public BuddyDTO addBuddyToAcceptingUser(UserDTO acceptingUser, UUID buddyUserID, String buddyNickName, UUID buddyVPNLoginID)
+	public BuddyDTO addBuddyToAcceptingUser(UserDTO acceptingUser, UUID buddyUserID, String buddyNickName, UUID buddyVPNLoginID,
+			boolean isRequestingSending, boolean isRequestingReceiving)
 	{
-		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName);
-		buddy.setReceivingStatus(BuddyAnonymized.Status.ACCEPTED);
+		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName,
+				isRequestingSending ? Status.ACCEPTED : Status.NOT_REQUESTED,
+				isRequestingReceiving ? Status.ACCEPTED : Status.NOT_REQUESTED);
 		buddy.setVPNLoginID(buddyVPNLoginID);
 		BuddyDTO buddyDTO = BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
 		userService.addBuddy(acceptingUser, buddyDTO);
@@ -188,16 +190,22 @@ public class BuddyService
 	private BuddyDTO handleBuddyRequestForExistingUser(UserDTO requestingUser, BuddyDTO buddy, User buddyUserEntity)
 	{
 		buddy.getUser().setUserID(buddyUserEntity.getID());
+		if (buddy.getSendingStatus() == Status.NOT_REQUESTED || buddy.getReceivingStatus() == Status.NOT_REQUESTED)
+		{
+			throw new IllegalArgumentException("only two-way buddies allowed for now");
+		}
 		Buddy buddyEntity = buddy.createBuddyEntity();
-		buddyEntity.setSendingStatus(BuddyAnonymized.Status.REQUESTED);
 		Buddy savedBuddyEntity = Buddy.getRepository().save(buddyEntity);
 		BuddyDTO savedBuddy = BuddyDTO.createInstance(savedBuddyEntity);
 		userService.addBuddy(requestingUser, savedBuddy);
 
+		boolean isRequestingSending = buddy.getReceivingStatus() == Status.REQUESTED;
+		boolean isRequestingReceiving = buddy.getSendingStatus() == Status.REQUESTED;
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
 		messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
 				requestingUser.getPrivateData().getVpnProfile().getVPNLoginID(), requestingUser.getPrivateData().getGoals(),
-				requestingUser.getPrivateData().getNickName(), buddy.getMessage(), savedBuddyEntity.getID()));
+				requestingUser.getPrivateData().getNickName(), buddy.getMessage(), savedBuddyEntity.getID(), isRequestingSending,
+				isRequestingReceiving));
 		MessageDestination.getRepository().save(messageDestination);
 
 		return savedBuddy;
@@ -225,9 +233,17 @@ public class BuddyService
 		}
 	}
 
-	public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID vpnLoginID, String nickname)
+	public void setBuddyAcceptedWithSecretUserInfo(UUID buddyID, UUID vpnLoginID, String nickname)
 	{
 		Buddy buddy = Buddy.getRepository().findOne(buddyID);
+		if (buddy.getSendingStatus() == Status.REQUESTED)
+		{
+			buddy.setSendingStatus(Status.ACCEPTED);
+		}
+		if (buddy.getReceivingStatus() == Status.REQUESTED)
+		{
+			buddy.setReceivingStatus(Status.ACCEPTED);
+		}
 		buddy.setVPNLoginID(vpnLoginID);
 		buddy.setNickName(nickname);
 	}

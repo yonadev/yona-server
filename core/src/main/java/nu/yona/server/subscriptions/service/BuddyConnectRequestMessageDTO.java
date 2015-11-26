@@ -120,7 +120,8 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 				BuddyConnectRequestMessage connectRequestMessageEntity, MessageActionDTO payload)
 		{
 			buddyService.addBuddyToAcceptingUser(acceptingUser, connectRequestMessageEntity.getUser().getID(),
-					connectRequestMessageEntity.getNickname(), connectRequestMessageEntity.getRelatedVPNLoginID());
+					connectRequestMessageEntity.getNickname(), connectRequestMessageEntity.getRelatedVPNLoginID(), connectRequestMessageEntity.requestingSending(),
+					connectRequestMessageEntity.requestingReceiving());
 
 			updateMessageStatusAsAccepted(connectRequestMessageEntity);
 

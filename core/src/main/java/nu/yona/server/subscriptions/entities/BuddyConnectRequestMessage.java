@@ -17,6 +17,8 @@ import nu.yona.server.goals.entities.Goal;
 @Entity
 public class BuddyConnectRequestMessage extends BuddyConnectMessage
 {
+	private boolean isRequestingSending;
+	private boolean isRequestingReceiving;
 
 	private BuddyAnonymized.Status status = BuddyAnonymized.Status.NOT_REQUESTED;
 
@@ -27,13 +29,25 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	}
 
 	private BuddyConnectRequestMessage(UUID id, UUID userID, UUID vpnLoginID, Set<UUID> goalIDs, String nickname, String message,
-			UUID buddyID)
+			UUID buddyID, boolean isRequestingSending, boolean isRequestingReceiving)
 	{
 		super(id, vpnLoginID, userID, nickname, message, buddyID);
 		if (userID == null)
 		{
 			throw new IllegalArgumentException("requestingUserID cannot be null");
 		}
+		this.isRequestingSending = isRequestingSending;
+		this.isRequestingReceiving = isRequestingReceiving;
+	}
+
+	public boolean requestingSending()
+	{
+		return isRequestingSending;
+	}
+
+	public boolean requestingReceiving()
+	{
+		return isRequestingReceiving;
 	}
 
 	public boolean isAccepted()
@@ -57,10 +71,11 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	}
 
 	public static BuddyConnectRequestMessage createInstance(UUID requestingUserID, UUID requestingUserVPNLoginID, Set<Goal> goals,
-			String nickname, String message, UUID buddyID)
+			String nickname, String message, UUID buddyID, boolean isRequestingSending, boolean isRequestingReceiving)
 	{
 		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserVPNLoginID,
-				goals.stream().map(g -> g.getID()).collect(Collectors.toSet()), nickname, message, buddyID);
+				goals.stream().map(g -> g.getID()).collect(Collectors.toSet()), nickname, message, buddyID, isRequestingSending,
+				isRequestingReceiving);
 	}
 
 	@Override

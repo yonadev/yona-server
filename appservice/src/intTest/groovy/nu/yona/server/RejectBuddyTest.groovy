@@ -105,7 +105,9 @@ class RejectBuddyTest extends Specification {
 						"mobileNumber":"+${timestamp}2"
 					}
 				},
-				"message":"Would you like to be my buddy?"
+				"message":"Would you like to be my buddy?",
+				"sendingStatus":"REQUESTED",
+				"receivingStatus":"REQUESTED"
 			}""", richardQuinPassword)
 		if (response.status == 201) {
 			richardQuinBobBuddyURL = response.responseData._links.self.href
