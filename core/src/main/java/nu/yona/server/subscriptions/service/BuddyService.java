@@ -20,7 +20,7 @@ import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
-import nu.yona.server.subscriptions.entities.BuddyConnectRemoveMessage;
+import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.User;
 
@@ -126,7 +126,7 @@ public class BuddyService
 			DropBuddyReason reason)
 	{
 		MessageDestination messageDestination = requestingUserBuddy.getUser().getNamedMessageDestination();
-		messageDestination.send(BuddyConnectRemoveMessage.createInstance(requestingUser.getID(), requestingUser.getLoginID(),
+		messageDestination.send(BuddyDisconnectMessage.createInstance(requestingUser.getID(), requestingUser.getLoginID(),
 				requestingUser.getNickName(), getDropBuddyMessage(reason, message), reason));
 		MessageDestination.getRepository().save(messageDestination);
 	}

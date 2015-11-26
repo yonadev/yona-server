@@ -17,18 +17,18 @@ import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
-import nu.yona.server.subscriptions.entities.BuddyConnectRemoveMessage;
+import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 
 @JsonRootName("buddyConnectRemoveMessage")
-public class BuddyConnectRemoveMessageDTO extends BuddyMessageDTO
+public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 {
 	private static final String PROCESS = "process";
 	private DropBuddyReason reason;
 	private boolean isProcessed;
 
-	private BuddyConnectRemoveMessageDTO(UUID id, UserDTO user, UUID loginID, String nickname, String message,
+	private BuddyDisconnectMessageDTO(UUID id, UserDTO user, UUID loginID, String nickname, String message,
 			DropBuddyReason reason, boolean isProcessed)
 	{
 		super(id, user, nickname, message);
@@ -57,11 +57,11 @@ public class BuddyConnectRemoveMessageDTO extends BuddyMessageDTO
 		return possibleActions;
 	}
 
-	public static BuddyConnectRemoveMessageDTO createInstance(UserDTO requestingUser, BuddyConnectRemoveMessage messageEntity)
+	public static BuddyDisconnectMessageDTO createInstance(UserDTO requestingUser, BuddyDisconnectMessage messageEntity)
 	{
 		User userEntity = messageEntity.getUser(); // may be null if deleted
 		UserDTO user = userEntity != null ? UserDTO.createInstance(userEntity) : UserDTO.createRemovedUserInstance();
-		return new BuddyConnectRemoveMessageDTO(messageEntity.getID(), user, messageEntity.getRelatedLoginID(),
+		return new BuddyDisconnectMessageDTO(messageEntity.getID(), user, messageEntity.getRelatedLoginID(),
 				messageEntity.getNickname(), messageEntity.getMessage(), messageEntity.getReason(), messageEntity.isProcessed());
 	}
 
@@ -77,13 +77,13 @@ public class BuddyConnectRemoveMessageDTO extends BuddyMessageDTO
 		@PostConstruct
 		private void init()
 		{
-			theDTOFactory.addManager(BuddyConnectRemoveMessage.class, this);
+			theDTOFactory.addManager(BuddyDisconnectMessage.class, this);
 		}
 
 		@Override
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return BuddyConnectRemoveMessageDTO.createInstance(actingUser, (BuddyConnectRemoveMessage) messageEntity);
+			return BuddyDisconnectMessageDTO.createInstance(actingUser, (BuddyDisconnectMessage) messageEntity);
 		}
 
 		@Override
@@ -93,13 +93,13 @@ public class BuddyConnectRemoveMessageDTO extends BuddyMessageDTO
 			switch (action)
 			{
 				case PROCESS:
-					return handleAction_Process(actingUser, (BuddyConnectRemoveMessage) messageEntity, requestPayload);
+					return handleAction_Process(actingUser, (BuddyDisconnectMessage) messageEntity, requestPayload);
 				default:
 					throw new IllegalArgumentException("Action '" + action + "' is not supported");
 			}
 		}
 
-		private MessageActionDTO handleAction_Process(UserDTO actingUser, BuddyConnectRemoveMessage messageEntity,
+		private MessageActionDTO handleAction_Process(UserDTO actingUser, BuddyDisconnectMessage messageEntity,
 				MessageActionDTO requestPayload)
 		{
 			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getID(), messageEntity.getRelatedLoginID());

@@ -7,27 +7,27 @@ import javax.persistence.Entity;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 
 @Entity
-public class BuddyConnectRemoveMessage extends BuddyMessage
+public class BuddyDisconnectMessage extends BuddyMessage
 {
 	private boolean isProcessed;
 	private DropBuddyReason reason;
 
-	public BuddyConnectRemoveMessage(UUID id, UUID userID, UUID loginID, String nickname, String message, DropBuddyReason reason)
+	public BuddyDisconnectMessage(UUID id, UUID userID, UUID loginID, String nickname, String message, DropBuddyReason reason)
 	{
 		super(id, loginID, userID, nickname, message);
 		this.reason = reason;
 	}
 
 	// Default constructor is required for JPA
-	public BuddyConnectRemoveMessage()
+	public BuddyDisconnectMessage()
 	{
 		super();
 	}
 
-	public static BuddyConnectRemoveMessage createInstance(UUID userID, UUID loginID, String nickname, String message,
+	public static BuddyDisconnectMessage createInstance(UUID userID, UUID loginID, String nickname, String message,
 			DropBuddyReason reason)
 	{
-		return new BuddyConnectRemoveMessage(UUID.randomUUID(), userID, loginID, nickname, message, reason);
+		return new BuddyDisconnectMessage(UUID.randomUUID(), userID, loginID, nickname, message, reason);
 	}
 
 	public DropBuddyReason getReason()
