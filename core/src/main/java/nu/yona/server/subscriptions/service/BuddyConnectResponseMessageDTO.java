@@ -25,17 +25,15 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 
 @JsonRootName("buddyConnectResponseMessage")
-public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
+public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 {
 	private static final String PROCESS = "process";
-	private final String nickname;
 	private boolean isProcessed;
 
 	private BuddyConnectResponseMessageDTO(UUID id, UserDTO user, String nickname, String message, boolean isProcessed)
 	{
-		super(id, user, message);
+		super(id, user, nickname, message);
 		this.isProcessed = isProcessed;
-		this.nickname = nickname;
 	}
 
 	@Override
@@ -47,11 +45,6 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 			possibleActions.add(PROCESS);
 		}
 		return possibleActions;
-	}
-
-	public String getNickname()
-	{
-		return nickname;
 	}
 
 	public boolean isProcessed()
@@ -109,8 +102,8 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 			}
 			else
 			{
-				buddyService.updateBuddyWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
-						connectResponseMessageEntity.getRelatedLoginID(), connectResponseMessageEntity.getNickname());
+				buddyService.setBuddyAcceptedWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
+						connectResponseMessageEntity.getRelatedVPNLoginID(), connectResponseMessageEntity.getNickname());
 			}
 
 			updateMessageStatusAsProcessed(connectResponseMessageEntity);

@@ -17,11 +17,11 @@ class RejectBuddyTest extends Specification {
 	@Shared
 	def richardQuinURL
 	@Shared
-	def richardQuinLoginID
+	def richardQuinVPNLoginID
 	@Shared
 	def bobDunnURL
 	@Shared
-	def bobDunnLoginID
+	def bobDunnVPNLoginID
 	@Shared
 	def richardQuinBobBuddyURL
 	@Shared
@@ -53,7 +53,7 @@ class RejectBuddyTest extends Specification {
 			}""", richardQuinPassword)
 		if (response.status == 201) {
 			richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
-			richardQuinLoginID = response.responseData.vpnProfile.loginID;
+			richardQuinVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
 		}
 
 		then:
@@ -82,7 +82,7 @@ class RejectBuddyTest extends Specification {
 			}""", bobDunnPassword)
 		if (response.status == 201) {
 			bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
-			bobDunnLoginID = response.responseData.vpnProfile.loginID;
+			bobDunnVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
 		}
 
 		then:
@@ -105,7 +105,9 @@ class RejectBuddyTest extends Specification {
 						"mobileNumber":"+${timestamp}2"
 					}
 				},
-				"message":"Would you like to be my buddy?"
+				"message":"Would you like to be my buddy?",
+				"sendingStatus":"REQUESTED",
+				"receivingStatus":"REQUESTED"
 			}""", richardQuinPassword)
 		if (response.status == 201) {
 			richardQuinBobBuddyURL = response.responseData._links.self.href

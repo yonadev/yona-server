@@ -20,10 +20,6 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 	private UUID destinationID;
 	private byte[] destinationIDCiphertext;
 
-	@Transient
-	private String nickname;
-	private byte[] nicknameCiphertext;
-
 	private BuddyAnonymized.Status status = BuddyAnonymized.Status.NOT_REQUESTED;
 	private boolean isProcessed;
 
@@ -33,23 +29,17 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 		super();
 	}
 
-	private BuddyConnectResponseMessage(UUID id, UUID userID, UUID loginID, String nickname, String message, UUID buddyID,
+	private BuddyConnectResponseMessage(UUID id, UUID userID, UUID vpnLoginID, String nickname, String message, UUID buddyID,
 			UUID destinationID, BuddyAnonymized.Status status)
 	{
-		super(id, loginID, userID, message, buddyID);
+		super(id, vpnLoginID, userID, nickname, message, buddyID);
 		this.destinationID = destinationID;
 		this.status = status;
-		this.nickname = nickname;
 	}
 
 	public UUID getDestinationID()
 	{
 		return destinationID;
-	}
-
-	public String getNickname()
-	{
-		return nickname;
 	}
 
 	public BuddyAnonymized.Status getStatus()
@@ -67,10 +57,10 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 		this.isProcessed = true;
 	}
 
-	public static BuddyConnectResponseMessage createInstance(UUID respondingUserID, UUID respondingUserLoginID,
+	public static BuddyConnectResponseMessage createInstance(UUID respondingUserID, UUID respondingUserVPNLoginID,
 			UUID destinationID, String nickname, String message, UUID buddyID, BuddyAnonymized.Status status)
 	{
-		return new BuddyConnectResponseMessage(UUID.randomUUID(), respondingUserID, respondingUserLoginID, nickname, message,
+		return new BuddyConnectResponseMessage(UUID.randomUUID(), respondingUserID, respondingUserVPNLoginID, nickname, message,
 				buddyID, destinationID, status);
 	}
 
@@ -79,7 +69,6 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 	{
 		super.encrypt(encryptor);
 		destinationIDCiphertext = encryptor.encrypt(destinationID);
-		nicknameCiphertext = encryptor.encrypt(nickname);
 	}
 
 	@Override
@@ -87,6 +76,11 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 	{
 		super.decrypt(decryptor);
 		destinationID = decryptor.decryptUUID(destinationIDCiphertext);
-		nickname = decryptor.decryptString(nicknameCiphertext);
+	}
+
+	@Override
+	public boolean canBeDeleted()
+	{
+		return this.isProcessed;
 	}
 }

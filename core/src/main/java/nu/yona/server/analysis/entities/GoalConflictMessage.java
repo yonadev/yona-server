@@ -65,6 +65,12 @@ public class GoalConflictMessage extends Message
 		url = decryptor.decryptString(urlCiphertext);
 	}
 
+	@Override
+	public boolean canBeDeleted()
+	{
+		return true;
+	}
+
 	public Date getEndTime()
 	{
 		return endTime;
@@ -80,9 +86,9 @@ public class GoalConflictMessage extends Message
 		return goalID;
 	}
 
-	public static GoalConflictMessage createInstance(UUID loginID, Goal goal, String url)
+	public static GoalConflictMessage createInstance(UUID vpnLoginID, Goal goal, String url)
 	{
-		return new GoalConflictMessage(UUID.randomUUID(), loginID, goal.getID(), url);
+		return new GoalConflictMessage(UUID.randomUUID(), vpnLoginID, goal.getID(), url);
 	}
 
 	public static GoalConflictMessageRepository getGoalConflictMessageRepository()

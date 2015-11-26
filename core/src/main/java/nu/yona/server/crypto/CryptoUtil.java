@@ -19,13 +19,23 @@ public class CryptoUtil
 
 	public static String getRandomString(int length)
 	{
-		byte[] bytes = new byte[length * 256 / 64];
-		getSecureRandomInstance().nextBytes(bytes);
+		byte[] bytes = getRandomBytes(length * 256 / 64);
 		String randomString = Base64.getEncoder().encodeToString(bytes);
 		return randomString.substring(0, Math.min(length, randomString.length()));
 	}
 
+<<<<<<< HEAD
 	public static SecureRandom getSecureRandomInstance()
+=======
+	public static byte[] getRandomBytes(int length)
+	{
+		byte[] bytes = new byte[length];
+		getSecureRandomInstance().nextBytes(bytes);
+		return bytes;
+	}
+
+	static SecureRandom getSecureRandomInstance()
+>>>>>>> master
 	{
 		try
 		{
