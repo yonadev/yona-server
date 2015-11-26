@@ -17,12 +17,12 @@ public class MobileNumberConfirmationException extends YonaException
 		super(t, messageId, parameters);
 	}
 
-	public static MobileNumberConfirmationException signInCodeMismatch()
+	public static MobileNumberConfirmationException confirmationCodeMismatch()
 	{
 		return new MobileNumberConfirmationException("error.mobile.number.confirmation.code.mismatch");
 	}
 
-	public static MobileNumberConfirmationException signInCodeNotSet()
+	public static MobileNumberConfirmationException confirmationCodeNotSet()
 	{
 		return new MobileNumberConfirmationException("error.mobile.number.confirmation.code.not.set");
 	}

@@ -48,6 +48,8 @@ public class UserService
 	private SmsService smsService;
 	@Value("${yona.sms.mobile.number.confirmation.message}")
 	private String mobileNumberConfirmationMessage;
+	@Value("${yona.sms.mobile.number.confirmation.code.digits}")
+	private int mobileNumberConfirmationCodeDigits = 5;
 
 	@Autowired
 	BuddyService buddyService;
@@ -91,7 +93,7 @@ public class UserService
 		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
 
 		User userEntity = user.createUserEntity();
-		userEntity.setConfirmationCode(CryptoUtil.getRandomDigits(5));
+		userEntity.setConfirmationCode(CryptoUtil.getRandomDigits(mobileNumberConfirmationCodeDigits));
 		userEntity = User.getRepository().save(userEntity);
 		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getVPNPassword());
 
@@ -120,12 +122,12 @@ public class UserService
 
 		if (userEntity.getConfirmationCode() == null)
 		{
-			throw MobileNumberConfirmationException.signInCodeNotSet();
+			throw MobileNumberConfirmationException.confirmationCodeNotSet();
 		}
 
 		if (!userEntity.getConfirmationCode().equals(code))
 		{
-			throw MobileNumberConfirmationException.signInCodeMismatch();
+			throw MobileNumberConfirmationException.confirmationCodeMismatch();
 		}
 
 		if (userEntity.getStatus() != User.Status.UNCONFIRMED)
