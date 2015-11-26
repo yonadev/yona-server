@@ -73,7 +73,7 @@ public class BuddyService
 		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName);
 		buddy.setGoals(buddyGoals);
 		buddy.setReceivingStatus(BuddyAnonymized.Status.ACCEPTED);
-		buddy.setUserAnonymizedID(buddyLoginID);
+		buddy.setLoginID(buddyLoginID);
 		BuddyDTO buddyDTO = BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
 		userService.addBuddy(acceptingUser, buddyDTO);
 		return buddyDTO;
@@ -231,7 +231,7 @@ public class BuddyService
 	public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID loginID, String nickname)
 	{
 		Buddy buddy = Buddy.getRepository().findOne(buddyID);
-		buddy.setUserAnonymizedID(loginID);
+		buddy.setLoginID(loginID);
 		buddy.setNickName(nickname);
 	}
 
