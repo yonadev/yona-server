@@ -17,7 +17,7 @@ import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.Buddy;
-import nu.yona.server.subscriptions.entities.BuddyAnonymized;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.User;
 
@@ -62,11 +62,13 @@ public class BuddyService
 		return newBuddyEntity;
 	}
 
-	public BuddyDTO addBuddyToAcceptingUser(UUID buddyUserID, String buddyNickName, Set<Goal> buddyGoals, UUID buddyLoginID)
+	public BuddyDTO addBuddyToAcceptingUser(UUID buddyUserID, String buddyNickName, Set<Goal> buddyGoals, UUID buddyLoginID,
+			boolean isRequestingSending, boolean isRequestingReceiving)
 	{
-		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName);
+		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName,
+				isRequestingSending ? Status.ACCEPTED : Status.NOT_REQUESTED,
+				isRequestingReceiving ? Status.ACCEPTED : Status.NOT_REQUESTED);
 		buddy.setGoals(buddyGoals);
-		buddy.setReceivingStatus(BuddyAnonymized.Status.ACCEPTED);
 		buddy.setLoginID(buddyLoginID);
 
 		return BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
@@ -111,15 +113,17 @@ public class BuddyService
 	{
 		buddy.getUser().setUserID(buddyUserEntity.getID());
 		Buddy buddyEntity = buddy.createBuddyEntity();
-		buddyEntity.setSendingStatus(BuddyAnonymized.Status.REQUESTED);
 		Buddy savedBuddyEntity = Buddy.getRepository().save(buddyEntity);
 		BuddyDTO savedBuddy = BuddyDTO.createInstance(savedBuddyEntity);
 		userService.addBuddy(requestingUser, savedBuddy); // TODO: how can we do this without using the user password?
 
+		boolean isRequestingSending = buddy.getReceivingStatus() == Status.REQUESTED;
+		boolean isRequestingReceiving = buddy.getSendingStatus() == Status.REQUESTED;
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
 		messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
 				requestingUser.getPrivateData().getVpnProfile().getLoginID(), requestingUser.getPrivateData().getGoals(),
-				requestingUser.getPrivateData().getNickName(), buddy.getMessage(), savedBuddyEntity.getID()));
+				requestingUser.getPrivateData().getNickName(), buddy.getMessage(), savedBuddyEntity.getID(), isRequestingSending,
+				isRequestingReceiving));
 		MessageDestination.getRepository().save(messageDestination);
 
 		return savedBuddy;
@@ -147,9 +151,17 @@ public class BuddyService
 		}
 	}
 
-	public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID loginID, String nickname)
+	public void setBuddyAcceptedWithSecretUserInfo(UUID buddyID, UUID loginID, String nickname)
 	{
 		Buddy buddy = Buddy.getRepository().findOne(buddyID);
+		if (buddy.getSendingStatus() == Status.REQUESTED)
+		{
+			buddy.setSendingStatus(Status.ACCEPTED);
+		}
+		if (buddy.getReceivingStatus() == Status.REQUESTED)
+		{
+			buddy.setReceivingStatus(Status.ACCEPTED);
+		}
 		buddy.setLoginID(loginID);
 		buddy.setNickName(nickname);
 	}

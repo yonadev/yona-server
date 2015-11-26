@@ -66,9 +66,9 @@ public class Buddy extends EntityWithID
 		this.buddyAnonymizedID = buddyAnonymizedID;
 	}
 
-	public static Buddy createInstance(UUID buddyUserID, String nickName)
+	public static Buddy createInstance(UUID buddyUserID, String nickName, Status sendingStatus, Status receivingStatus)
 	{
-		BuddyAnonymized buddyAnonymized = BuddyAnonymized.createInstance();
+		BuddyAnonymized buddyAnonymized = BuddyAnonymized.createInstance(sendingStatus, receivingStatus);
 		buddyAnonymized = BuddyAnonymized.getRepository().save(buddyAnonymized);
 		return new Buddy(UUID.randomUUID(), buddyUserID, nickName, buddyAnonymized.getID());
 	}

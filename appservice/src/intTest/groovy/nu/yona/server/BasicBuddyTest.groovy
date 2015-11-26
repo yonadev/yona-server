@@ -112,7 +112,9 @@ class BasicBuddyTest extends Specification {
 							"mobileNumber":"+${timestamp}2"
 						}
 					},
-					"message":"Would you like to be my buddy?"
+					"message":"Would you like to be my buddy?",
+					"sendingStatus":"REQUESTED",
+					"receivingStatus":"REQUESTED"
 				}""", richardQuinPassword)
 			richardQuinBobBuddyURL = response.responseData._links.self.href
 
@@ -200,6 +202,8 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.buddies.size() == 1
 			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Bob ${timestamp}"
 			response.responseData._embedded.buddies[0].nickName == "BD ${timestamp}"
+			response.responseData._embedded.buddies[0].sendingStatus == "ACCEPTED"
+			response.responseData._embedded.buddies[0].receivingStatus == "ACCEPTED"
 	}
 
 	def 'Bob checks his buddy list and will find Richard there'(){
@@ -213,6 +217,8 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.buddies.size() == 1
 			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Richard ${timestamp}"
 			response.responseData._embedded.buddies[0].nickName == "RQ ${timestamp}"
+			response.responseData._embedded.buddies[0].sendingStatus == "ACCEPTED"
+			response.responseData._embedded.buddies[0].receivingStatus == "ACCEPTED"
 	}
 
 	def 'When Richard would retrieve his user, Bob would be embedded as buddy'(){
@@ -333,98 +339,6 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
 			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
-	}
-
-	def 'Bob requests Richard to become his buddy (automatic pairing)'(){
-		given:
-
-		when:
-			def response = appService.requestBuddy(bobDunnURL, """{
-					"_embedded":{
-						"user":{
-							"firstName":"Richard ${timestamp}",
-							"lastName":"Quin ${timestamp}",
-							"emailAddress":"rich${timestamp}@quin.net",
-							"mobileNumber":"+${timestamp}1",
-						}
-					},
-					"message":"Would you like to be my buddy?"
-				}""", bobDunnPassword)
-			bobDunnRichardBuddyURL = response.responseData._links.self.href
-
-		then:
-			response.status == 201
-			response.responseData._embedded.user.firstName == "Richard ${timestamp}"
-			bobDunnRichardBuddyURL.startsWith(bobDunnURL)
-
-		cleanup:
-			println "URL buddy Richard: " + bobDunnRichardBuddyURL
-	}
-
-	def 'Richard checks his direct messages (automatic pairing)'(){
-		given:
-
-		when:
-			def response = appService.getDirectMessages(richardQuinURL, richardQuinPassword)
-			if (response.responseData._embedded && response.responseData._embedded.buddyConnectRequestMessages) {
-				richardQuinBuddyMessageAcceptURL = response.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
-			}
-
-		then:
-			response.status == 200
-			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
-			response.responseData._embedded.buddyConnectRequestMessages[0].user
-			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Bob ${timestamp}"
-			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
-			richardQuinBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
-	}
-
-	def 'Richard accepts Bob\'s buddy request (automatic pairing)'(){
-		given:
-
-		when:
-			def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageAcceptURL, """{
-					"properties":{
-						"message":"Yes, great idea!"
-					}
-				}""", richardQuinPassword)
-
-		then:
-			response.status == 200
-			response.responseData.properties.status == "done"
-	}
-
-	def 'Bob checks his direct messages (automatic pairing)'(){
-		given:
-
-		when:
-			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
-			if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
-				bobDunnBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
-			}
-
-		then:
-			response.status == 200
-			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
-			response.responseData._embedded.buddyConnectResponseMessages[0].user
-			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Richard ${timestamp}"
-			response.responseData._embedded.buddyConnectResponseMessages[0].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
-			bobDunnBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
-	}
-
-	def 'Bob processes Richard\'s buddy acceptance (automatic pairing)'(){
-		given:
-
-		when:
-			def response = appService.postMessageActionWithPassword(bobDunnBuddyMessageProcessURL, """{
-					"properties":{
-					}
-				}""", bobDunnPassword)
-
-		then:
-			response.status == 200
-			response.responseData.properties.status == "done"
 	}
 
 	def 'Classification engine detects a potential conflict for Bob'(){
