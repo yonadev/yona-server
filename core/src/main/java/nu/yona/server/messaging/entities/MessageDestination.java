@@ -64,6 +64,11 @@ public class MessageDestination extends EntityWithID
 		messages.add(message);
 	}
 
+	public void remove(Message message)
+	{
+		messages.remove(message);
+	}
+
 	public List<Message> getAllMessages()
 	{
 		return Collections.unmodifiableList(messages);

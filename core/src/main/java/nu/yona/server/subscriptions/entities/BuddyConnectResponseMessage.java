@@ -77,4 +77,10 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 		super.decrypt(decryptor);
 		destinationID = decryptor.decryptUUID(destinationIDCiphertext);
 	}
+
+	@Override
+	public boolean canBeDeleted()
+	{
+		return this.isProcessed;
+	}
 }
