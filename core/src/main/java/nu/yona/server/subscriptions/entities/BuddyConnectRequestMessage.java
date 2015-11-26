@@ -30,10 +30,10 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		super();
 	}
 
-	private BuddyConnectRequestMessage(UUID id, UUID userID, UUID loginID, Set<UUID> goalIDs, String nickname, String message,
+	private BuddyConnectRequestMessage(UUID id, UUID userID, UUID vpnLoginID, Set<UUID> goalIDs, String nickname, String message,
 			UUID buddyID)
 	{
-		super(id, loginID, userID, message, buddyID);
+		super(id, vpnLoginID, userID, message, buddyID);
 		if (userID == null)
 		{
 			throw new IllegalArgumentException("requestingUserID cannot be null");
@@ -66,10 +66,10 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		return this.status;
 	}
 
-	public static BuddyConnectRequestMessage createInstance(UUID requestingUserID, UUID requestingUserLoginID, Set<Goal> goals,
+	public static BuddyConnectRequestMessage createInstance(UUID requestingUserID, UUID requestingUserVPNLoginID, Set<Goal> goals,
 			String nickname, String message, UUID buddyID)
 	{
-		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserLoginID,
+		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserVPNLoginID,
 				goals.stream().map(g -> g.getID()).collect(Collectors.toSet()), nickname, message, buddyID);
 	}
 

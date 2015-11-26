@@ -103,8 +103,8 @@ public class UserDTO
 
 	User createUserEntity()
 	{
-		return User.createInstance(firstName, lastName, privateData.getNickName(), mobileNumber, privateData.getDeviceNames(),
-				privateData.getGoals());
+		return User.createInstance(firstName, lastName, privateData.getNickName(), mobileNumber,
+				privateData.getVpnProfile().getVpnPassword(), privateData.getDeviceNames(), privateData.getGoals());
 	}
 
 	User updateUser(User originalUserEntity)
@@ -134,8 +134,7 @@ public class UserDTO
 				userEntity.getMobileNumber(), userEntity.getNamedMessageSource().getID(),
 				userEntity.getNamedMessageDestination().getID(), userEntity.getAnonymousMessageSource().getID(),
 				userEntity.getAnonymousMessageSource().getDestination().getID(), userEntity.getDeviceNames(),
-				getGoalNames(userEntity.getGoals()), getBuddyIDs(userEntity),
-				VPNProfileDTO.createInstance(userEntity.getAnonymized()));
+				getGoalNames(userEntity.getGoals()), getBuddyIDs(userEntity), VPNProfileDTO.createInstance(userEntity));
 	}
 
 	private static Set<UUID> getBuddyIDs(User userEntity)

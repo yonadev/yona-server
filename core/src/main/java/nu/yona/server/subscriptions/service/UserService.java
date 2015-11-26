@@ -4,8 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.properties.YonaProperties;
@@ -32,7 +31,11 @@ public class UserService
 	/** Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers */
 	private static Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
 
-	private SecureRandom random = new SecureRandom();
+	@Autowired
+	private LDAPUserService ldapUserService;
+
+	@Autowired
+	private YonaProperties yonaProperties;
 
 	@Autowired
 	YonaProperties properties;
@@ -69,12 +72,15 @@ public class UserService
 	}
 
 	@Transactional
-	public UserDTO addUser(UserDTO userResource)
+	public UserDTO addUser(UserDTO user)
 	{
-		validateUserFields(userResource);
+		validateUserFields(user);
 
-		User userEntity = userResource.createUserEntity();
+		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
+
+		User userEntity = user.createUserEntity();
 		userEntity = User.getRepository().save(userEntity);
+		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getVPNPassword());
 
 		return UserDTO.createInstanceWithPrivateData(userEntity);
 	}
@@ -83,15 +89,15 @@ public class UserService
 	UserServiceTempEncryptionContextExecutor tempEncryptionContextExecutor;
 
 	@Transactional
-	public User addUserCreatedOnBuddyRequest(UserDTO buddyUserResource, String tempPassword)
+	public User addUserCreatedOnBuddyRequest(UserDTO buddyUser, String tempPassword)
 	{
 		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null,
-				() -> tempEncryptionContextExecutor.addUserCreatedOnBuddyRequest(buddyUserResource).getID());
+				() -> tempEncryptionContextExecutor.addUserCreatedOnBuddyRequest(buddyUser).getID());
 		return getEntityByID(savedUserID);
 	}
 
 	@Transactional
-	public UserDTO updateUser(UUID id, UserDTO userResource)
+	public UserDTO updateUser(UUID id, UserDTO user)
 	{
 		User originalUserEntity = getEntityByID(id);
 		if (originalUserEntity.isCreatedOnBuddyRequest())
@@ -99,7 +105,7 @@ public class UserService
 			// security check: should not be able to update a user created on buddy request with its temp password
 			throw new IllegalArgumentException("User is created on buddy request, use other method");
 		}
-		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(userResource.updateUser(originalUserEntity)));
+		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(user.updateUser(originalUserEntity)));
 	}
 
 	static User findUserByMobileNumber(String mobileNumber)
@@ -198,10 +204,9 @@ public class UserService
 		User.getRepository().save(userEntity);
 	}
 
-	public String generateTempPassword()
+	public String generatePassword()
 	{
-		// see http://stackoverflow.com/questions/41107/how-to-generate-a-random-alpha-numeric-string
-		return new BigInteger(130, random).toString(32);
+		return CryptoUtil.getRandomString(yonaProperties.getPasswordLength());
 	}
 
 	@Transactional

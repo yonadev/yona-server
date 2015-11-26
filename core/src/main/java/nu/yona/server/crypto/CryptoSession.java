@@ -237,6 +237,6 @@ public class CryptoSession implements AutoCloseable
 
 	private static String getPassword(Optional<String> password)
 	{
-		return password.orElseThrow(() -> MissingPasswordException.passwordNotProvided());
+		return password.orElseThrow(() -> MissingPasswordException.passwordHeaderNotProvided());
 	}
 }

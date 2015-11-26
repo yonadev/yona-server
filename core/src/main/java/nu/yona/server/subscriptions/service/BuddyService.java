@@ -61,11 +61,11 @@ public class BuddyService
 		return newBuddyEntity;
 	}
 
-	public BuddyDTO addBuddyToAcceptingUser(UUID buddyUserID, String buddyNickName, UUID buddyLoginID)
+	public BuddyDTO addBuddyToAcceptingUser(UUID buddyUserID, String buddyNickName, UUID buddyVPNLoginID)
 	{
 		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName);
 		buddy.setReceivingStatus(BuddyAnonymized.Status.ACCEPTED);
-		buddy.setLoginID(buddyLoginID);
+		buddy.setVPNLoginID(buddyVPNLoginID);
 
 		return BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
 	}
@@ -83,7 +83,7 @@ public class BuddyService
 	{
 		UserDTO buddyUser = buddy.getUser();
 
-		String tempPassword = userService.generateTempPassword();
+		String tempPassword = userService.generatePassword();
 		User buddyUserEntity = userService.addUserCreatedOnBuddyRequest(buddyUser, tempPassword);
 		BuddyDTO savedBuddy = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
 
@@ -116,7 +116,7 @@ public class BuddyService
 
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
 		messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
-				requestingUser.getPrivateData().getVpnProfile().getLoginID(), requestingUser.getPrivateData().getGoals(),
+				requestingUser.getPrivateData().getVpnProfile().getVPNLoginID(), requestingUser.getPrivateData().getGoals(),
 				requestingUser.getPrivateData().getNickName(), buddy.getMessage(), savedBuddyEntity.getID()));
 		MessageDestination.getRepository().save(messageDestination);
 
@@ -145,10 +145,10 @@ public class BuddyService
 		}
 	}
 
-	public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID loginID, String nickname)
+	public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID vpnLoginID, String nickname)
 	{
 		Buddy buddy = Buddy.getRepository().findOne(buddyID);
-		buddy.setLoginID(loginID);
+		buddy.setVPNLoginID(vpnLoginID);
 		buddy.setNickName(nickname);
 	}
 

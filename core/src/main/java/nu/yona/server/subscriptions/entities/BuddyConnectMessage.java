@@ -34,9 +34,9 @@ public class BuddyConnectMessage extends Message
 		super(null, null);
 	}
 
-	protected BuddyConnectMessage(UUID id, UUID loginID, UUID userID, String message, UUID buddyID)
+	protected BuddyConnectMessage(UUID id, UUID vpnLoginID, UUID userID, String message, UUID buddyID)
 	{
-		super(id, loginID);
+		super(id, vpnLoginID);
 		this.userID = userID;
 		this.buddyID = buddyID;
 		this.message = message;

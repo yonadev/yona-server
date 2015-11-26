@@ -15,15 +15,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.rest.Constants;
-import nu.yona.server.subscriptions.rest.UserController.UserResource;
-import nu.yona.server.subscriptions.service.BuddyDTO;
-import nu.yona.server.subscriptions.service.BuddyService;
-import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
-import nu.yona.server.subscriptions.service.UserDTO;
-import nu.yona.server.subscriptions.service.UserService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
@@ -44,6 +35,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.rest.Constants;
+import nu.yona.server.subscriptions.rest.UserController.UserResource;
+import nu.yona.server.subscriptions.service.BuddyDTO;
+import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
+import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(UserResource.class)
@@ -175,9 +175,7 @@ public class UserController
 		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
 		if (tempPassword.isPresent())
 		{
-			return CryptoSession.execute(
-					password,
-					null,
+			return CryptoSession.execute(password, null,
 					() -> createOKResponse(userService.updateUserCreatedOnBuddyRequest(id, tempPassword.get(), userResource),
 							true));
 		}
@@ -216,8 +214,8 @@ public class UserController
 
 	static Link getUserSelfLinkWithTempPassword(UUID userID, String tempPassword)
 	{
-		ControllerLinkBuilder linkBuilder = linkTo(methodOn(UserController.class).updateUser(Optional.empty(), tempPassword,
-				userID, null));
+		ControllerLinkBuilder linkBuilder = linkTo(
+				methodOn(UserController.class).updateUser(Optional.empty(), tempPassword, userID, null));
 		return linkBuilder.withSelfRel();
 	}
 
@@ -251,8 +249,8 @@ public class UserController
 			}
 
 			Set<BuddyDTO> buddies = getContent().getPrivateData().getBuddies();
-			return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME, new BuddyController.BuddyResourceAssembler(getContent()
-					.getID()).toResources(buddies));
+			return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME,
+					new BuddyController.BuddyResourceAssembler(getContent().getID()).toResources(buddies));
 		}
 
 		static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID)
