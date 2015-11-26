@@ -118,7 +118,9 @@ class DeleteDirectMessageTest extends Specification {
 							"mobileNumber":"+${timestamp}2"
 						}
 					},
-					"message":"Would you like to be my buddy?"
+					"message":"Would you like to be my buddy?",
+					"sendingStatus":"REQUESTED",
+					"receivingStatus":"REQUESTED"
 				}""", richardQuinPassword)
 			richardQuinBobBuddyURL = response.responseData._links.self.href
 
