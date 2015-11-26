@@ -72,6 +72,20 @@ public class MessageService
 		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
 	}
 
+	public MessageActionDTO deleteMessage(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
+	{
+		UserDTO user = userService.getPrivateUser(userID);
+		MessageSource messageSource = getAnonymousMessageSource(user);
+		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
+	}
+
+	public MessageActionDTO deleteAnonymousMessage(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
+	{
+		UserDTO user = userService.getPrivateUser(userID);
+		MessageSource messageSource = getAnonymousMessageSource(user);
+		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
+	}
+
 	private MessageSource getNamedMessageSource(UserDTO user)
 	{
 		return MessageSource.getRepository().findOne(user.getPrivateData().getNamedMessageSourceID());

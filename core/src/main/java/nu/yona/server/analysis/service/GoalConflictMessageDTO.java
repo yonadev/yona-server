@@ -30,7 +30,6 @@ import nu.yona.server.subscriptions.service.UserDTO;
 @JsonRootName("goalConflictMessage")
 public class GoalConflictMessageDTO extends MessageDTO
 {
-	private static final String DELETE = "delete";
 	private final String nickname;
 	private final String goalName;
 	private final String url;
@@ -46,9 +45,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 	@Override
 	public Set<String> getPossibleActions()
 	{
-		Set<String> possibleActions = new HashSet<>();
-		possibleActions.add(DELETE);
-		return possibleActions;
+		return new HashSet<>();
 	}
 
 	public String getNickname()
@@ -98,13 +95,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 		public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
 				MessageActionDTO requestPayload)
 		{
-			switch (action)
-			{
-				case DELETE:
-					return handleAction_Delete(actingUser, (GoalConflictMessage) messageEntity, requestPayload);
-				default:
-					throw new IllegalArgumentException("Action '" + action + "' is not supported");
-			}
+			throw new IllegalArgumentException("Action '" + action + "' is not supported");
 		}
 
 		private MessageActionDTO handleAction_Delete(UserDTO actingUser, GoalConflictMessage messageEntity,

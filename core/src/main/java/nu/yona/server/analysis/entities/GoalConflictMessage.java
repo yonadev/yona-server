@@ -65,6 +65,12 @@ public class GoalConflictMessage extends Message
 		url = decryptor.decryptString(urlCiphertext);
 	}
 
+	@Override
+	public boolean canBeDeleted()
+	{
+		return true;
+	}
+
 	public Date getEndTime()
 	{
 		return endTime;

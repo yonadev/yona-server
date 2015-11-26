@@ -89,4 +89,10 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 		destinationID = decryptor.decryptUUID(destinationIDCiphertext);
 		nickname = decryptor.decryptString(nicknameCiphertext);
 	}
+
+	@Override
+	public boolean canBeDeleted()
+	{
+		return this.status == BuddyAnonymized.Status.ACCEPTED || this.status == BuddyAnonymized.Status.REJECTED;
+	}
 }

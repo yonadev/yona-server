@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -33,13 +32,12 @@ public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
 {
 	private static final String ACCEPT = "accept";
 	private static final String REJECT = "reject";
-	private static final String DELETE = "delete";
-	private Set<String> goals;
+
 	private boolean isAccepted;
 	private boolean isRejected;
 
 	private BuddyConnectRequestMessageDTO(BuddyConnectRequestMessage buddyConnectRequestMessageEntity, UUID id, UserDTO user,
-			UUID loginID, String nickname, String message, Set<String> goals, boolean isAccepted, boolean isRejected)
+			UUID loginID, String nickname, String message, boolean isAccepted, boolean isRejected)
 	{
 		super(id, user, message);
 		if (buddyConnectRequestMessageEntity == null)
@@ -50,7 +48,6 @@ public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
 		{
 			throw new IllegalArgumentException("loginID cannot be null");
 		}
-		this.goals = goals;
 		this.isAccepted = isAccepted;
 		this.isRejected = isRejected;
 	}
@@ -63,14 +60,8 @@ public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
 		{
 			possibleActions.add(ACCEPT);
 			possibleActions.add(REJECT);
-			possibleActions.add(DELETE);
 		}
 		return possibleActions;
-	}
-
-	public Set<String> getGoals()
-	{
-		return Collections.unmodifiableSet(goals);
 	}
 
 	public boolean isAccepted()
@@ -87,8 +78,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
 	{
 		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(),
 				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getRelatedLoginID(), messageEntity.getNickname(),
-				messageEntity.getMessage(), messageEntity.getGoals().stream().map(g -> g.getName()).collect(Collectors.toSet()),
-				messageEntity.isAccepted(), messageEntity.isRejected());
+				messageEntity.getMessage(), messageEntity.isAccepted(), messageEntity.isRejected());
 	}
 
 	@Component
@@ -125,8 +115,6 @@ public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
 					return handleAction_Accept(actingUser, (BuddyConnectRequestMessage) messageEntity, requestPayload);
 				case REJECT:
 					return handleAction_Reject(actingUser, (BuddyConnectRequestMessage) messageEntity, requestPayload);
-				case DELETE:
-					return handleAction_Delete(actingUser, (BuddyConnectRequestMessage) messageEntity, requestPayload);
 				default:
 					throw new IllegalArgumentException("Action '" + action + "' is not supported");
 			}
@@ -137,8 +125,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
 		{
 
 			BuddyDTO buddy = buddyService.addBuddyToAcceptingUser(connectRequestMessageEntity.getUser().getID(),
-					connectRequestMessageEntity.getNickname(), connectRequestMessageEntity.getGoals(),
-					connectRequestMessageEntity.getRelatedLoginID());
+					connectRequestMessageEntity.getNickname(), connectRequestMessageEntity.getRelatedLoginID());
 
 			userService.addBuddy(acceptingUser, buddy);
 

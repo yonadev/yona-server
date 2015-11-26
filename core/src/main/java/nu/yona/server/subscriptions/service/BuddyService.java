@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.Buddy;
@@ -62,10 +61,9 @@ public class BuddyService
 		return newBuddyEntity;
 	}
 
-	public BuddyDTO addBuddyToAcceptingUser(UUID buddyUserID, String buddyNickName, Set<Goal> buddyGoals, UUID buddyLoginID)
+	public BuddyDTO addBuddyToAcceptingUser(UUID buddyUserID, String buddyNickName, UUID buddyLoginID)
 	{
 		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName);
-		buddy.setGoals(buddyGoals);
 		buddy.setReceivingStatus(BuddyAnonymized.Status.ACCEPTED);
 		buddy.setLoginID(buddyLoginID);
 

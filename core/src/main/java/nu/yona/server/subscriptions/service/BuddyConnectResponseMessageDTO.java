@@ -30,7 +30,6 @@ import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 {
 	private static final String PROCESS = "process";
-	private static final String DELETE = "delete";
 	private final String nickname;
 	private boolean isProcessed;
 
@@ -48,7 +47,6 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 		if (!isProcessed)
 		{
 			possibleActions.add(PROCESS);
-			possibleActions.add(DELETE);
 		}
 		return possibleActions;
 	}
@@ -98,8 +96,6 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 			{
 				case PROCESS:
 					return handleAction_Process(actingUser, (BuddyConnectResponseMessage) messageEntity, requestPayload);
-				case DELETE:
-					return handleAction_Delete(actingUser, (BuddyConnectResponseMessage) messageEntity, requestPayload);
 				default:
 					throw new IllegalArgumentException("Action '" + action + "' is not supported");
 			}
