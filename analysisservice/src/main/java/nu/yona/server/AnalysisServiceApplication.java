@@ -12,13 +12,10 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
-import org.springframework.hateoas.RelProvider;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import nu.yona.server.entities.RepositoryProvider;
-import nu.yona.server.rest.JsonRootRelProvider;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.builders.ResponseMessageBuilder;
@@ -55,17 +52,5 @@ public class AnalysisServiceApplication
 	public CacheManager cacheManager()
 	{
 		return new ConcurrentMapCacheManager("goalConflictMessages");
-	}
-
-	@Bean
-	RelProvider relProvider()
-	{
-		return new JsonRootRelProvider();
-	}
-
-	@Bean
-	RepositoryProvider repositoryProvider()
-	{
-		return new RepositoryProvider();
 	}
 }

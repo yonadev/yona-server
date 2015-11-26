@@ -19,7 +19,7 @@ import nu.yona.server.entities.RepositoryProvider;
 @Table(name = "MESSAGES")
 public abstract class Message extends EntityWithID
 {
-	private UUID relatedLoginID;
+	private UUID relatedVPNLoginID;
 	private Date creationTime;
 
 	public static MessageRepository getRepository()
@@ -39,7 +39,7 @@ public abstract class Message extends EntityWithID
 		{
 			throw new IllegalArgumentException("relatedUserAnonymizedID cannot be null");
 		}
-		this.relatedLoginID = relatedUserAnonymizedID;
+		this.relatedVPNLoginID = relatedUserAnonymizedID;
 		this.creationTime = new Date();
 	}
 
@@ -58,9 +58,9 @@ public abstract class Message extends EntityWithID
 		return creationTime;
 	}
 
-	public UUID getRelatedLoginID()
+	public UUID getRelatedVPNLoginID()
 	{
-		return relatedLoginID;
+		return relatedVPNLoginID;
 	}
 
 	protected abstract void encrypt(Encryptor encryptor);

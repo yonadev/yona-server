@@ -40,7 +40,7 @@ public class UserPrivateDTO
 			@JsonProperty("devices") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> deviceNames,
 			@JsonProperty("goals") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> goalNames)
 	{
-		this(nickName, null, null, null, null, deviceNames, goalNames, null, null);
+		this(nickName, null, null, null, null, deviceNames, goalNames, null, new VPNProfileDTO(null));
 	}
 
 	UserPrivateDTO(String nickName, UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
