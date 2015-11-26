@@ -105,7 +105,7 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 			}
 			else
 			{
-				buddyService.updateBuddyWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
+				buddyService.setBuddyAcceptedWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
 						connectResponseMessageEntity.getRelatedVPNLoginID(), connectResponseMessageEntity.getNickname());
 			}
 
