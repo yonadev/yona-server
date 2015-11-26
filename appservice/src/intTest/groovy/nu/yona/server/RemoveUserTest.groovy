@@ -138,7 +138,7 @@ class RemoveUserTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
+			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT
 			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard ${timestamp}"
 			response.responseData._embedded.buddyConnectRequestMessages[0].nickname == "RQ ${timestamp}"
 			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
@@ -171,7 +171,7 @@ class RemoveUserTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
+			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT
 			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
 			response.responseData._embedded.buddyConnectResponseMessages[0].nickname == "BD ${timestamp}"
 			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
@@ -212,7 +212,7 @@ class RemoveUserTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
+			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT
 			response.responseData._embedded.buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"
 			response.responseData._embedded.buddyDisconnectMessages[0].message == "Goodbye friends! I deinstalled the Internet"
 			response.responseData._embedded.buddyDisconnectMessages[0].nickname == "RQ ${timestamp}"
