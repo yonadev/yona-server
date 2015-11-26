@@ -206,18 +206,18 @@ class RemoveUserTest extends Specification {
 
 		when:
 			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
-			if (response.responseData._embedded && response.responseData._embedded.buddyConnectRemoveMessages) {
-				bobDunnBuddyRemoveMessageProcessURL = response.responseData._embedded.buddyConnectRemoveMessages[0]._links.process.href
+			if (response.responseData._embedded && response.responseData._embedded.buddyDisconnectMessages) {
+				bobDunnBuddyRemoveMessageProcessURL = response.responseData._embedded.buddyDisconnectMessages[0]._links.process.href
 			}
 
 		then:
 			response.status == 200
 			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
-			response.responseData._embedded.buddyConnectRemoveMessages[0].reason == "USER_ACCOUNT_DELETED"
-			response.responseData._embedded.buddyConnectRemoveMessages[0].message == "Goodbye friends! I deinstalled the Internet"
-			response.responseData._embedded.buddyConnectRemoveMessages[0].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.buddyConnectRemoveMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
-			bobDunnBuddyRemoveMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectRemoveMessages[0]._links.self.href)
+			response.responseData._embedded.buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"
+			response.responseData._embedded.buddyDisconnectMessages[0].message == "Goodbye friends! I deinstalled the Internet"
+			response.responseData._embedded.buddyDisconnectMessages[0].nickname == "RQ ${timestamp}"
+			response.responseData._embedded.buddyDisconnectMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+			bobDunnBuddyRemoveMessageProcessURL.startsWith(response.responseData._embedded.buddyDisconnectMessages[0]._links.self.href)
 	}
 
 	def 'Bob processes the remove buddy message'(){

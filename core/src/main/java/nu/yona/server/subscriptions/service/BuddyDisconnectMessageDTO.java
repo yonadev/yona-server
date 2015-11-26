@@ -21,7 +21,7 @@ import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 
-@JsonRootName("buddyConnectRemoveMessage")
+@JsonRootName("buddyDisconnectMessage")
 public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 {
 	private static final String PROCESS = "process";
