@@ -116,10 +116,10 @@ public class UserController
 	@ResponseBody
 	public HttpEntity<UserResource> addUserConfimation(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
-			@RequestBody UserSignInConfirmationDTO newDeviceRequestCreation)
+			@RequestBody MobileNumberConfirmationDTO newDeviceRequestCreation)
 	{
 		checkPassword(password, userID);
-		userService.confirmSignIn(userID, newDeviceRequestCreation.getCode());
+		userService.confirmMobileNumber(userID, newDeviceRequestCreation.getCode());
 		return createOKResponse(userService.getPublicUser(userID), false);
 	}
 

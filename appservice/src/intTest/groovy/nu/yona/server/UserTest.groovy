@@ -42,7 +42,7 @@ class UserTest extends Specification {
 			appService.deleteUser(appService.stripQueryString(response.responseData._links.self.href), password)
 	}
 
-	def 'Send sign-in confirmation code'(){
+	def 'Send mobile number confirmation code'(){
 		given:
 			def userAddResponse = appService.addUser(userCreationJSON, password);
 			def userURL = appService.stripQueryString(userAddResponse.responseData._links.self.href);

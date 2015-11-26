@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
-@JsonRootName("userSignInConfirmation")
-public class UserSignInConfirmationDTO
+@JsonRootName("mobileNumberConfirmation")
+public class MobileNumberConfirmationDTO
 {
 	private String code;
 
@@ -15,7 +15,7 @@ public class UserSignInConfirmationDTO
 	}
 
 	@JsonCreator
-	public UserSignInConfirmationDTO(@JsonProperty("code") String code)
+	public MobileNumberConfirmationDTO(@JsonProperty("code") String code)
 	{
 		this.code = code;
 	}

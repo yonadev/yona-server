@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
-import nu.yona.server.exceptions.SignInValidationException;
+import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
@@ -46,8 +46,8 @@ public class UserService
 	YonaProperties properties;
 	@Autowired
 	private SmsService smsService;
-	@Value("${yona.sms.sign-in.confirmation.message}")
-	private String signInConfirmationMessage;
+	@Value("${yona.sms.mobile.number.confirmation.message}")
+	private String mobileNumberConfirmationMessage;
 
 	@Autowired
 	BuddyService buddyService;
@@ -91,7 +91,7 @@ public class UserService
 		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
 
 		User userEntity = user.createUserEntity();
-		userEntity.setConfirmationCode(createConfirmationCode());
+		userEntity.setConfirmationCode(CryptoUtil.getRandomDigits(5));
 		userEntity = User.getRepository().save(userEntity);
 		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getVPNPassword());
 
@@ -102,41 +102,35 @@ public class UserService
 		}
 		else
 		{
-			sendSignConfirmationMessage(userEntity);
+			sendMobileNumberConfirmationMessage(userEntity);
 		}
 		return userDTO;
 	}
 
-	private String createConfirmationCode()
+	private void sendMobileNumberConfirmationMessage(User userEntity)
 	{
-		SecureRandom random = CryptoUtil.getSecureRandomInstance();
-		return "" + (random.nextInt(90000) + 10000); // Generate 5 digits in range 10000 - 99999.
-	}
-
-	private void sendSignConfirmationMessage(User userEntity)
-	{
-		String message = MessageFormat.format(signInConfirmationMessage, userEntity.getConfirmationCode());
+		String message = MessageFormat.format(mobileNumberConfirmationMessage, userEntity.getConfirmationCode());
 		smsService.send(userEntity.getMobileNumber(), message);
 	}
 
 	@Transactional
-	public void confirmSignIn(UUID userID, String code)
+	public void confirmMobileNumber(UUID userID, String code)
 	{
 		User userEntity = getEntityByID(userID);
 
 		if (userEntity.getConfirmationCode() == null)
 		{
-			throw SignInValidationException.signInCodeNotSet();
+			throw MobileNumberConfirmationException.signInCodeNotSet();
 		}
 
 		if (!userEntity.getConfirmationCode().equals(code))
 		{
-			throw SignInValidationException.signInCodeMismatch();
+			throw MobileNumberConfirmationException.signInCodeMismatch();
 		}
 
 		if (userEntity.getStatus() != User.Status.UNCONFIRMED)
 		{
-			throw SignInValidationException.userCannotBeActivated();
+			throw MobileNumberConfirmationException.userCannotBeActivated();
 		}
 
 		userEntity.setConfirmationCode(null);
