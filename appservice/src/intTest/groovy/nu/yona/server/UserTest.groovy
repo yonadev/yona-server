@@ -52,6 +52,7 @@ class UserTest extends Specification {
 			def response = appService.confirmUser(userURL, """ { "code":"${confirmationCode}" } """, password)
 
 		then:
+			confirmationCode != null
 			response.status == 200
 
 		cleanup:
