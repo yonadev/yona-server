@@ -25,11 +25,6 @@ import nu.yona.server.messaging.entities.MessageSource;
 @Table(name = "USERS")
 public class User extends EntityWithID
 {
-	public enum Status
-	{
-		UNCONFIRMED, INACTIVE, ACTIVE
-	}
-
 	public static UserRepository getRepository()
 	{
 		return (UserRepository) RepositoryProvider.getRepository(User.class, UUID.class);
@@ -46,7 +41,7 @@ public class User extends EntityWithID
 
 	private boolean isCreatedOnBuddyRequest;
 
-	private Status status;
+	private boolean isConfirmed;
 	private String confirmationCode;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -68,7 +63,6 @@ public class User extends EntityWithID
 			UserPrivate userPrivate, MessageDestination messageDestination)
 	{
 		super(id);
-		this.status = Status.UNCONFIRMED;
 		this.initializationVector = initializationVector;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -149,14 +143,14 @@ public class User extends EntityWithID
 		this.newDeviceRequest = newDeviceRequest;
 	}
 
-	public Status getStatus()
+	public boolean isConfirmed()
 	{
-		return status;
+		return isConfirmed;
 	}
 
-	public void setStatus(Status status)
+	public void markAsConfirmed()
 	{
-		this.status = status;
+		this.isConfirmed = true;
 	}
 
 	public String getConfirmationCode()

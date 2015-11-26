@@ -54,6 +54,8 @@ class UserTest extends Specification {
 		then:
 			confirmationCode != null
 			response.status == 200
+			userAddResponse.responseData.confirmed == false
+			response.responseData.confirmed == true
 
 		cleanup:
 			if (userURL)

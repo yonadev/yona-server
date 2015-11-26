@@ -130,13 +130,13 @@ public class UserService
 			throw MobileNumberConfirmationException.confirmationCodeMismatch();
 		}
 
-		if (userEntity.getStatus() != User.Status.UNCONFIRMED)
+		if (userEntity.isConfirmed())
 		{
 			throw MobileNumberConfirmationException.userCannotBeActivated();
 		}
 
 		userEntity.setConfirmationCode(null);
-		userEntity.setStatus(User.Status.ACTIVE);
+		userEntity.markAsConfirmed();
 		User.getRepository().save(userEntity);
 	}
 
