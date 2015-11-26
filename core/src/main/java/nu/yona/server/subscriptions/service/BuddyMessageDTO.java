@@ -10,13 +10,14 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.service.MessageDTO;
 
-@JsonRootName("buddyConnectMessage")
-public abstract class BuddyConnectMessageDTO extends MessageDTO
+@JsonRootName("buddyMessage")
+public abstract class BuddyMessageDTO extends MessageDTO
 {
 	private UserDTO user;
+	private final String nickname;
 	private final String message;
 
-	protected BuddyConnectMessageDTO(UUID id, UserDTO user, String message)
+	protected BuddyMessageDTO(UUID id, UserDTO user, String nickname, String message)
 	{
 		super(id);
 		if (user == null)
@@ -24,12 +25,18 @@ public abstract class BuddyConnectMessageDTO extends MessageDTO
 			throw new IllegalArgumentException("user cannot be null");
 		}
 		this.user = user;
+		this.nickname = nickname;
 		this.message = message;
 	}
 
 	public UserDTO getUser()
 	{
 		return user;
+	}
+
+	public String getNickname()
+	{
+		return nickname;
 	}
 
 	public String getMessage()

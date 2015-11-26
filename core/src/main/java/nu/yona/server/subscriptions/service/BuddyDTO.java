@@ -26,7 +26,7 @@ public class BuddyDTO
 	private String message;
 	private String password;
 	private String nickName;
-	private UUID loginID;
+	private UUID vpnLoginID;
 	private Status sendingStatus;
 	private Status receivingStatus;
 
@@ -35,7 +35,7 @@ public class BuddyDTO
 	 */
 	private String userCreatedInviteURL;
 
-	public BuddyDTO(UUID id, UserDTO user, String message, String password, String nickName, UUID loginID, Status sendingStatus,
+	public BuddyDTO(UUID id, UserDTO user, String message, String password, String nickName, UUID vpnLoginID, Status sendingStatus,
 			Status receivingStatus)
 	{
 		this.id = id;
@@ -43,14 +43,14 @@ public class BuddyDTO
 		this.message = message;
 		this.password = password;
 		this.nickName = nickName;
-		this.loginID = loginID;
+		this.vpnLoginID = vpnLoginID;
 		this.sendingStatus = sendingStatus;
 		this.receivingStatus = receivingStatus;
 	}
 
-	public BuddyDTO(UUID id, UserDTO user, String nickName, UUID loginID, Status sendingStatus, Status receivingStatus)
+	public BuddyDTO(UUID id, UserDTO user, String nickName, UUID vpnLoginID, Status sendingStatus, Status receivingStatus)
 	{
-		this(id, user, null, null, nickName, loginID, sendingStatus, receivingStatus);
+		this(id, user, null, null, nickName, vpnLoginID, sendingStatus, receivingStatus);
 	}
 
 	@JsonCreator
@@ -87,13 +87,13 @@ public class BuddyDTO
 	public static BuddyDTO createInstance(Buddy buddyEntity)
 	{
 		return new BuddyDTO(buddyEntity.getID(), UserDTO.createInstance(buddyEntity.getUser()), buddyEntity.getNickName(),
-				getBuddyLoginID(buddyEntity), buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus());
+				getBuddyVPNLoginID(buddyEntity), buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus());
 	}
 
-	private static UUID getBuddyLoginID(Buddy buddyEntity)
+	private static UUID getBuddyVPNLoginID(Buddy buddyEntity)
 	{
 		return (buddyEntity.getReceivingStatus() == Status.ACCEPTED) || (buddyEntity.getSendingStatus() == Status.ACCEPTED)
-				? buddyEntity.getLoginID() : null;
+				? buddyEntity.getVPNLoginID() : null;
 	}
 
 	@JsonInclude(Include.NON_EMPTY)
@@ -118,9 +118,9 @@ public class BuddyDTO
 	}
 
 	@JsonIgnore
-	public UUID getLoginID()
+	public UUID getVPNLoginID()
 	{
-		return loginID;
+		return vpnLoginID;
 	}
 
 	/*
