@@ -190,7 +190,7 @@ public class BuddyService
 	private BuddyDTO handleBuddyRequestForExistingUser(UserDTO requestingUser, BuddyDTO buddy, User buddyUserEntity)
 	{
 		buddy.getUser().setUserID(buddyUserEntity.getID());
-		if (buddy.getSendingStatus() == Status.NOT_REQUESTED || buddy.getReceivingStatus() == Status.NOT_REQUESTED)
+		if (buddy.getSendingStatus() != Status.REQUESTED || buddy.getReceivingStatus() != Status.REQUESTED)
 		{
 			throw new IllegalArgumentException("only two-way buddies allowed for now");
 		}
