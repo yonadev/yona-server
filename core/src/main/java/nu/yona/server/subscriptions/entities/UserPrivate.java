@@ -155,9 +155,9 @@ public class UserPrivate extends EntityWithID
 		return MessageSource.getRepository().findOne(namedMessageSourceID);
 	}
 
-	public UUID getLoginID()
+	public UUID getVPNLoginID()
 	{
-		return getUserAnonymized().getLoginID();
+		return getUserAnonymized().getVPNLoginID();
 	}
 
 	public String getPassword()

@@ -22,20 +22,20 @@ import nu.yona.server.subscriptions.entities.User;
 public class VPNProfileDTO
 {
 	private final UUID id;
-	private UUID loginID;
+	private UUID vpnLoginID;
 	private String password;
 
-	public VPNProfileDTO(UUID id, UUID loginID, String password)
+	public VPNProfileDTO(UUID id, UUID vpnLoginID, String password)
 	{
 		this.id = id;
-		this.loginID = loginID;
+		this.vpnLoginID = vpnLoginID;
 		this.password = password;
 	}
 
 	@JsonCreator
-	public VPNProfileDTO(@JsonProperty("loginID") UUID loginID)
+	public VPNProfileDTO(@JsonProperty("vpnLoginID") UUID vpnLoginID)
 	{
-		this(null, loginID, null);
+		this(null, vpnLoginID, null);
 	}
 
 	@JsonIgnore
@@ -44,9 +44,10 @@ public class VPNProfileDTO
 		return id;
 	}
 
-	public UUID getLoginID()
+	@JsonProperty("vpnLoginID")
+	public UUID getVPNLoginID()
 	{
-		return loginID;
+		return vpnLoginID;
 	}
 
 	public String getPassword()
@@ -74,6 +75,6 @@ public class VPNProfileDTO
 
 	public static VPNProfileDTO createInstance(User user)
 	{
-		return new VPNProfileDTO(user.getAnonymized().getID(), user.getLoginID(), user.getPassword());
+		return new VPNProfileDTO(user.getAnonymized().getID(), user.getVPNLoginID(), user.getPassword());
 	}
 }

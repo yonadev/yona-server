@@ -171,9 +171,9 @@ public class User extends EntityWithID
 		return getUserPrivate().getUserAnonymized().getGoals();
 	}
 
-	public UUID getLoginID()
+	public UUID getVPNLoginID()
 	{
-		return getUserPrivate().getLoginID();
+		return getUserPrivate().getVPNLoginID();
 	}
 
 	public String getPassword()

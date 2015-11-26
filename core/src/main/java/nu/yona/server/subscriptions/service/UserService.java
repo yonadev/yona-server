@@ -80,7 +80,7 @@ public class UserService
 
 		User userEntity = user.createUserEntity();
 		userEntity = User.getRepository().save(userEntity);
-		ldapUserService.createVPNAccount(userEntity.getLoginID().toString(), userEntity.getPassword());
+		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getPassword());
 
 		return UserDTO.createInstanceWithPrivateData(userEntity);
 	}
