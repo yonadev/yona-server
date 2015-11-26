@@ -93,6 +93,6 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 	@Override
 	public boolean canBeDeleted()
 	{
-		return this.status == BuddyAnonymized.Status.ACCEPTED || this.status == BuddyAnonymized.Status.REJECTED;
+		return this.isProcessed;
 	}
 }

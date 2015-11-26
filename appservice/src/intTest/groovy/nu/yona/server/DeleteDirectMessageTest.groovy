@@ -138,7 +138,7 @@ class DeleteDirectMessageTest extends Specification {
 			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
 			if (response.responseData._embedded && response.responseData._embedded.buddyConnectRequestMessages) {
 				bobDunnBuddyMessageAcceptURL = response.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
-				bobDunnBuddyConnectRequestDeleteURL = response.responseData._embedded.buddyConnectRequestMessages[0]._links.delete.href
+				bobDunnBuddyConnectRequestDeleteURL = response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href
 			}
 
 		then:
@@ -154,10 +154,7 @@ class DeleteDirectMessageTest extends Specification {
 		given:
 
 		when:
-			def response = appService.postMessageActionWithPassword(bobDunnBuddyConnectRequestDeleteURL, """{
-					"properties":{
-					}
-				}""", bobDunnPassword)
+			def response = appService.deleteResourceWithPassword(bobDunnBuddyConnectRequestDeleteURL, bobDunnPassword)
 
 		then:
 			response.status == 400
@@ -186,7 +183,7 @@ class DeleteDirectMessageTest extends Specification {
 			def response = appService.getDirectMessages(richardQuinURL, richardQuinPassword)
 			if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
 				richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
-				richardQuinBuddyMessageDeleteURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.delete.href
+				richardQuinBuddyMessageDeleteURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href
 			}
 
 		then:
@@ -202,10 +199,7 @@ class DeleteDirectMessageTest extends Specification {
 		given:
 
 		when:
-			def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageDeleteURL, """{
-					"properties":{
-					}
-				}""", richardQuinPassword)
+			def response = appService.deleteResourceWithPassword(richardQuinBuddyMessageDeleteURL, richardQuinPassword)
 
 		then:
 			response.status == 400
@@ -281,7 +275,8 @@ class DeleteDirectMessageTest extends Specification {
 
 		when:
 			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
-			richardQuinGoalConflictMessageDeleteUrl = response.responseData?._embedded?.goalConflictMessages[0]._links?.delete?.href
+			richardQuinGoalConflictMessageDeleteUrl = response.responseData?._embedded?.goalConflictMessages[0]._links?.self?.href
+
 		then:
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 1
@@ -295,14 +290,10 @@ class DeleteDirectMessageTest extends Specification {
 		given:
 
 		when:
-			def response = appService.postMessageActionWithPassword(richardQuinGoalConflictMessageDeleteUrl, """{
-					"properties":{
-					}
-				}""", richardQuinPassword)
+			def response = appService.deleteResourceWithPassword(richardQuinGoalConflictMessageDeleteUrl, richardQuinPassword)
 
 		then:
 			response.status == 200
-			response.responseData.properties.status == "done"
 	}
 
 	def 'Richard checks he no longer has any anonymous messages'(){
@@ -334,14 +325,10 @@ class DeleteDirectMessageTest extends Specification {
 		given:
 
 		when:
-			def response = appService.postMessageActionWithPassword(bobDunnBuddyConnectRequestDeleteURL, """{
-					"properties":{
-					}
-				}""", bobDunnPassword)
+			def response = appService.deleteResourceWithPassword(bobDunnBuddyConnectRequestDeleteURL, bobDunnPassword)
 
 		then:
 			response.status == 200
-			response.responseData.properties.status == "done"
 	}
 
 	def 'Bob checks his direct messages to see that the buddy request message was deleted'(){
@@ -359,14 +346,10 @@ class DeleteDirectMessageTest extends Specification {
 		given:
 
 		when:
-			def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageDeleteURL, """{
-					"properties":{
-					}
-				}""", richardQuinPassword)
+			def response = appService.deleteResourceWithPassword(richardQuinBuddyMessageDeleteURL, richardQuinPassword)
 
 		then:
 			response.status == 200
-			response.responseData.properties.status == "done"
 	}
 
 	def 'Richard checks his direct messages to see that the buddy acceptance message was deleted'(){

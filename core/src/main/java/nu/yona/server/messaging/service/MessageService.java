@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
@@ -72,18 +75,38 @@ public class MessageService
 		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
 	}
 
-	public MessageActionDTO deleteMessage(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
+	public MessageActionDTO deleteMessage(UUID userID, UUID id)
 	{
 		UserDTO user = userService.getPrivateUser(userID);
-		MessageSource messageSource = getAnonymousMessageSource(user);
-		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
+		MessageSource messageSource = getNamedMessageSource(user);
+		Message message = messageSource.getMessage(id);
+		MessageDestination destination = MessageDestination.getRepository()
+				.findOne(user.getPrivateData().getNamedMessageDestinationID());
+		deleteMessage(message, destination);
+		return new MessageActionDTO(Collections.singletonMap("status", "done"));
 	}
 
-	public MessageActionDTO deleteAnonymousMessage(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
+	public MessageActionDTO deleteAnonymousMessage(UUID userID, UUID id)
 	{
 		UserDTO user = userService.getPrivateUser(userID);
 		MessageSource messageSource = getAnonymousMessageSource(user);
-		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
+		Message message = messageSource.getMessage(id);
+		MessageDestination destination = MessageDestination.getRepository()
+				.findOne(user.getPrivateData().getAnonymousMessageDestinationID());
+		deleteMessage(message, destination);
+		return new MessageActionDTO(Collections.singletonMap("status", "done"));
+	}
+
+	private void deleteMessage(Message message, MessageDestination destination)
+	{
+		if (!message.canBeDeleted())
+		{
+			throw InvalidMessageActionException.unprocessedMessageCannotBeDeleted();
+		}
+
+		destination.remove(message);
+		MessageDestination.getRepository().save(destination);
+		Message.getRepository().delete(message);
 	}
 
 	private MessageSource getNamedMessageSource(UserDTO user)

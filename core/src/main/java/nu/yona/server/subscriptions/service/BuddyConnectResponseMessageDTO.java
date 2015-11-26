@@ -16,9 +16,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 
-import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
@@ -116,23 +114,6 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 			}
 
 			updateMessageStatusAsProcessed(connectResponseMessageEntity);
-
-			return new MessageActionDTO(Collections.singletonMap("status", "done"));
-		}
-
-		private MessageActionDTO handleAction_Delete(UserDTO user, BuddyConnectResponseMessage connectResponseMessageEntity,
-				MessageActionDTO payload)
-		{
-			if (!connectResponseMessageEntity.isProcessed())
-			{
-				throw InvalidMessageActionException.unprocessedMessageCannotBeDeleted();
-			}
-
-			MessageDestination destination = MessageDestination.getRepository()
-					.findOne(user.getPrivateData().getNamedMessageDestinationID());
-			destination.remove(connectResponseMessageEntity);
-			MessageDestination.getRepository().save(destination);
-			Message.getRepository().delete(connectResponseMessageEntity);
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}
