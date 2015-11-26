@@ -98,8 +98,8 @@ public class GoalConflictMessageDTO extends MessageDTO
 
 		private String getNickname(UserDTO actingUser, GoalConflictMessage messageEntity)
 		{
-			UUID loginID = messageEntity.getRelatedLoginID();
-			if (actingUser.getPrivateData().getVpnProfile().getLoginID().equals(loginID))
+			UUID vpnLoginID = messageEntity.getRelatedVPNLoginID();
+			if (actingUser.getPrivateData().getVpnProfile().getVPNLoginID().equals(vpnLoginID))
 			{
 				return "<self>";
 			}
@@ -107,12 +107,12 @@ public class GoalConflictMessageDTO extends MessageDTO
 			Set<BuddyDTO> buddies = buddyService.getBuddies(actingUser.getPrivateData().getBuddyIDs());
 			for (BuddyDTO buddy : buddies)
 			{
-				if (loginID.equals(buddy.getLoginID()))
+				if (vpnLoginID.equals(buddy.getVPNLoginID()))
 				{
 					return buddy.getNickName();
 				}
 			}
-			throw new IllegalStateException("Cannot find buddy for login ID '" + loginID + "'");
+			throw new IllegalStateException("Cannot find buddy for VPN login ID '" + vpnLoginID + "'");
 		}
 	}
 }

@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.Buddy;
@@ -67,13 +66,12 @@ public class BuddyService
 	}
 
 	@Transactional
-	public BuddyDTO addBuddyToAcceptingUser(UserDTO acceptingUser, UUID buddyUserID, String buddyNickName, Set<Goal> buddyGoals,
-			UUID buddyLoginID)
+	public BuddyDTO addBuddyToAcceptingUser(UserDTO acceptingUser, UUID buddyUserID, String buddyNickName,
+			UUID buddyVPNLoginID)
 	{
 		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName);
-		buddy.setGoals(buddyGoals);
 		buddy.setReceivingStatus(BuddyAnonymized.Status.ACCEPTED);
-		buddy.setLoginID(buddyLoginID);
+		buddy.setVPNLoginID(buddyVPNLoginID);
 		BuddyDTO buddyDTO = BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
 		userService.addBuddy(acceptingUser, buddyDTO);
 		return buddyDTO;
@@ -161,7 +159,7 @@ public class BuddyService
 	{
 		UserDTO buddyUser = buddy.getUser();
 
-		String tempPassword = userService.generateTempPassword();
+		String tempPassword = userService.generatePassword();
 		User buddyUserEntity = userService.addUserCreatedOnBuddyRequest(buddyUser, tempPassword);
 		BuddyDTO savedBuddy = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
 
@@ -199,7 +197,7 @@ public class BuddyService
 
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
 		messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
-				requestingUser.getPrivateData().getVpnProfile().getLoginID(), requestingUser.getPrivateData().getGoals(),
+				requestingUser.getPrivateData().getVpnProfile().getVPNLoginID(), requestingUser.getPrivateData().getGoals(),
 				requestingUser.getPrivateData().getNickName(), buddy.getMessage(), savedBuddyEntity.getID()));
 		MessageDestination.getRepository().save(messageDestination);
 
@@ -228,10 +226,10 @@ public class BuddyService
 		}
 	}
 
-	public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID loginID, String nickname)
+	public void updateBuddyWithSecretUserInfo(UUID buddyID, UUID vpnLoginID, String nickname)
 	{
 		Buddy buddy = Buddy.getRepository().findOne(buddyID);
-		buddy.setLoginID(loginID);
+		buddy.setVPNLoginID(vpnLoginID);
 		buddy.setNickName(nickname);
 	}
 

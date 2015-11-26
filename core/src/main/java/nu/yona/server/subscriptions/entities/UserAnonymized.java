@@ -83,7 +83,7 @@ public class UserAnonymized extends EntityWithID
 		assert removed;
 	}
 
-	public UUID getLoginID()
+	public UUID getVPNLoginID()
 	{
 		return getID();
 	}
