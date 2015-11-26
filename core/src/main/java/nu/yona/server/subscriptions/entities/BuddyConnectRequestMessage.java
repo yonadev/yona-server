@@ -18,11 +18,6 @@ import nu.yona.server.goals.entities.Goal;
 @Entity
 public class BuddyConnectRequestMessage extends BuddyConnectMessage
 {
-
-	@Transient
-	private Set<UUID> goalIDs;
-	private byte[] goalIDsCiphertext;
-
 	@Transient
 	private String nickname;
 	private byte[] nicknameCiphertext;
@@ -43,13 +38,7 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		{
 			throw new IllegalArgumentException("requestingUserID cannot be null");
 		}
-		this.goalIDs = goalIDs;
 		this.nickname = nickname;
-	}
-
-	public Set<Goal> getGoals()
-	{
-		return goalIDs.stream().map(id -> Goal.getRepository().findOne(id)).collect(Collectors.toSet());
 	}
 
 	public String getNickname()
@@ -88,7 +77,6 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	public void encrypt(Encryptor encryptor)
 	{
 		super.encrypt(encryptor);
-		goalIDsCiphertext = encryptor.encrypt(goalIDs);
 		nicknameCiphertext = encryptor.encrypt(nickname);
 	}
 
@@ -96,7 +84,6 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	public void decrypt(Decryptor decryptor)
 	{
 		super.decrypt(decryptor);
-		goalIDs = decryptor.decryptUUIDSet(goalIDsCiphertext);
 		nickname = decryptor.decryptString(nicknameCiphertext);
 	}
 }
