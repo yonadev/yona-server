@@ -189,10 +189,11 @@ public class UserController
 	@RequestMapping(value = "{id}", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
+	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
+			@RequestParam(value = "message", required = false) String messageStr)
 	{
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
-			userService.deleteUser(password, id);
+			userService.deleteUser(id, Optional.ofNullable(messageStr));
 			return null;
 		});
 	}

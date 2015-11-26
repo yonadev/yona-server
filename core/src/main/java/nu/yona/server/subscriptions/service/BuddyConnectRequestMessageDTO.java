@@ -27,7 +27,7 @@ import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 
 @JsonRootName("buddyConnectRequestMessage")
-public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
+public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 {
 	private static final String ACCEPT = "accept";
 	private static final String REJECT = "reject";
@@ -37,7 +37,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
 	private BuddyConnectRequestMessageDTO(BuddyConnectRequestMessage buddyConnectRequestMessageEntity, UUID id, UserDTO user,
 			UUID vpnLoginID, String nickname, String message, boolean isAccepted, boolean isRejected)
 	{
-		super(id, user, message);
+		super(id, user, nickname, message);
 		if (buddyConnectRequestMessageEntity == null)
 		{
 			throw new IllegalArgumentException("buddyConnectRequestMessageEntity cannot be null");
@@ -88,9 +88,6 @@ public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
 		@Autowired
 		private BuddyService buddyService;
 
-		@Autowired
-		private UserService userService;
-
 		@PostConstruct
 		private void init()
 		{
@@ -121,11 +118,8 @@ public class BuddyConnectRequestMessageDTO extends BuddyConnectMessageDTO
 		private MessageActionDTO handleAction_Accept(UserDTO acceptingUser,
 				BuddyConnectRequestMessage connectRequestMessageEntity, MessageActionDTO payload)
 		{
-
-			BuddyDTO buddy = buddyService.addBuddyToAcceptingUser(connectRequestMessageEntity.getUser().getID(),
+			buddyService.addBuddyToAcceptingUser(acceptingUser, connectRequestMessageEntity.getUser().getID(),
 					connectRequestMessageEntity.getNickname(), connectRequestMessageEntity.getRelatedVPNLoginID());
-
-			userService.addBuddy(acceptingUser, buddy);
 
 			updateMessageStatusAsAccepted(connectRequestMessageEntity);
 

@@ -196,6 +196,11 @@ public class User extends EntityWithID
 		getUserPrivate().removeBuddy(buddy);
 	}
 
+	public void removeBuddiesFromUser(UUID fromUserLoginID)
+	{
+		getUserPrivate().removeBuddiesFromUser(fromUserLoginID);
+	}
+
 	public MessageSource getNamedMessageSource()
 	{
 		return getUserPrivate().getNamedMessageSource();
@@ -239,5 +244,10 @@ public class User extends EntityWithID
 	public void setIsCreatedOnBuddyRequest()
 	{
 		isCreatedOnBuddyRequest = true;
+	}
+
+	public Buddy getBuddyByVPNLoginID(UUID relatedUserVPNLoginID)
+	{
+		return getBuddies().stream().filter(buddy -> buddy.getVPNLoginID().equals(relatedUserVPNLoginID)).findAny().get();
 	}
 }

@@ -79,6 +79,11 @@ public class Buddy extends EntityWithID
 		this.nickName = nickName;
 	}
 
+	public UUID getUserID()
+	{
+		return userID;
+	}
+
 	public User getUser()
 	{
 		return User.getRepository().findOne(userID);

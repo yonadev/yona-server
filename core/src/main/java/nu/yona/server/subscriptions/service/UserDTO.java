@@ -128,6 +128,11 @@ public class UserDTO
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getMobileNumber());
 	}
 
+	static UserDTO createRemovedUserInstance()
+	{
+		return new UserDTO(null, null, null, null);
+	}
+
 	static UserDTO createInstanceWithPrivateData(User userEntity)
 	{
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickName(),

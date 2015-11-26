@@ -24,6 +24,7 @@ import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 
 @Service
 public class UserService
@@ -39,6 +40,9 @@ public class UserService
 
 	@Autowired
 	YonaProperties properties;
+
+	@Autowired
+	BuddyService buddyService;
 
 	// TODO: Do we need this? Currently unused.
 	@Transactional
@@ -152,10 +156,21 @@ public class UserService
 		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(retrievedEntitySet.userEntity));
 	}
 
-	public void deleteUser(Optional<String> password, UUID id)
+	@Transactional
+	public void deleteUser(UUID id, Optional<String> message)
 	{
+		User userEntity = getEntityByID(id);
 
-		User.getRepository().delete(id);
+		userEntity.getBuddies().forEach(buddyEntity -> buddyService.clearMessagesAndSendDropBuddyMessage(userEntity, buddyEntity,
+				message, DropBuddyReason.USER_ACCOUNT_DELETED));
+
+		UserAnonymized userAnonymized = userEntity.getAnonymized();
+		UserAnonymized.getRepository().delete(userAnonymized);
+		MessageSource namedMessageSource = userEntity.getNamedMessageSource();
+		MessageSource anonymousMessageSource = userEntity.getAnonymousMessageSource();
+		MessageSource.getRepository().delete(anonymousMessageSource);
+		MessageSource.getRepository().delete(namedMessageSource);
+		User.getRepository().delete(userEntity);
 	}
 
 	private User getEntityByID(UUID id)
@@ -278,8 +293,7 @@ public class UserService
 		final MessageSource namedMessageSource;
 		final MessageSource anonymousMessageSource;
 
-		EncryptedUserData(User userEntity, UserAnonymized userAnonymizedEntity, MessageSource namedMessageSource,
-				MessageSource anonymousMessageSource)
+		EncryptedUserData(User userEntity, MessageSource namedMessageSource, MessageSource anonymousMessageSource)
 		{
 			this.userEntity = userEntity;
 			this.namedMessageSource = namedMessageSource;

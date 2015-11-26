@@ -12,7 +12,6 @@ import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.User;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserService.EncryptedUserData;
 
 /*
@@ -45,10 +44,9 @@ class UserServiceTempEncryptionContextExecutor
 	@Transactional(value = TxType.REQUIRES_NEW)
 	public EncryptedUserData retrieveUserEncryptedData(User originalUserEntity)
 	{
-		UserAnonymized userAnonymizedEntity = originalUserEntity.getAnonymized();
 		MessageSource namedMessageSource = originalUserEntity.getNamedMessageSource();
 		MessageSource anonymousMessageSource = originalUserEntity.getAnonymousMessageSource();
-		EncryptedUserData userEncryptedData = new EncryptedUserData(originalUserEntity, userAnonymizedEntity, namedMessageSource,
+		EncryptedUserData userEncryptedData = new EncryptedUserData(originalUserEntity, namedMessageSource,
 				anonymousMessageSource);
 		userEncryptedData.loadLazyEncryptedData();
 		return userEncryptedData;
