@@ -43,7 +43,7 @@ sub transform_log_record ($) {
 	}
 
 	my $analysis_event = {
-		'loginID' => $username,
+		'vpnLoginID' => $username,
 		'categories' => [@relevant_url_categories_logged],
 		'url' => $url
 	};

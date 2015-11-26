@@ -35,7 +35,7 @@ public class AnalysisEngineService
 
 	public void analyze(PotentialConflictDTO potentialConflictPayload)
 	{
-		UserAnonymized userAnonimized = getUserAnonymizedByID(potentialConflictPayload.getLoginID());
+		UserAnonymized userAnonimized = getUserAnonymizedByID(potentialConflictPayload.getVPNLoginID());
 		Set<Goal> conflictingGoalsOfUser = determineConflictingGoalsForUser(userAnonimized,
 				potentialConflictPayload.getCategories());
 		if (!conflictingGoalsOfUser.isEmpty())
@@ -62,7 +62,7 @@ public class AnalysisEngineService
 		Date now = new Date();
 		Date minEndTime = new Date(now.getTime() - conflictInterval);
 		Goal conflictingGoal = conflictingGoalsOfUser.iterator().next();
-		GoalConflictMessage message = cacheService.fetchLatestGoalConflictMessageForUser(payload.getLoginID(),
+		GoalConflictMessage message = cacheService.fetchLatestGoalConflictMessageForUser(payload.getVPNLoginID(),
 				conflictingGoal.getID(), destination, minEndTime);
 
 		if (message == null || message.getEndTime().before(minEndTime))
@@ -83,7 +83,7 @@ public class AnalysisEngineService
 	private GoalConflictMessage sendNewGoalConflictMessage(PotentialConflictDTO payload, Goal conflictingGoal,
 			MessageDestination destination)
 	{
-		GoalConflictMessage message = GoalConflictMessage.createInstance(payload.getLoginID(), conflictingGoal, payload.getURL());
+		GoalConflictMessage message = GoalConflictMessage.createInstance(payload.getVPNLoginID(), conflictingGoal, payload.getURL());
 		destination.send(message);
 		return message;
 	}
@@ -91,7 +91,7 @@ public class AnalysisEngineService
 	private void updateLastGoalConflictMessage(PotentialConflictDTO payload, Date messageEndTime, Goal conflictingGoal,
 			GoalConflictMessage message)
 	{
-		assert payload.getLoginID().equals(message.getRelatedLoginID());
+		assert payload.getVPNLoginID().equals(message.getRelatedVPNLoginID());
 		assert conflictingGoal.getID().equals(message.getGoal().getID());
 
 		message.setEndTime(messageEndTime);
@@ -116,7 +116,7 @@ public class AnalysisEngineService
 		UserAnonymized entity = UserAnonymized.getRepository().findOne(id);
 		if (entity == null)
 		{
-			throw InvalidDataException.loginIDNotFound(id);
+			throw InvalidDataException.vpnLoginIDNotFound(id);
 		}
 		return entity;
 	}
