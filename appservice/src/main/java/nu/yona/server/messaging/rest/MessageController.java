@@ -80,6 +80,16 @@ public class MessageController
 				() -> createOKResponse(messageService.handleMessageAction(userID, id, action, requestPayload)));
 	}
 
+	@RequestMapping(value = "/direct/{messageID}", method = RequestMethod.DELETE)
+	@ResponseBody
+	public HttpEntity<Resource<MessageActionDTO>> deleteMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userID, @PathVariable UUID messageID)
+	{
+
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> createOKResponse(messageService.deleteMessage(userID, messageID)));
+	}
+
 	@RequestMapping(value = "/anonymous/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<Resources<MessageResource>> getAnonymousMessages(
@@ -99,6 +109,28 @@ public class MessageController
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> createOKResponse(false, userID, messageService.getAnonymousMessage(userID, messageID)));
 
+	}
+
+	@RequestMapping(value = "/anonymous/{id}/{action}", method = RequestMethod.POST)
+	@ResponseBody
+	public HttpEntity<Resource<MessageActionDTO>> handleAnonymousMessageAction(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, @PathVariable UUID id,
+			@PathVariable String action, @RequestBody MessageActionDTO requestPayload)
+	{
+
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> createOKResponse(messageService.handleAnonymousMessageAction(userID, id, action, requestPayload)));
+	}
+
+	@RequestMapping(value = "/anonymous/{messageID}", method = RequestMethod.DELETE)
+	@ResponseBody
+	public HttpEntity<Resource<MessageActionDTO>> deleteAnonymousMessage(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@PathVariable UUID messageID)
+	{
+
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> createOKResponse(messageService.deleteAnonymousMessage(userID, messageID)));
 	}
 
 	private HttpEntity<Resources<MessageResource>> createOKResponse(boolean isDirect, UUID userID, List<MessageDTO> messages)

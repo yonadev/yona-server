@@ -74,4 +74,10 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	{
 		super.decrypt(decryptor);
 	}
+
+	@Override
+	public boolean canBeDeleted()
+	{
+		return this.status == BuddyAnonymized.Status.ACCEPTED || this.status == BuddyAnonymized.Status.REJECTED;
+	}
 }

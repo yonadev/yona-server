@@ -14,7 +14,7 @@ import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.messaging.entities.Message;
 
 @Entity
-public class BuddyMessage extends Message
+public abstract class BuddyMessage extends Message
 {
 	@Transient
 	private UUID userID;
