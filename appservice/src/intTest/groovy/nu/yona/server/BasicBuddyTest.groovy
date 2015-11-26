@@ -99,6 +99,28 @@ class BasicBuddyTest extends Specification {
 			println "URL Bob: " + bobDunnURL
 	}
 
+	def 'Hacking attempt: Try to request one-way connection'(){
+		given:
+
+		when:
+			def response = appService.requestBuddy(richardQuinURL, """{
+					"_embedded":{
+						"user":{
+							"firstName":"Bob ${timestamp}",
+							"lastName":"Dun ${timestamp}",
+							"emailAddress":"bob${timestamp}@dunn.net",
+							"mobileNumber":"+${timestamp}2"
+						}
+					},
+					"message":"Would you like to be my buddy?",
+					"sendingStatus":"NOT_REQUESTED",
+					"receivingStatus":"REQUESTED"
+				}""", richardQuinPassword)
+
+		then:
+			response.status == 500
+	}
+	
 	def 'Richard requests Bob to become his buddy'(){
 		given:
 
