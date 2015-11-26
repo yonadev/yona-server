@@ -504,7 +504,7 @@ class BasicBuddyTest extends Specification {
 			response.responseData.properties.status == "done"
 	}
 	
-	def 'Richard checks his buddy list and will find a one-way entry for Bob'(){
+	def 'Richard checks his buddy list and Bob is no longer there'(){
 		given:
 
 		when:
@@ -512,10 +512,10 @@ class BasicBuddyTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._embedded.buddies.size() == 1
+			response.responseData._embedded == null
 	}
 	
-	def 'Bob checks his buddy list and will find a one-way entry for Richard'(){
+	def 'Bob checks his buddy list and Richard is no longer there'(){
 		given:
 
 		when:
@@ -523,7 +523,6 @@ class BasicBuddyTest extends Specification {
 
 		then:
 			response.status == 200
-			//TODO: one-way and two-way should maybe be a single Buddy record, currently there are two
 			response.responseData._embedded == null
 	}
 }
