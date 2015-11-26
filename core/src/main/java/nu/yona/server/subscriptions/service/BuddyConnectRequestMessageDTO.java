@@ -32,6 +32,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 {
 	private static final String ACCEPT = "accept";
 	private static final String REJECT = "reject";
+
 	private boolean isAccepted;
 	private boolean isRejected;
 
