@@ -147,7 +147,7 @@ public class UserPrivate extends EntityWithID
 
 	public void removeBuddiesFromUser(UUID fromUserLoginID)
 	{
-		buddies.removeIf(buddy -> buddy.getLoginID().equals(fromUserLoginID));
+		buddies.removeIf(buddy -> buddy.getVPNLoginID().equals(fromUserLoginID));
 	}
 
 	public MessageSource getAnonymousMessageSource()

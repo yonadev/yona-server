@@ -80,6 +80,6 @@ public class MessageDestination extends EntityWithID
 
 	public void removeMessagesFromUser(UUID fromUserLoginID)
 	{
-		messages.removeIf(message -> message.getRelatedLoginID().equals(fromUserLoginID));
+		messages.removeIf(message -> message.getRelatedVPNLoginID().equals(fromUserLoginID));
 	}
 }

@@ -19,8 +19,8 @@ import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
-import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
+import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
 import nu.yona.server.subscriptions.entities.User;
 
 @Service
@@ -66,8 +66,7 @@ public class BuddyService
 	}
 
 	@Transactional
-	public BuddyDTO addBuddyToAcceptingUser(UserDTO acceptingUser, UUID buddyUserID, String buddyNickName,
-			UUID buddyVPNLoginID)
+	public BuddyDTO addBuddyToAcceptingUser(UserDTO acceptingUser, UUID buddyUserID, String buddyNickName, UUID buddyVPNLoginID)
 	{
 		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName);
 		buddy.setReceivingStatus(BuddyAnonymized.Status.ACCEPTED);
@@ -108,7 +107,7 @@ public class BuddyService
 			// buddy account was removed in the meantime; nothing to do
 			return;
 		}
-		removeMessagesFromUser(requestingUserBuddy, requestingUser.getLoginID());
+		removeMessagesFromUser(requestingUserBuddy, requestingUser.getVPNLoginID());
 		sendDropBuddyMessage(requestingUser, requestingUserBuddy, message, reason);
 	}
 
@@ -124,15 +123,15 @@ public class BuddyService
 			DropBuddyReason reason)
 	{
 		MessageDestination messageDestination = requestingUserBuddy.getUser().getNamedMessageDestination();
-		messageDestination.send(BuddyDisconnectMessage.createInstance(requestingUser.getID(), requestingUser.getLoginID(),
+		messageDestination.send(BuddyDisconnectMessage.createInstance(requestingUser.getID(), requestingUser.getVPNLoginID(),
 				requestingUser.getNickName(), getDropBuddyMessage(reason, message), reason));
 		MessageDestination.getRepository().save(messageDestination);
 	}
 
-	private void removeMessagesFromUser(Buddy buddy, UUID requestingUserLoginID)
+	private void removeMessagesFromUser(Buddy buddy, UUID requestingUserVPNLoginID)
 	{
 		MessageDestination namedMessageDestination = buddy.getUser().getNamedMessageDestination();
-		namedMessageDestination.removeMessagesFromUser(requestingUserLoginID);
+		namedMessageDestination.removeMessagesFromUser(requestingUserVPNLoginID);
 		MessageDestination.getRepository().save(namedMessageDestination);
 	}
 

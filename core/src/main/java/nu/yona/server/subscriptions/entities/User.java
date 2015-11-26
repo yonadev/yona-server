@@ -246,8 +246,8 @@ public class User extends EntityWithID
 		isCreatedOnBuddyRequest = true;
 	}
 
-	public Buddy getBuddyByLoginID(UUID relatedUserLoginID)
+	public Buddy getBuddyByVPNLoginID(UUID relatedUserVPNLoginID)
 	{
-		return getBuddies().stream().filter(buddy -> buddy.getLoginID().equals(relatedUserLoginID)).findAny().get();
+		return getBuddies().stream().filter(buddy -> buddy.getVPNLoginID().equals(relatedUserVPNLoginID)).findAny().get();
 	}
 }

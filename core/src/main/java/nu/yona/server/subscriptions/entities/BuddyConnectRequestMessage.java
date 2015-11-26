@@ -9,7 +9,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
-import javax.persistence.Transient;
 
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
@@ -18,7 +17,6 @@ import nu.yona.server.goals.entities.Goal;
 @Entity
 public class BuddyConnectRequestMessage extends BuddyConnectMessage
 {
-
 
 	private BuddyAnonymized.Status status = BuddyAnonymized.Status.NOT_REQUESTED;
 

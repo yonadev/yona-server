@@ -61,7 +61,7 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 	{
 		User userEntity = messageEntity.getUser(); // may be null if deleted
 		UserDTO user = userEntity != null ? UserDTO.createInstance(userEntity) : UserDTO.createRemovedUserInstance();
-		return new BuddyDisconnectMessageDTO(messageEntity.getID(), user, messageEntity.getRelatedLoginID(),
+		return new BuddyDisconnectMessageDTO(messageEntity.getID(), user, messageEntity.getRelatedVPNLoginID(),
 				messageEntity.getNickname(), messageEntity.getMessage(), messageEntity.getReason(), messageEntity.isProcessed());
 	}
 
@@ -102,7 +102,7 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 		private MessageActionDTO handleAction_Process(UserDTO actingUser, BuddyDisconnectMessage messageEntity,
 				MessageActionDTO requestPayload)
 		{
-			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getID(), messageEntity.getRelatedLoginID());
+			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getID(), messageEntity.getRelatedVPNLoginID());
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}
