@@ -54,10 +54,10 @@ public class CoreConfiguration
 	public LdapTemplate ldapTemplate()
 	{
 		LdapContextSource contextSource = new LdapContextSource();
-		contextSource.setUrl(yonaProperties.getLdapURL());
-		contextSource.setBase(yonaProperties.getLdapBaseDN());
-		contextSource.setUserDn(yonaProperties.getLdapAccessUserDN());
-		contextSource.setPassword(yonaProperties.getLdapAccessUserPassword());
+		contextSource.setUrl(yonaProperties.getLdap().getURL());
+		contextSource.setBase(yonaProperties.getLdap().getBaseDN());
+		contextSource.setUserDn(yonaProperties.getLdap().getAccessUserDN());
+		contextSource.setPassword(yonaProperties.getLdap().getAccessUserPassword());
 		contextSource.afterPropertiesSet();
 		return new LdapTemplate(contextSource);
 	}

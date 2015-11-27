@@ -14,7 +14,6 @@ import javax.transaction.Transactional;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.crypto.CryptoSession;
@@ -43,13 +42,7 @@ public class UserService
 	private YonaProperties yonaProperties;
 
 	@Autowired
-	YonaProperties properties;
-	@Autowired
 	private SmsService smsService;
-	@Value("${yona.sms.mobile.number.confirmation.message}")
-	private String mobileNumberConfirmationMessage;
-	@Value("${yona.sms.mobile.number.confirmation.code.digits}")
-	private int mobileNumberConfirmationCodeDigits = 5;
 
 	@Autowired
 	BuddyService buddyService;
@@ -93,12 +86,13 @@ public class UserService
 		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
 
 		User userEntity = user.createUserEntity();
-		userEntity.setConfirmationCode(CryptoUtil.getRandomDigits(mobileNumberConfirmationCodeDigits));
+		userEntity
+				.setConfirmationCode(CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
 		userEntity = User.getRepository().save(userEntity);
 		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getVPNPassword());
 
 		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(userEntity);
-		if (properties.getIsRunningInTestMode())
+		if (yonaProperties.getIsRunningInTestMode())
 		{
 			userDTO.setConfirmationCode(userEntity.getConfirmationCode());
 		}
@@ -111,7 +105,8 @@ public class UserService
 
 	private void sendMobileNumberConfirmationMessage(User userEntity)
 	{
-		String message = MessageFormat.format(mobileNumberConfirmationMessage, userEntity.getConfirmationCode());
+		String message = MessageFormat.format(yonaProperties.getSms().getMobileNumberConfirmationMessage(),
+				userEntity.getConfirmationCode());
 		smsService.send(userEntity.getMobileNumber(), message);
 	}
 
@@ -320,7 +315,7 @@ public class UserService
 
 	private long getExpirationIntervalMillis()
 	{
-		return properties.getNewDeviceRequestExpirationDays() * 24 * 60 * 60 * 1000;
+		return yonaProperties.getNewDeviceRequestExpirationDays() * 24 * 60 * 60 * 1000;
 	}
 
 	@Transactional

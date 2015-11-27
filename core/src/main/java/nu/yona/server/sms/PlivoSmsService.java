@@ -17,27 +17,22 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.properties.YonaProperties.Sms;
 
 @Service
 public class PlivoSmsService implements SmsService
 {
 	private static final Logger LOGGER = Logger.getLogger(PlivoSmsService.class.getName());
 
-	@Value("${yona.sms.service.enabled}")
-	private boolean isEnabled;
-	@Value("${yona.sms.plivo.url}")
-	private String postUrl;
-	@Value("${yona.sms.plivo.sender.number}")
-	private String senderNumber;
-	@Value("${yona.sms.plivo.auth_id}")
-	private String authId;
-	@Value("${yona.sms.plivo.auth_token}")
-	private String authToken;
+	@Autowired
+	private YonaProperties yonaProperties;
 
 	@Override
 	public void send(String phoneNumber, String message)
@@ -47,7 +42,7 @@ public class PlivoSmsService implements SmsService
 			LOGGER.info(MessageFormat.format("Sending SMS to number '{0}'. Message: {0}\r\n", phoneNumber, message));
 		}
 
-		if (!isEnabled)
+		if (!yonaProperties.getSms().isServiceEnabled())
 		{
 			LOGGER.info("SMS sending is disabled. No message has been sent.");
 			return;
@@ -88,7 +83,7 @@ public class PlivoSmsService implements SmsService
 	private String createRequestJson(String phoneNumber, String message) throws JsonProcessingException
 	{
 		Map<String, Object> requestMessage = new HashMap<String, Object>();
-		requestMessage.put("src", senderNumber);
+		requestMessage.put("src", yonaProperties.getSms().getSenderNumber());
 		requestMessage.put("dst", phoneNumber);
 		requestMessage.put("text", message);
 
@@ -98,10 +93,11 @@ public class PlivoSmsService implements SmsService
 	private HttpPost createHttpRequest(DefaultHttpClient httpClient, String jsonStr)
 			throws URISyntaxException, UnsupportedEncodingException
 	{
-		URI uri = new URI(MessageFormat.format(postUrl, authId));
+		Sms smsConfig = yonaProperties.getSms();
+		URI uri = new URI(MessageFormat.format(smsConfig.getPlivoUrl(), smsConfig.getPlivoAuthId()));
 
 		httpClient.getCredentialsProvider().setCredentials(new AuthScope(uri.getHost(), uri.getPort()),
-				new UsernamePasswordCredentials(authId, authToken));
+				new UsernamePasswordCredentials(smsConfig.getPlivoAuthId(), smsConfig.getPlivoAauthToken()));
 
 		HttpPost httpRequest = new HttpPost(uri);
 		StringEntity requestEntity = new StringEntity(jsonStr, "UTF-8");
