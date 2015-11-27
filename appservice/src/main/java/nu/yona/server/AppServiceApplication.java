@@ -9,6 +9,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -25,6 +26,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication
 @EnableSwagger2
 @EnableHypermediaSupport(type = HypermediaType.HAL)
+@EnableSpringDataWebSupport
 public class AppServiceApplication
 {
 	public static void main(String[] args)
