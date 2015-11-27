@@ -69,6 +69,7 @@ public class UserDTO
 		this.emailAddress = emailAddress;
 		this.mobileNumber = mobileNumber;
 		this.privateData = privateData;
+		this.isConfirmed = isConfirmed;
 	}
 
 	@JsonIgnore

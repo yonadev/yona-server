@@ -119,8 +119,8 @@ public class UserController
 			@RequestBody MobileNumberConfirmationDTO mobileNumberConfirmation)
 	{
 		checkPassword(password, userID);
-		userService.confirmMobileNumber(userID, mobileNumberConfirmation.getCode());
-		return createOKResponse(userService.getPublicUser(userID), false);
+		UserDTO user = userService.confirmMobileNumber(userID, mobileNumberConfirmation.getCode());
+		return createOKResponse(user, false);
 	}
 
 	@RequestMapping(value = "{userID}/newDeviceRequest", method = RequestMethod.PUT)
