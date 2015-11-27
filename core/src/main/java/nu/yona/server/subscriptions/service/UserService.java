@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -13,13 +14,16 @@ import javax.transaction.Transactional;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
+import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.sms.SmsService;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
@@ -40,6 +44,12 @@ public class UserService
 
 	@Autowired
 	YonaProperties properties;
+	@Autowired
+	private SmsService smsService;
+	@Value("${yona.sms.mobile.number.confirmation.message}")
+	private String mobileNumberConfirmationMessage;
+	@Value("${yona.sms.mobile.number.confirmation.code.digits}")
+	private int mobileNumberConfirmationCodeDigits = 5;
 
 	@Autowired
 	BuddyService buddyService;
@@ -83,10 +93,51 @@ public class UserService
 		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
 
 		User userEntity = user.createUserEntity();
+		userEntity.setConfirmationCode(CryptoUtil.getRandomDigits(mobileNumberConfirmationCodeDigits));
 		userEntity = User.getRepository().save(userEntity);
 		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getVPNPassword());
 
-		return UserDTO.createInstanceWithPrivateData(userEntity);
+		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(userEntity);
+		if (properties.getIsRunningInTestMode())
+		{
+			userDTO.setConfirmationCode(userEntity.getConfirmationCode());
+		}
+		else
+		{
+			sendMobileNumberConfirmationMessage(userEntity);
+		}
+		return userDTO;
+	}
+
+	private void sendMobileNumberConfirmationMessage(User userEntity)
+	{
+		String message = MessageFormat.format(mobileNumberConfirmationMessage, userEntity.getConfirmationCode());
+		smsService.send(userEntity.getMobileNumber(), message);
+	}
+
+	@Transactional
+	public void confirmMobileNumber(UUID userID, String code)
+	{
+		User userEntity = getEntityByID(userID);
+
+		if (userEntity.getConfirmationCode() == null)
+		{
+			throw MobileNumberConfirmationException.confirmationCodeNotSet();
+		}
+
+		if (!userEntity.getConfirmationCode().equals(code))
+		{
+			throw MobileNumberConfirmationException.confirmationCodeMismatch();
+		}
+
+		if (userEntity.isConfirmed())
+		{
+			throw MobileNumberConfirmationException.userCannotBeActivated();
+		}
+
+		userEntity.setConfirmationCode(null);
+		userEntity.markAsConfirmed();
+		User.getRepository().save(userEntity);
 	}
 
 	@Autowired

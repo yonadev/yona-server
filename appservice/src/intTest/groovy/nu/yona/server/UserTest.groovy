@@ -42,6 +42,28 @@ class UserTest extends Specification {
 			appService.deleteUser(appService.stripQueryString(response.responseData._links.self.href), password)
 	}
 
+	def 'Send mobile number confirmation code'(){
+		given:
+			def userAddResponse = appService.addUser(userCreationJSON, password);
+			def userURL = appService.stripQueryString(userAddResponse.responseData._links.self.href);
+			def confirmationCode = userAddResponse.responseData.confirmationCode;
+
+		when:
+			def response = appService.confirmUser(userURL, """ { "code":"${confirmationCode}" } """, password)
+
+		then:
+			confirmationCode != null
+			response.status == 200
+			userAddResponse.responseData.confirmed == false
+			response.responseData.confirmed == true
+
+		cleanup:
+			if (userURL)
+			{
+				appService.deleteUser(userURL, password)
+			}
+	}
+
 	def 'Get John Doe with private data'(){
 		given:
 			def userURL = appService.stripQueryString(appService.addUser(userCreationJSON, password).responseData._links.self.href);
@@ -109,7 +131,7 @@ class UserTest extends Specification {
 			assert responseData.devices[0] == "Galaxy mini"
 			assert responseData.goals.size() == 1
 			assert responseData.goals[0] == "gambling"
-			
+
 			assert responseData.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 			assert responseData.vpnProfile.vpnPassword.length() == 32
 			assert responseData.vpnProfile.openVPNProfile.length() > 10

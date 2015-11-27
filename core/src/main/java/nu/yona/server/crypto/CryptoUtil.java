@@ -9,6 +9,8 @@ import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
+import org.apache.commons.lang.StringUtils;
+
 public class CryptoUtil
 {
 
@@ -29,6 +31,12 @@ public class CryptoUtil
 		byte[] bytes = new byte[length];
 		getSecureRandomInstance().nextBytes(bytes);
 		return bytes;
+	}
+
+	public static String getRandomDigits(int length)
+	{
+		SecureRandom random = CryptoUtil.getSecureRandomInstance();
+		return StringUtils.leftPad("" + random.nextInt((int) Math.pow(10, length)), length, '0');
 	}
 
 	static SecureRandom getSecureRandomInstance()

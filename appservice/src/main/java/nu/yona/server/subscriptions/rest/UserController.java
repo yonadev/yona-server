@@ -112,6 +112,17 @@ public class UserController
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> null);
 	}
 
+	@RequestMapping(value = "{userID}/confirm", method = RequestMethod.POST)
+	@ResponseBody
+	public HttpEntity<UserResource> addUserConfimation(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@RequestBody MobileNumberConfirmationDTO mobileNumberConfirmation)
+	{
+		checkPassword(password, userID);
+		userService.confirmMobileNumber(userID, mobileNumberConfirmation.getCode());
+		return createOKResponse(userService.getPublicUser(userID), false);
+	}
+
 	@RequestMapping(value = "{userID}/newDeviceRequest", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<NewDeviceRequestResource> setNewDeviceRequestForUser(
