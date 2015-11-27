@@ -51,7 +51,7 @@ transiso TRANSACTION_READ_COMMITTED
 
 # A personal, local, persistent database.
 urlid YonaDatabase
-url jdbc:hsqldb:file:YonaDB;shutdown=true
+url jdbc:hsqldb:hsql://yonadbserver/xdb;shutdown=true
 username SA
 password
 transiso TRANSACTION_READ_COMMITTED
