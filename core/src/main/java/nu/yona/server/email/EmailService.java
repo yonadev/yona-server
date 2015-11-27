@@ -42,8 +42,5 @@ public class EmailService
 				message.setText(bodyText, true);
 			}
 		};
-
-		// TODO Implement queuing: http://jira.yona.nu/browse/YD-114
-		this.mailSender.send(preparator);
 	}
 }
