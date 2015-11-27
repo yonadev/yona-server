@@ -92,14 +92,12 @@ public class UserService
 		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getVPNPassword());
 
 		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(userEntity);
-		if (yonaProperties.getIsRunningInTestMode())
+		if (!yonaProperties.getSms().isEnabled())
 		{
 			userDTO.setConfirmationCode(userEntity.getConfirmationCode());
 		}
-		else
-		{
-			sendMobileNumberConfirmationMessage(userEntity);
-		}
+
+		sendMobileNumberConfirmationMessage(userEntity);
 		return userDTO;
 	}
 
