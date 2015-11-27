@@ -51,7 +51,7 @@ class UserTest extends Specification {
 			def confirmationCode = userAddResponse.responseData.confirmationCode;
 
 		when:
-			def response = appService.confirmUser(userURL, """ { "code":"${confirmationCode}" } """, password)
+			def response = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}" } """, password)
 
 		then:
 			confirmationCode != null
