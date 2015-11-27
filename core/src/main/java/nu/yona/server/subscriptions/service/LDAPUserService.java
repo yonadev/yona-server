@@ -1,5 +1,7 @@
 package nu.yona.server.subscriptions.service;
 
+import java.util.logging.Logger;
+
 import javax.naming.Name;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,28 +18,45 @@ import nu.yona.server.crypto.CryptoUtil;
 @Service
 public class LDAPUserService
 {
+	private static final Logger LOGGER = Logger.getLogger(LDAPUserService.class.getName());
+
+	private enum Action
+	{
+		CREATE, DELETE
+	};
+
 	@Autowired
 	private LdapTemplate ldapTemplate;
 
 	public void createVPNAccount(String vpnLoginID, String vpnPassword)
 	{
-		create(new User(vpnLoginID, vpnPassword));
+		doLdapAction(Action.CREATE, new User(vpnLoginID, vpnPassword));
 	}
 
 	public void deleteVPNAccount(String vpnLoginID)
 	{
-		delete(new User(vpnLoginID, ""));
+		doLdapAction(Action.DELETE, new User(vpnLoginID, ""));
 	}
 
-	private User create(User user)
+	private void doLdapAction(Action action, User user)
 	{
-		ldapTemplate.create(user);
-		return user;
-	}
+		if (ldapTemplate == null)
+		{
+			LOGGER.info("LDAP action " + action + " not performed, as LDAP is not initialized.");
+			return;
+		}
+		switch (action)
+		{
+			case CREATE:
+				ldapTemplate.create(user);
+				break;
+			case DELETE:
+				ldapTemplate.delete(user);
+				break;
+			default:
+				throw new IllegalArgumentException("Action " + action + " is unknown");
 
-	private void delete(User user)
-	{
-		ldapTemplate.delete(user);
+		}
 	}
 
 	@Entry(objectClasses = { "top", "account", "shadowAccount", "posixAccount" }, base = "ou=SSL")

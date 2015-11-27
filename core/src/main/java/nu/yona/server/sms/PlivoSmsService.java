@@ -42,7 +42,7 @@ public class PlivoSmsService implements SmsService
 			LOGGER.info(MessageFormat.format("Sending SMS to number '{0}'. Message: {0}\r\n", phoneNumber, message));
 		}
 
-		if (!yonaProperties.getSms().isServiceEnabled())
+		if (!yonaProperties.getSms().isEnabled())
 		{
 			LOGGER.info("SMS sending is disabled. No message has been sent.");
 			return;

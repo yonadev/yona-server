@@ -7,19 +7,57 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class YonaProperties
 {
+	private final AnalysisService analysisServiceConfig = new AnalysisService();
+	private final Ldap ldapConfig = new Ldap();
+	private final Sms smsConfig = new Sms();
+
 	private int newDeviceRequestExpirationDays = 1;
 	private boolean isRunningInTestMode = false;
 	private int passwordLength = 32;
-	private Ldap ldapConfig = new Ldap();
-	private AnalysisService analysisServiceConfig = new AnalysisService();
-	private Sms smsConfig = new Sms();
+
+	public static class AnalysisService
+	{
+		private long conflictInterval = 300000L;
+		private long updateSkipWindow = 5000L;
+
+		public long getConflictInterval()
+		{
+			return conflictInterval;
+		}
+
+		public void setConflictInterval(long conflictInterval)
+		{
+			this.conflictInterval = conflictInterval;
+		}
+
+		public long getUpdateSkipWindow()
+		{
+			return updateSkipWindow;
+		}
+
+		public void setUpdateSkipWindow(long updateSkipWindow)
+		{
+			this.updateSkipWindow = updateSkipWindow;
+		}
+	}
 
 	public static class Ldap
 	{
+		private boolean isEnabled;
 		private String url = "ldap://localhost:389";
 		private String baseDN = "DC=yona,DC=nu";
 		private String accessUserDN = "CN=Manager," + baseDN;
 		private String accessUserPassword = "Top secret";
+
+		public boolean isEnabled()
+		{
+			return isEnabled;
+		}
+
+		public void setEnabled(boolean isEnabled)
+		{
+			this.isEnabled = isEnabled;
+		}
 
 		public String getURL()
 		{
@@ -62,35 +100,9 @@ public class YonaProperties
 		}
 	}
 
-	public static class AnalysisService
-	{
-		private long conflictInterval = 300000L;
-		private long updateSkipWindow = 5000L;
-
-		public long getConflictInterval()
-		{
-			return conflictInterval;
-		}
-
-		public void setConflictInterval(long conflictInterval)
-		{
-			this.conflictInterval = conflictInterval;
-		}
-
-		public long getUpdateSkipWindow()
-		{
-			return updateSkipWindow;
-		}
-
-		public void setUpdateSkipWindow(long updateSkipWindow)
-		{
-			this.updateSkipWindow = updateSkipWindow;
-		}
-	}
-
 	public static class Sms
 	{
-		private boolean serviceEnabled = false;
+		private boolean isEnabled = false;
 		private String mobileNumberConfirmationMessage = "Yona confirmation code: {0}";
 		private int mobileNumberConfirmationCodeDigits = 5;
 		private String senderNumber = "";
@@ -98,14 +110,14 @@ public class YonaProperties
 		private String plivoAuthId = "";
 		private String plivoAauthToken = "";
 
-		public boolean isServiceEnabled()
+		public boolean isEnabled()
 		{
-			return serviceEnabled;
+			return isEnabled;
 		}
 
-		public void setServiceEnabled(boolean serviceEnabled)
+		public void setEnabled(boolean isEnabled)
 		{
-			this.serviceEnabled = serviceEnabled;
+			this.isEnabled = isEnabled;
 		}
 
 		public String getMobileNumberConfirmationMessage()
