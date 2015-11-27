@@ -43,7 +43,7 @@ public class EmailService
 			}
 		};
 
-		// TODO queue and continue because it may take time to send
+		// TODO Implement queuing: http://jira.yona.nu/browse/YD-114
 		this.mailSender.send(preparator);
 	}
 }
