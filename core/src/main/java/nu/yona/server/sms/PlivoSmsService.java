@@ -97,7 +97,7 @@ public class PlivoSmsService implements SmsService
 		URI uri = new URI(MessageFormat.format(smsConfig.getPlivoUrl(), smsConfig.getPlivoAuthId()));
 
 		httpClient.getCredentialsProvider().setCredentials(new AuthScope(uri.getHost(), uri.getPort()),
-				new UsernamePasswordCredentials(smsConfig.getPlivoAuthId(), smsConfig.getPlivoAauthToken()));
+				new UsernamePasswordCredentials(smsConfig.getPlivoAuthId(), smsConfig.getPlivoAuthToken()));
 
 		HttpPost httpRequest = new HttpPost(uri);
 		StringEntity requestEntity = new StringEntity(jsonStr, "UTF-8");

@@ -108,7 +108,7 @@ public class YonaProperties
 		private String senderNumber = "";
 		private String plivoUrl = "https://api.plivo.com/v1/Account/{0}/Message/";
 		private String plivoAuthId = "";
-		private String plivoAauthToken = "";
+		private String plivoAuthToken = "";
 
 		public boolean isEnabled()
 		{
@@ -170,14 +170,14 @@ public class YonaProperties
 			this.plivoAuthId = plivoAuthId;
 		}
 
-		public String getPlivoAauthToken()
+		public String getPlivoAuthToken()
 		{
-			return plivoAauthToken;
+			return plivoAuthToken;
 		}
 
-		public void setPlivoAauthToken(String plivoAauthToken)
+		public void setPlivoAuthToken(String plivoAuthToken)
 		{
-			this.plivoAauthToken = plivoAauthToken;
+			this.plivoAuthToken = plivoAuthToken;
 		}
 	}
 
