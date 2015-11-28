@@ -215,7 +215,7 @@ public class BuddyService
 		buddy.getUser().setUserID(buddyUserEntity.getID());
 		if (buddy.getSendingStatus() != Status.REQUESTED || buddy.getReceivingStatus() != Status.REQUESTED)
 		{
-			throw new IllegalArgumentException("only two-way buddies allowed for now");
+			throw new IllegalArgumentException("Only two-way buddies allowed for now");
 		}
 		Buddy buddyEntity = buddy.createBuddyEntity();
 		Buddy savedBuddyEntity = Buddy.getRepository().save(buddyEntity);

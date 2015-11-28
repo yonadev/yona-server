@@ -11,8 +11,8 @@ public class EmailProperties
 		private String protocol;
 		private String host;
 		private int port;
-		private boolean useAuth;
-		private boolean useStartTls;
+		private boolean enableAuth;
+		private boolean enableStartTls;
 		private String username;
 		private String password;
 
@@ -46,24 +46,24 @@ public class EmailProperties
 			this.port = port;
 		}
 
-		public boolean isUseAuth()
+		public boolean isEnableAuth()
 		{
-			return useAuth;
+			return enableAuth;
 		}
 
-		public void setUseAuth(boolean useAuth)
+		public void setEnableAuth(boolean enableAuth)
 		{
-			this.useAuth = useAuth;
+			this.enableAuth = enableAuth;
 		}
 
-		public boolean isUseStartTls()
+		public boolean isEnableStartTls()
 		{
-			return useStartTls;
+			return enableStartTls;
 		}
 
-		public void setUseStartTls(boolean useStartTls)
+		public void setEnableStartTls(boolean enableStartTls)
 		{
-			this.useStartTls = useStartTls;
+			this.enableStartTls = enableStartTls;
 		}
 
 		public String getUsername()
