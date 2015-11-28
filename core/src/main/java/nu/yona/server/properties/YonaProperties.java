@@ -13,7 +13,6 @@ public class YonaProperties
 	private final Sms smsConfig = new Sms();
 
 	private int newDeviceRequestExpirationDays = 1;
-	private boolean isRunningInTestMode = false;
 	private int passwordLength = 32;
 
 	public static class AnalysisService
@@ -45,6 +44,7 @@ public class YonaProperties
 	public static class Email
 	{
 		private final Smtp smtp = new Smtp();
+		private boolean isEnabled;
 		private String senderAddress;
 
 		public static class Smtp
@@ -126,6 +126,16 @@ public class YonaProperties
 			{
 				this.password = password;
 			}
+		}
+
+		public boolean isEnabled()
+		{
+			return isEnabled;
+		}
+
+		public void setEnabled(boolean isEnabled)
+		{
+			this.isEnabled = isEnabled;
 		}
 
 		public String getSenderAddress()
@@ -292,16 +302,6 @@ public class YonaProperties
 	public void setNewDeviceRequestExpirationDays(int newDeviceRequestExpiration)
 	{
 		this.newDeviceRequestExpirationDays = newDeviceRequestExpiration;
-	}
-
-	public boolean getIsRunningInTestMode()
-	{
-		return isRunningInTestMode;
-	}
-
-	public void setIsRunningInTestMode(boolean isRunningInTestMode)
-	{
-		this.isRunningInTestMode = isRunningInTestMode;
 	}
 
 	public int getPasswordLength()

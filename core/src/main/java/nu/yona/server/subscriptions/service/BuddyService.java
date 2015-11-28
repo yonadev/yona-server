@@ -173,14 +173,11 @@ public class BuddyService
 		BuddyDTO savedBuddy = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
 
 		String inviteURL = inviteURLGetter.apply(buddyUserEntity.getID(), tempPassword);
-		if (properties.getIsRunningInTestMode())
+		if (!properties.getEmail().isEnabled())
 		{
 			savedBuddy.setUserCreatedInviteURL(inviteURL);
 		}
-		else
-		{
-			sendInvitationMessage(requestingUser, buddyUserEntity, buddy, inviteURL);
-		}
+		sendInvitationMessage(requestingUser, buddyUserEntity, buddy, inviteURL);
 		return savedBuddy;
 	}
 
