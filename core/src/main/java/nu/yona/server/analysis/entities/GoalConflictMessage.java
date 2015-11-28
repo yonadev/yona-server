@@ -19,8 +19,13 @@ import nu.yona.server.messaging.entities.Message;
 @Entity
 public class GoalConflictMessage extends Message
 {
+	public enum Status
+	{
+		ANNOUNCED, DISCLOSE_REQUESTED, DISCLOSE_ACCEPTED, DISCLOSE_REJECTED
+	}
 
 	private UUID goalID;
+	private Status status;
 
 	@Transient
 	private String url;
@@ -34,13 +39,14 @@ public class GoalConflictMessage extends Message
 		super(null, null);
 	}
 
-	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedID, UUID goalID, String url)
+	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedID, UUID goalID, String url, Status status)
 	{
 		super(id, relatedUserAnonymizedID);
 
 		this.goalID = goalID;
 		this.url = url;
 		this.endTime = new Date();
+		this.status = status;
 	}
 
 	public Goal getGoal()
@@ -86,9 +92,19 @@ public class GoalConflictMessage extends Message
 		return goalID;
 	}
 
+	public Status getStatus()
+	{
+		return status;
+	}
+
+	public void setStatus(Status status)
+	{
+		this.status = status;
+	}
+
 	public static GoalConflictMessage createInstance(UUID vpnLoginID, Goal goal, String url)
 	{
-		return new GoalConflictMessage(UUID.randomUUID(), vpnLoginID, goal.getID(), url);
+		return new GoalConflictMessage(UUID.randomUUID(), vpnLoginID, goal.getID(), url, Status.ANNOUNCED);
 	}
 
 	public static GoalConflictMessageRepository getGoalConflictMessageRepository()

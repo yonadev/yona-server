@@ -42,6 +42,14 @@ class BasicBuddyTest extends Specification {
 	def richardQuinBuddyMessageProcessURL
 	@Shared
 	def bobDunnBuddyRemoveMessageProcessURL
+	@Shared
+	def goalConflictMessage1RequestDisclosureURL
+	@Shared
+	def goalDiscloseRequestMessage1AcceptURL
+	@Shared
+	def goalConflictMessage2RequestDisclosureURL
+	@Shared
+	def goalDiscloseRequestMessage2RejectURL
 
 	def 'Add user Richard Quin'(){
 		given:
@@ -433,16 +441,20 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+			if(response.status == 200) {
+				goalConflictMessage1RequestDisclosureURL = response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure
+				goalConflictMessage2RequestDisclosureURL = response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure
+			}
 
 		then:
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 2
 			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+			response.responseData._embedded.goalConflictMessages[0].url == null
 			response.responseData._embedded.goalConflictMessages[1].nickname == "BD ${timestamp}"
 			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
+			response.responseData._embedded.goalConflictMessages[1].url == null
 	}
 
 	def 'Bob checks he has anonymous messages and finds a conflict for himself (second conflict message)'(){
@@ -461,7 +473,63 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
 			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
 	}
-	
+
+	def 'Richard asks for disclosure of both'(){
+		given:
+
+		when:
+			def response1 = appService.postMessageActionWithPassword(goalConflictMessage1RequestDisclosureURL, richardQuinPassword)
+			def response2 = appService.postMessageActionWithPassword(goalConflictMessage2RequestDisclosureURL, richardQuinPassword)
+
+		then:
+			response1.status == 200
+			response2.status == 200
+	}
+
+	def 'Bob checks his anonymous messages and finds the disclosure requests'(){
+		given:
+
+		when:
+			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+			if(response.status == 200) {
+				goalDiscloseRequestMessage1AcceptURL = response.responseData._embedded.goalConflictDiscloseRequestMessages[0]._links.accept.href
+				goalDiscloseRequestMessage2RejectURL = response.responseData._embedded.goalConflictDiscloseRequestMessages[1]._links.reject.href
+			}
+
+		then:
+			response.status == 200
+			response.responseData._embedded.goalConflictDiscloseRequestMessages.size() == 2
+	}
+
+	def 'Bob accepts the disclosure request for 1 but rejects for 2'(){
+		given:
+
+		when:
+		def response1 = appService.postMessageActionWithPassword(goalDiscloseRequestMessage1AcceptURL, bobDunnPassword)
+		def response2 = appService.postMessageActionWithPassword(goalDiscloseRequestMessage2RejectURL, bobDunnPassword)
+
+		then:
+		response1.status == 200
+		response2.status == 200
+	}
+
+	def 'Richard checks he has anonymous messages and finds the first disclosed but the second rejected'(){
+		given:
+
+		when:
+			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded.goalConflictMessages.size() == 2
+			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url == /refdag/
+			response.responseData._embedded.goalConflictMessages[1].nickname == "BD ${timestamp}"
+			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[1].url == null
+	}
+
 	def 'Richard removes Bob as buddy'() {
 		given:
 		when:
