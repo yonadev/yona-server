@@ -2,7 +2,6 @@ package nu.yona.server.email;
 
 import java.text.MessageFormat;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.mail.internet.InternetAddress;
@@ -32,11 +31,8 @@ public class EmailService
 	public void sendEmail(String senderName, InternetAddress receiverAddress, String subjectTemplateName, String bodyTemplateName,
 			Map<String, Object> templateParameters)
 	{
-		if (LOGGER.isLoggable(Level.INFO))
-		{
-			LOGGER.info(MessageFormat.format("Sending e-mail to '{0}'. subjectTemplateName: {0}\r\n", receiverAddress,
-					subjectTemplateName));
-		}
+		LOGGER.info(MessageFormat.format("Sending e-mail to '{0}'. subjectTemplateName: {0}\r\n", receiverAddress,
+				subjectTemplateName));
 
 		if (!yonaProperties.getEmail().isEnabled())
 		{
@@ -60,5 +56,7 @@ public class EmailService
 			}
 		};
 		mailSender.send(preparator);
+
+		LOGGER.info("E-mail sent succesfully.");
 	}
 }
