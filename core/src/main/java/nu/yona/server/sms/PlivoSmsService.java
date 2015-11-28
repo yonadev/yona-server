@@ -1,16 +1,17 @@
 package nu.yona.server.sms;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.HttpPost;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import nu.yona.server.exceptions.SmsException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.properties.YonaProperties.Sms;
 
@@ -37,10 +39,7 @@ public class PlivoSmsService implements SmsService
 	@Override
 	public void send(String phoneNumber, String message)
 	{
-		if (LOGGER.isLoggable(Level.INFO))
-		{
-			LOGGER.info(MessageFormat.format("Sending SMS to number '{0}'. Message: {0}\r\n", phoneNumber, message));
-		}
+		LOGGER.info(MessageFormat.format("Sending SMS to number '{0}'. Message: {0}\r\n", phoneNumber, message));
 
 		if (!yonaProperties.getSms().isEnabled())
 		{
@@ -49,9 +48,6 @@ public class PlivoSmsService implements SmsService
 		}
 
 		DefaultHttpClient httpClient = new DefaultHttpClient();
-		int httpResponseCode;
-		String httpResponseBody;
-
 		try
 		{
 			String requestMessageStr = createRequestJson(phoneNumber.replace("+", ""), message);
@@ -59,53 +55,63 @@ public class PlivoSmsService implements SmsService
 			HttpResponse httpResponse = httpClient.execute(httpRequest);
 			HttpEntity entity = httpResponse.getEntity();
 
-			httpResponseCode = httpResponse.getStatusLine().getStatusCode();
-			httpResponseBody = EntityUtils.toString(entity);
+			int httpResponseCode = httpResponse.getStatusLine().getStatusCode();
+			String httpResponseBody = EntityUtils.toString(entity);
+			if (httpResponseCode != HttpStatus.SC_ACCEPTED)
+			{
+				throw SmsException.smsSendingFailed(httpResponseCode, httpResponseBody);
+			}
 		}
-		catch (Exception e)
+		catch (IOException e)
 		{
-			throw new IllegalStateException("SMS sending failed: " + e.getMessage(), e);
+			throw SmsException.smsSendingFailed(e);
 		}
 		finally
 		{
 			httpClient.getConnectionManager().shutdown();
 		}
 
-		if (httpResponseCode != 202)
-		{
-			throw new IllegalStateException(
-					"Unexpected status code received from SMS service: " + httpResponseCode + ". Message: " + httpResponseBody);
-		}
-
 		LOGGER.info("SMS sent succesfully.");
 	}
 
-	private String createRequestJson(String phoneNumber, String message) throws JsonProcessingException
+	private String createRequestJson(String phoneNumber, String message)
 	{
-		Map<String, Object> requestMessage = new HashMap<String, Object>();
-		requestMessage.put("src", yonaProperties.getSms().getSenderNumber());
-		requestMessage.put("dst", phoneNumber);
-		requestMessage.put("text", message);
+		try
+		{
+			Map<String, Object> requestMessage = new HashMap<String, Object>();
+			requestMessage.put("src", yonaProperties.getSms().getSenderNumber());
+			requestMessage.put("dst", phoneNumber);
+			requestMessage.put("text", message);
 
-		return new ObjectMapper().writeValueAsString(requestMessage);
+			return new ObjectMapper().writeValueAsString(requestMessage);
+		}
+		catch (JsonProcessingException e)
+		{
+			throw SmsException.smsSendingFailed(e);
+		}
 	}
 
 	private HttpPost createHttpRequest(DefaultHttpClient httpClient, String jsonStr)
-			throws URISyntaxException, UnsupportedEncodingException
 	{
-		Sms smsConfig = yonaProperties.getSms();
-		URI uri = new URI(MessageFormat.format(smsConfig.getPlivoUrl(), smsConfig.getPlivoAuthId()));
+		try
+		{
+			Sms smsConfig = yonaProperties.getSms();
+			URI uri = new URI(MessageFormat.format(smsConfig.getPlivoUrl(), smsConfig.getPlivoAuthId()));
+			httpClient.getCredentialsProvider().setCredentials(new AuthScope(uri.getHost(), uri.getPort()),
+					new UsernamePasswordCredentials(smsConfig.getPlivoAuthId(), smsConfig.getPlivoAuthToken()));
 
-		httpClient.getCredentialsProvider().setCredentials(new AuthScope(uri.getHost(), uri.getPort()),
-				new UsernamePasswordCredentials(smsConfig.getPlivoAuthId(), smsConfig.getPlivoAuthToken()));
+			HttpPost httpRequest = new HttpPost(uri);
+			StringEntity requestEntity = new StringEntity(jsonStr, "UTF-8");
 
-		HttpPost httpRequest = new HttpPost(uri);
-		StringEntity requestEntity = new StringEntity(jsonStr, "UTF-8");
+			httpRequest.setEntity(requestEntity);
+			httpRequest.setHeader("Accept", "application/json");
+			httpRequest.setHeader("Content-type", "application/json");
 
-		httpRequest.setEntity(requestEntity);
-		httpRequest.setHeader("Accept", "application/json");
-		httpRequest.setHeader("Content-type", "application/json");
-
-		return httpRequest;
+			return httpRequest;
+		}
+		catch (URISyntaxException | UnsupportedEncodingException e)
+		{
+			throw SmsException.smsSendingFailed(e);
+		}
 	}
 }
