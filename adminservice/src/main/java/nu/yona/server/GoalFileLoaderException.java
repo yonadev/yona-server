@@ -4,6 +4,8 @@ import nu.yona.server.exceptions.YonaException;
 
 public class GoalFileLoaderException extends YonaException
 {
+	private static final long serialVersionUID = -8542854561248198195L;
+
 	public GoalFileLoaderException(String messageId, Object... parameters)
 	{
 		super(messageId, parameters);
