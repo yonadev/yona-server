@@ -39,7 +39,9 @@ class UserTest extends Specification {
 			testUser(response.responseData, true)
 
 		cleanup:
-			appService.deleteUser(appService.stripQueryString(response.responseData._links.self.href), password)
+			if (response.status == 201) {
+				appService.deleteUser(appService.stripQueryString(response.responseData._links.self.href), password)
+			}
 	}
 
 	def 'Send mobile number confirmation code'(){
@@ -49,12 +51,13 @@ class UserTest extends Specification {
 			def confirmationCode = userAddResponse.responseData.confirmationCode;
 
 		when:
-			def response = appService.confirmUser(userURL, """ { "code":"${confirmationCode}" } """, password)
+			def response = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}" } """, password)
 
 		then:
 			confirmationCode != null
-			response.status == 200
+			userAddResponse.status == 201
 			userAddResponse.responseData.confirmed == false
+			response.status == 200
 			response.responseData.confirmed == true
 
 		cleanup:

@@ -11,7 +11,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
@@ -19,19 +18,18 @@ import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Service
 public class AnalysisEngineService
 {
 	@Autowired
+	private YonaProperties yonaProperties;
+	@Autowired
 	private GoalService goalService;
 	@Autowired
 	private AnalysisEngineCacheService cacheService;
-	@Value("${yona.analysisservice.conflict.interval}")
-	private int conflictInterval = 300000;
-	@Value("${yona.analysisservice.update.skip.window}")
-	private int updateSkipWindow = 5000;
 
 	public void analyze(PotentialConflictDTO potentialConflictPayload)
 	{
@@ -60,7 +58,7 @@ public class AnalysisEngineService
 			MessageDestination destination)
 	{
 		Date now = new Date();
-		Date minEndTime = new Date(now.getTime() - conflictInterval);
+		Date minEndTime = new Date(now.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
 		Goal conflictingGoal = conflictingGoalsOfUser.iterator().next();
 		GoalConflictMessage message = cacheService.fetchLatestGoalConflictMessageForUser(payload.getVPNLoginID(),
 				conflictingGoal.getID(), destination, minEndTime);
@@ -71,7 +69,7 @@ public class AnalysisEngineService
 			cacheService.updateLatestGoalConflictMessageForUser(message, destination);
 		}
 		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
-		else if (now.getTime() - message.getEndTime().getTime() >= updateSkipWindow)
+		else if (now.getTime() - message.getEndTime().getTime() >= yonaProperties.getAnalysisService().getUpdateSkipWindow())
 		{
 			updateLastGoalConflictMessage(payload, now, conflictingGoal, message);
 			cacheService.updateLatestGoalConflictMessageForUser(message, destination);
@@ -83,7 +81,8 @@ public class AnalysisEngineService
 	private GoalConflictMessage sendNewGoalConflictMessage(PotentialConflictDTO payload, Goal conflictingGoal,
 			MessageDestination destination)
 	{
-		GoalConflictMessage message = GoalConflictMessage.createInstance(payload.getVPNLoginID(), conflictingGoal, payload.getURL());
+		GoalConflictMessage message = GoalConflictMessage.createInstance(payload.getVPNLoginID(), conflictingGoal,
+				payload.getURL());
 		destination.send(message);
 		return message;
 	}

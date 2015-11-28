@@ -68,6 +68,7 @@ public class UserDTO
 		this.lastName = lastName;
 		this.emailAddress = emailAddress;
 		this.mobileNumber = mobileNumber;
+		this.isConfirmed = isConfirmed;
 		this.privateData = privateData;
 	}
 
