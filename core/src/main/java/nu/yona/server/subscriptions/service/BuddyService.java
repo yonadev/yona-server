@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -203,7 +204,7 @@ public class BuddyService
 			templateParams.put("buddyName", buddyName);
 			emailService.sendEmail(requestingUserName, buddyAddress, subjectTemplateName, bodyTemplateName, templateParams);
 		}
-		catch (Exception e)
+		catch (UnsupportedEncodingException e)
 		{
 			throw EmailException.emailSendingFailed(e);
 		}
