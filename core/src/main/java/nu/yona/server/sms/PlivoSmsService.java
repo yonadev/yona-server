@@ -25,8 +25,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import nu.yona.server.exceptions.SmsException;
+import nu.yona.server.properties.SmsProperties;
 import nu.yona.server.properties.YonaProperties;
-import nu.yona.server.properties.YonaProperties.Sms;
 
 @Service
 public class PlivoSmsService implements SmsService
@@ -95,10 +95,10 @@ public class PlivoSmsService implements SmsService
 	{
 		try
 		{
-			Sms smsConfig = yonaProperties.getSms();
-			URI uri = new URI(MessageFormat.format(smsConfig.getPlivoUrl(), smsConfig.getPlivoAuthId()));
+			SmsProperties smsProperties = yonaProperties.getSms();
+			URI uri = new URI(MessageFormat.format(smsProperties.getPlivoUrl(), smsProperties.getPlivoAuthId()));
 			httpClient.getCredentialsProvider().setCredentials(new AuthScope(uri.getHost(), uri.getPort()),
-					new UsernamePasswordCredentials(smsConfig.getPlivoAuthId(), smsConfig.getPlivoAuthToken()));
+					new UsernamePasswordCredentials(smsProperties.getPlivoAuthId(), smsProperties.getPlivoAuthToken()));
 
 			HttpPost httpRequest = new HttpPost(uri);
 			StringEntity requestEntity = new StringEntity(jsonStr, "UTF-8");
