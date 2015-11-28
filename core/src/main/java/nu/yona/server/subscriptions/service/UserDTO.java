@@ -68,8 +68,8 @@ public class UserDTO
 		this.lastName = lastName;
 		this.emailAddress = emailAddress;
 		this.mobileNumber = mobileNumber;
-		this.privateData = privateData;
 		this.isConfirmed = isConfirmed;
+		this.privateData = privateData;
 	}
 
 	@JsonIgnore
