@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -66,10 +65,7 @@ public class UserAnonymized extends EntityWithID
 
 	public Set<MessageDestination> getAllRelatedDestinations()
 	{
-		Set<MessageDestination> relatedDestinations = new HashSet<>(Arrays.asList(anonymousDestination));
-		relatedDestinations.addAll(buddiesAnonymized.stream().map(ba -> ba.getUserAnonymized())
-				.map(ua -> ua.getAnonymousDestination()).collect(Collectors.toSet()));
-		return relatedDestinations;
+		return buddiesAnonymized.stream().map(ba -> ba.getUserAnonymized().getAnonymousDestination()).collect(Collectors.toSet());
 	}
 
 	public void addBuddyAnonymized(BuddyAnonymized buddyAnonimized)

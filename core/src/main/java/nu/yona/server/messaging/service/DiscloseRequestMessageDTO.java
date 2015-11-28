@@ -18,16 +18,16 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
-import nu.yona.server.messaging.entities.GoalConflictDiscloseRequestMessage;
-import nu.yona.server.messaging.entities.GoalConflictDiscloseResponseMessage;
+import nu.yona.server.messaging.entities.DiscloseRequestMessage;
+import nu.yona.server.messaging.entities.DiscloseResponseMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.subscriptions.service.UserDTO;
 
-@JsonRootName("goalConflictDiscloseRequestMessage")
-public class GoalConflictDiscloseRequestMessageDTO extends MessageDTO
+@JsonRootName("discloseRequestMessage")
+public class DiscloseRequestMessageDTO extends MessageDTO
 {
 	private static final String ACCEPT = "accept";
 	private static final String REJECT = "reject";
@@ -36,7 +36,7 @@ public class GoalConflictDiscloseRequestMessageDTO extends MessageDTO
 	private boolean isAccepted;
 	private boolean isRejected;
 
-	private GoalConflictDiscloseRequestMessageDTO(UUID id, String nickname, boolean isAccepted, boolean isRejected)
+	private DiscloseRequestMessageDTO(UUID id, String nickname, boolean isAccepted, boolean isRejected)
 	{
 		super(id);
 		this.nickname = nickname;
@@ -71,11 +71,10 @@ public class GoalConflictDiscloseRequestMessageDTO extends MessageDTO
 		return isRejected;
 	}
 
-	public static GoalConflictDiscloseRequestMessageDTO createInstance(UserDTO requestingUser,
-			GoalConflictDiscloseRequestMessage messageEntity)
+	public static DiscloseRequestMessageDTO createInstance(UserDTO requestingUser, DiscloseRequestMessage messageEntity)
 	{
-		return new GoalConflictDiscloseRequestMessageDTO(messageEntity.getID(), messageEntity.getNickname(),
-				messageEntity.isAccepted(), messageEntity.isRejected());
+		return new DiscloseRequestMessageDTO(messageEntity.getID(), messageEntity.getNickname(), messageEntity.isAccepted(),
+				messageEntity.isRejected());
 	}
 
 	@Component
@@ -87,14 +86,13 @@ public class GoalConflictDiscloseRequestMessageDTO extends MessageDTO
 		@PostConstruct
 		private void init()
 		{
-			theDTOFactory.addManager(GoalConflictDiscloseRequestMessage.class, this);
+			theDTOFactory.addManager(DiscloseRequestMessage.class, this);
 		}
 
 		@Override
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return GoalConflictDiscloseRequestMessageDTO.createInstance(actingUser,
-					(GoalConflictDiscloseRequestMessage) messageEntity);
+			return DiscloseRequestMessageDTO.createInstance(actingUser, (DiscloseRequestMessage) messageEntity);
 		}
 
 		@Override
@@ -104,28 +102,28 @@ public class GoalConflictDiscloseRequestMessageDTO extends MessageDTO
 			switch (action)
 			{
 				case ACCEPT:
-					return handleAction_Accept(actingUser, (GoalConflictDiscloseRequestMessage) messageEntity, requestPayload);
+					return handleAction_Accept(actingUser, (DiscloseRequestMessage) messageEntity, requestPayload);
 				case REJECT:
-					return handleAction_Reject(actingUser, (GoalConflictDiscloseRequestMessage) messageEntity, requestPayload);
+					return handleAction_Reject(actingUser, (DiscloseRequestMessage) messageEntity, requestPayload);
 				default:
 					throw new IllegalArgumentException("Action '" + action + "' is not supported");
 			}
 		}
 
-		private MessageActionDTO handleAction_Accept(UserDTO acceptingUser,
-				GoalConflictDiscloseRequestMessage discloseRequestMessageEntity, MessageActionDTO payload)
+		private MessageActionDTO handleAction_Accept(UserDTO acceptingUser, DiscloseRequestMessage discloseRequestMessageEntity,
+				MessageActionDTO payload)
 		{
 			return updateResult(acceptingUser, discloseRequestMessageEntity, GoalConflictMessage.Status.DISCLOSE_ACCEPTED);
 		}
 
-		private MessageActionDTO handleAction_Reject(UserDTO rejectingUser,
-				GoalConflictDiscloseRequestMessage discloseRequestMessageEntity, MessageActionDTO payload)
+		private MessageActionDTO handleAction_Reject(UserDTO rejectingUser, DiscloseRequestMessage discloseRequestMessageEntity,
+				MessageActionDTO payload)
 		{
 			return updateResult(rejectingUser, discloseRequestMessageEntity, GoalConflictMessage.Status.DISCLOSE_REJECTED);
 		}
 
-		private MessageActionDTO updateResult(UserDTO respondingUser,
-				GoalConflictDiscloseRequestMessage discloseRequestMessageEntity, Status status)
+		private MessageActionDTO updateResult(UserDTO respondingUser, DiscloseRequestMessage discloseRequestMessageEntity,
+				Status status)
 		{
 			GoalConflictMessage targetGoalConflictMessage = discloseRequestMessageEntity.getTargetGoalConflictMessage();
 			targetGoalConflictMessage.setStatus(status);
@@ -139,15 +137,14 @@ public class GoalConflictDiscloseRequestMessageDTO extends MessageDTO
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}
 
-		private void sendResponseMessageToRequestingUser(UserDTO respondingUser,
-				GoalConflictDiscloseRequestMessage requestMessageEntity)
+		private void sendResponseMessageToRequestingUser(UserDTO respondingUser, DiscloseRequestMessage requestMessageEntity)
 		{
 			MessageDestination messageDestination = requestMessageEntity.getUser().getAnonymousDestination();
 			assert messageDestination != null;
-			messageDestination.send(GoalConflictDiscloseResponseMessage.createInstance(
-					respondingUser.getPrivateData().getVpnProfile().getVPNLoginID(),
-					requestMessageEntity.getTargetGoalConflictMessageID(), requestMessageEntity.getStatus(),
-					respondingUser.getPrivateData().getNickName()));
+			messageDestination
+					.send(DiscloseResponseMessage.createInstance(respondingUser.getPrivateData().getVpnProfile().getVPNLoginID(),
+							requestMessageEntity.getTargetGoalConflictMessageID(), requestMessageEntity.getStatus(),
+							respondingUser.getPrivateData().getNickName()));
 			MessageDestination.getRepository().save(messageDestination);
 		}
 	}

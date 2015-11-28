@@ -26,6 +26,7 @@ public class GoalConflictMessage extends Message
 
 	private UUID goalID;
 	private Status status;
+	private boolean isFromBuddy;
 
 	@Transient
 	private String url;
@@ -39,7 +40,7 @@ public class GoalConflictMessage extends Message
 		super(null, null);
 	}
 
-	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedID, UUID goalID, String url, Status status)
+	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedID, UUID goalID, String url, Status status, boolean isFromBuddy)
 	{
 		super(id, relatedUserAnonymizedID);
 
@@ -47,6 +48,7 @@ public class GoalConflictMessage extends Message
 		this.url = url;
 		this.endTime = new Date();
 		this.status = status;
+		this.isFromBuddy = isFromBuddy;
 	}
 
 	public Goal getGoal()
@@ -92,6 +94,11 @@ public class GoalConflictMessage extends Message
 		return goalID;
 	}
 
+	public boolean isFromBuddy()
+	{
+		return isFromBuddy;
+	}
+
 	public Status getStatus()
 	{
 		return status;
@@ -102,13 +109,18 @@ public class GoalConflictMessage extends Message
 		this.status = status;
 	}
 
-	public static GoalConflictMessage createInstance(UUID vpnLoginID, Goal goal, String url)
+	public static GoalConflictMessage createInstance(UUID vpnLoginID, Goal goal, String url, boolean isFromBuddy)
 	{
-		return new GoalConflictMessage(UUID.randomUUID(), vpnLoginID, goal.getID(), url, Status.ANNOUNCED);
+		return new GoalConflictMessage(UUID.randomUUID(), vpnLoginID, goal.getID(), url, Status.ANNOUNCED, isFromBuddy);
 	}
 
 	public static GoalConflictMessageRepository getGoalConflictMessageRepository()
 	{
 		return (GoalConflictMessageRepository) RepositoryProvider.getRepository(GoalConflictMessage.class, UUID.class);
+	}
+
+	public boolean isUrlDisclosed()
+	{
+		return !isFromBuddy() || getStatus() == Status.DISCLOSE_ACCEPTED;
 	}
 }

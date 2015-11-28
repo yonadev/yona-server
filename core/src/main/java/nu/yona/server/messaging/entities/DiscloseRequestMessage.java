@@ -11,23 +11,24 @@ import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Entity
-public class GoalConflictDiscloseRequestMessage extends Message
+public class DiscloseRequestMessage extends Message
 {
 	private UUID targetGoalConflictMessageID;
 	private Status status;
 	private String nickname;
 
 	// Default constructor is required for JPA
-	public GoalConflictDiscloseRequestMessage()
+	public DiscloseRequestMessage()
 	{
 		super(null, null);
 	}
 
-	protected GoalConflictDiscloseRequestMessage(UUID id, UUID requestingUserVPNLoginID, UUID targetGoalConflictMessageID,
+	protected DiscloseRequestMessage(UUID id, UUID requestingUserVPNLoginID, UUID targetGoalConflictMessageID,
 			String nickname)
 	{
 		super(id, requestingUserVPNLoginID);
 		this.targetGoalConflictMessageID = targetGoalConflictMessageID;
+		this.status = Status.DISCLOSE_REQUESTED;
 		this.nickname = nickname;
 	}
 
@@ -92,7 +93,7 @@ public class GoalConflictDiscloseRequestMessage extends Message
 	public static Message createInstance(UUID requestingUserVPNLoginID, String requestingUserNickname,
 			GoalConflictMessage targetGoalConflictMessage)
 	{
-		return new GoalConflictDiscloseRequestMessage(UUID.randomUUID(), requestingUserVPNLoginID,
+		return new DiscloseRequestMessage(UUID.randomUUID(), requestingUserVPNLoginID,
 				targetGoalConflictMessage.getID(), requestingUserNickname);
 	}
 }

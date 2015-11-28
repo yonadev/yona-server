@@ -15,18 +15,18 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 
-import nu.yona.server.messaging.entities.GoalConflictDiscloseResponseMessage;
+import nu.yona.server.messaging.entities.DiscloseResponseMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.subscriptions.service.UserDTO;
 
-@JsonRootName("goalConflictDiscloseResponseMessage")
-public class GoalConflictDiscloseResponseMessageDTO extends MessageDTO
+@JsonRootName("discloseResponseMessage")
+public class DiscloseResponseMessageDTO extends MessageDTO
 {
 	private String nickname;
 
-	private GoalConflictDiscloseResponseMessageDTO(UUID id, String nickname)
+	private DiscloseResponseMessageDTO(UUID id, String nickname)
 	{
 		super(id);
 		this.nickname = nickname;
@@ -44,10 +44,9 @@ public class GoalConflictDiscloseResponseMessageDTO extends MessageDTO
 		return nickname;
 	}
 
-	public static GoalConflictDiscloseResponseMessageDTO createInstance(UserDTO requestingUser,
-			GoalConflictDiscloseResponseMessage messageEntity)
+	public static DiscloseResponseMessageDTO createInstance(UserDTO requestingUser, DiscloseResponseMessage messageEntity)
 	{
-		return new GoalConflictDiscloseResponseMessageDTO(messageEntity.getID(), messageEntity.getNickname());
+		return new DiscloseResponseMessageDTO(messageEntity.getID(), messageEntity.getNickname());
 	}
 
 	@Component
@@ -59,14 +58,13 @@ public class GoalConflictDiscloseResponseMessageDTO extends MessageDTO
 		@PostConstruct
 		private void init()
 		{
-			theDTOFactory.addManager(GoalConflictDiscloseResponseMessage.class, this);
+			theDTOFactory.addManager(DiscloseResponseMessage.class, this);
 		}
 
 		@Override
 		public MessageDTO createInstance(UserDTO requestingUser, Message messageEntity)
 		{
-			return GoalConflictDiscloseResponseMessageDTO.createInstance(requestingUser,
-					(GoalConflictDiscloseResponseMessage) messageEntity);
+			return DiscloseResponseMessageDTO.createInstance(requestingUser, (DiscloseResponseMessage) messageEntity);
 		}
 
 		@Override

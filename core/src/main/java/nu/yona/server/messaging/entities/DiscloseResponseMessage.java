@@ -2,12 +2,15 @@ package nu.yona.server.messaging.entities;
 
 import java.util.UUID;
 
+import javax.persistence.Entity;
+
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 
-public class GoalConflictDiscloseResponseMessage extends Message
+@Entity
+public class DiscloseResponseMessage extends Message
 {
 	private UUID targetGoalConflictMessageID;
 	private Status status;
@@ -15,12 +18,12 @@ public class GoalConflictDiscloseResponseMessage extends Message
 	private boolean isProcessed;
 
 	// Default constructor is required for JPA
-	public GoalConflictDiscloseResponseMessage()
+	public DiscloseResponseMessage()
 	{
 		super(null, null);
 	}
 
-	protected GoalConflictDiscloseResponseMessage(UUID id, UUID relatedUserAnonymizedID, UUID targetGoalConflictMessageID,
+	protected DiscloseResponseMessage(UUID id, UUID relatedUserAnonymizedID, UUID targetGoalConflictMessageID,
 			Status status, String nickname)
 	{
 		super(id, relatedUserAnonymizedID);
@@ -62,10 +65,10 @@ public class GoalConflictDiscloseResponseMessage extends Message
 		return isProcessed;
 	}
 
-	public static GoalConflictDiscloseResponseMessage createInstance(UUID relatedUserAnonymizedID,
+	public static DiscloseResponseMessage createInstance(UUID relatedUserAnonymizedID,
 			UUID targetGoalConflictMessageID, Status status, String nickname)
 	{
-		return new GoalConflictDiscloseResponseMessage(UUID.randomUUID(), relatedUserAnonymizedID, targetGoalConflictMessageID,
+		return new DiscloseResponseMessage(UUID.randomUUID(), relatedUserAnonymizedID, targetGoalConflictMessageID,
 				status, nickname);
 	}
 }

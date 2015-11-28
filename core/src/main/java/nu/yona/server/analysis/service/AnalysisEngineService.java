@@ -50,12 +50,14 @@ public class AnalysisEngineService
 	private void sendConflictMessageToAllDestinationsOfUser(PotentialConflictDTO payload, UserAnonymized userAnonymized,
 			Set<Goal> conflictingGoalsOfUser)
 	{
-		Set<MessageDestination> destinations = userAnonymized.getAllRelatedDestinations();
-		destinations.stream().forEach(d -> sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser, d));
+		sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser, userAnonymized.getAnonymousDestination(), false);
+
+		userAnonymized.getAllRelatedDestinations().stream()
+				.forEach(d -> sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser, d, true));
 	}
 
 	private GoalConflictMessage sendOrUpdateConflictMessage(PotentialConflictDTO payload, Set<Goal> conflictingGoalsOfUser,
-			MessageDestination destination)
+			MessageDestination destination, boolean isFromBuddy)
 	{
 		Date now = new Date();
 		Date minEndTime = new Date(now.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
@@ -65,7 +67,7 @@ public class AnalysisEngineService
 
 		if (message == null || message.getEndTime().before(minEndTime))
 		{
-			message = sendNewGoalConflictMessage(payload, conflictingGoal, destination);
+			message = sendNewGoalConflictMessage(payload, conflictingGoal, destination, isFromBuddy);
 			cacheService.updateLatestGoalConflictMessageForUser(message, destination);
 		}
 		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
@@ -79,10 +81,10 @@ public class AnalysisEngineService
 	}
 
 	private GoalConflictMessage sendNewGoalConflictMessage(PotentialConflictDTO payload, Goal conflictingGoal,
-			MessageDestination destination)
+			MessageDestination destination, boolean isFromBuddy)
 	{
 		GoalConflictMessage message = GoalConflictMessage.createInstance(payload.getVPNLoginID(), conflictingGoal,
-				payload.getURL());
+				payload.getURL(), isFromBuddy);
 		destination.send(message);
 		return message;
 	}

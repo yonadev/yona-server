@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
-import nu.yona.server.messaging.entities.GoalConflictDiscloseRequestMessage;
+import nu.yona.server.messaging.entities.DiscloseRequestMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageActionDTO;
@@ -62,7 +62,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 
 	private boolean isFromBuddy()
 	{
-		return nickname != SELF_NICKNAME;
+		return !nickname.equals(SELF_NICKNAME);
 	}
 
 	public String getNickname()
@@ -75,6 +75,11 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return goalName;
 	}
 
+	public Status getStatus()
+	{
+		return status;
+	}
+
 	public String getUrl()
 	{
 		return url;
@@ -83,7 +88,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 	public static GoalConflictMessageDTO createInstance(UserDTO actingUser, GoalConflictMessage messageEntity, String nickname)
 	{
 		return new GoalConflictMessageDTO(messageEntity.getID(), nickname, messageEntity.getGoal().getName(),
-				messageEntity.getStatus() == Status.DISCLOSE_ACCEPTED ? messageEntity.getURL() : null, messageEntity.getStatus());
+				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null, messageEntity.getStatus());
 	}
 
 	@Component
@@ -129,8 +134,8 @@ public class GoalConflictMessageDTO extends MessageDTO
 
 			MessageDestination messageDestination = UserAnonymized.getRepository().findOne(messageEntity.getRelatedVPNLoginID())
 					.getAnonymousDestination();
-			messageDestination.send(
-					GoalConflictDiscloseRequestMessage.createInstance(actingUser.getPrivateData().getVpnProfile().getVPNLoginID(),
+			messageDestination
+					.send(DiscloseRequestMessage.createInstance(actingUser.getPrivateData().getVpnProfile().getVPNLoginID(),
 							actingUser.getPrivateData().getNickName(), messageEntity));
 			MessageDestination.getRepository().save(messageDestination);
 
