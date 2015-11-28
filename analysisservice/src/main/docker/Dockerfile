@@ -1,6 +1,6 @@
 FROM java:8
 
-WORKDIR /opt/analysisservice
+WORKDIR /opt/app
 
 EXPOSE 8080
 
