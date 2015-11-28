@@ -109,7 +109,7 @@ public class UserService
 	}
 
 	@Transactional
-	public void confirmMobileNumber(UUID userID, String code)
+	public UserDTO confirmMobileNumber(UUID userID, String code)
 	{
 		User userEntity = getEntityByID(userID);
 
@@ -131,6 +131,8 @@ public class UserService
 		userEntity.setConfirmationCode(null);
 		userEntity.markAsConfirmed();
 		User.getRepository().save(userEntity);
+
+		return UserDTO.createInstance(userEntity);
 	}
 
 	@Autowired
@@ -265,7 +267,7 @@ public class UserService
 
 	public String generatePassword()
 	{
-		return CryptoUtil.getRandomString(yonaProperties.getPasswordLength());
+		return CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength());
 	}
 
 	@Transactional
@@ -313,7 +315,7 @@ public class UserService
 
 	private long getExpirationIntervalMillis()
 	{
-		return yonaProperties.getNewDeviceRequestExpirationDays() * 24 * 60 * 60 * 1000;
+		return yonaProperties.getSecurity().getNewDeviceRequestExpirationDays() * 24 * 60 * 60 * 1000;
 	}
 
 	@Transactional

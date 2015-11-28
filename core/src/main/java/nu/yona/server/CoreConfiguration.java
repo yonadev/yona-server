@@ -4,6 +4,7 @@ package nu.yona.server;
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 
+import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,8 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 import org.springframework.hateoas.RelProvider;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.properties.YonaProperties;
@@ -69,5 +72,21 @@ public class CoreConfiguration
 		contextSource.setPassword(yonaProperties.getLdap().getAccessUserPassword());
 		contextSource.afterPropertiesSet();
 		return new LdapTemplate(contextSource);
+	}
+
+	@Bean
+	public JavaMailSender javaMailSender()
+	{
+		JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+		Properties mailProperties = new Properties();
+		mailProperties.put("mail.smtp.auth", yonaProperties.getEmail().getSmtp().isUseAuth());
+		mailProperties.put("mail.smtp.starttls.enable", yonaProperties.getEmail().getSmtp().isUseStartTls());
+		mailSender.setJavaMailProperties(mailProperties);
+		mailSender.setHost(yonaProperties.getEmail().getSmtp().getHost());
+		mailSender.setPort(yonaProperties.getEmail().getSmtp().getPort());
+		mailSender.setProtocol(yonaProperties.getEmail().getSmtp().getProtocol());
+		mailSender.setUsername(yonaProperties.getEmail().getSmtp().getUsername());
+		mailSender.setPassword(yonaProperties.getEmail().getSmtp().getPassword());
+		return mailSender;
 	}
 }

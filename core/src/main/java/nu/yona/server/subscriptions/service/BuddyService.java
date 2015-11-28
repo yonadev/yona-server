@@ -4,17 +4,25 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import javax.mail.internet.InternetAddress;
+
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import nu.yona.server.email.EmailService;
+import nu.yona.server.exceptions.EmailException;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.Buddy;
@@ -61,6 +69,7 @@ public class BuddyService
 		else
 		{
 			newBuddyEntity = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
+
 		}
 		return newBuddyEntity;
 	}
@@ -165,14 +174,11 @@ public class BuddyService
 		BuddyDTO savedBuddy = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
 
 		String inviteURL = inviteURLGetter.apply(buddyUserEntity.getID(), tempPassword);
-		if (properties.getIsRunningInTestMode())
+		if (!properties.getEmail().isEnabled())
 		{
 			savedBuddy.setUserCreatedInviteURL(inviteURL);
 		}
-		else
-		{
-			sendInvitationMessage(buddyUserEntity, buddy, inviteURL);
-		}
+		sendInvitationMessage(requestingUser, buddyUserEntity, buddy, inviteURL);
 		return savedBuddy;
 	}
 
@@ -181,10 +187,27 @@ public class BuddyService
 		USER_ACCOUNT_DELETED, USER_REMOVED_BUDDY
 	}
 
-	private void sendInvitationMessage(User buddyUserEntity, BuddyDTO buddy, String inviteURL)
+	private void sendInvitationMessage(UserDTO requestingUser, User buddyUserEntity, BuddyDTO buddy, String inviteURL)
 	{
-		emailService.sendEmail(buddy.getUser().getEmailAddress(), "Become my buddy for Yona!",
-				"Install the app! Open this URL with the app! " + inviteURL);
+		try
+		{
+			String subjectTemplateName = "buddy-invitation-subject";
+			String bodyTemplateName = "buddy-invitation-body";
+			String requestingUserName = StringUtils
+					.join(new Object[] { requestingUser.getFirstName(), requestingUser.getLastName() }, " ");
+			String buddyName = StringUtils.join(new Object[] { buddy.getUser().getFirstName(), buddy.getUser().getLastName() },
+					" ");
+			InternetAddress buddyAddress = new InternetAddress(buddy.getUser().getEmailAddress(), buddyName);
+			Map<String, Object> templateParams = new HashMap<String, Object>();
+			templateParams.put("inviteURL", inviteURL);
+			templateParams.put("requestingUserName", requestingUserName);
+			templateParams.put("buddyName", buddyName);
+			emailService.sendEmail(requestingUserName, buddyAddress, subjectTemplateName, bodyTemplateName, templateParams);
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			throw EmailException.emailSendingFailed(e);
+		}
 	}
 
 	private BuddyDTO handleBuddyRequestForExistingUser(UserDTO requestingUser, BuddyDTO buddy, User buddyUserEntity)

@@ -1,228 +1,50 @@
 package nu.yona.server.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Configuration;
 
 @ConfigurationProperties("yona")
 @Configuration
 public class YonaProperties
 {
-	private final AnalysisService analysisServiceConfig = new AnalysisService();
-	private final Ldap ldapConfig = new Ldap();
-	private final Sms smsConfig = new Sms();
+	@NestedConfigurationProperty
+	private final AnalysisServiceProperties analysisService = new AnalysisServiceProperties();
 
-	private int newDeviceRequestExpirationDays = 1;
-	private boolean isRunningInTestMode = false;
-	private int passwordLength = 32;
+	@NestedConfigurationProperty
+	private final EmailProperties email = new EmailProperties();
 
-	public static class AnalysisService
+	@NestedConfigurationProperty
+	private final LdapProperties ldap = new LdapProperties();
+
+	@NestedConfigurationProperty
+	private final SecurityProperties security = new SecurityProperties();
+
+	@NestedConfigurationProperty
+	private final SmsProperties sms = new SmsProperties();
+
+	public AnalysisServiceProperties getAnalysisService()
 	{
-		private long conflictInterval = 300000L;
-		private long updateSkipWindow = 5000L;
-
-		public long getConflictInterval()
-		{
-			return conflictInterval;
-		}
-
-		public void setConflictInterval(long conflictInterval)
-		{
-			this.conflictInterval = conflictInterval;
-		}
-
-		public long getUpdateSkipWindow()
-		{
-			return updateSkipWindow;
-		}
-
-		public void setUpdateSkipWindow(long updateSkipWindow)
-		{
-			this.updateSkipWindow = updateSkipWindow;
-		}
+		return analysisService;
 	}
 
-	public static class Ldap
+	public EmailProperties getEmail()
 	{
-		private boolean isEnabled;
-		private String url = "ldap://localhost:389";
-		private String baseDN = "DC=yona,DC=nu";
-		private String accessUserDN = "CN=Manager," + baseDN;
-		private String accessUserPassword = "Top secret";
-
-		public boolean isEnabled()
-		{
-			return isEnabled;
-		}
-
-		public void setEnabled(boolean isEnabled)
-		{
-			this.isEnabled = isEnabled;
-		}
-
-		public String getURL()
-		{
-			return url;
-		}
-
-		public void setURL(String url)
-		{
-			this.url = url;
-		}
-
-		public String getBaseDN()
-		{
-			return baseDN;
-		}
-
-		public void setBaseDN(String baseDN)
-		{
-			this.baseDN = baseDN;
-		}
-
-		public String getAccessUserDN()
-		{
-			return accessUserDN;
-		}
-
-		public void setAccessUserDN(String accessUserDN)
-		{
-			this.accessUserDN = accessUserDN;
-		}
-
-		public String getAccessUserPassword()
-		{
-			return accessUserPassword;
-		}
-
-		public void setAccessUserPassword(String accessUserPassword)
-		{
-			this.accessUserPassword = accessUserPassword;
-		}
+		return email;
 	}
 
-	public static class Sms
+	public LdapProperties getLdap()
 	{
-		private boolean isEnabled = false;
-		private String mobileNumberConfirmationMessage = "Yona confirmation code: {0}";
-		private int mobileNumberConfirmationCodeDigits = 5;
-		private String senderNumber = "";
-		private String plivoUrl = "https://api.plivo.com/v1/Account/{0}/Message/";
-		private String plivoAuthId = "";
-		private String plivoAuthToken = "";
-
-		public boolean isEnabled()
-		{
-			return isEnabled;
-		}
-
-		public void setEnabled(boolean isEnabled)
-		{
-			this.isEnabled = isEnabled;
-		}
-
-		public String getMobileNumberConfirmationMessage()
-		{
-			return mobileNumberConfirmationMessage;
-		}
-
-		public void setMobileNumberConfirmationMessage(String mobileNumberConfirmationMessage)
-		{
-			this.mobileNumberConfirmationMessage = mobileNumberConfirmationMessage;
-		}
-
-		public int getMobileNumberConfirmationCodeDigits()
-		{
-			return mobileNumberConfirmationCodeDigits;
-		}
-
-		public void setMobileNumberConfirmationCodeDigits(int mobileNumberConfirmationCodeDigits)
-		{
-			this.mobileNumberConfirmationCodeDigits = mobileNumberConfirmationCodeDigits;
-		}
-
-		public String getSenderNumber()
-		{
-			return senderNumber;
-		}
-
-		public void setSenderNumber(String senderNumber)
-		{
-			this.senderNumber = senderNumber;
-		}
-
-		public String getPlivoUrl()
-		{
-			return plivoUrl;
-		}
-
-		public void setPlivoUrl(String plivoUrl)
-		{
-			this.plivoUrl = plivoUrl;
-		}
-
-		public String getPlivoAuthId()
-		{
-			return plivoAuthId;
-		}
-
-		public void setPlivoAuthId(String plivoAuthId)
-		{
-			this.plivoAuthId = plivoAuthId;
-		}
-
-		public String getPlivoAuthToken()
-		{
-			return plivoAuthToken;
-		}
-
-		public void setPlivoAuthToken(String plivoAuthToken)
-		{
-			this.plivoAuthToken = plivoAuthToken;
-		}
+		return ldap;
 	}
 
-	public int getNewDeviceRequestExpirationDays()
+	public SecurityProperties getSecurity()
 	{
-		return newDeviceRequestExpirationDays;
+		return security;
 	}
 
-	public void setNewDeviceRequestExpirationDays(int newDeviceRequestExpiration)
+	public SmsProperties getSms()
 	{
-		this.newDeviceRequestExpirationDays = newDeviceRequestExpiration;
-	}
-
-	public boolean getIsRunningInTestMode()
-	{
-		return isRunningInTestMode;
-	}
-
-	public void setIsRunningInTestMode(boolean isRunningInTestMode)
-	{
-		this.isRunningInTestMode = isRunningInTestMode;
-	}
-
-	public int getPasswordLength()
-	{
-		return passwordLength;
-	}
-
-	public void setPasswordLength(int passwordLength)
-	{
-		this.passwordLength = passwordLength;
-	}
-
-	public Ldap getLdap()
-	{
-		return ldapConfig;
-	}
-
-	public AnalysisService getAnalysisService()
-	{
-		return analysisServiceConfig;
-	}
-
-	public Sms getSms()
-	{
-		return smsConfig;
+		return sms;
 	}
 }
