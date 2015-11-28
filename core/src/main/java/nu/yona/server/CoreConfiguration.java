@@ -79,8 +79,8 @@ public class CoreConfiguration
 	{
 		JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
 		Properties mailProperties = new Properties();
-		mailProperties.put("mail.smtp.auth", yonaProperties.getEmail().getSmtp().isUseAuth());
-		mailProperties.put("mail.smtp.starttls.enable", yonaProperties.getEmail().getSmtp().isUseStartTls());
+		mailProperties.put("mail.smtp.auth", yonaProperties.getEmail().getSmtp().isEnableAuth());
+		mailProperties.put("mail.smtp.starttls.enable", yonaProperties.getEmail().getSmtp().isEnableStartTls());
 		mailSender.setJavaMailProperties(mailProperties);
 		mailSender.setHost(yonaProperties.getEmail().getSmtp().getHost());
 		mailSender.setPort(yonaProperties.getEmail().getSmtp().getPort());

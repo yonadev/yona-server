@@ -39,7 +39,7 @@ public class PlivoSmsService implements SmsService
 	@Override
 	public void send(String phoneNumber, String message)
 	{
-		LOGGER.info(MessageFormat.format("Sending SMS to number '{0}'. Message: {0}\r\n", phoneNumber, message));
+		LOGGER.info(MessageFormat.format("Sending SMS to number ''{0}''. Message: {1}\r\n", phoneNumber, message));
 
 		if (!yonaProperties.getSms().isEnabled())
 		{

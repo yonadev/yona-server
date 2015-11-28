@@ -31,7 +31,7 @@ public class EmailService
 	public void sendEmail(String senderName, InternetAddress receiverAddress, String subjectTemplateName, String bodyTemplateName,
 			Map<String, Object> templateParameters)
 	{
-		LOGGER.info(MessageFormat.format("Sending e-mail to '{0}'. subjectTemplateName: {0}\r\n", receiverAddress,
+		LOGGER.info(MessageFormat.format("Sending e-mail to ''{0}''. subjectTemplateName: {1}\r\n", receiverAddress,
 				subjectTemplateName));
 
 		if (!yonaProperties.getEmail().isEnabled())

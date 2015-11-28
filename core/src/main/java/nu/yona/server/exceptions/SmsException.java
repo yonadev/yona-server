@@ -24,6 +24,6 @@ public class SmsException extends YonaException
 
 	public static SmsException smsSendingFailed(int httpResponseCode, String httpResponseBody)
 	{
-		return new SmsException("error.sms.sending.failed.httpStatus", httpResponseBody, httpResponseBody);
+		return new SmsException("error.sms.sending.failed.httpStatus", httpResponseCode, httpResponseBody);
 	}
 }
