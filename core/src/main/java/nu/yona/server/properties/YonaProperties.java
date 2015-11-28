@@ -10,10 +10,8 @@ public class YonaProperties
 	private final AnalysisService analysisServiceConfig = new AnalysisService();
 	private final Email email = new Email();
 	private final Ldap ldapConfig = new Ldap();
+	private final Security securityConfig = new Security();
 	private final Sms smsConfig = new Sms();
-
-	private int newDeviceRequestExpirationDays = 1;
-	private int passwordLength = 32;
 
 	public static class AnalysisService
 	{
@@ -213,6 +211,33 @@ public class YonaProperties
 		}
 	}
 
+	public class Security
+	{
+		private int newDeviceRequestExpirationDays = 1;
+		private int passwordLength = 32;
+	
+		public int getNewDeviceRequestExpirationDays()
+		{
+			return newDeviceRequestExpirationDays;
+		}
+	
+		public void setNewDeviceRequestExpirationDays(int newDeviceRequestExpiration)
+		{
+			this.newDeviceRequestExpirationDays = newDeviceRequestExpiration;
+		}
+	
+		public int getPasswordLength()
+		{
+			return passwordLength;
+		}
+	
+		public void setPasswordLength(int passwordLength)
+		{
+			this.passwordLength = passwordLength;
+		}
+	
+	}
+
 	public static class Sms
 	{
 		private boolean isEnabled = false;
@@ -294,26 +319,6 @@ public class YonaProperties
 		}
 	}
 
-	public int getNewDeviceRequestExpirationDays()
-	{
-		return newDeviceRequestExpirationDays;
-	}
-
-	public void setNewDeviceRequestExpirationDays(int newDeviceRequestExpiration)
-	{
-		this.newDeviceRequestExpirationDays = newDeviceRequestExpiration;
-	}
-
-	public int getPasswordLength()
-	{
-		return passwordLength;
-	}
-
-	public void setPasswordLength(int passwordLength)
-	{
-		this.passwordLength = passwordLength;
-	}
-
 	public AnalysisService getAnalysisService()
 	{
 		return analysisServiceConfig;
@@ -327,6 +332,11 @@ public class YonaProperties
 	public Ldap getLdap()
 	{
 		return ldapConfig;
+	}
+
+	public Security getSecurity()
+	{
+		return securityConfig;
 	}
 
 	public Sms getSms()
