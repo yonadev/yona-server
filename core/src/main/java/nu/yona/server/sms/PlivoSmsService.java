@@ -18,8 +18,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.apache.velocity.app.VelocityEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.velocity.VelocityEngineUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,10 +37,15 @@ public class PlivoSmsService implements SmsService
 
 	@Autowired
 	private YonaProperties yonaProperties;
+	@Autowired
+	private VelocityEngine velocityEngine;
 
 	@Override
-	public void send(String phoneNumber, String message)
+	public void send(String phoneNumber, String messageTemplateName, Map<String, Object> templateParameters)
 	{
+		String message = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine, "sms/" + messageTemplateName + ".vm",
+				"UTF-8", templateParameters);
+
 		LOGGER.info(MessageFormat.format("Sending SMS to number ''{0}''. Message: {1}\r\n", phoneNumber, message));
 
 		if (!yonaProperties.getSms().isEnabled())
