@@ -143,7 +143,9 @@ public class UserService
 	{
 		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null,
 				() -> tempEncryptionContextExecutor.addUserCreatedOnBuddyRequest(buddyUser).getID());
-		return getEntityByID(savedUserID);
+		User userEntity = getEntityByID(savedUserID);
+		sendMobileNumberConfirmationMessage(userEntity);
+		return userEntity;
 	}
 
 	@Transactional
