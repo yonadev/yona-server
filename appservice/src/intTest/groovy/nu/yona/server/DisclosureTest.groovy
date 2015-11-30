@@ -4,7 +4,7 @@ import groovy.json.*
 import spock.lang.Shared
 import spock.lang.Specification
 
-class UrlDisclosureTest extends Specification {
+class DisclosureTest extends Specification {
 
 	def adminServiceBaseURL = System.properties.'yona.adminservice.url'
 	def YonaServer adminService = new YonaServer(adminServiceBaseURL)
