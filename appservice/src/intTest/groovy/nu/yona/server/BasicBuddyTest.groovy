@@ -504,6 +504,59 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 	}
 
+	def 'Bob checks his anonymous messages and the messages of Richard are no longer there'(){
+		given:
+
+		when:
+			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded.goalConflictMessages.size() == 2
+			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[1].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[1].url =~ /refdag/
+	}
+	
+	def 'Richard checks his anonymous messages and the messages of Bob are no longer there'(){
+		given:
+
+		when:
+			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded.goalConflictMessages.size() == 1
+			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+	}
+	
+	def 'Bob checks his direct messages and the messages of Richard are no longer there'(){
+		given:
+
+		when:
+			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded == null || response.responseData._embedded.buddyConnectRequestMessages == null
+	}
+	
+	def 'Richard checks his direct messages and the messages of Bob are no longer there'(){
+		given:
+
+		when:
+			def response = appService.getDirectMessages(richardQuinURL, richardQuinPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded == null || response.responseData._embedded.buddyConnectRequestMessages == null
+	}
+	
 	def 'Bob processes the remove buddy message'(){
 		given:
 
