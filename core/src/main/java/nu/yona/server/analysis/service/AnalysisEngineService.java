@@ -53,7 +53,7 @@ public class AnalysisEngineService
 		GoalConflictMessage selfGoalConflictMessage = sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser,
 				userAnonymized.getAnonymousDestination(), null);
 
-		userAnonymized.getAllRelatedDestinations().stream()
+		userAnonymized.getBuddyDestinations().stream()
 				.forEach(d -> sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser, d, selfGoalConflictMessage));
 	}
 

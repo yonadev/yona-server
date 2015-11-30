@@ -63,7 +63,7 @@ public class UserAnonymized extends EntityWithID
 		return anonymousDestination;
 	}
 
-	public Set<MessageDestination> getAllRelatedDestinations()
+	public Set<MessageDestination> getBuddyDestinations()
 	{
 		return buddiesAnonymized.stream().map(ba -> ba.getUserAnonymized().getAnonymousDestination()).collect(Collectors.toSet());
 	}
