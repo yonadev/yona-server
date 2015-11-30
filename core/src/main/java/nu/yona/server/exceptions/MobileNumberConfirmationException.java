@@ -31,4 +31,9 @@ public class MobileNumberConfirmationException extends YonaException
 	{
 		return new MobileNumberConfirmationException("error.mobile.number.confirmation.user.cannot.be.activated");
 	}
+
+	public static MobileNumberConfirmationException notConfirmed()
+	{
+		return new MobileNumberConfirmationException("error.mobile.number.not.confirmed");
+	}
 }
