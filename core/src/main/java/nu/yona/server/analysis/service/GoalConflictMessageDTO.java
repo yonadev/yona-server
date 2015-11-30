@@ -62,7 +62,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 
 	private boolean isFromBuddy()
 	{
-		return !nickname.equals(SELF_NICKNAME);
+		return nickname != null && !nickname.equals(SELF_NICKNAME);
 	}
 
 	public String getNickname()
@@ -85,7 +85,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return url;
 	}
 
-	public static GoalConflictMessageDTO createInstance(UserDTO actingUser, GoalConflictMessage messageEntity, String nickname)
+	public static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, String nickname)
 	{
 		return new GoalConflictMessageDTO(messageEntity.getID(), nickname, messageEntity.getGoal().getName(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null, messageEntity.getStatus());
@@ -109,7 +109,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 		@Override
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return GoalConflictMessageDTO.createInstance(actingUser, (GoalConflictMessage) messageEntity,
+			return GoalConflictMessageDTO.createInstance((GoalConflictMessage) messageEntity,
 					getNickname(actingUser, (GoalConflictMessage) messageEntity));
 		}
 

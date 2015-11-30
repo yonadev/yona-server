@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
+import nu.yona.server.analysis.service.GoalConflictMessageDTO;
 import nu.yona.server.messaging.entities.DiscloseRequestMessage;
 import nu.yona.server.messaging.entities.DiscloseResponseMessage;
 import nu.yona.server.messaging.entities.Message;
@@ -36,12 +37,16 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 	private boolean isAccepted;
 	private boolean isRejected;
 
-	private DiscloseRequestMessageDTO(UUID id, String nickname, boolean isAccepted, boolean isRejected)
+	private GoalConflictMessageDTO targetGoalConflictMessage;
+
+	private DiscloseRequestMessageDTO(UUID id, String nickname, boolean isAccepted, boolean isRejected,
+			UUID targetGoalConflictMessageOriginID, GoalConflictMessageDTO targetGoalConflictMessage)
 	{
-		super(id);
+		super(id, targetGoalConflictMessageOriginID);
 		this.nickname = nickname;
 		this.isAccepted = isAccepted;
 		this.isRejected = isRejected;
+		this.targetGoalConflictMessage = targetGoalConflictMessage;
 	}
 
 	@Override
@@ -61,6 +66,11 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 		return nickname;
 	}
 
+	public GoalConflictMessageDTO getTargetGoalConflictMessage()
+	{
+		return targetGoalConflictMessage;
+	}
+
 	public boolean isAccepted()
 	{
 		return isAccepted;
@@ -73,8 +83,10 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 
 	public static DiscloseRequestMessageDTO createInstance(UserDTO requestingUser, DiscloseRequestMessage messageEntity)
 	{
+		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
 		return new DiscloseRequestMessageDTO(messageEntity.getID(), messageEntity.getNickname(), messageEntity.isAccepted(),
-				messageEntity.isRejected());
+				messageEntity.isRejected(), targetGoalConflictMessage.getOriginGoalConflictMessageID(),
+				GoalConflictMessageDTO.createInstance(targetGoalConflictMessage, null));
 	}
 
 	@Component

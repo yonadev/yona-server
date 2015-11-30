@@ -41,7 +41,7 @@ class DisclosureTest extends Specification {
 	@Shared
 	def richardQuinBuddyMessageProcessURL
 	@Shared
-	def bobDunnBuddyRemoveMessageProcessURL
+	def richardQuinGoalConflictMessage1URL
 	@Shared
 	def disclosureRequest1URL
 	@Shared
@@ -55,7 +55,7 @@ class DisclosureTest extends Specification {
 		given:
 
 		when:
-			def response = appService.addUser("""{
+		def response = appService.addUser("""{
 					"firstName":"Richard ${timestamp}",
 					"lastName":"Quin ${timestamp}",
 					"nickName":"RQ ${timestamp}",
@@ -68,24 +68,24 @@ class DisclosureTest extends Specification {
 						"gambling"
 					]
 				}""", richardQuinPassword)
-			if (response.status == 201) {
-				richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
-				richardQuinVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
-			}
+		if (response.status == 201) {
+			richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
+			richardQuinVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+		}
 
 		then:
-			response.status == 201
-			richardQuinURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
+		response.status == 201
+		richardQuinURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
 
 		cleanup:
-			println "URL Richard: " + richardQuinURL
+		println "URL Richard: " + richardQuinURL
 	}
 
 	def 'Add user Bob Dunn'(){
 		given:
 
 		when:
-			def response = appService.addUser("""{
+		def response = appService.addUser("""{
 					"firstName":"Bob ${timestamp}",
 					"lastName":"Dunn ${timestamp}",
 					"nickName":"BD ${timestamp}",
@@ -97,24 +97,24 @@ class DisclosureTest extends Specification {
 						"gambling"
 					]
 				}""", bobDunnPassword)
-			if (response.status == 201) {
-				bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
-				bobDunnVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
-			}
+		if (response.status == 201) {
+			bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
+			bobDunnVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+		}
 
 		then:
-			response.status == 201
-			bobDunnURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
+		response.status == 201
+		bobDunnURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
 
 		cleanup:
-			println "URL Bob: " + bobDunnURL
+		println "URL Bob: " + bobDunnURL
 	}
-	
+
 	def 'Richard requests Bob to become his buddy'(){
 		given:
 
 		when:
-			def response = appService.requestBuddy(richardQuinURL, """{
+		def response = appService.requestBuddy(richardQuinURL, """{
 					"_embedded":{
 						"user":{
 							"firstName":"Bob ${timestamp}",
@@ -127,232 +127,239 @@ class DisclosureTest extends Specification {
 					"sendingStatus":"REQUESTED",
 					"receivingStatus":"REQUESTED"
 				}""", richardQuinPassword)
-			richardQuinBobBuddyURL = response.responseData._links.self.href
+		richardQuinBobBuddyURL = response.responseData._links.self.href
 
 		then:
-			response.status == 201
-			response.responseData._embedded.user.firstName == "Bob ${timestamp}"
-			richardQuinBobBuddyURL.startsWith(richardQuinURL)
+		response.status == 201
+		response.responseData._embedded.user.firstName == "Bob ${timestamp}"
+		richardQuinBobBuddyURL.startsWith(richardQuinURL)
 
 		cleanup:
-			println "URL buddy Richard: " + richardQuinBobBuddyURL
+		println "URL buddy Richard: " + richardQuinBobBuddyURL
 	}
 
 	def 'Bob checks his direct messages'(){
 		given:
 
 		when:
-			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
-			if (response.responseData._embedded && response.responseData._embedded.buddyConnectRequestMessages) {
-				bobDunnBuddyMessageAcceptURL = response.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
-			}
+		def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
+		if (response.responseData._embedded && response.responseData._embedded.buddyConnectRequestMessages) {
+			bobDunnBuddyMessageAcceptURL = response.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
+		}
 
 		then:
-			response.status == 200
-			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
-			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard ${timestamp}"
-			response.responseData._embedded.buddyConnectRequestMessages[0].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
-			bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
+		response.status == 200
+		response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
+		response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard ${timestamp}"
+		response.responseData._embedded.buddyConnectRequestMessages[0].nickname == "RQ ${timestamp}"
+		response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+		bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
 	}
 
 	def 'Bob accepts Richard\'s buddy request'(){
 		given:
 
 		when:
-			def response = appService.postMessageActionWithPassword(bobDunnBuddyMessageAcceptURL, """{
+		def response = appService.postMessageActionWithPassword(bobDunnBuddyMessageAcceptURL, """{
 					"properties":{
 						"message":"Yes, great idea!"
 					}
 				}""", bobDunnPassword)
 
 		then:
-			response.status == 200
-			response.responseData.properties.status == "done"
+		response.status == 200
+		response.responseData.properties.status == "done"
 	}
 
 	def 'Richard checks his direct messages'(){
 		given:
 
 		when:
-			def response = appService.getDirectMessages(richardQuinURL, richardQuinPassword)
-			if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
-				richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
-			}
+		def response = appService.getDirectMessages(richardQuinURL, richardQuinPassword)
+		if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
+			richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
+		}
 
 		then:
-			response.status == 200
-			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
-			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
-			response.responseData._embedded.buddyConnectResponseMessages[0].nickname == "BD ${timestamp}"
-			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
-			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
+		response.status == 200
+		response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
+		response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
+		response.responseData._embedded.buddyConnectResponseMessages[0].nickname == "BD ${timestamp}"
+		response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+		richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
 	}
 
 	def 'Richard processes Bob\'s buddy acceptance'(){
 		given:
 
 		when:
-			def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageProcessURL, """{
+		def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageProcessURL, """{
 					"properties":{
 					}
 				}""", richardQuinPassword)
 
 		then:
-			response.status == 200
-			response.responseData.properties.status == "done"
+		response.status == 200
+		response.responseData.properties.status == "done"
 	}
 
 	def 'Richard checks his buddy list and will find Bob there'(){
 		given:
 
 		when:
-			def response = appService.getBuddies(richardQuinURL, richardQuinPassword);
+		def response = appService.getBuddies(richardQuinURL, richardQuinPassword);
 
 		then:
-			response.status == 200
-			response.responseData._embedded.buddies.size() == 1
-			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Bob ${timestamp}"
-			response.responseData._embedded.buddies[0].nickName == "BD ${timestamp}"
-			response.responseData._embedded.buddies[0].sendingStatus == "ACCEPTED"
-			response.responseData._embedded.buddies[0].receivingStatus == "ACCEPTED"
+		response.status == 200
+		response.responseData._embedded.buddies.size() == 1
+		response.responseData._embedded.buddies[0]._embedded.user.firstName == "Bob ${timestamp}"
+		response.responseData._embedded.buddies[0].nickName == "BD ${timestamp}"
+		response.responseData._embedded.buddies[0].sendingStatus == "ACCEPTED"
+		response.responseData._embedded.buddies[0].receivingStatus == "ACCEPTED"
 	}
 
 	def 'Classification engine detects 2 potential conflicts for Richard'(){
 		given:
 
 		when:
-			def response1 = analysisService.postToAnalysisEngine("""{
+		def response1 = analysisService.postToAnalysisEngine("""{
 				"vpnLoginID":"${richardQuinVPNLoginID}",
 				"categories": ["news/media"],
 				"url":"http://www.refdag.nl"
 				}""")
-			def response2 = analysisService.postToAnalysisEngine("""{
+		def response2 = analysisService.postToAnalysisEngine("""{
 				"vpnLoginID":"${richardQuinVPNLoginID}",
 				"categories": ["Gambling"],
 				"url":"http://www.poker.com"
 				}""")
 
 		then:
-			response1.status == 200
-			response2.status == 200
+		response1.status == 200
+		response2.status == 200
 	}
-	
+
 	def 'Bob checks he has anonymous messages and finds 2 conflicts for Richard'(){
 		given:
 
 		when:
-			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
-			if(response.status == 200 && response.responseData._embedded.goalConflictMessages)
-			{
-				disclosureRequest1URL = response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure.href
-				disclosureRequest2URL = response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure.href
-			}
+		def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+		if(response.status == 200 && response.responseData._embedded.goalConflictMessages) {
+			disclosureRequest1URL = response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure.href
+			disclosureRequest2URL = response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure.href
+		}
 
 		then:
-			response.status == 200
-			response.responseData._embedded.goalConflictMessages.size() == 2
-			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[0].url == null
-			response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure
-			response.responseData._embedded.goalConflictMessages[1].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[1].url == null
-			response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure
+		response.status == 200
+		response.responseData._embedded.goalConflictMessages.size() == 2
+		response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
+		response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+		response.responseData._embedded.goalConflictMessages[0].url == null
+		response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure
+		response.responseData._embedded.goalConflictMessages[1].nickname == "RQ ${timestamp}"
+		response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
+		response.responseData._embedded.goalConflictMessages[1].url == null
+		response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure
 	}
-	
+
 	def 'Richard does not have disclosure request links on his own goal conflict messages'(){
 		given:
 
 		when:
-			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+		def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+		if(response.status == 200 && response.responseData._embedded.goalConflictMessages) {
+			richardQuinGoalConflictMessage1URL = response.responseData._embedded.goalConflictMessages[0]._links.self.href
+		}
 
 		then:
-			response.status == 200
-			response.responseData._embedded.goalConflictMessages.size() == 2
-			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[0].url == "http://www.refdag.nl"
-			!response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure
-			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[1].url == "http://www.poker.com"
-			!response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure
+		response.status == 200
+		response.responseData._embedded.goalConflictMessages.size() == 2
+		response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+		response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+		response.responseData._embedded.goalConflictMessages[0].url == "http://www.refdag.nl"
+		!response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure
+		response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
+		response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
+		response.responseData._embedded.goalConflictMessages[1].url == "http://www.poker.com"
+		!response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure
 	}
 
 	def 'Bob asks for disclosure of both'(){
 		given:
 
 		when:
-			def response1 = appService.postMessageActionWithPassword(disclosureRequest1URL, """{
+		def response1 = appService.postMessageActionWithPassword(disclosureRequest1URL, """{
 					"properties":{
 					}
 				}""", bobDunnPassword)
-			def response2 = appService.postMessageActionWithPassword(disclosureRequest2URL, """{
+		def response2 = appService.postMessageActionWithPassword(disclosureRequest2URL, """{
 					"properties":{
 					}
 				}""", bobDunnPassword)
 
 		then:
-			response1.status == 200
-			response2.status == 200
+		response1.status == 200
+		response2.status == 200
 	}
 
 	def 'Richard checks his anonymous messages and finds the disclosure request'(){
 		given:
 
 		when:
-			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
-			if(response.status == 200 && response.responseData._embedded.discloseRequestMessages) {
-				goalDiscloseRequestMessage1AcceptURL = response.responseData._embedded.discloseRequestMessages[0]._links.accept.href
-				goalDiscloseRequestMessage2RejectURL = response.responseData._embedded.discloseRequestMessages[1]._links.reject.href
-			}
+		def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+		if(response.status == 200 && response.responseData._embedded.discloseRequestMessages) {
+			goalDiscloseRequestMessage1AcceptURL = response.responseData._embedded.discloseRequestMessages[0]._links.accept.href
+			goalDiscloseRequestMessage2RejectURL = response.responseData._embedded.discloseRequestMessages[1]._links.reject.href
+		}
 
 		then:
-			response.status == 200
-			response.responseData._embedded.discloseRequestMessages
-			response.responseData._embedded.discloseRequestMessages.size() == 2
-			goalDiscloseRequestMessage1AcceptURL
-			goalDiscloseRequestMessage2RejectURL
+		response.status == 200
+		response.responseData._embedded.discloseRequestMessages
+		response.responseData._embedded.discloseRequestMessages.size() == 2
+		response.responseData._embedded.discloseRequestMessages[0].nickname == "BD ${timestamp}"
+		response.responseData._embedded.discloseRequestMessages[0].targetGoalConflictMessage
+		response.responseData._embedded.discloseRequestMessages[0].targetGoalConflictMessage.goalName == "news"
+		//TODO response.responseData._embedded.discloseRequestMessages[0].targetGoalConflictMessage.creationTime
+		response.responseData._embedded.discloseRequestMessages[0]._links.related.href == richardQuinGoalConflictMessage1URL
+		goalDiscloseRequestMessage1AcceptURL
+		goalDiscloseRequestMessage2RejectURL
 	}
 
 	def 'Richard accepts the disclosure request of 1 and rejects of 2'(){
 		given:
 
 		when:
-			def response1 = appService.postMessageActionWithPassword(goalDiscloseRequestMessage1AcceptURL, """{
+		def response1 = appService.postMessageActionWithPassword(goalDiscloseRequestMessage1AcceptURL, """{
 					"properties":{
 					}
 				}""", richardQuinPassword)
-			def response2 = appService.postMessageActionWithPassword(goalDiscloseRequestMessage2RejectURL, """{
+		def response2 = appService.postMessageActionWithPassword(goalDiscloseRequestMessage2RejectURL, """{
 					"properties":{
 					}
 				}""", richardQuinPassword)
 
 		then:
-			response1.status == 200
-			response2.status == 200
+		response1.status == 200
+		response2.status == 200
 	}
 
 	def 'Bob checks he has anonymous messages and finds the URL of the first disclosed and the second denied'(){
 		given:
 
 		when:
-			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+		def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
 
 		then:
-			response.status == 200
-			response.responseData._embedded.goalConflictMessages.size() == 2
-			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[0].url == "http://www.refdag.nl"
-			response.responseData._embedded.goalConflictMessages[0].status == "DISCLOSE_ACCEPTED"
-			!response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure
-			response.responseData._embedded.goalConflictMessages[1].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[1].url == null
-			response.responseData._embedded.goalConflictMessages[1].status == "DISCLOSE_REJECTED"
-			!response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure
+		response.status == 200
+		response.responseData._embedded.goalConflictMessages.size() == 2
+		response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
+		response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+		response.responseData._embedded.goalConflictMessages[0].url == "http://www.refdag.nl"
+		response.responseData._embedded.goalConflictMessages[0].status == "DISCLOSE_ACCEPTED"
+		!response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure
+		response.responseData._embedded.goalConflictMessages[1].nickname == "RQ ${timestamp}"
+		response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
+		response.responseData._embedded.goalConflictMessages[1].url == null
+		response.responseData._embedded.goalConflictMessages[1].status == "DISCLOSE_REJECTED"
+		!response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure
 	}
 }

@@ -24,9 +24,14 @@ public class GoalConflictMessage extends Message
 		ANNOUNCED, DISCLOSE_REQUESTED, DISCLOSE_ACCEPTED, DISCLOSE_REJECTED
 	}
 
+	/*
+	 * If this is a message sent to a buddy, this refers to the self goal conflict message posted at the user having the goal.
+	 * Otherwise {@literal null}.
+	 */
+	private UUID originGoalConflictMessageID;
+
 	private UUID goalID;
 	private Status status;
-	private boolean isFromBuddy;
 
 	@Transient
 	private String url;
@@ -40,20 +45,26 @@ public class GoalConflictMessage extends Message
 		super(null, null);
 	}
 
-	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedID, UUID goalID, String url, Status status, boolean isFromBuddy)
+	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedID, UUID originGoalConflictMessageID, UUID goalID, String url,
+			Status status)
 	{
 		super(id, relatedUserAnonymizedID);
 
+		this.originGoalConflictMessageID = originGoalConflictMessageID;
 		this.goalID = goalID;
 		this.url = url;
 		this.endTime = new Date();
 		this.status = status;
-		this.isFromBuddy = isFromBuddy;
 	}
 
 	public Goal getGoal()
 	{
 		return Goal.getRepository().findOne(goalID);
+	}
+
+	public UUID getOriginGoalConflictMessageID()
+	{
+		return originGoalConflictMessageID;
 	}
 
 	public String getURL()
@@ -96,7 +107,7 @@ public class GoalConflictMessage extends Message
 
 	public boolean isFromBuddy()
 	{
-		return isFromBuddy;
+		return originGoalConflictMessageID != null;
 	}
 
 	public Status getStatus()
@@ -109,9 +120,21 @@ public class GoalConflictMessage extends Message
 		this.status = status;
 	}
 
-	public static GoalConflictMessage createInstance(UUID vpnLoginID, Goal goal, String url, boolean isFromBuddy)
+	public static GoalConflictMessage createInstanceFromBuddy(UUID vpnLoginID, GoalConflictMessage origin)
 	{
-		return new GoalConflictMessage(UUID.randomUUID(), vpnLoginID, goal.getID(), url, Status.ANNOUNCED, isFromBuddy);
+		if (origin == null)
+		{
+			throw new IllegalArgumentException("Origin can not be null");
+		}
+
+		assert origin.getID() != null;
+		return new GoalConflictMessage(UUID.randomUUID(), vpnLoginID, origin.getID(), origin.getGoalID(), origin.getURL(),
+				Status.ANNOUNCED);
+	}
+
+	public static GoalConflictMessage createInstance(UUID vpnLoginID, Goal goal, String url)
+	{
+		return new GoalConflictMessage(UUID.randomUUID(), vpnLoginID, null, goal.getID(), url, Status.ANNOUNCED);
 	}
 
 	public static GoalConflictMessageRepository getGoalConflictMessageRepository()
