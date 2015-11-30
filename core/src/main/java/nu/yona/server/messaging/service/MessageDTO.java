@@ -34,5 +34,6 @@ public abstract class MessageDTO
 		return creationTime;
 	}
 
+	@JsonIgnore
 	public abstract Set<String> getPossibleActions();
 }
