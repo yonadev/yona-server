@@ -4,8 +4,9 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.text.MessageFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -97,15 +98,15 @@ public class UserService
 			userDTO.setConfirmationCode(userEntity.getConfirmationCode());
 		}
 
-		sendMobileNumberConfirmationMessage(userEntity);
+		sendMobileNumberConfirmationMessage(userEntity, SmsService.TemplateName_AddUserNumberConfirmation);
 		return userDTO;
 	}
 
-	private void sendMobileNumberConfirmationMessage(User userEntity)
+	private void sendMobileNumberConfirmationMessage(User userEntity, String messageTemplateName)
 	{
-		String message = MessageFormat.format(yonaProperties.getSms().getMobileNumberConfirmationMessage(),
-				userEntity.getConfirmationCode());
-		smsService.send(userEntity.getMobileNumber(), message);
+		Map<String, Object> templateParams = new HashMap<String, Object>();
+		templateParams.put("confirmationCode", userEntity.getConfirmationCode());
+		smsService.send(userEntity.getMobileNumber(), messageTemplateName, templateParams);
 	}
 
 	@Transactional
@@ -143,7 +144,9 @@ public class UserService
 	{
 		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null,
 				() -> tempEncryptionContextExecutor.addUserCreatedOnBuddyRequest(buddyUser).getID());
-		return getEntityByID(savedUserID);
+		User userEntity = getEntityByID(savedUserID);
+		sendMobileNumberConfirmationMessage(userEntity, SmsService.TemplateName_InviteBuddyNumberConfirmation);
+		return userEntity;
 	}
 
 	@Transactional

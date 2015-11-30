@@ -42,6 +42,8 @@ class CreateUserOnBuddyRequestTest extends Specification {
 	@Shared
 	def bobDunnVPNLoginID
 	@Shared
+	def bobDunnMobileNumberConfirmationCode;
+	@Shared
 	def richardQuinBobBuddyURL
 	@Shared
 	def bobDunnRichardBuddyURL
@@ -129,6 +131,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 				}
 				*/
 				bobDunnInviteURL = response.responseData.userCreatedInviteURL;
+				bobDunnMobileNumberConfirmationCode = response.responseData?._embedded?.user?.confirmationCode;
 				bobDunnURL = appService.stripQueryString(bobDunnInviteURL)
 			}
 
@@ -137,6 +140,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData._embedded.user.firstName == "Bob ${timestamp}"
 			richardQuinBobBuddyURL.startsWith(richardQuinURL)
 			bobDunnInviteURL
+			bobDunnMobileNumberConfirmationCode
 
 		cleanup:
 			println "URL buddy Richard: " + richardQuinBobBuddyURL
@@ -206,6 +210,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.firstName == "Bob ${timestamp}"
 			response.responseData.lastName == "Dun ${timestamp}"
 			response.responseData.mobileNumber == "+${timestamp}12"
+			response.responseData?.confirmed == false
 			response.responseData.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 			response.responseData.vpnProfile.vpnPassword.length() == 32
 			response.responseData.vpnProfile.openVPNProfile.length() > 10
@@ -243,6 +248,17 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.devices[0] == "iPhone 6"
 			//TODO: updating of goals is not yet supported
 			response.responseData.goals.size() == 0
+	}
+
+	def 'Bob Dunn receives confirmation SMS and enters the confirmation code in app'(){
+		given:
+
+		when:
+			def response = appService.confirmMobileNumber(bobDunnInviteURL, """ { "code":"${bobDunnMobileNumberConfirmationCode}" } """, bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData.confirmed == true
 	}
 
 	def 'Check if user is now retrievable with new password'(){
