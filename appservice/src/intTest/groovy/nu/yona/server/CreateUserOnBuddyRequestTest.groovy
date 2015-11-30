@@ -42,7 +42,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 	@Shared
 	def bobDunnVPNLoginID
 	@Shared
-	def bobDunnMobileConfirmationCode;
+	def bobDunnMobileNumberConfirmationCode;
 	@Shared
 	def richardQuinBobBuddyURL
 	@Shared
@@ -118,7 +118,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 				}
 				*/
 				bobDunnInviteURL = response.responseData.userCreatedInviteURL;
-				bobDunnMobileConfirmationCode = response.responseData?._embedded?.user?.confirmationCode;
+				bobDunnMobileNumberConfirmationCode = response.responseData?._embedded?.user?.confirmationCode;
 				bobDunnURL = appService.stripQueryString(bobDunnInviteURL)
 			}
 
@@ -127,7 +127,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData._embedded.user.firstName == "Bob ${timestamp}"
 			richardQuinBobBuddyURL.startsWith(richardQuinURL)
 			bobDunnInviteURL
-			bobDunnMobileConfirmationCode
+			bobDunnMobileNumberConfirmationCode
 
 		cleanup:
 			println "URL buddy Richard: " + richardQuinBobBuddyURL
@@ -241,7 +241,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 		given:
 
 		when:
-			def response = appService.confirmMobileNumber(bobDunnInviteURL, """ { "code":"${bobDunnMobileConfirmationCode}" } """, bobDunnPassword)
+			def response = appService.confirmMobileNumber(bobDunnInviteURL, """ { "code":"${bobDunnMobileNumberConfirmationCode}" } """, bobDunnPassword)
 
 		then:
 			response.status == 200
