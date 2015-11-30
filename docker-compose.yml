@@ -1,35 +1,44 @@
 ###########################################
+# Configuration data container
+###########################################
+configuration:
+  image: busybox
+  volumes:
+    - ./config:/opt/app/config:ro
+    - ./config:/conf:ro
+
+###########################################
 # Logging: ELK stack copied from http://www.labouisse.com/how-to/2015/09/23/elk-docker-and-spring-boot/
 ###########################################
 
 elasticsearch:
-    image: elasticsearch
-    volumes:
-        - /usr/share/elasticsearch/data
-    ports:
-        - "9200:9200"
+  image: elasticsearch
+  volumes:
+      - /usr/share/elasticsearch/data
+  ports:
+      - "9200:9200"
 
 logstash:
-    image: logstash
-    environment:
-        TZ: Europe/Paris
-    expose:
-        - "12201"
-    ports:
-        - "12201:12201"
-        - "12201:12201/udp"
-    volumes:
-        - ./conf:/conf
-    links:
-        - elasticsearch:db
-    command: logstash -f /conf/gelf.conf
+  image: logstash
+  environment:
+      TZ: Europe/Paris
+  expose:
+    - "12201"
+  ports:
+      - "12201:12201"
+      - "12201:12201/udp"
+  volumes_from:
+      - configuration:ro
+  links:
+      - elasticsearch:db
+  command: logstash -f /conf/gelf.conf
 
 kibana:
-    image: kibana
-    links:
-        - elasticsearch:elasticsearch
-    ports:
-        - "5601:5601"
+  image: kibana
+  links:
+      - elasticsearch:elasticsearch
+  ports:
+      - "5601:5601"
 
 ###########################################
 # Database
@@ -41,7 +50,7 @@ hsqldb:
     - "9001"
 
 ###########################################
-# Services   
+# Services
 ###########################################
 
 adminservice:
@@ -54,6 +63,8 @@ adminservice:
   log_driver: "gelf"
   log_opt:
     gelf-address: "udp://localhost:12201"
+  volumes_from:
+        - configuration:ro
 
 analysisservice:
   image: yonadev/analysisservice:0.0.8-SNAPSHOT
@@ -63,8 +74,10 @@ analysisservice:
   ports:
     - 8081:8080
   log_driver: "gelf"
-  log_opt:  
+  log_opt:
     gelf-address: "udp://localhost:12201"
+  volumes_from:
+        - configuration:ro
 
 appservice:
   image: yonadev/appservice:0.0.8-SNAPSHOT
@@ -74,5 +87,7 @@ appservice:
   ports:
     - 80:8080
   log_driver: "gelf"
-  log_opt:  
+  log_opt:
     gelf-address: "udp://localhost:12201"
+  volumes_from:
+        - configuration:ro
