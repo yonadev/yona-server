@@ -42,7 +42,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 	@Shared
 	def bobDunnVPNLoginID
 	@Shared
-	def bobDunnMobileNumberConfirmationCode;
+	def bobDunnMobileNumberConfirmationCode
 	@Shared
 	def richardQuinBobBuddyURL
 	@Shared
@@ -210,7 +210,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.firstName == "Bob ${timestamp}"
 			response.responseData.lastName == "Dun ${timestamp}"
 			response.responseData.mobileNumber == "+${timestamp}12"
-			response.responseData?.confirmed == false
+			response.responseData?.mobileNumberConfirmed == false
 			response.responseData.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 			response.responseData.vpnProfile.vpnPassword.length() == 32
 			response.responseData.vpnProfile.openVPNProfile.length() > 10
@@ -258,7 +258,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData.confirmed == true
+			response.responseData.mobileNumberConfirmed == true
 	}
 
 	def 'Check if user is now retrievable with new password'(){

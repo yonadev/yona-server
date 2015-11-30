@@ -62,6 +62,9 @@ class RemoveUserTest extends Specification {
 			if (response.status == 201) {
 				richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
 				richardQuinLoginID = response.responseData.vpnProfile.loginID;
+
+				def confirmationCode = response.responseData.confirmationCode;
+				appService.confirmMobileNumber(richardQuinURL, """ { "code":"${confirmationCode}" } """, richardQuinPassword)
 			}
 
 		then:
@@ -91,6 +94,9 @@ class RemoveUserTest extends Specification {
 			if (response.status == 201) {
 				bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
 				bobDunnLoginID = response.responseData.vpnProfile.loginID;
+
+				def confirmationCode = response.responseData.confirmationCode;
+				appService.confirmMobileNumber(bobDunnURL, """ { "code":"${confirmationCode}" } """, bobDunnPassword)
 			}
 
 		then:
@@ -193,7 +199,7 @@ class RemoveUserTest extends Specification {
 			response.status == 200
 			response.responseData.properties.status == "done"
 	}
-	
+
 	def 'Richard deletes his account'() {
 		given:
 		when:
@@ -202,7 +208,7 @@ class RemoveUserTest extends Specification {
 		then:
 			response.status == 200
 	}
-	
+
 	def 'Bob checks his direct messages and will find a remove buddy message'(){
 		given:
 
@@ -235,7 +241,7 @@ class RemoveUserTest extends Specification {
 			response.status == 200
 			response.responseData.properties.status == "done"
 	}
-	
+
 	def 'Bob checks his buddy list and will not find Richard there anymore'(){
 		given:
 
