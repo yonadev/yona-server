@@ -3,7 +3,6 @@ package nu.yona.server.properties;
 public class SmsProperties
 {
 	private boolean isEnabled = false;
-	private String mobileNumberConfirmationMessage = "Yona confirmation code: {0}";
 	private int mobileNumberConfirmationCodeDigits = 5;
 	private String senderNumber = "";
 	private String plivoUrl = "https://api.plivo.com/v1/Account/{0}/Message/";
@@ -18,16 +17,6 @@ public class SmsProperties
 	public void setEnabled(boolean isEnabled)
 	{
 		this.isEnabled = isEnabled;
-	}
-
-	public String getMobileNumberConfirmationMessage()
-	{
-		return mobileNumberConfirmationMessage;
-	}
-
-	public void setMobileNumberConfirmationMessage(String mobileNumberConfirmationMessage)
-	{
-		this.mobileNumberConfirmationMessage = mobileNumberConfirmationMessage;
 	}
 
 	public int getMobileNumberConfirmationCodeDigits()
