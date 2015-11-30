@@ -41,7 +41,7 @@ public class User extends EntityWithID
 
 	private boolean isCreatedOnBuddyRequest;
 
-	private boolean isConfirmed;
+	private boolean isMobileNumberConfirmed;
 	private String confirmationCode;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -143,14 +143,14 @@ public class User extends EntityWithID
 		this.newDeviceRequest = newDeviceRequest;
 	}
 
-	public boolean isConfirmed()
+	public boolean isMobileNumberConfirmed()
 	{
-		return isConfirmed;
+		return isMobileNumberConfirmed;
 	}
 
-	public void markAsConfirmed()
+	public void markMobileNumberConfirmed()
 	{
-		this.isConfirmed = true;
+		this.isMobileNumberConfirmed = true;
 	}
 
 	public String getConfirmationCode()

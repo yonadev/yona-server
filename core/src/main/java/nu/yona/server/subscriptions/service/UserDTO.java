@@ -30,7 +30,7 @@ public class UserDTO
 	private final String lastName;
 	private final String emailAddress;
 	private final String mobileNumber;
-	private boolean isConfirmed;
+	private boolean isMobileNumberConfirmed;
 	private final UserPrivateDTO privateData;
 	/*
 	 * Only intended for test purposes.
@@ -60,7 +60,7 @@ public class UserDTO
 		this(null, firstName, lastName, emailAddress, mobileNumber, isConfirmed, privateData);
 	}
 
-	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber, boolean isConfirmed,
+	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber, boolean isMobileNumberConfirmed,
 			UserPrivateDTO privateData)
 	{
 		this.id = id;
@@ -68,7 +68,7 @@ public class UserDTO
 		this.lastName = lastName;
 		this.emailAddress = emailAddress;
 		this.mobileNumber = mobileNumber;
-		this.isConfirmed = isConfirmed;
+		this.isMobileNumberConfirmed = isMobileNumberConfirmed;
 		this.privateData = privateData;
 	}
 
@@ -104,9 +104,9 @@ public class UserDTO
 		return mobileNumber;
 	}
 
-	public boolean isConfirmed()
+	public boolean isMobileNumberConfirmed()
 	{
-		return isConfirmed;
+		return isMobileNumberConfirmed;
 	}
 
 	@JsonUnwrapped
@@ -157,7 +157,7 @@ public class UserDTO
 	static UserDTO createInstance(User userEntity)
 	{
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getMobileNumber(),
-				userEntity.isConfirmed());
+				userEntity.isMobileNumberConfirmed());
 	}
 
 	static UserDTO createRemovedUserInstance()
@@ -168,7 +168,7 @@ public class UserDTO
 	static UserDTO createInstanceWithPrivateData(User userEntity)
 	{
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickName(),
-				userEntity.getMobileNumber(), userEntity.isConfirmed(), userEntity.getNamedMessageSource().getID(),
+				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSource().getID(),
 				userEntity.getNamedMessageDestination().getID(), userEntity.getAnonymousMessageSource().getID(),
 				userEntity.getAnonymousMessageSource().getDestination().getID(), userEntity.getDeviceNames(),
 				getGoalNames(userEntity.getGoals()), getBuddyIDs(userEntity), VPNProfileDTO.createInstance(userEntity));

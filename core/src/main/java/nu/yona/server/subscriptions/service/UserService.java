@@ -123,13 +123,13 @@ public class UserService
 			throw MobileNumberConfirmationException.confirmationCodeMismatch();
 		}
 
-		if (userEntity.isConfirmed())
+		if (userEntity.isMobileNumberConfirmed())
 		{
 			throw MobileNumberConfirmationException.userCannotBeActivated();
 		}
 
 		userEntity.setConfirmationCode(null);
-		userEntity.markAsConfirmed();
+		userEntity.markMobileNumberConfirmed();
 		User.getRepository().save(userEntity);
 
 		return UserDTO.createInstance(userEntity);
