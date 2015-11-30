@@ -102,7 +102,7 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 		private MessageActionDTO handleAction_Process(UserDTO actingUser, BuddyDisconnectMessage messageEntity,
 				MessageActionDTO requestPayload)
 		{
-			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getID(), messageEntity.getRelatedVPNLoginID());
+			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getID(), messageEntity.getUserID());
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}

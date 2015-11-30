@@ -220,9 +220,9 @@ public class User extends EntityWithID
 		getUserPrivate().removeBuddy(buddy);
 	}
 
-	public void removeBuddiesFromUser(UUID fromUserLoginID)
+	public void removeBuddiesFromUser(UUID fromUserID)
 	{
-		getUserPrivate().removeBuddiesFromUser(fromUserLoginID);
+		getUserPrivate().removeBuddyForUserID(fromUserID);
 	}
 
 	public MessageSource getNamedMessageSource()

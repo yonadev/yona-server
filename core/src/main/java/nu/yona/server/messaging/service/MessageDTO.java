@@ -14,10 +14,17 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 public abstract class MessageDTO
 {
 	private final UUID id;
+	private final UUID relatedAnonymousMessageID;
 
 	protected MessageDTO(UUID id)
 	{
+		this(id, null);
+	}
+
+	protected MessageDTO(UUID id, UUID relatedAnonymousMessageID)
+	{
 		this.id = id;
+		this.relatedAnonymousMessageID = relatedAnonymousMessageID;
 	}
 
 	@JsonIgnore
@@ -26,5 +33,12 @@ public abstract class MessageDTO
 		return id;
 	}
 
+	@JsonIgnore
+	public UUID getRelatedAnonymousMessageID()
+	{
+		return relatedAnonymousMessageID;
+	}
+
+	@JsonIgnore
 	public abstract Set<String> getPossibleActions();
 }

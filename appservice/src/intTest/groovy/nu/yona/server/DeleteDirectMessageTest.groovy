@@ -275,7 +275,7 @@ class DeleteDirectMessageTest extends Specification {
 			response.responseData._embedded.goalConflictMessages.size() == 1
 			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+			response.responseData._embedded.goalConflictMessages[0].url == null
 	}
 
 	def 'Richard checks he has anonymous messages and finds a conflict for himself'(){
@@ -326,7 +326,7 @@ class DeleteDirectMessageTest extends Specification {
 			response.responseData._embedded.goalConflictMessages.size() == 1
 			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+			response.responseData._embedded.goalConflictMessages[0].url == null
 	}
 
 	def 'Bob deletes Richard\'s buddy request'(){
