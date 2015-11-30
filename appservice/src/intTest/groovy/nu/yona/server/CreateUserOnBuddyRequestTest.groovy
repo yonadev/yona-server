@@ -154,7 +154,6 @@ class CreateUserOnBuddyRequestTest extends Specification {
 				}
 				*/
 				bobDunnInviteURL = response.responseData.userCreatedInviteURL;
-				bobDunnMobileNumberConfirmationCode = response.responseData?._embedded?.user?.confirmationCode;
 				bobDunnURL = appService.stripQueryString(bobDunnInviteURL)
 			}
 
@@ -163,7 +162,6 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData._embedded.user.firstName == "Bob ${timestamp}"
 			richardQuinBobBuddyURL.startsWith(richardQuinURL)
 			bobDunnInviteURL
-			bobDunnMobileNumberConfirmationCode
 
 		cleanup:
 			println "URL buddy Richard: " + richardQuinBobBuddyURL
@@ -189,7 +187,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 				"firstName":"Richard ${timestamp}",
 				"lastName":"Quin ${timestamp}",
 				"nickName":"RQ ${timestamp}",
-				"mobileNumber":"+${timestamp}11",
+				"mobileNumber":"+${timestamp}12",
 				"devices":[
 					"Nexus 6"
 				],
@@ -248,7 +246,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 				"firstName":"Bob ${timestamp}",
 				"lastName":"Dun ${timestamp}",
 				"nickName":"BD ${timestamp}",
-				"mobileNumber":"+${timestamp}12",
+				"mobileNumber":"+${timestamp}13",
 				"devices":[
 					"iPhone 6"
 				],
@@ -259,13 +257,15 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			if(response.status == 200)
 			{
 				bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
+				bobDunnMobileNumberConfirmationCode = response.responseData.confirmationCode;
 			}
 
 		then:
 			response.status == 200
+			bobDunnMobileNumberConfirmationCode
 			response.responseData.firstName == "Bob ${timestamp}"
 			response.responseData.lastName == "Dun ${timestamp}"
-			response.responseData.mobileNumber == "+${timestamp}12"
+			response.responseData.mobileNumber == "+${timestamp}13"
 			response.responseData.nickName == "BD ${timestamp}"
 			response.responseData.devices.size() == 1
 			response.responseData.devices[0] == "iPhone 6"
@@ -304,7 +304,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.status == 200
 			response.responseData.firstName == "Bob ${timestamp}"
 			response.responseData.lastName == "Dun ${timestamp}"
-			response.responseData.mobileNumber == "+${timestamp}12"
+			response.responseData.mobileNumber == "+${timestamp}13"
 			response.responseData.nickName == "BD ${timestamp}"
 			response.responseData.devices.size() == 1
 			response.responseData.devices[0] == "iPhone 6"
@@ -319,7 +319,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 				"firstName":"Bob ${timestamp}",
 				"lastName":"Dunn ${timestamp}",
 				"nickName":"BD ${timestamp}",
-				"mobileNumber":"+${timestamp}12",
+				"mobileNumber":"+${timestamp}13",
 				"devices":[
 					"iPhone 6"
 				],
@@ -332,7 +332,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.status == 200
 			response.responseData.firstName == "Bob ${timestamp}"
 			response.responseData.lastName == "Dunn ${timestamp}"
-			response.responseData.mobileNumber == "+${timestamp}12"
+			response.responseData.mobileNumber == "+${timestamp}13"
 			response.responseData.nickName == "BD ${timestamp}"
 			response.responseData.devices.size() == 1
 			response.responseData.devices[0] == "iPhone 6"
