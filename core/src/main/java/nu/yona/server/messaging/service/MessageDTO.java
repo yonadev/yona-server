@@ -39,5 +39,6 @@ public abstract class MessageDTO
 		return relatedAnonymousMessageID;
 	}
 
+	@JsonIgnore
 	public abstract Set<String> getPossibleActions();
 }
