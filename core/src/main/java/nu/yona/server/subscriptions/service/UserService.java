@@ -104,8 +104,13 @@ public class UserService
 
 	private void sendMobileNumberConfirmationMessage(User userEntity, String messageTemplateName)
 	{
+		String confirmationCode = userEntity.getConfirmationCode();
+		if (confirmationCode == null)
+		{
+			throw MobileNumberConfirmationException.confirmationCodeNotSet();
+		}
 		Map<String, Object> templateParams = new HashMap<String, Object>();
-		templateParams.put("confirmationCode", userEntity.getConfirmationCode());
+		templateParams.put("confirmationCode", confirmationCode);
 		smsService.send(userEntity.getMobileNumber(), messageTemplateName, templateParams);
 	}
 
@@ -144,9 +149,7 @@ public class UserService
 	{
 		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null,
 				() -> tempEncryptionContextExecutor.addUserCreatedOnBuddyRequest(buddyUser).getID());
-		User userEntity = getEntityByID(savedUserID);
-		sendMobileNumberConfirmationMessage(userEntity, SmsService.TemplateName_InviteBuddyNumberConfirmation);
-		return userEntity;
+		return getEntityByID(savedUserID);
 	}
 
 	@Transactional
@@ -181,6 +184,7 @@ public class UserService
 			// security check: should not be able to replace the password on an existing user
 			throw new IllegalArgumentException("User is not created on buddy request");
 		}
+		sendMobileNumberConfirmationMessage(originalUserEntity, SmsService.TemplateName_AddUserNumberConfirmation);
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
 		return saveUserEncryptedDataWithNewPassword(retrievedEntitySet, userResource);
 	}
