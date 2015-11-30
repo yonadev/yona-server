@@ -218,12 +218,15 @@ public class UserService
 				message, DropBuddyReason.USER_ACCOUNT_DELETED));
 
 		UserAnonymized userAnonymized = userEntity.getAnonymized();
+		UUID vpnLoginID = userAnonymized.getVPNLoginID();
 		UserAnonymized.getRepository().delete(userAnonymized);
 		MessageSource namedMessageSource = userEntity.getNamedMessageSource();
 		MessageSource anonymousMessageSource = userEntity.getAnonymousMessageSource();
 		MessageSource.getRepository().delete(anonymousMessageSource);
 		MessageSource.getRepository().delete(namedMessageSource);
 		User.getRepository().delete(userEntity);
+
+		ldapUserService.deleteVPNAccount(vpnLoginID.toString());
 	}
 
 	private User getEntityByID(UUID id)
