@@ -42,14 +42,6 @@ class BasicBuddyTest extends Specification {
 	def richardQuinBuddyMessageProcessURL
 	@Shared
 	def bobDunnBuddyRemoveMessageProcessURL
-	@Shared
-	def goalConflictMessageRequestDisclosureURL
-	@Shared
-	def goalDiscloseRequestMessageAcceptURL
-	@Shared
-	def goalConflictMessage2RequestDisclosureURL
-	@Shared
-	def goalDiscloseRequestMessage2RejectURL
 
 	def 'Add user Richard Quin'(){
 		given:
@@ -441,9 +433,6 @@ class BasicBuddyTest extends Specification {
 
 		when:
 			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
-			if(response.status == 200) {
-				goalConflictMessageRequestDisclosureURL = response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure.href
-			}
 
 		then:
 			response.status == 200
@@ -473,68 +462,6 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
 			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
 			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
-	}
-
-	def 'Richard asks for disclosure'(){
-		given:
-
-		when:
-			def response = appService.postMessageActionWithPassword(goalConflictMessageRequestDisclosureURL, """{
-					"properties":{
-					}
-				}""", richardQuinPassword)
-
-		then:
-			response.status == 200
-	}
-
-	def 'Bob checks his anonymous messages and finds the disclosure request'(){
-		given:
-
-		when:
-			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
-			if(response.status == 200 && response.responseData._embedded.discloseRequestMessages) {
-				goalDiscloseRequestMessageAcceptURL = response.responseData._embedded.discloseRequestMessages[0]._links.accept.href
-			}
-
-		then:
-			response.status == 200
-			response.responseData._embedded.discloseRequestMessages
-			response.responseData._embedded.discloseRequestMessages.size() == 1
-			goalDiscloseRequestMessageAcceptURL
-	}
-
-	def 'Bob accepts the disclosure request'(){
-		given:
-
-		when:
-			def response = appService.postMessageActionWithPassword(goalDiscloseRequestMessageAcceptURL, """{
-					"properties":{
-					}
-				}""", bobDunnPassword)
-
-		then:
-			response.status == 200
-	}
-
-	def 'Richard checks he has anonymous messages and finds the URL disclosed'(){
-		given:
-
-		when:
-			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
-
-		then:
-			response.status == 200
-			response.responseData._embedded.goalConflictMessages.size() == 2
-			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
-			!response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure
-			response.responseData._embedded.goalConflictMessages[1].nickname == "BD ${timestamp}"
-			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
-			!response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure
-			response.responseData._embedded.goalConflictMessages[1].status == "DISCLOSURE_ACCEPTED"
 	}
 
 	def 'Richard removes Bob as buddy'() {
