@@ -41,6 +41,9 @@ public class User extends EntityWithID
 
 	private boolean isCreatedOnBuddyRequest;
 
+	private boolean isConfirmed;
+	private String confirmationCode;
+
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private UserPrivate userPrivate;
 
@@ -138,6 +141,26 @@ public class User extends EntityWithID
 	public void setNewDeviceRequest(NewDeviceRequest newDeviceRequest)
 	{
 		this.newDeviceRequest = newDeviceRequest;
+	}
+
+	public boolean isConfirmed()
+	{
+		return isConfirmed;
+	}
+
+	public void markAsConfirmed()
+	{
+		this.isConfirmed = true;
+	}
+
+	public String getConfirmationCode()
+	{
+		return confirmationCode;
+	}
+
+	public void setConfirmationCode(String confirmationCode)
+	{
+		this.confirmationCode = confirmationCode;
 	}
 
 	private UserPrivate getUserPrivate()

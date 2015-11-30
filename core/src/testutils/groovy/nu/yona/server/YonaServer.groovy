@@ -16,6 +16,7 @@ class YonaServer {
 	final ALL_MESSAGES_PATH_FRAGMENT = "/messages/all/"
 	final RELEVANT_CATEGORIES_PATH_FRAGMENT = "/relevantCategories/"
 	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
+	final MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT = "/confirmMobileNumber"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 	RESTClient restClient
@@ -45,6 +46,11 @@ class YonaServer {
 
 	def addUser(jsonString, password) {
 		createResourceWithPassword(USERS_PATH, jsonString, password)
+	}
+	
+	def confirmMobileNumber(userURL, jsonString, password)
+	{
+		createResourceWithPassword(stripQueryString(userURL) + MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT, jsonString, password)
 	}
 
 	def getUser(userURL, boolean includePrivateData, password = null) {

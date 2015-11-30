@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,8 +19,10 @@ import org.springframework.stereotype.Service;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
+import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.sms.SmsService;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
@@ -39,7 +42,7 @@ public class UserService
 	private YonaProperties yonaProperties;
 
 	@Autowired
-	YonaProperties properties;
+	private SmsService smsService;
 
 	@Autowired
 	BuddyService buddyService;
@@ -83,10 +86,53 @@ public class UserService
 		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
 
 		User userEntity = user.createUserEntity();
+		userEntity
+				.setConfirmationCode(CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
 		userEntity = User.getRepository().save(userEntity);
 		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getVPNPassword());
 
-		return UserDTO.createInstanceWithPrivateData(userEntity);
+		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(userEntity);
+		if (!yonaProperties.getSms().isEnabled())
+		{
+			userDTO.setConfirmationCode(userEntity.getConfirmationCode());
+		}
+
+		sendMobileNumberConfirmationMessage(userEntity);
+		return userDTO;
+	}
+
+	private void sendMobileNumberConfirmationMessage(User userEntity)
+	{
+		String message = MessageFormat.format(yonaProperties.getSms().getMobileNumberConfirmationMessage(),
+				userEntity.getConfirmationCode());
+		smsService.send(userEntity.getMobileNumber(), message);
+	}
+
+	@Transactional
+	public UserDTO confirmMobileNumber(UUID userID, String code)
+	{
+		User userEntity = getEntityByID(userID);
+
+		if (userEntity.getConfirmationCode() == null)
+		{
+			throw MobileNumberConfirmationException.confirmationCodeNotSet();
+		}
+
+		if (!userEntity.getConfirmationCode().equals(code))
+		{
+			throw MobileNumberConfirmationException.confirmationCodeMismatch();
+		}
+
+		if (userEntity.isConfirmed())
+		{
+			throw MobileNumberConfirmationException.userCannotBeActivated();
+		}
+
+		userEntity.setConfirmationCode(null);
+		userEntity.markAsConfirmed();
+		User.getRepository().save(userEntity);
+
+		return UserDTO.createInstance(userEntity);
 	}
 
 	@Autowired
@@ -221,7 +267,7 @@ public class UserService
 
 	public String generatePassword()
 	{
-		return CryptoUtil.getRandomString(yonaProperties.getPasswordLength());
+		return CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength());
 	}
 
 	@Transactional
@@ -269,7 +315,7 @@ public class UserService
 
 	private long getExpirationIntervalMillis()
 	{
-		return properties.getNewDeviceRequestExpirationDays() * 24 * 60 * 60 * 1000;
+		return yonaProperties.getSecurity().getNewDeviceRequestExpirationDays() * 24 * 60 * 60 * 1000;
 	}
 
 	@Transactional
