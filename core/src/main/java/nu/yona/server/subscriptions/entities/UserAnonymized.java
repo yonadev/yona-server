@@ -21,6 +21,7 @@ import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 
 @Entity
 @Table(name = "USERS_ANONYMIZED")
@@ -67,8 +68,8 @@ public class UserAnonymized extends EntityWithID
 	public Set<MessageDestination> getAllRelatedDestinations()
 	{
 		Set<MessageDestination> relatedDestinations = new HashSet<>(Arrays.asList(anonymousDestination));
-		relatedDestinations.addAll(buddiesAnonymized.stream().map(ba -> ba.getUserAnonymized())
-				.map(ua -> ua.getAnonymousDestination()).collect(Collectors.toSet()));
+		relatedDestinations.addAll(buddiesAnonymized.stream().filter(ba -> ba.getSendingStatus() == Status.ACCEPTED)
+				.map(ba -> ba.getUserAnonymized()).map(ua -> ua.getAnonymousDestination()).collect(Collectors.toSet()));
 		return relatedDestinations;
 	}
 
@@ -91,5 +92,11 @@ public class UserAnonymized extends EntityWithID
 	public static UserAnonymized createInstance(MessageDestination anonymousDestination, Set<Goal> goals)
 	{
 		return new UserAnonymized(UUID.randomUUID(), anonymousDestination, goals);
+	}
+
+	public BuddyAnonymized getBuddyAnonymizedFromUser(UUID fromUserVPNLoginID)
+	{
+		return buddiesAnonymized.stream().filter(buddyAnonymized -> buddyAnonymized.getVPNLoginID().equals(fromUserVPNLoginID))
+				.findAny().orElse(null);
 	}
 }

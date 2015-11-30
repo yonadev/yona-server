@@ -85,7 +85,7 @@ class BasicBuddyTest extends Specification {
 						"iPhone 6"
 					],
 					"goals":[
-						"gambling"
+						"gambling", "news"
 					]
 				}""", bobDunnPassword)
 			if (response.status == 201) {
@@ -488,6 +488,20 @@ class BasicBuddyTest extends Specification {
 			response.responseData._embedded.buddyDisconnectMessages[0].message == "Bob, as you know our ways parted so I'll remove you as a buddy."
 			response.responseData._embedded.buddyDisconnectMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
 			bobDunnBuddyRemoveMessageProcessURL.startsWith(response.responseData._embedded.buddyDisconnectMessages[0]._links.self.href)
+	}
+	
+	def 'Test what happens if the classification engine detects a potential conflict for Bob (third conflict message) when the buddy disconnect is not yet processed'(){
+		given:
+
+		when:
+			def response = analysisService.postToAnalysisEngine("""{
+				"vpnLoginID":"${bobDunnVPNLoginID}",
+				"categories": ["news/media"],
+				"url":"http://www.refdag.nl"
+				}""")
+
+		then:
+			response.status == 200
 	}
 
 	def 'Bob processes the remove buddy message'(){

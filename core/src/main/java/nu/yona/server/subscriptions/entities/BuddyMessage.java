@@ -50,6 +50,11 @@ public abstract class BuddyMessage extends Message
 		return User.getRepository().findOne(userID);
 	}
 
+	public UUID getUserID()
+	{
+		return userID;
+	}
+
 	public String getMessage()
 	{
 		return message;

@@ -26,10 +26,12 @@ import nu.yona.server.exceptions.EmailException;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.Buddy;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Service
 @Transactional
@@ -103,14 +105,14 @@ public class BuddyService
 		User user = User.getRepository().findOne(idOfRequestingUser);
 		Buddy buddy = getEntityByID(buddyID);
 
-		clearMessagesAndSendDropBuddyMessage(user, buddy, message, DropBuddyReason.USER_REMOVED_BUDDY);
+		removeBuddyInfoFromBuddy(user, buddy, message, DropBuddyReason.USER_REMOVED_BUDDY);
 
 		user.removeBuddy(buddy);
 		User.getRepository().save(user);
 	}
 
 	@Transactional
-	void clearMessagesAndSendDropBuddyMessage(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
+	void removeBuddyInfoFromBuddy(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
 			DropBuddyReason reason)
 	{
 		if (requestingUserBuddy.getUser() == null)
@@ -118,15 +120,29 @@ public class BuddyService
 			// buddy account was removed in the meantime; nothing to do
 			return;
 		}
-		removeMessagesFromUser(requestingUserBuddy, requestingUser.getVPNLoginID());
-		sendDropBuddyMessage(requestingUser, requestingUserBuddy, message, reason);
+
+		if (requestingUserBuddy.getSendingStatus() == Status.ACCEPTED
+				|| requestingUserBuddy.getReceivingStatus() == Status.ACCEPTED)
+		{
+			removeNamedMessagesFromUser(requestingUserBuddy, requestingUser.getVPNLoginID());
+
+			UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(requestingUserBuddy.getVPNLoginID());
+			disconnectBuddyFromUser(userAnonymized, requestingUser.getVPNLoginID());
+			removeAnonymousMessagesFromUser(userAnonymized, requestingUser.getVPNLoginID());
+			sendDropBuddyMessage(requestingUser, requestingUserBuddy, message, reason);
+		}
+		else
+		{
+			// remove sent buddy request message
+			removeNamedMessagesFromUser(requestingUserBuddy, requestingUser.getVPNLoginID());
+		}
 	}
 
 	@Transactional
-	public void removeBuddyAfterBuddyRemovedConnection(UUID idOfRequestingUser, UUID relatedUserLoginID)
+	public void removeBuddyAfterBuddyRemovedConnection(UUID idOfRequestingUser, UUID relatedUserID)
 	{
 		User user = User.getRepository().findOne(idOfRequestingUser);
-		user.removeBuddiesFromUser(relatedUserLoginID);
+		user.removeBuddiesFromUser(relatedUserID);
 		User.getRepository().save(user);
 	}
 
@@ -139,11 +155,25 @@ public class BuddyService
 		MessageDestination.getRepository().save(messageDestination);
 	}
 
-	private void removeMessagesFromUser(Buddy buddy, UUID requestingUserVPNLoginID)
+	private void disconnectBuddyFromUser(UserAnonymized userAnonymized, UUID requestingUserVPNLoginID)
+	{
+		BuddyAnonymized buddyAnonymizedFromUser = userAnonymized.getBuddyAnonymizedFromUser(requestingUserVPNLoginID);
+		buddyAnonymizedFromUser.setDisconnected();
+		BuddyAnonymized.getRepository().save(buddyAnonymizedFromUser);
+	}
+
+	private void removeNamedMessagesFromUser(Buddy buddy, UUID requestingUserVPNLoginID)
 	{
 		MessageDestination namedMessageDestination = buddy.getUser().getNamedMessageDestination();
 		namedMessageDestination.removeMessagesFromUser(requestingUserVPNLoginID);
 		MessageDestination.getRepository().save(namedMessageDestination);
+	}
+
+	private void removeAnonymousMessagesFromUser(UserAnonymized userAnonymized, UUID requestingUserVPNLoginID)
+	{
+		MessageDestination anonymousMessageDestination = userAnonymized.getAnonymousDestination();
+		anonymousMessageDestination.removeMessagesFromUser(requestingUserVPNLoginID);
+		MessageDestination.getRepository().save(anonymousMessageDestination);
 	}
 
 	private String getDropBuddyMessage(DropBuddyReason reason, Optional<String> message)
