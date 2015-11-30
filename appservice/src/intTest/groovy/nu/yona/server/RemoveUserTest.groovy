@@ -210,6 +210,20 @@ class RemoveUserTest extends Specification {
 			response.status == 200
 	}
 	
+	def 'Classification engine detects a potential conflict for Richard'(){
+		given:
+
+		when:
+			def response = analysisService.postToAnalysisEngine("""{
+				"vpnLoginID":"${richardQuinVPNLoginID}",
+				"categories": ["news/media"],
+				"url":"http://www.refdag.nl"
+				}""")
+
+		then:
+			response.status == 200
+	}
+	
 	def 'Richard deletes his account'() {
 		given:
 		when:
@@ -275,5 +289,33 @@ class RemoveUserTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._embedded == null
+	}
+	
+	def 'Bob checks his anonymous messages and the messages of Richard are no longer there'(){
+		given:
+
+		when:
+			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded.goalConflictMessages.size() == 2
+			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[1].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[1].url =~ /refdag/
+	}
+	
+	def 'Bob checks his direct messages and the messages of Richard are no longer there'(){
+		given:
+
+		when:
+			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded == null || response.responseData._embedded.buddyConnectRequestMessages == null
 	}
 }
