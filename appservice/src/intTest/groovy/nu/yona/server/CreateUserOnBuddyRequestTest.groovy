@@ -118,7 +118,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 				}
 				*/
 				bobDunnInviteURL = response.responseData.userCreatedInviteURL;
-				bobDunnMobileConfirmationCode = response.responseData.confirmationCode;
+				bobDunnMobileConfirmationCode = response.responseData?._embedded?.user?.confirmationCode;
 				bobDunnURL = appService.stripQueryString(bobDunnInviteURL)
 			}
 
@@ -236,7 +236,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			//TODO: updating of goals is not yet supported
 			response.responseData.goals.size() == 0
 	}
-	
+
 	def 'Bob Dunn receives confirmation SMS and enters the confirmation code in app'(){
 		given:
 

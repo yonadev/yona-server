@@ -181,7 +181,7 @@ public class BuddyService
 		sendInvitationMessage(requestingUser, buddyUserEntity, buddy, inviteURL);
 		if (!properties.getSms().isEnabled())
 		{
-			savedBuddy.setConfirmationCode(buddyUserEntity.getConfirmationCode());
+			savedBuddy.getUser().setConfirmationCode(buddyUserEntity.getConfirmationCode());
 		}
 
 		return savedBuddy;

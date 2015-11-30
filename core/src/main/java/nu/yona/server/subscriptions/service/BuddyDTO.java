@@ -34,10 +34,6 @@ public class BuddyDTO
 	 * Only intended for test purposes.
 	 */
 	private String userCreatedInviteURL;
-	/*
-	 * Only intended for test purposes.
-	 */
-	private String confirmationCode;
 
 	public BuddyDTO(UUID id, UserDTO user, String message, String password, String nickName, UUID vpnLoginID,
 			Status sendingStatus, Status receivingStatus)
@@ -142,22 +138,5 @@ public class BuddyDTO
 	public String getUserCreatedInviteURL()
 	{
 		return userCreatedInviteURL;
-	}
-
-	/*
-	 * Only intended for test purposes.
-	 */
-	public String getConfirmationCode()
-	{
-		return confirmationCode;
-	}
-
-	/*
-	 * Only intended for test purposes.
-	 */
-	@JsonInclude(Include.NON_EMPTY)
-	public void setConfirmationCode(String confirmationCode)
-	{
-		this.confirmationCode = confirmationCode;
 	}
 }
