@@ -60,6 +60,7 @@ public class BuddyService
 			BiFunction<UUID, String, String> inviteURLGetter)
 	{
 		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
+		requestingUser.assertMobileNumberConfirmed();
 		User buddyUserEntity = getBuddyUser(buddy);
 		BuddyDTO newBuddyEntity;
 		if (buddyUserEntity == null)
@@ -78,6 +79,7 @@ public class BuddyService
 	public BuddyDTO addBuddyToAcceptingUser(UserDTO acceptingUser, UUID buddyUserID, String buddyNickName, UUID buddyVPNLoginID,
 			boolean isRequestingSending, boolean isRequestingReceiving)
 	{
+		acceptingUser.assertMobileNumberConfirmed();
 		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName,
 				isRequestingSending ? Status.ACCEPTED : Status.NOT_REQUESTED,
 				isRequestingReceiving ? Status.ACCEPTED : Status.NOT_REQUESTED);
@@ -91,6 +93,7 @@ public class BuddyService
 	public void removeBuddyAfterConnectRejection(UUID idOfRequestingUser, UUID buddyID)
 	{
 		User user = User.getRepository().findOne(idOfRequestingUser);
+		user.assertMobileNumberConfirmed();
 		Buddy buddy = getEntityByID(buddyID);
 
 		user.removeBuddy(buddy);
@@ -101,6 +104,7 @@ public class BuddyService
 	public void removeBuddy(UUID idOfRequestingUser, UUID buddyID, Optional<String> message)
 	{
 		User user = User.getRepository().findOne(idOfRequestingUser);
+		user.assertMobileNumberConfirmed();
 		Buddy buddy = getEntityByID(buddyID);
 
 		clearMessagesAndSendDropBuddyMessage(user, buddy, message, DropBuddyReason.USER_REMOVED_BUDDY);
@@ -126,6 +130,7 @@ public class BuddyService
 	public void removeBuddyAfterBuddyRemovedConnection(UUID idOfRequestingUser, UUID relatedUserLoginID)
 	{
 		User user = User.getRepository().findOne(idOfRequestingUser);
+		user.assertMobileNumberConfirmed();
 		user.removeBuddiesFromUser(relatedUserLoginID);
 		User.getRepository().save(user);
 	}

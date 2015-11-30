@@ -53,6 +53,8 @@ class CreateUserOnBuddyRequestTest extends Specification {
 	def richardQuinBuddyMessageAcceptURL
 	@Shared
 	def richardQuinBuddyMessageProcessURL
+	@Shared
+	def richardQuinMobileNumberConfirmationCode
 
 	def richardQuinCreationJSON = """{
 				"firstName":"Richard ${timestamp}",
@@ -75,14 +77,25 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			if (response.status == 201) {
 				richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
 				richardQuinVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+				richardQuinMobileNumberConfirmationCode = response.responseData.confirmationCode;
 			}
 
 		then:
 			response.status == 201
 			richardQuinURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
+			richardQuinMobileNumberConfirmationCode != null
 
 		cleanup:
 			println "URL Richard: " + richardQuinURL
+	}
+
+	def 'Confirm Richard\'s mobile number'(){
+		when:
+			def response = appService.confirmMobileNumber(richardQuinURL, """ { "code":"${richardQuinMobileNumberConfirmationCode}" } """, richardQuinPassword)
+
+		then:
+			response.status == 200
+			response.responseData.mobileNumberConfirmed == true
 	}
 
 	def 'Richard requests Bob to become his buddy'(){

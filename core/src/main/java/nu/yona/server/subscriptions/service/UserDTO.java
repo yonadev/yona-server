@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
+import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.User;
 
@@ -60,8 +61,8 @@ public class UserDTO
 		this(null, firstName, lastName, emailAddress, mobileNumber, isConfirmed, privateData);
 	}
 
-	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber, boolean isMobileNumberConfirmed,
-			UserPrivateDTO privateData)
+	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber,
+			boolean isMobileNumberConfirmed, UserPrivateDTO privateData)
 	{
 		this.id = id;
 		this.firstName = firstName;
@@ -177,5 +178,13 @@ public class UserDTO
 	private static Set<UUID> getBuddyIDs(User userEntity)
 	{
 		return userEntity.getBuddies().stream().map(b -> b.getID()).collect(Collectors.toSet());
+	}
+
+	public void assertMobileNumberConfirmed()
+	{
+		if (!isMobileNumberConfirmed)
+		{
+			throw MobileNumberConfirmationException.notConfirmed();
+		}
 	}
 }

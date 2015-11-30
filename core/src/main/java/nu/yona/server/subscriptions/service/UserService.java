@@ -155,6 +155,9 @@ public class UserService
 			// security check: should not be able to update a user created on buddy request with its temp password
 			throw new IllegalArgumentException("User is created on buddy request, use other method");
 		}
+
+		originalUserEntity.assertMobileNumberConfirmed();
+
 		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(user.updateUser(originalUserEntity)));
 	}
 
@@ -260,6 +263,7 @@ public class UserService
 	public void addBuddy(UserDTO user, BuddyDTO buddy)
 	{
 		User userEntity = getEntityByID(user.getID());
+		userEntity.assertMobileNumberConfirmed();
 		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getID());
 		userEntity.addBuddy(buddyEntity);
 		User.getRepository().save(userEntity);
@@ -274,6 +278,7 @@ public class UserService
 	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID userID, String userPassword, String userSecret)
 	{
 		User userEntity = getEntityByID(userID);
+		userEntity.assertMobileNumberConfirmed();
 		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(userPassword);
 		newDeviceRequestEntity.encryptUserPassword(userSecret);
 		boolean isUpdatingExistingRequest = userEntity.getNewDeviceRequest() != null;
@@ -286,6 +291,7 @@ public class UserService
 	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID userID, String userSecret)
 	{
 		User userEntity = getEntityByID(userID);
+		userEntity.assertMobileNumberConfirmed();
 		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
 		if (newDeviceRequestEntity == null)
 		{
@@ -322,6 +328,7 @@ public class UserService
 	public void clearNewDeviceRequestForUser(UUID userID)
 	{
 		User userEntity = getEntityByID(userID);
+		userEntity.assertMobileNumberConfirmed();
 		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
 		if (existingNewDeviceRequestEntity != null)
 		{

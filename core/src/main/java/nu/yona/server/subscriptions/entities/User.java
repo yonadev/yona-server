@@ -17,6 +17,7 @@ import javax.persistence.Table;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
@@ -272,5 +273,13 @@ public class User extends EntityWithID
 	public Buddy getBuddyByVPNLoginID(UUID relatedUserVPNLoginID)
 	{
 		return getBuddies().stream().filter(buddy -> buddy.getVPNLoginID().equals(relatedUserVPNLoginID)).findAny().get();
+	}
+
+	public void assertMobileNumberConfirmed()
+	{
+		if (!isMobileNumberConfirmed)
+		{
+			throw MobileNumberConfirmationException.notConfirmed();
+		}
 	}
 }

@@ -33,8 +33,8 @@ public class MessageService
 
 	public List<MessageDTO> getDirectMessages(UUID userID)
 	{
-
 		UserDTO user = userService.getPrivateUser(userID);
+		user.assertMobileNumberConfirmed();
 		MessageSource messageSource = getNamedMessageSource(user);
 		return wrapAllMessagesAsDTOs(user, messageSource);
 	}
@@ -42,14 +42,15 @@ public class MessageService
 	public MessageDTO getDirectMessage(UUID userID, UUID messageID)
 	{
 		UserDTO user = userService.getPrivateUser(userID);
+		user.assertMobileNumberConfirmed();
 		MessageSource messageSource = getNamedMessageSource(user);
 		return dtoManager.createInstance(user, messageSource.getMessage(messageID));
 	}
 
 	public List<MessageDTO> getAnonymousMessages(UUID userID)
 	{
-
 		UserDTO user = userService.getPrivateUser(userID);
+		user.assertMobileNumberConfirmed();
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return wrapAllMessagesAsDTOs(user, messageSource);
 	}
@@ -57,6 +58,7 @@ public class MessageService
 	public MessageDTO getAnonymousMessage(UUID userID, UUID messageID)
 	{
 		UserDTO user = userService.getPrivateUser(userID);
+		user.assertMobileNumberConfirmed();
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return dtoManager.createInstance(user, messageSource.getMessage(messageID));
 	}
@@ -64,6 +66,7 @@ public class MessageService
 	public MessageActionDTO handleMessageAction(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
 	{
 		UserDTO user = userService.getPrivateUser(userID);
+		user.assertMobileNumberConfirmed();
 		MessageSource messageSource = getNamedMessageSource(user);
 		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
 	}
@@ -71,6 +74,7 @@ public class MessageService
 	public MessageActionDTO handleAnonymousMessageAction(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
 	{
 		UserDTO user = userService.getPrivateUser(userID);
+		user.assertMobileNumberConfirmed();
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
 	}
@@ -78,6 +82,7 @@ public class MessageService
 	public MessageActionDTO deleteMessage(UUID userID, UUID id)
 	{
 		UserDTO user = userService.getPrivateUser(userID);
+		user.assertMobileNumberConfirmed();
 		MessageSource messageSource = getNamedMessageSource(user);
 		Message message = messageSource.getMessage(id);
 		MessageDestination destination = MessageDestination.getRepository()
@@ -89,6 +94,7 @@ public class MessageService
 	public MessageActionDTO deleteAnonymousMessage(UUID userID, UUID id)
 	{
 		UserDTO user = userService.getPrivateUser(userID);
+		user.assertMobileNumberConfirmed();
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		Message message = messageSource.getMessage(id);
 		MessageDestination destination = MessageDestination.getRepository()
