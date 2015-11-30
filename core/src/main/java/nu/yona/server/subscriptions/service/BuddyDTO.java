@@ -35,8 +35,8 @@ public class BuddyDTO
 	 */
 	private String userCreatedInviteURL;
 
-	public BuddyDTO(UUID id, UserDTO user, String message, String password, String nickName, UUID vpnLoginID, Status sendingStatus,
-			Status receivingStatus)
+	public BuddyDTO(UUID id, UserDTO user, String message, String password, String nickName, UUID vpnLoginID,
+			Status sendingStatus, Status receivingStatus)
 	{
 		this.id = id;
 		this.user = user;

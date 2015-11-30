@@ -26,5 +26,6 @@ public abstract class MessageDTO
 		return id;
 	}
 
+	@JsonIgnore
 	public abstract Set<String> getPossibleActions();
 }
