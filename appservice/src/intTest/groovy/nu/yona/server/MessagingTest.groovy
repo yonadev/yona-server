@@ -190,13 +190,19 @@ class MessagingTest extends Specification {
 		response.status == 200
 	}
 
-	/*def 'Delete user Richard (generates a BuddyDisconnectMessage)'(){
-	 given:
-	 when:
-	 def response = appService.deleteUser(richardQuinURL, richardQuinPassword)
-	 then:
-	 response.status == 200
-	 }*/
+	def 'Classification engine detects a potential conflict for Richard'(){
+		given:
+
+		when:
+		def response = analysisService.postToAnalysisEngine("""{
+				"vpnLoginID":"${richardQuinVPNLoginID}",
+				"categories": ["news/media"],
+				"url":"http://www.refdag.nl"
+				}""")
+
+		then:
+		response.status == 200
+	}
 
 	def 'Classification engine detects a potential conflict for Bob (second conflict message)'(){
 		given:
@@ -212,28 +218,73 @@ class MessagingTest extends Specification {
 		response.status == 200
 	}
 
-	def 'Bob checks his anonymous message list'(){
+	def 'Richard checks his full anonymous message list'(){
 		given:
 
 		when:
-		def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+		def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
 
 		then:
 		response.status == 200
-		response.responseData._links.self.href == bobDunnURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT + "{?page,size,sort}"
-		//response.responseData._embedded.buddyDisconnectMessages
-		//response.responseData._embedded.buddyDisconnectMessages.size() == 1
+		response.responseData._links.self.href == richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT + "{?page,size,sort}"
+		response.responseData._embedded.buddyConnectResponseMessages
+		response.responseData._embedded.buddyConnectResponseMessages.size() == 1
+		response.responseData._embedded.goalConflictMessages
+		response.responseData._embedded.goalConflictMessages.size() == 3
+	}
+
+	def 'Richard checks first page of 2 of his anonymous message list'(){
+		given:
+
+		when:
+		def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword, [
+			"page": 0,
+			"size": 2,
+			"sort": "creationTime"
+		])
+
+		then:
+		response.status == 200
+		response.responseData._links.self.href == richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT + "?page=0&size=2&sort=creationTime"
+		!response.responseData._links.prev
+		response.responseData._links.next
+		response.responseData._embedded.buddyConnectResponseMessages
+		response.responseData._embedded.buddyConnectResponseMessages.size() == 1
+		response.responseData._embedded.goalConflictMessages
+		response.responseData._embedded.goalConflictMessages.size() == 1
+		response.responseData.page.totalElements == 4
+	}
+
+	def 'Richard checks second page of 2 of his anonymous message list'(){
+		given:
+
+		when:
+		def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword, [
+			"page": 1,
+			"size": 2,
+			"sort": "creationTime"
+		])
+
+		then:
+		response.status == 200
+		response.responseData._links.self.href == richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT + "?page=1&size=2&sort=creationTime"
+		response.responseData._links.prev
+		!response.responseData._links.next
+		!response.responseData._embedded.buddyConnectResponseMessages
 		response.responseData._embedded.goalConflictMessages
 		response.responseData._embedded.goalConflictMessages.size() == 2
+		response.responseData.page.totalElements == 4
 	}
 
 	def 'Delete users'(){
 		given:
 
 		when:
-		def response = appService.deleteUser(bobDunnURL, bobDunnPassword)
+		def response1 = appService.deleteUser(bobDunnURL, bobDunnPassword)
+		def response2 = appService.deleteUser(richardQuinURL, richardQuinPassword)
 
 		then:
-		response.status == 200
+		response1.status == 200
+		response2.status == 200
 	}
 }

@@ -88,12 +88,12 @@ class YonaServer {
 		getResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, password)
 	}
 
-	def getDirectMessages(userPath, password) {
-		getResourceWithPassword(userPath + DIRECT_MESSAGES_PATH_FRAGMENT, password)
+	def getDirectMessages(userPath, password, parameters = [:]) {
+		getResourceWithPassword(userPath + DIRECT_MESSAGES_PATH_FRAGMENT, password, parameters)
 	}
 
-	def getAnonymousMessages(userPath, password) {
-		getResourceWithPassword(userPath + ANONYMOUS_MESSAGES_PATH_FRAGMENT, password)
+	def getAnonymousMessages(userPath, password, parameters = [:]) {
+		getResourceWithPassword(userPath + ANONYMOUS_MESSAGES_PATH_FRAGMENT, password, parameters)
 	}
 
 	def setNewDeviceRequest(userPath, password, jsonString) {
