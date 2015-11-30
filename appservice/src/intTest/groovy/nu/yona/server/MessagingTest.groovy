@@ -110,6 +110,19 @@ class MessagingTest extends Specification {
 		response.responseData._embedded.user.firstName == "Bob ${timestamp}"
 	}
 
+	def 'Bob checks his direct message list'(){
+		given:
+
+		when:
+		def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+		response.status == 200
+		response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT + "{?page,size,sort}"
+		response.responseData._embedded.buddyConnectRequestMessages
+		response.responseData._embedded.buddyConnectRequestMessages.size() == 1
+	}
+
 	def 'Classification engine detects a potential conflict for Bob'(){
 		given:
 
@@ -122,19 +135,6 @@ class MessagingTest extends Specification {
 
 		then:
 		response.status == 200
-	}
-
-
-	def 'Bob checks his message list'(){
-		given:
-
-		when:
-		def response = appService.getAllMessages(bobDunnURL, bobDunnPassword)
-
-		then:
-		response.status == 200
-		response.responseData._embedded.buddyConnectRequestMessages.size() == 1
-		response.responseData._embedded.goalConflictMessages.size() == 1
 	}
 
 	def 'Delete user Richard (generates a BuddyDisconnectMessage)'(){
@@ -161,16 +161,18 @@ class MessagingTest extends Specification {
 		response.status == 200
 	}
 
-	def 'Bob checks his message list (second attempt)'(){
+	def 'Bob checks his anonymous message list'(){
 		given:
 
 		when:
-		def response = appService.getAllMessages(bobDunnURL, bobDunnPassword)
+		def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
 
 		then:
 		response.status == 200
-		response.responseData._embedded.buddyDisconnectMessages.size() == 1
-		response.responseData._embedded.buddyConnectRequestMessages == null //removed after removing Richard
+		response.responseData._links.self.href == bobDunnURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT + "{?page,size,sort}"
+		//response.responseData._embedded.buddyDisconnectMessages
+		//response.responseData._embedded.buddyDisconnectMessages.size() == 1
+		response.responseData._embedded.goalConflictMessages
 		response.responseData._embedded.goalConflictMessages.size() == 2
 	}
 

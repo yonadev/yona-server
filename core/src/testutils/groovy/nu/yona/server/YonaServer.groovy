@@ -47,9 +47,8 @@ class YonaServer {
 	def addUser(jsonString, password) {
 		createResourceWithPassword(USERS_PATH, jsonString, password)
 	}
-	
-	def confirmMobileNumber(userURL, jsonString, password)
-	{
+
+	def confirmMobileNumber(userURL, jsonString, password) {
 		createResourceWithPassword(stripQueryString(userURL) + MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT, jsonString, password)
 	}
 
@@ -87,10 +86,6 @@ class YonaServer {
 
 	def getBuddies(userPath, password) {
 		getResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, password)
-	}
-
-	def getAllMessages(userPath, password) {
-		getResourceWithPassword(userPath + ALL_MESSAGES_PATH_FRAGMENT, password)
 	}
 
 	def getDirectMessages(userPath, password) {
