@@ -29,6 +29,8 @@ class BasicBuddyTest extends Specification {
 	@Shared
 	def bobDunnVPNLoginID
 	@Shared
+	def bobDunnMobileNumberConfirmationCode
+	@Shared
 	def richardQuinBobBuddyURL
 	@Shared
 	def bobDunnRichardBuddyURL
@@ -40,6 +42,8 @@ class BasicBuddyTest extends Specification {
 	def richardQuinBuddyMessageAcceptURL
 	@Shared
 	def richardQuinBuddyMessageProcessURL
+	@Shared
+	def richardQuinMobileNumberConfirmationCode
 	@Shared
 	def bobDunnBuddyRemoveMessageProcessURL
 
@@ -62,14 +66,25 @@ class BasicBuddyTest extends Specification {
 			if (response.status == 201) {
 				richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
 				richardQuinVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+				richardQuinMobileNumberConfirmationCode = response.responseData.confirmationCode;
 			}
 
 		then:
 			response.status == 201
 			richardQuinURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
+			richardQuinMobileNumberConfirmationCode != null
 
 		cleanup:
 			println "URL Richard: " + richardQuinURL
+	}
+
+	def 'Confirm Richard\'s mobile number'(){
+		when:
+			def response = appService.confirmMobileNumber(richardQuinURL, """ { "code":"${richardQuinMobileNumberConfirmationCode}" } """, richardQuinPassword)
+
+		then:
+			response.status == 200
+			response.responseData.mobileNumberConfirmed == true
 	}
 
 	def 'Add user Bob Dunn'(){
@@ -91,14 +106,25 @@ class BasicBuddyTest extends Specification {
 			if (response.status == 201) {
 				bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
 				bobDunnVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+				bobDunnMobileNumberConfirmationCode = response.responseData.confirmationCode;
 			}
 
 		then:
 			response.status == 201
 			bobDunnURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
+			bobDunnMobileNumberConfirmationCode != null
 
 		cleanup:
 			println "URL Bob: " + bobDunnURL
+	}
+
+	def 'Confirm Bob\'s mobile number'(){
+		when:
+			def response = appService.confirmMobileNumber(bobDunnURL, """ { "code":"${bobDunnMobileNumberConfirmationCode}" } """, bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData.mobileNumberConfirmed == true
 	}
 
 	def 'Hacking attempt: Try to request one-way connection'(){
@@ -122,7 +148,7 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 500
 	}
-	
+
 	def 'Richard requests Bob to become his buddy'(){
 		given:
 
@@ -472,7 +498,7 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 	}
-	
+
 	def 'Bob checks his direct messages and will find a remove buddy message'(){
 		given:
 
@@ -572,7 +598,7 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData.properties.status == "done"
 	}
-	
+
 	def 'Richard checks his buddy list and Bob is no longer there'(){
 		given:
 
@@ -583,7 +609,7 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData._embedded == null
 	}
-	
+
 	def 'Bob checks his buddy list and Richard is no longer there'(){
 		given:
 

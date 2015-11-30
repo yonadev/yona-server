@@ -76,8 +76,8 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 	public static BuddyConnectRequestMessageDTO createInstance(UserDTO requestingUser, BuddyConnectRequestMessage messageEntity)
 	{
 		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(),
-				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getRelatedVPNLoginID(), messageEntity.getNickname(),
-				messageEntity.getMessage(), messageEntity.isAccepted(), messageEntity.isRejected());
+				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getRelatedVPNLoginID(),
+				messageEntity.getNickname(), messageEntity.getMessage(), messageEntity.isAccepted(), messageEntity.isRejected());
 	}
 
 	@Component
@@ -105,6 +105,8 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 		public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
 				MessageActionDTO requestPayload)
 		{
+			actingUser.assertMobileNumberConfirmed();
+
 			switch (action)
 			{
 				case ACCEPT:
@@ -120,8 +122,8 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 				BuddyConnectRequestMessage connectRequestMessageEntity, MessageActionDTO payload)
 		{
 			buddyService.addBuddyToAcceptingUser(acceptingUser, connectRequestMessageEntity.getUser().getID(),
-					connectRequestMessageEntity.getNickname(), connectRequestMessageEntity.getRelatedVPNLoginID(), connectRequestMessageEntity.requestingSending(),
-					connectRequestMessageEntity.requestingReceiving());
+					connectRequestMessageEntity.getNickname(), connectRequestMessageEntity.getRelatedVPNLoginID(),
+					connectRequestMessageEntity.requestingSending(), connectRequestMessageEntity.requestingReceiving());
 
 			updateMessageStatusAsAccepted(connectRequestMessageEntity);
 

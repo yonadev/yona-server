@@ -62,6 +62,9 @@ class RemoveUserTest extends Specification {
 			if (response.status == 201) {
 				richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
 				richardQuinVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+
+				def confirmationCode = response.responseData.confirmationCode;
+				appService.confirmMobileNumber(richardQuinURL, """ { "code":"${confirmationCode}" } """, richardQuinPassword)
 			}
 
 		then:
@@ -92,6 +95,8 @@ class RemoveUserTest extends Specification {
 			if (response.status == 201) {
 				bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
 				bobDunnVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+				def confirmationCode = response.responseData.confirmationCode;
+				appService.confirmMobileNumber(bobDunnURL, """ { "code":"${confirmationCode}" } """, bobDunnPassword)
 			}
 
 		then:
@@ -209,7 +214,7 @@ class RemoveUserTest extends Specification {
 		then:
 			response.status == 200
 	}
-	
+
 	def 'Classification engine detects a potential conflict for Richard'(){
 		given:
 
@@ -223,7 +228,7 @@ class RemoveUserTest extends Specification {
 		then:
 			response.status == 200
 	}
-	
+
 	def 'Richard deletes his account'() {
 		given:
 		when:
@@ -232,7 +237,7 @@ class RemoveUserTest extends Specification {
 		then:
 			response.status == 200
 	}
-	
+
 	def 'Test what happens if the classification engine detects a potential conflict for Bob (second conflict message) when the buddy disconnect is not yet processed'(){
 		given:
 
@@ -279,7 +284,7 @@ class RemoveUserTest extends Specification {
 			response.status == 200
 			response.responseData.properties.status == "done"
 	}
-	
+
 	def 'Bob checks his buddy list and will not find Richard there anymore'(){
 		given:
 
@@ -290,7 +295,7 @@ class RemoveUserTest extends Specification {
 			response.status == 200
 			response.responseData._embedded == null
 	}
-	
+
 	def 'Bob checks his anonymous messages and the messages of Richard are no longer there'(){
 		given:
 
@@ -307,7 +312,7 @@ class RemoveUserTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[1].goalName == "news"
 			response.responseData._embedded.goalConflictMessages[1].url =~ /refdag/
 	}
-	
+
 	def 'Bob checks his direct messages and the messages of Richard are no longer there'(){
 		given:
 

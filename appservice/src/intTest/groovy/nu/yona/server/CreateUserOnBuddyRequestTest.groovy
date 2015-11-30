@@ -42,7 +42,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 	@Shared
 	def bobDunnVPNLoginID
 	@Shared
-	def bobDunnMobileNumberConfirmationCode;
+	def bobDunnMobileNumberConfirmationCode
 	@Shared
 	def richardQuinBobBuddyURL
 	@Shared
@@ -55,6 +55,8 @@ class CreateUserOnBuddyRequestTest extends Specification {
 	def richardQuinBuddyMessageAcceptURL
 	@Shared
 	def richardQuinBuddyMessageProcessURL
+	@Shared
+	def richardQuinMobileNumberConfirmationCode
 
 	def richardQuinCreationJSON = """{
 				"firstName":"Richard ${timestamp}",
@@ -77,14 +79,48 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			if (response.status == 201) {
 				richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
 				richardQuinVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+				richardQuinMobileNumberConfirmationCode = response.responseData.confirmationCode;
 			}
 
 		then:
 			response.status == 201
 			richardQuinURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
+			richardQuinMobileNumberConfirmationCode != null
 
 		cleanup:
 			println "URL Richard: " + richardQuinURL
+	}
+
+	def 'Richard cannot create a buddy request before confirming mobile number'(){
+		given:
+
+		when:
+			def beforeRequestDateTime = new Date()
+			def response = appService.requestBuddy(richardQuinURL, """{
+				"_embedded":{
+					"user":{
+						"firstName":"Bob ${timestamp}",
+						"lastName":"Dun ${timestamp}",
+						"emailAddress":"${bobDunnGmail}",
+						"mobileNumber":"+${timestamp}12"
+					}
+				},
+				"message":"Would you like to be my buddy?",
+				"sendingStatus":"REQUESTED",
+				"receivingStatus":"REQUESTED"
+			}""", richardQuinPassword)
+
+		then:
+			response.status == 400
+	}
+
+	def 'Confirm Richard\'s mobile number'(){
+		when:
+			def response = appService.confirmMobileNumber(richardQuinURL, """ { "code":"${richardQuinMobileNumberConfirmationCode}" } """, richardQuinPassword)
+
+		then:
+			response.status == 200
+			response.responseData.mobileNumberConfirmed == true
 	}
 
 	def 'Richard requests Bob to become his buddy'(){
@@ -197,7 +233,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.firstName == "Bob ${timestamp}"
 			response.responseData.lastName == "Dun ${timestamp}"
 			response.responseData.mobileNumber == "+${timestamp}12"
-			response.responseData?.confirmed == false
+			response.responseData?.mobileNumberConfirmed == false
 			response.responseData.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 			response.responseData.vpnProfile.vpnPassword.length() == 32
 			response.responseData.vpnProfile.openVPNProfile.length() > 10
@@ -237,6 +273,16 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.goals.size() == 0
 	}
 
+	def 'Bob cannot read direct messages before confirming mobile number'(){
+		given:
+
+		when:
+			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+			response.status == 400
+	}
+
 	def 'Bob Dunn receives confirmation SMS and enters the confirmation code in app'(){
 		given:
 
@@ -245,7 +291,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData.confirmed == true
+			response.responseData.mobileNumberConfirmed == true
 	}
 
 	def 'Check if user is now retrievable with new password'(){
