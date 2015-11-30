@@ -106,7 +106,7 @@ public class BuddyService
 		Buddy buddy = getEntityByID(buddyID);
 
 		removeMessagesSentByBuddy(user, buddy);
-		removeBuddyInfoFromBuddy(user, buddy, message, DropBuddyReason.USER_REMOVED_BUDDY);
+		removeBuddyInfoForBuddy(user, buddy, message, DropBuddyReason.USER_REMOVED_BUDDY);
 
 		user.removeBuddy(buddy);
 		User.getRepository().save(user);
@@ -119,8 +119,7 @@ public class BuddyService
 	}
 
 	@Transactional
-	void removeBuddyInfoFromBuddy(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
-			DropBuddyReason reason)
+	void removeBuddyInfoForBuddy(User requestingUser, Buddy requestingUserBuddy, Optional<String> message, DropBuddyReason reason)
 	{
 		if (requestingUserBuddy.getUser() == null)
 		{
@@ -128,20 +127,14 @@ public class BuddyService
 			return;
 		}
 
+		removeNamedMessagesSentByUser(requestingUserBuddy.getUser(), requestingUser.getVPNLoginID());
 		if (requestingUserBuddy.getSendingStatus() == Status.ACCEPTED
 				|| requestingUserBuddy.getReceivingStatus() == Status.ACCEPTED)
 		{
-			removeNamedMessagesSentByUser(requestingUserBuddy.getUser(), requestingUser.getVPNLoginID());
-
 			UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(requestingUserBuddy.getVPNLoginID());
 			disconnectBuddy(userAnonymized, requestingUser.getVPNLoginID());
 			removeAnonymousMessagesSentByUser(userAnonymized, requestingUser.getVPNLoginID());
 			sendDropBuddyMessage(requestingUser, requestingUserBuddy, message, reason);
-		}
-		else
-		{
-			// remove sent buddy request message
-			removeNamedMessagesSentByUser(requestingUserBuddy.getUser(), requestingUser.getVPNLoginID());
 		}
 	}
 

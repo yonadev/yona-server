@@ -214,7 +214,7 @@ public class UserService
 	{
 		User userEntity = getEntityByID(id);
 
-		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoFromBuddy(userEntity, buddyEntity, message,
+		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
 				DropBuddyReason.USER_ACCOUNT_DELETED));
 
 		UserAnonymized userAnonymized = userEntity.getAnonymized();
