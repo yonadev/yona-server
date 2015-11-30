@@ -131,7 +131,7 @@ public class UserService
 
 		if (userEntity.isMobileNumberConfirmed())
 		{
-			throw MobileNumberConfirmationException.userCannotBeActivated();
+			throw MobileNumberConfirmationException.mobileNumberAlreadyConfirmed();
 		}
 
 		userEntity.setConfirmationCode(null);
