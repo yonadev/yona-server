@@ -28,6 +28,10 @@ class MessagingTest extends Specification {
 	def bobDunnURL
 	@Shared
 	def bobDunnVPNLoginID
+	@Shared
+	def bobDunnBuddyMessageAcceptURL
+	@Shared
+	def richardQuinBuddyMessageProcessURL
 
 	def 'Add user Richard Quin'(){
 		given:
@@ -115,12 +119,61 @@ class MessagingTest extends Specification {
 
 		when:
 		def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
+		if(response.responseData._embedded.buddyConnectRequestMessages) {
+			bobDunnBuddyMessageAcceptURL = response.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
+		}
 
 		then:
 		response.status == 200
 		response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT + "{?page,size,sort}"
 		response.responseData._embedded.buddyConnectRequestMessages
 		response.responseData._embedded.buddyConnectRequestMessages.size() == 1
+	}
+
+	def 'Bob accepts Richard\'s buddy request'(){
+		given:
+
+		when:
+		def response = appService.postMessageActionWithPassword(bobDunnBuddyMessageAcceptURL, """{
+					"properties":{
+						"message":"Yes, great idea!"
+					}
+				}""", bobDunnPassword)
+
+		then:
+		response.status == 200
+		response.responseData.properties.status == "done"
+	}
+
+	def 'Richard checks his anonymous messages'(){
+		given:
+
+		when:
+		def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+		if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
+			richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
+		}
+
+		then:
+		response.status == 200
+		response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
+		response.responseData._embedded.buddyConnectResponseMessages[0].nickname == "BD ${timestamp}"
+		response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
+		richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
+	}
+
+	def 'Richard processes Bob\'s buddy acceptance'(){
+		given:
+
+		when:
+		def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageProcessURL, """{
+					"properties":{
+					}
+				}""", richardQuinPassword)
+
+		then:
+		response.status == 200
+		response.responseData.properties.status == "done"
 	}
 
 	def 'Classification engine detects a potential conflict for Bob'(){
@@ -137,15 +190,13 @@ class MessagingTest extends Specification {
 		response.status == 200
 	}
 
-	def 'Delete user Richard (generates a BuddyDisconnectMessage)'(){
-		given:
-
-		when:
-		def response = appService.deleteUser(richardQuinURL, richardQuinPassword)
-
-		then:
-		response.status == 200
-	}
+	/*def 'Delete user Richard (generates a BuddyDisconnectMessage)'(){
+	 given:
+	 when:
+	 def response = appService.deleteUser(richardQuinURL, richardQuinPassword)
+	 then:
+	 response.status == 200
+	 }*/
 
 	def 'Classification engine detects a potential conflict for Bob (second conflict message)'(){
 		given:

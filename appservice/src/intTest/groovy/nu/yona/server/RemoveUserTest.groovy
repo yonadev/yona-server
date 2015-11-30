@@ -161,11 +161,11 @@ class RemoveUserTest extends Specification {
 			response.responseData.properties.status == "done"
 	}
 
-	def 'Richard checks his direct messages'(){
+	def 'Richard checks his anonymous messages'(){
 		given:
 
 		when:
-			def response = appService.getDirectMessages(richardQuinURL, richardQuinPassword)
+			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
 			if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
 				richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
 			}
@@ -174,7 +174,7 @@ class RemoveUserTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
 			response.responseData._embedded.buddyConnectResponseMessages[0].nickname == "BD ${timestamp}"
-			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuinURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
+			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
 			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
 	}
 
@@ -201,11 +201,11 @@ class RemoveUserTest extends Specification {
 			response.status == 200
 	}
 	
-	def 'Bob checks his direct messages and will find a remove buddy message'(){
+	def 'Bob checks his anonymous messages and will find a remove buddy message'(){
 		given:
 
 		when:
-			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
+			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
 			if (response.responseData._embedded && response.responseData._embedded.buddyDisconnectMessages) {
 				bobDunnBuddyRemoveMessageProcessURL = response.responseData._embedded.buddyDisconnectMessages[0]._links.process.href
 			}
@@ -215,7 +215,7 @@ class RemoveUserTest extends Specification {
 			response.responseData._embedded.buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"
 			response.responseData._embedded.buddyDisconnectMessages[0].message == "Goodbye friends! I deinstalled the Internet"
 			response.responseData._embedded.buddyDisconnectMessages[0].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.buddyDisconnectMessages[0]._links.self.href.startsWith(bobDunnURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
+			response.responseData._embedded.buddyDisconnectMessages[0]._links.self.href.startsWith(bobDunnURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
 			bobDunnBuddyRemoveMessageProcessURL.startsWith(response.responseData._embedded.buddyDisconnectMessages[0]._links.self.href)
 	}
 

@@ -26,6 +26,7 @@ import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @JsonRootName("buddyConnectRequestMessage")
 public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
@@ -121,8 +122,8 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 				BuddyConnectRequestMessage connectRequestMessageEntity, MessageActionDTO payload)
 		{
 			buddyService.addBuddyToAcceptingUser(acceptingUser, connectRequestMessageEntity.getUser().getID(),
-					connectRequestMessageEntity.getNickname(), connectRequestMessageEntity.getRelatedVPNLoginID(), connectRequestMessageEntity.requestingSending(),
-					connectRequestMessageEntity.requestingReceiving());
+					connectRequestMessageEntity.getNickname(), connectRequestMessageEntity.getRelatedVPNLoginID(),
+					connectRequestMessageEntity.requestingSending(), connectRequestMessageEntity.requestingReceiving());
 
 			updateMessageStatusAsAccepted(connectRequestMessageEntity);
 
@@ -156,7 +157,9 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 		private void sendResponseMessageToRequestingUser(UserDTO respondingUser,
 				BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage)
 		{
-			MessageDestination messageDestination = connectRequestMessageEntity.getUser().getNamedMessageDestination();
+			UserAnonymized userAnonymized = UserAnonymized.getRepository()
+					.findOne(connectRequestMessageEntity.getRelatedVPNLoginID());
+			MessageDestination messageDestination = userAnonymized.getAnonymousDestination();
 			assert messageDestination != null;
 			messageDestination.send(BuddyConnectResponseMessage.createInstance(respondingUser.getID(),
 					respondingUser.getPrivateData().getVpnProfile().getVPNLoginID(),

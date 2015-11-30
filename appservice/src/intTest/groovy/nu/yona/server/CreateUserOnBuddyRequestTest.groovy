@@ -319,11 +319,11 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.properties.status == "done"
 	}
 
-	def 'Richard checks his direct messages'(){
+	def 'Richard checks his anonymous messages'(){
 		given:
 
 		when:
-			def response = appService.getDirectMessages(richardQuinURL, richardQuinPassword)
+			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
 			if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
 				richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
 			}
@@ -331,7 +331,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
-			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuinURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
+			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
 			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
 	}
 
