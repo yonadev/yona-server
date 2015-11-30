@@ -25,6 +25,7 @@ import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserDTO;
 
 @JsonRootName("discloseRequestMessage")
@@ -125,17 +126,19 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 		private MessageActionDTO handleAction_Accept(UserDTO acceptingUser, DiscloseRequestMessage discloseRequestMessageEntity,
 				MessageActionDTO payload)
 		{
-			return updateResult(acceptingUser, discloseRequestMessageEntity, GoalConflictMessage.Status.DISCLOSE_ACCEPTED);
+			return updateResult(acceptingUser, discloseRequestMessageEntity, GoalConflictMessage.Status.DISCLOSE_ACCEPTED,
+					payload.getProperty("message"));
 		}
 
 		private MessageActionDTO handleAction_Reject(UserDTO rejectingUser, DiscloseRequestMessage discloseRequestMessageEntity,
 				MessageActionDTO payload)
 		{
-			return updateResult(rejectingUser, discloseRequestMessageEntity, GoalConflictMessage.Status.DISCLOSE_REJECTED);
+			return updateResult(rejectingUser, discloseRequestMessageEntity, GoalConflictMessage.Status.DISCLOSE_REJECTED,
+					payload.getProperty("message"));
 		}
 
 		private MessageActionDTO updateResult(UserDTO respondingUser, DiscloseRequestMessage discloseRequestMessageEntity,
-				Status status)
+				Status status, String message)
 		{
 			GoalConflictMessage targetGoalConflictMessage = discloseRequestMessageEntity.getTargetGoalConflictMessage();
 			targetGoalConflictMessage.setStatus(status);
@@ -144,19 +147,21 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 			discloseRequestMessageEntity.setStatus(status);
 			Message.getRepository().save(discloseRequestMessageEntity);
 
-			sendResponseMessageToRequestingUser(respondingUser, discloseRequestMessageEntity);
+			sendResponseMessageToRequestingUser(respondingUser, discloseRequestMessageEntity, message);
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}
 
-		private void sendResponseMessageToRequestingUser(UserDTO respondingUser, DiscloseRequestMessage requestMessageEntity)
+		private void sendResponseMessageToRequestingUser(UserDTO respondingUser, DiscloseRequestMessage requestMessageEntity,
+				String message)
 		{
-			MessageDestination messageDestination = requestMessageEntity.getUser().getAnonymousDestination();
+			UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(requestMessageEntity.getRelatedVPNLoginID());
+			MessageDestination messageDestination = userAnonymized.getAnonymousDestination();
 			assert messageDestination != null;
-			messageDestination
-					.send(DiscloseResponseMessage.createInstance(respondingUser.getPrivateData().getVpnProfile().getVPNLoginID(),
-							requestMessageEntity.getTargetGoalConflictMessageID(), requestMessageEntity.getStatus(),
-							respondingUser.getPrivateData().getNickName()));
+			messageDestination.send(DiscloseResponseMessage.createInstance(respondingUser.getID(),
+					respondingUser.getPrivateData().getVpnProfile().getVPNLoginID(),
+					requestMessageEntity.getTargetGoalConflictMessageID(), requestMessageEntity.getStatus(),
+					respondingUser.getPrivateData().getNickName(), message));
 			MessageDestination.getRepository().save(messageDestination);
 		}
 	}

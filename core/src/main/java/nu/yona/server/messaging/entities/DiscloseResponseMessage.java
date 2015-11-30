@@ -8,28 +8,27 @@ import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
+import nu.yona.server.subscriptions.entities.BuddyMessage;
 
 @Entity
-public class DiscloseResponseMessage extends Message
+public class DiscloseResponseMessage extends BuddyMessage
 {
 	private UUID targetGoalConflictMessageID;
 	private Status status;
-	private String nickname;
 	private boolean isProcessed;
 
 	// Default constructor is required for JPA
 	public DiscloseResponseMessage()
 	{
-		super(null, null);
+		super(null, null, null, null, null);
 	}
 
-	protected DiscloseResponseMessage(UUID id, UUID relatedUserAnonymizedID, UUID targetGoalConflictMessageID,
-			Status status, String nickname)
+	protected DiscloseResponseMessage(UUID id, UUID respondingUserID, UUID relatedUserAnonymizedID,
+			UUID targetGoalConflictMessageID, Status status, String nickname, String message)
 	{
-		super(id, relatedUserAnonymizedID);
+		super(id, relatedUserAnonymizedID, respondingUserID, nickname, message);
 		this.targetGoalConflictMessageID = targetGoalConflictMessageID;
 		this.status = status;
-		this.nickname = nickname;
 	}
 
 	public GoalConflictMessage getTargetGoalConflictMessage()
@@ -42,21 +41,16 @@ public class DiscloseResponseMessage extends Message
 		return status;
 	}
 
-	public String getNickname()
+	@Override
+	public void encrypt(Encryptor encryptor)
 	{
-		return nickname;
+		super.encrypt(encryptor);
 	}
 
 	@Override
-	protected void encrypt(Encryptor encryptor)
+	public void decrypt(Decryptor decryptor)
 	{
-
-	}
-
-	@Override
-	protected void decrypt(Decryptor decryptor)
-	{
-
+		super.decrypt(decryptor);
 	}
 
 	@Override
@@ -65,10 +59,10 @@ public class DiscloseResponseMessage extends Message
 		return isProcessed;
 	}
 
-	public static DiscloseResponseMessage createInstance(UUID relatedUserAnonymizedID,
-			UUID targetGoalConflictMessageID, Status status, String nickname)
+	public static DiscloseResponseMessage createInstance(UUID respondingUserID, UUID relatedUserAnonymizedID,
+			UUID targetGoalConflictMessageID, Status status, String nickname, String message)
 	{
-		return new DiscloseResponseMessage(UUID.randomUUID(), relatedUserAnonymizedID, targetGoalConflictMessageID,
-				status, nickname);
+		return new DiscloseResponseMessage(UUID.randomUUID(), respondingUserID, relatedUserAnonymizedID,
+				targetGoalConflictMessageID, status, nickname, message);
 	}
 }

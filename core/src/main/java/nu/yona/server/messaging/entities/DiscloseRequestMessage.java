@@ -8,28 +8,26 @@ import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.entities.BuddyMessage;
 
 @Entity
-public class DiscloseRequestMessage extends Message
+public class DiscloseRequestMessage extends BuddyMessage
 {
 	private UUID targetGoalConflictMessageID;
 	private Status status;
-	private String nickname;
 
 	// Default constructor is required for JPA
 	public DiscloseRequestMessage()
 	{
-		super(null, null);
+		super(null, null, null, null, null);
 	}
 
-	protected DiscloseRequestMessage(UUID id, UUID requestingUserVPNLoginID, UUID targetGoalConflictMessageID,
-			String nickname)
+	protected DiscloseRequestMessage(UUID id, UUID requestingUserID, UUID requestingUserVPNLoginID,
+			UUID targetGoalConflictMessageID, String nickname, String message)
 	{
-		super(id, requestingUserVPNLoginID);
+		super(id, requestingUserVPNLoginID, requestingUserID, nickname, message);
 		this.targetGoalConflictMessageID = targetGoalConflictMessageID;
 		this.status = Status.DISCLOSE_REQUESTED;
-		this.nickname = nickname;
 	}
 
 	public UUID getTargetGoalConflictMessageID()
@@ -42,19 +40,9 @@ public class DiscloseRequestMessage extends Message
 		return (GoalConflictMessage) GoalConflictMessage.getRepository().findOne(targetGoalConflictMessageID);
 	}
 
-	public String getNickname()
-	{
-		return nickname;
-	}
-
 	public Status getStatus()
 	{
 		return status;
-	}
-
-	public UserAnonymized getUser()
-	{
-		return UserAnonymized.getRepository().findOne(getRelatedVPNLoginID());
 	}
 
 	public boolean isAccepted()
@@ -73,15 +61,15 @@ public class DiscloseRequestMessage extends Message
 	}
 
 	@Override
-	protected void encrypt(Encryptor encryptor)
+	public void encrypt(Encryptor encryptor)
 	{
-
+		super.encrypt(encryptor);
 	}
 
 	@Override
-	protected void decrypt(Decryptor decryptor)
+	public void decrypt(Decryptor decryptor)
 	{
-
+		super.decrypt(decryptor);
 	}
 
 	@Override
@@ -90,10 +78,10 @@ public class DiscloseRequestMessage extends Message
 		return this.status == Status.DISCLOSE_ACCEPTED || this.status == Status.DISCLOSE_REJECTED;
 	}
 
-	public static Message createInstance(UUID requestingUserVPNLoginID, String requestingUserNickname,
-			GoalConflictMessage targetGoalConflictMessage)
+	public static Message createInstance(UUID requestingUserID, UUID requestingUserVPNLoginID, String requestingUserNickname,
+			String message, GoalConflictMessage targetGoalConflictMessage)
 	{
-		return new DiscloseRequestMessage(UUID.randomUUID(), requestingUserVPNLoginID,
-				targetGoalConflictMessage.getID(), requestingUserNickname);
+		return new DiscloseRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserVPNLoginID,
+				targetGoalConflictMessage.getID(), requestingUserNickname, message);
 	}
 }

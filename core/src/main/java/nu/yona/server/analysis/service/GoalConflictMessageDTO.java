@@ -134,9 +134,9 @@ public class GoalConflictMessageDTO extends MessageDTO
 
 			MessageDestination messageDestination = UserAnonymized.getRepository().findOne(messageEntity.getRelatedVPNLoginID())
 					.getAnonymousDestination();
-			messageDestination
-					.send(DiscloseRequestMessage.createInstance(actingUser.getPrivateData().getVpnProfile().getVPNLoginID(),
-							actingUser.getPrivateData().getNickName(), messageEntity));
+			messageDestination.send(DiscloseRequestMessage.createInstance(actingUser.getID(),
+					actingUser.getPrivateData().getVpnProfile().getVPNLoginID(), actingUser.getPrivateData().getNickName(),
+					requestPayload.getProperty("message"), messageEntity));
 			MessageDestination.getRepository().save(messageDestination);
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
