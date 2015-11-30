@@ -91,6 +91,29 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			println "URL Richard: " + richardQuinURL
 	}
 
+	def 'Richard cannot create a buddy request before confirming mobile number'(){
+		given:
+
+		when:
+			def beforeRequestDateTime = new Date()
+			def response = appService.requestBuddy(richardQuinURL, """{
+				"_embedded":{
+					"user":{
+						"firstName":"Bob ${timestamp}",
+						"lastName":"Dun ${timestamp}",
+						"emailAddress":"${bobDunnGmail}",
+						"mobileNumber":"+${timestamp}12"
+					}
+				},
+				"message":"Would you like to be my buddy?",
+				"sendingStatus":"REQUESTED",
+				"receivingStatus":"REQUESTED"
+			}""", richardQuinPassword)
+
+		then:
+			response.status == 400
+	}
+
 	def 'Confirm Richard\'s mobile number'(){
 		when:
 			def response = appService.confirmMobileNumber(richardQuinURL, """ { "code":"${richardQuinMobileNumberConfirmationCode}" } """, richardQuinPassword)
@@ -248,6 +271,16 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.devices[0] == "iPhone 6"
 			//TODO: updating of goals is not yet supported
 			response.responseData.goals.size() == 0
+	}
+
+	def 'Bob cannot read direct messages before confirming mobile number'(){
+		given:
+
+		when:
+			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+			response.status == 400
 	}
 
 	def 'Bob Dunn receives confirmation SMS and enters the confirmation code in app'(){
