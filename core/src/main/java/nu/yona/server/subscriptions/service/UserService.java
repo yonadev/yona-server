@@ -159,7 +159,7 @@ public class UserService
 			// security check: should not be able to update a user created on buddy request with its temp password
 			throw new IllegalArgumentException("User is created on buddy request, use other method");
 		}
-		originalUserEntity.assertMobileNumberConfirmed();
+
 		boolean isMobileNumberDifferent = !user.getMobileNumber().equals(originalUserEntity.getMobileNumber());
 		User updatedUserEntity = user.updateUser(originalUserEntity);
 		if (isMobileNumberDifferent)
@@ -181,7 +181,7 @@ public class UserService
 
 	void setUserUnconfirmedWithNewConfirmationCode(User userEntity)
 	{
-		userEntity.markAsUnconfirmed();
+		userEntity.markMobileNumberUnconfirmed();
 		userEntity
 				.setConfirmationCode(CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
 	}

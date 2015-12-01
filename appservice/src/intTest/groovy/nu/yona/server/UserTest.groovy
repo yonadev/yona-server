@@ -124,7 +124,7 @@ class UserTest extends Specification {
 
 		then:
 			userUpdateResponse.status == 200
-			userUpdateResponse.responseData.confirmed == true
+			userUpdateResponse.responseData.mobileNumberConfirmed == true
 			userUpdateResponse.responseData.nickName == newNickname
 
 		cleanup:
@@ -154,11 +154,11 @@ class UserTest extends Specification {
 
 		then:
 			userUpdateResponse.status == 200
-			userUpdateResponse.responseData.confirmed == false
+			userUpdateResponse.responseData.mobileNumberConfirmed == false
 			userUpdateResponse.responseData.mobileNumber == newMobileNumber
 			newConfirmationCode != confirmationCode
 			newConfirmResponse.status == 200
-			newConfirmResponse.responseData.confirmed == true
+			newConfirmResponse.responseData.mobileNumberConfirmed == true
 
 		cleanup:
 			if (userURL)

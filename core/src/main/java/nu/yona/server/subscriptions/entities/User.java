@@ -154,9 +154,9 @@ public class User extends EntityWithID
 		this.isMobileNumberConfirmed = true;
 	}
 
-	public void markAsUnconfirmed()
+	public void markMobileNumberUnconfirmed()
 	{
-		this.isConfirmed = false;
+		this.isMobileNumberConfirmed = false;
 	}
 
 	public String getConfirmationCode()
