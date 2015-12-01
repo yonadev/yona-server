@@ -110,6 +110,62 @@ class UserTest extends Specification {
 		cleanup:
 			appService.deleteUser(userURL, password)
 	}
+	
+	def 'Update John Doe with the same mobile number'(){
+		given:
+			def userAddResponse = appService.addUser(userCreationJSON, password);
+			def userURL = appService.stripQueryString(userAddResponse.responseData._links.self.href);
+			def confirmationCode = userAddResponse.responseData.confirmationCode;
+			def confirmResponse = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}" } """, password)
+			def newNickname = "Johnny"
+
+		when:
+			def userUpdateResponse = appService.updateUser(userURL, userCreationJSON.replace("JD ${timestamp}", newNickname), password);
+
+		then:
+			userUpdateResponse.status == 200
+			userUpdateResponse.responseData.confirmed == true
+			userUpdateResponse.responseData.nickName == newNickname
+
+		cleanup:
+			if (userURL)
+			{
+				appService.deleteUser(userURL, password)
+			}
+	}
+	
+	def 'Update John Doe with a different mobile number'(){
+		given:
+			def userAddResponse = appService.addUser(userCreationJSON, password);
+			def userURL = appService.stripQueryString(userAddResponse.responseData._links.self.href);
+			def confirmationCode = userAddResponse.responseData.confirmationCode;
+			def confirmResponse = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}" } """, password)
+			def newMobileNumber = "+${timestamp}1"
+
+		when:
+			def userUpdateResponse = appService.updateUser(userURL, userCreationJSON.replace("+${timestamp}", newMobileNumber), password);
+			def newConfirmationCode
+			def newConfirmResponse
+			if(userUpdateResponse.status == 200)
+			{
+				newConfirmationCode = userUpdateResponse.responseData.confirmationCode;
+				newConfirmResponse = appService.confirmMobileNumber(userURL, """ { "code":"${newConfirmationCode}" } """, password)
+			}
+
+		then:
+			userUpdateResponse.status == 200
+			userUpdateResponse.responseData.confirmed == false
+			userUpdateResponse.responseData.mobileNumber == newMobileNumber
+			newConfirmationCode != confirmationCode
+			newConfirmResponse.status == 200
+			newConfirmResponse.responseData.confirmed == true
+
+		cleanup:
+			if (userURL)
+			{
+				appService.deleteUser(userURL, password)
+			}
+	}
 
 	def 'Delete John Doe'(){
 		given:

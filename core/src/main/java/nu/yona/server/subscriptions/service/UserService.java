@@ -87,8 +87,7 @@ public class UserService
 		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
 
 		User userEntity = user.createUserEntity();
-		userEntity
-				.setConfirmationCode(CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
+		setUserUnconfirmedWithNewConfirmationCode(userEntity);
 		userEntity = User.getRepository().save(userEntity);
 		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getVPNPassword());
 
@@ -161,7 +160,30 @@ public class UserService
 			// security check: should not be able to update a user created on buddy request with its temp password
 			throw new IllegalArgumentException("User is created on buddy request, use other method");
 		}
-		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(user.updateUser(originalUserEntity)));
+		boolean isMobileNumberDifferent = !user.getMobileNumber().equals(originalUserEntity.getMobileNumber());
+		User updatedUserEntity = user.updateUser(originalUserEntity);
+		if (isMobileNumberDifferent)
+		{
+			setUserUnconfirmedWithNewConfirmationCode(updatedUserEntity);
+		}
+		User savedUserEntity = User.getRepository().save(updatedUserEntity);
+		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(savedUserEntity);
+		if (isMobileNumberDifferent)
+		{
+			if (!yonaProperties.getSms().isEnabled())
+			{
+				userDTO.setConfirmationCode(savedUserEntity.getConfirmationCode());
+			}
+			sendMobileNumberConfirmationMessage(updatedUserEntity, SmsService.TemplateName_ChangedUserNumberConfirmation);
+		}
+		return userDTO;
+	}
+
+	void setUserUnconfirmedWithNewConfirmationCode(User userEntity)
+	{
+		userEntity.markAsUnconfirmed();
+		userEntity
+				.setConfirmationCode(CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
 	}
 
 	static User findUserByMobileNumber(String mobileNumber)

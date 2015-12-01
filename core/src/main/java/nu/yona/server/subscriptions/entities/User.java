@@ -153,6 +153,11 @@ public class User extends EntityWithID
 		this.isConfirmed = true;
 	}
 
+	public void markAsUnconfirmed()
+	{
+		this.isConfirmed = false;
+	}
+
 	public String getConfirmationCode()
 	{
 		return confirmationCode;
