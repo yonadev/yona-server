@@ -15,12 +15,12 @@ class AddDeviceTest extends Specification {
 	def YonaServer appService = new YonaServer(appServiceBaseURL)
 	@Shared
 	def timestamp = YonaServer.getTimeStamp()
-	
+
 	@Shared
 	def richardQuinURL
 	@Shared
 	def richardQuinPassword = "R i c h a r d"
-	
+
 	def 'Add user Richard Quin'(){
 		given:
 
@@ -41,6 +41,9 @@ class AddDeviceTest extends Specification {
 			if(response.status == 201)
 			{
 				richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
+
+				def confirmationCode = response.responseData.confirmationCode;
+				appService.confirmMobileNumber(richardQuinURL, """ { "code":"${confirmationCode}" } """, richardQuinPassword)
 			}
 
 		then:
@@ -49,7 +52,7 @@ class AddDeviceTest extends Specification {
 		cleanup:
 			println "URL Richard: " + richardQuinURL
 	}
-	
+
 	def 'Set new device request'(){
 		given:
 
@@ -63,28 +66,28 @@ class AddDeviceTest extends Specification {
 			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL)
 			getResponseAfter.status == 200
 	}
-	
+
 	def 'Get new device request with user secret'(){
 		given:
 
 		when:
 			def response = appService.getNewDeviceRequest(richardQuinURL, "unknown secret")
-			
+
 		then:
 			response.status == 200
 			response.responseData.userPassword == richardQuinPassword
 	}
-	
+
 	def 'Try get new device request with wrong user secret'(){
 		given:
 
 		when:
 			def response = appService.getNewDeviceRequest(richardQuinURL, "wrong secret")
-			
+
 		then:
 			response.status == 400
 	}
-	
+
 	def 'Try set new device request with wrong password'(){
 		given:
 
@@ -92,13 +95,13 @@ class AddDeviceTest extends Specification {
 			def response = appService.setNewDeviceRequest(richardQuinURL, "foo", """{
 				"userSecret":"known secret"
 			}""")
-			
+
 		then:
 			response.status == 400
 			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL)
 			getResponseAfter.status == 200
 	}
-	
+
 	def 'Overwrite new device request'(){
 		given:
 
@@ -106,24 +109,24 @@ class AddDeviceTest extends Specification {
 			def response = appService.setNewDeviceRequest(richardQuinURL, richardQuinPassword, """{
 				"userSecret":"unknown overwritten secret"
 			}""")
-			
+
 		then:
 			response.status == 200
 			def getResponseAfter = appService.getNewDeviceRequest(richardQuinURL)
 			getResponseAfter.status == 200
 	}
-	
+
 	def 'Get overwritten device request with user secret'(){
 		given:
 
 		when:
 			def response = appService.getNewDeviceRequest(richardQuinURL, "unknown overwritten secret")
-			
+
 		then:
 			response.status == 200
 			response.responseData.userPassword == richardQuinPassword
 	}
-	
+
 	def 'Clear new device request'(){
 		given:
 
@@ -137,7 +140,7 @@ class AddDeviceTest extends Specification {
 			getResponseAfter.data.containsKey("code")
 			getResponseAfter.data["code"] == "error.no.device.request.present"
 	}
-	
+
 	def 'Delete Richard Quin'(){
 		given:
 

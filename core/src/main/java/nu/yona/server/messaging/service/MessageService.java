@@ -12,6 +12,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -31,32 +34,34 @@ public class MessageService
 	@Autowired
 	private TheDTOManager dtoManager;
 
-	public List<MessageDTO> getDirectMessages(UUID userID)
+	public Page<MessageDTO> getDirectMessages(UUID userID, Pageable pageable)
 	{
-
 		UserDTO user = userService.getPrivateUser(userID);
+		user.assertMobileNumberConfirmed();
 		MessageSource messageSource = getNamedMessageSource(user);
-		return wrapAllMessagesAsDTOs(user, messageSource);
+		return wrapAllMessagesAsDTOs(user, messageSource, pageable);
 	}
 
 	public MessageDTO getDirectMessage(UUID userID, UUID messageID)
 	{
 		UserDTO user = userService.getPrivateUser(userID);
+		user.assertMobileNumberConfirmed();
 		MessageSource messageSource = getNamedMessageSource(user);
 		return dtoManager.createInstance(user, messageSource.getMessage(messageID));
 	}
 
-	public List<MessageDTO> getAnonymousMessages(UUID userID)
+	public Page<MessageDTO> getAnonymousMessages(UUID userID, Pageable pageable)
 	{
-
 		UserDTO user = userService.getPrivateUser(userID);
+		user.assertMobileNumberConfirmed();
 		MessageSource messageSource = getAnonymousMessageSource(user);
-		return wrapAllMessagesAsDTOs(user, messageSource);
+		return wrapAllMessagesAsDTOs(user, messageSource, pageable);
 	}
 
 	public MessageDTO getAnonymousMessage(UUID userID, UUID messageID)
 	{
 		UserDTO user = userService.getPrivateUser(userID);
+		user.assertMobileNumberConfirmed();
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return dtoManager.createInstance(user, messageSource.getMessage(messageID));
 	}
@@ -64,6 +69,7 @@ public class MessageService
 	public MessageActionDTO handleMessageAction(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
 	{
 		UserDTO user = userService.getPrivateUser(userID);
+		user.assertMobileNumberConfirmed();
 		MessageSource messageSource = getNamedMessageSource(user);
 		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
 	}
@@ -71,6 +77,7 @@ public class MessageService
 	public MessageActionDTO handleAnonymousMessageAction(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
 	{
 		UserDTO user = userService.getPrivateUser(userID);
+		user.assertMobileNumberConfirmed();
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
 	}
@@ -78,6 +85,7 @@ public class MessageService
 	public MessageActionDTO deleteMessage(UUID userID, UUID id)
 	{
 		UserDTO user = userService.getPrivateUser(userID);
+		user.assertMobileNumberConfirmed();
 		MessageSource messageSource = getNamedMessageSource(user);
 		Message message = messageSource.getMessage(id);
 		MessageDestination destination = MessageDestination.getRepository()
@@ -89,6 +97,7 @@ public class MessageService
 	public MessageActionDTO deleteAnonymousMessage(UUID userID, UUID id)
 	{
 		UserDTO user = userService.getPrivateUser(userID);
+		user.assertMobileNumberConfirmed();
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		Message message = messageSource.getMessage(id);
 		MessageDestination destination = MessageDestination.getRepository()
@@ -119,16 +128,16 @@ public class MessageService
 		return MessageSource.getRepository().findOne(user.getPrivateData().getAnonymousMessageSourceID());
 	}
 
-	private List<MessageDTO> wrapMessagesAsDTOs(UserDTO user, List<Message> messageEntities)
+	private Page<MessageDTO> wrapAllMessagesAsDTOs(UserDTO user, MessageSource messageSource, Pageable pageable)
 	{
-		List<MessageDTO> allMessagePayloads = messageEntities.stream().map(m -> dtoManager.createInstance(user, m))
-				.collect(Collectors.toList());
-		return allMessagePayloads;
+		return wrapMessagesAsDTOs(user, messageSource.getMessages(pageable), pageable);
 	}
 
-	private List<MessageDTO> wrapAllMessagesAsDTOs(UserDTO user, MessageSource messageSource)
+	private Page<MessageDTO> wrapMessagesAsDTOs(UserDTO user, Page<Message> messageEntities, Pageable pageable)
 	{
-		return wrapMessagesAsDTOs(user, messageSource.getAllMessages());
+		List<MessageDTO> allMessagePayloads = messageEntities.getContent().stream().map(m -> dtoManager.createInstance(user, m))
+				.collect(Collectors.toList());
+		return new PageImpl<MessageDTO>(allMessagePayloads, pageable, messageEntities.getTotalElements());
 	}
 
 	public static interface DTOManager

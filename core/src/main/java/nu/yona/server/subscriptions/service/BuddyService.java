@@ -26,10 +26,12 @@ import nu.yona.server.exceptions.EmailException;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.Buddy;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Service
 @Transactional
@@ -60,6 +62,7 @@ public class BuddyService
 			BiFunction<UUID, String, String> inviteURLGetter)
 	{
 		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
+		requestingUser.assertMobileNumberConfirmed();
 		User buddyUserEntity = getBuddyUser(buddy);
 		BuddyDTO newBuddyEntity;
 		if (buddyUserEntity == null)
@@ -78,6 +81,7 @@ public class BuddyService
 	public BuddyDTO addBuddyToAcceptingUser(UserDTO acceptingUser, UUID buddyUserID, String buddyNickName, UUID buddyVPNLoginID,
 			boolean isRequestingSending, boolean isRequestingReceiving)
 	{
+		acceptingUser.assertMobileNumberConfirmed();
 		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName,
 				isRequestingSending ? Status.ACCEPTED : Status.NOT_REQUESTED,
 				isRequestingReceiving ? Status.ACCEPTED : Status.NOT_REQUESTED);
@@ -91,6 +95,7 @@ public class BuddyService
 	public void removeBuddyAfterConnectRejection(UUID idOfRequestingUser, UUID buddyID)
 	{
 		User user = User.getRepository().findOne(idOfRequestingUser);
+		user.assertMobileNumberConfirmed();
 		Buddy buddy = getEntityByID(buddyID);
 
 		user.removeBuddy(buddy);
@@ -101,49 +106,81 @@ public class BuddyService
 	public void removeBuddy(UUID idOfRequestingUser, UUID buddyID, Optional<String> message)
 	{
 		User user = User.getRepository().findOne(idOfRequestingUser);
+		user.assertMobileNumberConfirmed();
 		Buddy buddy = getEntityByID(buddyID);
 
-		clearMessagesAndSendDropBuddyMessage(user, buddy, message, DropBuddyReason.USER_REMOVED_BUDDY);
+		removeMessagesSentByBuddy(user, buddy);
+		removeBuddyInfoForBuddy(user, buddy, message, DropBuddyReason.USER_REMOVED_BUDDY);
 
 		user.removeBuddy(buddy);
 		User.getRepository().save(user);
 	}
 
+	private void removeMessagesSentByBuddy(User user, Buddy buddy)
+	{
+		removeNamedMessagesSentByUser(user, buddy.getVPNLoginID());
+		removeAnonymousMessagesSentByUser(user.getAnonymized(), buddy.getVPNLoginID());
+	}
+
 	@Transactional
-	void clearMessagesAndSendDropBuddyMessage(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
-			DropBuddyReason reason)
+	void removeBuddyInfoForBuddy(User requestingUser, Buddy requestingUserBuddy, Optional<String> message, DropBuddyReason reason)
 	{
 		if (requestingUserBuddy.getUser() == null)
 		{
 			// buddy account was removed in the meantime; nothing to do
 			return;
 		}
-		removeMessagesFromUser(requestingUserBuddy, requestingUser.getVPNLoginID());
-		sendDropBuddyMessage(requestingUser, requestingUserBuddy, message, reason);
+
+		removeNamedMessagesSentByUser(requestingUserBuddy.getUser(), requestingUser.getVPNLoginID());
+		if (requestingUserBuddy.getSendingStatus() == Status.ACCEPTED
+				|| requestingUserBuddy.getReceivingStatus() == Status.ACCEPTED)
+		{
+			UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(requestingUserBuddy.getVPNLoginID());
+			disconnectBuddy(userAnonymized, requestingUser.getVPNLoginID());
+			removeAnonymousMessagesSentByUser(userAnonymized, requestingUser.getVPNLoginID());
+			sendDropBuddyMessage(requestingUser, requestingUserBuddy, message, reason);
+		}
 	}
 
 	@Transactional
-	public void removeBuddyAfterBuddyRemovedConnection(UUID idOfRequestingUser, UUID relatedUserLoginID)
+	public void removeBuddyAfterBuddyRemovedConnection(UUID idOfRequestingUser, UUID relatedUserID)
 	{
 		User user = User.getRepository().findOne(idOfRequestingUser);
-		user.removeBuddiesFromUser(relatedUserLoginID);
+		user.assertMobileNumberConfirmed();
+		user.removeBuddiesFromUser(relatedUserID);
 		User.getRepository().save(user);
 	}
 
 	private void sendDropBuddyMessage(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
 			DropBuddyReason reason)
 	{
-		MessageDestination messageDestination = requestingUserBuddy.getUser().getNamedMessageDestination();
+		UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(requestingUserBuddy.getVPNLoginID());
+		MessageDestination messageDestination = userAnonymized.getAnonymousDestination();
 		messageDestination.send(BuddyDisconnectMessage.createInstance(requestingUser.getID(), requestingUser.getVPNLoginID(),
 				requestingUser.getNickName(), getDropBuddyMessage(reason, message), reason));
 		MessageDestination.getRepository().save(messageDestination);
+
 	}
 
-	private void removeMessagesFromUser(Buddy buddy, UUID requestingUserVPNLoginID)
+	private void disconnectBuddy(UserAnonymized userAnonymized, UUID vpnLoginID)
 	{
-		MessageDestination namedMessageDestination = buddy.getUser().getNamedMessageDestination();
-		namedMessageDestination.removeMessagesFromUser(requestingUserVPNLoginID);
+		BuddyAnonymized buddyAnonymized = userAnonymized.getBuddyAnonymized(vpnLoginID);
+		buddyAnonymized.setDisconnected();
+		BuddyAnonymized.getRepository().save(buddyAnonymized);
+	}
+
+	private void removeNamedMessagesSentByUser(User user, UUID sentByUserVPNLoginID)
+	{
+		MessageDestination namedMessageDestination = user.getNamedMessageDestination();
+		namedMessageDestination.removeMessagesFromUser(sentByUserVPNLoginID);
 		MessageDestination.getRepository().save(namedMessageDestination);
+	}
+
+	private void removeAnonymousMessagesSentByUser(UserAnonymized userAnonymized, UUID sentByUserVPNLoginID)
+	{
+		MessageDestination anonymousMessageDestination = userAnonymized.getAnonymousDestination();
+		anonymousMessageDestination.removeMessagesFromUser(sentByUserVPNLoginID);
+		MessageDestination.getRepository().save(anonymousMessageDestination);
 	}
 
 	private String getDropBuddyMessage(DropBuddyReason reason, Optional<String> message)
@@ -179,10 +216,6 @@ public class BuddyService
 			savedBuddy.setUserCreatedInviteURL(inviteURL);
 		}
 		sendInvitationMessage(requestingUser, buddyUserEntity, buddy, inviteURL);
-		if (!properties.getSms().isEnabled())
-		{
-			savedBuddy.getUser().setConfirmationCode(buddyUserEntity.getConfirmationCode());
-		}
 
 		return savedBuddy;
 	}

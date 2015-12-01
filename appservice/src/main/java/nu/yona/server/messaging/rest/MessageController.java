@@ -8,14 +8,15 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
@@ -49,13 +50,13 @@ public class MessageController
 
 	@RequestMapping(value = "/direct/", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<Resources<MessageResource>> getDirectMessages(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID)
+	public HttpEntity<PagedResources<MessageResource>> getDirectMessages(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, Pageable pageable,
+			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
 	{
-
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(true, userID, messageService.getDirectMessages(userID)));
-
+				() -> createOKResponse(pagedResourcesAssembler.toResource(messageService.getDirectMessages(userID, pageable),
+						new MessageResourceAssembler(userID, true))));
 	}
 
 	@RequestMapping(value = "/direct/{messageID}", method = RequestMethod.GET)
@@ -63,10 +64,8 @@ public class MessageController
 	public HttpEntity<MessageResource> getDirectMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userID, @PathVariable UUID messageID)
 	{
-
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(true, userID, messageService.getDirectMessage(userID, messageID)));
-
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
+				new MessageResourceAssembler(userID, true).toResource(messageService.getDirectMessage(userID, messageID))));
 	}
 
 	@RequestMapping(value = "/direct/{id}/{action}", method = RequestMethod.POST)
@@ -92,12 +91,14 @@ public class MessageController
 
 	@RequestMapping(value = "/anonymous/", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<Resources<MessageResource>> getAnonymousMessages(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID)
+	public HttpEntity<PagedResources<MessageResource>> getAnonymousMessages(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, Pageable pageable,
+			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
 	{
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(false, userID, messageService.getAnonymousMessages(userID)));
+				() -> createOKResponse(pagedResourcesAssembler.toResource(messageService.getAnonymousMessages(userID, pageable),
+						new MessageResourceAssembler(userID, false))));
 	}
 
 	@RequestMapping(value = "/anonymous/{messageID}", method = RequestMethod.GET)
@@ -106,8 +107,8 @@ public class MessageController
 			@PathVariable UUID userID, @PathVariable UUID messageID)
 	{
 
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(false, userID, messageService.getAnonymousMessage(userID, messageID)));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
+				new MessageResourceAssembler(userID, false).toResource(messageService.getAnonymousMessage(userID, messageID))));
 
 	}
 
@@ -133,34 +134,19 @@ public class MessageController
 				() -> createOKResponse(messageService.deleteAnonymousMessage(userID, messageID)));
 	}
 
-	private HttpEntity<Resources<MessageResource>> createOKResponse(boolean isDirect, UUID userID, List<MessageDTO> messages)
+	private HttpEntity<PagedResources<MessageResource>> createOKResponse(PagedResources<MessageResource> messages)
 	{
-		return new ResponseEntity<Resources<MessageResource>>(wrapMessagesAsResourceList(isDirect, userID, messages),
-				HttpStatus.OK);
+		return new ResponseEntity<PagedResources<MessageResource>>(messages, HttpStatus.OK);
 	}
 
-	private HttpEntity<MessageResource> createOKResponse(boolean isDirect, UUID userID, MessageDTO message)
+	private HttpEntity<MessageResource> createOKResponse(MessageResource message)
 	{
-		return new ResponseEntity<MessageResource>(new MessageResourceAssembler(isDirect, userID).toResource(message),
-				HttpStatus.OK);
+		return new ResponseEntity<MessageResource>(message, HttpStatus.OK);
 	}
 
 	private HttpEntity<Resource<MessageActionDTO>> createOKResponse(MessageActionDTO dto)
 	{
 		return new ResponseEntity<Resource<MessageActionDTO>>(new Resource<>(dto), HttpStatus.OK);
-	}
-
-	private Resources<MessageResource> wrapMessagesAsResourceList(boolean isDirect, UUID userID, List<MessageDTO> messages)
-	{
-		return new Resources<>(new MessageResourceAssembler(isDirect, userID).toResources(messages),
-				getMessagesLinkBuilder(isDirect, userID).withSelfRel());
-	}
-
-	private static ControllerLinkBuilder getMessagesLinkBuilder(boolean isDirect, UUID userID)
-	{
-		MessageController methodOn = methodOn(MessageController.class);
-		return linkTo(isDirect ? methodOn.getDirectMessages(Optional.empty(), userID)
-				: methodOn.getAnonymousMessages(Optional.empty(), userID));
 	}
 
 	static ControllerLinkBuilder getMessageLinkBuilder(boolean isDirect, UUID userID, UUID messageID)
@@ -183,32 +169,37 @@ public class MessageController
 		private UUID userID;
 		private boolean isDirect;
 
-		public MessageResourceAssembler(boolean isDirect, UUID userID)
+		public MessageResourceAssembler(UUID userID, boolean isDirect)
 		{
 			super(MessageController.class, MessageResource.class);
-			this.isDirect = isDirect;
 			this.userID = userID;
+			this.isDirect = isDirect;
 		}
 
 		@Override
 		public MessageResource toResource(MessageDTO message)
 		{
 			MessageResource messageResource = instantiateResource(message);
-			ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(message.getID());
+			ControllerLinkBuilder selfLinkBuilder = getMessageLinkBuilder(isDirect, userID, message.getID());
 			addSelfLink(selfLinkBuilder, messageResource);
 			addActionLinks(selfLinkBuilder, messageResource);
+			addRelatedMessageLink(message, messageResource);
 			return messageResource;
+		}
+
+		private void addRelatedMessageLink(MessageDTO message, MessageResource messageResource)
+		{
+			if (message.getRelatedAnonymousMessageID() != null)
+			{
+				messageResource
+						.add(getMessageLinkBuilder(false, userID, message.getRelatedAnonymousMessageID()).withRel("related"));
+			}
 		}
 
 		@Override
 		protected MessageResource instantiateResource(MessageDTO message)
 		{
 			return new MessageResource(message);
-		}
-
-		private ControllerLinkBuilder getSelfLinkBuilder(UUID messageID)
-		{
-			return getMessageLinkBuilder(isDirect, userID, messageID);
 		}
 
 		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, MessageResource messageResource)

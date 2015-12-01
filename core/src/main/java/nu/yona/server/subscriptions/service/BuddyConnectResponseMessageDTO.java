@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -30,9 +31,10 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 	private static final String PROCESS = "process";
 	private boolean isProcessed;
 
-	private BuddyConnectResponseMessageDTO(UUID id, UserDTO user, String nickname, String message, boolean isProcessed)
+	private BuddyConnectResponseMessageDTO(UUID id, Date creationTime, UserDTO user, String nickname, String message,
+			boolean isProcessed)
 	{
-		super(id, user, nickname, message);
+		super(id, creationTime, user, nickname, message);
 		this.isProcessed = isProcessed;
 	}
 
@@ -54,8 +56,9 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 
 	public static BuddyConnectResponseMessageDTO createInstance(UserDTO requestingUser, BuddyConnectResponseMessage messageEntity)
 	{
-		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), UserDTO.createInstance(messageEntity.getUser()),
-				messageEntity.getNickname(), messageEntity.getMessage(), messageEntity.isProcessed());
+		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
+				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getNickname(), messageEntity.getMessage(),
+				messageEntity.isProcessed());
 	}
 
 	@Component
@@ -83,6 +86,8 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 		public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
 				MessageActionDTO requestPayload)
 		{
+			actingUser.assertMobileNumberConfirmed();
+
 			switch (action)
 			{
 				case PROCESS:

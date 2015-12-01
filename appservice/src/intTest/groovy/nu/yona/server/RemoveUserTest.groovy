@@ -23,11 +23,11 @@ class RemoveUserTest extends Specification {
 	@Shared
 	def richardQuinURL
 	@Shared
-	def richardQuinLoginID
+	def richardQuinVPNLoginID
 	@Shared
 	def bobDunnURL
 	@Shared
-	def bobDunnLoginID
+	def bobDunnVPNLoginID
 	@Shared
 	def richardQuinBobBuddyURL
 	@Shared
@@ -61,12 +61,16 @@ class RemoveUserTest extends Specification {
 				}""", richardQuinPassword)
 			if (response.status == 201) {
 				richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
-				richardQuinLoginID = response.responseData.vpnProfile.loginID;
+				richardQuinVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+
+				def confirmationCode = response.responseData.confirmationCode;
+				appService.confirmMobileNumber(richardQuinURL, """ { "code":"${confirmationCode}" } """, richardQuinPassword)
 			}
 
 		then:
 			response.status == 201
 			richardQuinURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
+			richardQuinVPNLoginID
 
 		cleanup:
 			println "URL Richard: " + richardQuinURL
@@ -85,17 +89,20 @@ class RemoveUserTest extends Specification {
 						"iPhone 6"
 					],
 					"goals":[
-						"gambling"
+						"gambling", "news"
 					]
 				}""", bobDunnPassword)
 			if (response.status == 201) {
 				bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
-				bobDunnLoginID = response.responseData.vpnProfile.loginID;
+				bobDunnVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+				def confirmationCode = response.responseData.confirmationCode;
+				appService.confirmMobileNumber(bobDunnURL, """ { "code":"${confirmationCode}" } """, bobDunnPassword)
 			}
 
 		then:
 			response.status == 201
 			bobDunnURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
+			bobDunnVPNLoginID
 
 		cleanup:
 			println "URL Bob: " + bobDunnURL
@@ -140,10 +147,9 @@ class RemoveUserTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
 			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard ${timestamp}"
 			response.responseData._embedded.buddyConnectRequestMessages[0].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(bobDunnURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
 			bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
 	}
 
@@ -162,21 +168,20 @@ class RemoveUserTest extends Specification {
 			response.responseData.properties.status == "done"
 	}
 
-	def 'Richard checks his direct messages'(){
+	def 'Richard checks his anonymous messages'(){
 		given:
 
 		when:
-			def response = appService.getDirectMessages(richardQuinURL, richardQuinPassword)
+			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
 			if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
 				richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
 			}
 
 		then:
 			response.status == 200
-			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
 			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
 			response.responseData._embedded.buddyConnectResponseMessages[0].nickname == "BD ${timestamp}"
-			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
 			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
 	}
 
@@ -193,7 +198,35 @@ class RemoveUserTest extends Specification {
 			response.status == 200
 			response.responseData.properties.status == "done"
 	}
-	
+
+	def 'Classification engine detects a potential conflict for Bob'(){
+		given:
+
+		when:
+			def response = analysisService.postToAnalysisEngine("""{
+					"vpnLoginID":"${bobDunnVPNLoginID}",
+					"categories": ["Gambling"],
+					"url":"http://www.poker.com"
+				}""")
+
+		then:
+			response.status == 200
+	}
+
+	def 'Classification engine detects a potential conflict for Richard'(){
+		given:
+
+		when:
+			def response = analysisService.postToAnalysisEngine("""{
+				"vpnLoginID":"${richardQuinVPNLoginID}",
+				"categories": ["news/media"],
+				"url":"http://www.refdag.nl"
+				}""")
+
+		then:
+			response.status == 200
+	}
+
 	def 'Richard deletes his account'() {
 		given:
 		when:
@@ -202,23 +235,36 @@ class RemoveUserTest extends Specification {
 		then:
 			response.status == 200
 	}
-	
-	def 'Bob checks his direct messages and will find a remove buddy message'(){
+
+	def 'Test what happens if the classification engine detects a potential conflict for Bob (second conflict message) when the buddy disconnect is not yet processed'(){
 		given:
 
 		when:
-			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
+			def response = analysisService.postToAnalysisEngine("""{
+					"vpnLoginID":"${bobDunnVPNLoginID}",
+					"categories": ["news/media"],
+					"url":"http://www.refdag.nl"
+				}""")
+
+		then:
+			response.status == 200
+	}
+
+	def 'Bob checks his anonymous messages and will find a remove buddy message'(){
+		given:
+
+		when:
+			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
 			if (response.responseData._embedded && response.responseData._embedded.buddyDisconnectMessages) {
 				bobDunnBuddyRemoveMessageProcessURL = response.responseData._embedded.buddyDisconnectMessages[0]._links.process.href
 			}
 
 		then:
 			response.status == 200
-			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
 			response.responseData._embedded.buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"
 			response.responseData._embedded.buddyDisconnectMessages[0].message == "Goodbye friends! I deinstalled the Internet"
 			response.responseData._embedded.buddyDisconnectMessages[0].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.buddyDisconnectMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+			response.responseData._embedded.buddyDisconnectMessages[0]._links.self.href.startsWith(bobDunnURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
 			bobDunnBuddyRemoveMessageProcessURL.startsWith(response.responseData._embedded.buddyDisconnectMessages[0]._links.self.href)
 	}
 
@@ -235,7 +281,7 @@ class RemoveUserTest extends Specification {
 			response.status == 200
 			response.responseData.properties.status == "done"
 	}
-	
+
 	def 'Bob checks his buddy list and will not find Richard there anymore'(){
 		given:
 
@@ -245,5 +291,33 @@ class RemoveUserTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._embedded == null
+	}
+
+	def 'Bob checks his anonymous messages and the messages of Richard are no longer there'(){
+		given:
+
+		when:
+			def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded.goalConflictMessages.size() == 2
+			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
+	}
+
+	def 'Bob checks his direct messages and the messages of Richard are no longer there'(){
+		given:
+
+		when:
+			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
+
+		then:
+			response.status == 200
+			response.responseData._embedded == null || response.responseData._embedded.buddyConnectRequestMessages == null
 	}
 }

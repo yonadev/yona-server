@@ -56,9 +56,9 @@ class UserTest extends Specification {
 		then:
 			confirmationCode != null
 			userAddResponse.status == 201
-			userAddResponse.responseData.confirmed == false
+			userAddResponse.responseData.mobileNumberConfirmed == false
 			response.status == 200
-			response.responseData.confirmed == true
+			response.responseData.mobileNumberConfirmed == true
 
 		cleanup:
 			if (userURL)

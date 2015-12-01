@@ -50,12 +50,15 @@ public class AnalysisEngineService
 	private void sendConflictMessageToAllDestinationsOfUser(PotentialConflictDTO payload, UserAnonymized userAnonymized,
 			Set<Goal> conflictingGoalsOfUser)
 	{
-		Set<MessageDestination> destinations = userAnonymized.getAllRelatedDestinations();
-		destinations.stream().forEach(d -> sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser, d));
+		GoalConflictMessage selfGoalConflictMessage = sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser,
+				userAnonymized.getAnonymousDestination(), null);
+
+		userAnonymized.getBuddyDestinations().stream()
+				.forEach(d -> sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser, d, selfGoalConflictMessage));
 	}
 
 	private GoalConflictMessage sendOrUpdateConflictMessage(PotentialConflictDTO payload, Set<Goal> conflictingGoalsOfUser,
-			MessageDestination destination)
+			MessageDestination destination, GoalConflictMessage origin)
 	{
 		Date now = new Date();
 		Date minEndTime = new Date(now.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
@@ -65,7 +68,7 @@ public class AnalysisEngineService
 
 		if (message == null || message.getEndTime().before(minEndTime))
 		{
-			message = sendNewGoalConflictMessage(payload, conflictingGoal, destination);
+			message = sendNewGoalConflictMessage(payload, conflictingGoal, destination, origin);
 			cacheService.updateLatestGoalConflictMessageForUser(message, destination);
 		}
 		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
@@ -79,11 +82,19 @@ public class AnalysisEngineService
 	}
 
 	private GoalConflictMessage sendNewGoalConflictMessage(PotentialConflictDTO payload, Goal conflictingGoal,
-			MessageDestination destination)
+			MessageDestination destination, GoalConflictMessage origin)
 	{
-		GoalConflictMessage message = GoalConflictMessage.createInstance(payload.getVPNLoginID(), conflictingGoal,
-				payload.getURL());
+		GoalConflictMessage message;
+		if (origin == null)
+		{
+			message = GoalConflictMessage.createInstance(payload.getVPNLoginID(), conflictingGoal, payload.getURL());
+		}
+		else
+		{
+			message = GoalConflictMessage.createInstanceFromBuddy(payload.getVPNLoginID(), origin);
+		}
 		destination.send(message);
+		MessageDestination.getRepository().save(destination);
 		return message;
 	}
 

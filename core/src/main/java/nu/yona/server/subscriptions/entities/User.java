@@ -17,6 +17,7 @@ import javax.persistence.Table;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
@@ -41,7 +42,7 @@ public class User extends EntityWithID
 
 	private boolean isCreatedOnBuddyRequest;
 
-	private boolean isConfirmed;
+	private boolean isMobileNumberConfirmed;
 	private String confirmationCode;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -143,14 +144,14 @@ public class User extends EntityWithID
 		this.newDeviceRequest = newDeviceRequest;
 	}
 
-	public boolean isConfirmed()
+	public boolean isMobileNumberConfirmed()
 	{
-		return isConfirmed;
+		return isMobileNumberConfirmed;
 	}
 
-	public void markAsConfirmed()
+	public void markMobileNumberConfirmed()
 	{
-		this.isConfirmed = true;
+		this.isMobileNumberConfirmed = true;
 	}
 
 	public void markAsUnconfirmed()
@@ -224,9 +225,9 @@ public class User extends EntityWithID
 		getUserPrivate().removeBuddy(buddy);
 	}
 
-	public void removeBuddiesFromUser(UUID fromUserLoginID)
+	public void removeBuddiesFromUser(UUID fromUserID)
 	{
-		getUserPrivate().removeBuddiesFromUser(fromUserLoginID);
+		getUserPrivate().removeBuddyForUserID(fromUserID);
 	}
 
 	public MessageSource getNamedMessageSource()
@@ -277,5 +278,13 @@ public class User extends EntityWithID
 	public Buddy getBuddyByVPNLoginID(UUID relatedUserVPNLoginID)
 	{
 		return getBuddies().stream().filter(buddy -> buddy.getVPNLoginID().equals(relatedUserVPNLoginID)).findAny().get();
+	}
+
+	public void assertMobileNumberConfirmed()
+	{
+		if (!isMobileNumberConfirmed)
+		{
+			throw MobileNumberConfirmationException.notConfirmed();
+		}
 	}
 }
