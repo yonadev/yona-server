@@ -6,11 +6,16 @@ package nu.yona.server.messaging.entities;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MessageRepository extends CrudRepository<Message, UUID>
 {
-
+	@Query("select m from Message m, MessageDestination d where d.id = :destinationID and m member of d.messages order by m.creationTime desc")
+	Page<Message> findFromDestination(@Param("destinationID") UUID destinationID, Pageable pageable);
 }

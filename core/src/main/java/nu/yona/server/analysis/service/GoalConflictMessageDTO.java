@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.util.Date;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -40,9 +41,9 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private final String url;
 	private Status status;
 
-	private GoalConflictMessageDTO(UUID id, String nickname, String goalName, String url, Status status)
+	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, String goalName, String url, Status status)
 	{
-		super(id);
+		super(id, creationTime);
 		this.nickname = nickname;
 		this.goalName = goalName;
 		this.url = url;
@@ -87,7 +88,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 
 	public static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, String nickname)
 	{
-		return new GoalConflictMessageDTO(messageEntity.getID(), nickname, messageEntity.getGoal().getName(),
+		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), nickname, messageEntity.getGoal().getName(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null, messageEntity.getStatus());
 	}
 

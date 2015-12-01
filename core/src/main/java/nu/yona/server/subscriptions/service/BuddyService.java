@@ -154,10 +154,12 @@ public class BuddyService
 	private void sendDropBuddyMessage(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
 			DropBuddyReason reason)
 	{
-		MessageDestination messageDestination = requestingUserBuddy.getUser().getNamedMessageDestination();
+		UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(requestingUserBuddy.getVPNLoginID());
+		MessageDestination messageDestination = userAnonymized.getAnonymousDestination();
 		messageDestination.send(BuddyDisconnectMessage.createInstance(requestingUser.getID(), requestingUser.getVPNLoginID(),
 				requestingUser.getNickName(), getDropBuddyMessage(reason, message), reason));
 		MessageDestination.getRepository().save(messageDestination);
+
 	}
 
 	private void disconnectBuddy(UserAnonymized userAnonymized, UUID vpnLoginID)

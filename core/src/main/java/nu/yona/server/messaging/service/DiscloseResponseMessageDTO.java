@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -26,9 +27,9 @@ public class DiscloseResponseMessageDTO extends MessageDTO
 {
 	private String nickname;
 
-	private DiscloseResponseMessageDTO(UUID id, String nickname)
+	private DiscloseResponseMessageDTO(UUID id, Date creationTime, String nickname)
 	{
-		super(id);
+		super(id, creationTime);
 		this.nickname = nickname;
 	}
 
@@ -46,7 +47,8 @@ public class DiscloseResponseMessageDTO extends MessageDTO
 
 	public static DiscloseResponseMessageDTO createInstance(UserDTO requestingUser, DiscloseResponseMessage messageEntity)
 	{
-		return new DiscloseResponseMessageDTO(messageEntity.getID(), messageEntity.getNickname());
+		return new DiscloseResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
+				messageEntity.getNickname());
 	}
 
 	@Component

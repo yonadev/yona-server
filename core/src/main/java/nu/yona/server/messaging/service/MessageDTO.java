@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
@@ -14,16 +15,18 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 public abstract class MessageDTO
 {
 	private final UUID id;
+	private final Date creationTime;
 	private final UUID relatedAnonymousMessageID;
 
-	protected MessageDTO(UUID id)
+	protected MessageDTO(UUID id, Date creationTime)
 	{
-		this(id, null);
+		this(id, creationTime, null);
 	}
 
-	protected MessageDTO(UUID id, UUID relatedAnonymousMessageID)
+	protected MessageDTO(UUID id, Date creationTime, UUID relatedAnonymousMessageID)
 	{
 		this.id = id;
+		this.creationTime = creationTime;
 		this.relatedAnonymousMessageID = relatedAnonymousMessageID;
 	}
 
@@ -31,6 +34,11 @@ public abstract class MessageDTO
 	public UUID getID()
 	{
 		return id;
+	}
+
+	public Date getCreationTime()
+	{
+		return creationTime;
 	}
 
 	@JsonIgnore
