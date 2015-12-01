@@ -18,7 +18,7 @@ class UserTest extends Specification {
 	def userCreationJSON = """{
 				"firstName":"John",
 				"lastName":"Doe ${timestamp}",
-				"nickName":"JD ${timestamp}",
+				"nickname":"JD ${timestamp}",
 				"mobileNumber":"+${timestamp}",
 				"devices":[
 					"Galaxy mini"
@@ -59,6 +59,39 @@ class UserTest extends Specification {
 			userAddResponse.responseData.mobileNumberConfirmed == false
 			response.status == 200
 			response.responseData.mobileNumberConfirmed == true
+
+		cleanup:
+			if (userURL)
+			{
+				appService.deleteUser(userURL, password)
+			}
+	}
+	
+	def 'Hacking attempt: Brute force mobile number confirmation code'(){
+		given:
+			def userAddResponse = appService.addUser(userCreationJSON, password);
+			def userURL = appService.stripQueryString(userAddResponse.responseData._links.self.href);
+			def confirmationCode = userAddResponse.responseData.confirmationCode;
+
+		when:
+			appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}1" } """, password)
+			appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}2" } """, password)
+			appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}3" } """, password)
+			appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}4" } """, password)
+			def response5TimesWrong = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}5" } """, password)
+			def response6TimesWrong = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}6" } """, password)
+			def response7thTimeRight = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}" } """, password)
+
+		then:
+			confirmationCode != null
+			userAddResponse.status == 201
+			userAddResponse.responseData.mobileNumberConfirmed == false
+			response5TimesWrong.status == 400
+			response5TimesWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
+			response6TimesWrong.status == 400
+			response6TimesWrong.responseData.code == "error.too.many.wrong.attempts"
+			response7thTimeRight.status == 400
+			response7thTimeRight.responseData.code == "error.too.many.wrong.attempts"
 
 		cleanup:
 			if (userURL)
@@ -125,7 +158,7 @@ class UserTest extends Specification {
 		then:
 			userUpdateResponse.status == 200
 			userUpdateResponse.responseData.mobileNumberConfirmed == true
-			userUpdateResponse.responseData.nickName == newNickname
+			userUpdateResponse.responseData.nickname == newNickname
 
 		cleanup:
 			if (userURL)
@@ -185,7 +218,7 @@ class UserTest extends Specification {
 		assert responseData.lastName == "Doe ${timestamp}"
 		assert responseData.mobileNumber == "+${timestamp}"
 		if (includePrivateData) {
-			assert responseData.nickName == "JD ${timestamp}"
+			assert responseData.nickname == "JD ${timestamp}"
 			assert responseData.devices.size() == 1
 			assert responseData.devices[0] == "Galaxy mini"
 			assert responseData.goals.size() == 1
@@ -198,7 +231,7 @@ class UserTest extends Specification {
 			assert responseData._embedded.buddies != null
 			assert responseData._embedded.buddies.size() == 0
 		} else {
-			assert responseData.nickName == null
+			assert responseData.nickname == null
 			assert responseData.devices == null
 			assert responseData.goals == null
 		}

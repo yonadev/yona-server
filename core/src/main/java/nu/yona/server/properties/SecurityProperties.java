@@ -4,6 +4,7 @@ public class SecurityProperties
 {
 	private int newDeviceRequestExpirationDays = 1;
 	private int passwordLength = 32;
+	private long bruteForceBlockMinutes = 60;
 
 	public int getNewDeviceRequestExpirationDays()
 	{
@@ -23,5 +24,15 @@ public class SecurityProperties
 	public void setPasswordLength(int passwordLength)
 	{
 		this.passwordLength = passwordLength;
+	}
+
+	public void setBruteForceBlockMinutes(long bruteForceBlockMinutes)
+	{
+		this.bruteForceBlockMinutes = bruteForceBlockMinutes;
+	}
+
+	public long getBruteForceBlockMinutes()
+	{
+		return bruteForceBlockMinutes;
 	}
 }

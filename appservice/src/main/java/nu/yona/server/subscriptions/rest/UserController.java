@@ -36,7 +36,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import nu.yona.server.BruteForceAttemptService;
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
@@ -56,6 +58,12 @@ public class UserController
 
 	@Autowired
 	private BuddyService buddyService;
+
+	@Autowired
+	private BruteForceAttemptService bruteForceAttemptService;
+
+	@Autowired
+	private YonaProperties yonaProperties;
 
 	@RequestMapping(value = "{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
@@ -131,8 +139,15 @@ public class UserController
 			@RequestBody MobileNumberConfirmationDTO mobileNumberConfirmation)
 	{
 		checkPassword(password, userID);
-		UserDTO user = userService.confirmMobileNumber(userID, mobileNumberConfirmation.getCode());
-		return createOKResponse(user, false);
+		return bruteForceAttemptService.executeAttempt(getConfirmMobileNumberLinkBuilder(userID).toUri(),
+				yonaProperties.getSms().getMobileNumberConfirmationMaxAttempts(),
+				() -> createOKResponse(userService.confirmMobileNumber(userID, mobileNumberConfirmation.getCode()), false));
+	}
+
+	static ControllerLinkBuilder getConfirmMobileNumberLinkBuilder(UUID userID)
+	{
+		UserController methodOn = methodOn(UserController.class);
+		return linkTo(methodOn.confirmMobileNumber(Optional.empty(), userID, null));
 	}
 
 	@RequestMapping(value = "{userID}/newDeviceRequest", method = RequestMethod.PUT)

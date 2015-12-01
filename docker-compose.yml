@@ -5,7 +5,7 @@ configuration:
   image: busybox
   volumes:
     - ./config:/opt/app/config:ro
-    - ./config:/conf:ro
+    - ./config:/config:ro
 
 ###########################################
 # Logging: ELK stack copied from http://www.labouisse.com/how-to/2015/09/23/elk-docker-and-spring-boot/
@@ -31,7 +31,7 @@ logstash:
       - configuration:ro
   links:
       - elasticsearch:db
-  command: logstash -f /conf/gelf.conf
+  command: logstash -f /config/gelf.conf
 
 kibana:
   image: kibana
