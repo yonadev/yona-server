@@ -114,7 +114,7 @@ public class User extends EntityWithID
 		this.lastName = lastName;
 	}
 
-	public String getNickName()
+	public String getNickname()
 	{
 		return getUserPrivate().getNickname();
 	}
