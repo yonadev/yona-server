@@ -15,7 +15,7 @@ public class Translator
 	private MessageSource msgSource;
 
 	/**
-	 * This method returns the message for this exception based on the given locale
+	 * This method returns the translated and formatted message for the passed message ID and parameters based on the given locale
 	 * 
 	 * @return The actual message based on the default locale.
 	 */
@@ -25,7 +25,7 @@ public class Translator
 	}
 
 	/**
-	 * This method returns the message for this exception based on the given locale
+	 * This method returns the translated and formatted message for the passed message ID and parameters based on the given locale
 	 * 
 	 * @param locale The locale to use for getting the message.
 	 * @return The actual message based on the given locale.
