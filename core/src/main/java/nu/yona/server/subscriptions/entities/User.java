@@ -154,6 +154,11 @@ public class User extends EntityWithID
 		this.isMobileNumberConfirmed = true;
 	}
 
+	public void markMobileNumberUnconfirmed()
+	{
+		this.isMobileNumberConfirmed = false;
+	}
+
 	public String getConfirmationCode()
 	{
 		return confirmationCode;
