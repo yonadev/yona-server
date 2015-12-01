@@ -82,11 +82,17 @@ public class BruteForceAttemptService
 	{
 		throwIfBlocked(uri, maxAttempts);
 
+		T result = attemptExecution(uri, supplier);
+
+		attemptSucceeded(uri);
+		return result;
+	}
+
+	private <T> T attemptExecution(URI uri, Supplier<T> supplier)
+	{
 		try
 		{
-			T result = supplier.get();
-			attemptSucceeded(uri);
-			return result;
+			return supplier.get();
 		}
 		catch (RuntimeException e)
 		{
