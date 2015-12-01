@@ -217,7 +217,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			def response = appService.updateResource(richardQuinURL, richardQuinCreationJSON, ["Yona-Password": "New password"], ["tempPassword": "hack"])
 
 		then:
-			response.status == 500
+			response.status == 400
 	}
 
 	def 'Bob Dunn downloads the app and opens the link sent in the email with the app; app retrieves data to prefill'(){

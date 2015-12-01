@@ -146,7 +146,7 @@ class BasicBuddyTest extends Specification {
 				}""", richardQuinPassword)
 
 		then:
-			response.status == 500
+			response.status == 400
 	}
 
 	def 'Richard requests Bob to become his buddy'(){
