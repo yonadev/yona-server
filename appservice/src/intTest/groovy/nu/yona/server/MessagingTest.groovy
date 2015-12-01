@@ -32,6 +32,10 @@ class MessagingTest extends Specification {
 	def bobDunnBuddyMessageAcceptURL
 	@Shared
 	def richardQuinBuddyMessageProcessURL
+	@Shared
+	def richardQuinMobileNumberConfirmationCode
+	@Shared
+	def bobDunnMobileNumberConfirmationCode
 
 	def 'Add user Richard Quin'(){
 		given:
@@ -52,6 +56,7 @@ class MessagingTest extends Specification {
 		if (response.status == 201) {
 			richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
 			richardQuinVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+			richardQuinMobileNumberConfirmationCode = response.responseData.confirmationCode;
 		}
 
 		then:
@@ -60,6 +65,15 @@ class MessagingTest extends Specification {
 
 		cleanup:
 		println "URL Richard: " + richardQuinURL
+	}
+
+	def 'Confirm Richard\'s mobile number'(){
+		when:
+		def response = appService.confirmMobileNumber(richardQuinURL, """ { "code":"${richardQuinMobileNumberConfirmationCode}" } """, richardQuinPassword)
+
+		then:
+		response.status == 200
+		response.responseData.mobileNumberConfirmed == true
 	}
 
 	def 'Add user Bob Dunn'(){
@@ -81,6 +95,7 @@ class MessagingTest extends Specification {
 		if (response.status == 201) {
 			bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
 			bobDunnVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+			bobDunnMobileNumberConfirmationCode = response.responseData.confirmationCode;
 		}
 
 		then:
@@ -89,6 +104,15 @@ class MessagingTest extends Specification {
 
 		cleanup:
 		println "URL Bob: " + bobDunnURL
+	}
+
+	def 'Confirm Bob\'s mobile number'(){
+		when:
+		def response = appService.confirmMobileNumber(bobDunnURL, """ { "code":"${bobDunnMobileNumberConfirmationCode}" } """, bobDunnPassword)
+
+		then:
+		response.status == 200
+		response.responseData.mobileNumberConfirmed == true
 	}
 
 	def 'Richard requests Bob to become his buddy (generates a BuddyConnectRequestMessage)'(){
@@ -248,10 +272,9 @@ class MessagingTest extends Specification {
 		response.responseData._links.self.href == richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT + "?page=0&size=2&sort=creationTime"
 		!response.responseData._links.prev
 		response.responseData._links.next
-		response.responseData._embedded.buddyConnectResponseMessages
-		response.responseData._embedded.buddyConnectResponseMessages.size() == 1
+		!response.responseData._embedded.buddyConnectResponseMessages
 		response.responseData._embedded.goalConflictMessages
-		response.responseData._embedded.goalConflictMessages.size() == 1
+		response.responseData._embedded.goalConflictMessages.size() == 2
 		response.responseData.page.totalElements == 4
 	}
 
@@ -270,9 +293,10 @@ class MessagingTest extends Specification {
 		response.responseData._links.self.href == richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT + "?page=1&size=2&sort=creationTime"
 		response.responseData._links.prev
 		!response.responseData._links.next
-		!response.responseData._embedded.buddyConnectResponseMessages
+		response.responseData._embedded.buddyConnectResponseMessages
+		response.responseData._embedded.buddyConnectResponseMessages.size() == 1
 		response.responseData._embedded.goalConflictMessages
-		response.responseData._embedded.goalConflictMessages.size() == 2
+		response.responseData._embedded.goalConflictMessages.size() == 1
 		response.responseData.page.totalElements == 4
 	}
 

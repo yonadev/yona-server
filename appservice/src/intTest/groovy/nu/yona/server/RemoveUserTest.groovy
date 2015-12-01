@@ -303,11 +303,11 @@ class RemoveUserTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 2
 			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
 			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[1].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[1].url =~ /refdag/
+			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
 	}
 
 	def 'Bob checks his direct messages and the messages of Richard are no longer there'(){

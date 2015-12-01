@@ -415,12 +415,12 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 2
-			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
-			response.responseData._embedded.goalConflictMessages[1].nickname == "BD ${timestamp}"
-			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[1].url == null
+			response.responseData._embedded.goalConflictMessages[0].nickname == "BD ${timestamp}"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[0].url == null
+			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[1].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[1].url =~ /refdag/
 	}
 
 	def 'Bob checks he has anonymous messages and finds a conflict for himself'(){
@@ -432,12 +432,12 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 2
-			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[0].url == null
-			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
+			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+			response.responseData._embedded.goalConflictMessages[1].nickname == "RQ ${timestamp}"
+			response.responseData._embedded.goalConflictMessages[1].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[1].url == null
 	}
 
 	def 'Classification engine detects a potential conflict for Bob (second conflict message)'(){
@@ -463,14 +463,14 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 2
-			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
-			!response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure
-			response.responseData._embedded.goalConflictMessages[1].nickname == "BD ${timestamp}"
-			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[1].url == null
-			response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure
+			response.responseData._embedded.goalConflictMessages[0].nickname == "BD ${timestamp}"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[0].url == null
+			response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure
+			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[1].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[1].url =~ /refdag/
+			!response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure
 	}
 
 	def 'Bob checks he has anonymous messages and finds a conflict for himself (second conflict message)'(){
@@ -482,12 +482,12 @@ class BasicBuddyTest extends Specification {
 		then:
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 2
-			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[0].url == null
-			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
+			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+			response.responseData._embedded.goalConflictMessages[1].nickname == "RQ ${timestamp}"
+			response.responseData._embedded.goalConflictMessages[1].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[1].url == null
 	}
 
 	def 'Richard removes Bob as buddy'() {
@@ -541,11 +541,11 @@ class BasicBuddyTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 2
 			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
 			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[1].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[1].url =~ /refdag/
+			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
 	}
 	
 	def 'Richard checks his anonymous messages and the messages of Bob are no longer there'(){
