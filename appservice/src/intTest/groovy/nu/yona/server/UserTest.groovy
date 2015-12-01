@@ -66,6 +66,39 @@ class UserTest extends Specification {
 				appService.deleteUser(userURL, password)
 			}
 	}
+	
+	def 'Hacking attempt: Brute force mobile number confirmation code'(){
+		given:
+			def userAddResponse = appService.addUser(userCreationJSON, password);
+			def userURL = appService.stripQueryString(userAddResponse.responseData._links.self.href);
+			def confirmationCode = userAddResponse.responseData.confirmationCode;
+
+		when:
+			appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}1" } """, password)
+			appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}2" } """, password)
+			appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}3" } """, password)
+			appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}4" } """, password)
+			def response5TimesWrong = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}5" } """, password)
+			def response6TimesWrong = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}6" } """, password)
+			def response7thTimeRight = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}" } """, password)
+
+		then:
+			confirmationCode != null
+			userAddResponse.status == 201
+			userAddResponse.responseData.mobileNumberConfirmed == false
+			response5TimesWrong.status == 400
+			response5TimesWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
+			response6TimesWrong.status == 400
+			response6TimesWrong.responseData.code == "error.too.many.wrong.attempts"
+			response7thTimeRight.status == 400
+			response7thTimeRight.responseData.code == "error.too.many.wrong.attempts"
+
+		cleanup:
+			if (userURL)
+			{
+				appService.deleteUser(userURL, password)
+			}
+	}
 
 	def 'Get John Doe with private data'(){
 		given:
