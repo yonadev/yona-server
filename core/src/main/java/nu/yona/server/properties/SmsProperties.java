@@ -8,6 +8,7 @@ public class SmsProperties
 	private String plivoUrl = "https://api.plivo.com/v1/Account/{0}/Message/";
 	private String plivoAuthId = "";
 	private String plivoAuthToken = "";
+	private int mobileNumberConfirmationMaxAttempts = 5;
 
 	public boolean isEnabled()
 	{
@@ -67,5 +68,15 @@ public class SmsProperties
 	public void setPlivoAuthToken(String plivoAuthToken)
 	{
 		this.plivoAuthToken = plivoAuthToken;
+	}
+
+	public int getMobileNumberConfirmationMaxAttempts()
+	{
+		return mobileNumberConfirmationMaxAttempts;
+	}
+
+	public void setMobileNumberConfirmationMaxAttempts(int mobileNumberConfirmationMaxAttempts)
+	{
+		this.mobileNumberConfirmationMaxAttempts = mobileNumberConfirmationMaxAttempts;
 	}
 }
