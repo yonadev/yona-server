@@ -7,7 +7,6 @@ package nu.yona.server.messaging.entities;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 import javax.persistence.CascadeType;
@@ -17,6 +16,9 @@ import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import nu.yona.server.crypto.ByteFieldEncrypter;
 import nu.yona.server.crypto.PublicKeyDecryptor;
@@ -69,11 +71,11 @@ public class MessageSource extends EntityWithID
 		return messageDestination;
 	}
 
-	public List<Message> getAllMessages()
+	public Page<Message> getMessages(Pageable pageable)
 	{
-		List<Message> decryptedMessages = messageDestination.getAllMessages();
+		Page<Message> decryptedMessages = messageDestination.getMessages(pageable);
 		PublicKeyDecryptor decryptor = PublicKeyDecryptor.createInstance(loadPrivateKey());
-		decryptedMessages.stream().forEach(m -> m.decryptMessage(decryptor));
+		decryptedMessages.forEach(m -> m.decryptMessage(decryptor));
 		return decryptedMessages;
 	}
 

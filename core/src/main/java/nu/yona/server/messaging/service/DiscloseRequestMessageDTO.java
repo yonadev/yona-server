@@ -5,6 +5,7 @@
 package nu.yona.server.messaging.service;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -40,10 +41,10 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 
 	private GoalConflictMessageDTO targetGoalConflictMessage;
 
-	private DiscloseRequestMessageDTO(UUID id, String nickname, boolean isAccepted, boolean isRejected,
+	private DiscloseRequestMessageDTO(UUID id, Date creationTime, String nickname, boolean isAccepted, boolean isRejected,
 			UUID targetGoalConflictMessageOriginID, GoalConflictMessageDTO targetGoalConflictMessage)
 	{
-		super(id, targetGoalConflictMessageOriginID);
+		super(id, creationTime, targetGoalConflictMessageOriginID);
 		this.nickname = nickname;
 		this.isAccepted = isAccepted;
 		this.isRejected = isRejected;
@@ -85,8 +86,9 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 	public static DiscloseRequestMessageDTO createInstance(UserDTO requestingUser, DiscloseRequestMessage messageEntity)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
-		return new DiscloseRequestMessageDTO(messageEntity.getID(), messageEntity.getNickname(), messageEntity.isAccepted(),
-				messageEntity.isRejected(), targetGoalConflictMessage.getOriginGoalConflictMessageID(),
+		return new DiscloseRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.getNickname(),
+				messageEntity.isAccepted(), messageEntity.isRejected(),
+				targetGoalConflictMessage.getOriginGoalConflictMessageID(),
 				GoalConflictMessageDTO.createInstance(targetGoalConflictMessage, null));
 	}
 

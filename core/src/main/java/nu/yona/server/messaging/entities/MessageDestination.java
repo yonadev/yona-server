@@ -6,7 +6,6 @@ package nu.yona.server.messaging.entities;
 
 import java.security.PublicKey;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,6 +15,9 @@ import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import nu.yona.server.crypto.PublicKeyEncryptor;
 import nu.yona.server.crypto.PublicKeyUtil;
@@ -69,9 +71,9 @@ public class MessageDestination extends EntityWithID
 		messages.remove(message);
 	}
 
-	public List<Message> getAllMessages()
+	public Page<Message> getMessages(Pageable pageable)
 	{
-		return Collections.unmodifiableList(messages);
+		return Message.getRepository().findFromDestination(this.getID(), pageable);
 	}
 
 	private PublicKey loadPublicKey()

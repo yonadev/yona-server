@@ -1,6 +1,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -28,10 +29,10 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 	private DropBuddyReason reason;
 	private boolean isProcessed;
 
-	private BuddyDisconnectMessageDTO(UUID id, UserDTO user, UUID loginID, String nickname, String message,
+	private BuddyDisconnectMessageDTO(UUID id, Date creationTime, UserDTO user, UUID loginID, String nickname, String message,
 			DropBuddyReason reason, boolean isProcessed)
 	{
-		super(id, user, nickname, message);
+		super(id, creationTime, user, nickname, message);
 		this.reason = reason;
 		this.isProcessed = isProcessed;
 	}
@@ -61,8 +62,9 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 	{
 		User userEntity = messageEntity.getUser(); // may be null if deleted
 		UserDTO user = userEntity != null ? UserDTO.createInstance(userEntity) : UserDTO.createRemovedUserInstance();
-		return new BuddyDisconnectMessageDTO(messageEntity.getID(), user, messageEntity.getRelatedVPNLoginID(),
-				messageEntity.getNickname(), messageEntity.getMessage(), messageEntity.getReason(), messageEntity.isProcessed());
+		return new BuddyDisconnectMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), user,
+				messageEntity.getRelatedVPNLoginID(), messageEntity.getNickname(), messageEntity.getMessage(),
+				messageEntity.getReason(), messageEntity.isProcessed());
 	}
 
 	@Component
