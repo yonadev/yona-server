@@ -20,10 +20,10 @@ public abstract class MessageDTO
 
 	protected MessageDTO(UUID id, Date creationTime)
 	{
-		this(id, null);
+		this(id, creationTime, null);
 	}
 
-	protected MessageDTO(UUID id, UUID relatedAnonymousMessageID)
+	protected MessageDTO(UUID id, Date creationTime, UUID relatedAnonymousMessageID)
 	{
 		this.id = id;
 		this.creationTime = creationTime;
