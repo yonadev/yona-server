@@ -16,11 +16,18 @@ public abstract class MessageDTO
 {
 	private final UUID id;
 	private final Date creationTime;
+	private final UUID relatedAnonymousMessageID;
 
 	protected MessageDTO(UUID id, Date creationTime)
 	{
+		this(id, null);
+	}
+
+	protected MessageDTO(UUID id, UUID relatedAnonymousMessageID)
+	{
 		this.id = id;
 		this.creationTime = creationTime;
+		this.relatedAnonymousMessageID = relatedAnonymousMessageID;
 	}
 
 	@JsonIgnore
@@ -32,6 +39,12 @@ public abstract class MessageDTO
 	public Date getCreationTime()
 	{
 		return creationTime;
+	}
+
+	@JsonIgnore
+	public UUID getRelatedAnonymousMessageID()
+	{
+		return relatedAnonymousMessageID;
 	}
 
 	@JsonIgnore

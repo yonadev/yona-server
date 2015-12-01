@@ -183,7 +183,17 @@ public class MessageController
 			ControllerLinkBuilder selfLinkBuilder = getMessageLinkBuilder(isDirect, userID, message.getID());
 			addSelfLink(selfLinkBuilder, messageResource);
 			addActionLinks(selfLinkBuilder, messageResource);
+			addRelatedMessageLink(message, messageResource);
 			return messageResource;
+		}
+
+		private void addRelatedMessageLink(MessageDTO message, MessageResource messageResource)
+		{
+			if (message.getRelatedAnonymousMessageID() != null)
+			{
+				messageResource
+						.add(getMessageLinkBuilder(false, userID, message.getRelatedAnonymousMessageID()).withRel("related"));
+			}
 		}
 
 		@Override

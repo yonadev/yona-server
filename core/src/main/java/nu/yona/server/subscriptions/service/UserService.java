@@ -97,7 +97,6 @@ public class UserService
 		{
 			userDTO.setConfirmationCode(userEntity.getConfirmationCode());
 		}
-
 		sendMobileNumberConfirmationMessage(userEntity, SmsService.TemplateName_AddUserNumberConfirmation);
 		return userDTO;
 	}
@@ -129,13 +128,13 @@ public class UserService
 			throw MobileNumberConfirmationException.confirmationCodeMismatch();
 		}
 
-		if (userEntity.isConfirmed())
+		if (userEntity.isMobileNumberConfirmed())
 		{
-			throw MobileNumberConfirmationException.userCannotBeActivated();
+			throw MobileNumberConfirmationException.mobileNumberAlreadyConfirmed();
 		}
 
 		userEntity.setConfirmationCode(null);
-		userEntity.markAsConfirmed();
+		userEntity.markMobileNumberConfirmed();
 		User.getRepository().save(userEntity);
 
 		return UserDTO.createInstance(userEntity);
@@ -161,6 +160,9 @@ public class UserService
 			// security check: should not be able to update a user created on buddy request with its temp password
 			throw new IllegalArgumentException("User is created on buddy request, use other method");
 		}
+
+		originalUserEntity.assertMobileNumberConfirmed();
+
 		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(user.updateUser(originalUserEntity)));
 	}
 
@@ -184,9 +186,16 @@ public class UserService
 			// security check: should not be able to replace the password on an existing user
 			throw new IllegalArgumentException("User is not created on buddy request");
 		}
-		sendMobileNumberConfirmationMessage(originalUserEntity, SmsService.TemplateName_AddUserNumberConfirmation);
+
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
-		return saveUserEncryptedDataWithNewPassword(retrievedEntitySet, userResource);
+		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, userResource);
+		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(savedUserEntity);
+		if (!yonaProperties.getSms().isEnabled())
+		{
+			userDTO.setConfirmationCode(savedUserEntity.getConfirmationCode());
+		}
+		sendMobileNumberConfirmationMessage(savedUserEntity, SmsService.TemplateName_AddUserNumberConfirmation);
+		return userDTO;
 	}
 
 	private EncryptedUserData retrieveUserEncryptedData(User originalUserEntity, String password)
@@ -195,7 +204,7 @@ public class UserService
 				() -> tempEncryptionContextExecutor.retrieveUserEncryptedData(originalUserEntity));
 	}
 
-	private UserDTO saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDTO userResource)
+	private User saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDTO userResource)
 	{
 		// touch and save all user related data containing encryption
 		// see architecture overview for which classes contain encrypted data
@@ -206,7 +215,7 @@ public class UserService
 		userResource.updateUser(retrievedEntitySet.userEntity);
 		retrievedEntitySet.userEntity.unsetIsCreatedOnBuddyRequest();
 		retrievedEntitySet.userEntity.touch();
-		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(retrievedEntitySet.userEntity));
+		return User.getRepository().save(retrievedEntitySet.userEntity);
 	}
 
 	@Transactional
@@ -214,16 +223,19 @@ public class UserService
 	{
 		User userEntity = getEntityByID(id);
 
-		userEntity.getBuddies().forEach(buddyEntity -> buddyService.clearMessagesAndSendDropBuddyMessage(userEntity, buddyEntity,
-				message, DropBuddyReason.USER_ACCOUNT_DELETED));
+		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
+				DropBuddyReason.USER_ACCOUNT_DELETED));
 
 		UserAnonymized userAnonymized = userEntity.getAnonymized();
+		UUID vpnLoginID = userAnonymized.getVPNLoginID();
 		UserAnonymized.getRepository().delete(userAnonymized);
 		MessageSource namedMessageSource = userEntity.getNamedMessageSource();
 		MessageSource anonymousMessageSource = userEntity.getAnonymousMessageSource();
 		MessageSource.getRepository().delete(anonymousMessageSource);
 		MessageSource.getRepository().delete(namedMessageSource);
 		User.getRepository().delete(userEntity);
+
+		ldapUserService.deleteVPNAccount(vpnLoginID.toString());
 	}
 
 	private User getEntityByID(UUID id)
@@ -267,6 +279,7 @@ public class UserService
 	public void addBuddy(UserDTO user, BuddyDTO buddy)
 	{
 		User userEntity = getEntityByID(user.getID());
+		userEntity.assertMobileNumberConfirmed();
 		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getID());
 		userEntity.addBuddy(buddyEntity);
 		User.getRepository().save(userEntity);
@@ -281,6 +294,7 @@ public class UserService
 	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID userID, String userPassword, String userSecret)
 	{
 		User userEntity = getEntityByID(userID);
+		userEntity.assertMobileNumberConfirmed();
 		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(userPassword);
 		newDeviceRequestEntity.encryptUserPassword(userSecret);
 		boolean isUpdatingExistingRequest = userEntity.getNewDeviceRequest() != null;
@@ -293,6 +307,7 @@ public class UserService
 	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID userID, String userSecret)
 	{
 		User userEntity = getEntityByID(userID);
+		userEntity.assertMobileNumberConfirmed();
 		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
 		if (newDeviceRequestEntity == null)
 		{
@@ -329,6 +344,7 @@ public class UserService
 	public void clearNewDeviceRequestForUser(UUID userID)
 	{
 		User userEntity = getEntityByID(userID);
+		userEntity.assertMobileNumberConfirmed();
 		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
 		if (existingNewDeviceRequestEntity != null)
 		{

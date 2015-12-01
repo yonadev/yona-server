@@ -107,6 +107,8 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 		public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
 				MessageActionDTO requestPayload)
 		{
+			actingUser.assertMobileNumberConfirmed();
+
 			switch (action)
 			{
 				case ACCEPT:

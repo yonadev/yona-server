@@ -58,7 +58,6 @@ public class BuddyAnonymized extends EntityWithID
 		return UserAnonymized.getRepository().findOne(userAnonymizedID);
 	}
 
-
 	public Status getSendingStatus()
 	{
 		return sendingStatus;
@@ -89,5 +88,12 @@ public class BuddyAnonymized extends EntityWithID
 	{
 		// notice these are the same
 		this.userAnonymizedID = vpnLoginID;
+	}
+
+	public void setDisconnected()
+	{
+		this.sendingStatus = Status.REJECTED;
+		this.receivingStatus = Status.REJECTED;
+		this.userAnonymizedID = null;
 	}
 }

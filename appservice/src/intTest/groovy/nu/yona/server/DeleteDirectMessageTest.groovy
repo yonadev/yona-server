@@ -66,6 +66,9 @@ class DeleteDirectMessageTest extends Specification {
 			if (response.status == 201) {
 				richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
 				richardQuinVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+
+				def confirmationCode = response.responseData.confirmationCode;
+				appService.confirmMobileNumber(richardQuinURL, """ { "code":"${confirmationCode}" } """, richardQuinPassword)
 			}
 
 		then:
@@ -95,6 +98,9 @@ class DeleteDirectMessageTest extends Specification {
 			if (response.status == 201) {
 				bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
 				bobDunnVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+
+				def confirmationCode = response.responseData.confirmationCode;
+				appService.confirmMobileNumber(bobDunnURL, """ { "code":"${confirmationCode}" } """, bobDunnPassword)
 			}
 
 		then:
@@ -267,7 +273,7 @@ class DeleteDirectMessageTest extends Specification {
 			response.responseData._embedded.goalConflictMessages.size() == 1
 			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+			response.responseData._embedded.goalConflictMessages[0].url == null
 	}
 
 	def 'Richard checks he has anonymous messages and finds a conflict for himself'(){
@@ -318,7 +324,7 @@ class DeleteDirectMessageTest extends Specification {
 			response.responseData._embedded.goalConflictMessages.size() == 1
 			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
+			response.responseData._embedded.goalConflictMessages[0].url == null
 	}
 
 	def 'Bob deletes Richard\'s buddy request'(){
