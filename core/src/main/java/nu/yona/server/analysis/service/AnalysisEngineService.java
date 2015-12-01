@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -17,18 +18,22 @@ import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Service
 public class AnalysisEngineService
 {
 	@Autowired
+	private YonaProperties yonaProperties;
+	@Autowired
 	private GoalService goalService;
+	@Autowired
+	private AnalysisEngineCacheService cacheService;
 
 	public void analyze(PotentialConflictDTO potentialConflictPayload)
 	{
-
-		UserAnonymized userAnonimized = getUserAnonymizedByID(potentialConflictPayload.getLoginID());
+		UserAnonymized userAnonimized = getUserAnonymizedByID(potentialConflictPayload.getVPNLoginID());
 		Set<Goal> conflictingGoalsOfUser = determineConflictingGoalsForUser(userAnonimized,
 				potentialConflictPayload.getCategories());
 		if (!conflictingGoalsOfUser.isEmpty())
@@ -45,15 +50,61 @@ public class AnalysisEngineService
 	private void sendConflictMessageToAllDestinationsOfUser(PotentialConflictDTO payload, UserAnonymized userAnonymized,
 			Set<Goal> conflictingGoalsOfUser)
 	{
-		Set<MessageDestination> destinations = userAnonymized.getAllRelatedDestinations();
-		destinations.stream().forEach(d -> d.send(createConflictMessage(payload, conflictingGoalsOfUser)));
-		destinations.stream().forEach(d -> MessageDestination.getRepository().save(d));
+		GoalConflictMessage selfGoalConflictMessage = sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser,
+				userAnonymized.getAnonymousDestination(), null);
+
+		userAnonymized.getBuddyDestinations().stream()
+				.forEach(d -> sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser, d, selfGoalConflictMessage));
 	}
 
-	private GoalConflictMessage createConflictMessage(PotentialConflictDTO payload, Set<Goal> conflictingGoalsOfUser)
+	private GoalConflictMessage sendOrUpdateConflictMessage(PotentialConflictDTO payload, Set<Goal> conflictingGoalsOfUser,
+			MessageDestination destination, GoalConflictMessage origin)
 	{
-		return GoalConflictMessage.createInstance(payload.getLoginID(), conflictingGoalsOfUser.iterator().next(),
-				payload.getURL());
+		Date now = new Date();
+		Date minEndTime = new Date(now.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
+		Goal conflictingGoal = conflictingGoalsOfUser.iterator().next();
+		GoalConflictMessage message = cacheService.fetchLatestGoalConflictMessageForUser(payload.getVPNLoginID(),
+				conflictingGoal.getID(), destination, minEndTime);
+
+		if (message == null || message.getEndTime().before(minEndTime))
+		{
+			message = sendNewGoalConflictMessage(payload, conflictingGoal, destination, origin);
+			cacheService.updateLatestGoalConflictMessageForUser(message, destination);
+		}
+		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
+		else if (now.getTime() - message.getEndTime().getTime() >= yonaProperties.getAnalysisService().getUpdateSkipWindow())
+		{
+			updateLastGoalConflictMessage(payload, now, conflictingGoal, message);
+			cacheService.updateLatestGoalConflictMessageForUser(message, destination);
+		}
+
+		return message;
+	}
+
+	private GoalConflictMessage sendNewGoalConflictMessage(PotentialConflictDTO payload, Goal conflictingGoal,
+			MessageDestination destination, GoalConflictMessage origin)
+	{
+		GoalConflictMessage message;
+		if (origin == null)
+		{
+			message = GoalConflictMessage.createInstance(payload.getVPNLoginID(), conflictingGoal, payload.getURL());
+		}
+		else
+		{
+			message = GoalConflictMessage.createInstanceFromBuddy(payload.getVPNLoginID(), origin);
+		}
+		destination.send(message);
+		MessageDestination.getRepository().save(destination);
+		return message;
+	}
+
+	private void updateLastGoalConflictMessage(PotentialConflictDTO payload, Date messageEndTime, Goal conflictingGoal,
+			GoalConflictMessage message)
+	{
+		assert payload.getVPNLoginID().equals(message.getRelatedVPNLoginID());
+		assert conflictingGoal.getID().equals(message.getGoal().getID());
+
+		message.setEndTime(messageEndTime);
 	}
 
 	private Set<Goal> determineConflictingGoalsForUser(UserAnonymized userAnonymized, Set<String> categories)
@@ -75,7 +126,7 @@ public class AnalysisEngineService
 		UserAnonymized entity = UserAnonymized.getRepository().findOne(id);
 		if (entity == null)
 		{
-			throw InvalidDataException.loginIDNotFound(id);
+			throw InvalidDataException.vpnLoginIDNotFound(id);
 		}
 		return entity;
 	}

@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -21,17 +22,19 @@ import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 
 @JsonRootName("buddyConnectResponseMessage")
-public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
+public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 {
 	private static final String PROCESS = "process";
 	private boolean isProcessed;
 
-	private BuddyConnectResponseMessageDTO(UUID id, UserDTO user, String message, boolean isProcessed)
+	private BuddyConnectResponseMessageDTO(UUID id, Date creationTime, UserDTO user, String nickname, String message,
+			boolean isProcessed)
 	{
-		super(id, user, message);
+		super(id, creationTime, user, nickname, message);
 		this.isProcessed = isProcessed;
 	}
 
@@ -53,8 +56,9 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 
 	public static BuddyConnectResponseMessageDTO createInstance(UserDTO requestingUser, BuddyConnectResponseMessage messageEntity)
 	{
-		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), UserDTO.createInstance(messageEntity.getUser()),
-				messageEntity.getMessage(), messageEntity.isProcessed());
+		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
+				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getNickname(), messageEntity.getMessage(),
+				messageEntity.isProcessed());
 	}
 
 	@Component
@@ -82,6 +86,8 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 		public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
 				MessageActionDTO requestPayload)
 		{
+			actingUser.assertMobileNumberConfirmed();
+
 			switch (action)
 			{
 				case PROCESS:
@@ -95,8 +101,15 @@ public class BuddyConnectResponseMessageDTO extends BuddyConnectMessageDTO
 				BuddyConnectResponseMessage connectResponseMessageEntity, MessageActionDTO payload)
 		{
 
-			buddyService.updateBuddyWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
-					connectResponseMessageEntity.getRelatedLoginID());
+			if (connectResponseMessageEntity.getStatus() == Status.REJECTED)
+			{
+				buddyService.removeBuddyAfterConnectRejection(requestingUser.getID(), connectResponseMessageEntity.getBuddyID());
+			}
+			else
+			{
+				buddyService.setBuddyAcceptedWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
+						connectResponseMessageEntity.getRelatedVPNLoginID(), connectResponseMessageEntity.getNickname());
+			}
 
 			updateMessageStatusAsProcessed(connectResponseMessageEntity);
 

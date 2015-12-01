@@ -15,8 +15,8 @@ public class MissingPasswordException extends YonaException
 		super(messageId, parameters);
 	}
 
-	public static MissingPasswordException passwordNotProvided()
+	public static MissingPasswordException passwordHeaderNotProvided()
 	{
-		return new MissingPasswordException("error.password.not.provided", Constants.PASSWORD_HEADER);
+		return new MissingPasswordException("error.missing.password.header", Constants.PASSWORD_HEADER);
 	}
 }

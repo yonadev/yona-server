@@ -19,6 +19,7 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 	@Transient
 	private UUID destinationID;
 	private byte[] destinationIDCiphertext;
+
 	private BuddyAnonymized.Status status = BuddyAnonymized.Status.NOT_REQUESTED;
 	private boolean isProcessed;
 
@@ -28,10 +29,10 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 		super();
 	}
 
-	private BuddyConnectResponseMessage(UUID id, UUID userID, UUID loginID, String message, UUID buddyID, UUID destinationID,
-			BuddyAnonymized.Status status)
+	private BuddyConnectResponseMessage(UUID id, UUID userID, UUID vpnLoginID, String nickname, String message, UUID buddyID,
+			UUID destinationID, BuddyAnonymized.Status status)
 	{
-		super(id, loginID, userID, message, buddyID);
+		super(id, vpnLoginID, userID, nickname, message, buddyID);
 		this.destinationID = destinationID;
 		this.status = status;
 	}
@@ -56,11 +57,11 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 		this.isProcessed = true;
 	}
 
-	public static BuddyConnectResponseMessage createInstance(UUID respondingUserID, UUID respondingUserLoginID,
-			UUID destinationID, String message, UUID buddyID, BuddyAnonymized.Status status)
+	public static BuddyConnectResponseMessage createInstance(UUID respondingUserID, UUID respondingUserVPNLoginID,
+			UUID destinationID, String nickname, String message, UUID buddyID, BuddyAnonymized.Status status)
 	{
-		return new BuddyConnectResponseMessage(UUID.randomUUID(), respondingUserID, respondingUserLoginID, message, buddyID,
-				destinationID, status);
+		return new BuddyConnectResponseMessage(UUID.randomUUID(), respondingUserID, respondingUserVPNLoginID, nickname, message,
+				buddyID, destinationID, status);
 	}
 
 	@Override
@@ -75,5 +76,11 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 	{
 		super.decrypt(decryptor);
 		destinationID = decryptor.decryptUUID(destinationIDCiphertext);
+	}
+
+	@Override
+	public boolean canBeDeleted()
+	{
+		return this.isProcessed;
 	}
 }

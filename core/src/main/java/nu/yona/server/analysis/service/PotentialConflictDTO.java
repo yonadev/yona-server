@@ -17,23 +17,23 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @JsonRootName("potentialConflict")
 public class PotentialConflictDTO
 {
-	private UUID loginID;
+	private UUID vpnLoginID;
 	private Set<String> categories;
 	private String url;
 
 	@JsonCreator
-	public PotentialConflictDTO(@JsonProperty("loginID") UUID loginID,
+	public PotentialConflictDTO(@JsonProperty("vpnLoginID") UUID vpnLoginID,
 			@JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories,
 			@JsonProperty("url") String url)
 	{
-		this.loginID = loginID;
+		this.vpnLoginID = vpnLoginID;
 		this.categories = categories;
 		this.url = url;
 	}
 
-	public UUID getLoginID()
+	public UUID getVPNLoginID()
 	{
-		return loginID;
+		return vpnLoginID;
 	}
 
 	public Set<String> getCategories()

@@ -25,7 +25,7 @@ public class UserServiceException extends YonaException
 
 	public static UserServiceException notFoundByID(UUID id)
 	{
-		return new UserServiceException("error.user.not.found.mobile", id);
+		return new UserServiceException("error.user.not.found.id", id);
 	}
 
 	public static UserServiceException missingPasswordHeader()

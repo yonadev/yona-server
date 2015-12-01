@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
@@ -18,6 +17,7 @@ import javax.persistence.Table;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
@@ -40,7 +40,10 @@ public class User extends EntityWithID
 
 	private byte[] initializationVector;
 
-	private boolean createdOnBuddyRequest;
+	private boolean isCreatedOnBuddyRequest;
+
+	private boolean isMobileNumberConfirmed;
+	private String confirmationCode;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private UserPrivate userPrivate;
@@ -57,12 +60,11 @@ public class User extends EntityWithID
 		super(null);
 	}
 
-	private User(UUID id, byte[] initializationVector, boolean createdOnBuddyRequest, String firstName, String lastName,
-			String mobileNumber, UserPrivate userPrivate, MessageDestination messageDestination)
+	private User(UUID id, byte[] initializationVector, String firstName, String lastName, String mobileNumber,
+			UserPrivate userPrivate, MessageDestination messageDestination)
 	{
 		super(id);
 		this.initializationVector = initializationVector;
-		this.createdOnBuddyRequest = createdOnBuddyRequest;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.mobileNumber = mobileNumber;
@@ -70,35 +72,26 @@ public class User extends EntityWithID
 		this.messageDestination = messageDestination;
 	}
 
-	public static User createInstance(String firstName, String lastName, String nickName, String mobileNumber,
+	public static User createInstance(String firstName, String lastName, String nickName, String mobileNumber, String vpnPassword,
 			Set<String> deviceNames, Set<Goal> goals)
 	{
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		UserPrivate userPrivate = UserPrivate.createInstance(nickName, deviceNames, goals, anonymousMessageSource,
+		UserPrivate userPrivate = UserPrivate.createInstance(nickName, vpnPassword, deviceNames, goals, anonymousMessageSource,
 				namedMessageSource);
-		return new User(UUID.randomUUID(), initializationVector, false, firstName, lastName, mobileNumber, userPrivate,
-				namedMessageSource.getDestination());
-	}
-
-	public static User createInstanceOnBuddyRequest(String firstName, String lastName, String nickName, String mobileNumber)
-	{
-		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
-		Set<Goal> goals = Collections.emptySet();
-		Set<String> devices = Collections.emptySet();
-
-		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		UserPrivate userPrivate = UserPrivate
-				.createInstance(nickName, devices, goals, anonymousMessageSource, namedMessageSource);
-		return new User(UUID.randomUUID(), initializationVector, true, firstName, lastName, mobileNumber, userPrivate,
+		return new User(UUID.randomUUID(), initializationVector, firstName, lastName, mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
 	}
 
 	public boolean isCreatedOnBuddyRequest()
 	{
-		return createdOnBuddyRequest;
+		return isCreatedOnBuddyRequest;
+	}
+
+	public void unsetIsCreatedOnBuddyRequest()
+	{
+		isCreatedOnBuddyRequest = false;
 	}
 
 	public String getFirstName()
@@ -151,6 +144,26 @@ public class User extends EntityWithID
 		this.newDeviceRequest = newDeviceRequest;
 	}
 
+	public boolean isMobileNumberConfirmed()
+	{
+		return isMobileNumberConfirmed;
+	}
+
+	public void markMobileNumberConfirmed()
+	{
+		this.isMobileNumberConfirmed = true;
+	}
+
+	public String getConfirmationCode()
+	{
+		return confirmationCode;
+	}
+
+	public void setConfirmationCode(String confirmationCode)
+	{
+		this.confirmationCode = confirmationCode;
+	}
+
 	private UserPrivate getUserPrivate()
 	{
 		CryptoSession.getCurrent().setInitializationVector(initializationVector);
@@ -160,6 +173,11 @@ public class User extends EntityWithID
 	private void setUserPrivate(UserPrivate userPrivate)
 	{
 		this.userPrivate = userPrivate;
+	}
+
+	public void setNickname(String nickName)
+	{
+		getUserPrivate().setNickname(nickName);
 	}
 
 	public Set<String> getDeviceNames()
@@ -177,9 +195,14 @@ public class User extends EntityWithID
 		return getUserPrivate().getUserAnonymized().getGoals();
 	}
 
-	public UUID getLoginID()
+	public UUID getVPNLoginID()
 	{
-		return getUserPrivate().getLoginID();
+		return getUserPrivate().getVPNLoginID();
+	}
+
+	public String getVPNPassword()
+	{
+		return getUserPrivate().getVPNPassword();
 	}
 
 	public MessageDestination getNamedMessageDestination()
@@ -190,6 +213,16 @@ public class User extends EntityWithID
 	public void addBuddy(Buddy buddy)
 	{
 		getUserPrivate().addBuddy(buddy);
+	}
+
+	public void removeBuddy(Buddy buddy)
+	{
+		getUserPrivate().removeBuddy(buddy);
+	}
+
+	public void removeBuddiesFromUser(UUID fromUserID)
+	{
+		getUserPrivate().removeBuddyForUserID(fromUserID);
 	}
 
 	public MessageSource getNamedMessageSource()
@@ -220,5 +253,33 @@ public class User extends EntityWithID
 	public UserAnonymized getAnonymized()
 	{
 		return getUserPrivate().getUserAnonymized();
+	}
+
+	public void touch()
+	{
+		getUserPrivate().touch();
+	}
+
+	public void loadFully()
+	{
+		getUserPrivate();
+	}
+
+	public void setIsCreatedOnBuddyRequest()
+	{
+		isCreatedOnBuddyRequest = true;
+	}
+
+	public Buddy getBuddyByVPNLoginID(UUID relatedUserVPNLoginID)
+	{
+		return getBuddies().stream().filter(buddy -> buddy.getVPNLoginID().equals(relatedUserVPNLoginID)).findAny().get();
+	}
+
+	public void assertMobileNumberConfirmed()
+	{
+		if (!isMobileNumberConfirmed)
+		{
+			throw MobileNumberConfirmationException.notConfirmed();
+		}
 	}
 }

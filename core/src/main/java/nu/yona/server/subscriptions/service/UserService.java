@@ -4,6 +4,9 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -11,20 +14,39 @@ import java.util.regex.Pattern;
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
+import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.sms.SmsService;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 
 @Service
 public class UserService
 {
 	/** Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers */
 	private static Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
+
+	@Autowired
+	private LDAPUserService ldapUserService;
+
+	@Autowired
+	private YonaProperties yonaProperties;
+
+	@Autowired
+	private SmsService smsService;
+
+	@Autowired
+	BuddyService buddyService;
 
 	// TODO: Do we need this? Currently unused.
 	@Transactional
@@ -58,32 +80,90 @@ public class UserService
 	}
 
 	@Transactional
-	public UserDTO addUser(UserDTO userResource)
+	public UserDTO addUser(UserDTO user)
 	{
-		validateUserFields(userResource);
+		validateUserFields(user);
 
-		User userEntity = userResource.createUserEntity();
+		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
+
+		User userEntity = user.createUserEntity();
+		userEntity
+				.setConfirmationCode(CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
 		userEntity = User.getRepository().save(userEntity);
+		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getVPNPassword());
 
-		return UserDTO.createInstanceWithPrivateData(userEntity);
+		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(userEntity);
+		if (!yonaProperties.getSms().isEnabled())
+		{
+			userDTO.setConfirmationCode(userEntity.getConfirmationCode());
+		}
+		sendMobileNumberConfirmationMessage(userEntity, SmsService.TemplateName_AddUserNumberConfirmation);
+		return userDTO;
+	}
+
+	private void sendMobileNumberConfirmationMessage(User userEntity, String messageTemplateName)
+	{
+		String confirmationCode = userEntity.getConfirmationCode();
+		if (confirmationCode == null)
+		{
+			throw MobileNumberConfirmationException.confirmationCodeNotSet();
+		}
+		Map<String, Object> templateParams = new HashMap<String, Object>();
+		templateParams.put("confirmationCode", confirmationCode);
+		smsService.send(userEntity.getMobileNumber(), messageTemplateName, templateParams);
 	}
 
 	@Transactional
-	public UserDTO updateUser(UUID id, UserDTO userResource)
+	public UserDTO confirmMobileNumber(UUID userID, String code)
+	{
+		User userEntity = getEntityByID(userID);
+
+		if (userEntity.getConfirmationCode() == null)
+		{
+			throw MobileNumberConfirmationException.confirmationCodeNotSet();
+		}
+
+		if (!userEntity.getConfirmationCode().equals(code))
+		{
+			throw MobileNumberConfirmationException.confirmationCodeMismatch();
+		}
+
+		if (userEntity.isMobileNumberConfirmed())
+		{
+			throw MobileNumberConfirmationException.mobileNumberAlreadyConfirmed();
+		}
+
+		userEntity.setConfirmationCode(null);
+		userEntity.markMobileNumberConfirmed();
+		User.getRepository().save(userEntity);
+
+		return UserDTO.createInstance(userEntity);
+	}
+
+	@Autowired
+	UserServiceTempEncryptionContextExecutor tempEncryptionContextExecutor;
+
+	@Transactional
+	public User addUserCreatedOnBuddyRequest(UserDTO buddyUser, String tempPassword)
+	{
+		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null,
+				() -> tempEncryptionContextExecutor.addUserCreatedOnBuddyRequest(buddyUser).getID());
+		return getEntityByID(savedUserID);
+	}
+
+	@Transactional
+	public UserDTO updateUser(UUID id, UserDTO user)
 	{
 		User originalUserEntity = getEntityByID(id);
-		UserDTO savedUser;
 		if (originalUserEntity.isCreatedOnBuddyRequest())
 		{
-			// TODO: the password needs to come from the URL, not from the
-			// payload
-			savedUser = handleUserSignupUponBuddyRequest("TODO", userResource, originalUserEntity);
+			// security check: should not be able to update a user created on buddy request with its temp password
+			throw new IllegalArgumentException("User is created on buddy request, use other method");
 		}
-		else
-		{
-			savedUser = handleUserUpdate(userResource, originalUserEntity);
-		}
-		return savedUser;
+
+		originalUserEntity.assertMobileNumberConfirmed();
+
+		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(user.updateUser(originalUserEntity)));
 	}
 
 	static User findUserByMobileNumber(String mobileNumber)
@@ -97,65 +177,65 @@ public class UserService
 		return userEntity;
 	}
 
-	private UserDTO handleUserSignupUponBuddyRequest(String password, UserDTO userResource, User originalUserEntity)
+	@Transactional
+	public UserDTO updateUserCreatedOnBuddyRequest(UUID id, String tempPassword, UserDTO userResource)
 	{
-		UpdatedEntities updatedEntities = updateUserWithTempPassword(userResource, originalUserEntity);
-		return saveUserWithDevicePassword(password, updatedEntities);
-	}
-
-	static class UpdatedEntities
-	{
-		final User userEntity;
-		final MessageSource namedMessageSource;
-		final MessageSource anonymousMessageSource;
-
-		UpdatedEntities(User userEntity, MessageSource namedMessageSource, MessageSource anonymousMessageSource)
+		User originalUserEntity = getEntityByID(id);
+		if (!originalUserEntity.isCreatedOnBuddyRequest())
 		{
-			this.userEntity = userEntity;
-			this.namedMessageSource = namedMessageSource;
-			this.anonymousMessageSource = anonymousMessageSource;
+			// security check: should not be able to replace the password on an existing user
+			throw new IllegalArgumentException("User is not created on buddy request");
 		}
+
+		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
+		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, userResource);
+		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(savedUserEntity);
+		if (!yonaProperties.getSms().isEnabled())
+		{
+			userDTO.setConfirmationCode(savedUserEntity.getConfirmationCode());
+		}
+		sendMobileNumberConfirmationMessage(savedUserEntity, SmsService.TemplateName_AddUserNumberConfirmation);
+		return userDTO;
 	}
 
-	private UpdatedEntities updateUserWithTempPassword(UserDTO userDTO, User originalUserEntity)
+	private EncryptedUserData retrieveUserEncryptedData(User originalUserEntity, String password)
 	{
-		// TODO: the password needs to come from the URL, not from the
-		// payload
-		return CryptoSession.execute(Optional.of("TODO"), () -> canAccessPrivateData(userDTO.getID()), () -> {
-			User updatedUserEntity = userDTO.updateUser(originalUserEntity);
-			MessageSource touchedNameMessageSource = touchMessageSource(updatedUserEntity.getNamedMessageSource());
-			MessageSource touchedAnonymousMessageSource = touchMessageSource(updatedUserEntity.getAnonymousMessageSource());
-			return new UpdatedEntities(updatedUserEntity, touchedNameMessageSource, touchedAnonymousMessageSource);
-		});
+		return CryptoSession.execute(Optional.of(password), () -> canAccessPrivateData(originalUserEntity.getID()),
+				() -> tempEncryptionContextExecutor.retrieveUserEncryptedData(originalUserEntity));
 	}
 
-	private MessageSource touchMessageSource(MessageSource messageSource)
+	private User saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDTO userResource)
 	{
-		messageSource.touch();
-		return messageSource;
+		// touch and save all user related data containing encryption
+		// see architecture overview for which classes contain encrypted data
+		// (this could also be achieved with very complex reflection)
+		retrievedEntitySet.userEntity.getBuddies().forEach(buddy -> Buddy.getRepository().save(buddy.touch()));
+		MessageSource.getRepository().save(retrievedEntitySet.namedMessageSource.touch());
+		MessageSource.getRepository().save(retrievedEntitySet.anonymousMessageSource.touch());
+		userResource.updateUser(retrievedEntitySet.userEntity);
+		retrievedEntitySet.userEntity.unsetIsCreatedOnBuddyRequest();
+		retrievedEntitySet.userEntity.touch();
+		return User.getRepository().save(retrievedEntitySet.userEntity);
 	}
 
-	private UserDTO saveUserWithDevicePassword(String password, UpdatedEntities updatedEntities)
+	@Transactional
+	public void deleteUser(UUID id, Optional<String> message)
 	{
-		return CryptoSession.execute(Optional.of(password), () -> canAccessPrivateData(updatedEntities.userEntity.getID()),
-				() -> {
-					UserDTO savedUser;
-					MessageSource.getRepository().save(updatedEntities.namedMessageSource);
-					MessageSource.getRepository().save(updatedEntities.anonymousMessageSource);
-					savedUser = UserDTO.createInstanceWithPrivateData(User.getRepository().save(updatedEntities.userEntity));
-					return savedUser;
-				});
-	}
+		User userEntity = getEntityByID(id);
 
-	private UserDTO handleUserUpdate(UserDTO userResource, User originalUserEntity)
-	{
-		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(userResource.updateUser(originalUserEntity)));
-	}
+		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
+				DropBuddyReason.USER_ACCOUNT_DELETED));
 
-	public void deleteUser(Optional<String> password, UUID id)
-	{
+		UserAnonymized userAnonymized = userEntity.getAnonymized();
+		UUID vpnLoginID = userAnonymized.getVPNLoginID();
+		UserAnonymized.getRepository().delete(userAnonymized);
+		MessageSource namedMessageSource = userEntity.getNamedMessageSource();
+		MessageSource anonymousMessageSource = userEntity.getAnonymousMessageSource();
+		MessageSource.getRepository().delete(anonymousMessageSource);
+		MessageSource.getRepository().delete(namedMessageSource);
+		User.getRepository().delete(userEntity);
 
-		User.getRepository().delete(id);
+		ldapUserService.deleteVPNAccount(vpnLoginID.toString());
 	}
 
 	private User getEntityByID(UUID id)
@@ -199,15 +279,22 @@ public class UserService
 	public void addBuddy(UserDTO user, BuddyDTO buddy)
 	{
 		User userEntity = getEntityByID(user.getID());
+		userEntity.assertMobileNumberConfirmed();
 		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getID());
 		userEntity.addBuddy(buddyEntity);
 		User.getRepository().save(userEntity);
+	}
+
+	public String generatePassword()
+	{
+		return CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength());
 	}
 
 	@Transactional
 	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID userID, String userPassword, String userSecret)
 	{
 		User userEntity = getEntityByID(userID);
+		userEntity.assertMobileNumberConfirmed();
 		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(userPassword);
 		newDeviceRequestEntity.encryptUserPassword(userSecret);
 		boolean isUpdatingExistingRequest = userEntity.getNewDeviceRequest() != null;
@@ -220,10 +307,15 @@ public class UserService
 	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID userID, String userSecret)
 	{
 		User userEntity = getEntityByID(userID);
+		userEntity.assertMobileNumberConfirmed();
 		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
 		if (newDeviceRequestEntity == null)
 		{
 			throw DeviceRequestException.noDeviceRequestPresent(userID);
+		}
+		if (isExpired(newDeviceRequestEntity))
+		{
+			throw DeviceRequestException.deviceRequestExpired(userID);
 		}
 
 		if (StringUtils.isBlank(userSecret))
@@ -237,15 +329,53 @@ public class UserService
 		}
 	}
 
+	private boolean isExpired(NewDeviceRequest newDeviceRequestEntity)
+	{
+		Date creationTime = newDeviceRequestEntity.getCreationTime();
+		return (creationTime.getTime() + getExpirationIntervalMillis() < System.currentTimeMillis());
+	}
+
+	private long getExpirationIntervalMillis()
+	{
+		return yonaProperties.getSecurity().getNewDeviceRequestExpirationDays() * 24 * 60 * 60 * 1000;
+	}
+
 	@Transactional
 	public void clearNewDeviceRequestForUser(UUID userID)
 	{
 		User userEntity = getEntityByID(userID);
+		userEntity.assertMobileNumberConfirmed();
 		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
 		if (existingNewDeviceRequestEntity != null)
 		{
 			userEntity.setNewDeviceRequest(null);
 			User.getRepository().save(userEntity);
+		}
+	}
+
+	/*
+	 * Gathers all entities that contain encrypted data from the database.
+	 */
+	static class EncryptedUserData
+	{
+		final User userEntity;
+		final MessageSource namedMessageSource;
+		final MessageSource anonymousMessageSource;
+
+		EncryptedUserData(User userEntity, MessageSource namedMessageSource, MessageSource anonymousMessageSource)
+		{
+			this.userEntity = userEntity;
+			this.namedMessageSource = namedMessageSource;
+			this.anonymousMessageSource = anonymousMessageSource;
+		}
+
+		public void loadLazyEncryptedData()
+		{
+			// load encrypted data fully, also from lazy relations
+			// see architecture overview for which classes contain encrypted data
+			// the relation to user private is currently the only lazy relation
+			// (this could also be achieved with very complex reflection)
+			this.userEntity.loadFully();
 		}
 	}
 }

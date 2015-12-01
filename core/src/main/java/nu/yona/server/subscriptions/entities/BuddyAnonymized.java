@@ -37,14 +37,16 @@ public class BuddyAnonymized extends EntityWithID
 		super(null);
 	}
 
-	private BuddyAnonymized(UUID id)
+	private BuddyAnonymized(UUID id, Status sendingStatus, Status receivingStatus)
 	{
 		super(id);
+		this.sendingStatus = sendingStatus;
+		this.receivingStatus = receivingStatus;
 	}
 
-	public static BuddyAnonymized createInstance()
+	public static BuddyAnonymized createInstance(Status sendingStatus, Status receivingStatus)
 	{
-		return new BuddyAnonymized(UUID.randomUUID());
+		return new BuddyAnonymized(UUID.randomUUID(), sendingStatus, receivingStatus);
 	}
 
 	public UserAnonymized getUserAnonymized()
@@ -54,11 +56,6 @@ public class BuddyAnonymized extends EntityWithID
 			throw new IllegalStateException("UserAnonymized is not available in this state");
 		}
 		return UserAnonymized.getRepository().findOne(userAnonymizedID);
-	}
-
-	public void setUserAnonymizedID(UUID userAnonymizedID)
-	{
-		this.userAnonymizedID = userAnonymizedID;
 	}
 
 	public Status getSendingStatus()
@@ -81,13 +78,22 @@ public class BuddyAnonymized extends EntityWithID
 		this.receivingStatus = receivingStatus;
 	}
 
-	public UUID getLoginID()
+	public UUID getVPNLoginID()
 	{
-		return getUserAnonymized().getLoginID();
+		// notice these are the same
+		return userAnonymizedID;
 	}
 
-	public void setLoginID(UUID loginID)
+	public void setVPNLoginID(UUID vpnLoginID)
 	{
-		setUserAnonymizedID(loginID);
+		// notice these are the same
+		this.userAnonymizedID = vpnLoginID;
+	}
+
+	public void setDisconnected()
+	{
+		this.sendingStatus = Status.REJECTED;
+		this.receivingStatus = Status.REJECTED;
+		this.userAnonymizedID = null;
 	}
 }

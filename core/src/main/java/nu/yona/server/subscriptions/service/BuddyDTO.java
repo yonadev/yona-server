@@ -10,9 +10,9 @@ import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
@@ -26,28 +26,39 @@ public class BuddyDTO
 	private String message;
 	private String password;
 	private String nickName;
-	private UUID loginID;
+	private UUID vpnLoginID;
+	private Status sendingStatus;
+	private Status receivingStatus;
 
-	public BuddyDTO(UUID id, UserDTO user, String message, String password, String nickName, UUID loginID)
+	/*
+	 * Only intended for test purposes.
+	 */
+	private String userCreatedInviteURL;
+
+	public BuddyDTO(UUID id, UserDTO user, String message, String password, String nickName, UUID vpnLoginID,
+			Status sendingStatus, Status receivingStatus)
 	{
 		this.id = id;
 		this.user = user;
 		this.message = message;
 		this.password = password;
 		this.nickName = nickName;
-		this.loginID = loginID;
+		this.vpnLoginID = vpnLoginID;
+		this.sendingStatus = sendingStatus;
+		this.receivingStatus = receivingStatus;
 	}
 
-	public BuddyDTO(UUID id, UserDTO user, String nickName, UUID loginID)
+	public BuddyDTO(UUID id, UserDTO user, String nickName, UUID vpnLoginID, Status sendingStatus, Status receivingStatus)
 	{
-		this(id, user, null, null, nickName, loginID);
+		this(id, user, null, null, nickName, vpnLoginID, sendingStatus, receivingStatus);
 	}
 
 	@JsonCreator
-	public BuddyDTO(@JsonProperty("_embedded") Map<String, UserDTO> userInMap, @JsonProperty("message") String message,
-			@JsonProperty("password") String password)
+	public BuddyDTO(@JsonProperty("_embedded") Map<String, UserDTO> userInMap, @JsonProperty("nickName") String nickName,
+			@JsonProperty("message") String message, @JsonProperty("password") String password,
+			@JsonProperty("sendingStatus") Status sendingStatus, @JsonProperty("receivingStatus") Status receivingStatus)
 	{
-		this(null, userInMap.get(USER_REL_NAME), message, password, null, null);
+		this(null, userInMap.get(USER_REL_NAME), message, password, nickName, null, sendingStatus, receivingStatus);
 	}
 
 	@JsonIgnore
@@ -70,19 +81,19 @@ public class BuddyDTO
 
 	Buddy createBuddyEntity()
 	{
-		return Buddy.createInstance(user.getID(), user.getPrivateData().getNickName());
+		return Buddy.createInstance(user.getID(), user.getPrivateData().getNickName(), getSendingStatus(), getReceivingStatus());
 	}
 
 	public static BuddyDTO createInstance(Buddy buddyEntity)
 	{
 		return new BuddyDTO(buddyEntity.getID(), UserDTO.createInstance(buddyEntity.getUser()), buddyEntity.getNickName(),
-				getBuddyLoginID(buddyEntity));
+				getBuddyVPNLoginID(buddyEntity), buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus());
 	}
 
-	private static UUID getBuddyLoginID(Buddy buddyEntity)
+	private static UUID getBuddyVPNLoginID(Buddy buddyEntity)
 	{
 		return (buddyEntity.getReceivingStatus() == Status.ACCEPTED) || (buddyEntity.getSendingStatus() == Status.ACCEPTED)
-				? buddyEntity.getLoginID() : null;
+				? buddyEntity.getVPNLoginID() : null;
 	}
 
 	@JsonInclude(Include.NON_EMPTY)
@@ -91,15 +102,41 @@ public class BuddyDTO
 		return password;
 	}
 
-	@JsonIgnore
 	public String getNickName()
 	{
 		return nickName;
 	}
 
-	@JsonIgnore
-	public UUID getLoginID()
+	public Status getSendingStatus()
 	{
-		return loginID;
+		return sendingStatus;
+	}
+
+	public Status getReceivingStatus()
+	{
+		return receivingStatus;
+	}
+
+	@JsonIgnore
+	public UUID getVPNLoginID()
+	{
+		return vpnLoginID;
+	}
+
+	/*
+	 * Only intended for test purposes.
+	 */
+	public void setUserCreatedInviteURL(String userCreatedInviteURL)
+	{
+		this.userCreatedInviteURL = userCreatedInviteURL;
+	}
+
+	/*
+	 * Only intended for test purposes.
+	 */
+	@JsonInclude(Include.NON_EMPTY)
+	public String getUserCreatedInviteURL()
+	{
+		return userCreatedInviteURL;
 	}
 }
