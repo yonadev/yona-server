@@ -60,7 +60,7 @@ public class UserPrivateDTO
 		this.buddies = Collections.emptySet();
 	}
 
-	public String getNickName()
+	public String getNickname()
 	{
 		return nickname;
 	}

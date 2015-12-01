@@ -81,12 +81,12 @@ public class BuddyDTO
 
 	Buddy createBuddyEntity()
 	{
-		return Buddy.createInstance(user.getID(), user.getPrivateData().getNickName(), getSendingStatus(), getReceivingStatus());
+		return Buddy.createInstance(user.getID(), user.getPrivateData().getNickname(), getSendingStatus(), getReceivingStatus());
 	}
 
 	public static BuddyDTO createInstance(Buddy buddyEntity)
 	{
-		return new BuddyDTO(buddyEntity.getID(), UserDTO.createInstance(buddyEntity.getUser()), buddyEntity.getNickName(),
+		return new BuddyDTO(buddyEntity.getID(), UserDTO.createInstance(buddyEntity.getUser()), buddyEntity.getNickname(),
 				getBuddyVPNLoginID(buddyEntity), buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus());
 	}
 
@@ -102,7 +102,7 @@ public class BuddyDTO
 		return password;
 	}
 
-	public String getNickName()
+	public String getNickname()
 	{
 		return nickname;
 	}

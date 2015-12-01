@@ -35,7 +35,7 @@ class UserServiceTempEncryptionContextExecutor
 	public User addUserCreatedOnBuddyRequest(UserDTO buddyUserResource)
 	{
 		User newUser = User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
-				buddyUserResource.getPrivateData().getNickName(), buddyUserResource.getMobileNumber(),
+				buddyUserResource.getPrivateData().getNickname(), buddyUserResource.getMobileNumber(),
 				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet(),
 				Collections.emptySet());
 		newUser.setIsCreatedOnBuddyRequest();
