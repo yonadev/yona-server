@@ -58,7 +58,7 @@ class DisclosureTest extends Specification {
 			def response = appService.addUser("""{
 						"firstName":"Richard ${timestamp}",
 						"lastName":"Quin ${timestamp}",
-						"nickName":"RQ ${timestamp}",
+						"nickname":"RQ ${timestamp}",
 						"mobileNumber":"+${timestamp}1",
 						"devices":[
 							"Nexus 6"
@@ -91,7 +91,7 @@ class DisclosureTest extends Specification {
 			def response = appService.addUser("""{
 						"firstName":"Bob ${timestamp}",
 						"lastName":"Dunn ${timestamp}",
-						"nickName":"BD ${timestamp}",
+						"nickname":"BD ${timestamp}",
 						"mobileNumber":"+${timestamp}2",
 						"devices":[
 							"iPhone 6"
@@ -217,7 +217,7 @@ class DisclosureTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.buddies.size() == 1
 			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Bob ${timestamp}"
-			response.responseData._embedded.buddies[0].nickName == "BD ${timestamp}"
+			response.responseData._embedded.buddies[0].nickname == "BD ${timestamp}"
 			response.responseData._embedded.buddies[0].sendingStatus == "ACCEPTED"
 			response.responseData._embedded.buddies[0].receivingStatus == "ACCEPTED"
 	}

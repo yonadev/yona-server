@@ -18,7 +18,7 @@ class UserTest extends Specification {
 	def userCreationJSON = """{
 				"firstName":"John",
 				"lastName":"Doe ${timestamp}",
-				"nickName":"JD ${timestamp}",
+				"nickname":"JD ${timestamp}",
 				"mobileNumber":"+${timestamp}",
 				"devices":[
 					"Galaxy mini"
@@ -129,7 +129,7 @@ class UserTest extends Specification {
 		assert responseData.lastName == "Doe ${timestamp}"
 		assert responseData.mobileNumber == "+${timestamp}"
 		if (includePrivateData) {
-			assert responseData.nickName == "JD ${timestamp}"
+			assert responseData.nickname == "JD ${timestamp}"
 			assert responseData.devices.size() == 1
 			assert responseData.devices[0] == "Galaxy mini"
 			assert responseData.goals.size() == 1
@@ -142,7 +142,7 @@ class UserTest extends Specification {
 			assert responseData._embedded.buddies != null
 			assert responseData._embedded.buddies.size() == 0
 		} else {
-			assert responseData.nickName == null
+			assert responseData.nickname == null
 			assert responseData.devices == null
 			assert responseData.goals == null
 		}

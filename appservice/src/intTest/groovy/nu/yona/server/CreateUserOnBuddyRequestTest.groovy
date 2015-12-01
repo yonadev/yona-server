@@ -61,7 +61,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 	def richardQuinCreationJSON = """{
 				"firstName":"Richard ${timestamp}",
 				"lastName":"Quin ${timestamp}",
-				"nickName":"RQ ${timestamp}",
+				"nickname":"RQ ${timestamp}",
 				"mobileNumber":"+${timestamp}11",
 				"devices":[
 					"Nexus 6"
@@ -186,7 +186,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			def response = appService.updateResource(bobDunnURL, """{
 				"firstName":"Richard ${timestamp}",
 				"lastName":"Quin ${timestamp}",
-				"nickName":"RQ ${timestamp}",
+				"nickname":"RQ ${timestamp}",
 				"mobileNumber":"+${timestamp}12",
 				"devices":[
 					"Nexus 6"
@@ -245,7 +245,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			def response = appService.updateUser(bobDunnInviteURL, """{
 				"firstName":"Bob ${timestamp}",
 				"lastName":"Dun ${timestamp}",
-				"nickName":"BD ${timestamp}",
+				"nickname":"BD ${timestamp}",
 				"mobileNumber":"+${timestamp}13",
 				"devices":[
 					"iPhone 6"
@@ -266,7 +266,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.firstName == "Bob ${timestamp}"
 			response.responseData.lastName == "Dun ${timestamp}"
 			response.responseData.mobileNumber == "+${timestamp}13"
-			response.responseData.nickName == "BD ${timestamp}"
+			response.responseData.nickname == "BD ${timestamp}"
 			response.responseData.devices.size() == 1
 			response.responseData.devices[0] == "iPhone 6"
 			//TODO: updating of goals is not yet supported
@@ -305,7 +305,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.firstName == "Bob ${timestamp}"
 			response.responseData.lastName == "Dun ${timestamp}"
 			response.responseData.mobileNumber == "+${timestamp}13"
-			response.responseData.nickName == "BD ${timestamp}"
+			response.responseData.nickname == "BD ${timestamp}"
 			response.responseData.devices.size() == 1
 			response.responseData.devices[0] == "iPhone 6"
 			response.responseData.goals.size() == 0
@@ -318,7 +318,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			def response = appService.updateUser(bobDunnURL, """{
 				"firstName":"Bob ${timestamp}",
 				"lastName":"Dunn ${timestamp}",
-				"nickName":"BD ${timestamp}",
+				"nickname":"BD ${timestamp}",
 				"mobileNumber":"+${timestamp}13",
 				"devices":[
 					"iPhone 6"
@@ -333,7 +333,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.firstName == "Bob ${timestamp}"
 			response.responseData.lastName == "Dunn ${timestamp}"
 			response.responseData.mobileNumber == "+${timestamp}13"
-			response.responseData.nickName == "BD ${timestamp}"
+			response.responseData.nickname == "BD ${timestamp}"
 			response.responseData.devices.size() == 1
 			response.responseData.devices[0] == "iPhone 6"
 			response.responseData.goals.size() == 0

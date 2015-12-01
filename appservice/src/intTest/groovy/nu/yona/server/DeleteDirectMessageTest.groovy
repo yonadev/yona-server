@@ -54,7 +54,7 @@ class DeleteDirectMessageTest extends Specification {
 			def response = appService.addUser("""{
 					"firstName":"Richard ${timestamp}",
 					"lastName":"Quin ${timestamp}",
-					"nickName":"RQ ${timestamp}",
+					"nickname":"RQ ${timestamp}",
 					"mobileNumber":"+${timestamp}1",
 					"devices":[
 						"Nexus 6"
@@ -86,7 +86,7 @@ class DeleteDirectMessageTest extends Specification {
 			def response = appService.addUser("""{
 					"firstName":"Bob ${timestamp}",
 					"lastName":"Dunn ${timestamp}",
-					"nickName":"BD ${timestamp}",
+					"nickname":"BD ${timestamp}",
 					"mobileNumber":"+${timestamp}2",
 					"devices":[
 						"iPhone 6"

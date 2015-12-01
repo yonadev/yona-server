@@ -36,7 +36,7 @@ public class Buddy extends EntityWithID
 	private UUID buddyAnonymizedID;
 
 	@Convert(converter = StringFieldEncrypter.class)
-	private String nickName;
+	private String nickname;
 
 	// Default constructor is required for JPA
 	public Buddy()
@@ -44,19 +44,19 @@ public class Buddy extends EntityWithID
 		super(null);
 	}
 
-	private Buddy(UUID id, UUID userID, String nickName, UUID buddyAnonymizedID)
+	private Buddy(UUID id, UUID userID, String nickname, UUID buddyAnonymizedID)
 	{
 		super(id);
 		this.userID = userID;
-		this.nickName = nickName;
+		this.nickname = nickname;
 		this.buddyAnonymizedID = buddyAnonymizedID;
 	}
 
-	public static Buddy createInstance(UUID buddyUserID, String nickName, Status sendingStatus, Status receivingStatus)
+	public static Buddy createInstance(UUID buddyUserID, String nickname, Status sendingStatus, Status receivingStatus)
 	{
 		BuddyAnonymized buddyAnonymized = BuddyAnonymized.createInstance(sendingStatus, receivingStatus);
 		buddyAnonymized = BuddyAnonymized.getRepository().save(buddyAnonymized);
-		return new Buddy(UUID.randomUUID(), buddyUserID, nickName, buddyAnonymized.getID());
+		return new Buddy(UUID.randomUUID(), buddyUserID, nickname, buddyAnonymized.getID());
 	}
 
 	public UUID getBuddyAnonymizedID()
@@ -71,12 +71,12 @@ public class Buddy extends EntityWithID
 
 	public String getNickName()
 	{
-		return nickName;
+		return nickname;
 	}
 
-	public void setNickName(String nickName)
+	public void setNickName(String nickname)
 	{
-		this.nickName = nickName;
+		this.nickname = nickname;
 	}
 
 	public UUID getUserID()

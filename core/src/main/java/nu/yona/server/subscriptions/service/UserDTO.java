@@ -38,13 +38,13 @@ public class UserDTO
 	 */
 	private String confirmationCode;
 
-	private UserDTO(UUID id, String firstName, String lastName, String nickName, String mobileNumber, boolean isConfirmed,
+	private UserDTO(UUID id, String firstName, String lastName, String nickname, String mobileNumber, boolean isConfirmed,
 			UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
 			UUID anonymousMessageDestinationID, Set<String> deviceNames, Set<String> goalNames, Set<UUID> buddyIDs,
 			VPNProfileDTO vpnProfile)
 	{
 		this(id, firstName, lastName, null, mobileNumber, isConfirmed,
-				new UserPrivateDTO(nickName, namedMessageSourceID, namedMessageDestinationID, anonymousMessageSourceID,
+				new UserPrivateDTO(nickname, namedMessageSourceID, namedMessageDestinationID, anonymousMessageSourceID,
 						anonymousMessageDestinationID, deviceNames, goalNames, buddyIDs, vpnProfile));
 	}
 
