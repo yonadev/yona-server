@@ -80,9 +80,34 @@ public class UserService
 	}
 
 	@Transactional
-	public UserDTO addUser(UserDTO user)
+	public OverwriteUserDTO setOverwriteUserConfirmationCode(String mobileNumber)
+	{
+		User existingUserEntity = findUserByMobileNumber(mobileNumber);
+		existingUserEntity.setOverwriteUserConfirmationCode(
+				CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
+		User.getRepository().save(existingUserEntity);
+		OverwriteUserDTO overwriteUserDTO = OverwriteUserDTO.createInstance();
+		if (!yonaProperties.getSms().isEnabled())
+		{
+			overwriteUserDTO.setConfirmationCode(existingUserEntity.getOverwriteUserConfirmationCode());
+		}
+		sendOverwriteUserConfirmationMessage(mobileNumber, existingUserEntity);
+		return overwriteUserDTO;
+	}
+
+	private void sendOverwriteUserConfirmationMessage(String mobileNumber, User existingUserEntity)
+	{
+		Map<String, Object> templateParams = new HashMap<String, Object>();
+		templateParams.put("confirmationCode", existingUserEntity.getOverwriteUserConfirmationCode());
+		smsService.send(mobileNumber, SmsService.TemplateName_OverwriteUserNumberConfirmation, templateParams);
+	}
+
+	@Transactional
+	public UserDTO addUser(UserDTO user, Optional<String> overwriteUserConfirmationCode)
 	{
 		validateUserFields(user);
+
+		handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode);
 
 		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
 
@@ -98,6 +123,47 @@ public class UserService
 		}
 		sendMobileNumberConfirmationMessage(userEntity, SmsService.TemplateName_AddUserNumberConfirmation);
 		return userDTO;
+	}
+
+	private void handleExistingUserForMobileNumber(String mobileNumber, Optional<String> overwriteUserConfirmationCode)
+	{
+		if (overwriteUserConfirmationCode.isPresent())
+		{
+			overwriteExistingUser(mobileNumber, overwriteUserConfirmationCode.get());
+		}
+		else
+		{
+			throwForExistingUser(mobileNumber);
+		}
+	}
+
+	private void throwForExistingUser(String mobileNumber)
+	{
+		User existingUser = User.getRepository().findByMobileNumber(mobileNumber);
+		if (existingUser.isCreatedOnBuddyRequest())
+		{
+			throw UserServiceException.userExistsCreatedOnBuddyRequest(mobileNumber);
+		}
+		else
+		{
+			throw UserServiceException.userExists(mobileNumber);
+		}
+	}
+
+	private void overwriteExistingUser(String mobileNumber, String overwriteUserConfirmationCode)
+	{
+		User existingUserEntity = findUserByMobileNumber(mobileNumber);
+		String expectedOverwriteUserConfirmationCode = existingUserEntity.getOverwriteUserConfirmationCode();
+		if (expectedOverwriteUserConfirmationCode == null)
+		{
+			throw MobileNumberConfirmationException.confirmationCodeNotSet();
+		}
+		if (!expectedOverwriteUserConfirmationCode.equals(overwriteUserConfirmationCode))
+		{
+			throw MobileNumberConfirmationException.confirmationCodeMismatch();
+		}
+		existingUserEntity.setUserOverwritten();
+		User.getRepository().save(existingUserEntity);
 	}
 
 	private void sendMobileNumberConfirmationMessage(User userEntity, String messageTemplateName)

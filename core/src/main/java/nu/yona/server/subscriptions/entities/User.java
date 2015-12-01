@@ -21,6 +21,7 @@ import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.subscriptions.service.UserServiceException;
 
 @Entity
 @Table(name = "USERS")
@@ -44,6 +45,9 @@ public class User extends EntityWithID
 
 	private boolean isMobileNumberConfirmed;
 	private String confirmationCode;
+
+	private String overwriteUserConfirmationCode;
+	private String mobileNumberOverwritten;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private UserPrivate userPrivate;
@@ -286,5 +290,30 @@ public class User extends EntityWithID
 		{
 			throw MobileNumberConfirmationException.notConfirmed();
 		}
+		if (userOverwritten())
+		{
+			throw UserServiceException.userOverwritten(this.getID());
+		}
+	}
+
+	public void setOverwriteUserConfirmationCode(String overwriteUserConfirmationCode)
+	{
+		this.overwriteUserConfirmationCode = overwriteUserConfirmationCode;
+	}
+
+	public String getOverwriteUserConfirmationCode()
+	{
+		return overwriteUserConfirmationCode;
+	}
+
+	public boolean userOverwritten()
+	{
+		return this.mobileNumberOverwritten != null;
+	}
+
+	public void setUserOverwritten()
+	{
+		this.mobileNumberOverwritten = mobileNumber;
+		this.mobileNumber = null; // unique, so clear
 	}
 }

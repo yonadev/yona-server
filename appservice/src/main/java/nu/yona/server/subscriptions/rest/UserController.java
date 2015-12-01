@@ -42,6 +42,7 @@ import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
+import nu.yona.server.subscriptions.service.OverwriteUserDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -98,13 +99,24 @@ public class UserController
 		return createOKResponse(userService.getPublicUser(id), false);
 	}
 
+	@RequestMapping(method = RequestMethod.PUT)
+	@ResponseBody
+	public HttpEntity<Resource<OverwriteUserDTO>> setOverwriteUserConfirmationCode(@RequestParam String mobileNumber)
+	{
+		return new ResponseEntity<Resource<OverwriteUserDTO>>(
+				new Resource<OverwriteUserDTO>(userService.setOverwriteUserConfirmationCode(mobileNumber)), HttpStatus.OK);
+	}
+
 	@RequestMapping(method = RequestMethod.POST)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
 	public HttpEntity<UserResource> addUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@RequestParam(value = "overwriteUserConfirmationCode", required = false) String overwriteUserConfirmationCodeStr,
 			@RequestBody UserDTO user)
 	{
-		return CryptoSession.execute(password, () -> createResponse(userService.addUser(user), true, HttpStatus.CREATED));
+		Optional<String> overwriteUserConfirmationCode = Optional.ofNullable(overwriteUserConfirmationCodeStr);
+		return CryptoSession.execute(password,
+				() -> createResponse(userService.addUser(user, overwriteUserConfirmationCode), true, HttpStatus.CREATED));
 	}
 
 	private void checkPassword(Optional<String> password, UUID userID)
