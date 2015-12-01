@@ -161,7 +161,7 @@ public class BuddyService
 		UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(requestingUserBuddy.getVPNLoginID());
 		MessageDestination messageDestination = userAnonymized.getAnonymousDestination();
 		messageDestination.send(BuddyDisconnectMessage.createInstance(requestingUser.getID(), requestingUser.getVPNLoginID(),
-				requestingUser.getNickName(), getDropBuddyMessage(reason, message), reason));
+				requestingUser.getNickname(), getDropBuddyMessage(reason, message), reason));
 		MessageDestination.getRepository().save(messageDestination);
 
 	}
@@ -269,7 +269,7 @@ public class BuddyService
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
 		messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
 				requestingUser.getPrivateData().getVpnProfile().getVPNLoginID(), requestingUser.getPrivateData().getGoals(),
-				requestingUser.getPrivateData().getNickName(), buddy.getMessage(), savedBuddyEntity.getID(), isRequestingSending,
+				requestingUser.getPrivateData().getNickname(), buddy.getMessage(), savedBuddyEntity.getID(), isRequestingSending,
 				isRequestingReceiving));
 		MessageDestination.getRepository().save(messageDestination);
 

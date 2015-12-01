@@ -28,7 +28,7 @@ class AddDeviceTest extends Specification {
 			def response = appService.addUser("""{
 				"firstName":"Richard ${timestamp}",
 				"lastName":"Quin ${timestamp}",
-				"nickName":"RQ ${timestamp}",
+				"nickname":"RQ ${timestamp}",
 				"emailAddress":"rich${timestamp}@quin.net",
 				"mobileNumber":"+${timestamp}1",
 				"devices":[
