@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import nu.yona.server.Translator;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -42,6 +43,9 @@ public class BuddyService
 
 	@Autowired
 	EmailService emailService;
+
+	@Autowired
+	Translator translator;
 
 	@Autowired
 	YonaProperties properties;
@@ -191,9 +195,9 @@ public class BuddyService
 		switch (reason)
 		{
 			case USER_ACCOUNT_DELETED:
-				return "User account was deleted.";
+				return translator.getLocalizedMessage("message.user.account.deleted");
 			case USER_REMOVED_BUDDY:
-				return "User removed you as a buddy.";
+				return translator.getLocalizedMessage("message.user.removed.buddy");
 			default:
 				throw new NotImplementedException();
 		}

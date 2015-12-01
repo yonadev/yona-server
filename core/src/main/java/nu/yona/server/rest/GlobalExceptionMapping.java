@@ -1,13 +1,13 @@
 package nu.yona.server.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import nu.yona.server.Translator;
 import nu.yona.server.exceptions.YonaException;
 
 /**
@@ -18,9 +18,8 @@ import nu.yona.server.exceptions.YonaException;
 @ControllerAdvice
 public class GlobalExceptionMapping
 {
-	/** The source for the messages to use */
 	@Autowired
-	private MessageSource msgSource;
+	Translator translator;
 
 	/**
 	 * This method generically handles the illegal argument exceptions. They are translated into nice ResponseMessage objects so
@@ -34,6 +33,7 @@ public class GlobalExceptionMapping
 	@ResponseBody
 	public ResponseMessageDTO handle(YonaException ide)
 	{
-		return new ResponseMessageDTO(ResponseMessageType.ERROR, ide.getMessageId(), ide.getLocalizedMessage(msgSource));
+		return new ResponseMessageDTO(ResponseMessageType.ERROR, ide.getMessageId(),
+				translator.getLocalizedMessage(ide.getMessageId(), ide.getParameters()));
 	}
 }
