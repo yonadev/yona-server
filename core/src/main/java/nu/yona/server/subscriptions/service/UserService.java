@@ -112,16 +112,27 @@ public class UserService
 		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
 
 		User userEntity = user.createUserEntity();
-		setUserUnconfirmedWithNewConfirmationCode(userEntity);
+		if (overwriteUserConfirmationCode.isPresent())
+		{
+			// no need to confirm again
+			userEntity.markMobileNumberConfirmed();
+		}
+		else
+		{
+			setUserUnconfirmedWithNewConfirmationCode(userEntity);
+		}
 		userEntity = User.getRepository().save(userEntity);
 		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getVPNPassword());
 
 		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(userEntity);
-		if (!yonaProperties.getSms().isEnabled())
+		if (!userDTO.isMobileNumberConfirmed())
 		{
-			userDTO.setConfirmationCode(userEntity.getConfirmationCode());
+			if (!yonaProperties.getSms().isEnabled())
+			{
+				userDTO.setConfirmationCode(userEntity.getConfirmationCode());
+			}
+			sendMobileNumberConfirmationMessage(userEntity, SmsService.TemplateName_AddUserNumberConfirmation);
 		}
-		sendMobileNumberConfirmationMessage(userEntity, SmsService.TemplateName_AddUserNumberConfirmation);
 		return userDTO;
 	}
 
@@ -140,6 +151,11 @@ public class UserService
 	private void throwForExistingUser(String mobileNumber)
 	{
 		User existingUser = User.getRepository().findByMobileNumber(mobileNumber);
+		if (existingUser == null)
+		{
+			return;
+		}
+
 		if (existingUser.isCreatedOnBuddyRequest())
 		{
 			throw UserServiceException.userExistsCreatedOnBuddyRequest(mobileNumber);

@@ -44,8 +44,8 @@ class YonaServer {
 		getResource(goalURL)
 	}
 
-	def addUser(jsonString, password) {
-		createResourceWithPassword(USERS_PATH, jsonString, password)
+	def addUser(jsonString, password, parameters = [:]) {
+		createResourceWithPassword(USERS_PATH, jsonString, password, parameters)
 	}
 
 	def confirmMobileNumber(userURL, jsonString, password) {
@@ -108,12 +108,12 @@ class YonaServer {
 		deleteResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, password)
 	}
 
-	def createResourceWithPassword(path, jsonString, password) {
-		createResource(path, jsonString, ["Yona-Password": password])
+	def createResourceWithPassword(path, jsonString, password, parameters = [:]) {
+		createResource(path, jsonString, ["Yona-Password": password], parameters)
 	}
 
-	def createResource(path, jsonString, headers = [:]) {
-		postJson(path, jsonString, headers);
+	def createResource(path, jsonString, headers = [:], parameters = [:]) {
+		postJson(path, jsonString, headers, parameters);
 	}
 
 	def updateResourceWithPassword(path, jsonString, password, parameters = [:]) {
@@ -155,7 +155,7 @@ class YonaServer {
 		query: parameters)
 	}
 
-	def postJson(path, jsonString, headers = [:]) {
+	def postJson(path, jsonString, headers = [:], parameters = [:]) {
 		def object = null
 		if (jsonString instanceof Map) {
 			object = jsonString;
@@ -167,7 +167,8 @@ class YonaServer {
 		restClient.post(path: path,
 		body: object,
 		contentType:'application/json',
-		headers: headers)
+		headers: headers,
+		query: parameters)
 	}
 
 	def putJson(path, jsonString, headers = [:], parameters = [:]) {

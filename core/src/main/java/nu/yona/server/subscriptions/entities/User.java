@@ -36,7 +36,7 @@ public class User extends EntityWithID
 
 	private String lastName;
 
-	@Column(unique = true)
+	@Column(unique = true, nullable = true)
 	private String mobileNumber;
 
 	private byte[] initializationVector;
