@@ -37,14 +37,16 @@ public class BuddyAnonymized extends EntityWithID
 		super(null);
 	}
 
-	private BuddyAnonymized(UUID id)
+	private BuddyAnonymized(UUID id, Status sendingStatus, Status receivingStatus)
 	{
 		super(id);
+		this.sendingStatus = sendingStatus;
+		this.receivingStatus = receivingStatus;
 	}
 
-	public static BuddyAnonymized createInstance()
+	public static BuddyAnonymized createInstance(Status sendingStatus, Status receivingStatus)
 	{
-		return new BuddyAnonymized(UUID.randomUUID());
+		return new BuddyAnonymized(UUID.randomUUID(), sendingStatus, receivingStatus);
 	}
 
 	public UserAnonymized getUserAnonymized()
@@ -55,7 +57,6 @@ public class BuddyAnonymized extends EntityWithID
 		}
 		return UserAnonymized.getRepository().findOne(userAnonymizedID);
 	}
-
 
 	public Status getSendingStatus()
 	{
@@ -87,5 +88,12 @@ public class BuddyAnonymized extends EntityWithID
 	{
 		// notice these are the same
 		this.userAnonymizedID = vpnLoginID;
+	}
+
+	public void setDisconnected()
+	{
+		this.sendingStatus = Status.REJECTED;
+		this.receivingStatus = Status.REJECTED;
+		this.userAnonymizedID = null;
 	}
 }

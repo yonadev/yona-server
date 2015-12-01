@@ -33,8 +33,10 @@ class UserServiceTempEncryptionContextExecutor
 	{
 		User newUser = User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
 				buddyUserResource.getPrivateData().getNickName(), buddyUserResource.getMobileNumber(),
-				CryptoUtil.getRandomString(yonaProperties.getPasswordLength()), Collections.emptySet(), Collections.emptySet());
+				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet(),
+				Collections.emptySet());
 		newUser.setIsCreatedOnBuddyRequest();
+		newUser.setConfirmationCode(CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
 		User savedUser = User.getRepository().save(newUser);
 		ldapUserService.createVPNAccount(savedUser.getVPNLoginID().toString(), savedUser.getVPNPassword());
 		return savedUser;

@@ -19,8 +19,19 @@ import nu.yona.server.messaging.entities.Message;
 @Entity
 public class GoalConflictMessage extends Message
 {
+	public enum Status
+	{
+		ANNOUNCED, DISCLOSE_REQUESTED, DISCLOSE_ACCEPTED, DISCLOSE_REJECTED
+	}
+
+	/*
+	 * If this is a message sent to a buddy, this refers to the self goal conflict message posted at the user having the goal.
+	 * Otherwise {@literal null}.
+	 */
+	private UUID originGoalConflictMessageID;
 
 	private UUID goalID;
+	private Status status;
 
 	@Transient
 	private String url;
@@ -34,18 +45,26 @@ public class GoalConflictMessage extends Message
 		super(null, null);
 	}
 
-	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedID, UUID goalID, String url)
+	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedID, UUID originGoalConflictMessageID, UUID goalID, String url,
+			Status status)
 	{
 		super(id, relatedUserAnonymizedID);
 
+		this.originGoalConflictMessageID = originGoalConflictMessageID;
 		this.goalID = goalID;
 		this.url = url;
 		this.endTime = new Date();
+		this.status = status;
 	}
 
 	public Goal getGoal()
 	{
 		return Goal.getRepository().findOne(goalID);
+	}
+
+	public UUID getOriginGoalConflictMessageID()
+	{
+		return originGoalConflictMessageID;
 	}
 
 	public String getURL()
@@ -65,6 +84,12 @@ public class GoalConflictMessage extends Message
 		url = decryptor.decryptString(urlCiphertext);
 	}
 
+	@Override
+	public boolean canBeDeleted()
+	{
+		return true;
+	}
+
 	public Date getEndTime()
 	{
 		return endTime;
@@ -80,13 +105,45 @@ public class GoalConflictMessage extends Message
 		return goalID;
 	}
 
+	public boolean isFromBuddy()
+	{
+		return originGoalConflictMessageID != null;
+	}
+
+	public Status getStatus()
+	{
+		return status;
+	}
+
+	public void setStatus(Status status)
+	{
+		this.status = status;
+	}
+
+	public static GoalConflictMessage createInstanceFromBuddy(UUID vpnLoginID, GoalConflictMessage origin)
+	{
+		if (origin == null)
+		{
+			throw new IllegalArgumentException("Origin can not be null");
+		}
+
+		assert origin.getID() != null;
+		return new GoalConflictMessage(UUID.randomUUID(), vpnLoginID, origin.getID(), origin.getGoalID(), origin.getURL(),
+				Status.ANNOUNCED);
+	}
+
 	public static GoalConflictMessage createInstance(UUID vpnLoginID, Goal goal, String url)
 	{
-		return new GoalConflictMessage(UUID.randomUUID(), vpnLoginID, goal.getID(), url);
+		return new GoalConflictMessage(UUID.randomUUID(), vpnLoginID, null, goal.getID(), url, Status.ANNOUNCED);
 	}
 
 	public static GoalConflictMessageRepository getGoalConflictMessageRepository()
 	{
 		return (GoalConflictMessageRepository) RepositoryProvider.getRepository(GoalConflictMessage.class, UUID.class);
+	}
+
+	public boolean isUrlDisclosed()
+	{
+		return !isFromBuddy() || getStatus() == Status.DISCLOSE_ACCEPTED;
 	}
 }

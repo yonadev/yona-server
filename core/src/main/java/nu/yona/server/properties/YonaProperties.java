@@ -1,87 +1,50 @@
 package nu.yona.server.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Configuration;
 
 @ConfigurationProperties("yona")
 @Configuration
 public class YonaProperties
 {
-	private int newDeviceRequestExpirationDays = 1;
-	private boolean isRunningInTestMode = false;
-	private int passwordLength = 32;
-	private String ldapURL = "ldap://localhost:389";
-	private String ldapBaseDN = "DC=yona,DC=nu";
-	private String ldapAccessUserDN = "CN=Manager," + ldapBaseDN;
-	private String ldapAccessUserPassword = "Top secret";
+	@NestedConfigurationProperty
+	private final AnalysisServiceProperties analysisService = new AnalysisServiceProperties();
 
-	public int getNewDeviceRequestExpirationDays()
+	@NestedConfigurationProperty
+	private final EmailProperties email = new EmailProperties();
+
+	@NestedConfigurationProperty
+	private final LdapProperties ldap = new LdapProperties();
+
+	@NestedConfigurationProperty
+	private final SecurityProperties security = new SecurityProperties();
+
+	@NestedConfigurationProperty
+	private final SmsProperties sms = new SmsProperties();
+
+	public AnalysisServiceProperties getAnalysisService()
 	{
-		return newDeviceRequestExpirationDays;
+		return analysisService;
 	}
 
-	public void setNewDeviceRequestExpirationDays(int newDeviceRequestExpiration)
+	public EmailProperties getEmail()
 	{
-		this.newDeviceRequestExpirationDays = newDeviceRequestExpiration;
+		return email;
 	}
 
-	public boolean getIsRunningInTestMode()
+	public LdapProperties getLdap()
 	{
-		return isRunningInTestMode;
+		return ldap;
 	}
 
-	public void setIsRunningInTestMode(boolean isRunningInTestMode)
+	public SecurityProperties getSecurity()
 	{
-		this.isRunningInTestMode = isRunningInTestMode;
+		return security;
 	}
 
-	public int getPasswordLength()
+	public SmsProperties getSms()
 	{
-		return passwordLength;
-	}
-
-	public void setPasswordLength(int passwordLength)
-	{
-		this.passwordLength = passwordLength;
-	}
-
-	public String getLdapURL()
-	{
-		return ldapURL;
-	}
-
-	public void setLdapURL(String ldapURL)
-	{
-		this.ldapURL = ldapURL;
-	}
-
-	public String getLdapBaseDN()
-	{
-		return ldapBaseDN;
-	}
-
-	public void setLdapBaseDN(String ldapBaseDN)
-	{
-		this.ldapBaseDN = ldapBaseDN;
-	}
-
-	public String getLdapAccessUserDN()
-	{
-		return ldapAccessUserDN;
-	}
-
-	public void setLdapAccessUserDN(String ldapAccessUserDN)
-	{
-		this.ldapAccessUserDN = ldapAccessUserDN;
-	}
-
-	public String getLdapAccessUserPassword()
-	{
-		return ldapAccessUserPassword;
-	}
-
-	public void setLdapAccessUserPassword(String ldapAccessUserPassword)
-	{
-		this.ldapAccessUserPassword = ldapAccessUserPassword;
+		return sms;
 	}
 }

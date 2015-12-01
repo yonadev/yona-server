@@ -54,6 +54,9 @@ class RejectBuddyTest extends Specification {
 		if (response.status == 201) {
 			richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
 			richardQuinVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+
+			def confirmationCode = response.responseData.confirmationCode;
+			appService.confirmMobileNumber(richardQuinURL, """ { "code":"${confirmationCode}" } """, richardQuinPassword)
 		}
 
 		then:
@@ -83,6 +86,9 @@ class RejectBuddyTest extends Specification {
 		if (response.status == 201) {
 			bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
 			bobDunnVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+
+			def confirmationCode = response.responseData.confirmationCode;
+			appService.confirmMobileNumber(bobDunnURL, """ { "code":"${confirmationCode}" } """, bobDunnPassword)
 		}
 
 		then:
@@ -105,7 +111,9 @@ class RejectBuddyTest extends Specification {
 						"mobileNumber":"+${timestamp}2"
 					}
 				},
-				"message":"Would you like to be my buddy?"
+				"message":"Would you like to be my buddy?",
+				"sendingStatus":"REQUESTED",
+				"receivingStatus":"REQUESTED"
 			}""", richardQuinPassword)
 		if (response.status == 201) {
 			richardQuinBobBuddyURL = response.responseData._links.self.href
@@ -131,9 +139,8 @@ class RejectBuddyTest extends Specification {
 
 		then:
 		response.status == 200
-		response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
 		response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard ${timestamp}"
-		response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+		response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(bobDunnURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
 		bobDunnBuddyMessageRejectURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
 	}
 
@@ -152,20 +159,19 @@ class RejectBuddyTest extends Specification {
 		response.responseData?.properties?.status == "done"
 	}
 
-	def 'Richard checks his direct messages'(){
+	def 'Richard checks his anonymous messages'(){
 		given:
 
 		when:
-		def response = appService.getDirectMessages(richardQuinURL, richardQuinPassword)
+		def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
 		if (response.status == 200) {
 			richardQuinBuddyMessageProcessURL = response.responseData._embedded?.buddyConnectResponseMessages[0]?._links?.process?.href
 		}
 
 		then:
 		response.status == 200
-		response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
 		response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
-		response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+		response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
 		richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
 	}
 

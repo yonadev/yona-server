@@ -11,7 +11,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
@@ -19,19 +18,18 @@ import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Service
 public class AnalysisEngineService
 {
 	@Autowired
+	private YonaProperties yonaProperties;
+	@Autowired
 	private GoalService goalService;
 	@Autowired
 	private AnalysisEngineCacheService cacheService;
-	@Value("${yona.analysisservice.conflict.interval}")
-	private int conflictInterval = 300000;
-	@Value("${yona.analysisservice.update.skip.window}")
-	private int updateSkipWindow = 5000;
 
 	public void analyze(PotentialConflictDTO potentialConflictPayload)
 	{
@@ -52,26 +50,29 @@ public class AnalysisEngineService
 	private void sendConflictMessageToAllDestinationsOfUser(PotentialConflictDTO payload, UserAnonymized userAnonymized,
 			Set<Goal> conflictingGoalsOfUser)
 	{
-		Set<MessageDestination> destinations = userAnonymized.getAllRelatedDestinations();
-		destinations.stream().forEach(d -> sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser, d));
+		GoalConflictMessage selfGoalConflictMessage = sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser,
+				userAnonymized.getAnonymousDestination(), null);
+
+		userAnonymized.getBuddyDestinations().stream()
+				.forEach(d -> sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser, d, selfGoalConflictMessage));
 	}
 
 	private GoalConflictMessage sendOrUpdateConflictMessage(PotentialConflictDTO payload, Set<Goal> conflictingGoalsOfUser,
-			MessageDestination destination)
+			MessageDestination destination, GoalConflictMessage origin)
 	{
 		Date now = new Date();
-		Date minEndTime = new Date(now.getTime() - conflictInterval);
+		Date minEndTime = new Date(now.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
 		Goal conflictingGoal = conflictingGoalsOfUser.iterator().next();
 		GoalConflictMessage message = cacheService.fetchLatestGoalConflictMessageForUser(payload.getVPNLoginID(),
 				conflictingGoal.getID(), destination, minEndTime);
 
 		if (message == null || message.getEndTime().before(minEndTime))
 		{
-			message = sendNewGoalConflictMessage(payload, conflictingGoal, destination);
+			message = sendNewGoalConflictMessage(payload, conflictingGoal, destination, origin);
 			cacheService.updateLatestGoalConflictMessageForUser(message, destination);
 		}
 		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
-		else if (now.getTime() - message.getEndTime().getTime() >= updateSkipWindow)
+		else if (now.getTime() - message.getEndTime().getTime() >= yonaProperties.getAnalysisService().getUpdateSkipWindow())
 		{
 			updateLastGoalConflictMessage(payload, now, conflictingGoal, message);
 			cacheService.updateLatestGoalConflictMessageForUser(message, destination);
@@ -81,10 +82,19 @@ public class AnalysisEngineService
 	}
 
 	private GoalConflictMessage sendNewGoalConflictMessage(PotentialConflictDTO payload, Goal conflictingGoal,
-			MessageDestination destination)
+			MessageDestination destination, GoalConflictMessage origin)
 	{
-		GoalConflictMessage message = GoalConflictMessage.createInstance(payload.getVPNLoginID(), conflictingGoal, payload.getURL());
+		GoalConflictMessage message;
+		if (origin == null)
+		{
+			message = GoalConflictMessage.createInstance(payload.getVPNLoginID(), conflictingGoal, payload.getURL());
+		}
+		else
+		{
+			message = GoalConflictMessage.createInstanceFromBuddy(payload.getVPNLoginID(), origin);
+		}
 		destination.send(message);
+		MessageDestination.getRepository().save(destination);
 		return message;
 	}
 

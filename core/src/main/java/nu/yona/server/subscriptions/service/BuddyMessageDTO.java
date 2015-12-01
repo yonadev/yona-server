@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.Date;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
@@ -17,9 +18,9 @@ public abstract class BuddyMessageDTO extends MessageDTO
 	private final String nickname;
 	private final String message;
 
-	protected BuddyMessageDTO(UUID id, UserDTO user, String nickname, String message)
+	protected BuddyMessageDTO(UUID id, Date creationTime, UserDTO user, String nickname, String message)
 	{
-		super(id);
+		super(id, creationTime);
 		if (user == null)
 		{
 			throw new IllegalArgumentException("user cannot be null");

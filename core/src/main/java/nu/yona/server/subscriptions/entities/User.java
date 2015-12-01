@@ -17,6 +17,7 @@ import javax.persistence.Table;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
@@ -40,6 +41,9 @@ public class User extends EntityWithID
 	private byte[] initializationVector;
 
 	private boolean isCreatedOnBuddyRequest;
+
+	private boolean isMobileNumberConfirmed;
+	private String confirmationCode;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private UserPrivate userPrivate;
@@ -140,6 +144,26 @@ public class User extends EntityWithID
 		this.newDeviceRequest = newDeviceRequest;
 	}
 
+	public boolean isMobileNumberConfirmed()
+	{
+		return isMobileNumberConfirmed;
+	}
+
+	public void markMobileNumberConfirmed()
+	{
+		this.isMobileNumberConfirmed = true;
+	}
+
+	public String getConfirmationCode()
+	{
+		return confirmationCode;
+	}
+
+	public void setConfirmationCode(String confirmationCode)
+	{
+		this.confirmationCode = confirmationCode;
+	}
+
 	private UserPrivate getUserPrivate()
 	{
 		CryptoSession.getCurrent().setInitializationVector(initializationVector);
@@ -196,9 +220,9 @@ public class User extends EntityWithID
 		getUserPrivate().removeBuddy(buddy);
 	}
 
-	public void removeBuddiesFromUser(UUID fromUserLoginID)
+	public void removeBuddiesFromUser(UUID fromUserID)
 	{
-		getUserPrivate().removeBuddiesFromUser(fromUserLoginID);
+		getUserPrivate().removeBuddyForUserID(fromUserID);
 	}
 
 	public MessageSource getNamedMessageSource()
@@ -249,5 +273,13 @@ public class User extends EntityWithID
 	public Buddy getBuddyByVPNLoginID(UUID relatedUserVPNLoginID)
 	{
 		return getBuddies().stream().filter(buddy -> buddy.getVPNLoginID().equals(relatedUserVPNLoginID)).findAny().get();
+	}
+
+	public void assertMobileNumberConfirmed()
+	{
+		if (!isMobileNumberConfirmed)
+		{
+			throw MobileNumberConfirmationException.notConfirmed();
+		}
 	}
 }

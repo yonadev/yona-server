@@ -27,13 +27,16 @@ public class BuddyDTO
 	private String password;
 	private String nickName;
 	private UUID vpnLoginID;
+	private Status sendingStatus;
+	private Status receivingStatus;
 
 	/*
 	 * Only intended for test purposes.
 	 */
 	private String userCreatedInviteURL;
 
-	public BuddyDTO(UUID id, UserDTO user, String message, String password, String nickName, UUID vpnLoginID)
+	public BuddyDTO(UUID id, UserDTO user, String message, String password, String nickName, UUID vpnLoginID,
+			Status sendingStatus, Status receivingStatus)
 	{
 		this.id = id;
 		this.user = user;
@@ -41,18 +44,21 @@ public class BuddyDTO
 		this.password = password;
 		this.nickName = nickName;
 		this.vpnLoginID = vpnLoginID;
+		this.sendingStatus = sendingStatus;
+		this.receivingStatus = receivingStatus;
 	}
 
-	public BuddyDTO(UUID id, UserDTO user, String nickName, UUID vpnLoginID)
+	public BuddyDTO(UUID id, UserDTO user, String nickName, UUID vpnLoginID, Status sendingStatus, Status receivingStatus)
 	{
-		this(id, user, null, null, nickName, vpnLoginID);
+		this(id, user, null, null, nickName, vpnLoginID, sendingStatus, receivingStatus);
 	}
 
 	@JsonCreator
 	public BuddyDTO(@JsonProperty("_embedded") Map<String, UserDTO> userInMap, @JsonProperty("nickName") String nickName,
-			@JsonProperty("message") String message, @JsonProperty("password") String password)
+			@JsonProperty("message") String message, @JsonProperty("password") String password,
+			@JsonProperty("sendingStatus") Status sendingStatus, @JsonProperty("receivingStatus") Status receivingStatus)
 	{
-		this(null, userInMap.get(USER_REL_NAME), message, password, nickName, null);
+		this(null, userInMap.get(USER_REL_NAME), message, password, nickName, null, sendingStatus, receivingStatus);
 	}
 
 	@JsonIgnore
@@ -75,13 +81,13 @@ public class BuddyDTO
 
 	Buddy createBuddyEntity()
 	{
-		return Buddy.createInstance(user.getID(), user.getPrivateData().getNickName());
+		return Buddy.createInstance(user.getID(), user.getPrivateData().getNickName(), getSendingStatus(), getReceivingStatus());
 	}
 
 	public static BuddyDTO createInstance(Buddy buddyEntity)
 	{
 		return new BuddyDTO(buddyEntity.getID(), UserDTO.createInstance(buddyEntity.getUser()), buddyEntity.getNickName(),
-				getBuddyVPNLoginID(buddyEntity));
+				getBuddyVPNLoginID(buddyEntity), buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus());
 	}
 
 	private static UUID getBuddyVPNLoginID(Buddy buddyEntity)
@@ -99,6 +105,16 @@ public class BuddyDTO
 	public String getNickName()
 	{
 		return nickName;
+	}
+
+	public Status getSendingStatus()
+	{
+		return sendingStatus;
+	}
+
+	public Status getReceivingStatus()
+	{
+		return receivingStatus;
 	}
 
 	@JsonIgnore
