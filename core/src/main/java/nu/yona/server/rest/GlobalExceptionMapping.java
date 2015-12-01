@@ -30,7 +30,7 @@ public class GlobalExceptionMapping
 	 * This method generically handles the illegal argument exceptions. They are translated into nice ResponseMessage objects so
 	 * the response data is properly organized and JSON parseable.
 	 * 
-	 * @param exception The exception
+	 * @param exception The exception.
 	 * @return The response object to return.
 	 */
 	@ExceptionHandler(Exception.class)
@@ -47,7 +47,7 @@ public class GlobalExceptionMapping
 	 * This method generically handles the illegal argument exceptions. They are translated into nice ResponseMessage objects so
 	 * the response data is properly organized and JSON parseable.
 	 * 
-	 * @param exception The exception
+	 * @param exception The exception.
 	 * @return The response object to return.
 	 */
 	@ExceptionHandler(IllegalArgumentException.class)
@@ -64,7 +64,7 @@ public class GlobalExceptionMapping
 	 * This method generically handles the Yona exceptions. They are translated into nice ResponseMessage objects so the response
 	 * data is properly organized and JSON parseable.
 	 * 
-	 * @param exception The exception
+	 * @param exception The exception.
 	 * @return The response object to return.
 	 */
 	@ExceptionHandler(YonaException.class)
