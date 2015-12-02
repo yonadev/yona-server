@@ -14,6 +14,7 @@ import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.service.GoalServiceException;
 import nu.yona.server.messaging.entities.Message;
 
 @Entity
@@ -124,7 +125,7 @@ public class GoalConflictMessage extends Message
 	{
 		if (origin == null)
 		{
-			throw new IllegalArgumentException("Origin can not be null");
+			throw GoalServiceException.originCannotBeNull();
 		}
 
 		assert origin.getID() != null;

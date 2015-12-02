@@ -13,6 +13,7 @@ import javax.persistence.Entity;
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.subscriptions.service.BuddyServiceException;
 
 @Entity
 public class BuddyConnectRequestMessage extends BuddyConnectMessage
@@ -32,10 +33,6 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 			UUID buddyID, boolean isRequestingSending, boolean isRequestingReceiving)
 	{
 		super(id, vpnLoginID, userID, nickname, message, buddyID);
-		if (userID == null)
-		{
-			throw new IllegalArgumentException("requestingUserID cannot be null");
-		}
 		this.isRequestingSending = isRequestingSending;
 		this.isRequestingReceiving = isRequestingReceiving;
 	}
@@ -73,6 +70,11 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	public static BuddyConnectRequestMessage createInstance(UUID requestingUserID, UUID requestingUserVPNLoginID, Set<Goal> goals,
 			String nickname, String message, UUID buddyID, boolean isRequestingSending, boolean isRequestingReceiving)
 	{
+		if (requestingUserID == null)
+		{
+			throw BuddyServiceException.requestingUserCannotBeNull();
+		}
+		
 		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserVPNLoginID,
 				goals.stream().map(g -> g.getID()).collect(Collectors.toSet()), nickname, message, buddyID, isRequestingSending,
 				isRequestingReceiving);

@@ -4,6 +4,7 @@ import java.util.Locale;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.HttpStatus;
 
 /**
  * This exception class is used as a base for all exceptions that use an error message which is defined in the message properties
@@ -17,6 +18,8 @@ public abstract class ResourceBasedException extends RuntimeException
 	private Object[] parameters;
 	/** Holds the message id. */
 	private String messageId;
+	/** Holds the http response code to be used. */
+	private HttpStatus statusCode;
 
 	/**
 	 * Constructor.
@@ -111,5 +114,25 @@ public abstract class ResourceBasedException extends RuntimeException
 	public void setParameters(Object[] parameters)
 	{
 		this.parameters = parameters;
+	}
+	
+	/**
+	 * This method gets the http response code to be used.
+	 * 
+	 * @return The http response code to be used.
+	 */
+	public HttpStatus getStatusCode()
+	{
+		return statusCode;
+	}
+
+	/**
+	 * This method sets the http response code to be used.
+	 * 
+	 * @param statusCode The http response code to be used.
+	 */
+	public void setStatusCode(HttpStatus statusCode)
+	{
+		this.statusCode = statusCode;
 	}
 }

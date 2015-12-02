@@ -41,14 +41,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 			UserDTO user, UUID vpnLoginID, String nickname, String message, boolean isAccepted, boolean isRejected)
 	{
 		super(id, creationTime, user, nickname, message);
-		if (buddyConnectRequestMessageEntity == null)
-		{
-			throw new IllegalArgumentException("buddyConnectRequestMessageEntity cannot be null");
-		}
-		if (vpnLoginID == null)
-		{
-			throw new IllegalArgumentException("vpnLoginID cannot be null");
-		}
+		
 		this.isAccepted = isAccepted;
 		this.isRejected = isRejected;
 	}
@@ -77,6 +70,16 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 
 	public static BuddyConnectRequestMessageDTO createInstance(UserDTO requestingUser, BuddyConnectRequestMessage messageEntity)
 	{
+		if (messageEntity == null)
+		{
+			throw BuddyServiceException.messageEntityCannotBeNull();
+		}
+		
+		if (messageEntity.getRelatedVPNLoginID() == null)
+		{
+			throw BuddyServiceException.vpnLoginIdCannotBeNull();
+		}
+
 		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(), messageEntity.getCreationTime(),
 				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getRelatedVPNLoginID(),
 				messageEntity.getNickname(), messageEntity.getMessage(), messageEntity.isAccepted(), messageEntity.isRejected());
@@ -116,7 +119,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 				case REJECT:
 					return handleAction_Reject(actingUser, (BuddyConnectRequestMessage) messageEntity, requestPayload);
 				default:
-					throw new IllegalArgumentException("Action '" + action + "' is not supported");
+					throw BuddyServiceException.actionUnknown(action);
 			}
 		}
 

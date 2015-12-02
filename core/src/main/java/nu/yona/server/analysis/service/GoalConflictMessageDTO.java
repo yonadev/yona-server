@@ -4,8 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
-import java.util.Date;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
+import nu.yona.server.goals.service.GoalServiceException;
 import nu.yona.server.messaging.entities.DiscloseRequestMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -123,7 +124,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 				case REQUEST_DISCLOSURE:
 					return handleAction_RequestDisclosure(actingUser, (GoalConflictMessage) messageEntity, requestPayload);
 				default:
-					throw new IllegalArgumentException("Action '" + action + "' is not supported");
+					throw GoalServiceException.actionNotSupported(action);
 			}
 		}
 

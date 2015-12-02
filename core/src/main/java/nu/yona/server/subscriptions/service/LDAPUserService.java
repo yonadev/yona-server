@@ -54,7 +54,7 @@ public class LDAPUserService
 				ldapTemplate.delete(user);
 				break;
 			default:
-				throw new IllegalArgumentException("Action " + action + " is unknown");
+				throw LDAPUserServiceException.actionUnknown(action.name());
 
 		}
 	}

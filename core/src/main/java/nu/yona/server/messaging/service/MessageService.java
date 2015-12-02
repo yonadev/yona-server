@@ -181,7 +181,8 @@ public class MessageService
 					return managers.get(messageClass);
 				}
 			}
-			throw new IllegalArgumentException("No DTO manager registered for class " + messageEntity.getClass());
+			
+			throw MessageServiceException.noDtoManagerRegistered(messageEntity.getClass());
 		}
 	}
 }
