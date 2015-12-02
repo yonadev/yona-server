@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +45,8 @@ public class GoalFileLoader implements ApplicationListener<ContextRefreshedEvent
 		}
 		catch (IOException e)
 		{
-			LOGGER.severe("Error loading goals from file '" + inputFileName + "'");
-			throw GoalFileLoaderException.loadingGoalsFromFile(inputFileName);
+			LOGGER.log(Level.SEVERE, "Error loading goals from file '" + inputFileName + "'", e);
+			throw GoalFileLoaderException.loadingGoalsFromFile(e, inputFileName);
 		}
 	}
 }
