@@ -133,7 +133,7 @@ public class UserService
 	@Transactional
 	public User addUserCreatedOnBuddyRequest(UserDTO buddyUser, String tempPassword)
 	{
-		if (buddyUser == null || buddyUser.getID() == null)
+		if (buddyUser == null)
 		{
 			throw UserServiceException.missingOrNullUser();
 		}

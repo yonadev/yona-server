@@ -42,6 +42,17 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 	{
 		super(id, creationTime, user, nickname, message);
 		
+		if (buddyConnectRequestMessageEntity == null)
+		{
+			throw BuddyServiceException.messageEntityCannotBeNull();
+		}
+		
+		if (buddyConnectRequestMessageEntity.getRelatedVPNLoginID() == null)
+		{
+			throw BuddyServiceException.vpnLoginIdCannotBeNull();
+		}
+
+		
 		this.isAccepted = isAccepted;
 		this.isRejected = isRejected;
 	}
@@ -70,16 +81,6 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 
 	public static BuddyConnectRequestMessageDTO createInstance(UserDTO requestingUser, BuddyConnectRequestMessage messageEntity)
 	{
-		if (messageEntity == null)
-		{
-			throw BuddyServiceException.messageEntityCannotBeNull();
-		}
-		
-		if (messageEntity.getRelatedVPNLoginID() == null)
-		{
-			throw BuddyServiceException.vpnLoginIdCannotBeNull();
-		}
-
 		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(), messageEntity.getCreationTime(),
 				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getRelatedVPNLoginID(),
 				messageEntity.getNickname(), messageEntity.getMessage(), messageEntity.isAccepted(), messageEntity.isRejected());
