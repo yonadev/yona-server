@@ -25,7 +25,7 @@ public class BuddyDTO
 	private UserDTO user;
 	private String message;
 	private String password;
-	private String nickName;
+	private String nickname;
 	private UUID vpnLoginID;
 	private Status sendingStatus;
 	private Status receivingStatus;
@@ -35,30 +35,30 @@ public class BuddyDTO
 	 */
 	private String userCreatedInviteURL;
 
-	public BuddyDTO(UUID id, UserDTO user, String message, String password, String nickName, UUID vpnLoginID,
+	public BuddyDTO(UUID id, UserDTO user, String message, String password, String nickname, UUID vpnLoginID,
 			Status sendingStatus, Status receivingStatus)
 	{
 		this.id = id;
 		this.user = user;
 		this.message = message;
 		this.password = password;
-		this.nickName = nickName;
+		this.nickname = nickname;
 		this.vpnLoginID = vpnLoginID;
 		this.sendingStatus = sendingStatus;
 		this.receivingStatus = receivingStatus;
 	}
 
-	public BuddyDTO(UUID id, UserDTO user, String nickName, UUID vpnLoginID, Status sendingStatus, Status receivingStatus)
+	public BuddyDTO(UUID id, UserDTO user, String nickname, UUID vpnLoginID, Status sendingStatus, Status receivingStatus)
 	{
-		this(id, user, null, null, nickName, vpnLoginID, sendingStatus, receivingStatus);
+		this(id, user, null, null, nickname, vpnLoginID, sendingStatus, receivingStatus);
 	}
 
 	@JsonCreator
-	public BuddyDTO(@JsonProperty("_embedded") Map<String, UserDTO> userInMap, @JsonProperty("nickName") String nickName,
+	public BuddyDTO(@JsonProperty("_embedded") Map<String, UserDTO> userInMap, @JsonProperty("nickname") String nickname,
 			@JsonProperty("message") String message, @JsonProperty("password") String password,
 			@JsonProperty("sendingStatus") Status sendingStatus, @JsonProperty("receivingStatus") Status receivingStatus)
 	{
-		this(null, userInMap.get(USER_REL_NAME), message, password, nickName, null, sendingStatus, receivingStatus);
+		this(null, userInMap.get(USER_REL_NAME), message, password, nickname, null, sendingStatus, receivingStatus);
 	}
 
 	@JsonIgnore
@@ -81,12 +81,12 @@ public class BuddyDTO
 
 	Buddy createBuddyEntity()
 	{
-		return Buddy.createInstance(user.getID(), user.getPrivateData().getNickName(), getSendingStatus(), getReceivingStatus());
+		return Buddy.createInstance(user.getID(), user.getPrivateData().getNickname(), getSendingStatus(), getReceivingStatus());
 	}
 
 	public static BuddyDTO createInstance(Buddy buddyEntity)
 	{
-		return new BuddyDTO(buddyEntity.getID(), UserDTO.createInstance(buddyEntity.getUser()), buddyEntity.getNickName(),
+		return new BuddyDTO(buddyEntity.getID(), UserDTO.createInstance(buddyEntity.getUser()), buddyEntity.getNickname(),
 				getBuddyVPNLoginID(buddyEntity), buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus());
 	}
 
@@ -102,9 +102,9 @@ public class BuddyDTO
 		return password;
 	}
 
-	public String getNickName()
+	public String getNickname()
 	{
-		return nickName;
+		return nickname;
 	}
 
 	public Status getSendingStatus()

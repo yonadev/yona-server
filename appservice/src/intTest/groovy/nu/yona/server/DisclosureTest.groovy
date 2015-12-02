@@ -58,7 +58,7 @@ class DisclosureTest extends Specification {
 			def response = appService.addUser("""{
 						"firstName":"Richard ${timestamp}",
 						"lastName":"Quin ${timestamp}",
-						"nickName":"RQ ${timestamp}",
+						"nickname":"RQ ${timestamp}",
 						"mobileNumber":"+${timestamp}1",
 						"devices":[
 							"Nexus 6"
@@ -91,7 +91,7 @@ class DisclosureTest extends Specification {
 			def response = appService.addUser("""{
 						"firstName":"Bob ${timestamp}",
 						"lastName":"Dunn ${timestamp}",
-						"nickName":"BD ${timestamp}",
+						"nickname":"BD ${timestamp}",
 						"mobileNumber":"+${timestamp}2",
 						"devices":[
 							"iPhone 6"
@@ -155,10 +155,9 @@ class DisclosureTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
 			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard ${timestamp}"
 			response.responseData._embedded.buddyConnectRequestMessages[0].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(bobDunnURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
 			bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
 	}
 
@@ -177,21 +176,20 @@ class DisclosureTest extends Specification {
 			response.responseData.properties.status == "done"
 	}
 
-	def 'Richard checks his direct messages'(){
+	def 'Richard checks his anonymous messages'(){
 		given:
 
 		when:
-			def response = appService.getDirectMessages(richardQuinURL, richardQuinPassword)
+			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
 			if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
 				richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
 			}
 
 		then:
 			response.status == 200
-			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
 			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
 			response.responseData._embedded.buddyConnectResponseMessages[0].nickname == "BD ${timestamp}"
-			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
 			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
 	}
 
@@ -219,7 +217,7 @@ class DisclosureTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.buddies.size() == 1
 			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Bob ${timestamp}"
-			response.responseData._embedded.buddies[0].nickName == "BD ${timestamp}"
+			response.responseData._embedded.buddies[0].nickname == "BD ${timestamp}"
 			response.responseData._embedded.buddies[0].sendingStatus == "ACCEPTED"
 			response.responseData._embedded.buddies[0].receivingStatus == "ACCEPTED"
 	}
@@ -258,11 +256,11 @@ class DisclosureTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 2
 			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
 			response.responseData._embedded.goalConflictMessages[0].url == null
 			response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure
 			response.responseData._embedded.goalConflictMessages[1].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[1].goalName == "news"
 			response.responseData._embedded.goalConflictMessages[1].url == null
 			response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure
 	}
@@ -280,12 +278,12 @@ class DisclosureTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 2
 			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[0].url == "http://www.refdag.nl"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[0].url == "http://www.poker.com"
 			!response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure
 			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
-			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[1].url == "http://www.poker.com"
+			response.responseData._embedded.goalConflictMessages[1].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[1].url == "http://www.refdag.nl"
 			!response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure
 	}
 
@@ -321,11 +319,11 @@ class DisclosureTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.discloseRequestMessages
 			response.responseData._embedded.discloseRequestMessages.size() == 2
-			response.responseData._embedded.discloseRequestMessages[0].nickname == "BD ${timestamp}"
-			response.responseData._embedded.discloseRequestMessages[0].targetGoalConflictMessage
-			response.responseData._embedded.discloseRequestMessages[0].targetGoalConflictMessage.goalName == "news"
-			//TODO response.responseData._embedded.discloseRequestMessages[0].targetGoalConflictMessage.creationTime
-			response.responseData._embedded.discloseRequestMessages[0]._links.related.href == richardQuinGoalConflictMessage1URL
+			response.responseData._embedded.discloseRequestMessages[1].nickname == "BD ${timestamp}"
+			response.responseData._embedded.discloseRequestMessages[1].targetGoalConflictMessage
+			response.responseData._embedded.discloseRequestMessages[1].targetGoalConflictMessage.goalName == "gambling"
+			//TODO response.responseData._embedded.discloseRequestMessages[1].targetGoalConflictMessage.creationTime
+			response.responseData._embedded.discloseRequestMessages[1]._links.related.href == richardQuinGoalConflictMessage1URL
 			goalDiscloseRequestMessage1AcceptURL
 			goalDiscloseRequestMessage2RejectURL
 	}
@@ -358,14 +356,14 @@ class DisclosureTest extends Specification {
 			response.status == 200
 			response.responseData._embedded.goalConflictMessages.size() == 2
 			response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-			response.responseData._embedded.goalConflictMessages[0].url == "http://www.refdag.nl"
-			response.responseData._embedded.goalConflictMessages[0].status == "DISCLOSE_ACCEPTED"
+			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			response.responseData._embedded.goalConflictMessages[0].url == null
+			response.responseData._embedded.goalConflictMessages[0].status == "DISCLOSE_REJECTED"
 			!response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure
 			response.responseData._embedded.goalConflictMessages[1].nickname == "RQ ${timestamp}"
-			response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
-			response.responseData._embedded.goalConflictMessages[1].url == null
-			response.responseData._embedded.goalConflictMessages[1].status == "DISCLOSE_REJECTED"
-			!response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure
+			response.responseData._embedded.goalConflictMessages[1].goalName == "news"
+			response.responseData._embedded.goalConflictMessages[1].url == "http://www.refdag.nl"
+			response.responseData._embedded.goalConflictMessages[1].status == "DISCLOSE_ACCEPTED"
+			!response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure		
 	}
 }

@@ -24,7 +24,7 @@ import nu.yona.server.goals.entities.Goal;
 public class UserPrivateDTO
 {
 	private static final Logger LOGGER = Logger.getLogger(UserPrivateDTO.class.getName());
-	private final String nickName;
+	private final String nickname;
 	private final Set<String> deviceNames;
 	private Set<String> goalNames;
 	private VPNProfileDTO vpnProfile;
@@ -36,18 +36,18 @@ public class UserPrivateDTO
 	private Set<BuddyDTO> buddies;
 
 	@JsonCreator
-	public UserPrivateDTO(@JsonProperty("nickName") String nickName,
+	public UserPrivateDTO(@JsonProperty("nickname") String nickname,
 			@JsonProperty("devices") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> deviceNames,
 			@JsonProperty("goals") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> goalNames)
 	{
-		this(nickName, null, null, null, null, deviceNames, goalNames, null, new VPNProfileDTO(null));
+		this(nickname, null, null, null, null, deviceNames, goalNames, null, new VPNProfileDTO(null));
 	}
 
-	UserPrivateDTO(String nickName, UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
+	UserPrivateDTO(String nickname, UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
 			UUID anonymousMessageDestinationID, Set<String> deviceNames, Set<String> goalNames, Set<UUID> buddyIDs,
 			VPNProfileDTO vpnProfile)
 	{
-		this.nickName = nickName;
+		this.nickname = nickname;
 		this.namedMessageSourceID = namedMessageSourceID;
 		this.namedMessageDestinationID = namedMessageDestinationID;
 		this.anonymousMessageSourceID = anonymousMessageSourceID;
@@ -60,9 +60,9 @@ public class UserPrivateDTO
 		this.buddies = Collections.emptySet();
 	}
 
-	public String getNickName()
+	public String getNickname()
 	{
-		return nickName;
+		return nickname;
 	}
 
 	@JsonProperty("devices")

@@ -38,13 +38,13 @@ public class UserDTO
 	 */
 	private String confirmationCode;
 
-	private UserDTO(UUID id, String firstName, String lastName, String nickName, String mobileNumber, boolean isConfirmed,
+	private UserDTO(UUID id, String firstName, String lastName, String nickname, String mobileNumber, boolean isConfirmed,
 			UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
 			UUID anonymousMessageDestinationID, Set<String> deviceNames, Set<String> goalNames, Set<UUID> buddyIDs,
 			VPNProfileDTO vpnProfile)
 	{
 		this(id, firstName, lastName, null, mobileNumber, isConfirmed,
-				new UserPrivateDTO(nickName, namedMessageSourceID, namedMessageDestinationID, anonymousMessageSourceID,
+				new UserPrivateDTO(nickname, namedMessageSourceID, namedMessageDestinationID, anonymousMessageSourceID,
 						anonymousMessageDestinationID, deviceNames, goalNames, buddyIDs, vpnProfile));
 	}
 
@@ -135,7 +135,7 @@ public class UserDTO
 
 	User createUserEntity()
 	{
-		return User.createInstance(firstName, lastName, privateData.getNickName(), mobileNumber,
+		return User.createInstance(firstName, lastName, privateData.getNickname(), mobileNumber,
 				privateData.getVpnProfile().getVpnPassword(), privateData.getDeviceNames(), privateData.getGoals());
 	}
 
@@ -144,7 +144,7 @@ public class UserDTO
 		originalUserEntity.setFirstName(firstName);
 		originalUserEntity.setLastName(lastName);
 		originalUserEntity.setMobileNumber(mobileNumber);
-		originalUserEntity.setNickname(privateData.getNickName());
+		originalUserEntity.setNickname(privateData.getNickname());
 		originalUserEntity.setDeviceNames(privateData.getDeviceNames());
 
 		return originalUserEntity;
@@ -168,7 +168,7 @@ public class UserDTO
 
 	static UserDTO createInstanceWithPrivateData(User userEntity)
 	{
-		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickName(),
+		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickname(),
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSource().getID(),
 				userEntity.getNamedMessageDestination().getID(), userEntity.getAnonymousMessageSource().getID(),
 				userEntity.getAnonymousMessageSource().getDestination().getID(), userEntity.getDeviceNames(),

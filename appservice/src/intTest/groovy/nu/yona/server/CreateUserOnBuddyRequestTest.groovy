@@ -61,7 +61,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 	def richardQuinCreationJSON = """{
 				"firstName":"Richard ${timestamp}",
 				"lastName":"Quin ${timestamp}",
-				"nickName":"RQ ${timestamp}",
+				"nickname":"RQ ${timestamp}",
 				"mobileNumber":"+${timestamp}11",
 				"devices":[
 					"Nexus 6"
@@ -154,7 +154,6 @@ class CreateUserOnBuddyRequestTest extends Specification {
 				}
 				*/
 				bobDunnInviteURL = response.responseData.userCreatedInviteURL;
-				bobDunnMobileNumberConfirmationCode = response.responseData?._embedded?.user?.confirmationCode;
 				bobDunnURL = appService.stripQueryString(bobDunnInviteURL)
 			}
 
@@ -163,7 +162,6 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData._embedded.user.firstName == "Bob ${timestamp}"
 			richardQuinBobBuddyURL.startsWith(richardQuinURL)
 			bobDunnInviteURL
-			bobDunnMobileNumberConfirmationCode
 
 		cleanup:
 			println "URL buddy Richard: " + richardQuinBobBuddyURL
@@ -188,8 +186,8 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			def response = appService.updateResource(bobDunnURL, """{
 				"firstName":"Richard ${timestamp}",
 				"lastName":"Quin ${timestamp}",
-				"nickName":"RQ ${timestamp}",
-				"mobileNumber":"+${timestamp}11",
+				"nickname":"RQ ${timestamp}",
+				"mobileNumber":"+${timestamp}12",
 				"devices":[
 					"Nexus 6"
 				],
@@ -219,7 +217,7 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			def response = appService.updateResource(richardQuinURL, richardQuinCreationJSON, ["Yona-Password": "New password"], ["tempPassword": "hack"])
 
 		then:
-			response.status == 500
+			response.status == 400
 	}
 
 	def 'Bob Dunn downloads the app and opens the link sent in the email with the app; app retrieves data to prefill'(){
@@ -247,8 +245,8 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			def response = appService.updateUser(bobDunnInviteURL, """{
 				"firstName":"Bob ${timestamp}",
 				"lastName":"Dun ${timestamp}",
-				"nickName":"BD ${timestamp}",
-				"mobileNumber":"+${timestamp}12",
+				"nickname":"BD ${timestamp}",
+				"mobileNumber":"+${timestamp}13",
 				"devices":[
 					"iPhone 6"
 				],
@@ -259,14 +257,16 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			if(response.status == 200)
 			{
 				bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
+				bobDunnMobileNumberConfirmationCode = response.responseData.confirmationCode;
 			}
 
 		then:
 			response.status == 200
+			bobDunnMobileNumberConfirmationCode
 			response.responseData.firstName == "Bob ${timestamp}"
 			response.responseData.lastName == "Dun ${timestamp}"
-			response.responseData.mobileNumber == "+${timestamp}12"
-			response.responseData.nickName == "BD ${timestamp}"
+			response.responseData.mobileNumber == "+${timestamp}13"
+			response.responseData.nickname == "BD ${timestamp}"
 			response.responseData.devices.size() == 1
 			response.responseData.devices[0] == "iPhone 6"
 			//TODO: updating of goals is not yet supported
@@ -304,8 +304,8 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.status == 200
 			response.responseData.firstName == "Bob ${timestamp}"
 			response.responseData.lastName == "Dun ${timestamp}"
-			response.responseData.mobileNumber == "+${timestamp}12"
-			response.responseData.nickName == "BD ${timestamp}"
+			response.responseData.mobileNumber == "+${timestamp}13"
+			response.responseData.nickname == "BD ${timestamp}"
 			response.responseData.devices.size() == 1
 			response.responseData.devices[0] == "iPhone 6"
 			response.responseData.goals.size() == 0
@@ -318,8 +318,8 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			def response = appService.updateUser(bobDunnURL, """{
 				"firstName":"Bob ${timestamp}",
 				"lastName":"Dunn ${timestamp}",
-				"nickName":"BD ${timestamp}",
-				"mobileNumber":"+${timestamp}12",
+				"nickname":"BD ${timestamp}",
+				"mobileNumber":"+${timestamp}13",
 				"devices":[
 					"iPhone 6"
 				],
@@ -332,8 +332,8 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.status == 200
 			response.responseData.firstName == "Bob ${timestamp}"
 			response.responseData.lastName == "Dunn ${timestamp}"
-			response.responseData.mobileNumber == "+${timestamp}12"
-			response.responseData.nickName == "BD ${timestamp}"
+			response.responseData.mobileNumber == "+${timestamp}13"
+			response.responseData.nickname == "BD ${timestamp}"
 			response.responseData.devices.size() == 1
 			response.responseData.devices[0] == "iPhone 6"
 			response.responseData.goals.size() == 0
@@ -361,9 +361,8 @@ class CreateUserOnBuddyRequestTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
 			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard ${timestamp}"
-			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(bobDunnURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
 			bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
 	}
 
@@ -382,20 +381,19 @@ class CreateUserOnBuddyRequestTest extends Specification {
 			response.responseData.properties.status == "done"
 	}
 
-	def 'Richard checks his direct messages'(){
+	def 'Richard checks his anonymous messages'(){
 		given:
 
 		when:
-			def response = appService.getDirectMessages(richardQuinURL, richardQuinPassword)
+			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
 			if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
 				richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
 			}
 
 		then:
 			response.status == 200
-			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
 			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
-			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
 			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
 	}
 

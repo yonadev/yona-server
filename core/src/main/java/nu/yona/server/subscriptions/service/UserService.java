@@ -87,8 +87,7 @@ public class UserService
 		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
 
 		User userEntity = user.createUserEntity();
-		userEntity
-				.setConfirmationCode(CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
+		setUserUnconfirmedWithNewConfirmationCode(userEntity);
 		userEntity = User.getRepository().save(userEntity);
 		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getVPNPassword());
 
@@ -97,7 +96,6 @@ public class UserService
 		{
 			userDTO.setConfirmationCode(userEntity.getConfirmationCode());
 		}
-
 		sendMobileNumberConfirmationMessage(userEntity, SmsService.TemplateName_AddUserNumberConfirmation);
 		return userDTO;
 	}
@@ -162,9 +160,30 @@ public class UserService
 			throw new IllegalArgumentException("User is created on buddy request, use other method");
 		}
 
-		originalUserEntity.assertMobileNumberConfirmed();
+		boolean isMobileNumberDifferent = !user.getMobileNumber().equals(originalUserEntity.getMobileNumber());
+		User updatedUserEntity = user.updateUser(originalUserEntity);
+		if (isMobileNumberDifferent)
+		{
+			setUserUnconfirmedWithNewConfirmationCode(updatedUserEntity);
+		}
+		User savedUserEntity = User.getRepository().save(updatedUserEntity);
+		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(savedUserEntity);
+		if (isMobileNumberDifferent)
+		{
+			if (!yonaProperties.getSms().isEnabled())
+			{
+				userDTO.setConfirmationCode(savedUserEntity.getConfirmationCode());
+			}
+			sendMobileNumberConfirmationMessage(updatedUserEntity, SmsService.TemplateName_ChangedUserNumberConfirmation);
+		}
+		return userDTO;
+	}
 
-		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(user.updateUser(originalUserEntity)));
+	void setUserUnconfirmedWithNewConfirmationCode(User userEntity)
+	{
+		userEntity.markMobileNumberUnconfirmed();
+		userEntity
+				.setConfirmationCode(CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
 	}
 
 	static User findUserByMobileNumber(String mobileNumber)
@@ -187,9 +206,16 @@ public class UserService
 			// security check: should not be able to replace the password on an existing user
 			throw new IllegalArgumentException("User is not created on buddy request");
 		}
-		sendMobileNumberConfirmationMessage(originalUserEntity, SmsService.TemplateName_AddUserNumberConfirmation);
+
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
-		return saveUserEncryptedDataWithNewPassword(retrievedEntitySet, userResource);
+		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, userResource);
+		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(savedUserEntity);
+		if (!yonaProperties.getSms().isEnabled())
+		{
+			userDTO.setConfirmationCode(savedUserEntity.getConfirmationCode());
+		}
+		sendMobileNumberConfirmationMessage(savedUserEntity, SmsService.TemplateName_AddUserNumberConfirmation);
+		return userDTO;
 	}
 
 	private EncryptedUserData retrieveUserEncryptedData(User originalUserEntity, String password)
@@ -198,7 +224,7 @@ public class UserService
 				() -> tempEncryptionContextExecutor.retrieveUserEncryptedData(originalUserEntity));
 	}
 
-	private UserDTO saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDTO userResource)
+	private User saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDTO userResource)
 	{
 		// touch and save all user related data containing encryption
 		// see architecture overview for which classes contain encrypted data
@@ -209,7 +235,7 @@ public class UserService
 		userResource.updateUser(retrievedEntitySet.userEntity);
 		retrievedEntitySet.userEntity.unsetIsCreatedOnBuddyRequest();
 		retrievedEntitySet.userEntity.touch();
-		return UserDTO.createInstanceWithPrivateData(User.getRepository().save(retrievedEntitySet.userEntity));
+		return User.getRepository().save(retrievedEntitySet.userEntity);
 	}
 
 	@Transactional

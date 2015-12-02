@@ -54,7 +54,7 @@ class DeleteDirectMessageTest extends Specification {
 			def response = appService.addUser("""{
 					"firstName":"Richard ${timestamp}",
 					"lastName":"Quin ${timestamp}",
-					"nickName":"RQ ${timestamp}",
+					"nickname":"RQ ${timestamp}",
 					"mobileNumber":"+${timestamp}1",
 					"devices":[
 						"Nexus 6"
@@ -86,7 +86,7 @@ class DeleteDirectMessageTest extends Specification {
 			def response = appService.addUser("""{
 					"firstName":"Bob ${timestamp}",
 					"lastName":"Dunn ${timestamp}",
-					"nickName":"BD ${timestamp}",
+					"nickname":"BD ${timestamp}",
 					"mobileNumber":"+${timestamp}2",
 					"devices":[
 						"iPhone 6"
@@ -151,9 +151,8 @@ class DeleteDirectMessageTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
 			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard ${timestamp}"
-			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(bobDunnURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
 			bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
 			bobDunnBuddyConnectRequestDeleteURL != null
 	}
@@ -184,11 +183,11 @@ class DeleteDirectMessageTest extends Specification {
 			response.responseData.properties.status == "done"
 	}
 
-	def 'Richard checks his direct messages'(){
+	def 'Richard checks his anonymous messages'(){
 		given:
 
 		when:
-			def response = appService.getDirectMessages(richardQuinURL, richardQuinPassword)
+			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
 			if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
 				richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
 				richardQuinBuddyMessageDeleteURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href
@@ -196,9 +195,8 @@ class DeleteDirectMessageTest extends Specification {
 
 		then:
 			response.status == 200
-			response.responseData._links.self.href == richardQuinURL + appService.DIRECT_MESSAGE_PATH_FRAGMENT
 			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
-			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(response.responseData._links.self.href)
+			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
 			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
 			richardQuinBuddyMessageDeleteURL != null
 	}
@@ -228,7 +226,7 @@ class DeleteDirectMessageTest extends Specification {
 			response.responseData.properties.status == "done"
 	}
 
-	def 'Richard checks he has no anonymous messages'(){
+	def 'Richard checks he has no conflict messages'(){
 		given:
 
 		when:
@@ -239,7 +237,7 @@ class DeleteDirectMessageTest extends Specification {
 			response.responseData._embedded == null || response.responseData._embedded.goalConflictMessages == null
 	}
 
-	def 'Bob checks he has no anonymous messages'(){
+	def 'Bob checks he has no conflict messages'(){
 		given:
 
 		when:

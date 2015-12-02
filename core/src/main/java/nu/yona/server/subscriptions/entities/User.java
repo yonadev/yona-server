@@ -72,13 +72,13 @@ public class User extends EntityWithID
 		this.messageDestination = messageDestination;
 	}
 
-	public static User createInstance(String firstName, String lastName, String nickName, String mobileNumber, String vpnPassword,
+	public static User createInstance(String firstName, String lastName, String nickname, String mobileNumber, String vpnPassword,
 			Set<String> deviceNames, Set<Goal> goals)
 	{
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		UserPrivate userPrivate = UserPrivate.createInstance(nickName, vpnPassword, deviceNames, goals, anonymousMessageSource,
+		UserPrivate userPrivate = UserPrivate.createInstance(nickname, vpnPassword, deviceNames, goals, anonymousMessageSource,
 				namedMessageSource);
 		return new User(UUID.randomUUID(), initializationVector, firstName, lastName, mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
@@ -114,14 +114,14 @@ public class User extends EntityWithID
 		this.lastName = lastName;
 	}
 
-	public String getNickName()
+	public String getNickname()
 	{
 		return getUserPrivate().getNickname();
 	}
 
-	public void setNickName(String nickName)
+	public void setNickName(String nickname)
 	{
-		getUserPrivate().setNickname(nickName);
+		getUserPrivate().setNickname(nickname);
 	}
 
 	public String getMobileNumber()
@@ -154,6 +154,11 @@ public class User extends EntityWithID
 		this.isMobileNumberConfirmed = true;
 	}
 
+	public void markMobileNumberUnconfirmed()
+	{
+		this.isMobileNumberConfirmed = false;
+	}
+
 	public String getConfirmationCode()
 	{
 		return confirmationCode;
@@ -175,9 +180,9 @@ public class User extends EntityWithID
 		this.userPrivate = userPrivate;
 	}
 
-	public void setNickname(String nickName)
+	public void setNickname(String nickname)
 	{
-		getUserPrivate().setNickname(nickName);
+		getUserPrivate().setNickname(nickname);
 	}
 
 	public Set<String> getDeviceNames()
