@@ -78,32 +78,6 @@ public abstract class ResourceBasedException extends RuntimeException
 	}
 
 	/**
-	 * This method returns the message for this exception based on the given locale
-	 * 
-	 * @return The actual message based on the default locale.
-	 */
-	public String getLocalizedMessage(MessageSource msgSource)
-	{
-		return getLocalizedMessage(msgSource, null);
-	}
-
-	/**
-	 * This method returns the message for this exception based on the given locale
-	 * 
-	 * @param locale The locale to use for getting the message.
-	 * @return The actual message based on the given locale.
-	 */
-	public String getLocalizedMessage(MessageSource msgSource, Locale locale)
-	{
-		if (locale == null)
-		{
-			locale = LocaleContextHolder.getLocale();
-		}
-
-		return msgSource.getMessage(messageId, parameters, locale);
-	}
-
-	/**
 	 * This method gets the message id.
 	 * 
 	 * @return The message id.

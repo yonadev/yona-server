@@ -25,6 +25,9 @@ class UserServiceTempEncryptionContextExecutor
 	private YonaProperties yonaProperties;
 
 	@Autowired
+	private UserService userService;
+
+	@Autowired
 	private LDAPUserService ldapUserService;
 
 	// use a separate transaction to commit within the crypto session
@@ -32,11 +35,11 @@ class UserServiceTempEncryptionContextExecutor
 	public User addUserCreatedOnBuddyRequest(UserDTO buddyUserResource)
 	{
 		User newUser = User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
-				buddyUserResource.getPrivateData().getNickName(), buddyUserResource.getMobileNumber(),
+				buddyUserResource.getPrivateData().getNickname(), buddyUserResource.getMobileNumber(),
 				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet(),
 				Collections.emptySet());
 		newUser.setIsCreatedOnBuddyRequest();
-		newUser.setConfirmationCode(CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
+		userService.setUserUnconfirmedWithNewConfirmationCode(newUser);
 		User savedUser = User.getRepository().save(newUser);
 		ldapUserService.createVPNAccount(savedUser.getVPNLoginID().toString(), savedUser.getVPNPassword());
 		return savedUser;

@@ -137,7 +137,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 			MessageDestination messageDestination = UserAnonymized.getRepository().findOne(messageEntity.getRelatedVPNLoginID())
 					.getAnonymousDestination();
 			messageDestination.send(DiscloseRequestMessage.createInstance(actingUser.getID(),
-					actingUser.getPrivateData().getVpnProfile().getVPNLoginID(), actingUser.getPrivateData().getNickName(),
+					actingUser.getPrivateData().getVpnProfile().getVPNLoginID(), actingUser.getPrivateData().getNickname(),
 					requestPayload.getProperty("message"), messageEntity));
 			MessageDestination.getRepository().save(messageDestination);
 
@@ -157,7 +157,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 			{
 				if (vpnLoginID.equals(buddy.getVPNLoginID()))
 				{
-					return buddy.getNickName();
+					return buddy.getNickname();
 				}
 			}
 			throw new IllegalStateException("Cannot find buddy for VPN login ID '" + vpnLoginID + "'");

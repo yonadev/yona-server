@@ -169,7 +169,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 			messageDestination.send(BuddyConnectResponseMessage.createInstance(respondingUser.getID(),
 					respondingUser.getPrivateData().getVpnProfile().getVPNLoginID(),
 					respondingUser.getPrivateData().getAnonymousMessageDestinationID(),
-					respondingUser.getPrivateData().getNickName(), responseMessage, connectRequestMessageEntity.getBuddyID(),
+					respondingUser.getPrivateData().getNickname(), responseMessage, connectRequestMessageEntity.getBuddyID(),
 					connectRequestMessageEntity.getStatus()));
 			MessageDestination.getRepository().save(messageDestination);
 		}

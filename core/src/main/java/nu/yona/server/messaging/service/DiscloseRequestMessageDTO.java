@@ -163,7 +163,7 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 			messageDestination.send(DiscloseResponseMessage.createInstance(respondingUser.getID(),
 					respondingUser.getPrivateData().getVpnProfile().getVPNLoginID(),
 					requestMessageEntity.getTargetGoalConflictMessageID(), requestMessageEntity.getStatus(),
-					respondingUser.getPrivateData().getNickName(), message));
+					respondingUser.getPrivateData().getNickname(), message));
 			MessageDestination.getRepository().save(messageDestination);
 		}
 	}

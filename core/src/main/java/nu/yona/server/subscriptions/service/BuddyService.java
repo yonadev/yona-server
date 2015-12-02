@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import nu.yona.server.Translator;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -42,6 +43,9 @@ public class BuddyService
 
 	@Autowired
 	EmailService emailService;
+
+	@Autowired
+	Translator translator;
 
 	@Autowired
 	YonaProperties properties;
@@ -157,7 +161,7 @@ public class BuddyService
 		UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(requestingUserBuddy.getVPNLoginID());
 		MessageDestination messageDestination = userAnonymized.getAnonymousDestination();
 		messageDestination.send(BuddyDisconnectMessage.createInstance(requestingUser.getID(), requestingUser.getVPNLoginID(),
-				requestingUser.getNickName(), getDropBuddyMessage(reason, message), reason));
+				requestingUser.getNickname(), getDropBuddyMessage(reason, message), reason));
 		MessageDestination.getRepository().save(messageDestination);
 
 	}
@@ -193,9 +197,9 @@ public class BuddyService
 		switch (reason)
 		{
 			case USER_ACCOUNT_DELETED:
-				return "User account was deleted.";
+				return translator.getLocalizedMessage("message.user.account.deleted");
 			case USER_REMOVED_BUDDY:
-				return "User removed you as a buddy.";
+				return translator.getLocalizedMessage("message.user.removed.buddy");
 			default:
 				throw new NotImplementedException();
 		}
@@ -265,7 +269,7 @@ public class BuddyService
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
 		messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
 				requestingUser.getPrivateData().getVpnProfile().getVPNLoginID(), requestingUser.getPrivateData().getGoals(),
-				requestingUser.getPrivateData().getNickName(), buddy.getMessage(), savedBuddyEntity.getID(), isRequestingSending,
+				requestingUser.getPrivateData().getNickname(), buddy.getMessage(), savedBuddyEntity.getID(), isRequestingSending,
 				isRequestingReceiving));
 		MessageDestination.getRepository().save(messageDestination);
 
