@@ -24,15 +24,28 @@ public abstract class ResourceBasedException extends RuntimeException
 	/**
 	 * Constructor.
 	 * 
+	 * @param statusCode The status code of the exception.
 	 * @param messageId The ID of the exception in the resource bundle
 	 * @param parameters The parameters for the message
 	 */
-	public ResourceBasedException(String messageId, Object... parameters)
+	protected ResourceBasedException(HttpStatus statusCode, String messageId, Object... parameters)
 	{
 		super(messageId);
 
 		this.messageId = messageId;
 		this.parameters = parameters;
+		this.statusCode = statusCode;
+	}
+	
+	/**
+	 * Constructor.
+	 * 
+	 * @param messageId The ID of the exception in the resource bundle
+	 * @param parameters The parameters for the message
+	 */
+	protected ResourceBasedException(String messageId, Object... parameters)
+	{
+		this(HttpStatus.BAD_REQUEST, messageId, parameters);
 	}
 
 	/**
@@ -42,12 +55,26 @@ public abstract class ResourceBasedException extends RuntimeException
 	 * @param messageId The ID of the exception in the resource bundle
 	 * @param parameters The parameters for the message
 	 */
-	public ResourceBasedException(Throwable t, String messageId, Object... parameters)
+	protected ResourceBasedException(Throwable t, String messageId, Object... parameters)
+	{
+		this(HttpStatus.BAD_REQUEST, t, messageId, parameters);
+	}
+	
+	/**
+	 * Constructor.
+	 * 
+	 * @param statusCode The status code of the exception.
+	 * @param t The cause exception
+	 * @param messageId The ID of the exception in the resource bundle
+	 * @param parameters The parameters for the message
+	 */
+	protected ResourceBasedException(HttpStatus statusCode, Throwable t, String messageId, Object... parameters)
 	{
 		super(messageId, t);
 
 		this.messageId = messageId;
 		this.parameters = parameters;
+		this.statusCode = statusCode;
 	}
 
 	/**

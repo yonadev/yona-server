@@ -38,4 +38,9 @@ public class BuddyServiceException extends YonaException
 	{
 		return new BuddyServiceException("error.buddy.requesting.user.cannot.be.null");
 	}
+
+	public static BuddyServiceException onlyTwoWayBuddiesAllowed()
+	{
+		return new BuddyServiceException("error.buddy.only.twoway.buddies.allowed");
+	}
 }
