@@ -109,7 +109,7 @@ public class BuddyService
 	@Transactional
 	public void removeBuddyAfterConnectRejection(UUID idOfRequestingUser, UUID buddyID)
 	{
-		User user = userService.getValidatedUserbyId(idOfRequestingUser);
+		User user = userService.getValidatedUserbyID(idOfRequestingUser);
 		Buddy buddy = getEntityByID(buddyID);
 
 		user.removeBuddy(buddy);
@@ -119,7 +119,7 @@ public class BuddyService
 	@Transactional
 	public void removeBuddy(UUID idOfRequestingUser, UUID buddyID, Optional<String> message)
 	{
-		User user = userService.getValidatedUserbyId(idOfRequestingUser);
+		User user = userService.getValidatedUserbyID(idOfRequestingUser);
 		Buddy buddy = getEntityByID(buddyID);
 
 		removeMessagesSentByBuddy(user, buddy);
@@ -157,7 +157,7 @@ public class BuddyService
 	@Transactional
 	public void removeBuddyAfterBuddyRemovedConnection(UUID idOfRequestingUser, UUID relatedUserID)
 	{
-		User user = userService.getValidatedUserbyId(idOfRequestingUser);
+		User user = userService.getValidatedUserbyID(idOfRequestingUser);
 		
 		user.removeBuddiesFromUser(relatedUserID);
 		User.getRepository().save(user);

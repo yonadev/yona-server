@@ -67,25 +67,25 @@ public class UserService
 	@Transactional
 	public boolean canAccessPrivateData(UUID id)
 	{
-		return getUserByIDAndGarantueed(id).canAccessPrivateData();
+		return getUserByID(id).canAccessPrivateData();
 	}
 
 	@Transactional
 	public UserDTO getPublicUser(UUID id)
 	{
-		return UserDTO.createInstance(getUserByIDAndGarantueed(id));
+		return UserDTO.createInstance(getUserByID(id));
 	}
 
 	@Transactional
 	public UserDTO getPrivateUser(UUID id)
 	{
-		return UserDTO.createInstanceWithPrivateData(getUserByIDAndGarantueed(id));
+		return UserDTO.createInstanceWithPrivateData(getUserByID(id));
 	}
-	
+
 	@Transactional
 	public UserDTO getPrivateValidatedUser(UUID id)
 	{
-		return UserDTO.createInstanceWithPrivateData(getValidatedUserbyId(id));
+		return UserDTO.createInstanceWithPrivateData(getValidatedUserbyID(id));
 	}
 
 	@Transactional
@@ -112,7 +112,7 @@ public class UserService
 	@Transactional
 	public UserDTO confirmMobileNumber(UUID userID, String code)
 	{
-		User userEntity = getUserByIDAndGarantueed(userID);
+		User userEntity = getUserByID(userID);
 
 		if (userEntity.getConfirmationCode() == null)
 		{
@@ -147,13 +147,13 @@ public class UserService
 		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null,
 				() -> tempEncryptionContextExecutor.addUserCreatedOnBuddyRequest(buddyUser).getID());
 
-		return getUserByIDAndGarantueed(savedUserID);
+		return getUserByID(savedUserID);
 	}
 
 	@Transactional
 	public UserDTO updateUser(UUID id, UserDTO user)
 	{
-		User originalUserEntity = getUserByIDAndGarantueed(id);
+		User originalUserEntity = getUserByID(id);
 		if (originalUserEntity.isCreatedOnBuddyRequest())
 		{
 			// security check: should not be able to update a user created on buddy request with its temp password
@@ -189,7 +189,7 @@ public class UserService
 	@Transactional
 	public UserDTO updateUserCreatedOnBuddyRequest(UUID id, String tempPassword, UserDTO userResource)
 	{
-		User originalUserEntity = getUserByIDAndGarantueed(id);
+		User originalUserEntity = getUserByID(id);
 		if (!originalUserEntity.isCreatedOnBuddyRequest())
 		{
 			// security check: should not be able to replace the password on an existing user
@@ -210,7 +210,7 @@ public class UserService
 	@Transactional
 	public void deleteUser(UUID id, Optional<String> message)
 	{
-		User userEntity = getUserByIDAndGarantueed(id);
+		User userEntity = getUserByID(id);
 
 		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
 				DropBuddyReason.USER_ACCOUNT_DELETED));
@@ -239,7 +239,7 @@ public class UserService
 			throw InvalidDataException.emptyBuddyId();
 		}
 
-		User userEntity = getUserByIDAndGarantueed(user.getID());
+		User userEntity = getUserByID(user.getID());
 		userEntity.assertMobileNumberConfirmed();
 
 		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getID());
@@ -256,7 +256,7 @@ public class UserService
 	@Transactional
 	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID userID, String userPassword, String userSecret)
 	{
-		User userEntity = getValidatedUserbyId(userID);
+		User userEntity = getValidatedUserbyID(userID);
 
 		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(userPassword);
 		newDeviceRequestEntity.encryptUserPassword(userSecret);
@@ -271,7 +271,7 @@ public class UserService
 	@Transactional
 	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID userID, String userSecret)
 	{
-		User userEntity = getValidatedUserbyId(userID);
+		User userEntity = getValidatedUserbyID(userID);
 		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
 
 		if (newDeviceRequestEntity == null)
@@ -298,7 +298,7 @@ public class UserService
 	@Transactional
 	public void clearNewDeviceRequestForUser(UUID userID)
 	{
-		User userEntity = getValidatedUserbyId(userID);
+		User userEntity = getValidatedUserbyID(userID);
 
 		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
 		if (existingNewDeviceRequestEntity != null)
@@ -328,9 +328,9 @@ public class UserService
 	 * value is always the user entity. If not an exception is thrown.
 	 * 
 	 * @param id the ID of the user
-	 * @return The user entity
+	 * @return The user entity (never null)
 	 */
-	public User getUserByIDAndGarantueed(UUID id)
+	public User getUserByID(UUID id)
 	{
 		if (id == null)
 		{
@@ -353,9 +353,9 @@ public class UserService
 	 * @param id The id of the user.
 	 * @return The validated user entity. An exception is thrown is something is missing.
 	 */
-	public User getValidatedUserbyId(UUID id)
+	public User getValidatedUserbyID(UUID id)
 	{
-		User retVal = getUserByIDAndGarantueed(id);
+		User retVal = getUserByID(id);
 		retVal.assertMobileNumberConfirmed();
 
 		return retVal;
