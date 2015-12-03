@@ -76,7 +76,7 @@ public class DiscloseResponseMessageDTO extends MessageDTO
 			switch (action)
 			{
 				default:
-					throw new IllegalArgumentException("Action '" + action + "' is not supported");
+					throw MessageServiceException.actionNotSupported(action);
 			}
 		}
 	}

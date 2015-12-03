@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -19,11 +18,11 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.service.GoalNotFoundException;
 
 @JsonRootName("userPrivate")
 public class UserPrivateDTO
 {
-	private static final Logger LOGGER = Logger.getLogger(UserPrivateDTO.class.getName());
 	private final String nickname;
 	private final Set<String> deviceNames;
 	private Set<String> goalNames;
@@ -92,9 +91,7 @@ public class UserPrivateDTO
 		Goal goal = Goal.getRepository().findByName(goalName);
 		if (goal == null)
 		{
-			String message = "Goal '" + goalName + "' does not exist";
-			LOGGER.warning(message);
-			throw new IllegalArgumentException(message);
+			throw GoalNotFoundException.notFoundByName(goalName);
 		}
 
 		return goal;

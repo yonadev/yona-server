@@ -121,7 +121,7 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 				case REJECT:
 					return handleAction_Reject(actingUser, (DiscloseRequestMessage) messageEntity, requestPayload);
 				default:
-					throw new IllegalArgumentException("Action '" + action + "' is not supported");
+					throw MessageServiceException.actionNotSupported(action);
 			}
 		}
 

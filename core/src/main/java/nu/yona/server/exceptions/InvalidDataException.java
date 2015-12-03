@@ -46,4 +46,14 @@ public class InvalidDataException extends YonaException
 	{
 		return new InvalidDataException("error.user.mobile.number.invalid");
 	}
+
+	public static InvalidDataException emptyUserId()
+	{
+		return new InvalidDataException("error.missing.user.id");
+	}
+
+	public static InvalidDataException emptyBuddyId()
+	{
+		return new InvalidDataException("error.missing.buddy.id");
+	}
 }
