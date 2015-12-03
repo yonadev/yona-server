@@ -27,33 +27,70 @@ class GoalConflictTest extends AbstractYonaIntegrationTest {
 				]}"""
 	def password = "John Doe"
 	def user = null;
+	def johnDoeURL
+	def johnDoeVPNLoginID
 	
 	def 'Setup - Get the gambling goal'(){
 		given:
 
 		when:
 			def response = adminService.getAllGoals()
-			response.dump();
 
 		then:
 			response.status == 200
 			response.responseData._links.self.href == adminServiceBaseURL + adminService.GOALS_PATH
 			response.responseData._embedded.goals.size() > 0
-			response.responseData._embedded.goals.containsKey('gambling')
+			response.responseData._embedded.goals.gambling != null
 	}
 	
 	def 'Setup - Create user'() {
 		when:
 			def response = appService.addUser(userCreationJSON, password)
 			
-			//Store the user data for usage later on
-			user = response.responseData;
+			if (response.status == 201)
+			{
+				johnDoeURL = appService.stripQueryString(response.responseData._links.self.href)
+				johnDoeVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
+	
+				//Store the user data for usage later on
+				user = response.responseData;
+			}
 		then:
 			response.status == 201
+			johnDoeURL?.trim()
+			johnDoeVPNLoginID?.trim()
 			
 	}
 	
-	def 'Setup - Add gambling goal'() {
-		
+	def 'Setup - Add stuff to analysis engine'() {
+		given :
+			def startTime = new Date();
+		when:
+			def response1 = analysisService.postToAnalysisEngine("""{
+					"vpnLoginID":"${johnDoeVPNLoginID}",
+					"categories": ["gambling"],
+					"url":"http://www.poker.com/1"
+					}""")
+			Thread.sleep(30000);
+			def response2 = analysisService.postToAnalysisEngine("""{
+					"vpnLoginID":"${johnDoeVPNLoginID}",
+					"categories": ["gambling"],
+					"url":"http://www.poker.com/2"
+					}""")
+		then:
+			response1.status == 200
+			response2.status == 200
+	}
+	
+	def 'Check - Get conflict message'() {
+		when:
+			def response = appService.getAnonymousMessages(johnDoeURL, password)
+			if(response.status == 200 && response.responseData._embedded.goalConflictMessages) {
+				richardQuinGoalConflictMessage1URL = response.responseData._embedded.goalConflictMessages[0]._links.self.href
+			}
+		then:
+			response.status == 200
+			response.responseData._embedded.goalConflictMessages.size() > 0
+			response.responseData._embedded.goalConflictMessages[0].hasProperty('endTime')
 	}
 }
