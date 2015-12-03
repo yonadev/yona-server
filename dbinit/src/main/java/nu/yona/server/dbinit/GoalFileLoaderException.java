@@ -1,4 +1,4 @@
-package nu.yona.server;
+package nu.yona.server.dbinit;
 
 import nu.yona.server.exceptions.YonaException;
 

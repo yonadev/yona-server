@@ -1,0 +1,33 @@
+description = 'Database initializer'
+
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:$project.ext.springBootVersion")
+		classpath("io.spring.gradle:dependency-management-plugin:0.5.3.RELEASE")
+		classpath 'net.researchgate:gradle-release:2.3.4'
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'spring-boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'net.researchgate.release'
+
+release {
+	failOnCommitNeeded = true
+	tagTemplate = 'adminservice-${version}'
+	git {
+		requireBranch = 'yd-40-changes-for-building|master'
+	}
+}
+
+dependencies {
+	compile project(":core")
+	compile("org.springframework.boot:spring-boot-starter-data-jpa")
+
+	runtime("org.hsqldb:hsqldb")
+}

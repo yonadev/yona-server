@@ -1,4 +1,4 @@
-package nu.yona.server;
+package nu.yona.server.dbinit;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -8,9 +8,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.stereotype.Service;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,8 +17,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.goals.service.GoalService;
 
-@Service
-public class GoalFileLoader implements ApplicationListener<ContextRefreshedEvent>
+@Component
+public class GoalFileLoader implements CommandLineRunner
 {
 	private static final Logger LOGGER = Logger.getLogger(GoalFileLoader.class.getName());
 
@@ -27,7 +26,7 @@ public class GoalFileLoader implements ApplicationListener<ContextRefreshedEvent
 	private GoalService goalService;
 
 	@Override
-	public void onApplicationEvent(ContextRefreshedEvent event)
+	public void run(String... args) throws Exception
 	{
 		loadGoalsFromFile();
 	}
