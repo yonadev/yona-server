@@ -85,18 +85,7 @@ public class UserController
 		}
 	}
 
-	private Optional<String> getPasswordToUse(Optional<String> password, Optional<String> tempPassword)
-	{
-		if (password.isPresent())
-		{
-			return password;
-		}
-		if (tempPassword.isPresent())
-		{
-			return tempPassword;
-		}
-		return Optional.empty();
-	}
+	
 
 	@RequestMapping(value = "{id}", method = RequestMethod.GET)
 	@ResponseBody
@@ -222,6 +211,19 @@ public class UserController
 			userService.deleteUser(id, Optional.ofNullable(messageStr));
 			return null;
 		});
+	}
+	
+	private Optional<String> getPasswordToUse(Optional<String> password, Optional<String> tempPassword)
+	{
+		if (password.isPresent())
+		{
+			return password;
+		}
+		if (tempPassword.isPresent())
+		{
+			return tempPassword;
+		}
+		return Optional.empty();
 	}
 
 	private HttpEntity<UserResource> createResponse(UserDTO user, boolean includePrivateData, HttpStatus status)

@@ -23,7 +23,7 @@ public abstract class BuddyMessageDTO extends MessageDTO
 		super(id, creationTime);
 		if (user == null)
 		{
-			throw new IllegalArgumentException("user cannot be null");
+			throw BuddyServiceException.userCannotBeNull();
 		}
 		this.user = user;
 		this.nickname = nickname;

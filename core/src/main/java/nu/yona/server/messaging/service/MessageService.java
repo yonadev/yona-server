@@ -36,73 +36,77 @@ public class MessageService
 
 	public Page<MessageDTO> getDirectMessages(UUID userID, Pageable pageable)
 	{
-		UserDTO user = userService.getPrivateUser(userID);
-		user.assertMobileNumberConfirmed();
+		UserDTO user = userService.getPrivateValidatedUser(userID);
+		
 		MessageSource messageSource = getNamedMessageSource(user);
 		return wrapAllMessagesAsDTOs(user, messageSource, pageable);
 	}
 
 	public MessageDTO getDirectMessage(UUID userID, UUID messageID)
 	{
-		UserDTO user = userService.getPrivateUser(userID);
-		user.assertMobileNumberConfirmed();
+		UserDTO user = userService.getPrivateValidatedUser(userID);
+		
 		MessageSource messageSource = getNamedMessageSource(user);
 		return dtoManager.createInstance(user, messageSource.getMessage(messageID));
 	}
 
 	public Page<MessageDTO> getAnonymousMessages(UUID userID, Pageable pageable)
 	{
-		UserDTO user = userService.getPrivateUser(userID);
-		user.assertMobileNumberConfirmed();
+		UserDTO user = userService.getPrivateValidatedUser(userID);
+		
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return wrapAllMessagesAsDTOs(user, messageSource, pageable);
 	}
 
 	public MessageDTO getAnonymousMessage(UUID userID, UUID messageID)
 	{
-		UserDTO user = userService.getPrivateUser(userID);
-		user.assertMobileNumberConfirmed();
+		UserDTO user = userService.getPrivateValidatedUser(userID);
+		
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return dtoManager.createInstance(user, messageSource.getMessage(messageID));
 	}
 
 	public MessageActionDTO handleMessageAction(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
 	{
-		UserDTO user = userService.getPrivateUser(userID);
-		user.assertMobileNumberConfirmed();
+		UserDTO user = userService.getPrivateValidatedUser(userID);
+		
 		MessageSource messageSource = getNamedMessageSource(user);
 		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
 	}
 
 	public MessageActionDTO handleAnonymousMessageAction(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
 	{
-		UserDTO user = userService.getPrivateUser(userID);
-		user.assertMobileNumberConfirmed();
+		UserDTO user = userService.getPrivateValidatedUser(userID);
+		
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
 	}
 
 	public MessageActionDTO deleteMessage(UUID userID, UUID id)
 	{
-		UserDTO user = userService.getPrivateUser(userID);
-		user.assertMobileNumberConfirmed();
+		UserDTO user = userService.getPrivateValidatedUser(userID);
+		
 		MessageSource messageSource = getNamedMessageSource(user);
 		Message message = messageSource.getMessage(id);
+		
 		MessageDestination destination = MessageDestination.getRepository()
 				.findOne(user.getPrivateData().getNamedMessageDestinationID());
 		deleteMessage(message, destination);
+		
 		return new MessageActionDTO(Collections.singletonMap("status", "done"));
 	}
 
 	public MessageActionDTO deleteAnonymousMessage(UUID userID, UUID id)
 	{
-		UserDTO user = userService.getPrivateUser(userID);
-		user.assertMobileNumberConfirmed();
+		UserDTO user = userService.getPrivateValidatedUser(userID);
+		
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		Message message = messageSource.getMessage(id);
+		
 		MessageDestination destination = MessageDestination.getRepository()
 				.findOne(user.getPrivateData().getAnonymousMessageDestinationID());
 		deleteMessage(message, destination);
+		
 		return new MessageActionDTO(Collections.singletonMap("status", "done"));
 	}
 
@@ -181,7 +185,8 @@ public class MessageService
 					return managers.get(messageClass);
 				}
 			}
-			throw new IllegalArgumentException("No DTO manager registered for class " + messageEntity.getClass());
+			
+			throw MessageServiceException.noDtoManagerRegistered(messageEntity.getClass());
 		}
 	}
 }

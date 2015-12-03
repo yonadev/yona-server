@@ -14,6 +14,7 @@ import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.service.GoalServiceException;
 import nu.yona.server.messaging.entities.Message;
 
 @Entity
@@ -24,7 +25,7 @@ public class GoalConflictMessage extends Message
 		ANNOUNCED, DISCLOSE_REQUESTED, DISCLOSE_ACCEPTED, DISCLOSE_REJECTED
 	}
 
-	/*
+	/**
 	 * If this is a message sent to a buddy, this refers to the self goal conflict message posted at the user having the goal.
 	 * Otherwise {@literal null}.
 	 */
@@ -124,7 +125,7 @@ public class GoalConflictMessage extends Message
 	{
 		if (origin == null)
 		{
-			throw new IllegalArgumentException("Origin can not be null");
+			throw GoalServiceException.originCannotBeNull();
 		}
 
 		assert origin.getID() != null;

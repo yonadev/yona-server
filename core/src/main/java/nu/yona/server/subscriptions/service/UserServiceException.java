@@ -32,4 +32,24 @@ public class UserServiceException extends YonaException
 	{
 		return new UserServiceException("error.missing.password.header", Constants.PASSWORD_HEADER);
 	}
+
+	public static UserServiceException usernotCreatedOnBuddyRequest(UUID id)
+	{
+		return new UserServiceException("error.user.not.created.on.buddy.request", id);
+	}
+
+	public static UserServiceException cannotUpdateBecauseCreatedOnBuddyRequest(UUID id)
+	{
+		return new UserServiceException("error.user.cannot.update.because.created.on.buddy.request", id);
+	}
+
+	public static UserServiceException missingOrNullUser()
+	{
+		return new UserServiceException("error.user.missing.or.null");
+	}
+
+	public static UserServiceException missingMobileNumber()
+	{
+		return new UserServiceException("error.user.missing.mobile.number");
+	}
 }

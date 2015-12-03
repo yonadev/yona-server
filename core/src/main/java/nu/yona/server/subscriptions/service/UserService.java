@@ -48,13 +48,16 @@ public class UserService
 	@Autowired
 	BuddyService buddyService;
 
+	@Autowired
+	UserServiceTempEncryptionContextExecutor tempEncryptionContextExecutor;
+
 	// TODO: Do we need this? Currently unused.
 	@Transactional
 	public UserDTO getUser(String mobileNumber)
 	{
 		if (mobileNumber == null)
 		{
-			throw new IllegalArgumentException("mobileNumber cannot be null");
+			throw UserServiceException.missingMobileNumber();
 		}
 
 		User userEntity = findUserByMobileNumber(mobileNumber);
@@ -64,19 +67,25 @@ public class UserService
 	@Transactional
 	public boolean canAccessPrivateData(UUID id)
 	{
-		return getEntityByID(id).canAccessPrivateData();
+		return getUserByID(id).canAccessPrivateData();
 	}
 
 	@Transactional
 	public UserDTO getPublicUser(UUID id)
 	{
-		return UserDTO.createInstance(getEntityByID(id));
+		return UserDTO.createInstance(getUserByID(id));
 	}
 
 	@Transactional
 	public UserDTO getPrivateUser(UUID id)
 	{
-		return UserDTO.createInstanceWithPrivateData(getEntityByID(id));
+		return UserDTO.createInstanceWithPrivateData(getUserByID(id));
+	}
+
+	@Transactional
+	public UserDTO getPrivateValidatedUser(UUID id)
+	{
+		return UserDTO.createInstanceWithPrivateData(getValidatedUserbyID(id));
 	}
 
 	@Transactional
@@ -100,22 +109,10 @@ public class UserService
 		return userDTO;
 	}
 
-	private void sendMobileNumberConfirmationMessage(User userEntity, String messageTemplateName)
-	{
-		String confirmationCode = userEntity.getConfirmationCode();
-		if (confirmationCode == null)
-		{
-			throw MobileNumberConfirmationException.confirmationCodeNotSet();
-		}
-		Map<String, Object> templateParams = new HashMap<String, Object>();
-		templateParams.put("confirmationCode", confirmationCode);
-		smsService.send(userEntity.getMobileNumber(), messageTemplateName, templateParams);
-	}
-
 	@Transactional
 	public UserDTO confirmMobileNumber(UUID userID, String code)
 	{
-		User userEntity = getEntityByID(userID);
+		User userEntity = getUserByID(userID);
 
 		if (userEntity.getConfirmationCode() == null)
 		{
@@ -139,25 +136,28 @@ public class UserService
 		return UserDTO.createInstance(userEntity);
 	}
 
-	@Autowired
-	UserServiceTempEncryptionContextExecutor tempEncryptionContextExecutor;
-
 	@Transactional
 	public User addUserCreatedOnBuddyRequest(UserDTO buddyUser, String tempPassword)
 	{
+		if (buddyUser == null)
+		{
+			throw UserServiceException.missingOrNullUser();
+		}
+
 		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null,
 				() -> tempEncryptionContextExecutor.addUserCreatedOnBuddyRequest(buddyUser).getID());
-		return getEntityByID(savedUserID);
+
+		return getUserByID(savedUserID);
 	}
 
 	@Transactional
 	public UserDTO updateUser(UUID id, UserDTO user)
 	{
-		User originalUserEntity = getEntityByID(id);
+		User originalUserEntity = getUserByID(id);
 		if (originalUserEntity.isCreatedOnBuddyRequest())
 		{
 			// security check: should not be able to update a user created on buddy request with its temp password
-			throw new IllegalArgumentException("User is created on buddy request, use other method");
+			throw UserServiceException.cannotUpdateBecauseCreatedOnBuddyRequest(id);
 		}
 
 		boolean isMobileNumberDifferent = !user.getMobileNumber().equals(originalUserEntity.getMobileNumber());
@@ -186,25 +186,14 @@ public class UserService
 				.setConfirmationCode(CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
 	}
 
-	static User findUserByMobileNumber(String mobileNumber)
-	{
-		User userEntity;
-		userEntity = User.getRepository().findByMobileNumber(mobileNumber);
-		if (userEntity == null)
-		{
-			throw UserServiceException.notFoundByMobileNumber(mobileNumber);
-		}
-		return userEntity;
-	}
-
 	@Transactional
 	public UserDTO updateUserCreatedOnBuddyRequest(UUID id, String tempPassword, UserDTO userResource)
 	{
-		User originalUserEntity = getEntityByID(id);
+		User originalUserEntity = getUserByID(id);
 		if (!originalUserEntity.isCreatedOnBuddyRequest())
 		{
 			// security check: should not be able to replace the password on an existing user
-			throw new IllegalArgumentException("User is not created on buddy request");
+			throw UserServiceException.usernotCreatedOnBuddyRequest(id);
 		}
 
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
@@ -216,6 +205,172 @@ public class UserService
 		}
 		sendMobileNumberConfirmationMessage(savedUserEntity, SmsService.TemplateName_AddUserNumberConfirmation);
 		return userDTO;
+	}
+
+	@Transactional
+	public void deleteUser(UUID id, Optional<String> message)
+	{
+		User userEntity = getUserByID(id);
+
+		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
+				DropBuddyReason.USER_ACCOUNT_DELETED));
+
+		UserAnonymized userAnonymized = userEntity.getAnonymized();
+		UUID vpnLoginID = userAnonymized.getVPNLoginID();
+		UserAnonymized.getRepository().delete(userAnonymized);
+		MessageSource namedMessageSource = userEntity.getNamedMessageSource();
+		MessageSource anonymousMessageSource = userEntity.getAnonymousMessageSource();
+		MessageSource.getRepository().delete(anonymousMessageSource);
+		MessageSource.getRepository().delete(namedMessageSource);
+		User.getRepository().delete(userEntity);
+
+		ldapUserService.deleteVPNAccount(vpnLoginID.toString());
+	}
+
+	public void addBuddy(UserDTO user, BuddyDTO buddy)
+	{
+		if (user == null || user.getID() == null)
+		{
+			throw InvalidDataException.emptyUserId();
+		}
+
+		if (buddy == null || buddy.getID() == null)
+		{
+			throw InvalidDataException.emptyBuddyId();
+		}
+
+		User userEntity = getUserByID(user.getID());
+		userEntity.assertMobileNumberConfirmed();
+
+		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getID());
+		userEntity.addBuddy(buddyEntity);
+
+		User.getRepository().save(userEntity);
+	}
+
+	public String generatePassword()
+	{
+		return CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength());
+	}
+
+	@Transactional
+	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID userID, String userPassword, String userSecret)
+	{
+		User userEntity = getValidatedUserbyID(userID);
+
+		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(userPassword);
+		newDeviceRequestEntity.encryptUserPassword(userSecret);
+
+		boolean isUpdatingExistingRequest = userEntity.getNewDeviceRequest() != null;
+		userEntity.setNewDeviceRequest(newDeviceRequestEntity);
+
+		return NewDeviceRequestDTO.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest(),
+				isUpdatingExistingRequest);
+	}
+
+	@Transactional
+	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID userID, String userSecret)
+	{
+		User userEntity = getValidatedUserbyID(userID);
+		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
+
+		if (newDeviceRequestEntity == null)
+		{
+			throw DeviceRequestException.noDeviceRequestPresent(userID);
+		}
+
+		if (isExpired(newDeviceRequestEntity))
+		{
+			throw DeviceRequestException.deviceRequestExpired(userID);
+		}
+
+		if (StringUtils.isBlank(userSecret))
+		{
+			return NewDeviceRequestDTO.createInstance(userEntity.getNewDeviceRequest());
+		}
+		else
+		{
+			newDeviceRequestEntity.decryptUserPassword(userSecret);
+			return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
+		}
+	}
+
+	@Transactional
+	public void clearNewDeviceRequestForUser(UUID userID)
+	{
+		User userEntity = getValidatedUserbyID(userID);
+
+		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
+		if (existingNewDeviceRequestEntity != null)
+		{
+			userEntity.setNewDeviceRequest(null);
+			User.getRepository().save(userEntity);
+		}
+	}
+
+	static User findUserByMobileNumber(String mobileNumber)
+	{
+		User userEntity = User.getRepository().findByMobileNumber(mobileNumber);
+		if (userEntity == null)
+		{
+			throw UserServiceException.notFoundByMobileNumber(mobileNumber);
+		}
+		return userEntity;
+	}
+
+	public static String getPassword(Optional<String> password)
+	{
+		return password.orElseThrow(() -> UserServiceException.missingPasswordHeader());
+	}
+
+	/**
+	 * This method returns a user entity. The passed on Id is checked whether or not it is set. it also checks that the return
+	 * value is always the user entity. If not an exception is thrown.
+	 * 
+	 * @param id the ID of the user
+	 * @return The user entity (never null)
+	 */
+	public User getUserByID(UUID id)
+	{
+		if (id == null)
+		{
+			throw InvalidDataException.emptyUserId();
+		}
+
+		User entity = User.getRepository().findOne(id);
+
+		if (entity == null)
+		{
+			throw UserServiceException.notFoundByID(id);
+		}
+
+		return entity;
+	}
+
+	/**
+	 * This method returns a validated user entity. A validated user means a user with a confirmed mobile number.
+	 * 
+	 * @param id The id of the user.
+	 * @return The validated user entity. An exception is thrown is something is missing.
+	 */
+	public User getValidatedUserbyID(UUID id)
+	{
+		User retVal = getUserByID(id);
+		retVal.assertMobileNumberConfirmed();
+
+		return retVal;
+	}
+
+	private void sendMobileNumberConfirmationMessage(User userEntity, String messageTemplateName)
+	{
+		String confirmationCode = userEntity.getConfirmationCode();
+		if (confirmationCode == null)
+		{
+			throw MobileNumberConfirmationException.confirmationCodeNotSet();
+		}
+		Map<String, Object> templateParams = new HashMap<String, Object>();
+		templateParams.put("confirmationCode", confirmationCode);
+		smsService.send(userEntity.getMobileNumber(), messageTemplateName, templateParams);
 	}
 
 	private EncryptedUserData retrieveUserEncryptedData(User originalUserEntity, String password)
@@ -238,34 +393,15 @@ public class UserService
 		return User.getRepository().save(retrievedEntitySet.userEntity);
 	}
 
-	@Transactional
-	public void deleteUser(UUID id, Optional<String> message)
+	private boolean isExpired(NewDeviceRequest newDeviceRequestEntity)
 	{
-		User userEntity = getEntityByID(id);
-
-		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
-				DropBuddyReason.USER_ACCOUNT_DELETED));
-
-		UserAnonymized userAnonymized = userEntity.getAnonymized();
-		UUID vpnLoginID = userAnonymized.getVPNLoginID();
-		UserAnonymized.getRepository().delete(userAnonymized);
-		MessageSource namedMessageSource = userEntity.getNamedMessageSource();
-		MessageSource anonymousMessageSource = userEntity.getAnonymousMessageSource();
-		MessageSource.getRepository().delete(anonymousMessageSource);
-		MessageSource.getRepository().delete(namedMessageSource);
-		User.getRepository().delete(userEntity);
-
-		ldapUserService.deleteVPNAccount(vpnLoginID.toString());
+		Date creationTime = newDeviceRequestEntity.getCreationTime();
+		return (creationTime.getTime() + getExpirationIntervalMillis() < System.currentTimeMillis());
 	}
 
-	private User getEntityByID(UUID id)
+	private long getExpirationIntervalMillis()
 	{
-		User entity = User.getRepository().findOne(id);
-		if (entity == null)
-		{
-			throw UserServiceException.notFoundByID(id);
-		}
-		return entity;
+		return yonaProperties.getSecurity().getNewDeviceRequestExpirationDays() * 24 * 60 * 60 * 1000;
 	}
 
 	private void validateUserFields(UserDTO userResource)
@@ -291,89 +427,7 @@ public class UserService
 		}
 	}
 
-	public static String getPassword(Optional<String> password)
-	{
-		return password.orElseThrow(() -> UserServiceException.missingPasswordHeader());
-	}
-
-	public void addBuddy(UserDTO user, BuddyDTO buddy)
-	{
-		User userEntity = getEntityByID(user.getID());
-		userEntity.assertMobileNumberConfirmed();
-		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getID());
-		userEntity.addBuddy(buddyEntity);
-		User.getRepository().save(userEntity);
-	}
-
-	public String generatePassword()
-	{
-		return CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength());
-	}
-
-	@Transactional
-	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID userID, String userPassword, String userSecret)
-	{
-		User userEntity = getEntityByID(userID);
-		userEntity.assertMobileNumberConfirmed();
-		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(userPassword);
-		newDeviceRequestEntity.encryptUserPassword(userSecret);
-		boolean isUpdatingExistingRequest = userEntity.getNewDeviceRequest() != null;
-		userEntity.setNewDeviceRequest(newDeviceRequestEntity);
-		return NewDeviceRequestDTO.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest(),
-				isUpdatingExistingRequest);
-	}
-
-	@Transactional
-	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID userID, String userSecret)
-	{
-		User userEntity = getEntityByID(userID);
-		userEntity.assertMobileNumberConfirmed();
-		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
-		if (newDeviceRequestEntity == null)
-		{
-			throw DeviceRequestException.noDeviceRequestPresent(userID);
-		}
-		if (isExpired(newDeviceRequestEntity))
-		{
-			throw DeviceRequestException.deviceRequestExpired(userID);
-		}
-
-		if (StringUtils.isBlank(userSecret))
-		{
-			return NewDeviceRequestDTO.createInstance(userEntity.getNewDeviceRequest());
-		}
-		else
-		{
-			newDeviceRequestEntity.decryptUserPassword(userSecret);
-			return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
-		}
-	}
-
-	private boolean isExpired(NewDeviceRequest newDeviceRequestEntity)
-	{
-		Date creationTime = newDeviceRequestEntity.getCreationTime();
-		return (creationTime.getTime() + getExpirationIntervalMillis() < System.currentTimeMillis());
-	}
-
-	private long getExpirationIntervalMillis()
-	{
-		return yonaProperties.getSecurity().getNewDeviceRequestExpirationDays() * 24 * 60 * 60 * 1000;
-	}
-
-	@Transactional
-	public void clearNewDeviceRequestForUser(UUID userID)
-	{
-		User userEntity = getEntityByID(userID);
-		userEntity.assertMobileNumberConfirmed();
-		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
-		if (existingNewDeviceRequestEntity != null)
-		{
-			userEntity.setNewDeviceRequest(null);
-			User.getRepository().save(userEntity);
-		}
-	}
-
-	/*
+	/**
 	 * Gathers all entities that contain encrypted data from the database.
 	 */
 	static class EncryptedUserData

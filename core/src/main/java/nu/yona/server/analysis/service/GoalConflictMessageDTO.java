@@ -4,8 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
-import java.util.Date;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
+import nu.yona.server.goals.service.GoalServiceException;
 import nu.yona.server.messaging.entities.DiscloseRequestMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -40,14 +41,16 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private final String goalName;
 	private final String url;
 	private Status status;
+	private final Date endTime;
 
-	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, String goalName, String url, Status status)
+	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, String goalName, String url, Status status, Date endTime)
 	{
 		super(id, creationTime);
 		this.nickname = nickname;
 		this.goalName = goalName;
 		this.url = url;
 		this.status = status;
+		this.endTime = endTime;
 	}
 
 	@Override
@@ -85,11 +88,21 @@ public class GoalConflictMessageDTO extends MessageDTO
 	{
 		return url;
 	}
+	
+	/**
+	 * This method gets the end time of the conflict.
+	 * 
+	 * @return The end time of the conflict.
+	 */
+	public Date getEndTime()
+	{
+		return endTime;
+	}
 
 	public static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, String nickname)
 	{
 		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), nickname, messageEntity.getGoal().getName(),
-				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null, messageEntity.getStatus());
+				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null, messageEntity.getStatus(), messageEntity.getEndTime());
 	}
 
 	@Component
@@ -123,7 +136,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 				case REQUEST_DISCLOSURE:
 					return handleAction_RequestDisclosure(actingUser, (GoalConflictMessage) messageEntity, requestPayload);
 				default:
-					throw new IllegalArgumentException("Action '" + action + "' is not supported");
+					throw GoalServiceException.actionNotSupported(action);
 			}
 		}
 
