@@ -25,7 +25,7 @@ public class GoalConflictMessage extends Message
 		ANNOUNCED, DISCLOSE_REQUESTED, DISCLOSE_ACCEPTED, DISCLOSE_REJECTED
 	}
 
-	/*
+	/**
 	 * If this is a message sent to a buddy, this refers to the self goal conflict message posted at the user having the goal.
 	 * Otherwise {@literal null}.
 	 */

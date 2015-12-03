@@ -41,14 +41,16 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private final String goalName;
 	private final String url;
 	private Status status;
+	private final Date endTime;
 
-	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, String goalName, String url, Status status)
+	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, String goalName, String url, Status status, Date endTime)
 	{
 		super(id, creationTime);
 		this.nickname = nickname;
 		this.goalName = goalName;
 		this.url = url;
 		this.status = status;
+		this.endTime = endTime;
 	}
 
 	@Override
@@ -86,11 +88,21 @@ public class GoalConflictMessageDTO extends MessageDTO
 	{
 		return url;
 	}
+	
+	/**
+	 * This method gets the end time of the conflict.
+	 * 
+	 * @return The end time of the conflict.
+	 */
+	public Date getEndTime()
+	{
+		return endTime;
+	}
 
 	public static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, String nickname)
 	{
 		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), nickname, messageEntity.getGoal().getName(),
-				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null, messageEntity.getStatus());
+				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null, messageEntity.getStatus(), messageEntity.getEndTime());
 	}
 
 	@Component
