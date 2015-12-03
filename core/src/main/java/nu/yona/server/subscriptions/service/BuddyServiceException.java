@@ -43,4 +43,14 @@ public class BuddyServiceException extends YonaException
 	{
 		return new BuddyServiceException("error.buddy.only.twoway.buddies.allowed");
 	}
+
+	public static BuddyServiceException requestingUserBuddyIsNull()
+	{
+		return new BuddyServiceException("error.buddy.requesting.user.buddy.is.null");
+	}
+
+	public static BuddyServiceException acceptingUserIsNull()
+	{
+		return new BuddyServiceException("error.buddy.accepting.user.is.null");
+	}
 }

@@ -81,6 +81,12 @@ public class UserService
 	{
 		return UserDTO.createInstanceWithPrivateData(getUserByIDAndGarantueed(id));
 	}
+	
+	@Transactional
+	public UserDTO getPrivateValidatedUser(UUID id)
+	{
+		return UserDTO.createInstanceWithPrivateData(getValidatedUserbyId(id));
+	}
 
 	@Transactional
 	public UserDTO addUser(UserDTO user)
@@ -324,7 +330,7 @@ public class UserService
 	 * @param id the ID of the user
 	 * @return The user entity
 	 */
-	private User getUserByIDAndGarantueed(UUID id)
+	public User getUserByIDAndGarantueed(UUID id)
 	{
 		if (id == null)
 		{
@@ -347,7 +353,7 @@ public class UserService
 	 * @param id The id of the user.
 	 * @return The validated user entity. An exception is thrown is something is missing.
 	 */
-	private User getValidatedUserbyId(UUID id)
+	public User getValidatedUserbyId(UUID id)
 	{
 		User retVal = getUserByIDAndGarantueed(id);
 		retVal.assertMobileNumberConfirmed();

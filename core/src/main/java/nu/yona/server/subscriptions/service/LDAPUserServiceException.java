@@ -18,4 +18,14 @@ public class LDAPUserServiceException extends YonaException
 	{
 		return new LDAPUserServiceException("error.ldapuser.action.unknown", action);
 	}
+
+	public static LDAPUserServiceException emptyVpnLoginId()
+	{
+		return new LDAPUserServiceException("error.ldapuser.empty.vpn.login.id");
+	}
+
+	public static LDAPUserServiceException emptyVpnPassword()
+	{
+		return new LDAPUserServiceException("error.ldapuser.empty.vpn.password");
+	}
 }
