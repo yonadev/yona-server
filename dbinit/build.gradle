@@ -20,7 +20,7 @@ apply plugin: 'docker'
 apply plugin: 'net.researchgate.release'
 
 jar {
-	baseName = 'DatabaseInitializer.jar'
+	baseName = 'DatabaseInitializer'
 }
 
 release {
