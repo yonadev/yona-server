@@ -45,7 +45,7 @@ kibana:
 ###########################################
 
 hsqldb:
-  image: yonadev/yonahsqldb
+  image: yonadev/yonahsqldb:0.0.8-SNAPSHOT
   expose:
     - "9001"
 
