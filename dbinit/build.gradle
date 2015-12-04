@@ -39,7 +39,7 @@ group = 'yonadev'
 
 task buildDocker(type: Docker, dependsOn: build) {
 	push = true
-	applicationName = "yonahsqldb"
+	applicationName = "yonahsqldb-" + jar.version
 	dockerfile = file('src/main/docker/Dockerfile')
 	doFirst {
 		copy {
