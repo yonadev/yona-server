@@ -85,8 +85,6 @@ public class UserController
 		}
 	}
 
-	
-
 	@RequestMapping(value = "{id}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getPublicUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
@@ -212,7 +210,7 @@ public class UserController
 			return null;
 		});
 	}
-	
+
 	private Optional<String> getPasswordToUse(Optional<String> password, Optional<String> tempPassword)
 	{
 		if (password.isPresent())
@@ -245,6 +243,13 @@ public class UserController
 	{
 		ControllerLinkBuilder linkBuilder = linkTo(
 				methodOn(UserController.class).updateUser(Optional.empty(), tempPassword, userID, null));
+		return linkBuilder.withSelfRel();
+	}
+
+	private static Link getConfirmMobileLink(UUID userID)
+	{
+		ControllerLinkBuilder linkBuilder = linkTo(
+				methodOn(UserController.class).confirmMobileNumber(Optional.empty(), userID, null));
 		return linkBuilder.withSelfRel();
 	}
 
@@ -304,6 +309,11 @@ public class UserController
 		{
 			UserResource userResource = instantiateResource(user);
 			addSelfLink(userResource, includePrivateData);
+			if (!user.isMobileNumberConfirmed())
+			{
+				// The mobile number is not yet confirmed. So we can add the direct
+				addConfirmMobileLink(userResource, user.getConfirmationCode());
+			}
 			return userResource;
 		}
 
@@ -316,6 +326,11 @@ public class UserController
 		private static void addSelfLink(Resource<UserDTO> userResource, boolean includePrivateData)
 		{
 			userResource.add(UserController.getUserSelfLink(userResource.getContent().getID(), includePrivateData));
+		}
+
+		private static void addConfirmMobileLink(Resource<UserDTO> userResource, String confirmationCode)
+		{
+			userResource.add(UserController.getConfirmMobileLink(userResource.getContent().getID()));
 		}
 	}
 }
