@@ -1,19 +1,11 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.AbstractYonaIntegrationTest
 import spock.lang.Shared
-import spock.lang.Specification
 
-class DisclosureTest extends Specification {
+class DisclosureTest extends AbstractYonaIntegrationTest {
 
-	def adminServiceBaseURL = System.properties.'yona.adminservice.url'
-	def YonaServer adminService = new YonaServer(adminServiceBaseURL)
-
-	def analysisServiceBaseURL = System.properties.'yona.analysisservice.url'
-	def YonaServer analysisService = new YonaServer(analysisServiceBaseURL)
-
-	def appServiceBaseURL = System.properties.'yona.appservice.url'
-	def YonaServer appService = new YonaServer(appServiceBaseURL)
 	@Shared
 	def timestamp = YonaServer.getTimeStamp()
 
@@ -280,10 +272,12 @@ class DisclosureTest extends Specification {
 			response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
 			response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
 			response.responseData._embedded.goalConflictMessages[0].url == "http://www.poker.com"
+			response.responseData._embedded.goalConflictMessages[0].endTime != null
 			!response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure
 			response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
 			response.responseData._embedded.goalConflictMessages[1].goalName == "news"
 			response.responseData._embedded.goalConflictMessages[1].url == "http://www.refdag.nl"
+			response.responseData._embedded.goalConflictMessages[].endTime != null
 			!response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure
 	}
 
