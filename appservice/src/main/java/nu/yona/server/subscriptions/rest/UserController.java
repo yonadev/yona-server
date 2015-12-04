@@ -123,8 +123,26 @@ public class UserController
 			@RequestBody UserDTO user)
 	{
 		Optional<String> overwriteUserConfirmationCode = Optional.ofNullable(overwriteUserConfirmationCodeStr);
-		return CryptoSession.execute(password,
-				() -> createResponse(userService.addUser(user, overwriteUserConfirmationCode), true, HttpStatus.CREATED));
+		if (overwriteUserConfirmationCode.isPresent())
+		{
+			return bruteForceAttemptService.executeAttempt(getAddUserLinkBuilder().toUri(),
+					yonaProperties.getSms().getMobileNumberConfirmationMaxAttempts(),
+					() -> CryptoSession.execute(password,
+							() -> createResponse(userService.addUser(user, overwriteUserConfirmationCode), true,
+									HttpStatus.CREATED)),
+					user.getMobileNumber());
+		}
+		else
+		{
+			return CryptoSession.execute(password,
+					() -> createResponse(userService.addUser(user, Optional.empty()), true, HttpStatus.CREATED));
+		}
+	}
+
+	static ControllerLinkBuilder getAddUserLinkBuilder()
+	{
+		UserController methodOn = methodOn(UserController.class);
+		return linkTo(methodOn.addUser(Optional.empty(), null, null));
 	}
 
 	private void checkPassword(Optional<String> password, UUID userID)
@@ -325,6 +343,12 @@ public class UserController
 
 		private static void addSelfLink(Resource<UserDTO> userResource, boolean includePrivateData)
 		{
+			if (userResource.getContent().getID() == null)
+			{
+				// removed user
+				return;
+			}
+
 			userResource.add(UserController.getUserSelfLink(userResource.getContent().getID(), includePrivateData));
 		}
 	}

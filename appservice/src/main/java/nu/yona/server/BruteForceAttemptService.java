@@ -37,15 +37,15 @@ public class BruteForceAttemptService
 				});
 	}
 
-	public void attemptSucceeded(URI uri)
+	public void attemptSucceeded(URI uri, String... otherKeys)
 	{
-		String key = getKey(uri);
+		String key = getKey(uri, otherKeys);
 		attemptsCache.invalidate(key);
 	}
 
-	public void attemptFailed(URI uri)
+	public void attemptFailed(URI uri, String... otherKeys)
 	{
-		String key = getKey(uri);
+		String key = getKey(uri, otherKeys);
 		int attempts = 0;
 		try
 		{
@@ -59,9 +59,9 @@ public class BruteForceAttemptService
 		attemptsCache.put(key, attempts);
 	}
 
-	public boolean isBlocked(URI uri, int maxAttempts)
+	public boolean isBlocked(URI uri, int maxAttempts, String... otherKeys)
 	{
-		String key = getKey(uri);
+		String key = getKey(uri, otherKeys);
 		try
 		{
 			return attemptsCache.get(key) >= maxAttempts;
@@ -72,23 +72,23 @@ public class BruteForceAttemptService
 		}
 	}
 
-	private String getKey(URI uri)
+	private String getKey(URI uri, String... otherKeys)
 	{
-		String key = uri.toString();
+		String key = uri.toString() + String.join("~", otherKeys);
 		return key;
 	}
 
-	public <T> T executeAttempt(URI uri, int maxAttempts, Supplier<T> supplier)
+	public <T> T executeAttempt(URI uri, int maxAttempts, Supplier<T> supplier, String... otherKeys)
 	{
-		throwIfBlocked(uri, maxAttempts);
+		throwIfBlocked(uri, maxAttempts, otherKeys);
 
-		T result = attemptExecution(uri, supplier);
+		T result = attemptExecution(uri, supplier, otherKeys);
 
-		attemptSucceeded(uri);
+		attemptSucceeded(uri, otherKeys);
 		return result;
 	}
 
-	private <T> T attemptExecution(URI uri, Supplier<T> supplier)
+	private <T> T attemptExecution(URI uri, Supplier<T> supplier, String... otherKeys)
 	{
 		try
 		{
@@ -96,14 +96,14 @@ public class BruteForceAttemptService
 		}
 		catch (RuntimeException e)
 		{
-			attemptFailed(uri);
+			attemptFailed(uri, otherKeys);
 			throw e;
 		}
 	}
 
-	public void throwIfBlocked(URI uri, int maxAttempts)
+	public void throwIfBlocked(URI uri, int maxAttempts, String... otherKeys)
 	{
-		if (isBlocked(uri, maxAttempts))
+		if (isBlocked(uri, maxAttempts, otherKeys))
 		{
 			throw BruteForceException.tooManyAttempts(uri);
 		}

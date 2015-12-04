@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -107,7 +108,11 @@ public class UserService
 	{
 		validateUserFields(user);
 
-		handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode);
+		// use a separate transaction because in the top transaction we insert a user with the same unique key
+		transactionHelper.executeInNewTransaction(() -> {
+			handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode);
+			return null;
+		});
 
 		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
 
@@ -178,8 +183,7 @@ public class UserService
 		{
 			throw MobileNumberConfirmationException.confirmationCodeMismatch();
 		}
-		existingUserEntity.setUserOverwritten();
-		User.getRepository().save(existingUserEntity);
+		User.getRepository().delete(existingUserEntity);
 	}
 
 	private void sendMobileNumberConfirmationMessage(User userEntity, String messageTemplateName)
@@ -222,14 +226,28 @@ public class UserService
 	}
 
 	@Autowired
-	UserServiceTempEncryptionContextExecutor tempEncryptionContextExecutor;
+	TransactionHelper transactionHelper;
 
 	@Transactional
 	public User addUserCreatedOnBuddyRequest(UserDTO buddyUser, String tempPassword)
 	{
-		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null,
-				() -> tempEncryptionContextExecutor.addUserCreatedOnBuddyRequest(buddyUser).getID());
+		// use a separate transaction to commit within the crypto session
+		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null, () -> transactionHelper
+				.executeInNewTransaction(() -> addUserCreatedOnBuddyRequestInSubTransaction(buddyUser).getID()));
 		return getEntityByID(savedUserID);
+	}
+
+	private User addUserCreatedOnBuddyRequestInSubTransaction(UserDTO buddyUserResource)
+	{
+		User newUser = User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
+				buddyUserResource.getPrivateData().getNickname(), buddyUserResource.getMobileNumber(),
+				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet(),
+				Collections.emptySet());
+		newUser.setIsCreatedOnBuddyRequest();
+		setUserUnconfirmedWithNewConfirmationCode(newUser);
+		User savedUser = User.getRepository().save(newUser);
+		ldapUserService.createVPNAccount(savedUser.getVPNLoginID().toString(), savedUser.getVPNPassword());
+		return savedUser;
 	}
 
 	@Transactional
@@ -302,8 +320,20 @@ public class UserService
 
 	private EncryptedUserData retrieveUserEncryptedData(User originalUserEntity, String password)
 	{
+		// use a separate transaction to read within the crypto session
 		return CryptoSession.execute(Optional.of(password), () -> canAccessPrivateData(originalUserEntity.getID()),
-				() -> tempEncryptionContextExecutor.retrieveUserEncryptedData(originalUserEntity));
+				() -> transactionHelper
+						.executeInNewTransaction(() -> retrieveUserEncryptedDataInSubTransaction(originalUserEntity)));
+	}
+
+	private EncryptedUserData retrieveUserEncryptedDataInSubTransaction(User originalUserEntity)
+	{
+		MessageSource namedMessageSource = originalUserEntity.getNamedMessageSource();
+		MessageSource anonymousMessageSource = originalUserEntity.getAnonymousMessageSource();
+		EncryptedUserData userEncryptedData = new EncryptedUserData(originalUserEntity, namedMessageSource,
+				anonymousMessageSource);
+		userEncryptedData.loadLazyEncryptedData();
+		return userEncryptedData;
 	}
 
 	private User saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDTO userResource)
