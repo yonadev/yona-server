@@ -19,7 +19,10 @@ apply plugin: 'io.spring.dependency-management'
 apply plugin: 'docker'
 apply plugin: 'net.researchgate.release'
 
-jar.archiveName = "DatabaseInitializer.jar"
+jar {
+	baseName = 'DatabaseInitializer.jar'
+}
+
 release {
 	failOnCommitNeeded = true
 	tagTemplate = 'adminservice-${version}'

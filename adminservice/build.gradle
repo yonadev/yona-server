@@ -23,7 +23,6 @@ apply plugin: 'net.researchgate.release'
 
 war {
 	baseName = 'adminservice'
-	version = '0.0.1-SNAPSHOT'
 }
 
 release {
