@@ -1,19 +1,11 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.AbstractYonaIntegrationTest
 import spock.lang.Shared
-import spock.lang.Specification
 
-class RemoveUserTest extends Specification {
+class RemoveUserTest extends AbstractYonaIntegrationTest {
 
-	def adminServiceBaseURL = System.properties.'yona.adminservice.url'
-	def YonaServer adminService = new YonaServer(adminServiceBaseURL)
-
-	def analysisServiceBaseURL = System.properties.'yona.analysisservice.url'
-	def YonaServer analysisService = new YonaServer(analysisServiceBaseURL)
-
-	def appServiceBaseURL = System.properties.'yona.appservice.url'
-	def YonaServer appService = new YonaServer(appServiceBaseURL)
 	@Shared
 	def timestamp = YonaServer.getTimeStamp()
 

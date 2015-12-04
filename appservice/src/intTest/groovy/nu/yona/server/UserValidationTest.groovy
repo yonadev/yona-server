@@ -1,7 +1,7 @@
 package nu.yona.server
 
 import groovy.json.*
-import spock.lang.Specification
+import nu.yona.server.test.AbstractYonaIntegrationTest
 
 /**
  * These tests are to make sure the data validation of the user service is working. All fields are to be checked
@@ -9,10 +9,8 @@ import spock.lang.Specification
  *
  * @author pgussow
  */
-class UserValidationTest extends Specification {
+class UserValidationTest extends AbstractYonaIntegrationTest {
 
-	def appServiceBaseURL = System.properties.'yona.appservice.url'
-	def YonaServer appService = new YonaServer(appServiceBaseURL)
 	def timestamp = appService.getTimeStamp()
 	def jsonSlurper = new JsonSlurper()
 	def userCreationJSON = """{

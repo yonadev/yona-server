@@ -1,19 +1,15 @@
 package nu.yona.server
 
 import groovy.json.*
-import spock.lang.Specification
+import nu.yona.server.test.AbstractYonaIntegrationTest
 
-class RelevantCategoriesTest extends Specification {
-
-	def baseURL = System.getProperty("yona.analysisservice.url", "http://localhost:8081")
-
-	YonaServer yonaServer = new YonaServer(baseURL)
+class RelevantCategoriesTest extends AbstractYonaIntegrationTest {
 
 	def 'Get relevant categories'(){
 		given:
 
 		when:
-			def response = yonaServer.getRelevantCategories()
+			def response = analysisService.getRelevantCategories()
 
 		then:
 			response.status == 200
