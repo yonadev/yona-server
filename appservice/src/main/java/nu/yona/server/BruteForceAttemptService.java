@@ -82,7 +82,12 @@ public class BruteForceAttemptService
 
 	private String getKey(URI uri, String... otherKeys)
 	{
-		String key = uri.toString() + String.join("~", otherKeys);
+		String key = String.join("~", otherKeys) + "@" + uri.getPath();
+		String query = uri.getQuery();
+		if (query != null)
+		{
+			key += query;
+		}
 		return key;
 	}
 
