@@ -96,6 +96,14 @@ public class UserService
 		return overwriteUserDTO;
 	}
 
+	@Transactional
+	public void clearOverwriteUserConfirmationCode(String mobileNumber)
+	{
+		User existingUserEntity = findUserByMobileNumber(mobileNumber);
+		existingUserEntity.setOverwriteUserConfirmationCode(null);
+		User.getRepository().save(existingUserEntity);
+	}
+
 	private void sendOverwriteUserConfirmationMessage(String mobileNumber, User existingUserEntity)
 	{
 		Map<String, Object> templateParams = new HashMap<String, Object>();

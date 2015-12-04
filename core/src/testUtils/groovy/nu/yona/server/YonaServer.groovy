@@ -52,6 +52,10 @@ class YonaServer {
 		createResourceWithPassword(stripQueryString(userURL) + MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT, jsonString, password)
 	}
 
+	def requestOverwriteUser(mobileNumber) {
+		updateResource(USERS_PATH, """ { } """, [:], ["mobileNumber":mobileNumber])
+	}
+
 	def getUser(userURL, boolean includePrivateData, password = null) {
 		if (includePrivateData) {
 			getResourceWithPassword(stripQueryString(userURL), password, getQueryParams(userURL) + ["includePrivateData": "true"])

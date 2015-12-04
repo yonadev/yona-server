@@ -48,6 +48,22 @@ class OverwriteUserTest extends Specification {
 	@Shared
 	def richardQuinOverwriteConfirmationCode
 
+	@Shared
+	def userCreationMobileNumber = "+${timestamp}"
+	@Shared
+	def userCreationJSON = """{
+				"firstName":"John",
+				"lastName":"Doe ${timestamp}",
+				"nickname":"JD ${timestamp}",
+				"mobileNumber":"${userCreationMobileNumber}",
+				"devices":[
+					"Galaxy mini"
+				],
+				"goals":[
+					"gambling"
+				]}"""
+
+
 	def 'Add user Richard Quin'(){
 		given:
 
@@ -255,7 +271,7 @@ class OverwriteUserTest extends Specification {
 
 	def 'Request overwrite of the existing user'(){
 		when:
-		def response = appService.updateResource(appService.USERS_PATH, """ { } """, [:], ["mobileNumber":"+${timestamp}1"])
+		def response = appService.requestOverwriteUser("+${timestamp}1")
 		if(response.status == 200) {
 			richardQuinOverwriteConfirmationCode = response.responseData.confirmationCode
 		}
@@ -329,6 +345,41 @@ class OverwriteUserTest extends Specification {
 		response.responseData._embedded.buddies[0].nickname == "RQ ${timestamp}"
 		response.responseData._embedded.buddies[0].sendingStatus == "ACCEPTED"
 		response.responseData._embedded.buddies[0].receivingStatus == "ACCEPTED"
+	}
+
+	def 'Hacking attempt: Brute force overwrite mobile number confirmation'(){
+		given:
+		def userAddResponse = appService.addUser(userCreationJSON, "Password");
+		def overwriteRequestResponse = appService.requestOverwriteUser(userCreationMobileNumber)
+		def userURL = appService.stripQueryString(userAddResponse.responseData._links.self.href);
+		def confirmationCode = overwriteRequestResponse.responseData.confirmationCode;
+
+		when:
+		def response1TimeWrong = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}1"])
+		appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}2"])
+		appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}3"])
+		appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}4"])
+		def response5TimesWrong = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}5"])
+		def response6TimesWrong = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}6"])
+		def response7thTimeRight = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}"])
+
+		then:
+		confirmationCode != null
+		userAddResponse.status == 201
+		userAddResponse.responseData.mobileNumberConfirmed == false
+		response1TimeWrong.status == 400
+		response1TimeWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
+		response5TimesWrong.status == 400
+		response5TimesWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
+		response6TimesWrong.status == 400
+		response6TimesWrong.responseData.code == "error.too.many.wrong.attempts"
+		response7thTimeRight.status == 400
+		response7thTimeRight.responseData.code == "error.too.many.wrong.attempts"
+
+		cleanup:
+		if (userURL) {
+			appService.deleteUser(userURL, "Password")
+		}
 	}
 
 	def 'Delete users'(){

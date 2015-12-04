@@ -59,12 +59,20 @@ public class BruteForceAttemptService
 		attemptsCache.put(key, attempts);
 	}
 
-	public boolean isBlocked(URI uri, int maxAttempts, String... otherKeys)
+	public boolean isBlocked(URI uri, int maxAttempts, Runnable callWhenBlocking, String... otherKeys)
 	{
 		String key = getKey(uri, otherKeys);
 		try
 		{
-			return attemptsCache.get(key) >= maxAttempts;
+			Integer attempts = attemptsCache.get(key);
+			if (attempts == maxAttempts + 1)
+			{
+				if (callWhenBlocking != null)
+				{
+					callWhenBlocking.run();
+				}
+			}
+			return attempts >= maxAttempts;
 		}
 		catch (ExecutionException e)
 		{
@@ -78,21 +86,26 @@ public class BruteForceAttemptService
 		return key;
 	}
 
-	public <T> T executeAttempt(URI uri, int maxAttempts, Supplier<T> supplier, String... otherKeys)
+	public <T> T executeAttempt(URI uri, int maxAttempts, Supplier<T> attempt, String... otherKeys)
 	{
-		throwIfBlocked(uri, maxAttempts, otherKeys);
+		return executeAttempt(uri, maxAttempts, attempt, null, otherKeys);
+	}
 
-		T result = attemptExecution(uri, supplier, otherKeys);
+	public <T> T executeAttempt(URI uri, int maxAttempts, Supplier<T> attempt, Runnable callWhenBlocking, String... otherKeys)
+	{
+		throwIfBlocked(uri, maxAttempts, callWhenBlocking, otherKeys);
+
+		T result = attemptExecution(uri, attempt, otherKeys);
 
 		attemptSucceeded(uri, otherKeys);
 		return result;
 	}
 
-	private <T> T attemptExecution(URI uri, Supplier<T> supplier, String... otherKeys)
+	private <T> T attemptExecution(URI uri, Supplier<T> attempt, String... otherKeys)
 	{
 		try
 		{
-			return supplier.get();
+			return attempt.get();
 		}
 		catch (RuntimeException e)
 		{
@@ -101,9 +114,9 @@ public class BruteForceAttemptService
 		}
 	}
 
-	public void throwIfBlocked(URI uri, int maxAttempts, String... otherKeys)
+	public void throwIfBlocked(URI uri, int maxAttempts, Runnable callWhenBlocking, String... otherKeys)
 	{
-		if (isBlocked(uri, maxAttempts, otherKeys))
+		if (isBlocked(uri, maxAttempts, callWhenBlocking, otherKeys))
 		{
 			throw BruteForceException.tooManyAttempts(uri);
 		}

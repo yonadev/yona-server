@@ -130,7 +130,7 @@ public class UserController
 					() -> CryptoSession.execute(password,
 							() -> createResponse(userService.addUser(user, overwriteUserConfirmationCode), true,
 									HttpStatus.CREATED)),
-					user.getMobileNumber());
+					() -> userService.clearOverwriteUserConfirmationCode(user.getMobileNumber()), user.getMobileNumber());
 		}
 		else
 		{
