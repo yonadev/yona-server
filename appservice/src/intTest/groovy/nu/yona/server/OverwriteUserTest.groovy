@@ -329,6 +329,9 @@ class OverwriteUserTest extends AbstractYonaIntegrationTest {
 
 		when:
 		def response = appService.getBuddies(bobDunnURL, bobDunnPassword);
+		if(response.status == 200 && response.responseData._embedded) {
+			bobDunnRichardBuddyURL = response.responseData._embedded.buddies[0]._links.self.href
+		}
 
 		then:
 		response.status == 200
@@ -337,6 +340,16 @@ class OverwriteUserTest extends AbstractYonaIntegrationTest {
 		response.responseData._embedded.buddies[0].nickname == "RQ ${timestamp}"
 		response.responseData._embedded.buddies[0].sendingStatus == "ACCEPTED"
 		response.responseData._embedded.buddies[0].receivingStatus == "ACCEPTED"
+		bobDunnRichardBuddyURL
+	}
+
+	def 'Bob removes overwritten user Richard as buddy'() {
+		given:
+		when:
+		def response = appService.removeBuddy(bobDunnRichardBuddyURL, bobDunnPassword, null)
+
+		then:
+		response.status == 200
 	}
 
 	def 'Hacking attempt: Brute force overwrite mobile number confirmation'(){
