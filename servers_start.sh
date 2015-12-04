@@ -10,6 +10,7 @@ function waitTillPortIsListenedTo() {
  
 java -cp "$HSQLDB_HOME/lib/sqltool.jar" org.hsqldb.Server -database.0 file:YonaDB -dbname.0 xdb > /dev/null 2>&1 &
 waitTillPortIsListenedTo 9001
+./gradlew $@ :dbinit:run
 ./gradlew $@ :adminservice:run > /dev/null 2>&1 &
 waitTillPortIsListenedTo 8080
 ./gradlew $@ :analysisservice:run > /dev/null 2>&1 &

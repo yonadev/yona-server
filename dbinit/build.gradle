@@ -1,0 +1,55 @@
+description = 'Database initializer'
+
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:$project.ext.springBootVersion")
+		classpath("io.spring.gradle:dependency-management-plugin:0.5.3.RELEASE")
+		classpath('se.transmode.gradle:gradle-docker:1.2')
+		classpath 'net.researchgate:gradle-release:2.3.4'
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'spring-boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'docker'
+apply plugin: 'net.researchgate.release'
+
+jar.archiveName = "DatabaseInitializer.jar"
+release {
+	failOnCommitNeeded = true
+	tagTemplate = 'adminservice-${version}'
+	git {
+		requireBranch = 'yd-40-changes-for-building|master'
+	}
+}
+
+dependencies {
+	compile project(":core")
+	compile("org.springframework.boot:spring-boot-starter-data-jpa")
+
+	runtime("org.hsqldb:hsqldb")
+}
+
+group = 'yonadev'
+
+task buildDocker(type: Docker, dependsOn: build) {
+	push = true
+	applicationName = "yonahsqldb"
+	dockerfile = file('src/main/docker/Dockerfile')
+	doFirst {
+		copy {
+			from jar
+			into stageDir
+		rename jar.archiveName, jar.baseName +".jar"
+		}
+		copy {
+			from 'data'
+			into "$stageDir/data"
+		}
+	}
+}
