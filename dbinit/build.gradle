@@ -41,6 +41,7 @@ dependencies {
 group = 'yonadev'
 
 task buildDocker(type: Docker, dependsOn: build) {
+	tag = "${project.group}/yonahsqldb"
 	push = true
 	applicationName = jar.baseName
 	dockerfile = file('src/main/docker/Dockerfile')
