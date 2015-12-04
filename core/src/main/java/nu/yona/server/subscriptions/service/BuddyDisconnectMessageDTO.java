@@ -97,7 +97,7 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 				case PROCESS:
 					return handleAction_Process(actingUser, (BuddyDisconnectMessage) messageEntity, requestPayload);
 				default:
-					throw new IllegalArgumentException("Action '" + action + "' is not supported");
+					throw BuddyServiceException.actionUnknown(action);
 			}
 		}
 

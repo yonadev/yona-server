@@ -14,6 +14,7 @@ import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.messaging.service.MessageServiceException;
 
 @Entity
 @Table(name = "MESSAGES")
@@ -35,10 +36,12 @@ public abstract class Message extends EntityWithID
 	protected Message(UUID id, UUID relatedUserAnonymizedID)
 	{
 		super(id);
+		
 		if (id != null && relatedUserAnonymizedID == null)
 		{
-			throw new IllegalArgumentException("relatedUserAnonymizedID cannot be null");
+			throw MessageServiceException.anonymizedUserIdMustBeSet();
 		}
+		
 		this.relatedVPNLoginID = relatedUserAnonymizedID;
 		this.creationTime = new Date();
 	}

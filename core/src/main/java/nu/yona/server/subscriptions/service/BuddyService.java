@@ -50,6 +50,11 @@ public class BuddyService
 	@Autowired
 	YonaProperties properties;
 
+	public enum DropBuddyReason
+	{
+		USER_ACCOUNT_DELETED, USER_REMOVED_BUDDY
+	}
+
 	public BuddyDTO getBuddy(UUID buddyID)
 	{
 		return BuddyDTO.createInstance(getEntityByID(buddyID));
@@ -67,6 +72,7 @@ public class BuddyService
 	{
 		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
 		requestingUser.assertMobileNumberConfirmed();
+		
 		User buddyUserEntity = getBuddyUser(buddy);
 		BuddyDTO newBuddyEntity;
 		if (buddyUserEntity == null)
@@ -85,6 +91,11 @@ public class BuddyService
 	public BuddyDTO addBuddyToAcceptingUser(UserDTO acceptingUser, UUID buddyUserID, String buddyNickName, UUID buddyVPNLoginID,
 			boolean isRequestingSending, boolean isRequestingReceiving)
 	{
+		if (acceptingUser == null)
+		{
+			throw BuddyServiceException.acceptingUserIsNull();
+		}
+		
 		acceptingUser.assertMobileNumberConfirmed();
 		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName,
 				isRequestingSending ? Status.ACCEPTED : Status.NOT_REQUESTED,
@@ -98,8 +109,7 @@ public class BuddyService
 	@Transactional
 	public void removeBuddyAfterConnectRejection(UUID idOfRequestingUser, UUID buddyID)
 	{
-		User user = User.getRepository().findOne(idOfRequestingUser);
-		user.assertMobileNumberConfirmed();
+		User user = userService.getValidatedUserbyID(idOfRequestingUser);
 		Buddy buddy = getEntityByID(buddyID);
 
 		user.removeBuddy(buddy);
@@ -109,8 +119,7 @@ public class BuddyService
 	@Transactional
 	public void removeBuddy(UUID idOfRequestingUser, UUID buddyID, Optional<String> message)
 	{
-		User user = User.getRepository().findOne(idOfRequestingUser);
-		user.assertMobileNumberConfirmed();
+		User user = userService.getValidatedUserbyID(idOfRequestingUser);
 		Buddy buddy = getEntityByID(buddyID);
 
 		removeMessagesSentByBuddy(user, buddy);
@@ -120,15 +129,14 @@ public class BuddyService
 		User.getRepository().save(user);
 	}
 
-	private void removeMessagesSentByBuddy(User user, Buddy buddy)
-	{
-		removeNamedMessagesSentByUser(user, buddy.getVPNLoginID());
-		removeAnonymousMessagesSentByUser(user.getAnonymized(), buddy.getVPNLoginID());
-	}
-
 	@Transactional
 	void removeBuddyInfoForBuddy(User requestingUser, Buddy requestingUserBuddy, Optional<String> message, DropBuddyReason reason)
 	{
+		if (requestingUserBuddy == null)
+		{
+			throw BuddyServiceException.requestingUserBuddyIsNull();
+		}
+				
 		if (requestingUserBuddy.getUser() == null)
 		{
 			// buddy account was removed in the meantime; nothing to do
@@ -149,10 +157,41 @@ public class BuddyService
 	@Transactional
 	public void removeBuddyAfterBuddyRemovedConnection(UUID idOfRequestingUser, UUID relatedUserID)
 	{
-		User user = User.getRepository().findOne(idOfRequestingUser);
-		user.assertMobileNumberConfirmed();
+		User user = userService.getValidatedUserbyID(idOfRequestingUser);
+		
 		user.removeBuddiesFromUser(relatedUserID);
 		User.getRepository().save(user);
+	}
+
+	public void setBuddyAcceptedWithSecretUserInfo(UUID buddyID, UUID vpnLoginID, String nickname)
+	{
+		Buddy buddy = Buddy.getRepository().findOne(buddyID);
+		if (buddy == null)
+		{
+			throw BuddyNotFoundException.notFound(buddyID);
+		}
+		
+		if (buddy.getSendingStatus() == Status.REQUESTED)
+		{
+			buddy.setSendingStatus(Status.ACCEPTED);
+		}
+		if (buddy.getReceivingStatus() == Status.REQUESTED)
+		{
+			buddy.setReceivingStatus(Status.ACCEPTED);
+		}
+		buddy.setVPNLoginID(vpnLoginID);
+		buddy.setNickName(nickname);
+	}
+
+	public Set<BuddyDTO> getBuddies(Set<UUID> buddyIDs)
+	{
+		return buddyIDs.stream().map(id -> getBuddy(id)).collect(Collectors.toSet());
+	}
+
+	private void removeMessagesSentByBuddy(User user, Buddy buddy)
+	{
+		removeNamedMessagesSentByUser(user, buddy.getVPNLoginID());
+		removeAnonymousMessagesSentByUser(user.getAnonymized(), buddy.getVPNLoginID());
 	}
 
 	private void sendDropBuddyMessage(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
@@ -205,30 +244,6 @@ public class BuddyService
 		}
 	}
 
-	private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy,
-			BiFunction<UUID, String, String> inviteURLGetter)
-	{
-		UserDTO buddyUser = buddy.getUser();
-
-		String tempPassword = userService.generatePassword();
-		User buddyUserEntity = userService.addUserCreatedOnBuddyRequest(buddyUser, tempPassword);
-		BuddyDTO savedBuddy = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
-
-		String inviteURL = inviteURLGetter.apply(buddyUserEntity.getID(), tempPassword);
-		if (!properties.getEmail().isEnabled())
-		{
-			savedBuddy.setUserCreatedInviteURL(inviteURL);
-		}
-		sendInvitationMessage(requestingUser, buddyUserEntity, buddy, inviteURL);
-
-		return savedBuddy;
-	}
-
-	public enum DropBuddyReason
-	{
-		USER_ACCOUNT_DELETED, USER_REMOVED_BUDDY
-	}
-
 	private void sendInvitationMessage(UserDTO requestingUser, User buddyUserEntity, BuddyDTO buddy, String inviteURL)
 	{
 		try
@@ -252,12 +267,31 @@ public class BuddyService
 		}
 	}
 
+	private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy,
+			BiFunction<UUID, String, String> inviteURLGetter)
+	{
+		UserDTO buddyUser = buddy.getUser();
+
+		String tempPassword = userService.generatePassword();
+		User buddyUserEntity = userService.addUserCreatedOnBuddyRequest(buddyUser, tempPassword);
+		BuddyDTO savedBuddy = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
+
+		String inviteURL = inviteURLGetter.apply(buddyUserEntity.getID(), tempPassword);
+		if (!properties.getEmail().isEnabled())
+		{
+			savedBuddy.setUserCreatedInviteURL(inviteURL);
+		}
+		sendInvitationMessage(requestingUser, buddyUserEntity, buddy, inviteURL);
+
+		return savedBuddy;
+	}
+
 	private BuddyDTO handleBuddyRequestForExistingUser(UserDTO requestingUser, BuddyDTO buddy, User buddyUserEntity)
 	{
 		buddy.getUser().setUserID(buddyUserEntity.getID());
 		if (buddy.getSendingStatus() != Status.REQUESTED || buddy.getReceivingStatus() != Status.REQUESTED)
 		{
-			throw new IllegalArgumentException("Only two-way buddies allowed for now");
+			throw BuddyServiceException.onlyTwoWayBuddiesAllowed();
 		}
 		Buddy buddyEntity = buddy.createBuddyEntity();
 		Buddy savedBuddyEntity = Buddy.getRepository().save(buddyEntity);
@@ -296,25 +330,5 @@ public class BuddyService
 		{
 			return null;
 		}
-	}
-
-	public void setBuddyAcceptedWithSecretUserInfo(UUID buddyID, UUID vpnLoginID, String nickname)
-	{
-		Buddy buddy = Buddy.getRepository().findOne(buddyID);
-		if (buddy.getSendingStatus() == Status.REQUESTED)
-		{
-			buddy.setSendingStatus(Status.ACCEPTED);
-		}
-		if (buddy.getReceivingStatus() == Status.REQUESTED)
-		{
-			buddy.setReceivingStatus(Status.ACCEPTED);
-		}
-		buddy.setVPNLoginID(vpnLoginID);
-		buddy.setNickName(nickname);
-	}
-
-	public Set<BuddyDTO> getBuddies(Set<UUID> buddyIDs)
-	{
-		return buddyIDs.stream().map(id -> getBuddy(id)).collect(Collectors.toSet());
 	}
 }

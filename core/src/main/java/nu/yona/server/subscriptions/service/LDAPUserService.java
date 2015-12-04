@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import javax.naming.Name;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.odm.annotations.Attribute;
@@ -30,11 +31,26 @@ public class LDAPUserService
 
 	public void createVPNAccount(String vpnLoginID, String vpnPassword)
 	{
+		if (StringUtils.isBlank(vpnLoginID))
+		{
+			throw LDAPUserServiceException.emptyVpnLoginId();
+		}
+
+		if (StringUtils.isBlank(vpnPassword))
+		{
+			throw LDAPUserServiceException.emptyVpnPassword();
+		}
+
 		doLdapAction(Action.CREATE, new User(vpnLoginID, vpnPassword));
 	}
 
 	public void deleteVPNAccount(String vpnLoginID)
 	{
+		if (StringUtils.isBlank(vpnLoginID))
+		{
+			throw LDAPUserServiceException.emptyVpnLoginId();
+		}
+
 		doLdapAction(Action.DELETE, new User(vpnLoginID, ""));
 	}
 
@@ -54,7 +70,7 @@ public class LDAPUserService
 				ldapTemplate.delete(user);
 				break;
 			default:
-				throw new IllegalArgumentException("Action " + action + " is unknown");
+				throw LDAPUserServiceException.actionUnknown(action.name());
 
 		}
 	}

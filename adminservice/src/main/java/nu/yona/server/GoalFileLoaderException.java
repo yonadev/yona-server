@@ -6,13 +6,13 @@ public class GoalFileLoaderException extends YonaException
 {
 	private static final long serialVersionUID = -8542854561248198195L;
 
-	public GoalFileLoaderException(String messageId, Object... parameters)
+	public GoalFileLoaderException(Throwable cause, String messageId, Object... parameters)
 	{
-		super(messageId, parameters);
+		super(cause, messageId, parameters);
 	}
 
-	public static GoalFileLoaderException loadingGoalsFromFile(String filename)
+	public static GoalFileLoaderException loadingGoalsFromFile(Throwable cause, String filename)
 	{
-		return new GoalFileLoaderException("error.loading.goals.from.file", filename);
+		return new GoalFileLoaderException(cause, "error.loading.goals.from.file", filename);
 	}
 }

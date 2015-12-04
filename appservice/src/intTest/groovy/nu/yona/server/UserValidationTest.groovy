@@ -1,13 +1,7 @@
 package nu.yona.server
 
-import groovyx.net.http.RESTClient
-import groovyx.net.http.HttpResponseException
-import spock.lang.Ignore
-import spock.lang.IgnoreRest
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Unroll
 import groovy.json.*
+import spock.lang.Specification
 
 /**
  * These tests are to make sure the data validation of the user service is working. All fields are to be checked
