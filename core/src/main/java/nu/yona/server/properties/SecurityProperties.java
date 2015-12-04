@@ -5,6 +5,8 @@ public class SecurityProperties
 	private int newDeviceRequestExpirationDays = 1;
 	private int passwordLength = 32;
 	private long bruteForceBlockMinutes = 60;
+	private long dosMemorySeconds = 300;
+	private boolean isDOSProtectionEnabled = false;
 
 	public int getNewDeviceRequestExpirationDays()
 	{
@@ -34,5 +36,25 @@ public class SecurityProperties
 	public long getBruteForceBlockMinutes()
 	{
 		return bruteForceBlockMinutes;
+	}
+
+	public void getDOSMemorySeconds(long dosMemorySeconds)
+	{
+		this.dosMemorySeconds = dosMemorySeconds;
+	}
+
+	public long getDOSMemorySeconds()
+	{
+		return dosMemorySeconds;
+	}
+
+	public void setDOSProtectionEnabled(boolean isDOSProtectionEnabled)
+	{
+		this.isDOSProtectionEnabled = isDOSProtectionEnabled;
+	}
+
+	public boolean isDOSProtectionEnabled()
+	{
+		return isDOSProtectionEnabled;
 	}
 }

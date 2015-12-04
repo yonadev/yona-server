@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
@@ -37,6 +39,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.BruteForceAttemptService;
+import nu.yona.server.DOSProtectionService;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
@@ -62,6 +65,9 @@ public class UserController
 	private BruteForceAttemptService bruteForceAttemptService;
 
 	@Autowired
+	private DOSProtectionService dosProtectionService;
+
+	@Autowired
 	private YonaProperties yonaProperties;
 
 	@RequestMapping(value = "{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
@@ -85,8 +91,6 @@ public class UserController
 		}
 	}
 
-	
-
 	@RequestMapping(value = "{id}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getPublicUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
@@ -99,9 +103,16 @@ public class UserController
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
 	public HttpEntity<UserResource> addUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@RequestBody UserDTO user)
+			@RequestBody UserDTO user, HttpServletRequest request)
 	{
-		return CryptoSession.execute(password, () -> createResponse(userService.addUser(user), true, HttpStatus.CREATED));
+		return dosProtectionService.executeAttempt(getAddUserLinkBuilder().toUri(), request, 1,
+				() -> CryptoSession.execute(password, () -> createResponse(userService.addUser(user), true, HttpStatus.CREATED)));
+	}
+
+	static ControllerLinkBuilder getAddUserLinkBuilder()
+	{
+		UserController methodOn = methodOn(UserController.class);
+		return linkTo(methodOn.addUser(null, null, null));
 	}
 
 	private void checkPassword(Optional<String> password, UUID userID)
@@ -212,7 +223,7 @@ public class UserController
 			return null;
 		});
 	}
-	
+
 	private Optional<String> getPasswordToUse(Optional<String> password, Optional<String> tempPassword)
 	{
 		if (password.isPresent())
