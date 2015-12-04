@@ -1,26 +1,15 @@
 package nu.yona.server
 
-import groovyx.net.http.RESTClient
-import spock.lang.Ignore
-import spock.lang.IgnoreRest
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Unroll
 import groovy.json.*
 
 import javax.mail.*
 import javax.mail.search.*
 
-class CreateUserOnBuddyRequestTest extends Specification {
+import nu.yona.server.test.AbstractYonaIntegrationTest
+import spock.lang.Shared
 
-	def adminServiceBaseURL = System.properties.'yona.adminservice.url'
-	def YonaServer adminService = new YonaServer(adminServiceBaseURL)
+class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 
-	def analysisServiceBaseURL = System.properties.'yona.analysisservice.url'
-	def YonaServer analysisService = new YonaServer(analysisServiceBaseURL)
-
-	def appServiceBaseURL = System.properties.'yona.appservice.url'
-	def YonaServer appService = new YonaServer(appServiceBaseURL)
 	@Shared
 	def timestamp = YonaServer.getTimeStamp()
 

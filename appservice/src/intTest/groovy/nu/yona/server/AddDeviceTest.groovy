@@ -1,18 +1,12 @@
 package nu.yona.server
 
-import groovyx.net.http.RESTClient
-import groovyx.net.http.HttpResponseException
-import spock.lang.Ignore
-import spock.lang.IgnoreRest
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Unroll
+
 import groovy.json.*
+import nu.yona.server.test.AbstractYonaIntegrationTest
+import spock.lang.Shared
 
-class AddDeviceTest extends Specification {
+class AddDeviceTest extends AbstractYonaIntegrationTest {
 
-	def appServiceBaseURL = System.properties.'yona.appservice.url'
-	def YonaServer appService = new YonaServer(appServiceBaseURL)
 	@Shared
 	def timestamp = YonaServer.getTimeStamp()
 

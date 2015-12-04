@@ -1,13 +1,11 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.AbstractYonaIntegrationTest
 import spock.lang.Shared
-import spock.lang.Specification
 
-class UserTest extends Specification {
+class UserTest extends AbstractYonaIntegrationTest {
 
-	def appServiceBaseURL = System.properties.'yona.appservice.url'
-	def YonaServer appService = new YonaServer(appServiceBaseURL)
 	@Shared
 	def timestamp = YonaServer.getTimeStamp()
 	def userCreationJSON = """{

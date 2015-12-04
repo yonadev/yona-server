@@ -1,12 +1,9 @@
 package nu.yona.server
 
 import groovy.json.*
-import spock.lang.Specification
+import nu.yona.server.test.AbstractYonaIntegrationTest
 
-class GoalTest extends Specification {
-
-	def appServiceBaseURL = System.properties.'yona.appservice.url'
-	def YonaServer appService = new YonaServer(appServiceBaseURL)
+class GoalTest extends AbstractYonaIntegrationTest {
 
 	def 'Get all goals'(){
 		given:

@@ -49,9 +49,6 @@ public class AdminServiceApplication
 		SpringApplication.run(AdminServiceApplication.class, args);
 	}
 
-	@Autowired
-	GoalFileLoader goalFileLoader;
-
 	@Bean
 	public Docket yonaApi()
 	{
