@@ -22,6 +22,8 @@ public class GoalFileLoader implements CommandLineRunner
 {
 	private static final Logger LOGGER = Logger.getLogger(GoalFileLoader.class.getName());
 
+	private final String GOALS_FILE = "data/goals.json";
+
 	@Autowired
 	private GoalService goalService;
 
@@ -33,19 +35,19 @@ public class GoalFileLoader implements CommandLineRunner
 
 	private void loadGoalsFromFile()
 	{
-		String inputFileName = "data/goals.json";
-		LOGGER.info("Loading goals from file '" + inputFileName + "' in directory '" + System.getProperty("user.dir") + "'");
-		try (InputStream input = new FileInputStream(inputFileName))
+		try (InputStream input = new FileInputStream(GOALS_FILE))
 		{
+			LOGGER.info("Loading goals from file '" + GOALS_FILE + "' in directory '" + System.getProperty("user.dir") + "'");
 			ObjectMapper mapper = new ObjectMapper();
 			Set<GoalDTO> goalsFromFile = mapper.readValue(input, new TypeReference<Set<GoalDTO>>() {
 			});
 			goalService.importGoals(goalsFromFile);
+			LOGGER.info("Goals loaded successfully");
 		}
 		catch (IOException e)
 		{
-			LOGGER.log(Level.SEVERE, "Error loading goals from file '" + inputFileName + "'", e);
-			throw GoalFileLoaderException.loadingGoalsFromFile(e, inputFileName);
+			LOGGER.log(Level.SEVERE, "Error loading goals from file '" + GOALS_FILE + "'", e);
+			throw GoalFileLoaderException.loadingGoalsFromFile(e, GOALS_FILE);
 		}
 	}
 }

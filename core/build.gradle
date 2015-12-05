@@ -16,6 +16,10 @@ apply plugin: 'idea'
 apply plugin: 'spring-boot'
 apply plugin: 'io.spring.dependency-management'
 
+jar {
+	baseName = 'Core'
+}
+
 configurations {
 	testUtils.extendsFrom testRuntime
 }
