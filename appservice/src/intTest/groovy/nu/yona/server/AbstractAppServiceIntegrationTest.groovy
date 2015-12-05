@@ -16,8 +16,8 @@ abstract class AbstractAppServiceIntegrationTest extends AbstractYonaIntegration
 		def mobileNumber = "+${timestamp}${userNumber}"
 		def nickname = "${firstName} ${lastName} @${timestamp}"
 		def response = appService.addUser("""{
-				"firstName":"${firstName} @${timestamp}",
-				"lastName":"${lastName} @${timestamp}",
+				"firstName":"${firstName}",
+				"lastName":"${lastName}",
 				"nickname":"${nickname}",
 				"mobileNumber":"${mobileNumber}",
 				"devices":[
