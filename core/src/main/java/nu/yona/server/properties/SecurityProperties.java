@@ -5,8 +5,9 @@ public class SecurityProperties
 	private int newDeviceRequestExpirationDays = 1;
 	private int passwordLength = 32;
 	private long bruteForceBlockMinutes = 60;
-	private long dosMemorySeconds = 300;
-	private boolean isDOSProtectionEnabled = false;
+	private long dosProtectionWindowSeconds = 300;
+	private boolean isDosProtectionEnabled = false;
+	private int maxCreateUserAttemptsPerTimeWindow = 1;
 
 	public int getNewDeviceRequestExpirationDays()
 	{
@@ -38,23 +39,33 @@ public class SecurityProperties
 		return bruteForceBlockMinutes;
 	}
 
-	public void getDOSMemorySeconds(long dosMemorySeconds)
+	public void setDosProtectionWindowSeconds(long dosProtectionWindowSeconds)
 	{
-		this.dosMemorySeconds = dosMemorySeconds;
+		this.dosProtectionWindowSeconds = dosProtectionWindowSeconds;
 	}
 
-	public long getDOSMemorySeconds()
+	public long getDosProtectionWindowSeconds()
 	{
-		return dosMemorySeconds;
+		return dosProtectionWindowSeconds;
 	}
 
-	public void setDOSProtectionEnabled(boolean isDOSProtectionEnabled)
+	public void setDosProtectionEnabled(boolean isDosProtectionEnabled)
 	{
-		this.isDOSProtectionEnabled = isDOSProtectionEnabled;
+		this.isDosProtectionEnabled = isDosProtectionEnabled;
 	}
 
-	public boolean isDOSProtectionEnabled()
+	public boolean isDosProtectionEnabled()
 	{
-		return isDOSProtectionEnabled;
+		return isDosProtectionEnabled;
+	}
+
+	public int getMaxCreateUserAttemptsPerTimeWindow()
+	{
+		return maxCreateUserAttemptsPerTimeWindow;
+	}
+
+	public void setMaxCreateUserAttemptsPerTimeWindow(int maxCreateUserAttemptsPerTimeWindow)
+	{
+		this.maxCreateUserAttemptsPerTimeWindow = maxCreateUserAttemptsPerTimeWindow;
 	}
 }

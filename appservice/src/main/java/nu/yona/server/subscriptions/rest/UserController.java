@@ -105,7 +105,8 @@ public class UserController
 	public HttpEntity<UserResource> addUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@RequestBody UserDTO user, HttpServletRequest request)
 	{
-		return dosProtectionService.executeAttempt(getAddUserLinkBuilder().toUri(), request, 1,
+		return dosProtectionService.executeAttempt(getAddUserLinkBuilder().toUri(), request,
+				yonaProperties.getSecurity().getMaxCreateUserAttemptsPerTimeWindow(),
 				() -> CryptoSession.execute(password, () -> createResponse(userService.addUser(user), true, HttpStatus.CREATED)));
 	}
 
