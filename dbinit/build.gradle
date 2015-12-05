@@ -57,3 +57,12 @@ task buildDocker(type: Docker, dependsOn: build) {
 		}
 	}
 }
+
+run {
+	enableAssertions=true
+
+	systemProperties = [
+		'spring.datasource.url': "jdbc:hsqldb:file:../YonaDB",
+		'spring.jpa.hibernate.ddl-auto': "update"
+	]
+}
