@@ -112,26 +112,12 @@ public class UserController
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
 	public HttpEntity<UserResource> addUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@RequestParam(value = "overwriteUserConfirmationCode", required = false) String overwriteUserConfirmationCodeStr,
+			@RequestParam(value = "overwriteUserConfirmationCode", required = false) String overwriteUserConfirmationCode,
 			@RequestBody UserDTO user, HttpServletRequest request)
 	{
-		return dosProtectionService.executeAttempt(getAddUserLinkBuilder().toUri(), request, 1, () -> {
-			Optional<String> overwriteUserConfirmationCode = Optional.ofNullable(overwriteUserConfirmationCodeStr);
-			if (overwriteUserConfirmationCode.isPresent())
-			{
-				return bruteForceAttemptService.executeAttempt(getAddUserLinkBuilder().toUri(),
-						yonaProperties.getSms().getMobileNumberConfirmationMaxAttempts(),
-						() -> CryptoSession.execute(password,
-								() -> createResponse(userService.addUser(user, overwriteUserConfirmationCode), true,
-										HttpStatus.CREATED)),
-						() -> userService.clearOverwriteUserConfirmationCode(user.getMobileNumber()), user.getMobileNumber());
-			}
-			else
-			{
-				return CryptoSession.execute(password,
-						() -> createResponse(userService.addUser(user, Optional.empty()), true, HttpStatus.CREATED));
-			}
-		});
+		return dosProtectionService.executeAttempt(getAddUserLinkBuilder().toUri(), request,
+				yonaProperties.getSecurity().getMaxCreateUserAttemptsPerTimeWindow(),
+				() -> addUser(password, Optional.ofNullable(overwriteUserConfirmationCode), user));
 	}
 
 	static ControllerLinkBuilder getAddUserLinkBuilder()
@@ -247,6 +233,25 @@ public class UserController
 			userService.deleteUser(id, Optional.ofNullable(messageStr));
 			return null;
 		});
+	}
+
+	private HttpEntity<UserResource> addUser(Optional<String> password, Optional<String> overwriteUserConfirmationCode,
+			UserDTO user)
+	{
+		if (overwriteUserConfirmationCode.isPresent())
+		{
+			return bruteForceAttemptService.executeAttempt(getAddUserLinkBuilder().toUri(),
+					yonaProperties.getSms().getMobileNumberConfirmationMaxAttempts(),
+					() -> CryptoSession.execute(password,
+							() -> createResponse(userService.addUser(user, overwriteUserConfirmationCode), true,
+									HttpStatus.CREATED)),
+					() -> userService.clearOverwriteUserConfirmationCode(user.getMobileNumber()), user.getMobileNumber());
+		}
+		else
+		{
+			return CryptoSession.execute(password,
+					() -> createResponse(userService.addUser(user, Optional.empty()), true, HttpStatus.CREATED));
+		}
 	}
 
 	private Optional<String> getPasswordToUse(Optional<String> password, Optional<String> tempPassword)
