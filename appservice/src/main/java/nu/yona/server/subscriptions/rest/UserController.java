@@ -47,6 +47,7 @@ import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
+import nu.yona.server.subscriptions.service.OverwriteUserDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -99,20 +100,44 @@ public class UserController
 		return createOKResponse(userService.getPublicUser(id), false);
 	}
 
+	@RequestMapping(method = RequestMethod.PUT)
+	@ResponseBody
+	public HttpEntity<Resource<OverwriteUserDTO>> setOverwriteUserConfirmationCode(@RequestParam String mobileNumber)
+	{
+		return new ResponseEntity<Resource<OverwriteUserDTO>>(
+				new Resource<OverwriteUserDTO>(userService.setOverwriteUserConfirmationCode(mobileNumber)), HttpStatus.OK);
+	}
+
 	@RequestMapping(method = RequestMethod.POST)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
 	public HttpEntity<UserResource> addUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@RequestParam(value = "overwriteUserConfirmationCode", required = false) String overwriteUserConfirmationCodeStr,
 			@RequestBody UserDTO user, HttpServletRequest request)
 	{
-		return dosProtectionService.executeAttempt(getAddUserLinkBuilder().toUri(), request, 1,
-				() -> CryptoSession.execute(password, () -> createResponse(userService.addUser(user), true, HttpStatus.CREATED)));
+		return dosProtectionService.executeAttempt(getAddUserLinkBuilder().toUri(), request, 1, () -> {
+			Optional<String> overwriteUserConfirmationCode = Optional.ofNullable(overwriteUserConfirmationCodeStr);
+			if (overwriteUserConfirmationCode.isPresent())
+			{
+				return bruteForceAttemptService.executeAttempt(getAddUserLinkBuilder().toUri(),
+						yonaProperties.getSms().getMobileNumberConfirmationMaxAttempts(),
+						() -> CryptoSession.execute(password,
+								() -> createResponse(userService.addUser(user, overwriteUserConfirmationCode), true,
+										HttpStatus.CREATED)),
+						() -> userService.clearOverwriteUserConfirmationCode(user.getMobileNumber()), user.getMobileNumber());
+			}
+			else
+			{
+				return CryptoSession.execute(password,
+						() -> createResponse(userService.addUser(user, Optional.empty()), true, HttpStatus.CREATED));
+			}
+		});
 	}
 
 	static ControllerLinkBuilder getAddUserLinkBuilder()
 	{
 		UserController methodOn = methodOn(UserController.class);
-		return linkTo(methodOn.addUser(null, null, null));
+		return linkTo(methodOn.addUser(Optional.empty(), null, null, null));
 	}
 
 	private void checkPassword(Optional<String> password, UUID userID)
@@ -326,6 +351,12 @@ public class UserController
 
 		private static void addSelfLink(Resource<UserDTO> userResource, boolean includePrivateData)
 		{
+			if (userResource.getContent().getID() == null)
+			{
+				// removed user
+				return;
+			}
+
 			userResource.add(UserController.getUserSelfLink(userResource.getContent().getID(), includePrivateData));
 		}
 	}

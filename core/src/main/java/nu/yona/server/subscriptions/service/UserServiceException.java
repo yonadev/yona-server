@@ -33,6 +33,16 @@ public class UserServiceException extends YonaException
 		return new UserServiceException("error.missing.password.header", Constants.PASSWORD_HEADER);
 	}
 
+	public static UserServiceException userExistsCreatedOnBuddyRequest(String mobileNumber)
+	{
+		return new UserServiceException("error.user.exists.created.on.buddy.request", mobileNumber);
+	}
+
+	public static UserServiceException userExists(String mobileNumber)
+	{
+		return new UserServiceException("error.user.exists", mobileNumber);
+	}
+
 	public static UserServiceException usernotCreatedOnBuddyRequest(UUID id)
 	{
 		return new UserServiceException("error.user.not.created.on.buddy.request", id);

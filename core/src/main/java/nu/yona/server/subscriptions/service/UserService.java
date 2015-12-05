@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,10 +47,10 @@ public class UserService
 	private SmsService smsService;
 
 	@Autowired
-	BuddyService buddyService;
+	private BuddyService buddyService;
 
 	@Autowired
-	UserServiceTempEncryptionContextExecutor tempEncryptionContextExecutor;
+	private TransactionHelper transactionHelper;
 
 	// TODO: Do we need this? Currently unused.
 	@Transactional
@@ -88,25 +89,117 @@ public class UserService
 		return UserDTO.createInstanceWithPrivateData(getValidatedUserbyID(id));
 	}
 
+	public OverwriteUserDTO setOverwriteUserConfirmationCode(String mobileNumber)
+	{
+		User existingUserEntity = findUserByMobileNumber(mobileNumber);
+		existingUserEntity.setOverwriteUserConfirmationCode(
+				CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
+		User.getRepository().save(existingUserEntity);
+		OverwriteUserDTO overwriteUserDTO = OverwriteUserDTO.createInstance();
+		if (!yonaProperties.getSms().isEnabled())
+		{
+			overwriteUserDTO.setConfirmationCode(existingUserEntity.getOverwriteUserConfirmationCode());
+		}
+		sendOverwriteUserConfirmationMessage(mobileNumber, existingUserEntity);
+		return overwriteUserDTO;
+	}
+
 	@Transactional
-	public UserDTO addUser(UserDTO user)
+	public void clearOverwriteUserConfirmationCode(String mobileNumber)
+	{
+		User existingUserEntity = findUserByMobileNumber(mobileNumber);
+		existingUserEntity.setOverwriteUserConfirmationCode(null);
+		User.getRepository().save(existingUserEntity);
+	}
+
+	private void sendOverwriteUserConfirmationMessage(String mobileNumber, User existingUserEntity)
+	{
+		Map<String, Object> templateParams = new HashMap<String, Object>();
+		templateParams.put("confirmationCode", existingUserEntity.getOverwriteUserConfirmationCode());
+		smsService.send(mobileNumber, SmsService.TemplateName_OverwriteUserNumberConfirmation, templateParams);
+	}
+
+	@Transactional
+	public UserDTO addUser(UserDTO user, Optional<String> overwriteUserConfirmationCode)
 	{
 		validateUserFields(user);
+
+		// use a separate transaction because in the top transaction we insert a user with the same unique key
+		transactionHelper.executeInNewTransaction(() -> {
+			handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode);
+			return null;
+		});
 
 		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
 
 		User userEntity = user.createUserEntity();
-		setUserUnconfirmedWithNewConfirmationCode(userEntity);
+		if (overwriteUserConfirmationCode.isPresent())
+		{
+			// no need to confirm again
+			userEntity.markMobileNumberConfirmed();
+		}
+		else
+		{
+			setUserUnconfirmedWithNewConfirmationCode(userEntity);
+		}
 		userEntity = User.getRepository().save(userEntity);
 		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getVPNPassword());
 
 		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(userEntity);
-		if (!yonaProperties.getSms().isEnabled())
+		if (!userDTO.isMobileNumberConfirmed())
 		{
-			userDTO.setConfirmationCode(userEntity.getConfirmationCode());
+			if (!yonaProperties.getSms().isEnabled())
+			{
+				userDTO.setConfirmationCode(userEntity.getConfirmationCode());
+			}
+			sendMobileNumberConfirmationMessage(userEntity, SmsService.TemplateName_AddUserNumberConfirmation);
 		}
-		sendMobileNumberConfirmationMessage(userEntity, SmsService.TemplateName_AddUserNumberConfirmation);
 		return userDTO;
+	}
+
+	private void handleExistingUserForMobileNumber(String mobileNumber, Optional<String> overwriteUserConfirmationCode)
+	{
+		if (overwriteUserConfirmationCode.isPresent())
+		{
+			overwriteExistingUser(mobileNumber, overwriteUserConfirmationCode.get());
+		}
+		else
+		{
+			throwForExistingUser(mobileNumber);
+		}
+	}
+
+	private void throwForExistingUser(String mobileNumber)
+	{
+		User existingUser = User.getRepository().findByMobileNumber(mobileNumber);
+		if (existingUser == null)
+		{
+			return;
+		}
+
+		if (existingUser.isCreatedOnBuddyRequest())
+		{
+			throw UserServiceException.userExistsCreatedOnBuddyRequest(mobileNumber);
+		}
+		else
+		{
+			throw UserServiceException.userExists(mobileNumber);
+		}
+	}
+
+	private void overwriteExistingUser(String mobileNumber, String overwriteUserConfirmationCode)
+	{
+		User existingUserEntity = findUserByMobileNumber(mobileNumber);
+		String expectedOverwriteUserConfirmationCode = existingUserEntity.getOverwriteUserConfirmationCode();
+		if (expectedOverwriteUserConfirmationCode == null)
+		{
+			throw MobileNumberConfirmationException.confirmationCodeNotSet();
+		}
+		if (!expectedOverwriteUserConfirmationCode.equals(overwriteUserConfirmationCode))
+		{
+			throw MobileNumberConfirmationException.confirmationCodeMismatch();
+		}
+		User.getRepository().delete(existingUserEntity);
 	}
 
 	@Transactional
@@ -144,10 +237,24 @@ public class UserService
 			throw UserServiceException.missingOrNullUser();
 		}
 
-		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null,
-				() -> tempEncryptionContextExecutor.addUserCreatedOnBuddyRequest(buddyUser).getID());
+		// use a separate transaction to commit within the crypto session
+		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null, () -> transactionHelper
+				.executeInNewTransaction(() -> addUserCreatedOnBuddyRequestInSubTransaction(buddyUser).getID()));
 
 		return getUserByID(savedUserID);
+	}
+
+	private User addUserCreatedOnBuddyRequestInSubTransaction(UserDTO buddyUserResource)
+	{
+		User newUser = User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
+				buddyUserResource.getPrivateData().getNickname(), buddyUserResource.getMobileNumber(),
+				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet(),
+				Collections.emptySet());
+		newUser.setIsCreatedOnBuddyRequest();
+		setUserUnconfirmedWithNewConfirmationCode(newUser);
+		User savedUser = User.getRepository().save(newUser);
+		ldapUserService.createVPNAccount(savedUser.getVPNLoginID().toString(), savedUser.getVPNPassword());
+		return savedUser;
 	}
 
 	@Transactional
@@ -205,6 +312,24 @@ public class UserService
 		}
 		sendMobileNumberConfirmationMessage(savedUserEntity, SmsService.TemplateName_AddUserNumberConfirmation);
 		return userDTO;
+	}
+
+	private EncryptedUserData retrieveUserEncryptedData(User originalUserEntity, String password)
+	{
+		// use a separate transaction to read within the crypto session
+		return CryptoSession.execute(Optional.of(password), () -> canAccessPrivateData(originalUserEntity.getID()),
+				() -> transactionHelper
+						.executeInNewTransaction(() -> retrieveUserEncryptedDataInSubTransaction(originalUserEntity)));
+	}
+
+	private EncryptedUserData retrieveUserEncryptedDataInSubTransaction(User originalUserEntity)
+	{
+		MessageSource namedMessageSource = originalUserEntity.getNamedMessageSource();
+		MessageSource anonymousMessageSource = originalUserEntity.getAnonymousMessageSource();
+		EncryptedUserData userEncryptedData = new EncryptedUserData(originalUserEntity, namedMessageSource,
+				anonymousMessageSource);
+		userEncryptedData.loadLazyEncryptedData();
+		return userEncryptedData;
 	}
 
 	@Transactional
@@ -371,12 +496,6 @@ public class UserService
 		Map<String, Object> templateParams = new HashMap<String, Object>();
 		templateParams.put("confirmationCode", confirmationCode);
 		smsService.send(userEntity.getMobileNumber(), messageTemplateName, templateParams);
-	}
-
-	private EncryptedUserData retrieveUserEncryptedData(User originalUserEntity, String password)
-	{
-		return CryptoSession.execute(Optional.of(password), () -> canAccessPrivateData(originalUserEntity.getID()),
-				() -> tempEncryptionContextExecutor.retrieveUserEncryptedData(originalUserEntity));
 	}
 
 	private User saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDTO userResource)

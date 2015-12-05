@@ -37,15 +37,15 @@ public class BruteForceAttemptService
 				});
 	}
 
-	public void attemptSucceeded(URI uri)
+	public void attemptSucceeded(URI uri, String... otherKeys)
 	{
-		String key = getKey(uri);
+		String key = getKey(uri, otherKeys);
 		attemptsCache.invalidate(key);
 	}
 
-	public void attemptFailed(URI uri)
+	public void attemptFailed(URI uri, String... otherKeys)
 	{
-		String key = getKey(uri);
+		String key = getKey(uri, otherKeys);
 		int attempts = 0;
 		try
 		{
@@ -59,12 +59,20 @@ public class BruteForceAttemptService
 		attemptsCache.put(key, attempts);
 	}
 
-	public boolean isBlocked(URI uri, int maxAttempts)
+	public boolean isBlocked(URI uri, int maxAttempts, Runnable callWhenBlocking, String... otherKeys)
 	{
-		String key = getKey(uri);
+		String key = getKey(uri, otherKeys);
 		try
 		{
-			return attemptsCache.get(key) >= maxAttempts;
+			Integer attempts = attemptsCache.get(key);
+			if (attempts == maxAttempts + 1)
+			{
+				if (callWhenBlocking != null)
+				{
+					callWhenBlocking.run();
+				}
+			}
+			return attempts >= maxAttempts;
 		}
 		catch (ExecutionException e)
 		{
@@ -72,38 +80,48 @@ public class BruteForceAttemptService
 		}
 	}
 
-	private String getKey(URI uri)
+	private String getKey(URI uri, String... otherKeys)
 	{
-		String key = uri.toString();
+		String key = String.join("~", otherKeys) + "@" + uri.getPath();
+		String query = uri.getQuery();
+		if (query != null)
+		{
+			key += query;
+		}
 		return key;
 	}
 
-	public <T> T executeAttempt(URI uri, int maxAttempts, Supplier<T> supplier)
+	public <T> T executeAttempt(URI uri, int maxAttempts, Supplier<T> attempt, String... otherKeys)
 	{
-		throwIfBlocked(uri, maxAttempts);
+		return executeAttempt(uri, maxAttempts, attempt, null, otherKeys);
+	}
 
-		T result = attemptExecution(uri, supplier);
+	public <T> T executeAttempt(URI uri, int maxAttempts, Supplier<T> attempt, Runnable callWhenBlocking, String... otherKeys)
+	{
+		throwIfBlocked(uri, maxAttempts, callWhenBlocking, otherKeys);
 
-		attemptSucceeded(uri);
+		T result = attemptExecution(uri, attempt, otherKeys);
+
+		attemptSucceeded(uri, otherKeys);
 		return result;
 	}
 
-	private <T> T attemptExecution(URI uri, Supplier<T> supplier)
+	private <T> T attemptExecution(URI uri, Supplier<T> attempt, String... otherKeys)
 	{
 		try
 		{
-			return supplier.get();
+			return attempt.get();
 		}
 		catch (RuntimeException e)
 		{
-			attemptFailed(uri);
+			attemptFailed(uri, otherKeys);
 			throw e;
 		}
 	}
 
-	public void throwIfBlocked(URI uri, int maxAttempts)
+	public void throwIfBlocked(URI uri, int maxAttempts, Runnable callWhenBlocking, String... otherKeys)
 	{
-		if (isBlocked(uri, maxAttempts))
+		if (isBlocked(uri, maxAttempts, callWhenBlocking, otherKeys))
 		{
 			throw BruteForceException.tooManyAttempts(uri);
 		}

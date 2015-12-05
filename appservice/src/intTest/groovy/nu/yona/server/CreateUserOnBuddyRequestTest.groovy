@@ -157,6 +157,26 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 			println "Invite URL Bob: " + bobDunnInviteURL
 
 	}
+	
+	def 'Attempt to add another user with the same mobile number'(){
+		when:
+			def response = appService.addUser("""{
+					"firstName":"Bobo ${timestamp}",
+					"lastName":"Duno ${timestamp}",
+					"nickname":"BDo ${timestamp}",
+					"mobileNumber":"+${timestamp}12",
+					"devices":[
+						"Nexus 6"
+					],
+					"goals":[
+						"news"
+					]
+				}""", "Foo")
+
+		then:
+			response.status == 400
+			response.responseData.code == "error.user.exists.created.on.buddy.request"
+	}
 
 	def 'Hacking attempt: Try to get Bob Dunn with an invalid temp password'(){
 		given:
