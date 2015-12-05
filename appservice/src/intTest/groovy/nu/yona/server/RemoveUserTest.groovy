@@ -75,15 +75,15 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest {
 		then:
 		response.status == 200
 	}
-	
+
 	def 'Test what happens if Bob checks his buddy list when the buddy disconnect is not yet processed'(){
 		given:
 
 		when:
-			def response = appService.getBuddies(bobDunnURL, bobDunnPassword);
+		def response = appService.getBuddies(bobDunn.url, bobDunn.password);
 
 		then:
-			response.status == 200
+		response.status == 200
 	}
 
 	def 'Bob checks his anonymous messages and will find a remove buddy message'(){
