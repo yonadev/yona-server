@@ -1,37 +1,17 @@
 package nu.yona.server
 
 import groovy.json.*
-import nu.yona.server.test.AbstractYonaIntegrationTest
 import spock.lang.Shared
 
-class OverwriteUserTest extends AbstractYonaIntegrationTest {
+class OverwriteUserTest extends AbstractAppServiceIntegrationTest {
 
 	@Shared
-	def timestamp = YonaServer.getTimeStamp()
+	def richardQuin
+	@Shared
+	def bobDunn
 
-	@Shared
-	def richardQuinPassword = "R i c h a r d"
-	def bobDunnPassword = "B o b"
-	@Shared
-	def richardQuinURL
-	@Shared
-	def richardQuinVPNLoginID
-	@Shared
-	def bobDunnURL
-	@Shared
-	def bobDunnVPNLoginID
-	@Shared
-	def bobDunnMobileNumberConfirmationCode
-	@Shared
-	def richardQuinBobBuddyURL
 	@Shared
 	def bobDunnRichardBuddyURL
-	@Shared
-	def bobDunnBuddyMessageAcceptURL
-	@Shared
-	def richardQuinBuddyMessageProcessURL
-	@Shared
-	def richardQuinMobileNumberConfirmationCode
 
 	@Shared
 	def richardQuinNewURL
@@ -55,176 +35,17 @@ class OverwriteUserTest extends AbstractYonaIntegrationTest {
 					"gambling"
 				]}"""
 
-
-	def 'Add user Richard Quin'(){
+	def 'Add Richard and Bob who are buddies'(){
 		given:
 
 		when:
-		def response = appService.addUser("""{
-					"firstName":"Richard ${timestamp}",
-					"lastName":"Quin ${timestamp}",
-					"nickname":"RQ ${timestamp}",
-					"mobileNumber":"+${timestamp}1",
-					"devices":[
-						"Nexus 6"
-					],
-					"goals":[
-						"news"
-					]
-				}""", richardQuinPassword)
-		if (response.status == 201) {
-			richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
-			richardQuinVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
-			richardQuinMobileNumberConfirmationCode = response.responseData.confirmationCode;
-		}
+		richardQuin = addUser("Richard", "Quin")
+		bobDunn = addUser("Bob", "Dunn")
+		makeBuddies(richardQuin, bobDunn)
 
 		then:
-		response.status == 201
-		richardQuinURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
-		richardQuinMobileNumberConfirmationCode != null
-
-		cleanup:
-		println "URL Richard: " + richardQuinURL
-	}
-
-	def 'Confirm Richard\'s mobile number'(){
-		when:
-		def response = appService.confirmMobileNumber(richardQuinURL, """ { "code":"${richardQuinMobileNumberConfirmationCode}" } """, richardQuinPassword)
-
-		then:
-		response.status == 200
-		response.responseData.mobileNumberConfirmed == true
-	}
-
-	def 'Add user Bob Dunn'(){
-		given:
-
-		when:
-		def response = appService.addUser("""{
-					"firstName":"Bob ${timestamp}",
-					"lastName":"Dunn ${timestamp}",
-					"nickname":"BD ${timestamp}",
-					"mobileNumber":"+${timestamp}2",
-					"devices":[
-						"iPhone 6"
-					],
-					"goals":[
-						"gambling", "news"
-					]
-				}""", bobDunnPassword)
-		if (response.status == 201) {
-			bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
-			bobDunnVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
-			bobDunnMobileNumberConfirmationCode = response.responseData.confirmationCode;
-		}
-
-		then:
-		response.status == 201
-		bobDunnURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
-		bobDunnMobileNumberConfirmationCode != null
-
-		cleanup:
-		println "URL Bob: " + bobDunnURL
-	}
-
-	def 'Confirm Bob\'s mobile number'(){
-		when:
-		def response = appService.confirmMobileNumber(bobDunnURL, """ { "code":"${bobDunnMobileNumberConfirmationCode}" } """, bobDunnPassword)
-
-		then:
-		response.status == 200
-		response.responseData.mobileNumberConfirmed == true
-	}
-
-	def 'Richard requests Bob to become his buddy'(){
-		given:
-
-		when:
-		def response = appService.requestBuddy(richardQuinURL, """{
-					"_embedded":{
-						"user":{
-							"firstName":"Bob ${timestamp}",
-							"lastName":"Dun ${timestamp}",
-							"emailAddress":"bob${timestamp}@dunn.net",
-							"mobileNumber":"+${timestamp}2"
-						}
-					},
-					"message":"Would you like to be my buddy?",
-					"sendingStatus":"REQUESTED",
-					"receivingStatus":"REQUESTED"
-				}""", richardQuinPassword)
-		richardQuinBobBuddyURL = response.responseData._links.self.href
-
-		then:
-		response.status == 201
-		response.responseData._embedded.user.firstName == "Bob ${timestamp}"
-		richardQuinBobBuddyURL.startsWith(richardQuinURL)
-
-		cleanup:
-		println "URL buddy Richard: " + richardQuinBobBuddyURL
-	}
-
-	def 'Bob checks his direct messages'(){
-		given:
-
-		when:
-		def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
-		if (response.responseData._embedded && response.responseData._embedded.buddyConnectRequestMessages) {
-			bobDunnBuddyMessageAcceptURL = response.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
-		}
-
-		then:
-		response.status == 200
-		response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard ${timestamp}"
-		response.responseData._embedded.buddyConnectRequestMessages[0].nickname == "RQ ${timestamp}"
-		response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(bobDunnURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
-		bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
-	}
-
-	def 'Bob accepts Richard\'s buddy request'(){
-		given:
-
-		when:
-		def response = appService.postMessageActionWithPassword(bobDunnBuddyMessageAcceptURL, """{
-					"properties":{
-						"message":"Yes, great idea!"
-					}
-				}""", bobDunnPassword)
-
-		then:
-		response.status == 200
-		response.responseData.properties.status == "done"
-	}
-
-	def 'Richard checks his anonymous messages'(){
-		given:
-
-		when:
-		def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
-		if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
-			richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
-		}
-
-		then:
-		response.status == 200
-		response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
-		response.responseData._embedded.buddyConnectResponseMessages[0].nickname == "BD ${timestamp}"
-		response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
-		richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
-	}
-
-	def 'Richard processes Bob\'s buddy acceptance'(){
-		given:
-
-		when:
-		def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageProcessURL, """{
-					"properties":{
-					}
-				}""", richardQuinPassword)
-
-		then:
-		response.status == 200
-		response.responseData.properties.status == "done"
+		richardQuin
+		bobDunn
 	}
 
 	def 'Classification engine detects a potential conflict for Richard'(){
@@ -232,7 +53,7 @@ class OverwriteUserTest extends AbstractYonaIntegrationTest {
 
 		when:
 		def response = analysisService.postToAnalysisEngine("""{
-				"vpnLoginID":"${richardQuinVPNLoginID}",
+				"vpnLoginID":"${richardQuin.vpnLoginID}",
 				"categories": ["news/media"],
 				"url":"http://www.refdag.nl"
 				}""")
@@ -247,7 +68,7 @@ class OverwriteUserTest extends AbstractYonaIntegrationTest {
 					"firstName":"Richardo ${timestamp}",
 					"lastName":"Quino ${timestamp}",
 					"nickname":"RQo ${timestamp}",
-					"mobileNumber":"+${timestamp}1",
+					"mobileNumber":"${richardQuin.mobileNumber}",
 					"devices":[
 						"Nexus 6"
 					],
@@ -263,7 +84,7 @@ class OverwriteUserTest extends AbstractYonaIntegrationTest {
 
 	def 'Request overwrite of the existing user'(){
 		when:
-		def response = appService.requestOverwriteUser("+${timestamp}1")
+		def response = appService.requestOverwriteUser("${richardQuin.mobileNumber}")
 		if(response.status == 200) {
 			richardQuinOverwriteConfirmationCode = response.responseData.confirmationCode
 		}
@@ -278,7 +99,7 @@ class OverwriteUserTest extends AbstractYonaIntegrationTest {
 					"firstName":"Richard ${timestamp}",
 					"lastName":"Quin ${timestamp}",
 					"nickname":"RQ ${timestamp}",
-					"mobileNumber":"+${timestamp}1",
+					"mobileNumber":"${richardQuin.mobileNumber}",
 					"devices":[
 						"Nexus 6"
 					],
@@ -299,15 +120,15 @@ class OverwriteUserTest extends AbstractYonaIntegrationTest {
 		given:
 
 		when:
-		def response = appService.getAnonymousMessages(bobDunnURL, bobDunnPassword)
+		def response = appService.getAnonymousMessages(bobDunn.url, bobDunn.password)
 
 		then:
 		response.status == 200
 		response.responseData._embedded.goalConflictMessages.size() == 1
-		response.responseData._embedded.goalConflictMessages[0].nickname == "RQ ${timestamp}"
+		response.responseData._embedded.goalConflictMessages[0].nickname == richardQuin.nickname
 		response.responseData._embedded.goalConflictMessages[0].goalName == "news"
 		response.responseData._embedded.goalConflictMessages[0].url == null
-		response.responseData._embedded.goalConflictMessages[0]._links.self.href.startsWith(bobDunnURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
+		response.responseData._embedded.goalConflictMessages[0]._links.self.href.startsWith(bobDunn.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
 	}
 
 	def 'Classification engine detects a potential conflict for Bob; this gives no exception because of the overwritten buddy user'(){
@@ -315,7 +136,7 @@ class OverwriteUserTest extends AbstractYonaIntegrationTest {
 
 		when:
 		def response = analysisService.postToAnalysisEngine("""{
-				"vpnLoginID":"${bobDunnVPNLoginID}",
+				"vpnLoginID":"${bobDunn.vpnLoginID}",
 				"categories": ["Gambling"],
 				"url":"http://www.poker.com"
 				}""")
@@ -328,7 +149,7 @@ class OverwriteUserTest extends AbstractYonaIntegrationTest {
 		given:
 
 		when:
-		def response = appService.getBuddies(bobDunnURL, bobDunnPassword);
+		def response = appService.getBuddies(bobDunn.url, bobDunn.password);
 		if(response.status == 200 && response.responseData._embedded) {
 			bobDunnRichardBuddyURL = response.responseData._embedded.buddies[0]._links.self.href
 		}
@@ -337,7 +158,7 @@ class OverwriteUserTest extends AbstractYonaIntegrationTest {
 		response.status == 200
 		response.responseData._embedded.buddies.size() == 1
 		response.responseData._embedded.buddies[0]._embedded.user.firstName == null
-		response.responseData._embedded.buddies[0].nickname == "RQ ${timestamp}"
+		response.responseData._embedded.buddies[0].nickname == richardQuin.nickname
 		response.responseData._embedded.buddies[0].sendingStatus == "ACCEPTED"
 		response.responseData._embedded.buddies[0].receivingStatus == "ACCEPTED"
 		bobDunnRichardBuddyURL
@@ -346,7 +167,7 @@ class OverwriteUserTest extends AbstractYonaIntegrationTest {
 	def 'Bob removes overwritten user Richard as buddy'() {
 		given:
 		when:
-		def response = appService.removeBuddy(bobDunnRichardBuddyURL, bobDunnPassword, null)
+		def response = appService.removeBuddy(bobDunnRichardBuddyURL, bobDunn.password, null)
 
 		then:
 		response.status == 200
@@ -390,7 +211,7 @@ class OverwriteUserTest extends AbstractYonaIntegrationTest {
 	def 'Delete users'(){
 		when:
 		def response1 = appService.deleteUser(richardQuinNewURL, richardQuinNewPassword)
-		def response2 = appService.deleteUser(bobDunnURL, bobDunnPassword)
+		def response2 = appService.deleteUser(bobDunn.url, bobDunn.password)
 
 		then:
 		response1.status == 200
