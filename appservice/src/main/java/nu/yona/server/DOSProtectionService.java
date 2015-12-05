@@ -29,7 +29,7 @@ public class DOSProtectionService
 	private void initializeCache()
 	{
 		attemptsCache = CacheBuilder.newBuilder()
-				.expireAfterWrite(yonaProperties.getSecurity().getDOSMemorySeconds(), TimeUnit.SECONDS)
+				.expireAfterWrite(yonaProperties.getSecurity().getDosProtectionWindowSeconds(), TimeUnit.SECONDS)
 				.build(new CacheLoader<String, Integer>() {
 					public Integer load(String key)
 					{
@@ -40,7 +40,7 @@ public class DOSProtectionService
 
 	public <T> T executeAttempt(URI uri, HttpServletRequest request, int expectedAttempts, Supplier<T> attempt)
 	{
-		if (yonaProperties.getSecurity().isDOSProtectionEnabled())
+		if (yonaProperties.getSecurity().isDosProtectionEnabled())
 		{
 			int attempts = increaseAttempts(uri, request);
 			executeDelay(expectedAttempts, attempts);
