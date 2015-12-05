@@ -1,25 +1,14 @@
 package nu.yona.server
 
 import groovy.json.*
-import nu.yona.server.test.AbstractYonaIntegrationTest
 import spock.lang.Shared
 
-class RejectBuddyTest extends AbstractYonaIntegrationTest {
+class RejectBuddyTest extends AbstractAppServiceIntegrationTest {
 
 	@Shared
-	def timestamp = YonaServer.getTimeStamp()
-
+	def richardQuin
 	@Shared
-	def richardQuinPassword = "R i c h a r d"
-	def bobDunnPassword = "B o b"
-	@Shared
-	def richardQuinURL
-	@Shared
-	def richardQuinVPNLoginID
-	@Shared
-	def bobDunnURL
-	@Shared
-	def bobDunnVPNLoginID
+	def bobDunn
 	@Shared
 	def richardQuinBobBuddyURL
 	@Shared
@@ -33,94 +22,48 @@ class RejectBuddyTest extends AbstractYonaIntegrationTest {
 	@Shared
 	def richardQuinBuddyMessageProcessURL
 
-	def 'Add user Richard Quin'(){
+	def 'Add user Richard'(){
 		given:
 
 		when:
-		def response = appService.addUser("""{
-				"firstName":"Richard ${timestamp}",
-				"lastName":"Quin ${timestamp}",
-				"nickname":"RQ ${timestamp}",
-				"mobileNumber":"+${timestamp}1",
-				"devices":[
-					"Nexus 6"
-				],
-				"goals":[
-					"news"
-				]
-			}""", richardQuinPassword)
-		if (response.status == 201) {
-			richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
-			richardQuinVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
-
-			def confirmationCode = response.responseData.confirmationCode;
-			appService.confirmMobileNumber(richardQuinURL, """ { "code":"${confirmationCode}" } """, richardQuinPassword)
-		}
+		richardQuin = addUser("Richard", "Quin")
 
 		then:
-		response.status == 201
-		richardQuinURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
-
-		cleanup:
-		println "URL Richard: " + richardQuinURL
+		richardQuin
 	}
 
-	def 'Add user Bob Dunn'(){
+	def 'Add user Bob'(){
 		given:
 
 		when:
-		def response = appService.addUser("""{
-				"firstName":"Bob ${timestamp}",
-				"lastName":"Dunn ${timestamp}",
-				"nickname":"BD ${timestamp}",
-				"mobileNumber":"+${timestamp}2",
-				"devices":[
-					"iPhone 6"
-				],
-				"goals":[
-					"gambling"
-				]
-			}""", bobDunnPassword)
-		if (response.status == 201) {
-			bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
-			bobDunnVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
-
-			def confirmationCode = response.responseData.confirmationCode;
-			appService.confirmMobileNumber(bobDunnURL, """ { "code":"${confirmationCode}" } """, bobDunnPassword)
-		}
+		bobDunn = addUser("Bob", "Dunn")
 
 		then:
-		response.status == 201
-		bobDunnURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
-
-		cleanup:
-		println "URL Bob: " + bobDunnURL
+		bobDunn
 	}
 
 	def 'Richard requests Bob to become his buddy'(){
 		given:
 
 		when:
-		def response = appService.requestBuddy(richardQuinURL, """{
+		def response = appService.requestBuddy(richardQuin.url, """{
 				"_embedded":{
 					"user":{
-						"firstName":"Bob ${timestamp}",
-						"lastName":"Dun ${timestamp}n",
-						"mobileNumber":"+${timestamp}2"
+						"mobileNumber":"${bobDunn.mobileNumber}"
 					}
 				},
 				"message":"Would you like to be my buddy?",
 				"sendingStatus":"REQUESTED",
 				"receivingStatus":"REQUESTED"
-			}""", richardQuinPassword)
+			}""", richardQuin.password)
 		if (response.status == 201) {
 			richardQuinBobBuddyURL = response.responseData._links.self.href
 		}
 
 		then:
 		response.status == 201
-		response.responseData._embedded.user.firstName == "Bob ${timestamp}"
-		richardQuinBobBuddyURL.startsWith(richardQuinURL)
+		response.responseData._embedded.user.firstName == "Bob"
+		richardQuinBobBuddyURL.startsWith(richardQuin.url)
 
 		cleanup:
 		println "URL buddy Richard: " + richardQuinBobBuddyURL
@@ -130,15 +73,15 @@ class RejectBuddyTest extends AbstractYonaIntegrationTest {
 		given:
 
 		when:
-		def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
+		def response = appService.getDirectMessages(bobDunn.url, bobDunn.password)
 		if (response.status == 200) {
 			bobDunnBuddyMessageRejectURL = response.responseData._embedded?.buddyConnectRequestMessages[0]?._links?.reject?.href
 		}
 
 		then:
 		response.status == 200
-		response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard ${timestamp}"
-		response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(bobDunnURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
+		response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard"
+		response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(bobDunn.url + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
 		bobDunnBuddyMessageRejectURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
 	}
 
@@ -150,7 +93,7 @@ class RejectBuddyTest extends AbstractYonaIntegrationTest {
 				"properties":{
 					"message":"No, thanks."
 				}
-			}""", bobDunnPassword)
+			}""", bobDunn.password)
 
 		then:
 		response.status == 200
@@ -161,15 +104,15 @@ class RejectBuddyTest extends AbstractYonaIntegrationTest {
 		given:
 
 		when:
-		def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+		def response = appService.getAnonymousMessages(richardQuin.url, richardQuin.password)
 		if (response.status == 200) {
 			richardQuinBuddyMessageProcessURL = response.responseData._embedded?.buddyConnectResponseMessages[0]?._links?.process?.href
 		}
 
 		then:
 		response.status == 200
-		response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
-		response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
+		response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob"
+		response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuin.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
 		richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
 	}
 
@@ -180,7 +123,7 @@ class RejectBuddyTest extends AbstractYonaIntegrationTest {
 		def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageProcessURL, """{
 				"properties":{
 				}
-			}""", richardQuinPassword)
+			}""", richardQuin.password)
 
 		then:
 		response.status == 200
@@ -191,7 +134,7 @@ class RejectBuddyTest extends AbstractYonaIntegrationTest {
 		given:
 
 		when:
-		def response = appService.getBuddies(richardQuinURL, richardQuinPassword);
+		def response = appService.getBuddies(richardQuin.url, richardQuin.password);
 
 		then:
 		response.status == 200
@@ -202,7 +145,7 @@ class RejectBuddyTest extends AbstractYonaIntegrationTest {
 		given:
 
 		when:
-		def response = appService.getBuddies(bobDunnURL, bobDunnPassword);
+		def response = appService.getBuddies(bobDunn.url, bobDunn.password);
 
 		then:
 		response.status == 200

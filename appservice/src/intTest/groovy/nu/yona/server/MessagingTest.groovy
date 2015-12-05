@@ -1,194 +1,26 @@
 package nu.yona.server
 
 import groovy.json.*
-import nu.yona.server.test.AbstractYonaIntegrationTest
 import spock.lang.Shared
 
-class MessagingTest extends AbstractYonaIntegrationTest {
-	@Shared
-	def timestamp = YonaServer.getTimeStamp()
+class MessagingTest extends AbstractAppServiceIntegrationTest {
 
 	@Shared
-	def richardQuinPassword = "R i c h a r d"
-	def bobDunnPassword = "B o b"
+	def richardQuin
 	@Shared
-	def richardQuinURL
-	@Shared
-	def richardQuinVPNLoginID
-	@Shared
-	def bobDunnURL
-	@Shared
-	def bobDunnVPNLoginID
-	@Shared
-	def bobDunnBuddyMessageAcceptURL
-	@Shared
-	def richardQuinBuddyMessageProcessURL
-	@Shared
-	def richardQuinMobileNumberConfirmationCode
-	@Shared
-	def bobDunnMobileNumberConfirmationCode
+	def bobDunn
 
-	def 'Add user Richard Quin'(){
+	def 'Add Richard and Bob who are buddies'(){
 		given:
 
 		when:
-		def response = appService.addUser("""{
-					"firstName":"Richard ${timestamp}",
-					"lastName":"Quin ${timestamp}",
-					"nickname":"RQ ${timestamp}",
-					"mobileNumber":"+${timestamp}1",
-					"devices":[
-						"Nexus 6"
-					],
-					"goals":[
-						"news"
-					]
-				}""", richardQuinPassword)
-		if (response.status == 201) {
-			richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
-			richardQuinVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
-			richardQuinMobileNumberConfirmationCode = response.responseData.confirmationCode;
-		}
+		richardQuin = addUser("Richard", "Quin")
+		bobDunn = addUser("Bob", "Dunn")
+		makeBuddies(richardQuin, bobDunn)
 
 		then:
-		response.status == 201
-		richardQuinURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
-
-		cleanup:
-		println "URL Richard: " + richardQuinURL
-	}
-
-	def 'Confirm Richard\'s mobile number'(){
-		when:
-		def response = appService.confirmMobileNumber(richardQuinURL, """ { "code":"${richardQuinMobileNumberConfirmationCode}" } """, richardQuinPassword)
-
-		then:
-		response.status == 200
-		response.responseData.mobileNumberConfirmed == true
-	}
-
-	def 'Add user Bob Dunn'(){
-		given:
-
-		when:
-		def response = appService.addUser("""{
-					"firstName":"Bob ${timestamp}",
-					"lastName":"Dunn ${timestamp}",
-					"nickname":"BD ${timestamp}",
-					"mobileNumber":"+${timestamp}2",
-					"devices":[
-						"iPhone 6"
-					],
-					"goals":[
-						"gambling", "news"
-					]
-				}""", bobDunnPassword)
-		if (response.status == 201) {
-			bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
-			bobDunnVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
-			bobDunnMobileNumberConfirmationCode = response.responseData.confirmationCode;
-		}
-
-		then:
-		response.status == 201
-		bobDunnURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
-
-		cleanup:
-		println "URL Bob: " + bobDunnURL
-	}
-
-	def 'Confirm Bob\'s mobile number'(){
-		when:
-		def response = appService.confirmMobileNumber(bobDunnURL, """ { "code":"${bobDunnMobileNumberConfirmationCode}" } """, bobDunnPassword)
-
-		then:
-		response.status == 200
-		response.responseData.mobileNumberConfirmed == true
-	}
-
-	def 'Richard requests Bob to become his buddy (generates a BuddyConnectRequestMessage)'(){
-		given:
-
-		when:
-		def response = appService.requestBuddy(richardQuinURL, """{
-					"_embedded":{
-						"user":{
-							"firstName":"Bob ${timestamp}",
-							"lastName":"Dun ${timestamp}",
-							"emailAddress":"bob${timestamp}@dunn.net",
-							"mobileNumber":"+${timestamp}2"
-						}
-					},
-					"message":"Would you like to be my buddy?",
-					"sendingStatus":"REQUESTED",
-					"receivingStatus":"REQUESTED"
-				}""", richardQuinPassword)
-
-		then:
-		response.status == 201
-		response.responseData._embedded.user.firstName == "Bob ${timestamp}"
-	}
-
-	def 'Bob checks his direct message list'(){
-		given:
-
-		when:
-		def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
-		if(response.responseData._embedded.buddyConnectRequestMessages) {
-			bobDunnBuddyMessageAcceptURL = response.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
-		}
-
-		then:
-		response.status == 200
-		response.responseData._links.self.href == bobDunnURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT + "{?page,size,sort}"
-		response.responseData._embedded.buddyConnectRequestMessages
-		response.responseData._embedded.buddyConnectRequestMessages.size() == 1
-	}
-
-	def 'Bob accepts Richard\'s buddy request'(){
-		given:
-
-		when:
-		def response = appService.postMessageActionWithPassword(bobDunnBuddyMessageAcceptURL, """{
-					"properties":{
-						"message":"Yes, great idea!"
-					}
-				}""", bobDunnPassword)
-
-		then:
-		response.status == 200
-		response.responseData.properties.status == "done"
-	}
-
-	def 'Richard checks his anonymous messages'(){
-		given:
-
-		when:
-		def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
-		if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
-			richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
-		}
-
-		then:
-		response.status == 200
-		response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
-		response.responseData._embedded.buddyConnectResponseMessages[0].nickname == "BD ${timestamp}"
-		response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
-		richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
-	}
-
-	def 'Richard processes Bob\'s buddy acceptance'(){
-		given:
-
-		when:
-		def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageProcessURL, """{
-					"properties":{
-					}
-				}""", richardQuinPassword)
-
-		then:
-		response.status == 200
-		response.responseData.properties.status == "done"
+		richardQuin
+		bobDunn
 	}
 
 	def 'Classification engine detects a potential conflict for Bob'(){
@@ -196,7 +28,7 @@ class MessagingTest extends AbstractYonaIntegrationTest {
 
 		when:
 		def response = analysisService.postToAnalysisEngine("""{
-				"vpnLoginID":"${bobDunnVPNLoginID}",
+				"vpnLoginID":"${bobDunn.vpnLoginID}",
 				"categories": ["Gambling"],
 				"url":"http://www.poker.com"
 				}""")
@@ -210,7 +42,7 @@ class MessagingTest extends AbstractYonaIntegrationTest {
 
 		when:
 		def response = analysisService.postToAnalysisEngine("""{
-				"vpnLoginID":"${richardQuinVPNLoginID}",
+				"vpnLoginID":"${richardQuin.vpnLoginID}",
 				"categories": ["news/media"],
 				"url":"http://www.refdag.nl"
 				}""")
@@ -224,7 +56,7 @@ class MessagingTest extends AbstractYonaIntegrationTest {
 
 		when:
 		def response = analysisService.postToAnalysisEngine("""{
-				"vpnLoginID":"${bobDunnVPNLoginID}",
+				"vpnLoginID":"${bobDunn.vpnLoginID}",
 				"categories": ["news/media"],
 				"url":"http://www.refdag.nl"
 				}""")
@@ -237,11 +69,11 @@ class MessagingTest extends AbstractYonaIntegrationTest {
 		given:
 
 		when:
-		def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
+		def response = appService.getAnonymousMessages(richardQuin.url, richardQuin.password)
 
 		then:
 		response.status == 200
-		response.responseData._links.self.href == richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT + "{?page,size,sort}"
+		response.responseData._links.self.href == richardQuin.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT + "{?page,size,sort}"
 		response.responseData._embedded.buddyConnectResponseMessages
 		response.responseData._embedded.buddyConnectResponseMessages.size() == 1
 		response.responseData._embedded.goalConflictMessages
@@ -252,7 +84,7 @@ class MessagingTest extends AbstractYonaIntegrationTest {
 		given:
 
 		when:
-		def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword, [
+		def response = appService.getAnonymousMessages(richardQuin.url, richardQuin.password, [
 			"page": 0,
 			"size": 2,
 			"sort": "creationTime"
@@ -260,7 +92,7 @@ class MessagingTest extends AbstractYonaIntegrationTest {
 
 		then:
 		response.status == 200
-		response.responseData._links.self.href == richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT + "?page=0&size=2&sort=creationTime"
+		response.responseData._links.self.href == richardQuin.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT + "?page=0&size=2&sort=creationTime"
 		!response.responseData._links.prev
 		response.responseData._links.next
 		!response.responseData._embedded.buddyConnectResponseMessages
@@ -273,7 +105,7 @@ class MessagingTest extends AbstractYonaIntegrationTest {
 		given:
 
 		when:
-		def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword, [
+		def response = appService.getAnonymousMessages(richardQuin.url, richardQuin.password, [
 			"page": 1,
 			"size": 2,
 			"sort": "creationTime"
@@ -281,7 +113,7 @@ class MessagingTest extends AbstractYonaIntegrationTest {
 
 		then:
 		response.status == 200
-		response.responseData._links.self.href == richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT + "?page=1&size=2&sort=creationTime"
+		response.responseData._links.self.href == richardQuin.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT + "?page=1&size=2&sort=creationTime"
 		response.responseData._links.prev
 		!response.responseData._links.next
 		response.responseData._embedded.buddyConnectResponseMessages
@@ -289,17 +121,5 @@ class MessagingTest extends AbstractYonaIntegrationTest {
 		response.responseData._embedded.goalConflictMessages
 		response.responseData._embedded.goalConflictMessages.size() == 1
 		response.responseData.page.totalElements == 4
-	}
-
-	def 'Delete users'(){
-		given:
-
-		when:
-		def response1 = appService.deleteUser(bobDunnURL, bobDunnPassword)
-		def response2 = appService.deleteUser(richardQuinURL, richardQuinPassword)
-
-		then:
-		response1.status == 200
-		response2.status == 200
 	}
 }
