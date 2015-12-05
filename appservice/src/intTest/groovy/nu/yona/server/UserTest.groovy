@@ -7,7 +7,7 @@ import spock.lang.Shared
 class UserTest extends AbstractYonaIntegrationTest {
 
 	@Shared
-	def timestamp = YonaServer.getTimeStamp()
+	def timestamp = AppService.getTimeStamp()
 	def userCreationJSON = """{
 				"firstName":"John",
 				"lastName":"Doe ${timestamp}",
