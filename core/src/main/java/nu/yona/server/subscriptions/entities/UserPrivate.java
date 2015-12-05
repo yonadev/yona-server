@@ -8,11 +8,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
@@ -44,9 +44,8 @@ public class UserPrivate extends EntityWithID
 	@Convert(converter = UUIDFieldEncrypter.class)
 	private UUID userAnonymizedID;
 
-	@ElementCollection(fetch = FetchType.EAGER)
-	@Convert(converter = StringFieldEncrypter.class)
-	private Set<String> deviceNames;
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private Set<Device> devices;
 
 	@OneToMany(cascade = CascadeType.ALL)
 	private Set<Buddy> buddies;
@@ -66,7 +65,7 @@ public class UserPrivate extends EntityWithID
 		super(null);
 	}
 
-	private UserPrivate(UUID id, String nickname, UUID userAnonymizedID, String vpnPassword, Set<String> deviceNames,
+	private UserPrivate(UUID id, String nickname, UUID userAnonymizedID, String vpnPassword, Set<Device> devices,
 			UUID anonymousMessageSourceID, UUID namedMessageSourceID)
 	{
 		super(id);
@@ -74,7 +73,7 @@ public class UserPrivate extends EntityWithID
 		this.nickname = nickname;
 		this.userAnonymizedID = userAnonymizedID;
 		this.vpnPassword = vpnPassword;
-		this.deviceNames = deviceNames;
+		this.devices = devices;
 		this.buddies = new HashSet<>();
 		this.anonymousMessageSourceID = anonymousMessageSourceID;
 		this.namedMessageSourceID = namedMessageSourceID;
@@ -90,7 +89,9 @@ public class UserPrivate extends EntityWithID
 	{
 		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
 		UserAnonymized.getRepository().save(userAnonymized);
-		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymized.getID(), vpnPassword, deviceNames,
+		Set<Device> devices = deviceNames.stream().map(deviceName -> Device.createInstance(deviceName))
+				.collect(Collectors.toSet());
+		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymized.getID(), vpnPassword, devices,
 				anonymousMessageSource.getID(), namedMessageSource.getID());
 	}
 
@@ -116,12 +117,12 @@ public class UserPrivate extends EntityWithID
 
 	public Set<String> getDeviceNames()
 	{
-		return Collections.unmodifiableSet(deviceNames);
+		return devices.stream().map(device -> device.getName()).collect(Collectors.toSet());
 	}
 
 	public void setDeviceNames(Set<String> deviceNames)
 	{
-		this.deviceNames = new HashSet<>(deviceNames);
+		this.devices = deviceNames.stream().map(deviceName -> Device.createInstance(deviceName)).collect(Collectors.toSet());
 	}
 
 	public Set<Buddy> getBuddies()

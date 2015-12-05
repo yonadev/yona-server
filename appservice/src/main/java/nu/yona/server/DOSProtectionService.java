@@ -84,6 +84,12 @@ public class DOSProtectionService
 
 	private String getKey(URI uri, HttpServletRequest request)
 	{
-		return uri.toString() + "~" + request.getRemoteAddr();
+		String key = request.getRemoteAddr() + "@" + uri.getPath();
+		String query = uri.getQuery();
+		if (query != null)
+		{
+			key += query;
+		}
+		return key;
 	}
 }
