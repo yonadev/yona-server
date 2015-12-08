@@ -68,43 +68,89 @@ class AppService  extends Service {
 		assert response.status >= 200 && response.status < 300
 	}
 
-	def makeBuddies(user1, user2)
+	def makeBuddies(requestingUser, respondingUser)
+	{
+		sendBuddyConnectRequest(requestingUser, respondingUser)
+		def acceptURL = fetchBuddyConnectRequestMessage(respondingUser).acceptURL
+		def acceptResponse = postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], respondingUser.password)
+		assert acceptResponse.status == 200
+
+		def processURL = fetchBuddyConnectResponseMessage(requestingUser).processURL
+
+		// Have the requesting user process the buddy connect response
+		def processResponse = postMessageActionWithPassword(processURL, [ : ], requestingUser.password)
+		assert processResponse.status == 200
+	}
+
+	def sendBuddyConnectRequest(sendingUser, receivingUser)
 	{
 		// Send the buddy request
-		def addBuddyResponse = requestBuddy(user1.url, """{
+		def response = requestBuddy(sendingUser.url, """{
 			"_embedded":{
 				"user":{
-					"firstName":"${user2.firstName}",
-					"lastName":"${user2.lastName}",
-					"mobileNumber":"${user2.mobileNumber}",
+					"firstName":"${receivingUser.firstName}",
+					"lastName":"${receivingUser.lastName}",
+					"mobileNumber":"${receivingUser.mobileNumber}",
 					"emailAddress":"not@used.nu"
 				}
 			},
 			"message":"Would you like to be my buddy?",
 			"sendingStatus":"REQUESTED",
 			"receivingStatus":"REQUESTED"
-		}""", user1.password)
-		assert addBuddyResponse.status == 201
+		}""", sendingUser.password)
+		assert response.status == 201
+		response
+	}
 
+	def fetchBuddyConnectRequestMessage(User user)
+	{
 		// Have the other user fetch the buddy connect request
-		def user2DirectMessagesResponse = getDirectMessages(user2.url, user2.password)
-		assert user2DirectMessagesResponse.status == 200
-		assert user2DirectMessagesResponse.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
+		def response = getDirectMessages(user)
+		assert response.status == 200
+		assert response.responseData._embedded
 
-		// Accept the buddy request
-		def user2BuddyConnectRequestMessageAcceptURL = user2DirectMessagesResponse.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
-		def acceptResponse = postMessageActionWithPassword(user2BuddyConnectRequestMessageAcceptURL, ["message" : "Yes, great idea!"], user2.password)
-		assert acceptResponse.status == 200
+		def message = response.responseData._embedded?.buddyConnectRequestMessages[0]?.message ?: null
+		def acceptURL = response.responseData._embedded?.buddyConnectRequestMessages[0]?._links?.accept?.href ?: null
+		def rejectURL = response.responseData._embedded?.buddyConnectRequestMessages[0]?._links?.reject?.href ?: null
 
+		def result = [ : ]
+		if (message)
+		{
+			result.message = message
+		}
+		if (acceptURL)
+		{
+			result.acceptURL = acceptURL
+		}
+		if (rejectURL)
+		{
+			result.rejectURL = rejectURL
+		}
+
+		return result
+	}
+
+	def fetchBuddyConnectResponseMessage(User user)
+	{
 		// Have the requesting user fetch the buddy connect response
-		def user1AnonymousMessagesResponse = getAnonymousMessages(user1.url, user1.password)
-		assert user1AnonymousMessagesResponse.status == 200
-		assert user1AnonymousMessagesResponse.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
+		def response = getAnonymousMessages(user)
+		assert response.status == 200
+		assert response.responseData._embedded
+		assert response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
 
-		// Have the requesting user process the buddy connect response
-		def user1BuddyConnectResponseMessageProcessURL = user1AnonymousMessagesResponse.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
-		def processResponse = postMessageActionWithPassword(user1BuddyConnectResponseMessageProcessURL, [ : ], user1.password)
-		assert processResponse.status == 200
+		def message = response.responseData._embedded?.buddyConnectResponseMessages[0]?.message ?: null
+		def processURL = response.responseData._embedded?.buddyConnectResponseMessages[0]?._links?.process?.href
+		def result = [ : ]
+		if (message)
+		{
+			result.message = message
+		}
+		if (processURL)
+		{
+			result.processURL = processURL
+		}
+
+		return result
 	}
 
 	def addUser(jsonString, password, parameters = [:]) {
