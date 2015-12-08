@@ -9,9 +9,8 @@ import nu.yona.server.test.AbstractYonaIntegrationTest
  *
  * @author pgussow
  */
-class UserValidationTest extends AbstractYonaIntegrationTest {
+class UserValidationTest extends AbstractAppServiceIntegrationTest {
 
-	def timestamp = appService.getTimeStamp()
 	def jsonSlurper = new JsonSlurper()
 	def userCreationJSON = """{
 				"firstName":"First ${timestamp}",
@@ -29,7 +28,7 @@ class UserValidationTest extends AbstractYonaIntegrationTest {
 		when:
 			def object = jsonSlurper.parseText(userCreationJSON)
 			object.remove('firstName')
-			def response = appService.addUser(object, password)
+			def response = newAppService.addUser(object, password)
 
 		then:
 			response.status == 400
@@ -41,7 +40,7 @@ class UserValidationTest extends AbstractYonaIntegrationTest {
 		when:
 			def object = jsonSlurper.parseText(userCreationJSON)
 			object.remove('lastName')
-			def response = appService.addUser(object, password)
+			def response = newAppService.addUser(object, password)
 
 		then:
 			response.status == 400
@@ -53,7 +52,7 @@ class UserValidationTest extends AbstractYonaIntegrationTest {
 		when:
 			def object = jsonSlurper.parseText(userCreationJSON)
 			object.remove('mobileNumber')
-			def response = appService.addUser(object, password)
+			def response = newAppService.addUser(object, password)
 
 		then:
 			response.status == 400
@@ -65,7 +64,7 @@ class UserValidationTest extends AbstractYonaIntegrationTest {
 		when:
 			def object = jsonSlurper.parseText(userCreationJSON)
 			object.put('mobileNumber', '++55 5 ')
-			def response = appService.addUser(object, password)
+			def response = newAppService.addUser(object, password)
 
 		then:
 			response.status == 400

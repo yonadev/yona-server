@@ -3,157 +3,130 @@ package nu.yona.server
 import groovy.json.*
 import spock.lang.Shared
 
-class RemoveUserTest extends AbstractAppServiceIntegrationTest {
-
-	@Shared
-	def richardQuin
-	@Shared
-	def bobDunn
-	@Shared
-	def bobDunnBuddyRemoveMessageProcessURL
-
-	def 'Add Richard and Bob who are buddies'(){
+class RemoveUserTest extends AbstractAppServiceIntegrationTest
+{
+	def 'Delete account'()
+	{
 		given:
+			def richard = addRichard()
 
 		when:
-		richardQuin = addUser("Richard", "Quin")
-		bobDunn = addUser("Bob", "Dunn")
-		makeBuddies(richardQuin, bobDunn)
-
-		then:
-		richardQuin
-		bobDunn
-	}
-
-	def 'Classification engine detects a potential conflict for Bob'(){
-		given:
-
-		when:
-		def response = analysisService.postToAnalysisEngine("""{
-					"vpnLoginID":"${bobDunn.vpnLoginID}",
-					"categories": ["Gambling"],
-					"url":"http://www.poker.com"
-				}""")
-
-		then:
-		response.status == 200
-	}
-
-	def 'Classification engine detects a potential conflict for Richard'(){
-		given:
-
-		when:
-		def response = analysisService.postToAnalysisEngine("""{
-				"vpnLoginID":"${richardQuin.vpnLoginID}",
-				"categories": ["news/media"],
-				"url":"http://www.refdag.nl"
-				}""")
-
-		then:
-		response.status == 200
-	}
-
-	def 'Richard deletes his account'() {
-		given:
-		when:
-		def response = appService.deleteUser(richardQuin.url, richardQuin.password, "Goodbye friends! I deinstalled the Internet")
-
-		then:
-		response.status == 200
-	}
-
-	def 'Test what happens if the classification engine detects a potential conflict for Bob (second conflict message) when the buddy disconnect is not yet processed'(){
-		given:
-
-		when:
-		def response = analysisService.postToAnalysisEngine("""{
-					"vpnLoginID":"${bobDunn.vpnLoginID}",
-					"categories": ["news/media"],
-					"url":"http://www.refdag.nl"
-				}""")
-
-		then:
-		response.status == 200
-	}
-	
-	def 'Test what happens if Bob checks his buddy list when the buddy disconnect is not yet processed'(){
-		given:
-
-		when:
-			def response = appService.getBuddies(bobDunnURL, bobDunnPassword);
+			def response = newAppService.deleteUser(richard, "Goodbye friends! I deinstalled the Internet")
 
 		then:
 			response.status == 200
 	}
 
-	def 'Bob checks his anonymous messages and will find a remove buddy message'(){
+	def 'Delete and recreate account'()
+	{
 		given:
+			def richard = addRichard()
+			newAppService.deleteUser(richard, "Goodbye friends! I deinstalled the Internet")
 
 		when:
-		def response = appService.getAnonymousMessages(bobDunn.url, bobDunn.password)
-		if (response.responseData._embedded && response.responseData._embedded.buddyDisconnectMessages) {
-			bobDunnBuddyRemoveMessageProcessURL = response.responseData._embedded.buddyDisconnectMessages[0]._links.process.href
-		}
+			def newRichard = newAppService.addUser(newAppService.&assertUserCreationResponseDetails, richard.password, richard.firstName, richard.lastName,
+				richard.nickname, richard.mobileNumber, [], [])
 
 		then:
-		response.status == 200
-		response.responseData._embedded.buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"
-		response.responseData._embedded.buddyDisconnectMessages[0].message == "Goodbye friends! I deinstalled the Internet"
-		response.responseData._embedded.buddyDisconnectMessages[0].nickname == richardQuin.nickname
-		response.responseData._embedded.buddyDisconnectMessages[0]._links.self.href.startsWith(bobDunn.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
-		bobDunnBuddyRemoveMessageProcessURL.startsWith(response.responseData._embedded.buddyDisconnectMessages[0]._links.self.href)
+			newRichard
 	}
 
-	def 'Bob processes the remove buddy message'(){
+	def 'Remove Richard and verify that Bob receives a remove buddy message'()
+	{
 		given:
+			def richardAndBob = addRichardAndBobAsBuddies()
+			def richard = richardAndBob["Richard"]
+			def bob = richardAndBob["Bob"]
+			newAnalysisService.postToAnalysisEngine(bob.vpnProfile.vpnLoginID, ["Gambling"], "http://www.poker.com")
+			newAnalysisService.postToAnalysisEngine(richard.vpnProfile.vpnLoginID, "news/media", "http://www.refdag.nl")
 
 		when:
-		def response = appService.postMessageActionWithPassword(bobDunnBuddyRemoveMessageProcessURL, """{
-					"properties":{
-					}
-				}""", bobDunn.password)
+			def message = "Goodbye friends! I deinstalled the Internet"
+			newAppService.deleteUser(richard, message)
 
 		then:
-		response.status == 200
-		response.responseData.properties.status == "done"
+			// TODO: when are the buddies actually removed? Not on "process" of the message?
+			def buddies = newAppService.getBuddies(bob)
+			buddies.size() == 0
+			def getAnonMessagesResponse = newAppService.getAnonymousMessages(bob)
+			getAnonMessagesResponse.status == 200
+			getAnonMessagesResponse.responseData._embedded
+			getAnonMessagesResponse.responseData._embedded.buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"
+			getAnonMessagesResponse.responseData._embedded.buddyDisconnectMessages[0].message == message
+			getAnonMessagesResponse.responseData._embedded.buddyDisconnectMessages[0].nickname == richard.nickname
+			getAnonMessagesResponse.responseData._embedded.buddyDisconnectMessages[0]._links.self.href.startsWith(bob.url + newAppService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
+			getAnonMessagesResponse.responseData._embedded.buddyDisconnectMessages[0]._links.process.href.startsWith(getAnonMessagesResponse.responseData._embedded.buddyDisconnectMessages[0]._links.self.href)
+			getAnonMessagesResponse.responseData._embedded.goalConflictMessages.size == 1
+			getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+			def getDirectMessagesResponse = newAppService.getDirectMessages(bob)
+			getDirectMessagesResponse.status == 200
+			getDirectMessagesResponse.responseData._embedded == null || response.responseData._embedded.buddyConnectRequestMessages == null
+
+		cleanup:
+			newAppService.deleteUser(bob)
 	}
 
-	def 'Bob checks his buddy list and will not find Richard there anymore'(){
+	def 'Remove Richard and verify that buddy data is removed after Bob processed the remove buddy message'()
+	{
 		given:
+			def richardAndBob = addRichardAndBobAsBuddies()
+			def richard = richardAndBob["Richard"]
+			def bob = richardAndBob["Bob"]
+			newAnalysisService.postToAnalysisEngine(bob.vpnProfile.vpnLoginID, ["Gambling"], "http://www.poker.com")
+			newAnalysisService.postToAnalysisEngine(richard.vpnProfile.vpnLoginID, "news/media", "http://www.refdag.nl")
+			def message = "Goodbye friends! I deinstalled the Internet"
+			newAppService.deleteUser(richard, message)
+			def getResponse = newAppService.getAnonymousMessages(bob)
+			def processURL = (getResponse.status == 200) ? getResponse.responseData._embedded.buddyDisconnectMessages[0]._links.process.href : null
 
 		when:
-		def response = appService.getBuddies(bobDunn.url, bobDunn.password);
+			def response = newAppService.postMessageActionWithPassword(processURL, [:], bob.password)
 
 		then:
-		response.status == 200
-		response.responseData._embedded == null
+			response.status == 200
+			def buddies = newAppService.getBuddies(bob)
+			buddies.size() == 0
+			def getAnonMessagesResponse = newAppService.getAnonymousMessages(bob)
+			getAnonMessagesResponse.status == 200
+			getAnonMessagesResponse.responseData._embedded
+			getAnonMessagesResponse.responseData._embedded.goalConflictMessages.size == 1
+			getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+			getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+
+		cleanup:
+			newAppService.deleteUser(bob)
 	}
 
-	def 'Bob checks his anonymous messages and the messages of Richard are no longer there'(){
+	def 'Conflicts for Bob are still processed after the unsubscribe of Bob'()
+	{
 		given:
+			def richardAndBob = addRichardAndBobAsBuddies()
+			def richard = richardAndBob["Richard"]
+			def bob = richardAndBob["Bob"]
+			def message = "Goodbye friends! I deinstalled the Internet"
+			newAppService.deleteUser(richard, message)
+			def getResponse = newAppService.getAnonymousMessages(bob)
+			def processURL = (getResponse.status == 200) ? getResponse.responseData._embedded.buddyDisconnectMessages[0]._links.process.href : null
+			newAppService.postMessageActionWithPassword(processURL, [:], bob.password)
 
 		when:
-		def response = appService.getAnonymousMessages(bobDunn.url, bobDunn.password)
+			def response = newAnalysisService.postToAnalysisEngine(bob.vpnProfile.vpnLoginID, ["Gambling"], "http://www.poker.com")
 
 		then:
-		response.status == 200
-		response.responseData._embedded.goalConflictMessages.size() == 2
-		response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-		response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
-		response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
-		response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
-		response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
-	}
+			response.status == 200
+			def getAnonMessagesResponse = newAppService.getAnonymousMessages(bob)
+			getAnonMessagesResponse.status == 200
+			getAnonMessagesResponse.responseData._embedded
+			getAnonMessagesResponse.responseData._embedded.buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"
+			getAnonMessagesResponse.responseData._embedded.buddyDisconnectMessages[0].message == message
+			getAnonMessagesResponse.responseData._embedded.buddyDisconnectMessages[0].nickname == richard.nickname
+			getAnonMessagesResponse.responseData._embedded.buddyDisconnectMessages[0]._links.self.href.startsWith(bob.url + newAppService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
+			!getAnonMessagesResponse.responseData._embedded.buddyDisconnectMessages[0]._links.process
 
-	def 'Bob checks his direct messages and the messages of Richard are no longer there'(){
-		given:
-
-		when:
-		def response = appService.getDirectMessages(bobDunn.url, bobDunn.password)
-
-		then:
-		response.status == 200
-		response.responseData._embedded == null || response.responseData._embedded.buddyConnectRequestMessages == null
+		cleanup:
+			newAppService.deleteUser(bob)
 	}
 }

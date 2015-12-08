@@ -4,10 +4,8 @@ import groovy.json.*
 import nu.yona.server.test.AbstractYonaIntegrationTest
 import spock.lang.Shared
 
-class UserTest extends AbstractYonaIntegrationTest {
+class UserTest extends AbstractAppServiceIntegrationTest {
 
-	@Shared
-	def timestamp = AppService.getTimeStamp()
 	def userCreationJSON = """{
 				"firstName":"John",
 				"lastName":"Doe ${timestamp}",

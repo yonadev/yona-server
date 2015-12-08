@@ -2,13 +2,69 @@ package nu.yona.server
 
 import groovy.json.*
 import nu.yona.server.test.AbstractYonaIntegrationTest
+import nu.yona.server.test.AnalysisService
+import nu.yona.server.test.AppService
 import spock.lang.Shared
 
-abstract class AbstractAppServiceIntegrationTest extends AbstractYonaIntegrationTest {
+import java.text.SimpleDateFormat
+
+abstract class AbstractAppServiceIntegrationTest extends AbstractYonaIntegrationTest
+{
 	@Shared
-	def timestamp = YonaServer.getTimeStamp()
+	def AnalysisService newAnalysisService = new AnalysisService()
+
+	@Shared
+	def AppService newAppService = new AppService()
+
+	@Shared
+	private String baseTimestamp = createBaseTimestamp()
+
+	@Shared
+	private int sequenceNumber = 0
+
 	@Shared
 	def userNumber = 0;
+
+	def addRichard()
+	{
+		def timestampNew = getTimestampNew()
+		def richard = newAppService.addUser(newAppService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ", "+$timestampNew", [ "Nexus 6" ], [ "news", "gambling" ])
+		newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, richard)
+		return richard
+	}
+
+	def addBob()
+	{
+		def timestampNew = getTimestampNew()
+		def bob = newAppService.addUser(newAppService.&assertUserCreationResponseDetails, "B o b", "Bob", "Dunn", "BD", "+$timestampNew", [ "iPhone 5" ], [ "gambling" ])
+		newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, bob)
+		return bob
+	}
+
+	def addRichardAndBobAsBuddies()
+	{
+		def richard = addRichard()
+		def bob = addBob()
+		newAppService.makeBuddies(richard, bob)
+		return ["Richard" : richard, "Bob" : bob]
+	}
+
+	private static String createBaseTimestamp()
+	{
+		def formatter = new SimpleDateFormat("yyyyMMddhhmmss")
+		formatter.format(new Date())
+	}
+
+	private String getTimestampNew() 
+	{
+		int num = sequenceNumber++
+		return "$baseTimestamp$num"
+	}
+
+	String getTimestamp() 
+	{
+		return baseTimestamp
+	}
 
 	def addUser(firstName, lastName) {
 		userNumber++

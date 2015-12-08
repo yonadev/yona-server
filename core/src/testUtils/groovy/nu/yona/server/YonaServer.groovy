@@ -201,7 +201,7 @@ class YonaServer {
 		}
 	}
 
-	def stripQueryString(url) {
+	static def stripQueryString(url) {
 		url - ~/\?.*/
 	}
 }

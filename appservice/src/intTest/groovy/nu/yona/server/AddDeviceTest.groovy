@@ -4,106 +4,112 @@ package nu.yona.server
 import groovy.json.*
 import spock.lang.Shared
 
-class AddDeviceTest extends AbstractAppServiceIntegrationTest {
-
-	@Shared
-	def richardQuin
-
-	def 'Add user Richard'(){
+class AddDeviceTest extends AbstractAppServiceIntegrationTest
+{
+	def 'Set new device request'()
+	{
 		given:
+			def richard = addRichard();
 
 		when:
-		richardQuin = addUser("Richard", "Quin")
+			def userSecret = "unknown secret"
+			def response = newAppService.setNewDeviceRequest(richard.url, richard.password, userSecret)
 
 		then:
-		richardQuin
+			response.status == 201
+			def getResponseAfter = newAppService.getNewDeviceRequest(richard.url)
+			getResponseAfter.status == 200
+
+			def getWithPasswordResponseAfter = newAppService.getNewDeviceRequest(richard.url, userSecret)
+			getWithPasswordResponseAfter.status == 200
+			getWithPasswordResponseAfter.responseData.userPassword == richard.password
+
+		cleanup:
+			newAppService.deleteUser(richard)
 	}
 
-	def 'Set new device request'(){
+	def 'Try get new device request with wrong user secret'()
+	{
 		given:
+			def userSecret = "unknown secret"
+			def richard = addRichard();
+			newAppService.setNewDeviceRequest(richard.url, richard.password, userSecret)
 
 		when:
-		def response = appService.setNewDeviceRequest(richardQuin.url, richardQuin.password, """{
-				"userSecret":"unknown secret"
-			}""")
+			def response = newAppService.getNewDeviceRequest(richard.url, "wrong secret")
 
 		then:
-		response.status == 201
-		def getResponseAfter = appService.getNewDeviceRequest(richardQuin.url)
-		getResponseAfter.status == 200
+			response.status == 400
+
+		cleanup:
+			newAppService.deleteUser(richard)
 	}
 
-	def 'Get new device request with user secret'(){
+	def 'Try set new device request with wrong password'()
+	{
 		given:
+			def richard = addRichard();
+			def userSecret = "unknown secret"
+			newAppService.setNewDeviceRequest(richard.url, richard.password, userSecret)
+			def getResponseImmmediately = newAppService.getNewDeviceRequest(richard.url)
+			assert getResponseImmmediately.status == 200
 
 		when:
-		def response = appService.getNewDeviceRequest(richardQuin.url, "unknown secret")
+			def response = newAppService.setNewDeviceRequest(richard.url, "foo", "Some secret")
 
 		then:
-		response.status == 200
-		response.responseData.userPassword == richardQuin.password
+			response.status == 400
+			def getResponseAfter = newAppService.getNewDeviceRequest(richard.url, userSecret)
+			getResponseAfter.status == 200
+			getResponseAfter.responseData.userPassword == richard.password
+
+		cleanup:
+			newAppService.deleteUser(richard)
 	}
 
-	def 'Try get new device request with wrong user secret'(){
+	def 'Overwrite new device request'()
+	{
 		given:
+			def richard = addRichard();
+			newAppService.setNewDeviceRequest(richard.url, richard.password, "Some secret")
 
 		when:
-		def response = appService.getNewDeviceRequest(richardQuin.url, "wrong secret")
+			def userSecret = "unknown secret"
+			def response = newAppService.setNewDeviceRequest(richard.url, richard.password, userSecret)
 
 		then:
-		response.status == 400
+			response.status == 200
+			def getResponseAfter = newAppService.getNewDeviceRequest(richard.url, userSecret)
+			getResponseAfter.status == 200
+			getResponseAfter.responseData.userPassword == richard.password
+
+		cleanup:
+			newAppService.deleteUser(richard)
 	}
 
-	def 'Try set new device request with wrong password'(){
+	def 'Clear new device request'()
+	{
 		given:
+			def userSecret = "unknown secret"
+			def richard = addRichard();
+			newAppService.setNewDeviceRequest(richard.url, richard.password, userSecret)
 
 		when:
-		def response = appService.setNewDeviceRequest(richardQuin.url, "foo", """{
-				"userSecret":"known secret"
-			}""")
+			def response = newAppService.clearNewDeviceRequest(richard.url, richard.password)
 
 		then:
-		response.status == 400
-		def getResponseAfter = appService.getNewDeviceRequest(richardQuin.url)
-		getResponseAfter.status == 200
-	}
+			response.status == 200
+			def getResponseAfter = newAppService.getNewDeviceRequest(richard.url)
+			getResponseAfter.status == 400
+			getResponseAfter.data.containsKey("code")
+			getResponseAfter.data["code"] == "error.no.device.request.present"
 
-	def 'Overwrite new device request'(){
-		given:
+			def getWithPasswordResponseAfter = newAppService.getNewDeviceRequest(richard.url, userSecret)
+			getWithPasswordResponseAfter.status == 400
+			getWithPasswordResponseAfter.data.containsKey("code")
+			getWithPasswordResponseAfter.data["code"] == "error.no.device.request.present"
 
-		when:
-		def response = appService.setNewDeviceRequest(richardQuin.url, richardQuin.password, """{
-				"userSecret":"unknown overwritten secret"
-			}""")
-
-		then:
-		response.status == 200
-		def getResponseAfter = appService.getNewDeviceRequest(richardQuin.url)
-		getResponseAfter.status == 200
-	}
-
-	def 'Get overwritten device request with user secret'(){
-		given:
-
-		when:
-		def response = appService.getNewDeviceRequest(richardQuin.url, "unknown overwritten secret")
-
-		then:
-		response.status == 200
-		response.responseData.userPassword == richardQuin.password
-	}
-
-	def 'Clear new device request'(){
-		given:
-
-		when:
-		def response = appService.clearNewDeviceRequest(richardQuin.url, richardQuin.password)
-
-		then:
-		response.status == 200
-		def getResponseAfter = appService.getNewDeviceRequest(richardQuin.url)
-		getResponseAfter.status == 400
-		getResponseAfter.data.containsKey("code")
-		getResponseAfter.data["code"] == "error.no.device.request.present"
+		cleanup:
+			newAppService.deleteUser(richard)
 	}
 }
