@@ -48,7 +48,7 @@ abstract class AbstractAppServiceIntegrationTest extends AbstractYonaIntegration
 		def richard = addRichard()
 		def bob = addBob()
 		newAppService.makeBuddies(richard, bob)
-		return ["Richard" : richard, "Bob" : bob]
+		return ["richard" : richard, "bob" : bob]
 	}
 
 	private static String createBaseTimestamp()
