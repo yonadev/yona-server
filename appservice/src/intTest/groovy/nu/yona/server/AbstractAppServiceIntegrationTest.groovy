@@ -28,7 +28,8 @@ abstract class AbstractAppServiceIntegrationTest extends AbstractYonaIntegration
 	def addRichard()
 	{
 		def timestampNew = getTimestampNew()
-		def richard = newAppService.addUser(newAppService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ", "+$timestampNew", [ "Nexus 6" ], [ "news", "gambling" ])
+		def richard = newAppService.addUser(newAppService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
+			"+$timestampNew", [ "Nexus 6" ], [ "news", "gambling" ])
 		newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, richard)
 		return richard
 	}
@@ -36,7 +37,8 @@ abstract class AbstractAppServiceIntegrationTest extends AbstractYonaIntegration
 	def addBob()
 	{
 		def timestampNew = getTimestampNew()
-		def bob = newAppService.addUser(newAppService.&assertUserCreationResponseDetails, "B o b", "Bob", "Dunn", "BD", "+$timestampNew", [ "iPhone 5" ], [ "gambling" ])
+		def bob = newAppService.addUser(newAppService.&assertUserCreationResponseDetails, "B o b", "Bob", "Dunn", "BD",
+			"+$timestampNew", [ "iPhone 5" ], [ "news", "gambling" ])
 		newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, bob)
 		return bob
 	}
