@@ -11,6 +11,8 @@ class User
 	final boolean hasPrivateData
 	final String mobileNumberConfirmationCode
 	final String nickname
+	final List<String> devices
+	final List<String> goals
 	final VPNProfile vpnProfile
 	final String url
 	final String password
@@ -33,6 +35,8 @@ class User
 		if (hasPrivateData)
 		{
 			this.nickname = json.nickname
+			this.devices = json.devices.collect{"$it"}
+			this.goals = json.goals.collect{"$it"}
 			this.vpnProfile = new VPNProfile(json.vpnProfile)
 		}
 		this.url = YonaServer.stripQueryString(json._links.self.href)

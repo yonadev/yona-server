@@ -11,9 +11,9 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 			def richardAndBob = addRichardAndBobAsBuddies()
 			def richard = richardAndBob["richard"]
 			def bob = richardAndBob["bob"]
-			newAnalysisService.postToAnalysisEngine(richard.vpnProfile.vpnLoginID, ["news/media"], "http://www.refdag.nl")
-			newAnalysisService.postToAnalysisEngine(bob.vpnProfile.vpnLoginID, ["Gambling"], "http://www.poker'com")
-			newAnalysisService.postToAnalysisEngine(bob.vpnProfile.vpnLoginID, ["news/media"], "http://www.refdag.nl")
+			newAnalysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+			newAnalysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker'com")
+			newAnalysisService.postToAnalysisEngine(bob, ["news/media"], "http://www.refdag.nl")
 
 		when:
 			def allMessagesResponse = newAppService.getAnonymousMessages(richard)

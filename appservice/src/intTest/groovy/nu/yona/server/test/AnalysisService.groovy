@@ -19,11 +19,11 @@ class AnalysisService extends Service
 		yonaServer.getResource(ANALYSIS_ENGINE_PATH + RELEVANT_CATEGORIES_PATH_FRAGMENT)
 	}
 
-	def postToAnalysisEngine(vpnLoginID, categories, url)
+	def postToAnalysisEngine(user, categories, url)
 	{
 		def categoriesString = makeStringList(categories)
 		postToAnalysisEngine("""{
-					"vpnLoginID":"$vpnLoginID",
+					"vpnLoginID":"$user.vpnProfile.vpnLoginID",
 					"categories": [$categoriesString],
 					"url":"$url"
 				}""")
