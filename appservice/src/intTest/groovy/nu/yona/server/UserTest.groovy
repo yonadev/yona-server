@@ -1,231 +1,216 @@
 package nu.yona.server
 
 import groovy.json.*
-import nu.yona.server.test.AbstractYonaIntegrationTest
-import spock.lang.Shared
+import nu.yona.server.test.User
 
-class UserTest extends AbstractAppServiceIntegrationTest {
+class UserTest extends AbstractAppServiceIntegrationTest
+{
+	final def firstName = "John"
+	final def lastName = "Doe"
+	final def nickname = "JD"
+	final def devices = [ "Galaxy mini" ]
+	final def goals = [ "gambling" ]
+	def password = "J o h n   D o e"
 
-	def userCreationJSON = """{
-				"firstName":"John",
-				"lastName":"Doe ${timestamp}",
-				"nickname":"JD ${timestamp}",
-				"mobileNumber":"+${timestamp}",
-				"devices":[
-					"Galaxy mini"
-				],
-				"goals":[
-					"gambling"
-				]}"""
-	def password = "John Doe"
-
-	def 'Create John Doe'(){
+	def 'Create John Doe'()
+	{
 		given:
+			def ts = getTimestampNew()
 
 		when:
-		def response = appService.addUser(userCreationJSON, password)
+			def john = createJohnDoe(ts)
 
 		then:
-		response.status == 201
-		testUser(response.responseData, true)
+			testUser(john, true, ts)
 
 		cleanup:
-		if (response.status == 201) {
-			appService.deleteUser(appService.stripQueryString(response.responseData._links.self.href), password)
-		}
+			newAppService.deleteUser(john)
 	}
 
-	def 'Send mobile number confirmation code'(){
+	def 'Create John Doe and confirm mobile number'()
+	{
 		given:
-		def userAddResponse = appService.addUser(userCreationJSON, password);
-		def userURL = appService.stripQueryString(userAddResponse.responseData._links.self.href);
-		def confirmationCode = userAddResponse.responseData.confirmationCode;
+			def ts = getTimestampNew()
+			def john = createJohnDoe(ts)
 
 		when:
-		def response = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}" } """, password)
+			def response = newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, john)
 
 		then:
-		confirmationCode != null
-		userAddResponse.status == 201
-		userAddResponse.responseData.mobileNumberConfirmed == false
-		response.status == 200
-		response.responseData.mobileNumberConfirmed == true
+			testUser(john, true, ts)
+			// TODO: Verify that confirmMobileNumber action link exists (YD-126)
 
 		cleanup:
-		if (userURL) {
-			appService.deleteUser(userURL, password)
-		}
+			newAppService.deleteUser(john)
 	}
 
-	def 'Hacking attempt: Brute force mobile number confirmation code'(){
+	def 'Delete John Doe before confirming the mobile number'()
+	{
 		given:
-		def userAddResponse = appService.addUser(userCreationJSON, password);
-		def userURL = appService.stripQueryString(userAddResponse.responseData._links.self.href);
-		def confirmationCode = userAddResponse.responseData.confirmationCode;
+			def ts = getTimestampNew()
+			def john = createJohnDoe(ts)
 
 		when:
-		def response1TimeWrong = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}1" } """, password)
-		appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}2" } """, password)
-		appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}3" } """, password)
-		appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}4" } """, password)
-		def response5TimesWrong = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}5" } """, password)
-		def response6TimesWrong = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}6" } """, password)
-		def response7thTimeRight = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}" } """, password)
+			def response = newAppService.deleteUser(john)
 
 		then:
-		confirmationCode != null
-		userAddResponse.status == 201
-		userAddResponse.responseData.mobileNumberConfirmed == false
-		response1TimeWrong.status == 400
-		response1TimeWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
-		response5TimesWrong.status == 400
-		response5TimesWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
-		response6TimesWrong.status == 400
-		response6TimesWrong.responseData.code == "error.too.many.wrong.attempts"
-		response7thTimeRight.status == 400
-		response7thTimeRight.responseData.code == "error.too.many.wrong.attempts"
+			response.status == 200
+			def getUserResponse = newAppService.getUser(john.url, false)
+			getUserResponse.status == 400 || getUserResponse.status == 404;
+	}
+
+	def 'Hacking attempt: Brute force mobile number confirmation code'()
+	{
+		given:
+			def ts = getTimestampNew()
+			def john = createJohnDoe(ts)
+			def confirmationCode = john.mobileNumberConfirmationCode
+
+		when:
+			def response1TimeWrong = newAppService.confirmMobileNumber(john.url, """ { "code":"${confirmationCode}1" } """, john.password)
+			newAppService.confirmMobileNumber(john.url, """ { "code":"${confirmationCode}2" } """, john.password)
+			newAppService.confirmMobileNumber(john.url, """ { "code":"${confirmationCode}3" } """, john.password)
+			newAppService.confirmMobileNumber(john.url, """ { "code":"${confirmationCode}4" } """, john.password)
+			def response5TimesWrong = newAppService.confirmMobileNumber(john.url, """ { "code":"${confirmationCode}5" } """, john.password)
+			def response6TimesWrong = newAppService.confirmMobileNumber(john.url, """ { "code":"${confirmationCode}6" } """, john.password)
+			def response7thTimeRight = newAppService.confirmMobileNumber(john.url, """ { "code":"${confirmationCode}" } """, john.password)
+
+		then:
+			response1TimeWrong.status == 400
+			response1TimeWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
+			response5TimesWrong.status == 400
+			response5TimesWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
+			response6TimesWrong.status == 400
+			response6TimesWrong.responseData.code == "error.too.many.wrong.attempts"
+			response7thTimeRight.status == 400
+			response7thTimeRight.responseData.code == "error.too.many.wrong.attempts"
 
 		cleanup:
-		if (userURL) {
-			appService.deleteUser(userURL, password)
-		}
+			newAppService.deleteUser(john)
 	}
 
-	def 'Get John Doe with private data'(){
+	def 'Get John Doe with private data'()
+	{
 		given:
-		def userURL = appService.stripQueryString(appService.addUser(userCreationJSON, password).responseData._links.self.href);
+			def ts = getTimestampNew()
+			def johnAsCreated = createJohnDoe(ts)
 
 		when:
-		def response = appService.getUser(userURL, true, password)
+			def john = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateData, johnAsCreated.url, true, johnAsCreated.password)
 
 		then:
-		response.status == 200
-		testUser(response.responseData, true)
+			testUser(john, true, ts)
 
 		cleanup:
-		appService.deleteUser(userURL, password)
+			newAppService.deleteUser(johnAsCreated)
 	}
 
-	def 'Try to get John Doe\'s private data with a bad password'(){
+	def 'Try to get John Doe\'s private data with a bad password'()
+	{
 		given:
-		def userURL = appService.stripQueryString(appService.addUser(userCreationJSON, password).responseData._links.self.href);
+			def ts = getTimestampNew()
+			def johnAsCreated = createJohnDoe(ts)
 
 		when:
-		def response = appService.getUser(userURL, true, "nonsense")
+			def response = newAppService.getUser(johnAsCreated.url, true, "nonsense")
 
 		then:
-		response.status == 400
+			response.status == 400
+			response.responseData.code == "error.decrypting.data"
 
 		cleanup:
-		appService.deleteUser(userURL, password)
+			newAppService.deleteUser(johnAsCreated)
 	}
 
-	def 'Get John Doe without private data'(){
+	def 'Get John Doe without private data'()
+	{
 		given:
-		def userURL = appService.stripQueryString(appService.addUser(userCreationJSON, password).responseData._links.self.href);
+			def ts = getTimestampNew()
+			def johnAsCreated = createJohnDoe(ts)
 
 		when:
-		def response = appService.getUser(userURL, false)
+			def john = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithoutPrivateData, johnAsCreated.url, false, johnAsCreated.password)
 
 		then:
-		response.status == 200
-		testUser(response.responseData, false)
+			testUser(john, false, ts)
 
 		cleanup:
-		appService.deleteUser(userURL, password)
+			newAppService.deleteUser(johnAsCreated)
 	}
 
-	def 'Update John Doe with the same mobile number'(){
+	def 'Update John Doe with the same mobile number'()
+	{
 		given:
-		def userAddResponse = appService.addUser(userCreationJSON, password);
-		def userURL = appService.stripQueryString(userAddResponse.responseData._links.self.href);
-		def confirmationCode = userAddResponse.responseData.confirmationCode;
-		def confirmResponse = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}" } """, password)
-		def newNickname = "Johnny"
+			def ts = getTimestampNew()
+			def john = createJohnDoe(ts)
+			newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, john)
 
 		when:
-		def userUpdateResponse = appService.updateUser(userURL, userCreationJSON.replace("JD ${timestamp}", newNickname), password);
+			def newNickname = "Johnny"
+			def updatedJohn = john.convertToJSON()
+			updatedJohn.nickname = newNickname
+			def userUpdateResponse = newAppService.updateUser(john.url, updatedJohn, john.password);
 
 		then:
-		userUpdateResponse.status == 200
-		userUpdateResponse.responseData.mobileNumberConfirmed == true
-		userUpdateResponse.responseData.nickname == newNickname
+			userUpdateResponse.status == 200
+			userUpdateResponse.responseData.mobileNumberConfirmed == true
+			userUpdateResponse.responseData.nickname == newNickname
 
 		cleanup:
-		if (userURL) {
-			appService.deleteUser(userURL, password)
-		}
+			newAppService.deleteUser(john)
 	}
 
-	def 'Update John Doe with a different mobile number'(){
+	def 'Update John Doe with a different mobile number'()
+	{
 		given:
-		def userAddResponse = appService.addUser(userCreationJSON, password);
-		def userURL = appService.stripQueryString(userAddResponse.responseData._links.self.href);
-		def confirmationCode = userAddResponse.responseData.confirmationCode;
-		def confirmResponse = appService.confirmMobileNumber(userURL, """ { "code":"${confirmationCode}" } """, password)
-		def newMobileNumber = "+${timestamp}1"
+			def ts = getTimestampNew()
+			def john = createJohnDoe(ts)
+			newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, john)
 
 		when:
-		def userUpdateResponse = appService.updateUser(userURL, userCreationJSON.replace("+${timestamp}", newMobileNumber), password);
-		def newConfirmationCode
-		def newConfirmResponse
-		if(userUpdateResponse.status == 200) {
-			newConfirmationCode = userUpdateResponse.responseData.confirmationCode;
-			newConfirmResponse = appService.confirmMobileNumber(userURL, """ { "code":"${newConfirmationCode}" } """, password)
-		}
+			String newMobileNumber = "${john.mobileNumber}1"
+			def updatedJohn = john.convertToJSON()
+			updatedJohn.mobileNumber = newMobileNumber
+			println "updatedJohn=$updatedJohn"
+			def userUpdateResponse = newAppService.updateUser(john.url, updatedJohn, john.password);
 
 		then:
-		userUpdateResponse.status == 200
-		userUpdateResponse.responseData.mobileNumberConfirmed == false
-		userUpdateResponse.responseData.mobileNumber == newMobileNumber
-		newConfirmationCode != confirmationCode
-		newConfirmResponse.status == 200
-		newConfirmResponse.responseData.mobileNumberConfirmed == true
+			userUpdateResponse.status == 200
+			userUpdateResponse.responseData.mobileNumberConfirmed == false
+			userUpdateResponse.responseData.mobileNumber == newMobileNumber
 
 		cleanup:
-		if (userURL) {
-			appService.deleteUser(userURL, password)
-		}
+			newAppService.deleteUser(john)
 	}
 
-	def 'Delete John Doe'(){
-		given:
-		def userURL = appService.stripQueryString(appService.addUser(userCreationJSON, password).responseData._links.self.href);
-
-		when:
-		def response = appService.deleteUser(userURL, password)
-
-		then:
-		response.status == 200
-		verifyUserDoesNotExist(userURL)
+	User createJohnDoe(def ts)
+	{
+		newAppService.addUser(newAppService.&assertUserCreationResponseDetails, password, firstName, lastName, nickname,
+			"+$ts", devices, goals)
 	}
 
-	void testUser(responseData, includePrivateData) {
-		assert responseData.firstName == "John"
-		assert responseData.lastName == "Doe ${timestamp}"
-		assert responseData.mobileNumber == "+${timestamp}"
+	void testUser(user, includePrivateData, timestamp) {
+		assert user.firstName == "John"
+		assert user.lastName == "Doe"
+		assert user.mobileNumber == "+${timestamp}"
 		if (includePrivateData) {
-			assert responseData.nickname == "JD ${timestamp}"
-			assert responseData.devices.size() == 1
-			assert responseData.devices[0] == "Galaxy mini"
-			assert responseData.goals.size() == 1
-			assert responseData.goals[0] == "gambling"
+			newAppService.assertUserWithPrivateData(user)
+			assert user.nickname == "JD"
+			assert user.devices.size() == 1
+			assert user.devices[0] == "Galaxy mini"
+			assert user.goals.size() == 1
+			assert user.goals[0] == "gambling"
 
-			assert responseData.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
-			assert responseData.vpnProfile.vpnPassword.length() == 32
-			assert responseData.vpnProfile.openVPNProfile.length() > 10
+			assert user.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+			assert user.vpnProfile.vpnPassword.length() == 32
+			assert user.vpnProfile.openVPNProfile.length() > 10
 
-			assert responseData._embedded.buddies != null
-			assert responseData._embedded.buddies.size() == 0
+			assert user.buddies != null
+			assert user.buddies.size() == 0
 		} else {
-			assert responseData.nickname == null
-			assert responseData.devices == null
-			assert responseData.goals == null
+			assert user.nickname == null
+			assert user.devices == null
+			assert user.goals == null
 		}
-	}
-
-	void verifyUserDoesNotExist(userURL) {
-		def response = appService.getUser(userURL, false)
-		assert response.status == 400 || response.status == 404;
 	}
 }

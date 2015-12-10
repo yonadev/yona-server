@@ -64,8 +64,59 @@ class AppService  extends Service {
 	def assertUserOverwriteResponseDetails(def response)
 	{
 		assertResponseStatusCreated(response)
-		assert response.responseData._links.self.href
-		assert response.responseData.vpnProfile.vpnLoginID
+		assertUserWithPrivateData(response.responseData)
+	}
+
+	def assertUserGetResponseDetailsWithPrivateData(def response)
+	{
+		assertResponseStatusSuccess(response)
+		assertUserWithPrivateData(response.responseData)
+	}
+
+	def assertUserGetResponseDetailsWithoutPrivateData(def response)
+	{
+		assertResponseStatusSuccess(response)
+		assertUserWithoutPrivateData(response.responseData)
+	}
+
+	def assertUserWithPrivateData(user)
+	{
+		assertPublicUserData(user)
+		assertPrivateUserData(user)
+	}
+
+	def assertPublicUserData(def user)
+	{
+		if (user instanceof User)
+		{
+			assert user.url != null
+		}
+		else
+		{
+			assert user._links.self.href != null
+		}
+		assert user.firstName != null
+		assert user.lastName != null
+		assert user.mobileNumber ==~/^\+[0-9]+$/
+	}
+
+	def assertPrivateUserData(def user)
+	{
+		assert user.nickname != null
+		assert user.devices.size() == 1
+		assert user.devices[0] == "Galaxy mini"
+		assert user.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+		assert user.vpnProfile.vpnPassword.length() == 32
+		assert user.vpnProfile.openVPNProfile.length() > 10
+	}
+
+	def assertUserWithoutPrivateData(def user)
+	{
+		assertPublicUserData(user)
+		assert user.nickname == null
+		assert user.devices == null
+		assert user.goals == null
+		assert user.vpnProfile == null
 	}
 
 	def assertResponseStatusCreated(def response)
@@ -81,6 +132,18 @@ class AppService  extends Service {
 	def isSuccess(def response)
 	{
 		response.status >= 200 && response.status < 300
+	}
+
+	def getUser(Closure asserter, userURL, boolean includePrivateData, password = null)
+	{
+		def response
+		if (includePrivateData) {
+			response = yonaServer.getResourceWithPassword(yonaServer.stripQueryString(userURL), password, yonaServer.getQueryParams(userURL) + ["includePrivateData": "true"])
+		} else {
+			response = yonaServer.getResourceWithPassword(userURL, password)
+		}
+		asserter(response)
+		return (isSuccess(response)) ? new User(response.responseData, password, includePrivateData) : null
 	}
 
 	def makeBuddies(requestingUser, respondingUser)
@@ -183,7 +246,6 @@ class AppService  extends Service {
 			yonaServer.getResourceWithPassword(userURL, password)
 		}
 	}
-
 	def updateUser(userURL, jsonString, password) {
 		yonaServer.updateResourceWithPassword(yonaServer.stripQueryString(userURL), jsonString, password, yonaServer.getQueryParams(userURL))
 	}

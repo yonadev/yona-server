@@ -13,12 +13,18 @@ class User
 	final String nickname
 	final List<String> devices
 	final List<String> goals
+	final List<Buddy> buddies
 	final VPNProfile vpnProfile
 	final String url
 	final String password
 	User(def json, String password)
 	{
 		this(json, true)
+		this.password = password
+	}
+	User(def json, String password, boolean hasPrivateData)
+	{
+		this(json, hasPrivateData)
 		this.password = password
 	}
 	User(def json)
@@ -35,20 +41,30 @@ class User
 		if (hasPrivateData)
 		{
 			this.nickname = json.nickname
+			this.buddies = json._embedded.buddies.collect{new Buddy(it)}
 			this.devices = json.devices.collect{"$it"}
 			this.goals = json.goals.collect{"$it"}
 			this.vpnProfile = new VPNProfile(json.vpnProfile)
 		}
 		this.url = YonaServer.stripQueryString(json._links.self.href)
 	}
+
+	def convertToJSON()
+	{
+		return new JsonSlurper().parseText(new JsonBuilder(this).toPrettyString())
+	}
 }
 
 class VPNProfile
 {
 	final String vpnLoginID
+	final String vpnPassword
+	final String openVPNProfile
 
 	VPNProfile(def json)
 	{
 		this.vpnLoginID = json.vpnLoginID
+		this.vpnPassword = json.vpnPassword
+		this.openVPNProfile = json.openVPNProfile
 	}
 }

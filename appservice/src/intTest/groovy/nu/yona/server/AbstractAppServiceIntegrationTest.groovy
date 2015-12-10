@@ -57,7 +57,7 @@ abstract class AbstractAppServiceIntegrationTest extends AbstractYonaIntegration
 		formatter.format(new Date())
 	}
 
-	private String getTimestampNew() 
+	protected String getTimestampNew() 
 	{
 		int num = sequenceNumber++
 		return "$baseTimestamp$num"
