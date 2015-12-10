@@ -1,7 +1,6 @@
 package nu.yona.server
 
 import groovy.json.*
-import spock.lang.Shared
 
 class RejectBuddyTest extends AbstractAppServiceIntegrationTest
 {
