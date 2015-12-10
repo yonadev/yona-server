@@ -276,4 +276,9 @@ class AppService  extends Service {
 	def postMessageAction(path, jsonString, headers = [:]) {
 		yonaServer.postJson(path, jsonString, headers);
 	}
+
+	def deleteResourceWithPassword(path, password, parameters = [:])
+	{
+		yonaServer.deleteResourceWithPassword(path, password, parameters)
+	}
 }
