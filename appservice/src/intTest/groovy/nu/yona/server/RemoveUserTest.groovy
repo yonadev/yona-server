@@ -35,8 +35,8 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 			def richardAndBob = addRichardAndBobAsBuddies()
-			def richard = richardAndBob["richard"]
-			def bob = richardAndBob["bob"]
+			def richard = richardAndBob.richard
+			def bob = richardAndBob.bob
 			newAnalysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
 			newAnalysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl")
 
@@ -72,8 +72,8 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 			def richardAndBob = addRichardAndBobAsBuddies()
-			def richard = richardAndBob["richard"]
-			def bob = richardAndBob["bob"]
+			def richard = richardAndBob.richard
+			def bob = richardAndBob.bob
 			newAnalysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
 			newAnalysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl")
 			def message = "Goodbye friends! I deinstalled the Internet"
@@ -104,8 +104,8 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 			def richardAndBob = addRichardAndBobAsBuddies()
-			def richard = richardAndBob["richard"]
-			def bob = richardAndBob["bob"]
+			def richard = richardAndBob.richard
+			def bob = richardAndBob.bob
 			def message = "Goodbye friends! I deinstalled the Internet"
 			newAppService.deleteUser(richard, message)
 			def getResponse = newAppService.getAnonymousMessages(bob)

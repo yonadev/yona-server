@@ -9,8 +9,8 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 			def richardAndBob = addRichardAndBobAsBuddies()
-			def richard = richardAndBob["richard"]
-			def bob = richardAndBob["bob"]
+			def richard = richardAndBob.richard
+			def bob = richardAndBob.bob
 			newAnalysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
 			newAnalysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker'com")
 			newAnalysisService.postToAnalysisEngine(bob, ["news/media"], "http://www.refdag.nl")
