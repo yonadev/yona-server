@@ -3,13 +3,14 @@ package nu.yona.server
 import groovy.json.*
 import nu.yona.server.test.AbstractYonaIntegrationTest
 
-class GoalTest extends AbstractYonaIntegrationTest {
-
-	def 'Get all goals'(){
+class GoalTest extends AbstractAppServiceIntegrationTest
+{
+	def 'Get all goals'()
+	{
 		given:
 
 		when:
-			def response = appService.getAllGoals()
+			def response = newAppService.getAllGoals()
 
 		then:
 			response.status == 200
