@@ -30,6 +30,8 @@ class UserTest extends AbstractYonaIntegrationTest {
 		then:
 		response.status == 201
 		testUser(response.responseData, true)
+			response.responseData._links.confirmMobileNumber
+			response.responseData._links.confirmMobileNumber.href == appService.stripQueryString(response.responseData._links.self.href) + appService.MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT
 
 		cleanup:
 		if (response.status == 201) {
@@ -52,6 +54,7 @@ class UserTest extends AbstractYonaIntegrationTest {
 		userAddResponse.responseData.mobileNumberConfirmed == false
 		response.status == 200
 		response.responseData.mobileNumberConfirmed == true
+			!response.responseData._links.confirmMobileNumber
 
 		cleanup:
 		if (userURL) {
