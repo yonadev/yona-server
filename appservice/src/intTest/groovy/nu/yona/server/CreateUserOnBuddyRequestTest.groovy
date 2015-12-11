@@ -2,16 +2,15 @@ package nu.yona.server
 
 import groovy.json.*
 
-import javax.mail.*
-import javax.mail.search.*
-
 import nu.yona.server.test.AbstractYonaIntegrationTest
+import nu.yona.server.test.User
 import spock.lang.Shared
 
-class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
+class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
+{
 
 	@Shared
-	def timestamp = YonaServer.getTimeStamp()
+	def ts = YonaServer.getTimeStamp()
 
 	@Shared
 	def richardQuinPassword = "R i c h a r d"
@@ -47,11 +46,163 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 	@Shared
 	def richardQuinMobileNumberConfirmationCode
 
+	def 'Richard cannot create a buddy request before confirming his own mobile number'()
+	{
+		given:
+			def richard = newAppService.addUser(newAppService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
+				"+$timestampNew", [ "Nexus 6" ], [ "news", "gambling" ])
+
+		when:
+			def response = sendBuddyRequestForBob(richard, "+$timestampNew")
+
+		then:
+			response.status == 400
+			response.responseData.code == "error.mobile.number.not.confirmed"
+
+		cleanup:
+			newAppService.deleteUser(richard)
+	}
+
+	def 'Richard successfully creates a buddy request after confirming his own mobile number'()
+	{
+		given:
+			def richard = addRichard()
+
+		when:
+			def response = sendBuddyRequestForBob(richard, "+$timestampNew")
+
+		then:
+			response.status == 201
+			response.responseData._embedded.user.firstName == "Bob"
+			response.responseData._links.self.href.startsWith(richard.url)
+			response.responseData.userCreatedInviteURL
+
+		cleanup:
+			newAppService.deleteUser(richard)
+			// TODO: How to delete the invited user?
+	}
+
+	def 'Bob downloads the app and uses it to open the link sent in the e-mail and load the prefilled data provided by Richard'()
+	{
+		given:
+			def richard = addRichard()
+			def mobileNumberBob = "+$timestampNew"
+			def inviteURL = sendBuddyRequestForBob(richard, mobileNumberBob).responseData.userCreatedInviteURL
+
+		when:
+			def bob = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, inviteURL, true, null)
+
+		then:
+			bob.firstName == "Bob"
+			bob.lastName == "Dunn"
+			bob.mobileNumber == mobileNumberBob
+			bob.mobileNumberConfirmed == false
+
+		cleanup:
+			newAppService.deleteUser(richard)
+			newAppService.deleteUser(bob)
+	}
+
+	def 'Bob adjusts data and submits; app saves with the device password'()
+	{
+		given:
+			def richard = addRichard()
+			def mobileNumberBob = "+$timestampNew"
+			def inviteURL = sendBuddyRequestForBob(richard, mobileNumberBob).responseData.userCreatedInviteURL
+			def bob = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, inviteURL, true, null)
+
+		when:
+			def newNickname = "Bobby"
+			def newPassword = "B o b"
+			def updatedBob = bob.convertToJSON()
+			updatedBob.nickname = newNickname
+			updatedBob.devices = [ "iPhone 6" ]
+			updatedBob.goals = [ "gambling" ]
+			def response = newAppService.updateUser(inviteURL, updatedBob, newPassword);
+
+		then:
+			response.status == 200
+			response.responseData.firstName == bob.firstName
+			response.responseData.lastName == bob.lastName
+			response.responseData.mobileNumber == bob.mobileNumber
+			response.responseData.nickname == newNickname
+			response.responseData.devices.size() == 1
+			response.responseData.devices[0] == "iPhone 6"
+			response.responseData.goals.size() == 0 //TODO: updating of goals is not yet supported
+			!(response.responseData._links.self.href ==~ /tempPassword/)
+			response.responseData.confirmationCode;
+
+		cleanup:
+			newAppService.deleteUser(richard)
+			newAppService.deleteUser(bob.url, newPassword)
+	}
+
+	def 'Bob fetches his user information saved with the device password'()
+	{
+		given:
+			def richard = addRichard()
+			def mobileNumberBob = "+$timestampNew"
+			def inviteURL = sendBuddyRequestForBob(richard, mobileNumberBob).responseData.userCreatedInviteURL
+			def bob = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, inviteURL, true, null)
+			def newNickname = "Bobby"
+			def newPassword = "B o b"
+			def updatedBob = bob.convertToJSON()
+			updatedBob.nickname = newNickname
+			updatedBob.devices = [ "iPhone 6" ]
+			updatedBob.goals = [ "gambling" ]
+			newAppService.updateUser(inviteURL, updatedBob, newPassword);
+
+		when:
+			def bobFromGetAfterUpdate = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, bob.url, true, newPassword)
+
+		then:
+			bobFromGetAfterUpdate.firstName == bob.firstName
+			bobFromGetAfterUpdate.lastName == bob.lastName
+			bobFromGetAfterUpdate.mobileNumber == bob.mobileNumber
+			bobFromGetAfterUpdate.nickname == newNickname
+			bobFromGetAfterUpdate.devices.size() == 1
+			bobFromGetAfterUpdate.devices[0] == "iPhone 6"
+			bobFromGetAfterUpdate.goals.size() == 0 //TODO: updating of goals is not yet supported
+			bobFromGetAfterUpdate.url
+
+		cleanup:
+			newAppService.deleteUser(richard)
+			newAppService.deleteUser(bob.url, newPassword)
+	}
+
+	def 'Bob cannot read direct messages before confirming his mobile number'()
+	{
+		given:
+			def richard = addRichard()
+			def mobileNumberBob = "+$timestampNew"
+			def inviteURL = sendBuddyRequestForBob(richard, mobileNumberBob).responseData.userCreatedInviteURL
+			def bob = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, inviteURL, true, null)
+			def newNickname = "Bobby"
+			def newPassword = "B o b"
+			def updatedBob = bob.convertToJSON()
+			updatedBob.nickname = newNickname
+			updatedBob.devices = [ "iPhone 6" ]
+			updatedBob.goals = [ "gambling" ]
+			def bobUpdated = newAppService.updateUser(inviteURL, updatedBob, newPassword);
+			def bobFromGetAfterUpdate = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, bob.url, true, "B o b")
+
+		when:
+			def response = newAppService.getDirectMessages(bobFromGetAfterUpdate)
+
+		then:
+			response.status == 400
+			response.responseData.code == "error.mobile.number.not.confirmed"
+
+		cleanup:
+			newAppService.deleteUser(richard)
+			newAppService.deleteUser(bob.url, newPassword)
+	}
+
 	def richardQuinCreationJSON = """{
-				"firstName":"Richard ${timestamp}",
-				"lastName":"Quin ${timestamp}",
-				"nickname":"RQ ${timestamp}",
-				"mobileNumber":"+${timestamp}11",
+				"firstName":"Richard ${ts}",
+				"lastName":"Quin ${ts}",
+				"nickname":"RQ ${ts}",
+				"mobileNumber":"+${ts}11",
 				"devices":[
 					"Nexus 6"
 				],
@@ -80,29 +231,6 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 			println "URL Richard: " + richardQuinURL
 	}
 
-	def 'Richard cannot create a buddy request before confirming mobile number'(){
-		given:
-
-		when:
-			def beforeRequestDateTime = new Date()
-			def response = appService.requestBuddy(richardQuinURL, """{
-				"_embedded":{
-					"user":{
-						"firstName":"Bob ${timestamp}",
-						"lastName":"Dun ${timestamp}",
-						"emailAddress":"${bobDunnGmail}",
-						"mobileNumber":"+${timestamp}12"
-					}
-				},
-				"message":"Would you like to be my buddy?",
-				"sendingStatus":"REQUESTED",
-				"receivingStatus":"REQUESTED"
-			}""", richardQuinPassword)
-
-		then:
-			response.status == 400
-	}
-
 	def 'Confirm Richard\'s mobile number'(){
 		when:
 			def response = appService.confirmMobileNumber(richardQuinURL, """ { "code":"${richardQuinMobileNumberConfirmationCode}" } """, richardQuinPassword)
@@ -116,14 +244,13 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 		given:
 
 		when:
-			def beforeRequestDateTime = new Date()
 			def response = appService.requestBuddy(richardQuinURL, """{
 				"_embedded":{
 					"user":{
-						"firstName":"Bob ${timestamp}",
-						"lastName":"Dun ${timestamp}",
-						"emailAddress":"${bobDunnGmail}",
-						"mobileNumber":"+${timestamp}12"
+						"firstName":"Bob ${ts}",
+						"lastName":"Dunn ${ts}",
+						"emailAddress":"bobdunn325@gmail.com",
+						"mobileNumber":"+${ts}12"
 					}
 				},
 				"message":"Would you like to be my buddy?",
@@ -133,22 +260,13 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 			if (response.status == 201) {
 				richardQuinBobBuddyURL = response.responseData._links.self.href
 
-				/*
-				def bobDunnInviteEmail = getMessageFromGmail(bobDunnGmail, bobDunnGmailPassword, beforeRequestDateTime)
-				if(bobDunnInviteEmail) {
-					def bobDunnInviteURLMatch = bobDunnInviteEmail.content =~ /$appServiceBaseURL[\w\-\/=\?&+]+/
-					if(bobDunnInviteURLMatch) {
-						bobDunnInviteURL = bobDunnInviteURLMatch.group()
-					}
-				}
-				*/
 				bobDunnInviteURL = response.responseData.userCreatedInviteURL;
 				bobDunnURL = appService.stripQueryString(bobDunnInviteURL)
 			}
 
 		then:
 			response.status == 201
-			response.responseData._embedded.user.firstName == "Bob ${timestamp}"
+			response.responseData._embedded.user.firstName == "Bob ${ts}"
 			richardQuinBobBuddyURL.startsWith(richardQuinURL)
 			bobDunnInviteURL
 
@@ -161,10 +279,10 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 	def 'Attempt to add another user with the same mobile number'(){
 		when:
 			def response = appService.addUser("""{
-					"firstName":"Bobo ${timestamp}",
-					"lastName":"Duno ${timestamp}",
-					"nickname":"BDo ${timestamp}",
-					"mobileNumber":"+${timestamp}12",
+					"firstName":"Bobo ${ts}",
+					"lastName":"Duno ${ts}",
+					"nickname":"BDo ${ts}",
+					"mobileNumber":"+${ts}12",
 					"devices":[
 						"Nexus 6"
 					],
@@ -193,10 +311,10 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 
 		when:
 			def response = appService.updateResource(bobDunnURL, """{
-				"firstName":"Richard ${timestamp}",
-				"lastName":"Quin ${timestamp}",
-				"nickname":"RQ ${timestamp}",
-				"mobileNumber":"+${timestamp}12",
+				"firstName":"Richard ${ts}",
+				"lastName":"Quin ${ts}",
+				"nickname":"RQ ${ts}",
+				"mobileNumber":"+${ts}12",
 				"devices":[
 					"Nexus 6"
 				],
@@ -237,9 +355,9 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 
 		then:
 			response.status == 200
-			response.responseData.firstName == "Bob ${timestamp}"
-			response.responseData.lastName == "Dun ${timestamp}"
-			response.responseData.mobileNumber == "+${timestamp}12"
+			response.responseData.firstName == "Bob ${ts}"
+			response.responseData.lastName == "Dunn ${ts}"
+			response.responseData.mobileNumber == "+${ts}12"
 			response.responseData?.mobileNumberConfirmed == false
 			response.responseData.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 			response.responseData.vpnProfile.vpnPassword.length() == 32
@@ -252,10 +370,10 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 
 		when:
 			def response = appService.updateUser(bobDunnInviteURL, """{
-				"firstName":"Bob ${timestamp}",
-				"lastName":"Dun ${timestamp}",
-				"nickname":"BD ${timestamp}",
-				"mobileNumber":"+${timestamp}13",
+				"firstName":"Bob ${ts}",
+				"lastName":"Dunn ${ts}",
+				"nickname":"BD ${ts}",
+				"mobileNumber":"+${ts}13",
 				"devices":[
 					"iPhone 6"
 				],
@@ -272,10 +390,10 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 		then:
 			response.status == 200
 			bobDunnMobileNumberConfirmationCode
-			response.responseData.firstName == "Bob ${timestamp}"
-			response.responseData.lastName == "Dun ${timestamp}"
-			response.responseData.mobileNumber == "+${timestamp}13"
-			response.responseData.nickname == "BD ${timestamp}"
+			response.responseData.firstName == "Bob ${ts}"
+			response.responseData.lastName == "Dunn ${ts}"
+			response.responseData.mobileNumber == "+${ts}13"
+			response.responseData.nickname == "BD ${ts}"
 			response.responseData.devices.size() == 1
 			response.responseData.devices[0] == "iPhone 6"
 			//TODO: updating of goals is not yet supported
@@ -311,10 +429,10 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 
 		then:
 			response.status == 200
-			response.responseData.firstName == "Bob ${timestamp}"
-			response.responseData.lastName == "Dun ${timestamp}"
-			response.responseData.mobileNumber == "+${timestamp}13"
-			response.responseData.nickname == "BD ${timestamp}"
+			response.responseData.firstName == "Bob ${ts}"
+			response.responseData.lastName == "Dunn ${ts}"
+			response.responseData.mobileNumber == "+${ts}13"
+			response.responseData.nickname == "BD ${ts}"
 			response.responseData.devices.size() == 1
 			response.responseData.devices[0] == "iPhone 6"
 			response.responseData.goals.size() == 0
@@ -325,10 +443,10 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 
 		when:
 			def response = appService.updateUser(bobDunnURL, """{
-				"firstName":"Bob ${timestamp}",
-				"lastName":"Dunn ${timestamp}",
-				"nickname":"BD ${timestamp}",
-				"mobileNumber":"+${timestamp}13",
+				"firstName":"Bob ${ts}",
+				"lastName":"Dunn ${ts}",
+				"nickname":"BD ${ts}",
+				"mobileNumber":"+${ts}13",
 				"devices":[
 					"iPhone 6"
 				],
@@ -339,10 +457,10 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 
 		then:
 			response.status == 200
-			response.responseData.firstName == "Bob ${timestamp}"
-			response.responseData.lastName == "Dunn ${timestamp}"
-			response.responseData.mobileNumber == "+${timestamp}13"
-			response.responseData.nickname == "BD ${timestamp}"
+			response.responseData.firstName == "Bob ${ts}"
+			response.responseData.lastName == "Dunn ${ts}"
+			response.responseData.mobileNumber == "+${ts}13"
+			response.responseData.nickname == "BD ${ts}"
 			response.responseData.devices.size() == 1
 			response.responseData.devices[0] == "iPhone 6"
 			response.responseData.goals.size() == 0
@@ -370,7 +488,7 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 
 		then:
 			response.status == 200
-			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard ${timestamp}"
+			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard ${ts}"
 			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(bobDunnURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
 			bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
 	}
@@ -401,7 +519,7 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 
 		then:
 			response.status == 200
-			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${timestamp}"
+			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${ts}"
 			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
 			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
 	}
@@ -430,7 +548,7 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 			response.status == 200
 			response.responseData._embedded.buddies != null
 			response.responseData._embedded.buddies.size() == 1
-			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Richard ${timestamp}"
+			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Richard ${ts}"
 			response.responseData._embedded.buddies[0].sendingStatus == "ACCEPTED"
 			response.responseData._embedded.buddies[0].receivingStatus == "ACCEPTED"
 	}
@@ -445,5 +563,21 @@ class CreateUserOnBuddyRequestTest extends AbstractYonaIntegrationTest {
 		then:
 			responseRichard.status == 200
 			responseBob.status == 200
+	}
+	def sendBuddyRequestForBob(User user, String mobileNumber)
+	{
+		appService.requestBuddy(user.url, """{
+			"_embedded":{
+				"user":{
+					"firstName":"Bob",
+					"lastName":"Dunn",
+					"emailAddress":"bobdunn325@gmail.com",
+					"mobileNumber":"$mobileNumber"
+				}
+			},
+			"message":"Would you like to be my buddy?",
+			"sendingStatus":"REQUESTED",
+			"receivingStatus":"REQUESTED"
+		}""", user.password)
 	}
 }
