@@ -157,6 +157,10 @@ public class UserDTO
 
 	static UserDTO createInstance(User userEntity)
 	{
+		if (userEntity == null)
+		{
+			return createRemovedUserInstance();
+		}
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getMobileNumber(),
 				userEntity.isMobileNumberConfirmed());
 	}

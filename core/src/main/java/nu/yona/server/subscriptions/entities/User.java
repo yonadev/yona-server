@@ -45,6 +45,8 @@ public class User extends EntityWithID
 	private boolean isMobileNumberConfirmed;
 	private String confirmationCode;
 
+	private String overwriteUserConfirmationCode;
+
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private UserPrivate userPrivate;
 
@@ -286,5 +288,15 @@ public class User extends EntityWithID
 		{
 			throw MobileNumberConfirmationException.notConfirmed();
 		}
+	}
+
+	public void setOverwriteUserConfirmationCode(String overwriteUserConfirmationCode)
+	{
+		this.overwriteUserConfirmationCode = overwriteUserConfirmationCode;
+	}
+
+	public String getOverwriteUserConfirmationCode()
+	{
+		return overwriteUserConfirmationCode;
 	}
 }
