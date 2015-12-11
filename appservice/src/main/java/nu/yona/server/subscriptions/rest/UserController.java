@@ -250,7 +250,7 @@ public class UserController
 	{
 		ControllerLinkBuilder linkBuilder = linkTo(
 				methodOn(UserController.class).confirmMobileNumber(Optional.empty(), userID, null));
-		return linkBuilder.withSelfRel();
+		return linkBuilder.withRel("confirmMobileNumber");
 	}
 
 	private static Link getUserSelfLink(UUID userID, boolean includePrivateData)
