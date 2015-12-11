@@ -289,6 +289,13 @@ public class UserController
 		return linkBuilder.withSelfRel();
 	}
 
+	private static Link getConfirmMobileLink(UUID userID)
+	{
+		ControllerLinkBuilder linkBuilder = linkTo(
+				methodOn(UserController.class).confirmMobileNumber(Optional.empty(), userID, null));
+		return linkBuilder.withRel("confirmMobileNumber");
+	}
+
 	private static Link getUserSelfLink(UUID userID, boolean includePrivateData)
 	{
 		ControllerLinkBuilder linkBuilder;
@@ -345,6 +352,11 @@ public class UserController
 		{
 			UserResource userResource = instantiateResource(user);
 			addSelfLink(userResource, includePrivateData);
+			if (!user.isMobileNumberConfirmed())
+			{
+				// The mobile number is not yet confirmed. So we can add the direct
+				addConfirmMobileLink(userResource, user.getConfirmationCode());
+			}
 			return userResource;
 		}
 
@@ -363,6 +375,11 @@ public class UserController
 			}
 
 			userResource.add(UserController.getUserSelfLink(userResource.getContent().getID(), includePrivateData));
+		}
+
+		private static void addConfirmMobileLink(Resource<UserDTO> userResource, String confirmationCode)
+		{
+			userResource.add(UserController.getConfirmMobileLink(userResource.getContent().getID()));
 		}
 	}
 }
