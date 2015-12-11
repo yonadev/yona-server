@@ -24,7 +24,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 
 		when:
 			def newRichard = newAppService.addUser(newAppService.&assertUserCreationResponseDetails, richard.password, richard.firstName, richard.lastName,
-				richard.nickname, richard.mobileNumber, [], [])
+				richard.nickname, richard.mobileNumber, [ "Nokia 6310" ], [])
 
 		then:
 			newRichard
