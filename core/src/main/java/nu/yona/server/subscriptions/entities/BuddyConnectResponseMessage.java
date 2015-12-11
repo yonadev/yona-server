@@ -7,7 +7,6 @@ package nu.yona.server.subscriptions.entities;
 import java.util.UUID;
 
 import javax.persistence.Entity;
-import javax.persistence.Transient;
 
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
@@ -15,11 +14,6 @@ import nu.yona.server.crypto.Encryptor;
 @Entity
 public class BuddyConnectResponseMessage extends BuddyConnectMessage
 {
-
-	@Transient
-	private UUID destinationID;
-	private byte[] destinationIDCiphertext;
-
 	private BuddyAnonymized.Status status = BuddyAnonymized.Status.NOT_REQUESTED;
 	private boolean isProcessed;
 
@@ -30,16 +24,10 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 	}
 
 	private BuddyConnectResponseMessage(UUID id, UUID userID, UUID vpnLoginID, String nickname, String message, UUID buddyID,
-			UUID destinationID, BuddyAnonymized.Status status)
+			BuddyAnonymized.Status status)
 	{
 		super(id, vpnLoginID, userID, nickname, message, buddyID);
-		this.destinationID = destinationID;
 		this.status = status;
-	}
-
-	public UUID getDestinationID()
-	{
-		return destinationID;
 	}
 
 	public BuddyAnonymized.Status getStatus()
@@ -58,24 +46,22 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 	}
 
 	public static BuddyConnectResponseMessage createInstance(UUID respondingUserID, UUID respondingUserVPNLoginID,
-			UUID destinationID, String nickname, String message, UUID buddyID, BuddyAnonymized.Status status)
+			String nickname, String message, UUID buddyID, BuddyAnonymized.Status status)
 	{
 		return new BuddyConnectResponseMessage(UUID.randomUUID(), respondingUserID, respondingUserVPNLoginID, nickname, message,
-				buddyID, destinationID, status);
+				buddyID, status);
 	}
 
 	@Override
 	public void encrypt(Encryptor encryptor)
 	{
 		super.encrypt(encryptor);
-		destinationIDCiphertext = encryptor.encrypt(destinationID);
 	}
 
 	@Override
 	public void decrypt(Decryptor decryptor)
 	{
 		super.decrypt(decryptor);
-		destinationID = decryptor.decryptUUID(destinationIDCiphertext);
 	}
 
 	@Override

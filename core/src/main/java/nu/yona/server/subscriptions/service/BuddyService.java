@@ -25,6 +25,8 @@ import nu.yona.server.Translator;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.messaging.service.MessageDestinationDTO;
+import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
@@ -42,6 +44,9 @@ public class BuddyService
 	private UserService userService;
 
 	@Autowired
+	private MessageService messageService;
+
+	@Autowired
 	EmailService emailService;
 
 	@Autowired
@@ -49,6 +54,9 @@ public class BuddyService
 
 	@Autowired
 	YonaProperties properties;
+
+	@Autowired
+	UserAnonymizedCacheService userAnonymizedCacheService;
 
 	public enum DropBuddyReason
 	{
@@ -72,7 +80,7 @@ public class BuddyService
 	{
 		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
 		requestingUser.assertMobileNumberConfirmed();
-		
+
 		User buddyUserEntity = getBuddyUser(buddy);
 		BuddyDTO newBuddyEntity;
 		if (buddyUserEntity == null)
@@ -95,7 +103,7 @@ public class BuddyService
 		{
 			throw BuddyServiceException.acceptingUserIsNull();
 		}
-		
+
 		acceptingUser.assertMobileNumberConfirmed();
 		Buddy buddy = Buddy.createInstance(buddyUserID, buddyNickName,
 				isRequestingSending ? Status.ACCEPTED : Status.NOT_REQUESTED,
@@ -112,8 +120,17 @@ public class BuddyService
 		User user = userService.getValidatedUserbyID(idOfRequestingUser);
 		Buddy buddy = getEntityByID(buddyID);
 
+		removeBuddy(user, buddy);
+	}
+
+	private void removeBuddy(User user, Buddy buddy)
+	{
 		user.removeBuddy(buddy);
 		User.getRepository().save(user);
+
+		UserAnonymized userAnonymizedEntity = user.getAnonymized();
+		userAnonymizedEntity.removeBuddyAnonymized(buddy.getBuddyAnonymized());
+		userAnonymizedCacheService.updateUserAnonymized(user.getVPNLoginID(), userAnonymizedEntity);
 	}
 
 	@Transactional
@@ -125,8 +142,7 @@ public class BuddyService
 		removeMessagesSentByBuddy(user, buddy);
 		removeBuddyInfoForBuddy(user, buddy, message, DropBuddyReason.USER_REMOVED_BUDDY);
 
-		user.removeBuddy(buddy);
-		User.getRepository().save(user);
+		removeBuddy(user, buddy);
 	}
 
 	@Transactional
@@ -136,7 +152,7 @@ public class BuddyService
 		{
 			throw BuddyServiceException.requestingUserBuddyIsNull();
 		}
-				
+
 		if (requestingUserBuddy.getUser() == null)
 		{
 			// buddy account was removed in the meantime; nothing to do
@@ -147,8 +163,9 @@ public class BuddyService
 		if (requestingUserBuddy.getSendingStatus() == Status.ACCEPTED
 				|| requestingUserBuddy.getReceivingStatus() == Status.ACCEPTED)
 		{
-			UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(requestingUserBuddy.getVPNLoginID());
-			disconnectBuddy(userAnonymized, requestingUser.getVPNLoginID());
+			UserAnonymizedDTO userAnonymized = userService.getUserAnonymized(requestingUserBuddy.getVPNLoginID());
+			UserAnonymized userAnonymizedEntity = UserAnonymized.getRepository().findOne(requestingUserBuddy.getVPNLoginID());
+			disconnectBuddy(userAnonymizedEntity, requestingUser.getVPNLoginID());
 			removeAnonymousMessagesSentByUser(userAnonymized, requestingUser.getVPNLoginID());
 			sendDropBuddyMessage(requestingUser, requestingUserBuddy, message, reason);
 		}
@@ -158,7 +175,7 @@ public class BuddyService
 	public void removeBuddyAfterBuddyRemovedConnection(UUID idOfRequestingUser, UUID relatedUserID)
 	{
 		User user = userService.getValidatedUserbyID(idOfRequestingUser);
-		
+
 		user.removeBuddiesFromUser(relatedUserID);
 		User.getRepository().save(user);
 	}
@@ -170,7 +187,7 @@ public class BuddyService
 		{
 			throw BuddyNotFoundException.notFound(buddyID);
 		}
-		
+
 		if (buddy.getSendingStatus() == Status.REQUESTED)
 		{
 			buddy.setSendingStatus(Status.ACCEPTED);
@@ -191,17 +208,17 @@ public class BuddyService
 	private void removeMessagesSentByBuddy(User user, Buddy buddy)
 	{
 		removeNamedMessagesSentByUser(user, buddy.getVPNLoginID());
-		removeAnonymousMessagesSentByUser(user.getAnonymized(), buddy.getVPNLoginID());
+		UserAnonymizedDTO userAnonymized = userService.getUserAnonymized(user.getVPNLoginID());
+		removeAnonymousMessagesSentByUser(userAnonymized, buddy.getVPNLoginID());
 	}
 
 	private void sendDropBuddyMessage(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
 			DropBuddyReason reason)
 	{
-		UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(requestingUserBuddy.getVPNLoginID());
-		MessageDestination messageDestination = userAnonymized.getAnonymousDestination();
-		messageDestination.send(BuddyDisconnectMessage.createInstance(requestingUser.getID(), requestingUser.getVPNLoginID(),
-				requestingUser.getNickname(), getDropBuddyMessage(reason, message), reason));
-		MessageDestination.getRepository().save(messageDestination);
+		MessageDestinationDTO messageDestination = userService.getUserAnonymized(requestingUserBuddy.getVPNLoginID())
+				.getAnonymousDestination();
+		messageService.sendMessage(BuddyDisconnectMessage.createInstance(requestingUser.getID(), requestingUser.getVPNLoginID(),
+				requestingUser.getNickname(), getDropBuddyMessage(reason, message), reason), messageDestination);
 
 	}
 
@@ -215,15 +232,14 @@ public class BuddyService
 	private void removeNamedMessagesSentByUser(User user, UUID sentByUserVPNLoginID)
 	{
 		MessageDestination namedMessageDestination = user.getNamedMessageDestination();
-		namedMessageDestination.removeMessagesFromUser(sentByUserVPNLoginID);
-		MessageDestination.getRepository().save(namedMessageDestination);
+		messageService.removeMessagesFromUser(MessageDestinationDTO.createInstance(namedMessageDestination),
+				sentByUserVPNLoginID);
 	}
 
-	private void removeAnonymousMessagesSentByUser(UserAnonymized userAnonymized, UUID sentByUserVPNLoginID)
+	private void removeAnonymousMessagesSentByUser(UserAnonymizedDTO userAnonymized, UUID sentByUserVPNLoginID)
 	{
-		MessageDestination anonymousMessageDestination = userAnonymized.getAnonymousDestination();
-		anonymousMessageDestination.removeMessagesFromUser(sentByUserVPNLoginID);
-		MessageDestination.getRepository().save(anonymousMessageDestination);
+		MessageDestinationDTO anonymousMessageDestination = userAnonymized.getAnonymousDestination();
+		messageService.removeMessagesFromUser(anonymousMessageDestination, sentByUserVPNLoginID);
 	}
 
 	private String getDropBuddyMessage(DropBuddyReason reason, Optional<String> message)
@@ -301,11 +317,12 @@ public class BuddyService
 		boolean isRequestingSending = buddy.getReceivingStatus() == Status.REQUESTED;
 		boolean isRequestingReceiving = buddy.getSendingStatus() == Status.REQUESTED;
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
-		messageDestination.send(BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
-				requestingUser.getPrivateData().getVpnProfile().getVPNLoginID(), requestingUser.getPrivateData().getGoals(),
-				requestingUser.getPrivateData().getNickname(), buddy.getMessage(), savedBuddyEntity.getID(), isRequestingSending,
-				isRequestingReceiving));
-		MessageDestination.getRepository().save(messageDestination);
+		messageService.sendMessage(
+				BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
+						requestingUser.getPrivateData().getVpnProfile().getVPNLoginID(),
+						requestingUser.getPrivateData().getGoals(), requestingUser.getPrivateData().getNickname(),
+						buddy.getMessage(), savedBuddyEntity.getID(), isRequestingSending, isRequestingReceiving),
+				MessageDestinationDTO.createInstance(messageDestination));
 
 		return savedBuddy;
 	}

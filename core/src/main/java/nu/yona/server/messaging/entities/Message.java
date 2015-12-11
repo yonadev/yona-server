@@ -7,6 +7,7 @@ package nu.yona.server.messaging.entities;
 import java.util.Date;
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
@@ -20,6 +21,9 @@ import nu.yona.server.messaging.service.MessageServiceException;
 @Table(name = "MESSAGES")
 public abstract class Message extends EntityWithID
 {
+	@Column(nullable = false)
+	private UUID destinationID;
+
 	private UUID relatedVPNLoginID;
 	private Date creationTime;
 
@@ -36,12 +40,12 @@ public abstract class Message extends EntityWithID
 	protected Message(UUID id, UUID relatedUserAnonymizedID)
 	{
 		super(id);
-		
+
 		if (id != null && relatedUserAnonymizedID == null)
 		{
 			throw MessageServiceException.anonymizedUserIdMustBeSet();
 		}
-		
+
 		this.relatedVPNLoginID = relatedUserAnonymizedID;
 		this.creationTime = new Date();
 	}
@@ -71,4 +75,9 @@ public abstract class Message extends EntityWithID
 	protected abstract void decrypt(Decryptor decryptor);
 
 	public abstract boolean canBeDeleted();
+
+	public void setDestination(UUID destinationID)
+	{
+		this.destinationID = destinationID;
+	}
 }

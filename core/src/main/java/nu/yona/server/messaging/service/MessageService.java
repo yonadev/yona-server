@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -18,9 +20,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.crypto.PublicKeyEncryptor;
 import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
@@ -37,7 +39,7 @@ public class MessageService
 	public Page<MessageDTO> getDirectMessages(UUID userID, Pageable pageable)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
-		
+
 		MessageSource messageSource = getNamedMessageSource(user);
 		return wrapAllMessagesAsDTOs(user, messageSource, pageable);
 	}
@@ -45,7 +47,7 @@ public class MessageService
 	public MessageDTO getDirectMessage(UUID userID, UUID messageID)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
-		
+
 		MessageSource messageSource = getNamedMessageSource(user);
 		return dtoManager.createInstance(user, messageSource.getMessage(messageID));
 	}
@@ -53,7 +55,7 @@ public class MessageService
 	public Page<MessageDTO> getAnonymousMessages(UUID userID, Pageable pageable)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
-		
+
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return wrapAllMessagesAsDTOs(user, messageSource, pageable);
 	}
@@ -61,7 +63,7 @@ public class MessageService
 	public MessageDTO getAnonymousMessage(UUID userID, UUID messageID)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
-		
+
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return dtoManager.createInstance(user, messageSource.getMessage(messageID));
 	}
@@ -69,7 +71,7 @@ public class MessageService
 	public MessageActionDTO handleMessageAction(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
-		
+
 		MessageSource messageSource = getNamedMessageSource(user);
 		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
 	}
@@ -77,7 +79,7 @@ public class MessageService
 	public MessageActionDTO handleAnonymousMessageAction(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
-		
+
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
 	}
@@ -85,40 +87,34 @@ public class MessageService
 	public MessageActionDTO deleteMessage(UUID userID, UUID id)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
-		
+
 		MessageSource messageSource = getNamedMessageSource(user);
 		Message message = messageSource.getMessage(id);
-		
-		MessageDestination destination = MessageDestination.getRepository()
-				.findOne(user.getPrivateData().getNamedMessageDestinationID());
-		deleteMessage(message, destination);
-		
+
+		deleteMessage(message);
+
 		return new MessageActionDTO(Collections.singletonMap("status", "done"));
 	}
 
 	public MessageActionDTO deleteAnonymousMessage(UUID userID, UUID id)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
-		
+
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		Message message = messageSource.getMessage(id);
-		
-		MessageDestination destination = MessageDestination.getRepository()
-				.findOne(user.getPrivateData().getAnonymousMessageDestinationID());
-		deleteMessage(message, destination);
-		
+
+		deleteMessage(message);
+
 		return new MessageActionDTO(Collections.singletonMap("status", "done"));
 	}
 
-	private void deleteMessage(Message message, MessageDestination destination)
+	private void deleteMessage(Message message)
 	{
 		if (!message.canBeDeleted())
 		{
 			throw InvalidMessageActionException.unprocessedMessageCannotBeDeleted();
 		}
 
-		destination.remove(message);
-		MessageDestination.getRepository().save(destination);
 		Message.getRepository().delete(message);
 	}
 
@@ -185,8 +181,33 @@ public class MessageService
 					return managers.get(messageClass);
 				}
 			}
-			
+
 			throw MessageServiceException.noDtoManagerRegistered(messageEntity.getClass());
 		}
+	}
+
+	private Page<Message> getMessages(UUID destinationID, Pageable pageable)
+	{
+		return Message.getRepository().findFromDestination(destinationID, pageable);
+	}
+
+	@Transactional
+	public void sendMessage(Message message, MessageDestinationDTO destination)
+	{
+		message.setDestination(destination.getID());
+		message.encryptMessage(PublicKeyEncryptor.createInstance(destination.getPublicKey()));
+		Message.getRepository().save(message);
+	}
+
+	public void removeMessagesFromUser(MessageDestinationDTO destination, UUID sentByUserVPNLoginID)
+	{
+		getMessages(destination.getID(), null).getContent().stream()
+				.filter(message -> message.getRelatedVPNLoginID().equals(sentByUserVPNLoginID))
+				.forEach(message -> Message.getRepository().delete(message));
+	}
+
+	public void deleteAllMessages(MessageDestinationDTO destination)
+	{
+		getMessages(destination.getID(), null).getContent().stream().forEach(message -> Message.getRepository().delete(message));
 	}
 }

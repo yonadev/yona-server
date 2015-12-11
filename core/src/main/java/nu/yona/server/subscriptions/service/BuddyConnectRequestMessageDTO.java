@@ -18,15 +18,15 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
+import nu.yona.server.messaging.service.MessageDestinationDTO;
+import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @JsonRootName("buddyConnectRequestMessage")
 public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
@@ -41,18 +41,17 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 			UserDTO user, UUID vpnLoginID, String nickname, String message, boolean isAccepted, boolean isRejected)
 	{
 		super(id, creationTime, user, nickname, message);
-		
+
 		if (buddyConnectRequestMessageEntity == null)
 		{
 			throw BuddyServiceException.messageEntityCannotBeNull();
 		}
-		
+
 		if (buddyConnectRequestMessageEntity.getRelatedVPNLoginID() == null)
 		{
 			throw BuddyServiceException.vpnLoginIdCannotBeNull();
 		}
 
-		
 		this.isAccepted = isAccepted;
 		this.isRejected = isRejected;
 	}
@@ -94,6 +93,12 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 
 		@Autowired
 		private BuddyService buddyService;
+
+		@Autowired
+		private UserService userService;
+
+		@Autowired
+		private MessageService messageService;
 
 		@PostConstruct
 		private void init()
@@ -163,16 +168,15 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 		private void sendResponseMessageToRequestingUser(UserDTO respondingUser,
 				BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage)
 		{
-			UserAnonymized userAnonymized = UserAnonymized.getRepository()
-					.findOne(connectRequestMessageEntity.getRelatedVPNLoginID());
-			MessageDestination messageDestination = userAnonymized.getAnonymousDestination();
+			MessageDestinationDTO messageDestination = userService
+					.getUserAnonymized(connectRequestMessageEntity.getRelatedVPNLoginID()).getAnonymousDestination();
 			assert messageDestination != null;
-			messageDestination.send(BuddyConnectResponseMessage.createInstance(respondingUser.getID(),
-					respondingUser.getPrivateData().getVpnProfile().getVPNLoginID(),
-					respondingUser.getPrivateData().getAnonymousMessageDestinationID(),
-					respondingUser.getPrivateData().getNickname(), responseMessage, connectRequestMessageEntity.getBuddyID(),
-					connectRequestMessageEntity.getStatus()));
-			MessageDestination.getRepository().save(messageDestination);
+			messageService.sendMessage(
+					BuddyConnectResponseMessage.createInstance(respondingUser.getID(),
+							respondingUser.getPrivateData().getVpnProfile().getVPNLoginID(),
+							respondingUser.getPrivateData().getNickname(), responseMessage,
+							connectRequestMessageEntity.getBuddyID(), connectRequestMessageEntity.getStatus()),
+					messageDestination);
 		}
 	}
 }

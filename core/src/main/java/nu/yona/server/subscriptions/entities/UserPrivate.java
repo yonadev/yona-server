@@ -110,7 +110,7 @@ public class UserPrivate extends EntityWithID
 		this.nickname = nickname;
 	}
 
-	public UserAnonymized getUserAnonymized()
+	UserAnonymized getUserAnonymized()
 	{
 		return UserAnonymized.getRepository().findOne(userAnonymizedID);
 	}
@@ -133,17 +133,11 @@ public class UserPrivate extends EntityWithID
 	public void addBuddy(Buddy buddy)
 	{
 		buddies.add(buddy);
-		UserAnonymized userAnonymized = getUserAnonymized();
-		userAnonymized.addBuddyAnonymized(buddy.getBuddyAnonymized());
-		UserAnonymized.getRepository().save(userAnonymized);
 	}
 
 	public void removeBuddy(Buddy buddy)
 	{
 		buddies.remove(buddy);
-		UserAnonymized userAnonymized = getUserAnonymized();
-		userAnonymized.removeBuddyAnonymized(buddy.getBuddyAnonymized());
-		UserAnonymized.getRepository().save(userAnonymized);
 	}
 
 	public void removeBuddyForUserID(UUID userID)
@@ -163,7 +157,7 @@ public class UserPrivate extends EntityWithID
 
 	public UUID getVPNLoginID()
 	{
-		return getUserAnonymized().getVPNLoginID();
+		return userAnonymizedID;
 	}
 
 	public String getVPNPassword()

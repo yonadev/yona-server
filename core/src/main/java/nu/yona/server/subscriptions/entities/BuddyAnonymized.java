@@ -49,7 +49,7 @@ public class BuddyAnonymized extends EntityWithID
 		return new BuddyAnonymized(UUID.randomUUID(), sendingStatus, receivingStatus);
 	}
 
-	public UserAnonymized getUserAnonymized()
+	UserAnonymized getUserAnonymized()
 	{
 		if (userAnonymizedID == null)
 		{

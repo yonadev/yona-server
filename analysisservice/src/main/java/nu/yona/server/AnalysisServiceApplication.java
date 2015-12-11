@@ -51,6 +51,6 @@ public class AnalysisServiceApplication
 	@Bean
 	public CacheManager cacheManager()
 	{
-		return new ConcurrentMapCacheManager("goalConflictMessages");
+		return new ConcurrentMapCacheManager("goalConflictMessages", "usersAnonymized");
 	}
 }

@@ -22,15 +22,16 @@ import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.goals.service.GoalServiceException;
 import nu.yona.server.messaging.entities.DiscloseRequestMessage;
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
+import nu.yona.server.messaging.service.MessageDestinationDTO;
+import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.subscriptions.service.UserService;
 
 @JsonRootName("goalConflictMessage")
 public class GoalConflictMessageDTO extends MessageDTO
@@ -43,7 +44,8 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private Status status;
 	private final Date endTime;
 
-	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, String goalName, String url, Status status, Date endTime)
+	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, String goalName, String url, Status status,
+			Date endTime)
 	{
 		super(id, creationTime);
 		this.nickname = nickname;
@@ -88,7 +90,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 	{
 		return url;
 	}
-	
+
 	/**
 	 * This method gets the end time of the conflict.
 	 * 
@@ -101,8 +103,9 @@ public class GoalConflictMessageDTO extends MessageDTO
 
 	public static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, String nickname)
 	{
-		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), nickname, messageEntity.getGoal().getName(),
-				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null, messageEntity.getStatus(), messageEntity.getEndTime());
+		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), nickname,
+				messageEntity.getGoal().getName(), messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null,
+				messageEntity.getStatus(), messageEntity.getEndTime());
 	}
 
 	@Component
@@ -113,6 +116,12 @@ public class GoalConflictMessageDTO extends MessageDTO
 
 		@Autowired
 		private BuddyService buddyService;
+
+		@Autowired
+		private UserService userService;
+
+		@Autowired
+		private MessageService messageService;
 
 		@PostConstruct
 		private void init()
@@ -146,12 +155,13 @@ public class GoalConflictMessageDTO extends MessageDTO
 			messageEntity.setStatus(Status.DISCLOSE_REQUESTED);
 			GoalConflictMessage.getRepository().save(messageEntity);
 
-			MessageDestination messageDestination = UserAnonymized.getRepository().findOne(messageEntity.getRelatedVPNLoginID())
+			MessageDestinationDTO messageDestination = userService.getUserAnonymized(messageEntity.getRelatedVPNLoginID())
 					.getAnonymousDestination();
-			messageDestination.send(DiscloseRequestMessage.createInstance(actingUser.getID(),
-					actingUser.getPrivateData().getVpnProfile().getVPNLoginID(), actingUser.getPrivateData().getNickname(),
-					requestPayload.getProperty("message"), messageEntity));
-			MessageDestination.getRepository().save(messageDestination);
+			messageService.sendMessage(
+					DiscloseRequestMessage.createInstance(actingUser.getID(),
+							actingUser.getPrivateData().getVpnProfile().getVPNLoginID(),
+							actingUser.getPrivateData().getNickname(), requestPayload.getProperty("message"), messageEntity),
+					messageDestination);
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}

@@ -23,6 +23,8 @@ import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.messaging.service.MessageDestinationDTO;
+import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
 import nu.yona.server.subscriptions.entities.Buddy;
@@ -50,20 +52,13 @@ public class UserService
 	private BuddyService buddyService;
 
 	@Autowired
+	private MessageService messageService;
+
+	@Autowired
 	private TransactionHelper transactionHelper;
 
-	// TODO: Do we need this? Currently unused.
-	@Transactional
-	public UserDTO getUser(String mobileNumber)
-	{
-		if (mobileNumber == null)
-		{
-			throw UserServiceException.missingMobileNumber();
-		}
-
-		User userEntity = findUserByMobileNumber(mobileNumber);
-		return UserDTO.createInstanceWithPrivateData(userEntity);
-	}
+	@Autowired
+	private UserAnonymizedCacheService userAnonymizedCacheService;
 
 	@Transactional
 	public boolean canAccessPrivateData(UUID id)
@@ -89,6 +84,7 @@ public class UserService
 		return UserDTO.createInstanceWithPrivateData(getValidatedUserbyID(id));
 	}
 
+	@Transactional
 	public OverwriteUserDTO setOverwriteUserConfirmationCode(String mobileNumber)
 	{
 		User existingUserEntity = findUserByMobileNumber(mobileNumber);
@@ -340,11 +336,12 @@ public class UserService
 		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
 				DropBuddyReason.USER_ACCOUNT_DELETED));
 
-		UserAnonymized userAnonymized = userEntity.getAnonymized();
-		UUID vpnLoginID = userAnonymized.getVPNLoginID();
-		UserAnonymized.getRepository().delete(userAnonymized);
+		UUID vpnLoginID = userEntity.getVPNLoginID();
+		userAnonymizedCacheService.deleteUserAnonymized(vpnLoginID);
 		MessageSource namedMessageSource = userEntity.getNamedMessageSource();
 		MessageSource anonymousMessageSource = userEntity.getAnonymousMessageSource();
+		messageService.deleteAllMessages(MessageDestinationDTO.createInstance(namedMessageSource.getDestination()));
+		messageService.deleteAllMessages(MessageDestinationDTO.createInstance(anonymousMessageSource.getDestination()));
 		MessageSource.getRepository().delete(anonymousMessageSource);
 		MessageSource.getRepository().delete(namedMessageSource);
 		User.getRepository().delete(userEntity);
@@ -352,6 +349,7 @@ public class UserService
 		ldapUserService.deleteVPNAccount(vpnLoginID.toString());
 	}
 
+	@Transactional
 	public void addBuddy(UserDTO user, BuddyDTO buddy)
 	{
 		if (user == null || user.getID() == null)
@@ -369,8 +367,11 @@ public class UserService
 
 		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getID());
 		userEntity.addBuddy(buddyEntity);
-
 		User.getRepository().save(userEntity);
+
+		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
+		userAnonymizedEntity.addBuddyAnonymized(buddyEntity.getBuddyAnonymized());
+		userAnonymizedCacheService.updateUserAnonymized(userEntity.getVPNLoginID(), userAnonymizedEntity);
 	}
 
 	public String generatePassword()
@@ -544,6 +545,11 @@ public class UserService
 		{
 			throw InvalidDataException.invalidMobileNumber(userResource.getMobileNumber());
 		}
+	}
+
+	public UserAnonymizedDTO getUserAnonymized(UUID vpnLoginID)
+	{
+		return userAnonymizedCacheService.getUserAnonymized(vpnLoginID);
 	}
 
 	/**

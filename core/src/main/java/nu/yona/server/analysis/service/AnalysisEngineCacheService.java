@@ -13,14 +13,15 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
-import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.service.MessageDestinationDTO;
 
 @Service
 public class AnalysisEngineCacheService
 {
 	@Cacheable(value = "goalConflictMessages", key = "{#userVPNLoginID,#goalID,#destination.ID}")
 	public GoalConflictMessage fetchLatestGoalConflictMessageForUser(UUID userVPNLoginID, UUID goalID,
-			MessageDestination destination, Date minEndTime)
+			MessageDestinationDTO destination, Date minEndTime)
 	{
 		List<GoalConflictMessage> results = GoalConflictMessage.getGoalConflictMessageRepository()
 				.findLatestGoalConflictMessageFromDestination(userVPNLoginID, goalID, destination.getID(), minEndTime,
@@ -30,11 +31,12 @@ public class AnalysisEngineCacheService
 	}
 
 	@CachePut(value = "goalConflictMessages", key = "{#message.relatedVPNLoginID,#message.goalID,#destination.ID}")
-	public GoalConflictMessage updateLatestGoalConflictMessageForUser(GoalConflictMessage message, MessageDestination destination)
+	public GoalConflictMessage updateLatestGoalConflictMessageForUser(GoalConflictMessage message,
+			MessageDestinationDTO destination)
 	{
 		// This will save the message as it has already been added to the destination. The message is passed
 		// to this method in order to update the cache properly after the update.
-		MessageDestination.getRepository().save(destination);
+		Message.getRepository().save(message);
 
 		return message;
 	}
