@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
@@ -66,8 +67,13 @@ public class UserAnonymized extends EntityWithID
 
 	public Set<MessageDestination> getBuddyDestinations()
 	{
-		return buddiesAnonymized.stream().filter(ba -> ba.getSendingStatus() == Status.ACCEPTED).map(ba -> ba.getUserAnonymized())
-				.map(ua -> ua.getAnonymousDestination()).collect(Collectors.toSet());
+		return mapAvailableDestinations(buddiesAnonymized.stream()).collect(Collectors.toSet());
+	}
+
+	public static Stream<MessageDestination> mapAvailableDestinations(Stream<BuddyAnonymized> buddiesAnonymized2)
+	{
+		return buddiesAnonymized2.filter(ba -> ba.getSendingStatus() == Status.ACCEPTED).map(ba -> ba.getUserAnonymized())
+				.map(ua -> ua.getAnonymousDestination());
 	}
 
 	public void addBuddyAnonymized(BuddyAnonymized buddyAnonimized)
@@ -91,9 +97,8 @@ public class UserAnonymized extends EntityWithID
 		return new UserAnonymized(UUID.randomUUID(), anonymousDestination, goals);
 	}
 
-	public BuddyAnonymized getBuddyAnonymized(UUID fromUserVPNLoginID)
+	public Set<BuddyAnonymized> getBuddiesAnonymized()
 	{
-		return buddiesAnonymized.stream().filter(buddyAnonymized -> buddyAnonymized.getVPNLoginID().equals(fromUserVPNLoginID))
-				.findAny().orElse(null);
+		return buddiesAnonymized;
 	}
 }

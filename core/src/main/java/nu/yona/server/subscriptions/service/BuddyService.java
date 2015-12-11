@@ -164,8 +164,7 @@ public class BuddyService
 				|| requestingUserBuddy.getReceivingStatus() == Status.ACCEPTED)
 		{
 			UserAnonymizedDTO userAnonymized = userService.getUserAnonymized(requestingUserBuddy.getVPNLoginID());
-			UserAnonymized userAnonymizedEntity = UserAnonymized.getRepository().findOne(requestingUserBuddy.getVPNLoginID());
-			disconnectBuddy(userAnonymizedEntity, requestingUser.getVPNLoginID());
+			disconnectBuddy(userAnonymized, requestingUser.getVPNLoginID());
 			removeAnonymousMessagesSentByUser(userAnonymized, requestingUser.getVPNLoginID());
 			sendDropBuddyMessage(requestingUser, requestingUserBuddy, message, reason);
 		}
@@ -222,7 +221,7 @@ public class BuddyService
 
 	}
 
-	private void disconnectBuddy(UserAnonymized userAnonymized, UUID vpnLoginID)
+	private void disconnectBuddy(UserAnonymizedDTO userAnonymized, UUID vpnLoginID)
 	{
 		BuddyAnonymized buddyAnonymized = userAnonymized.getBuddyAnonymized(vpnLoginID);
 		buddyAnonymized.setDisconnected();
