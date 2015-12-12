@@ -257,6 +257,8 @@ public class BuddyService
 			String bodyTemplateName = "buddy-invitation-body";
 			String requestingUserName = StringUtils
 					.join(new Object[] { requestingUser.getFirstName(), requestingUser.getLastName() }, " ");
+			String requestingUserMobileNumber = requestingUser.getMobileNumber();
+			String requestingUserNickname = requestingUser.getPrivateData().getNickname();
 			String buddyName = StringUtils.join(new Object[] { buddy.getUser().getFirstName(), buddy.getUser().getLastName() },
 					" ");
 			InternetAddress buddyAddress = new InternetAddress(buddy.getUser().getEmailAddress(), buddyName);
@@ -265,6 +267,8 @@ public class BuddyService
 			Map<String, Object> templateParams = new HashMap<String, Object>();
 			templateParams.put("inviteURL", inviteURL);
 			templateParams.put("requestingUserName", requestingUserName);
+			templateParams.put("requestingUserMobileNumber", requestingUserMobileNumber);
+			templateParams.put("requestingUserNickname", requestingUserNickname);
 			templateParams.put("buddyName", buddyName);
 			templateParams.put("message", message);
 			emailService.sendEmail(requestingUserName, buddyAddress, subjectTemplateName, bodyTemplateName, templateParams);
