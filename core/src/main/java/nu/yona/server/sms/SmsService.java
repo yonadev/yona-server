@@ -9,4 +9,5 @@ public interface SmsService
 	public static final String TemplateName_AddUserNumberConfirmation = "add-user-number-confirmation";
 	public static final String TemplateName_ChangedUserNumberConfirmation = "changed-user-number-confirmation";
 	public static final String TemplateName_OverwriteUserNumberConfirmation = "overwrite-user-number-confirmation";
+	public static final String TemplateName_BuddyInvite = "buddy-invite";
 }

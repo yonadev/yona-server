@@ -2,6 +2,8 @@
     <body>
 		<h3>Hi ${buddyName}, become my buddy for Yona!</h3>
 		
+		${message}
+		
 		<p>Install the app! Open this URL with the app! <a href="${inviteURL}">${inviteURL}</a> </p>
 		
 		<p>
