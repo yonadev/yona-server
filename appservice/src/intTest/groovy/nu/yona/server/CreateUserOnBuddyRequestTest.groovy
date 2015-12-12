@@ -4,48 +4,9 @@ import groovy.json.*
 
 import nu.yona.server.test.AbstractYonaIntegrationTest
 import nu.yona.server.test.User
-import spock.lang.Shared
 
 class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 {
-
-	@Shared
-	def ts = YonaServer.getTimeStamp()
-
-	@Shared
-	def richardQuinPassword = "R i c h a r d"
-	def bobDunnPassword = "B o b"
-	@Shared
-	def richardQuinURL
-	@Shared
-	def richardQuinVPNLoginID
-	@Shared
-	def bobDunnGmail = "bobdunn325@gmail.com"
-	@Shared
-	def bobDunnGmailPassword = "bobbydunn"
-	@Shared
-	def bobDunnInviteURL
-	@Shared
-	def bobDunnURL
-	@Shared
-	def bobDunnVPNLoginID
-	@Shared
-	def bobDunnMobileNumberConfirmationCode
-	@Shared
-	def richardQuinBobBuddyURL
-	@Shared
-	def bobDunnRichardBuddyURL
-	@Shared
-	def bobDunnBuddyMessageAcceptURL
-	@Shared
-	def bobDunnBuddyMessageProcessURL
-	@Shared
-	def richardQuinBuddyMessageAcceptURL
-	@Shared
-	def richardQuinBuddyMessageProcessURL
-	@Shared
-	def richardQuinMobileNumberConfirmationCode
-
 	def 'Richard cannot create a buddy request before confirming his own mobile number'()
 	{
 		given:
@@ -114,11 +75,11 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		when:
 			def newNickname = "Bobby"
 			def newPassword = "B o b"
-			def updatedBob = bob.convertToJSON()
-			updatedBob.nickname = newNickname
-			updatedBob.devices = [ "iPhone 6" ]
-			updatedBob.goals = [ "gambling" ]
-			def response = newAppService.updateUser(inviteURL, updatedBob, newPassword);
+			def updatedBobJson = bob.convertToJSON()
+			updatedBobJson.nickname = newNickname
+			updatedBobJson.devices = [ "iPhone 6" ]
+			updatedBobJson.goals = [ "gambling" ]
+			def response = newAppService.updateUser(inviteURL, updatedBobJson, newPassword);
 
 		then:
 			response.status == 200
@@ -132,30 +93,11 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 			!(response.responseData._links.self.href ==~ /tempPassword/)
 			response.responseData.confirmationCode;
 
-		cleanup:
-			newAppService.deleteUser(richard)
-			newAppService.deleteUser(bob.url, newPassword)
-	}
+			def getUserResponse = newAppService.getUser(inviteURL, true, null)
+			getUserResponse.status == 400
+			getUserResponse.responseData.code == "error.decrypting.data"
 
-	def 'Bob fetches his user information saved with the device password'()
-	{
-		given:
-			def richard = addRichard()
-			def mobileNumberBob = "+$timestampNew"
-			def inviteURL = sendBuddyRequestForBob(richard, mobileNumberBob).responseData.userCreatedInviteURL
-			def bob = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, inviteURL, true, null)
-			def newNickname = "Bobby"
-			def newPassword = "B o b"
-			def updatedBob = bob.convertToJSON()
-			updatedBob.nickname = newNickname
-			updatedBob.devices = [ "iPhone 6" ]
-			updatedBob.goals = [ "gambling" ]
-			newAppService.updateUser(inviteURL, updatedBob, newPassword);
-
-		when:
 			def bobFromGetAfterUpdate = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, bob.url, true, newPassword)
-
-		then:
 			bobFromGetAfterUpdate.firstName == bob.firstName
 			bobFromGetAfterUpdate.lastName == bob.lastName
 			bobFromGetAfterUpdate.mobileNumber == bob.mobileNumber
@@ -165,12 +107,16 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 			bobFromGetAfterUpdate.goals.size() == 0 //TODO: updating of goals is not yet supported
 			bobFromGetAfterUpdate.url
 
+			def getDirectMessagesResponse = newAppService.getDirectMessages(bobFromGetAfterUpdate)
+			getDirectMessagesResponse.status == 400
+			getDirectMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
+
 		cleanup:
 			newAppService.deleteUser(richard)
 			newAppService.deleteUser(bob.url, newPassword)
 	}
 
-	def 'Bob cannot read direct messages before confirming his mobile number'()
+	def 'Bob updates his user information saved with the device password'()
 	{
 		given:
 			def richard = addRichard()
@@ -179,142 +125,218 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 			def bob = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, inviteURL, true, null)
 			def newNickname = "Bobby"
 			def newPassword = "B o b"
-			def updatedBob = bob.convertToJSON()
-			updatedBob.nickname = newNickname
-			updatedBob.devices = [ "iPhone 6" ]
-			updatedBob.goals = [ "gambling" ]
-			def bobUpdated = newAppService.updateUser(inviteURL, updatedBob, newPassword);
-			def bobFromGetAfterUpdate = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, bob.url, true, "B o b")
+			def updatedBobJson = bob.convertToJSON()
+			updatedBobJson.nickname = newNickname
+			updatedBobJson.devices = [ "iPhone 6" ]
+			updatedBobJson.goals = [ "gambling" ]
+			newAppService.updateUser(inviteURL, updatedBobJson, newPassword);
+			def bobFromGetAfterUpdate = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, bob.url, true, newPassword)
 
 		when:
-			def response = newAppService.getDirectMessages(bobFromGetAfterUpdate)
+			def againChangedNickname = "Robert"
+			def againUpdatedBobJson = bobFromGetAfterUpdate.convertToJSON()
+			againUpdatedBobJson.nickname = againChangedNickname
+			def againUpdatedBob = newAppService.updateUser(newAppService.&assertUserUpdateResponseDetails, new User(againUpdatedBobJson, newPassword));
 
 		then:
-			response.status == 400
-			response.responseData.code == "error.mobile.number.not.confirmed"
+			againUpdatedBob.nickname == againChangedNickname
 
 		cleanup:
 			newAppService.deleteUser(richard)
 			newAppService.deleteUser(bob.url, newPassword)
 	}
 
-	def richardQuinCreationJSON = """{
-				"firstName":"Richard ${ts}",
-				"lastName":"Quin ${ts}",
-				"nickname":"RQ ${ts}",
-				"mobileNumber":"+${ts}11",
-				"devices":[
-					"Nexus 6"
-				],
-				"goals":[
-					"news"
-				]
-			}"""
-
-	def 'Add user Richard Quin'(){
+	def 'Bob receives confirmation SMS and enters the confirmation code in app'()
+	{
 		given:
+			def richard = addRichard()
+			def mobileNumberBob = "+$timestampNew"
+			def inviteURL = sendBuddyRequestForBob(richard, mobileNumberBob).responseData.userCreatedInviteURL
+			def bob = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, inviteURL, true, null)
+			def newNickname = "Bobby"
+			def newPassword = "B o b"
+			def updatedBobJson = bob.convertToJSON()
+			updatedBobJson.nickname = newNickname
+			updatedBobJson.devices = [ "iPhone 6" ]
+			updatedBobJson.goals = [ "gambling" ]
+			def updatedBob = newAppService.updateUser(newAppService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL);
 
 		when:
-			def response = appService.addUser(richardQuinCreationJSON, richardQuinPassword)
-			if (response.status == 201) {
-				richardQuinURL = appService.stripQueryString(response.responseData._links.self.href)
-				richardQuinVPNLoginID = response.responseData.vpnProfile.vpnLoginID;
-				richardQuinMobileNumberConfirmationCode = response.responseData.confirmationCode;
-			}
+			newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, updatedBob)
 
 		then:
-			response.status == 201
-			richardQuinURL.startsWith(appServiceBaseURL + appService.USERS_PATH)
-			richardQuinMobileNumberConfirmationCode != null
+			def getDirectMessagesResponse = newAppService.getDirectMessages(updatedBob)
+			getDirectMessagesResponse.status == 200
 
 		cleanup:
-			println "URL Richard: " + richardQuinURL
+			newAppService.deleteUser(richard)
+			newAppService.deleteUser(updatedBob)
 	}
 
-	def 'Confirm Richard\'s mobile number'(){
+	def 'Bob accepts Richard\'s buddy request'()
+	{
+		given:
+			def richard = addRichard()
+			def mobileNumberBob = "+$timestampNew"
+			def inviteURL = sendBuddyRequestForBob(richard, mobileNumberBob).responseData.userCreatedInviteURL
+			def bob = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, inviteURL, true, null)
+			def newNickname = "Bobby"
+			def newPassword = "B o b"
+			def updatedBobJson = bob.convertToJSON()
+			updatedBobJson.nickname = newNickname
+			updatedBobJson.devices = [ "iPhone 6" ]
+			updatedBobJson.goals = [ "gambling" ]
+			def updatedBob = newAppService.updateUser(newAppService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL);
+			newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, updatedBob)
+			def acceptURL = newAppService.fetchBuddyConnectRequestMessage(updatedBob).acceptURL
+
 		when:
-			def response = appService.confirmMobileNumber(richardQuinURL, """ { "code":"${richardQuinMobileNumberConfirmationCode}" } """, richardQuinPassword)
+			def response = newAppService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], newPassword)
 
 		then:
 			response.status == 200
-			response.responseData.mobileNumberConfirmed == true
-	}
-
-	def 'Richard requests Bob to become his buddy'(){
-		given:
-
-		when:
-			def response = appService.requestBuddy(richardQuinURL, """{
-				"_embedded":{
-					"user":{
-						"firstName":"Bob ${ts}",
-						"lastName":"Dunn ${ts}",
-						"emailAddress":"bobdunn325@gmail.com",
-						"mobileNumber":"+${ts}12"
-					}
-				},
-				"message":"Would you like to be my buddy?",
-				"sendingStatus":"REQUESTED",
-				"receivingStatus":"REQUESTED"
-			}""", richardQuinPassword)
-			if (response.status == 201) {
-				richardQuinBobBuddyURL = response.responseData._links.self.href
-
-				bobDunnInviteURL = response.responseData.userCreatedInviteURL;
-				bobDunnURL = appService.stripQueryString(bobDunnInviteURL)
-			}
-
-		then:
-			response.status == 201
-			response.responseData._embedded.user.firstName == "Bob ${ts}"
-			richardQuinBobBuddyURL.startsWith(richardQuinURL)
-			bobDunnInviteURL
+			def bobWithBuddy = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, updatedBob.url, true, updatedBob.password)
+			bobWithBuddy.buddies != null
+			bobWithBuddy.buddies.size() == 1
+			bobWithBuddy.buddies[0].user.firstName == "Richard"
+			bobWithBuddy.buddies[0].sendingStatus == "ACCEPTED"
+			bobWithBuddy.buddies[0].receivingStatus == "ACCEPTED"
 
 		cleanup:
-			println "URL buddy Richard: " + richardQuinBobBuddyURL
-			println "Invite URL Bob: " + bobDunnInviteURL
-
+			newAppService.deleteUser(richard)
+			newAppService.deleteUser(updatedBob)
 	}
-	
-	def 'Attempt to add another user with the same mobile number'(){
+
+	def 'Richard processes Bob\'s buddy acceptance'()
+	{
+		given:
+			def richard = addRichard()
+			def mobileNumberBob = "+$timestampNew"
+			def inviteURL = sendBuddyRequestForBob(richard, mobileNumberBob).responseData.userCreatedInviteURL
+			def bob = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, inviteURL, true, null)
+			def newNickname = "Bobby"
+			def newPassword = "B o b"
+			def updatedBobJson = bob.convertToJSON()
+			updatedBobJson.nickname = newNickname
+			updatedBobJson.devices = [ "iPhone 6" ]
+			updatedBobJson.goals = [ "gambling" ]
+			def updatedBob = newAppService.updateUser(newAppService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL);
+			newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, updatedBob)
+			def acceptURL = newAppService.fetchBuddyConnectRequestMessage(updatedBob).acceptURL
+			newAppService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], newPassword)
+
 		when:
-			def response = appService.addUser("""{
-					"firstName":"Bobo ${ts}",
-					"lastName":"Duno ${ts}",
-					"nickname":"BDo ${ts}",
-					"mobileNumber":"+${ts}12",
-					"devices":[
-						"Nexus 6"
-					],
-					"goals":[
-						"news"
-					]
-				}""", "Foo")
+			def processURL = newAppService.fetchBuddyConnectResponseMessage(richard).processURL
+			def response = newAppService.postMessageActionWithPassword(processURL, [ : ], richard.password)
+
+		then:
+			response.status == 200
+			response.responseData.properties.status == "done"
+
+			def richardWithBuddy = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, richard.url, true, richard.password)
+			richardWithBuddy.buddies != null
+			richardWithBuddy.buddies.size() == 1
+			richardWithBuddy.buddies[0].user.firstName == "Bob"
+			richardWithBuddy.buddies[0].sendingStatus == "ACCEPTED"
+			richardWithBuddy.buddies[0].receivingStatus == "ACCEPTED"
+
+		cleanup:
+			newAppService.deleteUser(richard)
+			newAppService.deleteUser(updatedBob)
+	}
+
+	def 'Goal conflict of Richard is reported to Richard and Bob'()
+	{
+		given:
+			def richard = addRichard()
+			def mobileNumberBob = "+$timestampNew"
+			def inviteURL = sendBuddyRequestForBob(richard, mobileNumberBob).responseData.userCreatedInviteURL
+			def bob = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest, inviteURL, true, null)
+			def newNickname = "Bobby"
+			def newPassword = "B o b"
+			def updatedBobJson = bob.convertToJSON()
+			updatedBobJson.nickname = newNickname
+			updatedBobJson.devices = [ "iPhone 6" ]
+			updatedBobJson.goals = [ "gambling" ]
+			def updatedBob = newAppService.updateUser(newAppService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL);
+			newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, updatedBob)
+			def acceptURL = newAppService.fetchBuddyConnectRequestMessage(updatedBob).acceptURL
+			newAppService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], newPassword)
+			def processURL = newAppService.fetchBuddyConnectResponseMessage(richard).processURL
+			newAppService.postMessageActionWithPassword(processURL, [ : ], richard.password)
+
+		when:
+			newAnalysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+
+		then:
+			def getAnonMessagesRichardResponse = newAppService.getAnonymousMessages(richard)
+			getAnonMessagesRichardResponse.status == 200
+			getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
+			getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+			getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].url == "http://www.refdag.nl"
+
+			def getAnonMessagesBobResponse = newAppService.getAnonymousMessages(updatedBob)
+			getAnonMessagesBobResponse.status == 200
+			getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
+			getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].nickname == richard.nickname
+			getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].goalName == "news"
+			getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].url == null
+
+		cleanup:
+			newAppService.deleteUser(richard)
+			newAppService.deleteUser(updatedBob)
+	}
+
+	def 'Attempt to add another user with the same mobile number'()
+	{
+		given:
+			def richard = addRichard()
+			def mobileNumberBob = "+$timestampNew"
+			sendBuddyRequestForBob(richard, mobileNumberBob)
+
+		when:
+			def john = newAppService.addUser(this.&assertUserCreationFailedBecauseOfDuplicate, "J o h n", "John", "Doe", "JD",
+				mobileNumberBob, [ "Nokia 6310" ], [])
+
+		then:
+			john == null
+
+		cleanup:
+			newAppService.deleteUser(richard)
+			// TODO: How to delete the invited user?
+	}
+
+	def 'Hacking attempt: Try to get Bob with an invalid temp password'()
+	{
+		given:
+			def richard = addRichard()
+			def inviteURL = sendBuddyRequestForBob(richard, "+$timestampNew")
+
+		when:
+			def response = newAppService.getResource(inviteURL, [:], ["tempPassword": "hack", "includePrivateData": "true"])
 
 		then:
 			response.status == 400
-			response.responseData.code == "error.user.exists.created.on.buddy.request"
+			// response.responseData.code == "TODO" // Why do we not get a response code here?
+
+		cleanup:
+			newAppService.deleteUser(richard)
+			// TODO: How to delete the invited user?
 	}
 
-	def 'Hacking attempt: Try to get Bob Dunn with an invalid temp password'(){
+	def 'Hacking attempt: Try to update Bob Dunn with an invalid temp password'()
+	{
 		given:
+			def richard = addRichard()
+			def inviteURL = sendBuddyRequestForBob(richard, "+$timestampNew")
 
 		when:
-			def response = appService.getResource(bobDunnURL, [:], ["tempPassword": "hack", "includePrivateData": "true"])
-
-		then:
-			response.status == 400
-	}
-
-	def 'Hacking attempt: Try to update Bob Dunn with an invalid temp password'(){
-		given:
-
-		when:
-			def response = appService.updateResource(bobDunnURL, """{
-				"firstName":"Richard ${ts}",
-				"lastName":"Quin ${ts}",
-				"nickname":"RQ ${ts}",
-				"mobileNumber":"+${ts}12",
+			def response = appService.updateResource(richard.url, """{
+				"firstName":"Richard",
+				"lastName":"Quin",
+				"nickname":"RQ",
+				"mobileNumber":"+$timestampNew",
 				"devices":[
 					"Nexus 6"
 				],
@@ -325,245 +347,62 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 			response.status == 400
+			// response.responseData.code == "TODO" // Why do we not get a response code here?
+
+		cleanup:
+			newAppService.deleteUser(richard)
+			// TODO: How to delete the invited user?
 	}
 
-	def 'Hacking attempt: Try to get a normal user with a temp password'(){
+	def 'Hacking attempt: Try to get a normal user with a temp password'()
+	{
 		given:
+			def richard = addRichard()
 
 		when:
-			def response = appService.getResource(richardQuinURL, [:], ["tempPassword": "hack", "includePrivateData": "true"])
+			def response = appService.getResource(richard.url, [:], ["tempPassword": "hack", "includePrivateData": "true"])
 
 		then:
 			response.status == 400
+			// response.responseData.code == "TODO" // Why do we not get a response code here?
+
+		cleanup:
+			newAppService.deleteUser(richard)
 	}
 
-	def 'Hacking attempt: Try to update a normal user with a temp password'(){
+	def 'Hacking attempt: Try to update a normal user with a temp password'()
+	{
 		given:
+			def richard = addRichard()
 
 		when:
-			def response = appService.updateResource(richardQuinURL, richardQuinCreationJSON, ["Yona-Password": "New password"], ["tempPassword": "hack"])
-
-		then:
-			response.status == 400
-	}
-
-	def 'Bob Dunn downloads the app and opens the link sent in the email with the app; app retrieves data to prefill'(){
-		given:
-
-		when:
-			def response = appService.getUser(bobDunnInviteURL, true, null)
-
-		then:
-			response.status == 200
-			response.responseData.firstName == "Bob ${ts}"
-			response.responseData.lastName == "Dunn ${ts}"
-			response.responseData.mobileNumber == "+${ts}12"
-			response.responseData?.mobileNumberConfirmed == false
-			response.responseData.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
-			response.responseData.vpnProfile.vpnPassword.length() == 32
-			response.responseData.vpnProfile.openVPNProfile.length() > 10
-
-	}
-
-	def 'Bob Dunn adjusts data and submits; app saves with new password'(){
-		given:
-
-		when:
-			def response = appService.updateUser(bobDunnInviteURL, """{
-				"firstName":"Bob ${ts}",
-				"lastName":"Dunn ${ts}",
-				"nickname":"BD ${ts}",
-				"mobileNumber":"+${ts}13",
+			def response = appService.updateResource(richard.url, """{
+				"firstName":"Richard",
+				"lastName":"Quin",
+				"nickname":"RQ",
+				"mobileNumber":"+$timestampNew",
 				"devices":[
-					"iPhone 6"
+					"Nexus 6"
 				],
 				"goals":[
-					"gambling"
+					"news"
 				]
-			}""", bobDunnPassword)
-			if(response.status == 200)
-			{
-				bobDunnURL = appService.stripQueryString(response.responseData._links.self.href)
-				bobDunnMobileNumberConfirmationCode = response.responseData.confirmationCode;
-			}
-
-		then:
-			response.status == 200
-			bobDunnMobileNumberConfirmationCode
-			response.responseData.firstName == "Bob ${ts}"
-			response.responseData.lastName == "Dunn ${ts}"
-			response.responseData.mobileNumber == "+${ts}13"
-			response.responseData.nickname == "BD ${ts}"
-			response.responseData.devices.size() == 1
-			response.responseData.devices[0] == "iPhone 6"
-			//TODO: updating of goals is not yet supported
-			response.responseData.goals.size() == 0
-	}
-
-	def 'Bob cannot read direct messages before confirming mobile number'(){
-		given:
-
-		when:
-			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
+			}""", ["Yona-Password": "New password"], ["tempPassword": "hack"])
 
 		then:
 			response.status == 400
+			// response.responseData.code == "TODO" // Why do we not get a response code here?
+
+		cleanup:
+			newAppService.deleteUser(richard)
 	}
 
-	def 'Bob Dunn receives confirmation SMS and enters the confirmation code in app'(){
-		given:
-
-		when:
-			def response = appService.confirmMobileNumber(bobDunnInviteURL, """ { "code":"${bobDunnMobileNumberConfirmationCode}" } """, bobDunnPassword)
-
-		then:
-			response.status == 200
-			response.responseData.mobileNumberConfirmed == true
+	def assertUserCreationFailedBecauseOfDuplicate(response)
+	{
+		response.status == 400
+		response.responseData.code == "error.user.exists.created.on.buddy.request"
 	}
 
-	def 'Check if user is now retrievable with new password'(){
-		given:
-
-		when:
-			def response = appService.getUser(bobDunnURL, true, bobDunnPassword)
-
-		then:
-			response.status == 200
-			response.responseData.firstName == "Bob ${ts}"
-			response.responseData.lastName == "Dunn ${ts}"
-			response.responseData.mobileNumber == "+${ts}13"
-			response.responseData.nickname == "BD ${ts}"
-			response.responseData.devices.size() == 1
-			response.responseData.devices[0] == "iPhone 6"
-			response.responseData.goals.size() == 0
-	}
-
-	def 'Check if user is now modifiable with new password'(){
-		given:
-
-		when:
-			def response = appService.updateUser(bobDunnURL, """{
-				"firstName":"Bob ${ts}",
-				"lastName":"Dunn ${ts}",
-				"nickname":"BD ${ts}",
-				"mobileNumber":"+${ts}13",
-				"devices":[
-					"iPhone 6"
-				],
-				"goals":[
-					"gambling"
-				]
-			}""", bobDunnPassword)
-
-		then:
-			response.status == 200
-			response.responseData.firstName == "Bob ${ts}"
-			response.responseData.lastName == "Dunn ${ts}"
-			response.responseData.mobileNumber == "+${ts}13"
-			response.responseData.nickname == "BD ${ts}"
-			response.responseData.devices.size() == 1
-			response.responseData.devices[0] == "iPhone 6"
-			response.responseData.goals.size() == 0
-	}
-
-
-	def 'User should no longer be accessible by temp password'(){
-		given:
-
-		when:
-			def response = appService.getUser(bobDunnInviteURL, true, null)
-
-		then:
-			response.status == 400
-	}
-
-	def 'Bob checks his direct messages'(){
-		given:
-
-		when:
-			def response = appService.getDirectMessages(bobDunnURL, bobDunnPassword)
-			if (response.responseData._embedded && response.responseData._embedded.buddyConnectRequestMessages) {
-				bobDunnBuddyMessageAcceptURL = response.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
-			}
-
-		then:
-			response.status == 200
-			response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard ${ts}"
-			response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(bobDunnURL + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
-			bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
-	}
-
-	def 'Bob accepts Richard\'s buddy request'(){
-		given:
-
-		when:
-			def response = appService.postMessageActionWithPassword(bobDunnBuddyMessageAcceptURL, """{
-				"properties":{
-					"message":"Yes, great idea!"
-				}
-			}""", bobDunnPassword)
-
-		then:
-			response.status == 200
-			response.responseData.properties.status == "done"
-	}
-
-	def 'Richard checks his anonymous messages'(){
-		given:
-
-		when:
-			def response = appService.getAnonymousMessages(richardQuinURL, richardQuinPassword)
-			if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
-				richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
-			}
-
-		then:
-			response.status == 200
-			response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob ${ts}"
-			response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuinURL + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
-			richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
-	}
-
-	def 'Richard processes Bob\'s buddy acceptance'(){
-		given:
-
-		when:
-			def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageProcessURL, """{
-				"properties":{
-				}
-			}""", richardQuinPassword)
-
-		then:
-			response.status == 200
-			response.responseData.properties.status == "done"
-	}
-
-	def 'Bob\'s user data will contain Richard as buddy'(){
-		given:
-
-		when:
-			def response = appService.getUser(bobDunnURL, true, bobDunnPassword)
-
-		then:
-			response.status == 200
-			response.responseData._embedded.buddies != null
-			response.responseData._embedded.buddies.size() == 1
-			response.responseData._embedded.buddies[0]._embedded.user.firstName == "Richard ${ts}"
-			response.responseData._embedded.buddies[0].sendingStatus == "ACCEPTED"
-			response.responseData._embedded.buddies[0].receivingStatus == "ACCEPTED"
-	}
-
-	def 'Delete users'(){
-		given:
-
-		when:
-			def responseRichard = appService.deleteUser(richardQuinURL, richardQuinPassword)
-			def responseBob = appService.deleteUser(bobDunnURL, bobDunnPassword)
-
-		then:
-			responseRichard.status == 200
-			responseBob.status == 200
-	}
 	def sendBuddyRequestForBob(User user, String mobileNumber)
 	{
 		appService.requestBuddy(user.url, """{

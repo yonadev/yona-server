@@ -32,24 +32,4 @@ abstract class Service
 		
 		return retVal;
 	}
-
-	protected String makeStringList(def strings)
-	{
-		def stringList = ""
-		strings.each({
-			stringList += (stringList) ? ", " : ""
-			stringList += '\"' + it + '\"'
-			})
-		return stringList
-	}
-
-	protected String makeStringMap(def strings)
-	{
-		def stringList = ""
-		strings.keySet().each({
-			stringList += (stringList) ? ", " : ""
-			stringList += '\"' + it + '\" : \"' + strings[it] + '\"'
-			})
-		return stringList
-	}
 }

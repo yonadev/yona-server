@@ -43,17 +43,46 @@ class User
 		if (hasPrivateData)
 		{
 			this.nickname = json.nickname
-			this.buddies = json._embedded.buddies.collect{new Buddy(it)}
+			
+			this.buddies = (json._embedded?.buddies) ? json._embedded.buddies.collect{new Buddy(it)} : []
 			this.devices = json.devices.collect{"$it"}
 			this.goals = json.goals.collect{"$it"}
-			this.vpnProfile = new VPNProfile(json.vpnProfile)
+			this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
 		}
 		this.url = YonaServer.stripQueryString(json._links.self.href)
 	}
 
 	def convertToJSON()
 	{
-		return new JsonSlurper().parseText(new JsonBuilder(this).toPrettyString())
+		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, nickname, mobileNumber, devices, goals, [])
+
+		return new JsonSlurper().parseText(jsonStr)
+	}
+
+	private static String makeUserJsonStringInternal(url, firstName, lastName, nickname, mobileNumber, devices, goals, buddies)
+	{
+		def selfLinkString = (url) ? """"_links":{"self":{"href":"$url"}},""" : ""
+		def devicesString = YonaServer.makeStringList(devices)
+		def goalsString = YonaServer.makeStringList(goals)
+		def json = """{
+				$selfLinkString
+				"firstName":"${firstName}",
+				"lastName":"${lastName}",
+				"nickname":"${nickname}",
+				"mobileNumber":"${mobileNumber}",
+				"devices":[
+					${devicesString}
+				],
+				"goals":[
+					${goalsString}
+				]
+		}"""
+		return json
+	}
+
+	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber, devices, goals, buddies)
+	{
+		makeUserJsonStringInternal(null, firstName, lastName, nickname, mobileNumber, devices, goals, buddies)
 	}
 }
 

@@ -204,4 +204,24 @@ class YonaServer {
 	static def stripQueryString(url) {
 		url - ~/\?.*/
 	}
+
+	static String makeStringList(def strings)
+	{
+		def stringList = ""
+		strings.each({
+			stringList += (stringList) ? ", " : ""
+			stringList += '\"' + it + '\"'
+			})
+		return stringList
+	}
+
+	static String makeStringMap(def strings)
+	{
+		def stringList = ""
+		strings.keySet().each({
+			stringList += (stringList) ? ", " : ""
+			stringList += '\"' + it + '\" : \"' + strings[it] + '\"'
+			})
+		return stringList
+	}
 }

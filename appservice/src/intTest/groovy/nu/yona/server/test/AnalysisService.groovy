@@ -2,6 +2,8 @@ package nu.yona.server.test
 
 import groovy.json.*
 
+import nu.yona.server.YonaServer
+
 class AnalysisService extends Service
 {
 	final ANALYSIS_ENGINE_PATH = "/analysisEngine/"
@@ -21,7 +23,7 @@ class AnalysisService extends Service
 
 	def postToAnalysisEngine(user, categories, url)
 	{
-		def categoriesString = makeStringList(categories)
+		def categoriesString = YonaServer.makeStringList(categories)
 		postToAnalysisEngine("""{
 					"vpnLoginID":"$user.vpnProfile.vpnLoginID",
 					"categories": [$categoriesString],
