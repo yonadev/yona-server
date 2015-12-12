@@ -180,4 +180,9 @@ public class UserPrivate extends EntityWithID
 	{
 		touchVersion++;
 	}
+
+	public UUID getUserAnonymizedID()
+	{
+		return userAnonymizedID;
+	}
 }

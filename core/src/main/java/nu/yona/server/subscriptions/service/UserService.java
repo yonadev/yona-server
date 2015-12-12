@@ -143,7 +143,7 @@ public class UserService
 			setUserUnconfirmedWithNewConfirmationCode(userEntity);
 		}
 		userEntity = User.getRepository().save(userEntity);
-		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getVPNPassword());
+		ldapUserService.createVPNAccount(userEntity.getUserAnonymizedID().toString(), userEntity.getVPNPassword());
 
 		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(userEntity);
 		if (!userDTO.isMobileNumberConfirmed())
@@ -253,7 +253,7 @@ public class UserService
 		newUser.setIsCreatedOnBuddyRequest();
 		setUserUnconfirmedWithNewConfirmationCode(newUser);
 		User savedUser = User.getRepository().save(newUser);
-		ldapUserService.createVPNAccount(savedUser.getVPNLoginID().toString(), savedUser.getVPNPassword());
+		ldapUserService.createVPNAccount(savedUser.getUserAnonymizedID().toString(), savedUser.getVPNPassword());
 		return savedUser;
 	}
 

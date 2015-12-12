@@ -91,9 +91,9 @@ public class UserAnonymized extends EntityWithID
 		return new UserAnonymized(UUID.randomUUID(), anonymousDestination, goals);
 	}
 
-	public BuddyAnonymized getBuddyAnonymized(UUID fromUserVPNLoginID)
+	public BuddyAnonymized getBuddyAnonymized(UUID fromUserAnonymizedID)
 	{
-		return buddiesAnonymized.stream().filter(buddyAnonymized -> buddyAnonymized.getVPNLoginID().equals(fromUserVPNLoginID))
+		return buddiesAnonymized.stream().filter(buddyAnonymized -> buddyAnonymized.getUserAnonymizedID().equals(fromUserAnonymizedID))
 				.findAny().orElse(null);
 	}
 }

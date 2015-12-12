@@ -22,10 +22,10 @@ public class DiscloseRequestMessage extends BuddyMessage
 		super(null, null, null, null, null);
 	}
 
-	protected DiscloseRequestMessage(UUID id, UUID requestingUserID, UUID requestingUserVPNLoginID,
+	protected DiscloseRequestMessage(UUID id, UUID requestingUserID, UUID requestingUserAnonymizedID,
 			UUID targetGoalConflictMessageID, String nickname, String message)
 	{
-		super(id, requestingUserVPNLoginID, requestingUserID, nickname, message);
+		super(id, requestingUserAnonymizedID, requestingUserID, nickname, message);
 		this.targetGoalConflictMessageID = targetGoalConflictMessageID;
 		this.status = Status.DISCLOSE_REQUESTED;
 	}
@@ -78,10 +78,10 @@ public class DiscloseRequestMessage extends BuddyMessage
 		return this.status == Status.DISCLOSE_ACCEPTED || this.status == Status.DISCLOSE_REJECTED;
 	}
 
-	public static Message createInstance(UUID requestingUserID, UUID requestingUserVPNLoginID, String requestingUserNickname,
+	public static Message createInstance(UUID requestingUserID, UUID requestingUserAnonymizedID, String requestingUserNickname,
 			String message, GoalConflictMessage targetGoalConflictMessage)
 	{
-		return new DiscloseRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserVPNLoginID,
+		return new DiscloseRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserAnonymizedID,
 				targetGoalConflictMessage.getID(), requestingUserNickname, message);
 	}
 }

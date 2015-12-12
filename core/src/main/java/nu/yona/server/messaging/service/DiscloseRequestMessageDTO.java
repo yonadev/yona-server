@@ -157,13 +157,13 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 		private void sendResponseMessageToRequestingUser(UserDTO respondingUser, DiscloseRequestMessage requestMessageEntity,
 				String message)
 		{
-			UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(requestMessageEntity.getRelatedVPNLoginID());
+			UserAnonymized userAnonymized = UserAnonymized.getRepository()
+					.findOne(requestMessageEntity.getRelatedUserAnonymizedID());
 			MessageDestination messageDestination = userAnonymized.getAnonymousDestination();
 			assert messageDestination != null;
 			messageDestination.send(DiscloseResponseMessage.createInstance(respondingUser.getID(),
-					respondingUser.getPrivateData().getVpnProfile().getVPNLoginID(),
-					requestMessageEntity.getTargetGoalConflictMessageID(), requestMessageEntity.getStatus(),
-					respondingUser.getPrivateData().getNickname(), message));
+					respondingUser.getPrivateData().getUserAnonymizedID(), requestMessageEntity.getTargetGoalConflictMessageID(),
+					requestMessageEntity.getStatus(), respondingUser.getPrivateData().getNickname(), message));
 			MessageDestination.getRepository().save(messageDestination);
 		}
 	}
