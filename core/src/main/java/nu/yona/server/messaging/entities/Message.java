@@ -24,7 +24,8 @@ public abstract class Message extends EntityWithID
 	@Column(nullable = false)
 	private UUID destinationID;
 
-	private UUID relatedVPNLoginID;
+	private UUID relatedUserAnonymizedID;
+
 	private Date creationTime;
 
 	public static MessageRepository getRepository()
@@ -46,7 +47,7 @@ public abstract class Message extends EntityWithID
 			throw MessageServiceException.anonymizedUserIdMustBeSet();
 		}
 
-		this.relatedVPNLoginID = relatedUserAnonymizedID;
+		this.relatedUserAnonymizedID = relatedUserAnonymizedID;
 		this.creationTime = new Date();
 	}
 
@@ -65,9 +66,9 @@ public abstract class Message extends EntityWithID
 		return creationTime;
 	}
 
-	public UUID getRelatedVPNLoginID()
+	public UUID getRelatedUserAnonymizedID()
 	{
-		return relatedVPNLoginID;
+		return relatedUserAnonymizedID;
 	}
 
 	protected abstract void encrypt(Encryptor encryptor);

@@ -41,11 +41,11 @@ public class UserDTO
 	private UserDTO(UUID id, String firstName, String lastName, String nickname, String mobileNumber, boolean isConfirmed,
 			UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
 			UUID anonymousMessageDestinationID, Set<String> deviceNames, Set<String> goalNames, Set<UUID> buddyIDs,
-			VPNProfileDTO vpnProfile)
+			UUID userAnonymizedID, VPNProfileDTO vpnProfile)
 	{
 		this(id, firstName, lastName, null, mobileNumber, isConfirmed,
 				new UserPrivateDTO(nickname, namedMessageSourceID, namedMessageDestinationID, anonymousMessageSourceID,
-						anonymousMessageDestinationID, deviceNames, goalNames, buddyIDs, vpnProfile));
+						anonymousMessageDestinationID, deviceNames, goalNames, buddyIDs, userAnonymizedID, vpnProfile));
 	}
 
 	private UserDTO(UUID id, String firstName, String lastName, String mobileNumber, boolean isConfirmed)
@@ -176,7 +176,8 @@ public class UserDTO
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSource().getID(),
 				userEntity.getNamedMessageDestination().getID(), userEntity.getAnonymousMessageSource().getID(),
 				userEntity.getAnonymousMessageSource().getDestination().getID(), userEntity.getDeviceNames(),
-				getGoalNames(userEntity.getGoals()), getBuddyIDs(userEntity), VPNProfileDTO.createInstance(userEntity));
+				getGoalNames(userEntity.getGoals()), getBuddyIDs(userEntity), userEntity.getUserAnonymizedID(),
+				VPNProfileDTO.createInstance(userEntity));
 	}
 
 	private static Set<UUID> getBuddyIDs(User userEntity)

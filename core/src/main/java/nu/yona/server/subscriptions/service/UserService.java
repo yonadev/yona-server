@@ -139,7 +139,7 @@ public class UserService
 			setUserUnconfirmedWithNewConfirmationCode(userEntity);
 		}
 		userEntity = User.getRepository().save(userEntity);
-		ldapUserService.createVPNAccount(userEntity.getVPNLoginID().toString(), userEntity.getVPNPassword());
+		ldapUserService.createVPNAccount(userEntity.getUserAnonymizedID().toString(), userEntity.getVPNPassword());
 
 		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(userEntity);
 		if (!userDTO.isMobileNumberConfirmed())
@@ -249,7 +249,7 @@ public class UserService
 		newUser.setIsCreatedOnBuddyRequest();
 		setUserUnconfirmedWithNewConfirmationCode(newUser);
 		User savedUser = User.getRepository().save(newUser);
-		ldapUserService.createVPNAccount(savedUser.getVPNLoginID().toString(), savedUser.getVPNPassword());
+		ldapUserService.createVPNAccount(savedUser.getUserAnonymizedID().toString(), savedUser.getVPNPassword());
 		return savedUser;
 	}
 
@@ -337,7 +337,8 @@ public class UserService
 				DropBuddyReason.USER_ACCOUNT_DELETED));
 
 		UUID vpnLoginID = userEntity.getVPNLoginID();
-		userAnonymizedCacheService.deleteUserAnonymized(vpnLoginID);
+		UUID userAnonymizedID = userEntity.getUserAnonymizedID();
+		userAnonymizedCacheService.deleteUserAnonymized(userAnonymizedID);
 		MessageSource namedMessageSource = userEntity.getNamedMessageSource();
 		MessageSource anonymousMessageSource = userEntity.getAnonymousMessageSource();
 		messageService.deleteAllMessages(MessageDestinationDTO.createInstance(namedMessageSource.getDestination()));
@@ -371,7 +372,7 @@ public class UserService
 
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		userAnonymizedEntity.addBuddyAnonymized(buddyEntity.getBuddyAnonymized());
-		userAnonymizedCacheService.updateUserAnonymized(userEntity.getVPNLoginID(), userAnonymizedEntity);
+		userAnonymizedCacheService.updateUserAnonymized(userEntity.getUserAnonymizedID(), userAnonymizedEntity);
 	}
 
 	public String generatePassword()
@@ -547,9 +548,9 @@ public class UserService
 		}
 	}
 
-	public UserAnonymizedDTO getUserAnonymized(UUID vpnLoginID)
+	public UserAnonymizedDTO getUserAnonymized(UUID userAnonymizedID)
 	{
-		return userAnonymizedCacheService.getUserAnonymized(vpnLoginID);
+		return userAnonymizedCacheService.getUserAnonymized(userAnonymizedID);
 	}
 
 	/**

@@ -23,10 +23,10 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 		super();
 	}
 
-	private BuddyConnectResponseMessage(UUID id, UUID userID, UUID vpnLoginID, String nickname, String message, UUID buddyID,
+	private BuddyConnectResponseMessage(UUID id, UUID userID, UUID userAnonymizedID, String nickname, String message, UUID buddyID,
 			BuddyAnonymized.Status status)
 	{
-		super(id, vpnLoginID, userID, nickname, message, buddyID);
+		super(id, userAnonymizedID, userID, nickname, message, buddyID);
 		this.status = status;
 	}
 
@@ -45,10 +45,10 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 		this.isProcessed = true;
 	}
 
-	public static BuddyConnectResponseMessage createInstance(UUID respondingUserID, UUID respondingUserVPNLoginID,
+	public static BuddyConnectResponseMessage createInstance(UUID respondingUserID, UUID respondingUserAnonymizedID,
 			String nickname, String message, UUID buddyID, BuddyAnonymized.Status status)
 	{
-		return new BuddyConnectResponseMessage(UUID.randomUUID(), respondingUserID, respondingUserVPNLoginID, nickname, message,
+		return new BuddyConnectResponseMessage(UUID.randomUUID(), respondingUserID, respondingUserAnonymizedID, nickname, message,
 				buddyID, status);
 	}
 

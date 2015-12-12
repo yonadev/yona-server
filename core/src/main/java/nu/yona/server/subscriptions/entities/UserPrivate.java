@@ -157,6 +157,7 @@ public class UserPrivate extends EntityWithID
 
 	public UUID getVPNLoginID()
 	{
+		// these are the same for performance
 		return userAnonymizedID;
 	}
 
@@ -173,5 +174,10 @@ public class UserPrivate extends EntityWithID
 	public void touch()
 	{
 		touchVersion++;
+	}
+
+	public UUID getUserAnonymizedID()
+	{
+		return userAnonymizedID;
 	}
 }

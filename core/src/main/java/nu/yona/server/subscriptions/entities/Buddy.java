@@ -89,9 +89,9 @@ public class Buddy extends EntityWithID
 		return User.getRepository().findOne(userID);
 	}
 
-	public UUID getVPNLoginID()
+	public UUID getUserAnonymizedID()
 	{
-		return getBuddyAnonymized().getVPNLoginID();
+		return getBuddyAnonymized().getUserAnonymizedID();
 	}
 
 	public Status getReceivingStatus()
@@ -114,10 +114,10 @@ public class Buddy extends EntityWithID
 		return getBuddyAnonymized().getSendingStatus();
 	}
 
-	public void setVPNLoginID(UUID vpnLoginID)
+	public void setUserAnonymizedID(UUID userAnonymizedID)
 	{
 		BuddyAnonymized buddyAnonymized = getBuddyAnonymized();
-		buddyAnonymized.setVPNLoginID(vpnLoginID);
+		buddyAnonymized.setUserAnonymizedID(userAnonymizedID);
 		BuddyAnonymized.getRepository().save(buddyAnonymized);
 	}
 

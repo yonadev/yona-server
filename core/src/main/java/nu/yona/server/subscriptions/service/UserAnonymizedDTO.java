@@ -47,9 +47,9 @@ public class UserAnonymizedDTO
 				.map(messageDestination -> MessageDestinationDTO.createInstance(messageDestination)).collect(Collectors.toSet());
 	}
 
-	public BuddyAnonymized getBuddyAnonymized(UUID fromUserVPNLoginID)
+	public BuddyAnonymized getBuddyAnonymized(UUID fromUserAnonymizedID)
 	{
 		return buddyAnonymizedIDs.stream().map(id -> BuddyAnonymized.getRepository().findOne(id))
-				.filter(ba -> ba.getVPNLoginID().equals(fromUserVPNLoginID)).findAny().orElse(null);
+				.filter(ba -> ba.getUserAnonymizedID().equals(fromUserAnonymizedID)).findAny().orElse(null);
 	}
 }

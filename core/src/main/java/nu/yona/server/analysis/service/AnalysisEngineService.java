@@ -104,7 +104,7 @@ public class AnalysisEngineService
 	private void updateLastGoalConflictMessage(PotentialConflictDTO payload, Date messageEndTime, Goal conflictingGoal,
 			GoalConflictMessage message)
 	{
-		assert payload.getVPNLoginID().equals(message.getRelatedVPNLoginID());
+		assert payload.getVPNLoginID().equals(message.getRelatedUserAnonymizedID());
 		assert conflictingGoal.getID().equals(message.getGoal().getID());
 
 		message.setEndTime(messageEndTime);

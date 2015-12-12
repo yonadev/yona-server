@@ -17,8 +17,9 @@ import org.springframework.stereotype.Repository;
 public interface GoalConflictMessageRepository extends CrudRepository<GoalConflictMessage, UUID>
 {
 	@Query("select m from Message m where TYPE(m) = :type and m.destinationID = :destinationID"
-			+ " and m.relatedVPNLoginID = :relatedVPNLoginID and m.goalID = :goalID and m.endTime > :minEndTime order by m.endTime desc")
-	List<GoalConflictMessage> findLatestGoalConflictMessageFromDestination(@Param("relatedVPNLoginID") UUID relatedVPNLoginID,
-			@Param("goalID") UUID goalID, @Param("destinationID") UUID destinationID, @Param("minEndTime") Date minEndTime,
+			+ " and m.relatedUserAnonymizedID = :relatedUserAnonymizedID and m.goalID = :goalID and m.endTime > :minEndTime order by m.endTime desc")
+	List<GoalConflictMessage> findLatestGoalConflictMessageFromDestination(
+			@Param("relatedUserAnonymizedID") UUID relatedUserAnonymizedID, @Param("goalID") UUID goalID,
+			@Param("destinationID") UUID destinationID, @Param("minEndTime") Date minEndTime,
 			@Param("type") Class<GoalConflictMessage> type);
 }

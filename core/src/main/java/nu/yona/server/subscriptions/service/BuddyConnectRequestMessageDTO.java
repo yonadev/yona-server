@@ -38,7 +38,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 	private boolean isRejected;
 
 	private BuddyConnectRequestMessageDTO(BuddyConnectRequestMessage buddyConnectRequestMessageEntity, UUID id, Date creationTime,
-			UserDTO user, UUID vpnLoginID, String nickname, String message, boolean isAccepted, boolean isRejected)
+			UserDTO user, UUID userAnonymizedID, String nickname, String message, boolean isAccepted, boolean isRejected)
 	{
 		super(id, creationTime, user, nickname, message);
 
@@ -47,9 +47,9 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 			throw BuddyServiceException.messageEntityCannotBeNull();
 		}
 
-		if (buddyConnectRequestMessageEntity.getRelatedVPNLoginID() == null)
+		if (buddyConnectRequestMessageEntity.getRelatedUserAnonymizedID() == null)
 		{
-			throw BuddyServiceException.vpnLoginIdCannotBeNull();
+			throw BuddyServiceException.userAnonymizedIdCannotBeNull();
 		}
 
 		this.isAccepted = isAccepted;
@@ -81,7 +81,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 	public static BuddyConnectRequestMessageDTO createInstance(UserDTO requestingUser, BuddyConnectRequestMessage messageEntity)
 	{
 		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(), messageEntity.getCreationTime(),
-				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getRelatedVPNLoginID(),
+				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getRelatedUserAnonymizedID(),
 				messageEntity.getNickname(), messageEntity.getMessage(), messageEntity.isAccepted(), messageEntity.isRejected());
 	}
 
@@ -133,7 +133,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 				BuddyConnectRequestMessage connectRequestMessageEntity, MessageActionDTO payload)
 		{
 			buddyService.addBuddyToAcceptingUser(acceptingUser, connectRequestMessageEntity.getUser().getID(),
-					connectRequestMessageEntity.getNickname(), connectRequestMessageEntity.getRelatedVPNLoginID(),
+					connectRequestMessageEntity.getNickname(), connectRequestMessageEntity.getRelatedUserAnonymizedID(),
 					connectRequestMessageEntity.requestingSending(), connectRequestMessageEntity.requestingReceiving());
 
 			updateMessageStatusAsAccepted(connectRequestMessageEntity);
@@ -169,11 +169,11 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 				BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage)
 		{
 			MessageDestinationDTO messageDestination = userService
-					.getUserAnonymized(connectRequestMessageEntity.getRelatedVPNLoginID()).getAnonymousDestination();
+					.getUserAnonymized(connectRequestMessageEntity.getRelatedUserAnonymizedID()).getAnonymousDestination();
 			assert messageDestination != null;
 			messageService.sendMessage(
 					BuddyConnectResponseMessage.createInstance(respondingUser.getID(),
-							respondingUser.getPrivateData().getVpnProfile().getVPNLoginID(),
+							respondingUser.getPrivateData().getUserAnonymizedID(),
 							respondingUser.getPrivateData().getNickname(), responseMessage,
 							connectRequestMessageEntity.getBuddyID(), connectRequestMessageEntity.getStatus()),
 					messageDestination);

@@ -199,10 +199,10 @@ public class MessageService
 		Message.getRepository().save(message);
 	}
 
-	public void removeMessagesFromUser(MessageDestinationDTO destination, UUID sentByUserVPNLoginID)
+	public void removeMessagesFromUser(MessageDestinationDTO destination, UUID sentByUserAnonymizedID)
 	{
 		getMessages(destination.getID(), null).getContent().stream()
-				.filter(message -> message.getRelatedVPNLoginID().equals(sentByUserVPNLoginID))
+				.filter(message -> message.getRelatedUserAnonymizedID().equals(sentByUserAnonymizedID))
 				.forEach(message -> Message.getRepository().delete(message));
 	}
 

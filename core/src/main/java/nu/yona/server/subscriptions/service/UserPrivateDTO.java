@@ -27,6 +27,7 @@ public class UserPrivateDTO
 	private final Set<String> deviceNames;
 	private Set<String> goalNames;
 	private VPNProfileDTO vpnProfile;
+	private UUID userAnonymizedID;
 	private UUID namedMessageSourceID;
 	private UUID namedMessageDestinationID;
 	private UUID anonymousMessageSourceID;
@@ -39,12 +40,12 @@ public class UserPrivateDTO
 			@JsonProperty("devices") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> deviceNames,
 			@JsonProperty("goals") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> goalNames)
 	{
-		this(nickname, null, null, null, null, deviceNames, goalNames, null, new VPNProfileDTO(null));
+		this(nickname, null, null, null, null, deviceNames, goalNames, null, null, new VPNProfileDTO(null));
 	}
 
 	UserPrivateDTO(String nickname, UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
 			UUID anonymousMessageDestinationID, Set<String> deviceNames, Set<String> goalNames, Set<UUID> buddyIDs,
-			VPNProfileDTO vpnProfile)
+			UUID userAnonymizedID, VPNProfileDTO vpnProfile)
 	{
 		this.nickname = nickname;
 		this.namedMessageSourceID = namedMessageSourceID;
@@ -54,6 +55,7 @@ public class UserPrivateDTO
 		this.deviceNames = (deviceNames == null) ? Collections.emptySet() : deviceNames;
 		this.goalNames = (goalNames == null) ? Collections.emptySet() : goalNames;
 		this.buddyIDs = (buddyIDs == null) ? Collections.emptySet() : buddyIDs;
+		this.userAnonymizedID = userAnonymizedID;
 		this.vpnProfile = vpnProfile;
 
 		this.buddies = Collections.emptySet();
@@ -136,5 +138,11 @@ public class UserPrivateDTO
 	public Set<BuddyDTO> getBuddies()
 	{
 		return Collections.unmodifiableSet(buddies);
+	}
+
+	@JsonIgnore
+	public UUID getUserAnonymizedID()
+	{
+		return userAnonymizedID;
 	}
 }

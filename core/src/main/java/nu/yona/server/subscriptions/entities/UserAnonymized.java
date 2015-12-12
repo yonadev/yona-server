@@ -89,6 +89,7 @@ public class UserAnonymized extends EntityWithID
 
 	public UUID getVPNLoginID()
 	{
+		// these are the same for performance
 		return getID();
 	}
 

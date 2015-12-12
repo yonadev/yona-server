@@ -78,16 +78,16 @@ public class BuddyAnonymized extends EntityWithID
 		this.receivingStatus = receivingStatus;
 	}
 
-	public UUID getVPNLoginID()
+	public UUID getUserAnonymizedID()
 	{
 		// notice these are the same
 		return userAnonymizedID;
 	}
 
-	public void setVPNLoginID(UUID vpnLoginID)
+	public void setUserAnonymizedID(UUID userAnonymizedID)
 	{
 		// notice these are the same
-		this.userAnonymizedID = vpnLoginID;
+		this.userAnonymizedID = userAnonymizedID;
 	}
 
 	public void setDisconnected()

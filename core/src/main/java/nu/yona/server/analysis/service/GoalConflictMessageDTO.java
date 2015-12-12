@@ -155,11 +155,11 @@ public class GoalConflictMessageDTO extends MessageDTO
 			messageEntity.setStatus(Status.DISCLOSE_REQUESTED);
 			GoalConflictMessage.getRepository().save(messageEntity);
 
-			MessageDestinationDTO messageDestination = userService.getUserAnonymized(messageEntity.getRelatedVPNLoginID())
+			MessageDestinationDTO messageDestination = userService.getUserAnonymized(messageEntity.getRelatedUserAnonymizedID())
 					.getAnonymousDestination();
 			messageService.sendMessage(
 					DiscloseRequestMessage.createInstance(actingUser.getID(),
-							actingUser.getPrivateData().getVpnProfile().getVPNLoginID(),
+							actingUser.getPrivateData().getUserAnonymizedID(),
 							actingUser.getPrivateData().getNickname(), requestPayload.getProperty("message"), messageEntity),
 					messageDestination);
 
@@ -168,8 +168,8 @@ public class GoalConflictMessageDTO extends MessageDTO
 
 		private String getNickname(UserDTO actingUser, GoalConflictMessage messageEntity)
 		{
-			UUID vpnLoginID = messageEntity.getRelatedVPNLoginID();
-			if (actingUser.getPrivateData().getVpnProfile().getVPNLoginID().equals(vpnLoginID))
+			UUID userAnonymizedID = messageEntity.getRelatedUserAnonymizedID();
+			if (actingUser.getPrivateData().getUserAnonymizedID().equals(userAnonymizedID))
 			{
 				return SELF_NICKNAME;
 			}
@@ -177,12 +177,12 @@ public class GoalConflictMessageDTO extends MessageDTO
 			Set<BuddyDTO> buddies = buddyService.getBuddies(actingUser.getPrivateData().getBuddyIDs());
 			for (BuddyDTO buddy : buddies)
 			{
-				if (vpnLoginID.equals(buddy.getVPNLoginID()))
+				if (userAnonymizedID.equals(buddy.getUserAnonymizedID()))
 				{
 					return buddy.getNickname();
 				}
 			}
-			throw new IllegalStateException("Cannot find buddy for VPN login ID '" + vpnLoginID + "'");
+			throw new IllegalStateException("Cannot find buddy for user anonymized ID '" + userAnonymizedID + "'");
 		}
 	}
 }

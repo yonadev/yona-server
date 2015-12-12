@@ -16,26 +16,26 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 class UserAnonymizedCacheService
 {
 	@Cacheable
-	public UserAnonymizedDTO getUserAnonymized(UUID vpnLoginID)
+	public UserAnonymizedDTO getUserAnonymized(UUID userAnonymizedID)
 	{
-		UserAnonymized entity = UserAnonymized.getRepository().findOne(vpnLoginID);
+		UserAnonymized entity = UserAnonymized.getRepository().findOne(userAnonymizedID);
 		if (entity == null)
 		{
-			throw InvalidDataException.vpnLoginIDNotFound(vpnLoginID);
+			throw InvalidDataException.userAnonymizedIDNotFound(userAnonymizedID);
 		}
 		return UserAnonymizedDTO.createInstance(entity);
 	}
 
-	@CachePut(key = "#vpnLoginID")
-	public UserAnonymizedDTO updateUserAnonymized(UUID vpnLoginID, UserAnonymized entity)
+	@CachePut(key = "#userAnonymizedID")
+	public UserAnonymizedDTO updateUserAnonymized(UUID userAnonymizedID, UserAnonymized entity)
 	{
 		UserAnonymized savedEntity = UserAnonymized.getRepository().save(entity);
 		return UserAnonymizedDTO.createInstance(savedEntity);
 	}
 
-	@CacheEvict(key = "#vpnLoginID")
-	public void deleteUserAnonymized(UUID vpnLoginID)
+	@CacheEvict(key = "#userAnonymizedID")
+	public void deleteUserAnonymized(UUID userAnonymizedID)
 	{
-		UserAnonymized.getRepository().delete(vpnLoginID);
+		UserAnonymized.getRepository().delete(userAnonymizedID);
 	}
 }
