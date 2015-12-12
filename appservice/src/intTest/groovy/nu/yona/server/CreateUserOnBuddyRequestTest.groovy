@@ -332,7 +332,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 			def inviteURL = sendBuddyRequestForBob(richard, "+$timestampNew")
 
 		when:
-			def response = appService.updateResource(richard.url, """{
+			def response = newAppService.updateResource(richard.url, """{
 				"firstName":"Richard",
 				"lastName":"Quin",
 				"nickname":"RQ",
@@ -360,7 +360,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 			def richard = addRichard()
 
 		when:
-			def response = appService.getResource(richard.url, [:], ["tempPassword": "hack", "includePrivateData": "true"])
+			def response = newAppService.getResource(richard.url, [:], ["tempPassword": "hack", "includePrivateData": "true"])
 
 		then:
 			response.status == 400
@@ -376,7 +376,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 			def richard = addRichard()
 
 		when:
-			def response = appService.updateResource(richard.url, """{
+			def response = newAppService.updateResource(richard.url, """{
 				"firstName":"Richard",
 				"lastName":"Quin",
 				"nickname":"RQ",
@@ -405,7 +405,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 	def sendBuddyRequestForBob(User user, String mobileNumber)
 	{
-		appService.requestBuddy(user.url, """{
+		newAppService.requestBuddy(user.url, """{
 			"_embedded":{
 				"user":{
 					"firstName":"Bob",

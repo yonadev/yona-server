@@ -394,4 +394,9 @@ class AppService extends Service
 	{
 		yonaServer.getResource(path, headers, parameters)
 	}
+
+	def updateResource(path, jsonString, headers = [:], parameters = [:])
+	{
+		yonaServer.updateResource(path, jsonString, headers, parameters)
+	}
 }
