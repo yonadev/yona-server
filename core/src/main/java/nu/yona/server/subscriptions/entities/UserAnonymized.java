@@ -83,6 +83,7 @@ public class UserAnonymized extends EntityWithID
 
 	public UUID getVPNLoginID()
 	{
+		// these are the same for performance
 		return getID();
 	}
 
@@ -93,7 +94,8 @@ public class UserAnonymized extends EntityWithID
 
 	public BuddyAnonymized getBuddyAnonymized(UUID fromUserAnonymizedID)
 	{
-		return buddiesAnonymized.stream().filter(buddyAnonymized -> buddyAnonymized.getUserAnonymizedID().equals(fromUserAnonymizedID))
-				.findAny().orElse(null);
+		return buddiesAnonymized.stream()
+				.filter(buddyAnonymized -> buddyAnonymized.getUserAnonymizedID().equals(fromUserAnonymizedID)).findAny()
+				.orElse(null);
 	}
 }
