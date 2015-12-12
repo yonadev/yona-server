@@ -18,18 +18,18 @@ import nu.yona.server.messaging.entities.MessageDestination;
 @Service
 public class AnalysisEngineCacheService
 {
-	@Cacheable(value = "goalConflictMessages", key = "{#userVPNLoginID,#goalID,#destination.ID}")
-	public GoalConflictMessage fetchLatestGoalConflictMessageForUser(UUID userVPNLoginID, UUID goalID,
+	@Cacheable(value = "goalConflictMessages", key = "{#userAnonymizedID,#goalID,#destination.ID}")
+	public GoalConflictMessage fetchLatestGoalConflictMessageForUser(UUID userAnonymizedID, UUID goalID,
 			MessageDestination destination, Date minEndTime)
 	{
 		List<GoalConflictMessage> results = GoalConflictMessage.getGoalConflictMessageRepository()
-				.findLatestGoalConflictMessageFromDestination(userVPNLoginID, goalID, destination.getID(), minEndTime,
+				.findLatestGoalConflictMessageFromDestination(userAnonymizedID, goalID, destination.getID(), minEndTime,
 						GoalConflictMessage.class);
 
 		return results != null && !results.isEmpty() ? results.get(0) : null;
 	}
 
-	@CachePut(value = "goalConflictMessages", key = "{#message.relatedVPNLoginID,#message.goalID,#destination.ID}")
+	@CachePut(value = "goalConflictMessages", key = "{#message.relatedUserAnonymizedID,#message.goalID,#destination.ID}")
 	public GoalConflictMessage updateLatestGoalConflictMessageForUser(GoalConflictMessage message, MessageDestination destination)
 	{
 		// This will save the message as it has already been added to the destination. The message is passed

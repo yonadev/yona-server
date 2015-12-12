@@ -63,7 +63,7 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 		User userEntity = messageEntity.getUser(); // may be null if deleted
 		UserDTO user = userEntity != null ? UserDTO.createInstance(userEntity) : UserDTO.createRemovedUserInstance();
 		return new BuddyDisconnectMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), user,
-				messageEntity.getRelatedVPNLoginID(), messageEntity.getNickname(), messageEntity.getMessage(),
+				messageEntity.getRelatedUserAnonymizedID(), messageEntity.getNickname(), messageEntity.getMessage(),
 				messageEntity.getReason(), messageEntity.isProcessed());
 	}
 

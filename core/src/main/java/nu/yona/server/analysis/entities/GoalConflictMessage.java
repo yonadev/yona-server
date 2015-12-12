@@ -121,7 +121,7 @@ public class GoalConflictMessage extends Message
 		this.status = status;
 	}
 
-	public static GoalConflictMessage createInstanceFromBuddy(UUID vpnLoginID, GoalConflictMessage origin)
+	public static GoalConflictMessage createInstanceFromBuddy(UUID relatedUserAnonymizedID, GoalConflictMessage origin)
 	{
 		if (origin == null)
 		{
@@ -129,13 +129,13 @@ public class GoalConflictMessage extends Message
 		}
 
 		assert origin.getID() != null;
-		return new GoalConflictMessage(UUID.randomUUID(), vpnLoginID, origin.getID(), origin.getGoalID(), origin.getURL(),
+		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, origin.getID(), origin.getGoalID(), origin.getURL(),
 				Status.ANNOUNCED);
 	}
 
-	public static GoalConflictMessage createInstance(UUID vpnLoginID, Goal goal, String url)
+	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedID, Goal goal, String url)
 	{
-		return new GoalConflictMessage(UUID.randomUUID(), vpnLoginID, null, goal.getID(), url, Status.ANNOUNCED);
+		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, null, goal.getID(), url, Status.ANNOUNCED);
 	}
 
 	public static GoalConflictMessageRepository getGoalConflictMessageRepository()
