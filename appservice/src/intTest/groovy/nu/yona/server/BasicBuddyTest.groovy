@@ -105,6 +105,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest {
 		response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard"
 		response.responseData._embedded.buddyConnectRequestMessages[0].nickname == richardQuin.nickname
 		response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(bobDunn.url + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
+		response.responseData._embedded.buddyConnectRequestMessages[0].status == "REQUESTED"
 		bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
 	}
 
@@ -134,6 +135,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest {
 
 		then:
 		response.status == 200
+		response.responseData._embedded.buddyConnectResponseMessages[0].status == "ACCEPTED"
 		response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob"
 		response.responseData._embedded.buddyConnectResponseMessages[0].nickname == bobDunn.nickname
 		response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuin.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)

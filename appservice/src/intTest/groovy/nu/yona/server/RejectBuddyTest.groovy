@@ -111,6 +111,7 @@ class RejectBuddyTest extends AbstractAppServiceIntegrationTest {
 
 		then:
 		response.status == 200
+		response.responseData._embedded.buddyConnectResponseMessages[0].status == "REJECTED"
 		response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob"
 		response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuin.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
 		richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)

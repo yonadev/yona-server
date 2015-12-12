@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.messaging.entities.DiscloseResponseMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
@@ -25,11 +26,13 @@ import nu.yona.server.subscriptions.service.UserDTO;
 @JsonRootName("discloseResponseMessage")
 public class DiscloseResponseMessageDTO extends MessageDTO
 {
+	private Status status;
 	private String nickname;
 
-	private DiscloseResponseMessageDTO(UUID id, Date creationTime, String nickname)
+	private DiscloseResponseMessageDTO(UUID id, Date creationTime, Status status, String nickname)
 	{
 		super(id, creationTime);
+		this.status = status;
 		this.nickname = nickname;
 	}
 
@@ -40,6 +43,11 @@ public class DiscloseResponseMessageDTO extends MessageDTO
 		return possibleActions;
 	}
 
+	public Status getStatus()
+	{
+		return status;
+	}
+
 	public String getNickname()
 	{
 		return nickname;
@@ -47,7 +55,7 @@ public class DiscloseResponseMessageDTO extends MessageDTO
 
 	public static DiscloseResponseMessageDTO createInstance(UserDTO requestingUser, DiscloseResponseMessage messageEntity)
 	{
-		return new DiscloseResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
+		return new DiscloseResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.getStatus(),
 				messageEntity.getNickname());
 	}
 

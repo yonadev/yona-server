@@ -36,18 +36,16 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 	private static final String REJECT = "reject";
 
 	private String nickname;
-	private boolean isAccepted;
-	private boolean isRejected;
+	private Status status;
 
 	private GoalConflictMessageDTO targetGoalConflictMessage;
 
-	private DiscloseRequestMessageDTO(UUID id, Date creationTime, String nickname, boolean isAccepted, boolean isRejected,
+	private DiscloseRequestMessageDTO(UUID id, Date creationTime, String nickname, Status status,
 			UUID targetGoalConflictMessageOriginID, GoalConflictMessageDTO targetGoalConflictMessage)
 	{
 		super(id, creationTime, targetGoalConflictMessageOriginID);
 		this.nickname = nickname;
-		this.isAccepted = isAccepted;
-		this.isRejected = isRejected;
+		this.status = status;
 		this.targetGoalConflictMessage = targetGoalConflictMessage;
 	}
 
@@ -55,7 +53,7 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 	public Set<String> getPossibleActions()
 	{
 		Set<String> possibleActions = new HashSet<>();
-		if (!isAccepted && !isRejected)
+		if (status == Status.DISCLOSE_REQUESTED)
 		{
 			possibleActions.add(ACCEPT);
 			possibleActions.add(REJECT);
@@ -73,22 +71,16 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 		return targetGoalConflictMessage;
 	}
 
-	public boolean isAccepted()
+	public Status getStatus()
 	{
-		return isAccepted;
-	}
-
-	public boolean isRejected()
-	{
-		return isRejected;
+		return status;
 	}
 
 	public static DiscloseRequestMessageDTO createInstance(UserDTO requestingUser, DiscloseRequestMessage messageEntity)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
 		return new DiscloseRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.getNickname(),
-				messageEntity.isAccepted(), messageEntity.isRejected(),
-				targetGoalConflictMessage.getOriginGoalConflictMessageID(),
+				messageEntity.getStatus(), targetGoalConflictMessage.getOriginGoalConflictMessageID(),
 				GoalConflictMessageDTO.createInstance(targetGoalConflictMessage, null));
 	}
 

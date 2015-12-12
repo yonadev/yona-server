@@ -137,6 +137,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest {
 		response.responseData._embedded.discloseRequestMessages[1].targetGoalConflictMessage.goalName == "gambling"
 		//TODO response.responseData._embedded.discloseRequestMessages[1].targetGoalConflictMessage.creationTime
 		response.responseData._embedded.discloseRequestMessages[1]._links.related.href == richardQuinGoalConflictMessage1URL
+		response.responseData._embedded.discloseRequestMessages[1].status == "DISCLOSE_REQUESTED"
 		goalDiscloseRequestMessage1AcceptURL
 		goalDiscloseRequestMessage2RejectURL
 	}
@@ -178,5 +179,8 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest {
 		response.responseData._embedded.goalConflictMessages[1].url == "http://www.refdag.nl"
 		response.responseData._embedded.goalConflictMessages[1].status == "DISCLOSE_ACCEPTED"
 		!response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure
+		response.responseData._embedded.discloseResponseMessages.size() == 2
+		response.responseData._embedded.discloseResponseMessages[0].status == "DISCLOSE_REJECTED"
+		response.responseData._embedded.discloseResponseMessages[1].status == "DISCLOSE_ACCEPTED"
 	}
 }
