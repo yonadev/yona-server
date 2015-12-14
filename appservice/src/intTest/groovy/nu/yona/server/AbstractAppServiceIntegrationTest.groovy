@@ -1,14 +1,16 @@
 package nu.yona.server
 
 import groovy.json.*
-import nu.yona.server.test.AbstractYonaIntegrationTest
-import nu.yona.server.test.AnalysisService
-import nu.yona.server.test.AppService
+
 import spock.lang.Shared
+import spock.lang.Specification
 
 import java.text.SimpleDateFormat
 
-abstract class AbstractAppServiceIntegrationTest extends AbstractYonaIntegrationTest
+import nu.yona.server.test.AnalysisService
+import nu.yona.server.test.AppService
+
+abstract class AbstractAppServiceIntegrationTest extends Specification
 {
 	@Shared
 	def AnalysisService newAnalysisService = new AnalysisService()
@@ -27,18 +29,16 @@ abstract class AbstractAppServiceIntegrationTest extends AbstractYonaIntegration
 
 	def addRichard()
 	{
-		def timestampNew = getTimestampNew()
 		def richard = newAppService.addUser(newAppService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
-			"+$timestampNew", [ "Nexus 6" ], [ "news", "gambling" ])
+			"+$timestamp", [ "Nexus 6" ], [ "news", "gambling" ])
 		newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, richard)
 		return richard
 	}
 
 	def addBob()
 	{
-		def timestampNew = getTimestampNew()
 		def bob = newAppService.addUser(newAppService.&assertUserCreationResponseDetails, "B o b", "Bob", "Dunn", "BD",
-			"+$timestampNew", [ "iPhone 5" ], [ "news", "gambling" ])
+			"+$timestamp", [ "iPhone 5" ], [ "news", "gambling" ])
 		newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, bob)
 		return bob
 	}
@@ -57,15 +57,10 @@ abstract class AbstractAppServiceIntegrationTest extends AbstractYonaIntegration
 		formatter.format(new Date())
 	}
 
-	protected String getTimestampNew() 
+	protected String getTimestamp() 
 	{
 		int num = sequenceNumber++
 		return "$baseTimestamp$num"
-	}
-
-	String getTimestamp() 
-	{
-		return baseTimestamp
 	}
 
 	def addUser(firstName, lastName) {

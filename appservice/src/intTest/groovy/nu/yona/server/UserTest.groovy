@@ -15,7 +15,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	def 'Create John Doe'()
 	{
 		given:
-			def ts = getTimestampNew()
+			def ts = timestamp
 
 		when:
 			def john = createJohnDoe(ts)
@@ -30,7 +30,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	def 'Create John Doe and confirm mobile number'()
 	{
 		given:
-			def ts = getTimestampNew()
+			def ts = timestamp
 			def john = createJohnDoe(ts)
 
 		when:
@@ -47,7 +47,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	def 'Delete John Doe before confirming the mobile number'()
 	{
 		given:
-			def ts = getTimestampNew()
+			def ts = timestamp
 			def john = createJohnDoe(ts)
 
 		when:
@@ -62,7 +62,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	def 'Hacking attempt: Brute force mobile number confirmation code'()
 	{
 		given:
-			def ts = getTimestampNew()
+			def ts = timestamp
 			def john = createJohnDoe(ts)
 			def confirmationCode = john.mobileNumberConfirmationCode
 
@@ -92,7 +92,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	def 'Get John Doe with private data'()
 	{
 		given:
-			def ts = getTimestampNew()
+			def ts = timestamp
 			def johnAsCreated = createJohnDoe(ts)
 
 		when:
@@ -108,7 +108,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	def 'Try to get John Doe\'s private data with a bad password'()
 	{
 		given:
-			def ts = getTimestampNew()
+			def ts = timestamp
 			def johnAsCreated = createJohnDoe(ts)
 
 		when:
@@ -125,7 +125,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	def 'Get John Doe without private data'()
 	{
 		given:
-			def ts = getTimestampNew()
+			def ts = timestamp
 			def johnAsCreated = createJohnDoe(ts)
 
 		when:
@@ -141,7 +141,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	def 'Update John Doe with the same mobile number'()
 	{
 		given:
-			def ts = getTimestampNew()
+			def ts = timestamp
 			def john = createJohnDoe(ts)
 			newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, john)
 
@@ -163,7 +163,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	def 'Update John Doe with a different mobile number'()
 	{
 		given:
-			def ts = getTimestampNew()
+			def ts = timestamp
 			def john = createJohnDoe(ts)
 			newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, john)
 

@@ -4,7 +4,7 @@ import nu.yona.server.YonaServer
 
 abstract class Service
 {
-	private final String url
+	final String url
 	final YonaServer yonaServer
 
 	protected Service(String urlPropertyName, String defaultURL)
@@ -14,14 +14,14 @@ abstract class Service
 	}
 
 	/**
-	 * This method erturns the requested property if it is available. If it is not available and no default value is provided,
+	 * This method returns the requested property if it is available. If it is not available and no default value is provided,
 	 * it throws an exception.
 	 * 
 	 * @param propertyName The name of the system property to retrieve.
 	 * @param defaultValue The default property value
 	 * @return The value.
 	 */
-	def String getProperty(propertyName, defaultValue)
+	static def String getProperty(propertyName, defaultValue)
 	{
 		String retVal = System.properties.getProperty(propertyName, defaultValue);
 		

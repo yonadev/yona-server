@@ -1,7 +1,6 @@
 package nu.yona.server
 
 import groovy.json.*
-import nu.yona.server.test.AbstractYonaIntegrationTest
 
 class GoalTest extends AbstractAppServiceIntegrationTest
 {
@@ -14,7 +13,7 @@ class GoalTest extends AbstractAppServiceIntegrationTest
 
 		then:
 			response.status == 200
-			response.responseData._links.self.href == appServiceBaseURL + appService.GOALS_PATH
+			response.responseData._links.self.href == newAppService.url + newAppService.GOALS_PATH
 			response.responseData._embedded.goals.size() > 0
 			
 	}

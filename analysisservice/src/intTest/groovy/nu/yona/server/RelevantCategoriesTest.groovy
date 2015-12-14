@@ -1,11 +1,20 @@
 package nu.yona.server
 
 import groovy.json.*
-import nu.yona.server.test.AbstractYonaIntegrationTest
 
-class RelevantCategoriesTest extends AbstractYonaIntegrationTest {
+import spock.lang.Shared
+import spock.lang.Specification
 
-	def 'Get relevant categories'(){
+import nu.yona.server.test.AnalysisService
+import nu.yona.server.test.Service
+
+class RelevantCategoriesTest extends Specification
+{
+	@Shared
+	def AnalysisService analysisService = new AnalysisService()
+
+	def 'Get relevant categories'()
+	{
 		given:
 
 		when:
