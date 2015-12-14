@@ -64,7 +64,7 @@ class AppService extends Service
 		assertUserWithPrivateData(response.responseData)
 	}
 
-	def assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyReqeuest(def response)
+	def assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyRequest(def response)
 	{
 		assertResponseStatusSuccess(response)
 		assertUserWithPrivateDataCreatedOnBuddyRequest(response.responseData)
