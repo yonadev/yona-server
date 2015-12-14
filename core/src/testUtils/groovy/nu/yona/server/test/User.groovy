@@ -8,7 +8,7 @@ class User
 	final String firstName
 	final String lastName
 	final String mobileNumber
-	final String confirmMobileNumberUrl
+	final String mobileNumberConfirmationUrl
 	final boolean hasPrivateData
 	final String mobileNumberConfirmationCode
 	final String nickname
@@ -37,7 +37,7 @@ class User
 		this.firstName = json.firstName
 		this.lastName = json.lastName
 		this.mobileNumber = json.mobileNumber
-		this.confirmMobileNumberUrl = json._links?.confirmMobileNumber?.href
+		this.mobileNumberConfirmationUrl = json._links?.confirmMobileNumber?.href
 		this.hasPrivateData = hasPrivateData
 		this.mobileNumberConfirmationCode = json.confirmationCode
 		if (hasPrivateData)

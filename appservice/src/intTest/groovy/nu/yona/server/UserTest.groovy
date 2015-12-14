@@ -23,7 +23,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 			testUser(john, true, ts)
-			john.confirmMobileNumberUrl == YonaServer.stripQueryString(john.url) + appService.MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT
+			john.mobileNumberConfirmationUrl == YonaServer.stripQueryString(john.url) + appService.MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT
 
 
 		cleanup:
@@ -41,7 +41,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 			testUser(john, true, ts)
-			// john.confirmMobileNumberUrl == null YD-126: This URL shouldn't be available anymore when the number is confirmed
+			// john.mobileNumberConfirmationUrl == null YD-126: This URL shouldn't be available anymore when the number is confirmed
 
 		cleanup:
 			appService.deleteUser(john)
@@ -70,13 +70,13 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			def confirmationCode = john.mobileNumberConfirmationCode
 
 		when:
-			def response1TimeWrong = appService.confirmMobileNumber(john.url, """{ "code":"${confirmationCode}1" } """, john.password)
-			appService.confirmMobileNumber(john.url, """{ "code":"${confirmationCode}2" } """, john.password)
-			appService.confirmMobileNumber(john.url, """{ "code":"${confirmationCode}3" } """, john.password)
-			appService.confirmMobileNumber(john.url, """{ "code":"${confirmationCode}4" } """, john.password)
-			def response5TimesWrong = appService.confirmMobileNumber(john.url, """{ "code":"${confirmationCode}5" } """, john.password)
-			def response6TimesWrong = appService.confirmMobileNumber(john.url, """{ "code":"${confirmationCode}6" } """, john.password)
-			def response7thTimeRight = appService.confirmMobileNumber(john.url, """{ "code":"${confirmationCode}" } """, john.password)
+			def response1TimeWrong = confirmMobileNumber(john, "${confirmationCode}1")
+			confirmMobileNumber(john, "${confirmationCode}2")
+			confirmMobileNumber(john, "${confirmationCode}3")
+			confirmMobileNumber(john, "${confirmationCode}4")
+			def response5TimesWrong = confirmMobileNumber(john, "${confirmationCode}5")
+			def response6TimesWrong = confirmMobileNumber(john, "${confirmationCode}6")
+			def response7thTimeRight = confirmMobileNumber(john, "${confirmationCode}")
 
 		then:
 			response1TimeWrong.status == 400
@@ -183,6 +183,11 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		cleanup:
 			appService.deleteUser(john)
+	}
+
+	def confirmMobileNumber(User user, code)
+	{
+		appService.confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${code}1" } """, user.password)
 	}
 
 	User createJohnDoe(def ts)

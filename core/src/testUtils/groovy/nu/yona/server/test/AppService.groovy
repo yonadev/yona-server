@@ -29,7 +29,7 @@ class AppService extends Service
 
 	void confirmMobileNumber(Closure asserter, User user)
 	{
-		def response = confirmMobileNumber(user.url, """{ "code":"${user.mobileNumberConfirmationCode}" }""", user.password)
+		def response = confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${user.mobileNumberConfirmationCode}" }""", user.password)
 		asserter(response)
 	}
 
@@ -248,9 +248,9 @@ class AppService extends Service
 		return result
 	}
 
-	def confirmMobileNumber(userURL, jsonString, password)
+	def confirmMobileNumber(mobileNumberConfirmationUrl, jsonString, password)
 	{
-		yonaServer.createResourceWithPassword(yonaServer.stripQueryString(userURL) + MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT, jsonString, password)
+		yonaServer.createResourceWithPassword(mobileNumberConfirmationUrl, jsonString, password)
 	}
 
 	def requestOverwriteUser(mobileNumber)
