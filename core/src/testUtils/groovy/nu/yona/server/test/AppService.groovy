@@ -255,7 +255,7 @@ class AppService extends Service
 
 	def requestOverwriteUser(mobileNumber)
 	{
-		yonaServer.updateResource(USERS_PATH, """ { } """, [:], ["mobileNumber":mobileNumber])
+		yonaServer.updateResource(USERS_PATH, """{ }""", [:], ["mobileNumber":mobileNumber])
 	}
 
 	def getUser(userURL, boolean includePrivateData, password = null)

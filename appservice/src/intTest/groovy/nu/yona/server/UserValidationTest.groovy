@@ -29,7 +29,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		when:
 			def object = jsonSlurper.parseText(userCreationJSON)
 			object.remove('firstName')
-			def response = newAppService.addUser(object, password)
+			def response = appService.addUser(object, password)
 
 		then:
 			response.status == 400
@@ -42,7 +42,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		when:
 			def object = jsonSlurper.parseText(userCreationJSON)
 			object.remove('lastName')
-			def response = newAppService.addUser(object, password)
+			def response = appService.addUser(object, password)
 
 		then:
 			response.status == 400
@@ -55,7 +55,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		when:
 			def object = jsonSlurper.parseText(userCreationJSON)
 			object.remove('mobileNumber')
-			def response = newAppService.addUser(object, password)
+			def response = appService.addUser(object, password)
 
 		then:
 			response.status == 400
@@ -68,7 +68,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		when:
 			def object = jsonSlurper.parseText(userCreationJSON)
 			object.put('mobileNumber', '++55 5 ')
-			def response = newAppService.addUser(object, password)
+			def response = appService.addUser(object, password)
 
 		then:
 			response.status == 400

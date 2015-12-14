@@ -13,10 +13,10 @@ import nu.yona.server.test.AppService
 abstract class AbstractAppServiceIntegrationTest extends Specification
 {
 	@Shared
-	def AnalysisService newAnalysisService = new AnalysisService()
+	def AnalysisService analysisService = new AnalysisService()
 
 	@Shared
-	def AppService newAppService = new AppService()
+	def AppService appService = new AppService()
 
 	@Shared
 	private String baseTimestamp = createBaseTimestamp()
@@ -29,17 +29,17 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	def addRichard()
 	{
-		def richard = newAppService.addUser(newAppService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
+		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
 			"+$timestamp", [ "Nexus 6" ], [ "news", "gambling" ])
-		newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, richard)
+		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, richard)
 		return richard
 	}
 
 	def addBob()
 	{
-		def bob = newAppService.addUser(newAppService.&assertUserCreationResponseDetails, "B o b", "Bob", "Dunn", "BD",
+		def bob = appService.addUser(appService.&assertUserCreationResponseDetails, "B o b", "Bob", "Dunn", "BD",
 			"+$timestamp", [ "iPhone 5" ], [ "news", "gambling" ])
-		newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, bob)
+		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bob)
 		return bob
 	}
 
@@ -47,7 +47,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def richard = addRichard()
 		def bob = addBob()
-		newAppService.makeBuddies(richard, bob)
+		appService.makeBuddies(richard, bob)
 		return ["richard" : richard, "bob" : bob]
 	}
 
@@ -63,7 +63,8 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		return "$baseTimestamp$num"
 	}
 
-	def addUser(firstName, lastName) {
+	def addUser(firstName, lastName)
+	{
 		userNumber++
 		def password = "PASSWORD USER " + userNumber;
 		def mobileNumber = "+${timestamp}${userNumber}"
@@ -87,7 +88,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		def vpnLoginID = response.responseData.vpnProfile.vpnLoginID
 		assert response.responseData.confirmationCode
 		def mobileNumberConfirmationCode = response.responseData.confirmationCode
-		def confirmResponse = appService.confirmMobileNumber(userURL, """ { "code":"${mobileNumberConfirmationCode}" } """, password)
+		def confirmResponse = appService.confirmMobileNumber(userURL, """{ "code":"${mobileNumberConfirmationCode}" }""", password)
 		assert confirmResponse.status == 200
 		return [
 			"url": userURL,
@@ -98,7 +99,8 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		]
 	}
 
-	def makeBuddies(user1Object, user2Object) {
+	def makeBuddies(user1Object, user2Object)
+	{
 		def addBuddyResponse = appService.requestBuddy(user1Object.url, """{
 			"_embedded":{
 				"user":{

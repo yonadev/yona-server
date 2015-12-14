@@ -12,19 +12,19 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 
 		when:
 			def userSecret = "unknown secret"
-			def response = newAppService.setNewDeviceRequest(richard.url, richard.password, userSecret)
+			def response = appService.setNewDeviceRequest(richard.url, richard.password, userSecret)
 
 		then:
 			response.status == 201
-			def getResponseAfter = newAppService.getNewDeviceRequest(richard.url)
+			def getResponseAfter = appService.getNewDeviceRequest(richard.url)
 			getResponseAfter.status == 200
 
-			def getWithPasswordResponseAfter = newAppService.getNewDeviceRequest(richard.url, userSecret)
+			def getWithPasswordResponseAfter = appService.getNewDeviceRequest(richard.url, userSecret)
 			getWithPasswordResponseAfter.status == 200
 			getWithPasswordResponseAfter.responseData.userPassword == richard.password
 
 		cleanup:
-			newAppService.deleteUser(richard)
+			appService.deleteUser(richard)
 	}
 
 	def 'Try get new device request with wrong user secret'()
@@ -32,16 +32,16 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		given:
 			def userSecret = "unknown secret"
 			def richard = addRichard();
-			newAppService.setNewDeviceRequest(richard.url, richard.password, userSecret)
+			appService.setNewDeviceRequest(richard.url, richard.password, userSecret)
 
 		when:
-			def response = newAppService.getNewDeviceRequest(richard.url, "wrong secret")
+			def response = appService.getNewDeviceRequest(richard.url, "wrong secret")
 
 		then:
 			response.status == 400
 
 		cleanup:
-			newAppService.deleteUser(richard)
+			appService.deleteUser(richard)
 	}
 
 	def 'Try set new device request with wrong password'()
@@ -49,41 +49,41 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		given:
 			def richard = addRichard();
 			def userSecret = "unknown secret"
-			newAppService.setNewDeviceRequest(richard.url, richard.password, userSecret)
-			def getResponseImmmediately = newAppService.getNewDeviceRequest(richard.url)
+			appService.setNewDeviceRequest(richard.url, richard.password, userSecret)
+			def getResponseImmmediately = appService.getNewDeviceRequest(richard.url)
 			assert getResponseImmmediately.status == 200
 
 		when:
-			def response = newAppService.setNewDeviceRequest(richard.url, "foo", "Some secret")
+			def response = appService.setNewDeviceRequest(richard.url, "foo", "Some secret")
 
 		then:
 			response.status == 400
-			def getResponseAfter = newAppService.getNewDeviceRequest(richard.url, userSecret)
+			def getResponseAfter = appService.getNewDeviceRequest(richard.url, userSecret)
 			getResponseAfter.status == 200
 			getResponseAfter.responseData.userPassword == richard.password
 
 		cleanup:
-			newAppService.deleteUser(richard)
+			appService.deleteUser(richard)
 	}
 
 	def 'Overwrite new device request'()
 	{
 		given:
 			def richard = addRichard();
-			newAppService.setNewDeviceRequest(richard.url, richard.password, "Some secret")
+			appService.setNewDeviceRequest(richard.url, richard.password, "Some secret")
 
 		when:
 			def userSecret = "unknown secret"
-			def response = newAppService.setNewDeviceRequest(richard.url, richard.password, userSecret)
+			def response = appService.setNewDeviceRequest(richard.url, richard.password, userSecret)
 
 		then:
 			response.status == 200
-			def getResponseAfter = newAppService.getNewDeviceRequest(richard.url, userSecret)
+			def getResponseAfter = appService.getNewDeviceRequest(richard.url, userSecret)
 			getResponseAfter.status == 200
 			getResponseAfter.responseData.userPassword == richard.password
 
 		cleanup:
-			newAppService.deleteUser(richard)
+			appService.deleteUser(richard)
 	}
 
 	def 'Clear new device request'()
@@ -91,24 +91,24 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		given:
 			def userSecret = "unknown secret"
 			def richard = addRichard();
-			newAppService.setNewDeviceRequest(richard.url, richard.password, userSecret)
+			appService.setNewDeviceRequest(richard.url, richard.password, userSecret)
 
 		when:
-			def response = newAppService.clearNewDeviceRequest(richard.url, richard.password)
+			def response = appService.clearNewDeviceRequest(richard.url, richard.password)
 
 		then:
 			response.status == 200
-			def getResponseAfter = newAppService.getNewDeviceRequest(richard.url)
+			def getResponseAfter = appService.getNewDeviceRequest(richard.url)
 			getResponseAfter.status == 400
 			getResponseAfter.data.containsKey("code")
 			getResponseAfter.data["code"] == "error.no.device.request.present"
 
-			def getWithPasswordResponseAfter = newAppService.getNewDeviceRequest(richard.url, userSecret)
+			def getWithPasswordResponseAfter = appService.getNewDeviceRequest(richard.url, userSecret)
 			getWithPasswordResponseAfter.status == 400
 			getWithPasswordResponseAfter.data.containsKey("code")
 			getWithPasswordResponseAfter.data["code"] == "error.no.device.request.present"
 
 		cleanup:
-			newAppService.deleteUser(richard)
+			appService.deleteUser(richard)
 	}
 }

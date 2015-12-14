@@ -12,14 +12,14 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 			def richard = addRichard()
 
 		when:
-			def duplicateUser = newAppService.addUser(this.&userExistsAsserter, "A n o t h e r", "The", "Next", "TN",
+			def duplicateUser = appService.addUser(this.&userExistsAsserter, "A n o t h e r", "The", "Next", "TN",
 				"$richard.mobileNumber", [ "Nexus 6" ], [ "news", "gambling" ])
 
 		then:
 			duplicateUser == null
 
 		cleanup:
-			newAppService.deleteUser(richard)
+			appService.deleteUser(richard)
 	}
 
 	def userExistsAsserter(def response)
@@ -34,14 +34,14 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 			def richard = addRichard()
 
 		when:
-			def response = newAppService.requestOverwriteUser(richard.mobileNumber)
+			def response = appService.requestOverwriteUser(richard.mobileNumber)
 
 		then:
 			response.status == 200
 			response.responseData.confirmationCode
 
 		cleanup:
-			newAppService.deleteUser(richard)
+			appService.deleteUser(richard)
 	}
 
 	def 'Overwrite the existing user'()
@@ -50,11 +50,11 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 			def richardAndBob = addRichardAndBobAsBuddies()
 			def richard = richardAndBob.richard
 			def bob = richardAndBob.bob
-			newAnalysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-			def confirmationCode = newAppService.requestOverwriteUser(richard.mobileNumber)?.responseData?.confirmationCode
+			analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+			def confirmationCode = appService.requestOverwriteUser(richard.mobileNumber)?.responseData?.confirmationCode
 
 		when:
-			def richardChanged = newAppService.addUser(newAppService.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+			def richardChanged = appService.addUser(appService.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"], ["news"],
 				["overwriteUserConfirmationCode": confirmationCode])
 
@@ -67,14 +67,14 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 			richardChanged.devices == ["Nokia"]
 			richardChanged.goals == ["news"]
 
-			def getAnonMessagesResponse = newAppService.getAnonymousMessages(bob.url, bob.password)
+			def getAnonMessagesResponse = appService.getAnonymousMessages(bob.url, bob.password)
 			getAnonMessagesResponse.status == 200
 			getAnonMessagesResponse.responseData._embedded.goalConflictMessages.size() == 1
 			getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].nickname == richard.nickname
 			getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].goalName == "news"
 			getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].url == null
 
-			def buddies = newAppService.getBuddies(bob)
+			def buddies = appService.getBuddies(bob)
 			buddies.size() == 1
 			buddies[0].user == null
 			buddies[0].nickname == richard.nickname // TODO: Shouldn't this change be communicated to Bob?
@@ -82,8 +82,8 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 			buddies[0].receivingStatus == "ACCEPTED"
 
 		cleanup:
-			newAppService.deleteUser(richard)
-			newAppService.deleteUser(bob)
+			appService.deleteUser(richard)
+			appService.deleteUser(bob)
 	}
 
 	def 'Classification engine detects a potential conflict for Bob after Richard overwrote his account'()
@@ -92,20 +92,20 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 			def richardAndBob = addRichardAndBobAsBuddies()
 			def richard = richardAndBob.richard
 			def bob = richardAndBob.bob
-			def confirmationCode = newAppService.requestOverwriteUser(richard.mobileNumber)?.responseData?.confirmationCode
-			def richardChanged = newAppService.addUser(newAppService.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+			def confirmationCode = appService.requestOverwriteUser(richard.mobileNumber)?.responseData?.confirmationCode
+			def richardChanged = appService.addUser(appService.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"], ["news"],
 				["overwriteUserConfirmationCode": confirmationCode])
 
 		when:
-			def response = newAnalysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
+			def response = analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
 
 		then:
 			response.status == 200
 
 		cleanup:
-			newAppService.deleteUser(richard)
-			newAppService.deleteUser(bob)
+			appService.deleteUser(richard)
+			appService.deleteUser(bob)
 	}
 
 	def 'Bob removes overwritten user Richard as buddy'()
@@ -114,22 +114,22 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 			def richardAndBob = addRichardAndBobAsBuddies()
 			def richard = richardAndBob.richard
 			def bob = richardAndBob.bob
-			def confirmationCode = newAppService.requestOverwriteUser(richard.mobileNumber)?.responseData?.confirmationCode
-			def richardChanged = newAppService.addUser(newAppService.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+			def confirmationCode = appService.requestOverwriteUser(richard.mobileNumber)?.responseData?.confirmationCode
+			def richardChanged = appService.addUser(appService.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"], ["news"],
 				["overwriteUserConfirmationCode": confirmationCode])
-			def buddy = newAppService.getBuddies(bob)[0]
+			def buddy = appService.getBuddies(bob)[0]
 
 		when:
-			def response = newAppService.removeBuddy(bob, buddy, "Good bye friend")
+			def response = appService.removeBuddy(bob, buddy, "Good bye friend")
 
 		then:
 			response.status == 200
-			newAppService.getBuddies(bob).size() == 0
+			appService.getBuddies(bob).size() == 0
 
 		cleanup:
-			newAppService.deleteUser(richard)
-			newAppService.deleteUser(bob)
+			appService.deleteUser(richard)
+			appService.deleteUser(bob)
 	}
 
 	def 'Hacking attempt: Brute force overwrite mobile number confirmation'()
@@ -148,19 +148,19 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 							"gambling"
 						]}"""
 
-			def userAddResponse = newAppService.addUser(userCreationJSON, "Password")
-			def overwriteRequestResponse = newAppService.requestOverwriteUser(userCreationMobileNumber)
+			def userAddResponse = appService.addUser(userCreationJSON, "Password")
+			def overwriteRequestResponse = appService.requestOverwriteUser(userCreationMobileNumber)
 			def userURL = YonaServer.stripQueryString(userAddResponse.responseData._links.self.href)
 			def confirmationCode = overwriteRequestResponse.responseData.confirmationCode
 
 		when:
-			def response1TimeWrong = newAppService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}1"])
-			newAppService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}2"])
-			newAppService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}3"])
-			newAppService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}4"])
-			def response5TimesWrong = newAppService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}5"])
-			def response6TimesWrong = newAppService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}6"])
-			def response7thTimeRight = newAppService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}"])
+			def response1TimeWrong = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}1"])
+			appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}2"])
+			appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}3"])
+			appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}4"])
+			def response5TimesWrong = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}5"])
+			def response6TimesWrong = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}6"])
+			def response7thTimeRight = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}"])
 
 		then:
 			confirmationCode != null
@@ -176,8 +176,9 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 			response7thTimeRight.responseData.code == "error.too.many.wrong.attempts"
 
 		cleanup:
-			if (userURL) {
-				newAppService.deleteUser(userURL, "Password")
+			if (userURL)
+			{
+				appService.deleteUser(userURL, "Password")
 			}
 	}
 }

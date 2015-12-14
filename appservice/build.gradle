@@ -28,24 +28,6 @@ war {
 	baseName = 'appservice'
 }
 
-configurations {
-	testUtils.extendsFrom testRuntime
-}
-
-sourceSets {
-	testUtils
-}
-
-task testUtilsJar(type: Jar) {
-	classifier "testUtils"
-	from sourceSets.testUtils.output
-}
-
-artifacts {
-	testUtils testUtilsJar
-}
-
-
 release {
 	failOnCommitNeeded = true
 	tagTemplate = 'appservice-${version}'
@@ -72,7 +54,6 @@ dependencies {
 	providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
 
 	testCompile project(path: ':core', configuration: 'testUtils')
-	//testCompile project(path: ':appservice', configuration: 'testUtils')
 	testCompile("org.springframework.boot:spring-boot-starter-test")
 	testCompile("junit:junit:4.12")
 
@@ -85,10 +66,6 @@ dependencies {
 	testRuntime "cglib:cglib-nodep:3.1"			 // allows mocking of classes (in addition to interfaces)
 	testRuntime "org.objenesis:objenesis:2.2"	 // allows mocking of classes without default constructor (together with CGLIB)
 	testCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
-
-	testUtilsCompile "org.codehaus.groovy:groovy-all:2.4.5"
-	testUtilsCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
-	testUtilsCompile "org.spockframework:spock-core:1.0-groovy-2.4"
 }
 
 test {

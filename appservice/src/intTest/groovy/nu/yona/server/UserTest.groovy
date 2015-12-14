@@ -24,7 +24,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			testUser(john, true, ts)
 
 		cleanup:
-			newAppService.deleteUser(john)
+			appService.deleteUser(john)
 	}
 
 	def 'Create John Doe and confirm mobile number'()
@@ -34,14 +34,14 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			def john = createJohnDoe(ts)
 
 		when:
-			def response = newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, john)
+			def response = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, john)
 
 		then:
 			testUser(john, true, ts)
 			// TODO: Verify that confirmMobileNumber action link exists (YD-126)
 
 		cleanup:
-			newAppService.deleteUser(john)
+			appService.deleteUser(john)
 	}
 
 	def 'Delete John Doe before confirming the mobile number'()
@@ -51,11 +51,11 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			def john = createJohnDoe(ts)
 
 		when:
-			def response = newAppService.deleteUser(john)
+			def response = appService.deleteUser(john)
 
 		then:
 			response.status == 200
-			def getUserResponse = newAppService.getUser(john.url, false)
+			def getUserResponse = appService.getUser(john.url, false)
 			getUserResponse.status == 400 || getUserResponse.status == 404;
 	}
 
@@ -67,13 +67,13 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			def confirmationCode = john.mobileNumberConfirmationCode
 
 		when:
-			def response1TimeWrong = newAppService.confirmMobileNumber(john.url, """ { "code":"${confirmationCode}1" } """, john.password)
-			newAppService.confirmMobileNumber(john.url, """ { "code":"${confirmationCode}2" } """, john.password)
-			newAppService.confirmMobileNumber(john.url, """ { "code":"${confirmationCode}3" } """, john.password)
-			newAppService.confirmMobileNumber(john.url, """ { "code":"${confirmationCode}4" } """, john.password)
-			def response5TimesWrong = newAppService.confirmMobileNumber(john.url, """ { "code":"${confirmationCode}5" } """, john.password)
-			def response6TimesWrong = newAppService.confirmMobileNumber(john.url, """ { "code":"${confirmationCode}6" } """, john.password)
-			def response7thTimeRight = newAppService.confirmMobileNumber(john.url, """ { "code":"${confirmationCode}" } """, john.password)
+			def response1TimeWrong = appService.confirmMobileNumber(john.url, """{ "code":"${confirmationCode}1" } """, john.password)
+			appService.confirmMobileNumber(john.url, """{ "code":"${confirmationCode}2" } """, john.password)
+			appService.confirmMobileNumber(john.url, """{ "code":"${confirmationCode}3" } """, john.password)
+			appService.confirmMobileNumber(john.url, """{ "code":"${confirmationCode}4" } """, john.password)
+			def response5TimesWrong = appService.confirmMobileNumber(john.url, """{ "code":"${confirmationCode}5" } """, john.password)
+			def response6TimesWrong = appService.confirmMobileNumber(john.url, """{ "code":"${confirmationCode}6" } """, john.password)
+			def response7thTimeRight = appService.confirmMobileNumber(john.url, """{ "code":"${confirmationCode}" } """, john.password)
 
 		then:
 			response1TimeWrong.status == 400
@@ -86,7 +86,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			response7thTimeRight.responseData.code == "error.too.many.wrong.attempts"
 
 		cleanup:
-			newAppService.deleteUser(john)
+			appService.deleteUser(john)
 	}
 
 	def 'Get John Doe with private data'()
@@ -96,13 +96,13 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			def johnAsCreated = createJohnDoe(ts)
 
 		when:
-			def john = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithPrivateData, johnAsCreated.url, true, johnAsCreated.password)
+			def john = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, johnAsCreated.url, true, johnAsCreated.password)
 
 		then:
 			testUser(john, true, ts)
 
 		cleanup:
-			newAppService.deleteUser(johnAsCreated)
+			appService.deleteUser(johnAsCreated)
 	}
 
 	def 'Try to get John Doe\'s private data with a bad password'()
@@ -112,14 +112,14 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			def johnAsCreated = createJohnDoe(ts)
 
 		when:
-			def response = newAppService.getUser(johnAsCreated.url, true, "nonsense")
+			def response = appService.getUser(johnAsCreated.url, true, "nonsense")
 
 		then:
 			response.status == 400
 			response.responseData.code == "error.decrypting.data"
 
 		cleanup:
-			newAppService.deleteUser(johnAsCreated)
+			appService.deleteUser(johnAsCreated)
 	}
 
 	def 'Get John Doe without private data'()
@@ -129,13 +129,13 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			def johnAsCreated = createJohnDoe(ts)
 
 		when:
-			def john = newAppService.getUser(newAppService.&assertUserGetResponseDetailsWithoutPrivateData, johnAsCreated.url, false, johnAsCreated.password)
+			def john = appService.getUser(appService.&assertUserGetResponseDetailsWithoutPrivateData, johnAsCreated.url, false, johnAsCreated.password)
 
 		then:
 			testUser(john, false, ts)
 
 		cleanup:
-			newAppService.deleteUser(johnAsCreated)
+			appService.deleteUser(johnAsCreated)
 	}
 
 	def 'Update John Doe with the same mobile number'()
@@ -143,13 +143,13 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		given:
 			def ts = timestamp
 			def john = createJohnDoe(ts)
-			newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, john)
+			appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, john)
 
 		when:
 			def newNickname = "Johnny"
 			def updatedJohn = john.convertToJSON()
 			updatedJohn.nickname = newNickname
-			def userUpdateResponse = newAppService.updateUser(john.url, updatedJohn, john.password);
+			def userUpdateResponse = appService.updateUser(john.url, updatedJohn, john.password);
 
 		then:
 			userUpdateResponse.status == 200
@@ -157,7 +157,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			userUpdateResponse.responseData.nickname == newNickname
 
 		cleanup:
-			newAppService.deleteUser(john)
+			appService.deleteUser(john)
 	}
 
 	def 'Update John Doe with a different mobile number'()
@@ -165,14 +165,14 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		given:
 			def ts = timestamp
 			def john = createJohnDoe(ts)
-			newAppService.confirmMobileNumber(newAppService.&assertResponseStatusSuccess, john)
+			appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, john)
 
 		when:
 			String newMobileNumber = "${john.mobileNumber}1"
 			def updatedJohn = john.convertToJSON()
 			updatedJohn.mobileNumber = newMobileNumber
 			println "updatedJohn=$updatedJohn"
-			def userUpdateResponse = newAppService.updateUser(john.url, updatedJohn, john.password);
+			def userUpdateResponse = appService.updateUser(john.url, updatedJohn, john.password);
 
 		then:
 			userUpdateResponse.status == 200
@@ -180,21 +180,23 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			userUpdateResponse.responseData.mobileNumber == newMobileNumber
 
 		cleanup:
-			newAppService.deleteUser(john)
+			appService.deleteUser(john)
 	}
 
 	User createJohnDoe(def ts)
 	{
-		newAppService.addUser(newAppService.&assertUserCreationResponseDetails, password, firstName, lastName, nickname,
+		appService.addUser(appService.&assertUserCreationResponseDetails, password, firstName, lastName, nickname,
 			"+$ts", devices, goals)
 	}
 
-	void testUser(user, includePrivateData, timestamp) {
+	void testUser(user, includePrivateData, timestamp)
+	{
 		assert user.firstName == "John"
 		assert user.lastName == "Doe"
 		assert user.mobileNumber == "+${timestamp}"
-		if (includePrivateData) {
-			newAppService.assertUserWithPrivateData(user)
+		if (includePrivateData)
+		{
+			appService.assertUserWithPrivateData(user)
 			assert user.nickname == "JD"
 			assert user.devices.size() == 1
 			assert user.devices[0] == "Galaxy mini"
@@ -207,7 +209,9 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 			assert user.buddies != null
 			assert user.buddies.size() == 0
-		} else {
+		}
+		else
+		{
 			assert user.nickname == null
 			assert user.devices == null
 			assert user.goals == null
