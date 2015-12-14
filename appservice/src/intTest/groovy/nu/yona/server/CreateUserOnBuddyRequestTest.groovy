@@ -57,7 +57,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 			bob.firstName == "Bob"
 			bob.lastName == "Dunn"
 			bob.mobileNumber == mobileNumberBob
-			bob.mobileNumberConfirmed == false
+			bob.confirmMobileNumberUrl != null
 
 		cleanup:
 			appService.deleteUser(richard)

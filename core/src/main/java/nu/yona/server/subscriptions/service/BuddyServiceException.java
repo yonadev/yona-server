@@ -4,6 +4,8 @@ import nu.yona.server.exceptions.YonaException;
 
 public class BuddyServiceException extends YonaException
 {
+	private static final long serialVersionUID = 3301297701692886481L;
+
 	protected BuddyServiceException(String messageId, Object... parameters)
 	{
 		super(messageId, parameters);
@@ -18,7 +20,7 @@ public class BuddyServiceException extends YonaException
 	{
 		return new BuddyServiceException("error.buddy.user.cannot.be.null");
 	}
-	
+
 	public static BuddyServiceException actionUnknown(String action)
 	{
 		return new BuddyServiceException("error.buddy.action.unknown", action);
@@ -29,9 +31,9 @@ public class BuddyServiceException extends YonaException
 		return new BuddyServiceException("error.buddy.message.entity.cannot.be.null");
 	}
 
-	public static BuddyServiceException vpnLoginIdCannotBeNull()
+	public static BuddyServiceException userAnonymizedIdCannotBeNull()
 	{
-		return new BuddyServiceException("error.buddy.vpnloginid.cannot.be.null");
+		return new BuddyServiceException("error.buddy.useranonymizedid.cannot.be.null");
 	}
 
 	public static BuddyServiceException requestingUserCannotBeNull()

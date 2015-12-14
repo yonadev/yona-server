@@ -43,7 +43,8 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private Status status;
 	private final Date endTime;
 
-	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, String goalName, String url, Status status, Date endTime)
+	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, String goalName, String url, Status status,
+			Date endTime)
 	{
 		super(id, creationTime);
 		this.nickname = nickname;
@@ -88,7 +89,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 	{
 		return url;
 	}
-	
+
 	/**
 	 * This method gets the end time of the conflict.
 	 * 
@@ -101,8 +102,9 @@ public class GoalConflictMessageDTO extends MessageDTO
 
 	public static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, String nickname)
 	{
-		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), nickname, messageEntity.getGoal().getName(),
-				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null, messageEntity.getStatus(), messageEntity.getEndTime());
+		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), nickname,
+				messageEntity.getGoal().getName(), messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null,
+				messageEntity.getStatus(), messageEntity.getEndTime());
 	}
 
 	@Component
@@ -146,11 +148,11 @@ public class GoalConflictMessageDTO extends MessageDTO
 			messageEntity.setStatus(Status.DISCLOSE_REQUESTED);
 			GoalConflictMessage.getRepository().save(messageEntity);
 
-			MessageDestination messageDestination = UserAnonymized.getRepository().findOne(messageEntity.getRelatedVPNLoginID())
-					.getAnonymousDestination();
-			messageDestination.send(DiscloseRequestMessage.createInstance(actingUser.getID(),
-					actingUser.getPrivateData().getVpnProfile().getVPNLoginID(), actingUser.getPrivateData().getNickname(),
-					requestPayload.getProperty("message"), messageEntity));
+			MessageDestination messageDestination = UserAnonymized.getRepository()
+					.findOne(messageEntity.getRelatedUserAnonymizedID()).getAnonymousDestination();
+			messageDestination.send(
+					DiscloseRequestMessage.createInstance(actingUser.getID(), actingUser.getPrivateData().getUserAnonymizedID(),
+							actingUser.getPrivateData().getNickname(), requestPayload.getProperty("message"), messageEntity));
 			MessageDestination.getRepository().save(messageDestination);
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
@@ -158,8 +160,8 @@ public class GoalConflictMessageDTO extends MessageDTO
 
 		private String getNickname(UserDTO actingUser, GoalConflictMessage messageEntity)
 		{
-			UUID vpnLoginID = messageEntity.getRelatedVPNLoginID();
-			if (actingUser.getPrivateData().getVpnProfile().getVPNLoginID().equals(vpnLoginID))
+			UUID userAnonymizedID = messageEntity.getRelatedUserAnonymizedID();
+			if (actingUser.getPrivateData().getUserAnonymizedID().equals(userAnonymizedID))
 			{
 				return SELF_NICKNAME;
 			}
@@ -167,12 +169,12 @@ public class GoalConflictMessageDTO extends MessageDTO
 			Set<BuddyDTO> buddies = buddyService.getBuddies(actingUser.getPrivateData().getBuddyIDs());
 			for (BuddyDTO buddy : buddies)
 			{
-				if (vpnLoginID.equals(buddy.getVPNLoginID()))
+				if (userAnonymizedID.equals(buddy.getUserAnonymizedID()))
 				{
 					return buddy.getNickname();
 				}
 			}
-			throw new IllegalStateException("Cannot find buddy for VPN login ID '" + vpnLoginID + "'");
+			throw new IllegalStateException("Cannot find buddy for user anonymized ID '" + userAnonymizedID + "'");
 		}
 	}
 }

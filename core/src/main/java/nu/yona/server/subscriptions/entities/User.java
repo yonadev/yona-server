@@ -202,9 +202,9 @@ public class User extends EntityWithID
 		return getUserPrivate().getUserAnonymized().getGoals();
 	}
 
-	public UUID getVPNLoginID()
+	public UUID getUserAnonymizedID()
 	{
-		return getUserPrivate().getVPNLoginID();
+		return getUserPrivate().getUserAnonymizedID();
 	}
 
 	public String getVPNPassword()
@@ -277,9 +277,9 @@ public class User extends EntityWithID
 		isCreatedOnBuddyRequest = true;
 	}
 
-	public Buddy getBuddyByVPNLoginID(UUID relatedUserVPNLoginID)
+	public Buddy getBuddyByUserAnonymizedID(UUID relatedUserAnonymizedID)
 	{
-		return getBuddies().stream().filter(buddy -> buddy.getVPNLoginID().equals(relatedUserVPNLoginID)).findAny().get();
+		return getBuddies().stream().filter(buddy -> buddy.getUserAnonymizedID().equals(relatedUserAnonymizedID)).findAny().get();
 	}
 
 	public void assertMobileNumberConfirmed()
@@ -298,5 +298,10 @@ public class User extends EntityWithID
 	public String getOverwriteUserConfirmationCode()
 	{
 		return overwriteUserConfirmationCode;
+	}
+
+	public UUID getVPNLoginID()
+	{
+		return getUserPrivate().getVPNLoginID();
 	}
 }

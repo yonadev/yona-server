@@ -4,6 +4,8 @@ import nu.yona.server.exceptions.YonaException;
 
 public class LDAPUserServiceException extends YonaException
 {
+	private static final long serialVersionUID = 6076507810167855352L;
+
 	protected LDAPUserServiceException(String messageId, Object... parameters)
 	{
 		super(messageId, parameters);

@@ -163,7 +163,8 @@ public class UserPrivate extends EntityWithID
 
 	public UUID getVPNLoginID()
 	{
-		return getUserAnonymized().getVPNLoginID();
+		// these are the same for performance
+		return userAnonymizedID;
 	}
 
 	public String getVPNPassword()
@@ -179,5 +180,10 @@ public class UserPrivate extends EntityWithID
 	public void touch()
 	{
 		touchVersion++;
+	}
+
+	public UUID getUserAnonymizedID()
+	{
+		return userAnonymizedID;
 	}
 }

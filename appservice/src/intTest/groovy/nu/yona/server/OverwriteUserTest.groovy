@@ -165,7 +165,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		then:
 			confirmationCode != null
 			userAddResponse.status == 201
-			userAddResponse.responseData.mobileNumberConfirmed == false
+			userAddResponse.responseData._links?.confirmMobileNumber?.href != null
 			response1TimeWrong.status == 400
 			response1TimeWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
 			response5TimesWrong.status == 400

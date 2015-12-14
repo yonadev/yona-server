@@ -1,6 +1,7 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.YonaServer
 import nu.yona.server.test.User
 
 class UserTest extends AbstractAppServiceIntegrationTest
@@ -22,6 +23,8 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 			testUser(john, true, ts)
+			john.confirmMobileNumberUrl == YonaServer.stripQueryString(john.url) + appService.MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT
+
 
 		cleanup:
 			appService.deleteUser(john)
@@ -38,7 +41,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 			testUser(john, true, ts)
-			// TODO: Verify that confirmMobileNumber action link exists (YD-126)
+			// john.confirmMobileNumberUrl == null YD-126: This URL shouldn't be available anymore when the number is confirmed
 
 		cleanup:
 			appService.deleteUser(john)
@@ -153,7 +156,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 			userUpdateResponse.status == 200
-			userUpdateResponse.responseData.mobileNumberConfirmed == true
+			userUpdateResponse.responseData._links?.confirmMobileNumber?.href == null
 			userUpdateResponse.responseData.nickname == newNickname
 
 		cleanup:
@@ -171,12 +174,11 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			String newMobileNumber = "${john.mobileNumber}1"
 			def updatedJohn = john.convertToJSON()
 			updatedJohn.mobileNumber = newMobileNumber
-			println "updatedJohn=$updatedJohn"
 			def userUpdateResponse = appService.updateUser(john.url, updatedJohn, john.password);
 
 		then:
 			userUpdateResponse.status == 200
-			userUpdateResponse.responseData.mobileNumberConfirmed == false
+			userUpdateResponse.responseData._links?.confirmMobileNumber?.href != null
 			userUpdateResponse.responseData.mobileNumber == newMobileNumber
 
 		cleanup:
