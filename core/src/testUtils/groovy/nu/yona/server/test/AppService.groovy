@@ -284,6 +284,10 @@ class AppService extends Service
 
 	def deleteUser(User user, message = "")
 	{
+		if (!user)
+		{
+			return null;
+		}
 		def response = yonaServer.deleteResourceWithPassword(user.url, user.password, ["message":message])
 	}
 
