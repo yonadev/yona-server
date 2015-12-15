@@ -6,7 +6,6 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import nu.yona.server.test.AnalysisService
-import nu.yona.server.test.Service
 
 class RelevantCategoriesTest extends Specification
 {
