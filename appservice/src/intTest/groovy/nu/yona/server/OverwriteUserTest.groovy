@@ -138,8 +138,8 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 			def userCreationMobileNumber = "+${timestamp}99"
 			def userCreationJSON = """{
 						"firstName":"John",
-						"lastName":"Doe ${timestamp}",
-						"nickname":"JD ${timestamp}",
+						"lastName":"Doe",
+						"nickname":"JD",
 						"mobileNumber":"${userCreationMobileNumber}",
 						"devices":[
 							"Galaxy mini"

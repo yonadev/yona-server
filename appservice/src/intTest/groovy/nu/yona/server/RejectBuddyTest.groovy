@@ -4,7 +4,7 @@ import groovy.json.*
 
 class RejectBuddyTest extends AbstractAppServiceIntegrationTest
 {
-	def 'Bob rejects Richard\'s buddy request"'()
+	def 'Bob rejects Richard\'s buddy request'()
 	{
 		given:
 			def richard = addRichard();
@@ -31,12 +31,12 @@ class RejectBuddyTest extends AbstractAppServiceIntegrationTest
 			processResponse.status == 200
 
 			// Verify that Bob is not in Richard's buddy list anymore
-			def getRichardBudddiesResponse = appService.getBuddies(richard);
-			!getRichardBudddiesResponse.responseData?._embedded?.buddies
+			def buddiesRichard = appService.getBuddies(richard);
+			buddiesRichard.size() == 0
 
 			// Verify that Richard is not in Bob's buddy list anymore
-			def getBobBudddiesResponse = appService.getBuddies(bob);
-			!getBobBudddiesResponse.responseData?._embedded?.buddies
+			def buddiesBob = appService.getBuddies(bob);
+			buddiesBob.size() == 0
 
 		cleanup:
 			appService.deleteUser(richard)

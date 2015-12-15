@@ -44,7 +44,6 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 			appService.deleteUser(richard, message)
 
 		then:
-			// TODO: when are the buddies actually removed? Not on "process" of the message?
 			def buddies = appService.getBuddies(bob)
 			buddies.size() == 1
 			def getAnonMessagesResponse = appService.getAnonymousMessages(bob)
@@ -99,7 +98,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 			appService.deleteUser(bob)
 	}
 
-	def 'Conflicts for Bob are still processed after the unsubscribe of Bob'()
+	def 'Conflicts for Bob are still processed after the unsubscribe of Richard'()
 	{
 		given:
 			def richardAndBob = addRichardAndBobAsBuddies()

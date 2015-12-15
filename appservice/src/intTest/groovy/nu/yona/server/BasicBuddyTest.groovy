@@ -349,7 +349,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 			def richard = richardAndBob.richard
 			def bob = richardAndBob.bob
 			def buddy = appService.getBuddies(richard)[0]
-			def response = appService.removeBuddy(richard, buddy, "Bob, as you know our ways parted, so I'll remove you as buddy.")
+			appService.removeBuddy(richard, buddy, "Bob, as you know our ways parted, so I'll remove you as buddy.")
 
 		when:
 			analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")

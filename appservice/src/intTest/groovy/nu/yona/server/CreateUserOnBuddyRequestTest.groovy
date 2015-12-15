@@ -318,7 +318,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 			response.status == 400
-			// response.responseData.code == "TODO" // Why do we not get a response code here?
+			// response.responseData.code == "TODO" // YD-137: Why do we not get a response code here?
 
 		cleanup:
 			appService.deleteUser(richard)
@@ -347,7 +347,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 			response.status == 400
-			// response.responseData.code == "TODO" // Why do we not get a response code here?
+			// response.responseData.code == "TODO" // YD-137: Why do we not get a response code here?
 
 		cleanup:
 			appService.deleteUser(richard)
@@ -364,7 +364,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 			response.status == 400
-			// response.responseData.code == "TODO" // Why do we not get a response code here?
+			// response.responseData.code == "TODO" // YD-137: Why do we not get a response code here?
 
 		cleanup:
 			appService.deleteUser(richard)
@@ -391,7 +391,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 			response.status == 400
-			// response.responseData.code == "TODO" // Why do we not get a response code here?
+			// response.responseData.code == "TODO" // YD-137: Why do we not get a response code here?
 
 		cleanup:
 			appService.deleteUser(richard)
