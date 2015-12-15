@@ -1,3 +1,9 @@
+/*******************************************************************************
+ * Copyright (c) 2015 Stichting Yona Foundation
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v.2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server
 
 import groovy.json.*
@@ -144,7 +150,7 @@ class YonaServer
 
 	def createResource(path, jsonString, headers = [:], parameters = [:])
 	{
-		postJson(path, jsonString, headers, parameters);
+		postJson(path, jsonString, headers, parameters)
 	}
 
 	def updateResourceWithPassword(path, jsonString, password, parameters = [:])
@@ -154,7 +160,7 @@ class YonaServer
 
 	def updateResource(path, jsonString, headers = [:], parameters = [:])
 	{
-		putJson(path, jsonString, headers, parameters);
+		putJson(path, jsonString, headers, parameters)
 	}
 
 	def deleteResourceWithPassword(path, password, parameters = [:])
@@ -179,12 +185,12 @@ class YonaServer
 
 	def postMessageAction(path, jsonString, headers = [:])
 	{
-		postJson(path, jsonString, headers);
+		postJson(path, jsonString, headers)
 	}
 
 	def postToAnalysisEngine(jsonString)
 	{
-		postJson(ANALYSIS_ENGINE_PATH, jsonString);
+		postJson(ANALYSIS_ENGINE_PATH, jsonString)
 	}
 
 	def getResource(path, headers = [:], parameters = [:])
@@ -200,7 +206,7 @@ class YonaServer
 		def object = null
 		if (jsonString instanceof Map)
 		{
-			object = jsonString;
+			object = jsonString
 		}
 		else
 		{
@@ -219,7 +225,7 @@ class YonaServer
 		def object = null
 		if (jsonString instanceof Map)
 		{
-			object = jsonString;
+			object = jsonString
 		}
 		else
 		{
@@ -254,20 +260,22 @@ class YonaServer
 	static String makeStringList(def strings)
 	{
 		def stringList = ""
-		strings.each({
-			stringList += (stringList) ? ", " : ""
-			stringList += '\"' + it + '\"'
-			})
+		strings.each(
+				{
+					stringList += (stringList) ? ", " : ""
+					stringList += '\"' + it + '\"'
+				})
 		return stringList
 	}
 
 	static String makeStringMap(def strings)
 	{
 		def stringList = ""
-		strings.keySet().each({
-			stringList += (stringList) ? ", " : ""
-			stringList += '\"' + it + '\" : \"' + strings[it] + '\"'
-			})
+		strings.keySet().each(
+				{
+					stringList += (stringList) ? ", " : ""
+					stringList += '\"' + it + '\" : \"' + strings[it] + '\"'
+				})
 		return stringList
 	}
 }

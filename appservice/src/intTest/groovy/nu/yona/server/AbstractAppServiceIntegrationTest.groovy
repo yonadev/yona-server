@@ -1,14 +1,19 @@
+/*******************************************************************************
+ * Copyright (c) 2015 Stichting Yona Foundation
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v.2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server
 
 import groovy.json.*
-
-import spock.lang.Shared
-import spock.lang.Specification
 
 import java.text.SimpleDateFormat
 
 import nu.yona.server.test.AnalysisService
 import nu.yona.server.test.AppService
+import spock.lang.Shared
+import spock.lang.Specification
 
 abstract class AbstractAppServiceIntegrationTest extends Specification
 {
@@ -27,7 +32,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	def addRichard()
 	{
 		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
-			"+$timestamp", [ "Nexus 6" ], [ "news", "gambling" ])
+				"+$timestamp", ["Nexus 6"], ["news", "gambling"])
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, richard)
 		return richard
 	}
@@ -35,7 +40,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	def addBob()
 	{
 		def bob = appService.addUser(appService.&assertUserCreationResponseDetails, "B o b", "Bob", "Dunn", "BD",
-			"+$timestamp", [ "iPhone 5" ], [ "news", "gambling" ])
+				"+$timestamp", ["iPhone 5"], ["news", "gambling"])
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bob)
 		return bob
 	}
@@ -54,7 +59,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		formatter.format(new Date())
 	}
 
-	protected String getTimestamp() 
+	protected String getTimestamp()
 	{
 		int num = sequenceNumber++
 		return "$baseTimestamp$num"

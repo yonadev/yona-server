@@ -1,7 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2015 Stichting Yona Foundation
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v.2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server.test
 
-import nu.yona.server.YonaServer
 import groovy.json.*
+import nu.yona.server.YonaServer
 
 class User
 {
@@ -43,7 +49,7 @@ class User
 		if (hasPrivateData)
 		{
 			this.nickname = json.nickname
-			
+
 			this.buddies = (json._embedded?.buddies) ? json._embedded.buddies.collect{new Buddy(it)} : []
 			this.devices = json.devices.collect{"$it"}
 			this.goals = json.goals.collect{"$it"}

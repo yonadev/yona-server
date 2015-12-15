@@ -1,11 +1,12 @@
+/*******************************************************************************
+ * Copyright (c) 2015 Stichting Yona Foundation
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v.2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server.test
 
 import groovy.json.*
-import groovyx.net.http.RESTClient
-import groovyx.net.http.URIBuilder
-
-import java.text.SimpleDateFormat
-
 import nu.yona.server.YonaServer
 
 class AppService extends Service
@@ -286,7 +287,7 @@ class AppService extends Service
 	{
 		if (!user)
 		{
-			return null;
+			return null
 		}
 		def response = yonaServer.deleteResourceWithPassword(user.url, user.password, ["message":message])
 	}
@@ -386,7 +387,7 @@ class AppService extends Service
 
 	def postMessageAction(path, jsonString, headers = [:])
 	{
-		yonaServer.postJson(path, jsonString, headers);
+		yonaServer.postJson(path, jsonString, headers)
 	}
 
 	def deleteResourceWithPassword(path, password, parameters = [:])
