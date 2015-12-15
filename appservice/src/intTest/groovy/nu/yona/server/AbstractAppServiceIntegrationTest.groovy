@@ -24,9 +24,6 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	@Shared
 	private int sequenceNumber = 0
 
-	@Shared
-	def userNumber = 0;
-
 	def addRichard()
 	{
 		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
