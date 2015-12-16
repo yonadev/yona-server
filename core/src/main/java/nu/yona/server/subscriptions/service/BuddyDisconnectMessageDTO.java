@@ -106,7 +106,15 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 		{
 			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getID(), messageEntity.getUserID());
 
+			updateMessageStatusAsProcessed(messageEntity);
+
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
+		}
+
+		private void updateMessageStatusAsProcessed(BuddyDisconnectMessage messageEntity)
+		{
+			messageEntity.setProcessed();
+			Message.getRepository().save(messageEntity);
 		}
 	}
 }

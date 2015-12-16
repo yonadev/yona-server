@@ -1,536 +1,384 @@
+/*******************************************************************************
+ * Copyright (c) 2015 Stichting Yona Foundation
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v.2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server
 
 import groovy.json.*
-import spock.lang.Shared
 
-class BasicBuddyTest extends AbstractAppServiceIntegrationTest {
-
-	@Shared
-	def richardQuin
-	@Shared
-	def bobDunn
-	@Shared
-	def richardQuinBobBuddyURL
-	@Shared
-	def bobDunnRichardBuddyURL
-	@Shared
-	def bobDunnBuddyMessageAcceptURL
-	@Shared
-	def bobDunnBuddyMessageProcessURL
-	@Shared
-	def richardQuinBuddyMessageAcceptURL
-	@Shared
-	def richardQuinBuddyMessageProcessURL
-	@Shared
-	def bobDunnBuddyRemoveMessageProcessURL
-
-	def 'Add user Richard'(){
+class BasicBuddyTest extends AbstractAppServiceIntegrationTest
+{
+	def 'Hacking attempt: Try to request one-way connection'()
+	{
 		given:
+		def richard = addRichard()
+		def bob = addBob()
 
 		when:
-		richardQuin = addUser("Richard", "Quin")
-
-		then:
-		richardQuin
-	}
-
-	def 'Add user Bob'(){
-		given:
-
-		when:
-		bobDunn = addUser("Bob", "Dunn")
-
-		then:
-		bobDunn
-	}
-
-	def 'Hacking attempt: Try to request one-way connection'(){
-		given:
-
-		when:
-		def response = appService.requestBuddy(richardQuin.url, """{
-					"_embedded":{
-						"user":{
-							"firstName":"Bob ${timestamp}",
-							"lastName":"Dun ${timestamp}",
-							"emailAddress":"bob${timestamp}@dunn.net",
-							"mobileNumber":"${bobDunn.mobileNumber}"
-						}
-					},
-					"message":"Would you like to be my buddy?",
-					"sendingStatus":"NOT_REQUESTED",
-					"receivingStatus":"REQUESTED"
-				}""", richardQuin.password)
+		def response = appService.requestBuddy(richard.url, """{
+						"_embedded":{
+							"user":{
+								"firstName":"Bob",
+								"lastName":"Dun",
+								"emailAddress":"bob@dunn.net",
+								"mobileNumber":"$bob.mobileNumber"
+							}
+						},
+						"message":"Would you like to be my buddy?",
+						"sendingStatus":"NOT_REQUESTED",
+						"receivingStatus":"REQUESTED"
+					}""", richard.password)
 
 		then:
 		response.status == 400
+		response.responseData.code == "error.buddy.only.twoway.buddies.allowed"
 	}
 
-	def 'Richard requests Bob to become his buddy'(){
+	def 'Richard requests Bob to become his buddy'()
+	{
 		given:
+		def richard = addRichard()
+		def bob = addBob()
 
 		when:
-		def response = appService.requestBuddy(richardQuin.url, """{
-					"_embedded":{
-						"user":{
-							"mobileNumber":"${bobDunn.mobileNumber}"
-						}
-					},
-					"message":"Would you like to be my buddy?",
-					"sendingStatus":"REQUESTED",
-					"receivingStatus":"REQUESTED"
-				}""", richardQuin.password)
-		richardQuinBobBuddyURL = response.responseData._links.self.href
+		def response = appService.sendBuddyConnectRequest(richard, bob)
 
 		then:
 		response.status == 201
 		response.responseData._embedded.user.firstName == "Bob"
-		richardQuinBobBuddyURL.startsWith(richardQuin.url)
+		response.responseData._links.self.href.startsWith(richard.url)
 
 		cleanup:
-		println "URL buddy Richard: " + richardQuinBobBuddyURL
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
-	def 'Bob checks his direct messages'(){
+	def 'Bob finds the buddy request'()
+	{
 		given:
+		def richard = addRichard()
+		def bob = addBob()
+		appService.sendBuddyConnectRequest(richard, bob)
 
 		when:
-		def response = appService.getDirectMessages(bobDunn.url, bobDunn.password)
-		if (response.responseData._embedded && response.responseData._embedded.buddyConnectRequestMessages) {
-			bobDunnBuddyMessageAcceptURL = response.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href
-		}
+		def response = appService.getDirectMessages(bob)
 
 		then:
 		response.status == 200
 		response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard"
-		response.responseData._embedded.buddyConnectRequestMessages[0].nickname == richardQuin.nickname
-		response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(bobDunn.url + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
-		bobDunnBuddyMessageAcceptURL.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
+		response.responseData._embedded.buddyConnectRequestMessages[0].nickname == richard.nickname
+		response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(bob.url + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
+		response.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
-	def 'Bob accepts Richard\'s buddy request'(){
+	def 'Bob accepts Richard\'s buddy request'()
+	{
 		given:
+		def richard = addRichard()
+		def bob = addBob()
+		appService.sendBuddyConnectRequest(richard, bob)
+		def acceptURL = appService.fetchBuddyConnectRequestMessage(bob).acceptURL
 
 		when:
-		def response = appService.postMessageActionWithPassword(bobDunnBuddyMessageAcceptURL, """{
-					"properties":{
-						"message":"Yes, great idea!"
-					}
-				}""", bobDunn.password)
+		def response = appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
 
 		then:
 		response.status == 200
 		response.responseData.properties.status == "done"
+
+		def buddies = appService.getBuddies(bob)
+		buddies.size() == 1
+		buddies[0].user.firstName == richard.firstName
+		buddies[0].nickname == richard.nickname
+		buddies[0].sendingStatus == "ACCEPTED"
+		buddies[0].receivingStatus == "ACCEPTED"
+
+		def bobWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyRequest, bob.url, true, bob.password)
+		bobWithBuddy.buddies != null
+		bobWithBuddy.buddies.size() == 1
+		bobWithBuddy.buddies[0].user.firstName == richard.firstName
+		bobWithBuddy.buddies[0].sendingStatus == "ACCEPTED"
+		bobWithBuddy.buddies[0].receivingStatus == "ACCEPTED"
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
-	def 'Richard checks his anonymous messages'(){
+	def 'Richard finds Bob\'s buddy connect response'()
+	{
 		given:
+		def richard = addRichard()
+		def bob = addBob()
+		appService.sendBuddyConnectRequest(richard, bob)
+		def acceptURL = appService.fetchBuddyConnectRequestMessage(bob).acceptURL
+		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
 
 		when:
-		def response = appService.getAnonymousMessages(richardQuin.url, richardQuin.password)
-		if (response.responseData._embedded && response.responseData._embedded.buddyConnectResponseMessages) {
-			richardQuinBuddyMessageProcessURL = response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
-		}
+		def response = appService.getAnonymousMessages(richard)
 
 		then:
 		response.status == 200
 		response.responseData._embedded.buddyConnectResponseMessages[0].user.firstName == "Bob"
-		response.responseData._embedded.buddyConnectResponseMessages[0].nickname == bobDunn.nickname
-		response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richardQuin.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
-		richardQuinBuddyMessageProcessURL.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
+		response.responseData._embedded.buddyConnectResponseMessages[0].nickname == bob.nickname
+		response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href.startsWith(richard.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
+		response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href.startsWith(response.responseData._embedded.buddyConnectResponseMessages[0]._links.self.href)
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
-	def 'Richard processes Bob\'s buddy acceptance'(){
+	def 'Richard processes Bob\'s buddy acceptance'()
+	{
 		given:
+		def richard = addRichard()
+		def bob = addBob()
+		appService.sendBuddyConnectRequest(richard, bob)
+		def acceptURL = appService.fetchBuddyConnectRequestMessage(bob).acceptURL
+		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
+		def processURL = appService.fetchBuddyConnectResponseMessage(richard).processURL
 
 		when:
-		def response = appService.postMessageActionWithPassword(richardQuinBuddyMessageProcessURL, """{
-					"properties":{
-					}
-				}""", richardQuin.password)
+		def response = appService.postMessageActionWithPassword(processURL, [ : ], richard.password)
 
 		then:
 		response.status == 200
 		response.responseData.properties.status == "done"
+
+		def buddies = appService.getBuddies(richard)
+		buddies.size() == 1
+		buddies[0].user.firstName == bob.firstName
+		buddies[0].nickname == bob.nickname
+		buddies[0].sendingStatus == "ACCEPTED"
+		buddies[0].receivingStatus == "ACCEPTED"
+
+		def richardWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyRequest, richard.url, true, richard.password)
+		richardWithBuddy.buddies != null
+		richardWithBuddy.buddies.size() == 1
+		richardWithBuddy.buddies[0].user.firstName == bob.firstName
+		richardWithBuddy.buddies[0].sendingStatus == "ACCEPTED"
+		richardWithBuddy.buddies[0].receivingStatus == "ACCEPTED"
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
-	def 'Richard checks his buddy list and will find Bob there'(){
+	def 'Goal conflict of Richard is reported to Richard and Bob'()
+	{
 		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
 
 		when:
-		def response = appService.getBuddies(richardQuin.url, richardQuin.password);
+		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+
+		then:
+		def getAnonMessagesRichardResponse = appService.getAnonymousMessages(richard)
+		getAnonMessagesRichardResponse.status == 200
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].goalName == "news"
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].url == "http://www.refdag.nl"
+
+		def getAnonMessagesBobResponse = appService.getAnonymousMessages(bob)
+		getAnonMessagesBobResponse.status == 200
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].nickname == richard.nickname
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].goalName == "news"
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].url == null
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Two conflicts within the conflict interval are reported as one message for each person'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+
+		when:
+		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+
+		then:
+		def getAnonMessagesRichardResponse = appService.getAnonymousMessages(richard)
+		getAnonMessagesRichardResponse.status == 200
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
+
+		def getAnonMessagesBobResponse = appService.getAnonymousMessages(bob)
+		getAnonMessagesBobResponse.status == 200
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
+	}
+
+	def 'Goal conflict of Bob is reported to Richard and Bob'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+
+		when:
+		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
+
+		then:
+		def getAnonMessagesRichardResponse = appService.getAnonymousMessages(richard)
+		getAnonMessagesRichardResponse.status == 200
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].nickname == bob.nickname
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].url == null
+
+		def getAnonMessagesBobResponse = appService.getAnonymousMessages(bob)
+		getAnonMessagesBobResponse.status == 200
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].url == "http://www.poker.com"
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Richard removes Bob as buddy, so goal conflicts from Bob are gone'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
+		def buddy = appService.getBuddies(richard)[0]
+
+		when:
+		def response = appService.removeBuddy(richard, buddy, "Bob, as you know our ways parted, so I'll remove you as buddy.")
 
 		then:
 		response.status == 200
-		response.responseData._embedded.buddies.size() == 1
-		response.responseData._embedded.buddies[0]._embedded.user.firstName == "Bob"
-		response.responseData._embedded.buddies[0].nickname == bobDunn.nickname
-		response.responseData._embedded.buddies[0].sendingStatus == "ACCEPTED"
-		response.responseData._embedded.buddies[0].receivingStatus == "ACCEPTED"
+		appService.getBuddies(richard).size() == 0 // Buddy removed for Richard`
+		appService.getBuddies(bob).size() == 1 // Buddy not yet removed for Bob (not processed yet)
+
+		def getDirectMessagesRichardResponse = appService.getAnonymousMessages(richard)
+		getDirectMessagesRichardResponse.status == 200
+		getDirectMessagesRichardResponse.responseData._embedded.buddyConnectResponseMessages == null
+
+		def getDirectMessagesBobResponse = appService.getDirectMessages(bob)
+		getDirectMessagesBobResponse.status == 200
+		getDirectMessagesBobResponse.responseData._embedded?.buddyConnectRequestMessages == null
+
+		def getAnonMessagesRichardResponse = appService.getAnonymousMessages(richard)
+		getAnonMessagesRichardResponse.status == 200
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].goalName == "news"
+
+		def getAnonMessagesBobResponse = appService.getAnonymousMessages(bob)
+		getAnonMessagesBobResponse.status == 200
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
-	def 'Bob checks his buddy list and will find Richard there'(){
+	def 'Bob receives the buddy removal of Richard'()
+	{
 		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
+		def buddy = appService.getBuddies(richard)[0]
+		def message = "Bob, as you know our ways parted, so I'll remove you as buddy."
+		appService.removeBuddy(richard, buddy, message)
 
 		when:
-		def response = appService.getBuddies(bobDunn.url, bobDunn.password);
-
-		then:
-		response.status == 200
-		response.responseData._embedded.buddies.size() == 1
-		response.responseData._embedded.buddies[0]._embedded.user.firstName == "Richard"
-		response.responseData._embedded.buddies[0].nickname == richardQuin.nickname
-		response.responseData._embedded.buddies[0].sendingStatus == "ACCEPTED"
-		response.responseData._embedded.buddies[0].receivingStatus == "ACCEPTED"
-	}
-
-	def 'When Richard would retrieve his user, Bob would be embedded as buddy'(){
-		given:
-
-		when:
-		def response = appService.getUser(richardQuin.url, true, richardQuin.password)
-
-		then:
-		response.status == 200
-		response.responseData._embedded.buddies != null
-		response.responseData._embedded.buddies.size() == 1
-		response.responseData._embedded.buddies[0]._embedded.user.firstName == "Bob"
-		response.responseData._embedded.buddies[0].nickname == bobDunn.nickname
-	}
-
-	def 'Richard checks he has no anonymous messages'(){
-		given:
-
-		when:
-		def response = appService.getAnonymousMessages(richardQuin.url, richardQuin.password)
-
-		then:
-		response.status == 200
-		response.responseData._embedded == null || response.responseData._embedded.goalConflictMessages == null
-	}
-
-	def 'Bob checks he has no anonymous messages'(){
-		given:
-
-		when:
-		def response = appService.getAnonymousMessages(bobDunn.url, bobDunn.password)
-
-		then:
-		response.status == 200
-		response.responseData._embedded == null || response.responseData._embedded.goalConflictMessages == null
-	}
-
-	def 'Classification engine detects a potential conflict for Richard'(){
-		given:
-
-		when:
-		def response = analysisService.postToAnalysisEngine("""{
-				"vpnLoginID":"${richardQuin.vpnLoginID}",
-				"categories": ["news/media"],
-				"url":"http://www.refdag.nl"
-				}""")
-
-		then:
-		response.status == 200
-	}
-
-	def 'Bob checks he has anonymous messages and finds a conflict for Richard'(){
-		given:
-
-		when:
-		def response = appService.getAnonymousMessages(bobDunn.url, bobDunn.password)
-
-		then:
-		response.status == 200
-		response.responseData._embedded.goalConflictMessages.size() == 1
-		response.responseData._embedded.goalConflictMessages[0].nickname == "${richardQuin.nickname}"
-		response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-		response.responseData._embedded.goalConflictMessages[0].url == null
-		response.responseData._embedded.goalConflictMessages[0]._links.self.href.startsWith(bobDunn.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
-	}
-
-	def 'Richard checks he has anonymous messages and finds a conflict for himself'(){
-		given:
-
-		when:
-		def response = appService.getAnonymousMessages(richardQuin.url, richardQuin.password)
-
-		then:
-		response.status == 200
-		response.responseData._embedded.goalConflictMessages.size() == 1
-		response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-		response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
-		response.responseData._embedded.goalConflictMessages[0]._links.self.href.startsWith(richardQuin.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
-	}
-
-	def 'Classification engine detects a potential conflict for Richard (second conflict message)'(){
-		given:
-
-		when:
-		def response = analysisService.postToAnalysisEngine("""{
-				"vpnLoginID":"${richardQuin.vpnLoginID}",
-				"categories": ["news/media"],
-				"url":"http://www.refdag.nl"
-				}""")
-
-		then:
-		response.status == 200
-	}
-
-	def 'Bob checks he has anonymous messages and finds a conflict for Richard (second conflict message)'(){
-		given:
-
-		when:
-		def response = appService.getAnonymousMessages(bobDunn.url, bobDunn.password)
-
-		then:
-		response.status == 200
-		response.responseData._embedded.goalConflictMessages.size() == 1
-		response.responseData._embedded.goalConflictMessages[0].nickname == "${richardQuin.nickname}"
-		response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-		response.responseData._embedded.goalConflictMessages[0].url == null
-	}
-
-	def 'Richard checks he has anonymous messages and finds a conflict for himself (second conflict message)'(){
-		given:
-
-		when:
-		def response = appService.getAnonymousMessages(richardQuin.url, richardQuin.password)
-
-		then:
-		response.status == 200
-		response.responseData._embedded.goalConflictMessages.size() == 1
-		response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-		response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
-	}
-
-	def 'Classification engine detects a potential conflict for Bob'(){
-		given:
-
-		when:
-		def response = analysisService.postToAnalysisEngine("""{
-				"vpnLoginID":"${bobDunn.vpnLoginID}",
-				"categories": ["Gambling"],
-				"url":"http://www.poker.com"
-				}""")
-
-		then:
-		response.status == 200
-	}
-
-	def 'Richard checks he has anonymous messages and finds a conflict for Bob'(){
-		given:
-
-		when:
-		def response = appService.getAnonymousMessages(richardQuin.url, richardQuin.password)
-
-		then:
-		response.status == 200
-		response.responseData._embedded.goalConflictMessages.size() == 2
-		response.responseData._embedded.goalConflictMessages[0].nickname == "${bobDunn.nickname}"
-		response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
-		response.responseData._embedded.goalConflictMessages[0].url == null
-		response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
-		response.responseData._embedded.goalConflictMessages[1].goalName == "news"
-		response.responseData._embedded.goalConflictMessages[1].url =~ /refdag/
-	}
-
-	def 'Bob checks he has anonymous messages and finds a conflict for himself'(){
-		given:
-
-		when:
-		def response = appService.getAnonymousMessages(bobDunn.url, bobDunn.password)
-
-		then:
-		response.status == 200
-		response.responseData._embedded.goalConflictMessages.size() == 2
-		response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
-		response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
-		response.responseData._embedded.goalConflictMessages[1].nickname == "${richardQuin.nickname}"
-		response.responseData._embedded.goalConflictMessages[1].goalName == "news"
-		response.responseData._embedded.goalConflictMessages[1].url == null
-	}
-
-	def 'Classification engine detects a potential conflict for Bob (second conflict message)'(){
-		given:
-
-		when:
-		def response = analysisService.postToAnalysisEngine("""{
-				"vpnLoginID":"${bobDunn.vpnLoginID}",
-				"categories": ["Gambling"],
-				"url":"http://www.poker.com"
-				}""")
-
-		then:
-		response.status == 200
-	}
-
-	def 'Richard checks he has anonymous messages and finds a conflict for Bob (second conflict message)'(){
-		given:
-
-		when:
-		def response = appService.getAnonymousMessages(richardQuin.url, richardQuin.password)
-
-		then:
-		response.status == 200
-		response.responseData._embedded.goalConflictMessages.size() == 2
-		response.responseData._embedded.goalConflictMessages[0].nickname == "${bobDunn.nickname}"
-		response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
-		response.responseData._embedded.goalConflictMessages[0].url == null
-		response.responseData._embedded.goalConflictMessages[0]._links.requestDisclosure
-		response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
-		response.responseData._embedded.goalConflictMessages[1].goalName == "news"
-		response.responseData._embedded.goalConflictMessages[1].url =~ /refdag/
-		!response.responseData._embedded.goalConflictMessages[1]._links.requestDisclosure
-	}
-
-	def 'Bob checks he has anonymous messages and finds a conflict for himself (second conflict message)'(){
-		given:
-
-		when:
-		def response = appService.getAnonymousMessages(bobDunn.url, bobDunn.password)
-
-		then:
-		response.status == 200
-		response.responseData._embedded.goalConflictMessages.size() == 2
-		response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		response.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
-		response.responseData._embedded.goalConflictMessages[0].url =~ /poker/
-		response.responseData._embedded.goalConflictMessages[1].nickname == "${richardQuin.nickname}"
-		response.responseData._embedded.goalConflictMessages[1].goalName == "news"
-		response.responseData._embedded.goalConflictMessages[1].url == null
-	}
-
-	def 'Richard removes Bob as buddy'() {
-		given:
-		when:
-		def response = appService.removeBuddy(richardQuinBobBuddyURL, richardQuin.password, "Bob, as you know our ways parted so I'll remove you as a buddy.")
-
-		then:
-		response.status == 200
-	}
-
-	def 'Bob checks his direct messages and will find a remove buddy message'(){
-		given:
-
-		when:
-		def response = appService.getAnonymousMessages(bobDunn.url, bobDunn.password)
-		if (response.responseData._embedded && response.responseData._embedded.buddyDisconnectMessages) {
-			bobDunnBuddyRemoveMessageProcessURL = response.responseData._embedded.buddyDisconnectMessages[0]._links.process.href
-		}
+		def response = appService.getAnonymousMessages(bob)
 
 		then:
 		response.status == 200
 		response.responseData._embedded.buddyDisconnectMessages[0].reason == "USER_REMOVED_BUDDY"
-		response.responseData._embedded.buddyDisconnectMessages[0].nickname == "${richardQuin.nickname}"
-		response.responseData._embedded.buddyDisconnectMessages[0].message == "Bob, as you know our ways parted so I'll remove you as a buddy."
-		response.responseData._embedded.buddyDisconnectMessages[0]._links.self.href.startsWith(bobDunn.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
-		bobDunnBuddyRemoveMessageProcessURL.startsWith(response.responseData._embedded.buddyDisconnectMessages[0]._links.self.href)
+		response.responseData._embedded.buddyDisconnectMessages[0].nickname == "${richard.nickname}"
+		response.responseData._embedded.buddyDisconnectMessages[0].message == message
+		response.responseData._embedded.buddyDisconnectMessages[0]._links.self.href.startsWith(bob.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
+		response.responseData._embedded.buddyDisconnectMessages[0]._links.process.href.startsWith(response.responseData._embedded.buddyDisconnectMessages[0]._links.self.href)
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
-	def 'Test what happens if the classification engine detects a potential conflict for Bob (third conflict message) when the buddy disconnect is not yet processed'(){
+	def 'Bob processes the buddy removal of Richard, so Richard is removed from his buddy list'()
+	{
 		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
+		def buddy = appService.getBuddies(richard)[0]
+		def message = "Bob, as you know our ways parted, so I'll remove you as buddy."
+		appService.removeBuddy(richard, buddy, message)
+		def processURL = appService.getAnonymousMessages(bob).responseData._embedded.buddyDisconnectMessages[0]._links.process.href
 
 		when:
-		def response = analysisService.postToAnalysisEngine("""{
-				"vpnLoginID":"${bobDunn.vpnLoginID}",
-				"categories": ["news/media"],
-				"url":"http://www.refdag.nl"
-				}""")
+		def response = appService.postMessageActionWithPassword(processURL, [ : ], bob.password)
 
 		then:
 		response.status == 200
+		appService.getBuddies(bob).size() == 0
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
-	def 'Bob checks his anonymous messages and the messages of Richard are no longer there'(){
+	def 'After Richard removed Bob as buddy, new goal conflicts are not reported to the buddies anymore'()
+	{
 		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		def buddy = appService.getBuddies(richard)[0]
+		appService.removeBuddy(richard, buddy, "Bob, as you know our ways parted, so I'll remove you as buddy.")
 
 		when:
-		def response = appService.getAnonymousMessages(bobDunn.url, bobDunn.password)
+		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
 
 		then:
-		response.status == 200
-		response.responseData._embedded.goalConflictMessages.size() == 2
-		response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-		response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
-		response.responseData._embedded.goalConflictMessages[1].nickname == "<self>"
-		response.responseData._embedded.goalConflictMessages[1].goalName == "gambling"
-		response.responseData._embedded.goalConflictMessages[1].url =~ /poker/
-	}
+		appService.getBuddies(richard).size() == 0 // Buddy removed for Richard`
+		appService.getBuddies(bob).size() == 1 // Buddy not yet removed for Bob (not processed yet)
 
-	def 'Richard checks his anonymous messages and the messages of Bob are no longer there'(){
-		given:
+		def getAnonMessagesRichardResponse = appService.getAnonymousMessages(richard)
+		getAnonMessagesRichardResponse.status == 200
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].goalName == "news"
 
-		when:
-		def response = appService.getAnonymousMessages(richardQuin.url, richardQuin.password)
+		def getAnonMessagesBobResponse = appService.getAnonymousMessages(bob)
+		getAnonMessagesBobResponse.status == 200
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
 
-		then:
-		response.status == 200
-		response.responseData._embedded.goalConflictMessages.size() == 1
-		response.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-		response.responseData._embedded.goalConflictMessages[0].url =~ /refdag/
-	}
-
-	def 'Bob checks his direct messages and the messages of Richard are no longer there'(){
-		given:
-
-		when:
-		def response = appService.getDirectMessages(bobDunn.url, bobDunn.password)
-
-		then:
-		response.status == 200
-		response.responseData._embedded == null || response.responseData._embedded.buddyConnectRequestMessages == null
-	}
-
-	def 'Richard checks his direct messages and the messages of Bob are no longer there'(){
-		given:
-
-		when:
-		def response = appService.getDirectMessages(richardQuin.url, richardQuin.password)
-
-		then:
-		response.status == 200
-		response.responseData._embedded == null || response.responseData._embedded.buddyConnectRequestMessages == null
-	}
-
-	def 'Bob processes the remove buddy message'(){
-		given:
-
-		when:
-		def response = appService.postMessageActionWithPassword(bobDunnBuddyRemoveMessageProcessURL, """{
-					"properties":{
-					}
-				}""", bobDunn.password)
-
-		then:
-		response.status == 200
-		response.responseData.properties.status == "done"
-	}
-
-	def 'Richard checks his buddy list and Bob is no longer there'(){
-		given:
-
-		when:
-		def response = appService.getBuddies(richardQuin.url, richardQuin.password);
-
-		then:
-		response.status == 200
-		response.responseData._embedded == null
-	}
-
-	def 'Bob checks his buddy list and Richard is no longer there'(){
-		given:
-
-		when:
-		def response = appService.getBuddies(bobDunn.url, bobDunn.password);
-
-		then:
-		response.status == 200
-		response.responseData._embedded == null
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 }
