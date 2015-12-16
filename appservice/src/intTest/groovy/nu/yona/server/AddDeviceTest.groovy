@@ -11,7 +11,7 @@ import groovy.json.*
 
 class AddDeviceTest extends AbstractAppServiceIntegrationTest
 {
-	def 'Set new device request'()
+	def 'Set and get new device request'()
 	{
 		given:
 		def richard = addRichard()
