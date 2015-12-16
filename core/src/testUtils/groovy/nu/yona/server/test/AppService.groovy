@@ -49,19 +49,14 @@ class AppService extends Service
 
 	def assertUserCreationResponseDetails(def response)
 	{
-		assertUserOverwriteResponseDetails(response)
+		assertResponseStatusCreated(response)
+		assertUserWithPrivateData(response.responseData)
 		assert response.responseData.confirmationCode
 	}
 
 	def assertUserUpdateResponseDetails(def response)
 	{
 		assert response.status == 200
-		assertUserWithPrivateData(response.responseData)
-	}
-
-	def assertUserOverwriteResponseDetails(def response)
-	{
-		assertResponseStatusCreated(response)
 		assertUserWithPrivateData(response.responseData)
 	}
 
