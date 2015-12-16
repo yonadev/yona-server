@@ -2,11 +2,19 @@
     <body>
 		<h3>Hi ${buddyName}, become my buddy for Yona!</h3>
 		
-		<p>Install the app! Open this URL with the app! <a href="${inviteURL}">${inviteURL}</a> </p>
+		<p>${message}</p>
+		
+		<p>As we have talked about, I'd like you to become my buddy in the Yona system. If you didn't install the Yona app yet, please start with doing that. Here are the links:...</p>
+
+		<p>Next, open the below link by tapping on it and selecting Yona as the app to open it with.</p>
+		
+		<p>Important: Validate that @{requestingUserName} has really invited you. The mobile number registered with Yona for this user is ${requestingUserMobileNumber}.</p>
+		
+ 		<p><a href="${inviteURL}">${inviteURL}</a></p>
 		
 		<p>
 			Best regards,<br/>
-			${requestingUserName}
+			${requestingUserName} | ${requestingUserNickname}
 		</p>
     </body>
 </html>
