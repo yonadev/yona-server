@@ -10,8 +10,6 @@ import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
 
-import nu.yona.server.crypto.Decryptor;
-import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.service.BuddyServiceException;
 
@@ -29,11 +27,11 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		super();
 	}
 
-	private BuddyConnectRequestMessage(UUID id, UUID userID, UUID userAnonymizedID, Set<UUID> goalIDs, String nickname, String message,
-			UUID buddyID, boolean isRequestingSending, boolean isRequestingReceiving)
+	private BuddyConnectRequestMessage(UUID id, UUID userID, UUID userAnonymizedID, Set<UUID> goalIDs, String nickname,
+			String message, UUID buddyID, boolean isRequestingSending, boolean isRequestingReceiving)
 	{
 		super(id, userAnonymizedID, userID, nickname, message, buddyID);
-		
+
 		if (userID == null)
 		{
 			throw BuddyServiceException.requestingUserCannotBeNull();
@@ -73,24 +71,13 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		return this.status;
 	}
 
-	public static BuddyConnectRequestMessage createInstance(UUID requestingUserID, UUID requestingUserUserAnonymizedID, Set<Goal> goals,
-			String nickname, String message, UUID buddyID, boolean isRequestingSending, boolean isRequestingReceiving)
+	public static BuddyConnectRequestMessage createInstance(UUID requestingUserID, UUID requestingUserUserAnonymizedID,
+			Set<Goal> goals, String nickname, String message, UUID buddyID, boolean isRequestingSending,
+			boolean isRequestingReceiving)
 	{
 		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserUserAnonymizedID,
 				goals.stream().map(g -> g.getID()).collect(Collectors.toSet()), nickname, message, buddyID, isRequestingSending,
 				isRequestingReceiving);
-	}
-
-	@Override
-	public void encrypt(Encryptor encryptor)
-	{
-		super.encrypt(encryptor);
-	}
-
-	@Override
-	public void decrypt(Decryptor decryptor)
-	{
-		super.decrypt(decryptor);
 	}
 
 	@Override

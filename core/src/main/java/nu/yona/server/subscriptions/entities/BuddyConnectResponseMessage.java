@@ -8,9 +8,6 @@ import java.util.UUID;
 
 import javax.persistence.Entity;
 
-import nu.yona.server.crypto.Decryptor;
-import nu.yona.server.crypto.Encryptor;
-
 @Entity
 public class BuddyConnectResponseMessage extends BuddyConnectMessage
 {
@@ -23,8 +20,8 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 		super();
 	}
 
-	private BuddyConnectResponseMessage(UUID id, UUID userID, UUID userAnonymizedID, String nickname, String message, UUID buddyID,
-			BuddyAnonymized.Status status)
+	private BuddyConnectResponseMessage(UUID id, UUID userID, UUID userAnonymizedID, String nickname, String message,
+			UUID buddyID, BuddyAnonymized.Status status)
 	{
 		super(id, userAnonymizedID, userID, nickname, message, buddyID);
 		this.status = status;
@@ -50,18 +47,6 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 	{
 		return new BuddyConnectResponseMessage(UUID.randomUUID(), respondingUserID, respondingUserAnonymizedID, nickname, message,
 				buddyID, status);
-	}
-
-	@Override
-	public void encrypt(Encryptor encryptor)
-	{
-		super.encrypt(encryptor);
-	}
-
-	@Override
-	public void decrypt(Decryptor decryptor)
-	{
-		super.decrypt(decryptor);
 	}
 
 	@Override
