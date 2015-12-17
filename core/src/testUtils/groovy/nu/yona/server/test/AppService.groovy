@@ -60,10 +60,10 @@ class AppService extends Service
 		assertUserWithPrivateData(response.responseData)
 	}
 
-	def assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyRequest(def response)
+	def assertUserGetResponseDetailsPublicDataAndVpnProfile(def response)
 	{
 		assertResponseStatusSuccess(response)
-		assertUserWithPrivateDataCreatedOnBuddyRequest(response.responseData)
+		assertUserWithPublicDataAndVpnProfile(response.responseData)
 	}
 
 	def assertUserGetResponseDetailsWithPrivateData(def response)
@@ -78,7 +78,7 @@ class AppService extends Service
 		assertUserWithoutPrivateData(response.responseData)
 	}
 
-	def assertUserWithPrivateDataCreatedOnBuddyRequest(user)
+	def assertUserWithPublicDataAndVpnProfile(user)
 	{
 		assertPublicUserData(user)
 		assertVpnProfile(user)
