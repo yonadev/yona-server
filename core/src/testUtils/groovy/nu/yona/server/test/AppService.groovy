@@ -49,7 +49,8 @@ class AppService extends Service
 
 	def assertUserCreationResponseDetails(def response)
 	{
-		assertUserOverwriteResponseDetails(response)
+		assertResponseStatusCreated(response)
+		assertUserWithPrivateData(response.responseData)
 		assert response.responseData.confirmationCode
 	}
 
@@ -59,16 +60,10 @@ class AppService extends Service
 		assertUserWithPrivateData(response.responseData)
 	}
 
-	def assertUserOverwriteResponseDetails(def response)
-	{
-		assertResponseStatusCreated(response)
-		assertUserWithPrivateData(response.responseData)
-	}
-
-	def assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyRequest(def response)
+	def assertUserGetResponseDetailsPublicDataAndVpnProfile(def response)
 	{
 		assertResponseStatusSuccess(response)
-		assertUserWithPrivateDataCreatedOnBuddyRequest(response.responseData)
+		assertUserWithPublicDataAndVpnProfile(response.responseData)
 	}
 
 	def assertUserGetResponseDetailsWithPrivateData(def response)
@@ -83,10 +78,10 @@ class AppService extends Service
 		assertUserWithoutPrivateData(response.responseData)
 	}
 
-	def assertUserWithPrivateDataCreatedOnBuddyRequest(user)
+	def assertUserWithPublicDataAndVpnProfile(user)
 	{
 		assertPublicUserData(user)
-		assertPrivateUserDataCreatedOnBuddyRequest(user)
+		assertVpnProfile(user)
 	}
 
 	def assertUserWithPrivateData(user)
@@ -112,13 +107,13 @@ class AppService extends Service
 
 	def assertPrivateUserData(def user)
 	{
-		assertPrivateUserDataCreatedOnBuddyRequest(user)
+		assertVpnProfile(user)
 		assert user.nickname != null
 		assert user.devices.size() == 1
 		assert user.devices[0]
 	}
 
-	def assertPrivateUserDataCreatedOnBuddyRequest(def user)
+	def assertVpnProfile(def user)
 	{
 		assert user.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 		assert user.vpnProfile.vpnPassword.length() == 32

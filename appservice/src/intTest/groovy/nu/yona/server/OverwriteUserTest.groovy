@@ -58,7 +58,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def confirmationCode = appService.requestOverwriteUser(richard.mobileNumber)?.responseData?.confirmationCode
 
 		when:
-		def richardChanged = appService.addUser(appService.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"], ["news"],
 				["overwriteUserConfirmationCode": confirmationCode])
 
@@ -97,7 +97,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		def confirmationCode = appService.requestOverwriteUser(richard.mobileNumber)?.responseData?.confirmationCode
-		def richardChanged = appService.addUser(appService.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"], ["news"],
 				["overwriteUserConfirmationCode": confirmationCode])
 
@@ -119,7 +119,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		def confirmationCode = appService.requestOverwriteUser(richard.mobileNumber)?.responseData?.confirmationCode
-		def richardChanged = appService.addUser(appService.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"], ["news"],
 				["overwriteUserConfirmationCode": confirmationCode])
 		def buddy = appService.getBuddies(bob)[0]
@@ -184,5 +184,11 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		{
 			appService.deleteUser(userURL, "Password")
 		}
+	}
+
+	def assertUserOverwriteResponseDetails(def response)
+	{
+		appService.assertResponseStatusCreated(response)
+		appService.assertUserWithPrivateData(response.responseData)
 	}
 }

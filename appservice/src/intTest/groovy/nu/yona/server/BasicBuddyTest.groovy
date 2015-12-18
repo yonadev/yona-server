@@ -99,7 +99,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddies[0].sendingStatus == "ACCEPTED"
 		buddies[0].receivingStatus == "ACCEPTED"
 
-		def bobWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyRequest, bob.url, true, bob.password)
+		def bobWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, bob.url, true, bob.password)
 		bobWithBuddy.buddies != null
 		bobWithBuddy.buddies.size() == 1
 		bobWithBuddy.buddies[0].user.firstName == richard.firstName
@@ -159,7 +159,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddies[0].sendingStatus == "ACCEPTED"
 		buddies[0].receivingStatus == "ACCEPTED"
 
-		def richardWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBoddyRequest, richard.url, true, richard.password)
+		def richardWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
 		richardWithBuddy.buddies != null
 		richardWithBuddy.buddies.size() == 1
 		richardWithBuddy.buddies[0].user.firstName == bob.firstName
