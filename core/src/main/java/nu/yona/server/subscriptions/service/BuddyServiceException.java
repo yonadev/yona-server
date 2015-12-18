@@ -4,6 +4,8 @@ import nu.yona.server.exceptions.YonaException;
 
 public class BuddyServiceException extends YonaException
 {
+	private static final long serialVersionUID = 3301297701692886481L;
+
 	protected BuddyServiceException(String messageId, Object... parameters)
 	{
 		super(messageId, parameters);

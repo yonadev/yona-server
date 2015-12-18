@@ -4,6 +4,8 @@ import nu.yona.server.exceptions.YonaException;
 
 public class GoalServiceException extends YonaException
 {
+	private static final long serialVersionUID = 3674627870453389914L;
+
 	private GoalServiceException(String messageId, Object... parameters)
 	{
 		super(messageId, parameters);

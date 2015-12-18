@@ -5,6 +5,7 @@ import nu.yona.server.messaging.entities.Message;
 
 public class MessageServiceException extends YonaException
 {
+	private static final long serialVersionUID = -4705914008854129434L;
 
 	private MessageServiceException(String messageId, Object... parameters)
 	{

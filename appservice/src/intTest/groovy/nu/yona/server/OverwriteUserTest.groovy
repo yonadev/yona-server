@@ -1,184 +1,161 @@
+/*******************************************************************************
+ * Copyright (c) 2015 Stichting Yona Foundation
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v.2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server
 
 import groovy.json.*
-import spock.lang.Shared
 
-class OverwriteUserTest extends AbstractAppServiceIntegrationTest {
-
-	@Shared
-	def richardQuin
-	@Shared
-	def bobDunn
-
-	@Shared
-	def bobDunnRichardBuddyURL
-
-	@Shared
-	def richardQuinNewURL
-	@Shared
-	def richardQuinNewPassword = "R i c h a r d 1"
-	@Shared
-	def richardQuinOverwriteConfirmationCode
-
-	@Shared
-	def userCreationMobileNumber = "+${timestamp}"
-	@Shared
-	def userCreationJSON = """{
-				"firstName":"John",
-				"lastName":"Doe ${timestamp}",
-				"nickname":"JD ${timestamp}",
-				"mobileNumber":"${userCreationMobileNumber}",
-				"devices":[
-					"Galaxy mini"
-				],
-				"goals":[
-					"gambling"
-				]}"""
-
-	def 'Add Richard and Bob who are buddies'(){
+class OverwriteUserTest extends AbstractAppServiceIntegrationTest
+{
+	def 'Attempt to add another user with the same mobile number'()
+	{
 		given:
+		def richard = addRichard()
 
 		when:
-		richardQuin = addUser("Richard", "Quin")
-		bobDunn = addUser("Bob", "Dunn")
-		makeBuddies(richardQuin, bobDunn)
+		def duplicateUser = appService.addUser(this.&userExistsAsserter, "A n o t h e r", "The", "Next", "TN",
+				"$richard.mobileNumber", ["Nexus 6"], ["news", "gambling"])
 
 		then:
-		richardQuin
-		bobDunn
+		duplicateUser == null
+
+		cleanup:
+		appService.deleteUser(richard)
 	}
 
-	def 'Classification engine detects a potential conflict for Richard'(){
+	def userExistsAsserter(def response)
+	{
+		assert response.status == 400
+		assert response.responseData.code == "error.user.exists"
+	}
+
+	def 'Richard gets a confirmation code when requesting to overwrite his account'()
+	{
 		given:
+		def richard = addRichard()
 
 		when:
-		def response = analysisService.postToAnalysisEngine("""{
-				"vpnLoginID":"${richardQuin.vpnLoginID}",
-				"categories": ["news/media"],
-				"url":"http://www.refdag.nl"
-				}""")
+		def response = appService.requestOverwriteUser(richard.mobileNumber)
 
 		then:
 		response.status == 200
+		response.responseData.confirmationCode
+
+		cleanup:
+		appService.deleteUser(richard)
 	}
 
-	def 'Attempt to add another user with the same mobile number'(){
-		when:
-		def response = appService.addUser("""{
-					"firstName":"Richardo ${timestamp}",
-					"lastName":"Quino ${timestamp}",
-					"nickname":"RQo ${timestamp}",
-					"mobileNumber":"${richardQuin.mobileNumber}",
-					"devices":[
-						"Nexus 6"
-					],
-					"goals":[
-						"news"
-					]
-				}""", "Foo")
-
-		then:
-		response.status == 400
-		response.responseData.code == "error.user.exists"
-	}
-
-	def 'Request overwrite of the existing user'(){
-		when:
-		def response = appService.requestOverwriteUser("${richardQuin.mobileNumber}")
-		if(response.status == 200) {
-			richardQuinOverwriteConfirmationCode = response.responseData.confirmationCode
-		}
-		then:
-		response.status == 200
-		richardQuinOverwriteConfirmationCode
-	}
-
-	def 'Overwrite the existing user'(){
-		when:
-		def response = appService.addUser("""{
-					"firstName":"Richard ${timestamp}",
-					"lastName":"Quin ${timestamp}",
-					"nickname":"RQ ${timestamp}",
-					"mobileNumber":"${richardQuin.mobileNumber}",
-					"devices":[
-						"Nexus 6"
-					],
-					"goals":[
-						"news"
-					]
-				}""", richardQuinNewPassword, ["overwriteUserConfirmationCode": richardQuinOverwriteConfirmationCode])
-		if(response.status == 201) {
-			richardQuinNewURL = appService.stripQueryString(response.responseData._links.self.href)
-		}
-
-		then:
-		response.status == 201
-		response.responseData.mobileNumberConfirmed == true
-	}
-
-	def 'Bob checks his anonymous messages; the conflict for the overwritten user Richard does not cause an exception'(){
+	def 'Overwrite the existing user'()
+	{
 		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		def confirmationCode = appService.requestOverwriteUser(richard.mobileNumber)?.responseData?.confirmationCode
 
 		when:
-		def response = appService.getAnonymousMessages(bobDunn.url, bobDunn.password)
+		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"], ["news"],
+				["overwriteUserConfirmationCode": confirmationCode])
 
 		then:
-		response.status == 200
-		response.responseData._embedded.goalConflictMessages.size() == 1
-		response.responseData._embedded.goalConflictMessages[0].nickname == richardQuin.nickname
-		response.responseData._embedded.goalConflictMessages[0].goalName == "news"
-		response.responseData._embedded.goalConflictMessages[0].url == null
-		response.responseData._embedded.goalConflictMessages[0]._links.self.href.startsWith(bobDunn.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
+		richardChanged
+		richardChanged.firstName == "${richard.firstName}Changed"
+		richardChanged.lastName == "${richard.lastName}Changed"
+		richardChanged.nickname == "${richard.nickname}Changed"
+		richardChanged.mobileNumber == richard.mobileNumber
+		richardChanged.devices == ["Nokia"]
+		richardChanged.goals == ["news"]
+
+		def getAnonMessagesResponse = appService.getAnonymousMessages(bob.url, bob.password)
+		getAnonMessagesResponse.status == 200
+		getAnonMessagesResponse.responseData._embedded.goalConflictMessages.size() == 1
+		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].nickname == richard.nickname
+		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].goalName == "news"
+		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].url == null
+
+		def buddies = appService.getBuddies(bob)
+		buddies.size() == 1
+		buddies[0].user == null
+		buddies[0].nickname == richard.nickname // TODO: Shouldn't this change be communicated to Bob?
+		buddies[0].sendingStatus == "ACCEPTED" // Shouldn't the status change now that the user is removed?
+		buddies[0].receivingStatus == "ACCEPTED"
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
-	def 'Classification engine detects a potential conflict for Bob; this gives no exception because of the overwritten buddy user'(){
+	def 'Classification engine detects a potential conflict for Bob after Richard overwrote his account'()
+	{
 		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		def confirmationCode = appService.requestOverwriteUser(richard.mobileNumber)?.responseData?.confirmationCode
+		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"], ["news"],
+				["overwriteUserConfirmationCode": confirmationCode])
 
 		when:
-		def response = analysisService.postToAnalysisEngine("""{
-				"vpnLoginID":"${bobDunn.vpnLoginID}",
-				"categories": ["Gambling"],
-				"url":"http://www.poker.com"
-				}""")
+		def response = analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
 
 		then:
 		response.status == 200
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
-	def 'Bob checks his buddy list; the buddy for overwritten user Richard will not cause an exception'(){
+	def 'Bob removes overwritten user Richard as buddy'()
+	{
 		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		def confirmationCode = appService.requestOverwriteUser(richard.mobileNumber)?.responseData?.confirmationCode
+		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"], ["news"],
+				["overwriteUserConfirmationCode": confirmationCode])
+		def buddy = appService.getBuddies(bob)[0]
 
 		when:
-		def response = appService.getBuddies(bobDunn.url, bobDunn.password);
-		if(response.status == 200 && response.responseData._embedded) {
-			bobDunnRichardBuddyURL = response.responseData._embedded.buddies[0]._links.self.href
-		}
+		def response = appService.removeBuddy(bob, buddy, "Good bye friend")
 
 		then:
 		response.status == 200
-		response.responseData._embedded.buddies.size() == 1
-		response.responseData._embedded.buddies[0]._embedded.user.firstName == null
-		response.responseData._embedded.buddies[0].nickname == richardQuin.nickname
-		response.responseData._embedded.buddies[0].sendingStatus == "ACCEPTED"
-		response.responseData._embedded.buddies[0].receivingStatus == "ACCEPTED"
-		bobDunnRichardBuddyURL
+		appService.getBuddies(bob).size() == 0
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
-	def 'Bob removes overwritten user Richard as buddy'() {
+	def 'Hacking attempt: Brute force overwrite mobile number confirmation'()
+	{
 		given:
-		when:
-		def response = appService.removeBuddy(bobDunnRichardBuddyURL, bobDunn.password, null)
+		def userCreationMobileNumber = "+${timestamp}99"
+		def userCreationJSON = """{
+						"firstName":"John",
+						"lastName":"Doe",
+						"nickname":"JD",
+						"mobileNumber":"${userCreationMobileNumber}",
+						"devices":[
+							"Galaxy mini"
+						],
+						"goals":[
+							"gambling"
+						]}"""
 
-		then:
-		response.status == 200
-	}
-
-	def 'Hacking attempt: Brute force overwrite mobile number confirmation'(){
-		given:
-		def userAddResponse = appService.addUser(userCreationJSON, "Password");
+		def userAddResponse = appService.addUser(userCreationJSON, "Password")
 		def overwriteRequestResponse = appService.requestOverwriteUser(userCreationMobileNumber)
-		def userURL = appService.stripQueryString(userAddResponse.responseData._links.self.href);
-		def confirmationCode = overwriteRequestResponse.responseData.confirmationCode;
+		def userURL = YonaServer.stripQueryString(userAddResponse.responseData._links.self.href)
+		def confirmationCode = overwriteRequestResponse.responseData.confirmationCode
 
 		when:
 		def response1TimeWrong = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "${confirmationCode}1"])
@@ -192,7 +169,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest {
 		then:
 		confirmationCode != null
 		userAddResponse.status == 201
-		userAddResponse.responseData.mobileNumberConfirmed == false
+		userAddResponse.responseData._links?.confirmMobileNumber?.href != null
 		response1TimeWrong.status == 400
 		response1TimeWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
 		response5TimesWrong.status == 400
@@ -203,18 +180,15 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest {
 		response7thTimeRight.responseData.code == "error.too.many.wrong.attempts"
 
 		cleanup:
-		if (userURL) {
+		if (userURL)
+		{
 			appService.deleteUser(userURL, "Password")
 		}
 	}
 
-	def 'Delete users'(){
-		when:
-		def response1 = appService.deleteUser(richardQuinNewURL, richardQuinNewPassword)
-		def response2 = appService.deleteUser(bobDunn.url, bobDunn.password)
-
-		then:
-		response1.status == 200
-		response2.status == 200
+	def assertUserOverwriteResponseDetails(def response)
+	{
+		appService.assertResponseStatusCreated(response)
+		appService.assertUserWithPrivateData(response.responseData)
 	}
 }
