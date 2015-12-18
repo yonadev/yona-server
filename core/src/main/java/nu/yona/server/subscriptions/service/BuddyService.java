@@ -28,6 +28,7 @@ import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.sms.SmsService;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
@@ -48,6 +49,9 @@ public class BuddyService
 
 	@Autowired
 	EmailService emailService;
+
+	@Autowired
+	SmsService smsService;
 
 	@Autowired
 	Translator translator;
@@ -268,14 +272,22 @@ public class BuddyService
 			String bodyTemplateName = "buddy-invitation-body";
 			String requestingUserName = StringUtils
 					.join(new Object[] { requestingUser.getFirstName(), requestingUser.getLastName() }, " ");
+			String requestingUserMobileNumber = requestingUser.getMobileNumber();
+			String requestingUserNickname = requestingUser.getPrivateData().getNickname();
 			String buddyName = StringUtils.join(new Object[] { buddy.getUser().getFirstName(), buddy.getUser().getLastName() },
 					" ");
 			InternetAddress buddyAddress = new InternetAddress(buddy.getUser().getEmailAddress(), buddyName);
+			String message = buddy.getMessage();
+			String buddyMobileNumber = buddy.getUser().getMobileNumber();
 			Map<String, Object> templateParams = new HashMap<String, Object>();
 			templateParams.put("inviteURL", inviteURL);
 			templateParams.put("requestingUserName", requestingUserName);
+			templateParams.put("requestingUserMobileNumber", requestingUserMobileNumber);
+			templateParams.put("requestingUserNickname", requestingUserNickname);
 			templateParams.put("buddyName", buddyName);
+			templateParams.put("message", message);
 			emailService.sendEmail(requestingUserName, buddyAddress, subjectTemplateName, bodyTemplateName, templateParams);
+			smsService.send(buddyMobileNumber, SmsService.TemplateName_BuddyInvite, templateParams);
 		}
 		catch (UnsupportedEncodingException e)
 		{
