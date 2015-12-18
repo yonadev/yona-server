@@ -1,4 +1,4 @@
-[![Build Status](https://yonadev.ci.cloudbees.com/job/build-yonadev-master/badge/icon)](https://yonadev.ci.cloudbees.com/job/build-yonadev-master/)<img align="right" src="https://www.cloudbees.com/sites/default/files/styles/large/public/Button-Built-on-CB-1.png">
+[<img align="left" src="://yonadev.ci.cloudbees.com/job/build-yonadev-master/badge/icon)">](https://yonadev.ci.cloudbees.com/job/build-yonadev-master/)<img align="right" src="https://www.cloudbees.com/sites/default/files/styles/large/public/Button-Built-on-CB-1.png">
 Yona Server
 ==================================
 
