@@ -22,7 +22,7 @@ import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.JsonRootRelProvider;
 
 @Configuration
-public class CoreConfiguration this results in a compliation error
+public class CoreConfiguration
 {
 	private static final Logger LOGGER = Logger.getLogger(CoreConfiguration.class.getName());
 
