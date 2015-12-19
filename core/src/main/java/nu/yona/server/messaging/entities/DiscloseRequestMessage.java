@@ -45,16 +45,6 @@ public class DiscloseRequestMessage extends BuddyMessage
 		return status;
 	}
 
-	public boolean isAccepted()
-	{
-		return status == Status.DISCLOSE_ACCEPTED;
-	}
-
-	public boolean isRejected()
-	{
-		return status == Status.DISCLOSE_REJECTED;
-	}
-
 	public void setStatus(Status status)
 	{
 		this.status = status;

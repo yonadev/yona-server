@@ -30,6 +30,7 @@ class RejectBuddyTest extends AbstractAppServiceIntegrationTest
 		!actionURLs?.size
 
 		def processResult = appService.fetchBuddyConnectResponseMessage(richard)
+		processResult.status == "REJECTED"
 		processResult.message == rejectMessage
 
 		// Have the requesting user process the buddy connect response

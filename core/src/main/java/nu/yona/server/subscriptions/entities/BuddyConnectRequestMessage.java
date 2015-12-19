@@ -13,6 +13,7 @@ import javax.persistence.Entity;
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.service.BuddyServiceException;
 
 @Entity
@@ -21,7 +22,7 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	private boolean isRequestingSending;
 	private boolean isRequestingReceiving;
 
-	private BuddyAnonymized.Status status = BuddyAnonymized.Status.NOT_REQUESTED;
+	private Status status;
 
 	// Default constructor is required for JPA
 	public BuddyConnectRequestMessage()
@@ -29,16 +30,17 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		super();
 	}
 
-	private BuddyConnectRequestMessage(UUID id, UUID userID, UUID userAnonymizedID, Set<UUID> goalIDs, String nickname, String message,
-			UUID buddyID, boolean isRequestingSending, boolean isRequestingReceiving)
+	private BuddyConnectRequestMessage(UUID id, UUID userID, UUID userAnonymizedID, Set<UUID> goalIDs, String nickname,
+			String message, UUID buddyID, boolean isRequestingSending, boolean isRequestingReceiving)
 	{
 		super(id, userAnonymizedID, userID, nickname, message, buddyID);
-		
+
 		if (userID == null)
 		{
 			throw BuddyServiceException.requestingUserCannotBeNull();
 		}
 
+		this.status = Status.REQUESTED;
 		this.isRequestingSending = isRequestingSending;
 		this.isRequestingReceiving = isRequestingReceiving;
 	}
@@ -53,28 +55,19 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		return isRequestingReceiving;
 	}
 
-	public boolean isAccepted()
-	{
-		return status == BuddyAnonymized.Status.ACCEPTED;
-	}
-
-	public boolean isRejected()
-	{
-		return status == BuddyAnonymized.Status.REJECTED;
-	}
-
-	public void setStatus(BuddyAnonymized.Status status)
+	public void setStatus(Status status)
 	{
 		this.status = status;
 	}
 
-	public BuddyAnonymized.Status getStatus()
+	public Status getStatus()
 	{
 		return this.status;
 	}
 
-	public static BuddyConnectRequestMessage createInstance(UUID requestingUserID, UUID requestingUserUserAnonymizedID, Set<Goal> goals,
-			String nickname, String message, UUID buddyID, boolean isRequestingSending, boolean isRequestingReceiving)
+	public static BuddyConnectRequestMessage createInstance(UUID requestingUserID, UUID requestingUserUserAnonymizedID,
+			Set<Goal> goals, String nickname, String message, UUID buddyID, boolean isRequestingSending,
+			boolean isRequestingReceiving)
 	{
 		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserUserAnonymizedID,
 				goals.stream().map(g -> g.getID()).collect(Collectors.toSet()), nickname, message, buddyID, isRequestingSending,
@@ -96,6 +89,6 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	@Override
 	public boolean canBeDeleted()
 	{
-		return this.status == BuddyAnonymized.Status.ACCEPTED || this.status == BuddyAnonymized.Status.REJECTED;
+		return this.status == Status.ACCEPTED || this.status == Status.REJECTED;
 	}
 }
