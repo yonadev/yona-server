@@ -5,16 +5,21 @@
 package nu.yona.server.messaging.entities;
 
 import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import nu.yona.server.crypto.PublicKeyEncryptor;
 import nu.yona.server.crypto.PublicKeyUtil;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
@@ -34,6 +39,9 @@ public class MessageDestination extends EntityWithID
 	@Transient
 	private PublicKey publicKey;
 
+	@OneToMany(cascade = CascadeType.ALL)
+	private List<Message> messages;
+
 	// Default constructor is required for JPA
 	public MessageDestination()
 	{
@@ -44,11 +52,23 @@ public class MessageDestination extends EntityWithID
 	{
 		super(id);
 		this.publicKeyBytes = PublicKeyUtil.publicKeyToBytes(publicKey);
+		this.messages = new ArrayList<>();
 	}
 
 	public static MessageDestination createInstance(PublicKey publicKey)
 	{
 		return new MessageDestination(UUID.randomUUID(), publicKey);
+	}
+
+	public void send(Message message)
+	{
+		message.encryptMessage(PublicKeyEncryptor.createInstance(loadPublicKey()));
+		messages.add(message);
+	}
+
+	public void remove(Message message)
+	{
+		messages.remove(message);
 	}
 
 	public Page<Message> getMessages(Pageable pageable)
@@ -65,8 +85,8 @@ public class MessageDestination extends EntityWithID
 		return publicKey;
 	}
 
-	public PublicKey getPublicKey()
+	public void removeMessagesFromUser(UUID sentByUserAnonymizedID)
 	{
-		return loadPublicKey();
+		messages.removeIf(message -> message.getRelatedUserAnonymizedID().equals(sentByUserAnonymizedID));
 	}
 }

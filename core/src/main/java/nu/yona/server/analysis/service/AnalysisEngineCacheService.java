@@ -13,7 +13,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
-import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
 
 @Service
@@ -36,8 +35,6 @@ public class AnalysisEngineCacheService
 	{
 		// This will save the message as it has already been added to the destination. The message is passed
 		// to this method in order to update the cache properly after the update.
-		Message.getRepository().save(message);
-
 		return message;
 	}
 }

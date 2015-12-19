@@ -23,8 +23,6 @@ import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.messaging.entities.MessageSource;
-import nu.yona.server.messaging.service.MessageDestinationDTO;
-import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
 import nu.yona.server.subscriptions.entities.Buddy;
@@ -50,9 +48,6 @@ public class UserService
 
 	@Autowired
 	private BuddyService buddyService;
-
-	@Autowired
-	private MessageService messageService;
 
 	@Autowired
 	private TransactionHelper transactionHelper;
@@ -341,8 +336,6 @@ public class UserService
 		userAnonymizedCacheService.deleteUserAnonymized(userAnonymizedID);
 		MessageSource namedMessageSource = userEntity.getNamedMessageSource();
 		MessageSource anonymousMessageSource = userEntity.getAnonymousMessageSource();
-		messageService.deleteAllMessages(MessageDestinationDTO.createInstance(namedMessageSource.getDestination()));
-		messageService.deleteAllMessages(MessageDestinationDTO.createInstance(anonymousMessageSource.getDestination()));
 		MessageSource.getRepository().delete(anonymousMessageSource);
 		MessageSource.getRepository().delete(namedMessageSource);
 		User.getRepository().delete(userEntity);

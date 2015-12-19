@@ -20,9 +20,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-import nu.yona.server.crypto.PublicKeyEncryptor;
 import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
@@ -84,6 +84,7 @@ public class MessageService
 		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
 	}
 
+	@Transactional
 	public MessageActionDTO deleteMessage(UUID userID, UUID id)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
@@ -91,11 +92,12 @@ public class MessageService
 		MessageSource messageSource = getNamedMessageSource(user);
 		Message message = messageSource.getMessage(id);
 
-		deleteMessage(message);
+		deleteMessage(message, messageSource.getDestination());
 
 		return new MessageActionDTO(Collections.singletonMap("status", "done"));
 	}
 
+	@Transactional
 	public MessageActionDTO deleteAnonymousMessage(UUID userID, UUID id)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
@@ -103,19 +105,20 @@ public class MessageService
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		Message message = messageSource.getMessage(id);
 
-		deleteMessage(message);
+		deleteMessage(message, messageSource.getDestination());
 
 		return new MessageActionDTO(Collections.singletonMap("status", "done"));
 	}
 
-	private void deleteMessage(Message message)
+	private void deleteMessage(Message message, MessageDestination destination)
 	{
 		if (!message.canBeDeleted())
 		{
 			throw InvalidMessageActionException.unprocessedMessageCannotBeDeleted();
 		}
 
-		Message.getRepository().delete(message);
+		destination.remove(message);
+		MessageDestination.getRepository().save(destination);
 	}
 
 	private MessageSource getNamedMessageSource(UserDTO user)
@@ -186,28 +189,24 @@ public class MessageService
 		}
 	}
 
-	private Page<Message> getMessages(UUID destinationID, Pageable pageable)
-	{
-		return Message.getRepository().findFromDestination(destinationID, pageable);
-	}
-
 	@Transactional
 	public void sendMessage(Message message, MessageDestinationDTO destination)
 	{
-		message.setDestination(destination.getID());
-		message.encryptMessage(PublicKeyEncryptor.createInstance(destination.getPublicKey()));
-		Message.getRepository().save(message);
+		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getID());
+		destinationEntity.send(message);
+		MessageDestination.getRepository().save(destinationEntity);
 	}
 
+	@Transactional
 	public void removeMessagesFromUser(MessageDestinationDTO destination, UUID sentByUserAnonymizedID)
 	{
-		getMessages(destination.getID(), null).getContent().stream()
-				.filter(message -> message.getRelatedUserAnonymizedID().equals(sentByUserAnonymizedID))
-				.forEach(message -> Message.getRepository().delete(message));
-	}
+		if (sentByUserAnonymizedID == null)
+		{
+			throw new IllegalArgumentException("sentByUserAnonymizedID cannot be null");
+		}
 
-	public void deleteAllMessages(MessageDestinationDTO destination)
-	{
-		getMessages(destination.getID(), null).getContent().stream().forEach(message -> Message.getRepository().delete(message));
+		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getID());
+		destinationEntity.removeMessagesFromUser(sentByUserAnonymizedID);
+		MessageDestination.getRepository().save(destinationEntity);
 	}
 }
