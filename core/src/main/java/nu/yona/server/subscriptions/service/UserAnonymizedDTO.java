@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 public class UserAnonymizedDTO
@@ -41,10 +42,10 @@ public class UserAnonymizedDTO
 
 	public Set<MessageDestinationDTO> getBuddyDestinations()
 	{
-		// hard to cache because the availability of a buddy connection may change
-		return UserAnonymized
-				.mapAvailableDestinations(buddyAnonymizedIDs.stream().map(id -> BuddyAnonymized.getRepository().findOne(id)))
-				.map(messageDestination -> MessageDestinationDTO.createInstance(messageDestination)).collect(Collectors.toSet());
+		return buddyAnonymizedIDs.stream().map(id -> BuddyAnonymized.getRepository().findOne(id))
+				.filter(ba -> ba.getSendingStatus() == Status.ACCEPTED)
+				.map(ba -> MessageDestinationDTO.createInstance(ba.getUserAnonymized().getAnonymousDestination()))
+				.collect(Collectors.toSet());
 	}
 
 	public BuddyAnonymized getBuddyAnonymized(UUID fromUserAnonymizedID)
