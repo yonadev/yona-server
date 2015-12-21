@@ -11,11 +11,11 @@ public abstract class ResourceBasedException extends RuntimeException
 {
 	private static final long serialVersionUID = 8031973645020363969L;
 	/** Holds the parameters for the exception message. */
-	private Object[] parameters;
+	private final Object[] parameters;
 	/** Holds the message id. */
-	private String messageId;
-	/** Holds the http response code to be used. */
-	private HttpStatus statusCode;
+	private final String messageId;
+	/** Holds the HTTP response code to be used. */
+	private final HttpStatus statusCode;
 
 	/**
 	 * Constructor.
@@ -32,7 +32,7 @@ public abstract class ResourceBasedException extends RuntimeException
 		this.parameters = parameters;
 		this.statusCode = statusCode;
 	}
-	
+
 	/**
 	 * Constructor.
 	 * 
@@ -55,7 +55,7 @@ public abstract class ResourceBasedException extends RuntimeException
 	{
 		this(HttpStatus.BAD_REQUEST, t, messageId, parameters);
 	}
-	
+
 	/**
 	 * Constructor.
 	 * 
@@ -84,16 +84,6 @@ public abstract class ResourceBasedException extends RuntimeException
 	}
 
 	/**
-	 * This method sets the message id.
-	 * 
-	 * @param messageId The message id.
-	 */
-	public void setMessageId(String messageId)
-	{
-		this.messageId = messageId;
-	}
-
-	/**
 	 * This method gets the parameters for the exception message.
 	 * 
 	 * @return The parameters for the exception message.
@@ -104,16 +94,6 @@ public abstract class ResourceBasedException extends RuntimeException
 	}
 
 	/**
-	 * This method sets the parameters for the exception message.
-	 * 
-	 * @param parameters The parameters for the exception message.
-	 */
-	public void setParameters(Object[] parameters)
-	{
-		this.parameters = parameters;
-	}
-	
-	/**
 	 * This method gets the http response code to be used.
 	 * 
 	 * @return The http response code to be used.
@@ -121,15 +101,5 @@ public abstract class ResourceBasedException extends RuntimeException
 	public HttpStatus getStatusCode()
 	{
 		return statusCode;
-	}
-
-	/**
-	 * This method sets the http response code to be used.
-	 * 
-	 * @param statusCode The http response code to be used.
-	 */
-	public void setStatusCode(HttpStatus statusCode)
-	{
-		this.statusCode = statusCode;
 	}
 }

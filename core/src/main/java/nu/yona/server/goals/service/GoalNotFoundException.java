@@ -16,15 +16,14 @@ public class GoalNotFoundException extends YonaException
 
 	protected GoalNotFoundException(String messageId, Object... parameters)
 	{
-		super(messageId, parameters);
-		setStatusCode(HttpStatus.NOT_FOUND);
+		super(HttpStatus.NOT_FOUND, messageId, parameters);
 	}
 
 	public static GoalNotFoundException notFound(UUID id)
 	{
 		return new GoalNotFoundException("error.goal.not.found", id);
 	}
-	
+
 	public static GoalNotFoundException notFoundByName(String name)
 	{
 		return new GoalNotFoundException("error.goal.not.found.by.name", name);

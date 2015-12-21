@@ -18,11 +18,10 @@ public class BuddyNotFoundException extends YonaException
 	{
 		super(messageId, parameters);
 	}
-	
-	private BuddyNotFoundException(HttpStatus status, String messageId, Object... parameters)
+
+	private BuddyNotFoundException(HttpStatus statusCode, String messageId, Object... parameters)
 	{
-		super(messageId, parameters);
-		setStatusCode(status);
+		super(statusCode, messageId, parameters);
 	}
 
 	public static BuddyNotFoundException notFound(UUID id)
