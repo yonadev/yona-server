@@ -51,7 +51,7 @@ class AppService extends Service
 	{
 		assertResponseStatusCreated(response)
 		assertUserWithPrivateData(response.responseData)
-		assert response.responseData.confirmationCode
+		assert response.responseData.mobileNumberConfirmationCode
 	}
 
 	def assertUserUpdateResponseDetails(def response)
