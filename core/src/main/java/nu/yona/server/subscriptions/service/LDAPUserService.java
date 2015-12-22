@@ -1,10 +1,10 @@
 package nu.yona.server.subscriptions.service;
 
-import java.util.logging.Logger;
-
 import javax.naming.Name;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.odm.annotations.Attribute;
@@ -19,7 +19,7 @@ import nu.yona.server.crypto.CryptoUtil;
 @Service
 public class LDAPUserService
 {
-	private static final Logger LOGGER = Logger.getLogger(LDAPUserService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(LDAPUserService.class);
 
 	private enum Action
 	{
@@ -58,7 +58,7 @@ public class LDAPUserService
 	{
 		if (ldapTemplate == null)
 		{
-			LOGGER.info("LDAP action " + action + " not performed, as LDAP is not initialized.");
+			logger.info("LDAP action {} not performed, as LDAP is not initialized.", action);
 			return;
 		}
 		switch (action)

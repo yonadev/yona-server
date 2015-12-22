@@ -5,8 +5,9 @@ package nu.yona.server;
  *******************************************************************************/
 
 import java.util.Properties;
-import java.util.logging.Logger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +25,7 @@ import nu.yona.server.rest.JsonRootRelProvider;
 @Configuration
 public class CoreConfiguration
 {
-	private static final Logger LOGGER = Logger.getLogger(CoreConfiguration.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CoreConfiguration.class);
 
 	@Autowired
 	private YonaProperties yonaProperties;
@@ -62,7 +63,7 @@ public class CoreConfiguration
 	{
 		if (!yonaProperties.getLdap().isEnabled())
 		{
-			LOGGER.info("Skipping LDAP initialization, as it's not enabled.");
+			logger.info("Skipping LDAP initialization, as it's not enabled.");
 			return null;
 		}
 		LdapContextSource contextSource = new LdapContextSource();
