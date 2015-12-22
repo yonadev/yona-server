@@ -60,7 +60,7 @@ public class BuddyService
 	YonaProperties properties;
 
 	@Autowired
-	UserAnonymizedService userAnonymizedCacheService;
+	UserAnonymizedService userAnonymizedService;
 
 	public enum DropBuddyReason
 	{
@@ -134,7 +134,7 @@ public class BuddyService
 
 		UserAnonymized userAnonymizedEntity = user.getAnonymized();
 		userAnonymizedEntity.removeBuddyAnonymized(buddy.getBuddyAnonymized());
-		userAnonymizedCacheService.updateUserAnonymized(user.getUserAnonymizedID(), userAnonymizedEntity);
+		userAnonymizedService.updateUserAnonymized(user.getUserAnonymizedID(), userAnonymizedEntity);
 	}
 
 	@Transactional
@@ -167,7 +167,7 @@ public class BuddyService
 		if (requestingUserBuddy.getSendingStatus() == Status.ACCEPTED
 				|| requestingUserBuddy.getReceivingStatus() == Status.ACCEPTED)
 		{
-			UserAnonymizedDTO userAnonymized = userService.getUserAnonymized(requestingUserBuddy.getUserAnonymizedID());
+			UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(requestingUserBuddy.getUserAnonymizedID());
 			disconnectBuddy(userAnonymized, requestingUser.getUserAnonymizedID());
 			removeAnonymousMessagesSentByUser(userAnonymized, requestingUser.getUserAnonymizedID());
 			sendDropBuddyMessage(requestingUser, requestingUserBuddy, message, reason);
@@ -211,15 +211,15 @@ public class BuddyService
 	private void removeMessagesSentByBuddy(User user, Buddy buddy)
 	{
 		removeNamedMessagesSentByUser(user, buddy.getUserAnonymizedID());
-		UserAnonymizedDTO userAnonymized = userService.getUserAnonymized(user.getUserAnonymizedID());
+		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(user.getUserAnonymizedID());
 		removeAnonymousMessagesSentByUser(userAnonymized, buddy.getUserAnonymizedID());
 	}
 
 	private void sendDropBuddyMessage(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
 			DropBuddyReason reason)
 	{
-		MessageDestinationDTO messageDestination = userService.getUserAnonymized(requestingUserBuddy.getUserAnonymizedID())
-				.getAnonymousDestination();
+		MessageDestinationDTO messageDestination = userAnonymizedService
+				.getUserAnonymized(requestingUserBuddy.getUserAnonymizedID()).getAnonymousDestination();
 		messageService.sendMessage(BuddyDisconnectMessage.createInstance(requestingUser.getID(),
 				requestingUser.getUserAnonymizedID(), requestingUser.getNickname(), getDropBuddyMessage(reason, message), reason),
 				messageDestination);

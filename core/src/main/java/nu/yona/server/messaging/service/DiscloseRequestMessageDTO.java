@@ -25,8 +25,8 @@ import nu.yona.server.messaging.entities.DiscloseResponseMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDTO;
-import nu.yona.server.subscriptions.service.UserService;
 
 @JsonRootName("discloseRequestMessage")
 public class DiscloseRequestMessageDTO extends MessageDTO
@@ -101,7 +101,7 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 		private MessageService messageService;
 
 		@Autowired
-		private UserService userService;
+		private UserAnonymizedService userAnonymizedService;
 
 		@PostConstruct
 		private void init()
@@ -162,13 +162,13 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 		private void sendResponseMessageToRequestingUser(UserDTO respondingUser, DiscloseRequestMessage requestMessageEntity,
 				String message)
 		{
-			MessageDestinationDTO messageDestination = userService.getUserAnonymized(requestMessageEntity.getRelatedUserAnonymizedID())
-					.getAnonymousDestination();
+			MessageDestinationDTO messageDestination = userAnonymizedService
+					.getUserAnonymized(requestMessageEntity.getRelatedUserAnonymizedID()).getAnonymousDestination();
 			assert messageDestination != null;
 			messageService.sendMessage(DiscloseResponseMessage.createInstance(respondingUser.getID(),
-					respondingUser.getPrivateData().getUserAnonymizedID(),
-					requestMessageEntity.getTargetGoalConflictMessageID(), requestMessageEntity.getStatus(),
-					respondingUser.getPrivateData().getNickname(), message), messageDestination);
+					respondingUser.getPrivateData().getUserAnonymizedID(), requestMessageEntity.getTargetGoalConflictMessageID(),
+					requestMessageEntity.getStatus(), respondingUser.getPrivateData().getNickname(), message),
+					messageDestination);
 		}
 	}
 }

@@ -19,7 +19,7 @@ import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
-import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 
 @Service
 public class AnalysisEngineService
@@ -31,13 +31,13 @@ public class AnalysisEngineService
 	@Autowired
 	private AnalysisEngineCacheService cacheService;
 	@Autowired
-	private UserService userService;
+	private UserAnonymizedService userAnonymizedService;
 	@Autowired
 	private MessageService messageService;
 
 	public void analyze(PotentialConflictDTO potentialConflictPayload)
 	{
-		UserAnonymizedDTO userAnonimized = userService.getUserAnonymized(potentialConflictPayload.getVPNLoginID());
+		UserAnonymizedDTO userAnonimized = userAnonymizedService.getUserAnonymized(potentialConflictPayload.getVPNLoginID());
 		Set<Goal> conflictingGoalsOfUser = determineConflictingGoalsForUser(userAnonimized,
 				potentialConflictPayload.getCategories());
 		if (!conflictingGoalsOfUser.isEmpty())

@@ -95,7 +95,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 		private BuddyService buddyService;
 
 		@Autowired
-		private UserService userService;
+		private UserAnonymizedService userAnonymizedService;
 
 		@Autowired
 		private MessageService messageService;
@@ -168,14 +168,13 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 		private void sendResponseMessageToRequestingUser(UserDTO respondingUser,
 				BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage)
 		{
-			MessageDestinationDTO messageDestination = userService
+			MessageDestinationDTO messageDestination = userAnonymizedService
 					.getUserAnonymized(connectRequestMessageEntity.getRelatedUserAnonymizedID()).getAnonymousDestination();
 			assert messageDestination != null;
 			messageService.sendMessage(
 					BuddyConnectResponseMessage.createInstance(respondingUser.getID(),
-							respondingUser.getPrivateData().getUserAnonymizedID(),
-							respondingUser.getPrivateData().getNickname(), responseMessage,
-							connectRequestMessageEntity.getBuddyID(), connectRequestMessageEntity.getStatus()),
+							respondingUser.getPrivateData().getUserAnonymizedID(), respondingUser.getPrivateData().getNickname(),
+							responseMessage, connectRequestMessageEntity.getBuddyID(), connectRequestMessageEntity.getStatus()),
 					messageDestination);
 		}
 	}
