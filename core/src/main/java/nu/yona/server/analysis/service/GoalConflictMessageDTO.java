@@ -30,8 +30,8 @@ import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDTO;
-import nu.yona.server.subscriptions.service.UserService;
 
 @JsonRootName("goalConflictMessage")
 public class GoalConflictMessageDTO extends MessageDTO
@@ -118,7 +118,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 		private BuddyService buddyService;
 
 		@Autowired
-		private UserService userService;
+		private UserAnonymizedService userAnonymizedService;
 
 		@Autowired
 		private MessageService messageService;
@@ -155,11 +155,10 @@ public class GoalConflictMessageDTO extends MessageDTO
 			messageEntity.setStatus(Status.DISCLOSE_REQUESTED);
 			GoalConflictMessage.getRepository().save(messageEntity);
 
-			MessageDestinationDTO messageDestination = userService.getUserAnonymized(messageEntity.getRelatedUserAnonymizedID())
+			MessageDestinationDTO messageDestination = userAnonymizedService.getUserAnonymized(messageEntity.getRelatedUserAnonymizedID())
 					.getAnonymousDestination();
 			messageService.sendMessage(
-					DiscloseRequestMessage.createInstance(actingUser.getID(),
-							actingUser.getPrivateData().getUserAnonymizedID(),
+					DiscloseRequestMessage.createInstance(actingUser.getID(), actingUser.getPrivateData().getUserAnonymizedID(),
 							actingUser.getPrivateData().getNickname(), requestPayload.getProperty("message"), messageEntity),
 					messageDestination);
 

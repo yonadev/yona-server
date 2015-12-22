@@ -53,7 +53,7 @@ public class UserService
 	private TransactionHelper transactionHelper;
 
 	@Autowired
-	private UserAnonymizedService userAnonymizedCacheService;
+	private UserAnonymizedService userAnonymizedService;
 
 	@Transactional
 	public boolean canAccessPrivateData(UUID id)
@@ -333,7 +333,7 @@ public class UserService
 
 		UUID vpnLoginID = userEntity.getVPNLoginID();
 		UUID userAnonymizedID = userEntity.getUserAnonymizedID();
-		userAnonymizedCacheService.deleteUserAnonymized(userAnonymizedID);
+		userAnonymizedService.deleteUserAnonymized(userAnonymizedID);
 		MessageSource namedMessageSource = userEntity.getNamedMessageSource();
 		MessageSource anonymousMessageSource = userEntity.getAnonymousMessageSource();
 		MessageSource.getRepository().delete(anonymousMessageSource);
@@ -365,7 +365,7 @@ public class UserService
 
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		userAnonymizedEntity.addBuddyAnonymized(buddyEntity.getBuddyAnonymized());
-		userAnonymizedCacheService.updateUserAnonymized(userEntity.getUserAnonymizedID(), userAnonymizedEntity);
+		userAnonymizedService.updateUserAnonymized(userEntity.getUserAnonymizedID(), userAnonymizedEntity);
 	}
 
 	public String generatePassword()
@@ -539,11 +539,6 @@ public class UserService
 		{
 			throw InvalidDataException.invalidMobileNumber(userResource.getMobileNumber());
 		}
-	}
-
-	public UserAnonymizedDTO getUserAnonymized(UUID userAnonymizedID)
-	{
-		return userAnonymizedCacheService.getUserAnonymized(userAnonymizedID);
 	}
 
 	/**
