@@ -230,11 +230,16 @@ class AppService extends Service
 		assert response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
 
 		def message = response.responseData._embedded?.buddyConnectResponseMessages[0]?.message ?: null
+		def status = response.responseData._embedded?.buddyConnectResponseMessages[0]?.status ?: null
 		def processURL = response.responseData._embedded?.buddyConnectResponseMessages[0]?._links?.process?.href
 		def result = [ : ]
 		if (message)
 		{
 			result.message = message
+		}
+		if (status)
+		{
+			result.status = status
 		}
 		if (processURL)
 		{

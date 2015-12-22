@@ -21,6 +21,7 @@ import nu.yona.server.messaging.service.MessageServiceException;
 public abstract class Message extends EntityWithID
 {
 	private UUID relatedUserAnonymizedID;
+
 	private Date creationTime;
 
 	public static MessageRepository getRepository()
@@ -36,12 +37,12 @@ public abstract class Message extends EntityWithID
 	protected Message(UUID id, UUID relatedUserAnonymizedID)
 	{
 		super(id);
-		
+
 		if (id != null && relatedUserAnonymizedID == null)
 		{
 			throw MessageServiceException.anonymizedUserIdMustBeSet();
 		}
-		
+
 		this.relatedUserAnonymizedID = relatedUserAnonymizedID;
 		this.creationTime = new Date();
 	}

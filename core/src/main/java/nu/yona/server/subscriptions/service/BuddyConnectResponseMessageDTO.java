@@ -31,12 +31,14 @@ import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 {
 	private static final String PROCESS = "process";
+	private Status status;
 	private boolean isProcessed;
 
 	private BuddyConnectResponseMessageDTO(UUID id, Date creationTime, UserDTO user, String nickname, String message,
-			boolean isProcessed)
+			Status status, boolean isProcessed)
 	{
 		super(id, creationTime, user, nickname, message);
+		this.status = status;
 		this.isProcessed = isProcessed;
 	}
 
@@ -51,6 +53,11 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 		return possibleActions;
 	}
 
+	public Status getStatus()
+	{
+		return status;
+	}
+
 	public boolean isProcessed()
 	{
 		return isProcessed;
@@ -60,7 +67,7 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 	{
 		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
 				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getNickname(), messageEntity.getMessage(),
-				messageEntity.isProcessed());
+				messageEntity.getStatus(), messageEntity.isProcessed());
 	}
 
 	@Component

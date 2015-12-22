@@ -66,7 +66,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].url =~ /poker/
 		def getDirectMessagesResponse = appService.getDirectMessages(bob)
 		getDirectMessagesResponse.status == 200
-		getDirectMessagesResponse.responseData._embedded == null || response.responseData._embedded.buddyConnectRequestMessages == null
+		getDirectMessagesResponse.responseData._embedded == null || getDirectMessagesResponse.responseData._embedded.buddyConnectRequestMessages == null
 
 		cleanup:
 		appService.deleteUser(bob)

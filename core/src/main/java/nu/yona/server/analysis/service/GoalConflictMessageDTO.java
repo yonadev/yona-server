@@ -22,15 +22,16 @@ import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.goals.service.GoalServiceException;
 import nu.yona.server.messaging.entities.DiscloseRequestMessage;
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
+import nu.yona.server.messaging.service.MessageDestinationDTO;
+import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.subscriptions.service.UserService;
 
 @JsonRootName("goalConflictMessage")
 public class GoalConflictMessageDTO extends MessageDTO
@@ -116,6 +117,12 @@ public class GoalConflictMessageDTO extends MessageDTO
 		@Autowired
 		private BuddyService buddyService;
 
+		@Autowired
+		private UserService userService;
+
+		@Autowired
+		private MessageService messageService;
+
 		@PostConstruct
 		private void init()
 		{
@@ -148,12 +155,13 @@ public class GoalConflictMessageDTO extends MessageDTO
 			messageEntity.setStatus(Status.DISCLOSE_REQUESTED);
 			GoalConflictMessage.getRepository().save(messageEntity);
 
-			MessageDestination messageDestination = UserAnonymized.getRepository()
-					.findOne(messageEntity.getRelatedUserAnonymizedID()).getAnonymousDestination();
-			messageDestination.send(
-					DiscloseRequestMessage.createInstance(actingUser.getID(), actingUser.getPrivateData().getUserAnonymizedID(),
-							actingUser.getPrivateData().getNickname(), requestPayload.getProperty("message"), messageEntity));
-			MessageDestination.getRepository().save(messageDestination);
+			MessageDestinationDTO messageDestination = userService.getUserAnonymized(messageEntity.getRelatedUserAnonymizedID())
+					.getAnonymousDestination();
+			messageService.sendMessage(
+					DiscloseRequestMessage.createInstance(actingUser.getID(),
+							actingUser.getPrivateData().getUserAnonymizedID(),
+							actingUser.getPrivateData().getNickname(), requestPayload.getProperty("message"), messageEntity),
+					messageDestination);
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}

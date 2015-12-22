@@ -20,15 +20,16 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
+import nu.yona.server.messaging.service.MessageDestinationDTO;
+import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @JsonRootName("buddyConnectRequestMessage")
 public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
@@ -36,11 +37,10 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 	private static final String ACCEPT = "accept";
 	private static final String REJECT = "reject";
 
-	private boolean isAccepted;
-	private boolean isRejected;
+	private Status status;
 
 	private BuddyConnectRequestMessageDTO(BuddyConnectRequestMessage buddyConnectRequestMessageEntity, UUID id, Date creationTime,
-			UserDTO user, UUID userAnonymizedID, String nickname, String message, boolean isAccepted, boolean isRejected)
+			UserDTO user, UUID userAnonymizedID, String nickname, String message, Status status)
 	{
 		super(id, creationTime, user, nickname, message);
 
@@ -54,15 +54,14 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 			throw BuddyServiceException.userAnonymizedIdCannotBeNull();
 		}
 
-		this.isAccepted = isAccepted;
-		this.isRejected = isRejected;
+		this.status = status;
 	}
 
 	@Override
 	public Set<String> getPossibleActions()
 	{
 		Set<String> possibleActions = new HashSet<>();
-		if (!isAccepted && !isRejected)
+		if (status == Status.REQUESTED)
 		{
 			possibleActions.add(ACCEPT);
 			possibleActions.add(REJECT);
@@ -70,21 +69,16 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 		return possibleActions;
 	}
 
-	public boolean isAccepted()
+	public Status getStatus()
 	{
-		return isAccepted;
-	}
-
-	public boolean isRejected()
-	{
-		return isRejected;
+		return status;
 	}
 
 	public static BuddyConnectRequestMessageDTO createInstance(UserDTO requestingUser, BuddyConnectRequestMessage messageEntity)
 	{
 		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(), messageEntity.getCreationTime(),
 				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getRelatedUserAnonymizedID(),
-				messageEntity.getNickname(), messageEntity.getMessage(), messageEntity.isAccepted(), messageEntity.isRejected());
+				messageEntity.getNickname(), messageEntity.getMessage(), messageEntity.getStatus());
 	}
 
 	@Component
@@ -97,6 +91,12 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 
 		@Autowired
 		private BuddyService buddyService;
+
+		@Autowired
+		private UserService userService;
+
+		@Autowired
+		private MessageService messageService;
 
 		@PostConstruct
 		private void init()
@@ -176,16 +176,15 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 		private void sendResponseMessageToRequestingUser(UserDTO respondingUser,
 				BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage)
 		{
-			UserAnonymized userAnonymized = UserAnonymized.getRepository()
-					.findOne(connectRequestMessageEntity.getRelatedUserAnonymizedID());
-			MessageDestination messageDestination = userAnonymized.getAnonymousDestination();
+			MessageDestinationDTO messageDestination = userService
+					.getUserAnonymized(connectRequestMessageEntity.getRelatedUserAnonymizedID()).getAnonymousDestination();
 			assert messageDestination != null;
-			messageDestination.send(BuddyConnectResponseMessage.createInstance(respondingUser.getID(),
-					respondingUser.getPrivateData().getUserAnonymizedID(),
-					respondingUser.getPrivateData().getAnonymousMessageDestinationID(),
-					respondingUser.getPrivateData().getNickname(), responseMessage, connectRequestMessageEntity.getBuddyID(),
-					connectRequestMessageEntity.getStatus()));
-			MessageDestination.getRepository().save(messageDestination);
+			messageService.sendMessage(
+					BuddyConnectResponseMessage.createInstance(respondingUser.getID(),
+							respondingUser.getPrivateData().getUserAnonymizedID(),
+							respondingUser.getPrivateData().getNickname(), responseMessage,
+							connectRequestMessageEntity.getBuddyID(), connectRequestMessageEntity.getStatus()),
+					messageDestination);
 		}
 	}
 }
