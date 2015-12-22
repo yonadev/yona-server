@@ -36,11 +36,11 @@ public class MessageDestination extends EntityWithID
 	@Column(length = 1024)
 	private byte[] publicKeyBytes;
 
-	@OneToMany(cascade = CascadeType.ALL)
-	private List<Message> messages;
-
 	@Transient
 	private PublicKey publicKey;
+
+	@OneToMany(cascade = CascadeType.ALL)
+	private List<Message> messages;
 
 	// Default constructor is required for JPA
 	public MessageDestination()
@@ -85,8 +85,8 @@ public class MessageDestination extends EntityWithID
 		return publicKey;
 	}
 
-	public void removeMessagesFromUser(UUID fromUserLoginID)
+	public void removeMessagesFromUser(UUID sentByUserAnonymizedID)
 	{
-		messages.removeIf(message -> message.getRelatedUserAnonymizedID().equals(fromUserLoginID));
+		messages.removeIf(message -> message.getRelatedUserAnonymizedID().equals(sentByUserAnonymizedID));
 	}
 }

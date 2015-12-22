@@ -23,11 +23,10 @@ import nu.yona.server.analysis.service.GoalConflictMessageDTO;
 import nu.yona.server.messaging.entities.DiscloseRequestMessage;
 import nu.yona.server.messaging.entities.DiscloseResponseMessage;
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.subscriptions.service.UserService;
 
 @JsonRootName("discloseRequestMessage")
 public class DiscloseRequestMessageDTO extends MessageDTO
@@ -90,6 +89,12 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 		@Autowired
 		private TheDTOManager theDTOFactory;
 
+		@Autowired
+		private MessageService messageService;
+
+		@Autowired
+		private UserService userService;
+
 		@PostConstruct
 		private void init()
 		{
@@ -149,14 +154,13 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 		private void sendResponseMessageToRequestingUser(UserDTO respondingUser, DiscloseRequestMessage requestMessageEntity,
 				String message)
 		{
-			UserAnonymized userAnonymized = UserAnonymized.getRepository()
-					.findOne(requestMessageEntity.getRelatedUserAnonymizedID());
-			MessageDestination messageDestination = userAnonymized.getAnonymousDestination();
+			MessageDestinationDTO messageDestination = userService.getUserAnonymized(requestMessageEntity.getRelatedUserAnonymizedID())
+					.getAnonymousDestination();
 			assert messageDestination != null;
-			messageDestination.send(DiscloseResponseMessage.createInstance(respondingUser.getID(),
-					respondingUser.getPrivateData().getUserAnonymizedID(), requestMessageEntity.getTargetGoalConflictMessageID(),
-					requestMessageEntity.getStatus(), respondingUser.getPrivateData().getNickname(), message));
-			MessageDestination.getRepository().save(messageDestination);
+			messageService.sendMessage(DiscloseResponseMessage.createInstance(respondingUser.getID(),
+					respondingUser.getPrivateData().getUserAnonymizedID(),
+					requestMessageEntity.getTargetGoalConflictMessageID(), requestMessageEntity.getStatus(),
+					respondingUser.getPrivateData().getNickname(), message), messageDestination);
 		}
 	}
 }
