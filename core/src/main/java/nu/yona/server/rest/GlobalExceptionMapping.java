@@ -25,7 +25,7 @@ public class GlobalExceptionMapping
 
 	/** The source that contains the actual messages for the codes */
 	@Autowired
-	Translator translator;
+	private Translator translator;
 
 	/**
 	 * This method generically handles the illegal argument exceptions. They are translated into nice ResponseMessage objects so
