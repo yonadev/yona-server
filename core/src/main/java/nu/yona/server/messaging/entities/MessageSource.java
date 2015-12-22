@@ -96,7 +96,7 @@ public class MessageSource extends EntityWithID
 		{
 			throw MessageNotFoundException.messageNotFound(idToFetch);
 		}
-		
+
 		message.decryptMessage(PublicKeyDecryptor.createInstance(loadPrivateKey()));
 		return message;
 	}

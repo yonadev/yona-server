@@ -10,8 +10,6 @@ import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
 
-import nu.yona.server.crypto.Decryptor;
-import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.service.BuddyServiceException;
@@ -72,18 +70,6 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserUserAnonymizedID,
 				goals.stream().map(g -> g.getID()).collect(Collectors.toSet()), nickname, message, buddyID, isRequestingSending,
 				isRequestingReceiving);
-	}
-
-	@Override
-	public void encrypt(Encryptor encryptor)
-	{
-		super.encrypt(encryptor);
-	}
-
-	@Override
-	public void decrypt(Decryptor decryptor)
-	{
-		super.decrypt(decryptor);
 	}
 
 	@Override

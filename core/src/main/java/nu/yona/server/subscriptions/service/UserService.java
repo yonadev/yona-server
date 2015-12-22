@@ -52,18 +52,8 @@ public class UserService
 	@Autowired
 	private TransactionHelper transactionHelper;
 
-	// TODO: Do we need this? Currently unused.
-	@Transactional
-	public UserDTO getUser(String mobileNumber)
-	{
-		if (mobileNumber == null)
-		{
-			throw UserServiceException.missingMobileNumber();
-		}
-
-		User userEntity = findUserByMobileNumber(mobileNumber);
-		return UserDTO.createInstanceWithPrivateData(userEntity);
-	}
+	@Autowired
+	private UserAnonymizedService userAnonymizedCacheService;
 
 	@Transactional
 	public boolean canAccessPrivateData(UUID id)
@@ -89,6 +79,7 @@ public class UserService
 		return UserDTO.createInstanceWithPrivateData(getValidatedUserbyID(id));
 	}
 
+	@Transactional
 	public OverwriteUserDTO setOverwriteUserConfirmationCode(String mobileNumber)
 	{
 		User existingUserEntity = findUserByMobileNumber(mobileNumber);
@@ -340,9 +331,9 @@ public class UserService
 		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
 				DropBuddyReason.USER_ACCOUNT_DELETED));
 
-		UserAnonymized userAnonymized = userEntity.getAnonymized();
-		UUID vpnLoginID = userAnonymized.getVPNLoginID();
-		UserAnonymized.getRepository().delete(userAnonymized);
+		UUID vpnLoginID = userEntity.getVPNLoginID();
+		UUID userAnonymizedID = userEntity.getUserAnonymizedID();
+		userAnonymizedCacheService.deleteUserAnonymized(userAnonymizedID);
 		MessageSource namedMessageSource = userEntity.getNamedMessageSource();
 		MessageSource anonymousMessageSource = userEntity.getAnonymousMessageSource();
 		MessageSource.getRepository().delete(anonymousMessageSource);
@@ -352,6 +343,7 @@ public class UserService
 		ldapUserService.deleteVPNAccount(vpnLoginID.toString());
 	}
 
+	@Transactional
 	public void addBuddy(UserDTO user, BuddyDTO buddy)
 	{
 		if (user == null || user.getID() == null)
@@ -369,8 +361,11 @@ public class UserService
 
 		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getID());
 		userEntity.addBuddy(buddyEntity);
-
 		User.getRepository().save(userEntity);
+
+		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
+		userAnonymizedEntity.addBuddyAnonymized(buddyEntity.getBuddyAnonymized());
+		userAnonymizedCacheService.updateUserAnonymized(userEntity.getUserAnonymizedID(), userAnonymizedEntity);
 	}
 
 	public String generatePassword()
@@ -544,6 +539,11 @@ public class UserService
 		{
 			throw InvalidDataException.invalidMobileNumber(userResource.getMobileNumber());
 		}
+	}
+
+	public UserAnonymizedDTO getUserAnonymized(UUID userAnonymizedID)
+	{
+		return userAnonymizedCacheService.getUserAnonymized(userAnonymizedID);
 	}
 
 	/**
