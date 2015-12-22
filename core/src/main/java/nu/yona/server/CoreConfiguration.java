@@ -7,7 +7,6 @@ package nu.yona.server;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import org.apache.velocity.app.VelocityEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -89,16 +88,5 @@ public class CoreConfiguration
 		mailSender.setUsername(yonaProperties.getEmail().getSmtp().getUsername());
 		mailSender.setPassword(yonaProperties.getEmail().getSmtp().getPassword());
 		return mailSender;
-	}
-
-	@Bean
-	public VelocityEngine velocityTemplateEngine()
-	{
-		VelocityEngine engine = new VelocityEngine();
-
-		engine.addProperty("resource.loader", "class");
-		engine.addProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-
-		return engine;
 	}
 }
