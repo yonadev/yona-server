@@ -7,10 +7,8 @@ package nu.yona.server;
 import static com.google.common.collect.Lists.newArrayList;
 
 import org.apache.velocity.app.VelocityEngine;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
@@ -34,9 +32,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableCaching
 public class AppServiceApplication
 {
-	@Autowired
-	CacheManager cacheManager;
-
 	public static void main(String[] args)
 	{
 		SpringApplication.run(AppServiceApplication.class, args);

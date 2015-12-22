@@ -13,7 +13,7 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @CacheConfig(cacheNames = "usersAnonymized")
 @Service
-class UserAnonymizedCacheService
+class UserAnonymizedService
 {
 	@Cacheable
 	public UserAnonymizedDTO getUserAnonymized(UUID userAnonymizedID)

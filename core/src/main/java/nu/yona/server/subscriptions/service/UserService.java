@@ -53,7 +53,7 @@ public class UserService
 	private TransactionHelper transactionHelper;
 
 	@Autowired
-	private UserAnonymizedCacheService userAnonymizedCacheService;
+	private UserAnonymizedService userAnonymizedCacheService;
 
 	@Transactional
 	public boolean canAccessPrivateData(UUID id)

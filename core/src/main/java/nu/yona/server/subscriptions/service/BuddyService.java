@@ -60,7 +60,7 @@ public class BuddyService
 	YonaProperties properties;
 
 	@Autowired
-	UserAnonymizedCacheService userAnonymizedCacheService;
+	UserAnonymizedService userAnonymizedCacheService;
 
 	public enum DropBuddyReason
 	{
