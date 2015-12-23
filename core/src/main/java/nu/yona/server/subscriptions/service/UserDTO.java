@@ -105,6 +105,7 @@ public class UserDTO
 		return mobileNumber;
 	}
 
+	@JsonIgnore
 	public boolean isMobileNumberConfirmed()
 	{
 		return isMobileNumberConfirmed;
