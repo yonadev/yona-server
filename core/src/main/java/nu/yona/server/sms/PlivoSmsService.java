@@ -7,7 +7,6 @@ import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -19,6 +18,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.apache.velocity.app.VelocityEngine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.velocity.VelocityEngineUtils;
@@ -33,7 +34,7 @@ import nu.yona.server.properties.YonaProperties;
 @Service
 public class PlivoSmsService implements SmsService
 {
-	private static final Logger LOGGER = Logger.getLogger(PlivoSmsService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PlivoSmsService.class);
 
 	@Autowired
 	private YonaProperties yonaProperties;
@@ -46,11 +47,11 @@ public class PlivoSmsService implements SmsService
 		String message = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine, "sms/" + messageTemplateName + ".vm",
 				"UTF-8", templateParameters);
 
-		LOGGER.info(MessageFormat.format("Sending SMS to number ''{0}''. Message: {1}\r\n", phoneNumber, message));
+		logger.info("Sending SMS to number '{}'. Message: {}", phoneNumber, message);
 
 		if (!yonaProperties.getSms().isEnabled())
 		{
-			LOGGER.info("SMS sending is disabled. No message has been sent.");
+			logger.info("SMS sending is disabled. No message has been sent.");
 			return;
 		}
 
@@ -78,7 +79,7 @@ public class PlivoSmsService implements SmsService
 			httpClient.getConnectionManager().shutdown();
 		}
 
-		LOGGER.info("SMS sent succesfully.");
+		logger.info("SMS sent succesfully.");
 	}
 
 	private String createRequestJson(String phoneNumber, String message)

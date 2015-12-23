@@ -52,19 +52,19 @@ public class BuddyService
 	private MessageService messageService;
 
 	@Autowired
-	EmailService emailService;
+	private EmailService emailService;
 
 	@Autowired
-	SmsService smsService;
+	private SmsService smsService;
 
 	@Autowired
-	Translator translator;
+	private Translator translator;
 
 	@Autowired
-	YonaProperties properties;
+	private YonaProperties properties;
 
 	@Autowired
-	UserAnonymizedService userAnonymizedService;
+	private UserAnonymizedService userAnonymizedService;
 
 	public enum DropBuddyReason
 	{

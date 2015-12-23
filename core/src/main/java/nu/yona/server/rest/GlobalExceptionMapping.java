@@ -1,8 +1,7 @@
 package nu.yona.server.rest;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,11 +21,11 @@ import nu.yona.server.exceptions.YonaException;
 @ControllerAdvice
 public class GlobalExceptionMapping
 {
-	private static final Logger LOGGER = Logger.getLogger(GlobalExceptionMapping.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionMapping.class);
 
 	/** The source that contains the actual messages for the codes */
 	@Autowired
-	Translator translator;
+	private Translator translator;
 
 	/**
 	 * This method generically handles the illegal argument exceptions. They are translated into nice ResponseMessage objects so
@@ -40,7 +39,7 @@ public class GlobalExceptionMapping
 	@ResponseBody
 	public ResponseMessageDTO handleOtherException(Exception exception)
 	{
-		LOGGER.log(Level.SEVERE, "Unhandled exception", exception);
+		logger.error("Unhandled exception", exception);
 
 		return new ResponseMessageDTO(ResponseMessageType.ERROR, null, exception.getMessage());
 	}
@@ -55,11 +54,11 @@ public class GlobalExceptionMapping
 	@ExceptionHandler(YonaException.class)
 	public ResponseEntity<ResponseMessageDTO> handleYonaException(YonaException exception)
 	{
-		LOGGER.log(Level.INFO, "Unhandled exception", exception);
+		logger.error("Unhandled exception", exception);
 
 		ResponseMessageDTO responseMessage = new ResponseMessageDTO(ResponseMessageType.ERROR, exception.getMessageId(),
 				translator.getLocalizedMessage(exception.getMessageId(), exception.getParameters()));
-		
+
 		return new ResponseEntity<ResponseMessageDTO>(responseMessage, exception.getStatusCode());
 	}
 }

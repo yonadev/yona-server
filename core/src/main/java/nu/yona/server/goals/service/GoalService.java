@@ -8,9 +8,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +20,7 @@ import nu.yona.server.goals.entities.Goal;
 @Service
 public class GoalService
 {
-	private static final Logger LOGGER = Logger.getLogger(GoalService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(GoalService.class);
 
 	public GoalDTO getGoal(UUID id)
 	{
@@ -40,7 +41,7 @@ public class GoalService
 	@Transactional
 	public GoalDTO addGoal(GoalDTO goalDTO)
 	{
-		LOGGER.info("Adding goal '" + goalDTO.getName() + "'");
+		logger.info("Adding goal '{}'", goalDTO.getName());
 		return GoalDTO.createInstance(Goal.getRepository().save(goalDTO.createGoalEntity()));
 	}
 
@@ -53,7 +54,7 @@ public class GoalService
 
 	private Goal updateGoal(Goal goalTargetEntity, GoalDTO goalSourceDTO)
 	{
-		LOGGER.info("Updating goal '" + goalSourceDTO.getName() + "'");
+		logger.info("Updating goal '{}'", goalSourceDTO.getName());
 		return Goal.getRepository().save(goalSourceDTO.updateGoal(goalTargetEntity));
 	}
 
@@ -65,7 +66,7 @@ public class GoalService
 
 	private void deleteGoal(Goal goalEntity)
 	{
-		LOGGER.info("Deleting goal '" + goalEntity.getName() + "'");
+		logger.info("Deleting goal '{}'", goalEntity.getName());
 		Goal.getRepository().delete(goalEntity);
 	}
 
