@@ -61,11 +61,6 @@ class YonaServer
 		createResourceWithPassword(USERS_PATH, jsonString, password, parameters)
 	}
 
-	def confirmMobileNumber(userURL, jsonString, password)
-	{
-		createResourceWithPassword(stripQueryString(userURL) + MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT, jsonString, password)
-	}
-
 	def requestOverwriteUser(mobileNumber)
 	{
 		updateResource(USERS_PATH, """{ }""", [:], ["mobileNumber":mobileNumber])

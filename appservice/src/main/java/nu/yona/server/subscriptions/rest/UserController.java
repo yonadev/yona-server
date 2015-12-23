@@ -354,8 +354,8 @@ public class UserController
 			addSelfLink(userResource, includePrivateData);
 			if (includePrivateData && !user.isMobileNumberConfirmed())
 			{
-				// The mobile number is not yet confirmed. So we can add the direct
-				addConfirmMobileLink(userResource, user.getMobileNumberConfirmationCode());
+				// The mobile number is not yet confirmed, so we can add the link
+				addConfirmMobileNumberLink(userResource, user.getMobileNumberConfirmationCode());
 			}
 			return userResource;
 		}
@@ -377,7 +377,7 @@ public class UserController
 			userResource.add(UserController.getUserSelfLink(userResource.getContent().getID(), includePrivateData));
 		}
 
-		private static void addConfirmMobileLink(Resource<UserDTO> userResource, String confirmationCode)
+		private static void addConfirmMobileNumberLink(Resource<UserDTO> userResource, String confirmationCode)
 		{
 			userResource.add(UserController.getConfirmMobileLink(userResource.getContent().getID()));
 		}
