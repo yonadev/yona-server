@@ -22,6 +22,11 @@ public class PublicKeyEncryptor implements Encryptor
 
 	private PublicKeyEncryptor(PublicKey publicKey)
 	{
+		if (publicKey == null)
+		{
+			throw new IllegalArgumentException("publicKey cannot be null");
+		}
+
 		this.publicKey = publicKey;
 	}
 

@@ -95,7 +95,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		response.responseData.devices[0] == "iPhone 6"
 		response.responseData.goals.size() == 0 //TODO: updating of goals is not yet supported
 		!(response.responseData._links.self.href ==~ /tempPassword/)
-		response.responseData.confirmationCode
+		response.responseData.mobileNumberConfirmationCode
 
 		def getUserResponse = appService.getUser(inviteURL, true, null)
 		getUserResponse.status == 400

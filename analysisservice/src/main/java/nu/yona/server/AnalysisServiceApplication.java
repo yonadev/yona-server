@@ -8,9 +8,7 @@ import static com.google.common.collect.Lists.newArrayList;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
@@ -31,7 +29,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableCaching
 public class AnalysisServiceApplication
 {
-
 	public static void main(String[] args)
 	{
 		SpringApplication.run(AnalysisServiceApplication.class, args);
@@ -46,11 +43,5 @@ public class AnalysisServiceApplication
 				.paths(PathSelectors.any()).build().pathMapping("/").useDefaultResponseMessages(false)
 				.globalResponseMessage(RequestMethod.GET, newArrayList(new ResponseMessageBuilder().code(500)
 						.message("500 message").responseModel(new ModelRef("Error")).build()));
-	}
-
-	@Bean
-	public CacheManager cacheManager()
-	{
-		return new ConcurrentMapCacheManager("goalConflictMessages");
 	}
 }

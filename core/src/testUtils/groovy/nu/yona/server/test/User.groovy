@@ -45,7 +45,7 @@ class User
 		this.mobileNumber = json.mobileNumber
 		this.mobileNumberConfirmationUrl = json._links?.confirmMobileNumber?.href
 		this.hasPrivateData = hasPrivateData
-		this.mobileNumberConfirmationCode = json.confirmationCode
+		this.mobileNumberConfirmationCode = json.mobileNumberConfirmationCode
 		if (hasPrivateData)
 		{
 			this.nickname = json.nickname

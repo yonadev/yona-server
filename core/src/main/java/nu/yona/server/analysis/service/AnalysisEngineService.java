@@ -7,19 +7,19 @@ package nu.yona.server.analysis.service;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
-import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalService;
-import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.messaging.service.MessageDestinationDTO;
+import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 
 @Service
 public class AnalysisEngineService
@@ -30,10 +30,14 @@ public class AnalysisEngineService
 	private GoalService goalService;
 	@Autowired
 	private AnalysisEngineCacheService cacheService;
+	@Autowired
+	private UserAnonymizedService userAnonymizedService;
+	@Autowired
+	private MessageService messageService;
 
 	public void analyze(PotentialConflictDTO potentialConflictPayload)
 	{
-		UserAnonymized userAnonimized = getUserAnonymizedByID(potentialConflictPayload.getVPNLoginID());
+		UserAnonymizedDTO userAnonimized = userAnonymizedService.getUserAnonymized(potentialConflictPayload.getVPNLoginID());
 		Set<Goal> conflictingGoalsOfUser = determineConflictingGoalsForUser(userAnonimized,
 				potentialConflictPayload.getCategories());
 		if (!conflictingGoalsOfUser.isEmpty())
@@ -47,7 +51,7 @@ public class AnalysisEngineService
 		return goalService.getAllGoals().stream().flatMap(g -> g.getCategories().stream()).collect(Collectors.toSet());
 	}
 
-	private void sendConflictMessageToAllDestinationsOfUser(PotentialConflictDTO payload, UserAnonymized userAnonymized,
+	private void sendConflictMessageToAllDestinationsOfUser(PotentialConflictDTO payload, UserAnonymizedDTO userAnonymized,
 			Set<Goal> conflictingGoalsOfUser)
 	{
 		GoalConflictMessage selfGoalConflictMessage = sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser,
@@ -58,7 +62,7 @@ public class AnalysisEngineService
 	}
 
 	private GoalConflictMessage sendOrUpdateConflictMessage(PotentialConflictDTO payload, Set<Goal> conflictingGoalsOfUser,
-			MessageDestination destination, GoalConflictMessage origin)
+			MessageDestinationDTO destination, GoalConflictMessage origin)
 	{
 		Date now = new Date();
 		Date minEndTime = new Date(now.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
@@ -82,7 +86,7 @@ public class AnalysisEngineService
 	}
 
 	private GoalConflictMessage sendNewGoalConflictMessage(PotentialConflictDTO payload, Goal conflictingGoal,
-			MessageDestination destination, GoalConflictMessage origin)
+			MessageDestinationDTO destination, GoalConflictMessage origin)
 	{
 		GoalConflictMessage message;
 		if (origin == null)
@@ -93,8 +97,7 @@ public class AnalysisEngineService
 		{
 			message = GoalConflictMessage.createInstanceFromBuddy(payload.getVPNLoginID(), origin);
 		}
-		destination.send(message);
-		MessageDestination.getRepository().save(destination);
+		messageService.sendMessage(message, destination);
 		return message;
 	}
 
@@ -107,7 +110,7 @@ public class AnalysisEngineService
 		message.setEndTime(messageEndTime);
 	}
 
-	private Set<Goal> determineConflictingGoalsForUser(UserAnonymized userAnonymized, Set<String> categories)
+	private Set<Goal> determineConflictingGoalsForUser(UserAnonymizedDTO userAnonymized, Set<String> categories)
 	{
 		Set<Goal> allGoals = goalService.getAllGoalEntities();
 		Set<Goal> conflictingGoals = allGoals.stream().filter(g -> {
@@ -115,19 +118,9 @@ public class AnalysisEngineService
 			goalCategories.retainAll(categories);
 			return !goalCategories.isEmpty();
 		}).collect(Collectors.toSet());
-		Set<Goal> goalsOfUser = userAnonymized.getGoals();
-		Set<Goal> conflictingGoalsOfUser = conflictingGoals.stream().filter(g -> goalsOfUser.contains(g))
+		Set<String> goalsOfUser = userAnonymized.getGoals();
+		Set<Goal> conflictingGoalsOfUser = conflictingGoals.stream().filter(g -> goalsOfUser.contains(g.getName()))
 				.collect(Collectors.toSet());
 		return conflictingGoalsOfUser;
-	}
-
-	private UserAnonymized getUserAnonymizedByID(UUID id)
-	{
-		UserAnonymized entity = UserAnonymized.getRepository().findOne(id);
-		if (entity == null)
-		{
-			throw InvalidDataException.vpnLoginIDNotFound(id);
-		}
-		return entity;
 	}
 }

@@ -4,8 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.crypto;
 
-import static java.util.logging.Level.FINE;
-
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -14,7 +12,6 @@ import java.security.spec.InvalidParameterSpecException;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -25,6 +22,9 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import nu.yona.server.exceptions.YonaException;
 
@@ -42,7 +42,7 @@ public class CryptoSession implements AutoCloseable
 		boolean test();
 	}
 
-	private static final Logger LOGGER = Logger.getLogger(CryptoSession.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CryptoSession.class);
 	private static final byte[] SALT = "0123456789012345".getBytes();
 	private static final int INITIALIZATION_VECTOR_LENGTH = 16;
 	private static ThreadLocal<CryptoSession> threadLocal = new ThreadLocal<>();
@@ -62,7 +62,7 @@ public class CryptoSession implements AutoCloseable
 	@Override
 	public void close()
 	{
-		LOGGER.log(FINE, "Closing crypto session on thread " + Thread.currentThread());
+		logger.debug("Closing crypto session on thread {}", Thread.currentThread());
 		threadLocal.set(previousCryptoSession);
 	}
 
@@ -109,7 +109,7 @@ public class CryptoSession implements AutoCloseable
 
 	private static CryptoSession start(String password)
 	{
-		LOGGER.fine("Starting crypto session on thread " + Thread.currentThread());
+		logger.debug("Starting crypto session on thread {}", Thread.currentThread());
 		return new CryptoSession(password, threadLocal.get());
 	}
 

@@ -43,7 +43,7 @@ public class User extends EntityWithID
 	private boolean isCreatedOnBuddyRequest;
 
 	private boolean isMobileNumberConfirmed;
-	private String confirmationCode;
+	private String mobileNumberConfirmationCode;
 
 	private String overwriteUserConfirmationCode;
 
@@ -161,14 +161,14 @@ public class User extends EntityWithID
 		this.isMobileNumberConfirmed = false;
 	}
 
-	public String getConfirmationCode()
+	public String getMobileNumberConfirmationCode()
 	{
-		return confirmationCode;
+		return mobileNumberConfirmationCode;
 	}
 
-	public void setConfirmationCode(String confirmationCode)
+	public void setMobileNumberConfirmationCode(String mobileNumberConfirmationCode)
 	{
-		this.confirmationCode = confirmationCode;
+		this.mobileNumberConfirmationCode = mobileNumberConfirmationCode;
 	}
 
 	private UserPrivate getUserPrivate()
@@ -286,7 +286,7 @@ public class User extends EntityWithID
 	{
 		if (!isMobileNumberConfirmed)
 		{
-			throw MobileNumberConfirmationException.notConfirmed();
+			throw MobileNumberConfirmationException.notConfirmed(mobileNumber);
 		}
 	}
 

@@ -36,7 +36,7 @@ public class UserDTO
 	/*
 	 * Only intended for test purposes.
 	 */
-	private String confirmationCode;
+	private String mobileNumberConfirmationCode;
 
 	private UserDTO(UUID id, String firstName, String lastName, String nickname, String mobileNumber, boolean isConfirmed,
 			UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
@@ -119,18 +119,18 @@ public class UserDTO
 	/*
 	 * Only intended for test purposes.
 	 */
-	public void setConfirmationCode(String confirmationCode)
+	public void setMobileNumberConfirmationCode(String mobileNumberConfirmationCode)
 	{
-		this.confirmationCode = confirmationCode;
+		this.mobileNumberConfirmationCode = mobileNumberConfirmationCode;
 	}
 
 	/*
 	 * Only intended for test purposes.
 	 */
 	@JsonInclude(Include.NON_EMPTY)
-	public String getConfirmationCode()
+	public String getMobileNumberConfirmationCode()
 	{
-		return confirmationCode;
+		return mobileNumberConfirmationCode;
 	}
 
 	User createUserEntity()
@@ -189,7 +189,7 @@ public class UserDTO
 	{
 		if (!isMobileNumberConfirmed)
 		{
-			throw MobileNumberConfirmationException.notConfirmed();
+			throw MobileNumberConfirmationException.notConfirmed(mobileNumber);
 		}
 	}
 }

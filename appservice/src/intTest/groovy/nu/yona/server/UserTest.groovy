@@ -72,16 +72,16 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		given:
 		def ts = timestamp
 		def john = createJohnDoe(ts)
-		def confirmationCode = john.mobileNumberConfirmationCode
+		def mobileNumberConfirmationCode = john.mobileNumberConfirmationCode
 
 		when:
-		def response1TimeWrong = confirmMobileNumber(john, "${confirmationCode}1")
-		confirmMobileNumber(john, "${confirmationCode}2")
-		confirmMobileNumber(john, "${confirmationCode}3")
-		confirmMobileNumber(john, "${confirmationCode}4")
-		def response5TimesWrong = confirmMobileNumber(john, "${confirmationCode}5")
-		def response6TimesWrong = confirmMobileNumber(john, "${confirmationCode}6")
-		def response7thTimeRight = confirmMobileNumber(john, "${confirmationCode}")
+		def response1TimeWrong = confirmMobileNumber(john, "${mobileNumberConfirmationCode}1")
+		confirmMobileNumber(john, "${mobileNumberConfirmationCode}2")
+		confirmMobileNumber(john, "${mobileNumberConfirmationCode}3")
+		confirmMobileNumber(john, "${mobileNumberConfirmationCode}4")
+		def response5TimesWrong = confirmMobileNumber(john, "${mobileNumberConfirmationCode}5")
+		def response6TimesWrong = confirmMobileNumber(john, "${mobileNumberConfirmationCode}6")
+		def response7thTimeRight = confirmMobileNumber(john, "${mobileNumberConfirmationCode}")
 
 		then:
 		response1TimeWrong.status == 400

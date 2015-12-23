@@ -23,6 +23,11 @@ public class PublicKeyDecryptor implements Decryptor
 
 	private PublicKeyDecryptor(PrivateKey privateKey)
 	{
+		if (privateKey == null)
+		{
+			throw new IllegalArgumentException("privateKey cannot be null");
+		}
+
 		this.privateKey = privateKey;
 	}
 

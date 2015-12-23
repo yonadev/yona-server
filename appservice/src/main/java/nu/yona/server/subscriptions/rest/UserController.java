@@ -355,7 +355,7 @@ public class UserController
 			if (includePrivateData && !user.isMobileNumberConfirmed())
 			{
 				// The mobile number is not yet confirmed. So we can add the direct
-				addConfirmMobileLink(userResource, user.getConfirmationCode());
+				addConfirmMobileLink(userResource, user.getMobileNumberConfirmationCode());
 			}
 			return userResource;
 		}

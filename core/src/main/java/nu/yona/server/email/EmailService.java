@@ -1,13 +1,13 @@
 package nu.yona.server.email;
 
-import java.text.MessageFormat;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.velocity.app.VelocityEngine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -20,7 +20,7 @@ import nu.yona.server.properties.YonaProperties;
 @Service
 public class EmailService
 {
-	private static final Logger LOGGER = Logger.getLogger(EmailService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 	@Autowired
 	private YonaProperties yonaProperties;
 	@Autowired
@@ -31,12 +31,11 @@ public class EmailService
 	public void sendEmail(String senderName, InternetAddress receiverAddress, String subjectTemplateName, String bodyTemplateName,
 			Map<String, Object> templateParameters)
 	{
-		LOGGER.info(MessageFormat.format("Sending e-mail to ''{0}''. subjectTemplateName: {1}\r\n", receiverAddress,
-				subjectTemplateName));
+		logger.info("Sending e-mail to '{}'. subjectTemplateName: '{}'.", receiverAddress, subjectTemplateName);
 
 		if (!yonaProperties.getEmail().isEnabled())
 		{
-			LOGGER.info("E-mail sending is disabled. No message has been sent.");
+			logger.info("E-mail sending is disabled. No message has been sent.");
 			return;
 		}
 
@@ -57,6 +56,6 @@ public class EmailService
 		};
 		mailSender.send(preparator);
 
-		LOGGER.info("E-mail sent succesfully.");
+		logger.info("E-mail sent succesfully.");
 	}
 }

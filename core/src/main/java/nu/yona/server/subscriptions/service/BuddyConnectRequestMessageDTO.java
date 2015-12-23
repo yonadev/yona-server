@@ -4,11 +4,13 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 
@@ -18,16 +20,16 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
+import nu.yona.server.messaging.service.MessageDestinationDTO;
+import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @JsonRootName("buddyConnectRequestMessage")
 public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
@@ -82,11 +84,19 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 	@Component
 	private static class Factory implements DTOManager
 	{
+		private static final Logger LOGGER = Logger.getLogger(Factory.class.getName());
+
 		@Autowired
 		private TheDTOManager theDTOFactory;
 
 		@Autowired
 		private BuddyService buddyService;
+
+		@Autowired
+		private UserAnonymizedService userAnonymizedService;
+
+		@Autowired
+		private MessageService messageService;
 
 		@PostConstruct
 		private void init()
@@ -128,6 +138,11 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 
 			sendResponseMessageToRequestingUser(acceptingUser, connectRequestMessageEntity, payload.getProperty("message"));
 
+			LOGGER.info(MessageFormat.format(
+					"User with mobile number ''{0}'' and ID ''{1}'' accepted buddy connect request from user with mobile number ''{2}'' and ID ''{3}''",
+					acceptingUser.getMobileNumber(), acceptingUser.getID(),
+					connectRequestMessageEntity.getUser().getMobileNumber(), connectRequestMessageEntity.getUser().getID()));
+
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}
 
@@ -137,6 +152,11 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 			updateMessageStatusAsRejected(connectRequestMessageEntity);
 
 			sendResponseMessageToRequestingUser(rejectingUser, connectRequestMessageEntity, payload.getProperty("message"));
+
+			LOGGER.info(MessageFormat.format(
+					"User with mobile number ''{0}'' and ID ''{1}'' rejected buddy connect request from user with mobile number ''{2}'' and ID ''{3}''",
+					rejectingUser.getMobileNumber(), rejectingUser.getID(),
+					connectRequestMessageEntity.getUser().getMobileNumber(), connectRequestMessageEntity.getUser().getID()));
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}
@@ -156,16 +176,14 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 		private void sendResponseMessageToRequestingUser(UserDTO respondingUser,
 				BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage)
 		{
-			UserAnonymized userAnonymized = UserAnonymized.getRepository()
-					.findOne(connectRequestMessageEntity.getRelatedUserAnonymizedID());
-			MessageDestination messageDestination = userAnonymized.getAnonymousDestination();
+			MessageDestinationDTO messageDestination = userAnonymizedService
+					.getUserAnonymized(connectRequestMessageEntity.getRelatedUserAnonymizedID()).getAnonymousDestination();
 			assert messageDestination != null;
-			messageDestination.send(BuddyConnectResponseMessage.createInstance(respondingUser.getID(),
-					respondingUser.getPrivateData().getUserAnonymizedID(),
-					respondingUser.getPrivateData().getAnonymousMessageDestinationID(),
-					respondingUser.getPrivateData().getNickname(), responseMessage, connectRequestMessageEntity.getBuddyID(),
-					connectRequestMessageEntity.getStatus()));
-			MessageDestination.getRepository().save(messageDestination);
+			messageService.sendMessage(
+					BuddyConnectResponseMessage.createInstance(respondingUser.getID(),
+							respondingUser.getPrivateData().getUserAnonymizedID(), respondingUser.getPrivateData().getNickname(),
+							responseMessage, connectRequestMessageEntity.getBuddyID(), connectRequestMessageEntity.getStatus()),
+					messageDestination);
 		}
 	}
 }

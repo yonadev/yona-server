@@ -64,7 +64,7 @@ public class Buddy extends EntityWithID
 		return buddyAnonymizedID;
 	}
 
-	BuddyAnonymized getBuddyAnonymized()
+	public BuddyAnonymized getBuddyAnonymized()
 	{
 		return BuddyAnonymized.getRepository().findOne(buddyAnonymizedID);
 	}
