@@ -39,17 +39,18 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def ts = timestamp
-		def john = createJohnDoe(ts)
+		def johnAsCreated = createJohnDoe(ts)
 
 		when:
-		def response = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, john)
+		def response = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, johnAsCreated)
 
 		then:
+		def john = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, johnAsCreated.url, true, johnAsCreated.password)
 		testUser(john, true, ts)
-		// john.mobileNumberConfirmationUrl == null YD-126: This URL shouldn't be available anymore when the number is confirmed
+		john.mobileNumberConfirmationUrl == null
 
 		cleanup:
-		appService.deleteUser(john)
+		appService.deleteUser(johnAsCreated)
 	}
 
 	def 'Delete John Doe before confirming the mobile number'()
@@ -183,7 +184,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		userUpdateResponse.status == 200
-		userUpdateResponse.responseData._links?.confirmMobileNumber?.href != null
+		userUpdateResponse.responseData._links.confirmMobileNumber.href != null
 		userUpdateResponse.responseData.mobileNumber == newMobileNumber
 
 		cleanup:
