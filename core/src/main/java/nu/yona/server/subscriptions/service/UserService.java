@@ -4,19 +4,19 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +40,7 @@ public class UserService
 	/** Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers */
 	private static Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
 
-	private static final Logger LOGGER = Logger.getLogger(UserService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
 	@Autowired
 	private LDAPUserService ldapUserService;
@@ -151,8 +151,7 @@ public class UserService
 			sendMobileNumberConfirmationMessage(userEntity, SmsService.TemplateName_AddUserNumberConfirmation);
 		}
 
-		LOGGER.info(MessageFormat.format("Added new user with mobile number ''{0}'' and ID ''{1}''", userDTO.getMobileNumber(),
-				userDTO.getID()));
+		logger.info("Added new user with mobile number '{}' and ID '{}'", userDTO.getMobileNumber(), userDTO.getID());
 		return userDTO;
 	}
 
@@ -279,16 +278,15 @@ public class UserService
 			}
 			sendMobileNumberConfirmationMessage(updatedUserEntity, SmsService.TemplateName_ChangedUserNumberConfirmation);
 		}
-		LOGGER.info(MessageFormat.format("Updated user with mobile number ''{0}'' and ID ''{1}''", userDTO.getMobileNumber(),
-				userDTO.getID()));
+		logger.info("Updated user with mobile number '{}' and ID '{}'", userDTO.getMobileNumber(), userDTO.getID());
 		return userDTO;
 	}
 
 	void setUserUnconfirmedWithNewConfirmationCode(User userEntity)
 	{
 		userEntity.markMobileNumberUnconfirmed();
-		userEntity
-				.setMobileNumberConfirmationCode(CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
+		userEntity.setMobileNumberConfirmationCode(
+				CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
 	}
 
 	@Transactional
@@ -348,8 +346,7 @@ public class UserService
 		User.getRepository().delete(userEntity);
 
 		ldapUserService.deleteVPNAccount(vpnLoginID.toString());
-		LOGGER.info(MessageFormat.format("Updated user with mobile number ''{0}'' and ID ''{1}''", userEntity.getMobileNumber(),
-				userEntity.getID()));
+		logger.info("Updated user with mobile number '{}' and ID '{}'", userEntity.getMobileNumber(), userEntity.getID());
 	}
 
 	@Transactional
