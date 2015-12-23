@@ -58,8 +58,8 @@ public class GlobalExceptionMapping
 		LOGGER.log(Level.INFO, "Unhandled exception", exception);
 
 		ResponseMessageDTO responseMessage = new ResponseMessageDTO(ResponseMessageType.ERROR, exception.getMessageId(),
-				translator.getLocalizedMessage(exception.getMessageId(), exception.getParameters()));
-		
+				exception.getMessage());
+
 		return new ResponseEntity<ResponseMessageDTO>(responseMessage, exception.getStatusCode());
 	}
 }
