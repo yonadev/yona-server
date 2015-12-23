@@ -5,12 +5,14 @@
 package nu.yona.server.subscriptions.service;
 
 import java.io.UnsupportedEncodingException;
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiFunction;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import javax.mail.internet.InternetAddress;
@@ -41,6 +43,8 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 @Transactional
 public class BuddyService
 {
+	private static final Logger LOGGER = Logger.getLogger(BuddyService.class.getName());
+
 	@Autowired
 	private UserService userService;
 
@@ -94,8 +98,13 @@ public class BuddyService
 		else
 		{
 			newBuddyEntity = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
-
 		}
+
+		LOGGER.info(MessageFormat.format(
+				"User with mobile number ''{0}'' and ID ''{1}'' sent buddy connect message to {2} user with mobile number ''{3}'' and ID ''{4}'' as buddy",
+				requestingUser.getMobileNumber(), requestingUser.getID(), (buddyUserEntity == null) ? "new" : "existing",
+				buddy.getUser().getMobileNumber(), buddy.getUser().getID()));
+
 		return newBuddyEntity;
 	}
 
@@ -147,6 +156,20 @@ public class BuddyService
 		removeBuddyInfoForBuddy(user, buddy, message, DropBuddyReason.USER_REMOVED_BUDDY);
 
 		removeBuddy(user, buddy);
+
+		User buddyUser = buddy.getUser();
+		if (buddyUser == null)
+		{
+			LOGGER.info(MessageFormat.format(
+					"User with mobile number ''{0}'' and ID ''{1}'' removed buddy whose account is already removed", user.getID(),
+					user.getMobileNumber()));
+		}
+		else
+		{
+			LOGGER.info(MessageFormat.format(
+					"User with mobile number ''{0}'' and ID ''{1}'' removed buddy with mobile number ''{2}'' and ID ''{3}'' as buddy",
+					user.getID(), user.getMobileNumber(), buddyUser.getMobileNumber(), buddyUser.getID()));
+		}
 	}
 
 	@Transactional

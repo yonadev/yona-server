@@ -4,12 +4,14 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
@@ -22,6 +24,7 @@ import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
+import nu.yona.server.exceptions.UserOverwriteConfirmationException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
@@ -36,6 +39,8 @@ public class UserService
 {
 	/** Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers */
 	private static Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
+
+	private static final Logger LOGGER = Logger.getLogger(UserService.class.getName());
 
 	@Autowired
 	private LDAPUserService ldapUserService;
@@ -141,10 +146,13 @@ public class UserService
 		{
 			if (!yonaProperties.getSms().isEnabled())
 			{
-				userDTO.setConfirmationCode(userEntity.getConfirmationCode());
+				userDTO.setMobileNumberConfirmationCode(userEntity.getMobileNumberConfirmationCode());
 			}
 			sendMobileNumberConfirmationMessage(userEntity, SmsService.TemplateName_AddUserNumberConfirmation);
 		}
+
+		LOGGER.info(MessageFormat.format("Added new user with mobile number ''{0}'' and ID ''{1}''", userDTO.getMobileNumber(),
+				userDTO.getID()));
 		return userDTO;
 	}
 
@@ -152,15 +160,15 @@ public class UserService
 	{
 		if (overwriteUserConfirmationCode.isPresent())
 		{
-			overwriteExistingUser(mobileNumber, overwriteUserConfirmationCode.get());
+			deleteExistingUserToOverwriteIt(mobileNumber, overwriteUserConfirmationCode.get());
 		}
 		else
 		{
-			throwForExistingUser(mobileNumber);
+			verifyUserDoesNotExist(mobileNumber);
 		}
 	}
 
-	private void throwForExistingUser(String mobileNumber)
+	private void verifyUserDoesNotExist(String mobileNumber)
 	{
 		User existingUser = User.getRepository().findByMobileNumber(mobileNumber);
 		if (existingUser == null)
@@ -172,23 +180,20 @@ public class UserService
 		{
 			throw UserServiceException.userExistsCreatedOnBuddyRequest(mobileNumber);
 		}
-		else
-		{
-			throw UserServiceException.userExists(mobileNumber);
-		}
+		throw UserServiceException.userExists(mobileNumber);
 	}
 
-	private void overwriteExistingUser(String mobileNumber, String overwriteUserConfirmationCode)
+	private void deleteExistingUserToOverwriteIt(String mobileNumber, String overwriteUserConfirmationCode)
 	{
 		User existingUserEntity = findUserByMobileNumber(mobileNumber);
 		String expectedOverwriteUserConfirmationCode = existingUserEntity.getOverwriteUserConfirmationCode();
 		if (expectedOverwriteUserConfirmationCode == null)
 		{
-			throw MobileNumberConfirmationException.confirmationCodeNotSet();
+			throw UserOverwriteConfirmationException.confirmationCodeNotSet(mobileNumber);
 		}
 		if (!expectedOverwriteUserConfirmationCode.equals(overwriteUserConfirmationCode))
 		{
-			throw MobileNumberConfirmationException.confirmationCodeMismatch();
+			throw UserOverwriteConfirmationException.confirmationCodeMismatch(mobileNumber, overwriteUserConfirmationCode);
 		}
 		User.getRepository().delete(existingUserEntity);
 	}
@@ -198,22 +203,22 @@ public class UserService
 	{
 		User userEntity = getUserByID(userID);
 
-		if (userEntity.getConfirmationCode() == null)
+		if (userEntity.getMobileNumberConfirmationCode() == null)
 		{
-			throw MobileNumberConfirmationException.confirmationCodeNotSet();
+			throw MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber());
 		}
 
-		if (!userEntity.getConfirmationCode().equals(code))
+		if (!userEntity.getMobileNumberConfirmationCode().equals(code))
 		{
-			throw MobileNumberConfirmationException.confirmationCodeMismatch();
+			throw MobileNumberConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(), code);
 		}
 
 		if (userEntity.isMobileNumberConfirmed())
 		{
-			throw MobileNumberConfirmationException.mobileNumberAlreadyConfirmed();
+			throw MobileNumberConfirmationException.mobileNumberAlreadyConfirmed(userEntity.getMobileNumber());
 		}
 
-		userEntity.setConfirmationCode(null);
+		userEntity.setMobileNumberConfirmationCode(null);
 		userEntity.markMobileNumberConfirmed();
 		User.getRepository().save(userEntity);
 
@@ -270,10 +275,12 @@ public class UserService
 		{
 			if (!yonaProperties.getSms().isEnabled())
 			{
-				userDTO.setConfirmationCode(savedUserEntity.getConfirmationCode());
+				userDTO.setMobileNumberConfirmationCode(savedUserEntity.getMobileNumberConfirmationCode());
 			}
 			sendMobileNumberConfirmationMessage(updatedUserEntity, SmsService.TemplateName_ChangedUserNumberConfirmation);
 		}
+		LOGGER.info(MessageFormat.format("Updated user with mobile number ''{0}'' and ID ''{1}''", userDTO.getMobileNumber(),
+				userDTO.getID()));
 		return userDTO;
 	}
 
@@ -281,7 +288,7 @@ public class UserService
 	{
 		userEntity.markMobileNumberUnconfirmed();
 		userEntity
-				.setConfirmationCode(CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
+				.setMobileNumberConfirmationCode(CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
 	}
 
 	@Transactional
@@ -299,7 +306,7 @@ public class UserService
 		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(savedUserEntity);
 		if (!yonaProperties.getSms().isEnabled())
 		{
-			userDTO.setConfirmationCode(savedUserEntity.getConfirmationCode());
+			userDTO.setMobileNumberConfirmationCode(savedUserEntity.getMobileNumberConfirmationCode());
 		}
 		sendMobileNumberConfirmationMessage(savedUserEntity, SmsService.TemplateName_AddUserNumberConfirmation);
 		return userDTO;
@@ -341,6 +348,8 @@ public class UserService
 		User.getRepository().delete(userEntity);
 
 		ldapUserService.deleteVPNAccount(vpnLoginID.toString());
+		LOGGER.info(MessageFormat.format("Updated user with mobile number ''{0}'' and ID ''{1}''", userEntity.getMobileNumber(),
+				userEntity.getID()));
 	}
 
 	@Transactional
@@ -483,10 +492,10 @@ public class UserService
 
 	private void sendMobileNumberConfirmationMessage(User userEntity, String messageTemplateName)
 	{
-		String confirmationCode = userEntity.getConfirmationCode();
+		String confirmationCode = userEntity.getMobileNumberConfirmationCode();
 		if (confirmationCode == null)
 		{
-			throw MobileNumberConfirmationException.confirmationCodeNotSet();
+			throw MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber());
 		}
 		Map<String, Object> templateParams = new HashMap<String, Object>();
 		templateParams.put("confirmationCode", confirmationCode);

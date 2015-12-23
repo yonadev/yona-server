@@ -4,11 +4,13 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 
@@ -82,6 +84,8 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 	@Component
 	private static class Factory implements DTOManager
 	{
+		private static final Logger LOGGER = Logger.getLogger(Factory.class.getName());
+
 		@Autowired
 		private TheDTOManager theDTOFactory;
 
@@ -134,6 +138,11 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 
 			sendResponseMessageToRequestingUser(acceptingUser, connectRequestMessageEntity, payload.getProperty("message"));
 
+			LOGGER.info(MessageFormat.format(
+					"User with mobile number ''{0}'' and ID ''{1}'' accepted buddy connect request from user with mobile number ''{2}'' and ID ''{3}''",
+					acceptingUser.getMobileNumber(), acceptingUser.getID(),
+					connectRequestMessageEntity.getUser().getMobileNumber(), connectRequestMessageEntity.getUser().getID()));
+
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}
 
@@ -143,6 +152,11 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 			updateMessageStatusAsRejected(connectRequestMessageEntity);
 
 			sendResponseMessageToRequestingUser(rejectingUser, connectRequestMessageEntity, payload.getProperty("message"));
+
+			LOGGER.info(MessageFormat.format(
+					"User with mobile number ''{0}'' and ID ''{1}'' rejected buddy connect request from user with mobile number ''{2}'' and ID ''{3}''",
+					rejectingUser.getMobileNumber(), rejectingUser.getID(),
+					connectRequestMessageEntity.getUser().getMobileNumber(), connectRequestMessageEntity.getUser().getID()));
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}

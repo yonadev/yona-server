@@ -136,7 +136,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Hacking attempt: Brute force overwrite mobile number confirmation'()
+	def 'Hacking attempt: Brute force overwrite user overwrite confirmation'()
 	{
 		given:
 		def userCreationMobileNumber = "+${timestamp}99"
@@ -171,9 +171,9 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		userAddResponse.status == 201
 		userAddResponse.responseData._links?.confirmMobileNumber?.href != null
 		response1TimeWrong.status == 400
-		response1TimeWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
+		response1TimeWrong.responseData.code == "error.user.overwrite.confirmation.code.mismatch"
 		response5TimesWrong.status == 400
-		response5TimesWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
+		response5TimesWrong.responseData.code == "error.user.overwrite.confirmation.code.mismatch"
 		response6TimesWrong.status == 400
 		response6TimesWrong.responseData.code == "error.too.many.wrong.attempts"
 		response7thTimeRight.status == 400
