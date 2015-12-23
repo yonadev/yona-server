@@ -4,16 +4,16 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -73,7 +73,7 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 	@Component
 	private static class Factory implements DTOManager
 	{
-		private static final Logger LOGGER = Logger.getLogger(Factory.class.getName());
+		private static final Logger logger = LoggerFactory.getLogger(Factory.class);
 
 		@Autowired
 		private TheDTOManager theDTOFactory;
@@ -124,10 +124,10 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 
 			updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
-			LOGGER.info(MessageFormat.format(
-					"User with mobile number ''{0}'' and ID ''{1}'' processed buddy connect response from user with mobile number ''{2}'' and ID ''{3}''",
+			logger.info(
+					"User with mobile number '{}' and ID '{}' processed buddy connect response from user with mobile number '{}' and ID '{}'",
 					requestingUser.getMobileNumber(), requestingUser.getID(),
-					connectResponseMessageEntity.getUser().getMobileNumber(), connectResponseMessageEntity.getUser().getID()));
+					connectResponseMessageEntity.getUser().getMobileNumber(), connectResponseMessageEntity.getUser().getID());
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}

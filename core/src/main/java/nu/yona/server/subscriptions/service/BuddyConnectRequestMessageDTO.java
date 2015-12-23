@@ -4,16 +4,16 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -84,7 +84,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 	@Component
 	private static class Factory implements DTOManager
 	{
-		private static final Logger LOGGER = Logger.getLogger(Factory.class.getName());
+		private static final Logger logger = LoggerFactory.getLogger(Factory.class);
 
 		@Autowired
 		private TheDTOManager theDTOFactory;
@@ -138,10 +138,10 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 
 			sendResponseMessageToRequestingUser(acceptingUser, connectRequestMessageEntity, payload.getProperty("message"));
 
-			LOGGER.info(MessageFormat.format(
-					"User with mobile number ''{0}'' and ID ''{1}'' accepted buddy connect request from user with mobile number ''{2}'' and ID ''{3}''",
+			logger.info(
+					"User with mobile number '{}' and ID '{}' accepted buddy connect request from user with mobile number '{}' and ID '{}'",
 					acceptingUser.getMobileNumber(), acceptingUser.getID(),
-					connectRequestMessageEntity.getUser().getMobileNumber(), connectRequestMessageEntity.getUser().getID()));
+					connectRequestMessageEntity.getUser().getMobileNumber(), connectRequestMessageEntity.getUser().getID());
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}
@@ -153,10 +153,10 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 
 			sendResponseMessageToRequestingUser(rejectingUser, connectRequestMessageEntity, payload.getProperty("message"));
 
-			LOGGER.info(MessageFormat.format(
-					"User with mobile number ''{0}'' and ID ''{1}'' rejected buddy connect request from user with mobile number ''{2}'' and ID ''{3}''",
+			logger.info(
+					"User with mobile number '{}' and ID '{}' rejected buddy connect request from user with mobile number '{}' and ID '{}'",
 					rejectingUser.getMobileNumber(), rejectingUser.getID(),
-					connectRequestMessageEntity.getUser().getMobileNumber(), connectRequestMessageEntity.getUser().getID()));
+					connectRequestMessageEntity.getUser().getMobileNumber(), connectRequestMessageEntity.getUser().getID());
 
 			return new MessageActionDTO(Collections.singletonMap("status", "done"));
 		}
