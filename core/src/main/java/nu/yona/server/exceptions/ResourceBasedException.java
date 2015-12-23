@@ -14,7 +14,7 @@ import nu.yona.server.Translator;
 public abstract class ResourceBasedException extends RuntimeException
 {
 	@Component
-	private static class TranslatedTextRetriever
+	private static class TranslatorInjector
 	{
 		@Autowired
 		private Translator translator;
@@ -22,12 +22,7 @@ public abstract class ResourceBasedException extends RuntimeException
 		@EventListener({ ContextRefreshedEvent.class })
 		void onContextStarted(ContextRefreshedEvent event)
 		{
-			ResourceBasedException.setTranslatedTextRetriever(this);
-		}
-
-		String getLocalizedText(String messageId, Object... parameters)
-		{
-			return translator.getLocalizedMessage(messageId, parameters);
+			ResourceBasedException.setTranslator(translator);
 		}
 	}
 
@@ -38,7 +33,7 @@ public abstract class ResourceBasedException extends RuntimeException
 	private final String messageId;
 	/** Holds the HTTP response code to be used. */
 	private final HttpStatus statusCode;
-	private static TranslatedTextRetriever translatedTextRetriever;
+	private static Translator translator;
 
 	/**
 	 * Constructor.
@@ -56,9 +51,9 @@ public abstract class ResourceBasedException extends RuntimeException
 		this.statusCode = statusCode;
 	}
 
-	public static void setTranslatedTextRetriever(TranslatedTextRetriever translatedTextRetriever)
+	public static void setTranslator(Translator translator)
 	{
-		ResourceBasedException.translatedTextRetriever = translatedTextRetriever;
+		ResourceBasedException.translator = translator;
 	}
 
 	/**
@@ -150,13 +145,13 @@ public abstract class ResourceBasedException extends RuntimeException
 
 	private String tryTranslateMessage()
 	{
-		if (translatedTextRetriever == null)
+		if (translator == null)
 		{
 			return null;
 		}
 		try
 		{
-			return translatedTextRetriever.getLocalizedText(messageId, parameters);
+			return translator.getLocalizedMessage(messageId, parameters);
 		}
 		catch (Exception e)
 		{
