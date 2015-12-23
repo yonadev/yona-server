@@ -34,7 +34,6 @@ public class LongFieldEncrypter implements AttributeConverter<Long, String>
 	{
 		try
 		{
-
 			return Long.parseLong(decryptedString);
 		}
 		catch (Exception e)
