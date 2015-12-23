@@ -14,10 +14,9 @@ public class MessageNotFoundException extends YonaException
 {
 	private static final long serialVersionUID = -5889584804067081374L;
 
-	private MessageNotFoundException(HttpStatus status, String messageId, Object... parameters)
+	private MessageNotFoundException(HttpStatus statusCode, String messageId, Object... parameters)
 	{
-		super(messageId, parameters);
-		setStatusCode(status);
+		super(statusCode, messageId, parameters);
 	}
 
 	public static MessageNotFoundException messageNotFound(UUID id)

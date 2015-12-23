@@ -6,7 +6,6 @@ package nu.yona.server;
 
 import static com.google.common.collect.Lists.newArrayList;
 
-import org.apache.velocity.app.VelocityEngine;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
@@ -46,16 +45,5 @@ public class AppServiceApplication
 				.paths(PathSelectors.any()).build().pathMapping("/").useDefaultResponseMessages(false)
 				.globalResponseMessage(RequestMethod.GET, newArrayList(new ResponseMessageBuilder().code(500)
 						.message("500 message").responseModel(new ModelRef("Error")).build()));
-	}
-
-	@Bean
-	public VelocityEngine velocityTemplateEngine()
-	{
-		VelocityEngine engine = new VelocityEngine();
-
-		engine.addProperty("resource.loader", "class");
-		engine.addProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-
-		return engine;
 	}
 }

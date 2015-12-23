@@ -1,21 +1,39 @@
 package nu.yona.server.exceptions;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+
+import nu.yona.server.Translator;
 
 /**
  * This exception class is used as a base for all exceptions that use an error message which is defined in the message properties
- * 
- * @author pgussow
  */
 public abstract class ResourceBasedException extends RuntimeException
 {
+	@Component
+	private static class TranslatorInjector
+	{
+		@Autowired
+		private Translator translator;
+
+		@EventListener({ ContextRefreshedEvent.class })
+		void onContextStarted(ContextRefreshedEvent event)
+		{
+			ResourceBasedException.setTranslator(translator);
+		}
+	}
+
 	private static final long serialVersionUID = 8031973645020363969L;
 	/** Holds the parameters for the exception message. */
-	private Object[] parameters;
+	private final Object[] parameters;
 	/** Holds the message id. */
-	private String messageId;
-	/** Holds the http response code to be used. */
-	private HttpStatus statusCode;
+	private final String messageId;
+	/** Holds the HTTP response code to be used. */
+	private final HttpStatus statusCode;
+	private static Translator translator;
 
 	/**
 	 * Constructor.
@@ -32,7 +50,12 @@ public abstract class ResourceBasedException extends RuntimeException
 		this.parameters = parameters;
 		this.statusCode = statusCode;
 	}
-	
+
+	public static void setTranslator(Translator translator)
+	{
+		ResourceBasedException.translator = translator;
+	}
+
 	/**
 	 * Constructor.
 	 * 
@@ -55,7 +78,7 @@ public abstract class ResourceBasedException extends RuntimeException
 	{
 		this(HttpStatus.BAD_REQUEST, t, messageId, parameters);
 	}
-	
+
 	/**
 	 * Constructor.
 	 * 
@@ -73,6 +96,23 @@ public abstract class ResourceBasedException extends RuntimeException
 		this.statusCode = statusCode;
 	}
 
+	@Override
+	public String getMessage()
+	{
+		return getLocalizedMessage();
+	}
+
+	@Override
+	public String getLocalizedMessage()
+	{
+		String localizedMessage = tryTranslateMessage();
+		if (localizedMessage == null)
+		{
+			localizedMessage = formAlternativeMessageText();
+		}
+		return localizedMessage;
+	}
+
 	/**
 	 * This method gets the message id.
 	 * 
@@ -81,16 +121,6 @@ public abstract class ResourceBasedException extends RuntimeException
 	public String getMessageId()
 	{
 		return messageId;
-	}
-
-	/**
-	 * This method sets the message id.
-	 * 
-	 * @param messageId The message id.
-	 */
-	public void setMessageId(String messageId)
-	{
-		this.messageId = messageId;
 	}
 
 	/**
@@ -104,16 +134,6 @@ public abstract class ResourceBasedException extends RuntimeException
 	}
 
 	/**
-	 * This method sets the parameters for the exception message.
-	 * 
-	 * @param parameters The parameters for the exception message.
-	 */
-	public void setParameters(Object[] parameters)
-	{
-		this.parameters = parameters;
-	}
-	
-	/**
 	 * This method gets the http response code to be used.
 	 * 
 	 * @return The http response code to be used.
@@ -123,13 +143,41 @@ public abstract class ResourceBasedException extends RuntimeException
 		return statusCode;
 	}
 
-	/**
-	 * This method sets the http response code to be used.
-	 * 
-	 * @param statusCode The http response code to be used.
-	 */
-	public void setStatusCode(HttpStatus statusCode)
+	private String tryTranslateMessage()
 	{
-		this.statusCode = statusCode;
+		if (translator == null)
+		{
+			return null;
+		}
+		try
+		{
+			return translator.getLocalizedMessage(messageId, parameters);
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
+
+	private String formAlternativeMessageText()
+	{
+		StringBuffer sb = new StringBuffer(messageId);
+		if ((parameters != null) && (parameters.length != 0))
+		{
+			sb.append("; parameters: ");
+		}
+		boolean isFirst = true;
+		for (Object parameter : parameters)
+		{
+			if (!isFirst)
+			{
+				sb.append(", ");
+			}
+			isFirst = false;
+			sb.append('"');
+			sb.append((parameter == null) ? "null" : parameter.toString());
+			sb.append('"');
+		}
+		return sb.toString();
 	}
 }
