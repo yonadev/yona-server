@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
-import nu.yona.server.goals.service.GoalServiceException;
 import nu.yona.server.messaging.entities.DiscloseRequestMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageActionDTO;
@@ -28,6 +27,7 @@ import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
+import nu.yona.server.messaging.service.MessageServiceException;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
@@ -145,7 +145,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 				case REQUEST_DISCLOSURE:
 					return handleAction_RequestDisclosure(actingUser, (GoalConflictMessage) messageEntity, requestPayload);
 				default:
-					throw GoalServiceException.actionNotSupported(action);
+					throw MessageServiceException.actionNotSupported(action);
 			}
 		}
 
@@ -155,8 +155,8 @@ public class GoalConflictMessageDTO extends MessageDTO
 			messageEntity.setStatus(Status.DISCLOSE_REQUESTED);
 			GoalConflictMessage.getRepository().save(messageEntity);
 
-			MessageDestinationDTO messageDestination = userAnonymizedService.getUserAnonymized(messageEntity.getRelatedUserAnonymizedID())
-					.getAnonymousDestination();
+			MessageDestinationDTO messageDestination = userAnonymizedService
+					.getUserAnonymized(messageEntity.getRelatedUserAnonymizedID()).getAnonymousDestination();
 			messageService.sendMessage(
 					DiscloseRequestMessage.createInstance(actingUser.getID(), actingUser.getPrivateData().getUserAnonymizedID(),
 							actingUser.getPrivateData().getNickname(), requestPayload.getProperty("message"), messageEntity),

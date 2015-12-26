@@ -21,11 +21,6 @@ public class BuddyServiceException extends YonaException
 		return new BuddyServiceException("error.buddy.user.cannot.be.null");
 	}
 
-	public static BuddyServiceException actionUnknown(String action)
-	{
-		return new BuddyServiceException("error.buddy.action.unknown", action);
-	}
-
 	public static BuddyServiceException messageEntityCannotBeNull()
 	{
 		return new BuddyServiceException("error.buddy.message.entity.cannot.be.null");

@@ -18,7 +18,7 @@ import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
-import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
 
@@ -75,7 +75,7 @@ public class User extends EntityWithID
 	}
 
 	public static User createInstance(String firstName, String lastName, String nickname, String mobileNumber, String vpnPassword,
-			Set<String> deviceNames, Set<Goal> goals)
+			Set<String> deviceNames, Set<ActivityCategory> goals)
 	{
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
@@ -197,7 +197,7 @@ public class User extends EntityWithID
 		getUserPrivate().setDeviceNames(deviceNames);
 	}
 
-	public Set<Goal> getGoals()
+	public Set<ActivityCategory> getGoals()
 	{
 		return getUserPrivate().getUserAnonymized().getGoals();
 	}

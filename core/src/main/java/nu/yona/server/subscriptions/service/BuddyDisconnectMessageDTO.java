@@ -18,6 +18,7 @@ import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
+import nu.yona.server.messaging.service.MessageServiceException;
 import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
@@ -97,7 +98,7 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 				case PROCESS:
 					return handleAction_Process(actingUser, (BuddyDisconnectMessage) messageEntity, requestPayload);
 				default:
-					throw BuddyServiceException.actionUnknown(action);
+					throw MessageServiceException.actionNotSupported(action);
 			}
 		}
 

@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
 
-import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.service.BuddyServiceException;
 
@@ -64,7 +64,7 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	}
 
 	public static BuddyConnectRequestMessage createInstance(UUID requestingUserID, UUID requestingUserUserAnonymizedID,
-			Set<Goal> goals, String nickname, String message, UUID buddyID, boolean isRequestingSending,
+			Set<ActivityCategory> goals, String nickname, String message, UUID buddyID, boolean isRequestingSending,
 			boolean isRequestingReceiving)
 	{
 		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserUserAnonymizedID,

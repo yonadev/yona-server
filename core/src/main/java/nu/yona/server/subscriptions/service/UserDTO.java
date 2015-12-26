@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
-import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("user")
@@ -151,9 +151,9 @@ public class UserDTO
 		return originalUserEntity;
 	}
 
-	private static Set<String> getGoalNames(Set<Goal> goals)
+	private static Set<String> getGoalNames(Set<ActivityCategory> goals)
 	{
-		return goals.stream().map(Goal::getName).collect(toSet());
+		return goals.stream().map(ActivityCategory::getName).collect(toSet());
 	}
 
 	static UserDTO createInstance(User userEntity)

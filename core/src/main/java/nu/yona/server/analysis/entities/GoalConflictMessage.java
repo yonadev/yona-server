@@ -13,8 +13,7 @@ import javax.persistence.Transient;
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.entities.RepositoryProvider;
-import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.goals.service.GoalServiceException;
+import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.messaging.entities.Message;
 
 @Entity
@@ -58,9 +57,9 @@ public class GoalConflictMessage extends Message
 		this.status = status;
 	}
 
-	public Goal getGoal()
+	public ActivityCategory getGoal()
 	{
-		return Goal.getRepository().findOne(goalID);
+		return ActivityCategory.getRepository().findOne(goalID);
 	}
 
 	public UUID getOriginGoalConflictMessageID()
@@ -125,15 +124,15 @@ public class GoalConflictMessage extends Message
 	{
 		if (origin == null)
 		{
-			throw GoalServiceException.originCannotBeNull();
+			throw new IllegalArgumentException("origin cannot be null");
 		}
 
 		assert origin.getID() != null;
-		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, origin.getID(), origin.getGoalID(), origin.getURL(),
-				Status.ANNOUNCED);
+		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, origin.getID(), origin.getGoalID(),
+				origin.getURL(), Status.ANNOUNCED);
 	}
 
-	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedID, Goal goal, String url)
+	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedID, ActivityCategory goal, String url)
 	{
 		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, null, goal.getID(), url, Status.ANNOUNCED);
 	}

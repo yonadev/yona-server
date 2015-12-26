@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
@@ -16,7 +16,7 @@ public class UserAnonymizedDTO
 	private MessageDestinationDTO anonymousMessageDestination;
 	private Set<UUID> buddyAnonymizedIDs;
 
-	private UserAnonymizedDTO(Set<Goal> goals, MessageDestinationDTO anonymousMessageDestination, Set<UUID> buddyAnonymizedIDs)
+	private UserAnonymizedDTO(Set<ActivityCategory> goals, MessageDestinationDTO anonymousMessageDestination, Set<UUID> buddyAnonymizedIDs)
 	{
 		this.goals = goals.stream().map(goal -> goal.getName()).collect(Collectors.toSet());
 		this.anonymousMessageDestination = anonymousMessageDestination;

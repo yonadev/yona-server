@@ -17,7 +17,7 @@ import javax.persistence.Table;
 
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
-import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.messaging.entities.MessageDestination;
 
 @Entity
@@ -33,7 +33,7 @@ public class UserAnonymized extends EntityWithID
 	private MessageDestination anonymousDestination;
 
 	@ManyToMany
-	private Set<Goal> goals;
+	private Set<ActivityCategory> goals;
 
 	@OneToMany
 	private Set<BuddyAnonymized> buddiesAnonymized;
@@ -44,7 +44,7 @@ public class UserAnonymized extends EntityWithID
 		super(null);
 	}
 
-	public UserAnonymized(UUID id, MessageDestination anonymousDestination, Set<Goal> goals)
+	public UserAnonymized(UUID id, MessageDestination anonymousDestination, Set<ActivityCategory> goals)
 	{
 		super(id);
 		this.anonymousDestination = anonymousDestination;
@@ -52,7 +52,7 @@ public class UserAnonymized extends EntityWithID
 		this.buddiesAnonymized = new HashSet<>();
 	}
 
-	public Set<Goal> getGoals()
+	public Set<ActivityCategory> getGoals()
 	{
 		return Collections.unmodifiableSet(goals);
 	}
@@ -79,7 +79,7 @@ public class UserAnonymized extends EntityWithID
 		return getID();
 	}
 
-	public static UserAnonymized createInstance(MessageDestination anonymousDestination, Set<Goal> goals)
+	public static UserAnonymized createInstance(MessageDestination anonymousDestination, Set<ActivityCategory> goals)
 	{
 		return new UserAnonymized(UUID.randomUUID(), anonymousDestination, goals);
 	}

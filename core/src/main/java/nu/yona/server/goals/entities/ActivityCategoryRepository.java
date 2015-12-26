@@ -8,7 +8,7 @@ import java.util.UUID;
 
 import org.springframework.data.repository.CrudRepository;
 
-public interface GoalRepository extends CrudRepository<Goal, UUID>
+public interface ActivityCategoryRepository extends CrudRepository<ActivityCategory, UUID>
 {
-	Goal findByName(String name);
+	ActivityCategory findByName(String name);
 }

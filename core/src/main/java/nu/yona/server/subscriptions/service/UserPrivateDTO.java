@@ -17,8 +17,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.goals.service.GoalNotFoundException;
+import nu.yona.server.goals.entities.ActivityCategory;
+import nu.yona.server.goals.service.ActivityCategoryNotFoundException;
 
 @JsonRootName("userPrivate")
 public class UserPrivateDTO
@@ -83,17 +83,17 @@ public class UserPrivateDTO
 		return vpnProfile;
 	}
 
-	Set<Goal> getGoals()
+	Set<ActivityCategory> getGoals()
 	{
 		return goalNames.stream().map(n -> findGoal(n)).collect(toSet());
 	}
 
-	private Goal findGoal(String goalName)
+	private ActivityCategory findGoal(String goalName)
 	{
-		Goal goal = Goal.getRepository().findByName(goalName);
+		ActivityCategory goal = ActivityCategory.getRepository().findByName(goalName);
 		if (goal == null)
 		{
-			throw GoalNotFoundException.notFoundByName(goalName);
+			throw ActivityCategoryNotFoundException.notFoundByName(goalName);
 		}
 
 		return goal;
