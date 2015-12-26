@@ -46,7 +46,7 @@ public class AnalysisEngineService
 		}
 	}
 
-	public Set<String> getRelevantCategories()
+	public Set<String> getRelevantSmoothwallCategories()
 	{
 		return goalService.getAllActivityCategories().stream().flatMap(g -> g.getSmoothwallCategories().stream()).collect(Collectors.toSet());
 	}

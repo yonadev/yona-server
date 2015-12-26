@@ -38,7 +38,7 @@ public class ActivityCategoryDTO
 	}
 
 	@JsonCreator
-	public ActivityCategoryDTO(@JsonProperty("name") String name, boolean mandatory,
+	public ActivityCategoryDTO(@JsonProperty("name") String name, @JsonProperty("mandatory") boolean mandatory,
 			@JsonProperty("smoothwallCategories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> smoothwallCategories,
 			@JsonProperty("applications") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> applications)
 	{

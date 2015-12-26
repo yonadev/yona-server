@@ -11,17 +11,17 @@ import nu.yona.server.test.AnalysisService
 import spock.lang.Shared
 import spock.lang.Specification
 
-class RelevantCategoriesTest extends Specification
+class RelevantSmoothwallCategoriesTest extends Specification
 {
 	@Shared
 	def AnalysisService analysisService = new AnalysisService()
 
-	def 'Get relevant categories'()
+	def 'Get relevant Smoothwall categories'()
 	{
 		given:
 
 		when:
-		def response = analysisService.getRelevantCategories()
+		def response = analysisService.getRelevantSmoothwallCategories()
 
 		then:
 		response.status == 200

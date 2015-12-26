@@ -12,7 +12,7 @@ import nu.yona.server.YonaServer
 class AnalysisService extends Service
 {
 	final ANALYSIS_ENGINE_PATH = "/analysisEngine/"
-	final RELEVANT_CATEGORIES_PATH_FRAGMENT = "/relevantCategories/"
+	final RELEVANT_SMOOTHWALL_CATEGORIES_PATH_FRAGMENT = "/relevantSmoothwallCategories/"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 
@@ -21,9 +21,9 @@ class AnalysisService extends Service
 		super("yona.analysisservice.url", "http://localhost:8080")
 	}
 
-	def getRelevantCategories()
+	def getRelevantSmoothwallCategories()
 	{
-		yonaServer.getResource(ANALYSIS_ENGINE_PATH + RELEVANT_CATEGORIES_PATH_FRAGMENT)
+		yonaServer.getResource(ANALYSIS_ENGINE_PATH + RELEVANT_SMOOTHWALL_CATEGORIES_PATH_FRAGMENT)
 	}
 
 	def postToAnalysisEngine(user, categories, url)
