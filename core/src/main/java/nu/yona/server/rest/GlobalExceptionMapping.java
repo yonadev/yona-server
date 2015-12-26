@@ -2,7 +2,6 @@ package nu.yona.server.rest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import nu.yona.server.Translator;
 import nu.yona.server.exceptions.YonaException;
 
 /**
@@ -22,10 +20,6 @@ import nu.yona.server.exceptions.YonaException;
 public class GlobalExceptionMapping
 {
 	private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionMapping.class);
-
-	/** The source that contains the actual messages for the codes */
-	@Autowired
-	private Translator translator;
 
 	/**
 	 * This method generically handles the illegal argument exceptions. They are translated into nice ResponseMessage objects so
