@@ -22,7 +22,7 @@ import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.crypto.UUIDFieldEncrypter;
 import nu.yona.server.entities.EntityWithID;
-import nu.yona.server.goals.entities.ActivityCategory;
+import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageSource;
 
 @Entity
@@ -84,7 +84,7 @@ public class UserPrivate extends EntityWithID
 		return DECRYPTION_CHECK_STRING + CryptoUtil.getRandomString(DECRYPTION_CHECK_STRING.length());
 	}
 
-	public static UserPrivate createInstance(String nickname, String vpnPassword, Set<String> deviceNames, Set<ActivityCategory> goals,
+	public static UserPrivate createInstance(String nickname, String vpnPassword, Set<String> deviceNames, Set<Goal> goals,
 			MessageSource anonymousMessageSource, MessageSource namedMessageSource)
 	{
 		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);

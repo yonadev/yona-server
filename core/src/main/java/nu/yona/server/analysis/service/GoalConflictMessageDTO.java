@@ -39,17 +39,17 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private static final String SELF_NICKNAME = "<self>";
 	private static final String REQUEST_DISCLOSURE = "requestDisclosure";
 	private final String nickname;
-	private final String goalName;
+	private final String activityCategoryName;
 	private final String url;
 	private Status status;
 	private final Date endTime;
 
-	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, String goalName, String url, Status status,
-			Date endTime)
+	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, String activityCategoryName, String url,
+			Status status, Date endTime)
 	{
 		super(id, creationTime);
 		this.nickname = nickname;
-		this.goalName = goalName;
+		this.activityCategoryName = activityCategoryName;
 		this.url = url;
 		this.status = status;
 		this.endTime = endTime;
@@ -76,9 +76,9 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return nickname;
 	}
 
-	public String getGoalName()
+	public String getActivityCategoryName()
 	{
-		return goalName;
+		return activityCategoryName;
 	}
 
 	public Status getStatus()
@@ -104,8 +104,9 @@ public class GoalConflictMessageDTO extends MessageDTO
 	public static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, String nickname)
 	{
 		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), nickname,
-				messageEntity.getGoal().getName(), messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null,
-				messageEntity.getStatus(), messageEntity.getEndTime());
+				messageEntity.getActivity().getGoal().getActivityCategory().getName(),
+				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null, messageEntity.getStatus(),
+				messageEntity.getEndTime());
 	}
 
 	@Component

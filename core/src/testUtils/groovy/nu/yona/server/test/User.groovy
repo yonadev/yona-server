@@ -52,7 +52,7 @@ class User
 
 			this.buddies = (json._embedded?.buddies) ? json._embedded.buddies.collect{new Buddy(it)} : []
 			this.devices = json.devices.collect{"$it"}
-			this.goals = json.goals.collect{"$it"}
+			this.goals = json.goals.collect{new Goal(it)}
 			this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
 		}
 		this.url = YonaServer.stripQueryString(json._links.self.href)
@@ -69,7 +69,7 @@ class User
 	{
 		def selfLinkString = (url) ? """"_links":{"self":{"href":"$url"}},""" : ""
 		def devicesString = YonaServer.makeStringList(devices)
-		def goalsString = YonaServer.makeStringList(goals)
+		def goalsString = YonaServer.makeList(goals.collect{ it.convertToJsonString() })
 		def json = """{
 				$selfLinkString
 				"firstName":"${firstName}",

@@ -7,6 +7,7 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.Goal
 import nu.yona.server.test.User
 
 class UserTest extends AbstractAppServiceIntegrationTest
@@ -15,7 +16,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	final def lastName = "Doe"
 	final def nickname = "JD"
 	final def devices = ["Galaxy mini"]
-	final def goals = ["gambling"]
+	final def goals = [Goal.createInstance("gambling")]
 	def password = "J o h n   D o e"
 
 	def 'Create John Doe'()
@@ -214,7 +215,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			assert user.devices.size() == 1
 			assert user.devices[0] == "Galaxy mini"
 			assert user.goals.size() == 1
-			assert user.goals[0] == "gambling"
+			assert user.goals[0].activityCategoryName == "gambling"
 
 			assert user.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 			assert user.vpnProfile.vpnPassword.length() == 32

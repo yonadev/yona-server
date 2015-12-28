@@ -8,12 +8,11 @@ import java.util.Date;
 import java.util.UUID;
 
 import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
-import nu.yona.server.entities.RepositoryProvider;
-import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.messaging.entities.Message;
 
 @Entity
@@ -30,7 +29,8 @@ public class GoalConflictMessage extends Message
 	 */
 	private UUID originGoalConflictMessageID;
 
-	private UUID goalID;
+	@ManyToOne
+	private Activity activity;
 	private Status status;
 
 	@Transient
@@ -45,21 +45,21 @@ public class GoalConflictMessage extends Message
 		super(null, null);
 	}
 
-	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedID, UUID originGoalConflictMessageID, UUID goalID, String url,
-			Status status)
+	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedID, UUID originGoalConflictMessageID, Activity activity,
+			String url, Status status)
 	{
 		super(id, relatedUserAnonymizedID);
 
 		this.originGoalConflictMessageID = originGoalConflictMessageID;
-		this.goalID = goalID;
+		this.activity = activity;
 		this.url = url;
 		this.endTime = new Date();
 		this.status = status;
 	}
 
-	public ActivityCategory getGoal()
+	public Activity getActivity()
 	{
-		return ActivityCategory.getRepository().findOne(goalID);
+		return activity;
 	}
 
 	public UUID getOriginGoalConflictMessageID()
@@ -100,11 +100,6 @@ public class GoalConflictMessage extends Message
 		this.endTime = endTime;
 	}
 
-	public UUID getGoalID()
-	{
-		return goalID;
-	}
-
 	public boolean isFromBuddy()
 	{
 		return originGoalConflictMessageID != null;
@@ -128,18 +123,13 @@ public class GoalConflictMessage extends Message
 		}
 
 		assert origin.getID() != null;
-		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, origin.getID(), origin.getGoalID(),
+		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, origin.getID(), origin.getActivity(),
 				origin.getURL(), Status.ANNOUNCED);
 	}
 
-	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedID, ActivityCategory goal, String url)
+	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedID, Activity activity, String url)
 	{
-		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, null, goal.getID(), url, Status.ANNOUNCED);
-	}
-
-	public static GoalConflictMessageRepository getGoalConflictMessageRepository()
-	{
-		return (GoalConflictMessageRepository) RepositoryProvider.getRepository(GoalConflictMessage.class, UUID.class);
+		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, null, activity, url, Status.ANNOUNCED);
 	}
 
 	public boolean isUrlDisclosed()

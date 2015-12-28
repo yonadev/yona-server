@@ -4,13 +4,10 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
 
-import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.service.BuddyServiceException;
 
@@ -28,8 +25,8 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		super();
 	}
 
-	private BuddyConnectRequestMessage(UUID id, UUID userID, UUID userAnonymizedID, Set<UUID> goalIDs, String nickname,
-			String message, UUID buddyID, boolean isRequestingSending, boolean isRequestingReceiving)
+	private BuddyConnectRequestMessage(UUID id, UUID userID, UUID userAnonymizedID, String nickname, String message, UUID buddyID,
+			boolean isRequestingSending, boolean isRequestingReceiving)
 	{
 		super(id, userAnonymizedID, userID, nickname, message, buddyID);
 
@@ -64,12 +61,10 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	}
 
 	public static BuddyConnectRequestMessage createInstance(UUID requestingUserID, UUID requestingUserUserAnonymizedID,
-			Set<ActivityCategory> goals, String nickname, String message, UUID buddyID, boolean isRequestingSending,
-			boolean isRequestingReceiving)
+			String nickname, String message, UUID buddyID, boolean isRequestingSending, boolean isRequestingReceiving)
 	{
-		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserUserAnonymizedID,
-				goals.stream().map(g -> g.getID()).collect(Collectors.toSet()), nickname, message, buddyID, isRequestingSending,
-				isRequestingReceiving);
+		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserUserAnonymizedID, nickname,
+				message, buddyID, isRequestingSending, isRequestingReceiving);
 	}
 
 	@Override

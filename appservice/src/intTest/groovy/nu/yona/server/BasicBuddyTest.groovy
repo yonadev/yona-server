@@ -188,14 +188,14 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		getAnonMessagesRichardResponse.status == 200
 		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
 		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].goalName == "news"
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
 		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].url == "http://www.refdag.nl"
 
 		def getAnonMessagesBobResponse = appService.getAnonymousMessages(bob)
 		getAnonMessagesBobResponse.status == 200
 		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
 		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].nickname == richard.nickname
-		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].goalName == "news"
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
 		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].url == null
 
 		cleanup:
@@ -239,14 +239,14 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		getAnonMessagesRichardResponse.status == 200
 		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
 		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].nickname == bob.nickname
-		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "gambling"
 		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].url == null
 
 		def getAnonMessagesBobResponse = appService.getAnonymousMessages(bob)
 		getAnonMessagesBobResponse.status == 200
 		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
 		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "gambling"
 		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].url == "http://www.poker.com"
 
 		cleanup:
@@ -284,13 +284,13 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		getAnonMessagesRichardResponse.status == 200
 		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
 		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].goalName == "news"
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
 
 		def getAnonMessagesBobResponse = appService.getAnonymousMessages(bob)
 		getAnonMessagesBobResponse.status == 200
 		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
 		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "gambling"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -371,13 +371,13 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		getAnonMessagesRichardResponse.status == 200
 		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
 		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].goalName == "news"
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
 
 		def getAnonMessagesBobResponse = appService.getAnonymousMessages(bob)
 		getAnonMessagesBobResponse.status == 200
 		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
 		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "gambling"
 
 		cleanup:
 		appService.deleteUser(richard)

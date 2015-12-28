@@ -262,6 +262,17 @@ class YonaServer
 				})
 		return stringList
 	}
+	
+	static String makeList(def itemsJson)
+	{
+		def list = ""
+		itemsJson.each(
+				{
+					list += (list) ? ", " : ""
+					list += it
+				})
+		return list
+	}
 
 	static String makeStringMap(def strings)
 	{

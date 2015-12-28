@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat
 
 import nu.yona.server.test.AnalysisService
 import nu.yona.server.test.AppService
+import nu.yona.server.test.Goal
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -32,7 +33,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	def addRichard()
 	{
 		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
-				"+$timestamp", ["Nexus 6"], ["news", "gambling"])
+				"+$timestamp", ["Nexus 6"], [Goal.createInstance("news"), Goal.createInstance("gambling")])
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, richard)
 		return richard
 	}
@@ -40,7 +41,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	def addBob()
 	{
 		def bob = appService.addUser(appService.&assertUserCreationResponseDetails, "B o b", "Bob", "Dunn", "BD",
-				"+$timestamp", ["iPhone 5"], ["news", "gambling"])
+				"+$timestamp", ["iPhone 5"], [Goal.createInstance("news"), Goal.createInstance("gambling")])
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bob)
 		return bob
 	}

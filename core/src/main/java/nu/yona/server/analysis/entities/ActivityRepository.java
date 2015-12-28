@@ -14,12 +14,10 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface GoalConflictMessageRepository extends CrudRepository<GoalConflictMessage, UUID>
+public interface ActivityRepository extends CrudRepository<Activity, UUID>
 {
-	@Query("select m from MessageDestination d join d.messages m where TYPE(m) = :type and d.id = :destinationID"
-			+ " and m.relatedUserAnonymizedID = :relatedUserAnonymizedID and m.goalID = :goalID and m.endTime > :minEndTime order by m.endTime desc")
-	List<GoalConflictMessage> findLatestGoalConflictMessageFromDestination(
-			@Param("relatedUserAnonymizedID") UUID relatedUserAnonymizedID, @Param("goalID") UUID goalID,
-			@Param("destinationID") UUID destinationID, @Param("minEndTime") Date minEndTime,
-			@Param("type") Class<GoalConflictMessage> type);
+	@Query("select a from Activity a"
+			+ " where a.userAnonymizedID = :userAnonymizedID and a.goalID = :goalID and a.endTime > :minEndTime order by a.endTime desc")
+	List<Activity> findLatestActivity(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("goalID") UUID goalID,
+			@Param("minEndTime") Date minEndTime);
 }
