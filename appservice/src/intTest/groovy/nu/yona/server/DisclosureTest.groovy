@@ -53,13 +53,20 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
-		def discloseRequestURL = appService.getAnonymousMessages(bob).responseData._embedded.goalConflictMessages[0]._links.requestDisclosure.href
+		def goalConflictMessage = appService.getAnonymousMessages(bob).responseData._embedded.goalConflictMessages[0]
+		def discloseRequestURL = goalConflictMessage._links.requestDisclosure.href
 
 		when:
 		def response = appService.postMessageActionWithPassword(discloseRequestURL, [ : ], bob.password)
 
 		then:
 		response.status == 200
+		response.responseData.properties.status == "done"
+		response.responseData._embedded.affectedMessages.size() == 1
+		response.responseData._embedded.affectedMessages[0]._links.self.href == goalConflictMessage._links.self.href
+		response.responseData._embedded.affectedMessages[0].status == "DISCLOSE_REQUESTED"
+		response.responseData._embedded.affectedMessages[0]._links.requestDisclosure == null
+		
 		def getRichardAnonMessagesResponse = appService.getAnonymousMessages(richard)
 		getRichardAnonMessagesResponse.status == 200
 		getRichardAnonMessagesResponse.responseData?._embedded?.discloseRequestMessages
@@ -86,13 +93,20 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
 		def discloseRequestURL = appService.getAnonymousMessages(bob).responseData._embedded.goalConflictMessages[0]._links.requestDisclosure.href
 		appService.postMessageActionWithPassword(discloseRequestURL, [ : ], bob.password)
-		def discloseRequestAcceptURL = appService.getAnonymousMessages(richard).responseData._embedded.discloseRequestMessages[0]._links.accept.href
+		def discloseRequestMessage = appService.getAnonymousMessages(richard).responseData._embedded.discloseRequestMessages[0]
+		def discloseRequestAcceptURL = discloseRequestMessage._links.accept.href
 
 		when:
 		def response = appService.postMessageActionWithPassword(discloseRequestAcceptURL, [ : ], richard.password)
 
 		then:
 		response.status == 200
+		response.responseData._embedded.affectedMessages.size() == 1
+		response.responseData._embedded.affectedMessages[0]._links.self.href == discloseRequestMessage._links.self.href
+		response.responseData._embedded.affectedMessages[0].status == "DISCLOSE_ACCEPTED"
+		response.responseData._embedded.affectedMessages[0]._links.accept == null
+		response.responseData._embedded.affectedMessages[0]._links.reject == null
+		
 		def getRichardAnonMessagesResponse = appService.getAnonymousMessages(richard)
 		getRichardAnonMessagesResponse.status == 200
 		getRichardAnonMessagesResponse.responseData?._embedded?.discloseRequestMessages
@@ -123,13 +137,20 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
 		def discloseRequestURL = appService.getAnonymousMessages(bob).responseData._embedded.goalConflictMessages[0]._links.requestDisclosure.href
 		appService.postMessageActionWithPassword(discloseRequestURL, [ : ], bob.password)
-		def discloseRequestRejectURL = appService.getAnonymousMessages(richard).responseData._embedded.discloseRequestMessages[0]._links.reject.href
+		def discloseRequestMessage = appService.getAnonymousMessages(richard).responseData._embedded.discloseRequestMessages[0]
+		def discloseRequestRejectURL = discloseRequestMessage._links.reject.href
 
 		when:
 		def response = appService.postMessageActionWithPassword(discloseRequestRejectURL, [ : ], richard.password)
 
 		then:
 		response.status == 200
+		response.responseData._embedded.affectedMessages.size() == 1
+		response.responseData._embedded.affectedMessages[0]._links.self.href == discloseRequestMessage._links.self.href
+		response.responseData._embedded.affectedMessages[0].status == "DISCLOSE_REJECTED"
+		response.responseData._embedded.affectedMessages[0]._links.accept == null
+		response.responseData._embedded.affectedMessages[0]._links.reject == null
+		
 		def getRichardAnonMessagesResponse = appService.getAnonymousMessages(richard)
 		getRichardAnonMessagesResponse.status == 200
 		getRichardAnonMessagesResponse.responseData?._embedded?.discloseRequestMessages

@@ -8,7 +8,11 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +33,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.messaging.rest.MessageController.MessageResource;
@@ -56,7 +62,7 @@ public class MessageController
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> createOKResponse(pagedResourcesAssembler.toResource(messageService.getDirectMessages(userID, pageable),
-						new MessageResourceAssembler(userID, true))));
+						new MessageResourceAssembler(userID))));
 	}
 
 	@RequestMapping(value = "/direct/{messageID}", method = RequestMethod.GET)
@@ -65,28 +71,28 @@ public class MessageController
 			@PathVariable UUID userID, @PathVariable UUID messageID)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
-				new MessageResourceAssembler(userID, true).toResource(messageService.getDirectMessage(userID, messageID))));
+				new MessageResourceAssembler(userID).toResource(messageService.getDirectMessage(userID, messageID))));
 	}
 
 	@RequestMapping(value = "/direct/{id}/{action}", method = RequestMethod.POST)
 	@ResponseBody
-	public HttpEntity<Resource<MessageActionDTO>> handleMessageAction(
+	public HttpEntity<MessageActionResource> handleMessageAction(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, @PathVariable UUID id,
 			@PathVariable String action, @RequestBody MessageActionDTO requestPayload)
 	{
 
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(messageService.handleMessageAction(userID, id, action, requestPayload)));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
+				new MessageActionResource(messageService.handleMessageAction(userID, id, action, requestPayload), userID)));
 	}
 
 	@RequestMapping(value = "/direct/{messageID}", method = RequestMethod.DELETE)
 	@ResponseBody
-	public HttpEntity<Resource<MessageActionDTO>> deleteMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+	public HttpEntity<MessageActionResource> deleteMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userID, @PathVariable UUID messageID)
 	{
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(messageService.deleteMessage(userID, messageID)));
+				() -> createOKResponse(new MessageActionResource(messageService.deleteMessage(userID, messageID), userID)));
 	}
 
 	@RequestMapping(value = "/anonymous/", method = RequestMethod.GET)
@@ -98,7 +104,7 @@ public class MessageController
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> createOKResponse(pagedResourcesAssembler.toResource(messageService.getAnonymousMessages(userID, pageable),
-						new MessageResourceAssembler(userID, false))));
+						new MessageResourceAssembler(userID))));
 	}
 
 	@RequestMapping(value = "/anonymous/{messageID}", method = RequestMethod.GET)
@@ -108,30 +114,31 @@ public class MessageController
 	{
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
-				new MessageResourceAssembler(userID, false).toResource(messageService.getAnonymousMessage(userID, messageID))));
+				new MessageResourceAssembler(userID).toResource(messageService.getAnonymousMessage(userID, messageID))));
 
 	}
 
 	@RequestMapping(value = "/anonymous/{id}/{action}", method = RequestMethod.POST)
 	@ResponseBody
-	public HttpEntity<Resource<MessageActionDTO>> handleAnonymousMessageAction(
+	public HttpEntity<MessageActionResource> handleAnonymousMessageAction(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, @PathVariable UUID id,
 			@PathVariable String action, @RequestBody MessageActionDTO requestPayload)
 	{
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(messageService.handleAnonymousMessageAction(userID, id, action, requestPayload)));
+				() -> createOKResponse(new MessageActionResource(
+						messageService.handleAnonymousMessageAction(userID, id, action, requestPayload), userID)));
 	}
 
 	@RequestMapping(value = "/anonymous/{messageID}", method = RequestMethod.DELETE)
 	@ResponseBody
-	public HttpEntity<Resource<MessageActionDTO>> deleteAnonymousMessage(
+	public HttpEntity<MessageActionResource> deleteAnonymousMessage(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
 			@PathVariable UUID messageID)
 	{
 
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(messageService.deleteAnonymousMessage(userID, messageID)));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
+				new MessageActionResource(messageService.deleteAnonymousMessage(userID, messageID), userID)));
 	}
 
 	private HttpEntity<PagedResources<MessageResource>> createOKResponse(PagedResources<MessageResource> messages)
@@ -144,9 +151,9 @@ public class MessageController
 		return new ResponseEntity<MessageResource>(message, HttpStatus.OK);
 	}
 
-	private HttpEntity<Resource<MessageActionDTO>> createOKResponse(MessageActionDTO dto)
+	private HttpEntity<MessageActionResource> createOKResponse(MessageActionResource messageAction)
 	{
-		return new ResponseEntity<Resource<MessageActionDTO>>(new Resource<>(dto), HttpStatus.OK);
+		return new ResponseEntity<MessageActionResource>(messageAction, HttpStatus.OK);
 	}
 
 	static ControllerLinkBuilder getMessageLinkBuilder(boolean isDirect, UUID userID, UUID messageID)
@@ -154,6 +161,25 @@ public class MessageController
 		MessageController methodOn = methodOn(MessageController.class);
 		return linkTo(isDirect ? methodOn.getDirectMessage(Optional.empty(), userID, messageID)
 				: methodOn.getAnonymousMessage(Optional.empty(), userID, messageID));
+	}
+
+	static class MessageActionResource extends Resource<MessageActionDTO>
+	{
+		private UUID userID;
+
+		public MessageActionResource(MessageActionDTO messageAction, UUID userID)
+		{
+			super(messageAction);
+			this.userID = userID;
+		}
+
+		@JsonProperty("_embedded")
+		public Map<String, List<MessageResource>> getEmbeddedResources()
+		{
+			Set<MessageDTO> affectedMessages = getContent().getAffectedMessages();
+			return Collections.singletonMap("affectedMessages",
+					new MessageResourceAssembler(userID).toResources(affectedMessages));
+		}
 	}
 
 	static class MessageResource extends Resource<MessageDTO>
@@ -167,20 +193,19 @@ public class MessageController
 	private static class MessageResourceAssembler extends ResourceAssemblerSupport<MessageDTO, MessageResource>
 	{
 		private UUID userID;
-		private boolean isDirect;
 
-		public MessageResourceAssembler(UUID userID, boolean isDirect)
+		public MessageResourceAssembler(UUID userID)
 		{
 			super(MessageController.class, MessageResource.class);
 			this.userID = userID;
-			this.isDirect = isDirect;
 		}
 
 		@Override
 		public MessageResource toResource(MessageDTO message)
 		{
 			MessageResource messageResource = instantiateResource(message);
-			ControllerLinkBuilder selfLinkBuilder = getMessageLinkBuilder(isDirect, userID, message.getID());
+			ControllerLinkBuilder selfLinkBuilder = getMessageLinkBuilder(MessageService.getIsDirectMessage(message), userID,
+					message.getID());
 			addSelfLink(selfLinkBuilder, messageResource);
 			addActionLinks(selfLinkBuilder, messageResource);
 			addRelatedMessageLink(message, messageResource);

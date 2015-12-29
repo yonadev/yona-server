@@ -84,7 +84,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 		def bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptURL = appService.fetchBuddyConnectRequestMessage(bob).acceptURL
+		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
+		def acceptURL = connectRequestMessage.acceptURL
 
 		when:
 		def response = appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
@@ -92,6 +93,11 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 200
 		response.responseData.properties.status == "done"
+		response.responseData._embedded.affectedMessages.size() == 1
+		response.responseData._embedded.affectedMessages[0]._links.self.href == connectRequestMessage.selfURL
+		response.responseData._embedded.affectedMessages[0].status == "ACCEPTED"
+		response.responseData._embedded.affectedMessages[0]._links.accept == null
+		response.responseData._embedded.affectedMessages[0]._links.reject == null
 
 		def buddies = appService.getBuddies(bob)
 		buddies.size() == 1
@@ -145,7 +151,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.sendBuddyConnectRequest(richard, bob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(bob).acceptURL
 		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
-		def processURL = appService.fetchBuddyConnectResponseMessage(richard).processURL
+		def connectResponseMessage = appService.fetchBuddyConnectResponseMessage(richard)
+		def processURL = connectResponseMessage.processURL
 
 		when:
 		def response = appService.postMessageActionWithPassword(processURL, [ : ], richard.password)
@@ -153,6 +160,10 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 200
 		response.responseData.properties.status == "done"
+		response.responseData._embedded.affectedMessages.size() == 1
+		response.responseData._embedded.affectedMessages[0]._links.self.href == connectResponseMessage.selfURL
+		response.responseData._embedded.affectedMessages[0].processed == true
+		response.responseData._embedded.affectedMessages[0]._links.process == null
 
 		def buddies = appService.getBuddies(richard)
 		buddies.size() == 1
@@ -336,13 +347,19 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def buddy = appService.getBuddies(richard)[0]
 		def message = "Bob, as you know our ways parted, so I'll remove you as buddy."
 		appService.removeBuddy(richard, buddy, message)
-		def processURL = appService.getAnonymousMessages(bob).responseData._embedded.buddyDisconnectMessages[0]._links.process.href
+		def disconnectMessage = appService.getAnonymousMessages(bob).responseData._embedded.buddyDisconnectMessages[0]
+		def processURL = disconnectMessage._links.process.href
 
 		when:
 		def response = appService.postMessageActionWithPassword(processURL, [ : ], bob.password)
 
 		then:
 		response.status == 200
+		response.responseData._embedded.affectedMessages.size() == 1
+		response.responseData._embedded.affectedMessages[0]._links.self.href == disconnectMessage._links.self.href
+		response.responseData._embedded.affectedMessages[0].processed == true
+		response.responseData._embedded.affectedMessages[0]._links.process == null
+		
 		appService.getBuddies(bob).size() == 0
 
 		cleanup:

@@ -83,13 +83,19 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def message = "Goodbye friends! I deinstalled the Internet"
 		appService.deleteUser(richard, message)
 		def getResponse = appService.getAnonymousMessages(bob)
-		def processURL = (getResponse.status == 200) ? getResponse.responseData._embedded.buddyDisconnectMessages[0]._links.process.href : null
+		def disconnectMessage = getResponse.responseData._embedded.buddyDisconnectMessages[0]
+		def processURL = disconnectMessage._links.process.href
 
 		when:
 		def response = appService.postMessageActionWithPassword(processURL, [:], bob.password)
 
 		then:
 		response.status == 200
+		response.responseData._embedded.affectedMessages.size() == 1
+		response.responseData._embedded.affectedMessages[0]._links.self.href == disconnectMessage._links.self.href
+		response.responseData._embedded.affectedMessages[0].processed == true
+		response.responseData._embedded.affectedMessages[0]._links.process == null
+		
 		def buddies = appService.getBuddies(bob)
 		buddies.size() == 0
 		def getAnonMessagesResponse = appService.getAnonymousMessages(bob)

@@ -23,6 +23,7 @@ import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.subscriptions.service.BuddyConnectRequestMessageDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -207,5 +208,15 @@ public class MessageService
 		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getID());
 		destinationEntity.removeMessagesFromUser(sentByUserAnonymizedID);
 		MessageDestination.getRepository().save(destinationEntity);
+	}
+
+	public static boolean getIsDirectMessage(MessageDTO message)
+	{
+		if (message instanceof BuddyConnectRequestMessageDTO)
+		{
+			return true;
+		}
+
+		return false;
 	}
 }

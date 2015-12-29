@@ -146,9 +146,8 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 
 			sendResponseMessageToRequestingUser(actingUser, discloseRequestMessageEntity, message);
 
-			return MessageActionDTO.createInstanceActionDone(
-					theDTOFactory.createInstance(actingUser, discloseRequestMessageEntity),
-					theDTOFactory.createInstance(actingUser, targetGoalConflictMessage));
+			return MessageActionDTO
+					.createInstanceActionDone(theDTOFactory.createInstance(actingUser, discloseRequestMessageEntity));
 		}
 
 		private DiscloseRequestMessage updateMessageStatus(DiscloseRequestMessage discloseRequestMessageEntity, Status status)
