@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -75,7 +74,7 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 		return status;
 	}
 
-	public static DiscloseRequestMessageDTO createInstance(UserDTO requestingUser, DiscloseRequestMessage messageEntity)
+	public static DiscloseRequestMessageDTO createInstance(UserDTO actingUser, DiscloseRequestMessage messageEntity)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
 		return new DiscloseRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.getNickname(),
@@ -122,33 +121,40 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 			}
 		}
 
-		private MessageActionDTO handleAction_Accept(UserDTO acceptingUser, DiscloseRequestMessage discloseRequestMessageEntity,
+		private MessageActionDTO handleAction_Accept(UserDTO actingUser, DiscloseRequestMessage discloseRequestMessageEntity,
 				MessageActionDTO payload)
 		{
-			return updateResult(acceptingUser, discloseRequestMessageEntity, GoalConflictMessage.Status.DISCLOSE_ACCEPTED,
+			return updateResult(actingUser, discloseRequestMessageEntity, GoalConflictMessage.Status.DISCLOSE_ACCEPTED,
 					payload.getProperty("message"));
 		}
 
-		private MessageActionDTO handleAction_Reject(UserDTO rejectingUser, DiscloseRequestMessage discloseRequestMessageEntity,
+		private MessageActionDTO handleAction_Reject(UserDTO actingUser, DiscloseRequestMessage discloseRequestMessageEntity,
 				MessageActionDTO payload)
 		{
-			return updateResult(rejectingUser, discloseRequestMessageEntity, GoalConflictMessage.Status.DISCLOSE_REJECTED,
+			return updateResult(actingUser, discloseRequestMessageEntity, GoalConflictMessage.Status.DISCLOSE_REJECTED,
 					payload.getProperty("message"));
 		}
 
-		private MessageActionDTO updateResult(UserDTO respondingUser, DiscloseRequestMessage discloseRequestMessageEntity,
+		private MessageActionDTO updateResult(UserDTO actingUser, DiscloseRequestMessage discloseRequestMessageEntity,
 				Status status, String message)
 		{
 			GoalConflictMessage targetGoalConflictMessage = discloseRequestMessageEntity.getTargetGoalConflictMessage();
 			targetGoalConflictMessage.setStatus(status);
-			Message.getRepository().save(targetGoalConflictMessage);
+			targetGoalConflictMessage = Message.getRepository().save(targetGoalConflictMessage);
 
+			discloseRequestMessageEntity = updateMessageStatus(discloseRequestMessageEntity, status);
+
+			sendResponseMessageToRequestingUser(actingUser, discloseRequestMessageEntity, message);
+
+			return MessageActionDTO.createInstanceActionDone(
+					theDTOFactory.createInstance(actingUser, discloseRequestMessageEntity),
+					theDTOFactory.createInstance(actingUser, targetGoalConflictMessage));
+		}
+
+		private DiscloseRequestMessage updateMessageStatus(DiscloseRequestMessage discloseRequestMessageEntity, Status status)
+		{
 			discloseRequestMessageEntity.setStatus(status);
-			Message.getRepository().save(discloseRequestMessageEntity);
-
-			sendResponseMessageToRequestingUser(respondingUser, discloseRequestMessageEntity, message);
-
-			return new MessageActionDTO(Collections.singletonMap("status", "done"));
+			return Message.getRepository().save(discloseRequestMessageEntity);
 		}
 
 		private void sendResponseMessageToRequestingUser(UserDTO respondingUser, DiscloseRequestMessage requestMessageEntity,

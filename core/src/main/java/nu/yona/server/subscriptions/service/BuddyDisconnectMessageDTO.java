@@ -1,6 +1,5 @@
 package nu.yona.server.subscriptions.service;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -58,7 +57,7 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 		return possibleActions;
 	}
 
-	public static BuddyDisconnectMessageDTO createInstance(UserDTO requestingUser, BuddyDisconnectMessage messageEntity)
+	public static BuddyDisconnectMessageDTO createInstance(UserDTO actingUser, BuddyDisconnectMessage messageEntity)
 	{
 		User userEntity = messageEntity.getUser(); // may be null if deleted
 		UserDTO user = userEntity != null ? UserDTO.createInstance(userEntity) : UserDTO.createRemovedUserInstance();
@@ -106,15 +105,15 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 		{
 			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getID(), messageEntity.getUserID());
 
-			updateMessageStatusAsProcessed(messageEntity);
+			messageEntity = updateMessageStatusAsProcessed(messageEntity);
 
-			return new MessageActionDTO(Collections.singletonMap("status", "done"));
+			return MessageActionDTO.createInstanceActionDone(theDTOFactory.createInstance(actingUser, messageEntity));
 		}
 
-		private void updateMessageStatusAsProcessed(BuddyDisconnectMessage messageEntity)
+		private BuddyDisconnectMessage updateMessageStatusAsProcessed(BuddyDisconnectMessage messageEntity)
 		{
 			messageEntity.setProcessed();
-			Message.getRepository().save(messageEntity);
+			return Message.getRepository().save(messageEntity);
 		}
 	}
 }

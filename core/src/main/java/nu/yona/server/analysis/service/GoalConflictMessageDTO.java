@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -152,17 +151,22 @@ public class GoalConflictMessageDTO extends MessageDTO
 		private MessageActionDTO handleAction_RequestDisclosure(UserDTO actingUser, GoalConflictMessage messageEntity,
 				MessageActionDTO requestPayload)
 		{
-			messageEntity.setStatus(Status.DISCLOSE_REQUESTED);
-			GoalConflictMessage.getRepository().save(messageEntity);
+			messageEntity = updateMessageStatusAsDiscloseRequested(messageEntity);
 
-			MessageDestinationDTO messageDestination = userAnonymizedService.getUserAnonymized(messageEntity.getRelatedUserAnonymizedID())
-					.getAnonymousDestination();
+			MessageDestinationDTO messageDestination = userAnonymizedService
+					.getUserAnonymized(messageEntity.getRelatedUserAnonymizedID()).getAnonymousDestination();
 			messageService.sendMessage(
 					DiscloseRequestMessage.createInstance(actingUser.getID(), actingUser.getPrivateData().getUserAnonymizedID(),
 							actingUser.getPrivateData().getNickname(), requestPayload.getProperty("message"), messageEntity),
 					messageDestination);
 
-			return new MessageActionDTO(Collections.singletonMap("status", "done"));
+			return MessageActionDTO.createInstanceActionDone(theDTOFactory.createInstance(actingUser, messageEntity));
+		}
+
+		private GoalConflictMessage updateMessageStatusAsDiscloseRequested(GoalConflictMessage messageEntity)
+		{
+			messageEntity.setStatus(Status.DISCLOSE_REQUESTED);
+			return GoalConflictMessage.getRepository().save(messageEntity);
 		}
 
 		private String getNickname(UserDTO actingUser, GoalConflictMessage messageEntity)

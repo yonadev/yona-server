@@ -53,7 +53,7 @@ public class DiscloseResponseMessageDTO extends MessageDTO
 		return nickname;
 	}
 
-	public static DiscloseResponseMessageDTO createInstance(UserDTO requestingUser, DiscloseResponseMessage messageEntity)
+	public static DiscloseResponseMessageDTO createInstance(UserDTO actingUser, DiscloseResponseMessage messageEntity)
 	{
 		return new DiscloseResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.getStatus(),
 				messageEntity.getNickname());
@@ -72,9 +72,9 @@ public class DiscloseResponseMessageDTO extends MessageDTO
 		}
 
 		@Override
-		public MessageDTO createInstance(UserDTO requestingUser, Message messageEntity)
+		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return DiscloseResponseMessageDTO.createInstance(requestingUser, (DiscloseResponseMessage) messageEntity);
+			return DiscloseResponseMessageDTO.createInstance(actingUser, (DiscloseResponseMessage) messageEntity);
 		}
 
 		@Override

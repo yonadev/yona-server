@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -74,7 +73,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 		return status;
 	}
 
-	public static BuddyConnectRequestMessageDTO createInstance(UserDTO requestingUser, BuddyConnectRequestMessage messageEntity)
+	public static BuddyConnectRequestMessageDTO createInstance(UserDTO actingUser, BuddyConnectRequestMessage messageEntity)
 	{
 		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(), messageEntity.getCreationTime(),
 				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getRelatedUserAnonymizedID(),
@@ -127,50 +126,52 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 			}
 		}
 
-		private MessageActionDTO handleAction_Accept(UserDTO acceptingUser,
-				BuddyConnectRequestMessage connectRequestMessageEntity, MessageActionDTO payload)
+		private MessageActionDTO handleAction_Accept(UserDTO actingUser, BuddyConnectRequestMessage connectRequestMessageEntity,
+				MessageActionDTO payload)
 		{
-			buddyService.addBuddyToAcceptingUser(acceptingUser, connectRequestMessageEntity.getUser().getID(),
+			buddyService.addBuddyToAcceptingUser(actingUser, connectRequestMessageEntity.getUser().getID(),
 					connectRequestMessageEntity.getNickname(), connectRequestMessageEntity.getRelatedUserAnonymizedID(),
 					connectRequestMessageEntity.requestingSending(), connectRequestMessageEntity.requestingReceiving());
 
-			updateMessageStatusAsAccepted(connectRequestMessageEntity);
+			connectRequestMessageEntity = updateMessageStatusAsAccepted(connectRequestMessageEntity);
 
-			sendResponseMessageToRequestingUser(acceptingUser, connectRequestMessageEntity, payload.getProperty("message"));
+			sendResponseMessageToRequestingUser(actingUser, connectRequestMessageEntity, payload.getProperty("message"));
 
 			logger.info(
 					"User with mobile number '{}' and ID '{}' accepted buddy connect request from user with mobile number '{}' and ID '{}'",
-					acceptingUser.getMobileNumber(), acceptingUser.getID(),
-					connectRequestMessageEntity.getUser().getMobileNumber(), connectRequestMessageEntity.getUser().getID());
+					actingUser.getMobileNumber(), actingUser.getID(), connectRequestMessageEntity.getUser().getMobileNumber(),
+					connectRequestMessageEntity.getUser().getID());
 
-			return new MessageActionDTO(Collections.singletonMap("status", "done"));
+			return MessageActionDTO
+					.createInstanceActionDone(theDTOFactory.createInstance(actingUser, connectRequestMessageEntity));
 		}
 
-		private MessageActionDTO handleAction_Reject(UserDTO rejectingUser,
-				BuddyConnectRequestMessage connectRequestMessageEntity, MessageActionDTO payload)
+		private MessageActionDTO handleAction_Reject(UserDTO actingUser, BuddyConnectRequestMessage connectRequestMessageEntity,
+				MessageActionDTO payload)
 		{
-			updateMessageStatusAsRejected(connectRequestMessageEntity);
+			connectRequestMessageEntity = updateMessageStatusAsRejected(connectRequestMessageEntity);
 
-			sendResponseMessageToRequestingUser(rejectingUser, connectRequestMessageEntity, payload.getProperty("message"));
+			sendResponseMessageToRequestingUser(actingUser, connectRequestMessageEntity, payload.getProperty("message"));
 
 			logger.info(
 					"User with mobile number '{}' and ID '{}' rejected buddy connect request from user with mobile number '{}' and ID '{}'",
-					rejectingUser.getMobileNumber(), rejectingUser.getID(),
-					connectRequestMessageEntity.getUser().getMobileNumber(), connectRequestMessageEntity.getUser().getID());
+					actingUser.getMobileNumber(), actingUser.getID(), connectRequestMessageEntity.getUser().getMobileNumber(),
+					connectRequestMessageEntity.getUser().getID());
 
-			return new MessageActionDTO(Collections.singletonMap("status", "done"));
+			return MessageActionDTO
+					.createInstanceActionDone(theDTOFactory.createInstance(actingUser, connectRequestMessageEntity));
 		}
 
-		private void updateMessageStatusAsAccepted(BuddyConnectRequestMessage connectRequestMessageEntity)
+		private BuddyConnectRequestMessage updateMessageStatusAsAccepted(BuddyConnectRequestMessage connectRequestMessageEntity)
 		{
 			connectRequestMessageEntity.setStatus(BuddyAnonymized.Status.ACCEPTED);
-			Message.getRepository().save(connectRequestMessageEntity);
+			return Message.getRepository().save(connectRequestMessageEntity);
 		}
 
-		private void updateMessageStatusAsRejected(BuddyConnectRequestMessage connectRequestMessageEntity)
+		private BuddyConnectRequestMessage updateMessageStatusAsRejected(BuddyConnectRequestMessage connectRequestMessageEntity)
 		{
 			connectRequestMessageEntity.setStatus(BuddyAnonymized.Status.REJECTED);
-			Message.getRepository().save(connectRequestMessageEntity);
+			return Message.getRepository().save(connectRequestMessageEntity);
 		}
 
 		private void sendResponseMessageToRequestingUser(UserDTO respondingUser,

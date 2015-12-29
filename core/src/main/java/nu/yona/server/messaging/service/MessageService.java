@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +93,7 @@ public class MessageService
 
 		deleteMessage(message, messageSource.getDestination());
 
-		return new MessageActionDTO(Collections.singletonMap("status", "done"));
+		return MessageActionDTO.createInstanceActionDone();
 	}
 
 	@Transactional
@@ -107,7 +106,7 @@ public class MessageService
 
 		deleteMessage(message, messageSource.getDestination());
 
-		return new MessageActionDTO(Collections.singletonMap("status", "done"));
+		return MessageActionDTO.createInstanceActionDone();
 	}
 
 	private void deleteMessage(Message message, MessageDestination destination)
@@ -145,7 +144,7 @@ public class MessageService
 
 	public static interface DTOManager
 	{
-		MessageDTO createInstance(UserDTO user, Message messageEntity);
+		MessageDTO createInstance(UserDTO actingUser, Message messageEntity);
 
 		MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action, MessageActionDTO requestPayload);
 	}
