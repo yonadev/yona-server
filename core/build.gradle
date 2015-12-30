@@ -16,40 +16,54 @@ apply plugin: 'idea'
 apply plugin: 'spring-boot'
 apply plugin: 'io.spring.dependency-management'
 
+jar {
+	baseName = 'Core'
+}
+
 configurations {
-	testutils.extendsFrom testRuntime
+	testUtils.extendsFrom testRuntime
 }
 
 sourceSets {
-	testutils
+	testUtils
 }
 
-task testutilsJar(type: Jar) {
-    classifier "testutils"
-    from sourceSets.testutils.output
+task testUtilsJar(type: Jar) {
+	classifier "testUtils"
+	from sourceSets.testUtils.output
 }
 
 artifacts {
-    testutils testutilsJar
+	testUtils testUtilsJar
 }
 
 dependencies {
 	compile("org.springframework.boot:spring-boot-starter-hateoas")
 	compile("org.springframework.boot:spring-boot-starter-data-jpa")
 	compile("org.springframework.boot:spring-boot-starter-web")
+	compile("org.springframework:spring-context-support")
 	compile("com.fasterxml.jackson.core:jackson-databind:2.6.3") // Required as the Spring Hateaos version pulled in by Swagger is incompatible with Jackson 2.4
 	compile("org.atteo:evo-inflector:1.2.1")
 	compile("commons-validator:commons-validator:1.4.1")
 	compile("commons-lang:commons-lang:2.4")
+	compile("javax.mail:mail:1.4.7")
+	compile("org.apache.velocity:velocity")
+	compile("org.springframework.ldap:spring-ldap-core:2.0.4.RELEASE")
+	compile("org.springframework.security:spring-security-web:4.0.3.RELEASE")
+	compile("com.google.guava:guava:18.0")
 	
 	compile "org.codehaus.groovy:groovy-all:2.4.5"
 	compile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 
 	testCompile("org.springframework.boot:spring-boot-starter-test")
 	testCompile("junit:junit:4.12")
+	testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
 	
-	testutilsCompile "org.codehaus.groovy:groovy-all:2.4.5"
-	testutilsCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
+	testUtilsCompile "org.codehaus.groovy:groovy-all:2.4.5"
+	testUtilsCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
+	
+	// mandatory dependencies for using Spock
+	testUtilsCompile "org.spockframework:spock-core:1.0-groovy-2.4"
 }
 
 test {

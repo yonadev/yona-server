@@ -7,15 +7,25 @@ package nu.yona.server.subscriptions.service;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No such buddy")
-public class BuddyNotFoundException extends RuntimeException
+import nu.yona.server.exceptions.YonaException;
+
+public class BuddyNotFoundException extends YonaException
 {
 	private static final long serialVersionUID = -5211242495003355230L;
 
-	public BuddyNotFoundException(UUID id)
+	private BuddyNotFoundException(String messageId, Object... parameters)
 	{
-		super("Buddy with ID '" + id + "' not found");
+		super(messageId, parameters);
+	}
+
+	private BuddyNotFoundException(HttpStatus statusCode, String messageId, Object... parameters)
+	{
+		super(statusCode, messageId, parameters);
+	}
+
+	public static BuddyNotFoundException notFound(UUID id)
+	{
+		return new BuddyNotFoundException(HttpStatus.NOT_FOUND, "error.buddy.not.found", id);
 	}
 }

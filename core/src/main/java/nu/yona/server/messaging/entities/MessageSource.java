@@ -7,7 +7,6 @@ package nu.yona.server.messaging.entities;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 import javax.persistence.CascadeType;
@@ -18,11 +17,15 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import nu.yona.server.crypto.ByteFieldEncrypter;
 import nu.yona.server.crypto.PublicKeyDecryptor;
 import nu.yona.server.crypto.PublicKeyUtil;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.messaging.service.MessageNotFoundException;
 
 @Entity
 @Table(name = "MESSAGE_SOURCES")
@@ -69,11 +72,11 @@ public class MessageSource extends EntityWithID
 		return messageDestination;
 	}
 
-	public List<Message> getAllMessages()
+	public Page<Message> getMessages(Pageable pageable)
 	{
-		List<Message> decryptedMessages = messageDestination.getAllMessages();
+		Page<Message> decryptedMessages = messageDestination.getMessages(pageable);
 		PublicKeyDecryptor decryptor = PublicKeyDecryptor.createInstance(loadPrivateKey());
-		decryptedMessages.stream().forEach(m -> m.decryptMessage(decryptor));
+		decryptedMessages.forEach(m -> m.decryptMessage(decryptor));
 		return decryptedMessages;
 	}
 
@@ -89,12 +92,18 @@ public class MessageSource extends EntityWithID
 	public Message getMessage(UUID idToFetch)
 	{
 		Message message = Message.getRepository().findOne(idToFetch);
+		if (message == null)
+		{
+			throw MessageNotFoundException.messageNotFound(idToFetch);
+		}
+
 		message.decryptMessage(PublicKeyDecryptor.createInstance(loadPrivateKey()));
 		return message;
 	}
 
-	public void touch()
+	public MessageSource touch()
 	{
 		privateKeyBytes = Arrays.copyOf(privateKeyBytes, privateKeyBytes.length);
+		return this;
 	}
 }

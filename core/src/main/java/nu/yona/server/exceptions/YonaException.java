@@ -4,23 +4,39 @@
  *******************************************************************************/
 package nu.yona.server.exceptions;
 
-public class YonaException extends RuntimeException
-{
+import org.springframework.http.HttpStatus;
 
+/**
+ * Generic exception class for any Yona exception.
+ * 
+ * @author pgussow
+ */
+public class YonaException extends ResourceBasedException
+{
 	private static final long serialVersionUID = 6332689175661269736L;
 
-	public YonaException(String message)
+	protected YonaException(String messageId, Object... parameters)
 	{
-		super(message);
+		super(messageId, parameters);
 	}
 
-	public YonaException(Throwable cause)
+	protected YonaException(HttpStatus statusCode, String messageId, Object... parameters)
 	{
-		super(cause);
+		super(statusCode, messageId, parameters);
 	}
 
-	public YonaException(String message, Throwable cause)
+	protected YonaException(Throwable t, String messageId, Object... parameters)
 	{
-		super(message, cause);
+		super(t, messageId, parameters);
+	}
+
+	protected YonaException(HttpStatus statusCode, Throwable t, String messageId, Object... parameters)
+	{
+		super(statusCode, t, messageId, parameters);
+	}
+
+	public static YonaException unexpected(Throwable e)
+	{
+		return new YonaException(e, "error.unexpected");
 	}
 }

@@ -9,25 +9,18 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
-import javax.persistence.Transient;
 
-import nu.yona.server.crypto.Decryptor;
-import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
+import nu.yona.server.subscriptions.service.BuddyServiceException;
 
 @Entity
 public class BuddyConnectRequestMessage extends BuddyConnectMessage
 {
+	private boolean isRequestingSending;
+	private boolean isRequestingReceiving;
 
-	@Transient
-	private Set<UUID> goalIDs;
-	private byte[] goalIDsCiphertext;
-
-	@Transient
-	private String nickname;
-	private byte[] nicknameCiphertext;
-
-	private BuddyAnonymized.Status status = BuddyAnonymized.Status.NOT_REQUESTED;
+	private Status status;
 
 	// Default constructor is required for JPA
 	public BuddyConnectRequestMessage()
@@ -35,58 +28,53 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		super();
 	}
 
-	private BuddyConnectRequestMessage(UUID id, UUID userID, UUID loginID, Set<UUID> goalIDs, String nickname, String message,
-			UUID buddyID)
+	private BuddyConnectRequestMessage(UUID id, UUID userID, UUID userAnonymizedID, Set<UUID> goalIDs, String nickname,
+			String message, UUID buddyID, boolean isRequestingSending, boolean isRequestingReceiving)
 	{
-		super(id, loginID, userID, message, buddyID);
+		super(id, userAnonymizedID, userID, nickname, message, buddyID);
+
 		if (userID == null)
 		{
-			throw new IllegalArgumentException("requestingUserID cannot be null");
+			throw BuddyServiceException.requestingUserCannotBeNull();
 		}
-		this.goalIDs = goalIDs;
-		this.nickname = nickname;
+
+		this.status = Status.REQUESTED;
+		this.isRequestingSending = isRequestingSending;
+		this.isRequestingReceiving = isRequestingReceiving;
 	}
 
-	public Set<Goal> getGoals()
+	public boolean requestingSending()
 	{
-		return goalIDs.stream().map(id -> Goal.getRepository().findOne(id)).collect(Collectors.toSet());
+		return isRequestingSending;
 	}
 
-	public String getNickname()
+	public boolean requestingReceiving()
 	{
-		return nickname;
+		return isRequestingReceiving;
 	}
 
-	public boolean isAccepted()
-	{
-		return status == BuddyAnonymized.Status.ACCEPTED;
-	}
-
-	public void setStatus(BuddyAnonymized.Status status)
+	public void setStatus(Status status)
 	{
 		this.status = status;
 	}
 
-	public static BuddyConnectRequestMessage createInstance(UUID requestingUserID, UUID requestingUserLoginID, Set<Goal> goals,
-			String nickname, String message, UUID buddyID)
+	public Status getStatus()
 	{
-		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserLoginID,
-				goals.stream().map(g -> g.getID()).collect(Collectors.toSet()), nickname, message, buddyID);
+		return this.status;
+	}
+
+	public static BuddyConnectRequestMessage createInstance(UUID requestingUserID, UUID requestingUserUserAnonymizedID,
+			Set<Goal> goals, String nickname, String message, UUID buddyID, boolean isRequestingSending,
+			boolean isRequestingReceiving)
+	{
+		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserUserAnonymizedID,
+				goals.stream().map(g -> g.getID()).collect(Collectors.toSet()), nickname, message, buddyID, isRequestingSending,
+				isRequestingReceiving);
 	}
 
 	@Override
-	public void encrypt(Encryptor encryptor)
+	public boolean canBeDeleted()
 	{
-		super.encrypt(encryptor);
-		goalIDsCiphertext = encryptor.encrypt(goalIDs);
-		nicknameCiphertext = encryptor.encrypt(nickname);
-	}
-
-	@Override
-	public void decrypt(Decryptor decryptor)
-	{
-		super.decrypt(decryptor);
-		goalIDs = decryptor.decryptUUIDSet(goalIDsCiphertext);
-		nickname = decryptor.decryptString(nicknameCiphertext);
+		return this.status == Status.ACCEPTED || this.status == Status.REJECTED;
 	}
 }

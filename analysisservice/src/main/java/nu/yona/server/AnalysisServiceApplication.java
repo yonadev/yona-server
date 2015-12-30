@@ -8,14 +8,12 @@ import static com.google.common.collect.Lists.newArrayList;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
-import org.springframework.hateoas.RelProvider;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import nu.yona.server.entities.RepositoryProvider;
-import nu.yona.server.rest.JsonRootRelProvider;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.builders.ResponseMessageBuilder;
@@ -28,9 +26,9 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication
 @EnableSwagger2
 @EnableHypermediaSupport(type = HypermediaType.HAL)
+@EnableCaching
 public class AnalysisServiceApplication
 {
-
 	public static void main(String[] args)
 	{
 		SpringApplication.run(AnalysisServiceApplication.class, args);
@@ -45,17 +43,5 @@ public class AnalysisServiceApplication
 				.paths(PathSelectors.any()).build().pathMapping("/").useDefaultResponseMessages(false)
 				.globalResponseMessage(RequestMethod.GET, newArrayList(new ResponseMessageBuilder().code(500)
 						.message("500 message").responseModel(new ModelRef("Error")).build()));
-	}
-
-	@Bean
-	RelProvider relProvider()
-	{
-		return new JsonRootRelProvider();
-	}
-
-	@Bean
-	RepositoryProvider repositoryProvider()
-	{
-		return new RepositoryProvider();
 	}
 }

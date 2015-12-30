@@ -19,7 +19,7 @@ public class CryptoSessionTest
 	private static final String PLAINTEXT1 = "One";
 	private static final String PLAINTEXT2 = "Two";
 
-	@Test(expected = IllegalStateException.class)
+	@Test(expected = CryptoException.class)
 	public void testNoCurrentSession()
 	{
 		CryptoSession.getCurrent();
@@ -62,7 +62,7 @@ public class CryptoSessionTest
 		assertThat(plaintext2, equalTo(PLAINTEXT2));
 	}
 
-	@Test(expected = DecryptionException.class)
+	@Test(expected = CryptoException.class)
 	public void testInvalidPassword()
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
@@ -78,7 +78,7 @@ public class CryptoSessionTest
 				equalTo(CryptoSession.execute(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsOK, () -> PLAINTEXT1)));
 	}
 
-	@Test(expected = DecryptionException.class)
+	@Test(expected = CryptoException.class)
 	public void testInvalidPasswordWhileCheckerSaysNotOK()
 	{
 		CryptoSession.execute(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsNotOK, () -> PLAINTEXT1);

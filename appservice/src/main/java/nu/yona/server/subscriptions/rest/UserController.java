@@ -15,14 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.rest.Constants;
-import nu.yona.server.subscriptions.rest.UserController.UserResource;
-import nu.yona.server.subscriptions.service.BuddyDTO;
-import nu.yona.server.subscriptions.service.BuddyService;
-import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
-import nu.yona.server.subscriptions.service.UserDTO;
-import nu.yona.server.subscriptions.service.UserService;
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
@@ -45,6 +38,19 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import nu.yona.server.BruteForceAttemptService;
+import nu.yona.server.DOSProtectionService;
+import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.rest.Constants;
+import nu.yona.server.subscriptions.rest.UserController.UserResource;
+import nu.yona.server.subscriptions.service.BuddyDTO;
+import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
+import nu.yona.server.subscriptions.service.OverwriteUserDTO;
+import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.subscriptions.service.UserService;
+
 @Controller
 @ExposesResourceFor(UserResource.class)
 @RequestMapping(value = "/users/")
@@ -56,21 +62,33 @@ public class UserController
 	@Autowired
 	private BuddyService buddyService;
 
+	@Autowired
+	private BruteForceAttemptService bruteForceAttemptService;
+
+	@Autowired
+	private DOSProtectionService dosProtectionService;
+
+	@Autowired
+	private YonaProperties yonaProperties;
+
 	@RequestMapping(value = "{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr,
 			@RequestParam(value = "includePrivateData", defaultValue = "false") String includePrivateDataStr,
 			@PathVariable UUID id)
 	{
+		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
+		Optional<String> passwordToUse = getPasswordToUse(password, tempPassword);
 		boolean includePrivateData = Boolean.TRUE.toString().equals(includePrivateDataStr);
 		if (includePrivateData)
 		{
-			return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+			return CryptoSession.execute(passwordToUse, () -> userService.canAccessPrivateData(id),
 					() -> createOKResponse(userService.getPrivateUser(id), includePrivateData));
 		}
 		else
 		{
-			return getPublicUser(password, id);
+			return getPublicUser(passwordToUse, id);
 		}
 	}
 
@@ -82,18 +100,53 @@ public class UserController
 		return createOKResponse(userService.getPublicUser(id), false);
 	}
 
+	@RequestMapping(method = RequestMethod.PUT)
+	@ResponseBody
+	public HttpEntity<Resource<OverwriteUserDTO>> setOverwriteUserConfirmationCode(@RequestParam String mobileNumber)
+	{
+		return new ResponseEntity<Resource<OverwriteUserDTO>>(
+				new Resource<OverwriteUserDTO>(userService.setOverwriteUserConfirmationCode(mobileNumber)), HttpStatus.OK);
+	}
+
 	@RequestMapping(method = RequestMethod.POST)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
 	public HttpEntity<UserResource> addUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@RequestBody UserDTO user)
+			@RequestParam(value = "overwriteUserConfirmationCode", required = false) String overwriteUserConfirmationCode,
+			@RequestBody UserDTO user, HttpServletRequest request)
 	{
-		return CryptoSession.execute(password, () -> createResponse(userService.addUser(user), true, HttpStatus.CREATED));
+		return dosProtectionService.executeAttempt(getAddUserLinkBuilder().toUri(), request,
+				yonaProperties.getSecurity().getMaxCreateUserAttemptsPerTimeWindow(),
+				() -> addUser(password, Optional.ofNullable(overwriteUserConfirmationCode), user));
+	}
+
+	static ControllerLinkBuilder getAddUserLinkBuilder()
+	{
+		UserController methodOn = methodOn(UserController.class);
+		return linkTo(methodOn.addUser(Optional.empty(), null, null, null));
 	}
 
 	private void checkPassword(Optional<String> password, UUID userID)
 	{
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> null);
+	}
+
+	@RequestMapping(value = "{userID}/confirmMobileNumber", method = RequestMethod.POST)
+	@ResponseBody
+	public HttpEntity<UserResource> confirmMobileNumber(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@RequestBody MobileNumberConfirmationDTO mobileNumberConfirmation)
+	{
+		checkPassword(password, userID);
+		return bruteForceAttemptService.executeAttempt(getConfirmMobileNumberLinkBuilder(userID).toUri(),
+				yonaProperties.getSms().getMobileNumberConfirmationMaxAttempts(),
+				() -> createOKResponse(userService.confirmMobileNumber(userID, mobileNumberConfirmation.getCode()), false));
+	}
+
+	static ControllerLinkBuilder getConfirmMobileNumberLinkBuilder(UUID userID)
+	{
+		UserController methodOn = methodOn(UserController.class);
+		return linkTo(methodOn.confirmMobileNumber(Optional.empty(), userID, null));
 	}
 
 	@RequestMapping(value = "{userID}/newDeviceRequest", method = RequestMethod.PUT)
@@ -153,21 +206,65 @@ public class UserController
 	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID id, @RequestBody UserDTO userResource)
+			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr, @PathVariable UUID id,
+			@RequestBody UserDTO userResource)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
-				() -> createOKResponse(userService.updateUser(id, userResource), true));
+		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
+		if (tempPassword.isPresent())
+		{
+			return CryptoSession.execute(password, null,
+					() -> createOKResponse(userService.updateUserCreatedOnBuddyRequest(id, tempPassword.get(), userResource),
+							true));
+		}
+		else
+		{
+			return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+					() -> createOKResponse(userService.updateUser(id, userResource), true));
+		}
 	}
 
 	@RequestMapping(value = "{id}", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
+	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
+			@RequestParam(value = "message", required = false) String messageStr)
 	{
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
-			userService.deleteUser(password, id);
+			userService.deleteUser(id, Optional.ofNullable(messageStr));
 			return null;
 		});
+	}
+
+	private HttpEntity<UserResource> addUser(Optional<String> password, Optional<String> overwriteUserConfirmationCode,
+			UserDTO user)
+	{
+		if (overwriteUserConfirmationCode.isPresent())
+		{
+			return bruteForceAttemptService.executeAttempt(getAddUserLinkBuilder().toUri(),
+					yonaProperties.getSms().getMobileNumberConfirmationMaxAttempts(),
+					() -> CryptoSession.execute(password,
+							() -> createResponse(userService.addUser(user, overwriteUserConfirmationCode), true,
+									HttpStatus.CREATED)),
+					() -> userService.clearOverwriteUserConfirmationCode(user.getMobileNumber()), user.getMobileNumber());
+		}
+		else
+		{
+			return CryptoSession.execute(password,
+					() -> createResponse(userService.addUser(user, Optional.empty()), true, HttpStatus.CREATED));
+		}
+	}
+
+	private Optional<String> getPasswordToUse(Optional<String> password, Optional<String> tempPassword)
+	{
+		if (password.isPresent())
+		{
+			return password;
+		}
+		if (tempPassword.isPresent())
+		{
+			return tempPassword;
+		}
+		return Optional.empty();
 	}
 
 	private HttpEntity<UserResource> createResponse(UserDTO user, boolean includePrivateData, HttpStatus status)
@@ -185,12 +282,26 @@ public class UserController
 		return createResponse(user, includePrivateData, HttpStatus.OK);
 	}
 
-	public static Link getUserLink(UUID userID, boolean includePrivateData)
+	static Link getUserSelfLinkWithTempPassword(UUID userID, String tempPassword)
+	{
+		ControllerLinkBuilder linkBuilder = linkTo(
+				methodOn(UserController.class).updateUser(Optional.empty(), tempPassword, userID, null));
+		return linkBuilder.withSelfRel();
+	}
+
+	private static Link getConfirmMobileLink(UUID userID)
+	{
+		ControllerLinkBuilder linkBuilder = linkTo(
+				methodOn(UserController.class).confirmMobileNumber(Optional.empty(), userID, null));
+		return linkBuilder.withRel("confirmMobileNumber");
+	}
+
+	private static Link getUserSelfLink(UUID userID, boolean includePrivateData)
 	{
 		ControllerLinkBuilder linkBuilder;
 		if (includePrivateData)
 		{
-			linkBuilder = linkTo(methodOn(UserController.class).getUser(Optional.empty(), Boolean.TRUE.toString(), userID));
+			linkBuilder = linkTo(methodOn(UserController.class).getUser(Optional.empty(), null, Boolean.TRUE.toString(), userID));
 		}
 		else
 		{
@@ -215,8 +326,8 @@ public class UserController
 			}
 
 			Set<BuddyDTO> buddies = getContent().getPrivateData().getBuddies();
-			return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME, new BuddyController.BuddyResourceAssembler(getContent()
-					.getID()).toResources(buddies));
+			return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME,
+					new BuddyController.BuddyResourceAssembler(getContent().getID()).toResources(buddies));
 		}
 
 		static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID)
@@ -241,6 +352,11 @@ public class UserController
 		{
 			UserResource userResource = instantiateResource(user);
 			addSelfLink(userResource, includePrivateData);
+			if (includePrivateData && !user.isMobileNumberConfirmed())
+			{
+				// The mobile number is not yet confirmed, so we can add the link
+				addConfirmMobileNumberLink(userResource, user.getMobileNumberConfirmationCode());
+			}
 			return userResource;
 		}
 
@@ -252,7 +368,18 @@ public class UserController
 
 		private static void addSelfLink(Resource<UserDTO> userResource, boolean includePrivateData)
 		{
-			userResource.add(UserController.getUserLink(userResource.getContent().getID(), includePrivateData));
+			if (userResource.getContent().getID() == null)
+			{
+				// removed user
+				return;
+			}
+
+			userResource.add(UserController.getUserSelfLink(userResource.getContent().getID(), includePrivateData));
+		}
+
+		private static void addConfirmMobileNumberLink(Resource<UserDTO> userResource, String confirmationCode)
+		{
+			userResource.add(UserController.getConfirmMobileLink(userResource.getContent().getID()));
 		}
 	}
 }

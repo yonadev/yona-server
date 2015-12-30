@@ -29,6 +29,18 @@ public class UUIDFieldEncrypter implements AttributeConverter<UUID, String>
 	private UUID decryptToUUID(String dbData)
 	{
 		String decryptedString = stringFieldEncrypter.convertToEntityAttribute(dbData);
-		return (decryptedString == null) ? null : UUID.fromString(decryptedString);
+		return (decryptedString == null) ? null : tryToConvertToUuid(decryptedString);
+	}
+
+	private UUID tryToConvertToUuid(String decryptedString)
+	{
+		try
+		{
+			return UUID.fromString(decryptedString);
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
 	}
 }

@@ -10,7 +10,6 @@ import org.hibernate.annotations.Type;
 @MappedSuperclass
 public abstract class EntityWithID
 {
-
 	@Id
 	@Type(type = "uuid-char")
 	private UUID id;

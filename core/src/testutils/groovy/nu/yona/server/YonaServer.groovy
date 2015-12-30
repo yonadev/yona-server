@@ -1,21 +1,29 @@
+/*******************************************************************************
+ * Copyright (c) 2015 Stichting Yona Foundation
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v.2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server
 
-import groovyx.net.http.RESTClient
 import groovy.json.*
+import groovyx.net.http.RESTClient
+import groovyx.net.http.URIBuilder
 
 import java.text.SimpleDateFormat
 
-import javax.management.InstanceOfQueryExp;
-
-class YonaServer {
+class YonaServer
+{
 	final GOALS_PATH = "/goals/"
 	final USERS_PATH = "/users/"
 	final ANALYSIS_ENGINE_PATH = "/analysisEngine/"
 	final BUDDIES_PATH_FRAGMENT = "/buddies/"
-	final DIRECT_MESSAGE_PATH_FRAGMENT = "/messages/direct/"
+	final DIRECT_MESSAGES_PATH_FRAGMENT = "/messages/direct/"
 	final ANONYMOUS_MESSAGES_PATH_FRAGMENT = "/messages/anonymous/"
+	final ALL_MESSAGES_PATH_FRAGMENT = "/messages/all/"
 	final RELEVANT_CATEGORIES_PATH_FRAGMENT = "/relevantCategories/"
 	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
+	final MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT = "/confirmMobileNumber"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 	RESTClient restClient
@@ -23,8 +31,8 @@ class YonaServer {
 	YonaServer (baseURL)
 	{
 		restClient = new RESTClient(baseURL)
-        
-        restClient.handler.failure = restClient.handler.success 
+
+		restClient.handler.failure = restClient.handler.success
 	}
 
 	def static getTimeStamp()
@@ -42,34 +50,52 @@ class YonaServer {
 	{
 		createResource(GOALS_PATH, jsonString)
 	}
-	
+
 	def getGoal(goalURL)
 	{
 		getResource(goalURL)
 	}
 
-	def addUser(jsonString, password)
+	def addUser(jsonString, password, parameters = [:])
 	{
-		createResourceWithPassword(USERS_PATH, jsonString, password)
+		createResourceWithPassword(USERS_PATH, jsonString, password, parameters)
+	}
+
+	def requestOverwriteUser(mobileNumber)
+	{
+		updateResource(USERS_PATH, """{ }""", [:], ["mobileNumber":mobileNumber])
 	}
 
 	def getUser(userURL, boolean includePrivateData, password = null)
 	{
-		if (includePrivateData) {
-			getResourceWithPassword(userURL, password, ["includePrivateData": "true"])
-		} else {
+		if (includePrivateData)
+		{
+			getResourceWithPassword(stripQueryString(userURL), password, getQueryParams(userURL) + ["includePrivateData": "true"])
+		}
+		else
+		{
 			getResourceWithPassword(userURL, password)
 		}
 	}
 
-	def deleteUser(userURL, password)
+	def updateUser(userURL, jsonString, password)
 	{
-		deleteResourceWithPassword(userURL, password)
+		updateResourceWithPassword(stripQueryString(userURL), jsonString, password, getQueryParams(userURL))
+	}
+
+	def deleteUser(userURL, password, message = "")
+	{
+		deleteResourceWithPassword(userURL, password, ["message":message])
 	}
 
 	def requestBuddy(userPath, jsonString, password)
 	{
 		createResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, jsonString, password)
+	}
+
+	def removeBuddy(buddyURL, password, message)
+	{
+		deleteResourceWithPassword(buddyURL, password, ["message":message])
 	}
 
 	def getRelevantCategories()
@@ -87,68 +113,64 @@ class YonaServer {
 		getResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, password)
 	}
 
-	def getDirectMessages(userPath, password)
+	def getDirectMessages(userPath, password, parameters = [:])
 	{
-		getResourceWithPassword(userPath + DIRECT_MESSAGE_PATH_FRAGMENT, password)
+		getResourceWithPassword(userPath + DIRECT_MESSAGES_PATH_FRAGMENT, password, parameters)
 	}
 
-	def getAnonymousMessages(userPath, password)
+	def getAnonymousMessages(userPath, password, parameters = [:])
 	{
-		getResourceWithPassword(userPath + ANONYMOUS_MESSAGES_PATH_FRAGMENT, password)
+		getResourceWithPassword(userPath + ANONYMOUS_MESSAGES_PATH_FRAGMENT, password, parameters)
 	}
 
 	def setNewDeviceRequest(userPath, password, jsonString)
 	{
 		updateResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, jsonString, password)
 	}
-	
+
 	def getNewDeviceRequest(userPath, userSecret = null)
 	{
 		getResource(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, [:], ["userSecret": userSecret])
 	}
-	
+
 	def clearNewDeviceRequest(userPath, password)
 	{
 		deleteResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, password)
 	}
 
-	def createResourceWithPassword(path, jsonString, password)
+	def createResourceWithPassword(path, jsonString, password, parameters = [:])
 	{
-		createResource(path, jsonString, ["Yona-Password": password])
+		createResource(path, jsonString, ["Yona-Password": password], parameters)
 	}
 
-	def createResource(path, jsonString, headers = [:])
+	def createResource(path, jsonString, headers = [:], parameters = [:])
 	{
-		postJson(path, jsonString, headers);
+		postJson(path, jsonString, headers, parameters)
 	}
 
-	def updateResourceWithPassword(path, jsonString, password)
+	def updateResourceWithPassword(path, jsonString, password, parameters = [:])
 	{
-		updateResource(path, jsonString, ["Yona-Password": password])
+		updateResource(path, jsonString, ["Yona-Password": password], parameters)
 	}
 
-	def updateResource(path, jsonString, headers = [:])
+	def updateResource(path, jsonString, headers = [:], parameters = [:])
 	{
-		def object = jsonSlurper.parseText(jsonString)
-		restClient.put(path: path, 
-			body: object, 
-			contentType:'application/json',
-			headers: headers)
+		putJson(path, jsonString, headers, parameters)
 	}
 
-	def deleteResourceWithPassword(path, password)
+	def deleteResourceWithPassword(path, password, parameters = [:])
 	{
-		deleteResource(path, ["Yona-Password": password])
+		deleteResource(path, ["Yona-Password": password], parameters)
 	}
 
-	def deleteResource(path, headers = [:])
+	def deleteResource(path, headers = [:], parameters = [:])
 	{
-		restClient.delete(path: path, headers: headers)
+		restClient.delete(path: path, headers: headers, query:parameters)
 	}
 
 	def getResourceWithPassword(path, password, parameters = [:])
 	{
-		getResource(path, password ?  ["Yona-Password": password] : [ : ], parameters)
+		getResource(path, password ? ["Yona-Password": password] : [ : ], parameters)
 	}
 
 	def postMessageActionWithPassword(path, jsonString, password)
@@ -158,43 +180,97 @@ class YonaServer {
 
 	def postMessageAction(path, jsonString, headers = [:])
 	{
-		postJson(path, jsonString, headers);
+		postJson(path, jsonString, headers)
 	}
 
 	def postToAnalysisEngine(jsonString)
 	{
-		postJson(ANALYSIS_ENGINE_PATH, jsonString);
+		postJson(ANALYSIS_ENGINE_PATH, jsonString)
 	}
 
 	def getResource(path, headers = [:], parameters = [:])
 	{
 		restClient.get(path: path,
-			contentType:'application/json',
-			headers: headers,
-			query: parameters)
+		contentType:'application/json',
+		headers: headers,
+		query: parameters)
 	}
 
-	def postJson(path, jsonString, headers = [:])
+	def postJson(path, jsonString, headers = [:], parameters = [:])
 	{
-        def object = null
-        if (jsonString instanceof Map)
-        {
-            object = jsonString;
-        }
-        else
-        {
-            object = jsonSlurper.parseText(jsonString)
-        }
-        
+		def object = null
+		if (jsonString instanceof Map)
+		{
+			object = jsonString
+		}
+		else
+		{
+			object = jsonSlurper.parseText(jsonString)
+		}
+
 		restClient.post(path: path,
-			body: object,
-			contentType:'application/json',
-			headers: headers)
+		body: object,
+		contentType:'application/json',
+		headers: headers,
+		query: parameters)
 	}
 
-	def stripQueryString(url)
+	def putJson(path, jsonString, headers = [:], parameters = [:])
+	{
+		def object = null
+		if (jsonString instanceof Map)
+		{
+			object = jsonString
+		}
+		else
+		{
+			object = jsonSlurper.parseText(jsonString)
+		}
+
+		restClient.put(path: path,
+		body: object,
+		contentType:'application/json',
+		headers: headers,
+		query: parameters)
+	}
+
+	def getQueryParams(url)
+	{
+		def uriBuilder = new URIBuilder(url)
+		if(uriBuilder.query)
+		{
+			return uriBuilder.query
+		}
+		else
+		{
+			return [ : ]
+		}
+	}
+
+	static def stripQueryString(url)
 	{
 		url - ~/\?.*/
 	}
 
+	static String makeStringList(def strings)
+	{
+		def stringList = ""
+		strings.each(
+				{
+					stringList += (stringList) ? ", " : ""
+					stringList += '\"' + it + '\"'
+				})
+		return stringList
+	}
+
+	static String makeStringMap(def strings)
+	{
+		def stringList = ""
+		strings.keySet().each(
+				{
+					stringList += (stringList) ? ", " : ""
+					stringList += '\"' + it + '\" : \"' + strings[it] + '\"'
+				})
+		return stringList
+	}
 }

@@ -4,9 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.crypto;
 
-import static java.util.logging.Level.FINE;
-import static java.util.logging.Level.SEVERE;
-
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -15,7 +12,6 @@ import java.security.spec.InvalidParameterSpecException;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -27,10 +23,15 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import nu.yona.server.exceptions.YonaException;
 
 public class CryptoSession implements AutoCloseable
 {
+	private static final String CIPHER_TYPE = "AES/CBC/PKCS5Padding";
+
 	public interface Executable<T>
 	{
 		T execute();
@@ -41,7 +42,7 @@ public class CryptoSession implements AutoCloseable
 		boolean test();
 	}
 
-	private static final Logger LOGGER = Logger.getLogger(CryptoSession.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CryptoSession.class);
 	private static final byte[] SALT = "0123456789012345".getBytes();
 	private static final int INITIALIZATION_VECTOR_LENGTH = 16;
 	private static ThreadLocal<CryptoSession> threadLocal = new ThreadLocal<>();
@@ -61,7 +62,7 @@ public class CryptoSession implements AutoCloseable
 	@Override
 	public void close()
 	{
-		LOGGER.log(FINE, "Closing crypto session on thread " + Thread.currentThread());
+		logger.debug("Closing crypto session on thread {}", Thread.currentThread());
 		threadLocal.set(previousCryptoSession);
 	}
 
@@ -76,7 +77,7 @@ public class CryptoSession implements AutoCloseable
 		{
 			if (passwordChecker != null && !passwordChecker.test())
 			{
-				throw new DecryptionException();
+				throw CryptoException.decryptingData();
 			}
 			return executable.execute();
 		}
@@ -88,7 +89,7 @@ public class CryptoSession implements AutoCloseable
 		{
 			if (encryptionCipher == null)
 			{
-				encryptionCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+				encryptionCipher = Cipher.getInstance(CIPHER_TYPE);
 				if (!isInitializationVectorSet())
 				{
 					encryptionCipher.init(Cipher.ENCRYPT_MODE, secretKey);
@@ -102,14 +103,13 @@ public class CryptoSession implements AutoCloseable
 		}
 		catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e)
 		{
-			LOGGER.log(SEVERE, "Unexpected exception", e);
-			throw new YonaException(e);
+			throw CryptoException.gettingCipher(CIPHER_TYPE);
 		}
 	}
 
 	private static CryptoSession start(String password)
 	{
-		LOGGER.log(FINE, "Starting crypto session on thread " + Thread.currentThread());
+		logger.debug("Starting crypto session on thread {}", Thread.currentThread());
 		return new CryptoSession(password, threadLocal.get());
 	}
 
@@ -118,8 +118,7 @@ public class CryptoSession implements AutoCloseable
 		CryptoSession cryptoSession = threadLocal.get();
 		if (cryptoSession == null)
 		{
-			LOGGER.log(SEVERE, "No active crypto session on thread " + Thread.currentThread());
-			throw new IllegalStateException("No active crypto session on thread " + Thread.currentThread());
+			throw CryptoException.noActiveCryptoSession(Thread.currentThread());
 		}
 		return cryptoSession;
 	}
@@ -132,8 +131,7 @@ public class CryptoSession implements AutoCloseable
 		}
 		catch (IllegalBlockSizeException | BadPaddingException e)
 		{
-			LOGGER.log(SEVERE, "Unexpected exception", e);
-			throw new YonaException(e);
+			throw CryptoException.encryptingData(e);
 		}
 	}
 
@@ -145,8 +143,7 @@ public class CryptoSession implements AutoCloseable
 		}
 		catch (IllegalBlockSizeException | BadPaddingException e)
 		{
-			LOGGER.log(SEVERE, "Unexpected exception", e);
-			throw new DecryptionException(e);
+			throw CryptoException.decryptingData(e);
 		}
 	}
 
@@ -161,8 +158,7 @@ public class CryptoSession implements AutoCloseable
 		}
 		catch (NoSuchAlgorithmException | InvalidKeySpecException e)
 		{
-			LOGGER.log(SEVERE, "Unexpected exception", e);
-			throw new YonaException(e);
+			throw CryptoException.creatingSecretKey(e);
 		}
 	}
 
@@ -177,8 +173,7 @@ public class CryptoSession implements AutoCloseable
 		}
 		catch (InvalidParameterSpecException e)
 		{
-			LOGGER.log(SEVERE, "Unexpected exception", e);
-			throw new YonaException(e);
+			throw YonaException.unexpected(e);
 		}
 	}
 
@@ -186,8 +181,9 @@ public class CryptoSession implements AutoCloseable
 	{
 		if (!isInitializationVectorSet())
 		{
-			throw new IllegalStateException("Initialization vector is not set");
+			throw CryptoException.initializationVectorNotSet();
 		}
+
 		return initializationVector.get();
 	}
 
@@ -195,12 +191,11 @@ public class CryptoSession implements AutoCloseable
 	{
 		if (initializationVector == null)
 		{
-			throw new IllegalArgumentException("initializationVector cannot be null");
+			throw CryptoException.initializationVectorParameterNull();
 		}
 		if (initializationVector.length != INITIALIZATION_VECTOR_LENGTH)
 		{
-			throw new IllegalArgumentException("Initialization vector length (" + initializationVector.length
-					+ ") is wrong. Must be " + INITIALIZATION_VECTOR_LENGTH);
+			throw CryptoException.initializationVectorWrongSize(initializationVector.length, INITIALIZATION_VECTOR_LENGTH);
 		}
 		if (isInitializationVectorSet())
 		{
@@ -208,8 +203,9 @@ public class CryptoSession implements AutoCloseable
 			{
 				return;
 			}
-			throw new IllegalStateException("Cannot overwrite the initialization vector with different one");
+			throw CryptoException.initializationVectorOverwrite();
 		}
+
 		this.initializationVector = Optional.of(initializationVector);
 	}
 
@@ -226,22 +222,21 @@ public class CryptoSession implements AutoCloseable
 			{
 				if (!isInitializationVectorSet())
 				{
-					throw new IllegalStateException("Initialization vector must be set before invoking decrypt");
+					throw CryptoException.initializationVectorNotSet();
 				}
-				decryptionCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+				decryptionCipher = Cipher.getInstance(CIPHER_TYPE);
 				decryptionCipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(getInitializationVector()));
 			}
 			return decryptionCipher;
 		}
 		catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e)
 		{
-			LOGGER.log(SEVERE, "Unexpected exception", e);
-			throw new YonaException(e);
+			throw CryptoException.gettingCipher(CIPHER_TYPE);
 		}
 	}
 
 	private static String getPassword(Optional<String> password)
 	{
-		return password.orElseThrow(() -> new MissingPasswordException());
+		return password.orElseThrow(() -> MissingPasswordException.passwordHeaderNotProvided());
 	}
 }

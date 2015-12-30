@@ -22,15 +22,23 @@ sub transform_log_record ($) {
 		print "WARNING: No user name\n";
 		return undef;
 	}
-	my $username = (keys $log_message->{'tagset'}->{'username'}) [0];
-	my @url_categories_logged = keys $log_message->{'requesttags'}->{'urlcategory'};
-	my @relevant_url_categories_logged = filter_relevant_url_categories \@url_categories_logged;
-	if (!@relevant_url_categories_logged) {
+	if (!$log_message->{'requesttags'}->{'urlcategory'}) {
+		# Unclassified request. Probably an HTTPS site
 		return undef;
 	}
 
+	my @url_categories_logged = keys $log_message->{'requesttags'}->{'urlcategory'};
+	my @relevant_url_categories_logged = filter_relevant_url_categories \@url_categories_logged;
+	if (!@relevant_url_categories_logged) {
+		# Categories are not relevant
+		return undef;
+	}
+
+	my $userDN = (keys $log_message->{'tagset'}->{'username'}) [0];
+	my $vpnLoginID = substr $userDN, 3, 36;
+
 	my $analysis_event = {
-		'loginID' => $username,
+		'vpnLoginID' => $vpnLoginID,
 		'categories' => [@relevant_url_categories_logged],
 		'url' => $url
 	};
@@ -61,6 +69,7 @@ sub handle_records_from_stream {
 		my $analysis_event_json = transform_log_record $_;
 
 		if ($analysis_event_json) {
+			print Dumper $analysis_event_json;
 			my $post_result = $ua->request(POST $analysis_engine_url, Content_Type => 'application/json', Content => $analysis_event_json);
 			my $status_code = $post_result->{'_rc'};
 			if ($status_code != 200) {

@@ -14,12 +14,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
-import nu.yona.server.subscriptions.service.BuddyDTO;
-import nu.yona.server.subscriptions.service.BuddyService;
-import nu.yona.server.subscriptions.service.UserService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Resource;
@@ -35,9 +29,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
+import nu.yona.server.subscriptions.service.BuddyDTO;
+import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(BuddyResource.class)
@@ -89,9 +90,28 @@ public class BuddyController
 	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID requestingUserID, @RequestBody BuddyDTO buddy)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
-				() -> createResponse(requestingUserID, buddyService.addBuddyToRequestingUser(requestingUserID, buddy),
-						HttpStatus.CREATED));
+		return CryptoSession
+				.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
+						() -> createResponse(requestingUserID,
+								buddyService.addBuddyToRequestingUser(requestingUserID, buddy, this::getInviteURL),
+								HttpStatus.CREATED));
+	}
+
+	@RequestMapping(value = "{buddyID}", method = RequestMethod.DELETE)
+	@ResponseBody
+	public void removeBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID requestingUserID, @PathVariable UUID buddyID,
+			@RequestParam(value = "message", required = false) String messageStr)
+	{
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID), () -> {
+			buddyService.removeBuddy(requestingUserID, buddyID, Optional.ofNullable(messageStr));
+			return null;
+		});
+	}
+
+	public String getInviteURL(UUID newUserID, String tempPassword)
+	{
+		return UserController.getUserSelfLinkWithTempPassword(newUserID, tempPassword).getHref();
 	}
 
 	private HttpEntity<BuddyResource> createOKResponse(UUID requestingUserID, BuddyDTO buddy)

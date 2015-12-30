@@ -12,9 +12,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.hateoas.RelProvider;
 import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
@@ -23,10 +23,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.fasterxml.classmate.TypeResolver;
 
-import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.rest.GoalController.GoalResource;
 import nu.yona.server.goals.service.GoalDTO;
-import nu.yona.server.rest.JsonRootRelProvider;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.builders.ResponseMessageBuilder;
@@ -41,9 +39,9 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication
 @EnableSwagger2
 @EnableHypermediaSupport(type = HypermediaType.HAL)
+@EnableCaching
 public class AdminServiceApplication
 {
-
 	@Autowired
 	private TypeResolver typeResolver;
 
@@ -51,9 +49,6 @@ public class AdminServiceApplication
 	{
 		SpringApplication.run(AdminServiceApplication.class, args);
 	}
-
-	@Autowired
-	GoalFileLoader goalFileLoader;
 
 	@Bean
 	public Docket yonaApi()
@@ -68,17 +63,5 @@ public class AdminServiceApplication
 				.useDefaultResponseMessages(false)
 				.globalResponseMessage(RequestMethod.GET, newArrayList(new ResponseMessageBuilder().code(500)
 						.message("500 message").responseModel(new ModelRef("Error")).build()));
-	}
-
-	@Bean
-	RelProvider relProvider()
-	{
-		return new JsonRootRelProvider();
-	}
-
-	@Bean
-	RepositoryProvider repositoryProvider()
-	{
-		return new RepositoryProvider();
 	}
 }

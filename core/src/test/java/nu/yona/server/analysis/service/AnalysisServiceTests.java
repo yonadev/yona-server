@@ -1,46 +1,52 @@
 package nu.yona.server.analysis.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.security.KeyPair;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import nu.yona.server.analysis.service.AnalysisEngineService;
-import nu.yona.server.analysis.service.PotentialConflictDTO;
-import nu.yona.server.crypto.PublicKeyUtil;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalService;
-import nu.yona.server.messaging.entities.MessageDestination;
-import nu.yona.server.messaging.entities.MessageDestinationRepository;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
-import nu.yona.server.subscriptions.entities.UserAnonymizedRepository;
+import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.service.MessageDestinationDTO;
+import nu.yona.server.messaging.service.MessageService;
+import nu.yona.server.properties.AnalysisServiceProperties;
+import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AnalysisServiceTests
 {
 	private Map<String, Goal> goalMap = new HashMap<String, Goal>();
-	private KeyPair encryptionKeyPair = PublicKeyUtil.generateKeyPair();
 
 	@Mock
 	private GoalService mockGoalService;
 	@Mock
-	private UserAnonymizedRepository userAnonymizedRepository;
+	private UserAnonymizedService mockUserAnonymizedService;
 	@Mock
-	private MessageDestinationRepository messageDestinationRepository;
+	private MessageService mockMessageService;
+	@Mock
+	private YonaProperties mockYonaProperties;
+	@Mock
+	private AnalysisEngineCacheService mockAnalysisEngineCacheService;
 	@InjectMocks
 	private AnalysisEngineService service = new AnalysisEngineService();
 
@@ -53,6 +59,8 @@ public class AnalysisServiceTests
 		goalMap.put(gamblingGoal.getName(), gamblingGoal);
 		goalMap.put(newsGoal.getName(), newsGoal);
 
+		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
+
 		when(mockGoalService.getAllGoalEntities()).thenReturn(new HashSet<Goal>(goalMap.values()));
 	}
 
@@ -63,21 +71,22 @@ public class AnalysisServiceTests
 	public void messageCreatedOnMatch()
 	{
 		// Set up UserAnonymized instance.
-		MessageDestination anonMessageDestination = MessageDestination.createInstance(encryptionKeyPair.getPublic());
+		MessageDestinationDTO anonMessageDestination = new MessageDestinationDTO(UUID.randomUUID());
 		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(goalMap.get("gambling")));
-		UserAnonymized userAnon = UserAnonymized.createInstance(anonMessageDestination, goals);
+		UserAnonymizedDTO userAnon = new UserAnonymizedDTO(goals, anonMessageDestination, Collections.emptySet());
+		UUID userAnonID = UUID.randomUUID();
 
 		// Stub the UserAnonymizedRepository to return our user.
-		when(userAnonymizedRepository.findOne(userAnon.getID())).thenReturn(userAnon);
+		when(mockUserAnonymizedService.getUserAnonymized(userAnonID)).thenReturn(userAnon);
 
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(new PotentialConflictDTO(userAnon.getID(), conflictCategories, "http://localhost/test"));
+		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
 		// Verify that there is a new conflict message and that the message destination was saved to the repository.
-		assertEquals(1, anonMessageDestination.getAllMessages().size());
-		assertEquals(userAnon.getID(), anonMessageDestination.getAllMessages().get(0).getRelatedLoginID());
-		verify(messageDestinationRepository).save(anonMessageDestination);
+		ArgumentCaptor<Message> message = ArgumentCaptor.forClass(Message.class);
+		verify(mockMessageService).sendMessage(message.capture(), eq(anonMessageDestination));
+		assertEquals(userAnonID, message.getValue().getRelatedUserAnonymizedID());
 	}
 
 	/**
@@ -87,19 +96,19 @@ public class AnalysisServiceTests
 	public void noMessagesCreatedOnNoMatch()
 	{
 		// Set up UserAnonymized instance.
-		MessageDestination anonMessageDestination = MessageDestination.createInstance(encryptionKeyPair.getPublic());
-		Set<Goal> userGoals = new HashSet<Goal>(Arrays.asList(goalMap.get("news")));
-		UserAnonymized userAnon = UserAnonymized.createInstance(anonMessageDestination, userGoals);
+		MessageDestinationDTO anonMessageDestination = new MessageDestinationDTO(UUID.randomUUID());
+		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(goalMap.get("news")));
+		UserAnonymizedDTO userAnon = new UserAnonymizedDTO(goals, anonMessageDestination, Collections.emptySet());
+		UUID userAnonID = UUID.randomUUID();
 
 		// Stub the UserAnonymizedRepository to return our user.
-		when(userAnonymizedRepository.findOne(userAnon.getID())).thenReturn(userAnon);
+		when(mockUserAnonymizedService.getUserAnonymized(userAnonID)).thenReturn(userAnon);
 
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(new PotentialConflictDTO(userAnon.getID(), conflictCategories, "http://localhost/test"));
+		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
-		// Verify that there is a new conflict message and that the message destination was saved to the repository.
-		assertEquals(0, anonMessageDestination.getAllMessages().size());
-		verify(messageDestinationRepository, never()).save(anonMessageDestination);
+		// Verify that there is a new conflict message and that the message destination was not saved to the repository.
+		verify(mockMessageService, never()).sendMessage(null, anonMessageDestination);
 	}
 }

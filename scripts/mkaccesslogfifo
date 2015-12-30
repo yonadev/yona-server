@@ -1,0 +1,5 @@
+rm access.log
+mkfifo access.log
+chmod 644 access.log
+chown guardian access.log
+chgrp guardian access.log

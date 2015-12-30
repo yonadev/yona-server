@@ -10,5 +10,5 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface UserRepository extends CrudRepository<User, UUID>
 {
-    User findByMobileNumber(String mobileNumber);
+	User findByMobileNumber(String mobileNumber);
 }

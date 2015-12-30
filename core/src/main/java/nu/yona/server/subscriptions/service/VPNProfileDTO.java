@@ -4,31 +4,38 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import com.google.common.io.Resources;
 
-import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.exceptions.YonaException;
+import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("vpnProfile")
 public class VPNProfileDTO
 {
 	private final UUID id;
-	private UUID loginID;
+	private UUID vpnLoginID;
+	private String vpnPassword;
 
-	public VPNProfileDTO(UUID id, UUID loginID)
+	public VPNProfileDTO(UUID id, UUID vpnLoginID, String vpnPassword)
 	{
 		this.id = id;
-		this.loginID = loginID;
+		this.vpnLoginID = vpnLoginID;
+		this.vpnPassword = vpnPassword;
 	}
 
 	@JsonCreator
-	public VPNProfileDTO(@JsonProperty("loginID") UUID loginID)
+	public VPNProfileDTO(@JsonProperty("vpnLoginID") UUID vpnLoginID)
 	{
-		this(null, loginID);
+		this(null, vpnLoginID, null);
 	}
 
 	@JsonIgnore
@@ -37,13 +44,38 @@ public class VPNProfileDTO
 		return id;
 	}
 
-	public UUID getLoginID()
+	@JsonProperty("vpnLoginID")
+	public UUID getVPNLoginID()
 	{
-		return loginID;
+		return vpnLoginID;
 	}
 
-	public static VPNProfileDTO createInstance(UserAnonymized userAnonymized)
+	@JsonProperty("vpnPassword")
+	public String getVpnPassword()
 	{
-		return new VPNProfileDTO(userAnonymized.getID(), userAnonymized.getLoginID());
+		return vpnPassword;
+	}
+
+	public void setVpnPassword(String vpnPassword)
+	{
+		this.vpnPassword = vpnPassword;
+	}
+
+	public String getOpenVPNProfile()
+	{
+		try
+		{
+			URL url = Resources.getResource("OpenVPNProfile.ovpn");
+			return Resources.toString(url, StandardCharsets.UTF_8).replace("\n", "\\n");
+		}
+		catch (IOException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
+
+	public static VPNProfileDTO createInstance(User user)
+	{
+		return new VPNProfileDTO(user.getAnonymized().getID(), user.getVPNLoginID(), user.getVPNPassword());
 	}
 }

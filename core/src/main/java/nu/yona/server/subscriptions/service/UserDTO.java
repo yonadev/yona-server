@@ -12,10 +12,13 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
+import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.User;
 
@@ -28,38 +31,45 @@ public class UserDTO
 	private final String lastName;
 	private final String emailAddress;
 	private final String mobileNumber;
+	private boolean isMobileNumberConfirmed;
 	private final UserPrivateDTO privateData;
+	/*
+	 * Only intended for test purposes.
+	 */
+	private String mobileNumberConfirmationCode;
 
-	private UserDTO(UUID id, String firstName, String lastName, String nickName, String mobileNumber, UUID namedMessageSourceID,
-			UUID namedMessageDestinationID, UUID anonymousMessageSourceID, UUID anonymousMessageDestinationID,
-			Set<String> deviceNames, Set<String> goalNames, Set<UUID> buddyIDs, VPNProfileDTO vpnProfile)
+	private UserDTO(UUID id, String firstName, String lastName, String nickname, String mobileNumber, boolean isConfirmed,
+			UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
+			UUID anonymousMessageDestinationID, Set<String> deviceNames, Set<String> goalNames, Set<UUID> buddyIDs,
+			UUID userAnonymizedID, VPNProfileDTO vpnProfile)
 	{
-		this(id, firstName, lastName, null, mobileNumber,
-				new UserPrivateDTO(nickName, namedMessageSourceID, namedMessageDestinationID, anonymousMessageSourceID,
-						anonymousMessageDestinationID, deviceNames, goalNames, buddyIDs, vpnProfile));
+		this(id, firstName, lastName, null, mobileNumber, isConfirmed,
+				new UserPrivateDTO(nickname, namedMessageSourceID, namedMessageDestinationID, anonymousMessageSourceID,
+						anonymousMessageDestinationID, deviceNames, goalNames, buddyIDs, userAnonymizedID, vpnProfile));
 	}
 
-	private UserDTO(UUID id, String firstName, String lastName, String mobileNumber)
+	private UserDTO(UUID id, String firstName, String lastName, String mobileNumber, boolean isConfirmed)
 	{
-		this(id, firstName, lastName, null, mobileNumber, null);
+		this(id, firstName, lastName, null, mobileNumber, isConfirmed, null);
 	}
 
 	@JsonCreator
 	public UserDTO(@JsonProperty("firstName") String firstName, @JsonProperty("lastName") String lastName,
 			@JsonProperty("emailAddress") String emailAddress, @JsonProperty("mobileNumber") String mobileNumber,
-			@JsonUnwrapped UserPrivateDTO privateData)
+			@JsonProperty("isConfirmed") boolean isConfirmed, @JsonUnwrapped UserPrivateDTO privateData)
 	{
-		this(null, firstName, lastName, emailAddress, mobileNumber, privateData);
+		this(null, firstName, lastName, emailAddress, mobileNumber, isConfirmed, privateData);
 	}
 
 	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber,
-			UserPrivateDTO privateData)
+			boolean isMobileNumberConfirmed, UserPrivateDTO privateData)
 	{
 		this.id = id;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.emailAddress = emailAddress;
 		this.mobileNumber = mobileNumber;
+		this.isMobileNumberConfirmed = isMobileNumberConfirmed;
 		this.privateData = privateData;
 	}
 
@@ -95,24 +105,47 @@ public class UserDTO
 		return mobileNumber;
 	}
 
+	@JsonIgnore
+	public boolean isMobileNumberConfirmed()
+	{
+		return isMobileNumberConfirmed;
+	}
+
 	@JsonUnwrapped
 	public UserPrivateDTO getPrivateData()
 	{
 		return privateData;
 	}
 
+	/*
+	 * Only intended for test purposes.
+	 */
+	public void setMobileNumberConfirmationCode(String mobileNumberConfirmationCode)
+	{
+		this.mobileNumberConfirmationCode = mobileNumberConfirmationCode;
+	}
+
+	/*
+	 * Only intended for test purposes.
+	 */
+	@JsonInclude(Include.NON_EMPTY)
+	public String getMobileNumberConfirmationCode()
+	{
+		return mobileNumberConfirmationCode;
+	}
+
 	User createUserEntity()
 	{
-		return User.createInstance(firstName, lastName, privateData.getNickName(), mobileNumber, privateData.getDeviceNames(),
-				privateData.getGoals());
+		return User.createInstance(firstName, lastName, privateData.getNickname(), mobileNumber,
+				privateData.getVpnProfile().getVpnPassword(), privateData.getDeviceNames(), privateData.getGoals());
 	}
 
 	User updateUser(User originalUserEntity)
 	{
 		originalUserEntity.setFirstName(firstName);
 		originalUserEntity.setLastName(lastName);
-		originalUserEntity.setNickName(privateData.getNickName());
 		originalUserEntity.setMobileNumber(mobileNumber);
+		originalUserEntity.setNickname(privateData.getNickname());
 		originalUserEntity.setDeviceNames(privateData.getDeviceNames());
 
 		return originalUserEntity;
@@ -125,21 +158,39 @@ public class UserDTO
 
 	static UserDTO createInstance(User userEntity)
 	{
-		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getMobileNumber());
+		if (userEntity == null)
+		{
+			return createRemovedUserInstance();
+		}
+		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getMobileNumber(),
+				userEntity.isMobileNumberConfirmed());
+	}
+
+	static UserDTO createRemovedUserInstance()
+	{
+		return new UserDTO(null, null, null, null, false);
 	}
 
 	static UserDTO createInstanceWithPrivateData(User userEntity)
 	{
-		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickName(),
-				userEntity.getMobileNumber(), userEntity.getNamedMessageSource().getID(),
+		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickname(),
+				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSource().getID(),
 				userEntity.getNamedMessageDestination().getID(), userEntity.getAnonymousMessageSource().getID(),
 				userEntity.getAnonymousMessageSource().getDestination().getID(), userEntity.getDeviceNames(),
-				getGoalNames(userEntity.getGoals()), getBuddyIDs(userEntity),
-				VPNProfileDTO.createInstance(userEntity.getAnonymized()));
+				getGoalNames(userEntity.getGoals()), getBuddyIDs(userEntity), userEntity.getUserAnonymizedID(),
+				VPNProfileDTO.createInstance(userEntity));
 	}
 
 	private static Set<UUID> getBuddyIDs(User userEntity)
 	{
 		return userEntity.getBuddies().stream().map(b -> b.getID()).collect(Collectors.toSet());
+	}
+
+	public void assertMobileNumberConfirmed()
+	{
+		if (!isMobileNumberConfirmed)
+		{
+			throw MobileNumberConfirmationException.notConfirmed(mobileNumber);
+		}
 	}
 }

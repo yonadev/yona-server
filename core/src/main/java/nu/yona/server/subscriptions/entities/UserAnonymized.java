@@ -4,12 +4,10 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
@@ -64,14 +62,6 @@ public class UserAnonymized extends EntityWithID
 		return anonymousDestination;
 	}
 
-	public Set<MessageDestination> getAllRelatedDestinations()
-	{
-		Set<MessageDestination> relatedDestinations = new HashSet<>(Arrays.asList(anonymousDestination));
-		relatedDestinations.addAll(buddiesAnonymized.stream().map(ba -> ba.getUserAnonymized())
-				.map(ua -> ua.getAnonymousDestination()).collect(Collectors.toSet()));
-		return relatedDestinations;
-	}
-
 	public void addBuddyAnonymized(BuddyAnonymized buddyAnonimized)
 	{
 		buddiesAnonymized.add(buddyAnonimized);
@@ -83,13 +73,19 @@ public class UserAnonymized extends EntityWithID
 		assert removed;
 	}
 
-	public UUID getLoginID()
+	public UUID getVPNLoginID()
 	{
+		// these are the same for performance
 		return getID();
 	}
 
 	public static UserAnonymized createInstance(MessageDestination anonymousDestination, Set<Goal> goals)
 	{
 		return new UserAnonymized(UUID.randomUUID(), anonymousDestination, goals);
+	}
+
+	public Set<BuddyAnonymized> getBuddiesAnonymized()
+	{
+		return buddiesAnonymized;
 	}
 }

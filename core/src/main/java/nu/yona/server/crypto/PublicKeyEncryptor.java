@@ -15,8 +15,6 @@ import java.util.UUID;
 
 import javax.crypto.Cipher;
 
-import nu.yona.server.exceptions.YonaException;
-
 public class PublicKeyEncryptor implements Encryptor
 {
 
@@ -24,6 +22,11 @@ public class PublicKeyEncryptor implements Encryptor
 
 	private PublicKeyEncryptor(PublicKey publicKey)
 	{
+		if (publicKey == null)
+		{
+			throw new IllegalArgumentException("publicKey cannot be null");
+		}
+
 		this.publicKey = publicKey;
 	}
 
@@ -48,7 +51,7 @@ public class PublicKeyEncryptor implements Encryptor
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw new YonaException(e);
+			throw CryptoException.encryptingData(e);
 		}
 	}
 
@@ -84,7 +87,7 @@ public class PublicKeyEncryptor implements Encryptor
 		}
 		catch (IOException e)
 		{
-			throw new YonaException(e);
+			throw CryptoException.encryptingData(e);
 		}
 	}
 
@@ -97,7 +100,7 @@ public class PublicKeyEncryptor implements Encryptor
 		}
 		catch (IOException e)
 		{
-			throw new YonaException(e);
+			throw CryptoException.writingData(e);
 		}
 	}
 }

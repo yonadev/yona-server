@@ -4,23 +4,17 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import javax.persistence.Column;
 import javax.persistence.Convert;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.crypto.UUIDFieldEncrypter;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
-import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 
 @Entity
@@ -32,6 +26,9 @@ public class Buddy extends EntityWithID
 		return (BuddyRepository) RepositoryProvider.getRepository(Buddy.class, UUID.class);
 	}
 
+	@Column(nullable = true)
+	private int touchVersion;
+
 	@Convert(converter = UUIDFieldEncrypter.class)
 	private UUID userID;
 
@@ -39,14 +36,7 @@ public class Buddy extends EntityWithID
 	private UUID buddyAnonymizedID;
 
 	@Convert(converter = StringFieldEncrypter.class)
-	private String nickName;
-
-	@ElementCollection(fetch = FetchType.EAGER)
-	@Convert(converter = UUIDFieldEncrypter.class)
-	private Set<UUID> goalIDs;
-
-	@Transient
-	private Set<Goal> goals = new HashSet<>();
+	private String nickname;
 
 	// Default constructor is required for JPA
 	public Buddy()
@@ -54,19 +44,19 @@ public class Buddy extends EntityWithID
 		super(null);
 	}
 
-	private Buddy(UUID id, UUID userID, String nickName, UUID buddyAnonymizedID)
+	private Buddy(UUID id, UUID userID, String nickname, UUID buddyAnonymizedID)
 	{
 		super(id);
 		this.userID = userID;
-		this.nickName = nickName;
+		this.nickname = nickname;
 		this.buddyAnonymizedID = buddyAnonymizedID;
 	}
 
-	public static Buddy createInstance(UUID buddyUserID, String nickName)
+	public static Buddy createInstance(UUID buddyUserID, String nickname, Status sendingStatus, Status receivingStatus)
 	{
-		BuddyAnonymized buddyAnonymized = BuddyAnonymized.createInstance();
+		BuddyAnonymized buddyAnonymized = BuddyAnonymized.createInstance(sendingStatus, receivingStatus);
 		buddyAnonymized = BuddyAnonymized.getRepository().save(buddyAnonymized);
-		return new Buddy(UUID.randomUUID(), buddyUserID, nickName, buddyAnonymized.getID());
+		return new Buddy(UUID.randomUUID(), buddyUserID, nickname, buddyAnonymized.getID());
 	}
 
 	public UUID getBuddyAnonymizedID()
@@ -74,19 +64,24 @@ public class Buddy extends EntityWithID
 		return buddyAnonymizedID;
 	}
 
-	BuddyAnonymized getBuddyAnonymized()
+	public BuddyAnonymized getBuddyAnonymized()
 	{
 		return BuddyAnonymized.getRepository().findOne(buddyAnonymizedID);
 	}
 
-	public String getNickName()
+	public String getNickname()
 	{
-		return nickName;
+		return nickname;
 	}
 
-	public void setNickName(String nickName)
+	public void setNickName(String nickname)
 	{
-		this.nickName = nickName;
+		this.nickname = nickname;
+	}
+
+	public UUID getUserID()
+	{
+		return userID;
 	}
 
 	public User getUser()
@@ -94,19 +89,9 @@ public class Buddy extends EntityWithID
 		return User.getRepository().findOne(userID);
 	}
 
-	public void setGoalNames(Set<String> goalNames)
+	public UUID getUserAnonymizedID()
 	{
-		goals = goalNames.stream().map(Goal.getRepository()::findByName).collect(Collectors.toSet());
-	}
-
-	public void setGoals(Set<Goal> goals)
-	{
-		goals = new HashSet<>(goals);
-	}
-
-	public UUID getLoginID()
-	{
-		return getBuddyAnonymized().getLoginID();
+		return getBuddyAnonymized().getUserAnonymizedID();
 	}
 
 	public Status getReceivingStatus()
@@ -129,10 +114,16 @@ public class Buddy extends EntityWithID
 		return getBuddyAnonymized().getSendingStatus();
 	}
 
-	public void setLoginID(UUID loginID)
+	public void setUserAnonymizedID(UUID userAnonymizedID)
 	{
 		BuddyAnonymized buddyAnonymized = getBuddyAnonymized();
-		buddyAnonymized.setLoginID(loginID);
+		buddyAnonymized.setUserAnonymizedID(userAnonymizedID);
 		BuddyAnonymized.getRepository().save(buddyAnonymized);
+	}
+
+	public Buddy touch()
+	{
+		touchVersion++;
+		return this;
 	}
 }

@@ -1,12 +1,11 @@
+/*******************************************************************************
+ * Copyright (c) 2015 Stichting Yona Foundation
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v.2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server
 
-import groovyx.net.http.RESTClient
-import groovyx.net.http.HttpResponseException
-import spock.lang.Ignore
-import spock.lang.IgnoreRest
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Unroll
 import groovy.json.*
 
 /**
@@ -15,15 +14,13 @@ import groovy.json.*
  *
  * @author pgussow
  */
-class UserValidationTest extends Specification {
+class UserValidationTest extends AbstractAppServiceIntegrationTest
+{
 
-	def appServiceBaseURL = System.properties.'yona.appservice.url'
-	def YonaServer appService = new YonaServer(appServiceBaseURL)
-	def timestamp = appService.getTimeStamp()
 	def jsonSlurper = new JsonSlurper()
 	def userCreationJSON = """{
-				"firstName":"First ${timestamp}",
-				"lastName":"Doe ${timestamp}",
+				"firstName":"John",
+				"lastName":"Doe",
 				"mobileNumber":"+${timestamp}",
 				"devices":[
 					"Galaxy mini"
@@ -33,51 +30,55 @@ class UserValidationTest extends Specification {
 				]}"""
 	def password = "John Doe"
 
-	def 'AddUser - empty first name'(){
+	def 'AddUser - empty first name'()
+	{
 		when:
-			def object = jsonSlurper.parseText(userCreationJSON)
-			object.remove('firstName')
-			def response = appService.addUser(object, password)
+		def object = jsonSlurper.parseText(userCreationJSON)
+		object.remove('firstName')
+		def response = appService.addUser(object, password)
 
 		then:
-			response.status == 400
-			response.responseData.type == "ERROR"
-			response.responseData.code == "error.user.firstname"
+		response.status == 400
+		response.responseData.type == "ERROR"
+		response.responseData.code == "error.user.firstname"
 	}
 
-	def 'AddUser - empty last name'(){
+	def 'AddUser - empty last name'()
+	{
 		when:
-			def object = jsonSlurper.parseText(userCreationJSON)
-			object.remove('lastName')
-			def response = appService.addUser(object, password)
+		def object = jsonSlurper.parseText(userCreationJSON)
+		object.remove('lastName')
+		def response = appService.addUser(object, password)
 
 		then:
-			response.status == 400
-			response.responseData.type == "ERROR"
-			response.responseData.code == "error.user.lastname"
+		response.status == 400
+		response.responseData.type == "ERROR"
+		response.responseData.code == "error.user.lastname"
 	}
 
-	def 'AddUser - empty mobile number'(){
+	def 'AddUser - empty mobile number'()
+	{
 		when:
-			def object = jsonSlurper.parseText(userCreationJSON)
-			object.remove('mobileNumber')
-			def response = appService.addUser(object, password)
+		def object = jsonSlurper.parseText(userCreationJSON)
+		object.remove('mobileNumber')
+		def response = appService.addUser(object, password)
 
 		then:
-			response.status == 400
-			response.responseData.type == "ERROR"
-			response.responseData.code == "error.user.mobile.number"
+		response.status == 400
+		response.responseData.type == "ERROR"
+		response.responseData.code == "error.user.mobile.number"
 	}
 
-	def 'AddUser - invalid mobile number'(){
+	def 'AddUser - invalid mobile number'()
+	{
 		when:
-			def object = jsonSlurper.parseText(userCreationJSON)
-			object.put('mobileNumber', '++55 5 ')
-			def response = appService.addUser(object, password)
+		def object = jsonSlurper.parseText(userCreationJSON)
+		object.put('mobileNumber', '++55 5 ')
+		def response = appService.addUser(object, password)
 
 		then:
-			response.status == 400
-			response.responseData.type == "ERROR"
-			response.responseData.code == "error.user.mobile.number.invalid"
+		response.status == 400
+		response.responseData.type == "ERROR"
+		response.responseData.code == "error.user.mobile.number.invalid"
 	}
 }

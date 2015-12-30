@@ -10,9 +10,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.logging.Logger;
-
-import nu.yona.server.goals.entities.Goal;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -20,14 +17,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.service.GoalNotFoundException;
+
 @JsonRootName("userPrivate")
 public class UserPrivateDTO
 {
-	private static final Logger LOGGER = Logger.getLogger(UserPrivateDTO.class.getName());
-	private final String nickName;
+	private final String nickname;
 	private final Set<String> deviceNames;
 	private Set<String> goalNames;
 	private VPNProfileDTO vpnProfile;
+	private UUID userAnonymizedID;
 	private UUID namedMessageSourceID;
 	private UUID namedMessageDestinationID;
 	private UUID anonymousMessageSourceID;
@@ -36,18 +36,18 @@ public class UserPrivateDTO
 	private Set<BuddyDTO> buddies;
 
 	@JsonCreator
-	public UserPrivateDTO(@JsonProperty("nickName") String nickName,
+	public UserPrivateDTO(@JsonProperty("nickname") String nickname,
 			@JsonProperty("devices") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> deviceNames,
 			@JsonProperty("goals") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> goalNames)
 	{
-		this(nickName, null, null, null, null, deviceNames, goalNames, null, null);
+		this(nickname, null, null, null, null, deviceNames, goalNames, null, null, new VPNProfileDTO(null));
 	}
 
-	UserPrivateDTO(String nickName, UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
+	UserPrivateDTO(String nickname, UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
 			UUID anonymousMessageDestinationID, Set<String> deviceNames, Set<String> goalNames, Set<UUID> buddyIDs,
-			VPNProfileDTO vpnProfile)
+			UUID userAnonymizedID, VPNProfileDTO vpnProfile)
 	{
-		this.nickName = nickName;
+		this.nickname = nickname;
 		this.namedMessageSourceID = namedMessageSourceID;
 		this.namedMessageDestinationID = namedMessageDestinationID;
 		this.anonymousMessageSourceID = anonymousMessageSourceID;
@@ -55,14 +55,15 @@ public class UserPrivateDTO
 		this.deviceNames = (deviceNames == null) ? Collections.emptySet() : deviceNames;
 		this.goalNames = (goalNames == null) ? Collections.emptySet() : goalNames;
 		this.buddyIDs = (buddyIDs == null) ? Collections.emptySet() : buddyIDs;
+		this.userAnonymizedID = userAnonymizedID;
 		this.vpnProfile = vpnProfile;
 
 		this.buddies = Collections.emptySet();
 	}
 
-	public String getNickName()
+	public String getNickname()
 	{
-		return nickName;
+		return nickname;
 	}
 
 	@JsonProperty("devices")
@@ -92,9 +93,7 @@ public class UserPrivateDTO
 		Goal goal = Goal.getRepository().findByName(goalName);
 		if (goal == null)
 		{
-			String message = "Goal '" + goalName + "' does not exist";
-			LOGGER.warning(message);
-			throw new IllegalArgumentException(message);
+			throw GoalNotFoundException.notFoundByName(goalName);
 		}
 
 		return goal;
@@ -139,5 +138,11 @@ public class UserPrivateDTO
 	public Set<BuddyDTO> getBuddies()
 	{
 		return Collections.unmodifiableSet(buddies);
+	}
+
+	@JsonIgnore
+	public UUID getUserAnonymizedID()
+	{
+		return userAnonymizedID;
 	}
 }
