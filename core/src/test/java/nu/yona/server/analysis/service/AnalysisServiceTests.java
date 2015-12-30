@@ -1,4 +1,4 @@
-package nu.yona.server;
+package nu.yona.server.analysis.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.never;
