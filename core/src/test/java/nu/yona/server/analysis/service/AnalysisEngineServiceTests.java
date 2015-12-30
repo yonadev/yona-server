@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
@@ -33,7 +35,7 @@ import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AnalysisServiceTests
+public class AnalysisEngineServiceTests
 {
 	private Map<String, Goal> goalMap = new HashMap<String, Goal>();
 
@@ -62,6 +64,14 @@ public class AnalysisServiceTests
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 
 		when(mockGoalService.getAllGoalEntities()).thenReturn(new HashSet<Goal>(goalMap.values()));
+		when(mockGoalService.getAllGoals()).thenReturn(new HashSet<GoalDTO>(
+				goalMap.values().stream().map(goal -> GoalDTO.createInstance(goal)).collect(Collectors.toSet())));
+	}
+
+	@Test
+	public void getRelevantCategories()
+	{
+		assertEquals(new HashSet<String>(Arrays.asList("poker", "lotto", "refdag", "bbc")), service.getRelevantCategories());
 	}
 
 	/**
