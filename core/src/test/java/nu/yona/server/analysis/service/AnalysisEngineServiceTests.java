@@ -1,8 +1,10 @@
 package nu.yona.server.analysis.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -72,6 +74,45 @@ public class AnalysisEngineServiceTests
 	public void getRelevantCategories()
 	{
 		assertEquals(new HashSet<String>(Arrays.asList("poker", "lotto", "refdag", "bbc")), service.getRelevantCategories());
+	}
+
+	@Test
+	public void conflictInterval()
+	{
+		// Normally there is one conflict message sent.
+		// Set a short conflict interval such that the conflict messages are not aggregated.
+		AnalysisServiceProperties p = new AnalysisServiceProperties();
+		p.setConflictInterval(10L);
+		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
+
+		// Set up UserAnonymized instance.
+		MessageDestinationDTO anonMessageDestination = new MessageDestinationDTO(UUID.randomUUID());
+		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(goalMap.get("gambling")));
+		UserAnonymizedDTO userAnon = new UserAnonymizedDTO(goals, anonMessageDestination, Collections.emptySet());
+		UUID userAnonID = UUID.randomUUID();
+
+		// Stub the UserAnonymizedRepository to return our user.
+		when(mockUserAnonymizedService.getUserAnonymized(userAnonID)).thenReturn(userAnon);
+
+		// Normally the conflict messages are aggregated
+		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
+		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
+
+		try
+		{
+			Thread.sleep(11L);
+		}
+		catch (InterruptedException e)
+		{
+
+		}
+
+		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
+
+		verify(mockMessageService, times(2)).sendMessage(any(), eq(anonMessageDestination));
+
+		// Restore default properties.
+		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 	}
 
 	/**
