@@ -25,6 +25,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.goals.service.GoalService;
@@ -54,11 +55,16 @@ public class AnalysisEngineServiceTests
 	@InjectMocks
 	private AnalysisEngineService service = new AnalysisEngineService();
 
+	private Goal gamblingGoal;
+	private Goal newsGoal;
+	private MessageDestinationDTO anonMessageDestination;
+	private UUID userAnonID;
+
 	@Before
 	public void setUp()
 	{
-		Goal gamblingGoal = Goal.createInstance("gambling", new HashSet<String>(Arrays.asList("poker", "lotto")));
-		Goal newsGoal = Goal.createInstance("news", new HashSet<String>(Arrays.asList("refdag", "bbc")));
+		gamblingGoal = Goal.createInstance("gambling", new HashSet<String>(Arrays.asList("poker", "lotto")));
+		newsGoal = Goal.createInstance("news", new HashSet<String>(Arrays.asList("refdag", "bbc")));
 
 		goalMap.put(gamblingGoal.getName(), gamblingGoal);
 		goalMap.put(newsGoal.getName(), newsGoal);
@@ -68,35 +74,45 @@ public class AnalysisEngineServiceTests
 		when(mockGoalService.getAllGoalEntities()).thenReturn(new HashSet<Goal>(goalMap.values()));
 		when(mockGoalService.getAllGoals()).thenReturn(new HashSet<GoalDTO>(
 				goalMap.values().stream().map(goal -> GoalDTO.createInstance(goal)).collect(Collectors.toSet())));
+
+		// Set up UserAnonymized instance.
+		anonMessageDestination = new MessageDestinationDTO(UUID.randomUUID());
+		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(goalMap.get("gambling")));
+		UserAnonymizedDTO userAnon = new UserAnonymizedDTO(goals, anonMessageDestination, Collections.emptySet());
+		userAnonID = UUID.randomUUID();
+
+		// Stub the UserAnonymizedRepository to return our user.
+		when(mockUserAnonymizedService.getUserAnonymized(userAnonID)).thenReturn(userAnon);
 	}
 
+	/*
+	 * Tests the method to get all relevant categories.
+	 */
 	@Test
 	public void getRelevantCategories()
 	{
 		assertEquals(new HashSet<String>(Arrays.asList("poker", "lotto", "refdag", "bbc")), service.getRelevantCategories());
 	}
 
+	/*
+	 * Tests that two conflict messages are generated when the conflict interval is passed.
+	 */
 	@Test
 	public void conflictInterval()
 	{
 		// Normally there is one conflict message sent.
 		// Set a short conflict interval such that the conflict messages are not aggregated.
 		AnalysisServiceProperties p = new AnalysisServiceProperties();
+		p.setUpdateSkipWindow(1L);
 		p.setConflictInterval(10L);
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
-		// Set up UserAnonymized instance.
-		MessageDestinationDTO anonMessageDestination = new MessageDestinationDTO(UUID.randomUUID());
-		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(goalMap.get("gambling")));
-		UserAnonymizedDTO userAnon = new UserAnonymizedDTO(goals, anonMessageDestination, Collections.emptySet());
-		UUID userAnonID = UUID.randomUUID();
+		GoalConflictMessage earlierMessage = GoalConflictMessage.createInstance(userAnonID, gamblingGoal,
+				"http://localhost/test");
+		when(mockAnalysisEngineCacheService.fetchLatestGoalConflictMessageForUser(eq(userAnonID), eq(gamblingGoal.getID()),
+				eq(anonMessageDestination), any())).thenReturn(earlierMessage);
 
-		// Stub the UserAnonymizedRepository to return our user.
-		when(mockUserAnonymizedService.getUserAnonymized(userAnonID)).thenReturn(userAnon);
-
-		// Normally the conflict messages are aggregated
-		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		// Execute the analysis engine service after a period of inactivity longer than the conflict interval.
 
 		try
 		{
@@ -107,9 +123,14 @@ public class AnalysisEngineServiceTests
 
 		}
 
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
+		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test1"));
 
-		verify(mockMessageService, times(2)).sendMessage(any(), eq(anonMessageDestination));
+		// Verify that there is a new conflict message sent.
+		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
+		// Verify that the existing conflict message was not updated in the cache.
+		verify(mockAnalysisEngineCacheService, never()).updateLatestGoalConflictMessageForUser(earlierMessage,
+				anonMessageDestination);
 
 		// Restore default properties.
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
@@ -121,23 +142,67 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void messageCreatedOnMatch()
 	{
-		// Set up UserAnonymized instance.
-		MessageDestinationDTO anonMessageDestination = new MessageDestinationDTO(UUID.randomUUID());
-		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(goalMap.get("gambling")));
-		UserAnonymizedDTO userAnon = new UserAnonymizedDTO(goals, anonMessageDestination, Collections.emptySet());
-		UUID userAnonID = UUID.randomUUID();
-
-		// Stub the UserAnonymizedRepository to return our user.
-		when(mockUserAnonymizedService.getUserAnonymized(userAnonID)).thenReturn(userAnon);
-
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
 		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
-		// Verify that there is a new conflict message and that the message destination was saved to the repository.
+		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<Message> message = ArgumentCaptor.forClass(Message.class);
 		verify(mockMessageService).sendMessage(message.capture(), eq(anonMessageDestination));
 		assertEquals(userAnonID, message.getValue().getRelatedUserAnonymizedID());
+	}
+
+	/**
+	 * Tests that a conflict message is created when analysis service is called with a not matching and a matching category.
+	 */
+	@Test
+	public void messageCreatedOnMatchOneCategoryOfMultiple()
+	{
+		// Execute the analysis engine service.
+		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag", "lotto"));
+		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
+
+		// Verify that there is a new conflict message sent.
+		ArgumentCaptor<Message> message = ArgumentCaptor.forClass(Message.class);
+		verify(mockMessageService).sendMessage(message.capture(), eq(anonMessageDestination));
+		assertEquals(userAnonID, message.getValue().getRelatedUserAnonymizedID());
+	}
+
+	/**
+	 * Tests that a conflict message is updated when analysis service is called with a matching category after a short time.
+	 */
+	@Test
+	public void messageAggregation()
+	{
+		// Normally there is one conflict message sent.
+		// Set update skip window to 0 such that the conflict messages are aggregated immediately.
+		AnalysisServiceProperties p = new AnalysisServiceProperties();
+		p.setUpdateSkipWindow(0L);
+		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
+
+		GoalConflictMessage earlierMessage = GoalConflictMessage.createInstance(userAnonID, gamblingGoal,
+				"http://localhost/test");
+		when(mockAnalysisEngineCacheService.fetchLatestGoalConflictMessageForUser(eq(userAnonID), eq(gamblingGoal.getID()),
+				eq(anonMessageDestination), any())).thenReturn(earlierMessage);
+
+		// Execute the analysis engine service.
+		Set<String> conflictCategories1 = new HashSet<String>(Arrays.asList("lotto"));
+		Set<String> conflictCategories2 = new HashSet<String>(Arrays.asList("poker"));
+		Set<String> conflictCategoriesNotMatching1 = new HashSet<String>(Arrays.asList("refdag"));
+		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test"));
+		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories1, "http://localhost/test1"));
+		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories2, "http://localhost/test2"));
+		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test3"));
+		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories2, "http://localhost/test4"));
+
+		// Verify that there is no new conflict message sent.
+		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
+		// Verify that the existing conflict message was updated in the cache.
+		verify(mockAnalysisEngineCacheService, times(3)).updateLatestGoalConflictMessageForUser(earlierMessage,
+				anonMessageDestination);
+
+		// Restore default properties.
+		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 	}
 
 	/**
@@ -146,20 +211,11 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void noMessagesCreatedOnNoMatch()
 	{
-		// Set up UserAnonymized instance.
-		MessageDestinationDTO anonMessageDestination = new MessageDestinationDTO(UUID.randomUUID());
-		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(goalMap.get("news")));
-		UserAnonymizedDTO userAnon = new UserAnonymizedDTO(goals, anonMessageDestination, Collections.emptySet());
-		UUID userAnonID = UUID.randomUUID();
-
-		// Stub the UserAnonymizedRepository to return our user.
-		when(mockUserAnonymizedService.getUserAnonymized(userAnonID)).thenReturn(userAnon);
-
 		// Execute the analysis engine service.
-		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
+		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag"));
 		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
-		// Verify that there is a new conflict message and that the message destination was not saved to the repository.
-		verify(mockMessageService, never()).sendMessage(null, anonMessageDestination);
+		// Verify that there is no conflict message sent.
+		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
 	}
 }
