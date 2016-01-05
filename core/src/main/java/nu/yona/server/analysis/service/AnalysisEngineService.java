@@ -113,7 +113,7 @@ public class AnalysisEngineService
 			GoalConflictMessage message)
 	{
 		assert payload.getVPNLoginID().equals(message.getRelatedUserAnonymizedID());
-		assert conflictingGoal.getID().equals(message.getGoal().getID());
+		assert conflictingGoal.getID().equals(message.getGoalID());
 
 		message.setEndTime(messageEndTime);
 	}
