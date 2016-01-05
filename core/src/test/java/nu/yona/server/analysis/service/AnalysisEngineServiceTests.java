@@ -29,7 +29,6 @@ import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.goals.service.GoalService;
-import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.AnalysisServiceProperties;
@@ -57,6 +56,7 @@ public class AnalysisEngineServiceTests
 
 	private Goal gamblingGoal;
 	private Goal newsGoal;
+	private Goal gamingGoal;
 	private MessageDestinationDTO anonMessageDestination;
 	private UUID userAnonID;
 
@@ -65,9 +65,11 @@ public class AnalysisEngineServiceTests
 	{
 		gamblingGoal = Goal.createInstance("gambling", new HashSet<String>(Arrays.asList("poker", "lotto")));
 		newsGoal = Goal.createInstance("news", new HashSet<String>(Arrays.asList("refdag", "bbc")));
+		gamingGoal = Goal.createInstance("gaming", new HashSet<String>(Arrays.asList("games")));
 
 		goalMap.put(gamblingGoal.getName(), gamblingGoal);
 		goalMap.put(newsGoal.getName(), newsGoal);
+		goalMap.put(gamingGoal.getName(), gamingGoal);
 
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 
@@ -77,7 +79,7 @@ public class AnalysisEngineServiceTests
 
 		// Set up UserAnonymized instance.
 		anonMessageDestination = new MessageDestinationDTO(UUID.randomUUID());
-		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(goalMap.get("gambling")));
+		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(gamblingGoal, gamingGoal));
 		UserAnonymizedDTO userAnon = new UserAnonymizedDTO(goals, anonMessageDestination, Collections.emptySet());
 		userAnonID = UUID.randomUUID();
 
@@ -91,7 +93,8 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void getRelevantCategories()
 	{
-		assertEquals(new HashSet<String>(Arrays.asList("poker", "lotto", "refdag", "bbc")), service.getRelevantCategories());
+		assertEquals(new HashSet<String>(Arrays.asList("poker", "lotto", "refdag", "bbc", "games")),
+				service.getRelevantCategories());
 	}
 
 	/*
@@ -147,9 +150,10 @@ public class AnalysisEngineServiceTests
 		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
 		// Verify that there is a new conflict message sent.
-		ArgumentCaptor<Message> message = ArgumentCaptor.forClass(Message.class);
+		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		verify(mockMessageService).sendMessage(message.capture(), eq(anonMessageDestination));
 		assertEquals(userAnonID, message.getValue().getRelatedUserAnonymizedID());
+		assertEquals(gamblingGoal.getID(), message.getValue().getGoalID());
 	}
 
 	/**
@@ -163,9 +167,26 @@ public class AnalysisEngineServiceTests
 		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
 		// Verify that there is a new conflict message sent.
-		ArgumentCaptor<Message> message = ArgumentCaptor.forClass(Message.class);
+		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		verify(mockMessageService).sendMessage(message.capture(), eq(anonMessageDestination));
-		assertEquals(userAnonID, message.getValue().getRelatedUserAnonymizedID());
+		assertEquals(gamblingGoal.getID(), message.getValue().getGoalID());
+	}
+
+	/**
+	 * Tests that multiple conflict messages are created when analysis service is called with multiple matching categories.
+	 */
+	@Test
+	public void messagesCreatedOnMatchMultiple()
+	{
+		// Execute the analysis engine service.
+		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto", "games"));
+		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
+
+		// Verify that there are 2 conflict messages sent, for both goals.
+		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
+		verify(mockMessageService, times(2)).sendMessage(message.capture(), eq(anonMessageDestination));
+		assertEquals(new HashSet<UUID>(Arrays.asList(gamblingGoal.getID(), gamingGoal.getID())),
+				message.getAllValues().stream().map(m -> m.getGoalID()).collect(Collectors.toSet()));
 	}
 
 	/**

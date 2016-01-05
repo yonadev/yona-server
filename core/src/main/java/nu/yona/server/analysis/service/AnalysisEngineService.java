@@ -42,7 +42,7 @@ public class AnalysisEngineService
 				potentialConflictPayload.getCategories());
 		if (!conflictingGoalsOfUser.isEmpty())
 		{
-			sendConflictMessageToAllDestinationsOfUser(potentialConflictPayload, userAnonimized, conflictingGoalsOfUser);
+			sendConflictMessagesToAllDestinationsOfUser(potentialConflictPayload, userAnonimized, conflictingGoalsOfUser);
 		}
 	}
 
@@ -51,22 +51,30 @@ public class AnalysisEngineService
 		return goalService.getAllGoals().stream().flatMap(g -> g.getCategories().stream()).collect(Collectors.toSet());
 	}
 
-	private void sendConflictMessageToAllDestinationsOfUser(PotentialConflictDTO payload, UserAnonymizedDTO userAnonymized,
+	private void sendConflictMessagesToAllDestinationsOfUser(PotentialConflictDTO payload, UserAnonymizedDTO userAnonymized,
 			Set<Goal> conflictingGoalsOfUser)
 	{
-		GoalConflictMessage selfGoalConflictMessage = sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser,
+		for (Goal conflictingGoalOfUser : conflictingGoalsOfUser)
+		{
+			sendConflictMessagesToAllDestinationsOfUser(payload, userAnonymized, conflictingGoalOfUser);
+		}
+	}
+
+	private void sendConflictMessagesToAllDestinationsOfUser(PotentialConflictDTO payload, UserAnonymizedDTO userAnonymized,
+			Goal conflictingGoalOfUser)
+	{
+		GoalConflictMessage selfGoalConflictMessage = sendOrUpdateConflictMessage(payload, conflictingGoalOfUser,
 				userAnonymized.getAnonymousDestination(), null);
 
 		userAnonymized.getBuddyDestinations().stream()
-				.forEach(d -> sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser, d, selfGoalConflictMessage));
+				.forEach(d -> sendOrUpdateConflictMessage(payload, conflictingGoalOfUser, d, selfGoalConflictMessage));
 	}
 
-	private GoalConflictMessage sendOrUpdateConflictMessage(PotentialConflictDTO payload, Set<Goal> conflictingGoalsOfUser,
+	private GoalConflictMessage sendOrUpdateConflictMessage(PotentialConflictDTO payload, Goal conflictingGoal,
 			MessageDestinationDTO destination, GoalConflictMessage origin)
 	{
 		Date now = new Date();
 		Date minEndTime = new Date(now.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
-		Goal conflictingGoal = conflictingGoalsOfUser.iterator().next();
 		GoalConflictMessage message = cacheService.fetchLatestGoalConflictMessageForUser(payload.getVPNLoginID(),
 				conflictingGoal.getID(), destination, minEndTime);
 
