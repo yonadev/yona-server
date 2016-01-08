@@ -11,13 +11,12 @@ import nu.yona.server.YonaServer
 
 class AppService extends Service
 {
-	final GOALS_PATH = "/goals/"
+	final ACTIVITY_CATEGORIES_PATH = "/activityCategories/"
 	final USERS_PATH = "/users/"
 	final BUDDIES_PATH_FRAGMENT = "/buddies/"
 	final DIRECT_MESSAGES_PATH_FRAGMENT = "/messages/direct/"
 	final ANONYMOUS_MESSAGES_PATH_FRAGMENT = "/messages/anonymous/"
 	final ALL_MESSAGES_PATH_FRAGMENT = "/messages/all/"
-	final RELEVANT_CATEGORIES_PATH_FRAGMENT = "/relevantCategories/"
 	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
 	final MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT = "/confirmMobileNumber"
 
@@ -312,9 +311,9 @@ class AppService extends Service
 		yonaServer.deleteResourceWithPassword(buddyURL, password, ["message":message])
 	}
 
-	def getAllGoals()
+	def getAllActivityCategories()
 	{
-		yonaServer.getResource(GOALS_PATH)
+		yonaServer.getResource(ACTIVITY_CATEGORIES_PATH)
 	}
 
 	def getBuddies(User user)

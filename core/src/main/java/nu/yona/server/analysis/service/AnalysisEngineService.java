@@ -12,9 +12,11 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
+import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.goals.service.GoalService;
+import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
@@ -27,7 +29,7 @@ public class AnalysisEngineService
 	@Autowired
 	private YonaProperties yonaProperties;
 	@Autowired
-	private GoalService goalService;
+	private ActivityCategoryService activityCategoryService;
 	@Autowired
 	private AnalysisEngineCacheService cacheService;
 	@Autowired
@@ -38,60 +40,64 @@ public class AnalysisEngineService
 	public void analyze(PotentialConflictDTO potentialConflictPayload)
 	{
 		UserAnonymizedDTO userAnonimized = userAnonymizedService.getUserAnonymized(potentialConflictPayload.getVPNLoginID());
-		Set<Goal> conflictingGoalsOfUser = determineConflictingGoalsForUser(userAnonimized,
-				potentialConflictPayload.getCategories());
-		if (!conflictingGoalsOfUser.isEmpty())
+		Set<Goal> matchingGoalsOfUser = determineMatchingGoalsForUser(userAnonimized, potentialConflictPayload.getCategories());
+		if (!matchingGoalsOfUser.isEmpty())
 		{
-			sendConflictMessageToAllDestinationsOfUser(potentialConflictPayload, userAnonimized, conflictingGoalsOfUser);
+			addOrUpdateActivity(potentialConflictPayload, userAnonimized, matchingGoalsOfUser);
 		}
 	}
 
-	public Set<String> getRelevantCategories()
-	{
-		return goalService.getAllGoals().stream().flatMap(g -> g.getCategories().stream()).collect(Collectors.toSet());
-	}
-
-	private void sendConflictMessageToAllDestinationsOfUser(PotentialConflictDTO payload, UserAnonymizedDTO userAnonymized,
-			Set<Goal> conflictingGoalsOfUser)
-	{
-		GoalConflictMessage selfGoalConflictMessage = sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser,
-				userAnonymized.getAnonymousDestination(), null);
-
-		userAnonymized.getBuddyDestinations().stream()
-				.forEach(d -> sendOrUpdateConflictMessage(payload, conflictingGoalsOfUser, d, selfGoalConflictMessage));
-	}
-
-	private GoalConflictMessage sendOrUpdateConflictMessage(PotentialConflictDTO payload, Set<Goal> conflictingGoalsOfUser,
-			MessageDestinationDTO destination, GoalConflictMessage origin)
+	private void addOrUpdateActivity(PotentialConflictDTO payload, UserAnonymizedDTO userAnonimized,
+			Set<Goal> matchingGoalsOfUser)
 	{
 		Date now = new Date();
 		Date minEndTime = new Date(now.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
-		Goal conflictingGoal = conflictingGoalsOfUser.iterator().next();
-		GoalConflictMessage message = cacheService.fetchLatestGoalConflictMessageForUser(payload.getVPNLoginID(),
-				conflictingGoal.getID(), destination, minEndTime);
+		Goal matchingGoal = matchingGoalsOfUser.iterator().next();
+		Activity activity = cacheService.fetchLatestActivityForUser(payload.getVPNLoginID(), matchingGoal.getID(), minEndTime);
 
-		if (message == null || message.getEndTime().before(minEndTime))
+		if (activity == null || activity.getEndTime().before(minEndTime))
 		{
-			message = sendNewGoalConflictMessage(payload, conflictingGoal, destination, origin);
-			cacheService.updateLatestGoalConflictMessageForUser(message, destination);
+			activity = addNewActivity(payload, matchingGoal);
+			cacheService.updateLatestActivityForUser(activity);
+
+			sendConflictMessageToAllDestinationsOfUser(payload, userAnonimized, activity);
 		}
 		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
-		else if (now.getTime() - message.getEndTime().getTime() >= yonaProperties.getAnalysisService().getUpdateSkipWindow())
+		else if (now.getTime() - activity.getEndTime().getTime() >= yonaProperties.getAnalysisService().getUpdateSkipWindow())
 		{
-			updateLastGoalConflictMessage(payload, now, conflictingGoal, message);
-			cacheService.updateLatestGoalConflictMessageForUser(message, destination);
+			updateLastActivity(payload, now, matchingGoal, activity);
+			cacheService.updateLatestActivityForUser(activity);
 		}
-
-		return message;
 	}
 
-	private GoalConflictMessage sendNewGoalConflictMessage(PotentialConflictDTO payload, Goal conflictingGoal,
+	private Activity addNewActivity(PotentialConflictDTO payload, Goal matchingGoal)
+	{
+		return Activity.getRepository().save(Activity.createInstance(payload.getVPNLoginID(), matchingGoal));
+	}
+
+	public Set<String> getRelevantSmoothwallCategories()
+	{
+		return activityCategoryService.getAllActivityCategories().stream().flatMap(g -> g.getSmoothwallCategories().stream())
+				.collect(Collectors.toSet());
+	}
+
+	private void sendConflictMessageToAllDestinationsOfUser(PotentialConflictDTO payload, UserAnonymizedDTO userAnonymized,
+			Activity activity)
+	{
+		GoalConflictMessage selfGoalConflictMessage = sendConflictMessage(payload, activity,
+				userAnonymized.getAnonymousDestination(), null);
+
+		userAnonymized.getBuddyDestinations().stream()
+				.forEach(d -> sendConflictMessage(payload, activity, d, selfGoalConflictMessage));
+	}
+
+	private GoalConflictMessage sendConflictMessage(PotentialConflictDTO payload, Activity activity,
 			MessageDestinationDTO destination, GoalConflictMessage origin)
 	{
 		GoalConflictMessage message;
 		if (origin == null)
 		{
-			message = GoalConflictMessage.createInstance(payload.getVPNLoginID(), conflictingGoal, payload.getURL());
+			message = GoalConflictMessage.createInstance(payload.getVPNLoginID(), activity, payload.getURL());
 		}
 		else
 		{
@@ -101,26 +107,25 @@ public class AnalysisEngineService
 		return message;
 	}
 
-	private void updateLastGoalConflictMessage(PotentialConflictDTO payload, Date messageEndTime, Goal conflictingGoal,
-			GoalConflictMessage message)
+	private void updateLastActivity(PotentialConflictDTO payload, Date messageEndTime, Goal matchingGoal, Activity activity)
 	{
-		assert payload.getVPNLoginID().equals(message.getRelatedUserAnonymizedID());
-		assert conflictingGoal.getID().equals(message.getGoal().getID());
+		assert payload.getVPNLoginID().equals(activity.getUserAnonymizedID());
+		assert matchingGoal.getID().equals(activity.getGoalID());
 
-		message.setEndTime(messageEndTime);
+		activity.setEndTime(messageEndTime);
 	}
 
-	private Set<Goal> determineConflictingGoalsForUser(UserAnonymizedDTO userAnonymized, Set<String> categories)
+	private Set<Goal> determineMatchingGoalsForUser(UserAnonymizedDTO userAnonymized, Set<String> categories)
 	{
-		Set<Goal> allGoals = goalService.getAllGoalEntities();
-		Set<Goal> conflictingGoals = allGoals.stream().filter(g -> {
-			Set<String> goalCategories = new HashSet<>(g.getCategories());
-			goalCategories.retainAll(categories);
-			return !goalCategories.isEmpty();
+		Set<ActivityCategory> allActivityCategories = activityCategoryService.getAllActivityCategoryEntities();
+		Set<ActivityCategory> matchingActivityCategories = allActivityCategories.stream().filter(ac -> {
+			Set<String> acSmoothwallCategories = new HashSet<>(ac.getSmoothwallCategories());
+			acSmoothwallCategories.retainAll(categories);
+			return !acSmoothwallCategories.isEmpty();
 		}).collect(Collectors.toSet());
-		Set<String> goalsOfUser = userAnonymized.getGoals();
-		Set<Goal> conflictingGoalsOfUser = conflictingGoals.stream().filter(g -> goalsOfUser.contains(g.getName()))
-				.collect(Collectors.toSet());
-		return conflictingGoalsOfUser;
+		Set<Goal> goalsOfUser = userAnonymized.getGoals();
+		Set<Goal> matchingGoalsOfUser = goalsOfUser.stream()
+				.filter(g -> matchingActivityCategories.contains(g.getActivityCategory())).collect(Collectors.toSet());
+		return matchingGoalsOfUser;
 	}
 }

@@ -28,7 +28,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def messagesRichard = responseRichard.responseData._embedded.goalConflictMessages
 		messagesRichard.size() == 1
 		messagesRichard[0].nickname == "<self>"
-		messagesRichard[0].goalName == "news"
+		messagesRichard[0].activityCategoryName == "news"
 		messagesRichard[0].url != null
 		messagesRichard[0]._links.requestDisclosure == null
 
@@ -37,7 +37,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def messagesBob = responseBob.responseData._embedded.goalConflictMessages
 		messagesBob.size() == 1
 		messagesBob[0].nickname == richard.nickname
-		messagesBob[0].goalName == "news"
+		messagesBob[0].activityCategoryName == "news"
 		messagesBob[0].url == null
 		messagesBob[0]._links.requestDisclosure
 
@@ -66,7 +66,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def discloseRequestMessages = getRichardAnonMessagesResponse.responseData._embedded.discloseRequestMessages
 		discloseRequestMessages.size() == 1
 		discloseRequestMessages[0].status == "DISCLOSE_REQUESTED"
-		discloseRequestMessages[0].targetGoalConflictMessage.goalName == "gambling"
+		discloseRequestMessages[0].targetGoalConflictMessage.activityCategoryName == "gambling"
 		discloseRequestMessages[0].targetGoalConflictMessage.creationTime > (System.currentTimeMillis() - 50000) // TODO Use standard date/time format
 		discloseRequestMessages[0]._links.related.href == getRichardAnonMessagesResponse.responseData._embedded.goalConflictMessages[0]._links.self.href
 		discloseRequestMessages[0]._links.accept.href

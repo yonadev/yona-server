@@ -62,7 +62,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		getAnonMessagesResponse.responseData._embedded.buddyDisconnectMessages[0]._links.process.href.startsWith(getAnonMessagesResponse.responseData._embedded.buddyDisconnectMessages[0]._links.self.href)
 		getAnonMessagesResponse.responseData._embedded.goalConflictMessages.size == 1
 		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "gambling"
 		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].url =~ /poker/
 		def getDirectMessagesResponse = appService.getDirectMessages(bob)
 		getDirectMessagesResponse.status == 200
@@ -97,7 +97,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		getAnonMessagesResponse.responseData._embedded
 		getAnonMessagesResponse.responseData._embedded.goalConflictMessages.size == 1
 		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].goalName == "gambling"
+		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "gambling"
 		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].url =~ /poker/
 
 		cleanup:
