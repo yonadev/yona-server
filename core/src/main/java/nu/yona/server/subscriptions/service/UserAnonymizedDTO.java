@@ -1,5 +1,6 @@
 package nu.yona.server.subscriptions.service;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -12,13 +13,13 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 public class UserAnonymizedDTO
 {
-	private Set<String> goals;
+	private Set<Goal> goals;
 	private MessageDestinationDTO anonymousMessageDestination;
 	private Set<UUID> buddyAnonymizedIDs;
 
 	public UserAnonymizedDTO(Set<Goal> goals, MessageDestinationDTO anonymousMessageDestination, Set<UUID> buddyAnonymizedIDs)
 	{
-		this.goals = goals.stream().map(goal -> goal.getName()).collect(Collectors.toSet());
+		this.goals = new HashSet<>(goals);
 		this.anonymousMessageDestination = anonymousMessageDestination;
 		this.buddyAnonymizedIDs = buddyAnonymizedIDs;
 	}
@@ -30,7 +31,7 @@ public class UserAnonymizedDTO
 						.collect(Collectors.toSet()));
 	}
 
-	public Set<String> getGoals()
+	public Set<Goal> getGoals()
 	{
 		return goals;
 	}

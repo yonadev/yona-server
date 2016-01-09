@@ -1,0 +1,22 @@
+[
+  {
+    "name": "gambling",
+    "mandatory": false,
+    "smoothwallCategories": [
+      "Gambling",
+      "lotto"
+    ],
+    "applications": [
+    ]
+  },
+  {
+    "name": "news",
+    "mandatory": false,
+    "smoothwallCategories": [
+      "news/media",
+      "newsgroups/forums"
+    ],
+    "applications": [
+    ]
+  }
+]

@@ -350,10 +350,11 @@ public class BuddyService
 		boolean isRequestingSending = buddy.getReceivingStatus() == Status.REQUESTED;
 		boolean isRequestingReceiving = buddy.getSendingStatus() == Status.REQUESTED;
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
-		messageService.sendMessage(BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
-				requestingUser.getPrivateData().getUserAnonymizedID(), requestingUser.getPrivateData().getGoals(),
-				requestingUser.getPrivateData().getNickname(), buddy.getMessage(), savedBuddyEntity.getID(), isRequestingSending,
-				isRequestingReceiving), MessageDestinationDTO.createInstance(messageDestination));
+		messageService.sendMessage(
+				BuddyConnectRequestMessage.createInstance(requestingUser.getID(),
+						requestingUser.getPrivateData().getUserAnonymizedID(), requestingUser.getPrivateData().getNickname(),
+						buddy.getMessage(), savedBuddyEntity.getID(), isRequestingSending, isRequestingReceiving),
+				MessageDestinationDTO.createInstance(messageDestination));
 
 		return savedBuddy;
 	}

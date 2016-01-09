@@ -26,7 +26,9 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 					"Galaxy mini"
 				],
 				"goals":[
-					"gambling"
+					{
+						"activityCategoryName":"gambling"
+					}
 				]}"""
 	def password = "John Doe"
 

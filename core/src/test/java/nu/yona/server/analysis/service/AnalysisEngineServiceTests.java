@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -25,10 +26,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
+import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.goals.service.GoalDTO;
-import nu.yona.server.goals.service.GoalService;
+import nu.yona.server.goals.service.ActivityCategoryDTO;
+import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.AnalysisServiceProperties;
@@ -42,7 +45,7 @@ public class AnalysisEngineServiceTests
 	private Map<String, Goal> goalMap = new HashMap<String, Goal>();
 
 	@Mock
-	private GoalService mockGoalService;
+	private ActivityCategoryService mockActivityCategoryService;
 	@Mock
 	private UserAnonymizedService mockUserAnonymizedService;
 	@Mock
@@ -63,19 +66,24 @@ public class AnalysisEngineServiceTests
 	@Before
 	public void setUp()
 	{
-		gamblingGoal = Goal.createInstance("gambling", new HashSet<String>(Arrays.asList("poker", "lotto")));
-		newsGoal = Goal.createInstance("news", new HashSet<String>(Arrays.asList("refdag", "bbc")));
-		gamingGoal = Goal.createInstance("gaming", new HashSet<String>(Arrays.asList("games")));
+		gamblingGoal = Goal.createInstance(ActivityCategory.createInstance("gambling", false,
+				new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet()));
+		newsGoal = Goal.createInstance(ActivityCategory.createInstance("news", false,
+				new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
+		gamingGoal = Goal.createInstance(ActivityCategory.createInstance("gaming", false,
+				new HashSet<String>(Arrays.asList("games")), Collections.emptySet()));
 
-		goalMap.put(gamblingGoal.getName(), gamblingGoal);
-		goalMap.put(newsGoal.getName(), newsGoal);
-		goalMap.put(gamingGoal.getName(), gamingGoal);
+		goalMap.put("gambling", gamblingGoal);
+		goalMap.put("news", newsGoal);
+		goalMap.put("gaming", gamingGoal);
 
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 
-		when(mockGoalService.getAllGoalEntities()).thenReturn(new HashSet<Goal>(goalMap.values()));
-		when(mockGoalService.getAllGoals()).thenReturn(new HashSet<GoalDTO>(
-				goalMap.values().stream().map(goal -> GoalDTO.createInstance(goal)).collect(Collectors.toSet())));
+		when(mockActivityCategoryService.getAllActivityCategoryEntities()).thenReturn(new HashSet<ActivityCategory>(
+				goalMap.values().stream().map(goal -> goal.getActivityCategory()).collect(Collectors.toSet())));
+		when(mockActivityCategoryService.getAllActivityCategories()).thenReturn(new HashSet<ActivityCategoryDTO>(
+				goalMap.values().stream().map(goal -> ActivityCategoryDTO.createInstance(goal.getActivityCategory()))
+						.collect(Collectors.toSet())));
 
 		// Set up UserAnonymized instance.
 		anonMessageDestination = new MessageDestinationDTO(UUID.randomUUID());
@@ -91,10 +99,10 @@ public class AnalysisEngineServiceTests
 	 * Tests the method to get all relevant categories.
 	 */
 	@Test
-	public void getRelevantCategories()
+	public void getRelevantSmoothwallCategories()
 	{
 		assertEquals(new HashSet<String>(Arrays.asList("poker", "lotto", "refdag", "bbc", "games")),
-				service.getRelevantCategories());
+				service.getRelevantSmoothwallCategories());
 	}
 
 	/*
@@ -110,10 +118,10 @@ public class AnalysisEngineServiceTests
 		p.setConflictInterval(10L);
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
-		GoalConflictMessage earlierMessage = GoalConflictMessage.createInstance(userAnonID, gamblingGoal,
-				"http://localhost/test");
-		when(mockAnalysisEngineCacheService.fetchLatestGoalConflictMessageForUser(eq(userAnonID), eq(gamblingGoal.getID()),
-				eq(anonMessageDestination), any())).thenReturn(earlierMessage);
+		Activity earlierActivity = Activity.createInstance(userAnonID, gamblingGoal);
+		earlierActivity.setEndTime(new Date());
+		when(mockAnalysisEngineCacheService.fetchLatestActivityForUser(eq(userAnonID), eq(gamblingGoal.getID()), any()))
+				.thenReturn(earlierActivity);
 
 		// Execute the analysis engine service after a period of inactivity longer than the conflict interval.
 
@@ -132,8 +140,7 @@ public class AnalysisEngineServiceTests
 		// Verify that there is a new conflict message sent.
 		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
 		// Verify that the existing conflict message was not updated in the cache.
-		verify(mockAnalysisEngineCacheService, never()).updateLatestGoalConflictMessageForUser(earlierMessage,
-				anonMessageDestination);
+		verify(mockAnalysisEngineCacheService, never()).updateLatestActivityForUser(earlierActivity);
 
 		// Restore default properties.
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
@@ -153,7 +160,7 @@ public class AnalysisEngineServiceTests
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		verify(mockMessageService).sendMessage(message.capture(), eq(anonMessageDestination));
 		assertEquals(userAnonID, message.getValue().getRelatedUserAnonymizedID());
-		assertEquals(gamblingGoal.getID(), message.getValue().getGoalID());
+		assertEquals(gamblingGoal.getID(), message.getValue().getActivity().getGoalID());
 	}
 
 	/**
@@ -169,7 +176,7 @@ public class AnalysisEngineServiceTests
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		verify(mockMessageService).sendMessage(message.capture(), eq(anonMessageDestination));
-		assertEquals(gamblingGoal.getID(), message.getValue().getGoalID());
+		assertEquals(gamblingGoal.getID(), message.getValue().getActivity().getGoalID());
 	}
 
 	/**
@@ -186,7 +193,7 @@ public class AnalysisEngineServiceTests
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		verify(mockMessageService, times(2)).sendMessage(message.capture(), eq(anonMessageDestination));
 		assertEquals(new HashSet<UUID>(Arrays.asList(gamblingGoal.getID(), gamingGoal.getID())),
-				message.getAllValues().stream().map(m -> m.getGoalID()).collect(Collectors.toSet()));
+				message.getAllValues().stream().map(m -> m.getActivity().getGoalID()).collect(Collectors.toSet()));
 	}
 
 	/**
@@ -201,10 +208,10 @@ public class AnalysisEngineServiceTests
 		p.setUpdateSkipWindow(0L);
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
-		GoalConflictMessage earlierMessage = GoalConflictMessage.createInstance(userAnonID, gamblingGoal,
-				"http://localhost/test");
-		when(mockAnalysisEngineCacheService.fetchLatestGoalConflictMessageForUser(eq(userAnonID), eq(gamblingGoal.getID()),
-				eq(anonMessageDestination), any())).thenReturn(earlierMessage);
+		Activity earlierActivity = Activity.createInstance(userAnonID, gamblingGoal);
+		earlierActivity.setEndTime(new Date());
+		when(mockAnalysisEngineCacheService.fetchLatestActivityForUser(eq(userAnonID), eq(gamblingGoal.getID()), any()))
+				.thenReturn(earlierActivity);
 
 		// Execute the analysis engine service.
 		Set<String> conflictCategories1 = new HashSet<String>(Arrays.asList("lotto"));
@@ -219,8 +226,7 @@ public class AnalysisEngineServiceTests
 		// Verify that there is no new conflict message sent.
 		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
 		// Verify that the existing conflict message was updated in the cache.
-		verify(mockAnalysisEngineCacheService, times(3)).updateLatestGoalConflictMessageForUser(earlierMessage,
-				anonMessageDestination);
+		verify(mockAnalysisEngineCacheService, times(3)).updateLatestActivityForUser(earlierActivity);
 
 		// Restore default properties.
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());

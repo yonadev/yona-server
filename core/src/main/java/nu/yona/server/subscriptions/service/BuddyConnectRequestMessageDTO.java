@@ -26,6 +26,7 @@ import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
+import nu.yona.server.messaging.service.MessageServiceException;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
@@ -123,7 +124,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 				case REJECT:
 					return handleAction_Reject(actingUser, (BuddyConnectRequestMessage) messageEntity, requestPayload);
 				default:
-					throw BuddyServiceException.actionUnknown(action);
+					throw MessageServiceException.actionNotSupported(action);
 			}
 		}
 

@@ -47,7 +47,7 @@ public class CoreConfiguration
 	@Bean
 	public CacheManager cacheManager()
 	{
-		return new ConcurrentMapCacheManager("goalConflictMessages", "usersAnonymized");
+		return new ConcurrentMapCacheManager("activities", "usersAnonymized");
 	}
 
 	/**

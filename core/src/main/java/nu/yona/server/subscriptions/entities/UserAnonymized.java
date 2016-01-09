@@ -9,8 +9,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -32,7 +32,7 @@ public class UserAnonymized extends EntityWithID
 	@ManyToOne
 	private MessageDestination anonymousDestination;
 
-	@ManyToMany
+	@OneToMany(cascade = CascadeType.ALL)
 	private Set<Goal> goals;
 
 	@OneToMany

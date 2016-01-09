@@ -10,22 +10,22 @@ import org.springframework.http.HttpStatus;
 
 import nu.yona.server.exceptions.YonaException;
 
-public class GoalNotFoundException extends YonaException
+public class ActivityCategoryNotFoundException extends YonaException
 {
 	private static final long serialVersionUID = -5303422277177893152L;
 
-	protected GoalNotFoundException(String messageId, Object... parameters)
+	protected ActivityCategoryNotFoundException(String messageId, Object... parameters)
 	{
 		super(HttpStatus.NOT_FOUND, messageId, parameters);
 	}
 
-	public static GoalNotFoundException notFound(UUID id)
+	public static ActivityCategoryNotFoundException notFound(UUID id)
 	{
-		return new GoalNotFoundException("error.goal.not.found", id);
+		return new ActivityCategoryNotFoundException("error.activitycategory.not.found", id);
 	}
 
-	public static GoalNotFoundException notFoundByName(String name)
+	public static ActivityCategoryNotFoundException notFoundByName(String name)
 	{
-		return new GoalNotFoundException("error.goal.not.found.by.name", name);
+		return new ActivityCategoryNotFoundException("error.activitycategory.not.found.by.name", name);
 	}
 }

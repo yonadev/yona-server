@@ -7,6 +7,7 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.Goal
 import nu.yona.server.test.User
 
 class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
@@ -15,7 +16,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
-				"+$timestamp", ["Nexus 6"], ["news", "gambling"])
+				"+$timestamp", ["Nexus 6"], [Goal.createInstance("news"), Goal.createInstance("gambling")])
 
 		when:
 		def response = sendBuddyRequestForBob(richard, "+$timestamp")
@@ -82,7 +83,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = ["gambling"]
+		updatedBobJson.goals = [Goal.createInstance("gambling")]
 		def response = appService.updateUser(inviteURL, updatedBobJson, newPassword)
 
 		then:
@@ -132,7 +133,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = ["gambling"]
+		updatedBobJson.goals = [Goal.createInstance("gambling")]
 		appService.updateUser(inviteURL, updatedBobJson, newPassword)
 		def bobFromGetAfterUpdate = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, bob.url, true, newPassword)
 
@@ -162,7 +163,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = ["gambling"]
+		updatedBobJson.goals = [Goal.createInstance("gambling")]
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
 
 		when:
@@ -189,7 +190,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = ["gambling"]
+		updatedBobJson.goals = [Goal.createInstance("gambling")]
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptURL
@@ -223,7 +224,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = ["gambling"]
+		updatedBobJson.goals = [Goal.createInstance("gambling")]
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptURL
@@ -261,7 +262,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = ["gambling"]
+		updatedBobJson.goals = [Goal.createInstance("gambling")]
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptURL
@@ -277,14 +278,14 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		getAnonMessagesRichardResponse.status == 200
 		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
 		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].goalName == "news"
+		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
 		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].url == "http://www.refdag.nl"
 
 		def getAnonMessagesBobResponse = appService.getAnonymousMessages(updatedBob)
 		getAnonMessagesBobResponse.status == 200
 		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
 		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].nickname == richard.nickname
-		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].goalName == "news"
+		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
 		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].url == null
 
 		cleanup:
@@ -345,7 +346,9 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 					"Nexus 6"
 				],
 				"goals":[
-					"news"
+					{
+						"activityCategoryName":"news"
+					}
 				]
 			}""", ["Yona-Password": "New password"], ["tempPassword": "hack"])
 
@@ -389,7 +392,9 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 					"Nexus 6"
 				],
 				"goals":[
-					"news"
+					{
+						"activityCategoryName":"news"
+					}
 				]
 			}""", ["Yona-Password": "New password"], ["tempPassword": "hack"])
 

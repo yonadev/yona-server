@@ -12,29 +12,24 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import nu.yona.server.analysis.entities.GoalConflictMessage;
-import nu.yona.server.messaging.service.MessageDestinationDTO;
+import nu.yona.server.analysis.entities.Activity;
 
 @Service
 public class AnalysisEngineCacheService
 {
-	@Cacheable(value = "goalConflictMessages", key = "{#userAnonymizedID,#goalID,#destination.ID}")
-	public GoalConflictMessage fetchLatestGoalConflictMessageForUser(UUID userAnonymizedID, UUID goalID,
-			MessageDestinationDTO destination, Date minEndTime)
+	@Cacheable(value = "activities", key = "{#userAnonymizedID,#goalID}")
+	public Activity fetchLatestActivityForUser(UUID userAnonymizedID, UUID goalID, Date minEndTime)
 	{
-		List<GoalConflictMessage> results = GoalConflictMessage.getGoalConflictMessageRepository()
-				.findLatestGoalConflictMessageFromDestination(userAnonymizedID, goalID, destination.getID(), minEndTime,
-						GoalConflictMessage.class);
+		List<Activity> results = Activity.getRepository().findLatestActivity(userAnonymizedID, goalID, minEndTime);
 
 		return results != null && !results.isEmpty() ? results.get(0) : null;
 	}
 
-	@CachePut(value = "goalConflictMessages", key = "{#message.relatedUserAnonymizedID,#message.goalID,#destination.ID}")
-	public GoalConflictMessage updateLatestGoalConflictMessageForUser(GoalConflictMessage message,
-			MessageDestinationDTO destination)
+	@CachePut(value = "activities", key = "{#activity.userAnonymizedID,#activity.goalID}")
+	public Activity updateLatestActivityForUser(Activity activity)
 	{
-		// This will save the message as it has already been added to the destination. The message is passed
+		// This will save the activity as it has already been added. The activity is passed
 		// to this method in order to update the cache properly after the update.
-		return message;
+		return activity;
 	}
 }
