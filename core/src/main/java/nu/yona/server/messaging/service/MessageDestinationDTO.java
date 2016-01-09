@@ -8,7 +8,7 @@ public class MessageDestinationDTO
 {
 	private UUID id;
 
-	public MessageDestinationDTO(UUID id)
+	private MessageDestinationDTO(UUID id)
 	{
 		if (id == null)
 		{

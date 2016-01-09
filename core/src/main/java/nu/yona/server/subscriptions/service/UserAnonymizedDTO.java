@@ -17,7 +17,7 @@ public class UserAnonymizedDTO
 	private MessageDestinationDTO anonymousMessageDestination;
 	private Set<UUID> buddyAnonymizedIDs;
 
-	public UserAnonymizedDTO(Set<Goal> goals, MessageDestinationDTO anonymousMessageDestination, Set<UUID> buddyAnonymizedIDs)
+	private UserAnonymizedDTO(Set<Goal> goals, MessageDestinationDTO anonymousMessageDestination, Set<UUID> buddyAnonymizedIDs)
 	{
 		this.goals = new HashSet<>(goals);
 		this.anonymousMessageDestination = anonymousMessageDestination;
