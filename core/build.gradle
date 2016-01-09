@@ -71,8 +71,6 @@ test {
 	jvmArgs '-ea'
 }
 
-mainClassName = 'not.used'
-
 bootRepackage {
 	enabled = false
 }

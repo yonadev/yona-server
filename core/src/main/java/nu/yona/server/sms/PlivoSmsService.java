@@ -1,7 +1,6 @@
 package nu.yona.server.sms;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.MessageFormat;
@@ -117,7 +116,7 @@ public class PlivoSmsService implements SmsService
 
 			return httpRequest;
 		}
-		catch (URISyntaxException | UnsupportedEncodingException e)
+		catch (URISyntaxException e)
 		{
 			throw SmsException.smsSendingFailed(e);
 		}

@@ -72,7 +72,7 @@ test {
 	enableAssertions=true
 }
 
-run {
+bootRun {
 	enableAssertions=true
 
 	if ( project.hasProperty('appservice.debug') || project.hasProperty('debug.all')) {
