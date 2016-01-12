@@ -124,5 +124,5 @@ task intTest(type:Test){
 }
 
 docker {
-	dockerBinary = 'docker -D'
+	dockerBinary = 'docker --debug=true --log-level=debug'
 }
