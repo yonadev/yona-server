@@ -126,3 +126,7 @@ task intTest(type:Test){
 		'yona.appservice.url': project.ext.yona_appservice_url
 	]
 }
+
+docker {
+    binary = 'docker -D'
+}
