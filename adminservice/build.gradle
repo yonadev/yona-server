@@ -136,5 +136,5 @@ intTest {
 intTest.dependsOn setupIntTest
 
 docker {
-    binary = 'docker -D'
+	dockerBinary = 'docker -D'
 }

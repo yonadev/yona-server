@@ -128,5 +128,5 @@ task intTest(type:Test){
 }
 
 docker {
-    binary = 'docker -D'
+	dockerBinary = 'docker -D'
 }
