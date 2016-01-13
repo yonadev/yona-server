@@ -39,27 +39,20 @@ public class AnalysisEngineService
 
 	public void analyze(PotentialConflictDTO potentialConflictPayload)
 	{
-		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(potentialConflictPayload.getVPNLoginID());
-		Set<Goal> matchingGoalsOfUser = determineMatchingGoalsForUser(userAnonymized, potentialConflictPayload.getCategories());
+		UserAnonymizedDTO userAnonimized = userAnonymizedService.getUserAnonymized(potentialConflictPayload.getVPNLoginID());
+		Set<Goal> matchingGoalsOfUser = determineMatchingGoalsForUser(userAnonimized, potentialConflictPayload.getCategories());
 		if (!matchingGoalsOfUser.isEmpty())
 		{
-			addOrUpdateActivities(potentialConflictPayload, userAnonymized, matchingGoalsOfUser);
+			addOrUpdateActivity(potentialConflictPayload, userAnonimized, matchingGoalsOfUser);
 		}
 	}
 
-	private void addOrUpdateActivities(PotentialConflictDTO potentialConflictPayload, UserAnonymizedDTO userAnonymized,
+	private void addOrUpdateActivity(PotentialConflictDTO payload, UserAnonymizedDTO userAnonimized,
 			Set<Goal> matchingGoalsOfUser)
-	{
-		for (Goal matchingGoalOfUser : matchingGoalsOfUser)
-		{
-			addOrUpdateActivity(potentialConflictPayload, userAnonymized, matchingGoalOfUser);
-		}
-	}
-
-	private void addOrUpdateActivity(PotentialConflictDTO payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
 	{
 		Date now = new Date();
 		Date minEndTime = new Date(now.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
+		Goal matchingGoal = matchingGoalsOfUser.iterator().next();
 		Activity activity = cacheService.fetchLatestActivityForUser(payload.getVPNLoginID(), matchingGoal.getID(), minEndTime);
 
 		if (activity == null || activity.getEndTime().before(minEndTime))
@@ -67,7 +60,7 @@ public class AnalysisEngineService
 			activity = addNewActivity(payload, matchingGoal);
 			cacheService.updateLatestActivityForUser(activity);
 
-			sendConflictMessageToAllDestinationsOfUser(payload, userAnonymized, activity);
+			sendConflictMessageToAllDestinationsOfUser(payload, userAnonimized, activity);
 		}
 		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
 		else if (now.getTime() - activity.getEndTime().getTime() >= yonaProperties.getAnalysisService().getUpdateSkipWindow())
@@ -79,7 +72,7 @@ public class AnalysisEngineService
 
 	private Activity addNewActivity(PotentialConflictDTO payload, Goal matchingGoal)
 	{
-		return Activity.createInstance(payload.getVPNLoginID(), matchingGoal);
+		return Activity.getRepository().save(Activity.createInstance(payload.getVPNLoginID(), matchingGoal));
 	}
 
 	public Set<String> getRelevantSmoothwallCategories()
