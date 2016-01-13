@@ -126,7 +126,3 @@ task intTest(type:Test){
 		'yona.appservice.url': project.ext.yona_appservice_url
 	]
 }
-
-docker {
-	dockerBinary = 'docker --debug=true --log-level=debug'
-}

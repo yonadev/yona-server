@@ -134,7 +134,3 @@ intTest {
 }
 
 intTest.dependsOn setupIntTest
-
-docker {
-	dockerBinary = 'docker --debug=true --log-level=debug'
-}
