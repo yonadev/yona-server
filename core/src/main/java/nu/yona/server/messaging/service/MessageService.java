@@ -210,7 +210,7 @@ public class MessageService
 		MessageDestination.getRepository().save(destinationEntity);
 	}
 
-	public static boolean getIsDirectMessage(MessageDTO message)
+	public static boolean isDirectMessage(MessageDTO message)
 	{
 		if (message instanceof BuddyConnectRequestMessageDTO)
 		{

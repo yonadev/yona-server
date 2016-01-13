@@ -204,7 +204,7 @@ public class MessageController
 		public MessageResource toResource(MessageDTO message)
 		{
 			MessageResource messageResource = instantiateResource(message);
-			ControllerLinkBuilder selfLinkBuilder = getMessageLinkBuilder(MessageService.getIsDirectMessage(message), userID,
+			ControllerLinkBuilder selfLinkBuilder = getMessageLinkBuilder(MessageService.isDirectMessage(message), userID,
 					message.getID());
 			addSelfLink(selfLinkBuilder, messageResource);
 			addActionLinks(selfLinkBuilder, messageResource);

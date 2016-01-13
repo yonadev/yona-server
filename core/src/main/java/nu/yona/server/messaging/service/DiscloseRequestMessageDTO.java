@@ -124,18 +124,18 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 		private MessageActionDTO handleAction_Accept(UserDTO actingUser, DiscloseRequestMessage discloseRequestMessageEntity,
 				MessageActionDTO payload)
 		{
-			return updateResult(actingUser, discloseRequestMessageEntity, GoalConflictMessage.Status.DISCLOSE_ACCEPTED,
+			return updateGoalConflictMessageStatus(actingUser, discloseRequestMessageEntity, GoalConflictMessage.Status.DISCLOSE_ACCEPTED,
 					payload.getProperty("message"));
 		}
 
 		private MessageActionDTO handleAction_Reject(UserDTO actingUser, DiscloseRequestMessage discloseRequestMessageEntity,
 				MessageActionDTO payload)
 		{
-			return updateResult(actingUser, discloseRequestMessageEntity, GoalConflictMessage.Status.DISCLOSE_REJECTED,
+			return updateGoalConflictMessageStatus(actingUser, discloseRequestMessageEntity, GoalConflictMessage.Status.DISCLOSE_REJECTED,
 					payload.getProperty("message"));
 		}
 
-		private MessageActionDTO updateResult(UserDTO actingUser, DiscloseRequestMessage discloseRequestMessageEntity,
+		private MessageActionDTO updateGoalConflictMessageStatus(UserDTO actingUser, DiscloseRequestMessage discloseRequestMessageEntity,
 				Status status, String message)
 		{
 			GoalConflictMessage targetGoalConflictMessage = discloseRequestMessageEntity.getTargetGoalConflictMessage();
