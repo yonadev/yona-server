@@ -16,7 +16,8 @@ class RejectBuddyTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 		def bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
-		def rejectURL = appService.fetchBuddyConnectRequestMessage(bob).rejectURL
+		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
+		def rejectURL = connectRequestMessage.rejectURL
 
 		when:
 		def rejectMessage = "Sorry, not you"
@@ -24,6 +25,11 @@ class RejectBuddyTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		rejectResponse.status == 200
+		rejectResponse.responseData._embedded.affectedMessages.size() == 1
+		rejectResponse.responseData._embedded.affectedMessages[0]._links.self.href == connectRequestMessage.selfURL
+		rejectResponse.responseData._embedded.affectedMessages[0].status == "REJECTED"
+		rejectResponse.responseData._embedded.affectedMessages[0]._links.accept == null
+		rejectResponse.responseData._embedded.affectedMessages[0]._links.reject == null
 
 		// Verify connect message doesn't have actions anymore
 		def actionURLs = appService.fetchBuddyConnectRequestMessage(bob).rejectURL
@@ -36,6 +42,10 @@ class RejectBuddyTest extends AbstractAppServiceIntegrationTest
 		// Have the requesting user process the buddy connect response
 		def processResponse = appService.postMessageActionWithPassword(processResult.processURL, [ : ], richard.password)
 		processResponse.status == 200
+		processResponse.responseData._embedded.affectedMessages.size() == 1
+		processResponse.responseData._embedded.affectedMessages[0]._links.self.href == processResult.selfURL
+		processResponse.responseData._embedded.affectedMessages[0].processed == true
+		processResponse.responseData._embedded.affectedMessages[0]._links.process == null
 
 		// Verify that Bob is not in Richard's buddy list anymore
 		def buddiesRichard = appService.getBuddies(richard)

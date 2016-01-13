@@ -61,13 +61,11 @@ public class ActivityCategoryDTO
 		return mandatory;
 	}
 
-	@JsonProperty("smoothwallCategories")
 	public Set<String> getSmoothwallCategories()
 	{
 		return Collections.unmodifiableSet(smoothwallCategories);
 	}
 
-	@JsonProperty("applications")
 	public Set<String> getApplications()
 	{
 		return Collections.unmodifiableSet(applications);

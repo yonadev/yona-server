@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +23,7 @@ import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.subscriptions.service.BuddyConnectRequestMessageDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -94,7 +94,7 @@ public class MessageService
 
 		deleteMessage(message, messageSource.getDestination());
 
-		return new MessageActionDTO(Collections.singletonMap("status", "done"));
+		return MessageActionDTO.createInstanceActionDone();
 	}
 
 	@Transactional
@@ -107,7 +107,7 @@ public class MessageService
 
 		deleteMessage(message, messageSource.getDestination());
 
-		return new MessageActionDTO(Collections.singletonMap("status", "done"));
+		return MessageActionDTO.createInstanceActionDone();
 	}
 
 	private void deleteMessage(Message message, MessageDestination destination)
@@ -145,7 +145,7 @@ public class MessageService
 
 	public static interface DTOManager
 	{
-		MessageDTO createInstance(UserDTO user, Message messageEntity);
+		MessageDTO createInstance(UserDTO actingUser, Message messageEntity);
 
 		MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action, MessageActionDTO requestPayload);
 	}
@@ -208,5 +208,15 @@ public class MessageService
 		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getID());
 		destinationEntity.removeMessagesFromUser(sentByUserAnonymizedID);
 		MessageDestination.getRepository().save(destinationEntity);
+	}
+
+	public static boolean isDirectMessage(MessageDTO message)
+	{
+		if (message instanceof BuddyConnectRequestMessageDTO)
+		{
+			return true;
+		}
+
+		return false;
 	}
 }

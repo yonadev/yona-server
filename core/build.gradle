@@ -42,7 +42,6 @@ dependencies {
 	compile("org.springframework.boot:spring-boot-starter-data-jpa")
 	compile("org.springframework.boot:spring-boot-starter-web")
 	compile("org.springframework:spring-context-support")
-	compile("com.fasterxml.jackson.core:jackson-databind:2.6.3") // Required as the Spring Hateaos version pulled in by Swagger is incompatible with Jackson 2.4
 	compile("org.atteo:evo-inflector:1.2.1")
 	compile("commons-validator:commons-validator:1.4.1")
 	compile("commons-lang:commons-lang:2.4")
@@ -70,8 +69,6 @@ test {
 	// Enable assertions
 	jvmArgs '-ea'
 }
-
-mainClassName = 'not.used'
 
 bootRepackage {
 	enabled = false
