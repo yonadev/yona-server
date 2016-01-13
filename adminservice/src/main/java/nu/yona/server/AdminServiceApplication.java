@@ -37,6 +37,7 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @ComponentScan("nu.yona.server")
+// Exclude because of https://github.com/spring-projects/spring-boot/issues/4919
 @SpringBootApplication(exclude = { SecurityFilterAutoConfiguration.class })
 @EnableSwagger2
 @EnableHypermediaSupport(type = HypermediaType.HAL)
