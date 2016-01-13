@@ -28,8 +28,6 @@ public class AnalysisEngineCacheService
 	@CachePut(value = "activities", key = "{#activity.userAnonymizedID,#activity.goalID}")
 	public Activity updateLatestActivityForUser(Activity activity)
 	{
-		// This will save the activity as it has already been added. The activity is passed
-		// to this method in order to update the cache properly after the update.
-		return activity;
+		return Activity.getRepository().save(activity);
 	}
 }
