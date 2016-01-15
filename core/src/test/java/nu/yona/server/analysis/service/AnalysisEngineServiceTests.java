@@ -119,8 +119,7 @@ public class AnalysisEngineServiceTests
 		p.setConflictInterval(10L);
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
-		Activity earlierActivity = Activity.createInstance(userAnonID, gamblingGoal);
-		earlierActivity.setEndTime(new Date());
+		Activity earlierActivity = Activity.createInstance(userAnonID, gamblingGoal, new Date());
 		when(mockAnalysisEngineCacheService.fetchLatestActivityForUser(eq(userAnonID), eq(gamblingGoal.getID()), any()))
 				.thenReturn(earlierActivity);
 
@@ -162,7 +161,8 @@ public class AnalysisEngineServiceTests
 		ArgumentCaptor<Activity> activity = ArgumentCaptor.forClass(Activity.class);
 		verify(mockAnalysisEngineCacheService).updateLatestActivityForUser(activity.capture());
 		assertEquals(userAnonID, activity.getValue().getUserAnonymizedID());
-		assertTrue(activity.getValue().getEndTime().after(t));
+		assertTrue(activity.getValue().getStartTime().compareTo(t) >= 0);
+		assertTrue(activity.getValue().getEndTime().compareTo(t) >= 0);
 		assertEquals(gamblingGoal.getID(), activity.getValue().getGoalID());
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
@@ -225,8 +225,8 @@ public class AnalysisEngineServiceTests
 		p.setUpdateSkipWindow(0L);
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
-		Activity earlierActivity = Activity.createInstance(userAnonID, gamblingGoal);
-		earlierActivity.setEndTime(new Date());
+		Date t = new Date();
+		Activity earlierActivity = Activity.createInstance(userAnonID, gamblingGoal, t);
 		when(mockAnalysisEngineCacheService.fetchLatestActivityForUser(eq(userAnonID), eq(gamblingGoal.getID()), any()))
 				.thenReturn(earlierActivity);
 
@@ -238,12 +238,15 @@ public class AnalysisEngineServiceTests
 		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories1, "http://localhost/test1"));
 		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories2, "http://localhost/test2"));
 		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test3"));
+		Date t2 = new Date();
 		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories2, "http://localhost/test4"));
 
 		// Verify that there is no new conflict message sent.
 		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
 		// Verify that the existing activity was updated in the cache.
 		verify(mockAnalysisEngineCacheService, times(3)).updateLatestActivityForUser(earlierActivity);
+		assertTrue(earlierActivity.getStartTime().equals(t));
+		assertTrue(earlierActivity.getEndTime().compareTo(t2) >= 0);
 
 		// Restore default properties.
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());

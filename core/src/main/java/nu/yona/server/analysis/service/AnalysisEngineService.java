@@ -79,9 +79,7 @@ public class AnalysisEngineService
 
 	private Activity addNewActivity(PotentialConflictDTO payload, Date activityEndTime, Goal matchingGoal)
 	{
-		Activity activity = Activity.createInstance(payload.getVPNLoginID(), matchingGoal);
-		activity.setEndTime(activityEndTime);
-		return activity;
+		return Activity.createInstance(payload.getVPNLoginID(), matchingGoal, activityEndTime);
 	}
 
 	private void updateLastActivity(PotentialConflictDTO payload, Date activityEndTime, Goal matchingGoal, Activity activity)
