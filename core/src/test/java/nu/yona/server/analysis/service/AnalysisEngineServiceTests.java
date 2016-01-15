@@ -160,15 +160,17 @@ public class AnalysisEngineServiceTests
 		// Verify that there is an activity update.
 		ArgumentCaptor<Activity> activity = ArgumentCaptor.forClass(Activity.class);
 		verify(mockAnalysisEngineCacheService).updateLatestActivityForUser(activity.capture());
-		assertEquals(userAnonID, activity.getValue().getUserAnonymizedID());
-		assertTrue(activity.getValue().getStartTime().compareTo(t) >= 0);
-		assertTrue(activity.getValue().getEndTime().compareTo(t) >= 0);
-		assertEquals(gamblingGoal.getID(), activity.getValue().getGoalID());
+		assertEquals("Expect right user set to activity", userAnonID, activity.getValue().getUserAnonymizedID());
+		assertTrue("Expect start time set just about time of analysis", activity.getValue().getStartTime().compareTo(t) >= 0);
+		assertTrue("Expect end time set just about time of analysis", activity.getValue().getEndTime().compareTo(t) >= 0);
+		assertEquals("Expect right goal set to activity", gamblingGoal.getID(), activity.getValue().getGoalID());
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		verify(mockMessageService).sendMessage(message.capture(), eq(anonMessageDestination));
-		assertEquals(userAnonID, message.getValue().getRelatedUserAnonymizedID());
-		assertEquals(gamblingGoal.getID(), message.getValue().getActivity().getGoalID());
+		assertEquals("Expected right related user set to goal conflict message", userAnonID,
+				message.getValue().getRelatedUserAnonymizedID());
+		assertEquals("Expected right goal set to goal conflict message", gamblingGoal.getID(),
+				message.getValue().getActivity().getGoalID());
 	}
 
 	/**
@@ -184,11 +186,12 @@ public class AnalysisEngineServiceTests
 		// Verify that there is an activity update.
 		ArgumentCaptor<Activity> activity = ArgumentCaptor.forClass(Activity.class);
 		verify(mockAnalysisEngineCacheService).updateLatestActivityForUser(activity.capture());
-		assertEquals(gamblingGoal.getID(), activity.getValue().getGoalID());
+		assertEquals("Expect right goal set to activity", gamblingGoal.getID(), activity.getValue().getGoalID());
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		verify(mockMessageService).sendMessage(message.capture(), eq(anonMessageDestination));
-		assertEquals(gamblingGoal.getID(), message.getValue().getActivity().getGoalID());
+		assertEquals("Expect right goal set to goal conflict message", gamblingGoal.getID(),
+				message.getValue().getActivity().getGoalID());
 	}
 
 	/**
@@ -204,12 +207,14 @@ public class AnalysisEngineServiceTests
 		// Verify that there are 2 activities updated, for both goals.
 		ArgumentCaptor<Activity> activity = ArgumentCaptor.forClass(Activity.class);
 		verify(mockAnalysisEngineCacheService, times(2)).updateLatestActivityForUser(activity.capture());
-		assertEquals(new HashSet<UUID>(Arrays.asList(gamblingGoal.getID(), gamingGoal.getID())),
+		assertEquals("Expect right goals set to activities",
+				new HashSet<UUID>(Arrays.asList(gamblingGoal.getID(), gamingGoal.getID())),
 				activity.getAllValues().stream().map(a -> a.getGoalID()).collect(Collectors.toSet()));
 		// Verify that there are 2 conflict messages sent, for both goals.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		verify(mockMessageService, times(2)).sendMessage(message.capture(), eq(anonMessageDestination));
-		assertEquals(new HashSet<UUID>(Arrays.asList(gamblingGoal.getID(), gamingGoal.getID())),
+		assertEquals("Expect right goals set to goal conflict messages",
+				new HashSet<UUID>(Arrays.asList(gamblingGoal.getID(), gamingGoal.getID())),
 				message.getAllValues().stream().map(m -> m.getActivity().getGoalID()).collect(Collectors.toSet()));
 	}
 
@@ -245,8 +250,9 @@ public class AnalysisEngineServiceTests
 		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
 		// Verify that the existing activity was updated in the cache.
 		verify(mockAnalysisEngineCacheService, times(3)).updateLatestActivityForUser(earlierActivity);
-		assertTrue(earlierActivity.getStartTime().equals(t));
-		assertTrue(earlierActivity.getEndTime().compareTo(t2) >= 0);
+		assertTrue("Expect start time to remain the same", earlierActivity.getStartTime().equals(t));
+		assertTrue("Expect end time updated at the last executed analysis matching the goals",
+				earlierActivity.getEndTime().compareTo(t2) >= 0);
 
 		// Restore default properties.
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
