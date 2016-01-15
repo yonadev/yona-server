@@ -64,7 +64,7 @@ public class AnalysisEngineService
 
 		if (activity == null || activity.getEndTime().before(minEndTime))
 		{
-			activity = addNewActivity(payload, matchingGoal);
+			activity = addNewActivity(payload, now, matchingGoal);
 			cacheService.updateLatestActivityForUser(activity);
 
 			sendConflictMessageToAllDestinationsOfUser(payload, userAnonymized, activity);
@@ -77,9 +77,19 @@ public class AnalysisEngineService
 		}
 	}
 
-	private Activity addNewActivity(PotentialConflictDTO payload, Goal matchingGoal)
+	private Activity addNewActivity(PotentialConflictDTO payload, Date activityEndTime, Goal matchingGoal)
 	{
-		return Activity.createInstance(payload.getVPNLoginID(), matchingGoal);
+		Activity activity = Activity.createInstance(payload.getVPNLoginID(), matchingGoal);
+		activity.setEndTime(activityEndTime);
+		return activity;
+	}
+
+	private void updateLastActivity(PotentialConflictDTO payload, Date activityEndTime, Goal matchingGoal, Activity activity)
+	{
+		assert payload.getVPNLoginID().equals(activity.getUserAnonymizedID());
+		assert matchingGoal.getID().equals(activity.getGoalID());
+
+		activity.setEndTime(activityEndTime);
 	}
 
 	public Set<String> getRelevantSmoothwallCategories()
@@ -112,14 +122,6 @@ public class AnalysisEngineService
 		}
 		messageService.sendMessage(message, destination);
 		return message;
-	}
-
-	private void updateLastActivity(PotentialConflictDTO payload, Date messageEndTime, Goal matchingGoal, Activity activity)
-	{
-		assert payload.getVPNLoginID().equals(activity.getUserAnonymizedID());
-		assert matchingGoal.getID().equals(activity.getGoalID());
-
-		activity.setEndTime(messageEndTime);
 	}
 
 	private Set<Goal> determineMatchingGoalsForUser(UserAnonymizedDTO userAnonymized, Set<String> categories)

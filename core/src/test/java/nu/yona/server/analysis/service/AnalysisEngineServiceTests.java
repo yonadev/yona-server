@@ -1,6 +1,7 @@
 package nu.yona.server.analysis.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
@@ -152,10 +153,17 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void messageCreatedOnMatch()
 	{
+		Date t = new Date();
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
 		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
+		// Verify that there is an activity update.
+		ArgumentCaptor<Activity> activity = ArgumentCaptor.forClass(Activity.class);
+		verify(mockAnalysisEngineCacheService).updateLatestActivityForUser(activity.capture());
+		assertEquals(userAnonID, activity.getValue().getUserAnonymizedID());
+		assertTrue(activity.getValue().getEndTime().after(t));
+		assertEquals(gamblingGoal.getID(), activity.getValue().getGoalID());
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		verify(mockMessageService).sendMessage(message.capture(), eq(anonMessageDestination));
@@ -173,6 +181,10 @@ public class AnalysisEngineServiceTests
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag", "lotto"));
 		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
+		// Verify that there is an activity update.
+		ArgumentCaptor<Activity> activity = ArgumentCaptor.forClass(Activity.class);
+		verify(mockAnalysisEngineCacheService).updateLatestActivityForUser(activity.capture());
+		assertEquals(gamblingGoal.getID(), activity.getValue().getGoalID());
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		verify(mockMessageService).sendMessage(message.capture(), eq(anonMessageDestination));
@@ -189,6 +201,11 @@ public class AnalysisEngineServiceTests
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto", "games"));
 		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
+		// Verify that there are 2 activities updated, for both goals.
+		ArgumentCaptor<Activity> activity = ArgumentCaptor.forClass(Activity.class);
+		verify(mockAnalysisEngineCacheService, times(2)).updateLatestActivityForUser(activity.capture());
+		assertEquals(new HashSet<UUID>(Arrays.asList(gamblingGoal.getID(), gamingGoal.getID())),
+				activity.getAllValues().stream().map(a -> a.getGoalID()).collect(Collectors.toSet()));
 		// Verify that there are 2 conflict messages sent, for both goals.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		verify(mockMessageService, times(2)).sendMessage(message.capture(), eq(anonMessageDestination));
@@ -225,7 +242,7 @@ public class AnalysisEngineServiceTests
 
 		// Verify that there is no new conflict message sent.
 		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
-		// Verify that the existing conflict message was updated in the cache.
+		// Verify that the existing activity was updated in the cache.
 		verify(mockAnalysisEngineCacheService, times(3)).updateLatestActivityForUser(earlierActivity);
 
 		// Restore default properties.
@@ -242,6 +259,9 @@ public class AnalysisEngineServiceTests
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag"));
 		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
+		// Verify that there was no attempted activity update.
+		verify(mockAnalysisEngineCacheService, never()).fetchLatestActivityForUser(eq(userAnonID), any(), any());
+		verify(mockAnalysisEngineCacheService, never()).updateLatestActivityForUser(any());
 		// Verify that there is no conflict message sent.
 		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
 	}
