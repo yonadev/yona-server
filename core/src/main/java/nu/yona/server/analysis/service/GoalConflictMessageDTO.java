@@ -41,17 +41,19 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private final String activityCategoryName;
 	private final String url;
 	private Status status;
-	private final Date endTime;
+	private final Date activityStartTime;
+	private final Date activityEndTime;
 
 	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, String activityCategoryName, String url,
-			Status status, Date endTime)
+			Status status, Date activityStartTime, Date activityEndTime)
 	{
 		super(id, creationTime);
 		this.nickname = nickname;
 		this.activityCategoryName = activityCategoryName;
 		this.url = url;
 		this.status = status;
-		this.endTime = endTime;
+		this.activityStartTime = activityStartTime;
+		this.activityEndTime = activityEndTime;
 	}
 
 	@Override
@@ -90,14 +92,14 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return url;
 	}
 
-	/**
-	 * This method gets the end time of the conflict.
-	 * 
-	 * @return The end time of the conflict.
-	 */
-	public Date getEndTime()
+	public Date getActivityStartTime()
 	{
-		return endTime;
+		return activityStartTime;
+	}
+
+	public Date getActivityEndTime()
+	{
+		return activityEndTime;
 	}
 
 	public static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, String nickname)
@@ -105,7 +107,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), nickname,
 				messageEntity.getActivity().getGoal().getActivityCategory().getName(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null, messageEntity.getStatus(),
-				messageEntity.getEndTime());
+				messageEntity.getActivity().getStartTime(), messageEntity.getActivity().getEndTime());
 	}
 
 	@Component
