@@ -1,7 +1,9 @@
 package nu.yona.server.analysis.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
@@ -102,8 +104,7 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void getRelevantSmoothwallCategories()
 	{
-		assertEquals(new HashSet<String>(Arrays.asList("poker", "lotto", "refdag", "bbc", "games")),
-				service.getRelevantSmoothwallCategories());
+		assertThat(service.getRelevantSmoothwallCategories(), containsInAnyOrder("poker", "lotto", "refdag", "bbc", "games"));
 	}
 
 	/*
@@ -160,17 +161,18 @@ public class AnalysisEngineServiceTests
 		// Verify that there is an activity update.
 		ArgumentCaptor<Activity> activity = ArgumentCaptor.forClass(Activity.class);
 		verify(mockAnalysisEngineCacheService).updateLatestActivityForUser(activity.capture());
-		assertEquals("Expect right user set to activity", userAnonID, activity.getValue().getUserAnonymizedID());
-		assertTrue("Expect start time set just about time of analysis", activity.getValue().getStartTime().compareTo(t) >= 0);
-		assertTrue("Expect end time set just about time of analysis", activity.getValue().getEndTime().compareTo(t) >= 0);
-		assertEquals("Expect right goal set to activity", gamblingGoal.getID(), activity.getValue().getGoalID());
+		assertThat("Expect right user set to activity", activity.getValue().getUserAnonymizedID(), equalTo(userAnonID));
+		assertThat("Expect start time set just about time of analysis", activity.getValue().getStartTime(),
+				greaterThanOrEqualTo(t));
+		assertThat("Expect end time set just about time of analysis", activity.getValue().getEndTime(), greaterThanOrEqualTo(t));
+		assertThat("Expect right goal set to activity", activity.getValue().getGoalID(), equalTo(gamblingGoal.getID()));
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		verify(mockMessageService).sendMessage(message.capture(), eq(anonMessageDestination));
-		assertEquals("Expected right related user set to goal conflict message", userAnonID,
-				message.getValue().getRelatedUserAnonymizedID());
-		assertEquals("Expected right goal set to goal conflict message", gamblingGoal.getID(),
-				message.getValue().getActivity().getGoalID());
+		assertThat("Expected right related user set to goal conflict message", message.getValue().getRelatedUserAnonymizedID(),
+				equalTo(userAnonID));
+		assertThat("Expected right goal set to goal conflict message", message.getValue().getActivity().getGoalID(),
+				equalTo(gamblingGoal.getID()));
 	}
 
 	/**
@@ -186,12 +188,12 @@ public class AnalysisEngineServiceTests
 		// Verify that there is an activity update.
 		ArgumentCaptor<Activity> activity = ArgumentCaptor.forClass(Activity.class);
 		verify(mockAnalysisEngineCacheService).updateLatestActivityForUser(activity.capture());
-		assertEquals("Expect right goal set to activity", gamblingGoal.getID(), activity.getValue().getGoalID());
+		assertThat("Expect right goal set to activity", activity.getValue().getGoalID(), equalTo(gamblingGoal.getID()));
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		verify(mockMessageService).sendMessage(message.capture(), eq(anonMessageDestination));
-		assertEquals("Expect right goal set to goal conflict message", gamblingGoal.getID(),
-				message.getValue().getActivity().getGoalID());
+		assertThat("Expect right goal set to goal conflict message", message.getValue().getActivity().getGoalID(),
+				equalTo(gamblingGoal.getID()));
 	}
 
 	/**
@@ -207,15 +209,15 @@ public class AnalysisEngineServiceTests
 		// Verify that there are 2 activities updated, for both goals.
 		ArgumentCaptor<Activity> activity = ArgumentCaptor.forClass(Activity.class);
 		verify(mockAnalysisEngineCacheService, times(2)).updateLatestActivityForUser(activity.capture());
-		assertEquals("Expect right goals set to activities",
-				new HashSet<UUID>(Arrays.asList(gamblingGoal.getID(), gamingGoal.getID())),
-				activity.getAllValues().stream().map(a -> a.getGoalID()).collect(Collectors.toSet()));
+		assertThat("Expect right goals set to activities",
+				activity.getAllValues().stream().map(a -> a.getGoalID()).collect(Collectors.toSet()),
+				containsInAnyOrder(gamblingGoal.getID(), gamingGoal.getID()));
 		// Verify that there are 2 conflict messages sent, for both goals.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		verify(mockMessageService, times(2)).sendMessage(message.capture(), eq(anonMessageDestination));
-		assertEquals("Expect right goals set to goal conflict messages",
-				new HashSet<UUID>(Arrays.asList(gamblingGoal.getID(), gamingGoal.getID())),
-				message.getAllValues().stream().map(m -> m.getActivity().getGoalID()).collect(Collectors.toSet()));
+		assertThat("Expect right goals set to goal conflict messages",
+				message.getAllValues().stream().map(m -> m.getActivity().getGoalID()).collect(Collectors.toSet()),
+				containsInAnyOrder(gamblingGoal.getID(), gamingGoal.getID()));
 	}
 
 	/**
@@ -250,9 +252,9 @@ public class AnalysisEngineServiceTests
 		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
 		// Verify that the existing activity was updated in the cache.
 		verify(mockAnalysisEngineCacheService, times(3)).updateLatestActivityForUser(earlierActivity);
-		assertTrue("Expect start time to remain the same", earlierActivity.getStartTime().equals(t));
-		assertTrue("Expect end time updated at the last executed analysis matching the goals",
-				earlierActivity.getEndTime().compareTo(t2) >= 0);
+		assertThat("Expect start time to remain the same", earlierActivity.getStartTime(), equalTo(t));
+		assertThat("Expect end time updated at the last executed analysis matching the goals", earlierActivity.getEndTime(),
+				greaterThanOrEqualTo(t2));
 
 		// Restore default properties.
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
