@@ -30,11 +30,13 @@ public class Activity extends EntityWithID
 		super(null);
 	}
 
-	public Activity(UUID id, UUID userAnonymizedID, UUID goalID)
+	public Activity(UUID id, UUID userAnonymizedID, UUID goalID, Date startTime)
 	{
 		super(id);
 		this.userAnonymizedID = userAnonymizedID;
 		this.goalID = goalID;
+		this.startTime = startTime;
+		this.endTime = startTime;
 	}
 
 	public UUID getUserAnonymizedID()
@@ -62,9 +64,9 @@ public class Activity extends EntityWithID
 		this.endTime = endTime;
 	}
 
-	public static Activity createInstance(UUID userAnonymizedID, Goal goal)
+	public static Activity createInstance(UUID userAnonymizedID, Goal goal, Date startTime)
 	{
-		return new Activity(UUID.randomUUID(), userAnonymizedID, goal.getID());
+		return new Activity(UUID.randomUUID(), userAnonymizedID, goal.getID(), startTime);
 	}
 
 	public Goal getGoal()
