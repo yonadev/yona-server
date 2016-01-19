@@ -7,7 +7,7 @@
 package nu.yona.server
 
 import groovy.json.*
-import nu.yona.server.test.Goal
+import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.User
 
 class UserTest extends AbstractAppServiceIntegrationTest
@@ -16,7 +16,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	final def lastName = "Doe"
 	final def nickname = "JD"
 	final def devices = ["Galaxy mini"]
-	final def goals = [Goal.createInstance("gambling")]
+	final def goals = [BudgetGoal.createNoGoInstance("gambling")]
 	def password = "J o h n   D o e"
 
 	def 'Create John Doe'()

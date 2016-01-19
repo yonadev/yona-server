@@ -67,7 +67,10 @@ public class AnalysisEngineService
 			activity = addNewActivity(payload, now, matchingGoal);
 			cacheService.updateLatestActivityForUser(activity);
 
-			sendConflictMessageToAllDestinationsOfUser(payload, userAnonymized, activity);
+			if (matchingGoal.isNoGoGoal())
+			{
+				sendConflictMessageToAllDestinationsOfUser(payload, userAnonymized, activity);
+			}
 		}
 		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
 		else if (now.getTime() - activity.getEndTime().getTime() >= yonaProperties.getAnalysisService().getUpdateSkipWindow())
