@@ -32,6 +32,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.goals.entities.ActivityCategory;
+import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDTO;
 import nu.yona.server.goals.service.ActivityCategoryService;
@@ -69,11 +70,11 @@ public class AnalysisEngineServiceTests
 	@Before
 	public void setUp()
 	{
-		gamblingGoal = Goal.createInstance(ActivityCategory.createInstance("gambling", false,
+		gamblingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance("gambling", false,
 				new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet()));
-		newsGoal = Goal.createInstance(ActivityCategory.createInstance("news", false,
+		newsGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance("news", false,
 				new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
-		gamingGoal = Goal.createInstance(ActivityCategory.createInstance("gaming", false,
+		gamingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance("gaming", false,
 				new HashSet<String>(Arrays.asList("games")), Collections.emptySet()));
 
 		goalMap.put("gambling", gamblingGoal);

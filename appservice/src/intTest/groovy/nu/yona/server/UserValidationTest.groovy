@@ -27,7 +27,9 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 				],
 				"goals":[
 					{
-						"activityCategoryName":"gambling"
+						"@class":"budgetGoal",
+						"activityCategoryName":"gambling",
+						"maxDuration":0
 					}
 				]}"""
 	def password = "John Doe"

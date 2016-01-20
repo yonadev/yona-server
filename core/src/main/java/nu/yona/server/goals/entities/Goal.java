@@ -11,7 +11,7 @@ import nu.yona.server.entities.RepositoryProvider;
 
 @Entity
 @Table(name = "GOALS")
-public class Goal extends EntityWithID
+public abstract class Goal extends EntityWithID
 {
 	public static GoalRepository getRepository()
 	{
@@ -27,7 +27,7 @@ public class Goal extends EntityWithID
 		super(null);
 	}
 
-	private Goal(UUID id, ActivityCategory activityCategory)
+	protected Goal(UUID id, ActivityCategory activityCategory)
 	{
 		super(id);
 
@@ -43,8 +43,5 @@ public class Goal extends EntityWithID
 		return activityCategory;
 	}
 
-	public static Goal createInstance(ActivityCategory activityCategory)
-	{
-		return new Goal(UUID.randomUUID(), activityCategory);
-	}
+	public abstract boolean isNoGoGoal();
 }
