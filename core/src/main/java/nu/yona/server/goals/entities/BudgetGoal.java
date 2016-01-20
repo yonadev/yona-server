@@ -12,7 +12,7 @@ public class BudgetGoal extends Goal
 	// Default constructor is required for JPA
 	public BudgetGoal()
 	{
-		super();
+
 	}
 
 	private BudgetGoal(UUID id, ActivityCategory activityCategory, int maxDuration)

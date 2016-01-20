@@ -39,13 +39,13 @@ public abstract class GoalDTO
 
 	public abstract Goal createGoalEntity();
 
-	public static GoalDTO createInstance(Goal g)
+	public static GoalDTO createInstance(Goal goal)
 	{
-		if (g instanceof BudgetGoal)
+		if (goal instanceof BudgetGoal)
 		{
-			return BudgetGoalDTO.createInstance((BudgetGoal) g);
+			return BudgetGoalDTO.createInstance((BudgetGoal) goal);
 		}
 
-		throw new NotImplementedException("GoalDTO creation not implemented yet for class " + g.getClass());
+		throw new NotImplementedException("GoalDTO creation not implemented yet for class " + goal.getClass());
 	}
 }
