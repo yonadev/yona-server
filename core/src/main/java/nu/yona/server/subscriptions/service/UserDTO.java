@@ -154,15 +154,10 @@ public class UserDTO
 	{
 		if (userEntity == null)
 		{
-			return createRemovedUserInstance();
+			return null;
 		}
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getMobileNumber(),
 				userEntity.isMobileNumberConfirmed());
-	}
-
-	static UserDTO createRemovedUserInstance()
-	{
-		return new UserDTO(null, null, null, null, false);
 	}
 
 	static UserDTO createInstanceWithPrivateData(User userEntity)

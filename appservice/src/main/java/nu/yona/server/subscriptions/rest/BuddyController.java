@@ -149,6 +149,10 @@ public class BuddyController
 		@JsonProperty("_embedded")
 		public Map<String, UserController.UserResource> getEmbeddedResources()
 		{
+			if (getContent().getUser() == null)
+			{
+				return Collections.emptyMap();
+			}
 			return Collections.singletonMap(BuddyDTO.USER_REL_NAME,
 					new UserController.UserResourceAssembler(false).toResource(getContent().getUser()));
 		}

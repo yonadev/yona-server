@@ -12,6 +12,7 @@ import javax.persistence.Transient;
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.subscriptions.service.BuddyServiceException;
 
 @Entity
 public abstract class BuddyMessage extends Message
@@ -37,6 +38,10 @@ public abstract class BuddyMessage extends Message
 	protected BuddyMessage(UUID id, UUID loginID, UUID userID, String nickname, String message)
 	{
 		super(id, loginID);
+		if (userID == null)
+		{
+			throw BuddyServiceException.userCannotBeNull();
+		}
 		this.userID = userID;
 		this.nickname = nickname;
 		this.message = message;
