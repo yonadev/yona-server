@@ -316,14 +316,14 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def inviteURL = sendBuddyRequestForBob(richard, "+$timestamp")
+		def inviteURL = sendBuddyRequestForBob(richard, "+$timestamp").responseData.userCreatedInviteURL
 
 		when:
-		def response = appService.getResource(inviteURL, [:], ["tempPassword": "hack", "includePrivateData": "true"])
+		def response = appService.getResource(YonaServer.stripQueryString(inviteURL), [:], ["tempPassword": "hack", "includePrivateData": "true"])
 
 		then:
 		response.status == 400
-		// response.responseData.code == "TODO" // YD-137: Why do we not get a response code here?
+		response.responseData.code == "error.decrypting.data"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -334,10 +334,10 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def inviteURL = sendBuddyRequestForBob(richard, "+$timestamp")
+		def inviteURL = sendBuddyRequestForBob(richard, "+$timestamp").responseData.userCreatedInviteURL
 
 		when:
-		def response = appService.updateResource(richard.url, """{
+		def response = appService.updateResource(YonaServer.stripQueryString(inviteURL), """{
 				"firstName":"Richard",
 				"lastName":"Quin",
 				"nickname":"RQ",
@@ -356,7 +356,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 400
-		// response.responseData.code == "TODO" // YD-137: Why do we not get a response code here?
+		response.responseData.code == "error.decrypting.data"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -373,7 +373,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 400
-		// response.responseData.code == "TODO" // YD-137: Why do we not get a response code here?
+		response.responseData.code == "error.decrypting.data"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -404,7 +404,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 400
-		// response.responseData.code == "TODO" // YD-137: Why do we not get a response code here?
+		response.responseData.code == "error.user.not.created.on.buddy.request"
 
 		cleanup:
 		appService.deleteUser(richard)
