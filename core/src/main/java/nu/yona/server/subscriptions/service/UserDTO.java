@@ -93,6 +93,7 @@ public class UserDTO
 		return lastName;
 	}
 
+	@JsonInclude(Include.NON_EMPTY)
 	public String getEmailAddress()
 	{
 		return emailAddress;
