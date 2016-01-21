@@ -12,9 +12,13 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
@@ -54,12 +58,12 @@ public class PlivoSmsService implements SmsService
 			return;
 		}
 
-		DefaultHttpClient httpClient = new DefaultHttpClient();
-		try
+		try (CloseableHttpClient httpClient = HttpClientBuilder.create().build())
 		{
 			String requestMessageStr = createRequestJson(phoneNumber.replace("+", ""), message);
-			HttpPost httpRequest = createHttpRequest(httpClient, requestMessageStr);
-			HttpResponse httpResponse = httpClient.execute(httpRequest);
+			HttpPost httpRequest = createHttpRequest(requestMessageStr);
+			HttpClientContext httpClientContext = createHttpClientContext();
+			HttpResponse httpResponse = httpClient.execute(httpRequest, httpClientContext);
 			HttpEntity entity = httpResponse.getEntity();
 
 			int httpResponseCode = httpResponse.getStatusLine().getStatusCode();
@@ -73,12 +77,29 @@ public class PlivoSmsService implements SmsService
 		{
 			throw SmsException.smsSendingFailed(e);
 		}
-		finally
-		{
-			httpClient.getConnectionManager().shutdown();
-		}
 
 		logger.info("SMS sent succesfully.");
+	}
+
+	private HttpClientContext createHttpClientContext()
+	{
+		try
+		{
+			SmsProperties smsProperties = yonaProperties.getSms();
+
+			URI uri = new URI(smsProperties.getPlivoUrl());
+			CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+			credentialsProvider.setCredentials(new AuthScope(uri.getHost(), uri.getPort()),
+					new UsernamePasswordCredentials(smsProperties.getPlivoAuthId(), smsProperties.getPlivoAuthToken()));
+
+			HttpClientContext httpClientContext = HttpClientContext.create();
+			httpClientContext.setCredentialsProvider(credentialsProvider);
+			return httpClientContext;
+		}
+		catch (URISyntaxException e)
+		{
+			throw SmsException.smsSendingFailed(e);
+		}
 	}
 
 	private String createRequestJson(String phoneNumber, String message)
@@ -98,14 +119,12 @@ public class PlivoSmsService implements SmsService
 		}
 	}
 
-	private HttpPost createHttpRequest(DefaultHttpClient httpClient, String jsonStr)
+	private HttpPost createHttpRequest(String jsonStr)
 	{
 		try
 		{
 			SmsProperties smsProperties = yonaProperties.getSms();
 			URI uri = new URI(MessageFormat.format(smsProperties.getPlivoUrl(), smsProperties.getPlivoAuthId()));
-			httpClient.getCredentialsProvider().setCredentials(new AuthScope(uri.getHost(), uri.getPort()),
-					new UsernamePasswordCredentials(smsProperties.getPlivoAuthId(), smsProperties.getPlivoAuthToken()));
 
 			HttpPost httpRequest = new HttpPost(uri);
 			StringEntity requestEntity = new StringEntity(jsonStr, "UTF-8");
