@@ -87,7 +87,7 @@ public class PlivoSmsService implements SmsService
 		{
 			SmsProperties smsProperties = yonaProperties.getSms();
 
-			URI uri = new URI(smsProperties.getPlivoUrl());
+			URI uri = getPlivoUrl(smsProperties);
 			CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 			credentialsProvider.setCredentials(new AuthScope(uri.getHost(), uri.getPort()),
 					new UsernamePasswordCredentials(smsProperties.getPlivoAuthId(), smsProperties.getPlivoAuthToken()));
@@ -100,6 +100,11 @@ public class PlivoSmsService implements SmsService
 		{
 			throw SmsException.smsSendingFailed(e);
 		}
+	}
+
+	private URI getPlivoUrl(SmsProperties smsProperties) throws URISyntaxException
+	{
+		return new URI(MessageFormat.format(smsProperties.getPlivoUrl(), smsProperties.getPlivoAuthId()));
 	}
 
 	private String createRequestJson(String phoneNumber, String message)
@@ -124,7 +129,7 @@ public class PlivoSmsService implements SmsService
 		try
 		{
 			SmsProperties smsProperties = yonaProperties.getSms();
-			URI uri = new URI(MessageFormat.format(smsProperties.getPlivoUrl(), smsProperties.getPlivoAuthId()));
+			URI uri = getPlivoUrl(smsProperties);
 
 			HttpPost httpRequest = new HttpPost(uri);
 			StringEntity requestEntity = new StringEntity(jsonStr, "UTF-8");
