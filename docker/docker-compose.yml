@@ -5,40 +5,6 @@ configuration:
   image: busybox
   volumes:
     - ./config:/opt/app/config:ro
-    - ./config:/config:ro
-
-###########################################
-# Logging: ELK stack copied from http://www.labouisse.com/how-to/2015/09/23/elk-docker-and-spring-boot/
-###########################################
-
-elasticsearch:
-  image: elasticsearch
-  volumes:
-      - /usr/share/elasticsearch/data
-  ports:
-      - "9200:9200"
-
-logstash:
-  image: logstash
-  environment:
-      TZ: Europe/Paris
-  expose:
-    - "12201"
-  ports:
-      - "12201:12201"
-      - "12201:12201/udp"
-  volumes_from:
-      - configuration:ro
-  links:
-      - elasticsearch:db
-  command: logstash -f /config/gelf.conf
-
-kibana:
-  image: kibana
-  links:
-      - elasticsearch:elasticsearch
-  ports:
-      - "5601:5601"
 
 ###########################################
 # Database
@@ -57,6 +23,7 @@ adminservice:
   image: yonadev/adminservice:0.0.8-SNAPSHOT
   links:
     - hsqldb:yonadbserver
+  external_links:
     - logstash
   ports:
     - 8080:8080
@@ -70,6 +37,7 @@ analysisservice:
   image: yonadev/analysisservice:0.0.8-SNAPSHOT
   links:
     - hsqldb:yonadbserver
+  external_links:
     - logstash
   ports:
     - 8081:8080
@@ -83,6 +51,7 @@ appservice:
   image: yonadev/appservice:0.0.8-SNAPSHOT
   links:
     - hsqldb:yonadbserver
+  external_links:
     - logstash
   ports:
     - 80:8080

@@ -1,0 +1,39 @@
+###########################################
+# Configuration data container
+###########################################
+elk-configuration:
+  image: busybox
+  volumes:
+    - ./config:/config:ro
+
+###########################################
+# Logging: ELK stack copied from http://www.labouisse.com/how-to/2015/09/23/elk-docker-and-spring-boot/
+###########################################
+
+elasticsearch:
+  image: elasticsearch
+  volumes:
+      - /usr/share/elasticsearch/data
+  ports:
+      - "9200:9200"
+
+logstash:
+  image: logstash
+  container_name: logstash
+  environment:
+      TZ: Europe/Paris
+  ports:
+      - "12201:12201"
+      - "12201:12201/udp"
+  volumes_from:
+      - elk-configuration:ro
+  links:
+      - elasticsearch:db
+  command: logstash -f /config/gelf.conf
+
+kibana:
+  image: kibana
+  links:
+      - elasticsearch:elasticsearch
+  ports:
+      - "5601:5601"
