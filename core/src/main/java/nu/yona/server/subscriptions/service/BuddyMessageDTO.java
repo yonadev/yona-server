@@ -21,10 +21,6 @@ public abstract class BuddyMessageDTO extends MessageDTO
 	protected BuddyMessageDTO(UUID id, Date creationTime, UserDTO user, String nickname, String message)
 	{
 		super(id, creationTime);
-		if (user == null)
-		{
-			throw BuddyServiceException.userCannotBeNull();
-		}
 		this.user = user;
 		this.nickname = nickname;
 		this.message = message;

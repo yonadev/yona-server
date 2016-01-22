@@ -20,7 +20,7 @@ public class DiscloseResponseMessage extends BuddyMessage
 	// Default constructor is required for JPA
 	public DiscloseResponseMessage()
 	{
-		super(null, null, null, null, null);
+
 	}
 
 	protected DiscloseResponseMessage(UUID id, UUID respondingUserID, UUID relatedUserAnonymizedID,
