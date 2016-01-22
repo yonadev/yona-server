@@ -1,7 +1,7 @@
 ###########################################
 # Configuration data container
 ###########################################
-elk-configuration:
+configuration:
   image: busybox
   volumes:
     - ./config:/config:ro
@@ -12,6 +12,8 @@ elk-configuration:
 
 elasticsearch:
   image: elasticsearch
+  environment:
+      TZ: Europe/Amsterdam
   volumes:
       - /usr/share/elasticsearch/data
   ports:
@@ -19,20 +21,21 @@ elasticsearch:
 
 logstash:
   image: logstash
-  container_name: logstash
   environment:
-      TZ: Europe/Paris
+      TZ: Europe/Amsterdam
   ports:
       - "12201:12201"
       - "12201:12201/udp"
   volumes_from:
-      - elk-configuration:ro
+      - configuration:ro
   links:
       - elasticsearch:db
   command: logstash -f /config/gelf.conf
 
 kibana:
   image: kibana
+  environment:
+      TZ: Europe/Amsterdam
   links:
       - elasticsearch:elasticsearch
   ports:
