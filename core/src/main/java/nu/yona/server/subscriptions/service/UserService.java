@@ -112,7 +112,7 @@ public class UserService
 	{
 		Map<String, Object> templateParams = new HashMap<String, Object>();
 		templateParams.put("confirmationCode", existingUserEntity.getOverwriteUserConfirmationCode());
-		smsService.send(mobileNumber, SmsService.TemplateName_OverwriteUserNumberConfirmation, templateParams);
+		smsService.send(mobileNumber, SmsService.TemplateName_OverwriteUserNumberConfirmation, templateParams, Optional.empty());
 	}
 
 	@Transactional
@@ -496,7 +496,7 @@ public class UserService
 		}
 		Map<String, Object> templateParams = new HashMap<String, Object>();
 		templateParams.put("confirmationCode", confirmationCode);
-		smsService.send(userEntity.getMobileNumber(), messageTemplateName, templateParams);
+		smsService.send(userEntity.getMobileNumber(), messageTemplateName, templateParams, Optional.empty());
 	}
 
 	private User saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDTO userResource)

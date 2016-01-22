@@ -308,7 +308,8 @@ public class BuddyService
 			templateParams.put("buddyName", buddyName);
 			templateParams.put("message", message);
 			emailService.sendEmail(requestingUserName, buddyAddress, subjectTemplateName, bodyTemplateName, templateParams);
-			smsService.send(buddyMobileNumber, SmsService.TemplateName_BuddyInvite, templateParams);
+			smsService.send(buddyMobileNumber, SmsService.TemplateName_BuddyInvite, templateParams,
+					Optional.of(requestingUserMobileNumber));
 		}
 		catch (UnsupportedEncodingException e)
 		{
