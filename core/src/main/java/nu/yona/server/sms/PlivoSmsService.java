@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -41,12 +42,14 @@ public class PlivoSmsService implements SmsService
 	private VelocityEngine velocityEngine;
 
 	@Override
-	public void send(String phoneNumber, String messageTemplateName, Map<String, Object> templateParameters)
+	public void send(String destinationPhoneNumber, String messageTemplateName, Map<String, Object> templateParameters,
+			Optional<String> sourcePhoneNumber)
 	{
 		String message = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine, "sms/" + messageTemplateName + ".vm",
 				"UTF-8", templateParameters);
 
-		logger.info("Sending SMS to number '{}'. Message: {}", phoneNumber, message);
+		logger.info("Sending SMS to number '{}'. From number '{}'. Message: {}", destinationPhoneNumber, message,
+				sourcePhoneNumber);
 
 		if (!yonaProperties.getSms().isEnabled())
 		{
@@ -57,7 +60,7 @@ public class PlivoSmsService implements SmsService
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		try
 		{
-			String requestMessageStr = createRequestJson(phoneNumber.replace("+", ""), message);
+			String requestMessageStr = createRequestJson(destinationPhoneNumber, message, sourcePhoneNumber);
 			HttpPost httpRequest = createHttpRequest(httpClient, requestMessageStr);
 			HttpResponse httpResponse = httpClient.execute(httpRequest);
 			HttpEntity entity = httpResponse.getEntity();
@@ -81,13 +84,13 @@ public class PlivoSmsService implements SmsService
 		logger.info("SMS sent succesfully.");
 	}
 
-	private String createRequestJson(String phoneNumber, String message)
+	private String createRequestJson(String destinationPhoneNumber, String message, Optional<String> sourcePhoneNumber)
 	{
 		try
 		{
 			Map<String, Object> requestMessage = new HashMap<String, Object>();
-			requestMessage.put("src", yonaProperties.getSms().getSenderNumber());
-			requestMessage.put("dst", phoneNumber);
+			requestMessage.put("src", sourcePhoneNumber.orElse(yonaProperties.getSms().getSenderNumber()).replace("+", ""));
+			requestMessage.put("dst", destinationPhoneNumber.replace("+", ""));
 			requestMessage.put("text", message);
 
 			return new ObjectMapper().writeValueAsString(requestMessage);
