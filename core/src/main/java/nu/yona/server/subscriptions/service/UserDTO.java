@@ -151,11 +151,36 @@ public class UserDTO
 		return originalUserEntity;
 	}
 
-	static UserDTO createInstance(User userEntity)
+	/**
+	 * Creates a {@link UserDTO} with the public data of the user, if the user is not {@code null}. This method is provided
+	 * because the related user may be removed in the meantime. In that case the passed {@code userEntity} will be {@code null}
+	 * and the method returns {@code null}.
+	 * 
+	 * @param userEntity
+	 * @return
+	 */
+	static UserDTO createInstanceIfNotNull(User userEntity)
 	{
 		if (userEntity == null)
 		{
 			return null;
+		}
+		return createInstance(userEntity);
+	}
+
+	/**
+	 * Creates a {@link UserDTO} with the public data of the user. Please use {@link #createInstanceIfNotNull(User)} if
+	 * {@code userEntity} may be {@code null}. Use {@link #createInstanceWithPrivateData(User)} to include private data of the
+	 * user.
+	 * 
+	 * @param userEntity
+	 * @return
+	 */
+	static UserDTO createInstance(User userEntity)
+	{
+		if (userEntity == null)
+		{
+			throw new IllegalArgumentException("userEntity cannot be null");
 		}
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getMobileNumber(),
 				userEntity.isMobileNumberConfirmed());

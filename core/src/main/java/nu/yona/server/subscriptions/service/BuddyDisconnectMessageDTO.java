@@ -19,7 +19,6 @@ import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.messaging.service.MessageServiceException;
 import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
-import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 
 @JsonRootName("buddyDisconnectMessage")
@@ -60,10 +59,9 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 
 	public static BuddyDisconnectMessageDTO createInstance(UserDTO actingUser, BuddyDisconnectMessage messageEntity)
 	{
-		User userEntity = messageEntity.getUser(); // may be null if deleted
 		return new BuddyDisconnectMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
-				UserDTO.createInstance(userEntity), messageEntity.getRelatedUserAnonymizedID(), messageEntity.getNickname(),
-				messageEntity.getMessage(), messageEntity.getReason(), messageEntity.isProcessed());
+				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getRelatedUserAnonymizedID(),
+				messageEntity.getNickname(), messageEntity.getMessage(), messageEntity.getReason(), messageEntity.isProcessed());
 	}
 
 	@Component

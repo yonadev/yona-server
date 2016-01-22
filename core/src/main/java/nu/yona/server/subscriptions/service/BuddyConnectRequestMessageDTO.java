@@ -77,7 +77,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 	public static BuddyConnectRequestMessageDTO createInstance(UserDTO actingUser, BuddyConnectRequestMessage messageEntity)
 	{
 		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(), messageEntity.getCreationTime(),
-				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getRelatedUserAnonymizedID(),
+				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getRelatedUserAnonymizedID(),
 				messageEntity.getNickname(), messageEntity.getMessage(), messageEntity.getStatus());
 	}
 
