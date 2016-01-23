@@ -47,7 +47,7 @@ sub transform_log_record ($) {
 
 sub fetch_relevant_url_categories {
 	my ($analysis_engine_url) = @_;
-	my ($relevant_categories_url) = "${analysis_engine_url}relevantCategories/";
+	my ($relevant_categories_url) = "${analysis_engine_url}relevantSmoothwallCategories/";
 	my $get_result = $ua->request(GET $relevant_categories_url);
 	my $status_code = $get_result->{'_rc'};
 	if ($status_code != 200) {
