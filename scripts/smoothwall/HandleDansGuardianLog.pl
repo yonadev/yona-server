@@ -128,7 +128,9 @@ sub handle_records_from_file {
 
 $| = 1; # Make STDOUT unbuffered
 GetOptions ('analysisEngineURL=s' => \$analysis_engine_url,
-	'categoriesRefreshInterval=i' => \$categories_refresh_interval) or die "Usage: $0 [--analysisEngineURL <URL>] [<input file>]";
+	'categoriesRefreshInterval=i' => \$categories_refresh_interval)
+or die "Usage: $0 [--analysisEngineURL <URL>] [--categoriesRefreshInterval <interval in seconds>] [<input file>]";
+
 my $input_file = $ARGV[0];
 if ($input_file) {
 	if (! -e $input_file) {
