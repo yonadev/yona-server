@@ -17,8 +17,6 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.hateoas.Resources;
-import org.springframework.hateoas.config.EnableHypermediaSupport;
-import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
 import org.springframework.http.HttpEntity;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -40,7 +38,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 // Exclude because of https://github.com/spring-projects/spring-boot/issues/4919
 @SpringBootApplication(exclude = { SecurityFilterAutoConfiguration.class })
 @EnableSwagger2
-@EnableHypermediaSupport(type = HypermediaType.HAL)
 @EnableCaching
 public class AdminServiceApplication
 {

@@ -8,20 +8,29 @@ import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.hateoas.RelProvider;
+import org.springframework.hateoas.config.EnableHypermediaSupport;
+import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.JsonRootRelProvider;
 
+@EnableHypermediaSupport(type = HypermediaType.HAL)
+@EnableSpringDataWebSupport
 @Configuration
 public class CoreConfiguration
 {
@@ -89,5 +98,19 @@ public class CoreConfiguration
 		mailSender.setUsername(yonaProperties.getEmail().getSmtp().getUsername());
 		mailSender.setPassword(yonaProperties.getEmail().getSmtp().getPassword());
 		return mailSender;
+	}
+
+	private static final String SPRING_HATEOAS_OBJECT_MAPPER = "_halObjectMapper";
+
+	@Autowired
+	private BeanFactory beanFactory;
+
+	@Bean
+	ObjectMapper objectMapper()
+	{
+		ObjectMapper springHateoasObjectMapper = beanFactory.getBean(SPRING_HATEOAS_OBJECT_MAPPER, ObjectMapper.class);
+		Jackson2ObjectMapperBuilder builder = beanFactory.getBean(Jackson2ObjectMapperBuilder.class);
+		builder.configure(springHateoasObjectMapper);
+		return springHateoasObjectMapper;
 	}
 }
