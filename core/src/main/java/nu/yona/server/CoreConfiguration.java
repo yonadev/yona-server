@@ -108,6 +108,13 @@ public class CoreConfiguration
 	@Bean
 	ObjectMapper objectMapper()
 	{
+		// HATEOAS disables the default Spring configuration options described at
+		// https://docs.spring.io/spring-boot/docs/current/reference/html/howto-spring-mvc.html#howto-customize-the-jackson-objectmapper
+		// See https://github.com/spring-projects/spring-hateoas/issues/333.
+		// We fix this by applying the Spring configurator on the HATEOAS object mapper
+		// See also
+		// https://github.com/spring-projects/spring-boot/blob/v1.3.2.RELEASE/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/hateoas/HypermediaAutoConfiguration.java
+		// which already seems to do this but does not work
 		ObjectMapper springHateoasObjectMapper = beanFactory.getBean(SPRING_HATEOAS_OBJECT_MAPPER, ObjectMapper.class);
 		Jackson2ObjectMapperBuilder builder = beanFactory.getBean(Jackson2ObjectMapperBuilder.class);
 		builder.configure(springHateoasObjectMapper);
