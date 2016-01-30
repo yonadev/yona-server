@@ -54,9 +54,9 @@ public class UserDTO
 	@JsonCreator
 	public UserDTO(@JsonProperty("firstName") String firstName, @JsonProperty("lastName") String lastName,
 			@JsonProperty("emailAddress") String emailAddress, @JsonProperty("mobileNumber") String mobileNumber,
-			@JsonProperty("isConfirmed") boolean isConfirmed, @JsonUnwrapped UserPrivateDTO privateData)
+			@JsonUnwrapped UserPrivateDTO privateData)
 	{
-		this(null, firstName, lastName, emailAddress, mobileNumber, isConfirmed, privateData);
+		this(null, firstName, lastName, emailAddress, mobileNumber, false /* default value, ignored */, privateData);
 	}
 
 	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber,
