@@ -25,9 +25,6 @@ import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.exceptions.UserOverwriteConfirmationException;
-import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.goals.service.GoalDTO;
-import nu.yona.server.goals.service.GoalServiceException;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
@@ -574,28 +571,5 @@ public class UserService
 			// (this could also be achieved with very complex reflection)
 			this.userEntity.loadFully();
 		}
-	}
-
-	@Transactional
-	public void removeGoal(UUID userID, UUID goalID)
-	{
-		User userEntity = this.getUserByID(userID);
-		Optional<Goal> goalEntity = userEntity.getGoals().stream().filter(goal -> goal.getID().equals(goalID)).findFirst();
-		if (!goalEntity.isPresent())
-		{
-			throw GoalServiceException.goalNotFoundById(userID, goalID);
-		}
-		userEntity.removeGoal(goalEntity.get());
-		User.getRepository().save(userEntity);
-	}
-
-	@Transactional
-	public GoalDTO addGoal(UUID userID, GoalDTO goal)
-	{
-		User userEntity = this.getUserByID(userID);
-		Goal goalEntity = goal.createGoalEntity();
-		userEntity.addGoal(goalEntity);
-		User.getRepository().save(userEntity);
-		return GoalDTO.createInstance(goalEntity);
 	}
 }

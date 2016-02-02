@@ -50,12 +50,6 @@ public class GoalController
 				() -> createOKResponse(userID, goalService.getGoalsOfUser(userID), getAllGoalsLinkBuilder(userID)));
 	}
 
-	private Object createOKResponse(UUID userID, Set<GoalDTO> goalsOfUser, Object allGoalsLinkBuilder)
-	{
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	private static ControllerLinkBuilder getAllGoalsLinkBuilder(UUID userID)
 	{
 		GoalController methodOn = methodOn(GoalController.class);
@@ -80,16 +74,6 @@ public class GoalController
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createResponse(userID,
 				goalService.addGoal(userID, goal, Optional.ofNullable(messageStr)), HttpStatus.CREATED));
-	}
-
-	@RequestMapping(value = "{goalID}", method = RequestMethod.PUT)
-	@ResponseBody
-	public HttpEntity<GoalResource> updateGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userID, @PathVariable UUID goalID, @RequestBody GoalDTO updatedGoal,
-			@RequestParam(value = "message", required = false) String messageStr)
-	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(userID,
-				goalService.updateGoal(userID, goalID, updatedGoal, Optional.ofNullable(messageStr))));
 	}
 
 	@RequestMapping(value = "{goalID}", method = RequestMethod.DELETE)

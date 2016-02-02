@@ -7,13 +7,16 @@
 package nu.yona.server.test
 
 import groovy.json.*
+import nu.yona.server.YonaServer
 
 abstract class Goal
 {
 	final String activityCategoryName
+	final String url
 	Goal(def json)
 	{
 		this.activityCategoryName = json.activityCategoryName
+		this.url = json._links ? YonaServer.stripQueryString(json._links.self.href) : null
 	}
 
 	def abstract convertToJsonString()

@@ -19,6 +19,7 @@ class AppService extends Service
 	final ALL_MESSAGES_PATH_FRAGMENT = "/messages/all/"
 	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
 	final MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT = "/confirmMobileNumber"
+	final GOALS_PATH_FRAGMENT = "/goals/"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 
@@ -377,6 +378,28 @@ class AppService extends Service
 	def clearNewDeviceRequest(userPath, password)
 	{
 		yonaServer.deleteResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, password)
+	}
+
+	def addGoal(Closure asserter, User user, Goal goal)
+	{
+		def response = addGoal(user, goal)
+		asserter(response)
+		return (isSuccess(response)) ? Goal.fromJson(response.responseData) : null
+	}
+
+	def addGoal(User user, Goal goal)
+	{
+		yonaServer.postJson(user.url + GOALS_PATH_FRAGMENT, goal.convertToJsonString(), ["Yona-Password": user.password])
+	}
+
+	def removeGoal(User user, Goal goal)
+	{
+		yonaServer.deleteResourceWithPassword(goal.id, user.password)
+	}
+
+	def getGoals(User user)
+	{
+		yonaServer.getResource(user.url + GOALS_PATH_FRAGMENT, ["Yona-Password": user.password])
 	}
 
 	def postMessageActionWithPassword(path, properties, password)

@@ -9,6 +9,9 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -17,6 +20,9 @@ public class GoalService
 {
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private UserAnonymizedService userAnonymizedService;
 
 	public Set<GoalDTO> getGoalsOfUser(UUID forUserID)
 	{
@@ -39,31 +45,34 @@ public class GoalService
 	@Transactional
 	public GoalDTO addGoal(UUID userID, GoalDTO goal, Optional<String> message)
 	{
-		GoalDTO addedGoal = userService.addGoal(userID, goal);
+		UserAnonymized userAnonymized = userService.getUserByID(userID).getAnonymized();
+		Optional<Goal> conflictingExistingGoal = userAnonymized.getGoals().stream()
+				.filter(existingGoal -> existingGoal.getActivityCategory().getName().equals(goal.getActivityCategoryName()))
+				.findFirst();
+		if (conflictingExistingGoal.isPresent())
+		{
+			throw GoalServiceException.cannotAddSecondGoalOnActivityCategory(goal.getActivityCategoryName());
+		}
+
+		Goal goalEntity = goal.createGoalEntity();
+		userAnonymized.addGoal(goalEntity);
+		userAnonymizedService.updateUserAnonymized(userAnonymized.getID(), userAnonymized);
 		// TODO send message
-		return addedGoal;
+		return GoalDTO.createInstance(goalEntity);
 	}
 
 	@Transactional
 	public void removeGoal(UUID userID, UUID goalID, Optional<String> message)
 	{
 		// TODO check mandatory
-		userService.removeGoal(userID, goalID);
-		// TODO send message
-	}
-
-	@Transactional
-	public GoalDTO updateGoal(UUID userID, UUID goalID, GoalDTO newGoal, Optional<String> message)
-	{
-		GoalDTO currentGoal = getGoal(userID, goalID);
-		if (!currentGoal.getActivityCategoryName().equals(newGoal.getActivityCategoryName()))
+		UserAnonymized userAnonymized = userService.getUserByID(userID).getAnonymized();
+		Optional<Goal> goalEntity = userAnonymized.getGoals().stream().filter(goal -> goal.getID().equals(goalID)).findFirst();
+		if (!goalEntity.isPresent())
 		{
-			throw GoalServiceException.updateGoalCategoryMismatch(userID, goalID, newGoal);
+			throw GoalServiceException.goalNotFoundById(userID, goalID);
 		}
-
-		userService.removeGoal(userID, goalID);
-		GoalDTO addedGoal = userService.addGoal(userID, newGoal);
+		userAnonymized.removeGoal(goalEntity.get());
+		userAnonymizedService.updateUserAnonymized(userAnonymized.getID(), userAnonymized);
 		// TODO send message
-		return addedGoal;
 	}
 }
