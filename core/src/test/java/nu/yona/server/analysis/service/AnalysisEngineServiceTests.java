@@ -83,8 +83,6 @@ public class AnalysisEngineServiceTests
 
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 
-		when(mockActivityCategoryService.getAllActivityCategoryEntities()).thenReturn(new HashSet<ActivityCategory>(
-				goalMap.values().stream().map(goal -> goal.getActivityCategory()).collect(Collectors.toSet())));
 		when(mockActivityCategoryService.getAllActivityCategories()).thenReturn(new HashSet<ActivityCategoryDTO>(
 				goalMap.values().stream().map(goal -> ActivityCategoryDTO.createInstance(goal.getActivityCategory()))
 						.collect(Collectors.toSet())));
