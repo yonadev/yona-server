@@ -12,6 +12,9 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +31,7 @@ public class ActivityCategoryService
 		return ActivityCategoryDTO.createInstance(activityCategoryEntity);
 	}
 
+	@Cacheable(value = "activityCategorySet", key = "instance")
 	public Set<ActivityCategoryDTO> getAllActivityCategories()
 	{
 		Set<ActivityCategoryDTO> activityCategories = new HashSet<ActivityCategoryDTO>();
@@ -38,6 +42,7 @@ public class ActivityCategoryService
 		return activityCategories;
 	}
 
+	@CacheEvict(value = "activityCategorySet", key = "instance")
 	@Transactional
 	public ActivityCategoryDTO addActivityCategory(ActivityCategoryDTO activityCategoryDTO)
 	{
@@ -46,6 +51,7 @@ public class ActivityCategoryService
 				.createInstance(ActivityCategory.getRepository().save(activityCategoryDTO.createActivityCategoryEntity()));
 	}
 
+	@CacheEvict(value = "activityCategorySet", key = "instance")
 	@Transactional
 	public ActivityCategoryDTO updateActivityCategory(UUID id, ActivityCategoryDTO activityCategoryDTO)
 	{
@@ -61,6 +67,7 @@ public class ActivityCategoryService
 				.save(activityCategorySourceDTO.updateActivityCategory(activityCategoryTargetEntity));
 	}
 
+	@CacheEvict(value = "activityCategorySet", key = "instance")
 	@Transactional
 	public void deleteActivityCategory(UUID id)
 	{
@@ -83,7 +90,7 @@ public class ActivityCategoryService
 		return entity;
 	}
 
-	public Set<ActivityCategory> getAllActivityCategoryEntities()
+	private Set<ActivityCategory> getAllActivityCategoryEntities()
 	{
 		Set<ActivityCategory> activityCategories = new HashSet<ActivityCategory>();
 		for (ActivityCategory activityCategory : ActivityCategory.getRepository().findAll())
@@ -93,6 +100,7 @@ public class ActivityCategoryService
 		return activityCategories;
 	}
 
+	@CachePut(value = "activityCategorySet", key = "instance")
 	@Transactional
 	public void importActivityCategories(Set<ActivityCategoryDTO> activityCategoryDTOs)
 	{

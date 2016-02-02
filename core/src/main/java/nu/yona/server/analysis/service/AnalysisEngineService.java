@@ -7,6 +7,7 @@ package nu.yona.server.analysis.service;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +15,8 @@ import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
-import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.service.ActivityCategoryDTO;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.messaging.service.MessageService;
@@ -127,15 +128,15 @@ public class AnalysisEngineService
 
 	private Set<Goal> determineMatchingGoalsForUser(UserAnonymizedDTO userAnonymized, Set<String> categories)
 	{
-		Set<ActivityCategory> allActivityCategories = activityCategoryService.getAllActivityCategoryEntities();
-		Set<ActivityCategory> matchingActivityCategories = allActivityCategories.stream().filter(ac -> {
+		Set<ActivityCategoryDTO> allActivityCategories = activityCategoryService.getAllActivityCategories();
+		Set<UUID> matchingActivityCategoryIDs = allActivityCategories.stream().filter(ac -> {
 			Set<String> acSmoothwallCategories = new HashSet<>(ac.getSmoothwallCategories());
 			acSmoothwallCategories.retainAll(categories);
 			return !acSmoothwallCategories.isEmpty();
-		}).collect(Collectors.toSet());
+		}).map(ac -> ac.getID()).collect(Collectors.toSet());
 		Set<Goal> goalsOfUser = userAnonymized.getGoals();
 		Set<Goal> matchingGoalsOfUser = goalsOfUser.stream()
-				.filter(g -> matchingActivityCategories.contains(g.getActivityCategory())).collect(Collectors.toSet());
+				.filter(g -> matchingActivityCategoryIDs.contains(g.getActivityCategory().getID())).collect(Collectors.toSet());
 		return matchingGoalsOfUser;
 	}
 }
