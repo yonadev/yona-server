@@ -31,7 +31,7 @@ public class ActivityCategoryService
 		return ActivityCategoryDTO.createInstance(activityCategoryEntity);
 	}
 
-	@Cacheable(value = "activityCategorySet", key = "instance")
+	@Cacheable(value = "activityCategorySet", key = "'instance'")
 	public Set<ActivityCategoryDTO> getAllActivityCategories()
 	{
 		Set<ActivityCategoryDTO> activityCategories = new HashSet<ActivityCategoryDTO>();
@@ -42,7 +42,7 @@ public class ActivityCategoryService
 		return activityCategories;
 	}
 
-	@CacheEvict(value = "activityCategorySet", key = "instance")
+	@CacheEvict(value = "activityCategorySet", key = "'instance'")
 	@Transactional
 	public ActivityCategoryDTO addActivityCategory(ActivityCategoryDTO activityCategoryDTO)
 	{
@@ -51,7 +51,7 @@ public class ActivityCategoryService
 				.createInstance(ActivityCategory.getRepository().save(activityCategoryDTO.createActivityCategoryEntity()));
 	}
 
-	@CacheEvict(value = "activityCategorySet", key = "instance")
+	@CacheEvict(value = "activityCategorySet", key = "'instance'")
 	@Transactional
 	public ActivityCategoryDTO updateActivityCategory(UUID id, ActivityCategoryDTO activityCategoryDTO)
 	{
@@ -67,7 +67,7 @@ public class ActivityCategoryService
 				.save(activityCategorySourceDTO.updateActivityCategory(activityCategoryTargetEntity));
 	}
 
-	@CacheEvict(value = "activityCategorySet", key = "instance")
+	@CacheEvict(value = "activityCategorySet", key = "'instance'")
 	@Transactional
 	public void deleteActivityCategory(UUID id)
 	{
@@ -100,7 +100,7 @@ public class ActivityCategoryService
 		return activityCategories;
 	}
 
-	@CachePut(value = "activityCategorySet", key = "instance")
+	@CachePut(value = "activityCategorySet", key = "'instance'")
 	@Transactional
 	public void importActivityCategories(Set<ActivityCategoryDTO> activityCategoryDTOs)
 	{
