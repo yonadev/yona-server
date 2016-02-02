@@ -1,6 +1,5 @@
 package nu.yona.server.subscriptions.service;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -20,7 +19,6 @@ import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.messaging.service.MessageServiceException;
 import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
-import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 
 @JsonRootName("buddyDisconnectMessage")
@@ -59,13 +57,11 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 		return possibleActions;
 	}
 
-	public static BuddyDisconnectMessageDTO createInstance(UserDTO requestingUser, BuddyDisconnectMessage messageEntity)
+	public static BuddyDisconnectMessageDTO createInstance(UserDTO actingUser, BuddyDisconnectMessage messageEntity)
 	{
-		User userEntity = messageEntity.getUser(); // may be null if deleted
-		UserDTO user = userEntity != null ? UserDTO.createInstance(userEntity) : UserDTO.createRemovedUserInstance();
-		return new BuddyDisconnectMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), user,
-				messageEntity.getRelatedUserAnonymizedID(), messageEntity.getNickname(), messageEntity.getMessage(),
-				messageEntity.getReason(), messageEntity.isProcessed());
+		return new BuddyDisconnectMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
+				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getRelatedUserAnonymizedID(),
+				messageEntity.getNickname(), messageEntity.getMessage(), messageEntity.getReason(), messageEntity.isProcessed());
 	}
 
 	@Component
@@ -107,15 +103,15 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 		{
 			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getID(), messageEntity.getUserID());
 
-			updateMessageStatusAsProcessed(messageEntity);
+			messageEntity = updateMessageStatusAsProcessed(messageEntity);
 
-			return new MessageActionDTO(Collections.singletonMap("status", "done"));
+			return MessageActionDTO.createInstanceActionDone(theDTOFactory.createInstance(actingUser, messageEntity));
 		}
 
-		private void updateMessageStatusAsProcessed(BuddyDisconnectMessage messageEntity)
+		private BuddyDisconnectMessage updateMessageStatusAsProcessed(BuddyDisconnectMessage messageEntity)
 		{
 			messageEntity.setProcessed();
-			Message.getRepository().save(messageEntity);
+			return Message.getRepository().save(messageEntity);
 		}
 	}
 }

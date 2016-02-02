@@ -45,12 +45,11 @@ public class VPNProfileDTO
 	}
 
 	@JsonProperty("vpnLoginID")
-	public UUID getVPNLoginID()
+	public UUID getVpnLoginID()
 	{
 		return vpnLoginID;
 	}
 
-	@JsonProperty("vpnPassword")
 	public String getVpnPassword()
 	{
 		return vpnPassword;

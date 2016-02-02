@@ -7,7 +7,7 @@
 package nu.yona.server
 
 import groovy.json.*
-import nu.yona.server.test.Goal
+import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.User
 
 class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
@@ -16,7 +16,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
-				"+$timestamp", ["Nexus 6"], [Goal.createInstance("news"), Goal.createInstance("gambling")])
+				"+$timestamp", ["Nexus 6"], [BudgetGoal.createNoGoInstance("news"), BudgetGoal.createNoGoInstance("gambling")])
 
 		when:
 		def response = sendBuddyRequestForBob(richard, "+$timestamp")
@@ -83,7 +83,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = [Goal.createInstance("gambling")]
+		updatedBobJson.goals = [BudgetGoal.createNoGoInstance("gambling").convertToJSON()]
 		def response = appService.updateUser(inviteURL, updatedBobJson, newPassword)
 
 		then:
@@ -133,7 +133,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = [Goal.createInstance("gambling")]
+		updatedBobJson.goals = [BudgetGoal.createNoGoInstance("gambling").convertToJSON()]
 		appService.updateUser(inviteURL, updatedBobJson, newPassword)
 		def bobFromGetAfterUpdate = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, bob.url, true, newPassword)
 
@@ -163,7 +163,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = [Goal.createInstance("gambling")]
+		updatedBobJson.goals = [BudgetGoal.createNoGoInstance("gambling").convertToJSON()]
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
 
 		when:
@@ -190,7 +190,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = [Goal.createInstance("gambling")]
+		updatedBobJson.goals = [BudgetGoal.createNoGoInstance("gambling").convertToJSON()]
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptURL
@@ -224,7 +224,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = [Goal.createInstance("gambling")]
+		updatedBobJson.goals = [BudgetGoal.createNoGoInstance("gambling").convertToJSON()]
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptURL
@@ -262,7 +262,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = [Goal.createInstance("gambling")]
+		updatedBobJson.goals = [BudgetGoal.createNoGoInstance("gambling").convertToJSON()]
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptURL
@@ -316,14 +316,14 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def inviteURL = sendBuddyRequestForBob(richard, "+$timestamp")
+		def inviteURL = sendBuddyRequestForBob(richard, "+$timestamp").responseData.userCreatedInviteURL
 
 		when:
-		def response = appService.getResource(inviteURL, [:], ["tempPassword": "hack", "includePrivateData": "true"])
+		def response = appService.getResource(YonaServer.stripQueryString(inviteURL), [:], ["tempPassword": "hack", "includePrivateData": "true"])
 
 		then:
 		response.status == 400
-		// response.responseData.code == "TODO" // YD-137: Why do we not get a response code here?
+		response.responseData.code == "error.decrypting.data"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -334,10 +334,10 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def inviteURL = sendBuddyRequestForBob(richard, "+$timestamp")
+		def inviteURL = sendBuddyRequestForBob(richard, "+$timestamp").responseData.userCreatedInviteURL
 
 		when:
-		def response = appService.updateResource(richard.url, """{
+		def response = appService.updateResource(YonaServer.stripQueryString(inviteURL), """{
 				"firstName":"Richard",
 				"lastName":"Quin",
 				"nickname":"RQ",
@@ -347,14 +347,16 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 				],
 				"goals":[
 					{
-						"activityCategoryName":"news"
+						"@class":"budgetGoal",
+						"activityCategoryName":"news",
+						"maxDuration":0
 					}
 				]
 			}""", ["Yona-Password": "New password"], ["tempPassword": "hack"])
 
 		then:
 		response.status == 400
-		// response.responseData.code == "TODO" // YD-137: Why do we not get a response code here?
+		response.responseData.code == "error.decrypting.data"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -371,7 +373,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 400
-		// response.responseData.code == "TODO" // YD-137: Why do we not get a response code here?
+		response.responseData.code == "error.decrypting.data"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -393,14 +395,16 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 				],
 				"goals":[
 					{
-						"activityCategoryName":"news"
+						"@class":"budgetGoal",
+						"activityCategoryName":"news",
+						"maxDuration":0
 					}
 				]
 			}""", ["Yona-Password": "New password"], ["tempPassword": "hack"])
 
 		then:
 		response.status == 400
-		// response.responseData.code == "TODO" // YD-137: Why do we not get a response code here?
+		response.responseData.code == "error.user.not.created.on.buddy.request"
 
 		cleanup:
 		appService.deleteUser(richard)

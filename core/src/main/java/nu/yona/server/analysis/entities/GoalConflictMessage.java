@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
-import java.util.Date;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -37,8 +36,6 @@ public class GoalConflictMessage extends Message
 	private String url;
 	private byte[] urlCiphertext;
 
-	private Date endTime;
-
 	// Default constructor is required for JPA
 	public GoalConflictMessage()
 	{
@@ -53,7 +50,6 @@ public class GoalConflictMessage extends Message
 		this.originGoalConflictMessageID = originGoalConflictMessageID;
 		this.activity = activity;
 		this.url = url;
-		this.endTime = new Date();
 		this.status = status;
 	}
 
@@ -88,16 +84,6 @@ public class GoalConflictMessage extends Message
 	public boolean canBeDeleted()
 	{
 		return true;
-	}
-
-	public Date getEndTime()
-	{
-		return endTime;
-	}
-
-	public void setEndTime(Date endTime)
-	{
-		this.endTime = endTime;
 	}
 
 	public boolean isFromBuddy()

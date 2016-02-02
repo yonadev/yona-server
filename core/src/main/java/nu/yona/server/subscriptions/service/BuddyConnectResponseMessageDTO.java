@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -64,11 +63,11 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 		return isProcessed;
 	}
 
-	public static BuddyConnectResponseMessageDTO createInstance(UserDTO requestingUser, BuddyConnectResponseMessage messageEntity)
+	public static BuddyConnectResponseMessageDTO createInstance(UserDTO actingUser, BuddyConnectResponseMessage messageEntity)
 	{
 		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
-				UserDTO.createInstance(messageEntity.getUser()), messageEntity.getNickname(), messageEntity.getMessage(),
-				messageEntity.getStatus(), messageEntity.isProcessed());
+				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getNickname(),
+				messageEntity.getMessage(), messageEntity.getStatus(), messageEntity.isProcessed());
 	}
 
 	@Component
@@ -89,9 +88,9 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 		}
 
 		@Override
-		public MessageDTO createInstance(UserDTO requestingUser, Message messageEntity)
+		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return BuddyConnectResponseMessageDTO.createInstance(requestingUser, (BuddyConnectResponseMessage) messageEntity);
+			return BuddyConnectResponseMessageDTO.createInstance(actingUser, (BuddyConnectResponseMessage) messageEntity);
 		}
 
 		@Override
@@ -109,13 +108,13 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 			}
 		}
 
-		private MessageActionDTO handleAction_Process(UserDTO requestingUser,
+		private MessageActionDTO handleAction_Process(UserDTO actingUser,
 				BuddyConnectResponseMessage connectResponseMessageEntity, MessageActionDTO payload)
 		{
 
 			if (connectResponseMessageEntity.getStatus() == Status.REJECTED)
 			{
-				buddyService.removeBuddyAfterConnectRejection(requestingUser.getID(), connectResponseMessageEntity.getBuddyID());
+				buddyService.removeBuddyAfterConnectRejection(actingUser.getID(), connectResponseMessageEntity.getBuddyID());
 			}
 			else
 			{
@@ -123,20 +122,22 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 						connectResponseMessageEntity.getRelatedUserAnonymizedID(), connectResponseMessageEntity.getNickname());
 			}
 
-			updateMessageStatusAsProcessed(connectResponseMessageEntity);
+			connectResponseMessageEntity = updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
 			logger.info(
 					"User with mobile number '{}' and ID '{}' processed buddy connect response from user with mobile number '{}' and ID '{}'",
-					requestingUser.getMobileNumber(), requestingUser.getID(),
-					connectResponseMessageEntity.getUser().getMobileNumber(), connectResponseMessageEntity.getUser().getID());
+					actingUser.getMobileNumber(), actingUser.getID(), connectResponseMessageEntity.getUser().getMobileNumber(),
+					connectResponseMessageEntity.getUser().getID());
 
-			return new MessageActionDTO(Collections.singletonMap("status", "done"));
+			return MessageActionDTO
+					.createInstanceActionDone(theDTOFactory.createInstance(actingUser, connectResponseMessageEntity));
 		}
 
-		private void updateMessageStatusAsProcessed(BuddyConnectResponseMessage connectResponseMessageEntity)
+		private BuddyConnectResponseMessage updateMessageStatusAsProcessed(
+				BuddyConnectResponseMessage connectResponseMessageEntity)
 		{
 			connectResponseMessageEntity.setProcessed();
-			Message.getRepository().save(connectResponseMessageEntity);
+			return Message.getRepository().save(connectResponseMessageEntity);
 		}
 	}
 }

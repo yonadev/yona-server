@@ -69,7 +69,6 @@ public class UserPrivateDTO
 		return Collections.unmodifiableSet(deviceNames);
 	}
 
-	@JsonProperty("goals")
 	public Set<GoalDTO> getGoals()
 	{
 		return Collections.unmodifiableSet(goals);

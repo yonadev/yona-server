@@ -39,28 +39,38 @@ public class AnalysisEngineService
 
 	public void analyze(PotentialConflictDTO potentialConflictPayload)
 	{
-		UserAnonymizedDTO userAnonimized = userAnonymizedService.getUserAnonymized(potentialConflictPayload.getVPNLoginID());
-		Set<Goal> matchingGoalsOfUser = determineMatchingGoalsForUser(userAnonimized, potentialConflictPayload.getCategories());
+		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(potentialConflictPayload.getVPNLoginID());
+		Set<Goal> matchingGoalsOfUser = determineMatchingGoalsForUser(userAnonymized, potentialConflictPayload.getCategories());
 		if (!matchingGoalsOfUser.isEmpty())
 		{
-			addOrUpdateActivity(potentialConflictPayload, userAnonimized, matchingGoalsOfUser);
+			addOrUpdateActivities(potentialConflictPayload, userAnonymized, matchingGoalsOfUser);
 		}
 	}
 
-	private void addOrUpdateActivity(PotentialConflictDTO payload, UserAnonymizedDTO userAnonimized,
+	private void addOrUpdateActivities(PotentialConflictDTO potentialConflictPayload, UserAnonymizedDTO userAnonymized,
 			Set<Goal> matchingGoalsOfUser)
+	{
+		for (Goal matchingGoalOfUser : matchingGoalsOfUser)
+		{
+			addOrUpdateActivity(potentialConflictPayload, userAnonymized, matchingGoalOfUser);
+		}
+	}
+
+	private void addOrUpdateActivity(PotentialConflictDTO payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
 	{
 		Date now = new Date();
 		Date minEndTime = new Date(now.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
-		Goal matchingGoal = matchingGoalsOfUser.iterator().next();
 		Activity activity = cacheService.fetchLatestActivityForUser(payload.getVPNLoginID(), matchingGoal.getID(), minEndTime);
 
 		if (activity == null || activity.getEndTime().before(minEndTime))
 		{
-			activity = addNewActivity(payload, matchingGoal);
+			activity = addNewActivity(payload, now, matchingGoal);
 			cacheService.updateLatestActivityForUser(activity);
 
-			sendConflictMessageToAllDestinationsOfUser(payload, userAnonimized, activity);
+			if (matchingGoal.isNoGoGoal())
+			{
+				sendConflictMessageToAllDestinationsOfUser(payload, userAnonymized, activity);
+			}
 		}
 		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
 		else if (now.getTime() - activity.getEndTime().getTime() >= yonaProperties.getAnalysisService().getUpdateSkipWindow())
@@ -70,9 +80,17 @@ public class AnalysisEngineService
 		}
 	}
 
-	private Activity addNewActivity(PotentialConflictDTO payload, Goal matchingGoal)
+	private Activity addNewActivity(PotentialConflictDTO payload, Date activityEndTime, Goal matchingGoal)
 	{
-		return Activity.getRepository().save(Activity.createInstance(payload.getVPNLoginID(), matchingGoal));
+		return Activity.createInstance(payload.getVPNLoginID(), matchingGoal, activityEndTime);
+	}
+
+	private void updateLastActivity(PotentialConflictDTO payload, Date activityEndTime, Goal matchingGoal, Activity activity)
+	{
+		assert payload.getVPNLoginID().equals(activity.getUserAnonymizedID());
+		assert matchingGoal.getID().equals(activity.getGoalID());
+
+		activity.setEndTime(activityEndTime);
 	}
 
 	public Set<String> getRelevantSmoothwallCategories()
@@ -105,14 +123,6 @@ public class AnalysisEngineService
 		}
 		messageService.sendMessage(message, destination);
 		return message;
-	}
-
-	private void updateLastActivity(PotentialConflictDTO payload, Date messageEndTime, Goal matchingGoal, Activity activity)
-	{
-		assert payload.getVPNLoginID().equals(activity.getUserAnonymizedID());
-		assert matchingGoal.getID().equals(activity.getGoalID());
-
-		activity.setEndTime(messageEndTime);
 	}
 
 	private Set<Goal> determineMatchingGoalsForUser(UserAnonymizedDTO userAnonymized, Set<String> categories)

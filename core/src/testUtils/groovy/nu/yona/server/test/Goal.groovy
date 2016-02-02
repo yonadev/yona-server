@@ -7,25 +7,30 @@
 package nu.yona.server.test
 
 import groovy.json.*
-import nu.yona.server.YonaServer
 
-class Goal
+abstract class Goal
 {
 	final String activityCategoryName
 	Goal(def json)
 	{
 		this.activityCategoryName = json.activityCategoryName
 	}
-	
-	def convertToJsonString()
+
+	def abstract convertToJsonString()
+
+	def convertToJSON()
 	{
-		return """{
-			"activityCategoryName":"${activityCategoryName}"
-		}"""
+		def jsonStr = convertToJsonString()
+
+		return new JsonSlurper().parseText(jsonStr)
 	}
-	
-	public static Goal createInstance(activityCategoryName)
+
+	static def fromJson(def json)
 	{
-		new Goal(["activityCategoryName": activityCategoryName])
+		if(json['@class'] == 'budgetGoal')
+		{
+			return new BudgetGoal(json)
+		}
+		throw new RuntimeException("Goal.fromJson not implemented for goal subclass: " + json['@class'])
 	}
 }

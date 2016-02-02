@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -42,17 +41,19 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private final String activityCategoryName;
 	private final String url;
 	private Status status;
-	private final Date endTime;
+	private final Date activityStartTime;
+	private final Date activityEndTime;
 
 	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, String activityCategoryName, String url,
-			Status status, Date endTime)
+			Status status, Date activityStartTime, Date activityEndTime)
 	{
 		super(id, creationTime);
 		this.nickname = nickname;
 		this.activityCategoryName = activityCategoryName;
 		this.url = url;
 		this.status = status;
-		this.endTime = endTime;
+		this.activityStartTime = activityStartTime;
+		this.activityEndTime = activityEndTime;
 	}
 
 	@Override
@@ -91,14 +92,14 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return url;
 	}
 
-	/**
-	 * This method gets the end time of the conflict.
-	 * 
-	 * @return The end time of the conflict.
-	 */
-	public Date getEndTime()
+	public Date getActivityStartTime()
 	{
-		return endTime;
+		return activityStartTime;
+	}
+
+	public Date getActivityEndTime()
+	{
+		return activityEndTime;
 	}
 
 	public static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, String nickname)
@@ -106,7 +107,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), nickname,
 				messageEntity.getActivity().getGoal().getActivityCategory().getName(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null, messageEntity.getStatus(),
-				messageEntity.getEndTime());
+				messageEntity.getActivity().getStartTime(), messageEntity.getActivity().getEndTime());
 	}
 
 	@Component
@@ -153,8 +154,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 		private MessageActionDTO handleAction_RequestDisclosure(UserDTO actingUser, GoalConflictMessage messageEntity,
 				MessageActionDTO requestPayload)
 		{
-			messageEntity.setStatus(Status.DISCLOSE_REQUESTED);
-			GoalConflictMessage.getRepository().save(messageEntity);
+			messageEntity = updateMessageStatusAsDiscloseRequested(messageEntity);
 
 			MessageDestinationDTO messageDestination = userAnonymizedService
 					.getUserAnonymized(messageEntity.getRelatedUserAnonymizedID()).getAnonymousDestination();
@@ -163,7 +163,13 @@ public class GoalConflictMessageDTO extends MessageDTO
 							actingUser.getPrivateData().getNickname(), requestPayload.getProperty("message"), messageEntity),
 					messageDestination);
 
-			return new MessageActionDTO(Collections.singletonMap("status", "done"));
+			return MessageActionDTO.createInstanceActionDone(theDTOFactory.createInstance(actingUser, messageEntity));
+		}
+
+		private GoalConflictMessage updateMessageStatusAsDiscloseRequested(GoalConflictMessage messageEntity)
+		{
+			messageEntity.setStatus(Status.DISCLOSE_REQUESTED);
+			return GoalConflictMessage.getRepository().save(messageEntity);
 		}
 
 		private String getNickname(UserDTO actingUser, GoalConflictMessage messageEntity)

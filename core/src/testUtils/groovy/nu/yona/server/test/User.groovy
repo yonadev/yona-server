@@ -19,7 +19,7 @@ class User
 	final String mobileNumberConfirmationCode
 	final String nickname
 	final List<String> devices
-	final List<String> goals
+	final List<Goal> goals
 	final List<Buddy> buddies
 	final VPNProfile vpnProfile
 	final String url
@@ -52,7 +52,7 @@ class User
 
 			this.buddies = (json._embedded?.buddies) ? json._embedded.buddies.collect{new Buddy(it)} : []
 			this.devices = json.devices.collect{"$it"}
-			this.goals = json.goals.collect{new Goal(it)}
+			this.goals = json.goals.collect{Goal.fromJson(it)}
 			this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
 		}
 		this.url = YonaServer.stripQueryString(json._links.self.href)

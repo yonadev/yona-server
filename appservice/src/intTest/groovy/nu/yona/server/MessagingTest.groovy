@@ -33,7 +33,7 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		allMessagesResponse.status == 200
-		allMessagesResponse.responseData._links.self.href == richard.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT + "{?page,size,sort}"
+		allMessagesResponse.responseData._links.self.href == richard.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT
 		allMessagesResponse.responseData._embedded.buddyConnectResponseMessages
 		allMessagesResponse.responseData._embedded.buddyConnectResponseMessages.size() == 1
 		allMessagesResponse.responseData._embedded.goalConflictMessages
