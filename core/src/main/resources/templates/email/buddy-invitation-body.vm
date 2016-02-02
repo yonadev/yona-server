@@ -10,6 +10,8 @@
 		
 		<p>Important: Validate that @{requestingUserName} has really invited you. The mobile number registered with Yona for this user is ${requestingUserMobileNumber}.</p>
 		
+		<p>You can expect a mail from us send to email address: ${emailAddress}.
+		
  		<p><a href="${inviteURL}">${inviteURL}</a></p>
 		
 		<p>
