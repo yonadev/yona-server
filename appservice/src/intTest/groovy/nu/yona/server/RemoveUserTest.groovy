@@ -30,7 +30,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def newRichard = appService.addUser(appService.&assertUserCreationResponseDetails, richard.password, richard.firstName, richard.lastName,
-				richard.nickname, richard.mobileNumber, ["Nokia 6310"], [])
+				richard.nickname, richard.mobileNumber, ["Nokia 6310"])
 
 		then:
 		newRichard
@@ -95,7 +95,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded.affectedMessages[0]._links.self.href == disconnectMessage._links.self.href
 		response.responseData._embedded.affectedMessages[0].processed == true
 		response.responseData._embedded.affectedMessages[0]._links.process == null
-		
+
 		def buddies = appService.getBuddies(bob)
 		buddies.size() == 0
 		def getAnonMessagesResponse = appService.getAnonymousMessages(bob)

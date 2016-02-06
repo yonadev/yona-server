@@ -16,7 +16,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		when:
-		def response = appService.addGoal(richard, BudgetGoal.createInstance("not existing", 60))
+		def response = appService.addBudgetGoal(richard, BudgetGoal.createInstance("not existing", 60))
 
 		then:
 		response.status == 404
@@ -28,34 +28,34 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		when:
-		def response = appService.addGoal(richard, BudgetGoal.createInstance("gambling", 60))
+		def response = appService.addBudgetGoal(richard, BudgetGoal.createInstance("gambling", 60))
 
 		then:
 		response.status == 400
 		response.responseData.code == "error.goal.cannot.add.second.on.activity.category"
 	}
 
-	/*def 'Add goal'()
-	 {
-	 given:
-	 def richard = addRichard()
-	 when:
-	 def addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60))
-	 then:
-	 addedGoal
-	 def responseGoalsAfterAdd = appService.getGoals(richard)
-	 responseGoalsAfterAdd.status == 200
-	 }
-	 def 'Delete goal'()
-	 {
-	 given:
-	 def richard = addRichard()
-	 def addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60))
-	 when:
-	 def response = appService.removeGoal(richard, addedGoal)
-	 then:
-	 response.status == 200
-	 def responseGoalsAfterAdd = appService.getGoals(richard)
-	 responseGoalsAfterAdd.status == 200
-	 }*/
+	def 'Add goal'()
+	{
+		given:
+		def richard = addRichard()
+		when:
+		def addedGoal = appService.addBudgetGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60))
+		then:
+		addedGoal
+		def responseGoalsAfterAdd = appService.getGoals(richard)
+		responseGoalsAfterAdd.status == 200
+	}
+	def 'Delete goal'()
+	{
+		given:
+		def richard = addRichard()
+		def addedGoal = appService.addBudgetGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60))
+		when:
+		def response = appService.removeBudgetGoal(richard, addedGoal)
+		then:
+		response.status == 200
+		def responseGoalsAfterAdd = appService.getGoals(richard)
+		responseGoalsAfterAdd.status == 200
+	}
 }

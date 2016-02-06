@@ -27,13 +27,4 @@ abstract class Goal
 
 		return new JsonSlurper().parseText(jsonStr)
 	}
-
-	static def fromJson(def json)
-	{
-		if(json['@class'] == 'budgetGoal')
-		{
-			return new BudgetGoal(json)
-		}
-		throw new RuntimeException("Goal.fromJson not implemented for goal subclass: " + json['@class'])
-	}
 }

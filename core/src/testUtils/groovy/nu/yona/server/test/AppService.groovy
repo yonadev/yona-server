@@ -34,9 +34,9 @@ class AppService extends Service
 		asserter(response)
 	}
 
-	def addUser(Closure asserter, password, firstName, lastName, nickname, mobileNumber, devices, goals, parameters = [:])
+	def addUser(Closure asserter, password, firstName, lastName, nickname, mobileNumber, devices, parameters = [:])
 	{
-		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber, devices, goals, [])
+		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber, devices)
 		def response = addUser(jsonStr, password, parameters)
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData, password) : null
@@ -380,21 +380,21 @@ class AppService extends Service
 		yonaServer.deleteResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, password)
 	}
 
-	def addGoal(Closure asserter, User user, Goal goal)
+	def addBudgetGoal(Closure asserter, User user, BudgetGoal goal)
 	{
-		def response = addGoal(user, goal)
+		def response = addBudgetGoal(user, goal)
 		asserter(response)
-		return (isSuccess(response)) ? Goal.fromJson(response.responseData) : null
+		return (isSuccess(response)) ? new BudgetGoal(response.responseData) : null
 	}
 
-	def addGoal(User user, Goal goal)
+	def addBudgetGoal(User user, BudgetGoal goal)
 	{
-		yonaServer.postJson(user.url + GOALS_PATH_FRAGMENT, goal.convertToJsonString(), ["Yona-Password": user.password])
+		yonaServer.postJson(user.url + GOALS_PATH_FRAGMENT + "budgetGoals/", goal.convertToJsonString(), ["Yona-Password": user.password])
 	}
 
-	def removeGoal(User user, Goal goal)
+	def removeBudgetGoal(User user, BudgetGoal goal)
 	{
-		yonaServer.deleteResourceWithPassword(goal.id, user.password)
+		yonaServer.deleteResourceWithPassword(goal.url, user.password)
 	}
 
 	def getGoals(User user)

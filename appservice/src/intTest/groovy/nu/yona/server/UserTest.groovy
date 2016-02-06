@@ -200,7 +200,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	User createJohnDoe(def ts)
 	{
 		appService.addUser(appService.&assertUserCreationResponseDetails, password, firstName, lastName, nickname,
-				"+$ts", devices, goals)
+				"+$ts", devices)
 	}
 
 	void testUser(user, includePrivateData, timestamp)
