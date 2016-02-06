@@ -4,6 +4,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -15,6 +17,7 @@ import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -129,6 +132,35 @@ public class ActivityCategoryServiceTests
 		service.importActivityCategories(
 				activityCategories.stream().map(a -> ActivityCategoryDTO.createInstance(a)).collect(Collectors.toSet()));
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after import", "gambling", "news");
+	}
+
+	/*
+	 * Tests import.
+	 */
+	@Test
+	public void importActivityCategories()
+	{
+		assertGetAllActivityCategoriesResult("Initial", "gambling", "news");
+
+		// modify
+		Set<ActivityCategoryDTO> importActivityCategories = new HashSet<ActivityCategoryDTO>();
+		ActivityCategoryDTO newsModified = new ActivityCategoryDTO("news", false,
+				new HashSet<String>(Arrays.asList("refdag", "bbc", "atom feeds")), new HashSet<String>());
+		importActivityCategories.add(newsModified);
+		ActivityCategoryDTO gaming = new ActivityCategoryDTO("gaming", false, new HashSet<String>(Arrays.asList("games")),
+				new HashSet<String>());
+		importActivityCategories.add(gaming);
+
+		service.importActivityCategories(importActivityCategories);
+
+		ArgumentCaptor<ActivityCategory> matchActivityCategory = ArgumentCaptor.forClass(ActivityCategory.class);
+		// 1 added and 1 updated
+		verify(mockRepository, times(2)).save(matchActivityCategory.capture());
+		assertThat(matchActivityCategory.getAllValues().stream().map(x -> x.getName()).collect(Collectors.toSet()),
+				containsInAnyOrder("news", "gaming"));
+		// 1 deleted
+		verify(mockRepository, times(1)).delete(matchActivityCategory.capture());
+		assertThat(matchActivityCategory.getValue().getName(), equalTo("gambling"));
 	}
 
 	@Configuration
