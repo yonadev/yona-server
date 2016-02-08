@@ -133,7 +133,7 @@ public class ActivityCategoryServiceTests
 
 	@Configuration
 	@EnableCaching
-	@ComponentScan("nu.yona.server.goals.service")
+	@ComponentScan(value = "nu.yona.server.goals.service", resourcePattern = "**/ActivityCategoryService.class")
 	public static class TestConfiguration
 	{
 		@Bean
