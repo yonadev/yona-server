@@ -28,6 +28,7 @@ class RelevantSmoothwallCategoriesTest extends Specification
 		response.responseData.categories.size() == 5
 		response.responseData.categories.contains("Gambling")
 		response.responseData.categories.contains("lotto")
+		response.responseData.categories.contains("social")
 		response.responseData.categories.contains("news/media")
 		response.responseData.categories.contains("newsgroups/forums")
 		response.responseData.categories.contains("social")
