@@ -45,6 +45,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		addedGoal
 		def responseGoalsAfterAdd = appService.getGoals(richard)
 		responseGoalsAfterAdd.status == 200
+		responseGoalsAfterAdd.responseData._embedded.budgetGoals.size() == 3
 	}
 	def 'Delete goal'()
 	{
@@ -55,7 +56,8 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.removeBudgetGoal(richard, addedGoal)
 		then:
 		response.status == 200
-		def responseGoalsAfterAdd = appService.getGoals(richard)
-		responseGoalsAfterAdd.status == 200
+		def responseGoalsAfterDelete = appService.getGoals(richard)
+		responseGoalsAfterDelete.status == 200
+		responseGoalsAfterDelete.responseData._embedded.budgetGoals.size() == 2
 	}
 }

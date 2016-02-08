@@ -24,6 +24,8 @@ import nu.yona.server.subscriptions.entities.User;
 public class UserDTO
 {
 	public static final String BUDDIES_REL_NAME = "buddies";
+	public static final String GOALS_REL_NAME = "goals";
+
 	private UUID id;
 	private final String firstName;
 	private final String lastName;

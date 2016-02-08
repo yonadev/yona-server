@@ -45,11 +45,18 @@ public class GoalController
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<Resources<Resource<GoalDTO>>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+	public HttpEntity<Resources<GoalResource>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userID)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(userID, goalService.getGoalsOfUser(userID), getAllGoalsLinkBuilder(userID)));
+				() -> new ResponseEntity<Resources<GoalResource>>(
+						createAllGoalsCollectionResource(userID, goalService.getGoalsOfUser(userID)), HttpStatus.OK));
+	}
+
+	public static Resources<GoalResource> createAllGoalsCollectionResource(UUID userID, Set<GoalDTO> allGoalsOfUser)
+	{
+		return new Resources<>(new GoalResourceAssembler(userID).toResources(allGoalsOfUser),
+				getAllGoalsLinkBuilder(userID).withSelfRel());
 	}
 
 	private static ControllerLinkBuilder getAllGoalsLinkBuilder(UUID userID)
@@ -60,14 +67,14 @@ public class GoalController
 
 	@RequestMapping(value = "/budgetGoals/{goalID}", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<Resource<GoalDTO>> getBudgetGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+	public HttpEntity<GoalResource> getBudgetGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userID, @PathVariable UUID goalID)
 	{
 
 		return getGoal(password, userID, goalID);
 	}
 
-	private HttpEntity<Resource<GoalDTO>> getGoal(Optional<String> password, UUID userID, UUID goalID)
+	private HttpEntity<GoalResource> getGoal(Optional<String> password, UUID userID, UUID goalID)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> createResponse(userID, goalService.getGoal(userID, goalID), HttpStatus.OK));
@@ -75,14 +82,14 @@ public class GoalController
 
 	@RequestMapping(value = "/budgetGoals/", method = RequestMethod.POST)
 	@ResponseBody
-	public HttpEntity<Resource<GoalDTO>> addBudgetGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+	public HttpEntity<GoalResource> addBudgetGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userID, @RequestBody Resource<BudgetGoalDTO> goal,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
 		return addGoal(password, userID, goal, messageStr);
 	}
 
-	private HttpEntity<Resource<GoalDTO>> addGoal(Optional<String> password, UUID userID, Resource<BudgetGoalDTO> goal,
+	private HttpEntity<GoalResource> addGoal(Optional<String> password, UUID userID, Resource<BudgetGoalDTO> goal,
 			String messageStr)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createResponse(userID,
@@ -106,23 +113,9 @@ public class GoalController
 		});
 	}
 
-	private HttpEntity<Resource<GoalDTO>> createResponse(UUID userID, GoalDTO goal, HttpStatus status)
+	private HttpEntity<GoalResource> createResponse(UUID userID, GoalDTO goal, HttpStatus status)
 	{
-		return new ResponseEntity<Resource<GoalDTO>>(buildResource(goal, userID), status);
-	}
-
-	private Resource<GoalDTO> buildResource(GoalDTO goal, UUID userID)
-	{
-		return new Resource<GoalDTO>(goal, getGoalLinkBuilder(userID, goal).withSelfRel());
-	}
-
-	private HttpEntity<Resources<Resource<GoalDTO>>> createOKResponse(UUID userID, Set<GoalDTO> goals,
-			ControllerLinkBuilder controllerMethodLinkBuilder)
-	{
-		return new ResponseEntity<Resources<Resource<GoalDTO>>>(
-				new Resources<>(goals.stream().map(goal -> buildResource(goal, userID))::iterator,
-						controllerMethodLinkBuilder.withSelfRel()),
-				HttpStatus.OK);
+		return new ResponseEntity<GoalResource>(new GoalResourceAssembler(userID).toResource(goal), status);
 	}
 
 	static ControllerLinkBuilder getGoalLinkBuilder(UUID userID, GoalDTO goal)

@@ -10,13 +10,10 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -336,13 +333,7 @@ public class UserController
 					new BuddyController.BuddyResourceAssembler(getContent().getID()).toResources(buddies));
 
 			Set<GoalDTO> goals = getContent().getPrivateData().getGoals();
-			Map<String, List<GoalDTO>> goalsByType = goals.stream()
-					.collect(Collectors.groupingBy(goal -> goal.getClass().getSimpleName()));
-			for (Entry<String, List<GoalDTO>> goalsOfType : goalsByType.entrySet())
-			{
-				result.put(goalsOfType.getKey(),
-						new GoalController.GoalResourceAssembler(getContent().getID()).toResources(goalsOfType.getValue()));
-			}
+			result.put(UserDTO.GOALS_REL_NAME, GoalController.createAllGoalsCollectionResource(getContent().getID(), goals));
 
 			return result;
 		}
