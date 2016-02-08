@@ -27,7 +27,7 @@ class Buddy
 		{
 			this.user = new User(json._embedded.user)
 		}
-		this.goals = (json._embedded?.goals?._embedded?.budgetGoals) ? json.goals._embedded.budgetGoals.collect{BudgetGoal.fromJson(it)} : null
+		this.goals = (json._embedded?.goals?._embedded?.budgetGoals) ? json._embedded.goals._embedded.budgetGoals.collect{new BudgetGoal(it)} : null
 		this.url = YonaServer.stripQueryString(json._links.self.href)
 	}
 }

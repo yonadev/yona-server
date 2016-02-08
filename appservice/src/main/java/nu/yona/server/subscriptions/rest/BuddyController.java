@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
@@ -160,7 +161,11 @@ public class BuddyController
 			HashMap<String, Object> result = new HashMap<String, Object>();
 			result.put(BuddyDTO.USER_REL_NAME,
 					new UserController.UserResourceAssembler(false).toResource(getContent().getUser()));
-			result.put(BuddyDTO.GOALS_REL_NAME, null);
+			if (getContent().getUser() != null && getContent().getGoals() != null)
+			{
+				result.put(BuddyDTO.GOALS_REL_NAME,
+						GoalController.createAllGoalsCollectionResource(getContent().getUser().getID(), getContent().getGoals()));
+			}
 			return result;
 		}
 	}

@@ -394,6 +394,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		then:
 		appService.getBuddies(richard).size() == 0 // Buddy removed for Richard`
 		appService.getBuddies(bob).size() == 1 // Buddy not yet removed for Bob (not processed yet)
+		!appService.getBuddies(bob)[0].goals
 
 		def getAnonMessagesRichardResponse = appService.getAnonymousMessages(richard)
 		getAnonMessagesRichardResponse.status == 200
