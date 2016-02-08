@@ -304,14 +304,4 @@ public class User extends EntityWithID
 	{
 		return getUserPrivate().getVPNLoginID();
 	}
-
-	public void addGoal(Goal goal)
-	{
-		getUserPrivate().getUserAnonymized().addGoal(goal);
-	}
-
-	public void removeGoal(Goal goal)
-	{
-		getUserPrivate().getUserAnonymized().removeGoal(goal);
-	}
 }
