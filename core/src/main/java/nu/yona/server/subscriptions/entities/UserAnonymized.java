@@ -88,4 +88,16 @@ public class UserAnonymized extends EntityWithID
 	{
 		return buddiesAnonymized;
 	}
+
+	public void addGoal(Goal goal)
+	{
+		goals.add(goal);
+	}
+
+	public void removeGoal(Goal goal)
+	{
+		boolean found = goals.remove(goal);
+		if (!found)
+			throw new IllegalArgumentException("Goal was not found");
+	}
 }

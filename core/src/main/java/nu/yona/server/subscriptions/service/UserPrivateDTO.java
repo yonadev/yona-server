@@ -69,6 +69,7 @@ public class UserPrivateDTO
 		return Collections.unmodifiableSet(deviceNames);
 	}
 
+	@JsonIgnore
 	public Set<GoalDTO> getGoals()
 	{
 		return Collections.unmodifiableSet(goals);

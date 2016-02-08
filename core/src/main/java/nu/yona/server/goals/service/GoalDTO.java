@@ -5,16 +5,10 @@ import java.util.UUID;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = As.PROPERTY, property = "@class")
-@JsonSubTypes(value = { @Type(value = BudgetGoalDTO.class, name = "budgetGoal") })
 public abstract class GoalDTO
 {
 	private final UUID id;
