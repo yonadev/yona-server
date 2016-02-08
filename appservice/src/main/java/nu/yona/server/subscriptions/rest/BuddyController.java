@@ -9,6 +9,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -147,14 +148,18 @@ public class BuddyController
 		}
 
 		@JsonProperty("_embedded")
-		public Map<String, UserController.UserResource> getEmbeddedResources()
+		public Map<String, Object> getEmbeddedResources()
 		{
 			if (getContent().getUser() == null)
 			{
 				return Collections.emptyMap();
 			}
-			return Collections.singletonMap(BuddyDTO.USER_REL_NAME,
+
+			HashMap<String, Object> result = new HashMap<String, Object>();
+			result.put(BuddyDTO.USER_REL_NAME,
 					new UserController.UserResourceAssembler(false).toResource(getContent().getUser()));
+			result.put(BuddyDTO.GOALS_REL_NAME, null);
+			return result;
 		}
 	}
 

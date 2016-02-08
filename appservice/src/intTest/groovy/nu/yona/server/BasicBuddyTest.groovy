@@ -50,6 +50,15 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded.user.firstName == "Bob"
 		response.responseData._links.self.href.startsWith(richard.url)
 
+		def richardWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
+		richardWithBuddy.buddies != null
+		richardWithBuddy.buddies.size() == 1
+		richardWithBuddy.buddies[0].user.firstName == bob.firstName
+		//goals should not be embedded before accept
+		richardWithBuddy.buddies[0].goals == null
+		richardWithBuddy.buddies[0].sendingStatus == "REQUESTED"
+		richardWithBuddy.buddies[0].receivingStatus == "REQUESTED"
+
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
@@ -110,6 +119,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		bobWithBuddy.buddies != null
 		bobWithBuddy.buddies.size() == 1
 		bobWithBuddy.buddies[0].user.firstName == richard.firstName
+		bobWithBuddy.buddies[0].goals.size() == 2
 		bobWithBuddy.buddies[0].sendingStatus == "ACCEPTED"
 		bobWithBuddy.buddies[0].receivingStatus == "ACCEPTED"
 
@@ -176,6 +186,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		richardWithBuddy.buddies != null
 		richardWithBuddy.buddies.size() == 1
 		richardWithBuddy.buddies[0].user.firstName == bob.firstName
+		richardWithBuddy.buddies[0].goals.size() == 2
 		richardWithBuddy.buddies[0].sendingStatus == "ACCEPTED"
 		richardWithBuddy.buddies[0].receivingStatus == "ACCEPTED"
 
@@ -359,7 +370,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded.affectedMessages[0]._links.self.href == disconnectMessage._links.self.href
 		response.responseData._embedded.affectedMessages[0].processed == true
 		response.responseData._embedded.affectedMessages[0]._links.process == null
-		
+
 		appService.getBuddies(bob).size() == 0
 
 		cleanup:

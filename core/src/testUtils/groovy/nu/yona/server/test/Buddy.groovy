@@ -15,6 +15,7 @@ class Buddy
 	final String receivingStatus
 	final String sendingStatus
 	final User user
+	final List<Goal> goals
 	final String url
 	Buddy(def json)
 	{
@@ -26,6 +27,7 @@ class Buddy
 		{
 			this.user = new User(json._embedded.user)
 		}
+		this.goals = (json._embedded?.goals?._embedded?.budgetGoals) ? json.goals._embedded.budgetGoals.collect{BudgetGoal.fromJson(it)} : null
 		this.url = YonaServer.stripQueryString(json._links.self.href)
 	}
 }

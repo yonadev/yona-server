@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -14,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 
@@ -21,6 +23,8 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 public class BuddyDTO
 {
 	public static final String USER_REL_NAME = "user";
+	public static final String GOALS_REL_NAME = "goals";
+
 	private final UUID id;
 	private UserDTO user;
 	private String message;
@@ -29,6 +33,7 @@ public class BuddyDTO
 	private UUID userAnonymizedID;
 	private Status sendingStatus;
 	private Status receivingStatus;
+	private Set<GoalDTO> goals;
 
 	/*
 	 * Only intended for test purposes.
@@ -93,8 +98,7 @@ public class BuddyDTO
 
 	private static UUID getBuddyUserAnonymizedID(Buddy buddyEntity)
 	{
-		return (buddyEntity.getReceivingStatus() == Status.ACCEPTED) || (buddyEntity.getSendingStatus() == Status.ACCEPTED)
-				? buddyEntity.getUserAnonymizedID() : null;
+		return BuddyService.canIncludePrivateData(buddyEntity) ? buddyEntity.getUserAnonymizedID() : null;
 	}
 
 	@JsonInclude(Include.NON_EMPTY)
@@ -139,5 +143,16 @@ public class BuddyDTO
 	public String getUserCreatedInviteURL()
 	{
 		return userCreatedInviteURL;
+	}
+
+	public void setGoals(Set<GoalDTO> goals)
+	{
+		this.goals = goals;
+	}
+
+	@JsonIgnore
+	public Set<GoalDTO> getGoals()
+	{
+		return goals;
 	}
 }
