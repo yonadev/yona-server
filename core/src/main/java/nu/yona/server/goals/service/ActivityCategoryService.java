@@ -12,14 +12,21 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import nu.yona.server.goals.entities.ActivityCategory;
+import nu.yona.server.goals.entities.ActivityCategoryRepository;
 
 @Service
 public class ActivityCategoryService
 {
+	@Autowired
+	private ActivityCategoryRepository repository;
+
 	private static final Logger logger = LoggerFactory.getLogger(ActivityCategoryService.class);
 
 	public ActivityCategoryDTO getActivityCategory(UUID id)
@@ -28,24 +35,26 @@ public class ActivityCategoryService
 		return ActivityCategoryDTO.createInstance(activityCategoryEntity);
 	}
 
+	@Cacheable(value = "activityCategorySet", key = "'instance'")
 	public Set<ActivityCategoryDTO> getAllActivityCategories()
 	{
 		Set<ActivityCategoryDTO> activityCategories = new HashSet<ActivityCategoryDTO>();
-		for (ActivityCategory activityCategory : ActivityCategory.getRepository().findAll())
+		for (ActivityCategory activityCategory : repository.findAll())
 		{
 			activityCategories.add(ActivityCategoryDTO.createInstance(activityCategory));
 		}
 		return activityCategories;
 	}
 
+	@CacheEvict(value = "activityCategorySet", key = "'instance'")
 	@Transactional
 	public ActivityCategoryDTO addActivityCategory(ActivityCategoryDTO activityCategoryDTO)
 	{
 		logger.info("Adding activity category '{}'", activityCategoryDTO.getName());
-		return ActivityCategoryDTO
-				.createInstance(ActivityCategory.getRepository().save(activityCategoryDTO.createActivityCategoryEntity()));
+		return ActivityCategoryDTO.createInstance(repository.save(activityCategoryDTO.createActivityCategoryEntity()));
 	}
 
+	@CacheEvict(value = "activityCategorySet", key = "'instance'")
 	@Transactional
 	public ActivityCategoryDTO updateActivityCategory(UUID id, ActivityCategoryDTO activityCategoryDTO)
 	{
@@ -57,25 +66,25 @@ public class ActivityCategoryService
 			ActivityCategoryDTO activityCategorySourceDTO)
 	{
 		logger.info("Updating activity category '{}'", activityCategorySourceDTO.getName());
-		return ActivityCategory.getRepository()
-				.save(activityCategorySourceDTO.updateActivityCategory(activityCategoryTargetEntity));
+		return repository.save(activityCategorySourceDTO.updateActivityCategory(activityCategoryTargetEntity));
 	}
 
+	@CacheEvict(value = "activityCategorySet", key = "'instance'")
 	@Transactional
 	public void deleteActivityCategory(UUID id)
 	{
-		ActivityCategory.getRepository().delete(id);
+		repository.delete(id);
 	}
 
 	private void deleteActivityCategory(ActivityCategory activityCategoryEntity)
 	{
 		logger.info("Deleting activity category '{}'", activityCategoryEntity.getName());
-		ActivityCategory.getRepository().delete(activityCategoryEntity);
+		repository.delete(activityCategoryEntity);
 	}
 
 	private ActivityCategory getEntityByID(UUID id)
 	{
-		ActivityCategory entity = ActivityCategory.getRepository().findOne(id);
+		ActivityCategory entity = repository.findOne(id);
 		if (entity == null)
 		{
 			throw ActivityCategoryNotFoundException.notFound(id);
@@ -83,16 +92,17 @@ public class ActivityCategoryService
 		return entity;
 	}
 
-	public Set<ActivityCategory> getAllActivityCategoryEntities()
+	private Set<ActivityCategory> getAllActivityCategoryEntities()
 	{
 		Set<ActivityCategory> activityCategories = new HashSet<ActivityCategory>();
-		for (ActivityCategory activityCategory : ActivityCategory.getRepository().findAll())
+		for (ActivityCategory activityCategory : repository.findAll())
 		{
 			activityCategories.add(activityCategory);
 		}
 		return activityCategories;
 	}
 
+	@CacheEvict(value = "activityCategorySet", key = "'instance'")
 	@Transactional
 	public void importActivityCategories(Set<ActivityCategoryDTO> activityCategoryDTOs)
 	{
