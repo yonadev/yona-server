@@ -214,8 +214,6 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			assert user.nickname == "JD"
 			assert user.devices.size() == 1
 			assert user.devices[0] == "Galaxy mini"
-			assert user.goals.size() == 1
-			assert user.goals[0].activityCategoryName == "gambling"
 
 			assert user.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 			assert user.vpnProfile.vpnPassword.length() == 32
@@ -223,6 +221,8 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 			assert user.buddies != null
 			assert user.buddies.size() == 0
+			assert user.goals != null
+			assert user.goals.size() == 0
 		}
 		else
 		{

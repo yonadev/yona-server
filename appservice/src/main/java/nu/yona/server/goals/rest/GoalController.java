@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
+import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -134,6 +135,45 @@ public class GoalController
 		else
 		{
 			throw new NotImplementedException("Goal type '" + goal.getClass() + "' not recognized");
+		}
+	}
+
+	static class GoalResource extends Resource<GoalDTO>
+	{
+		public GoalResource(GoalDTO goal)
+		{
+			super(goal);
+		}
+	}
+
+	public static class GoalResourceAssembler extends ResourceAssemblerSupport<GoalDTO, GoalResource>
+	{
+		private UUID userID;
+
+		public GoalResourceAssembler(UUID userID)
+		{
+			super(GoalController.class, GoalResource.class);
+			this.userID = userID;
+		}
+
+		@Override
+		public GoalResource toResource(GoalDTO goal)
+		{
+			GoalResource goalResource = instantiateResource(goal);
+			ControllerLinkBuilder selfLinkBuilder = getGoalLinkBuilder(userID, goal);
+			addSelfLink(selfLinkBuilder, goalResource);
+			return goalResource;
+		}
+
+		@Override
+		protected GoalResource instantiateResource(GoalDTO goal)
+		{
+			return new GoalResource(goal);
+		}
+
+		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, GoalResource goalResource)
+		{
+			goalResource.add(selfLinkBuilder.withSelfRel());
 		}
 	}
 }
