@@ -24,13 +24,6 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 				"mobileNumber":"+${timestamp}",
 				"devices":[
 					"Galaxy mini"
-				],
-				"goals":[
-					{
-						"@class":"budgetGoal",
-						"activityCategoryName":"gambling",
-						"maxDuration":0
-					}
 				]}"""
 	def password = "John Doe"
 

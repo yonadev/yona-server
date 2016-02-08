@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -100,6 +101,7 @@ public class BuddyController
 
 	@RequestMapping(value = "{buddyID}", method = RequestMethod.DELETE)
 	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
 	public void removeBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID requestingUserID, @PathVariable UUID buddyID,
 			@RequestParam(value = "message", required = false) String messageStr)

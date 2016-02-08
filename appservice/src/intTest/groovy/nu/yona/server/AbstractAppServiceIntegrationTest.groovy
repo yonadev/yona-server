@@ -33,22 +33,20 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	def addRichard()
 	{
 		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
-				"+$timestamp", ["Nexus 6"], [
-					BudgetGoal.createNoGoInstance("news"),
-					BudgetGoal.createNoGoInstance("gambling")
-				])
+				"+$timestamp", ["Nexus 6"])
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, richard)
+		appService.addBudgetGoal(richard, BudgetGoal.createNoGoInstance("news"))
+		appService.addBudgetGoal(richard, BudgetGoal.createNoGoInstance("gambling"))
 		return richard
 	}
 
 	def addBob()
 	{
 		def bob = appService.addUser(appService.&assertUserCreationResponseDetails, "B o b", "Bob", "Dunn", "BD",
-				"+$timestamp", ["iPhone 5"], [
-					BudgetGoal.createNoGoInstance("news"),
-					BudgetGoal.createNoGoInstance("gambling")
-				])
+				"+$timestamp", ["iPhone 5"])
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bob)
+		appService.addBudgetGoal(bob, BudgetGoal.createNoGoInstance("news"))
+		appService.addBudgetGoal(bob, BudgetGoal.createNoGoInstance("gambling"))
 		return bob
 	}
 
