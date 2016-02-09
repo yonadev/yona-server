@@ -62,12 +62,6 @@ public class DiscloseRequestMessage extends BuddyMessage
 		super.decrypt(decryptor);
 	}
 
-	@Override
-	public boolean canBeDeleted()
-	{
-		return this.status == Status.DISCLOSE_ACCEPTED || this.status == Status.DISCLOSE_REJECTED;
-	}
-
 	public static Message createInstance(UUID requestingUserID, UUID requestingUserAnonymizedID, String requestingUserNickname,
 			String message, GoalConflictMessage targetGoalConflictMessage)
 	{

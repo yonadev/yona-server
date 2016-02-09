@@ -41,6 +41,7 @@ import nu.yona.server.messaging.rest.MessageController.MessageResource;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService;
+import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
@@ -166,6 +167,10 @@ public class MessageController
 			addSelfLink(selfLinkBuilder, messageResource);
 			addActionLinks(selfLinkBuilder, messageResource);
 			addRelatedMessageLink(message, messageResource);
+			if (message.canBeDeleted())
+			{
+				addDeleteLink(selfLinkBuilder, messageResource);
+			}
 			return messageResource;
 		}
 
@@ -187,6 +192,11 @@ public class MessageController
 		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, MessageResource messageResource)
 		{
 			messageResource.add(selfLinkBuilder.withSelfRel());
+		}
+
+		private void addDeleteLink(ControllerLinkBuilder selfLinkBuilder, MessageResource messageResource)
+		{
+			messageResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
 		}
 
 		private void addActionLinks(ControllerLinkBuilder selfLinkBuilder, MessageResource messageResource)
