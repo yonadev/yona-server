@@ -52,8 +52,8 @@ public class MessageService
 		MessageDestination directMessageDestination = directMessageSource.getDestination();
 		Page<Message> directMessages = directMessageSource.getMessages(null);
 
-		MessageSource messageSource = getAnonymousMessageSource(user);
-		MessageDestination anonymousMessageDestination = messageSource.getDestination();
+		MessageSource anonymousMessageSource = getAnonymousMessageSource(user);
+		MessageDestination anonymousMessageDestination = anonymousMessageSource.getDestination();
 		for (Message directMessage : directMessages)
 		{
 			directMessageDestination.remove(directMessage);
