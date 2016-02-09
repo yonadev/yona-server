@@ -14,9 +14,7 @@ class AppService extends Service
 	final ACTIVITY_CATEGORIES_PATH = "/activityCategories/"
 	final USERS_PATH = "/users/"
 	final BUDDIES_PATH_FRAGMENT = "/buddies/"
-	final DIRECT_MESSAGES_PATH_FRAGMENT = "/messages/direct/"
-	final ANONYMOUS_MESSAGES_PATH_FRAGMENT = "/messages/anonymous/"
-	final ALL_MESSAGES_PATH_FRAGMENT = "/messages/all/"
+	final MESSAGES_PATH_FRAGMENT = "/messages/"
 	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
 	final MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT = "/confirmMobileNumber"
 	final GOALS_PATH_FRAGMENT = "/goals/"
@@ -196,7 +194,7 @@ class AppService extends Service
 	def fetchBuddyConnectRequestMessage(User user)
 	{
 		// Have the other user fetch the buddy connect request
-		def response = getAnonymousMessages(user)
+		def response = getMessages(user)
 		assert response.status == 200
 		assert response.responseData._embedded
 
@@ -229,7 +227,7 @@ class AppService extends Service
 	def fetchBuddyConnectResponseMessage(User user)
 	{
 		// Have the requesting user fetch the buddy connect response
-		def response = getAnonymousMessages(user)
+		def response = getMessages(user)
 		assert response.status == 200
 		assert response.responseData._embedded
 		assert response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
@@ -345,14 +343,14 @@ class AppService extends Service
 		yonaServer.getResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, password)
 	}
 
-	def getAnonymousMessages(User user, parameters = [:])
+	def getMessages(User user, parameters = [:])
 	{
-		getAnonymousMessages(user.url, user.password, parameters)
+		getMessages(user.url, user.password, parameters)
 	}
 
-	def getAnonymousMessages(userPath, password, parameters = [:])
+	def getMessages(userPath, password, parameters = [:])
 	{
-		yonaServer.getResourceWithPassword(userPath + ANONYMOUS_MESSAGES_PATH_FRAGMENT, password, parameters)
+		yonaServer.getResourceWithPassword(userPath + MESSAGES_PATH_FRAGMENT, password, parameters)
 	}
 
 	def setNewDeviceRequest(userPath, password, userSecret)
