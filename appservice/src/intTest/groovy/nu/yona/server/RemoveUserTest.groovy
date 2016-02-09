@@ -52,6 +52,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		then:
 		def buddies = appService.getBuddies(bob)
 		buddies.size() == 1
+		!buddies[0].goals
 		def getAnonMessagesResponse = appService.getAnonymousMessages(bob)
 		getAnonMessagesResponse.status == 200
 		getAnonMessagesResponse.responseData._embedded

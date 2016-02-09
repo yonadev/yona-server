@@ -9,6 +9,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
@@ -149,14 +151,22 @@ public class BuddyController
 		}
 
 		@JsonProperty("_embedded")
-		public Map<String, UserController.UserResource> getEmbeddedResources()
+		public Map<String, Object> getEmbeddedResources()
 		{
 			if (getContent().getUser() == null)
 			{
 				return Collections.emptyMap();
 			}
-			return Collections.singletonMap(BuddyDTO.USER_REL_NAME,
+
+			HashMap<String, Object> result = new HashMap<String, Object>();
+			result.put(BuddyDTO.USER_REL_NAME,
 					new UserController.UserResourceAssembler(false).toResource(getContent().getUser()));
+			if (getContent().getUser() != null && getContent().getGoals() != null)
+			{
+				result.put(BuddyDTO.GOALS_REL_NAME,
+						GoalController.createAllGoalsCollectionResource(getContent().getUser().getID(), getContent().getGoals()));
+			}
+			return result;
 		}
 	}
 
