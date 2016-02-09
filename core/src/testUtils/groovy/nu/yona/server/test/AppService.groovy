@@ -331,6 +331,7 @@ class AppService extends Service
 	{
 		def response = yonaServer.getResourceWithPassword(user.url + BUDDIES_PATH_FRAGMENT, user.password)
 		assert response.status == 200
+		assert response.responseData._links?.self?.href == user.url + BUDDIES_PATH_FRAGMENT
 
 		if (!response.responseData._embedded?.buddies)
 		{
