@@ -71,12 +71,12 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		richardChanged.devices == ["Nokia"]
 		richardChanged.goals.size() == 0
 
-		def getAnonMessagesResponse = appService.getAnonymousMessages(bob.url, bob.password)
-		getAnonMessagesResponse.status == 200
-		getAnonMessagesResponse.responseData._embedded.goalConflictMessages.size() == 1
-		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].nickname == richard.nickname
-		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
-		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].url == null
+		def getMessagesResponse = appService.getMessages(bob.url, bob.password)
+		getMessagesResponse.status == 200
+		getMessagesResponse.responseData._embedded.goalConflictMessages.size() == 1
+		getMessagesResponse.responseData._embedded.goalConflictMessages[0].nickname == richard.nickname
+		getMessagesResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
+		getMessagesResponse.responseData._embedded.goalConflictMessages[0].url == null
 
 		def buddies = appService.getBuddies(bob)
 		buddies.size() == 1

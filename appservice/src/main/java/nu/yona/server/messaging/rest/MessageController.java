@@ -45,7 +45,7 @@ import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(MessageResource.class)
-@RequestMapping(value = "/users/{userID}/messages")
+@RequestMapping(value = "/users/{userID}/messages/")
 public class MessageController
 {
 	@Autowired
@@ -54,7 +54,7 @@ public class MessageController
 	@Autowired
 	private UserService userService;
 
-	@RequestMapping(value = "/anonymous/", method = RequestMethod.GET)
+	@RequestMapping(method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<PagedResources<MessageResource>> getAnonymousMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, Pageable pageable,
@@ -66,7 +66,7 @@ public class MessageController
 						new MessageResourceAssembler(userID))));
 	}
 
-	@RequestMapping(value = "/anonymous/{messageID}", method = RequestMethod.GET)
+	@RequestMapping(value = "{messageID}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<MessageResource> getAnonymousMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userID, @PathVariable UUID messageID)
@@ -77,7 +77,7 @@ public class MessageController
 
 	}
 
-	@RequestMapping(value = "/anonymous/{id}/{action}", method = RequestMethod.POST)
+	@RequestMapping(value = "{id}/{action}", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<MessageActionResource> handleAnonymousMessageAction(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, @PathVariable UUID id,
@@ -89,7 +89,7 @@ public class MessageController
 						messageService.handleAnonymousMessageAction(userID, id, action, requestPayload), userID)));
 	}
 
-	@RequestMapping(value = "/anonymous/{messageID}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "{messageID}", method = RequestMethod.DELETE)
 	@ResponseBody
 	public HttpEntity<MessageActionResource> deleteAnonymousMessage(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,

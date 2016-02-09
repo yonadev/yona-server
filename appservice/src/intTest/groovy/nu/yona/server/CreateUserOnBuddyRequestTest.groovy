@@ -110,9 +110,9 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		bobFromGetAfterUpdate.goals.size() == 0 //TODO: updating of goals is not yet supported
 		bobFromGetAfterUpdate.url
 
-		def getAnonymousMessagesResponse = appService.getAnonymousMessages(bobFromGetAfterUpdate)
-		getAnonymousMessagesResponse.status == 400
-		getAnonymousMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
+		def getMessagesResponse = appService.getMessages(bobFromGetAfterUpdate)
+		getMessagesResponse.status == 400
+		getMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -166,8 +166,8 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 
 		then:
-		def getAnonymousMessagesResponse = appService.getAnonymousMessages(updatedBob)
-		getAnonymousMessagesResponse.status == 200
+		def getMessagesResponse = appService.getMessages(updatedBob)
+		getMessagesResponse.status == 200
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -267,19 +267,19 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
 
 		then:
-		def getAnonMessagesRichardResponse = appService.getAnonymousMessages(richard)
-		getAnonMessagesRichardResponse.status == 200
-		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
-		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
-		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].url == "http://www.refdag.nl"
+		def getMessagesRichardResponse = appService.getMessages(richard)
+		getMessagesRichardResponse.status == 200
+		getMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
+		getMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+		getMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
+		getMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].url == "http://www.refdag.nl"
 
-		def getAnonMessagesBobResponse = appService.getAnonymousMessages(updatedBob)
-		getAnonMessagesBobResponse.status == 200
-		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
-		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].nickname == richard.nickname
-		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
-		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].url == null
+		def getMessagesBobResponse = appService.getMessages(updatedBob)
+		getMessagesBobResponse.status == 200
+		getMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
+		getMessagesBobResponse.responseData._embedded.goalConflictMessages[0].nickname == richard.nickname
+		getMessagesBobResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
+		getMessagesBobResponse.responseData._embedded.goalConflictMessages[0].url == null
 
 		cleanup:
 		appService.deleteUser(richard)

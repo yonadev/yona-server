@@ -18,9 +18,7 @@ class YonaServer
 	final USERS_PATH = "/users/"
 	final ANALYSIS_ENGINE_PATH = "/analysisEngine/"
 	final BUDDIES_PATH_FRAGMENT = "/buddies/"
-	final DIRECT_MESSAGES_PATH_FRAGMENT = "/messages/direct/"
-	final ANONYMOUS_MESSAGES_PATH_FRAGMENT = "/messages/anonymous/"
-	final ALL_MESSAGES_PATH_FRAGMENT = "/messages/all/"
+	final MESSAGES_PATH_FRAGMENT = "/messages"
 	final RELEVANT_SMOOTHWALL_CATEGORIES_PATH_FRAGMENT = "/relevantSmoothwallCategories/"
 	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
 	final MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT = "/confirmMobileNumber"
@@ -113,14 +111,9 @@ class YonaServer
 		getResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, password)
 	}
 
-	def getDirectMessages(userPath, password, parameters = [:])
+	def getMessages(userPath, password, parameters = [:])
 	{
-		getResourceWithPassword(userPath + DIRECT_MESSAGES_PATH_FRAGMENT, password, parameters)
-	}
-
-	def getAnonymousMessages(userPath, password, parameters = [:])
-	{
-		getResourceWithPassword(userPath + ANONYMOUS_MESSAGES_PATH_FRAGMENT, password, parameters)
+		getResourceWithPassword(userPath + MESSAGES_PATH_FRAGMENT, password, parameters)
 	}
 
 	def setNewDeviceRequest(userPath, password, jsonString)
@@ -262,7 +255,7 @@ class YonaServer
 				})
 		return stringList
 	}
-	
+
 	static String makeList(def itemsJson)
 	{
 		def list = ""
