@@ -23,7 +23,6 @@ import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
-import nu.yona.server.subscriptions.service.BuddyConnectRequestMessageDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -36,28 +35,32 @@ public class MessageService
 	@Autowired
 	private TheDTOManager dtoManager;
 
-	public Page<MessageDTO> getDirectMessages(UUID userID, Pageable pageable)
-	{
-		UserDTO user = userService.getPrivateValidatedUser(userID);
-
-		MessageSource messageSource = getNamedMessageSource(user);
-		return wrapAllMessagesAsDTOs(user, messageSource, pageable);
-	}
-
-	public MessageDTO getDirectMessage(UUID userID, UUID messageID)
-	{
-		UserDTO user = userService.getPrivateValidatedUser(userID);
-
-		MessageSource messageSource = getNamedMessageSource(user);
-		return dtoManager.createInstance(user, messageSource.getMessage(messageID));
-	}
-
+	@Transactional
 	public Page<MessageDTO> getAnonymousMessages(UUID userID, Pageable pageable)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
 
+		transferDirectMessagesToAnonymousDestination(user);
+
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return wrapAllMessagesAsDTOs(user, messageSource, pageable);
+	}
+
+	private void transferDirectMessagesToAnonymousDestination(UserDTO user)
+	{
+		MessageSource directMessageSource = getNamedMessageSource(user);
+		MessageDestination directMessageDestination = directMessageSource.getDestination();
+		Page<Message> directMessages = directMessageSource.getMessages(null);
+
+		MessageSource anonymousMessageSource = getAnonymousMessageSource(user);
+		MessageDestination anonymousMessageDestination = anonymousMessageSource.getDestination();
+		for (Message directMessage : directMessages)
+		{
+			directMessageDestination.remove(directMessage);
+			anonymousMessageDestination.send(directMessage);
+		}
+		MessageDestination.getRepository().save(directMessageDestination);
+		MessageDestination.getRepository().save(anonymousMessageDestination);
 	}
 
 	public MessageDTO getAnonymousMessage(UUID userID, UUID messageID)
@@ -68,33 +71,12 @@ public class MessageService
 		return dtoManager.createInstance(user, messageSource.getMessage(messageID));
 	}
 
-	public MessageActionDTO handleMessageAction(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
-	{
-		UserDTO user = userService.getPrivateValidatedUser(userID);
-
-		MessageSource messageSource = getNamedMessageSource(user);
-		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
-	}
-
 	public MessageActionDTO handleAnonymousMessageAction(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
 
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
-	}
-
-	@Transactional
-	public MessageActionDTO deleteMessage(UUID userID, UUID id)
-	{
-		UserDTO user = userService.getPrivateValidatedUser(userID);
-
-		MessageSource messageSource = getNamedMessageSource(user);
-		Message message = messageSource.getMessage(id);
-
-		deleteMessage(message, messageSource.getDestination());
-
-		return MessageActionDTO.createInstanceActionDone();
 	}
 
 	@Transactional
@@ -208,15 +190,5 @@ public class MessageService
 		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getID());
 		destinationEntity.removeMessagesFromUser(sentByUserAnonymizedID);
 		MessageDestination.getRepository().save(destinationEntity);
-	}
-
-	public static boolean isDirectMessage(MessageDTO message)
-	{
-		if (message instanceof BuddyConnectRequestMessageDTO)
-		{
-			return true;
-		}
-
-		return false;
 	}
 }

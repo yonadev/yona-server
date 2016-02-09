@@ -196,7 +196,7 @@ class AppService extends Service
 	def fetchBuddyConnectRequestMessage(User user)
 	{
 		// Have the other user fetch the buddy connect request
-		def response = getDirectMessages(user)
+		def response = getAnonymousMessages(user)
 		assert response.status == 200
 		assert response.responseData._embedded
 
@@ -331,6 +331,7 @@ class AppService extends Service
 	{
 		def response = yonaServer.getResourceWithPassword(user.url + BUDDIES_PATH_FRAGMENT, user.password)
 		assert response.status == 200
+		assert response.responseData._links?.self?.href == user.url + BUDDIES_PATH_FRAGMENT
 
 		if (!response.responseData._embedded?.buddies)
 		{
@@ -342,16 +343,6 @@ class AppService extends Service
 	def getBuddies(userPath, password)
 	{
 		yonaServer.getResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, password)
-	}
-
-	def getDirectMessages(User user, parameters = [:])
-	{
-		getDirectMessages(user.url, user.password, parameters)
-	}
-
-	def getDirectMessages(userPath, password, parameters = [:])
-	{
-		yonaServer.getResourceWithPassword(userPath + DIRECT_MESSAGES_PATH_FRAGMENT, password, parameters)
 	}
 
 	def getAnonymousMessages(User user, parameters = [:])

@@ -69,8 +69,15 @@ public class BuddyController
 	{
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
-				() -> createOKResponse(requestingUserID, buddyService.getBuddiesOfUser(requestingUserID),
-						getAllBuddiesLinkBuilder(requestingUserID)));
+				() -> new ResponseEntity<Resources<BuddyResource>>(
+						createAllBuddiesCollectionResource(requestingUserID, buddyService.getBuddiesOfUser(requestingUserID)),
+						HttpStatus.OK));
+	}
+
+	public static Resources<BuddyResource> createAllBuddiesCollectionResource(UUID userID, Set<BuddyDTO> allBuddiesOfUser)
+	{
+		return new Resources<>(new BuddyResourceAssembler(userID).toResources(allBuddiesOfUser),
+				getAllBuddiesLinkBuilder(userID).withSelfRel());
 	}
 
 	static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID)
@@ -127,15 +134,6 @@ public class BuddyController
 	private HttpEntity<BuddyResource> createResponse(UUID requestingUserID, BuddyDTO buddy, HttpStatus status)
 	{
 		return new ResponseEntity<BuddyResource>(new BuddyResourceAssembler(requestingUserID).toResource(buddy), status);
-	}
-
-	private HttpEntity<Resources<BuddyResource>> createOKResponse(UUID requestingUserID, Set<BuddyDTO> buddies,
-			ControllerLinkBuilder controllerMethodLinkBuilder)
-	{
-		return new ResponseEntity<Resources<BuddyResource>>(
-				new Resources<>(new BuddyResourceAssembler(requestingUserID).toResources(buddies),
-						controllerMethodLinkBuilder.withSelfRel()),
-				HttpStatus.OK);
 	}
 
 	static ControllerLinkBuilder getBuddyLinkBuilder(UUID userID, UUID buddyID)

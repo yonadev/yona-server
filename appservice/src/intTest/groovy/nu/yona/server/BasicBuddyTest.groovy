@@ -72,14 +72,14 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.sendBuddyConnectRequest(richard, bob)
 
 		when:
-		def response = appService.getDirectMessages(bob)
+		def response = appService.getAnonymousMessages(bob)
 
 		then:
 		response.status == 200
 		response.responseData._embedded.buddyConnectRequestMessages[0].user.firstName == "Richard"
 		response.responseData._embedded.buddyConnectRequestMessages[0].nickname == richard.nickname
 		response.responseData._embedded.buddyConnectRequestMessages[0].status == "REQUESTED"
-		response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(bob.url + appService.DIRECT_MESSAGES_PATH_FRAGMENT)
+		response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href.startsWith(bob.url + appService.ANONYMOUS_MESSAGES_PATH_FRAGMENT)
 		response.responseData._embedded.buddyConnectRequestMessages[0]._links.accept.href.startsWith(response.responseData._embedded.buddyConnectRequestMessages[0]._links.self.href)
 
 		cleanup:
@@ -298,9 +298,9 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		getDirectMessagesRichardResponse.status == 200
 		getDirectMessagesRichardResponse.responseData._embedded.buddyConnectResponseMessages == null
 
-		def getDirectMessagesBobResponse = appService.getDirectMessages(bob)
-		getDirectMessagesBobResponse.status == 200
-		getDirectMessagesBobResponse.responseData._embedded?.buddyConnectRequestMessages == null
+		def getAnonymousMessagesBobResponse = appService.getAnonymousMessages(bob)
+		getAnonymousMessagesBobResponse.status == 200
+		getAnonymousMessagesBobResponse.responseData._embedded?.buddyConnectRequestMessages == null
 
 		def getAnonMessagesRichardResponse = appService.getAnonymousMessages(richard)
 		getAnonMessagesRichardResponse.status == 200

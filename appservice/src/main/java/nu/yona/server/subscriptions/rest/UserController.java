@@ -332,7 +332,7 @@ public class UserController
 			Set<BuddyDTO> buddies = getContent().getPrivateData().getBuddies();
 			HashMap<String, Object> result = new HashMap<String, Object>();
 			result.put(UserDTO.BUDDIES_REL_NAME,
-					new BuddyController.BuddyResourceAssembler(getContent().getID()).toResources(buddies));
+					BuddyController.createAllBuddiesCollectionResource(getContent().getID(), buddies));
 
 			Set<GoalDTO> goals = getContent().getPrivateData().getGoals();
 			result.put(UserDTO.GOALS_REL_NAME, GoalController.createAllGoalsCollectionResource(getContent().getID(), goals));
