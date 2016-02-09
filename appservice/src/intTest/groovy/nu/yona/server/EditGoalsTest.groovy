@@ -35,6 +35,18 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		response.responseData.code == "error.goal.cannot.add.second.on.activity.category"
 	}
 
+	def 'Get goals'()
+	{
+		given:
+		def richard = addRichard()
+		when:
+		def response = appService.getGoals(richard)
+		then:
+		response.status == 200
+		response.responseData._links?.self.href == richard.url + appService.GOALS_PATH_FRAGMENT
+		response.responseData._embedded.budgetGoals.size() == 2
+	}
+
 	def 'Add goal'()
 	{
 		given:
@@ -47,6 +59,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		responseGoalsAfterAdd.status == 200
 		responseGoalsAfterAdd.responseData._embedded.budgetGoals.size() == 3
 	}
+
 	def 'Delete goal'()
 	{
 		given:
