@@ -299,12 +299,12 @@ class AppService extends Service
 		{
 			return null
 		}
-		def response = yonaServer.deleteResourceWithPassword(user.url, user.password, ["message":message])
+		def response = yonaServer.deleteResourceWithPassword(user.editURL, user.password, ["message":message])
 	}
 
-	def deleteUser(userURL, password, message = "")
+	def deleteUser(userEditURL, password, message = "")
 	{
-		yonaServer.deleteResourceWithPassword(userURL, password, ["message":message])
+		yonaServer.deleteResourceWithPassword(userEditURL, password, ["message":message])
 	}
 
 	def requestBuddy(userPath, jsonString, password)
@@ -314,12 +314,12 @@ class AppService extends Service
 
 	def removeBuddy(User user, Buddy buddy, message)
 	{
-		removeBuddy(buddy.url, user.password, message)
+		removeBuddy(buddy.editURL, user.password, message)
 	}
 
-	def removeBuddy(buddyURL, password, message)
+	def removeBuddy(buddyEditURL, password, message)
 	{
-		yonaServer.deleteResourceWithPassword(buddyURL, password, ["message":message])
+		yonaServer.deleteResourceWithPassword(buddyEditURL, password, ["message":message])
 	}
 
 	def getAllActivityCategories()
@@ -366,9 +366,9 @@ class AppService extends Service
 		yonaServer.getResource(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, [:], ["userSecret": userSecret])
 	}
 
-	def clearNewDeviceRequest(userPath, password)
+	def clearNewDeviceRequest(deviceRequestEditURL, password)
 	{
-		yonaServer.deleteResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, password)
+		yonaServer.deleteResourceWithPassword(deviceRequestEditURL, password)
 	}
 
 	def addBudgetGoal(Closure asserter, User user, BudgetGoal goal)
@@ -385,7 +385,7 @@ class AppService extends Service
 
 	def removeBudgetGoal(User user, BudgetGoal goal)
 	{
-		yonaServer.deleteResourceWithPassword(goal.url, user.password)
+		yonaServer.deleteResourceWithPassword(goal.editURL, user.password)
 	}
 
 	def getGoals(User user)

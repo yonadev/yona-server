@@ -17,6 +17,7 @@ class Buddy
 	final User user
 	final List<Goal> goals
 	final String url
+	final String editURL
 	Buddy(def json)
 	{
 		this.nickname = json.nickname
@@ -29,5 +30,6 @@ class Buddy
 		}
 		this.goals = (json._embedded?.goals?._embedded?.budgetGoals) ? json._embedded.goals._embedded.budgetGoals.collect{new BudgetGoal(it)} : null
 		this.url = YonaServer.stripQueryString(json._links.self.href)
+		this.editURL = json._links?.edit?.href
 	}
 }

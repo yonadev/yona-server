@@ -23,6 +23,7 @@ class User
 	final List<Buddy> buddies
 	final VPNProfile vpnProfile
 	final String url
+	final String editURL
 	final String password
 	User(def json, String password)
 	{
@@ -56,6 +57,7 @@ class User
 			this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
 		}
 		this.url = YonaServer.stripQueryString(json._links.self.href)
+		this.editURL = json._links?.edit?.href
 	}
 
 	def convertToJSON()
