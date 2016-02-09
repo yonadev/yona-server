@@ -38,6 +38,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.GoalController;
+import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
@@ -186,6 +187,7 @@ public class BuddyController
 			BuddyResource buddyResource = instantiateResource(buddy);
 			ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(buddy.getID());
 			addSelfLink(selfLinkBuilder, buddyResource);
+			addRemoveLink(selfLinkBuilder, buddyResource);
 			return buddyResource;
 		}
 
@@ -203,6 +205,11 @@ public class BuddyController
 		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
 		{
 			buddyResource.add(selfLinkBuilder.withSelfRel());
+		}
+
+		private void addRemoveLink(ControllerLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
+		{
+			buddyResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
 		}
 	}
 }
