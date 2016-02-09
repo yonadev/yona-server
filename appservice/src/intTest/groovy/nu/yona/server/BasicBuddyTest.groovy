@@ -172,7 +172,6 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		response.responseData.properties.status == "done"
 		response.responseData._embedded.affectedMessages.size() == 1
 		response.responseData._embedded.affectedMessages[0]._links.self.href == connectResponseMessage.selfURL
-		response.responseData._embedded.affectedMessages[0].processed == true
 		response.responseData._embedded.affectedMessages[0]._links.process == null
 
 		def buddies = appService.getBuddies(richard)
@@ -362,7 +361,6 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		response.status == 200
 		response.responseData._embedded.affectedMessages.size() == 1
 		response.responseData._embedded.affectedMessages[0]._links.self.href == disconnectMessage._links.self.href
-		response.responseData._embedded.affectedMessages[0].processed == true
 		response.responseData._embedded.affectedMessages[0]._links.process == null
 
 		appService.getBuddies(bob).size() == 0
