@@ -110,9 +110,9 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		bobFromGetAfterUpdate.goals.size() == 0 //TODO: updating of goals is not yet supported
 		bobFromGetAfterUpdate.url
 
-		def getDirectMessagesResponse = appService.getDirectMessages(bobFromGetAfterUpdate)
-		getDirectMessagesResponse.status == 400
-		getDirectMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
+		def getAnonymousMessagesResponse = appService.getAnonymousMessages(bobFromGetAfterUpdate)
+		getAnonymousMessagesResponse.status == 400
+		getAnonymousMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -166,8 +166,8 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 
 		then:
-		def getDirectMessagesResponse = appService.getDirectMessages(updatedBob)
-		getDirectMessagesResponse.status == 200
+		def getAnonymousMessagesResponse = appService.getAnonymousMessages(updatedBob)
+		getAnonymousMessagesResponse.status == 200
 
 		cleanup:
 		appService.deleteUser(richard)

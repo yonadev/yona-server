@@ -65,9 +65,9 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
 		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "gambling"
 		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].url =~ /poker/
-		def getDirectMessagesResponse = appService.getDirectMessages(bob)
-		getDirectMessagesResponse.status == 200
-		getDirectMessagesResponse.responseData._embedded == null || getDirectMessagesResponse.responseData._embedded.buddyConnectRequestMessages == null
+		def getAnonymousMessagesResponse = appService.getAnonymousMessages(bob)
+		getAnonymousMessagesResponse.status == 200
+		getAnonymousMessagesResponse.responseData._embedded == null || getAnonymousMessagesResponse.responseData._embedded.buddyConnectRequestMessages == null
 
 		cleanup:
 		appService.deleteUser(bob)

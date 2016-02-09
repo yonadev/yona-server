@@ -65,7 +65,7 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 		def bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
-		def messageURL = appService.getDirectMessages(bob).responseData._embedded.buddyConnectRequestMessages[0]._links.self.href
+		def messageURL = appService.getAnonymousMessages(bob).responseData._embedded.buddyConnectRequestMessages[0]._links.self.href
 
 		when:
 		def response = appService.deleteResourceWithPassword(messageURL, bob.password)
@@ -73,7 +73,7 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 400
 		response.responseData?.code == "error.cannot.delete.unprocessed.message"
-		appService.getDirectMessages(bob).responseData._embedded.buddyConnectRequestMessages.size() == 1
+		appService.getAnonymousMessages(bob).responseData._embedded.buddyConnectRequestMessages.size() == 1
 	}
 
 	def 'Bob deletes Richard\'s buddy request after it is processed'()
@@ -84,14 +84,14 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		appService.sendBuddyConnectRequest(richard, bob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(bob).acceptURL
 		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
-		def messageURL = appService.getDirectMessages(bob).responseData._embedded.buddyConnectRequestMessages[0]._links.self.href
+		def messageURL = appService.getAnonymousMessages(bob).responseData._embedded.buddyConnectRequestMessages[0]._links.self.href
 
 		when:
 		def response = appService.deleteResourceWithPassword(messageURL, bob.password)
 
 		then:
 		response.status == 200
-		appService.getDirectMessages(bob).responseData._embedded?.buddyConnectRequestMessages == null
+		appService.getAnonymousMessages(bob).responseData._embedded?.buddyConnectRequestMessages == null
 	}
 
 	def 'Richard tries to delete Bob\'s buddy acceptance before it is processed'()
@@ -130,7 +130,7 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 200
-		appService.getDirectMessages(richard).responseData._embedded?.buddyConnectRequestMessages == null
+		appService.getAnonymousMessages(richard).responseData._embedded?.buddyConnectRequestMessages == null
 	}
 
 	def 'Richard deletes a goal conflict message. After that, Bob still has it'()
