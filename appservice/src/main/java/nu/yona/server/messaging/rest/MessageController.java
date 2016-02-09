@@ -54,47 +54,6 @@ public class MessageController
 	@Autowired
 	private UserService userService;
 
-	@RequestMapping(value = "/direct/", method = RequestMethod.GET)
-	@ResponseBody
-	public HttpEntity<PagedResources<MessageResource>> getDirectMessages(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, Pageable pageable,
-			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
-	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(pagedResourcesAssembler.toResource(messageService.getDirectMessages(userID, pageable),
-						new MessageResourceAssembler(userID))));
-	}
-
-	@RequestMapping(value = "/direct/{messageID}", method = RequestMethod.GET)
-	@ResponseBody
-	public HttpEntity<MessageResource> getDirectMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userID, @PathVariable UUID messageID)
-	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
-				new MessageResourceAssembler(userID).toResource(messageService.getDirectMessage(userID, messageID))));
-	}
-
-	@RequestMapping(value = "/direct/{id}/{action}", method = RequestMethod.POST)
-	@ResponseBody
-	public HttpEntity<MessageActionResource> handleMessageAction(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, @PathVariable UUID id,
-			@PathVariable String action, @RequestBody MessageActionDTO requestPayload)
-	{
-
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
-				new MessageActionResource(messageService.handleMessageAction(userID, id, action, requestPayload), userID)));
-	}
-
-	@RequestMapping(value = "/direct/{messageID}", method = RequestMethod.DELETE)
-	@ResponseBody
-	public HttpEntity<MessageActionResource> deleteMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userID, @PathVariable UUID messageID)
-	{
-
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(new MessageActionResource(messageService.deleteMessage(userID, messageID), userID)));
-	}
-
 	@RequestMapping(value = "/anonymous/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<PagedResources<MessageResource>> getAnonymousMessages(
@@ -156,11 +115,10 @@ public class MessageController
 		return new ResponseEntity<MessageActionResource>(messageAction, HttpStatus.OK);
 	}
 
-	static ControllerLinkBuilder getMessageLinkBuilder(boolean isDirect, UUID userID, UUID messageID)
+	static ControllerLinkBuilder getAnonymousMessageLinkBuilder(UUID userID, UUID messageID)
 	{
 		MessageController methodOn = methodOn(MessageController.class);
-		return linkTo(isDirect ? methodOn.getDirectMessage(Optional.empty(), userID, messageID)
-				: methodOn.getAnonymousMessage(Optional.empty(), userID, messageID));
+		return linkTo(methodOn.getAnonymousMessage(Optional.empty(), userID, messageID));
 	}
 
 	static class MessageActionResource extends Resource<MessageActionDTO>
@@ -204,8 +162,7 @@ public class MessageController
 		public MessageResource toResource(MessageDTO message)
 		{
 			MessageResource messageResource = instantiateResource(message);
-			ControllerLinkBuilder selfLinkBuilder = getMessageLinkBuilder(MessageService.isDirectMessage(message), userID,
-					message.getID());
+			ControllerLinkBuilder selfLinkBuilder = getAnonymousMessageLinkBuilder(userID, message.getID());
 			addSelfLink(selfLinkBuilder, messageResource);
 			addActionLinks(selfLinkBuilder, messageResource);
 			addRelatedMessageLink(message, messageResource);
@@ -217,7 +174,7 @@ public class MessageController
 			if (message.getRelatedAnonymousMessageID() != null)
 			{
 				messageResource
-						.add(getMessageLinkBuilder(false, userID, message.getRelatedAnonymousMessageID()).withRel("related"));
+						.add(getAnonymousMessageLinkBuilder(userID, message.getRelatedAnonymousMessageID()).withRel("related"));
 			}
 		}
 
