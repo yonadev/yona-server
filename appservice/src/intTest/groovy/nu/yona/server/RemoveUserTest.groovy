@@ -92,7 +92,6 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		response.status == 200
 		response.responseData._embedded.affectedMessages.size() == 1
 		response.responseData._embedded.affectedMessages[0]._links.self.href == disconnectMessage._links.self.href
-		response.responseData._embedded.affectedMessages[0].processed == true
 		response.responseData._embedded.affectedMessages[0]._links.process == null
 
 		def buddies = appService.getBuddies(bob)
