@@ -102,14 +102,6 @@ public class UserController
 		return createOKResponse(userService.getPublicUser(id), false);
 	}
 
-	@RequestMapping(method = RequestMethod.PUT)
-	@ResponseBody
-	public HttpEntity<Resource<OverwriteUserDTO>> setOverwriteUserConfirmationCode(@RequestParam String mobileNumber)
-	{
-		return new ResponseEntity<Resource<OverwriteUserDTO>>(
-				new Resource<OverwriteUserDTO>(userService.setOverwriteUserConfirmationCode(mobileNumber)), HttpStatus.OK);
-	}
-
 	@RequestMapping(method = RequestMethod.POST)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
@@ -122,15 +114,36 @@ public class UserController
 				() -> addUser(password, Optional.ofNullable(overwriteUserConfirmationCode), user));
 	}
 
-	static ControllerLinkBuilder getAddUserLinkBuilder()
+	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
+	@ResponseBody
+	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr, @PathVariable UUID id,
+			@RequestBody UserDTO userResource)
 	{
-		UserController methodOn = methodOn(UserController.class);
-		return linkTo(methodOn.addUser(Optional.empty(), null, null, null));
+		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
+		if (tempPassword.isPresent())
+		{
+			return CryptoSession.execute(password, null,
+					() -> createOKResponse(userService.updateUserCreatedOnBuddyRequest(id, tempPassword.get(), userResource),
+							true));
+		}
+		else
+		{
+			return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+					() -> createOKResponse(userService.updateUser(id, userResource), true));
+		}
 	}
 
-	private void checkPassword(Optional<String> password, UUID userID)
+	@RequestMapping(value = "{id}", method = RequestMethod.DELETE)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
+			@RequestParam(value = "message", required = false) String messageStr)
 	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> null);
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
+			userService.deleteUser(id, Optional.ofNullable(messageStr));
+			return null;
+		});
 	}
 
 	@RequestMapping(value = "{userID}/confirmMobileNumber", method = RequestMethod.POST)
@@ -145,10 +158,12 @@ public class UserController
 				() -> createOKResponse(userService.confirmMobileNumber(userID, mobileNumberConfirmation.getCode()), false));
 	}
 
-	static ControllerLinkBuilder getConfirmMobileNumberLinkBuilder(UUID userID)
+	@RequestMapping(method = RequestMethod.PUT)
+	@ResponseBody
+	public HttpEntity<Resource<OverwriteUserDTO>> setOverwriteUserConfirmationCode(@RequestParam String mobileNumber)
 	{
-		UserController methodOn = methodOn(UserController.class);
-		return linkTo(methodOn.confirmMobileNumber(Optional.empty(), userID, null));
+		return new ResponseEntity<Resource<OverwriteUserDTO>>(
+				new Resource<OverwriteUserDTO>(userService.setOverwriteUserConfirmationCode(mobileNumber)), HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "{userID}/newDeviceRequest", method = RequestMethod.PUT)
@@ -184,6 +199,23 @@ public class UserController
 		userService.clearNewDeviceRequestForUser(userID);
 	}
 
+	static ControllerLinkBuilder getAddUserLinkBuilder()
+	{
+		UserController methodOn = methodOn(UserController.class);
+		return linkTo(methodOn.addUser(Optional.empty(), null, null, null));
+	}
+
+	private void checkPassword(Optional<String> password, UUID userID)
+	{
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> null);
+	}
+
+	static ControllerLinkBuilder getConfirmMobileNumberLinkBuilder(UUID userID)
+	{
+		UserController methodOn = methodOn(UserController.class);
+		return linkTo(methodOn.confirmMobileNumber(Optional.empty(), userID, null));
+	}
+
 	static ControllerLinkBuilder getNewDeviceRequestLinkBuilder(UUID userID)
 	{
 		UserController methodOn = methodOn(UserController.class);
@@ -203,38 +235,6 @@ public class UserController
 		{
 			super(newDeviceRequest, entityLinkBuilder.withSelfRel());
 		}
-	}
-
-	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
-	@ResponseBody
-	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr, @PathVariable UUID id,
-			@RequestBody UserDTO userResource)
-	{
-		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
-		if (tempPassword.isPresent())
-		{
-			return CryptoSession.execute(password, null,
-					() -> createOKResponse(userService.updateUserCreatedOnBuddyRequest(id, tempPassword.get(), userResource),
-							true));
-		}
-		else
-		{
-			return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
-					() -> createOKResponse(userService.updateUser(id, userResource), true));
-		}
-	}
-
-	@RequestMapping(value = "{id}", method = RequestMethod.DELETE)
-	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
-	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
-			@RequestParam(value = "message", required = false) String messageStr)
-	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
-			userService.deleteUser(id, Optional.ofNullable(messageStr));
-			return null;
-		});
 	}
 
 	private HttpEntity<UserResource> addUser(Optional<String> password, Optional<String> overwriteUserConfirmationCode,

@@ -73,18 +73,6 @@ public class BuddyController
 						HttpStatus.OK));
 	}
 
-	public static Resources<BuddyResource> createAllBuddiesCollectionResource(UUID userID, Set<BuddyDTO> allBuddiesOfUser)
-	{
-		return new Resources<>(new BuddyResourceAssembler(userID).toResources(allBuddiesOfUser),
-				getAllBuddiesLinkBuilder(userID).withSelfRel());
-	}
-
-	static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID)
-	{
-		BuddyController methodOn = methodOn(BuddyController.class);
-		return linkTo(methodOn.getAllBuddies(null, requestingUserID));
-	}
-
 	@RequestMapping(value = "{buddyID}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
@@ -118,6 +106,18 @@ public class BuddyController
 			buddyService.removeBuddy(requestingUserID, buddyID, Optional.ofNullable(messageStr));
 			return null;
 		});
+	}
+
+	public static Resources<BuddyResource> createAllBuddiesCollectionResource(UUID userID, Set<BuddyDTO> allBuddiesOfUser)
+	{
+		return new Resources<>(new BuddyResourceAssembler(userID).toResources(allBuddiesOfUser),
+				getAllBuddiesLinkBuilder(userID).withSelfRel());
+	}
+
+	static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID)
+	{
+		BuddyController methodOn = methodOn(BuddyController.class);
+		return linkTo(methodOn.getAllBuddies(null, requestingUserID));
 	}
 
 	public String getInviteURL(UUID newUserID, String tempPassword)
