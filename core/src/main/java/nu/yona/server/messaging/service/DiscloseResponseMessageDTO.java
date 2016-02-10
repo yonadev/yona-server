@@ -21,19 +21,18 @@ import nu.yona.server.messaging.entities.DiscloseResponseMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
+import nu.yona.server.subscriptions.service.BuddyMessageDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 
 @JsonRootName("discloseResponseMessage")
-public class DiscloseResponseMessageDTO extends MessageDTO
+public class DiscloseResponseMessageDTO extends BuddyMessageDTO
 {
 	private Status status;
-	private String nickname;
 
-	private DiscloseResponseMessageDTO(UUID id, Date creationTime, Status status, String nickname)
+	private DiscloseResponseMessageDTO(UUID id, Date creationTime, UserDTO user, Status status, String nickname, String message)
 	{
-		super(id, creationTime);
+		super(id, creationTime, user, nickname, message);
 		this.status = status;
-		this.nickname = nickname;
 	}
 
 	@Override
@@ -48,15 +47,10 @@ public class DiscloseResponseMessageDTO extends MessageDTO
 		return status;
 	}
 
-	public String getNickname()
-	{
-		return nickname;
-	}
-
 	public static DiscloseResponseMessageDTO createInstance(UserDTO actingUser, DiscloseResponseMessage messageEntity)
 	{
-		return new DiscloseResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.getStatus(),
-				messageEntity.getNickname());
+		return new DiscloseResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), actingUser,
+				messageEntity.getStatus(), messageEntity.getNickname(), messageEntity.getMessage());
 	}
 
 	@Component
