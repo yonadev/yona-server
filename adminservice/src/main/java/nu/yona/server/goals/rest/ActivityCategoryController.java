@@ -31,20 +31,20 @@ import nu.yona.server.goals.service.ActivityCategoryService;
 
 @Controller
 @ExposesResourceFor(ActivityCategoryResource.class)
-@RequestMapping(value = "/activityCategories/")
+@RequestMapping(value = "/activityCategories")
 public class ActivityCategoryController
 {
 	@Autowired
 	private ActivityCategoryService activityCategoryService;
 
-	@RequestMapping(value = "{id}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<ActivityCategoryResource> getActivityCategory(@PathVariable UUID id)
 	{
 		return createOKResponse(activityCategoryService.getActivityCategory(id));
 	}
 
-	@RequestMapping(method = RequestMethod.GET)
+	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<Resources<ActivityCategoryResource>> getAllActivityCategories()
 	{

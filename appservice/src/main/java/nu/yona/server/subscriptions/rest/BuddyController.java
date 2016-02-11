@@ -45,7 +45,7 @@ import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(BuddyResource.class)
-@RequestMapping(value = "/users/{requestingUserID}/buddies/")
+@RequestMapping(value = "/users/{requestingUserID}/buddies")
 public class BuddyController
 {
 	@Autowired
@@ -61,7 +61,7 @@ public class BuddyController
 	 * @param requestingUserID The ID of the user. This is part of the URL.
 	 * @return the list of buddies for the current user
 	 */
-	@RequestMapping(method = RequestMethod.GET)
+	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<Resources<BuddyResource>> getAllBuddies(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID requestingUserID)
@@ -71,6 +71,41 @@ public class BuddyController
 				() -> new ResponseEntity<Resources<BuddyResource>>(
 						createAllBuddiesCollectionResource(requestingUserID, buddyService.getBuddiesOfUser(requestingUserID)),
 						HttpStatus.OK));
+	}
+
+	@RequestMapping(value = "/{buddyID}", method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID requestingUserID, @PathVariable UUID buddyID)
+	{
+
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
+				() -> createOKResponse(requestingUserID, buddyService.getBuddy(buddyID)));
+	}
+
+	@RequestMapping(value = "/", method = RequestMethod.POST)
+	@ResponseBody
+	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID requestingUserID, @RequestBody BuddyDTO buddy)
+	{
+		return CryptoSession
+				.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
+						() -> createResponse(requestingUserID,
+								buddyService.addBuddyToRequestingUser(requestingUserID, buddy, this::getInviteURL),
+								HttpStatus.CREATED));
+	}
+
+	@RequestMapping(value = "/{buddyID}", method = RequestMethod.DELETE)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	public void removeBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID requestingUserID, @PathVariable UUID buddyID,
+			@RequestParam(value = "message", required = false) String messageStr)
+	{
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID), () -> {
+			buddyService.removeBuddy(requestingUserID, buddyID, Optional.ofNullable(messageStr));
+			return null;
+		});
 	}
 
 	public static Resources<BuddyResource> createAllBuddiesCollectionResource(UUID userID, Set<BuddyDTO> allBuddiesOfUser)
@@ -83,41 +118,6 @@ public class BuddyController
 	{
 		BuddyController methodOn = methodOn(BuddyController.class);
 		return linkTo(methodOn.getAllBuddies(null, requestingUserID));
-	}
-
-	@RequestMapping(value = "{buddyID}", method = RequestMethod.GET)
-	@ResponseBody
-	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID requestingUserID, @PathVariable UUID buddyID)
-	{
-
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
-				() -> createOKResponse(requestingUserID, buddyService.getBuddy(buddyID)));
-	}
-
-	@RequestMapping(method = RequestMethod.POST)
-	@ResponseBody
-	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID requestingUserID, @RequestBody BuddyDTO buddy)
-	{
-		return CryptoSession
-				.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
-						() -> createResponse(requestingUserID,
-								buddyService.addBuddyToRequestingUser(requestingUserID, buddy, this::getInviteURL),
-								HttpStatus.CREATED));
-	}
-
-	@RequestMapping(value = "{buddyID}", method = RequestMethod.DELETE)
-	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
-	public void removeBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID requestingUserID, @PathVariable UUID buddyID,
-			@RequestParam(value = "message", required = false) String messageStr)
-	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID), () -> {
-			buddyService.removeBuddy(requestingUserID, buddyID, Optional.ofNullable(messageStr));
-			return null;
-		});
 	}
 
 	public String getInviteURL(UUID newUserID, String tempPassword)
