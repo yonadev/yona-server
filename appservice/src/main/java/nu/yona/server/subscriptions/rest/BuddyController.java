@@ -45,7 +45,7 @@ import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(BuddyResource.class)
-@RequestMapping(value = "/users/{requestingUserID}/buddies/")
+@RequestMapping(value = "/users/{requestingUserID}/buddies")
 public class BuddyController
 {
 	@Autowired
@@ -61,7 +61,7 @@ public class BuddyController
 	 * @param requestingUserID The ID of the user. This is part of the URL.
 	 * @return the list of buddies for the current user
 	 */
-	@RequestMapping(method = RequestMethod.GET)
+	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<Resources<BuddyResource>> getAllBuddies(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID requestingUserID)
@@ -73,7 +73,7 @@ public class BuddyController
 						HttpStatus.OK));
 	}
 
-	@RequestMapping(value = "{buddyID}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{buddyID}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID requestingUserID, @PathVariable UUID buddyID)
@@ -83,7 +83,7 @@ public class BuddyController
 				() -> createOKResponse(requestingUserID, buddyService.getBuddy(buddyID)));
 	}
 
-	@RequestMapping(method = RequestMethod.POST)
+	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID requestingUserID, @RequestBody BuddyDTO buddy)
@@ -95,7 +95,7 @@ public class BuddyController
 								HttpStatus.CREATED));
 	}
 
-	@RequestMapping(value = "{buddyID}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/{buddyID}", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public void removeBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,

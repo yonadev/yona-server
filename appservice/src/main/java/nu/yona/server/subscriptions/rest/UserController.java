@@ -55,7 +55,7 @@ import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(UserResource.class)
-@RequestMapping(value = "/users/")
+@RequestMapping(value = "/users")
 public class UserController
 {
 	@Autowired
@@ -73,7 +73,7 @@ public class UserController
 	@Autowired
 	private YonaProperties yonaProperties;
 
-	@RequestMapping(value = "{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
+	@RequestMapping(value = "/{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr,
@@ -94,7 +94,7 @@ public class UserController
 		}
 	}
 
-	@RequestMapping(value = "{id}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getPublicUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID id)
@@ -102,7 +102,7 @@ public class UserController
 		return createOKResponse(userService.getPublicUser(id), false);
 	}
 
-	@RequestMapping(method = RequestMethod.POST)
+	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
 	public HttpEntity<UserResource> addUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
@@ -114,7 +114,7 @@ public class UserController
 				() -> addUser(password, Optional.ofNullable(overwriteUserConfirmationCode), user));
 	}
 
-	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
+	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr, @PathVariable UUID id,
@@ -134,7 +134,7 @@ public class UserController
 		}
 	}
 
-	@RequestMapping(value = "{id}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
@@ -146,7 +146,7 @@ public class UserController
 		});
 	}
 
-	@RequestMapping(value = "{userID}/confirmMobileNumber", method = RequestMethod.POST)
+	@RequestMapping(value = "/{userID}/confirmMobileNumber", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<UserResource> confirmMobileNumber(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
@@ -158,7 +158,7 @@ public class UserController
 				() -> createOKResponse(userService.confirmMobileNumber(userID, mobileNumberConfirmation.getCode()), false));
 	}
 
-	@RequestMapping(method = RequestMethod.PUT)
+	@RequestMapping(value = "/", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<Resource<OverwriteUserDTO>> setOverwriteUserConfirmationCode(@RequestParam String mobileNumber)
 	{
@@ -166,7 +166,7 @@ public class UserController
 				new Resource<OverwriteUserDTO>(userService.setOverwriteUserConfirmationCode(mobileNumber)), HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "{userID}/newDeviceRequest", method = RequestMethod.PUT)
+	@RequestMapping(value = "/{userID}/newDeviceRequest", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<NewDeviceRequestResource> setNewDeviceRequestForUser(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
@@ -179,7 +179,7 @@ public class UserController
 				newDeviceRequestResult.getIsUpdatingExistingRequest() ? HttpStatus.OK : HttpStatus.CREATED);
 	}
 
-	@RequestMapping(value = "{userID}/newDeviceRequest", params = { "userSecret" }, method = RequestMethod.GET)
+	@RequestMapping(value = "/{userID}/newDeviceRequest", params = { "userSecret" }, method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(@PathVariable UUID userID,
@@ -189,7 +189,7 @@ public class UserController
 				getNewDeviceRequestLinkBuilder(userID), HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "{userID}/newDeviceRequest", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/{userID}/newDeviceRequest", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public void clearNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
