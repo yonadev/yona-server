@@ -40,9 +40,9 @@ public class UserPrivateDTO
 		this(nickname, null, null, null, null, deviceNames, goals, null, null, new VPNProfileDTO(null));
 	}
 
-	UserPrivateDTO(String nickname, UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
-			UUID anonymousMessageDestinationID, Set<String> deviceNames, Set<GoalDTO> goals, Set<UUID> buddyIDs,
-			UUID userAnonymizedID, VPNProfileDTO vpnProfile)
+	public UserPrivateDTO(String nickname, UUID namedMessageSourceID, UUID namedMessageDestinationID,
+			UUID anonymousMessageSourceID, UUID anonymousMessageDestinationID, Set<String> deviceNames, Set<GoalDTO> goals,
+			Set<UUID> buddyIDs, UUID userAnonymizedID, VPNProfileDTO vpnProfile)
 	{
 		this.nickname = nickname;
 		this.namedMessageSourceID = namedMessageSourceID;

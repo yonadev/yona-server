@@ -61,7 +61,7 @@ public class UserDTO
 		this(null, firstName, lastName, emailAddress, mobileNumber, false /* default value, ignored */, privateData);
 	}
 
-	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber,
+	public UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber,
 			boolean isMobileNumberConfirmed, UserPrivateDTO privateData)
 	{
 		this.id = id;
@@ -188,7 +188,7 @@ public class UserDTO
 				userEntity.isMobileNumberConfirmed());
 	}
 
-	public static UserDTO createInstanceWithPrivateData(User userEntity)
+	static UserDTO createInstanceWithPrivateData(User userEntity)
 	{
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickname(),
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSource().getID(),
