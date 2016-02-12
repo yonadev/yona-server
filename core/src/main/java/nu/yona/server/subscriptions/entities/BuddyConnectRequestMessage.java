@@ -66,10 +66,4 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserUserAnonymizedID, nickname,
 				message, buddyID, isRequestingSending, isRequestingReceiving);
 	}
-
-	@Override
-	public boolean canBeDeleted()
-	{
-		return this.status == Status.ACCEPTED || this.status == Status.REJECTED;
-	}
 }

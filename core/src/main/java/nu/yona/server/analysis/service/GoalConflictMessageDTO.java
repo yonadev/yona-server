@@ -102,6 +102,12 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return activityEndTime;
 	}
 
+	@Override
+	public boolean canBeDeleted()
+	{
+		return true;
+	}
+
 	public static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, String nickname)
 	{
 		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), nickname,

@@ -70,6 +70,4 @@ public abstract class Message extends EntityWithID
 	protected abstract void encrypt(Encryptor encryptor);
 
 	protected abstract void decrypt(Decryptor decryptor);
-
-	public abstract boolean canBeDeleted();
 }
