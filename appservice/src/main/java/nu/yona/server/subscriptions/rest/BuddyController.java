@@ -185,7 +185,7 @@ public class BuddyController
 			BuddyResource buddyResource = instantiateResource(buddy);
 			ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(buddy.getID());
 			addSelfLink(selfLinkBuilder, buddyResource);
-			addRemoveLink(selfLinkBuilder, buddyResource);
+			addEditLink(selfLinkBuilder, buddyResource);
 			return buddyResource;
 		}
 
@@ -205,7 +205,7 @@ public class BuddyController
 			buddyResource.add(selfLinkBuilder.withSelfRel());
 		}
 
-		private void addRemoveLink(ControllerLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
+		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
 		{
 			buddyResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
 		}

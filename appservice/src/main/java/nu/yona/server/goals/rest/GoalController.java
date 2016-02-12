@@ -156,7 +156,7 @@ public class GoalController
 			GoalResource goalResource = instantiateResource(goal);
 			ControllerLinkBuilder selfLinkBuilder = getGoalLinkBuilder(userID, goal);
 			addSelfLink(selfLinkBuilder, goalResource);
-			addRemoveLink(selfLinkBuilder, goalResource);
+			addEditLink(selfLinkBuilder, goalResource);
 			return goalResource;
 		}
 
@@ -171,7 +171,7 @@ public class GoalController
 			goalResource.add(selfLinkBuilder.withSelfRel());
 		}
 
-		private void addRemoveLink(ControllerLinkBuilder selfLinkBuilder, GoalResource goalResource)
+		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, GoalResource goalResource)
 		{
 			goalResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
 		}

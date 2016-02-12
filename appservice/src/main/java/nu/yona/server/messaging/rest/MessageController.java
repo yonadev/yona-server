@@ -169,7 +169,7 @@ public class MessageController
 			addRelatedMessageLink(message, messageResource);
 			if (message.canBeDeleted())
 			{
-				addDeleteLink(selfLinkBuilder, messageResource);
+				addEditLink(selfLinkBuilder, messageResource);
 			}
 			return messageResource;
 		}
@@ -194,7 +194,7 @@ public class MessageController
 			messageResource.add(selfLinkBuilder.withSelfRel());
 		}
 
-		private void addDeleteLink(ControllerLinkBuilder selfLinkBuilder, MessageResource messageResource)
+		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, MessageResource messageResource)
 		{
 			messageResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
 		}
