@@ -43,7 +43,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def johnAsCreated = createJohnDoe(ts)
 
 		when:
-		def response = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, johnAsCreated)
+		def response = appService.confirmMobileNumber(appService.&assertUserGetResponseDetailsWithPrivateData, johnAsCreated)
 
 		then:
 		def john = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, johnAsCreated.url, true, johnAsCreated.password)
