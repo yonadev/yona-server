@@ -22,7 +22,9 @@ import org.springframework.stereotype.Service;
 import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.messaging.entities.MessageDestinationRepository;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -34,6 +36,12 @@ public class MessageService
 
 	@Autowired
 	private TheDTOManager dtoManager;
+
+	@Autowired
+	private MessageDestinationRepository messageDestinationRepository;
+
+	@Autowired
+	private MessageSourceRepository messageSourceRepository;
 
 	@Transactional
 	public Page<MessageDTO> getAnonymousMessages(UUID userID, Pageable pageable)
@@ -59,8 +67,8 @@ public class MessageService
 			directMessageDestination.remove(directMessage);
 			anonymousMessageDestination.send(directMessage);
 		}
-		MessageDestination.getRepository().save(directMessageDestination);
-		MessageDestination.getRepository().save(anonymousMessageDestination);
+		messageDestinationRepository.save(directMessageDestination);
+		messageDestinationRepository.save(anonymousMessageDestination);
 	}
 
 	public MessageDTO getAnonymousMessage(UUID userID, UUID messageID)
@@ -101,17 +109,17 @@ public class MessageService
 		}
 
 		destination.remove(message);
-		MessageDestination.getRepository().save(destination);
+		messageDestinationRepository.save(destination);
 	}
 
 	private MessageSource getNamedMessageSource(UserDTO user)
 	{
-		return MessageSource.getRepository().findOne(user.getPrivateData().getNamedMessageSourceID());
+		return messageSourceRepository.findOne(user.getPrivateData().getNamedMessageSourceID());
 	}
 
 	private MessageSource getAnonymousMessageSource(UserDTO user)
 	{
-		return MessageSource.getRepository().findOne(user.getPrivateData().getAnonymousMessageSourceID());
+		return messageSourceRepository.findOne(user.getPrivateData().getAnonymousMessageSourceID());
 	}
 
 	private Page<MessageDTO> wrapAllMessagesAsDTOs(UserDTO user, MessageSource messageSource, Pageable pageable)
@@ -175,9 +183,9 @@ public class MessageService
 	@Transactional
 	public void sendMessage(Message message, MessageDestinationDTO destination)
 	{
-		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getID());
+		MessageDestination destinationEntity = messageDestinationRepository.findOne(destination.getID());
 		destinationEntity.send(message);
-		MessageDestination.getRepository().save(destinationEntity);
+		messageDestinationRepository.save(destinationEntity);
 	}
 
 	@Transactional
@@ -188,8 +196,8 @@ public class MessageService
 			throw new IllegalArgumentException("sentByUserAnonymizedID cannot be null");
 		}
 
-		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getID());
+		MessageDestination destinationEntity = messageDestinationRepository.findOne(destination.getID());
 		destinationEntity.removeMessagesFromUser(sentByUserAnonymizedID);
-		MessageDestination.getRepository().save(destinationEntity);
+		messageDestinationRepository.save(destinationEntity);
 	}
 }

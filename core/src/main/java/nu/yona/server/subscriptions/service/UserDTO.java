@@ -188,7 +188,7 @@ public class UserDTO
 				userEntity.isMobileNumberConfirmed());
 	}
 
-	static UserDTO createInstanceWithPrivateData(User userEntity)
+	public static UserDTO createInstanceWithPrivateData(User userEntity)
 	{
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickname(),
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSource().getID(),
