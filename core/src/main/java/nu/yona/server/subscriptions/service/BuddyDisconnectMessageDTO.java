@@ -10,6 +10,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
@@ -41,6 +42,7 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 		return reason;
 	}
 
+	@JsonIgnore
 	public boolean isProcessed()
 	{
 		return isProcessed;
@@ -55,6 +57,12 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 			possibleActions.add(PROCESS);
 		}
 		return possibleActions;
+	}
+
+	@Override
+	public boolean canBeDeleted()
+	{
+		return this.isProcessed;
 	}
 
 	public static BuddyDisconnectMessageDTO createInstance(UserDTO actingUser, BuddyDisconnectMessage messageEntity)

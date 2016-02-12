@@ -7,7 +7,6 @@
 package nu.yona.server
 
 import groovy.json.*
-import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.User
 
 class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
@@ -16,7 +15,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
-				"+$timestamp", ["Nexus 6"], [BudgetGoal.createNoGoInstance("news"), BudgetGoal.createNoGoInstance("gambling")])
+				"+$timestamp", ["Nexus 6"])
 
 		when:
 		def response = sendBuddyRequestForBob(richard, "+$timestamp")
@@ -83,7 +82,6 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = [BudgetGoal.createNoGoInstance("gambling").convertToJSON()]
 		def response = appService.updateUser(inviteURL, updatedBobJson, newPassword)
 
 		then:
@@ -94,7 +92,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		response.responseData.nickname == newNickname
 		response.responseData.devices.size() == 1
 		response.responseData.devices[0] == "iPhone 6"
-		response.responseData.goals.size() == 0 //TODO: updating of goals is not yet supported
+		!response.responseData._embedded?.goals?._embedded?.budgetGoals
 		!(response.responseData._links.self.href ==~ /tempPassword/)
 		response.responseData.mobileNumberConfirmationCode
 
@@ -112,9 +110,9 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		bobFromGetAfterUpdate.goals.size() == 0 //TODO: updating of goals is not yet supported
 		bobFromGetAfterUpdate.url
 
-		def getDirectMessagesResponse = appService.getDirectMessages(bobFromGetAfterUpdate)
-		getDirectMessagesResponse.status == 400
-		getDirectMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
+		def getMessagesResponse = appService.getMessages(bobFromGetAfterUpdate)
+		getMessagesResponse.status == 400
+		getMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -133,7 +131,6 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = [BudgetGoal.createNoGoInstance("gambling").convertToJSON()]
 		appService.updateUser(inviteURL, updatedBobJson, newPassword)
 		def bobFromGetAfterUpdate = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, bob.url, true, newPassword)
 
@@ -163,15 +160,14 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = [BudgetGoal.createNoGoInstance("gambling").convertToJSON()]
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
 
 		when:
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 
 		then:
-		def getDirectMessagesResponse = appService.getDirectMessages(updatedBob)
-		getDirectMessagesResponse.status == 200
+		def getMessagesResponse = appService.getMessages(updatedBob)
+		getMessagesResponse.status == 200
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -190,7 +186,6 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = [BudgetGoal.createNoGoInstance("gambling").convertToJSON()]
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptURL
@@ -224,7 +219,6 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = [BudgetGoal.createNoGoInstance("gambling").convertToJSON()]
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptURL
@@ -262,7 +256,6 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJSON()
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
-		updatedBobJson.goals = [BudgetGoal.createNoGoInstance("gambling").convertToJSON()]
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptURL
@@ -274,19 +267,19 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
 
 		then:
-		def getAnonMessagesRichardResponse = appService.getAnonymousMessages(richard)
-		getAnonMessagesRichardResponse.status == 200
-		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
-		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
-		getAnonMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].url == "http://www.refdag.nl"
+		def getMessagesRichardResponse = appService.getMessages(richard)
+		getMessagesRichardResponse.status == 200
+		getMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
+		getMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
+		getMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
+		getMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].url == "http://www.refdag.nl"
 
-		def getAnonMessagesBobResponse = appService.getAnonymousMessages(updatedBob)
-		getAnonMessagesBobResponse.status == 200
-		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
-		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].nickname == richard.nickname
-		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
-		getAnonMessagesBobResponse.responseData._embedded.goalConflictMessages[0].url == null
+		def getMessagesBobResponse = appService.getMessages(updatedBob)
+		getMessagesBobResponse.status == 200
+		getMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
+		getMessagesBobResponse.responseData._embedded.goalConflictMessages[0].nickname == richard.nickname
+		getMessagesBobResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
+		getMessagesBobResponse.responseData._embedded.goalConflictMessages[0].url == null
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -302,7 +295,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def john = appService.addUser(this.&assertUserCreationFailedBecauseOfDuplicate, "J o h n", "John", "Doe", "JD",
-				mobileNumberBob, ["Nokia 6310"], [])
+				mobileNumberBob, ["Nokia 6310"])
 
 		then:
 		john == null
@@ -344,13 +337,6 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 				"mobileNumber":"+$timestamp",
 				"devices":[
 					"Nexus 6"
-				],
-				"goals":[
-					{
-						"@class":"budgetGoal",
-						"activityCategoryName":"news",
-						"maxDuration":0
-					}
 				]
 			}""", ["Yona-Password": "New password"], ["tempPassword": "hack"])
 
@@ -392,13 +378,6 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 				"mobileNumber":"+$timestamp",
 				"devices":[
 					"Nexus 6"
-				],
-				"goals":[
-					{
-						"@class":"budgetGoal",
-						"activityCategoryName":"news",
-						"maxDuration":0
-					}
 				]
 			}""", ["Yona-Password": "New password"], ["tempPassword": "hack"])
 

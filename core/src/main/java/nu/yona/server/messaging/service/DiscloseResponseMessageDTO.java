@@ -53,6 +53,12 @@ public class DiscloseResponseMessageDTO extends MessageDTO
 		return nickname;
 	}
 
+	@Override
+	public boolean canBeDeleted()
+	{
+		return true;
+	}
+
 	public static DiscloseResponseMessageDTO createInstance(UserDTO actingUser, DiscloseResponseMessage messageEntity)
 	{
 		return new DiscloseResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.getStatus(),

@@ -74,6 +74,12 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 		return status;
 	}
 
+	@Override
+	public boolean canBeDeleted()
+	{
+		return this.status == Status.DISCLOSE_ACCEPTED || this.status == Status.DISCLOSE_REJECTED;
+	}
+
 	public static DiscloseRequestMessageDTO createInstance(UserDTO actingUser, DiscloseRequestMessage messageEntity)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
@@ -124,19 +130,19 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 		private MessageActionDTO handleAction_Accept(UserDTO actingUser, DiscloseRequestMessage discloseRequestMessageEntity,
 				MessageActionDTO payload)
 		{
-			return updateGoalConflictMessageStatus(actingUser, discloseRequestMessageEntity, GoalConflictMessage.Status.DISCLOSE_ACCEPTED,
-					payload.getProperty("message"));
+			return updateGoalConflictMessageStatus(actingUser, discloseRequestMessageEntity,
+					GoalConflictMessage.Status.DISCLOSE_ACCEPTED, payload.getProperty("message"));
 		}
 
 		private MessageActionDTO handleAction_Reject(UserDTO actingUser, DiscloseRequestMessage discloseRequestMessageEntity,
 				MessageActionDTO payload)
 		{
-			return updateGoalConflictMessageStatus(actingUser, discloseRequestMessageEntity, GoalConflictMessage.Status.DISCLOSE_REJECTED,
-					payload.getProperty("message"));
+			return updateGoalConflictMessageStatus(actingUser, discloseRequestMessageEntity,
+					GoalConflictMessage.Status.DISCLOSE_REJECTED, payload.getProperty("message"));
 		}
 
-		private MessageActionDTO updateGoalConflictMessageStatus(UserDTO actingUser, DiscloseRequestMessage discloseRequestMessageEntity,
-				Status status, String message)
+		private MessageActionDTO updateGoalConflictMessageStatus(UserDTO actingUser,
+				DiscloseRequestMessage discloseRequestMessageEntity, Status status, String message)
 		{
 			GoalConflictMessage targetGoalConflictMessage = discloseRequestMessageEntity.getTargetGoalConflictMessage();
 			targetGoalConflictMessage.setStatus(status);

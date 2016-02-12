@@ -1,1 +1,1 @@
-You have been invited to Yona by ${requestingUserName}. Please check your email!
+You have been invited to Yona by ${requestingUserName}. Please check your email at ${emailAddress}!

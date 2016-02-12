@@ -9,6 +9,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -31,10 +32,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.goals.rest.GoalController;
+import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
@@ -42,7 +46,7 @@ import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(BuddyResource.class)
-@RequestMapping(value = "/users/{requestingUserID}/buddies/")
+@RequestMapping(value = "/users/{requestingUserID}/buddies")
 public class BuddyController
 {
 	@Autowired
@@ -58,24 +62,19 @@ public class BuddyController
 	 * @param requestingUserID The ID of the user. This is part of the URL.
 	 * @return the list of buddies for the current user
 	 */
-	@RequestMapping(method = RequestMethod.GET)
+	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<Resources<BuddyResource>> getAllBuddies(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID requestingUserID)
 	{
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
-				() -> createOKResponse(requestingUserID, buddyService.getBuddiesOfUser(requestingUserID),
-						getAllBuddiesLinkBuilder(requestingUserID)));
+				() -> new ResponseEntity<Resources<BuddyResource>>(
+						createAllBuddiesCollectionResource(requestingUserID, buddyService.getBuddiesOfUser(requestingUserID)),
+						HttpStatus.OK));
 	}
 
-	static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID)
-	{
-		BuddyController methodOn = methodOn(BuddyController.class);
-		return linkTo(methodOn.getAllBuddies(null, requestingUserID));
-	}
-
-	@RequestMapping(value = "{buddyID}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{buddyID}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<BuddyResource> getBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID requestingUserID, @PathVariable UUID buddyID)
@@ -85,7 +84,7 @@ public class BuddyController
 				() -> createOKResponse(requestingUserID, buddyService.getBuddy(buddyID)));
 	}
 
-	@RequestMapping(method = RequestMethod.POST)
+	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID requestingUserID, @RequestBody BuddyDTO buddy)
@@ -97,8 +96,9 @@ public class BuddyController
 								HttpStatus.CREATED));
 	}
 
-	@RequestMapping(value = "{buddyID}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/{buddyID}", method = RequestMethod.DELETE)
 	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
 	public void removeBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID requestingUserID, @PathVariable UUID buddyID,
 			@RequestParam(value = "message", required = false) String messageStr)
@@ -107,6 +107,18 @@ public class BuddyController
 			buddyService.removeBuddy(requestingUserID, buddyID, Optional.ofNullable(messageStr));
 			return null;
 		});
+	}
+
+	public static Resources<BuddyResource> createAllBuddiesCollectionResource(UUID userID, Set<BuddyDTO> allBuddiesOfUser)
+	{
+		return new Resources<>(new BuddyResourceAssembler(userID).toResources(allBuddiesOfUser),
+				getAllBuddiesLinkBuilder(userID).withSelfRel());
+	}
+
+	static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID)
+	{
+		BuddyController methodOn = methodOn(BuddyController.class);
+		return linkTo(methodOn.getAllBuddies(null, requestingUserID));
 	}
 
 	public String getInviteURL(UUID newUserID, String tempPassword)
@@ -124,15 +136,6 @@ public class BuddyController
 		return new ResponseEntity<BuddyResource>(new BuddyResourceAssembler(requestingUserID).toResource(buddy), status);
 	}
 
-	private HttpEntity<Resources<BuddyResource>> createOKResponse(UUID requestingUserID, Set<BuddyDTO> buddies,
-			ControllerLinkBuilder controllerMethodLinkBuilder)
-	{
-		return new ResponseEntity<Resources<BuddyResource>>(
-				new Resources<>(new BuddyResourceAssembler(requestingUserID).toResources(buddies),
-						controllerMethodLinkBuilder.withSelfRel()),
-				HttpStatus.OK);
-	}
-
 	static ControllerLinkBuilder getBuddyLinkBuilder(UUID userID, UUID buddyID)
 	{
 		BuddyController methodOn = methodOn(BuddyController.class);
@@ -147,14 +150,22 @@ public class BuddyController
 		}
 
 		@JsonProperty("_embedded")
-		public Map<String, UserController.UserResource> getEmbeddedResources()
+		public Map<String, Object> getEmbeddedResources()
 		{
 			if (getContent().getUser() == null)
 			{
 				return Collections.emptyMap();
 			}
-			return Collections.singletonMap(BuddyDTO.USER_REL_NAME,
+
+			HashMap<String, Object> result = new HashMap<String, Object>();
+			result.put(BuddyDTO.USER_REL_NAME,
 					new UserController.UserResourceAssembler(false).toResource(getContent().getUser()));
+			if (getContent().getUser() != null && getContent().getGoals() != null)
+			{
+				result.put(BuddyDTO.GOALS_REL_NAME,
+						GoalController.createAllGoalsCollectionResource(getContent().getUser().getID(), getContent().getGoals()));
+			}
+			return result;
 		}
 	}
 
@@ -174,6 +185,7 @@ public class BuddyController
 			BuddyResource buddyResource = instantiateResource(buddy);
 			ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(buddy.getID());
 			addSelfLink(selfLinkBuilder, buddyResource);
+			addEditLink(selfLinkBuilder, buddyResource);
 			return buddyResource;
 		}
 
@@ -191,6 +203,11 @@ public class BuddyController
 		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
 		{
 			buddyResource.add(selfLinkBuilder.withSelfRel());
+		}
+
+		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
+		{
+			buddyResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
 		}
 	}
 }

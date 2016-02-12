@@ -19,8 +19,8 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
 
 		when:
-		def responseRichard = appService.getAnonymousMessages(richard)
-		def responseBob = appService.getAnonymousMessages(bob)
+		def responseRichard = appService.getMessages(richard)
+		def responseBob = appService.getMessages(bob)
 
 		then:
 		responseRichard.status == 200
@@ -53,7 +53,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
-		def goalConflictMessage = appService.getAnonymousMessages(bob).responseData._embedded.goalConflictMessages[0]
+		def goalConflictMessage = appService.getMessages(bob).responseData._embedded.goalConflictMessages[0]
 		def discloseRequestURL = goalConflictMessage._links.requestDisclosure.href
 
 		when:
@@ -66,16 +66,16 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded.affectedMessages[0]._links.self.href == goalConflictMessage._links.self.href
 		response.responseData._embedded.affectedMessages[0].status == "DISCLOSE_REQUESTED"
 		response.responseData._embedded.affectedMessages[0]._links.requestDisclosure == null
-		
-		def getRichardAnonMessagesResponse = appService.getAnonymousMessages(richard)
-		getRichardAnonMessagesResponse.status == 200
-		getRichardAnonMessagesResponse.responseData?._embedded?.discloseRequestMessages
-		def discloseRequestMessages = getRichardAnonMessagesResponse.responseData._embedded.discloseRequestMessages
+
+		def getRichardMessagesResponse = appService.getMessages(richard)
+		getRichardMessagesResponse.status == 200
+		getRichardMessagesResponse.responseData?._embedded?.discloseRequestMessages
+		def discloseRequestMessages = getRichardMessagesResponse.responseData._embedded.discloseRequestMessages
 		discloseRequestMessages.size() == 1
 		discloseRequestMessages[0].status == "DISCLOSE_REQUESTED"
 		discloseRequestMessages[0].targetGoalConflictMessage.activityCategoryName == "gambling"
 		discloseRequestMessages[0].targetGoalConflictMessage.creationTime > (System.currentTimeMillis() - 50000) // TODO Use standard date/time format
-		discloseRequestMessages[0]._links.related.href == getRichardAnonMessagesResponse.responseData._embedded.goalConflictMessages[0]._links.self.href
+		discloseRequestMessages[0]._links.related.href == getRichardMessagesResponse.responseData._embedded.goalConflictMessages[0]._links.self.href
 		discloseRequestMessages[0]._links.accept.href
 		discloseRequestMessages[0]._links.reject.href
 
@@ -91,9 +91,9 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
-		def discloseRequestURL = appService.getAnonymousMessages(bob).responseData._embedded.goalConflictMessages[0]._links.requestDisclosure.href
+		def discloseRequestURL = appService.getMessages(bob).responseData._embedded.goalConflictMessages[0]._links.requestDisclosure.href
 		appService.postMessageActionWithPassword(discloseRequestURL, [ : ], bob.password)
-		def discloseRequestMessage = appService.getAnonymousMessages(richard).responseData._embedded.discloseRequestMessages[0]
+		def discloseRequestMessage = appService.getMessages(richard).responseData._embedded.discloseRequestMessages[0]
 		def discloseRequestAcceptURL = discloseRequestMessage._links.accept.href
 
 		when:
@@ -106,22 +106,34 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded.affectedMessages[0].status == "DISCLOSE_ACCEPTED"
 		response.responseData._embedded.affectedMessages[0]._links.accept == null
 		response.responseData._embedded.affectedMessages[0]._links.reject == null
-		
-		def getRichardAnonMessagesResponse = appService.getAnonymousMessages(richard)
-		getRichardAnonMessagesResponse.status == 200
-		getRichardAnonMessagesResponse.responseData?._embedded?.discloseRequestMessages
-		def discloseRequestMessages = getRichardAnonMessagesResponse.responseData._embedded.discloseRequestMessages
+
+		def getRichardMessagesResponse = appService.getMessages(richard)
+		getRichardMessagesResponse.status == 200
+		getRichardMessagesResponse.responseData?._embedded?.discloseRequestMessages
+		def discloseRequestMessages = getRichardMessagesResponse.responseData._embedded.discloseRequestMessages
 		discloseRequestMessages.size() == 1
 		discloseRequestMessages[0].status == "DISCLOSE_ACCEPTED"
 		discloseRequestMessages[0]._links.accept == null
 		discloseRequestMessages[0]._links.reject == null
 
-		def getBobAnonMessagesResponse = appService.getAnonymousMessages(bob)
-		getBobAnonMessagesResponse.status == 200
-		getBobAnonMessagesResponse.responseData?._embedded?.goalConflictMessages
-		def goalConflictMessages = getBobAnonMessagesResponse.responseData._embedded.goalConflictMessages
+		def getBobMessagesResponse = appService.getMessages(bob)
+		getBobMessagesResponse.status == 200
+		getBobMessagesResponse.responseData?._embedded?.goalConflictMessages
+		def goalConflictMessages = getBobMessagesResponse.responseData._embedded.goalConflictMessages
 		goalConflictMessages[0].url == "http://www.poker.com"
 		goalConflictMessages[0].status == "DISCLOSE_ACCEPTED"
+
+		//check disclose response message
+		getBobMessagesResponse.responseData._embedded.discloseResponseMessages
+		def discloseResponseMessage = getBobMessagesResponse.responseData._embedded.discloseResponseMessages[0]
+		discloseResponseMessage.status == "DISCLOSE_ACCEPTED"
+		discloseResponseMessage.nickname == richard.nickname
+		//check delete
+		discloseResponseMessage._links.edit
+		def deleteResponse = appService.deleteResourceWithPassword(discloseResponseMessage._links.edit.href, bob.password)
+		deleteResponse.status == 200
+		def getBobMessagesResponseAfterDelete = appService.getMessages(bob)
+		!getBobMessagesResponseAfterDelete.responseData._embedded.discloseResponseMessages
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -135,9 +147,9 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
-		def discloseRequestURL = appService.getAnonymousMessages(bob).responseData._embedded.goalConflictMessages[0]._links.requestDisclosure.href
+		def discloseRequestURL = appService.getMessages(bob).responseData._embedded.goalConflictMessages[0]._links.requestDisclosure.href
 		appService.postMessageActionWithPassword(discloseRequestURL, [ : ], bob.password)
-		def discloseRequestMessage = appService.getAnonymousMessages(richard).responseData._embedded.discloseRequestMessages[0]
+		def discloseRequestMessage = appService.getMessages(richard).responseData._embedded.discloseRequestMessages[0]
 		def discloseRequestRejectURL = discloseRequestMessage._links.reject.href
 
 		when:
@@ -150,22 +162,34 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded.affectedMessages[0].status == "DISCLOSE_REJECTED"
 		response.responseData._embedded.affectedMessages[0]._links.accept == null
 		response.responseData._embedded.affectedMessages[0]._links.reject == null
-		
-		def getRichardAnonMessagesResponse = appService.getAnonymousMessages(richard)
-		getRichardAnonMessagesResponse.status == 200
-		getRichardAnonMessagesResponse.responseData?._embedded?.discloseRequestMessages
-		def discloseRequestMessages = getRichardAnonMessagesResponse.responseData._embedded.discloseRequestMessages
+
+		def getRichardMessagesResponse = appService.getMessages(richard)
+		getRichardMessagesResponse.status == 200
+		getRichardMessagesResponse.responseData?._embedded?.discloseRequestMessages
+		def discloseRequestMessages = getRichardMessagesResponse.responseData._embedded.discloseRequestMessages
 		discloseRequestMessages.size() == 1
 		discloseRequestMessages[0].status == "DISCLOSE_REJECTED"
 		discloseRequestMessages[0]._links.accept == null
 		discloseRequestMessages[0]._links.reject == null
 
-		def getBobAnonMessagesResponse = appService.getAnonymousMessages(bob)
-		getBobAnonMessagesResponse.status == 200
-		getBobAnonMessagesResponse.responseData?._embedded?.goalConflictMessages
-		def goalConflictMessages = getBobAnonMessagesResponse.responseData._embedded.goalConflictMessages
+		def getBobMessagesResponse = appService.getMessages(bob)
+		getBobMessagesResponse.status == 200
+		getBobMessagesResponse.responseData?._embedded?.goalConflictMessages
+		def goalConflictMessages = getBobMessagesResponse.responseData._embedded.goalConflictMessages
 		goalConflictMessages[0].url == null
 		goalConflictMessages[0].status == "DISCLOSE_REJECTED"
+
+		//check disclose response message
+		getBobMessagesResponse.responseData._embedded.discloseResponseMessages
+		def discloseResponseMessage = getBobMessagesResponse.responseData._embedded.discloseResponseMessages[0]
+		discloseResponseMessage.status == "DISCLOSE_REJECTED"
+		discloseResponseMessage.nickname == richard.nickname
+		//check delete
+		discloseResponseMessage._links.edit
+		def deleteResponse = appService.deleteResourceWithPassword(discloseResponseMessage._links.edit.href, bob.password)
+		deleteResponse.status == 200
+		def getBobMessagesResponseAfterDelete = appService.getMessages(bob)
+		!getBobMessagesResponseAfterDelete.responseData._embedded.discloseResponseMessages
 
 		cleanup:
 		appService.deleteUser(richard)

@@ -48,10 +48,4 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 		return new BuddyConnectResponseMessage(UUID.randomUUID(), respondingUserID, respondingUserAnonymizedID, nickname, message,
 				buddyID, status);
 	}
-
-	@Override
-	public boolean canBeDeleted()
-	{
-		return this.isProcessed;
-	}
 }

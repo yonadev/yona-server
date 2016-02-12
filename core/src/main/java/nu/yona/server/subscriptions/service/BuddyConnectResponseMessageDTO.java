@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
@@ -58,16 +59,23 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 		return status;
 	}
 
+	@JsonIgnore
 	public boolean isProcessed()
 	{
 		return isProcessed;
 	}
 
+	@Override
+	public boolean canBeDeleted()
+	{
+		return this.isProcessed;
+	}
+
 	public static BuddyConnectResponseMessageDTO createInstance(UserDTO actingUser, BuddyConnectResponseMessage messageEntity)
 	{
 		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getNickname(),
-				messageEntity.getMessage(), messageEntity.getStatus(), messageEntity.isProcessed());
+				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getNickname(), messageEntity.getMessage(),
+				messageEntity.getStatus(), messageEntity.isProcessed());
 	}
 
 	@Component

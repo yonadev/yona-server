@@ -44,7 +44,6 @@ class RejectBuddyTest extends AbstractAppServiceIntegrationTest
 		processResponse.status == 200
 		processResponse.responseData._embedded.affectedMessages.size() == 1
 		processResponse.responseData._embedded.affectedMessages[0]._links.self.href == processResult.selfURL
-		processResponse.responseData._embedded.affectedMessages[0].processed == true
 		processResponse.responseData._embedded.affectedMessages[0]._links.process == null
 
 		// Verify that Bob is not in Richard's buddy list anymore

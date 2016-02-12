@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
  */
 public class JsonRootRelProvider implements RelProvider
 {
+	public static final String EDIT_REL = "edit";
 
 	private DefaultRelProvider defaultRelProvider = new DefaultRelProvider();
 

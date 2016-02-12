@@ -12,13 +12,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.security.SecurityFilterAutoConfiguration;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.hateoas.Resources;
-import org.springframework.hateoas.config.EnableHypermediaSupport;
-import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
 import org.springframework.http.HttpEntity;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -37,10 +34,8 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @ComponentScan("nu.yona.server")
-// Exclude because of https://github.com/spring-projects/spring-boot/issues/4919
-@SpringBootApplication(exclude = { SecurityFilterAutoConfiguration.class })
+@SpringBootApplication
 @EnableSwagger2
-@EnableHypermediaSupport(type = HypermediaType.HAL)
 @EnableCaching
 public class AdminServiceApplication
 {

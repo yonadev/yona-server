@@ -7,13 +7,18 @@
 package nu.yona.server.test
 
 import groovy.json.*
+import nu.yona.server.YonaServer
 
 abstract class Goal
 {
 	final String activityCategoryName
+	final String url
+	final String editURL
 	Goal(def json)
 	{
 		this.activityCategoryName = json.activityCategoryName
+		this.url = json._links ? YonaServer.stripQueryString(json._links.self.href) : null
+		this.editURL = json._links?.edit?.href
 	}
 
 	def abstract convertToJsonString()
@@ -23,14 +28,5 @@ abstract class Goal
 		def jsonStr = convertToJsonString()
 
 		return new JsonSlurper().parseText(jsonStr)
-	}
-
-	static def fromJson(def json)
-	{
-		if(json['@class'] == 'budgetGoal')
-		{
-			return new BudgetGoal(json)
-		}
-		throw new RuntimeException("Goal.fromJson not implemented for goal subclass: " + json['@class'])
 	}
 }

@@ -49,4 +49,7 @@ public abstract class MessageDTO
 
 	@JsonIgnore
 	public abstract Set<String> getPossibleActions();
+
+	@JsonIgnore
+	public abstract boolean canBeDeleted();
 }

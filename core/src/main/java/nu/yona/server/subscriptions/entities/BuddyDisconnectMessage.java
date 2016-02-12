@@ -44,10 +44,4 @@ public class BuddyDisconnectMessage extends BuddyMessage
 	{
 		this.isProcessed = true;
 	}
-
-	@Override
-	public boolean canBeDeleted()
-	{
-		return this.isProcessed;
-	}
 }

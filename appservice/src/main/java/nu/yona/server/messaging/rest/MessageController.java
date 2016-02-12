@@ -41,6 +41,7 @@ import nu.yona.server.messaging.rest.MessageController.MessageResource;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService;
+import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
@@ -54,48 +55,7 @@ public class MessageController
 	@Autowired
 	private UserService userService;
 
-	@RequestMapping(value = "/direct/", method = RequestMethod.GET)
-	@ResponseBody
-	public HttpEntity<PagedResources<MessageResource>> getDirectMessages(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, Pageable pageable,
-			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
-	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(pagedResourcesAssembler.toResource(messageService.getDirectMessages(userID, pageable),
-						new MessageResourceAssembler(userID))));
-	}
-
-	@RequestMapping(value = "/direct/{messageID}", method = RequestMethod.GET)
-	@ResponseBody
-	public HttpEntity<MessageResource> getDirectMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userID, @PathVariable UUID messageID)
-	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
-				new MessageResourceAssembler(userID).toResource(messageService.getDirectMessage(userID, messageID))));
-	}
-
-	@RequestMapping(value = "/direct/{id}/{action}", method = RequestMethod.POST)
-	@ResponseBody
-	public HttpEntity<MessageActionResource> handleMessageAction(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, @PathVariable UUID id,
-			@PathVariable String action, @RequestBody MessageActionDTO requestPayload)
-	{
-
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
-				new MessageActionResource(messageService.handleMessageAction(userID, id, action, requestPayload), userID)));
-	}
-
-	@RequestMapping(value = "/direct/{messageID}", method = RequestMethod.DELETE)
-	@ResponseBody
-	public HttpEntity<MessageActionResource> deleteMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userID, @PathVariable UUID messageID)
-	{
-
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(new MessageActionResource(messageService.deleteMessage(userID, messageID), userID)));
-	}
-
-	@RequestMapping(value = "/anonymous/", method = RequestMethod.GET)
+	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<PagedResources<MessageResource>> getAnonymousMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, Pageable pageable,
@@ -107,7 +67,7 @@ public class MessageController
 						new MessageResourceAssembler(userID))));
 	}
 
-	@RequestMapping(value = "/anonymous/{messageID}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{messageID}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<MessageResource> getAnonymousMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userID, @PathVariable UUID messageID)
@@ -118,7 +78,7 @@ public class MessageController
 
 	}
 
-	@RequestMapping(value = "/anonymous/{id}/{action}", method = RequestMethod.POST)
+	@RequestMapping(value = "/{id}/{action}", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<MessageActionResource> handleAnonymousMessageAction(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, @PathVariable UUID id,
@@ -130,7 +90,7 @@ public class MessageController
 						messageService.handleAnonymousMessageAction(userID, id, action, requestPayload), userID)));
 	}
 
-	@RequestMapping(value = "/anonymous/{messageID}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/{messageID}", method = RequestMethod.DELETE)
 	@ResponseBody
 	public HttpEntity<MessageActionResource> deleteAnonymousMessage(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
@@ -156,11 +116,10 @@ public class MessageController
 		return new ResponseEntity<MessageActionResource>(messageAction, HttpStatus.OK);
 	}
 
-	static ControllerLinkBuilder getMessageLinkBuilder(boolean isDirect, UUID userID, UUID messageID)
+	static ControllerLinkBuilder getAnonymousMessageLinkBuilder(UUID userID, UUID messageID)
 	{
 		MessageController methodOn = methodOn(MessageController.class);
-		return linkTo(isDirect ? methodOn.getDirectMessage(Optional.empty(), userID, messageID)
-				: methodOn.getAnonymousMessage(Optional.empty(), userID, messageID));
+		return linkTo(methodOn.getAnonymousMessage(Optional.empty(), userID, messageID));
 	}
 
 	static class MessageActionResource extends Resource<MessageActionDTO>
@@ -204,11 +163,14 @@ public class MessageController
 		public MessageResource toResource(MessageDTO message)
 		{
 			MessageResource messageResource = instantiateResource(message);
-			ControllerLinkBuilder selfLinkBuilder = getMessageLinkBuilder(MessageService.isDirectMessage(message), userID,
-					message.getID());
+			ControllerLinkBuilder selfLinkBuilder = getAnonymousMessageLinkBuilder(userID, message.getID());
 			addSelfLink(selfLinkBuilder, messageResource);
 			addActionLinks(selfLinkBuilder, messageResource);
 			addRelatedMessageLink(message, messageResource);
+			if (message.canBeDeleted())
+			{
+				addEditLink(selfLinkBuilder, messageResource);
+			}
 			return messageResource;
 		}
 
@@ -217,7 +179,7 @@ public class MessageController
 			if (message.getRelatedAnonymousMessageID() != null)
 			{
 				messageResource
-						.add(getMessageLinkBuilder(false, userID, message.getRelatedAnonymousMessageID()).withRel("related"));
+						.add(getAnonymousMessageLinkBuilder(userID, message.getRelatedAnonymousMessageID()).withRel("related"));
 			}
 		}
 
@@ -230,6 +192,11 @@ public class MessageController
 		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, MessageResource messageResource)
 		{
 			messageResource.add(selfLinkBuilder.withSelfRel());
+		}
+
+		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, MessageResource messageResource)
+		{
+			messageResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
 		}
 
 		private void addActionLinks(ControllerLinkBuilder selfLinkBuilder, MessageResource messageResource)

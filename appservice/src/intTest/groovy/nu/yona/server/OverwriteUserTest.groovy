@@ -7,7 +7,6 @@
 package nu.yona.server
 
 import groovy.json.*
-import nu.yona.server.test.BudgetGoal
 
 class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 {
@@ -18,7 +17,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def duplicateUser = appService.addUser(this.&userExistsAsserter, "A n o t h e r", "The", "Next", "TN",
-				"$richard.mobileNumber", ["Nexus 6"], [BudgetGoal.createNoGoInstance("news"), BudgetGoal.createNoGoInstance("gambling")])
+				"$richard.mobileNumber", ["Nexus 6"])
 
 		then:
 		duplicateUser == null
@@ -60,7 +59,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
-				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"], [BudgetGoal.createNoGoInstance("news")],
+				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"],
 				["overwriteUserConfirmationCode": confirmationCode])
 
 		then:
@@ -70,15 +69,14 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		richardChanged.nickname == "${richard.nickname}Changed"
 		richardChanged.mobileNumber == richard.mobileNumber
 		richardChanged.devices == ["Nokia"]
-		richardChanged.goals.size() == 1
-		richardChanged.goals[0].activityCategoryName == "news"
+		richardChanged.goals.size() == 0
 
-		def getAnonMessagesResponse = appService.getAnonymousMessages(bob.url, bob.password)
-		getAnonMessagesResponse.status == 200
-		getAnonMessagesResponse.responseData._embedded.goalConflictMessages.size() == 1
-		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].nickname == richard.nickname
-		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
-		getAnonMessagesResponse.responseData._embedded.goalConflictMessages[0].url == null
+		def getMessagesResponse = appService.getMessages(bob.url, bob.password)
+		getMessagesResponse.status == 200
+		getMessagesResponse.responseData._embedded.goalConflictMessages.size() == 1
+		getMessagesResponse.responseData._embedded.goalConflictMessages[0].nickname == richard.nickname
+		getMessagesResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "news"
+		getMessagesResponse.responseData._embedded.goalConflictMessages[0].url == null
 
 		def buddies = appService.getBuddies(bob)
 		buddies.size() == 1
@@ -100,7 +98,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def bob = richardAndBob.bob
 		def confirmationCode = appService.requestOverwriteUser(richard.mobileNumber)?.responseData?.confirmationCode
 		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
-				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"], [BudgetGoal.createNoGoInstance("news")],
+				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"],
 				["overwriteUserConfirmationCode": confirmationCode])
 
 		when:
@@ -122,7 +120,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def bob = richardAndBob.bob
 		def confirmationCode = appService.requestOverwriteUser(richard.mobileNumber)?.responseData?.confirmationCode
 		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
-				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"], [BudgetGoal.createNoGoInstance("news")],
+				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"],
 				["overwriteUserConfirmationCode": confirmationCode])
 		def buddy = appService.getBuddies(bob)[0]
 
@@ -149,13 +147,6 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 						"mobileNumber":"${userCreationMobileNumber}",
 						"devices":[
 							"Galaxy mini"
-						],
-						"goals":[
-							{
-								"@class": "budgetGoal",
-								"activityCategoryName": "gambling",
-								"maxDuration": 0
-							}
 						]}"""
 
 		def userAddResponse = appService.addUser(userCreationJSON, "Password")

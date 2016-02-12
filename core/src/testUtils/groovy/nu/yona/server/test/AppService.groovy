@@ -14,11 +14,10 @@ class AppService extends Service
 	final ACTIVITY_CATEGORIES_PATH = "/activityCategories/"
 	final USERS_PATH = "/users/"
 	final BUDDIES_PATH_FRAGMENT = "/buddies/"
-	final DIRECT_MESSAGES_PATH_FRAGMENT = "/messages/direct/"
-	final ANONYMOUS_MESSAGES_PATH_FRAGMENT = "/messages/anonymous/"
-	final ALL_MESSAGES_PATH_FRAGMENT = "/messages/all/"
+	final MESSAGES_PATH_FRAGMENT = "/messages/"
 	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
 	final MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT = "/confirmMobileNumber"
+	final GOALS_PATH_FRAGMENT = "/goals/"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 
@@ -33,9 +32,9 @@ class AppService extends Service
 		asserter(response)
 	}
 
-	def addUser(Closure asserter, password, firstName, lastName, nickname, mobileNumber, devices, goals, parameters = [:])
+	def addUser(Closure asserter, password, firstName, lastName, nickname, mobileNumber, devices, parameters = [:])
 	{
-		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber, devices, goals, [])
+		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber, devices)
 		def response = addUser(jsonStr, password, parameters)
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData, password) : null
@@ -195,7 +194,7 @@ class AppService extends Service
 	def fetchBuddyConnectRequestMessage(User user)
 	{
 		// Have the other user fetch the buddy connect request
-		def response = getDirectMessages(user)
+		def response = getMessages(user)
 		assert response.status == 200
 		assert response.responseData._embedded
 
@@ -228,7 +227,7 @@ class AppService extends Service
 	def fetchBuddyConnectResponseMessage(User user)
 	{
 		// Have the requesting user fetch the buddy connect response
-		def response = getAnonymousMessages(user)
+		def response = getMessages(user)
 		assert response.status == 200
 		assert response.responseData._embedded
 		assert response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
@@ -298,12 +297,12 @@ class AppService extends Service
 		{
 			return null
 		}
-		def response = yonaServer.deleteResourceWithPassword(user.url, user.password, ["message":message])
+		def response = yonaServer.deleteResourceWithPassword(user.editURL, user.password, ["message":message])
 	}
 
-	def deleteUser(userURL, password, message = "")
+	def deleteUser(userEditURL, password, message = "")
 	{
-		yonaServer.deleteResourceWithPassword(userURL, password, ["message":message])
+		yonaServer.deleteResourceWithPassword(userEditURL, password, ["message":message])
 	}
 
 	def requestBuddy(userPath, jsonString, password)
@@ -313,12 +312,12 @@ class AppService extends Service
 
 	def removeBuddy(User user, Buddy buddy, message)
 	{
-		removeBuddy(buddy.url, user.password, message)
+		removeBuddy(buddy.editURL, user.password, message)
 	}
 
-	def removeBuddy(buddyURL, password, message)
+	def removeBuddy(buddyEditURL, password, message)
 	{
-		yonaServer.deleteResourceWithPassword(buddyURL, password, ["message":message])
+		yonaServer.deleteResourceWithPassword(buddyEditURL, password, ["message":message])
 	}
 
 	def getAllActivityCategories()
@@ -330,6 +329,7 @@ class AppService extends Service
 	{
 		def response = yonaServer.getResourceWithPassword(user.url + BUDDIES_PATH_FRAGMENT, user.password)
 		assert response.status == 200
+		assert response.responseData._links?.self?.href == user.url + BUDDIES_PATH_FRAGMENT
 
 		if (!response.responseData._embedded?.buddies)
 		{
@@ -343,24 +343,14 @@ class AppService extends Service
 		yonaServer.getResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, password)
 	}
 
-	def getDirectMessages(User user, parameters = [:])
+	def getMessages(User user, parameters = [:])
 	{
-		getDirectMessages(user.url, user.password, parameters)
+		getMessages(user.url, user.password, parameters)
 	}
 
-	def getDirectMessages(userPath, password, parameters = [:])
+	def getMessages(userPath, password, parameters = [:])
 	{
-		yonaServer.getResourceWithPassword(userPath + DIRECT_MESSAGES_PATH_FRAGMENT, password, parameters)
-	}
-
-	def getAnonymousMessages(User user, parameters = [:])
-	{
-		getAnonymousMessages(user.url, user.password, parameters)
-	}
-
-	def getAnonymousMessages(userPath, password, parameters = [:])
-	{
-		yonaServer.getResourceWithPassword(userPath + ANONYMOUS_MESSAGES_PATH_FRAGMENT, password, parameters)
+		yonaServer.getResourceWithPassword(userPath + MESSAGES_PATH_FRAGMENT, password, parameters)
 	}
 
 	def setNewDeviceRequest(userPath, password, userSecret)
@@ -374,9 +364,31 @@ class AppService extends Service
 		yonaServer.getResource(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, [:], ["userSecret": userSecret])
 	}
 
-	def clearNewDeviceRequest(userPath, password)
+	def clearNewDeviceRequest(deviceRequestEditURL, password)
 	{
-		yonaServer.deleteResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, password)
+		yonaServer.deleteResourceWithPassword(deviceRequestEditURL, password)
+	}
+
+	def addBudgetGoal(Closure asserter, User user, BudgetGoal goal)
+	{
+		def response = addBudgetGoal(user, goal)
+		asserter(response)
+		return (isSuccess(response)) ? new BudgetGoal(response.responseData) : null
+	}
+
+	def addBudgetGoal(User user, BudgetGoal goal)
+	{
+		yonaServer.postJson(user.url + GOALS_PATH_FRAGMENT + "budgetGoals/", goal.convertToJsonString(), ["Yona-Password": user.password])
+	}
+
+	def removeBudgetGoal(User user, BudgetGoal goal)
+	{
+		yonaServer.deleteResourceWithPassword(goal.editURL, user.password)
+	}
+
+	def getGoals(User user)
+	{
+		yonaServer.getResource(user.url + GOALS_PATH_FRAGMENT, ["Yona-Password": user.password])
 	}
 
 	def postMessageActionWithPassword(path, properties, password)

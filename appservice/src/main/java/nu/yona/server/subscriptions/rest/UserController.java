@@ -9,7 +9,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -41,8 +41,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import nu.yona.server.BruteForceAttemptService;
 import nu.yona.server.DOSProtectionService;
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.goals.rest.GoalController;
+import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
+import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
@@ -53,7 +56,7 @@ import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(UserResource.class)
-@RequestMapping(value = "/users/")
+@RequestMapping(value = "/users")
 public class UserController
 {
 	@Autowired
@@ -71,7 +74,7 @@ public class UserController
 	@Autowired
 	private YonaProperties yonaProperties;
 
-	@RequestMapping(value = "{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
+	@RequestMapping(value = "/{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr,
@@ -92,7 +95,7 @@ public class UserController
 		}
 	}
 
-	@RequestMapping(value = "{id}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getPublicUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID id)
@@ -100,15 +103,7 @@ public class UserController
 		return createOKResponse(userService.getPublicUser(id), false);
 	}
 
-	@RequestMapping(method = RequestMethod.PUT)
-	@ResponseBody
-	public HttpEntity<Resource<OverwriteUserDTO>> setOverwriteUserConfirmationCode(@RequestParam String mobileNumber)
-	{
-		return new ResponseEntity<Resource<OverwriteUserDTO>>(
-				new Resource<OverwriteUserDTO>(userService.setOverwriteUserConfirmationCode(mobileNumber)), HttpStatus.OK);
-	}
-
-	@RequestMapping(method = RequestMethod.POST)
+	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
 	public HttpEntity<UserResource> addUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
@@ -120,90 +115,7 @@ public class UserController
 				() -> addUser(password, Optional.ofNullable(overwriteUserConfirmationCode), user));
 	}
 
-	static ControllerLinkBuilder getAddUserLinkBuilder()
-	{
-		UserController methodOn = methodOn(UserController.class);
-		return linkTo(methodOn.addUser(Optional.empty(), null, null, null));
-	}
-
-	private void checkPassword(Optional<String> password, UUID userID)
-	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> null);
-	}
-
-	@RequestMapping(value = "{userID}/confirmMobileNumber", method = RequestMethod.POST)
-	@ResponseBody
-	public HttpEntity<UserResource> confirmMobileNumber(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
-			@RequestBody MobileNumberConfirmationDTO mobileNumberConfirmation)
-	{
-		checkPassword(password, userID);
-		return bruteForceAttemptService.executeAttempt(getConfirmMobileNumberLinkBuilder(userID).toUri(),
-				yonaProperties.getSms().getMobileNumberConfirmationMaxAttempts(),
-				() -> createOKResponse(userService.confirmMobileNumber(userID, mobileNumberConfirmation.getCode()), false));
-	}
-
-	static ControllerLinkBuilder getConfirmMobileNumberLinkBuilder(UUID userID)
-	{
-		UserController methodOn = methodOn(UserController.class);
-		return linkTo(methodOn.confirmMobileNumber(Optional.empty(), userID, null));
-	}
-
-	@RequestMapping(value = "{userID}/newDeviceRequest", method = RequestMethod.PUT)
-	@ResponseBody
-	public HttpEntity<NewDeviceRequestResource> setNewDeviceRequestForUser(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
-			@RequestBody NewDeviceRequestCreationDTO newDeviceRequestCreation)
-	{
-		checkPassword(password, userID);
-		NewDeviceRequestDTO newDeviceRequestResult = userService.setNewDeviceRequestForUser(userID, password.get(),
-				newDeviceRequestCreation.getUserSecret());
-		return createNewDeviceRequestResponse(newDeviceRequestResult, getNewDeviceRequestLinkBuilder(userID),
-				newDeviceRequestResult.getIsUpdatingExistingRequest() ? HttpStatus.OK : HttpStatus.CREATED);
-	}
-
-	@RequestMapping(value = "{userID}/newDeviceRequest", params = { "userSecret" }, method = RequestMethod.GET)
-	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
-	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(@PathVariable UUID userID,
-			@RequestParam(value = "userSecret", required = false) String userSecret)
-	{
-		return createNewDeviceRequestResponse(userService.getNewDeviceRequestForUser(userID, userSecret),
-				getNewDeviceRequestLinkBuilder(userID), HttpStatus.OK);
-	}
-
-	@RequestMapping(value = "{userID}/newDeviceRequest", method = RequestMethod.DELETE)
-	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
-	public void clearNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userID)
-	{
-		checkPassword(password, userID);
-		userService.clearNewDeviceRequestForUser(userID);
-	}
-
-	static ControllerLinkBuilder getNewDeviceRequestLinkBuilder(UUID userID)
-	{
-		UserController methodOn = methodOn(UserController.class);
-		return linkTo(methodOn.getNewDeviceRequestForUser(userID, null));
-	}
-
-	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(NewDeviceRequestDTO newDeviceRequest,
-			ControllerLinkBuilder entityLinkBuilder, HttpStatus statusCode)
-	{
-		return new ResponseEntity<NewDeviceRequestResource>(new NewDeviceRequestResource(newDeviceRequest, entityLinkBuilder),
-				statusCode);
-	}
-
-	public static class NewDeviceRequestResource extends Resource<NewDeviceRequestDTO>
-	{
-		public NewDeviceRequestResource(NewDeviceRequestDTO newDeviceRequest, ControllerLinkBuilder entityLinkBuilder)
-		{
-			super(newDeviceRequest, entityLinkBuilder.withSelfRel());
-		}
-	}
-
-	@RequestMapping(value = "{id}", method = RequestMethod.PUT)
+	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr, @PathVariable UUID id,
@@ -223,7 +135,7 @@ public class UserController
 		}
 	}
 
-	@RequestMapping(value = "{id}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
@@ -233,6 +145,98 @@ public class UserController
 			userService.deleteUser(id, Optional.ofNullable(messageStr));
 			return null;
 		});
+	}
+
+	@RequestMapping(value = "/{userID}/confirmMobileNumber", method = RequestMethod.POST)
+	@ResponseBody
+	public HttpEntity<UserResource> confirmMobileNumber(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@RequestBody MobileNumberConfirmationDTO mobileNumberConfirmation)
+	{
+		checkPassword(password, userID);
+		return bruteForceAttemptService.executeAttempt(getConfirmMobileNumberLinkBuilder(userID).toUri(),
+				yonaProperties.getSms().getMobileNumberConfirmationMaxAttempts(),
+				() -> createOKResponse(userService.confirmMobileNumber(userID, mobileNumberConfirmation.getCode()), false));
+	}
+
+	@RequestMapping(value = "/", method = RequestMethod.PUT)
+	@ResponseBody
+	public HttpEntity<Resource<OverwriteUserDTO>> setOverwriteUserConfirmationCode(@RequestParam String mobileNumber)
+	{
+		return new ResponseEntity<Resource<OverwriteUserDTO>>(
+				new Resource<OverwriteUserDTO>(userService.setOverwriteUserConfirmationCode(mobileNumber)), HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/{userID}/newDeviceRequest", method = RequestMethod.PUT)
+	@ResponseBody
+	public HttpEntity<NewDeviceRequestResource> setNewDeviceRequestForUser(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@RequestBody NewDeviceRequestCreationDTO newDeviceRequestCreation)
+	{
+		checkPassword(password, userID);
+		NewDeviceRequestDTO newDeviceRequestResult = userService.setNewDeviceRequestForUser(userID, password.get(),
+				newDeviceRequestCreation.getUserSecret());
+		return createNewDeviceRequestResponse(newDeviceRequestResult, getNewDeviceRequestLinkBuilder(userID),
+				newDeviceRequestResult.getIsUpdatingExistingRequest() ? HttpStatus.OK : HttpStatus.CREATED);
+	}
+
+	@RequestMapping(value = "/{userID}/newDeviceRequest", params = { "userSecret" }, method = RequestMethod.GET)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(@PathVariable UUID userID,
+			@RequestParam(value = "userSecret", required = false) String userSecret)
+	{
+		return createNewDeviceRequestResponse(userService.getNewDeviceRequestForUser(userID, userSecret),
+				getNewDeviceRequestLinkBuilder(userID), HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/{userID}/newDeviceRequest", method = RequestMethod.DELETE)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	public void clearNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userID)
+	{
+		checkPassword(password, userID);
+		userService.clearNewDeviceRequestForUser(userID);
+	}
+
+	static ControllerLinkBuilder getAddUserLinkBuilder()
+	{
+		UserController methodOn = methodOn(UserController.class);
+		return linkTo(methodOn.addUser(Optional.empty(), null, null, null));
+	}
+
+	private void checkPassword(Optional<String> password, UUID userID)
+	{
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> null);
+	}
+
+	static ControllerLinkBuilder getConfirmMobileNumberLinkBuilder(UUID userID)
+	{
+		UserController methodOn = methodOn(UserController.class);
+		return linkTo(methodOn.confirmMobileNumber(Optional.empty(), userID, null));
+	}
+
+	static ControllerLinkBuilder getNewDeviceRequestLinkBuilder(UUID userID)
+	{
+		UserController methodOn = methodOn(UserController.class);
+		return linkTo(methodOn.getNewDeviceRequestForUser(userID, null));
+	}
+
+	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(NewDeviceRequestDTO newDeviceRequest,
+			ControllerLinkBuilder entityLinkBuilder, HttpStatus statusCode)
+	{
+		return new ResponseEntity<NewDeviceRequestResource>(new NewDeviceRequestResource(newDeviceRequest, entityLinkBuilder),
+				statusCode);
+	}
+
+	public static class NewDeviceRequestResource extends Resource<NewDeviceRequestDTO>
+	{
+		public NewDeviceRequestResource(NewDeviceRequestDTO newDeviceRequest, ControllerLinkBuilder entityLinkBuilder)
+		{
+			super(newDeviceRequest, entityLinkBuilder.withSelfRel(),
+					entityLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL) /* always editable */);
+		}
 	}
 
 	private HttpEntity<UserResource> addUser(Optional<String> password, Optional<String> overwriteUserConfirmationCode,
@@ -318,7 +322,7 @@ public class UserController
 		}
 
 		@JsonProperty("_embedded")
-		public Map<String, List<BuddyController.BuddyResource>> getEmbeddedResources()
+		public Map<String, Object> getEmbeddedResources()
 		{
 			if (getContent().getPrivateData() == null)
 			{
@@ -326,8 +330,14 @@ public class UserController
 			}
 
 			Set<BuddyDTO> buddies = getContent().getPrivateData().getBuddies();
-			return Collections.singletonMap(UserDTO.BUDDIES_REL_NAME,
-					new BuddyController.BuddyResourceAssembler(getContent().getID()).toResources(buddies));
+			HashMap<String, Object> result = new HashMap<String, Object>();
+			result.put(UserDTO.BUDDIES_REL_NAME,
+					BuddyController.createAllBuddiesCollectionResource(getContent().getID(), buddies));
+
+			Set<GoalDTO> goals = getContent().getPrivateData().getGoals();
+			result.put(UserDTO.GOALS_REL_NAME, GoalController.createAllGoalsCollectionResource(getContent().getID(), goals));
+
+			return result;
 		}
 
 		static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID)
@@ -357,6 +367,10 @@ public class UserController
 				// The mobile number is not yet confirmed, so we can add the link
 				addConfirmMobileNumberLink(userResource, user.getMobileNumberConfirmationCode());
 			}
+			if (includePrivateData)
+			{
+				addEditLink(userResource);
+			}
 			return userResource;
 		}
 
@@ -375,6 +389,13 @@ public class UserController
 			}
 
 			userResource.add(UserController.getUserSelfLink(userResource.getContent().getID(), includePrivateData));
+		}
+
+		private static void addEditLink(Resource<UserDTO> userResource)
+		{
+			userResource.add(linkTo(
+					methodOn(UserController.class).updateUser(Optional.empty(), null, userResource.getContent().getID(), null))
+							.withRel(JsonRootRelProvider.EDIT_REL));
 		}
 
 		private static void addConfirmMobileNumberLink(Resource<UserDTO> userResource, String confirmationCode)

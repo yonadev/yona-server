@@ -18,5 +18,15 @@
     ],
     "applications": [
     ]
+  },
+  {
+    "name": "social",
+    "mandatory": false,
+    "smoothwallCategories": [
+      "social"
+    ],
+    "applications": [
+      "Facebook"
+    ]
   }
 ]

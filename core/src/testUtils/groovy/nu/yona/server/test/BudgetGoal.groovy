@@ -20,8 +20,9 @@ class BudgetGoal extends Goal
 
 	def convertToJsonString()
 	{
+		def selfLinkString = (url) ? """"_links":{"self":{"href":"$url"}},""" : ""
 		return """{
-			"@class":"budgetGoal",
+			$selfLinkString,
 			"activityCategoryName":"${activityCategoryName}",
 			"maxDuration":"${maxDuration}"
 		}"""

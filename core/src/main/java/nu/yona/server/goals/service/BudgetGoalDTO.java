@@ -40,7 +40,11 @@ public class BudgetGoalDTO extends GoalDTO
 
 	public BudgetGoal createGoalEntity()
 	{
-		return BudgetGoal.createInstance(ActivityCategory.getRepository().findByName(this.getActivityCategoryName()),
-				this.maxDuration);
+		ActivityCategory activityCategory = ActivityCategory.getRepository().findByName(this.getActivityCategoryName());
+		if (activityCategory == null)
+		{
+			throw ActivityCategoryNotFoundException.notFoundByName(this.getActivityCategoryName());
+		}
+		return BudgetGoal.createInstance(activityCategory, this.maxDuration);
 	}
 }
