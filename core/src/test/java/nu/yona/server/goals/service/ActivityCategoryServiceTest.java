@@ -4,6 +4,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,34 +19,24 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.concurrent.ConcurrentMapCache;
-import org.springframework.cache.support.SimpleCacheManager;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.ActivityCategoryRepository;
-import nu.yona.server.goals.service.ActivityCategoryServiceTests.TestConfiguration;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { TestConfiguration.class })
-public class ActivityCategoryServiceTests
+@RunWith(MockitoJUnitRunner.class)
+public class ActivityCategoryServiceTest
 {
 	private Set<ActivityCategory> activityCategories = new HashSet<ActivityCategory>();
 
-	@Autowired
-	ActivityCategoryRepository mockRepository;
-
-	@Autowired
-	private ActivityCategoryService service;
+	@Mock
+	ActivityCategoryRepository mockRepository = mock(ActivityCategoryRepository.class);
+	@InjectMocks
+	private ActivityCategoryService service = new ActivityCategoryService();
 
 	private ActivityCategory gambling;
 	private ActivityCategory news;
@@ -100,41 +91,6 @@ public class ActivityCategoryServiceTests
 	}
 
 	/*
-	 * Tests if the cache is expired after update or delete or add.
-	 */
-	@Test
-	public void caching()
-	{
-		assertGetAllActivityCategoriesResult("Initial", "gambling", "news");
-
-		ActivityCategory gaming = ActivityCategory.createInstance("gaming", false, new HashSet<String>(Arrays.asList("games")),
-				Collections.emptySet());
-		activityCategories.add(gaming);
-		when(mockRepository.findOne(gaming.getID())).thenReturn(gaming);
-
-		assertGetAllActivityCategoriesResult("Set expected to be cached", "gambling", "news");
-
-		service.addActivityCategory(ActivityCategoryDTO.createInstance(gaming));
-
-		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after add", "gambling", "news", "gaming");
-
-		gaming.setName("amusement");
-		service.updateActivityCategory(gaming.getID(), ActivityCategoryDTO.createInstance(gaming));
-
-		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after add", "gambling", "news", "amusement");
-		activityCategories.remove(news);
-		service.deleteActivityCategory(news.getID());
-
-		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after add", "gambling", "amusement");
-
-		activityCategories.add(news);
-		activityCategories.remove(gaming);
-		service.importActivityCategories(
-				activityCategories.stream().map(a -> ActivityCategoryDTO.createInstance(a)).collect(Collectors.toSet()));
-		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after import", "gambling", "news");
-	}
-
-	/*
 	 * Tests import.
 	 */
 	@Test
@@ -161,25 +117,5 @@ public class ActivityCategoryServiceTests
 		// 1 deleted
 		verify(mockRepository, times(1)).delete(matchActivityCategory.capture());
 		assertThat(matchActivityCategory.getValue().getName(), equalTo("gambling"));
-	}
-
-	@Configuration
-	@EnableCaching
-	@ComponentScan("nu.yona.server.goals.service")
-	public static class TestConfiguration
-	{
-		@Bean
-		public SimpleCacheManager cacheManager()
-		{
-			SimpleCacheManager cacheManager = new SimpleCacheManager();
-			cacheManager.setCaches(Arrays.asList(new ConcurrentMapCache("activityCategorySet")));
-			return cacheManager;
-		}
-
-		@Bean
-		ActivityCategoryRepository mockRepository()
-		{
-			return Mockito.mock(ActivityCategoryRepository.class);
-		}
 	}
 }
