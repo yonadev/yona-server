@@ -65,6 +65,12 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 		return isProcessed;
 	}
 
+	@Override
+	public boolean canBeDeleted()
+	{
+		return this.isProcessed;
+	}
+
 	public static BuddyConnectResponseMessageDTO createInstance(UserDTO actingUser, BuddyConnectResponseMessage messageEntity)
 	{
 		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),

@@ -221,7 +221,7 @@ public class UserService
 		userEntity.markMobileNumberConfirmed();
 		User.getRepository().save(userEntity);
 
-		return UserDTO.createInstance(userEntity);
+		return UserDTO.createInstanceWithPrivateData(userEntity);
 	}
 
 	@Transactional

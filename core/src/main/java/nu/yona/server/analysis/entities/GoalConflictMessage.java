@@ -80,12 +80,6 @@ public class GoalConflictMessage extends Message
 		url = decryptor.decryptString(urlCiphertext);
 	}
 
-	@Override
-	public boolean canBeDeleted()
-	{
-		return true;
-	}
-
 	public boolean isFromBuddy()
 	{
 		return originGoalConflictMessageID != null;

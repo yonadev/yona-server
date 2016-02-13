@@ -45,6 +45,7 @@ import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
+import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
@@ -146,16 +147,18 @@ public class UserController
 		});
 	}
 
-	@RequestMapping(value = "/{userID}/confirmMobileNumber", method = RequestMethod.POST)
+	@RequestMapping(value = "/{id}/confirmMobileNumber", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<UserResource> confirmMobileNumber(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
 			@RequestBody MobileNumberConfirmationDTO mobileNumberConfirmation)
 	{
-		checkPassword(password, userID);
-		return bruteForceAttemptService.executeAttempt(getConfirmMobileNumberLinkBuilder(userID).toUri(),
-				yonaProperties.getSms().getMobileNumberConfirmationMaxAttempts(),
-				() -> createOKResponse(userService.confirmMobileNumber(userID, mobileNumberConfirmation.getCode()), false));
+		return CryptoSession
+				.execute(password, () -> userService.canAccessPrivateData(id),
+						() -> bruteForceAttemptService.executeAttempt(getConfirmMobileNumberLinkBuilder(id).toUri(),
+								yonaProperties.getSms()
+										.getMobileNumberConfirmationMaxAttempts(),
+						() -> createOKResponse(userService.confirmMobileNumber(id, mobileNumberConfirmation.getCode()), true)));
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.PUT)
@@ -233,7 +236,8 @@ public class UserController
 	{
 		public NewDeviceRequestResource(NewDeviceRequestDTO newDeviceRequest, ControllerLinkBuilder entityLinkBuilder)
 		{
-			super(newDeviceRequest, entityLinkBuilder.withSelfRel());
+			super(newDeviceRequest, entityLinkBuilder.withSelfRel(),
+					entityLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL) /* always editable */);
 		}
 	}
 
@@ -365,6 +369,10 @@ public class UserController
 				// The mobile number is not yet confirmed, so we can add the link
 				addConfirmMobileNumberLink(userResource, user.getMobileNumberConfirmationCode());
 			}
+			if (includePrivateData)
+			{
+				addEditLink(userResource);
+			}
 			return userResource;
 		}
 
@@ -383,6 +391,13 @@ public class UserController
 			}
 
 			userResource.add(UserController.getUserSelfLink(userResource.getContent().getID(), includePrivateData));
+		}
+
+		private static void addEditLink(Resource<UserDTO> userResource)
+		{
+			userResource.add(linkTo(
+					methodOn(UserController.class).updateUser(Optional.empty(), null, userResource.getContent().getID(), null))
+							.withRel(JsonRootRelProvider.EDIT_REL));
 		}
 
 		private static void addConfirmMobileNumberLink(Resource<UserDTO> userResource, String confirmationCode)

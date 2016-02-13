@@ -31,6 +31,7 @@ import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.service.BudgetGoalDTO;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.goals.service.GoalService;
+import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
@@ -155,6 +156,7 @@ public class GoalController
 			GoalResource goalResource = instantiateResource(goal);
 			ControllerLinkBuilder selfLinkBuilder = getGoalLinkBuilder(userID, goal);
 			addSelfLink(selfLinkBuilder, goalResource);
+			addEditLink(selfLinkBuilder, goalResource);
 			return goalResource;
 		}
 
@@ -167,6 +169,11 @@ public class GoalController
 		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, GoalResource goalResource)
 		{
 			goalResource.add(selfLinkBuilder.withSelfRel());
+		}
+
+		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, GoalResource goalResource)
+		{
+			goalResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
 		}
 	}
 }

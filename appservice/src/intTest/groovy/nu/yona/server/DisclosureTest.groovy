@@ -129,6 +129,18 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		goalConflictMessages[0].url == "http://www.poker.com"
 		goalConflictMessages[0].status == "DISCLOSE_ACCEPTED"
 
+		//check disclose response message
+		getBobMessagesResponse.responseData._embedded.discloseResponseMessages
+		def discloseResponseMessage = getBobMessagesResponse.responseData._embedded.discloseResponseMessages[0]
+		discloseResponseMessage.status == "DISCLOSE_ACCEPTED"
+		discloseResponseMessage.nickname == richard.nickname
+		//check delete
+		discloseResponseMessage._links.edit
+		def deleteResponse = appService.deleteResourceWithPassword(discloseResponseMessage._links.edit.href, bob.password)
+		deleteResponse.status == 200
+		def getBobMessagesResponseAfterDelete = appService.getMessages(bob)
+		!getBobMessagesResponseAfterDelete.responseData._embedded.discloseResponseMessages
+
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
@@ -176,6 +188,18 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def goalConflictMessages = getBobMessagesResponse.responseData._embedded.goalConflictMessages
 		goalConflictMessages[0].url == null
 		goalConflictMessages[0].status == "DISCLOSE_REJECTED"
+
+		//check disclose response message
+		getBobMessagesResponse.responseData._embedded.discloseResponseMessages
+		def discloseResponseMessage = getBobMessagesResponse.responseData._embedded.discloseResponseMessages[0]
+		discloseResponseMessage.status == "DISCLOSE_REJECTED"
+		discloseResponseMessage.nickname == richard.nickname
+		//check delete
+		discloseResponseMessage._links.edit
+		def deleteResponse = appService.deleteResourceWithPassword(discloseResponseMessage._links.edit.href, bob.password)
+		deleteResponse.status == 200
+		def getBobMessagesResponseAfterDelete = appService.getMessages(bob)
+		!getBobMessagesResponseAfterDelete.responseData._embedded.discloseResponseMessages
 
 		cleanup:
 		appService.deleteUser(richard)

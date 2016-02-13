@@ -59,6 +59,12 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 		return possibleActions;
 	}
 
+	@Override
+	public boolean canBeDeleted()
+	{
+		return this.isProcessed;
+	}
+
 	public static BuddyDisconnectMessageDTO createInstance(UserDTO actingUser, BuddyDisconnectMessage messageEntity)
 	{
 		return new BuddyDisconnectMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),

@@ -68,6 +68,12 @@ public class DiscloseRequestMessageDTO extends BuddyMessageDTO
 		return status;
 	}
 
+	@Override
+	public boolean canBeDeleted()
+	{
+		return this.status == Status.DISCLOSE_ACCEPTED || this.status == Status.DISCLOSE_REJECTED;
+	}
+
 	public static DiscloseRequestMessageDTO createInstance(UserDTO actingUser, DiscloseRequestMessage messageEntity)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();

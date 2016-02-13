@@ -74,6 +74,7 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		response.status == 400
 		response.responseData?.code == "error.cannot.delete.unprocessed.message"
 		appService.getMessages(bob).responseData._embedded.buddyConnectRequestMessages.size() == 1
+		!appService.getMessages(bob).responseData._embedded.buddyConnectRequestMessages[0]._links.edit
 	}
 
 	def 'Bob deletes Richard\'s buddy request after it is processed'()
@@ -84,10 +85,10 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		appService.sendBuddyConnectRequest(richard, bob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(bob).acceptURL
 		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
-		def messageURL = appService.getMessages(bob).responseData._embedded.buddyConnectRequestMessages[0]._links.self.href
+		def messageDeleteURL = appService.getMessages(bob).responseData._embedded.buddyConnectRequestMessages[0]._links.edit.href
 
 		when:
-		def response = appService.deleteResourceWithPassword(messageURL, bob.password)
+		def response = appService.deleteResourceWithPassword(messageDeleteURL, bob.password)
 
 		then:
 		response.status == 200
@@ -111,6 +112,7 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		response.status == 400
 		response.responseData?.code == "error.cannot.delete.unprocessed.message"
 		appService.getMessages(richard).responseData._embedded.buddyConnectResponseMessages.size() == 1
+		!appService.getMessages(richard).responseData._embedded.buddyConnectResponseMessages[0]._links.edit
 	}
 
 	def 'Richard deletes Bob\'s buddy acceptance after it is processed'()
@@ -123,10 +125,10 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
 		def processURL = appService.fetchBuddyConnectResponseMessage(richard).processURL
 		def processResponse = appService.postMessageActionWithPassword(processURL, [ : ], richard.password)
-		def messageURL = appService.getMessages(richard).responseData._embedded.buddyConnectResponseMessages[0]._links.self.href
+		def messageDeleteURL = appService.getMessages(richard).responseData._embedded.buddyConnectResponseMessages[0]._links.edit.href
 
 		when:
-		def response = appService.deleteResourceWithPassword(messageURL, richard.password)
+		def response = appService.deleteResourceWithPassword(messageDeleteURL, richard.password)
 
 		then:
 		response.status == 200
@@ -140,10 +142,10 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		def messageURL = appService.getMessages(richard).responseData._embedded.goalConflictMessages[0]._links.self.href
+		def messageDeleteURL = appService.getMessages(richard).responseData._embedded.goalConflictMessages[0]._links.edit.href
 
 		when:
-		def response = appService.deleteResourceWithPassword(messageURL, richard.password)
+		def response = appService.deleteResourceWithPassword(messageDeleteURL, richard.password)
 
 		then:
 		response.status == 200
@@ -159,10 +161,10 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		def messageURL = appService.getMessages(bob).responseData._embedded.goalConflictMessages[0]._links.self.href
+		def messageDeleteURL = appService.getMessages(bob).responseData._embedded.goalConflictMessages[0]._links.edit.href
 
 		when:
-		def response = appService.deleteResourceWithPassword(messageURL, bob.password)
+		def response = appService.deleteResourceWithPassword(messageDeleteURL, bob.password)
 
 		then:
 		response.status == 200

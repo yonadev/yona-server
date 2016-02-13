@@ -87,14 +87,15 @@ public class MessageService
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		Message message = messageSource.getMessage(id);
 
-		deleteMessage(message, messageSource.getDestination());
+		deleteMessage(user, message, messageSource.getDestination());
 
 		return MessageActionDTO.createInstanceActionDone();
 	}
 
-	private void deleteMessage(Message message, MessageDestination destination)
+	private void deleteMessage(UserDTO user, Message message, MessageDestination destination)
 	{
-		if (!message.canBeDeleted())
+		MessageDTO messageDTO = dtoManager.createInstance(user, message);
+		if (!messageDTO.canBeDeleted())
 		{
 			throw InvalidMessageActionException.unprocessedMessageCannotBeDeleted();
 		}

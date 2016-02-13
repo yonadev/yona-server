@@ -47,6 +47,12 @@ public class DiscloseResponseMessageDTO extends BuddyMessageDTO
 		return status;
 	}
 
+	@Override
+	public boolean canBeDeleted()
+	{
+		return true;
+	}
+
 	public static DiscloseResponseMessageDTO createInstance(UserDTO actingUser, DiscloseResponseMessage messageEntity)
 	{
 		return new DiscloseResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), actingUser,

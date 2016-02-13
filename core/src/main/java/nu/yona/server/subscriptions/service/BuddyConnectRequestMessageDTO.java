@@ -74,6 +74,12 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 		return status;
 	}
 
+	@Override
+	public boolean canBeDeleted()
+	{
+		return this.status == Status.ACCEPTED || this.status == Status.REJECTED;
+	}
+
 	public static BuddyConnectRequestMessageDTO createInstance(UserDTO actingUser, BuddyConnectRequestMessage messageEntity)
 	{
 		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(), messageEntity.getCreationTime(),
