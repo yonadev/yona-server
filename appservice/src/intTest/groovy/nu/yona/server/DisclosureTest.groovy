@@ -121,9 +121,6 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 
 		def getBobMessagesResponse = appService.getMessages(bob)
 		getBobMessagesResponse.status == 200
-		getBobMessagesResponse.responseData?._embedded?.discloseResponseMessages?.size
-		getBobMessagesResponse.responseData._embedded.discloseResponseMessages[0].status == "DISCLOSE_ACCEPTED"
-		getBobMessagesResponse.responseData._embedded.discloseResponseMessages[0].message == responseMessageText
 		getBobMessagesResponse.responseData?._embedded?.goalConflictMessages
 		def goalConflictMessages = getBobMessagesResponse.responseData._embedded.goalConflictMessages
 		goalConflictMessages[0].url == "http://www.poker.com"
@@ -133,6 +130,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		getBobMessagesResponse.responseData._embedded.discloseResponseMessages
 		def discloseResponseMessage = getBobMessagesResponse.responseData._embedded.discloseResponseMessages[0]
 		discloseResponseMessage.status == "DISCLOSE_ACCEPTED"
+		discloseResponseMessage.message == responseMessageText
 		discloseResponseMessage.nickname == richard.nickname
 		//check delete
 		discloseResponseMessage._links.edit
@@ -181,9 +179,6 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 
 		def getBobMessagesResponse = appService.getMessages(bob)
 		getBobMessagesResponse.status == 200
-		getBobMessagesResponse.responseData?._embedded?.discloseResponseMessages?.size
-		getBobMessagesResponse.responseData._embedded.discloseResponseMessages[0].status == "DISCLOSE_REJECTED"
-		getBobMessagesResponse.responseData._embedded.discloseResponseMessages[0].message == responseMessageText
 		getBobMessagesResponse.responseData?._embedded?.goalConflictMessages
 		def goalConflictMessages = getBobMessagesResponse.responseData._embedded.goalConflictMessages
 		goalConflictMessages[0].url == null
@@ -193,6 +188,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		getBobMessagesResponse.responseData._embedded.discloseResponseMessages
 		def discloseResponseMessage = getBobMessagesResponse.responseData._embedded.discloseResponseMessages[0]
 		discloseResponseMessage.status == "DISCLOSE_REJECTED"
+		discloseResponseMessage.message == responseMessageText
 		discloseResponseMessage.nickname == richard.nickname
 		//check delete
 		discloseResponseMessage._links.edit
