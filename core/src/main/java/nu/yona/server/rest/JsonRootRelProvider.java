@@ -4,11 +4,15 @@
  *******************************************************************************/
 package nu.yona.server.rest;
 
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
+
 import org.atteo.evo.inflector.English;
 import org.springframework.hateoas.RelProvider;
 import org.springframework.hateoas.core.DefaultRelProvider;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 
 /**
  * When an embedded resource is provided in a response using the {@code org.springframework.hateoas.Resources} model, this
@@ -24,9 +28,9 @@ public class JsonRootRelProvider implements RelProvider
 	@Override
 	public String getItemResourceRelFor(Class<?> type)
 	{
-		JsonRootName[] jsonRootNameAnnotations = type.getAnnotationsByType(JsonRootName.class);
-		JsonRootName rootName = (jsonRootNameAnnotations.length == 0) ? null : jsonRootNameAnnotations[0];
-		return (rootName == null) ? defaultRelProvider.getItemResourceRelFor(type) : rootName.value();
+		Class<?> baseType = determineBaseType(type);
+		JsonRootName rootName = getAnnotationByType(baseType, JsonRootName.class);
+		return (rootName == null) ? defaultRelProvider.getItemResourceRelFor(baseType) : rootName.value();
 	}
 
 	@Override
@@ -39,5 +43,31 @@ public class JsonRootRelProvider implements RelProvider
 	public boolean supports(Class<?> delimiter)
 	{
 		return defaultRelProvider.supports(delimiter);
+	}
+
+	private <T extends Annotation> T getAnnotationByType(Class<?> type, Class<T> annotationType)
+	{
+		T[] annotations = type.getAnnotationsByType(annotationType);
+		return (annotations.length == 0) ? null : annotations[0];
+	}
+
+	private Class<?> determineBaseType(Class<?> type)
+	{
+		Class<?> baseType = type;
+		while ((baseType = baseType.getSuperclass()) != null)
+		{
+			JsonSubTypes subtypesAnnotation = getAnnotationByType(baseType, JsonSubTypes.class);
+			if (containsType(subtypesAnnotation, type))
+			{
+				return baseType;
+			}
+		}
+		return type;
+	}
+
+	private boolean containsType(JsonSubTypes subtypesAnnotation, Class<?> type)
+	{
+		return (subtypesAnnotation != null)
+				&& (Arrays.asList(subtypesAnnotation.value()).stream().anyMatch(t -> t.value() == type));
 	}
 }
