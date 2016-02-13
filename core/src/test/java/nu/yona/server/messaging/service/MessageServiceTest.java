@@ -3,6 +3,7 @@ package nu.yona.server.messaging.service;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -25,7 +26,6 @@ import nu.yona.server.analysis.service.GoalConflictMessageDTO;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.service.GoalDTO;
-import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageDestinationRepository;
 import nu.yona.server.messaging.entities.MessageSource;
@@ -41,7 +41,7 @@ public class MessageServiceTest
 	@Mock
 	private UserService mockUserService;
 	@Mock
-	private TheDTOManager mockTheDTOManager = new TheDTOManager();
+	private TheDTOManager mockTheDTOManager;
 	@Mock
 	private MessageDestinationRepository mockMessageDestinationRepository;
 	@Mock
@@ -50,32 +50,48 @@ public class MessageServiceTest
 	private MessageService service = new MessageService();
 
 	private UserDTO user;
-	private MessageSource namedMessageSource;
-	private MessageSource anonymousMessageSource;
+
+	@Mock
+	private MessageSource mockNamedMessageSource;
+	private UUID namedMessageSourceID = UUID.randomUUID();
+	@Mock
+	private MessageDestination mockNamedMessageDestination;
+	private UUID namedMessageDestinationID = UUID.randomUUID();
+	@Mock
+	private MessageSource mockAnonymousMessageSource;
+	private UUID anonymousMessageSourceID = UUID.randomUUID();
+	@Mock
+	private MessageDestination mockAnonymousMessageDestination;
+	private UUID anonymousMessageDestinationID = UUID.randomUUID();
 
 	@Before
 	public void setUp()
 	{
+		when(mockAnonymousMessageSource.getID()).thenReturn(anonymousMessageSourceID);
+		when(mockAnonymousMessageDestination.getID()).thenReturn(anonymousMessageDestinationID);
+		when(mockNamedMessageSource.getID()).thenReturn(namedMessageSourceID);
+		when(mockNamedMessageDestination.getID()).thenReturn(namedMessageDestinationID);
+		when(mockAnonymousMessageSource.getDestination()).thenReturn(mockAnonymousMessageDestination);
+		when(mockNamedMessageSource.getDestination()).thenReturn(mockNamedMessageDestination);
+
 		// Set up User instance.
-		namedMessageSource = MessageSource.createInstance();
-		anonymousMessageSource = MessageSource.createInstance();
 		user = new UserDTO(UUID.randomUUID(), "John", "Smith", null, "+31612345678", true,
-				new UserPrivateDTO("Johnny", namedMessageSource.getID(), namedMessageSource.getDestination().getID(),
-						anonymousMessageSource.getID(), anonymousMessageSource.getDestination().getID(),
-						new HashSet<String>(Arrays.asList("iPhone 5")), new HashSet<GoalDTO>(), new HashSet<UUID>(),
-						UUID.randomUUID(), null));
+				new UserPrivateDTO("Johnny", namedMessageSourceID, namedMessageDestinationID, anonymousMessageSourceID,
+						anonymousMessageDestinationID, new HashSet<String>(Arrays.asList("iPhone 5")), new HashSet<GoalDTO>(),
+						new HashSet<UUID>(), UUID.randomUUID(), null));
 
 		// Stub the UserAnonymizedRepository to return our user.
 		when(mockUserService.getPrivateValidatedUser(user.getID())).thenReturn(user);
 
 		when(mockMessageSourceRepository.findOne(user.getPrivateData().getAnonymousMessageSourceID()))
-				.thenReturn(anonymousMessageSource);
-		when(mockMessageSourceRepository.findOne(user.getPrivateData().getNamedMessageSourceID())).thenReturn(namedMessageSource);
+				.thenReturn(mockAnonymousMessageSource);
+		when(mockMessageSourceRepository.findOne(user.getPrivateData().getNamedMessageSourceID()))
+				.thenReturn(mockNamedMessageSource);
 
 		when(mockMessageDestinationRepository.findOne(user.getPrivateData().getAnonymousMessageDestinationID()))
-				.thenReturn(anonymousMessageSource.getDestination());
+				.thenReturn(mockAnonymousMessageDestination);
 		when(mockMessageDestinationRepository.findOne(user.getPrivateData().getNamedMessageDestinationID()))
-				.thenReturn(namedMessageSource.getDestination());
+				.thenReturn(mockNamedMessageDestination);
 		when(mockMessageDestinationRepository.save(any(MessageDestination.class))).thenAnswer(new Answer<MessageDestination>() {
 			@Override
 			public MessageDestination answer(InvocationOnMock invocation) throws Throwable
@@ -89,14 +105,19 @@ public class MessageServiceTest
 	@Test
 	public void getAnonymousMessage()
 	{
-		Message message = GoalConflictMessage.createInstance(user.getPrivateData().getUserAnonymizedID(),
+		GoalConflictMessage message = GoalConflictMessage.createInstance(user.getPrivateData().getUserAnonymizedID(),
 				Activity.createInstance(user.getPrivateData().getUserAnonymizedID(),
 						BudgetGoal.createInstance(ActivityCategory.createInstance("gambling", false,
 								new HashSet<String>(Arrays.asList("poker", "lotto")), new HashSet<String>()), 30),
 						new Date()),
 				"http://poker.nu");
-		anonymousMessageSource.getDestination().send(message);
+
+		when(mockAnonymousMessageSource.getMessage(message.getID())).thenReturn(message);
+		when(mockTheDTOManager.createInstance(user, message))
+				.thenReturn(GoalConflictMessageDTO.createInstance(message, user.getPrivateData().getNickname()));
+
 		MessageDTO result = service.getAnonymousMessage(user.getID(), message.getID());
+		verify(mockAnonymousMessageSource).getMessage(message.getID());
 		assertThat(result.getID(), equalTo(message.getID()));
 		assertThat(result.getCreationTime(), equalTo(message.getCreationTime()));
 		assertThat(result.getClass(), equalTo(GoalConflictMessageDTO.class));
