@@ -53,6 +53,33 @@ public class GoalController
 						createAllGoalsCollectionResource(userID, goalService.getGoalsOfUser(userID)), HttpStatus.OK));
 	}
 
+	@RequestMapping(value = "/budgetGoals/{goalID}", method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<GoalResource> getBudgetGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userID, @PathVariable UUID goalID)
+	{
+	
+		return getGoal(password, userID, goalID);
+	}
+
+	@RequestMapping(value = "/budgetGoals/", method = RequestMethod.POST)
+	@ResponseBody
+	public HttpEntity<GoalResource> addBudgetGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userID, @RequestBody Resource<BudgetGoalDTO> goal,
+			@RequestParam(value = "message", required = false) String messageStr)
+	{
+		return addGoal(password, userID, goal, messageStr);
+	}
+
+	@RequestMapping(value = "/budgetGoals/{goalID}", method = RequestMethod.DELETE)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	public void removeBudgetGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@PathVariable UUID goalID, @RequestParam(value = "message", required = false) String messageStr)
+	{
+		removeGoal(password, userID, goalID, messageStr);
+	}
+
 	public static Resources<GoalResource> createAllGoalsCollectionResource(UUID userID, Set<GoalDTO> allGoalsOfUser)
 	{
 		return new Resources<>(new GoalResourceAssembler(userID).toResources(allGoalsOfUser),
@@ -65,28 +92,10 @@ public class GoalController
 		return linkTo(methodOn.getAllGoals(null, userID));
 	}
 
-	@RequestMapping(value = "/budgetGoals/{goalID}", method = RequestMethod.GET)
-	@ResponseBody
-	public HttpEntity<GoalResource> getBudgetGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userID, @PathVariable UUID goalID)
-	{
-
-		return getGoal(password, userID, goalID);
-	}
-
 	private HttpEntity<GoalResource> getGoal(Optional<String> password, UUID userID, UUID goalID)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> createResponse(userID, goalService.getGoal(userID, goalID), HttpStatus.OK));
-	}
-
-	@RequestMapping(value = "/budgetGoals/", method = RequestMethod.POST)
-	@ResponseBody
-	public HttpEntity<GoalResource> addBudgetGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userID, @RequestBody Resource<BudgetGoalDTO> goal,
-			@RequestParam(value = "message", required = false) String messageStr)
-	{
-		return addGoal(password, userID, goal, messageStr);
 	}
 
 	private HttpEntity<GoalResource> addGoal(Optional<String> password, UUID userID, Resource<BudgetGoalDTO> goal,
@@ -94,15 +103,6 @@ public class GoalController
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createResponse(userID,
 				goalService.addGoal(userID, goal.getContent(), Optional.ofNullable(messageStr)), HttpStatus.CREATED));
-	}
-
-	@RequestMapping(value = "/budgetGoals/{goalID}", method = RequestMethod.DELETE)
-	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
-	public void removeBudgetGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
-			@PathVariable UUID goalID, @RequestParam(value = "message", required = false) String messageStr)
-	{
-		removeGoal(password, userID, goalID, messageStr);
 	}
 
 	private void removeGoal(Optional<String> password, UUID userID, UUID goalID, String messageStr)

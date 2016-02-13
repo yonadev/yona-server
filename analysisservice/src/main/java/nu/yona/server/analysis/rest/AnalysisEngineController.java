@@ -20,13 +20,13 @@ import nu.yona.server.analysis.service.AnalysisEngineService;
 import nu.yona.server.analysis.service.PotentialConflictDTO;
 
 @Controller
-@RequestMapping(value = "/analysisEngine/")
+@RequestMapping(value = "/analysisEngine")
 public class AnalysisEngineController
 {
 	@Autowired
 	private AnalysisEngineService analysisEngineService;
 
-	@RequestMapping(method = RequestMethod.POST)
+	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
 	public void analyze(@RequestBody PotentialConflictDTO potentialConflictPayload)
 	{
