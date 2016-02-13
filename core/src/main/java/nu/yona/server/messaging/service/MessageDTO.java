@@ -10,8 +10,23 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+import nu.yona.server.analysis.service.GoalConflictMessageDTO;
+import nu.yona.server.subscriptions.service.BuddyConnectRequestMessageDTO;
+import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDTO;
+import nu.yona.server.subscriptions.service.BuddyDisconnectMessageDTO;
 
 @JsonRootName("message")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes({ @Type(value = BuddyConnectRequestMessageDTO.class, name = "BuddyConnectRequestMessage"),
+		@Type(value = BuddyConnectResponseMessageDTO.class, name = "BuddyConnectResponseMessage"),
+		@Type(value = BuddyDisconnectMessageDTO.class, name = "BuddyDisconnectMessage"),
+		@Type(value = DiscloseRequestMessageDTO.class, name = "DiscloseRequestMessage"),
+		@Type(value = DiscloseResponseMessageDTO.class, name = "DiscloseResponseMessage"),
+		@Type(value = GoalConflictMessageDTO.class, name = "GoalConflictMessage"), })
 public abstract class MessageDTO
 {
 	private final UUID id;
