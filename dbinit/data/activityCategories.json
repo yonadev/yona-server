@@ -1,7 +1,7 @@
 [
   {
     "name": "gambling",
-    "mandatory": false,
+    "mandatoryNoGo": true,
     "smoothwallCategories": [
       "Gambling",
       "lotto"
@@ -11,7 +11,7 @@
   },
   {
     "name": "news",
-    "mandatory": false,
+    "mandatoryNoGo": false,
     "smoothwallCategories": [
       "news/media",
       "newsgroups/forums"
@@ -21,7 +21,7 @@
   },
   {
     "name": "social",
-    "mandatory": false,
+    "mandatoryNoGo": false,
     "smoothwallCategories": [
       "social"
     ],

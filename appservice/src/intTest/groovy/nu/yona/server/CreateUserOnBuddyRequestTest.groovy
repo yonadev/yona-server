@@ -92,7 +92,8 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		response.responseData.nickname == newNickname
 		response.responseData.devices.size() == 1
 		response.responseData.devices[0] == "iPhone 6"
-		!response.responseData._embedded?.goals?._embedded?.budgetGoals
+		response.responseData._embedded.goals._embedded.budgetGoals
+		response.responseData._embedded.goals._embedded.budgetGoals.size() == 1 //mandatory goal
 		!(response.responseData._links.self.href ==~ /tempPassword/)
 		response.responseData.mobileNumberConfirmationCode
 
@@ -107,7 +108,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		bobFromGetAfterUpdate.nickname == newNickname
 		bobFromGetAfterUpdate.devices.size() == 1
 		bobFromGetAfterUpdate.devices[0] == "iPhone 6"
-		bobFromGetAfterUpdate.goals.size() == 0 //TODO: updating of goals is not yet supported
+		bobFromGetAfterUpdate.goals.size() == 1 //mandatory goal
 		bobFromGetAfterUpdate.url
 
 		def getMessagesResponse = appService.getMessages(bobFromGetAfterUpdate)

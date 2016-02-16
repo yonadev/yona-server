@@ -18,12 +18,12 @@ public class BudgetGoalDTO extends GoalDTO
 	public BudgetGoalDTO(@JsonProperty("activityCategoryName") String activityCategoryName,
 			@JsonProperty("maxDuration") int maxDuration)
 	{
-		this(null, activityCategoryName, maxDuration);
+		this(null, activityCategoryName, maxDuration, false /* ignored */);
 	}
 
-	public BudgetGoalDTO(UUID id, String activityCategoryName, int maxDuration)
+	public BudgetGoalDTO(UUID id, String activityCategoryName, int maxDuration, boolean mandatory)
 	{
-		super(id, activityCategoryName);
+		super(id, activityCategoryName, mandatory);
 
 		this.maxDuration = maxDuration;
 	}
@@ -35,7 +35,8 @@ public class BudgetGoalDTO extends GoalDTO
 
 	public static BudgetGoalDTO createInstance(BudgetGoal entity)
 	{
-		return new BudgetGoalDTO(entity.getID(), entity.getActivityCategory().getName(), entity.getMaxDuration());
+		return new BudgetGoalDTO(entity.getID(), entity.getActivityCategory().getName(), entity.getMaxDuration(),
+				entity.isMandatory());
 	}
 
 	public BudgetGoal createGoalEntity()

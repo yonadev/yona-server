@@ -69,7 +69,8 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		richardChanged.nickname == "${richard.nickname}Changed"
 		richardChanged.mobileNumber == richard.mobileNumber
 		richardChanged.devices == ["Nokia"]
-		richardChanged.goals.size() == 0
+		richardChanged.goals.size() == 1 //mandatory goal
+		richardChanged.goals[0].activityCategoryName == 'gambling'
 
 		def getMessagesResponse = appService.getMessages(bob.url, bob.password)
 		getMessagesResponse.status == 200
