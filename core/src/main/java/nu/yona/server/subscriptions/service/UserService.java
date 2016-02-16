@@ -165,14 +165,14 @@ public class UserService
 
 	private void addMandatoryGoals(User userEntity)
 	{
-		for (ActivityCategoryDTO activityCategory : activityCategoryService.getAllActivityCategories())
-		{
-			if (activityCategory.isMandatoryNoGo())
-			{
-				userEntity.getAnonymized().addGoal(
-						BudgetGoal.createNoGoInstance(ActivityCategory.getRepository().findOne(activityCategory.getID())));
-			}
-		}
+		activityCategoryService.getAllActivityCategories().stream().filter(c -> c.isMandatoryNoGo())
+				.forEach(c -> addGoal(userEntity, c));
+	}
+
+	private void addGoal(User userEntity, ActivityCategoryDTO category)
+	{
+		userEntity.getAnonymized()
+				.addGoal(BudgetGoal.createNoGoInstance(ActivityCategory.getRepository().findOne(category.getID())));
 	}
 
 	private void handleExistingUserForMobileNumber(String mobileNumber, Optional<String> overwriteUserConfirmationCode)
