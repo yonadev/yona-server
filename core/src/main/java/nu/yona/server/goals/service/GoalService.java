@@ -10,7 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.GoalChangeMessage;
+import nu.yona.server.messaging.service.MessageService;
+import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
@@ -23,6 +27,9 @@ public class GoalService
 
 	@Autowired
 	private UserAnonymizedService userAnonymizedService;
+
+	@Autowired
+	private MessageService messageService;
 
 	public Set<GoalDTO> getGoalsOfUser(UUID forUserID)
 	{
@@ -45,8 +52,9 @@ public class GoalService
 	@Transactional
 	public GoalDTO addGoal(UUID userID, GoalDTO goal, Optional<String> message)
 	{
-		UserAnonymized userAnonymized = userService.getUserByID(userID).getAnonymized();
-		Optional<Goal> conflictingExistingGoal = userAnonymized.getGoals().stream()
+		User userEntity = userService.getUserByID(userID);
+		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
+		Optional<Goal> conflictingExistingGoal = userAnonymizedEntity.getGoals().stream()
 				.filter(existingGoal -> existingGoal.getActivityCategory().getName().equals(goal.getActivityCategoryName()))
 				.findFirst();
 		if (conflictingExistingGoal.isPresent())
@@ -55,9 +63,11 @@ public class GoalService
 		}
 
 		Goal goalEntity = goal.createGoalEntity();
-		userAnonymized.addGoal(goalEntity);
-		userAnonymizedService.updateUserAnonymized(userAnonymized.getID(), userAnonymized);
-		// TODO send message
+		userAnonymizedEntity.addGoal(goalEntity);
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getID(), userAnonymizedEntity);
+
+		broadcastGoalChangeMessage(userEntity, goalEntity, GoalChangeMessage.Change.GOAL_ADDED, message);
+
 		return GoalDTO.createInstance(goalEntity);
 	}
 
@@ -65,14 +75,25 @@ public class GoalService
 	public void removeGoal(UUID userID, UUID goalID, Optional<String> message)
 	{
 		// TODO check mandatory
-		UserAnonymized userAnonymized = userService.getUserByID(userID).getAnonymized();
-		Optional<Goal> goalEntity = userAnonymized.getGoals().stream().filter(goal -> goal.getID().equals(goalID)).findFirst();
+		User userEntity = userService.getUserByID(userID);
+		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
+		Optional<Goal> goalEntity = userAnonymizedEntity.getGoals().stream().filter(goal -> goal.getID().equals(goalID))
+				.findFirst();
 		if (!goalEntity.isPresent())
 		{
 			throw GoalServiceException.goalNotFoundById(userID, goalID);
 		}
-		userAnonymized.removeGoal(goalEntity.get());
-		userAnonymizedService.updateUserAnonymized(userAnonymized.getID(), userAnonymized);
-		// TODO send message
+		userAnonymizedEntity.removeGoal(goalEntity.get());
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getID(), userAnonymizedEntity);
+
+		broadcastGoalChangeMessage(userEntity, goalEntity.get(), GoalChangeMessage.Change.GOAL_DELETED, message);
+	}
+
+	private void broadcastGoalChangeMessage(User userEntity, Goal changedGoal, GoalChangeMessage.Change change,
+			Optional<String> message)
+	{
+		messageService.broadcastMessageToBuddies(UserAnonymizedDTO.createInstance(userEntity.getAnonymized()),
+				() -> GoalChangeMessage.createInstance(userEntity.getUserAnonymizedID(), userEntity.getID(),
+						userEntity.getNickname(), changedGoal, change, message.orElse(null)));
 	}
 }
