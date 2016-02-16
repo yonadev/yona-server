@@ -77,6 +77,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		discloseRequestMessages[0].message == requestMessageText
 		discloseRequestMessages[0].targetGoalConflictMessage.activityCategoryName == "gambling"
 		discloseRequestMessages[0].targetGoalConflictMessage.creationTime > (System.currentTimeMillis() - 50000) // TODO Use standard date/time format
+		discloseRequestMessages[0].user.firstName == "Bob"
 		discloseRequestMessages[0]._links.related.href == getRichardMessagesResponse.responseData._embedded.goalConflictMessages[0]._links.self.href
 		discloseRequestMessages[0]._links.accept.href
 		discloseRequestMessages[0]._links.reject.href
@@ -132,6 +133,8 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		discloseResponseMessage.status == "DISCLOSE_ACCEPTED"
 		discloseResponseMessage.message == responseMessageText
 		discloseResponseMessage.nickname == richard.nickname
+		discloseResponseMessage.user.firstName == "Richard"
+
 		//check delete
 		discloseResponseMessage._links.edit
 		def deleteResponse = appService.deleteResourceWithPassword(discloseResponseMessage._links.edit.href, bob.password)
@@ -190,6 +193,8 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		discloseResponseMessage.status == "DISCLOSE_REJECTED"
 		discloseResponseMessage.message == responseMessageText
 		discloseResponseMessage.nickname == richard.nickname
+		discloseResponseMessage.user.firstName == "Richard"
+
 		//check delete
 		discloseResponseMessage._links.edit
 		def deleteResponse = appService.deleteResourceWithPassword(discloseResponseMessage._links.edit.href, bob.password)

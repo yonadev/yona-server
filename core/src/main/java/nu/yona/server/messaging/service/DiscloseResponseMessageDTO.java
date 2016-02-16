@@ -55,8 +55,9 @@ public class DiscloseResponseMessageDTO extends BuddyMessageDTO
 
 	public static DiscloseResponseMessageDTO createInstance(UserDTO actingUser, DiscloseResponseMessage messageEntity)
 	{
-		return new DiscloseResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), actingUser,
-				messageEntity.getStatus(), messageEntity.getNickname(), messageEntity.getMessage());
+		return new DiscloseResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
+				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getStatus(), messageEntity.getNickname(),
+				messageEntity.getMessage());
 	}
 
 	@Component

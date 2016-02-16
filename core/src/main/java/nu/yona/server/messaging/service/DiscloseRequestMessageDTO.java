@@ -77,9 +77,9 @@ public class DiscloseRequestMessageDTO extends BuddyMessageDTO
 	public static DiscloseRequestMessageDTO createInstance(UserDTO actingUser, DiscloseRequestMessage messageEntity)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
-		return new DiscloseRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), actingUser,
-				messageEntity.getNickname(), messageEntity.getMessage(), messageEntity.getStatus(),
-				targetGoalConflictMessage.getOriginGoalConflictMessageID(),
+		return new DiscloseRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
+				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getNickname(), messageEntity.getMessage(),
+				messageEntity.getStatus(), targetGoalConflictMessage.getOriginGoalConflictMessageID(),
 				GoalConflictMessageDTO.createInstance(targetGoalConflictMessage, null));
 	}
 
