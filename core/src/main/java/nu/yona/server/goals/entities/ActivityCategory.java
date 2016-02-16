@@ -29,7 +29,7 @@ public class ActivityCategory extends EntityWithID
 	@Column(unique = true)
 	private String name;
 
-	private boolean mandatory;
+	private boolean mandatoryNoGo;
 
 	@ElementCollection
 	private Set<String> smoothwallCategories;
@@ -43,11 +43,11 @@ public class ActivityCategory extends EntityWithID
 		super(null);
 	}
 
-	public ActivityCategory(UUID id, String name, boolean mandatory, Set<String> smoothwallCategories, Set<String> applications)
+	public ActivityCategory(UUID id, String name, boolean mandatoryNoGo, Set<String> smoothwallCategories, Set<String> applications)
 	{
 		super(id);
 		this.name = name;
-		this.mandatory = mandatory;
+		this.mandatoryNoGo = mandatoryNoGo;
 		this.smoothwallCategories = new HashSet<>(smoothwallCategories);
 		this.applications = new HashSet<>(applications);
 	}
@@ -57,9 +57,9 @@ public class ActivityCategory extends EntityWithID
 		return name;
 	}
 
-	public boolean isMandatory()
+	public boolean isMandatoryNoGo()
 	{
-		return mandatory;
+		return mandatoryNoGo;
 	}
 
 	public Set<String> getSmoothwallCategories()
@@ -82,9 +82,9 @@ public class ActivityCategory extends EntityWithID
 		this.smoothwallCategories = new HashSet<>(smoothwallCategories);
 	}
 
-	public static ActivityCategory createInstance(String name, boolean mandatory, Set<String> smoothwallCategories,
+	public static ActivityCategory createInstance(String name, boolean mandatoryNoGo, Set<String> smoothwallCategories,
 			Set<String> applications)
 	{
-		return new ActivityCategory(UUID.randomUUID(), name, mandatory, smoothwallCategories, applications);
+		return new ActivityCategory(UUID.randomUUID(), name, mandatoryNoGo, smoothwallCategories, applications);
 	}
 }

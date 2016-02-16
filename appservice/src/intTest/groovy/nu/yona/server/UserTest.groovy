@@ -7,7 +7,6 @@
 package nu.yona.server
 
 import groovy.json.*
-import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.User
 
 class UserTest extends AbstractAppServiceIntegrationTest
@@ -16,7 +15,6 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	final def lastName = "Doe"
 	final def nickname = "JD"
 	final def devices = ["Galaxy mini"]
-	final def goals = [BudgetGoal.createNoGoInstance("gambling")]
 	def password = "J o h n   D o e"
 
 	def 'Create John Doe'()
@@ -222,7 +220,8 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			assert user.buddies != null
 			assert user.buddies.size() == 0
 			assert user.goals != null
-			assert user.goals.size() == 0
+			assert user.goals.size() == 1 //mandatory goal added
+			assert user.goals[0].activityCategoryName == 'gambling'
 		}
 		else
 		{

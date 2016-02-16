@@ -47,4 +47,10 @@ public class BudgetGoal extends Goal
 	{
 		return maxDuration <= 0;
 	}
+
+	@Override
+	public boolean isMandatory()
+	{
+		return isNoGoGoal() && getActivityCategory().isMandatoryNoGo();
+	}
 }
