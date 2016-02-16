@@ -22,7 +22,7 @@ public class DiscloseResponseMessage extends BuddyMessage
 
 	}
 
-	protected DiscloseResponseMessage(UUID id, UUID respondingUserID, UUID relatedUserAnonymizedID,
+	private DiscloseResponseMessage(UUID id, UUID respondingUserID, UUID relatedUserAnonymizedID,
 			UUID targetGoalConflictMessageID, Status status, String nickname, String message)
 	{
 		super(id, relatedUserAnonymizedID, respondingUserID, nickname, message);

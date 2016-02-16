@@ -24,25 +24,24 @@ import nu.yona.server.messaging.entities.DiscloseResponseMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
+import nu.yona.server.subscriptions.service.BuddyMessageDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDTO;
 
 @JsonRootName("discloseRequestMessage")
-public class DiscloseRequestMessageDTO extends MessageDTO
+public class DiscloseRequestMessageDTO extends BuddyMessageDTO
 {
 	private static final String ACCEPT = "accept";
 	private static final String REJECT = "reject";
 
-	private String nickname;
 	private Status status;
 
 	private GoalConflictMessageDTO targetGoalConflictMessage;
 
-	private DiscloseRequestMessageDTO(UUID id, Date creationTime, String nickname, Status status,
+	private DiscloseRequestMessageDTO(UUID id, Date creationTime, UserDTO user, String nickname, String message, Status status,
 			UUID targetGoalConflictMessageOriginID, GoalConflictMessageDTO targetGoalConflictMessage)
 	{
-		super(id, creationTime, targetGoalConflictMessageOriginID);
-		this.nickname = nickname;
+		super(id, creationTime, targetGoalConflictMessageOriginID, user, nickname, message);
 		this.status = status;
 		this.targetGoalConflictMessage = targetGoalConflictMessage;
 	}
@@ -57,11 +56,6 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 			possibleActions.add(REJECT);
 		}
 		return possibleActions;
-	}
-
-	public String getNickname()
-	{
-		return nickname;
 	}
 
 	public GoalConflictMessageDTO getTargetGoalConflictMessage()
@@ -83,7 +77,8 @@ public class DiscloseRequestMessageDTO extends MessageDTO
 	public static DiscloseRequestMessageDTO createInstance(UserDTO actingUser, DiscloseRequestMessage messageEntity)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
-		return new DiscloseRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.getNickname(),
+		return new DiscloseRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
+				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getNickname(), messageEntity.getMessage(),
 				messageEntity.getStatus(), targetGoalConflictMessage.getOriginGoalConflictMessageID(),
 				GoalConflictMessageDTO.createInstance(targetGoalConflictMessage, null));
 	}
