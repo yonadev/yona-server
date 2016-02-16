@@ -26,6 +26,15 @@ public abstract class BuddyMessageDTO extends MessageDTO
 		this.message = message;
 	}
 
+	protected BuddyMessageDTO(UUID id, Date creationTime, UUID relatedAnonymousMessageID, UserDTO user, String nickname,
+			String message)
+	{
+		super(id, creationTime, relatedAnonymousMessageID);
+		this.user = user;
+		this.nickname = nickname;
+		this.message = message;
+	}
+
 	public UserDTO getUser()
 	{
 		return user;

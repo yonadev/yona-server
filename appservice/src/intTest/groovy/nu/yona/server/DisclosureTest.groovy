@@ -57,7 +57,8 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def discloseRequestURL = goalConflictMessage._links.requestDisclosure.href
 
 		when:
-		def response = appService.postMessageActionWithPassword(discloseRequestURL, [ : ], bob.password)
+		def requestMessageText = "Can I have a look?"
+		def response = appService.postMessageActionWithPassword(discloseRequestURL, [ "message" : requestMessageText], bob.password)
 
 		then:
 		response.status == 200
@@ -73,8 +74,10 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def discloseRequestMessages = getRichardMessagesResponse.responseData._embedded.discloseRequestMessages
 		discloseRequestMessages.size() == 1
 		discloseRequestMessages[0].status == "DISCLOSE_REQUESTED"
+		discloseRequestMessages[0].message == requestMessageText
 		discloseRequestMessages[0].targetGoalConflictMessage.activityCategoryName == "gambling"
 		discloseRequestMessages[0].targetGoalConflictMessage.creationTime > (System.currentTimeMillis() - 50000) // TODO Use standard date/time format
+		discloseRequestMessages[0].user.firstName == "Bob"
 		discloseRequestMessages[0]._links.related.href == getRichardMessagesResponse.responseData._embedded.goalConflictMessages[0]._links.self.href
 		discloseRequestMessages[0]._links.accept.href
 		discloseRequestMessages[0]._links.reject.href
@@ -97,7 +100,8 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def discloseRequestAcceptURL = discloseRequestMessage._links.accept.href
 
 		when:
-		def response = appService.postMessageActionWithPassword(discloseRequestAcceptURL, [ : ], richard.password)
+		def responseMessageText = "Sure!"
+		def response = appService.postMessageActionWithPassword(discloseRequestAcceptURL, [ "message" : responseMessageText ], richard.password)
 
 		then:
 		response.status == 200
@@ -127,7 +131,10 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		getBobMessagesResponse.responseData._embedded.discloseResponseMessages
 		def discloseResponseMessage = getBobMessagesResponse.responseData._embedded.discloseResponseMessages[0]
 		discloseResponseMessage.status == "DISCLOSE_ACCEPTED"
+		discloseResponseMessage.message == responseMessageText
 		discloseResponseMessage.nickname == richard.nickname
+		discloseResponseMessage.user.firstName == "Richard"
+
 		//check delete
 		discloseResponseMessage._links.edit
 		def deleteResponse = appService.deleteResourceWithPassword(discloseResponseMessage._links.edit.href, bob.password)
@@ -153,7 +160,8 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def discloseRequestRejectURL = discloseRequestMessage._links.reject.href
 
 		when:
-		def response = appService.postMessageActionWithPassword(discloseRequestRejectURL, [ : ], richard.password)
+		def responseMessageText = "Nope!"
+		def response = appService.postMessageActionWithPassword(discloseRequestRejectURL, [ "message" : responseMessageText ], richard.password)
 
 		then:
 		response.status == 200
@@ -183,7 +191,10 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		getBobMessagesResponse.responseData._embedded.discloseResponseMessages
 		def discloseResponseMessage = getBobMessagesResponse.responseData._embedded.discloseResponseMessages[0]
 		discloseResponseMessage.status == "DISCLOSE_REJECTED"
+		discloseResponseMessage.message == responseMessageText
 		discloseResponseMessage.nickname == richard.nickname
+		discloseResponseMessage.user.firstName == "Richard"
+
 		//check delete
 		discloseResponseMessage._links.edit
 		def deleteResponse = appService.deleteResourceWithPassword(discloseResponseMessage._links.edit.href, bob.password)
