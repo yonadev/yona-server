@@ -22,7 +22,7 @@ public class DiscloseRequestMessage extends BuddyMessage
 
 	}
 
-	protected DiscloseRequestMessage(UUID id, UUID requestingUserID, UUID requestingUserAnonymizedID,
+	private DiscloseRequestMessage(UUID id, UUID requestingUserID, UUID requestingUserAnonymizedID,
 			UUID targetGoalConflictMessageID, String nickname, String message)
 	{
 		super(id, requestingUserAnonymizedID, requestingUserID, nickname, message);
@@ -60,12 +60,6 @@ public class DiscloseRequestMessage extends BuddyMessage
 	public void decrypt(Decryptor decryptor)
 	{
 		super.decrypt(decryptor);
-	}
-
-	@Override
-	public boolean canBeDeleted()
-	{
-		return this.status == Status.DISCLOSE_ACCEPTED || this.status == Status.DISCLOSE_REJECTED;
 	}
 
 	public static Message createInstance(UUID requestingUserID, UUID requestingUserAnonymizedID, String requestingUserNickname,

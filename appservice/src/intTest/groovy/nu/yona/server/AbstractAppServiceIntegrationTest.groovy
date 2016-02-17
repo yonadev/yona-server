@@ -36,7 +36,6 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 				"+$timestamp", ["Nexus 6"])
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, richard)
 		appService.addBudgetGoal(richard, BudgetGoal.createNoGoInstance("news"))
-		appService.addBudgetGoal(richard, BudgetGoal.createNoGoInstance("gambling"))
 		return richard
 	}
 
@@ -46,7 +45,6 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 				"+$timestamp", ["iPhone 5"])
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bob)
 		appService.addBudgetGoal(bob, BudgetGoal.createNoGoInstance("news"))
-		appService.addBudgetGoal(bob, BudgetGoal.createNoGoInstance("gambling"))
 		return bob
 	}
 

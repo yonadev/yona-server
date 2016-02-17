@@ -97,10 +97,10 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		given:
 		def userSecret = "unknown secret"
 		def richard = addRichard()
-		appService.setNewDeviceRequest(richard.url, richard.password, userSecret)
+		def initialResponse = appService.setNewDeviceRequest(richard.url, richard.password, userSecret)
 
 		when:
-		def response = appService.clearNewDeviceRequest(richard.url, richard.password)
+		def response = appService.clearNewDeviceRequest(initialResponse.responseData._links.edit.href, richard.password)
 
 		then:
 		response.status == 200

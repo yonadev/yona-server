@@ -161,7 +161,7 @@ public class UserDTO
 	 * @param userEntity
 	 * @return
 	 */
-	static UserDTO createInstanceIfNotNull(User userEntity)
+	public static UserDTO createInstanceIfNotNull(User userEntity)
 	{
 		if (userEntity == null)
 		{

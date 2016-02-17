@@ -12,12 +12,14 @@ import nu.yona.server.goals.entities.Goal;
 public abstract class GoalDTO
 {
 	private final UUID id;
-	private String activityCategoryName;
+	private final String activityCategoryName;
+	private final boolean mandatory;
 
-	protected GoalDTO(UUID id, String activityCategoryName)
+	protected GoalDTO(UUID id, String activityCategoryName, boolean mandatory)
 	{
 		this.id = id;
 		this.activityCategoryName = activityCategoryName;
+		this.mandatory = mandatory;
 	}
 
 	@JsonIgnore
@@ -29,6 +31,12 @@ public abstract class GoalDTO
 	public String getActivityCategoryName()
 	{
 		return activityCategoryName;
+	}
+
+	@JsonIgnore
+	public boolean isMandatory()
+	{
+		return mandatory;
 	}
 
 	public abstract Goal createGoalEntity();

@@ -15,7 +15,6 @@ public class DiscloseResponseMessage extends BuddyMessage
 {
 	private UUID targetGoalConflictMessageID;
 	private Status status;
-	private boolean isProcessed;
 
 	// Default constructor is required for JPA
 	public DiscloseResponseMessage()
@@ -23,7 +22,7 @@ public class DiscloseResponseMessage extends BuddyMessage
 
 	}
 
-	protected DiscloseResponseMessage(UUID id, UUID respondingUserID, UUID relatedUserAnonymizedID,
+	private DiscloseResponseMessage(UUID id, UUID respondingUserID, UUID relatedUserAnonymizedID,
 			UUID targetGoalConflictMessageID, Status status, String nickname, String message)
 	{
 		super(id, relatedUserAnonymizedID, respondingUserID, nickname, message);
@@ -51,12 +50,6 @@ public class DiscloseResponseMessage extends BuddyMessage
 	public void decrypt(Decryptor decryptor)
 	{
 		super.decrypt(decryptor);
-	}
-
-	@Override
-	public boolean canBeDeleted()
-	{
-		return isProcessed;
 	}
 
 	public static DiscloseResponseMessage createInstance(UUID respondingUserID, UUID relatedUserAnonymizedID,

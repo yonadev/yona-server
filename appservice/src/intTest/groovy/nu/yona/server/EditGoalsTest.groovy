@@ -45,6 +45,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		response.status == 200
 		response.responseData._links?.self.href == richard.url + appService.GOALS_PATH_FRAGMENT
 		response.responseData._embedded.budgetGoals.size() == 2
+		response.responseData._embedded.budgetGoals[1].activityCategoryName == 'gambling'
+		!response.responseData._embedded.budgetGoals[1]._links.edit //mandatory goal
+		response.responseData._embedded.budgetGoals[0].activityCategoryName == 'news'
+		response.responseData._embedded.budgetGoals[0]._links.edit.href
 	}
 
 	def 'Add goal'()
@@ -69,6 +73,19 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.removeBudgetGoal(richard, addedGoal)
 		then:
 		response.status == 200
+		def responseGoalsAfterDelete = appService.getGoals(richard)
+		responseGoalsAfterDelete.status == 200
+		responseGoalsAfterDelete.responseData._embedded.budgetGoals.size() == 2
+	}
+
+	def 'Validation: Try to remove mandatory goal'()
+	{
+		given:
+		def richard = addRichard()
+		when:
+		def response = appService.deleteResourceWithPassword(richard.goals[0].url, richard.password)
+		then:
+		response.status == 400
 		def responseGoalsAfterDelete = appService.getGoals(richard)
 		responseGoalsAfterDelete.status == 200
 		responseGoalsAfterDelete.responseData._embedded.budgetGoals.size() == 2
