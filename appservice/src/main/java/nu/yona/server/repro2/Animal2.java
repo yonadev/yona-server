@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({ @Type(value = Cat2.class, name = "Cat2"), @Type(value = Dog2.class, name = "Dog2") })
 @JsonRootName("Animal2")
-public abstract class Animal2 extends ResourceSupport implements Cloneable
+public abstract class Animal2 extends ResourceSupport
 {
 
 	private String name;
@@ -33,19 +33,5 @@ public abstract class Animal2 extends ResourceSupport implements Cloneable
 	public void setName(String name)
 	{
 		this.name = name;
-	}
-
-	@Override
-	protected Object clone()
-	{
-		try
-		{
-			return super.clone();
-		}
-		catch (CloneNotSupportedException e)
-		{
-			// Never happens
-			return null;
-		}
 	}
 }

@@ -44,7 +44,7 @@ public class AnimalController2
 	@ResponseBody
 	public HttpEntity<Animal2> getAnimal(@PathVariable String name)
 	{
-		return createOKResponse(new AnimalResourceAssembler().instantiateResource(findAnimal(name)));
+		return createOKResponse(new AnimalResourceAssembler().toResource(findAnimal(name)));
 	}
 
 	private Page<Animal2> makePage(List<Animal2> animals, Pageable pageable)
@@ -93,16 +93,18 @@ public class AnimalController2
 		@Override
 		public Animal2 toResource(Animal2 animal)
 		{
-			Animal2 animalResource = instantiateResource(animal);
-			ControllerLinkBuilder selfLinkBuilder = getAnimalLinkBuilder(animal.getName());
-			addSelfLink(selfLinkBuilder, animalResource);
-			return animalResource;
+			if (!animal.hasLinks())
+			{
+				ControllerLinkBuilder selfLinkBuilder = getAnimalLinkBuilder(animal.getName());
+				addSelfLink(selfLinkBuilder, animal);
+			}
+			return animal;
 		}
 
 		@Override
 		protected Animal2 instantiateResource(Animal2 animal)
 		{
-			return (Animal2) animal.clone();
+			return animal;
 		}
 
 		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, Animal2 animalResource)
