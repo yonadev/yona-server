@@ -64,12 +64,15 @@ public class GoalService
 	@Transactional
 	public void removeGoal(UUID userID, UUID goalID, Optional<String> message)
 	{
-		// TODO check mandatory
 		UserAnonymized userAnonymized = userService.getUserByID(userID).getAnonymized();
 		Optional<Goal> goalEntity = userAnonymized.getGoals().stream().filter(goal -> goal.getID().equals(goalID)).findFirst();
 		if (!goalEntity.isPresent())
 		{
 			throw GoalServiceException.goalNotFoundById(userID, goalID);
+		}
+		if (goalEntity.get().isMandatory())
+		{
+			throw GoalServiceException.cannotRemoveMandatoryGoal(userID, goalID);
 		}
 		userAnonymized.removeGoal(goalEntity.get());
 		userAnonymizedService.updateUserAnonymized(userAnonymized.getID(), userAnonymized);

@@ -147,16 +147,18 @@ public class UserController
 		});
 	}
 
-	@RequestMapping(value = "/{userID}/confirmMobileNumber", method = RequestMethod.POST)
+	@RequestMapping(value = "/{id}/confirmMobileNumber", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<UserResource> confirmMobileNumber(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
 			@RequestBody MobileNumberConfirmationDTO mobileNumberConfirmation)
 	{
-		checkPassword(password, userID);
-		return bruteForceAttemptService.executeAttempt(getConfirmMobileNumberLinkBuilder(userID).toUri(),
-				yonaProperties.getSms().getMobileNumberConfirmationMaxAttempts(),
-				() -> createOKResponse(userService.confirmMobileNumber(userID, mobileNumberConfirmation.getCode()), false));
+		return CryptoSession
+				.execute(password, () -> userService.canAccessPrivateData(id),
+						() -> bruteForceAttemptService.executeAttempt(getConfirmMobileNumberLinkBuilder(id).toUri(),
+								yonaProperties.getSms()
+										.getMobileNumberConfirmationMaxAttempts(),
+						() -> createOKResponse(userService.confirmMobileNumber(id, mobileNumberConfirmation.getCode()), true)));
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.PUT)

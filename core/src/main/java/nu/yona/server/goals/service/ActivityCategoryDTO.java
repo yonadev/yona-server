@@ -23,7 +23,7 @@ public class ActivityCategoryDTO
 {
 	private final UUID id;
 	private final String name;
-	private boolean mandatory;
+	private boolean mandatoryNoGo;
 	private Set<String> smoothwallCategories;
 	private Set<String> applications;
 
@@ -32,7 +32,7 @@ public class ActivityCategoryDTO
 	{
 		this.id = id;
 		this.name = name;
-		this.mandatory = mandatory;
+		this.mandatoryNoGo = mandatory;
 		this.smoothwallCategories = new HashSet<>(smoothwallCategories);
 		this.applications = new HashSet<>(applications);
 	}
@@ -56,9 +56,9 @@ public class ActivityCategoryDTO
 		return name;
 	}
 
-	public boolean getMandatory()
+	public boolean isMandatoryNoGo()
 	{
-		return mandatory;
+		return mandatoryNoGo;
 	}
 
 	public Set<String> getSmoothwallCategories()
@@ -74,13 +74,13 @@ public class ActivityCategoryDTO
 	public static ActivityCategoryDTO createInstance(ActivityCategory activityCategoryEntity)
 	{
 		return new ActivityCategoryDTO(activityCategoryEntity.getID(), activityCategoryEntity.getName(),
-				activityCategoryEntity.isMandatory(), activityCategoryEntity.getSmoothwallCategories(),
+				activityCategoryEntity.isMandatoryNoGo(), activityCategoryEntity.getSmoothwallCategories(),
 				activityCategoryEntity.getApplications());
 	}
 
 	public ActivityCategory createActivityCategoryEntity()
 	{
-		return ActivityCategory.createInstance(name, mandatory, smoothwallCategories, applications);
+		return ActivityCategory.createInstance(name, mandatoryNoGo, smoothwallCategories, applications);
 	}
 
 	public ActivityCategory updateActivityCategory(ActivityCategory originalActivityCategoryEntity)

@@ -25,6 +25,10 @@ import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.exceptions.UserOverwriteConfirmationException;
+import nu.yona.server.goals.entities.ActivityCategory;
+import nu.yona.server.goals.entities.BudgetGoal;
+import nu.yona.server.goals.service.ActivityCategoryDTO;
+import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
@@ -59,6 +63,9 @@ public class UserService
 
 	@Autowired
 	private UserAnonymizedService userAnonymizedService;
+
+	@Autowired
+	private ActivityCategoryService activityCategoryService;
 
 	@Transactional
 	public boolean canAccessPrivateData(UUID id)
@@ -129,6 +136,7 @@ public class UserService
 		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
 
 		User userEntity = user.createUserEntity();
+		addMandatoryGoals(userEntity);
 		if (overwriteUserConfirmationCode.isPresent())
 		{
 			// no need to confirm again
@@ -153,6 +161,18 @@ public class UserService
 
 		logger.info("Added new user with mobile number '{}' and ID '{}'", userDTO.getMobileNumber(), userDTO.getID());
 		return userDTO;
+	}
+
+	private void addMandatoryGoals(User userEntity)
+	{
+		activityCategoryService.getAllActivityCategories().stream().filter(c -> c.isMandatoryNoGo())
+				.forEach(c -> addGoal(userEntity, c));
+	}
+
+	private void addGoal(User userEntity, ActivityCategoryDTO category)
+	{
+		userEntity.getAnonymized()
+				.addGoal(BudgetGoal.createNoGoInstance(ActivityCategory.getRepository().findOne(category.getID())));
 	}
 
 	private void handleExistingUserForMobileNumber(String mobileNumber, Optional<String> overwriteUserConfirmationCode)
@@ -221,7 +241,7 @@ public class UserService
 		userEntity.markMobileNumberConfirmed();
 		User.getRepository().save(userEntity);
 
-		return UserDTO.createInstance(userEntity);
+		return UserDTO.createInstanceWithPrivateData(userEntity);
 	}
 
 	@Transactional
@@ -245,6 +265,7 @@ public class UserService
 				buddyUserResource.getPrivateData().getNickname(), buddyUserResource.getMobileNumber(),
 				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet(),
 				Collections.emptySet());
+		addMandatoryGoals(newUser);
 		newUser.setIsCreatedOnBuddyRequest();
 		setUserUnconfirmedWithNewConfirmationCode(newUser);
 		User savedUser = User.getRepository().save(newUser);

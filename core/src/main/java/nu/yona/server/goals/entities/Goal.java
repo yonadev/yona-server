@@ -43,5 +43,7 @@ public abstract class Goal extends EntityWithID
 		return activityCategory;
 	}
 
+	public abstract boolean isMandatory();
+
 	public abstract boolean isNoGoGoal();
 }

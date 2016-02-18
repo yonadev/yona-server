@@ -59,7 +59,7 @@ public class GoalController
 	public HttpEntity<GoalResource> getBudgetGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userID, @PathVariable UUID goalID)
 	{
-	
+
 		return getGoal(password, userID, goalID);
 	}
 
@@ -156,7 +156,10 @@ public class GoalController
 			GoalResource goalResource = instantiateResource(goal);
 			ControllerLinkBuilder selfLinkBuilder = getGoalLinkBuilder(userID, goal);
 			addSelfLink(selfLinkBuilder, goalResource);
-			addEditLink(selfLinkBuilder, goalResource);
+			if (!goal.isMandatory())
+			{
+				addEditLink(selfLinkBuilder, goalResource);
+			}
 			return goalResource;
 		}
 
