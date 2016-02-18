@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -27,7 +28,9 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
@@ -83,18 +86,37 @@ public class AnalysisEngineServiceTests
 
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 
-		when(mockActivityCategoryService.getAllActivityCategories()).thenReturn(new HashSet<ActivityCategoryDTO>(
-				goalMap.values().stream().map(goal -> ActivityCategoryDTO.createInstance(goal.getActivityCategory()))
-						.collect(Collectors.toSet())));
+		when(mockActivityCategoryService.getAllActivityCategories()).thenReturn(getAllActivityCategories());
+		when(mockActivityCategoryService.getMatchingActivityCategories(anySetOf(String.class)))
+				.thenAnswer(new Answer<Set<ActivityCategoryDTO>>() {
+					@Override
+					public Set<ActivityCategoryDTO> answer(InvocationOnMock invocation) throws Throwable
+					{
+						Object[] args = invocation.getArguments();
+						@SuppressWarnings("unchecked")
+						Set<String> smoothwallCategories = (Set<String>) args[0];
+						return getAllActivityCategories()
+								.stream().filter(ac -> ac.getSmoothwallCategories().stream()
+										.filter(smoothwallCategories::contains).findAny().isPresent())
+								.collect(Collectors.toSet());
+					}
+				});
 
 		// Set up UserAnonymized instance.
 		anonMessageDestination = new MessageDestinationDTO(UUID.randomUUID());
 		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(gamblingGoal, gamingGoal));
-		UserAnonymizedDTO userAnon = new UserAnonymizedDTO(goals, anonMessageDestination, Collections.emptySet());
-		userAnonID = UUID.randomUUID();
+		UserAnonymizedDTO userAnon = new UserAnonymizedDTO(UUID.randomUUID(), goals, anonMessageDestination,
+				Collections.emptySet());
+		userAnonID = userAnon.getID();
 
 		// Stub the UserAnonymizedRepository to return our user.
 		when(mockUserAnonymizedService.getUserAnonymized(userAnonID)).thenReturn(userAnon);
+	}
+
+	private Set<ActivityCategoryDTO> getAllActivityCategories()
+	{
+		return goalMap.values().stream().map(goal -> ActivityCategoryDTO.createInstance(goal.getActivityCategory()))
+				.collect(Collectors.toSet());
 	}
 
 	/*
@@ -119,7 +141,7 @@ public class AnalysisEngineServiceTests
 		p.setConflictInterval(10L);
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
-		Activity earlierActivity = Activity.createInstance(userAnonID, gamblingGoal, new Date());
+		Activity earlierActivity = Activity.createInstance(userAnonID, gamblingGoal, new Date(), new Date());
 		when(mockAnalysisEngineCacheService.fetchLatestActivityForUser(eq(userAnonID), eq(gamblingGoal.getID()), any()))
 				.thenReturn(earlierActivity);
 
@@ -232,7 +254,7 @@ public class AnalysisEngineServiceTests
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
 		Date t = new Date();
-		Activity earlierActivity = Activity.createInstance(userAnonID, gamblingGoal, t);
+		Activity earlierActivity = Activity.createInstance(userAnonID, gamblingGoal, t, t);
 		when(mockAnalysisEngineCacheService.fetchLatestActivityForUser(eq(userAnonID), eq(gamblingGoal.getID()), any()))
 				.thenReturn(earlierActivity);
 

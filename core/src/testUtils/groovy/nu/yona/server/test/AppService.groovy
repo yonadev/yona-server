@@ -18,6 +18,8 @@ class AppService extends Service
 	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
 	final MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT = "/confirmMobileNumber"
 	final GOALS_PATH_FRAGMENT = "/goals/"
+	final ACTIVITY_PATH_FRAGMENT = "/activity/"
+	final APP_ACTIVITY_PATH_FRAGMENT = "/appActivity/"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 
@@ -409,6 +411,20 @@ class AppService extends Service
 	def postMessageAction(path, jsonString, headers = [:])
 	{
 		yonaServer.postJson(path, jsonString, headers)
+	}
+
+	def postAppActivityToAnalysisEngine(User user, application, startTime, endTime)
+	{
+		yonaServer.createResourceWithPassword(user.url + ACTIVITY_PATH_FRAGMENT + APP_ACTIVITY_PATH_FRAGMENT, """{
+					"application":"$application",
+					"startTime":"$startTime",
+					"endTime":"$endTime"
+				}""", user.password)
+	}
+
+	def createResourceWithPassword(path, jsonString, password, parameters = [:])
+	{
+		yonaServer.createResource(path, jsonString, ["Yona-Password": password], parameters)
 	}
 
 	def deleteResourceWithPassword(path, password, parameters = [:])
