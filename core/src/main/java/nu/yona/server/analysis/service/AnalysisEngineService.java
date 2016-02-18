@@ -49,12 +49,12 @@ public class AnalysisEngineService
 		analyze(new ActivityPayload(appActivity), userAnonymized, matchingActivityCategories);
 	}
 
-	public void analyze(PotentialConflictDTO potentialConflictPayload)
+	public void analyze(NetworkActivityDTO networkActivity)
 	{
-		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(potentialConflictPayload.getVPNLoginID());
+		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(networkActivity.getVPNLoginID());
 		Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryService
-				.getMatchingActivityCategories(potentialConflictPayload.getCategories());
-		analyze(new ActivityPayload(potentialConflictPayload), userAnonymized, matchingActivityCategories);
+				.getMatchingActivityCategories(networkActivity.getCategories());
+		analyze(new ActivityPayload(networkActivity), userAnonymized, matchingActivityCategories);
 	}
 
 	private void analyze(ActivityPayload payload, UserAnonymizedDTO userAnonymized,
@@ -162,9 +162,9 @@ public class AnalysisEngineService
 		public Date endTime;
 		public String application;
 
-		public ActivityPayload(PotentialConflictDTO potentialConflict)
+		public ActivityPayload(NetworkActivityDTO networkActivity)
 		{
-			this.url = potentialConflict.getURL();
+			this.url = networkActivity.getURL();
 			this.startTime = new Date(); // now
 			this.endTime = this.startTime;
 			this.application = null;

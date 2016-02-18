@@ -157,7 +157,7 @@ public class AnalysisEngineServiceTests
 		}
 
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test1"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test1"));
 
 		// Verify that there is a new conflict message sent.
 		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
@@ -177,7 +177,7 @@ public class AnalysisEngineServiceTests
 		Date t = new Date();
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
 		// Verify that there is an activity update.
 		ArgumentCaptor<Activity> activity = ArgumentCaptor.forClass(Activity.class);
@@ -204,7 +204,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag", "lotto"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
 		// Verify that there is an activity update.
 		ArgumentCaptor<Activity> activity = ArgumentCaptor.forClass(Activity.class);
@@ -225,7 +225,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto", "games"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
 		// Verify that there are 2 activities updated, for both goals.
 		ArgumentCaptor<Activity> activity = ArgumentCaptor.forClass(Activity.class);
@@ -262,12 +262,12 @@ public class AnalysisEngineServiceTests
 		Set<String> conflictCategories1 = new HashSet<String>(Arrays.asList("lotto"));
 		Set<String> conflictCategories2 = new HashSet<String>(Arrays.asList("poker"));
 		Set<String> conflictCategoriesNotMatching1 = new HashSet<String>(Arrays.asList("refdag"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories1, "http://localhost/test1"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories2, "http://localhost/test2"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test3"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories1, "http://localhost/test1"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories2, "http://localhost/test2"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test3"));
 		Date t2 = new Date();
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories2, "http://localhost/test4"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories2, "http://localhost/test4"));
 
 		// Verify that there is no new conflict message sent.
 		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
@@ -289,7 +289,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
 		// Verify that there was no attempted activity update.
 		verify(mockAnalysisEngineCacheService, never()).fetchLatestActivityForUser(eq(userAnonID), any(), any());
