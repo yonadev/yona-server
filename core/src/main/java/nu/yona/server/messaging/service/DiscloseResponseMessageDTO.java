@@ -36,6 +36,12 @@ public class DiscloseResponseMessageDTO extends BuddyMessageDTO
 	}
 
 	@Override
+	public String getType()
+	{
+		return "DiscloseResponseMessage";
+	}
+
+	@Override
 	public Set<String> getPossibleActions()
 	{
 		Set<String> possibleActions = new HashSet<>();

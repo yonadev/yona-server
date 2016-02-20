@@ -8,7 +8,10 @@ import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.hateoas.ResourceSupport;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
@@ -20,14 +23,14 @@ import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDTO;
 import nu.yona.server.subscriptions.service.BuddyDisconnectMessageDTO;
 
 @JsonRootName("message")
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "@type")
 @JsonSubTypes({ @Type(value = BuddyConnectRequestMessageDTO.class, name = "BuddyConnectRequestMessage"),
 		@Type(value = BuddyConnectResponseMessageDTO.class, name = "BuddyConnectResponseMessage"),
 		@Type(value = BuddyDisconnectMessageDTO.class, name = "BuddyDisconnectMessage"),
 		@Type(value = DiscloseRequestMessageDTO.class, name = "DiscloseRequestMessage"),
 		@Type(value = DiscloseResponseMessageDTO.class, name = "DiscloseResponseMessage"),
 		@Type(value = GoalConflictMessageDTO.class, name = "GoalConflictMessage"), })
-public abstract class MessageDTO
+public abstract class MessageDTO extends ResourceSupport
 {
 	private final UUID id;
 	private final Date creationTime;
@@ -44,6 +47,9 @@ public abstract class MessageDTO
 		this.creationTime = creationTime;
 		this.relatedAnonymousMessageID = relatedAnonymousMessageID;
 	}
+
+	@JsonProperty(value = "@type")
+	public abstract String getType();
 
 	@JsonIgnore
 	public UUID getID()
@@ -64,7 +70,4 @@ public abstract class MessageDTO
 
 	@JsonIgnore
 	public abstract Set<String> getPossibleActions();
-
-	@JsonIgnore
-	public abstract boolean canBeDeleted();
 }
