@@ -70,4 +70,7 @@ public abstract class MessageDTO extends ResourceSupport
 
 	@JsonIgnore
 	public abstract Set<String> getPossibleActions();
+
+	@JsonIgnore
+	public abstract boolean canBeDeleted();
 }

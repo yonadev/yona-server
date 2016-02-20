@@ -40,6 +40,7 @@ import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService;
+import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
@@ -157,6 +158,10 @@ public class MessageController
 			addSelfLink(selfLinkBuilder, message);
 			addActionLinks(selfLinkBuilder, message);
 			addRelatedMessageLink(message, message);
+			if (message.canBeDeleted())
+			{
+				addEditLink(selfLinkBuilder, message);
+			}
 			return message;
 		}
 
@@ -180,7 +185,7 @@ public class MessageController
 			messageResource.add(selfLinkBuilder.withSelfRel());
 		}
 
-		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, MessageResource messageResource)
+		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, MessageDTO messageResource)
 		{
 			messageResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
 		}
