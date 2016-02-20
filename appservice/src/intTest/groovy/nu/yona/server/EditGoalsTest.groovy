@@ -47,7 +47,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded.budgetGoals.size() == 2
 		def gamblingGoals = response.responseData._embedded.budgetGoals.findAll{ it.activityCategoryName == 'gambling'}
 		gamblingGoals.size() == 1
-		!gamblingGoals[1]._links.edit //mandatory goal
+		!gamblingGoals[0]._links.edit //mandatory goal
 		def newsGoals = response.responseData._embedded.budgetGoals.findAll{ it.activityCategoryName == 'news'}
 		newsGoals.size() == 1
 		newsGoals[0]._links.edit.href
