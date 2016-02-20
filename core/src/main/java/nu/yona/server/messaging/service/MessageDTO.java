@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import nu.yona.server.analysis.service.GoalConflictMessageDTO;
+import nu.yona.server.goals.service.GoalChangeMessageDTO;
 import nu.yona.server.subscriptions.service.BuddyConnectRequestMessageDTO;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDTO;
 import nu.yona.server.subscriptions.service.BuddyDisconnectMessageDTO;
@@ -29,7 +30,8 @@ import nu.yona.server.subscriptions.service.BuddyDisconnectMessageDTO;
 		@Type(value = BuddyDisconnectMessageDTO.class, name = "BuddyDisconnectMessage"),
 		@Type(value = DiscloseRequestMessageDTO.class, name = "DiscloseRequestMessage"),
 		@Type(value = DiscloseResponseMessageDTO.class, name = "DiscloseResponseMessage"),
-		@Type(value = GoalConflictMessageDTO.class, name = "GoalConflictMessage"), })
+		@Type(value = GoalConflictMessageDTO.class, name = "GoalConflictMessage"),
+		@Type(value = GoalChangeMessageDTO.class, name = "GoalChangeMessage"), })
 public abstract class MessageDTO extends ResourceSupport
 {
 	private final UUID id;
