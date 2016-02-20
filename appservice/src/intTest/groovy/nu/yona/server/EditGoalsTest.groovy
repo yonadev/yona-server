@@ -45,10 +45,12 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		response.status == 200
 		response.responseData._links?.self.href == richard.url + appService.GOALS_PATH_FRAGMENT
 		response.responseData._embedded.budgetGoals.size() == 2
-		response.responseData._embedded.budgetGoals[1].activityCategoryName == 'gambling'
-		!response.responseData._embedded.budgetGoals[1]._links.edit //mandatory goal
-		response.responseData._embedded.budgetGoals[0].activityCategoryName == 'news'
-		response.responseData._embedded.budgetGoals[0]._links.edit.href
+		def gamblingGoals = response.responseData._embedded.budgetGoals.findAll{ it.activityCategoryName == 'gambling'}
+		gamblingGoals.size() == 1
+		!gamblingGoals[0]._links.edit //mandatory goal
+		def newsGoals = response.responseData._embedded.budgetGoals.findAll{ it.activityCategoryName == 'news'}
+		newsGoals.size() == 1
+		newsGoals[0]._links.edit.href
 	}
 
 	def 'Add goal'()
