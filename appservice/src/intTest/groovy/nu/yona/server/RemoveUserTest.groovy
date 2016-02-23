@@ -56,16 +56,18 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def getMessagesResponse = appService.getMessages(bob)
 		getMessagesResponse.status == 200
 		getMessagesResponse.responseData._embedded
-		getMessagesResponse.responseData._embedded.buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"
-		getMessagesResponse.responseData._embedded.buddyDisconnectMessages[0].message == message
-		getMessagesResponse.responseData._embedded.buddyDisconnectMessages[0].nickname == richard.nickname
-		getMessagesResponse.responseData._embedded.buddyDisconnectMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
-		getMessagesResponse.responseData._embedded.buddyDisconnectMessages[0]._links.process.href.startsWith(getMessagesResponse.responseData._embedded.buddyDisconnectMessages[0]._links.self.href)
-		getMessagesResponse.responseData._embedded.goalConflictMessages.size == 1
-		getMessagesResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		getMessagesResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "gambling"
-		getMessagesResponse.responseData._embedded.goalConflictMessages[0].url =~ /poker/
-		getMessagesResponse.responseData._embedded.buddyConnectRequestMessages == null
+		def buddyDisconnectMessages = getMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "BuddyDisconnectMessage"}
+		buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"
+		buddyDisconnectMessages[0].message == message
+		buddyDisconnectMessages[0].nickname == richard.nickname
+		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
+		buddyDisconnectMessages[0]._links.process.href.startsWith(getMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links.self.href)
+		def goalConflictMessages = getMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		goalConflictMessages.size == 1
+		goalConflictMessages[0].nickname == "<self>"
+		goalConflictMessages[0].activityCategoryName == "gambling"
+		goalConflictMessages[0].url =~ /poker/
+		getMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "BuddyConnectRequestMessage"}.size() == 0
 
 		cleanup:
 		appService.deleteUser(bob)
@@ -82,7 +84,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def message = "Goodbye friends! I deinstalled the Internet"
 		appService.deleteUser(richard, message)
 		def getResponse = appService.getMessages(bob)
-		def disconnectMessage = getResponse.responseData._embedded.buddyDisconnectMessages[0]
+		def disconnectMessage = getResponse.responseData._embedded.messages.findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
 		def processURL = disconnectMessage._links.process.href
 
 		when:
@@ -99,10 +101,11 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def getMessagesResponse = appService.getMessages(bob)
 		getMessagesResponse.status == 200
 		getMessagesResponse.responseData._embedded
-		getMessagesResponse.responseData._embedded.goalConflictMessages.size == 1
-		getMessagesResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		getMessagesResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "gambling"
-		getMessagesResponse.responseData._embedded.goalConflictMessages[0].url =~ /poker/
+		def goalConflictMessages = getMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		goalConflictMessages.size == 1
+		goalConflictMessages[0].nickname == "<self>"
+		goalConflictMessages[0].activityCategoryName == "gambling"
+		goalConflictMessages[0].url =~ /poker/
 
 		cleanup:
 		appService.deleteUser(bob)
@@ -117,7 +120,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def message = "Goodbye friends! I deinstalled the Internet"
 		appService.deleteUser(richard, message)
 		def getResponse = appService.getMessages(bob)
-		def processURL = (getResponse.status == 200) ? getResponse.responseData._embedded.buddyDisconnectMessages[0]._links.process.href : null
+		def processURL = (getResponse.status == 200) ? getResponse.responseData._embedded.messages.findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links.process.href : null
 		appService.postMessageActionWithPassword(processURL, [:], bob.password)
 
 		when:
@@ -128,11 +131,12 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def getMessagesResponse = appService.getMessages(bob)
 		getMessagesResponse.status == 200
 		getMessagesResponse.responseData._embedded
-		getMessagesResponse.responseData._embedded.buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"
-		getMessagesResponse.responseData._embedded.buddyDisconnectMessages[0].message == message
-		getMessagesResponse.responseData._embedded.buddyDisconnectMessages[0].nickname == richard.nickname
-		getMessagesResponse.responseData._embedded.buddyDisconnectMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
-		!getMessagesResponse.responseData._embedded.buddyDisconnectMessages[0]._links.process
+		def buddyDisconnectMessages = getMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "BuddyDisconnectMessage"}
+		buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"
+		buddyDisconnectMessages[0].message == message
+		buddyDisconnectMessages[0].nickname == richard.nickname
+		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
+		!buddyDisconnectMessages[0]._links.process
 
 		cleanup:
 		appService.deleteUser(bob)

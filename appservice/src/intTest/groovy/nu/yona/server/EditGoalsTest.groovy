@@ -70,13 +70,14 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		responseGoalsAfterAdd.responseData._embedded.budgetGoals.size() == 3
 
 		def bobMessagesResponse = appService.getMessages(bob)
-		bobMessagesResponse.responseData._embedded.goalChangeMessages.size() == 1
-		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].change == 'GOAL_ADDED'
-		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].changedGoal.activityCategoryName == 'social'
-		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].user.firstName == 'Richard'
-		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].nickname == 'RQ'
-		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].message == "Going to monitor my social time!"
-		bobMessagesResponse.responseData._embedded.goalChangeMessages[0]._links.edit
+		def goalChangeMessages = bobMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalChangeMessage"}
+		goalChangeMessages.size() == 1
+		goalChangeMessages[0].change == 'GOAL_ADDED'
+		goalChangeMessages[0].changedGoal.activityCategoryName == 'social'
+		goalChangeMessages[0].user.firstName == 'Richard'
+		goalChangeMessages[0].nickname == 'RQ'
+		goalChangeMessages[0].message == "Going to monitor my social time!"
+		goalChangeMessages[0]._links.edit
 	}
 
 	def 'Delete goal'()
@@ -97,13 +98,14 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		responseGoalsAfterDelete.responseData._embedded.budgetGoals.size() == 2
 
 		def bobMessagesResponse = appService.getMessages(bob)
-		bobMessagesResponse.responseData._embedded.goalChangeMessages.size() == 2
-		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].change == 'GOAL_DELETED'
-		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].changedGoal.activityCategoryName == 'social'
-		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].user.firstName == 'Richard'
-		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].nickname == 'RQ'
-		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].message == "Don't want to monitor my social time anymore"
-		bobMessagesResponse.responseData._embedded.goalChangeMessages[0]._links.edit
+		def goalChangeMessages = bobMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalChangeMessage"}
+		goalChangeMessages.size() == 2
+		goalChangeMessages[0].change == 'GOAL_DELETED'
+		goalChangeMessages[0].changedGoal.activityCategoryName == 'social'
+		goalChangeMessages[0].user.firstName == 'Richard'
+		goalChangeMessages[0].nickname == 'RQ'
+		goalChangeMessages[0].message == "Don't want to monitor my social time anymore"
+		goalChangeMessages[0]._links.edit
 	}
 
 	def 'Validation: Try to remove mandatory goal'()

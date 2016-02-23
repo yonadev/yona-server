@@ -37,7 +37,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.messaging.rest.MessageController.MessageResource;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService;
@@ -45,7 +44,7 @@ import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
-@ExposesResourceFor(MessageResource.class)
+@ExposesResourceFor(MessageDTO.class)
 @RequestMapping(value = "/users/{userID}/messages")
 public class MessageController
 {
@@ -57,7 +56,7 @@ public class MessageController
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<PagedResources<MessageResource>> getAnonymousMessages(
+	public HttpEntity<PagedResources<MessageDTO>> getAnonymousMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, Pageable pageable,
 			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
 	{
@@ -69,7 +68,7 @@ public class MessageController
 
 	@RequestMapping(value = "/{messageID}", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<MessageResource> getAnonymousMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+	public HttpEntity<MessageDTO> getAnonymousMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userID, @PathVariable UUID messageID)
 	{
 
@@ -101,14 +100,14 @@ public class MessageController
 				new MessageActionResource(messageService.deleteAnonymousMessage(userID, messageID), userID)));
 	}
 
-	private HttpEntity<PagedResources<MessageResource>> createOKResponse(PagedResources<MessageResource> messages)
+	private HttpEntity<PagedResources<MessageDTO>> createOKResponse(PagedResources<MessageDTO> messages)
 	{
-		return new ResponseEntity<PagedResources<MessageResource>>(messages, HttpStatus.OK);
+		return new ResponseEntity<PagedResources<MessageDTO>>(messages, HttpStatus.OK);
 	}
 
-	private HttpEntity<MessageResource> createOKResponse(MessageResource message)
+	private HttpEntity<MessageDTO> createOKResponse(MessageDTO message)
 	{
-		return new ResponseEntity<MessageResource>(message, HttpStatus.OK);
+		return new ResponseEntity<MessageDTO>(message, HttpStatus.OK);
 	}
 
 	private HttpEntity<MessageActionResource> createOKResponse(MessageActionResource messageAction)
@@ -133,7 +132,7 @@ public class MessageController
 		}
 
 		@JsonProperty("_embedded")
-		public Map<String, List<MessageResource>> getEmbeddedResources()
+		public Map<String, List<MessageDTO>> getEmbeddedResources()
 		{
 			Set<MessageDTO> affectedMessages = getContent().getAffectedMessages();
 			return Collections.singletonMap("affectedMessages",
@@ -141,40 +140,32 @@ public class MessageController
 		}
 	}
 
-	static class MessageResource extends Resource<MessageDTO>
-	{
-		public MessageResource(MessageDTO message)
-		{
-			super(message);
-		}
-	}
-
-	private static class MessageResourceAssembler extends ResourceAssemblerSupport<MessageDTO, MessageResource>
+	private static class MessageResourceAssembler extends ResourceAssemblerSupport<MessageDTO, MessageDTO>
 	{
 		private UUID userID;
 
 		public MessageResourceAssembler(UUID userID)
 		{
-			super(MessageController.class, MessageResource.class);
+			super(MessageController.class, MessageDTO.class);
 			this.userID = userID;
 		}
 
 		@Override
-		public MessageResource toResource(MessageDTO message)
+		public MessageDTO toResource(MessageDTO message)
 		{
-			MessageResource messageResource = instantiateResource(message);
+			message.removeLinks(); // So we are sure the below links are the only ones
 			ControllerLinkBuilder selfLinkBuilder = getAnonymousMessageLinkBuilder(userID, message.getID());
-			addSelfLink(selfLinkBuilder, messageResource);
-			addActionLinks(selfLinkBuilder, messageResource);
-			addRelatedMessageLink(message, messageResource);
+			addSelfLink(selfLinkBuilder, message);
+			addActionLinks(selfLinkBuilder, message);
+			addRelatedMessageLink(message, message);
 			if (message.canBeDeleted())
 			{
-				addEditLink(selfLinkBuilder, messageResource);
+				addEditLink(selfLinkBuilder, message);
 			}
-			return messageResource;
+			return message;
 		}
 
-		private void addRelatedMessageLink(MessageDTO message, MessageResource messageResource)
+		private void addRelatedMessageLink(MessageDTO message, MessageDTO messageResource)
 		{
 			if (message.getRelatedAnonymousMessageID() != null)
 			{
@@ -184,25 +175,24 @@ public class MessageController
 		}
 
 		@Override
-		protected MessageResource instantiateResource(MessageDTO message)
+		protected MessageDTO instantiateResource(MessageDTO message)
 		{
-			return new MessageResource(message);
+			return message;
 		}
 
-		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, MessageResource messageResource)
+		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, MessageDTO messageResource)
 		{
 			messageResource.add(selfLinkBuilder.withSelfRel());
 		}
 
-		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, MessageResource messageResource)
+		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, MessageDTO messageResource)
 		{
 			messageResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
 		}
 
-		private void addActionLinks(ControllerLinkBuilder selfLinkBuilder, MessageResource messageResource)
+		private void addActionLinks(ControllerLinkBuilder selfLinkBuilder, MessageDTO messageResource)
 		{
-			messageResource.getContent().getPossibleActions().stream()
-					.forEach(a -> messageResource.add(selfLinkBuilder.slash(a).withRel(a)));
+			messageResource.getPossibleActions().stream().forEach(a -> messageResource.add(selfLinkBuilder.slash(a).withRel(a)));
 		}
 	}
 }
