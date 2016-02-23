@@ -28,6 +28,12 @@ public class BudgetGoalDTO extends GoalDTO
 		this.maxDuration = maxDuration;
 	}
 
+	@Override
+	public String getType()
+	{
+		return "BudgetGoal";
+	}
+
 	public int getMaxDuration()
 	{
 		return maxDuration;

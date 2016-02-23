@@ -23,6 +23,15 @@ abstract class Goal
 
 	def abstract convertToJsonString()
 
+	static def fromJSON(def json)
+	{
+		if(json["@type"] == "BudgetGoal")
+		{
+			return new BudgetGoal(json)
+		}
+		else throw new RuntimeException("Unknown goal type: " + json["@type"])
+	}
+
 	def convertToJSON()
 	{
 		def jsonStr = convertToJsonString()

@@ -16,7 +16,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		when:
-		def response = appService.addBudgetGoal(richard, BudgetGoal.createInstance("not existing", 60))
+		def response = appService.addGoal(richard, BudgetGoal.createInstance("not existing", 60))
 
 		then:
 		response.status == 404
@@ -28,7 +28,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		when:
-		def response = appService.addBudgetGoal(richard, BudgetGoal.createInstance("gambling", 60))
+		def response = appService.addGoal(richard, BudgetGoal.createInstance("gambling", 60))
 
 		then:
 		response.status == 400
@@ -60,7 +60,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		when:
-		def addedGoal = appService.addBudgetGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60), "Going to monitor my social time!")
+		def addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60), "Going to monitor my social time!")
 
 		then:
 		addedGoal
@@ -85,9 +85,9 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
-		def addedGoal = appService.addBudgetGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60))
+		def addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60))
 		when:
-		def response = appService.removeBudgetGoal(richard, addedGoal, "Don't want to monitor my social time anymore")
+		def response = appService.removeGoal(richard, addedGoal, "Don't want to monitor my social time anymore")
 
 		then:
 		response.status == 200
