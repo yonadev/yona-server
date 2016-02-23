@@ -18,11 +18,11 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def endTime = new Date().getTime()
 
 		when:
-		def response = appService.createResourceWithPassword(richard.url + appService.ACTIVITY_PATH_FRAGMENT + appService.APP_ACTIVITY_PATH_FRAGMENT, """{
+		def response = appService.createResourceWithPassword(richard.url + appService.APP_ACTIVITY_PATH_FRAGMENT, """[{
 					"application":"Poker App",
 					"startTime":"$startTime",
 					"endTime":"$endTime"
-				}""", "Hack")
+				}]""", "Hack")
 
 		then:
 		response.status == 400
@@ -73,7 +73,42 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		appService.postAppActivityToAnalysisEngine(richard, "Poker App", startTime, endTime)
-		appService.postAppActivityToAnalysisEngine(richard, "Lotto App", startTime, endTime)
+		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
+		appService.postAppActivityToAnalysisEngine(richard, "Lotto App", startTime1, endTime1)
+
+		then:
+		def getMessagesRichardResponse = appService.getMessages(richard)
+		getMessagesRichardResponse.status == 200
+		getMessagesRichardResponse.responseData._embedded.goalConflictMessages
+		getMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
+
+		def getMessagesBobResponse = appService.getMessages(bob)
+		getMessagesBobResponse.status == 200
+		getMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
+	}
+
+	def 'Send multiple app activities after offline period'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		def startTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000)).getTime()
+		def endTime = new Date(System.currentTimeMillis() - (10 * 1000)).getTime()
+		def startTime1 = new Date(System.currentTimeMillis() - (10 * 1000)).getTime()
+		def endTime1 = new Date().getTime()
+
+		when:
+		def response = appService.createResourceWithPassword(richard.url + appService.APP_ACTIVITY_PATH_FRAGMENT, """[{
+					"application":"Poker App",
+					"startTime":"$startTime",
+					"endTime":"$endTime"
+				},
+				{
+					"application":"Lotto App",
+					"startTime":"$startTime1",
+					"endTime":"$endTime1"
+				}]""", richard.password)
 
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)

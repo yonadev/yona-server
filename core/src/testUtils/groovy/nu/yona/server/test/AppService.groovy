@@ -415,11 +415,11 @@ class AppService extends Service
 
 	def postAppActivityToAnalysisEngine(User user, application, startTime, endTime)
 	{
-		yonaServer.createResourceWithPassword(user.url + ACTIVITY_PATH_FRAGMENT + APP_ACTIVITY_PATH_FRAGMENT, """{
+		yonaServer.createResourceWithPassword(user.url + APP_ACTIVITY_PATH_FRAGMENT, """[{
 					"application":"$application",
 					"startTime":"$startTime",
 					"endTime":"$endTime"
-				}""", user.password)
+				}]""", user.password)
 	}
 
 	def createResourceWithPassword(path, jsonString, password, parameters = [:])

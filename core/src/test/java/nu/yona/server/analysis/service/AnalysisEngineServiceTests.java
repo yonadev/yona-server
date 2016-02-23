@@ -87,7 +87,7 @@ public class AnalysisEngineServiceTests
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 
 		when(mockActivityCategoryService.getAllActivityCategories()).thenReturn(getAllActivityCategories());
-		when(mockActivityCategoryService.getMatchingActivityCategories(anySetOf(String.class)))
+		when(mockActivityCategoryService.getMatchingCategoriesForSmoothwallCategories(anySetOf(String.class)))
 				.thenAnswer(new Answer<Set<ActivityCategoryDTO>>() {
 					@Override
 					public Set<ActivityCategoryDTO> answer(InvocationOnMock invocation) throws Throwable

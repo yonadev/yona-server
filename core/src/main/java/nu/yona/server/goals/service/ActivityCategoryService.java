@@ -144,7 +144,7 @@ public class ActivityCategoryService
 				.forEach(this::deleteActivityCategory);
 	}
 
-	public Set<ActivityCategoryDTO> getMatchingActivityCategories(Set<String> smoothwallCategories)
+	public Set<ActivityCategoryDTO> getMatchingCategoriesForSmoothwallCategories(Set<String> smoothwallCategories)
 	{
 		return getAllActivityCategories().stream().filter(ac -> {
 			Set<String> acSmoothwallCategories = new HashSet<>(ac.getSmoothwallCategories());
@@ -153,7 +153,7 @@ public class ActivityCategoryService
 		}).collect(Collectors.toSet());
 	}
 
-	public Set<ActivityCategoryDTO> getAppActivityCategories(String application)
+	public Set<ActivityCategoryDTO> getMatchingCategoriesForApp(String application)
 	{
 		return getAllActivityCategories().stream().filter(ac -> ac.getApplications().contains(application))
 				.collect(Collectors.toSet());

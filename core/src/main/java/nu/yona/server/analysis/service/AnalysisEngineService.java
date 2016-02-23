@@ -39,20 +39,23 @@ public class AnalysisEngineService
 	@Autowired
 	private MessageService messageService;
 
-	public void analyze(UUID userID, AppActivityDTO appActivity)
+	public void analyze(UUID userID, AppActivityDTO[] appActivities)
 	{
 		UUID userAnonymizedID = userService.getPrivateUser(userID).getPrivateData().getUserAnonymizedID();
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
-		Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryService
-				.getAppActivityCategories(appActivity.getApplication());
-		analyze(new ActivityPayload(appActivity), userAnonymized, matchingActivityCategories);
+		for (AppActivityDTO appActivity : appActivities)
+		{
+			Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryService
+					.getMatchingCategoriesForApp(appActivity.getApplication());
+			analyze(new ActivityPayload(appActivity), userAnonymized, matchingActivityCategories);
+		}
 	}
 
 	public void analyze(NetworkActivityDTO networkActivity)
 	{
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(networkActivity.getVPNLoginID());
 		Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryService
-				.getMatchingActivityCategories(networkActivity.getCategories());
+				.getMatchingCategoriesForSmoothwallCategories(networkActivity.getCategories());
 		analyze(new ActivityPayload(networkActivity), userAnonymized, matchingActivityCategories);
 	}
 
@@ -141,10 +144,10 @@ public class AnalysisEngineService
 
 	class ActivityPayload
 	{
-		public String url;
-		public Date startTime;
-		public Date endTime;
-		public String application;
+		public final String url;
+		public final Date startTime;
+		public final Date endTime;
+		public final String application;
 
 		public ActivityPayload(NetworkActivityDTO networkActivity)
 		{

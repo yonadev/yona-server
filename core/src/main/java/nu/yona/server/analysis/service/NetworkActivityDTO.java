@@ -14,6 +14,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+/*
+ * Online activity detected by Smoothwall.
+ * @see AnalysisEngineService
+ * @see AppActivityDTO
+ */
 @JsonRootName("networkActivity")
 public class NetworkActivityDTO
 {

@@ -21,9 +21,13 @@ import nu.yona.server.analysis.service.AppActivityDTO;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.subscriptions.service.UserService;
 
+/*
+ * Controller to push mobile app activity from the Yona app. The Yona app registers this activity locally and will send them to
+ * the application service once there is a network connection.
+ */
 @Controller
-@RequestMapping(value = "/users/{userID}/activity")
-public class ActivityController
+@RequestMapping(value = "/users/{userID}/appActivity")
+public class AppActivityController
 {
 	@Autowired
 	private AnalysisEngineService analysisEngineService;
@@ -31,14 +35,20 @@ public class ActivityController
 	@Autowired
 	private UserService userService;
 
-	@RequestMapping(value = "/appActivity/", method = RequestMethod.POST)
+	/*
+	 * Adds app activity registered by the Yona app.
+	 * @param password User password, validated before adding the activity.
+	 * @param appActivities Because it may be that multiple app activities may have taken place during the time the network is
+	 * down, accept an array of activities.
+	 */
+	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public void addAppActivity(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
-			@RequestBody AppActivityDTO appActivity)
+			@RequestBody AppActivityDTO[] appActivities)
 	{
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> {
-			analysisEngineService.analyze(userID, appActivity);
+			analysisEngineService.analyze(userID, appActivities);
 			return null;
 		});
 	}

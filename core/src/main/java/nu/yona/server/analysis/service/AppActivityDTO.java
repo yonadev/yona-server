@@ -6,6 +6,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+/*
+ * Offline activity for applications registered by the Yona app.
+ * @see AnalysisEngineService
+ * @see NetworkActivityDTO
+ */
 @JsonRootName("appActivity")
 public class AppActivityDTO
 {
