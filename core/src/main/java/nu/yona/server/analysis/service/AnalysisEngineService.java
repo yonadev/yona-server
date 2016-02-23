@@ -71,7 +71,7 @@ public class AnalysisEngineService
 
 	private void addOrUpdateActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
 	{
-		Date minEndTime = new Date(payload.endTime.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
+		Date minEndTime = new Date(payload.startTime.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
 		Activity activity = cacheService.fetchLatestActivityForUser(userAnonymized.getID(), matchingGoal.getID(), minEndTime);
 
 		if (activity == null || activity.getEndTime().before(minEndTime))
@@ -85,18 +85,12 @@ public class AnalysisEngineService
 			}
 		}
 		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
+		// Or if the start time is earlier than the existing start time (this can happen with app activity, see below).
 		else if (payload.endTime.getTime() - activity.getEndTime().getTime() >= yonaProperties.getAnalysisService()
-				.getUpdateSkipWindow())
+				.getUpdateSkipWindow() || payload.startTime.before(activity.getStartTime()))
 		{
 			updateLastActivity(payload, userAnonymized, matchingGoal, activity);
 			cacheService.updateLatestActivityForUser(activity);
-		}
-		else if (payload.startTime.before(activity.getStartTime()))
-		{
-			// can happen if app activity is posted after some network activity is posted during the use of the same app
-			// TODO: remove activities after start time and log a new activity?
-			// or just overwrite start time of the existing activity, creating possible overlap?
-			// we can't undo a goal conflict message!
 		}
 	}
 
@@ -112,6 +106,16 @@ public class AnalysisEngineService
 		assert matchingGoal.getID().equals(activity.getGoalID());
 
 		activity.setEndTime(payload.endTime);
+		if (payload.startTime.before(activity.getStartTime()))
+		{
+			// This can happen if app activity is posted after some
+			// network activity is posted during the use of the same app.
+			// Solution: extend start time of the existing activity.
+			// Notice this will possible create overlap with other network activity posted earlier, but after the start of the
+			// app.
+			activity.setStartTime(payload.startTime);
+		}
+
 	}
 
 	public Set<String> getRelevantSmoothwallCategories()
