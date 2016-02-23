@@ -16,9 +16,11 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 
 /**
  * When an embedded resource is provided in a response using the {@code org.springframework.hateoas.Resources} model, this
- * provider can be configured at runtime to make any embedded values root json name be set based on the classes annotated
- * {@code JsonRootName ( " name " )}. By default Spring hateoas renders the embedded root field based on the class name with first
- * character in lowercase.
+ * provider can be configured at runtime to make any embedded values root JSON name be set based on the classes annotated
+ * {@code JsonRootName ( " name " )}. <br/>
+ * By default Spring HATEOAS renders the embedded root field based on the class name with first character in lowercase. If the
+ * resource is of a subtype that is annotated with @JsonSubTypes, then the name of that basetype is used to generate the name of
+ * the embedded resource.
  */
 public class JsonRootRelProvider implements RelProvider
 {

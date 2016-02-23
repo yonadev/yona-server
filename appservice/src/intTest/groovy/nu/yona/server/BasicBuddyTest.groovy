@@ -81,6 +81,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyConnectRequestMessages.size() == 1
 		buddyConnectRequestMessages[0].nickname == richard.nickname
 		buddyConnectRequestMessages[0].status == "REQUESTED"
+		buddyConnectRequestMessages[0].user.firstName == "Richard"
 		buddyConnectRequestMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
 		buddyConnectRequestMessages[0]._links.accept.href.startsWith(buddyConnectRequestMessages[0]._links.self.href)
 

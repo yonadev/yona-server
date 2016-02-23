@@ -153,7 +153,7 @@ public class MessageController
 		@Override
 		public MessageDTO toResource(MessageDTO message)
 		{
-			message.removeLinks();
+			message.removeLinks(); // So we are sure the below links are the only ones
 			ControllerLinkBuilder selfLinkBuilder = getAnonymousMessageLinkBuilder(userID, message.getID());
 			addSelfLink(selfLinkBuilder, message);
 			addActionLinks(selfLinkBuilder, message);
