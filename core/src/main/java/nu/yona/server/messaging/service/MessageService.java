@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
@@ -23,6 +24,7 @@ import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -191,5 +193,11 @@ public class MessageService
 		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getID());
 		destinationEntity.removeMessagesFromUser(sentByUserAnonymizedID);
 		MessageDestination.getRepository().save(destinationEntity);
+	}
+
+	@Transactional
+	public void broadcastMessageToBuddies(UserAnonymizedDTO userAnonymized, Supplier<Message> messageSupplier)
+	{
+		userAnonymized.getBuddyDestinations().stream().forEach(destination -> sendMessage(messageSupplier.get(), destination));
 	}
 }

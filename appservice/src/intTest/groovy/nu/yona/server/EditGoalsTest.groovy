@@ -45,33 +45,65 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		response.status == 200
 		response.responseData._links?.self.href == richard.url + appService.GOALS_PATH_FRAGMENT
 		response.responseData._embedded.budgetGoals.size() == 2
+		def gamblingGoals = response.responseData._embedded.budgetGoals.findAll{ it.activityCategoryName == 'gambling'}
+		gamblingGoals.size() == 1
+		!gamblingGoals[0]._links.edit //mandatory goal
+		def newsGoals = response.responseData._embedded.budgetGoals.findAll{ it.activityCategoryName == 'news'}
+		newsGoals.size() == 1
+		newsGoals[0]._links.edit.href
 	}
 
 	def 'Add goal'()
 	{
 		given:
-		def richard = addRichard()
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
 		when:
-		def addedGoal = appService.addBudgetGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60))
+		def addedGoal = appService.addBudgetGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60), "Going to monitor my social time!")
+
 		then:
 		addedGoal
+
 		def responseGoalsAfterAdd = appService.getGoals(richard)
 		responseGoalsAfterAdd.status == 200
 		responseGoalsAfterAdd.responseData._embedded.budgetGoals.size() == 3
+
+		def bobMessagesResponse = appService.getMessages(bob)
+		bobMessagesResponse.responseData._embedded.goalChangeMessages.size() == 1
+		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].change == 'GOAL_ADDED'
+		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].changedGoal.activityCategoryName == 'social'
+		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].user.firstName == 'Richard'
+		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].nickname == 'RQ'
+		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].message == "Going to monitor my social time!"
+		bobMessagesResponse.responseData._embedded.goalChangeMessages[0]._links.edit
 	}
 
 	def 'Delete goal'()
 	{
 		given:
-		def richard = addRichard()
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
 		def addedGoal = appService.addBudgetGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60))
 		when:
-		def response = appService.removeBudgetGoal(richard, addedGoal)
+		def response = appService.removeBudgetGoal(richard, addedGoal, "Don't want to monitor my social time anymore")
+
 		then:
 		response.status == 200
+
 		def responseGoalsAfterDelete = appService.getGoals(richard)
 		responseGoalsAfterDelete.status == 200
 		responseGoalsAfterDelete.responseData._embedded.budgetGoals.size() == 2
+
+		def bobMessagesResponse = appService.getMessages(bob)
+		bobMessagesResponse.responseData._embedded.goalChangeMessages.size() == 2
+		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].change == 'GOAL_DELETED'
+		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].changedGoal.activityCategoryName == 'social'
+		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].user.firstName == 'Richard'
+		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].nickname == 'RQ'
+		bobMessagesResponse.responseData._embedded.goalChangeMessages[0].message == "Don't want to monitor my social time anymore"
+		bobMessagesResponse.responseData._embedded.goalChangeMessages[0]._links.edit
 	}
 
 	def 'Validation: Try to remove mandatory goal'()

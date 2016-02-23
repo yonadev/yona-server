@@ -17,7 +17,6 @@ import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDTO;
 import nu.yona.server.goals.service.ActivityCategoryService;
-import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
@@ -121,27 +120,12 @@ public class AnalysisEngineService
 	private void sendConflictMessageToAllDestinationsOfUser(ActivityPayload payload, UserAnonymizedDTO userAnonymized,
 			Activity activity)
 	{
-		GoalConflictMessage selfGoalConflictMessage = sendConflictMessage(payload, userAnonymized, activity,
-				userAnonymized.getAnonymousDestination(), null);
+		GoalConflictMessage selfGoalConflictMessage = GoalConflictMessage.createInstance(userAnonymized.getID(), activity,
+				payload.url);
+		messageService.sendMessage(selfGoalConflictMessage, userAnonymized.getAnonymousDestination());
 
-		userAnonymized.getBuddyDestinations().stream()
-				.forEach(d -> sendConflictMessage(payload, userAnonymized, activity, d, selfGoalConflictMessage));
-	}
-
-	private GoalConflictMessage sendConflictMessage(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Activity activity,
-			MessageDestinationDTO destination, GoalConflictMessage origin)
-	{
-		GoalConflictMessage message;
-		if (origin == null)
-		{
-			message = GoalConflictMessage.createInstance(userAnonymized.getID(), activity, payload.url);
-		}
-		else
-		{
-			message = GoalConflictMessage.createInstanceFromBuddy(userAnonymized.getID(), origin);
-		}
-		messageService.sendMessage(message, destination);
-		return message;
+		messageService.broadcastMessageToBuddies(userAnonymized,
+				() -> GoalConflictMessage.createInstanceFromBuddy(userAnonymized.getID(), selfGoalConflictMessage));
 	}
 
 	private Set<Goal> determineMatchingGoalsForUser(UserAnonymizedDTO userAnonymized,

@@ -371,21 +371,21 @@ class AppService extends Service
 		yonaServer.deleteResourceWithPassword(deviceRequestEditURL, password)
 	}
 
-	def addBudgetGoal(Closure asserter, User user, BudgetGoal goal)
+	def addBudgetGoal(Closure asserter, User user, BudgetGoal goal, message = "")
 	{
-		def response = addBudgetGoal(user, goal)
+		def response = addBudgetGoal(user, goal, message)
 		asserter(response)
 		return (isSuccess(response)) ? new BudgetGoal(response.responseData) : null
 	}
 
-	def addBudgetGoal(User user, BudgetGoal goal)
+	def addBudgetGoal(User user, BudgetGoal goal, message = "")
 	{
-		yonaServer.postJson(user.url + GOALS_PATH_FRAGMENT + "budgetGoals/", goal.convertToJsonString(), ["Yona-Password": user.password])
+		yonaServer.postJson(user.url + GOALS_PATH_FRAGMENT + "budgetGoals/", goal.convertToJsonString(), ["Yona-Password": user.password], ["message": message])
 	}
 
-	def removeBudgetGoal(User user, BudgetGoal goal)
+	def removeBudgetGoal(User user, BudgetGoal goal, message = "")
 	{
-		yonaServer.deleteResourceWithPassword(goal.editURL, user.password)
+		yonaServer.deleteResourceWithPassword(goal.editURL, user.password, ["message": message])
 	}
 
 	def getGoals(User user)
