@@ -57,6 +57,12 @@ public class GoalConflictMessageDTO extends MessageDTO
 	}
 
 	@Override
+	public String getType()
+	{
+		return "GoalConflictMessage";
+	}
+
+	@Override
 	public Set<String> getPossibleActions()
 	{
 		Set<String> possibleActions = new HashSet<>();
