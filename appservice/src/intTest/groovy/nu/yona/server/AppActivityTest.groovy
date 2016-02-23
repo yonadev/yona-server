@@ -44,16 +44,17 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		getMessagesRichardResponse.status == 200
-		getMessagesRichardResponse.responseData._embedded.goalConflictMessages
-		getMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
-		getMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].nickname == "<self>"
-		getMessagesRichardResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "gambling"
+		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		goalConflictMessagesRichard.size() == 1
+		goalConflictMessagesRichard[0].nickname == "<self>"
+		goalConflictMessagesRichard[0].activityCategoryName == "gambling"
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
-		getMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
-		getMessagesBobResponse.responseData._embedded.goalConflictMessages[0].nickname == richard.nickname
-		getMessagesBobResponse.responseData._embedded.goalConflictMessages[0].activityCategoryName == "gambling"
+		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		goalConflictMessagesBob.size() == 1
+		goalConflictMessagesBob[0].nickname == richard.nickname
+		goalConflictMessagesBob[0].activityCategoryName == "gambling"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -79,12 +80,13 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		getMessagesRichardResponse.status == 200
-		getMessagesRichardResponse.responseData._embedded.goalConflictMessages
-		getMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
+		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		goalConflictMessagesRichard.size() == 1
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
-		getMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
+		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		goalConflictMessagesBob.size() == 1
 	}
 
 	def 'Send multiple app activities after offline period'()
@@ -113,11 +115,12 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		getMessagesRichardResponse.status == 200
-		getMessagesRichardResponse.responseData._embedded.goalConflictMessages
-		getMessagesRichardResponse.responseData._embedded.goalConflictMessages.size() == 1
+		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		goalConflictMessagesRichard.size() == 1
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
-		getMessagesBobResponse.responseData._embedded.goalConflictMessages.size() == 1
+		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		goalConflictMessagesBob.size() == 1
 	}
 }
