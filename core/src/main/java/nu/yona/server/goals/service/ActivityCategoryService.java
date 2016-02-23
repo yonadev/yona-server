@@ -143,4 +143,19 @@ public class ActivityCategoryService
 		activityCategoriesInRepository.stream().filter(ac -> !activityCategoryDTOsMap.containsKey(ac.getName()))
 				.forEach(this::deleteActivityCategory);
 	}
+
+	public Set<ActivityCategoryDTO> getMatchingCategoriesForSmoothwallCategories(Set<String> smoothwallCategories)
+	{
+		return getAllActivityCategories().stream().filter(ac -> {
+			Set<String> acSmoothwallCategories = new HashSet<>(ac.getSmoothwallCategories());
+			acSmoothwallCategories.retainAll(smoothwallCategories);
+			return !acSmoothwallCategories.isEmpty();
+		}).collect(Collectors.toSet());
+	}
+
+	public Set<ActivityCategoryDTO> getMatchingCategoriesForApp(String application)
+	{
+		return getAllActivityCategories().stream().filter(ac -> ac.getApplications().contains(application))
+				.collect(Collectors.toSet());
+	}
 }

@@ -13,12 +13,15 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 public class UserAnonymizedDTO
 {
+	private UUID id;
 	private Set<Goal> goals;
 	private MessageDestinationDTO anonymousMessageDestination;
 	private Set<UUID> buddyAnonymizedIDs;
 
-	public UserAnonymizedDTO(Set<Goal> goals, MessageDestinationDTO anonymousMessageDestination, Set<UUID> buddyAnonymizedIDs)
+	public UserAnonymizedDTO(UUID id, Set<Goal> goals, MessageDestinationDTO anonymousMessageDestination,
+			Set<UUID> buddyAnonymizedIDs)
 	{
+		this.id = id;
 		this.goals = new HashSet<>(goals);
 		this.anonymousMessageDestination = anonymousMessageDestination;
 		this.buddyAnonymizedIDs = buddyAnonymizedIDs;
@@ -26,9 +29,14 @@ public class UserAnonymizedDTO
 
 	public static UserAnonymizedDTO createInstance(UserAnonymized entity)
 	{
-		return new UserAnonymizedDTO(entity.getGoals(), MessageDestinationDTO.createInstance(entity.getAnonymousDestination()),
-				entity.getBuddiesAnonymized().stream().map(buddyAnonymized -> buddyAnonymized.getID())
-						.collect(Collectors.toSet()));
+		return new UserAnonymizedDTO(entity.getID(), entity.getGoals(),
+				MessageDestinationDTO.createInstance(entity.getAnonymousDestination()), entity.getBuddiesAnonymized().stream()
+						.map(buddyAnonymized -> buddyAnonymized.getID()).collect(Collectors.toSet()));
+	}
+
+	public UUID getID()
+	{
+		return id;
 	}
 
 	public Set<Goal> getGoals()
