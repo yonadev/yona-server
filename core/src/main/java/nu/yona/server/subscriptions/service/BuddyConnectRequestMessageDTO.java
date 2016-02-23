@@ -58,6 +58,12 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
 	}
 
 	@Override
+	public String getType()
+	{
+		return "BuddyConnectRequestMessage";
+	}
+
+	@Override
 	public Set<String> getPossibleActions()
 	{
 		Set<String> possibleActions = new HashSet<>();

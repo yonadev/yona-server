@@ -37,6 +37,12 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 		this.isProcessed = isProcessed;
 	}
 
+	@Override
+	public String getType()
+	{
+		return "BuddyDisconnectMessage";
+	}
+
 	public DropBuddyReason getReason()
 	{
 		return reason;

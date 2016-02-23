@@ -38,6 +38,12 @@ public class GoalChangeMessageDTO extends BuddyMessageDTO
 		this.change = change;
 	}
 
+	@Override
+	public String getType()
+	{
+		return "GoalChangeMessage";
+	}
+
 	public GoalDTO getChangedGoal()
 	{
 		return changedGoal;
