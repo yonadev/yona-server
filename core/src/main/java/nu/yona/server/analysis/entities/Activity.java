@@ -54,6 +54,11 @@ public class Activity extends EntityWithID
 		return startTime;
 	}
 
+	public void setStartTime(Date startTime)
+	{
+		this.startTime = startTime;
+	}
+
 	public Date getEndTime()
 	{
 		return endTime;
