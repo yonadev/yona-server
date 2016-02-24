@@ -76,6 +76,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].changedGoal.activityCategoryName == 'social'
 		goalChangeMessages[0].user.firstName == 'Richard'
 		goalChangeMessages[0].nickname == 'RQ'
+		assertDateTimeInLimits(goalChangeMessages[0].creationTime)
 		goalChangeMessages[0].message == "Going to monitor my social time!"
 		goalChangeMessages[0]._links.edit
 	}
@@ -104,6 +105,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].changedGoal.activityCategoryName == 'social'
 		goalChangeMessages[0].user.firstName == 'Richard'
 		goalChangeMessages[0].nickname == 'RQ'
+		assertDateTimeInLimits(goalChangeMessages[0].creationTime)
 		goalChangeMessages[0].message == "Don't want to monitor my social time anymore"
 		goalChangeMessages[0]._links.edit
 	}

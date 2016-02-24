@@ -80,6 +80,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def buddyConnectRequestMessages = response.responseData._embedded.messages.findAll{ it."@type" == "BuddyConnectRequestMessage"}
 		buddyConnectRequestMessages.size() == 1
 		buddyConnectRequestMessages[0].nickname == richard.nickname
+		assertDateTimeInLimits(buddyConnectRequestMessages[0].creationTime)
 		buddyConnectRequestMessages[0].status == "REQUESTED"
 		buddyConnectRequestMessages[0].user.firstName == "Richard"
 		buddyConnectRequestMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
@@ -148,6 +149,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def buddyConnectResponseMessages = response.responseData._embedded.messages.findAll{ it."@type" == "BuddyConnectResponseMessage"}
 		buddyConnectResponseMessages[0].user.firstName == "Bob"
 		buddyConnectResponseMessages[0].nickname == bob.nickname
+		assertDateTimeInLimits(buddyConnectResponseMessages[0].creationTime)
 		buddyConnectResponseMessages[0].status == "ACCEPTED"
 		buddyConnectResponseMessages[0]._links.self.href.startsWith(richard.url + appService.MESSAGES_PATH_FRAGMENT)
 		buddyConnectResponseMessages[0]._links.process.href.startsWith(buddyConnectResponseMessages[0]._links.self.href)
@@ -214,6 +216,9 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
 		richardGoalConflictMessages.size() == 1
 		richardGoalConflictMessages[0].nickname == "<self>"
+		assertDateTimeInLimits(richardGoalConflictMessages[0].creationTime)
+		assertDateTimeInLimits(richardGoalConflictMessages[0].activityStartTime)
+		assertDateTimeInLimits(richardGoalConflictMessages[0].activityEndTime)
 		richardGoalConflictMessages[0].activityCategoryName == "news"
 		richardGoalConflictMessages[0].url == "http://www.refdag.nl"
 
@@ -222,6 +227,9 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
 		bobGoalConflictMessages.size() == 1
 		bobGoalConflictMessages[0].nickname == richard.nickname
+		assertDateTimeInLimits(bobGoalConflictMessages[0].creationTime)
+		assertDateTimeInLimits(bobGoalConflictMessages[0].activityStartTime)
+		assertDateTimeInLimits(bobGoalConflictMessages[0].activityEndTime)
 		bobGoalConflictMessages[0].activityCategoryName == "news"
 		bobGoalConflictMessages[0].url == null
 
@@ -343,6 +351,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages.size() == 1
 		buddyDisconnectMessages[0].reason == "USER_REMOVED_BUDDY"
 		buddyDisconnectMessages[0].nickname == "${richard.nickname}"
+		assertDateTimeInLimits(buddyDisconnectMessages[0].creationTime)
 		buddyDisconnectMessages[0].message == message
 		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
 		buddyDisconnectMessages[0]._links.process.href.startsWith(buddyDisconnectMessages[0]._links.self.href)

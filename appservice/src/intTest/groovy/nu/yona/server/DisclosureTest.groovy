@@ -72,8 +72,10 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		discloseRequestMessages.size() == 1
 		discloseRequestMessages[0].status == "DISCLOSE_REQUESTED"
 		discloseRequestMessages[0].message == requestMessageText
+		discloseRequestMessages[0].nickname == bob.nickname
+		assertDateTimeInLimits(discloseRequestMessages[0].creationTime)
 		discloseRequestMessages[0].targetGoalConflictMessage.activityCategoryName == "gambling"
-		discloseRequestMessages[0].targetGoalConflictMessage.creationTime > (System.currentTimeMillis() - 50000) // TODO Use standard date/time format
+		assertDateTimeInLimits(discloseRequestMessages[0].targetGoalConflictMessage.creationTime)
 		discloseRequestMessages[0].user.firstName == "Bob"
 		discloseRequestMessages[0]._links.related.href == getRichardMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}[0]._links.self.href
 		discloseRequestMessages[0]._links.accept.href
@@ -128,6 +130,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		discloseResponseMessage.status == "DISCLOSE_ACCEPTED"
 		discloseResponseMessage.message == responseMessageText
 		discloseResponseMessage.nickname == richard.nickname
+		assertDateTimeInLimits(discloseResponseMessage.creationTime)
 		discloseResponseMessage.user.firstName == "Richard"
 
 		//check delete
