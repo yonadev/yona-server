@@ -277,4 +277,15 @@ class YonaServer
 				})
 		return stringList
 	}
+
+	static Date parseIsoDateString(dateTimeString)
+	{
+		Date dateTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse(dateTimeString)
+		return dateTime
+	}
+
+	static String toIsoDateString(Date dateTime)
+	{
+		return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(dateTime)
+	}
 }

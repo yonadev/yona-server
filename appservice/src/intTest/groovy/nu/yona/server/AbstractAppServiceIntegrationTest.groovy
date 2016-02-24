@@ -72,7 +72,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		// Example date string: 2016-02-23T21:28:58.556+0000
 		assert dateTimeString ==~ /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}\+0000/
-		Date dateTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse(dateTimeString)
+		Date dateTime = YonaServer.parseIsoDateString(dateTimeString)
 		comparisonDateTime = (comparisonDateTime) ?: new Date()
 		int rangeMilliseconds = rangeSeconds * 1000
 
