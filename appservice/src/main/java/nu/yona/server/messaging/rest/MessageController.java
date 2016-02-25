@@ -21,6 +21,7 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
@@ -54,6 +55,9 @@ public class MessageController
 	@Autowired
 	private UserService userService;
 
+	@Autowired
+	private CurieProvider curieProvider;
+
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<PagedResources<MessageDTO>> getAnonymousMessages(
@@ -85,7 +89,7 @@ public class MessageController
 	{
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(new MessageActionResource(
+				() -> createOKResponse(new MessageActionResource(curieProvider,
 						messageService.handleAnonymousMessageAction(userID, id, action, requestPayload), userID)));
 	}
 
@@ -97,7 +101,7 @@ public class MessageController
 	{
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
-				new MessageActionResource(messageService.deleteAnonymousMessage(userID, messageID), userID)));
+				new MessageActionResource(curieProvider, messageService.deleteAnonymousMessage(userID, messageID), userID)));
 	}
 
 	private HttpEntity<PagedResources<MessageDTO>> createOKResponse(PagedResources<MessageDTO> messages)
@@ -124,10 +128,12 @@ public class MessageController
 	static class MessageActionResource extends Resource<MessageActionDTO>
 	{
 		private UUID userID;
+		private CurieProvider curieProvider;
 
-		public MessageActionResource(MessageActionDTO messageAction, UUID userID)
+		public MessageActionResource(CurieProvider curieProvider, MessageActionDTO messageAction, UUID userID)
 		{
 			super(messageAction);
+			this.curieProvider = curieProvider;
 			this.userID = userID;
 		}
 
@@ -135,7 +141,7 @@ public class MessageController
 		public Map<String, List<MessageDTO>> getEmbeddedResources()
 		{
 			Set<MessageDTO> affectedMessages = getContent().getAffectedMessages();
-			return Collections.singletonMap("affectedMessages",
+			return Collections.singletonMap(curieProvider.getNamespacedRelFor("affectedMessages"),
 					new MessageResourceAssembler(userID).toResources(affectedMessages));
 		}
 	}
