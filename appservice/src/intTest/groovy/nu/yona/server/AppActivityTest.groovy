@@ -44,14 +44,14 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		getMessagesRichardResponse.status == 200
-		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessagesRichard.size() == 1
 		goalConflictMessagesRichard[0].nickname == "<self>"
 		goalConflictMessagesRichard[0].activityCategoryName == "gambling"
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
-		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessagesBob.size() == 1
 		goalConflictMessagesBob[0].nickname == richard.nickname
 		goalConflictMessagesBob[0].activityCategoryName == "gambling"
@@ -80,12 +80,12 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		getMessagesRichardResponse.status == 200
-		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessagesRichard.size() == 1
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
-		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessagesBob.size() == 1
 	}
 
@@ -115,12 +115,12 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		getMessagesRichardResponse.status == 200
-		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessagesRichard.size() == 1
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
-		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessagesBob.size() == 1
 	}
 }

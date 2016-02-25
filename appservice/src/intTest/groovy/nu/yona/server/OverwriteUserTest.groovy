@@ -74,7 +74,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesResponse = appService.getMessages(bob.url, bob.password)
 		getMessagesResponse.status == 200
-		def goalConflictMessages = getMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessages.size() == 1
 		goalConflictMessages[0].nickname == richard.nickname
 		goalConflictMessages[0].activityCategoryName == "news"
@@ -168,7 +168,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		then:
 		confirmationCode != null
 		userAddResponse.status == 201
-		userAddResponse.responseData._links.confirmMobileNumber.href != null
+		userAddResponse.responseData._links."yona:confirmMobileNumber".href != null
 		response1TimeWrong.status == 400
 		response1TimeWrong.responseData.code == "error.user.overwrite.confirmation.code.mismatch"
 		response5TimesWrong.status == 400
