@@ -2,13 +2,9 @@ package nu.yona.server.rest;
 
 /**
  * This DTO is used to communicate error messages or other type of messages to the client.
- * 
- * @author pgussow
  */
 public class ResponseMessageDTO
 {
-	/** Holds the type of message */
-	private ResponseMessageType type;
 	/** Holds the actual message */
 	private String message;
 	/** Holds the detailed message. */
@@ -28,9 +24,8 @@ public class ResponseMessageDTO
 	 * @param type The type of message.
 	 * @param message The actual message to display.
 	 */
-	public ResponseMessageDTO(ResponseMessageType type, String code, String message)
+	public ResponseMessageDTO(String code, String message)
 	{
-		this.type = type;
 		this.code = code;
 		this.message = message;
 	}
@@ -53,26 +48,6 @@ public class ResponseMessageDTO
 	public void setCode(String code)
 	{
 		this.code = code;
-	}
-
-	/**
-	 * This method gets the type of the message.
-	 * 
-	 * @return The type of the message.
-	 */
-	public ResponseMessageType getType()
-	{
-		return type;
-	}
-
-	/**
-	 * This method sets the type of the message.
-	 * 
-	 * @param type The type of the message.
-	 */
-	public void setType(ResponseMessageType type)
-	{
-		this.type = type;
 	}
 
 	/**

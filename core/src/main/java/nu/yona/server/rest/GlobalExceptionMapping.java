@@ -35,7 +35,7 @@ public class GlobalExceptionMapping
 	{
 		logger.error("Unhandled exception", exception);
 
-		return new ResponseMessageDTO(ResponseMessageType.ERROR, null, exception.getMessage());
+		return new ResponseMessageDTO(null, exception.getMessage());
 	}
 
 	/**
@@ -50,8 +50,7 @@ public class GlobalExceptionMapping
 	{
 		logger.error("Unhandled exception", exception);
 
-		ResponseMessageDTO responseMessage = new ResponseMessageDTO(ResponseMessageType.ERROR, exception.getMessageId(),
-				exception.getMessage());
+		ResponseMessageDTO responseMessage = new ResponseMessageDTO(exception.getMessageId(), exception.getMessage());
 
 		return new ResponseEntity<ResponseMessageDTO>(responseMessage, exception.getStatusCode());
 	}
