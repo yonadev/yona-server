@@ -16,7 +16,6 @@ class AppService extends Service
 	final BUDDIES_PATH_FRAGMENT = "/buddies/"
 	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
 	final GOALS_PATH_FRAGMENT = "/goals/"
-	final ACTIVITY_PATH_FRAGMENT = "/activity/"
 	final APP_ACTIVITY_PATH_FRAGMENT = "/appActivity/"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
