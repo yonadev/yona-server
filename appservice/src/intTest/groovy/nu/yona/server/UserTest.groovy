@@ -29,6 +29,9 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		testUser(john, true, ts)
 		john.mobileNumberConfirmationUrl == YonaServer.stripQueryString(john.url) + appService.MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT
 
+		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(john.url + "/messages/", john.password)
+		getMessagesResponse.status == 400
+		getMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
 
 		cleanup:
 		appService.deleteUser(john)
