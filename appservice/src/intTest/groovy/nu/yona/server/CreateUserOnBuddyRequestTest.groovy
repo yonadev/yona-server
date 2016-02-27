@@ -111,7 +111,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		bobFromGetAfterUpdate.goals.size() == 1 //mandatory goal
 		bobFromGetAfterUpdate.url
 
-		def getMessagesResponse = appService.getMessages(bobFromGetAfterUpdate.url + "/messages/", bobFromGetAfterUpdate.password)
+		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(bobFromGetAfterUpdate.url + "/messages/", bobFromGetAfterUpdate.password)
 		getMessagesResponse.status == 400
 		getMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
 

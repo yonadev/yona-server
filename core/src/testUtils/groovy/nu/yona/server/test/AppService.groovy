@@ -349,12 +349,7 @@ class AppService extends Service
 
 	def getMessages(User user, parameters = [:])
 	{
-		getMessages(user.messagesUrl, user.password, parameters)
-	}
-
-	def getMessages(url, password, parameters = [:])
-	{
-		yonaServer.getResourceWithPassword(url, password, parameters)
+		yonaServer.getResourceWithPassword(user.messagesUrl, user.password, parameters)
 	}
 
 	def setNewDeviceRequest(userPath, password, userSecret)
