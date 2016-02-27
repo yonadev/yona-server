@@ -3,7 +3,7 @@ package nu.yona.server.rest;
 /**
  * This DTO is used to communicate error messages or other type of messages to the client.
  */
-public class ResponseMessageDTO
+public class ErrorResponseDTO
 {
 	/** Holds the actual message */
 	private String message;
@@ -14,7 +14,7 @@ public class ResponseMessageDTO
 	/**
 	 * Default constructor
 	 */
-	public ResponseMessageDTO()
+	public ErrorResponseDTO()
 	{
 	}
 
@@ -24,7 +24,7 @@ public class ResponseMessageDTO
 	 * @param type The type of message.
 	 * @param message The actual message to display.
 	 */
-	public ResponseMessageDTO(String code, String message)
+	public ErrorResponseDTO(String code, String message)
 	{
 		this.code = code;
 		this.message = message;
