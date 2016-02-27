@@ -28,6 +28,6 @@ class ActivityCategoriesTest extends Specification
 		then:
 		response.status == 200
 		response.responseData._links.self.href == adminServiceBaseURL + adminService.ACTIVITY_CATEGORIES_PATH
-		response.responseData._embedded.activityCategories.size() > 0
+		response.responseData._embedded."yona:activityCategories".size() > 0
 	}
 }

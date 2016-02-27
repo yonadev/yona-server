@@ -56,18 +56,18 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def getMessagesResponse = appService.getMessages(bob)
 		getMessagesResponse.status == 200
 		getMessagesResponse.responseData._embedded
-		def buddyDisconnectMessages = getMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "BuddyDisconnectMessage"}
+		def buddyDisconnectMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}
 		buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"
 		buddyDisconnectMessages[0].message == message
 		buddyDisconnectMessages[0].nickname == richard.nickname
 		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
-		buddyDisconnectMessages[0]._links.process.href.startsWith(getMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links.self.href)
-		def goalConflictMessages = getMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		buddyDisconnectMessages[0]._links."yona:process".href.startsWith(getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links.self.href)
+		def goalConflictMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessages.size == 1
 		goalConflictMessages[0].nickname == "<self>"
 		goalConflictMessages[0].activityCategoryName == "gambling"
 		goalConflictMessages[0].url =~ /poker/
-		getMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "BuddyConnectRequestMessage"}.size() == 0
+		getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}.size() == 0
 
 		cleanup:
 		appService.deleteUser(bob)
@@ -84,24 +84,24 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def message = "Goodbye friends! I deinstalled the Internet"
 		appService.deleteUser(richard, message)
 		def getResponse = appService.getMessages(bob)
-		def disconnectMessage = getResponse.responseData._embedded.messages.findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		def processURL = disconnectMessage._links.process.href
+		def disconnectMessage = getResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
+		def processURL = disconnectMessage._links."yona:process".href
 
 		when:
 		def response = appService.postMessageActionWithPassword(processURL, [:], bob.password)
 
 		then:
 		response.status == 200
-		response.responseData._embedded.affectedMessages.size() == 1
-		response.responseData._embedded.affectedMessages[0]._links.self.href == disconnectMessage._links.self.href
-		response.responseData._embedded.affectedMessages[0]._links.process == null
+		response.responseData._embedded."yona:affectedMessages".size() == 1
+		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == disconnectMessage._links.self.href
+		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
 
 		def buddies = appService.getBuddies(bob)
 		buddies.size() == 0
 		def getMessagesResponse = appService.getMessages(bob)
 		getMessagesResponse.status == 200
 		getMessagesResponse.responseData._embedded
-		def goalConflictMessages = getMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessages.size == 1
 		goalConflictMessages[0].nickname == "<self>"
 		goalConflictMessages[0].activityCategoryName == "gambling"
@@ -120,7 +120,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def message = "Goodbye friends! I deinstalled the Internet"
 		appService.deleteUser(richard, message)
 		def getResponse = appService.getMessages(bob)
-		def processURL = (getResponse.status == 200) ? getResponse.responseData._embedded.messages.findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links.process.href : null
+		def processURL = (getResponse.status == 200) ? getResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links."yona:process".href : null
 		appService.postMessageActionWithPassword(processURL, [:], bob.password)
 
 		when:
@@ -131,12 +131,12 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def getMessagesResponse = appService.getMessages(bob)
 		getMessagesResponse.status == 200
 		getMessagesResponse.responseData._embedded
-		def buddyDisconnectMessages = getMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "BuddyDisconnectMessage"}
+		def buddyDisconnectMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}
 		buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"
 		buddyDisconnectMessages[0].message == message
 		buddyDisconnectMessages[0].nickname == richard.nickname
 		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
-		!buddyDisconnectMessages[0]._links.process
+		!buddyDisconnectMessages[0]._links."yona:process"
 
 		cleanup:
 		appService.deleteUser(bob)
