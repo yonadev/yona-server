@@ -82,7 +82,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyConnectRequestMessages[0].nickname == richard.nickname
 		buddyConnectRequestMessages[0].status == "REQUESTED"
 		buddyConnectRequestMessages[0].user.firstName == "Richard"
-		buddyConnectRequestMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
+		buddyConnectRequestMessages[0]._links.self.href.startsWith(bob.messagesUrl)
 		buddyConnectRequestMessages[0]._links.accept.href.startsWith(buddyConnectRequestMessages[0]._links.self.href)
 
 		cleanup:
@@ -149,7 +149,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyConnectResponseMessages[0].user.firstName == "Bob"
 		buddyConnectResponseMessages[0].nickname == bob.nickname
 		buddyConnectResponseMessages[0].status == "ACCEPTED"
-		buddyConnectResponseMessages[0]._links.self.href.startsWith(richard.url + appService.MESSAGES_PATH_FRAGMENT)
+		buddyConnectResponseMessages[0]._links.self.href.startsWith(richard.messagesUrl)
 		buddyConnectResponseMessages[0]._links.process.href.startsWith(buddyConnectResponseMessages[0]._links.self.href)
 
 		cleanup:
@@ -344,7 +344,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages[0].reason == "USER_REMOVED_BUDDY"
 		buddyDisconnectMessages[0].nickname == "${richard.nickname}"
 		buddyDisconnectMessages[0].message == message
-		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
+		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.messagesUrl)
 		buddyDisconnectMessages[0]._links.process.href.startsWith(buddyDisconnectMessages[0]._links.self.href)
 
 		cleanup:

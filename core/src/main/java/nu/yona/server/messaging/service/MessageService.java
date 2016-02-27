@@ -38,7 +38,7 @@ public class MessageService
 	private TheDTOManager dtoManager;
 
 	@Transactional
-	public Page<MessageDTO> getAnonymousMessages(UUID userID, Pageable pageable)
+	public Page<MessageDTO> getMessages(UUID userID, Pageable pageable)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
 
@@ -48,24 +48,7 @@ public class MessageService
 		return wrapAllMessagesAsDTOs(user, messageSource, pageable);
 	}
 
-	private void transferDirectMessagesToAnonymousDestination(UserDTO user)
-	{
-		MessageSource directMessageSource = getNamedMessageSource(user);
-		MessageDestination directMessageDestination = directMessageSource.getDestination();
-		Page<Message> directMessages = directMessageSource.getMessages(null);
-
-		MessageSource anonymousMessageSource = getAnonymousMessageSource(user);
-		MessageDestination anonymousMessageDestination = anonymousMessageSource.getDestination();
-		for (Message directMessage : directMessages)
-		{
-			directMessageDestination.remove(directMessage);
-			anonymousMessageDestination.send(directMessage);
-		}
-		MessageDestination.getRepository().save(directMessageDestination);
-		MessageDestination.getRepository().save(anonymousMessageDestination);
-	}
-
-	public MessageDTO getAnonymousMessage(UUID userID, UUID messageID)
+	public MessageDTO getMessage(UUID userID, UUID messageID)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
 
@@ -73,7 +56,7 @@ public class MessageService
 		return dtoManager.createInstance(user, messageSource.getMessage(messageID));
 	}
 
-	public MessageActionDTO handleAnonymousMessageAction(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
+	public MessageActionDTO handleMessageAction(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
 
@@ -82,7 +65,7 @@ public class MessageService
 	}
 
 	@Transactional
-	public MessageActionDTO deleteAnonymousMessage(UUID userID, UUID id)
+	public MessageActionDTO deleteMessage(UUID userID, UUID id)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
 
@@ -92,6 +75,23 @@ public class MessageService
 		deleteMessage(user, message, messageSource.getDestination());
 
 		return MessageActionDTO.createInstanceActionDone();
+	}
+
+	private void transferDirectMessagesToAnonymousDestination(UserDTO user)
+	{
+		MessageSource directMessageSource = getNamedMessageSource(user);
+		MessageDestination directMessageDestination = directMessageSource.getDestination();
+		Page<Message> directMessages = directMessageSource.getMessages(null);
+	
+		MessageSource anonymousMessageSource = getAnonymousMessageSource(user);
+		MessageDestination anonymousMessageDestination = anonymousMessageSource.getDestination();
+		for (Message directMessage : directMessages)
+		{
+			directMessageDestination.remove(directMessage);
+			anonymousMessageDestination.send(directMessage);
+		}
+		MessageDestination.getRepository().save(directMessageDestination);
+		MessageDestination.getRepository().save(anonymousMessageDestination);
 	}
 
 	private void deleteMessage(UserDTO user, Message message, MessageDestination destination)

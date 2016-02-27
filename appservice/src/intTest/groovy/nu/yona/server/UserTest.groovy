@@ -47,6 +47,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def john = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, johnAsCreated.url, true, johnAsCreated.password)
 		testUser(john, true, ts)
 		john.mobileNumberConfirmationUrl == null
+		john.messagesUrl
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)

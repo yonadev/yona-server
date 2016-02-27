@@ -33,13 +33,13 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		allMessagesResponse.status == 200
-		allMessagesResponse.responseData._links.self.href == richard.url + appService.MESSAGES_PATH_FRAGMENT
+		allMessagesResponse.responseData._links.self.href == richard.messagesUrl
 		allMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "BuddyConnectResponseMessage"}.size() == 1
 		allMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}.size() == 3
 		allMessagesResponse.responseData._embedded.messages.size() == 4
 
 		firstPageMessagesResponse.status == 200
-		firstPageMessagesResponse.responseData._links.self.href == richard.url + appService.MESSAGES_PATH_FRAGMENT + "?page=0&size=2&sort=creationTime"
+		firstPageMessagesResponse.responseData._links.self.href == richard.messagesUrl + "?page=0&size=2&sort=creationTime"
 		!firstPageMessagesResponse.responseData._links.prev
 		firstPageMessagesResponse.responseData._links.next
 		firstPageMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "BuddyConnectResponseMessage"}.size() == 0
@@ -47,7 +47,7 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		firstPageMessagesResponse.responseData.page.totalElements == 4
 
 		secondPageMessagesResponse.status == 200
-		secondPageMessagesResponse.responseData._links.self.href == richard.url + appService.MESSAGES_PATH_FRAGMENT + "?page=1&size=2&sort=creationTime"
+		secondPageMessagesResponse.responseData._links.self.href == richard.messagesUrl + "?page=1&size=2&sort=creationTime"
 		secondPageMessagesResponse.responseData._links.prev
 		!secondPageMessagesResponse.responseData._links.next
 		secondPageMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "BuddyConnectResponseMessage"}.size() == 1

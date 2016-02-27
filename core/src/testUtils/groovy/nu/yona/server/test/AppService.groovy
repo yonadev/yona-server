@@ -14,7 +14,6 @@ class AppService extends Service
 	final ACTIVITY_CATEGORIES_PATH = "/activityCategories/"
 	final USERS_PATH = "/users/"
 	final BUDDIES_PATH_FRAGMENT = "/buddies/"
-	final MESSAGES_PATH_FRAGMENT = "/messages/"
 	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
 	final MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT = "/confirmMobileNumber"
 	final GOALS_PATH_FRAGMENT = "/goals/"
@@ -31,6 +30,7 @@ class AppService extends Service
 	void confirmMobileNumber(Closure asserter, User user)
 	{
 		def response = confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${user.mobileNumberConfirmationCode}" }""", user.password)
+		user.messagesUrl = response.responseData?._links?.messages?.href
 		asserter(response)
 	}
 
@@ -349,12 +349,12 @@ class AppService extends Service
 
 	def getMessages(User user, parameters = [:])
 	{
-		getMessages(user.url, user.password, parameters)
+		getMessages(user.messagesUrl, user.password, parameters)
 	}
 
-	def getMessages(userPath, password, parameters = [:])
+	def getMessages(url, password, parameters = [:])
 	{
-		yonaServer.getResourceWithPassword(userPath + MESSAGES_PATH_FRAGMENT, password, parameters)
+		yonaServer.getResourceWithPassword(url, password, parameters)
 	}
 
 	def setNewDeviceRequest(userPath, password, userSecret)

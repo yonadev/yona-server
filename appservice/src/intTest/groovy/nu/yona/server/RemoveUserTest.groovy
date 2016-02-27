@@ -60,7 +60,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"
 		buddyDisconnectMessages[0].message == message
 		buddyDisconnectMessages[0].nickname == richard.nickname
-		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
+		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.messagesUrl)
 		buddyDisconnectMessages[0]._links.process.href.startsWith(getMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links.self.href)
 		def goalConflictMessages = getMessagesResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessages.size == 1
@@ -135,7 +135,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"
 		buddyDisconnectMessages[0].message == message
 		buddyDisconnectMessages[0].nickname == richard.nickname
-		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
+		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.messagesUrl)
 		!buddyDisconnectMessages[0]._links.process
 
 		cleanup:

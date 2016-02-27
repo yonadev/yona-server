@@ -24,6 +24,7 @@ class User
 	final VPNProfile vpnProfile
 	final String url
 	final String editURL
+	String messagesUrl
 	final String password
 	User(def json, String password)
 	{
@@ -58,6 +59,7 @@ class User
 		}
 		this.url = YonaServer.stripQueryString(json._links.self.href)
 		this.editURL = json._links?.edit?.href
+		this.messagesUrl = json._links?.messages?.href
 	}
 
 	def convertToJSON()

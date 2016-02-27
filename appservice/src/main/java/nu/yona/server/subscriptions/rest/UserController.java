@@ -43,6 +43,7 @@ import nu.yona.server.DOSProtectionService;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDTO;
+import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.JsonRootRelProvider;
@@ -372,6 +373,10 @@ public class UserController
 			if (includePrivateData)
 			{
 				addEditLink(userResource);
+				if (user.isMobileNumberConfirmed())
+				{
+					addMessagesLink(userResource);
+				}
 			}
 			return userResource;
 		}
@@ -403,6 +408,11 @@ public class UserController
 		private static void addConfirmMobileNumberLink(Resource<UserDTO> userResource, String confirmationCode)
 		{
 			userResource.add(UserController.getConfirmMobileLink(userResource.getContent().getID()));
+		}
+
+		private void addMessagesLink(UserResource userResource)
+		{
+			userResource.add(MessageController.getConfirmMobileLink(userResource.getContent().getID()));
 		}
 	}
 }
