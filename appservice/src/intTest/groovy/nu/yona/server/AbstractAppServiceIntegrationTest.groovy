@@ -68,16 +68,15 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		return "$baseTimestamp$num"
 	}
 
-	def assertDateTimeInLimits(dateTimeString, int rangeSeconds = 10, Date comparisonDateTime = null)
+	def assertEquals(dateTimeString, Date comparisonDateTime, int epsilonSeconds = 10)
 	{
 		// Example date string: 2016-02-23T21:28:58.556+0000
 		assert dateTimeString ==~ /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}\+0000/
 		Date dateTime = YonaServer.parseIsoDateString(dateTimeString)
-		comparisonDateTime = (comparisonDateTime) ?: new Date()
-		int rangeMilliseconds = rangeSeconds * 1000
+		int epsilonMilliseconds = epsilonSeconds * 1000
 
-		assert dateTime > new Date(comparisonDateTime.getTime() - rangeMilliseconds)
-		assert dateTime < new Date(comparisonDateTime.getTime() + rangeMilliseconds)
+		assert dateTime > new Date(comparisonDateTime.getTime() - epsilonMilliseconds)
+		assert dateTime < new Date(comparisonDateTime.getTime() + epsilonMilliseconds)
 
 		return true
 	}

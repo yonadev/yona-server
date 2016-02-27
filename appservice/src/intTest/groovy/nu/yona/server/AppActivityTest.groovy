@@ -51,7 +51,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessagesRichard.size() == 1
 		goalConflictMessagesRichard[0].nickname == "<self>"
-		assertDateTimeInLimits(goalConflictMessagesRichard[0].creationTime)
+		assertEquals(goalConflictMessagesRichard[0].creationTime, new Date())
 		goalConflictMessagesRichard[0].activityCategoryName == "gambling"
 
 		def getMessagesBobResponse = appService.getMessages(bob)
@@ -59,9 +59,9 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessagesBob.size() == 1
 		goalConflictMessagesBob[0].nickname == richard.nickname
-		assertDateTimeInLimits(goalConflictMessagesBob[0].creationTime)
-		assertDateTimeInLimits(goalConflictMessagesBob[0].activityStartTime, 10, startTime)
-		assertDateTimeInLimits(goalConflictMessagesBob[0].activityEndTime, 10, endTime)
+		assertEquals(goalConflictMessagesBob[0].creationTime, new Date())
+		assertEquals(goalConflictMessagesBob[0].activityStartTime, startTime)
+		assertEquals(goalConflictMessagesBob[0].activityEndTime, endTime)
 		goalConflictMessagesBob[0].activityCategoryName == "gambling"
 
 		cleanup:
@@ -117,16 +117,16 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		getMessagesRichardResponse.status == 200
 		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessagesRichard.size() == 1
-		assertDateTimeInLimits(goalConflictMessagesRichard[0].creationTime)
-		assertDateTimeInLimits(goalConflictMessagesRichard[0].activityStartTime, 10, startTime)
-		assertDateTimeInLimits(goalConflictMessagesRichard[0].activityEndTime, 10, endTime1)
+		assertEquals(goalConflictMessagesRichard[0].creationTime, new Date())
+		assertEquals(goalConflictMessagesRichard[0].activityStartTime, startTime)
+		assertEquals(goalConflictMessagesRichard[0].activityEndTime, endTime1)
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
 		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessagesBob.size() == 1
-		assertDateTimeInLimits(goalConflictMessagesRichard[0].creationTime)
-		assertDateTimeInLimits(goalConflictMessagesRichard[0].activityStartTime, 10, startTime)
-		assertDateTimeInLimits(goalConflictMessagesRichard[0].activityEndTime, 10, endTime1)
+		assertEquals(goalConflictMessagesRichard[0].creationTime, new Date())
+		assertEquals(goalConflictMessagesRichard[0].activityStartTime, startTime)
+		assertEquals(goalConflictMessagesRichard[0].activityEndTime, endTime1)
 	}
 }
