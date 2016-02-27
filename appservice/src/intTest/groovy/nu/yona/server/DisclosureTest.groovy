@@ -72,8 +72,10 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		discloseRequestMessages.size() == 1
 		discloseRequestMessages[0].status == "DISCLOSE_REQUESTED"
 		discloseRequestMessages[0].message == requestMessageText
+		discloseRequestMessages[0].nickname == bob.nickname
+		assertEquals(discloseRequestMessages[0].creationTime, new Date())
 		discloseRequestMessages[0].targetGoalConflictMessage.activityCategoryName == "gambling"
-		discloseRequestMessages[0].targetGoalConflictMessage.creationTime > (System.currentTimeMillis() - 50000) // TODO Use standard date/time format
+		assertEquals(discloseRequestMessages[0].targetGoalConflictMessage.creationTime, new Date())
 		discloseRequestMessages[0].user.firstName == "Bob"
 		discloseRequestMessages[0]._links.related.href == getRichardMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links.self.href
 		discloseRequestMessages[0]._links."yona:accept".href
@@ -128,6 +130,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		discloseResponseMessage.status == "DISCLOSE_ACCEPTED"
 		discloseResponseMessage.message == responseMessageText
 		discloseResponseMessage.nickname == richard.nickname
+		assertEquals(discloseResponseMessage.creationTime, new Date())
 		discloseResponseMessage.user.firstName == "Richard"
 
 		//check delete

@@ -80,6 +80,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def buddyConnectRequestMessages = response.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}
 		buddyConnectRequestMessages.size() == 1
 		buddyConnectRequestMessages[0].nickname == richard.nickname
+		assertEquals(buddyConnectRequestMessages[0].creationTime, new Date())
 		buddyConnectRequestMessages[0].status == "REQUESTED"
 		buddyConnectRequestMessages[0].user.firstName == "Richard"
 		buddyConnectRequestMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
@@ -148,6 +149,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}
 		buddyConnectResponseMessages[0].user.firstName == "Bob"
 		buddyConnectResponseMessages[0].nickname == bob.nickname
+		assertEquals(buddyConnectResponseMessages[0].creationTime, new Date())
 		buddyConnectResponseMessages[0].status == "ACCEPTED"
 		buddyConnectResponseMessages[0]._links.self.href.startsWith(richard.url + appService.MESSAGES_PATH_FRAGMENT)
 		buddyConnectResponseMessages[0]._links."yona:process".href.startsWith(buddyConnectResponseMessages[0]._links.self.href)
@@ -215,6 +217,9 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		richardGoalConflictMessages.size() == 1
 		richardGoalConflictMessages[0].nickname == "<self>"
+		assertEquals(richardGoalConflictMessages[0].creationTime, new Date())
+		assertEquals(richardGoalConflictMessages[0].activityStartTime, new Date())
+		assertEquals(richardGoalConflictMessages[0].activityEndTime, new Date())
 		richardGoalConflictMessages[0].activityCategoryName == "news"
 		richardGoalConflictMessages[0].url == "http://www.refdag.nl"
 
@@ -223,6 +228,9 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		bobGoalConflictMessages.size() == 1
 		bobGoalConflictMessages[0].nickname == richard.nickname
+		assertEquals(bobGoalConflictMessages[0].creationTime, new Date())
+		assertEquals(bobGoalConflictMessages[0].activityStartTime, new Date())
+		assertEquals(bobGoalConflictMessages[0].activityEndTime, new Date())
 		bobGoalConflictMessages[0].activityCategoryName == "news"
 		bobGoalConflictMessages[0].url == null
 
@@ -344,6 +352,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages.size() == 1
 		buddyDisconnectMessages[0].reason == "USER_REMOVED_BUDDY"
 		buddyDisconnectMessages[0].nickname == "${richard.nickname}"
+		assertEquals(buddyDisconnectMessages[0].creationTime, new Date())
 		buddyDisconnectMessages[0].message == message
 		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
 		buddyDisconnectMessages[0]._links."yona:process".href.startsWith(buddyDisconnectMessages[0]._links.self.href)
