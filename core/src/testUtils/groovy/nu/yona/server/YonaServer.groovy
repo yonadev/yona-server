@@ -20,7 +20,6 @@ class YonaServer
 	final BUDDIES_PATH_FRAGMENT = "/buddies/"
 	final RELEVANT_SMOOTHWALL_CATEGORIES_PATH_FRAGMENT = "/relevantSmoothwallCategories/"
 	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
-	final MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT = "/confirmMobileNumber"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 	RESTClient restClient

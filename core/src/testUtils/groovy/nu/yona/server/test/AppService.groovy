@@ -15,7 +15,6 @@ class AppService extends Service
 	final USERS_PATH = "/users/"
 	final BUDDIES_PATH_FRAGMENT = "/buddies/"
 	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
-	final MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT = "/confirmMobileNumber"
 	final GOALS_PATH_FRAGMENT = "/goals/"
 	final ACTIVITY_PATH_FRAGMENT = "/activity/"
 	final APP_ACTIVITY_PATH_FRAGMENT = "/appActivity/"
