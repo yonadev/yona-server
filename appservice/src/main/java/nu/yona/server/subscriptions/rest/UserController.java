@@ -40,6 +40,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.BruteForceAttemptService;
 import nu.yona.server.DOSProtectionService;
+import nu.yona.server.analysis.rest.AppActivityController;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDTO;
@@ -376,6 +377,8 @@ public class UserController
 				if (user.isMobileNumberConfirmed())
 				{
 					addMessagesLink(userResource);
+					addNewDeviceRequestLink(userResource);
+					addAppActivityLink(userResource);
 				}
 			}
 			return userResource;
@@ -414,5 +417,17 @@ public class UserController
 		{
 			userResource.add(MessageController.getConfirmMobileLink(userResource.getContent().getID()));
 		}
+
+		private void addNewDeviceRequestLink(UserResource userResource)
+		{
+			userResource.add(
+					UserController.getNewDeviceRequestLinkBuilder(userResource.getContent().getID()).withRel("newDeviceRequest"));
+		}
+
+		private void addAppActivityLink(UserResource userResource)
+		{
+			userResource.add(AppActivityController.getAppActivityLink(userResource.getContent().getID()));
+		}
+
 	}
 }

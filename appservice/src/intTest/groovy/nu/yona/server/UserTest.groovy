@@ -27,6 +27,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		testUser(john, true, ts)
+		john.mobileNumberConfirmationUrl.startsWith(john.url + "/confirmMobileNumber")
 
 		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(john.url + "/messages/", john.password)
 		getMessagesResponse.status == 400
@@ -49,7 +50,9 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def john = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, johnAsCreated.url, true, johnAsCreated.password)
 		testUser(john, true, ts)
 		john.mobileNumberConfirmationUrl == null
-		john.messagesUrl
+		john.messagesUrl.startsWith(john.url + "/messages")
+		john.newDeviceRequestUrl.startsWith(john.url + "/newDeviceRequest")
+		john.appActivityUrl.startsWith(john.url + "/appActivity")
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)

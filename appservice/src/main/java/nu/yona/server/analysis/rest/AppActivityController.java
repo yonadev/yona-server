@@ -1,11 +1,14 @@
 package nu.yona.server.analysis.rest;
 
 import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import nu.yona.server.analysis.service.AnalysisEngineService;
 import nu.yona.server.analysis.service.AppActivityDTO;
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.subscriptions.service.UserService;
 
 /*
@@ -51,5 +55,18 @@ public class AppActivityController
 			analysisEngineService.analyze(userID, appActivities);
 			return null;
 		});
+	}
+
+	public static Link getAppActivityLink(UUID userID)
+	{
+		try
+		{
+			ControllerLinkBuilder linkBuilder = linkTo(AppActivityController.class, userID);
+			return linkBuilder.withRel("appActivity");
+		}
+		catch (SecurityException e)
+		{
+			throw YonaException.unexpected(e);
+		}
 	}
 }

@@ -14,7 +14,6 @@ class AppService extends Service
 	final ACTIVITY_CATEGORIES_PATH = "/activityCategories/"
 	final USERS_PATH = "/users/"
 	final BUDDIES_PATH_FRAGMENT = "/buddies/"
-	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
 	final GOALS_PATH_FRAGMENT = "/goals/"
 	final APP_ACTIVITY_PATH_FRAGMENT = "/appActivity/"
 
@@ -29,6 +28,8 @@ class AppService extends Service
 	{
 		def response = confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${user.mobileNumberConfirmationCode}" }""", user.password)
 		user.messagesUrl = response.responseData?._links?.messages?.href
+		user.newDeviceRequestUrl = response.responseData?._links?.newDeviceRequest?.href
+		user.appActivityUrl = response.responseData?._links?.appActivity?.href
 		asserter(response)
 	}
 
@@ -43,6 +44,59 @@ class AppService extends Service
 	def addUser(jsonString, password, parameters = [:])
 	{
 		yonaServer.createResourceWithPassword(USERS_PATH, jsonString, password, parameters)
+	}
+
+	def getUser(Closure asserter, userURL, boolean includePrivateData, password = null)
+	{
+		def response
+		if (includePrivateData)
+		{
+			response = yonaServer.getResourceWithPassword(yonaServer.stripQueryString(userURL), password, yonaServer.getQueryParams(userURL) + ["includePrivateData": "true"])
+		}
+		else
+		{
+			response = yonaServer.getResourceWithPassword(userURL, password)
+		}
+		asserter(response)
+		return (isSuccess(response)) ? new User(response.responseData, password, includePrivateData) : null
+	}
+
+	def getUser(userURL, boolean includePrivateData, password = null)
+	{
+		if (includePrivateData)
+		{
+			yonaServer.getResourceWithPassword(yonaServer.stripQueryString(userURL), password, yonaServer.getQueryParams(userURL) + ["includePrivateData": "true"])
+		}
+		else
+		{
+			yonaServer.getResourceWithPassword(userURL, password)
+		}
+	}
+
+	def updateUser(Closure asserter, User user, url = null)
+	{
+		def response = updateUser((url) ?: user.url, user.convertToJSON(), user.password)
+		asserter(response)
+		return (isSuccess(response)) ? new User(response.responseData, user.password) : null
+	}
+
+	def updateUser(userURL, jsonString, password)
+	{
+		yonaServer.updateResourceWithPassword(yonaServer.stripQueryString(userURL), jsonString, password, yonaServer.getQueryParams(userURL))
+	}
+
+	def deleteUser(User user, message = "")
+	{
+		if (!user)
+		{
+			return null
+		}
+		def response = yonaServer.deleteResourceWithPassword(user.editURL, user.password, ["message":message])
+	}
+
+	def deleteUser(userEditURL, password, message = "")
+	{
+		yonaServer.deleteResourceWithPassword(userEditURL, password, ["message":message])
 	}
 
 	def assertUserCreationResponseDetails(def response)
@@ -109,6 +163,37 @@ class AppService extends Service
 		assert user.nickname != null
 		assert user.devices.size() == 1
 		assert user.devices[0]
+
+		if (user instanceof User)
+		{
+			if (user.mobileNumberConfirmationUrl)
+			{
+				assert !user.messagesUrl
+				assert !user.newDeviceRequestUrl
+				assert !user.appActivityUrl
+			}
+			else
+			{
+				assert user.messagesUrl
+				assert user.newDeviceRequestUrl
+				assert user.appActivityUrl
+			}
+		}
+		else
+		{
+			if (user._links?.confirmMobileNumber?.href)
+			{
+				assert !user._links?.messages
+				assert !user._links?.newDeviceRequest
+				assert !user._links?.appActivity
+			}
+			else
+			{
+				assert user._links?.messages
+				assert user._links?.newDeviceRequest
+				assert user._links?.appActivity
+			}
+		}
 	}
 
 	def assertVpnProfile(def user)
@@ -140,21 +225,6 @@ class AppService extends Service
 	def isSuccess(def response)
 	{
 		response.status >= 200 && response.status < 300
-	}
-
-	def getUser(Closure asserter, userURL, boolean includePrivateData, password = null)
-	{
-		def response
-		if (includePrivateData)
-		{
-			response = yonaServer.getResourceWithPassword(yonaServer.stripQueryString(userURL), password, yonaServer.getQueryParams(userURL) + ["includePrivateData": "true"])
-		}
-		else
-		{
-			response = yonaServer.getResourceWithPassword(userURL, password)
-		}
-		asserter(response)
-		return (isSuccess(response)) ? new User(response.responseData, password, includePrivateData) : null
 	}
 
 	def makeBuddies(requestingUser, respondingUser)
@@ -269,44 +339,6 @@ class AppService extends Service
 		yonaServer.updateResource(USERS_PATH, """{ }""", [:], ["mobileNumber":mobileNumber])
 	}
 
-	def getUser(userURL, boolean includePrivateData, password = null)
-	{
-		if (includePrivateData)
-		{
-			yonaServer.getResourceWithPassword(yonaServer.stripQueryString(userURL), password, yonaServer.getQueryParams(userURL) + ["includePrivateData": "true"])
-		}
-		else
-		{
-			yonaServer.getResourceWithPassword(userURL, password)
-		}
-	}
-
-	def updateUser(Closure asserter, User user, url = null)
-	{
-		def response = updateUser((url) ?: user.url, user.convertToJSON(), user.password)
-		asserter(response)
-		return (isSuccess(response)) ? new User(response.responseData, user.password) : null
-	}
-
-	def updateUser(userURL, jsonString, password)
-	{
-		yonaServer.updateResourceWithPassword(yonaServer.stripQueryString(userURL), jsonString, password, yonaServer.getQueryParams(userURL))
-	}
-
-	def deleteUser(User user, message = "")
-	{
-		if (!user)
-		{
-			return null
-		}
-		def response = yonaServer.deleteResourceWithPassword(user.editURL, user.password, ["message":message])
-	}
-
-	def deleteUser(userEditURL, password, message = "")
-	{
-		yonaServer.deleteResourceWithPassword(userEditURL, password, ["message":message])
-	}
-
 	def requestBuddy(userPath, jsonString, password)
 	{
 		yonaServer.createResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, jsonString, password)
@@ -350,15 +382,15 @@ class AppService extends Service
 		yonaServer.getResourceWithPassword(user.messagesUrl, user.password, parameters)
 	}
 
-	def setNewDeviceRequest(userPath, password, userSecret)
+	def setNewDeviceRequest(newDeviceRequestUrl, password, userSecret)
 	{
 		def jsonString = """{ "userSecret": "$userSecret" }"""
-		yonaServer.updateResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, jsonString, password)
+		yonaServer.updateResourceWithPassword(newDeviceRequestUrl, jsonString, password)
 	}
 
-	def getNewDeviceRequest(userPath, userSecret = null)
+	def getNewDeviceRequest(newDeviceRequestUrl, userSecret = null)
 	{
-		yonaServer.getResource(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, [:], ["userSecret": userSecret])
+		yonaServer.getResource(newDeviceRequestUrl, [:], ["userSecret": userSecret])
 	}
 
 	def clearNewDeviceRequest(deviceRequestEditURL, password)

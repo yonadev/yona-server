@@ -120,6 +120,13 @@ public class MessageController
 		return linkTo(methodOn.getMessage(Optional.empty(), userID, messageID));
 	}
 
+	public static Link getConfirmMobileLink(UUID userID)
+	{
+		ControllerLinkBuilder linkBuilder = linkTo(
+				methodOn(MessageController.class).getMessages(Optional.empty(), userID, null, null));
+		return linkBuilder.withRel("messages");
+	}
+
 	static class MessageActionResource extends Resource<MessageActionDTO>
 	{
 		private UUID userID;
@@ -193,12 +200,5 @@ public class MessageController
 		{
 			messageResource.getPossibleActions().stream().forEach(a -> messageResource.add(selfLinkBuilder.slash(a).withRel(a)));
 		}
-	}
-
-	public static Link getConfirmMobileLink(UUID userID)
-	{
-		ControllerLinkBuilder linkBuilder = linkTo(
-				methodOn(MessageController.class).getMessages(Optional.empty(), userID, null, null));
-		return linkBuilder.withRel("messages");
 	}
 }

@@ -25,6 +25,8 @@ class User
 	final String url
 	final String editURL
 	String messagesUrl
+	String newDeviceRequestUrl
+	String appActivityUrl
 	final String password
 	User(def json, String password)
 	{
@@ -60,6 +62,8 @@ class User
 		this.url = YonaServer.stripQueryString(json._links.self.href)
 		this.editURL = json._links?.edit?.href
 		this.messagesUrl = json._links?.messages?.href
+		this.newDeviceRequestUrl = json._links?.newDeviceRequest?.href
+		this.appActivityUrl = json._links?.appActivity?.href
 	}
 
 	def convertToJSON()
