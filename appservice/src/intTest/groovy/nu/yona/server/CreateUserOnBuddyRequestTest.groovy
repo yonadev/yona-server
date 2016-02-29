@@ -38,7 +38,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 201
-		response.responseData._embedded.user.firstName == "Bob"
+		response.responseData._embedded."yona:user".firstName == "Bob"
 		response.responseData._links.self.href.startsWith(richard.url)
 		response.responseData.userCreatedInviteURL
 
@@ -92,8 +92,8 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		response.responseData.nickname == newNickname
 		response.responseData.devices.size() == 1
 		response.responseData.devices[0] == "iPhone 6"
-		response.responseData._embedded.goals._embedded.budgetGoals
-		response.responseData._embedded.goals._embedded.budgetGoals.size() == 1 //mandatory goal
+		response.responseData._embedded."yona:goals"._embedded."yona:budgetGoals"
+		response.responseData._embedded."yona:goals"._embedded."yona:budgetGoals".size() == 1 //mandatory goal
 		!(response.responseData._links.self.href ==~ /tempPassword/)
 		response.responseData.mobileNumberConfirmationCode
 
@@ -270,7 +270,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		getMessagesRichardResponse.status == 200
-		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		richardGoalConflictMessages.size() == 1
 		richardGoalConflictMessages[0].nickname == "<self>"
 		richardGoalConflictMessages[0].activityCategoryName == "news"
@@ -278,7 +278,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesBobResponse = appService.getMessages(updatedBob)
 		getMessagesBobResponse.status == 200
-		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded.messages.findAll{ it."@type" == "GoalConflictMessage"}
+		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		bobGoalConflictMessages.size() == 1
 		bobGoalConflictMessages[0].nickname == richard.nickname
 		bobGoalConflictMessages[0].activityCategoryName == "news"

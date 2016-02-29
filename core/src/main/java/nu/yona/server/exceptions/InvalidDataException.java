@@ -44,7 +44,7 @@ public class InvalidDataException extends YonaException
 
 	public static InvalidDataException invalidMobileNumber(String mobileNumber)
 	{
-		return new InvalidDataException("error.user.mobile.number.invalid");
+		return new InvalidDataException("error.user.mobile.number.invalid", mobileNumber);
 	}
 
 	public static InvalidDataException emptyUserId()
