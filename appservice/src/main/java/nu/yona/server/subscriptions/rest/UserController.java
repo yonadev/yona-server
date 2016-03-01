@@ -37,6 +37,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.BruteForceAttemptService;
@@ -334,9 +336,10 @@ public class UserController
 		}
 
 		@JsonProperty("_embedded")
+		@JsonInclude(Include.NON_EMPTY)
 		public Map<String, Object> getEmbeddedResources()
 		{
-			if (getContent().getPrivateData() == null)
+			if ((getContent().getPrivateData() == null) || !getContent().isMobileNumberConfirmed())
 			{
 				return Collections.emptyMap();
 			}

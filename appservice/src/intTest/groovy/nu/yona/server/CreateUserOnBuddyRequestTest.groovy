@@ -92,8 +92,6 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		response.responseData.nickname == newNickname
 		response.responseData.devices.size() == 1
 		response.responseData.devices[0] == "iPhone 6"
-		response.responseData._embedded."yona:goals"._embedded."yona:budgetGoals"
-		response.responseData._embedded."yona:goals"._embedded."yona:budgetGoals".size() == 1 //mandatory goal
 		!(response.responseData._links.self.href ==~ /tempPassword/)
 		response.responseData.mobileNumberConfirmationCode
 
@@ -108,7 +106,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		bobFromGetAfterUpdate.nickname == newNickname
 		bobFromGetAfterUpdate.devices.size() == 1
 		bobFromGetAfterUpdate.devices[0] == "iPhone 6"
-		bobFromGetAfterUpdate.goals.size() == 1 //mandatory goal
+		bobFromGetAfterUpdate.goals.size() == 0 // Mobile number not confirmed yet
 		bobFromGetAfterUpdate.url
 
 		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(bobFromGetAfterUpdate.url + "/messages/", bobFromGetAfterUpdate.password)
@@ -164,9 +162,13 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
 
 		when:
-		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
+		def response = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 
 		then:
+		def getUserResponse = appService.getUser(updatedBob.url, true, newPassword)
+		getUserResponse.status == 200
+		getUserResponse.responseData._embedded."yona:goals"._embedded."yona:budgetGoals"
+		getUserResponse.responseData._embedded."yona:goals"._embedded."yona:budgetGoals".size() == 1 //mandatory goal
 		def getMessagesResponse = appService.getMessages(updatedBob)
 		getMessagesResponse.status == 200
 
@@ -400,7 +402,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 	def sendBuddyRequestForBob(User user, String mobileNumber)
 	{
-		appService.requestBuddy(user, """{
+		appService.yonaServer.createResourceWithPassword(user.url + "/buddies/", """{
 			"_embedded":{
 				"user":{
 					"firstName":"Bob",

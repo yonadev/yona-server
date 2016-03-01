@@ -26,7 +26,9 @@ class AppService extends Service
 	void confirmMobileNumber(Closure asserter, User user)
 	{
 		def response = confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${user.mobileNumberConfirmationCode}" }""", user.password)
+		user.goals = response.responseData._embedded."yona:goals"._embedded."yona:budgetGoals".collect{new BudgetGoal(it)}
 		user.buddiesUrl = response.responseData._embedded?."yona:buddies"?._links?.self?.href
+		user.goalsUrl = response.responseData._embedded?."yona:goals"?._links?.self?.href
 		user.messagesUrl = response.responseData?._links?."yona:messages"?.href
 		user.newDeviceRequestUrl = response.responseData?._links?."yona:newDeviceRequest"?.href
 		user.appActivityUrl = response.responseData?._links?."yona:appActivity"?.href
@@ -168,7 +170,7 @@ class AppService extends Service
 		{
 			if (user.mobileNumberConfirmationUrl)
 			{
-				// TODO				assert !user.buddiesUrl
+				assert !user.buddiesUrl
 				assert !user.messagesUrl
 				assert !user.newDeviceRequestUrl
 				assert !user.appActivityUrl
@@ -185,7 +187,7 @@ class AppService extends Service
 		{
 			if (user._links?."yona:confirmMobileNumber"?.href)
 			{
-				// TODO				assert !user._embedded?."yona:buddies"?._links?.self?.href
+				assert !user._embedded?."yona:buddies"?._links?.self?.href
 				assert !user._links?."yona:messages"
 				assert !user._links?."yona:newDeviceRequest"
 				assert !user._links?."yona:appActivity"
