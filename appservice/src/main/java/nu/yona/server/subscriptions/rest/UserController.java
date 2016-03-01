@@ -50,7 +50,6 @@ import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
-import nu.yona.server.subscriptions.service.OverwriteUserDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -159,14 +158,6 @@ public class UserController
 								yonaProperties.getSms()
 										.getMobileNumberConfirmationMaxAttempts(),
 						() -> createOKResponse(userService.confirmMobileNumber(id, mobileNumberConfirmation.getCode()), true)));
-	}
-
-	@RequestMapping(value = "/", method = RequestMethod.PUT)
-	@ResponseBody
-	public HttpEntity<Resource<OverwriteUserDTO>> setOverwriteUserConfirmationCode(@RequestParam String mobileNumber)
-	{
-		return new ResponseEntity<Resource<OverwriteUserDTO>>(
-				new Resource<OverwriteUserDTO>(userService.setOverwriteUserConfirmationCode(mobileNumber)), HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/{userID}/newDeviceRequest", method = RequestMethod.PUT)

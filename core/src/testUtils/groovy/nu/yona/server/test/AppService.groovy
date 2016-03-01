@@ -18,6 +18,7 @@ class AppService extends Service
 	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
 	final MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT = "/confirmMobileNumber"
 	final GOALS_PATH_FRAGMENT = "/goals/"
+	final OVERWRITE_USER_REQUEST_PATH = "/admin/requestUserOverwrite/"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 
@@ -264,7 +265,7 @@ class AppService extends Service
 
 	def requestOverwriteUser(mobileNumber)
 	{
-		yonaServer.updateResource(USERS_PATH, """{ }""", [:], ["mobileNumber":mobileNumber])
+		yonaServer.postJson(OVERWRITE_USER_REQUEST_PATH, """{ }""", [:], ["mobileNumber":mobileNumber])
 	}
 
 	def getUser(userURL, boolean includePrivateData, password = null)
