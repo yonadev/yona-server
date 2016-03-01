@@ -11,6 +11,7 @@ import javax.persistence.Transient;
 
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
+import nu.yona.server.messaging.entities.BuddyMessage;
 
 @Entity
 public abstract class BuddyConnectMessage extends BuddyMessage

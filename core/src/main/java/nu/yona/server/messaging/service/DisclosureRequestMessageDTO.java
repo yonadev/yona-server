@@ -19,17 +19,16 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.analysis.service.GoalConflictMessageDTO;
-import nu.yona.server.messaging.entities.DiscloseRequestMessage;
-import nu.yona.server.messaging.entities.DiscloseResponseMessage;
+import nu.yona.server.messaging.entities.DisclosureRequestMessage;
+import nu.yona.server.messaging.entities.DisclosureResponseMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
-import nu.yona.server.subscriptions.service.BuddyMessageDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDTO;
 
-@JsonRootName("discloseRequestMessage")
-public class DiscloseRequestMessageDTO extends BuddyMessageDTO
+@JsonRootName("disclosureRequestMessage")
+public class DisclosureRequestMessageDTO extends BuddyMessageDTO
 {
 	private static final String ACCEPT = "accept";
 	private static final String REJECT = "reject";
@@ -38,7 +37,7 @@ public class DiscloseRequestMessageDTO extends BuddyMessageDTO
 
 	private GoalConflictMessageDTO targetGoalConflictMessage;
 
-	private DiscloseRequestMessageDTO(UUID id, Date creationTime, UserDTO user, String nickname, String message, Status status,
+	private DisclosureRequestMessageDTO(UUID id, Date creationTime, UserDTO user, String nickname, String message, Status status,
 			UUID targetGoalConflictMessageOriginID, GoalConflictMessageDTO targetGoalConflictMessage)
 	{
 		super(id, creationTime, targetGoalConflictMessageOriginID, user, nickname, message);
@@ -49,14 +48,14 @@ public class DiscloseRequestMessageDTO extends BuddyMessageDTO
 	@Override
 	public String getType()
 	{
-		return "DiscloseRequestMessage";
+		return "DisclosureRequestMessage";
 	}
 
 	@Override
 	public Set<String> getPossibleActions()
 	{
 		Set<String> possibleActions = new HashSet<>();
-		if (status == Status.DISCLOSE_REQUESTED)
+		if (status == Status.DISCLOSURE_REQUESTED)
 		{
 			possibleActions.add(ACCEPT);
 			possibleActions.add(REJECT);
@@ -77,13 +76,13 @@ public class DiscloseRequestMessageDTO extends BuddyMessageDTO
 	@Override
 	public boolean canBeDeleted()
 	{
-		return this.status == Status.DISCLOSE_ACCEPTED || this.status == Status.DISCLOSE_REJECTED;
+		return this.status == Status.DISCLOSURE_ACCEPTED || this.status == Status.DISCLOSURE_REJECTED;
 	}
 
-	public static DiscloseRequestMessageDTO createInstance(UserDTO actingUser, DiscloseRequestMessage messageEntity)
+	public static DisclosureRequestMessageDTO createInstance(UserDTO actingUser, DisclosureRequestMessage messageEntity)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
-		return new DiscloseRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
+		return new DisclosureRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
 				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getNickname(), messageEntity.getMessage(),
 				messageEntity.getStatus(), targetGoalConflictMessage.getOriginGoalConflictMessageID(),
 				GoalConflictMessageDTO.createInstance(targetGoalConflictMessage, null));
@@ -104,13 +103,13 @@ public class DiscloseRequestMessageDTO extends BuddyMessageDTO
 		@PostConstruct
 		private void init()
 		{
-			theDTOFactory.addManager(DiscloseRequestMessage.class, this);
+			theDTOFactory.addManager(DisclosureRequestMessage.class, this);
 		}
 
 		@Override
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return DiscloseRequestMessageDTO.createInstance(actingUser, (DiscloseRequestMessage) messageEntity);
+			return DisclosureRequestMessageDTO.createInstance(actingUser, (DisclosureRequestMessage) messageEntity);
 		}
 
 		@Override
@@ -120,56 +119,56 @@ public class DiscloseRequestMessageDTO extends BuddyMessageDTO
 			switch (action)
 			{
 				case ACCEPT:
-					return handleAction_Accept(actingUser, (DiscloseRequestMessage) messageEntity, requestPayload);
+					return handleAction_Accept(actingUser, (DisclosureRequestMessage) messageEntity, requestPayload);
 				case REJECT:
-					return handleAction_Reject(actingUser, (DiscloseRequestMessage) messageEntity, requestPayload);
+					return handleAction_Reject(actingUser, (DisclosureRequestMessage) messageEntity, requestPayload);
 				default:
 					throw MessageServiceException.actionNotSupported(action);
 			}
 		}
 
-		private MessageActionDTO handleAction_Accept(UserDTO actingUser, DiscloseRequestMessage discloseRequestMessageEntity,
+		private MessageActionDTO handleAction_Accept(UserDTO actingUser, DisclosureRequestMessage disclosureRequestMessageEntity,
 				MessageActionDTO payload)
 		{
-			return updateGoalConflictMessageStatus(actingUser, discloseRequestMessageEntity,
-					GoalConflictMessage.Status.DISCLOSE_ACCEPTED, payload.getProperty("message"));
+			return updateGoalConflictMessageStatus(actingUser, disclosureRequestMessageEntity,
+					GoalConflictMessage.Status.DISCLOSURE_ACCEPTED, payload.getProperty("message"));
 		}
 
-		private MessageActionDTO handleAction_Reject(UserDTO actingUser, DiscloseRequestMessage discloseRequestMessageEntity,
+		private MessageActionDTO handleAction_Reject(UserDTO actingUser, DisclosureRequestMessage disclosureRequestMessageEntity,
 				MessageActionDTO payload)
 		{
-			return updateGoalConflictMessageStatus(actingUser, discloseRequestMessageEntity,
-					GoalConflictMessage.Status.DISCLOSE_REJECTED, payload.getProperty("message"));
+			return updateGoalConflictMessageStatus(actingUser, disclosureRequestMessageEntity,
+					GoalConflictMessage.Status.DISCLOSURE_REJECTED, payload.getProperty("message"));
 		}
 
 		private MessageActionDTO updateGoalConflictMessageStatus(UserDTO actingUser,
-				DiscloseRequestMessage discloseRequestMessageEntity, Status status, String message)
+				DisclosureRequestMessage disclosureRequestMessageEntity, Status status, String message)
 		{
-			GoalConflictMessage targetGoalConflictMessage = discloseRequestMessageEntity.getTargetGoalConflictMessage();
+			GoalConflictMessage targetGoalConflictMessage = disclosureRequestMessageEntity.getTargetGoalConflictMessage();
 			targetGoalConflictMessage.setStatus(status);
 			targetGoalConflictMessage = Message.getRepository().save(targetGoalConflictMessage);
 
-			discloseRequestMessageEntity = updateMessageStatus(discloseRequestMessageEntity, status);
+			disclosureRequestMessageEntity = updateMessageStatus(disclosureRequestMessageEntity, status);
 
-			sendResponseMessageToRequestingUser(actingUser, discloseRequestMessageEntity, message);
+			sendResponseMessageToRequestingUser(actingUser, disclosureRequestMessageEntity, message);
 
 			return MessageActionDTO
-					.createInstanceActionDone(theDTOFactory.createInstance(actingUser, discloseRequestMessageEntity));
+					.createInstanceActionDone(theDTOFactory.createInstance(actingUser, disclosureRequestMessageEntity));
 		}
 
-		private DiscloseRequestMessage updateMessageStatus(DiscloseRequestMessage discloseRequestMessageEntity, Status status)
+		private DisclosureRequestMessage updateMessageStatus(DisclosureRequestMessage disclosureRequestMessageEntity, Status status)
 		{
-			discloseRequestMessageEntity.setStatus(status);
-			return Message.getRepository().save(discloseRequestMessageEntity);
+			disclosureRequestMessageEntity.setStatus(status);
+			return Message.getRepository().save(disclosureRequestMessageEntity);
 		}
 
-		private void sendResponseMessageToRequestingUser(UserDTO respondingUser, DiscloseRequestMessage requestMessageEntity,
+		private void sendResponseMessageToRequestingUser(UserDTO respondingUser, DisclosureRequestMessage requestMessageEntity,
 				String message)
 		{
 			MessageDestinationDTO messageDestination = userAnonymizedService
 					.getUserAnonymized(requestMessageEntity.getRelatedUserAnonymizedID()).getAnonymousDestination();
 			assert messageDestination != null;
-			messageService.sendMessage(DiscloseResponseMessage.createInstance(respondingUser.getID(),
+			messageService.sendMessage(DisclosureResponseMessage.createInstance(respondingUser.getID(),
 					respondingUser.getPrivateData().getUserAnonymizedID(), requestMessageEntity.getTargetGoalConflictMessageID(),
 					requestMessageEntity.getStatus(), respondingUser.getPrivateData().getNickname(), message),
 					messageDestination);

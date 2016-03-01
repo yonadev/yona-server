@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import javax.persistence.Entity;
 
+import nu.yona.server.messaging.entities.BuddyMessage;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 
 @Entity

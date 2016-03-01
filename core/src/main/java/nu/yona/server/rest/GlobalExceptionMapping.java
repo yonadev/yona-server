@@ -31,11 +31,11 @@ public class GlobalExceptionMapping
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ResponseBody
-	public ResponseMessageDTO handleOtherException(Exception exception)
+	public ErrorResponseDTO handleOtherException(Exception exception)
 	{
 		logger.error("Unhandled exception", exception);
 
-		return new ResponseMessageDTO(ResponseMessageType.ERROR, null, exception.getMessage());
+		return new ErrorResponseDTO(null, exception.getMessage());
 	}
 
 	/**
@@ -46,13 +46,12 @@ public class GlobalExceptionMapping
 	 * @return The response object to return.
 	 */
 	@ExceptionHandler(YonaException.class)
-	public ResponseEntity<ResponseMessageDTO> handleYonaException(YonaException exception)
+	public ResponseEntity<ErrorResponseDTO> handleYonaException(YonaException exception)
 	{
 		logger.error("Unhandled exception", exception);
 
-		ResponseMessageDTO responseMessage = new ResponseMessageDTO(ResponseMessageType.ERROR, exception.getMessageId(),
-				exception.getMessage());
+		ErrorResponseDTO responseMessage = new ErrorResponseDTO(exception.getMessageId(), exception.getMessage());
 
-		return new ResponseEntity<ResponseMessageDTO>(responseMessage, exception.getStatusCode());
+		return new ResponseEntity<ErrorResponseDTO>(responseMessage, exception.getStatusCode());
 	}
 }

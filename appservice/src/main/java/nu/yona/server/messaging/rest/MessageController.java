@@ -22,6 +22,7 @@ import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
@@ -55,6 +56,9 @@ public class MessageController
 	@Autowired
 	private UserService userService;
 
+	@Autowired
+	private CurieProvider curieProvider;
+
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<PagedResources<MessageDTO>> getMessages(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
@@ -84,8 +88,9 @@ public class MessageController
 			@PathVariable String action, @RequestBody MessageActionDTO requestPayload)
 	{
 
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
-				new MessageActionResource(messageService.handleMessageAction(userID, id, action, requestPayload), userID)));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> createOKResponse(new MessageActionResource(curieProvider,
+						messageService.handleMessageAction(userID, id, action, requestPayload), userID)));
 	}
 
 	@RequestMapping(value = "/{messageID}", method = RequestMethod.DELETE)
@@ -95,8 +100,8 @@ public class MessageController
 			@PathVariable UUID messageID)
 	{
 
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(new MessageActionResource(messageService.deleteMessage(userID, messageID), userID)));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
+				new MessageActionResource(curieProvider, messageService.deleteMessage(userID, messageID), userID)));
 	}
 
 	private HttpEntity<PagedResources<MessageDTO>> createOKResponse(PagedResources<MessageDTO> messages)
@@ -130,10 +135,12 @@ public class MessageController
 	static class MessageActionResource extends Resource<MessageActionDTO>
 	{
 		private UUID userID;
+		private CurieProvider curieProvider;
 
-		public MessageActionResource(MessageActionDTO messageAction, UUID userID)
+		public MessageActionResource(CurieProvider curieProvider, MessageActionDTO messageAction, UUID userID)
 		{
 			super(messageAction);
+			this.curieProvider = curieProvider;
 			this.userID = userID;
 		}
 
@@ -141,7 +148,7 @@ public class MessageController
 		public Map<String, List<MessageDTO>> getEmbeddedResources()
 		{
 			Set<MessageDTO> affectedMessages = getContent().getAffectedMessages();
-			return Collections.singletonMap("affectedMessages",
+			return Collections.singletonMap(curieProvider.getNamespacedRelFor("affectedMessages"),
 					new MessageResourceAssembler(userID).toResources(affectedMessages));
 		}
 	}

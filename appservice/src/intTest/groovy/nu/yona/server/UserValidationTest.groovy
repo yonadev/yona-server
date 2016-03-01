@@ -11,8 +11,6 @@ import groovy.json.*
 /**
  * These tests are to make sure the data validation of the user service is working. All fields are to be checked
  * and validated when adding a user
- *
- * @author pgussow
  */
 class UserValidationTest extends AbstractAppServiceIntegrationTest
 {
@@ -36,7 +34,6 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 400
-		response.responseData.type == "ERROR"
 		response.responseData.code == "error.user.firstname"
 	}
 
@@ -49,7 +46,6 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 400
-		response.responseData.type == "ERROR"
 		response.responseData.code == "error.user.lastname"
 	}
 
@@ -62,7 +58,6 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 400
-		response.responseData.type == "ERROR"
 		response.responseData.code == "error.user.mobile.number"
 	}
 
@@ -75,7 +70,6 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 400
-		response.responseData.type == "ERROR"
 		response.responseData.code == "error.user.mobile.number.invalid"
 	}
 }

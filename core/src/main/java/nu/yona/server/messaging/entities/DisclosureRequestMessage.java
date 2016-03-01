@@ -8,26 +8,25 @@ import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
-import nu.yona.server.subscriptions.entities.BuddyMessage;
 
 @Entity
-public class DiscloseRequestMessage extends BuddyMessage
+public class DisclosureRequestMessage extends BuddyMessage
 {
 	private UUID targetGoalConflictMessageID;
 	private Status status;
 
 	// Default constructor is required for JPA
-	public DiscloseRequestMessage()
+	public DisclosureRequestMessage()
 	{
 
 	}
 
-	private DiscloseRequestMessage(UUID id, UUID requestingUserID, UUID requestingUserAnonymizedID,
+	private DisclosureRequestMessage(UUID id, UUID requestingUserID, UUID requestingUserAnonymizedID,
 			UUID targetGoalConflictMessageID, String nickname, String message)
 	{
 		super(id, requestingUserAnonymizedID, requestingUserID, nickname, message);
 		this.targetGoalConflictMessageID = targetGoalConflictMessageID;
-		this.status = Status.DISCLOSE_REQUESTED;
+		this.status = Status.DISCLOSURE_REQUESTED;
 	}
 
 	public UUID getTargetGoalConflictMessageID()
@@ -65,7 +64,7 @@ public class DiscloseRequestMessage extends BuddyMessage
 	public static Message createInstance(UUID requestingUserID, UUID requestingUserAnonymizedID, String requestingUserNickname,
 			String message, GoalConflictMessage targetGoalConflictMessage)
 	{
-		return new DiscloseRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserAnonymizedID,
+		return new DisclosureRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserAnonymizedID,
 				targetGoalConflictMessage.getID(), requestingUserNickname, message);
 	}
 }
