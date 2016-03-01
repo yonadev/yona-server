@@ -52,10 +52,11 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		john.mobileNumberConfirmationUrl == null
 
 		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
+		john.buddiesUrl.startsWith(john.url + "/buddies")
+		john.goalsUrl.startsWith(john.url + "/goals/")
 		john.messagesUrl.startsWith(john.url + "/messages")
 		john.newDeviceRequestUrl.startsWith(john.url + "/newDeviceRequest")
 		john.appActivityUrl.startsWith(john.url + "/appActivity")
-		john.buddiesUrl.startsWith(john.url + "/buddies")
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)

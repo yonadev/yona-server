@@ -408,7 +408,7 @@ class AppService extends Service
 
 	def addBudgetGoal(User user, BudgetGoal goal, message = "")
 	{
-		yonaServer.postJson(user.url + GOALS_PATH_FRAGMENT + "budgetGoals/", goal.convertToJsonString(), ["Yona-Password": user.password], ["message": message])
+		yonaServer.postJson(user.goalsUrl + "budgetGoals/", goal.convertToJsonString(), ["Yona-Password": user.password], ["message": message])
 	}
 
 	def removeBudgetGoal(User user, BudgetGoal goal, message = "")
@@ -418,7 +418,7 @@ class AppService extends Service
 
 	def getGoals(User user)
 	{
-		yonaServer.getResource(user.url + GOALS_PATH_FRAGMENT, ["Yona-Password": user.password])
+		yonaServer.getResource(user.goalsUrl, ["Yona-Password": user.password])
 	}
 
 	def postMessageActionWithPassword(path, properties, password)
