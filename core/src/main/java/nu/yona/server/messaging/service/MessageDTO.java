@@ -28,8 +28,8 @@ import nu.yona.server.subscriptions.service.BuddyDisconnectMessageDTO;
 @JsonSubTypes({ @Type(value = BuddyConnectRequestMessageDTO.class, name = "BuddyConnectRequestMessage"),
 		@Type(value = BuddyConnectResponseMessageDTO.class, name = "BuddyConnectResponseMessage"),
 		@Type(value = BuddyDisconnectMessageDTO.class, name = "BuddyDisconnectMessage"),
-		@Type(value = DiscloseRequestMessageDTO.class, name = "DiscloseRequestMessage"),
-		@Type(value = DiscloseResponseMessageDTO.class, name = "DiscloseResponseMessage"),
+		@Type(value = DisclosureRequestMessageDTO.class, name = "DisclosureRequestMessage"),
+		@Type(value = DisclosureResponseMessageDTO.class, name = "DisclosureResponseMessage"),
 		@Type(value = GoalConflictMessageDTO.class, name = "GoalConflictMessage"),
 		@Type(value = GoalChangeMessageDTO.class, name = "GoalChangeMessage"), })
 public abstract class MessageDTO extends ResourceSupport

@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
-import nu.yona.server.messaging.entities.DiscloseRequestMessage;
+import nu.yona.server.messaging.entities.DisclosureRequestMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
@@ -166,21 +166,21 @@ public class GoalConflictMessageDTO extends MessageDTO
 		private MessageActionDTO handleAction_RequestDisclosure(UserDTO actingUser, GoalConflictMessage messageEntity,
 				MessageActionDTO requestPayload)
 		{
-			messageEntity = updateMessageStatusAsDiscloseRequested(messageEntity);
+			messageEntity = updateMessageStatusAsDisclosureRequested(messageEntity);
 
 			MessageDestinationDTO messageDestination = userAnonymizedService
 					.getUserAnonymized(messageEntity.getRelatedUserAnonymizedID()).getAnonymousDestination();
 			messageService.sendMessage(
-					DiscloseRequestMessage.createInstance(actingUser.getID(), actingUser.getPrivateData().getUserAnonymizedID(),
+					DisclosureRequestMessage.createInstance(actingUser.getID(), actingUser.getPrivateData().getUserAnonymizedID(),
 							actingUser.getPrivateData().getNickname(), requestPayload.getProperty("message"), messageEntity),
 					messageDestination);
 
 			return MessageActionDTO.createInstanceActionDone(theDTOFactory.createInstance(actingUser, messageEntity));
 		}
 
-		private GoalConflictMessage updateMessageStatusAsDiscloseRequested(GoalConflictMessage messageEntity)
+		private GoalConflictMessage updateMessageStatusAsDisclosureRequested(GoalConflictMessage messageEntity)
 		{
-			messageEntity.setStatus(Status.DISCLOSE_REQUESTED);
+			messageEntity.setStatus(Status.DISCLOSURE_REQUESTED);
 			return GoalConflictMessage.getRepository().save(messageEntity);
 		}
 

@@ -19,7 +19,7 @@ public class GoalConflictMessage extends Message
 {
 	public enum Status
 	{
-		ANNOUNCED, DISCLOSE_REQUESTED, DISCLOSE_ACCEPTED, DISCLOSE_REJECTED
+		ANNOUNCED, DISCLOSURE_REQUESTED, DISCLOSURE_ACCEPTED, DISCLOSURE_REJECTED
 	}
 
 	/**
@@ -114,6 +114,6 @@ public class GoalConflictMessage extends Message
 
 	public boolean isUrlDisclosed()
 	{
-		return !isFromBuddy() || getStatus() == Status.DISCLOSE_ACCEPTED;
+		return !isFromBuddy() || getStatus() == Status.DISCLOSURE_ACCEPTED;
 	}
 }
