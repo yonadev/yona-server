@@ -50,9 +50,12 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def john = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, johnAsCreated.url, true, johnAsCreated.password)
 		testUser(john, true, ts)
 		john.mobileNumberConfirmationUrl == null
+
+		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
 		john.messagesUrl.startsWith(john.url + "/messages")
 		john.newDeviceRequestUrl.startsWith(john.url + "/newDeviceRequest")
 		john.appActivityUrl.startsWith(john.url + "/appActivity")
+		john.buddiesUrl.startsWith(john.url + "/buddies")
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)

@@ -17,7 +17,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def bob = addBob()
 
 		when:
-		def response = appService.requestBuddy(richard.url, """{
+		def response = appService.requestBuddy(richard, """{
 						"_embedded":{
 							"user":{
 								"firstName":"Bob",

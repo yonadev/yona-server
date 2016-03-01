@@ -24,6 +24,7 @@ class User
 	final VPNProfile vpnProfile
 	final String url
 	final String editURL
+	String buddiesUrl
 	String messagesUrl
 	String newDeviceRequestUrl
 	String appActivityUrl
@@ -61,6 +62,7 @@ class User
 		}
 		this.url = YonaServer.stripQueryString(json._links.self.href)
 		this.editURL = json._links?.edit?.href
+		this.buddiesUrl = json._embedded?."yona:buddies"?._links?.self?.href
 		this.messagesUrl = json._links?."yona:messages"?.href
 		this.newDeviceRequestUrl = json._links?."yona:newDeviceRequest"?.href
 		this.appActivityUrl = json._links?."yona:appActivity"?.href

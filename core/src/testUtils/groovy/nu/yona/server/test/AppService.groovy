@@ -13,7 +13,6 @@ class AppService extends Service
 {
 	final ACTIVITY_CATEGORIES_PATH = "/activityCategories/"
 	final USERS_PATH = "/users/"
-	final BUDDIES_PATH_FRAGMENT = "/buddies/"
 	final GOALS_PATH_FRAGMENT = "/goals/"
 	final APP_ACTIVITY_PATH_FRAGMENT = "/appActivity/"
 
@@ -27,6 +26,7 @@ class AppService extends Service
 	void confirmMobileNumber(Closure asserter, User user)
 	{
 		def response = confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${user.mobileNumberConfirmationCode}" }""", user.password)
+		user.buddiesUrl = response.responseData._embedded?."yona:buddies"?._links?.self?.href
 		user.messagesUrl = response.responseData?._links?."yona:messages"?.href
 		user.newDeviceRequestUrl = response.responseData?._links?."yona:newDeviceRequest"?.href
 		user.appActivityUrl = response.responseData?._links?."yona:appActivity"?.href
@@ -168,12 +168,14 @@ class AppService extends Service
 		{
 			if (user.mobileNumberConfirmationUrl)
 			{
+				// TODO				assert !user.buddiesUrl
 				assert !user.messagesUrl
 				assert !user.newDeviceRequestUrl
 				assert !user.appActivityUrl
 			}
 			else
 			{
+				assert user.buddiesUrl
 				assert user.messagesUrl
 				assert user.newDeviceRequestUrl
 				assert user.appActivityUrl
@@ -183,12 +185,14 @@ class AppService extends Service
 		{
 			if (user._links?."yona:confirmMobileNumber"?.href)
 			{
+				// TODO				assert !user._embedded?."yona:buddies"?._links?.self?.href
 				assert !user._links?."yona:messages"
 				assert !user._links?."yona:newDeviceRequest"
 				assert !user._links?."yona:appActivity"
 			}
 			else
 			{
+				assert user._embedded?."yona:buddies"?._links?.self?.href
 				assert user._links?."yona:messages"
 				assert user._links?."yona:newDeviceRequest"
 				assert user._links?."yona:appActivity"
@@ -244,7 +248,7 @@ class AppService extends Service
 	def sendBuddyConnectRequest(sendingUser, receivingUser)
 	{
 		// Send the buddy request
-		def response = requestBuddy(sendingUser.url, """{
+		def response = requestBuddy(sendingUser, """{
 			"_embedded":{
 				"user":{
 					"firstName":"${receivingUser.firstName}",
@@ -339,9 +343,9 @@ class AppService extends Service
 		yonaServer.updateResource(USERS_PATH, """{ }""", [:], ["mobileNumber":mobileNumber])
 	}
 
-	def requestBuddy(userPath, jsonString, password)
+	def requestBuddy(User user, jsonString, password)
 	{
-		yonaServer.createResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, jsonString, password)
+		yonaServer.createResourceWithPassword(user.buddiesUrl, jsonString, password)
 	}
 
 	def removeBuddy(User user, Buddy buddy, message)
@@ -361,20 +365,15 @@ class AppService extends Service
 
 	def getBuddies(User user)
 	{
-		def response = yonaServer.getResourceWithPassword(user.url + BUDDIES_PATH_FRAGMENT, user.password)
+		def response = yonaServer.getResourceWithPassword(user.buddiesUrl, user.password)
 		assert response.status == 200
-		assert response.responseData._links?.self?.href == user.url + BUDDIES_PATH_FRAGMENT
+		assert response.responseData._links?.self?.href == user.buddiesUrl
 
 		if (!response.responseData._embedded?."yona:buddies")
 		{
 			return []
 		}
 		response.responseData._embedded."yona:buddies".collect{new Buddy(it)}
-	}
-
-	def getBuddies(userPath, password)
-	{
-		yonaServer.getResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, password)
 	}
 
 	def getMessages(User user, parameters = [:])

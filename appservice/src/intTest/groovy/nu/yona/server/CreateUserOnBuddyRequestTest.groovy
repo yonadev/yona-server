@@ -400,7 +400,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 	def sendBuddyRequestForBob(User user, String mobileNumber)
 	{
-		appService.requestBuddy(user.url, """{
+		appService.requestBuddy(user, """{
 			"_embedded":{
 				"user":{
 					"firstName":"Bob",
