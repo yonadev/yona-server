@@ -28,7 +28,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		then:
 		testUser(john, true, false, ts)
 		// The below assert check the path fragment. If it fails, the Swagger spec needs to be updated too
-		john.mobileNumberConfirmationUrl.startsWith(john.url + "/confirmMobileNumber")
+		john.mobileNumberConfirmationUrl == john.url + "/confirmMobileNumber"
 
 		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(john.url + "/messages/", john.password)
 		getMessagesResponse.status == 400
@@ -53,11 +53,11 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		john.mobileNumberConfirmationUrl == null
 
 		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
-		john.buddiesUrl.startsWith(john.url + "/buddies")
-		john.goalsUrl.startsWith(john.url + "/goals/")
-		john.messagesUrl.startsWith(john.url + "/messages")
-		john.newDeviceRequestUrl.startsWith(john.url + "/newDeviceRequest")
-		john.appActivityUrl.startsWith(john.url + "/appActivity/")
+		john.buddiesUrl == john.url + "/buddies/"
+		john.goalsUrl == john.url + "/goals/"
+		john.messagesUrl == john.url + "/messages/"
+		john.newDeviceRequestUrl == john.url + "/newDeviceRequest"
+		john.appActivityUrl == john.url + "/appActivity/"
 
 		cleanup:
 		appService.deleteUser(johnAfterNumberConfirmation)
