@@ -3,22 +3,19 @@ package nu.yona.server.goals.service;
 import java.util.UUID;
 
 import org.apache.commons.lang.NotImplementedException;
-import org.springframework.hateoas.ResourceSupport;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.rest.PolymorphicDTO;
 
 @JsonRootName("goal")
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "@type")
 @JsonSubTypes({ @Type(value = BudgetGoalDTO.class, name = "BudgetGoal") })
-public abstract class GoalDTO extends ResourceSupport
+public abstract class GoalDTO extends PolymorphicDTO
 {
 	private final UUID id;
 	private final String activityCategoryName;
@@ -36,9 +33,6 @@ public abstract class GoalDTO extends ResourceSupport
 	{
 		return id;
 	}
-
-	@JsonProperty(value = "@type")
-	public abstract String getType();
 
 	public String getActivityCategoryName()
 	{
