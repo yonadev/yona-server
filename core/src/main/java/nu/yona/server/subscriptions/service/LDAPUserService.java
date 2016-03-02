@@ -76,7 +76,7 @@ public class LDAPUserService
 	}
 
 	@Entry(objectClasses = { "top", "account", "shadowAccount", "posixAccount" }, base = "ou=SSL")
-	private static class User
+	private static final class User
 	{
 		@Id
 		private Name dn;
