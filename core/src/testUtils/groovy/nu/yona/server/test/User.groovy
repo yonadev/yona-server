@@ -24,7 +24,13 @@ class User
 	final VPNProfile vpnProfile
 	final String url
 	final String editURL
+	final String buddiesUrl
+	final String goalsUrl
+	final String messagesUrl
+	final String newDeviceRequestUrl
+	final String appActivityUrl
 	final String password
+
 	User(def json, String password)
 	{
 		this(json, true)
@@ -44,20 +50,25 @@ class User
 		this.firstName = json.firstName
 		this.lastName = json.lastName
 		this.mobileNumber = json.mobileNumber
-		this.mobileNumberConfirmationUrl = json._links?.confirmMobileNumber?.href
+		this.mobileNumberConfirmationUrl = json._links?."yona:confirmMobileNumber"?.href
 		this.hasPrivateData = hasPrivateData
 		this.mobileNumberConfirmationCode = json.mobileNumberConfirmationCode
 		if (hasPrivateData)
 		{
 			this.nickname = json.nickname
 
-			this.buddies = (json._embedded?.buddies?._embedded) ? json._embedded.buddies._embedded.buddies.collect{new Buddy(it)} : []
+			this.buddies = (json._embedded?."yona:buddies"?._embedded) ? json._embedded."yona:buddies"._embedded."yona:buddies".collect{new Buddy(it)} : []
 			this.devices = json.devices.collect{"$it"}
-			this.goals = (json._embedded?.goals?._embedded) ? json._embedded.goals._embedded.goals.collect{new BudgetGoal(it)} : []
+			this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJSON(it)} : []
 			this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
 		}
 		this.url = YonaServer.stripQueryString(json._links.self.href)
 		this.editURL = json._links?.edit?.href
+		this.buddiesUrl = json._embedded?."yona:buddies"?._links?.self?.href
+		this.goalsUrl = json._embedded?."yona:goals"?._links?.self?.href
+		this.messagesUrl = json._links?."yona:messages"?.href
+		this.newDeviceRequestUrl = json._links?."yona:newDeviceRequest"?.href
+		this.appActivityUrl = json._links?."yona:appActivity"?.href
 	}
 
 	def convertToJSON()

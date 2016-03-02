@@ -7,19 +7,20 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.Service
 
-class ActivityCategoriesTest extends AbstractAppServiceIntegrationTest
+class AdminService extends Service
 {
-	def 'Get all activity categories'()
+	final static ACTIVITY_CATEGORIES_PATH = "/activityCategories/"
+	JsonSlurper jsonSlurper = new JsonSlurper()
+
+	AdminService()
 	{
-		given:
+		super("yona.adminservice.url", "http://localhost:8080")
+	}
 
-		when:
-		def response = appService.getAllActivityCategories()
-
-		then:
-		response.status == 200
-		response.responseData._links.self.href == appService.url + appService.ACTIVITY_CATEGORIES_PATH
-		response.responseData._embedded."yona:activityCategories".size() > 0
+	def getAllActivityCategories()
+	{
+		yonaServer.getResource(ACTIVITY_CATEGORIES_PATH)
 	}
 }

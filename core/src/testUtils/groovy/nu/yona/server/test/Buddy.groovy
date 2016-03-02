@@ -24,11 +24,11 @@ class Buddy
 		this.receivingStatus = json.receivingStatus
 		this.sendingStatus = json.sendingStatus
 		// TODO:  YD-136 - Make the user null when the buddy is removed
-		if (json._embedded?.user?.firstName)
+		if (json._embedded?."yona:user"?.firstName)
 		{
-			this.user = new User(json._embedded.user)
+			this.user = new User(json._embedded."yona:user")
 		}
-		this.goals = (json._embedded?.goals?._embedded?.goals) ? json._embedded.goals._embedded.goals.collect{new BudgetGoal(it)} : null
+		this.goals = (json._embedded?."yona:goals"?._embedded?."yona:goals") ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJSON(it)} : null
 		this.url = YonaServer.stripQueryString(json._links.self.href)
 		this.editURL = json._links?.edit?.href
 	}

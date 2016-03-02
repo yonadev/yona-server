@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
@@ -36,13 +37,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.BruteForceAttemptService;
 import nu.yona.server.DOSProtectionService;
+import nu.yona.server.analysis.rest.AppActivityController;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDTO;
+import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.JsonRootRelProvider;
@@ -50,7 +55,6 @@ import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
-import nu.yona.server.subscriptions.service.OverwriteUserDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -73,6 +77,9 @@ public class UserController
 
 	@Autowired
 	private YonaProperties yonaProperties;
+
+	@Autowired
+	private CurieProvider curieProvider;
 
 	@RequestMapping(value = "/{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
@@ -159,14 +166,6 @@ public class UserController
 								yonaProperties.getSms()
 										.getMobileNumberConfirmationMaxAttempts(),
 						() -> createOKResponse(userService.confirmMobileNumber(id, mobileNumberConfirmation.getCode()), true)));
-	}
-
-	@RequestMapping(value = "/", method = RequestMethod.PUT)
-	@ResponseBody
-	public HttpEntity<Resource<OverwriteUserDTO>> setOverwriteUserConfirmationCode(@RequestParam String mobileNumber)
-	{
-		return new ResponseEntity<Resource<OverwriteUserDTO>>(
-				new Resource<OverwriteUserDTO>(userService.setOverwriteUserConfirmationCode(mobileNumber)), HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/{userID}/newDeviceRequest", method = RequestMethod.PUT)
@@ -280,7 +279,8 @@ public class UserController
 			Set<BuddyDTO> buddies = buddyService.getBuddiesOfUser(user.getID());
 			user.getPrivateData().setBuddies(buddies);
 		}
-		return new ResponseEntity<UserResource>(new UserResourceAssembler(includePrivateData).toResource(user), status);
+		return new ResponseEntity<UserResource>(new UserResourceAssembler(curieProvider, includePrivateData).toResource(user),
+				status);
 	}
 
 	private HttpEntity<UserResource> createOKResponse(UserDTO user, boolean includePrivateData)
@@ -318,26 +318,31 @@ public class UserController
 
 	static class UserResource extends Resource<UserDTO>
 	{
-		public UserResource(UserDTO user)
+		private final CurieProvider curieProvider;
+
+		public UserResource(CurieProvider curieProvider, UserDTO user)
 		{
 			super(user);
+			this.curieProvider = curieProvider;
 		}
 
 		@JsonProperty("_embedded")
+		@JsonInclude(Include.NON_EMPTY)
 		public Map<String, Object> getEmbeddedResources()
 		{
-			if (getContent().getPrivateData() == null)
+			if ((getContent().getPrivateData() == null) || !getContent().isMobileNumberConfirmed())
 			{
 				return Collections.emptyMap();
 			}
 
 			Set<BuddyDTO> buddies = getContent().getPrivateData().getBuddies();
 			HashMap<String, Object> result = new HashMap<String, Object>();
-			result.put(UserDTO.BUDDIES_REL_NAME,
-					BuddyController.createAllBuddiesCollectionResource(getContent().getID(), buddies));
+			result.put(curieProvider.getNamespacedRelFor(UserDTO.BUDDIES_REL_NAME),
+					BuddyController.createAllBuddiesCollectionResource(curieProvider, getContent().getID(), buddies));
 
 			Set<GoalDTO> goals = getContent().getPrivateData().getGoals();
-			result.put(UserDTO.GOALS_REL_NAME, GoalController.createAllGoalsCollectionResource(getContent().getID(), goals));
+			result.put(curieProvider.getNamespacedRelFor(UserDTO.GOALS_REL_NAME),
+					GoalController.createAllGoalsCollectionResource(getContent().getID(), goals));
 
 			return result;
 		}
@@ -352,10 +357,12 @@ public class UserController
 	static class UserResourceAssembler extends ResourceAssemblerSupport<UserDTO, UserResource>
 	{
 		private final boolean includePrivateData;
+		private CurieProvider curieProvider;
 
-		public UserResourceAssembler(boolean includePrivateData)
+		public UserResourceAssembler(CurieProvider curieProvider, boolean includePrivateData)
 		{
 			super(UserController.class, UserResource.class);
+			this.curieProvider = curieProvider;
 			this.includePrivateData = includePrivateData;
 		}
 
@@ -372,6 +379,12 @@ public class UserController
 			if (includePrivateData)
 			{
 				addEditLink(userResource);
+				if (user.isMobileNumberConfirmed())
+				{
+					addMessagesLink(userResource);
+					addNewDeviceRequestLink(userResource);
+					addAppActivityLink(userResource);
+				}
 			}
 			return userResource;
 		}
@@ -379,7 +392,7 @@ public class UserController
 		@Override
 		protected UserResource instantiateResource(UserDTO user)
 		{
-			return new UserResource(user);
+			return new UserResource(curieProvider, user);
 		}
 
 		private static void addSelfLink(Resource<UserDTO> userResource, boolean includePrivateData)
@@ -404,5 +417,22 @@ public class UserController
 		{
 			userResource.add(UserController.getConfirmMobileLink(userResource.getContent().getID()));
 		}
+
+		private void addMessagesLink(UserResource userResource)
+		{
+			userResource.add(MessageController.getConfirmMobileLink(userResource.getContent().getID()));
+		}
+
+		private void addNewDeviceRequestLink(UserResource userResource)
+		{
+			userResource.add(
+					UserController.getNewDeviceRequestLinkBuilder(userResource.getContent().getID()).withRel("newDeviceRequest"));
+		}
+
+		private void addAppActivityLink(UserResource userResource)
+		{
+			userResource.add(AppActivityController.getAppActivityLink(userResource.getContent().getID()));
+		}
+
 	}
 }

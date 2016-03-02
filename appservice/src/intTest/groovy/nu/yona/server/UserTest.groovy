@@ -26,9 +26,13 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def john = createJohnDoe(ts)
 
 		then:
-		testUser(john, true, ts)
-		john.mobileNumberConfirmationUrl == YonaServer.stripQueryString(john.url) + appService.MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT
+		testUser(john, true, false, ts)
+		// The below assert checks the path fragment. If it fails, the Swagger spec needs to be updated too
+		john.mobileNumberConfirmationUrl == john.url + "/confirmMobileNumber"
 
+		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(john.url + "/messages/", john.password)
+		getMessagesResponse.status == 400
+		getMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
 
 		cleanup:
 		appService.deleteUser(john)
@@ -41,15 +45,22 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def johnAsCreated = createJohnDoe(ts)
 
 		when:
-		def response = appService.confirmMobileNumber(appService.&assertUserGetResponseDetailsWithPrivateData, johnAsCreated)
+		def johnAfterNumberConfirmation = appService.confirmMobileNumber(appService.&assertUserGetResponseDetailsWithPrivateData, johnAsCreated)
 
 		then:
-		def john = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, johnAsCreated.url, true, johnAsCreated.password)
-		testUser(john, true, ts)
+		def john = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, johnAfterNumberConfirmation.url, true, johnAfterNumberConfirmation.password)
+		testUser(john, true, true, ts)
 		john.mobileNumberConfirmationUrl == null
 
+		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
+		john.buddiesUrl == john.url + "/buddies/"
+		john.goalsUrl == john.url + "/goals/"
+		john.messagesUrl == john.url + "/messages/"
+		john.newDeviceRequestUrl == john.url + "/newDeviceRequest"
+		john.appActivityUrl == john.url + "/appActivity/"
+
 		cleanup:
-		appService.deleteUser(johnAsCreated)
+		appService.deleteUser(johnAfterNumberConfirmation)
 	}
 
 	def 'Delete John Doe before confirming the mobile number'()
@@ -107,7 +118,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def john = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, johnAsCreated.url, true, johnAsCreated.password)
 
 		then:
-		testUser(john, true, ts)
+		testUser(john, true, false, ts)
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)
@@ -140,7 +151,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def john = appService.getUser(appService.&assertUserGetResponseDetailsWithoutPrivateData, johnAsCreated.url, false, johnAsCreated.password)
 
 		then:
-		testUser(john, false, ts)
+		testUser(john, false, false, ts)
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)
@@ -161,7 +172,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		userUpdateResponse.status == 200
-		userUpdateResponse.responseData._links?.confirmMobileNumber?.href == null
+		userUpdateResponse.responseData._links?."yona:confirmMobileNumber"?.href == null
 		userUpdateResponse.responseData.nickname == newNickname
 
 		cleanup:
@@ -183,7 +194,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		userUpdateResponse.status == 200
-		userUpdateResponse.responseData._links.confirmMobileNumber.href != null
+		userUpdateResponse.responseData._links."yona:confirmMobileNumber".href != null
 		userUpdateResponse.responseData.mobileNumber == newMobileNumber
 
 		cleanup:
@@ -201,7 +212,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 				"+$ts", devices)
 	}
 
-	void testUser(user, includePrivateData, timestamp)
+	void testUser(user, includePrivateData, mobileNumberConfirmed, timestamp)
 	{
 		assert user.firstName == "John"
 		assert user.lastName == "Doe"
@@ -220,8 +231,15 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			assert user.buddies != null
 			assert user.buddies.size() == 0
 			assert user.goals != null
-			assert user.goals.size() == 1 //mandatory goal added
-			assert user.goals[0].activityCategoryName == 'gambling'
+			if (mobileNumberConfirmed)
+			{
+				assert user.goals.size() == 1 //mandatory goal added
+				assert user.goals[0].activityCategoryName == 'gambling'
+			}
+			else
+			{
+				assert user.goals.size() == 0
+			}
 		}
 		else
 		{

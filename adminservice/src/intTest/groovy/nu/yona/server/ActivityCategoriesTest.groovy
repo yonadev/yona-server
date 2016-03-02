@@ -8,15 +8,13 @@
 package nu.yona.server
 
 import groovy.json.*
-import nu.yona.server.test.Service
 import spock.lang.Shared
 import spock.lang.Specification
 
 class ActivityCategoriesTest extends Specification
 {
 	@Shared
-	def adminServiceBaseURL = Service.getProperty('yona.adminservice.url', "http://localhost:8080")
-	def YonaServer adminService = new YonaServer(adminServiceBaseURL)
+	def AdminService adminService = new AdminService()
 
 	def 'Get all activity categories loaded from file'()
 	{
@@ -27,7 +25,7 @@ class ActivityCategoriesTest extends Specification
 
 		then:
 		response.status == 200
-		response.responseData._links.self.href == adminServiceBaseURL + adminService.ACTIVITY_CATEGORIES_PATH
-		response.responseData._embedded.activityCategories.size() > 0
+		response.responseData._links.self.href == adminService.url + AdminService.ACTIVITY_CATEGORIES_PATH
+		response.responseData._embedded."yona:activityCategories".size() > 0
 	}
 }

@@ -34,7 +34,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
 				"+$timestamp", ["Nexus 6"])
-		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, richard)
+		richard = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, richard)
 		appService.addGoal(richard, BudgetGoal.createNoGoInstance("news"))
 		return richard
 	}
@@ -43,7 +43,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def bob = appService.addUser(appService.&assertUserCreationResponseDetails, "B o b", "Bob", "Dunn", "BD",
 				"+$timestamp", ["iPhone 5"])
-		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bob)
+		bob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bob)
 		appService.addGoal(bob, BudgetGoal.createNoGoInstance("news"))
 		return bob
 	}
@@ -66,5 +66,18 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		int num = sequenceNumber++
 		return "$baseTimestamp$num"
+	}
+
+	def assertEquals(dateTimeString, Date comparisonDateTime, int epsilonSeconds = 10)
+	{
+		// Example date string: 2016-02-23T21:28:58.556+0000
+		assert dateTimeString ==~ /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}\+0000/
+		Date dateTime = YonaServer.parseIsoDateString(dateTimeString)
+		int epsilonMilliseconds = epsilonSeconds * 1000
+
+		assert dateTime > new Date(comparisonDateTime.getTime() - epsilonMilliseconds)
+		assert dateTime < new Date(comparisonDateTime.getTime() + epsilonMilliseconds)
+
+		return true
 	}
 }
