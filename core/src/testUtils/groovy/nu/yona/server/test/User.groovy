@@ -19,17 +19,18 @@ class User
 	final String mobileNumberConfirmationCode
 	final String nickname
 	final List<String> devices
-	List<Goal> goals
+	final List<Goal> goals
 	final List<Buddy> buddies
 	final VPNProfile vpnProfile
 	final String url
 	final String editURL
-	String buddiesUrl
-	String goalsUrl
-	String messagesUrl
-	String newDeviceRequestUrl
-	String appActivityUrl
+	final String buddiesUrl
+	final String goalsUrl
+	final String messagesUrl
+	final String newDeviceRequestUrl
+	final String appActivityUrl
 	final String password
+
 	User(def json, String password)
 	{
 		this(json, true)

@@ -23,16 +23,11 @@ class AppService extends Service
 		super("yona.appservice.url", "http://localhost:8082")
 	}
 
-	void confirmMobileNumber(Closure asserter, User user)
+	User confirmMobileNumber(Closure asserter, User user)
 	{
 		def response = confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${user.mobileNumberConfirmationCode}" }""", user.password)
-		user.goals = response.responseData._embedded."yona:goals"._embedded."yona:budgetGoals".collect{new BudgetGoal(it)}
-		user.buddiesUrl = response.responseData._embedded?."yona:buddies"?._links?.self?.href
-		user.goalsUrl = response.responseData._embedded?."yona:goals"?._links?.self?.href
-		user.messagesUrl = response.responseData?._links?."yona:messages"?.href
-		user.newDeviceRequestUrl = response.responseData?._links?."yona:newDeviceRequest"?.href
-		user.appActivityUrl = response.responseData?._links?."yona:appActivity"?.href
 		asserter(response)
+		return (isSuccess(response)) ? new User(response.responseData, user.password, true) : null
 	}
 
 	def addUser(Closure asserter, password, firstName, lastName, nickname, mobileNumber, devices, parameters = [:])

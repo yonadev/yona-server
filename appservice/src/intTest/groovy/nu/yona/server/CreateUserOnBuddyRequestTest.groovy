@@ -162,7 +162,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
 
 		when:
-		def response = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
+		updatedBob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 
 		then:
 		def getUserResponse = appService.getUser(updatedBob.url, true, newPassword)
@@ -190,7 +190,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
-		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
+		updatedBob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptURL
 
 		when:
@@ -223,7 +223,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
-		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
+		updatedBob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptURL
 		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], newPassword)
 
@@ -260,7 +260,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		updatedBobJson.nickname = newNickname
 		updatedBobJson.devices = ["iPhone 6"]
 		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteURL)
-		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
+		updatedBob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptURL
 		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], newPassword)
 		def processURL = appService.fetchBuddyConnectResponseMessage(richard).processURL
