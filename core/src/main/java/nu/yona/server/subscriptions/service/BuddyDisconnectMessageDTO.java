@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.service.BuddyMessageDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
@@ -35,6 +36,12 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageDTO
 		super(id, creationTime, user, nickname, message);
 		this.reason = reason;
 		this.isProcessed = isProcessed;
+	}
+
+	@Override
+	public String getType()
+	{
+		return "BuddyDisconnectMessage";
 	}
 
 	public DropBuddyReason getReason()

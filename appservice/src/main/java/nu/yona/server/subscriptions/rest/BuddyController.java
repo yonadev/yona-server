@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
+import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
@@ -55,6 +56,9 @@ public class BuddyController
 	@Autowired
 	private UserService userService;
 
+	@Autowired
+	private CurieProvider curieProvider;
+
 	/**
 	 * This method returns all the buddies that the given user has.
 	 * 
@@ -69,9 +73,8 @@ public class BuddyController
 	{
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
-				() -> new ResponseEntity<Resources<BuddyResource>>(
-						createAllBuddiesCollectionResource(requestingUserID, buddyService.getBuddiesOfUser(requestingUserID)),
-						HttpStatus.OK));
+				() -> new ResponseEntity<Resources<BuddyResource>>(createAllBuddiesCollectionResource(curieProvider,
+						requestingUserID, buddyService.getBuddiesOfUser(requestingUserID)), HttpStatus.OK));
 	}
 
 	@RequestMapping(value = "/{buddyID}", method = RequestMethod.GET)
@@ -109,9 +112,10 @@ public class BuddyController
 		});
 	}
 
-	public static Resources<BuddyResource> createAllBuddiesCollectionResource(UUID userID, Set<BuddyDTO> allBuddiesOfUser)
+	public static Resources<BuddyResource> createAllBuddiesCollectionResource(CurieProvider curieProvider, UUID userID,
+			Set<BuddyDTO> allBuddiesOfUser)
 	{
-		return new Resources<>(new BuddyResourceAssembler(userID).toResources(allBuddiesOfUser),
+		return new Resources<>(new BuddyResourceAssembler(curieProvider, userID).toResources(allBuddiesOfUser),
 				getAllBuddiesLinkBuilder(userID).withSelfRel());
 	}
 
@@ -133,7 +137,8 @@ public class BuddyController
 
 	private HttpEntity<BuddyResource> createResponse(UUID requestingUserID, BuddyDTO buddy, HttpStatus status)
 	{
-		return new ResponseEntity<BuddyResource>(new BuddyResourceAssembler(requestingUserID).toResource(buddy), status);
+		return new ResponseEntity<BuddyResource>(new BuddyResourceAssembler(curieProvider, requestingUserID).toResource(buddy),
+				status);
 	}
 
 	static ControllerLinkBuilder getBuddyLinkBuilder(UUID userID, UUID buddyID)
@@ -144,9 +149,12 @@ public class BuddyController
 
 	static class BuddyResource extends Resource<BuddyDTO>
 	{
-		public BuddyResource(BuddyDTO buddy)
+		private CurieProvider curieProvider;
+
+		public BuddyResource(CurieProvider curieProvider, BuddyDTO buddy)
 		{
 			super(buddy);
+			this.curieProvider = curieProvider;
 		}
 
 		@JsonProperty("_embedded")
@@ -158,11 +166,11 @@ public class BuddyController
 			}
 
 			HashMap<String, Object> result = new HashMap<String, Object>();
-			result.put(BuddyDTO.USER_REL_NAME,
-					new UserController.UserResourceAssembler(false).toResource(getContent().getUser()));
+			result.put(curieProvider.getNamespacedRelFor(BuddyDTO.USER_REL_NAME),
+					new UserController.UserResourceAssembler(curieProvider, false).toResource(getContent().getUser()));
 			if (getContent().getUser() != null && getContent().getGoals() != null)
 			{
-				result.put(BuddyDTO.GOALS_REL_NAME,
+				result.put(curieProvider.getNamespacedRelFor(BuddyDTO.GOALS_REL_NAME),
 						GoalController.createAllGoalsCollectionResource(getContent().getUser().getID(), getContent().getGoals()));
 			}
 			return result;
@@ -172,10 +180,12 @@ public class BuddyController
 	static class BuddyResourceAssembler extends ResourceAssemblerSupport<BuddyDTO, BuddyResource>
 	{
 		private UUID requestingUserID;
+		private CurieProvider curieProvider;
 
-		public BuddyResourceAssembler(UUID requestingUserID)
+		public BuddyResourceAssembler(CurieProvider curieProvider, UUID requestingUserID)
 		{
 			super(BuddyController.class, BuddyResource.class);
+			this.curieProvider = curieProvider;
 			this.requestingUserID = requestingUserID;
 		}
 
@@ -192,7 +202,7 @@ public class BuddyController
 		@Override
 		protected BuddyResource instantiateResource(BuddyDTO buddy)
 		{
-			return new BuddyResource(buddy);
+			return new BuddyResource(curieProvider, buddy);
 		}
 
 		private ControllerLinkBuilder getSelfLinkBuilder(UUID buddyID)

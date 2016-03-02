@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.analysis.service.AnalysisEngineService;
-import nu.yona.server.analysis.service.PotentialConflictDTO;
+import nu.yona.server.analysis.service.NetworkActivityDTO;
 
 @Controller
 @RequestMapping(value = "/analysisEngine")
@@ -28,7 +28,7 @@ public class AnalysisEngineController
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
-	public void analyze(@RequestBody PotentialConflictDTO potentialConflictPayload)
+	public void analyze(@RequestBody NetworkActivityDTO potentialConflictPayload)
 	{
 		analysisEngineService.analyze(potentialConflictPayload);
 	}

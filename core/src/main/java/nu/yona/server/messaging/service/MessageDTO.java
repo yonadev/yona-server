@@ -8,11 +8,31 @@ import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.hateoas.ResourceSupport;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+import nu.yona.server.analysis.service.GoalConflictMessageDTO;
+import nu.yona.server.goals.service.GoalChangeMessageDTO;
+import nu.yona.server.subscriptions.service.BuddyConnectRequestMessageDTO;
+import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDTO;
+import nu.yona.server.subscriptions.service.BuddyDisconnectMessageDTO;
 
 @JsonRootName("message")
-public abstract class MessageDTO
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "@type")
+@JsonSubTypes({ @Type(value = BuddyConnectRequestMessageDTO.class, name = "BuddyConnectRequestMessage"),
+		@Type(value = BuddyConnectResponseMessageDTO.class, name = "BuddyConnectResponseMessage"),
+		@Type(value = BuddyDisconnectMessageDTO.class, name = "BuddyDisconnectMessage"),
+		@Type(value = DisclosureRequestMessageDTO.class, name = "DisclosureRequestMessage"),
+		@Type(value = DisclosureResponseMessageDTO.class, name = "DisclosureResponseMessage"),
+		@Type(value = GoalConflictMessageDTO.class, name = "GoalConflictMessage"),
+		@Type(value = GoalChangeMessageDTO.class, name = "GoalChangeMessage"), })
+public abstract class MessageDTO extends ResourceSupport
 {
 	private final UUID id;
 	private final Date creationTime;
@@ -29,6 +49,9 @@ public abstract class MessageDTO
 		this.creationTime = creationTime;
 		this.relatedAnonymousMessageID = relatedAnonymousMessageID;
 	}
+
+	@JsonProperty(value = "@type")
+	public abstract String getType();
 
 	@JsonIgnore
 	public UUID getID()

@@ -20,6 +20,6 @@ class ActivityCategoriesTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 200
 		response.responseData._links.self.href == appService.url + appService.ACTIVITY_CATEGORIES_PATH
-		response.responseData._embedded.activityCategories.size() > 0
+		response.responseData._embedded."yona:activityCategories".size() > 0
 	}
 }

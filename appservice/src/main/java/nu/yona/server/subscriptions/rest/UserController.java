@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
@@ -72,6 +73,9 @@ public class UserController
 
 	@Autowired
 	private YonaProperties yonaProperties;
+
+	@Autowired
+	private CurieProvider curieProvider;
 
 	@RequestMapping(value = "/{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
@@ -271,7 +275,8 @@ public class UserController
 			Set<BuddyDTO> buddies = buddyService.getBuddiesOfUser(user.getID());
 			user.getPrivateData().setBuddies(buddies);
 		}
-		return new ResponseEntity<UserResource>(new UserResourceAssembler(includePrivateData).toResource(user), status);
+		return new ResponseEntity<UserResource>(new UserResourceAssembler(curieProvider, includePrivateData).toResource(user),
+				status);
 	}
 
 	private HttpEntity<UserResource> createOKResponse(UserDTO user, boolean includePrivateData)
@@ -309,9 +314,12 @@ public class UserController
 
 	static class UserResource extends Resource<UserDTO>
 	{
-		public UserResource(UserDTO user)
+		private final CurieProvider curieProvider;
+
+		public UserResource(CurieProvider curieProvider, UserDTO user)
 		{
 			super(user);
+			this.curieProvider = curieProvider;
 		}
 
 		@JsonProperty("_embedded")
@@ -324,11 +332,12 @@ public class UserController
 
 			Set<BuddyDTO> buddies = getContent().getPrivateData().getBuddies();
 			HashMap<String, Object> result = new HashMap<String, Object>();
-			result.put(UserDTO.BUDDIES_REL_NAME,
-					BuddyController.createAllBuddiesCollectionResource(getContent().getID(), buddies));
+			result.put(curieProvider.getNamespacedRelFor(UserDTO.BUDDIES_REL_NAME),
+					BuddyController.createAllBuddiesCollectionResource(curieProvider, getContent().getID(), buddies));
 
 			Set<GoalDTO> goals = getContent().getPrivateData().getGoals();
-			result.put(UserDTO.GOALS_REL_NAME, GoalController.createAllGoalsCollectionResource(getContent().getID(), goals));
+			result.put(curieProvider.getNamespacedRelFor(UserDTO.GOALS_REL_NAME),
+					GoalController.createAllGoalsCollectionResource(getContent().getID(), goals));
 
 			return result;
 		}
@@ -343,10 +352,12 @@ public class UserController
 	static class UserResourceAssembler extends ResourceAssemblerSupport<UserDTO, UserResource>
 	{
 		private final boolean includePrivateData;
+		private CurieProvider curieProvider;
 
-		public UserResourceAssembler(boolean includePrivateData)
+		public UserResourceAssembler(CurieProvider curieProvider, boolean includePrivateData)
 		{
 			super(UserController.class, UserResource.class);
+			this.curieProvider = curieProvider;
 			this.includePrivateData = includePrivateData;
 		}
 
@@ -370,7 +381,7 @@ public class UserController
 		@Override
 		protected UserResource instantiateResource(UserDTO user)
 		{
-			return new UserResource(user);
+			return new UserResource(curieProvider, user);
 		}
 
 		private static void addSelfLink(Resource<UserDTO> userResource, boolean includePrivateData)

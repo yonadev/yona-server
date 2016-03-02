@@ -19,6 +19,8 @@ class AppService extends Service
 	final MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT = "/confirmMobileNumber"
 	final GOALS_PATH_FRAGMENT = "/goals/"
 	final OVERWRITE_USER_REQUEST_PATH = "/admin/requestUserOverwrite/"
+	final ACTIVITY_PATH_FRAGMENT = "/activity/"
+	final APP_ACTIVITY_PATH_FRAGMENT = "/appActivity/"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 
@@ -199,10 +201,11 @@ class AppService extends Service
 		assert response.status == 200
 		assert response.responseData._embedded
 
-		def selfURL = response.responseData._embedded?.buddyConnectRequestMessages[0]?._links?.self?.href ?: null
-		def message = response.responseData._embedded?.buddyConnectRequestMessages[0]?.message ?: null
-		def acceptURL = response.responseData._embedded?.buddyConnectRequestMessages[0]?._links?.accept?.href ?: null
-		def rejectURL = response.responseData._embedded?.buddyConnectRequestMessages[0]?._links?.reject?.href ?: null
+		def buddyConnectRequestMessages = response.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}
+		def selfURL = buddyConnectRequestMessages[0]?._links?.self?.href ?: null
+		def message = buddyConnectRequestMessages[0]?.message ?: null
+		def acceptURL = buddyConnectRequestMessages[0]?._links?."yona:accept"?.href ?: null
+		def rejectURL = buddyConnectRequestMessages[0]?._links?."yona:reject"?.href ?: null
 
 		def result = [ : ]
 		if (selfURL)
@@ -231,12 +234,13 @@ class AppService extends Service
 		def response = getMessages(user)
 		assert response.status == 200
 		assert response.responseData._embedded
-		assert response.responseData._embedded.buddyConnectResponseMessages[0]._links.process.href
 
-		def selfURL = response.responseData._embedded?.buddyConnectResponseMessages[0]?._links?.self?.href
-		def message = response.responseData._embedded?.buddyConnectResponseMessages[0]?.message ?: null
-		def status = response.responseData._embedded?.buddyConnectResponseMessages[0]?.status ?: null
-		def processURL = response.responseData._embedded?.buddyConnectResponseMessages[0]?._links?.process?.href
+		def buddyConnectResponseMessages = response.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}
+		assert buddyConnectResponseMessages[0]._links."yona:process".href
+		def selfURL = buddyConnectResponseMessages[0]?._links?.self?.href
+		def message = buddyConnectResponseMessages[0]?.message ?: null
+		def status = buddyConnectResponseMessages[0]?.status ?: null
+		def processURL = buddyConnectResponseMessages[0]?._links?."yona:process"?.href
 		def result = [ : ]
 		if (selfURL)
 		{
@@ -332,11 +336,11 @@ class AppService extends Service
 		assert response.status == 200
 		assert response.responseData._links?.self?.href == user.url + BUDDIES_PATH_FRAGMENT
 
-		if (!response.responseData._embedded?.buddies)
+		if (!response.responseData._embedded?."yona:buddies")
 		{
 			return []
 		}
-		response.responseData._embedded.buddies.collect{new Buddy(it)}
+		response.responseData._embedded."yona:buddies".collect{new Buddy(it)}
 	}
 
 	def getBuddies(userPath, password)
@@ -410,6 +414,26 @@ class AppService extends Service
 	def postMessageAction(path, jsonString, headers = [:])
 	{
 		yonaServer.postJson(path, jsonString, headers)
+	}
+
+	def postAppActivityToAnalysisEngine(User user, def appActivities)
+	{
+		def json = "["
+		boolean isFirst = true
+		for (def appActivity : appActivities) {
+			if (!isFirst) {
+				json += ", "
+			}
+			isFirst = false
+			json += appActivity.getJson()
+		}
+		json += "]"
+		yonaServer.createResourceWithPassword(user.url + APP_ACTIVITY_PATH_FRAGMENT, json, user.password)
+	}
+
+	def createResourceWithPassword(path, jsonString, password, parameters = [:])
+	{
+		yonaServer.createResource(path, jsonString, ["Yona-Password": password], parameters)
 	}
 
 	def deleteResourceWithPassword(path, password, parameters = [:])

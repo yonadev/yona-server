@@ -30,13 +30,13 @@ public class Activity extends EntityWithID
 		super(null);
 	}
 
-	public Activity(UUID id, UUID userAnonymizedID, UUID goalID, Date startTime)
+	public Activity(UUID id, UUID userAnonymizedID, UUID goalID, Date startTime, Date endTime)
 	{
 		super(id);
 		this.userAnonymizedID = userAnonymizedID;
 		this.goalID = goalID;
 		this.startTime = startTime;
-		this.endTime = startTime;
+		this.endTime = endTime;
 	}
 
 	public UUID getUserAnonymizedID()
@@ -54,6 +54,11 @@ public class Activity extends EntityWithID
 		return startTime;
 	}
 
+	public void setStartTime(Date startTime)
+	{
+		this.startTime = startTime;
+	}
+
 	public Date getEndTime()
 	{
 		return endTime;
@@ -64,13 +69,13 @@ public class Activity extends EntityWithID
 		this.endTime = endTime;
 	}
 
-	public static Activity createInstance(UUID userAnonymizedID, Goal goal, Date startTime)
-	{
-		return new Activity(UUID.randomUUID(), userAnonymizedID, goal.getID(), startTime);
-	}
-
 	public Goal getGoal()
 	{
 		return Goal.getRepository().findOne(goalID);
+	}
+
+	public static Activity createInstance(UUID userAnonymizedID, Goal goal, Date startTime, Date endTime)
+	{
+		return new Activity(UUID.randomUUID(), userAnonymizedID, goal.getID(), startTime, endTime);
 	}
 }

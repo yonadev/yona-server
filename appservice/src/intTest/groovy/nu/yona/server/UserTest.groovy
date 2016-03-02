@@ -161,7 +161,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		userUpdateResponse.status == 200
-		userUpdateResponse.responseData._links?.confirmMobileNumber?.href == null
+		userUpdateResponse.responseData._links?."yona:confirmMobileNumber"?.href == null
 		userUpdateResponse.responseData.nickname == newNickname
 
 		cleanup:
@@ -183,7 +183,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		userUpdateResponse.status == 200
-		userUpdateResponse.responseData._links.confirmMobileNumber.href != null
+		userUpdateResponse.responseData._links."yona:confirmMobileNumber".href != null
 		userUpdateResponse.responseData.mobileNumber == newMobileNumber
 
 		cleanup:

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.service.BuddyMessageDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
@@ -41,6 +42,12 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
 		super(id, creationTime, user, nickname, message);
 		this.status = status;
 		this.isProcessed = isProcessed;
+	}
+
+	@Override
+	public String getType()
+	{
+		return "BuddyConnectResponseMessage";
 	}
 
 	@Override

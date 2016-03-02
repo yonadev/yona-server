@@ -14,15 +14,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-@JsonRootName("potentialConflict")
-public class PotentialConflictDTO
+/*
+ * Online activity detected by Smoothwall.
+ * @see AnalysisEngineService
+ * @see AppActivityDTO
+ */
+@JsonRootName("networkActivity")
+public class NetworkActivityDTO
 {
 	private UUID vpnLoginID;
 	private Set<String> categories;
 	private String url;
 
 	@JsonCreator
-	public PotentialConflictDTO(@JsonProperty("vpnLoginID") UUID vpnLoginID,
+	public NetworkActivityDTO(@JsonProperty("vpnLoginID") UUID vpnLoginID,
 			@JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories,
 			@JsonProperty("url") String url)
 	{

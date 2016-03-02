@@ -17,22 +17,27 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
-import nu.yona.server.messaging.entities.DiscloseResponseMessage;
+import nu.yona.server.messaging.entities.DisclosureResponseMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
-import nu.yona.server.subscriptions.service.BuddyMessageDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 
-@JsonRootName("discloseResponseMessage")
-public class DiscloseResponseMessageDTO extends BuddyMessageDTO
+@JsonRootName("disclosureResponseMessage")
+public class DisclosureResponseMessageDTO extends BuddyMessageDTO
 {
 	private Status status;
 
-	private DiscloseResponseMessageDTO(UUID id, Date creationTime, UserDTO user, Status status, String nickname, String message)
+	private DisclosureResponseMessageDTO(UUID id, Date creationTime, UserDTO user, Status status, String nickname, String message)
 	{
 		super(id, creationTime, user, nickname, message);
 		this.status = status;
+	}
+
+	@Override
+	public String getType()
+	{
+		return "DisclosureResponseMessage";
 	}
 
 	@Override
@@ -53,9 +58,9 @@ public class DiscloseResponseMessageDTO extends BuddyMessageDTO
 		return true;
 	}
 
-	public static DiscloseResponseMessageDTO createInstance(UserDTO actingUser, DiscloseResponseMessage messageEntity)
+	public static DisclosureResponseMessageDTO createInstance(UserDTO actingUser, DisclosureResponseMessage messageEntity)
 	{
-		return new DiscloseResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
+		return new DisclosureResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
 				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getStatus(), messageEntity.getNickname(),
 				messageEntity.getMessage());
 	}
@@ -69,13 +74,13 @@ public class DiscloseResponseMessageDTO extends BuddyMessageDTO
 		@PostConstruct
 		private void init()
 		{
-			theDTOFactory.addManager(DiscloseResponseMessage.class, this);
+			theDTOFactory.addManager(DisclosureResponseMessage.class, this);
 		}
 
 		@Override
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return DiscloseResponseMessageDTO.createInstance(actingUser, (DiscloseResponseMessage) messageEntity);
+			return DisclosureResponseMessageDTO.createInstance(actingUser, (DisclosureResponseMessage) messageEntity);
 		}
 
 		@Override

@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -27,7 +28,9 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
@@ -83,18 +86,37 @@ public class AnalysisEngineServiceTests
 
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 
-		when(mockActivityCategoryService.getAllActivityCategories()).thenReturn(new HashSet<ActivityCategoryDTO>(
-				goalMap.values().stream().map(goal -> ActivityCategoryDTO.createInstance(goal.getActivityCategory()))
-						.collect(Collectors.toSet())));
+		when(mockActivityCategoryService.getAllActivityCategories()).thenReturn(getAllActivityCategories());
+		when(mockActivityCategoryService.getMatchingCategoriesForSmoothwallCategories(anySetOf(String.class)))
+				.thenAnswer(new Answer<Set<ActivityCategoryDTO>>() {
+					@Override
+					public Set<ActivityCategoryDTO> answer(InvocationOnMock invocation) throws Throwable
+					{
+						Object[] args = invocation.getArguments();
+						@SuppressWarnings("unchecked")
+						Set<String> smoothwallCategories = (Set<String>) args[0];
+						return getAllActivityCategories()
+								.stream().filter(ac -> ac.getSmoothwallCategories().stream()
+										.filter(smoothwallCategories::contains).findAny().isPresent())
+								.collect(Collectors.toSet());
+					}
+				});
 
 		// Set up UserAnonymized instance.
 		anonMessageDestination = new MessageDestinationDTO(UUID.randomUUID());
 		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(gamblingGoal, gamingGoal));
-		UserAnonymizedDTO userAnon = new UserAnonymizedDTO(goals, anonMessageDestination, Collections.emptySet());
-		userAnonID = UUID.randomUUID();
+		UserAnonymizedDTO userAnon = new UserAnonymizedDTO(UUID.randomUUID(), goals, anonMessageDestination,
+				Collections.emptySet());
+		userAnonID = userAnon.getID();
 
 		// Stub the UserAnonymizedRepository to return our user.
 		when(mockUserAnonymizedService.getUserAnonymized(userAnonID)).thenReturn(userAnon);
+	}
+
+	private Set<ActivityCategoryDTO> getAllActivityCategories()
+	{
+		return goalMap.values().stream().map(goal -> ActivityCategoryDTO.createInstance(goal.getActivityCategory()))
+				.collect(Collectors.toSet());
 	}
 
 	/*
@@ -119,7 +141,7 @@ public class AnalysisEngineServiceTests
 		p.setConflictInterval(10L);
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
-		Activity earlierActivity = Activity.createInstance(userAnonID, gamblingGoal, new Date());
+		Activity earlierActivity = Activity.createInstance(userAnonID, gamblingGoal, new Date(), new Date());
 		when(mockAnalysisEngineCacheService.fetchLatestActivityForUser(eq(userAnonID), eq(gamblingGoal.getID()), any()))
 				.thenReturn(earlierActivity);
 
@@ -135,7 +157,7 @@ public class AnalysisEngineServiceTests
 		}
 
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test1"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test1"));
 
 		// Verify that there is a new conflict message sent.
 		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
@@ -155,7 +177,7 @@ public class AnalysisEngineServiceTests
 		Date t = new Date();
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
 		// Verify that there is an activity update.
 		ArgumentCaptor<Activity> activity = ArgumentCaptor.forClass(Activity.class);
@@ -182,7 +204,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag", "lotto"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
 		// Verify that there is an activity update.
 		ArgumentCaptor<Activity> activity = ArgumentCaptor.forClass(Activity.class);
@@ -203,7 +225,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto", "games"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
 		// Verify that there are 2 activities updated, for both goals.
 		ArgumentCaptor<Activity> activity = ArgumentCaptor.forClass(Activity.class);
@@ -232,7 +254,7 @@ public class AnalysisEngineServiceTests
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
 		Date t = new Date();
-		Activity earlierActivity = Activity.createInstance(userAnonID, gamblingGoal, t);
+		Activity earlierActivity = Activity.createInstance(userAnonID, gamblingGoal, t, t);
 		when(mockAnalysisEngineCacheService.fetchLatestActivityForUser(eq(userAnonID), eq(gamblingGoal.getID()), any()))
 				.thenReturn(earlierActivity);
 
@@ -240,12 +262,12 @@ public class AnalysisEngineServiceTests
 		Set<String> conflictCategories1 = new HashSet<String>(Arrays.asList("lotto"));
 		Set<String> conflictCategories2 = new HashSet<String>(Arrays.asList("poker"));
 		Set<String> conflictCategoriesNotMatching1 = new HashSet<String>(Arrays.asList("refdag"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories1, "http://localhost/test1"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories2, "http://localhost/test2"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test3"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories1, "http://localhost/test1"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories2, "http://localhost/test2"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test3"));
 		Date t2 = new Date();
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories2, "http://localhost/test4"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories2, "http://localhost/test4"));
 
 		// Verify that there is no new conflict message sent.
 		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
@@ -267,7 +289,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag"));
-		service.analyze(new PotentialConflictDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
 		// Verify that there was no attempted activity update.
 		verify(mockAnalysisEngineCacheService, never()).fetchLatestActivityForUser(eq(userAnonID), any(), any());
