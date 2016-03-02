@@ -27,7 +27,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		testUser(john, true, false, ts)
-		// The below assert check the path fragment. If it fails, the Swagger spec needs to be updated too
+		// The below assert checks the path fragment. If it fails, the Swagger spec needs to be updated too
 		john.mobileNumberConfirmationUrl == john.url + "/confirmMobileNumber"
 
 		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(john.url + "/messages/", john.password)
