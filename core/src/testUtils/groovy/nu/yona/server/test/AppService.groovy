@@ -160,39 +160,23 @@ class AppService extends Service
 		assert user.devices.size() == 1
 		assert user.devices[0]
 
+		/*
+		 * The below asserts use exclusive or operators. Either there should be a mobile number confirmation URL, or the other URL.
+		 * The URLs shouldn't be both missing or both present.
+		 */
 		if (user instanceof User)
 		{
-			if (user.mobileNumberConfirmationUrl)
-			{
-				assert !user.buddiesUrl
-				assert !user.messagesUrl
-				assert !user.newDeviceRequestUrl
-				assert !user.appActivityUrl
-			}
-			else
-			{
-				assert user.buddiesUrl
-				assert user.messagesUrl
-				assert user.newDeviceRequestUrl
-				assert user.appActivityUrl
-			}
+			assert ((boolean) user.mobileNumberConfirmationUrl) ^ ((boolean) user.buddiesUrl)
+			assert ((boolean) user.mobileNumberConfirmationUrl) ^ ((boolean) user.messagesUrl)
+			assert ((boolean) user.mobileNumberConfirmationUrl) ^ ((boolean) user.newDeviceRequestUrl)
+			assert ((boolean) user.mobileNumberConfirmationUrl) ^ ((boolean) user.appActivityUrl)
 		}
 		else
 		{
-			if (user._links?."yona:confirmMobileNumber"?.href)
-			{
-				assert !user._embedded?."yona:buddies"?._links?.self?.href
-				assert !user._links?."yona:messages"
-				assert !user._links?."yona:newDeviceRequest"
-				assert !user._links?."yona:appActivity"
-			}
-			else
-			{
-				assert user._embedded?."yona:buddies"?._links?.self?.href
-				assert user._links?."yona:messages"
-				assert user._links?."yona:newDeviceRequest"
-				assert user._links?."yona:appActivity"
-			}
+			assert ((boolean) user._links?."yona:confirmMobileNumber"?.href) ^ ((boolean) user._embedded?."yona:buddies"?._links?.self?.href)
+			assert ((boolean) user._links?."yona:confirmMobileNumber"?.href) ^ ((boolean) user._links?."yona:messages")
+			assert ((boolean) user._links?."yona:confirmMobileNumber"?.href) ^ ((boolean) user._links?."yona:newDeviceRequest")
+			assert ((boolean) user._links?."yona:confirmMobileNumber"?.href) ^ ((boolean) user._links?."yona:appActivity")
 		}
 	}
 
