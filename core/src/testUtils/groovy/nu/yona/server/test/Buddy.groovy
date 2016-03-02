@@ -23,8 +23,7 @@ class Buddy
 		this.nickname = json.nickname
 		this.receivingStatus = json.receivingStatus
 		this.sendingStatus = json.sendingStatus
-		// TODO:  YD-136 - Make the user null when the buddy is removed
-		if (json._embedded?."yona:user"?.firstName)
+		if (json._embedded?."yona:user")
 		{
 			this.user = new User(json._embedded."yona:user")
 		}
