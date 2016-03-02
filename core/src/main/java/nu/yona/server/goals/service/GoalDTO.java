@@ -11,10 +11,12 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.rest.PolymorphicDTO;
 
 @JsonRootName("goal")
-@JsonSubTypes({ @Type(value = BudgetGoalDTO.class, name = "BudgetGoal") })
+@JsonSubTypes({ @Type(value = BudgetGoalDTO.class, name = "BudgetGoal"),
+		@Type(value = TimeZoneGoalDTO.class, name = "TimeZoneGoal") })
 public abstract class GoalDTO extends PolymorphicDTO
 {
 	private final UUID id;
@@ -52,6 +54,10 @@ public abstract class GoalDTO extends PolymorphicDTO
 		if (goal instanceof BudgetGoal)
 		{
 			return BudgetGoalDTO.createInstance((BudgetGoal) goal);
+		}
+		else if (goal instanceof TimeZoneGoal)
+		{
+			return TimeZoneGoalDTO.createInstance((TimeZoneGoal) goal);
 		}
 
 		throw new NotImplementedException("GoalDTO creation not implemented yet for class " + goal.getClass());
