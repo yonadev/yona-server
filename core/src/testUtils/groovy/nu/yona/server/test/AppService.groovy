@@ -14,6 +14,7 @@ class AppService extends Service
 	final ACTIVITY_CATEGORIES_PATH = "/activityCategories/"
 	final USERS_PATH = "/users/"
 	final GOALS_PATH_FRAGMENT = "/goals/"
+	final OVERWRITE_USER_REQUEST_PATH = "/admin/requestUserOverwrite/"
 	final APP_ACTIVITY_PATH_FRAGMENT = "/appActivity/"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
@@ -337,7 +338,7 @@ class AppService extends Service
 
 	def requestOverwriteUser(mobileNumber)
 	{
-		yonaServer.updateResource(USERS_PATH, """{ }""", [:], ["mobileNumber":mobileNumber])
+		yonaServer.postJson(OVERWRITE_USER_REQUEST_PATH, """{ }""", [:], ["mobileNumber":mobileNumber])
 	}
 
 	def requestBuddy(User user, jsonString, password)
