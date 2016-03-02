@@ -92,8 +92,8 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		response.responseData.nickname == newNickname
 		response.responseData.devices.size() == 1
 		response.responseData.devices[0] == "iPhone 6"
-		response.responseData._embedded.goals._embedded.budgetGoals
-		response.responseData._embedded.goals._embedded.budgetGoals.size() == 1 //mandatory goal
+		response.responseData._embedded.goals._embedded.goals
+		response.responseData._embedded.goals._embedded.goals.size() == 1 //mandatory goal
 		!(response.responseData._links.self.href ==~ /tempPassword/)
 		response.responseData.mobileNumberConfirmationCode
 

@@ -53,7 +53,7 @@ class User
 
 			this.buddies = (json._embedded?.buddies?._embedded) ? json._embedded.buddies._embedded.buddies.collect{new Buddy(it)} : []
 			this.devices = json.devices.collect{"$it"}
-			this.goals = (json._embedded?.goals?.embedded) ? json._embedded.goals._embedded.budgetGoals.collect{new BudgetGoal(it)} : []
+			this.goals = (json._embedded?.goals?._embedded) ? json._embedded.goals._embedded.goals.collect{new BudgetGoal(it)} : []
 			this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
 		}
 		this.url = YonaServer.stripQueryString(json._links.self.href)
