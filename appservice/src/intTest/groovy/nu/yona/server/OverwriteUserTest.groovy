@@ -72,7 +72,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		richardChanged.goals.size() == 1 //mandatory goal
 		richardChanged.goals[0].activityCategoryName == 'gambling'
 
-		def getMessagesResponse = appService.getMessages(bob.url, bob.password)
+		def getMessagesResponse = appService.getMessages(bob)
 		getMessagesResponse.status == 200
 		def goalConflictMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessages.size() == 1

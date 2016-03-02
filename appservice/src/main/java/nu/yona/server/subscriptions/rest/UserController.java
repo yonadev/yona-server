@@ -37,13 +37,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.BruteForceAttemptService;
 import nu.yona.server.DOSProtectionService;
+import nu.yona.server.analysis.rest.AppActivityController;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDTO;
+import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.JsonRootRelProvider;
@@ -323,9 +327,10 @@ public class UserController
 		}
 
 		@JsonProperty("_embedded")
+		@JsonInclude(Include.NON_EMPTY)
 		public Map<String, Object> getEmbeddedResources()
 		{
-			if (getContent().getPrivateData() == null)
+			if ((getContent().getPrivateData() == null) || !getContent().isMobileNumberConfirmed())
 			{
 				return Collections.emptyMap();
 			}
@@ -374,6 +379,12 @@ public class UserController
 			if (includePrivateData)
 			{
 				addEditLink(userResource);
+				if (user.isMobileNumberConfirmed())
+				{
+					addMessagesLink(userResource);
+					addNewDeviceRequestLink(userResource);
+					addAppActivityLink(userResource);
+				}
 			}
 			return userResource;
 		}
@@ -406,5 +417,22 @@ public class UserController
 		{
 			userResource.add(UserController.getConfirmMobileLink(userResource.getContent().getID()));
 		}
+
+		private void addMessagesLink(UserResource userResource)
+		{
+			userResource.add(MessageController.getConfirmMobileLink(userResource.getContent().getID()));
+		}
+
+		private void addNewDeviceRequestLink(UserResource userResource)
+		{
+			userResource.add(
+					UserController.getNewDeviceRequestLinkBuilder(userResource.getContent().getID()).withRel("newDeviceRequest"));
+		}
+
+		private void addAppActivityLink(UserResource userResource)
+		{
+			userResource.add(AppActivityController.getAppActivityLink(userResource.getContent().getID()));
+		}
+
 	}
 }

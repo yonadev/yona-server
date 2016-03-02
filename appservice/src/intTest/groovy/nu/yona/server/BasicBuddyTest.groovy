@@ -17,7 +17,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def bob = addBob()
 
 		when:
-		def response = appService.requestBuddy(richard.url, """{
+		def response = appService.requestBuddy(richard, """{
 						"_embedded":{
 							"user":{
 								"firstName":"Bob",
@@ -83,7 +83,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertEquals(buddyConnectRequestMessages[0].creationTime, new Date())
 		buddyConnectRequestMessages[0].status == "REQUESTED"
 		buddyConnectRequestMessages[0].user.firstName == "Richard"
-		buddyConnectRequestMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
+		buddyConnectRequestMessages[0]._links.self.href.startsWith(bob.messagesUrl)
 		buddyConnectRequestMessages[0]._links."yona:accept".href.startsWith(buddyConnectRequestMessages[0]._links.self.href)
 
 		cleanup:
@@ -151,7 +151,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyConnectResponseMessages[0].nickname == bob.nickname
 		assertEquals(buddyConnectResponseMessages[0].creationTime, new Date())
 		buddyConnectResponseMessages[0].status == "ACCEPTED"
-		buddyConnectResponseMessages[0]._links.self.href.startsWith(richard.url + appService.MESSAGES_PATH_FRAGMENT)
+		buddyConnectResponseMessages[0]._links.self.href.startsWith(richard.messagesUrl)
 		buddyConnectResponseMessages[0]._links."yona:process".href.startsWith(buddyConnectResponseMessages[0]._links.self.href)
 
 		cleanup:
@@ -354,7 +354,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages[0].nickname == "${richard.nickname}"
 		assertEquals(buddyDisconnectMessages[0].creationTime, new Date())
 		buddyDisconnectMessages[0].message == message
-		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.url + appService.MESSAGES_PATH_FRAGMENT)
+		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.messagesUrl)
 		buddyDisconnectMessages[0]._links."yona:process".href.startsWith(buddyDisconnectMessages[0]._links.self.href)
 
 		cleanup:

@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.hal.CurieProvider;
@@ -60,24 +61,23 @@ public class MessageController
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<PagedResources<MessageDTO>> getAnonymousMessages(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, Pageable pageable,
-			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
+	public HttpEntity<PagedResources<MessageDTO>> getMessages(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userID, Pageable pageable, PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
 	{
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(pagedResourcesAssembler.toResource(messageService.getAnonymousMessages(userID, pageable),
+				() -> createOKResponse(pagedResourcesAssembler.toResource(messageService.getMessages(userID, pageable),
 						new MessageResourceAssembler(userID))));
 	}
 
 	@RequestMapping(value = "/{messageID}", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<MessageDTO> getAnonymousMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+	public HttpEntity<MessageDTO> getMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userID, @PathVariable UUID messageID)
 	{
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
-				new MessageResourceAssembler(userID).toResource(messageService.getAnonymousMessage(userID, messageID))));
+				new MessageResourceAssembler(userID).toResource(messageService.getMessage(userID, messageID))));
 
 	}
 
@@ -90,7 +90,7 @@ public class MessageController
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> createOKResponse(new MessageActionResource(curieProvider,
-						messageService.handleAnonymousMessageAction(userID, id, action, requestPayload), userID)));
+						messageService.handleMessageAction(userID, id, action, requestPayload), userID)));
 	}
 
 	@RequestMapping(value = "/{messageID}", method = RequestMethod.DELETE)
@@ -101,7 +101,7 @@ public class MessageController
 	{
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
-				new MessageActionResource(curieProvider, messageService.deleteAnonymousMessage(userID, messageID), userID)));
+				new MessageActionResource(curieProvider, messageService.deleteMessage(userID, messageID), userID)));
 	}
 
 	private HttpEntity<PagedResources<MessageDTO>> createOKResponse(PagedResources<MessageDTO> messages)
@@ -122,7 +122,14 @@ public class MessageController
 	static ControllerLinkBuilder getAnonymousMessageLinkBuilder(UUID userID, UUID messageID)
 	{
 		MessageController methodOn = methodOn(MessageController.class);
-		return linkTo(methodOn.getAnonymousMessage(Optional.empty(), userID, messageID));
+		return linkTo(methodOn.getMessage(Optional.empty(), userID, messageID));
+	}
+
+	public static Link getConfirmMobileLink(UUID userID)
+	{
+		ControllerLinkBuilder linkBuilder = linkTo(
+				methodOn(MessageController.class).getMessages(Optional.empty(), userID, null, null));
+		return linkBuilder.withRel("messages");
 	}
 
 	static class MessageActionResource extends Resource<MessageActionDTO>

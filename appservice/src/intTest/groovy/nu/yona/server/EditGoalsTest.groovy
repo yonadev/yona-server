@@ -43,7 +43,6 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.getGoals(richard)
 		then:
 		response.status == 200
-		response.responseData._links?.self.href == richard.url + appService.GOALS_PATH_FRAGMENT
 		response.responseData._embedded."yona:budgetGoals".size() == 2
 		def gamblingGoals = response.responseData._embedded."yona:budgetGoals".findAll{ it.activityCategoryName == 'gambling'}
 		gamblingGoals.size() == 1

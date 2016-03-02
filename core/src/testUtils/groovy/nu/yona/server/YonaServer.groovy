@@ -14,15 +14,6 @@ import java.text.SimpleDateFormat
 
 class YonaServer
 {
-	final ACTIVITY_CATEGORIES_PATH = "/activityCategories/"
-	final USERS_PATH = "/users/"
-	final ANALYSIS_ENGINE_PATH = "/analysisEngine/"
-	final BUDDIES_PATH_FRAGMENT = "/buddies/"
-	final MESSAGES_PATH_FRAGMENT = "/messages"
-	final RELEVANT_SMOOTHWALL_CATEGORIES_PATH_FRAGMENT = "/relevantSmoothwallCategories/"
-	final NEW_DEVICE_REQUEST_PATH_FRAGMENT = "/newDeviceRequest"
-	final MOBILE_NUMBER_CONFIRMATION_PATH_FRAGMENT = "/confirmMobileNumber"
-
 	JsonSlurper jsonSlurper = new JsonSlurper()
 	RESTClient restClient
 
@@ -37,98 +28,6 @@ class YonaServer
 	{
 		def formatter = new SimpleDateFormat("yyyyMMddhhmmss")
 		formatter.format(new Date())
-	}
-
-	def deleteGoal(goalURL)
-	{
-		deleteResource(goalURL)
-	}
-
-	def addActivityCategory(jsonString)
-	{
-		createResource(ACTIVITY_CATEGORIES_PATH, jsonString)
-	}
-
-	def getGoal(goalURL)
-	{
-		getResource(goalURL)
-	}
-
-	def addUser(jsonString, password, parameters = [:])
-	{
-		createResourceWithPassword(USERS_PATH, jsonString, password, parameters)
-	}
-
-	def requestOverwriteUser(mobileNumber)
-	{
-		updateResource(USERS_PATH, """{ }""", [:], ["mobileNumber":mobileNumber])
-	}
-
-	def getUser(userURL, boolean includePrivateData, password = null)
-	{
-		if (includePrivateData)
-		{
-			getResourceWithPassword(stripQueryString(userURL), password, getQueryParams(userURL) + ["includePrivateData": "true"])
-		}
-		else
-		{
-			getResourceWithPassword(userURL, password)
-		}
-	}
-
-	def updateUser(userURL, jsonString, password)
-	{
-		updateResourceWithPassword(stripQueryString(userURL), jsonString, password, getQueryParams(userURL))
-	}
-
-	def deleteUser(userURL, password, message = "")
-	{
-		deleteResourceWithPassword(userURL, password, ["message":message])
-	}
-
-	def requestBuddy(userPath, jsonString, password)
-	{
-		createResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, jsonString, password)
-	}
-
-	def removeBuddy(buddyURL, password, message)
-	{
-		deleteResourceWithPassword(buddyURL, password, ["message":message])
-	}
-
-	def getRelevantSmoothwallCategories()
-	{
-		getResource(ANALYSIS_ENGINE_PATH + RELEVANT_SMOOTHWALL_CATEGORIES_PATH_FRAGMENT)
-	}
-
-	def getAllActivityCategories()
-	{
-		getResource(ACTIVITY_CATEGORIES_PATH)
-	}
-
-	def getBuddies(userPath, password)
-	{
-		getResourceWithPassword(userPath + BUDDIES_PATH_FRAGMENT, password)
-	}
-
-	def getMessages(userPath, password, parameters = [:])
-	{
-		getResourceWithPassword(userPath + MESSAGES_PATH_FRAGMENT, password, parameters)
-	}
-
-	def setNewDeviceRequest(userPath, password, jsonString)
-	{
-		updateResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, jsonString, password)
-	}
-
-	def getNewDeviceRequest(userPath, userSecret = null)
-	{
-		getResource(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, [:], ["userSecret": userSecret])
-	}
-
-	def clearNewDeviceRequest(userPath, password)
-	{
-		deleteResourceWithPassword(userPath + NEW_DEVICE_REQUEST_PATH_FRAGMENT, password)
 	}
 
 	def createResourceWithPassword(path, jsonString, password, parameters = [:])
@@ -164,21 +63,6 @@ class YonaServer
 	def getResourceWithPassword(path, password, parameters = [:])
 	{
 		getResource(path, password ? ["Yona-Password": password] : [ : ], parameters)
-	}
-
-	def postMessageActionWithPassword(path, jsonString, password)
-	{
-		postMessageAction(path, jsonString, ["Yona-Password": password])
-	}
-
-	def postMessageAction(path, jsonString, headers = [:])
-	{
-		postJson(path, jsonString, headers)
-	}
-
-	def postToAnalysisEngine(jsonString)
-	{
-		postJson(ANALYSIS_ENGINE_PATH, jsonString)
 	}
 
 	def getResource(path, headers = [:], parameters = [:])

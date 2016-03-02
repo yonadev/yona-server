@@ -21,7 +21,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def endTimeString = YonaServer.toIsoDateString(endTime)
 
 		when:
-		def response = appService.createResourceWithPassword(richard.url + appService.APP_ACTIVITY_PATH_FRAGMENT, """[{
+		def response = appService.createResourceWithPassword(richard.appActivityUrl, """[{
 					"application":"Poker App",
 					"startTime":"$startTimeString",
 					"endTime":"$endTimeString"
