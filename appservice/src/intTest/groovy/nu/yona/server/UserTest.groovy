@@ -57,7 +57,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		john.goalsUrl.startsWith(john.url + "/goals/")
 		john.messagesUrl.startsWith(john.url + "/messages")
 		john.newDeviceRequestUrl.startsWith(john.url + "/newDeviceRequest")
-		john.appActivityUrl.startsWith(john.url + "/appActivity")
+		john.appActivityUrl.startsWith(john.url + "/appActivity/")
 
 		cleanup:
 		appService.deleteUser(johnAfterNumberConfirmation)

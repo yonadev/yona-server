@@ -13,9 +13,7 @@ class AppService extends Service
 {
 	final ACTIVITY_CATEGORIES_PATH = "/activityCategories/"
 	final USERS_PATH = "/users/"
-	final GOALS_PATH_FRAGMENT = "/goals/"
 	final OVERWRITE_USER_REQUEST_PATH = "/admin/requestUserOverwrite/"
-	final APP_ACTIVITY_PATH_FRAGMENT = "/appActivity/"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 
@@ -449,7 +447,7 @@ class AppService extends Service
 			json += appActivity.getJson()
 		}
 		json += "]"
-		yonaServer.createResourceWithPassword(user.url + APP_ACTIVITY_PATH_FRAGMENT, json, user.password)
+		yonaServer.createResourceWithPassword(user.appActivityUrl, json, user.password)
 	}
 
 	def createResourceWithPassword(path, jsonString, password, parameters = [:])

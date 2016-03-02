@@ -2,6 +2,7 @@ package nu.yona.server.analysis.rest;
 
 import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -9,6 +10,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -57,11 +59,22 @@ public class AppActivityController
 		});
 	}
 
+	@RequestMapping(value = "/", method = RequestMethod.GET)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	public HttpEntity<AppActivityDTO[]> getAppActivities(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userID)
+	{
+		// This method is just a shorthand to facilitate link building
+		return null;
+	}
+
 	public static Link getAppActivityLink(UUID userID)
 	{
 		try
 		{
-			ControllerLinkBuilder linkBuilder = linkTo(AppActivityController.class, userID);
+			ControllerLinkBuilder linkBuilder = linkTo(
+					methodOn(AppActivityController.class).getAppActivities(Optional.empty(), userID));
 			return linkBuilder.withRel("appActivity");
 		}
 		catch (SecurityException e)
