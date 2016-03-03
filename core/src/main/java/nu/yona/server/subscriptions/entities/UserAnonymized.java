@@ -11,8 +11,8 @@ import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import nu.yona.server.entities.EntityWithID;
@@ -29,7 +29,7 @@ public class UserAnonymized extends EntityWithID
 		return (UserAnonymizedRepository) RepositoryProvider.getRepository(UserAnonymized.class, UUID.class);
 	}
 
-	@ManyToOne
+	@OneToOne
 	private MessageDestination anonymousDestination;
 
 	@OneToMany(cascade = CascadeType.ALL)

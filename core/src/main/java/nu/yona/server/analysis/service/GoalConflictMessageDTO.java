@@ -117,7 +117,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 	public static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, String nickname)
 	{
 		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), nickname,
-				messageEntity.getActivity().getGoal().getActivityCategory().getName(),
+				messageEntity.getGoal().getActivityCategory().getName(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null, messageEntity.getStatus(),
 				messageEntity.getActivity().getStartTime(), messageEntity.getActivity().getEndTime());
 	}

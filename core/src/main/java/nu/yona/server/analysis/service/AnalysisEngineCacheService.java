@@ -4,30 +4,27 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import nu.yona.server.analysis.entities.Activity;
+import nu.yona.server.analysis.entities.DayActivity;
 
 @Service
 public class AnalysisEngineCacheService
 {
-	@Cacheable(value = "activities", key = "{#userAnonymizedID,#goalID}")
-	public Activity fetchLatestActivityForUser(UUID userAnonymizedID, UUID goalID, Date minEndTime)
+	@Cacheable(value = "activities", key = "{#userAnonymizedID,#goalID,#forDate}")
+	public DayActivity fetchDayActivityForUser(UUID userAnonymizedID, UUID goalID, LocalDate forDate)
 	{
-		List<Activity> results = Activity.getRepository().findLatestActivity(userAnonymizedID, goalID, minEndTime);
-
-		return results != null && !results.isEmpty() ? results.get(0) : null;
+		return DayActivity.getRepository().findDayActivity(userAnonymizedID, goalID, forDate);
 	}
 
-	@CachePut(value = "activities", key = "{#activity.userAnonymizedID,#activity.goalID}")
-	public Activity updateLatestActivityForUser(Activity activity)
+	@CachePut(value = "activities", key = "{#activity.userAnonymizedID,#dayActivity.goalID,#dayActivity.localDate}")
+	public DayActivity updateDayActivityForUser(DayActivity dayActivity)
 	{
-		return Activity.getRepository().save(activity);
+		return DayActivity.getRepository().save(dayActivity);
 	}
 }

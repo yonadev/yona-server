@@ -8,7 +8,6 @@ import javax.persistence.Table;
 
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
-import nu.yona.server.goals.entities.Goal;
 
 @Entity
 @Table(name = "ACTIVITIES")
@@ -19,8 +18,6 @@ public class Activity extends EntityWithID
 		return (ActivityRepository) RepositoryProvider.getRepository(Activity.class, UUID.class);
 	}
 
-	private UUID userAnonymizedID;
-	private UUID goalID;
 	private Date startTime;
 	private Date endTime;
 
@@ -30,23 +27,11 @@ public class Activity extends EntityWithID
 		super(null);
 	}
 
-	public Activity(UUID id, UUID userAnonymizedID, UUID goalID, Date startTime, Date endTime)
+	public Activity(UUID id, Date startTime, Date endTime)
 	{
 		super(id);
-		this.userAnonymizedID = userAnonymizedID;
-		this.goalID = goalID;
 		this.startTime = startTime;
 		this.endTime = endTime;
-	}
-
-	public UUID getUserAnonymizedID()
-	{
-		return userAnonymizedID;
-	}
-
-	public UUID getGoalID()
-	{
-		return goalID;
 	}
 
 	public Date getStartTime()
@@ -69,13 +54,8 @@ public class Activity extends EntityWithID
 		this.endTime = endTime;
 	}
 
-	public Goal getGoal()
+	public static Activity createInstance(Date startTime, Date endTime)
 	{
-		return Goal.getRepository().findOne(goalID);
-	}
-
-	public static Activity createInstance(UUID userAnonymizedID, Goal goal, Date startTime, Date endTime)
-	{
-		return new Activity(UUID.randomUUID(), userAnonymizedID, goal.getID(), startTime, endTime);
+		return new Activity(UUID.randomUUID(), startTime, endTime);
 	}
 }

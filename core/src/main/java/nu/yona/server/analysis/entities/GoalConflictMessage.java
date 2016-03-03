@@ -12,6 +12,7 @@ import javax.persistence.Transient;
 
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
+import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.Message;
 
 @Entity
@@ -30,6 +31,8 @@ public class GoalConflictMessage extends Message
 
 	@ManyToOne
 	private Activity activity;
+	@ManyToOne
+	private Goal goal;
 	private Status status;
 
 	@Transient
@@ -43,11 +46,12 @@ public class GoalConflictMessage extends Message
 	}
 
 	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedID, UUID originGoalConflictMessageID, Activity activity,
-			String url, Status status)
+			Goal goal, String url, Status status)
 	{
 		super(id, relatedUserAnonymizedID);
 
 		this.originGoalConflictMessageID = originGoalConflictMessageID;
+		this.goal = goal;
 		this.activity = activity;
 		this.url = url;
 		this.status = status;
@@ -56,6 +60,11 @@ public class GoalConflictMessage extends Message
 	public Activity getActivity()
 	{
 		return activity;
+	}
+
+	public Goal getGoal()
+	{
+		return goal;
 	}
 
 	public UUID getOriginGoalConflictMessageID()
@@ -104,12 +113,12 @@ public class GoalConflictMessage extends Message
 
 		assert origin.getID() != null;
 		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, origin.getID(), origin.getActivity(),
-				origin.getURL(), Status.ANNOUNCED);
+				origin.getGoal(), origin.getURL(), Status.ANNOUNCED);
 	}
 
-	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedID, Activity activity, String url)
+	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedID, Activity activity, Goal goal, String url)
 	{
-		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, null, activity, url, Status.ANNOUNCED);
+		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, null, activity, goal, url, Status.ANNOUNCED);
 	}
 
 	public boolean isUrlDisclosed()
