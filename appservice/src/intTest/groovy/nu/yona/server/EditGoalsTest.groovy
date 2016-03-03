@@ -16,7 +16,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		when:
-		def response = appService.addBudgetGoal(richard, BudgetGoal.createInstance("not existing", 60))
+		def response = appService.addGoal(richard, BudgetGoal.createInstance("not existing", 60))
 
 		then:
 		response.status == 404
@@ -28,7 +28,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		when:
-		def response = appService.addBudgetGoal(richard, BudgetGoal.createInstance("gambling", 60))
+		def response = appService.addGoal(richard, BudgetGoal.createInstance("gambling", 60))
 
 		then:
 		response.status == 400
@@ -43,12 +43,14 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.getGoals(richard)
 		then:
 		response.status == 200
-		response.responseData._embedded."yona:budgetGoals".size() == 2
-		def gamblingGoals = response.responseData._embedded."yona:budgetGoals".findAll{ it.activityCategoryName == 'gambling'}
+		response.responseData._embedded."yona:goals".size() == 2
+		def gamblingGoals = response.responseData._embedded."yona:goals".findAll{ it.activityCategoryName == 'gambling'}
 		gamblingGoals.size() == 1
+		gamblingGoals[0]."@type" == "BudgetGoal"
 		!gamblingGoals[0]._links.edit //mandatory goal
-		def newsGoals = response.responseData._embedded."yona:budgetGoals".findAll{ it.activityCategoryName == 'news'}
+		def newsGoals = response.responseData._embedded."yona:goals".findAll{ it.activityCategoryName == 'news'}
 		newsGoals.size() == 1
+		newsGoals[0]."@type" == "BudgetGoal"
 		newsGoals[0]._links.edit.href
 	}
 
@@ -59,14 +61,14 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		when:
-		def addedGoal = appService.addBudgetGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60), "Going to monitor my social time!")
+		def addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60), "Going to monitor my social time!")
 
 		then:
 		addedGoal
 
 		def responseGoalsAfterAdd = appService.getGoals(richard)
 		responseGoalsAfterAdd.status == 200
-		responseGoalsAfterAdd.responseData._embedded."yona:budgetGoals".size() == 3
+		responseGoalsAfterAdd.responseData._embedded."yona:goals".size() == 3
 
 		def bobMessagesResponse = appService.getMessages(bob)
 		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}
@@ -86,16 +88,16 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
-		def addedGoal = appService.addBudgetGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60))
+		def addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60))
 		when:
-		def response = appService.removeBudgetGoal(richard, addedGoal, "Don't want to monitor my social time anymore")
+		def response = appService.removeGoal(richard, addedGoal, "Don't want to monitor my social time anymore")
 
 		then:
 		response.status == 200
 
 		def responseGoalsAfterDelete = appService.getGoals(richard)
 		responseGoalsAfterDelete.status == 200
-		responseGoalsAfterDelete.responseData._embedded."yona:budgetGoals".size() == 2
+		responseGoalsAfterDelete.responseData._embedded."yona:goals".size() == 2
 
 		def bobMessagesResponse = appService.getMessages(bob)
 		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}
@@ -119,6 +121,6 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		response.status == 400
 		def responseGoalsAfterDelete = appService.getGoals(richard)
 		responseGoalsAfterDelete.status == 200
-		responseGoalsAfterDelete.responseData._embedded."yona:budgetGoals".size() == 2
+		responseGoalsAfterDelete.responseData._embedded."yona:goals".size() == 2
 	}
 }

@@ -167,8 +167,8 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		then:
 		def getUserResponse = appService.getUser(updatedBob.url, true, newPassword)
 		getUserResponse.status == 200
-		getUserResponse.responseData._embedded."yona:goals"._embedded."yona:budgetGoals"
-		getUserResponse.responseData._embedded."yona:goals"._embedded."yona:budgetGoals".size() == 1 //mandatory goal
+		getUserResponse.responseData._embedded."yona:goals"._embedded."yona:goals"
+		getUserResponse.responseData._embedded."yona:goals"._embedded."yona:goals".size() == 1 //mandatory goal
 		def getMessagesResponse = appService.getMessages(updatedBob)
 		getMessagesResponse.status == 200
 

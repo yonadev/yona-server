@@ -5,11 +5,17 @@ import java.util.UUID;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.rest.PolymorphicDTO;
 
-public abstract class GoalDTO
+@JsonRootName("goal")
+@JsonSubTypes({ @Type(value = BudgetGoalDTO.class, name = "BudgetGoal") })
+public abstract class GoalDTO extends PolymorphicDTO
 {
 	private final UUID id;
 	private final String activityCategoryName;
