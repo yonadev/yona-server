@@ -12,7 +12,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -143,7 +143,7 @@ public class AnalysisEngineServiceTests
 		p.setConflictInterval(10L);
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
-		DayActivity dayActivity = DayActivity.createInstance(userAnonID, gamblingGoal, LocalDate.now());
+		DayActivity dayActivity = DayActivity.createInstance(userAnonID, gamblingGoal, ZonedDateTime.now());
 		Activity earlierActivity = Activity.createInstance(new Date(), new Date());
 		dayActivity.addActivity(earlierActivity);
 		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID()), any()))
@@ -256,7 +256,7 @@ public class AnalysisEngineServiceTests
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
 		Date t = new Date();
-		DayActivity dayActivity = DayActivity.createInstance(userAnonID, gamblingGoal, LocalDate.now());
+		DayActivity dayActivity = DayActivity.createInstance(userAnonID, gamblingGoal, ZonedDateTime.now());
 		Activity earlierActivity = Activity.createInstance(t, t);
 		dayActivity.addActivity(earlierActivity);
 		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID()), any()))

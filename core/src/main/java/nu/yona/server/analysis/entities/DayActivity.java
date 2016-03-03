@@ -1,11 +1,12 @@
 package nu.yona.server.analysis.entities;
 
-import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -22,37 +23,25 @@ public class DayActivity extends IntervalActivity
 		return (DayActivityRepository) RepositoryProvider.getRepository(DayActivity.class, UUID.class);
 	}
 
-	private LocalDate localDate;
-
-	@OneToMany
+	@OneToMany(cascade = CascadeType.ALL)
 	private List<Activity> activities;
 
 	// Default constructor is required for JPA
 	public DayActivity()
 	{
-		super(null, null, null);
+		super(null, null, null, null);
 	}
 
-	public DayActivity(UUID id, UUID userAnonymizedID, UUID goalID, LocalDate localDate, List<Activity> activities)
+	public DayActivity(UUID id, UUID userAnonymizedID, UUID goalID, ZonedDateTime zonedStartOfDay, List<Activity> activities)
 	{
-		super(id, userAnonymizedID, goalID);
-
-		this.localDate = localDate;
+		super(id, userAnonymizedID, goalID, zonedStartOfDay);
 		this.activities = activities;
-	}
-
-	@Override
-	public Date getStartTime()
-	{
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override
 	public Date getEndTime()
 	{
-		// TODO Auto-generated method stub
-		return null;
+		return Date.from(getZonedStartTime().plusDays(1).toInstant());
 	}
 
 	public Activity getLatestActivity()
@@ -70,8 +59,8 @@ public class DayActivity extends IntervalActivity
 		this.activities.add(activity);
 	}
 
-	public static DayActivity createInstance(UUID userAnonymizedID, Goal goal, LocalDate localDate)
+	public static DayActivity createInstance(UUID userAnonymizedID, Goal goal, ZonedDateTime zonedStartOfDay)
 	{
-		return new DayActivity(UUID.randomUUID(), userAnonymizedID, goal.getID(), localDate, new ArrayList<Activity>());
+		return new DayActivity(UUID.randomUUID(), userAnonymizedID, goal.getID(), zonedStartOfDay, new ArrayList<Activity>());
 	}
 }

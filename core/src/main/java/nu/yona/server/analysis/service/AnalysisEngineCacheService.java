@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
-import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import org.springframework.cache.annotation.CachePut;
@@ -16,13 +16,13 @@ import nu.yona.server.analysis.entities.DayActivity;
 @Service
 public class AnalysisEngineCacheService
 {
-	@Cacheable(value = "activities", key = "{#userAnonymizedID,#goalID,#forDate}")
-	public DayActivity fetchDayActivityForUser(UUID userAnonymizedID, UUID goalID, LocalDate forDate)
+	@Cacheable(value = "activities", key = "{#userAnonymizedID,#goalID,#zonedStartOfDay}")
+	public DayActivity fetchDayActivityForUser(UUID userAnonymizedID, UUID goalID, ZonedDateTime zonedStartOfDay)
 	{
-		return DayActivity.getRepository().findDayActivity(userAnonymizedID, goalID, forDate);
+		return DayActivity.getRepository().findOne(userAnonymizedID, goalID, zonedStartOfDay);
 	}
 
-	@CachePut(value = "activities", key = "{#activity.userAnonymizedID,#dayActivity.goalID,#dayActivity.localDate}")
+	@CachePut(value = "activities", key = "{#dayActivity.userAnonymizedID,#dayActivity.goalID,#dayActivity.zonedStartTime}")
 	public DayActivity updateDayActivityForUser(DayActivity dayActivity)
 	{
 		return DayActivity.getRepository().save(dayActivity);

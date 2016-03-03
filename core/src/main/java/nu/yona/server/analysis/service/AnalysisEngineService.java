@@ -4,9 +4,9 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
@@ -77,7 +77,7 @@ public class AnalysisEngineService
 	{
 		Date minEndTime = new Date(payload.startTime.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
 		DayActivity dayActivity = cacheService.fetchDayActivityForUser(userAnonymized.getID(), matchingGoal.getID(),
-				getDayLocalDate(payload.startTime, userAnonymized));
+				getZonedStartOfDay(payload.startTime, userAnonymized));
 		Activity activity = dayActivity != null ? dayActivity.getLatestActivity() : null;
 
 		if (activity == null || activity.getEndTime().before(minEndTime))
@@ -87,7 +87,8 @@ public class AnalysisEngineService
 
 			if (matchingGoal.isNoGoGoal())
 			{
-				sendConflictMessageToAllDestinationsOfUser(dayActivity, payload, userAnonymized, activity, matchingGoal);
+				sendConflictMessageToAllDestinationsOfUser(dayActivity, payload, userAnonymized, dayActivity.getLatestActivity(),
+						matchingGoal);
 			}
 		}
 		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
@@ -100,10 +101,9 @@ public class AnalysisEngineService
 		}
 	}
 
-	private LocalDate getDayLocalDate(Date startTime, UserAnonymizedDTO userAnonymized)
+	private ZonedDateTime getZonedStartOfDay(Date startTime, UserAnonymizedDTO userAnonymized)
 	{
-		LocalDateTime localStartTime = startTime.toInstant().atZone(ZoneId.of(userAnonymized.getTimeZoneId())).toLocalDateTime();
-		return localStartTime.toLocalDate();
+		return startTime.toInstant().atZone(ZoneId.of(userAnonymized.getTimeZoneId())).truncatedTo(ChronoUnit.DAYS);
 	}
 
 	private DayActivity createNewActivity(DayActivity dayActivity, ActivityPayload payload, UserAnonymizedDTO userAnonymized,
@@ -112,7 +112,7 @@ public class AnalysisEngineService
 		if (dayActivity == null)
 		{
 			dayActivity = DayActivity.createInstance(userAnonymized.getID(), matchingGoal,
-					getDayLocalDate(payload.startTime, userAnonymized));
+					getZonedStartOfDay(payload.startTime, userAnonymized));
 		}
 
 		Activity activity = Activity.createInstance(payload.startTime, payload.endTime);

@@ -7,17 +7,11 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 import nu.yona.server.entities.EntityWithID;
-import nu.yona.server.entities.RepositoryProvider;
 
 @Entity
 @Table(name = "ACTIVITIES")
 public class Activity extends EntityWithID
 {
-	public static ActivityRepository getRepository()
-	{
-		return (ActivityRepository) RepositoryProvider.getRepository(Activity.class, UUID.class);
-	}
-
 	private Date startTime;
 	private Date endTime;
 

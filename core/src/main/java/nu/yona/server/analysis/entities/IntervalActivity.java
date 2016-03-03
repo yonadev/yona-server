@@ -1,5 +1,6 @@
 package nu.yona.server.analysis.entities;
 
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -13,12 +14,14 @@ public abstract class IntervalActivity extends EntityWithID
 {
 	private UUID goalID;
 	private UUID userAnonymizedID;
+	private ZonedDateTime zonedStartTime;
 
-	public IntervalActivity(UUID id, UUID userAnonymizedID, UUID goalID)
+	public IntervalActivity(UUID id, UUID userAnonymizedID, UUID goalID, ZonedDateTime zonedStartTime)
 	{
 		super(id);
 		this.userAnonymizedID = userAnonymizedID;
 		this.goalID = goalID;
+		this.zonedStartTime = zonedStartTime;
 	}
 
 	public UUID getUserAnonymizedID()
@@ -31,7 +34,15 @@ public abstract class IntervalActivity extends EntityWithID
 		return goalID;
 	}
 
-	public abstract Date getStartTime();
+	public ZonedDateTime getZonedStartTime()
+	{
+		return zonedStartTime;
+	}
+
+	public Date getStartTime()
+	{
+		return Date.from(zonedStartTime.toInstant());
+	}
 
 	public abstract Date getEndTime();
 
