@@ -16,13 +16,13 @@ import nu.yona.server.analysis.entities.DayActivity;
 @Service
 public class AnalysisEngineCacheService
 {
-	@Cacheable(value = "activities", key = "{#userAnonymizedID,#goalID,#zonedStartOfDay}")
+	@Cacheable(value = "dayActivities", key = "{#userAnonymizedID,#goalID,#zonedStartOfDay}")
 	public DayActivity fetchDayActivityForUser(UUID userAnonymizedID, UUID goalID, ZonedDateTime zonedStartOfDay)
 	{
 		return DayActivity.getRepository().findOne(userAnonymizedID, goalID, zonedStartOfDay);
 	}
 
-	@CachePut(value = "activities", key = "{#dayActivity.userAnonymizedID,#dayActivity.goalID,#dayActivity.zonedStartTime}")
+	@CachePut(value = "dayActivities", key = "{#dayActivity.userAnonymizedID,#dayActivity.goalID,#dayActivity.zonedStartTime}")
 	public DayActivity updateDayActivityForUser(DayActivity dayActivity)
 	{
 		return DayActivity.getRepository().save(dayActivity);
