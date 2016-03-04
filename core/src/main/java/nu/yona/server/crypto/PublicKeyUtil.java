@@ -14,14 +14,12 @@ import java.security.SecureRandom;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-public class PublicKeyUtil
+public final class PublicKeyUtil
 {
-
 	public static final String KEY_ALGORITHM = "RSA";
 
-	public PublicKeyUtil()
+	private PublicKeyUtil()
 	{
-		// TODO Auto-generated constructor stub
 	}
 
 	public static KeyPair generateKeyPair()
