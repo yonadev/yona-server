@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
+import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDTO;
 import nu.yona.server.goals.service.ActivityCategoryService;
@@ -106,17 +107,48 @@ public class AnalysisEngineService
 		return startTime.toInstant().atZone(ZoneId.of(userAnonymized.getTimeZoneId())).truncatedTo(ChronoUnit.DAYS);
 	}
 
+	private ZonedDateTime getZonedStartOfWeek(Date startTime, UserAnonymizedDTO userAnonymized)
+	{
+		ZonedDateTime zonedStartOfDay = getZonedStartOfDay(startTime, userAnonymized);
+		switch (zonedStartOfDay.getDayOfWeek())
+		{
+			case SUNDAY:
+				// take as the first day of week
+				return zonedStartOfDay;
+			default:
+				// MONDAY=1, etc.
+				return zonedStartOfDay.minusDays(zonedStartOfDay.getDayOfWeek().getValue());
+		}
+	}
+
 	private DayActivity createNewActivity(DayActivity dayActivity, ActivityPayload payload, UserAnonymizedDTO userAnonymized,
 			Goal matchingGoal)
 	{
 		if (dayActivity == null)
 		{
-			dayActivity = DayActivity.createInstance(userAnonymized.getID(), matchingGoal,
-					getZonedStartOfDay(payload.startTime, userAnonymized));
+			dayActivity = createNewDayActivity(payload, userAnonymized, matchingGoal);
 		}
 
 		Activity activity = Activity.createInstance(payload.startTime, payload.endTime);
 		dayActivity.addActivity(activity);
+		return dayActivity;
+	}
+
+	private DayActivity createNewDayActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
+	{
+		DayActivity dayActivity = DayActivity.createInstance(userAnonymized.getID(), matchingGoal,
+				getZonedStartOfDay(payload.startTime, userAnonymized));
+
+		ZonedDateTime zonedStartOfWeek = getZonedStartOfWeek(payload.startTime, userAnonymized);
+		WeekActivity weekActivity = cacheService.fetchWeekActivityForUser(userAnonymized.getID(), matchingGoal.getID(),
+				zonedStartOfWeek);
+		if (weekActivity == null)
+		{
+			weekActivity = WeekActivity.createInstance(userAnonymized.getID(), matchingGoal, zonedStartOfWeek);
+		}
+		weekActivity.addActivity(dayActivity);
+		cacheService.updateWeekActivityForUser(weekActivity);
+
 		return dayActivity;
 	}
 

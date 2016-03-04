@@ -12,6 +12,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.DayActivity;
+import nu.yona.server.analysis.entities.WeekActivity;
 
 @Service
 public class AnalysisEngineCacheService
@@ -26,5 +27,15 @@ public class AnalysisEngineCacheService
 	public DayActivity updateDayActivityForUser(DayActivity dayActivity)
 	{
 		return DayActivity.getRepository().save(dayActivity);
+	}
+
+	public WeekActivity fetchWeekActivityForUser(UUID userAnonymizedID, UUID goalID, ZonedDateTime zonedStartOfWeek)
+	{
+		return WeekActivity.getRepository().findOne(userAnonymizedID, goalID, zonedStartOfWeek);
+	}
+
+	public WeekActivity updateWeekActivityForUser(WeekActivity weekActivity)
+	{
+		return WeekActivity.getRepository().save(weekActivity);
 	}
 }

@@ -1,10 +1,14 @@
 package nu.yona.server.analysis.entities;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import nu.yona.server.entities.RepositoryProvider;
@@ -19,15 +23,21 @@ public class WeekActivity extends IntervalActivity
 		return (WeekActivityRepository) RepositoryProvider.getRepository(WeekActivity.class, UUID.class);
 	}
 
+	@OneToMany(cascade = CascadeType.ALL)
+	private List<DayActivity> dayActivities;
+
 	// Default constructor is required for JPA
 	public WeekActivity()
 	{
 		super(null, null, null, null);
 	}
 
-	public WeekActivity(UUID id, UUID userAnonymizedID, UUID goalID, ZonedDateTime zonedStartOfWeek)
+	public WeekActivity(UUID id, UUID userAnonymizedID, UUID goalID, ZonedDateTime zonedStartOfWeek,
+			List<DayActivity> dayActivities)
 	{
 		super(id, userAnonymizedID, goalID, zonedStartOfWeek);
+
+		this.dayActivities = dayActivities;
 	}
 
 	@Override
@@ -36,8 +46,14 @@ public class WeekActivity extends IntervalActivity
 		return Date.from(getZonedStartTime().plusDays(7).toInstant());
 	}
 
+	public void addActivity(DayActivity dayActivity)
+	{
+		this.dayActivities.add(dayActivity);
+	}
+
 	public static WeekActivity createInstance(UUID userAnonymizedID, Goal goal, ZonedDateTime zonedStartOfWeek)
 	{
-		return new WeekActivity(UUID.randomUUID(), userAnonymizedID, goal.getID(), zonedStartOfWeek);
+		return new WeekActivity(UUID.randomUUID(), userAnonymizedID, goal.getID(), zonedStartOfWeek,
+				new ArrayList<DayActivity>());
 	}
 }
