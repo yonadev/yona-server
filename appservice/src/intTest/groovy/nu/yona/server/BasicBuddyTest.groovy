@@ -82,7 +82,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyConnectRequestMessages[0].nickname == richard.nickname
 		assertEquals(buddyConnectRequestMessages[0].creationTime, new Date())
 		buddyConnectRequestMessages[0].status == "REQUESTED"
-		buddyConnectRequestMessages[0].user.firstName == "Richard"
+		buddyConnectRequestMessages[0]._embedded."yona:user".firstName == "Richard"
 		buddyConnectRequestMessages[0]._links.self.href.startsWith(bob.messagesUrl)
 		buddyConnectRequestMessages[0]._links."yona:accept".href.startsWith(buddyConnectRequestMessages[0]._links.self.href)
 
@@ -147,7 +147,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 200
 		def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}
-		buddyConnectResponseMessages[0].user.firstName == "Bob"
+		buddyConnectResponseMessages[0]._links?."yona:user"?.href == bob.url
 		buddyConnectResponseMessages[0].nickname == bob.nickname
 		assertEquals(buddyConnectResponseMessages[0].creationTime, new Date())
 		buddyConnectResponseMessages[0].status == "ACCEPTED"
@@ -352,6 +352,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages.size() == 1
 		buddyDisconnectMessages[0].reason == "USER_REMOVED_BUDDY"
 		buddyDisconnectMessages[0].nickname == "${richard.nickname}"
+		buddyDisconnectMessages[0]._embedded?."yona:user"?.firstName == "Richard"
 		assertEquals(buddyDisconnectMessages[0].creationTime, new Date())
 		buddyDisconnectMessages[0].message == message
 		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.messagesUrl)

@@ -39,11 +39,11 @@ public abstract class MessageDTO extends PolymorphicDTO
 		this(id, creationTime, null);
 	}
 
-	protected MessageDTO(UUID id, Date creationTime, UUID relatedAnonymousMessageID)
+	protected MessageDTO(UUID id, Date creationTime, UUID relatedMessageID)
 	{
 		this.id = id;
 		this.creationTime = creationTime;
-		this.relatedAnonymousMessageID = relatedAnonymousMessageID;
+		this.relatedAnonymousMessageID = relatedMessageID;
 	}
 
 	@JsonIgnore

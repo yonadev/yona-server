@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.messaging.service.BuddyMessageDTO;
+import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
@@ -33,7 +33,7 @@ import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 
 @JsonRootName("buddyConnectRequestMessage")
-public class BuddyConnectRequestMessageDTO extends BuddyMessageDTO
+public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 {
 	private static final String ACCEPT = "accept";
 	private static final String REJECT = "reject";

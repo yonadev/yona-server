@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.messaging.entities.DisclosureResponseMessage;
 import nu.yona.server.messaging.entities.Message;
@@ -24,13 +25,14 @@ import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.subscriptions.service.UserDTO;
 
 @JsonRootName("disclosureResponseMessage")
-public class DisclosureResponseMessageDTO extends BuddyMessageDTO
+public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 {
 	private Status status;
 
-	private DisclosureResponseMessageDTO(UUID id, Date creationTime, UserDTO user, Status status, String nickname, String message)
+	private DisclosureResponseMessageDTO(UUID id, Date creationTime, UserDTO user, Status status, String nickname, String message,
+			UUID targetGoalConflictMessageID)
 	{
-		super(id, creationTime, user, nickname, message);
+		super(id, creationTime, targetGoalConflictMessageID, user, nickname, message);
 		this.status = status;
 	}
 
@@ -60,9 +62,10 @@ public class DisclosureResponseMessageDTO extends BuddyMessageDTO
 
 	public static DisclosureResponseMessageDTO createInstance(UserDTO actingUser, DisclosureResponseMessage messageEntity)
 	{
+		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
 		return new DisclosureResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
 				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getStatus(), messageEntity.getNickname(),
-				messageEntity.getMessage());
+				messageEntity.getMessage(), targetGoalConflictMessage.getID());
 	}
 
 	@Component
