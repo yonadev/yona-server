@@ -1,25 +1,25 @@
 package nu.yona.server.analysis.service;
 
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.IntervalActivity;
-import nu.yona.server.goals.service.GoalDTO;
 
 @JsonRootName("intervalActivity")
 public class IntervalActivityDTO
 {
-	private GoalDTO goal;
+	private UUID goalID;
 	private Date startTime;
 	private Date endTime;
-	private Set<ActivityDTO> activities;
+	private List<ActivityDTO> activities;
 
-	public IntervalActivityDTO(GoalDTO goal, Date startTime, Date endTime, Set<ActivityDTO> activities)
+	private IntervalActivityDTO(UUID goalID, Date startTime, Date endTime, List<ActivityDTO> activities)
 	{
-		this.goal = goal;
+		this.goalID = goalID;
 		this.startTime = startTime;
 		this.endTime = endTime;
 		this.activities = activities;
@@ -36,20 +36,20 @@ public class IntervalActivityDTO
 	}
 
 	@JsonIgnore
-	public GoalDTO getGoal()
+	public UUID getGoalID()
 	{
-		return goal;
+		return goalID;
 	}
 
 	@JsonIgnore
-	public Set<ActivityDTO> getActivities()
+	public List<ActivityDTO> getActivities()
 	{
 		return activities;
 	}
 
 	static IntervalActivityDTO createInstance(IntervalActivity intervalActivity)
 	{
-		return new IntervalActivityDTO(GoalDTO.createInstance(intervalActivity.getGoal()), intervalActivity.getStartTime(),
+		return new IntervalActivityDTO(intervalActivity.getGoal().getID(), intervalActivity.getStartTime(),
 				intervalActivity.getEndTime(), null);
 	}
 }
