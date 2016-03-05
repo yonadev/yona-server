@@ -79,7 +79,7 @@ public class AnalysisEngineService
 	{
 		Date minEndTime = new Date(payload.startTime.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
 		DayActivity dayActivity = cacheService.fetchDayActivityForUser(userAnonymized.getID(), matchingGoal.getID(),
-				getZonedStartOfDay(payload.startTime, userAnonymized));
+				getStartOfDay(payload.startTime, userAnonymized));
 		Activity activity = dayActivity != null ? dayActivity.getLatestActivity() : null;
 
 		if (activity == null || activity.getEndTime().before(minEndTime))
@@ -103,22 +103,22 @@ public class AnalysisEngineService
 		}
 	}
 
-	private ZonedDateTime getZonedStartOfDay(Date startTime, UserAnonymizedDTO userAnonymized)
+	private ZonedDateTime getStartOfDay(Date startTime, UserAnonymizedDTO userAnonymized)
 	{
 		return startTime.toInstant().atZone(ZoneId.of(userAnonymized.getTimeZoneId())).truncatedTo(ChronoUnit.DAYS);
 	}
 
-	private ZonedDateTime getZonedStartOfWeek(Date startTime, UserAnonymizedDTO userAnonymized)
+	private ZonedDateTime getStartOfWeek(Date startTime, UserAnonymizedDTO userAnonymized)
 	{
-		ZonedDateTime zonedStartOfDay = getZonedStartOfDay(startTime, userAnonymized);
-		switch (zonedStartOfDay.getDayOfWeek())
+		ZonedDateTime startOfDay = getStartOfDay(startTime, userAnonymized);
+		switch (startOfDay.getDayOfWeek())
 		{
 			case SUNDAY:
 				// take as the first day of week
-				return zonedStartOfDay;
+				return startOfDay;
 			default:
 				// MONDAY=1, etc.
-				return zonedStartOfDay.minusDays(zonedStartOfDay.getDayOfWeek().getValue());
+				return startOfDay.minusDays(startOfDay.getDayOfWeek().getValue());
 		}
 	}
 
@@ -140,14 +140,14 @@ public class AnalysisEngineService
 		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymized.getID());
 
 		DayActivity dayActivity = DayActivity.createInstance(userAnonymizedEntity, matchingGoal,
-				getZonedStartOfDay(payload.startTime, userAnonymized));
+				getStartOfDay(payload.startTime, userAnonymized));
 
-		ZonedDateTime zonedStartOfWeek = getZonedStartOfWeek(payload.startTime, userAnonymized);
+		ZonedDateTime startOfWeek = getStartOfWeek(payload.startTime, userAnonymized);
 		WeekActivity weekActivity = cacheService.fetchWeekActivityForUser(userAnonymized.getID(), matchingGoal.getID(),
-				zonedStartOfWeek);
+				startOfWeek);
 		if (weekActivity == null)
 		{
-			weekActivity = WeekActivity.createInstance(userAnonymizedEntity, matchingGoal, zonedStartOfWeek);
+			weekActivity = WeekActivity.createInstance(userAnonymizedEntity, matchingGoal, startOfWeek);
 		}
 		weekActivity.addActivity(dayActivity);
 		cacheService.updateWeekActivityForUser(weekActivity);

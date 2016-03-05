@@ -2,7 +2,6 @@ package nu.yona.server.analysis.entities;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,17 +32,16 @@ public class DayActivity extends IntervalActivity
 		super(null, null, null, null);
 	}
 
-	public DayActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime zonedStartOfDay,
-			List<Activity> activities)
+	private DayActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay, List<Activity> activities)
 	{
-		super(id, userAnonymized, goal, zonedStartOfDay);
+		super(id, userAnonymized, goal, startOfDay);
 		this.activities = activities;
 	}
 
 	@Override
-	public Date getEndTime()
+	public ZonedDateTime getEndTime()
 	{
-		return Date.from(getZonedStartTime().plusDays(1).toInstant());
+		return getStartTime().plusDays(1);
 	}
 
 	public Activity getLatestActivity()
@@ -61,8 +59,8 @@ public class DayActivity extends IntervalActivity
 		this.activities.add(activity);
 	}
 
-	public static DayActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZonedDateTime zonedStartOfDay)
+	public static DayActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay)
 	{
-		return new DayActivity(UUID.randomUUID(), userAnonymized, goal, zonedStartOfDay, new ArrayList<Activity>());
+		return new DayActivity(UUID.randomUUID(), userAnonymized, goal, startOfDay, new ArrayList<Activity>());
 	}
 }

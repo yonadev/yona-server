@@ -1,6 +1,6 @@
 package nu.yona.server.analysis.service;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,11 +13,11 @@ import nu.yona.server.analysis.entities.IntervalActivity;
 public class IntervalActivityDTO
 {
 	private UUID goalID;
-	private Date startTime;
-	private Date endTime;
+	private ZonedDateTime startTime;
+	private ZonedDateTime endTime;
 	private List<ActivityDTO> activities;
 
-	private IntervalActivityDTO(UUID goalID, Date startTime, Date endTime, List<ActivityDTO> activities)
+	private IntervalActivityDTO(UUID goalID, ZonedDateTime startTime, ZonedDateTime endTime, List<ActivityDTO> activities)
 	{
 		this.goalID = goalID;
 		this.startTime = startTime;
@@ -25,12 +25,12 @@ public class IntervalActivityDTO
 		this.activities = activities;
 	}
 
-	public Date getStartTime()
+	public ZonedDateTime getStartTime()
 	{
 		return startTime;
 	}
 
-	public Date getEndTime()
+	public ZonedDateTime getEndTime()
 	{
 		return endTime;
 	}

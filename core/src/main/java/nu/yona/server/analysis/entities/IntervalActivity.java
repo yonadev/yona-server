@@ -1,7 +1,6 @@
 package nu.yona.server.analysis.entities;
 
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -20,14 +19,14 @@ public abstract class IntervalActivity extends EntityWithID
 	@ManyToOne
 	private UserAnonymized userAnonymized;
 
-	private ZonedDateTime zonedStartTime;
+	private ZonedDateTime startTime;
 
-	public IntervalActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime zonedStartTime)
+	protected IntervalActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startTime)
 	{
 		super(id);
 		this.userAnonymized = userAnonymized;
 		this.goal = goal;
-		this.zonedStartTime = zonedStartTime;
+		this.startTime = startTime;
 	}
 
 	public UserAnonymized getUserAnonymized()
@@ -40,15 +39,10 @@ public abstract class IntervalActivity extends EntityWithID
 		return goal;
 	}
 
-	public ZonedDateTime getZonedStartTime()
+	public ZonedDateTime getStartTime()
 	{
-		return zonedStartTime;
+		return startTime;
 	}
 
-	public Date getStartTime()
-	{
-		return Date.from(zonedStartTime.toInstant());
-	}
-
-	public abstract Date getEndTime();
+	public abstract ZonedDateTime getEndTime();
 }
