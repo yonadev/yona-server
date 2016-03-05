@@ -26,6 +26,14 @@ public class UserAnonymizedService
 		return UserAnonymizedDTO.createInstance(entity);
 	}
 
+	/*
+	 * Prefer to use other method, because this one is not cached.
+	 */
+	public UserAnonymized getUserAnonymizedEntity(UUID userAnonymizedID)
+	{
+		return UserAnonymized.getRepository().findOne(userAnonymizedID);
+	}
+
 	@CachePut(key = "#userAnonymizedID")
 	public UserAnonymizedDTO updateUserAnonymized(UUID userAnonymizedID, UserAnonymized entity)
 	{

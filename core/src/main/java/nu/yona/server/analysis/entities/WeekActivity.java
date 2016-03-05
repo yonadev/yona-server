@@ -13,6 +13,7 @@ import javax.persistence.Table;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Entity
 @Table(name = "WEEK_ACTIVITIES")
@@ -32,10 +33,10 @@ public class WeekActivity extends IntervalActivity
 		super(null, null, null, null);
 	}
 
-	public WeekActivity(UUID id, UUID userAnonymizedID, UUID goalID, ZonedDateTime zonedStartOfWeek,
+	public WeekActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime zonedStartOfWeek,
 			List<DayActivity> dayActivities)
 	{
-		super(id, userAnonymizedID, goalID, zonedStartOfWeek);
+		super(id, userAnonymized, goal, zonedStartOfWeek);
 
 		this.dayActivities = dayActivities;
 	}
@@ -51,9 +52,8 @@ public class WeekActivity extends IntervalActivity
 		this.dayActivities.add(dayActivity);
 	}
 
-	public static WeekActivity createInstance(UUID userAnonymizedID, Goal goal, ZonedDateTime zonedStartOfWeek)
+	public static WeekActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZonedDateTime zonedStartOfWeek)
 	{
-		return new WeekActivity(UUID.randomUUID(), userAnonymizedID, goal.getID(), zonedStartOfWeek,
-				new ArrayList<DayActivity>());
+		return new WeekActivity(UUID.randomUUID(), userAnonymized, goal, zonedStartOfWeek, new ArrayList<DayActivity>());
 	}
 }

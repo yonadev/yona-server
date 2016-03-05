@@ -24,6 +24,7 @@ import nu.yona.server.goals.service.ActivityCategoryDTO;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserService;
@@ -136,7 +137,9 @@ public class AnalysisEngineService
 
 	private DayActivity createNewDayActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
 	{
-		DayActivity dayActivity = DayActivity.createInstance(userAnonymized.getID(), matchingGoal,
+		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymized.getID());
+
+		DayActivity dayActivity = DayActivity.createInstance(userAnonymizedEntity, matchingGoal,
 				getZonedStartOfDay(payload.startTime, userAnonymized));
 
 		ZonedDateTime zonedStartOfWeek = getZonedStartOfWeek(payload.startTime, userAnonymized);
@@ -144,7 +147,7 @@ public class AnalysisEngineService
 				zonedStartOfWeek);
 		if (weekActivity == null)
 		{
-			weekActivity = WeekActivity.createInstance(userAnonymized.getID(), matchingGoal, zonedStartOfWeek);
+			weekActivity = WeekActivity.createInstance(userAnonymizedEntity, matchingGoal, zonedStartOfWeek);
 		}
 		weekActivity.addActivity(dayActivity);
 		cacheService.updateWeekActivityForUser(weekActivity);
@@ -155,8 +158,8 @@ public class AnalysisEngineService
 	private void updateLastActivity(DayActivity dayActivity, ActivityPayload payload, UserAnonymizedDTO userAnonymized,
 			Goal matchingGoal, Activity activity)
 	{
-		assert userAnonymized.getID().equals(dayActivity.getUserAnonymizedID());
-		assert matchingGoal.getID().equals(dayActivity.getGoalID());
+		assert userAnonymized.getID().equals(dayActivity.getUserAnonymized().getID());
+		assert matchingGoal.getID().equals(dayActivity.getGoal().getID());
 
 		activity.setEndTime(payload.endTime);
 		if (payload.startTime.before(activity.getStartTime()))

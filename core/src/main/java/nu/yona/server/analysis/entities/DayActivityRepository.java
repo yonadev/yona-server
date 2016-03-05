@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 public interface DayActivityRepository extends CrudRepository<DayActivity, UUID>
 {
 	@Query("select a from DayActivity a"
-			+ " where a.userAnonymizedID = :userAnonymizedID and a.goalID = :goalID and a.zonedStartTime = :zonedStartOfDay")
+			+ " where a.userAnonymized.id = :userAnonymizedID and a.goal.id = :goalID and a.zonedStartTime = :zonedStartOfDay")
 	DayActivity findOne(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("goalID") UUID goalID,
 			@Param("zonedStartOfDay") ZonedDateTime zonedStartOfDay);
 }

@@ -5,33 +5,39 @@ import java.util.Date;
 import java.util.UUID;
 
 import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
 
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Entity
 public abstract class IntervalActivity extends EntityWithID
 {
-	private UUID goalID;
-	private UUID userAnonymizedID;
+	@ManyToOne
+	private Goal goal;
+
+	@ManyToOne
+	private UserAnonymized userAnonymized;
+
 	private ZonedDateTime zonedStartTime;
 
-	public IntervalActivity(UUID id, UUID userAnonymizedID, UUID goalID, ZonedDateTime zonedStartTime)
+	public IntervalActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime zonedStartTime)
 	{
 		super(id);
-		this.userAnonymizedID = userAnonymizedID;
-		this.goalID = goalID;
+		this.userAnonymized = userAnonymized;
+		this.goal = goal;
 		this.zonedStartTime = zonedStartTime;
 	}
 
-	public UUID getUserAnonymizedID()
+	public UserAnonymized getUserAnonymized()
 	{
-		return userAnonymizedID;
+		return userAnonymized;
 	}
 
-	public UUID getGoalID()
+	public Goal getGoal()
 	{
-		return goalID;
+		return goal;
 	}
 
 	public ZonedDateTime getZonedStartTime()
@@ -45,9 +51,4 @@ public abstract class IntervalActivity extends EntityWithID
 	}
 
 	public abstract Date getEndTime();
-
-	public Goal getGoal()
-	{
-		return Goal.getRepository().findOne(goalID);
-	}
 }

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 public interface WeekActivityRepository extends CrudRepository<WeekActivity, UUID>
 {
 	@Query("select a from WeekActivity a"
-			+ " where a.userAnonymizedID = :userAnonymizedID and a.goalID = :goalID and a.zonedStartTime = :zonedStartOfWeek")
+			+ " where a.userAnonymized.id = :userAnonymizedID and a.goal.id = :goalID and a.zonedStartTime = :zonedStartOfWeek")
 	WeekActivity findOne(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("goalID") UUID goalID,
 			@Param("zonedStartOfWeek") ZonedDateTime zonedStartOfWeek);
 }

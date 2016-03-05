@@ -13,6 +13,7 @@ import javax.persistence.Table;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Entity
 @Table(name = "DAY_ACTIVITIES")
@@ -32,9 +33,10 @@ public class DayActivity extends IntervalActivity
 		super(null, null, null, null);
 	}
 
-	public DayActivity(UUID id, UUID userAnonymizedID, UUID goalID, ZonedDateTime zonedStartOfDay, List<Activity> activities)
+	public DayActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime zonedStartOfDay,
+			List<Activity> activities)
 	{
-		super(id, userAnonymizedID, goalID, zonedStartOfDay);
+		super(id, userAnonymized, goal, zonedStartOfDay);
 		this.activities = activities;
 	}
 
@@ -59,8 +61,8 @@ public class DayActivity extends IntervalActivity
 		this.activities.add(activity);
 	}
 
-	public static DayActivity createInstance(UUID userAnonymizedID, Goal goal, ZonedDateTime zonedStartOfDay)
+	public static DayActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZonedDateTime zonedStartOfDay)
 	{
-		return new DayActivity(UUID.randomUUID(), userAnonymizedID, goal.getID(), zonedStartOfDay, new ArrayList<Activity>());
+		return new DayActivity(UUID.randomUUID(), userAnonymized, goal, zonedStartOfDay, new ArrayList<Activity>());
 	}
 }
