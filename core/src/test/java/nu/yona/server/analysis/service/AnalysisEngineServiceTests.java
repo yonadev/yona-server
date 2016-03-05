@@ -194,7 +194,7 @@ public class AnalysisEngineServiceTests
 		// Verify that there is an activity update.
 		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
 		verify(mockAnalysisEngineCacheService).updateDayActivityForUser(dayActivity.capture());
-		Activity activity = dayActivity.getValue().getLatestActivity();
+		Activity activity = dayActivity.getValue().getLastActivity();
 		assertThat("Expect right user set to activity", dayActivity.getValue().getUserAnonymized(), equalTo(userAnonEntity));
 		assertThat("Expect start time set just about time of analysis", activity.getStartTime(), greaterThanOrEqualTo(t));
 		assertThat("Expect end time set just about time of analysis", activity.getEndTime(), greaterThanOrEqualTo(t));

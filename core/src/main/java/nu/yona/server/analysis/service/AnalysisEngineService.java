@@ -80,7 +80,7 @@ public class AnalysisEngineService
 		Date minEndTime = new Date(payload.startTime.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
 		DayActivity dayActivity = cacheService.fetchDayActivityForUser(userAnonymized.getID(), matchingGoal.getID(),
 				getStartOfDay(payload.startTime, userAnonymized));
-		Activity activity = dayActivity != null ? dayActivity.getLatestActivity() : null;
+		Activity activity = dayActivity != null ? dayActivity.getLastActivity() : null;
 
 		if (activity == null || activity.getEndTime().before(minEndTime))
 		{
@@ -89,7 +89,7 @@ public class AnalysisEngineService
 
 			if (matchingGoal.isNoGoGoal())
 			{
-				sendConflictMessageToAllDestinationsOfUser(dayActivity, payload, userAnonymized, dayActivity.getLatestActivity(),
+				sendConflictMessageToAllDestinationsOfUser(dayActivity, payload, userAnonymized, dayActivity.getLastActivity(),
 						matchingGoal);
 			}
 		}
@@ -149,7 +149,7 @@ public class AnalysisEngineService
 		{
 			weekActivity = WeekActivity.createInstance(userAnonymizedEntity, matchingGoal, startOfWeek);
 		}
-		weekActivity.addActivity(dayActivity);
+		weekActivity.addDayActivity(dayActivity);
 		cacheService.updateWeekActivityForUser(weekActivity);
 
 		return dayActivity;

@@ -46,7 +46,7 @@ public class WeekActivity extends IntervalActivity
 		return getStartTime().plusDays(7);
 	}
 
-	public void addActivity(DayActivity dayActivity)
+	public void addDayActivity(DayActivity dayActivity)
 	{
 		this.dayActivities.add(dayActivity);
 	}

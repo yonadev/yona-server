@@ -44,7 +44,7 @@ public class DayActivity extends IntervalActivity
 		return getStartTime().plusDays(1);
 	}
 
-	public Activity getLatestActivity()
+	public Activity getLastActivity()
 	{
 		if (this.activities.size() == 0)
 		{
