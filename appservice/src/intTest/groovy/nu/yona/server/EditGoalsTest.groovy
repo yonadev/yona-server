@@ -76,6 +76,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_ADDED'
 		goalChangeMessages[0].changedGoal.activityCategoryName == 'social'
 		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
 		assertEquals(goalChangeMessages[0].creationTime, new Date())
 		goalChangeMessages[0].message == "Going to monitor my social time!"
@@ -105,6 +106,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_DELETED'
 		goalChangeMessages[0].changedGoal.activityCategoryName == 'social'
 		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
 		assertEquals(goalChangeMessages[0].creationTime, new Date())
 		goalChangeMessages[0].message == "Don't want to monitor my social time anymore"

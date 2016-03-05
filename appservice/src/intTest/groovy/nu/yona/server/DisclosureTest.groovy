@@ -130,6 +130,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		assertEquals(disclosureResponseMessage.creationTime, new Date())
 		disclosureResponseMessage._links?.related?.href == goalConflictMessages[0]._links.self.href
 		disclosureResponseMessage._links?."yona:user"?.href == richard.url
+		disclosureResponseMessage._embedded?."yona:user" == null
 
 		//check delete
 		disclosureResponseMessage._links.edit
@@ -189,6 +190,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureResponseMessage.nickname == richard.nickname
 		disclosureResponseMessage._links?.related?.href == goalConflictMessages[0]._links.self.href
 		disclosureResponseMessage._links?."yona:user"?.href == richard.url
+		disclosureResponseMessage._embedded?."yona:user" == null
 
 		//check delete
 		disclosureResponseMessage._links.edit
