@@ -84,23 +84,35 @@ public class AnalysisEngineService
 
 		if (activity == null || activity.getEndTime().before(minEndTime))
 		{
-			dayActivity = createNewActivity(dayActivity, payload, userAnonymized, matchingGoal);
-			cacheService.updateDayActivityForUser(dayActivity);
-
-			if (matchingGoal.isNoGoGoal())
-			{
-				sendConflictMessageToAllDestinationsOfUser(dayActivity, payload, userAnonymized, dayActivity.getLastActivity(),
-						matchingGoal);
-			}
+			addActivity(payload, userAnonymized, matchingGoal, dayActivity);
 		}
 		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
 		// Or if the start time is earlier than the existing start time (this can happen with app activity, see below).
 		else if (payload.endTime.getTime() - activity.getEndTime().getTime() >= yonaProperties.getAnalysisService()
 				.getUpdateSkipWindow() || payload.startTime.before(activity.getStartTime()))
 		{
-			updateLastActivity(dayActivity, payload, userAnonymized, matchingGoal, activity);
-			cacheService.updateDayActivityForUser(dayActivity);
+			updateActivity(payload, userAnonymized, matchingGoal, dayActivity, activity);
 		}
+	}
+
+	private void addActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal,
+			DayActivity dayActivity)
+	{
+		dayActivity = createNewActivity(dayActivity, payload, userAnonymized, matchingGoal);
+		cacheService.updateDayActivityForUser(dayActivity);
+
+		if (matchingGoal.isNoGoGoal())
+		{
+			sendConflictMessageToAllDestinationsOfUser(dayActivity, payload, userAnonymized, dayActivity.getLastActivity(),
+					matchingGoal);
+		}
+	}
+
+	private void updateActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal,
+			DayActivity dayActivity, Activity activity)
+	{
+		updateLastActivity(dayActivity, payload, userAnonymized, matchingGoal, activity);
+		cacheService.updateDayActivityForUser(dayActivity);
 	}
 
 	private ZonedDateTime getStartOfDay(Date startTime, UserAnonymizedDTO userAnonymized)
