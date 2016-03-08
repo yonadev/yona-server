@@ -34,10 +34,9 @@ public class UserPrivateDTO
 
 	@JsonCreator
 	public UserPrivateDTO(@JsonProperty("nickname") String nickname,
-			@JsonProperty("devices") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> deviceNames,
-			@JsonProperty("goals") @JsonDeserialize(contentAs = GoalDTO.class) Set<GoalDTO> goals)
+			@JsonProperty("devices") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> deviceNames)
 	{
-		this(nickname, null, null, null, null, deviceNames, goals, null, null, new VPNProfileDTO(null));
+		this(nickname, null, null, null, null, deviceNames, null, null, null, new VPNProfileDTO(null));
 	}
 
 	UserPrivateDTO(String nickname, UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,

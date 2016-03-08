@@ -13,7 +13,7 @@ import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
 
 @Entity
-@Table(name = "BUDDIES")
+@Table(name = "BUDDIES_ANONYMIZED")
 public class BuddyAnonymized extends EntityWithID
 {
 	public enum Status

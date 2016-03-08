@@ -4,6 +4,9 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
@@ -13,12 +16,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.Activity;
+import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
+import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDTO;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserService;
@@ -72,38 +78,99 @@ public class AnalysisEngineService
 	private void addOrUpdateActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
 	{
 		Date minEndTime = new Date(payload.startTime.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
-		Activity activity = cacheService.fetchLatestActivityForUser(userAnonymized.getID(), matchingGoal.getID(), minEndTime);
+		DayActivity dayActivity = cacheService.fetchDayActivityForUser(userAnonymized.getID(), matchingGoal.getID(),
+				getStartOfDay(payload.startTime, userAnonymized));
+		Activity activity = dayActivity == null ? null : dayActivity.getLastActivity();
 
 		if (activity == null || activity.getEndTime().before(minEndTime))
 		{
-			activity = createNewActivity(payload, userAnonymized, matchingGoal);
-			cacheService.updateLatestActivityForUser(activity);
-
-			if (matchingGoal.isNoGoGoal())
-			{
-				sendConflictMessageToAllDestinationsOfUser(payload, userAnonymized, activity);
-			}
+			addActivity(payload, userAnonymized, matchingGoal, dayActivity);
 		}
 		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
 		// Or if the start time is earlier than the existing start time (this can happen with app activity, see below).
 		else if (payload.endTime.getTime() - activity.getEndTime().getTime() >= yonaProperties.getAnalysisService()
 				.getUpdateSkipWindow() || payload.startTime.before(activity.getStartTime()))
 		{
-			updateLastActivity(payload, userAnonymized, matchingGoal, activity);
-			cacheService.updateLatestActivityForUser(activity);
+			updateActivity(payload, userAnonymized, matchingGoal, dayActivity, activity);
 		}
 	}
 
-	private Activity createNewActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
+	private void addActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal,
+			DayActivity dayActivity)
 	{
-		return Activity.createInstance(userAnonymized.getID(), matchingGoal, payload.startTime, payload.endTime);
+		dayActivity = createNewActivity(dayActivity, payload, userAnonymized, matchingGoal);
+		cacheService.updateDayActivityForUser(dayActivity);
+
+		if (matchingGoal.isNoGoGoal())
+		{
+			sendConflictMessageToAllDestinationsOfUser(payload, userAnonymized, dayActivity.getLastActivity(), matchingGoal);
+		}
 	}
 
-	private void updateLastActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal,
-			Activity activity)
+	private void updateActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal,
+			DayActivity dayActivity, Activity activity)
 	{
-		assert userAnonymized.getID().equals(activity.getUserAnonymizedID());
-		assert matchingGoal.getID().equals(activity.getGoalID());
+		updateLastActivity(dayActivity, payload, userAnonymized, matchingGoal, activity);
+		cacheService.updateDayActivityForUser(dayActivity);
+	}
+
+	private ZonedDateTime getStartOfDay(Date startTime, UserAnonymizedDTO userAnonymized)
+	{
+		return startTime.toInstant().atZone(ZoneId.of(userAnonymized.getTimeZoneId())).truncatedTo(ChronoUnit.DAYS);
+	}
+
+	private ZonedDateTime getStartOfWeek(Date startTime, UserAnonymizedDTO userAnonymized)
+	{
+		ZonedDateTime startOfDay = getStartOfDay(startTime, userAnonymized);
+		switch (startOfDay.getDayOfWeek())
+		{
+			case SUNDAY:
+				// take as the first day of week
+				return startOfDay;
+			default:
+				// MONDAY=1, etc.
+				return startOfDay.minusDays(startOfDay.getDayOfWeek().getValue());
+		}
+	}
+
+	private DayActivity createNewActivity(DayActivity dayActivity, ActivityPayload payload, UserAnonymizedDTO userAnonymized,
+			Goal matchingGoal)
+	{
+		if (dayActivity == null)
+		{
+			dayActivity = createNewDayActivity(payload, userAnonymized, matchingGoal);
+		}
+
+		Activity activity = Activity.createInstance(payload.startTime, payload.endTime);
+		dayActivity.addActivity(activity);
+		return dayActivity;
+	}
+
+	private DayActivity createNewDayActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
+	{
+		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymized.getID());
+
+		DayActivity dayActivity = DayActivity.createInstance(userAnonymizedEntity, matchingGoal,
+				getStartOfDay(payload.startTime, userAnonymized));
+
+		ZonedDateTime startOfWeek = getStartOfWeek(payload.startTime, userAnonymized);
+		WeekActivity weekActivity = cacheService.fetchWeekActivityForUser(userAnonymized.getID(), matchingGoal.getID(),
+				startOfWeek);
+		if (weekActivity == null)
+		{
+			weekActivity = WeekActivity.createInstance(userAnonymizedEntity, matchingGoal, startOfWeek);
+		}
+		weekActivity.addDayActivity(dayActivity);
+		cacheService.updateWeekActivityForUser(weekActivity);
+
+		return dayActivity;
+	}
+
+	private void updateLastActivity(DayActivity dayActivity, ActivityPayload payload, UserAnonymizedDTO userAnonymized,
+			Goal matchingGoal, Activity activity)
+	{
+		assert userAnonymized.getID().equals(dayActivity.getUserAnonymized().getID());
+		assert matchingGoal.getID().equals(dayActivity.getGoal().getID());
 
 		activity.setEndTime(payload.endTime);
 		if (payload.startTime.before(activity.getStartTime()))
@@ -115,7 +182,6 @@ public class AnalysisEngineService
 			// app.
 			activity.setStartTime(payload.startTime);
 		}
-
 	}
 
 	public Set<String> getRelevantSmoothwallCategories()
@@ -125,10 +191,10 @@ public class AnalysisEngineService
 	}
 
 	private void sendConflictMessageToAllDestinationsOfUser(ActivityPayload payload, UserAnonymizedDTO userAnonymized,
-			Activity activity)
+			Activity activity, Goal matchingGoal)
 	{
 		GoalConflictMessage selfGoalConflictMessage = GoalConflictMessage.createInstance(userAnonymized.getID(), activity,
-				payload.url);
+				matchingGoal, payload.url);
 		messageService.sendMessage(selfGoalConflictMessage, userAnonymized.getAnonymousDestination());
 
 		messageService.broadcastMessageToBuddies(userAnonymized,
