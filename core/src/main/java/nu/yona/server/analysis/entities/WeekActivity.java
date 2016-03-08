@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -23,21 +25,31 @@ public class WeekActivity extends IntervalActivity
 		return (WeekActivityRepository) RepositoryProvider.getRepository(WeekActivity.class, UUID.class);
 	}
 
+	@ManyToOne
+	@JoinColumn(name = "user_anonymized_id")
+	private UserAnonymized userAnonymized;
+
 	@OneToMany(cascade = CascadeType.ALL)
 	private List<DayActivity> dayActivities;
 
 	// Default constructor is required for JPA
 	public WeekActivity()
 	{
-		super(null, null, null, null);
+		super(null, null, null);
 	}
 
 	private WeekActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek,
 			List<DayActivity> dayActivities)
 	{
-		super(id, userAnonymized, goal, startOfWeek);
+		super(id, goal, startOfWeek);
 
+		this.userAnonymized = userAnonymized;
 		this.dayActivities = dayActivities;
+	}
+
+	public UserAnonymized getUserAnonymized()
+	{
+		return userAnonymized;
 	}
 
 	@Override

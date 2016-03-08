@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -23,19 +24,29 @@ public class DayActivity extends IntervalActivity
 		return (DayActivityRepository) RepositoryProvider.getRepository(DayActivity.class, UUID.class);
 	}
 
+	@ManyToOne
+	private UserAnonymized userAnonymized;
+
 	@OneToMany(cascade = CascadeType.ALL)
 	private List<Activity> activities;
 
 	// Default constructor is required for JPA
 	public DayActivity()
 	{
-		super(null, null, null, null);
+		super(null, null, null);
 	}
 
 	private DayActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay, List<Activity> activities)
 	{
-		super(id, userAnonymized, goal, startOfDay);
+		super(id, goal, startOfDay);
+
+		this.userAnonymized = userAnonymized;
 		this.activities = activities;
+	}
+
+	public UserAnonymized getUserAnonymized()
+	{
+		return this.userAnonymized;
 	}
 
 	@Override

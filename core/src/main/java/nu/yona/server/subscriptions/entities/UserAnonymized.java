@@ -4,17 +4,21 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
@@ -35,6 +39,9 @@ public class UserAnonymized extends EntityWithID
 	@OneToMany(cascade = CascadeType.ALL)
 	private Set<Goal> goals;
 
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "userAnonymized", fetch = FetchType.LAZY)
+	private List<WeekActivity> weekActivities;
+
 	@OneToMany
 	private Set<BuddyAnonymized> buddiesAnonymized;
 
@@ -44,17 +51,28 @@ public class UserAnonymized extends EntityWithID
 		super(null);
 	}
 
-	public UserAnonymized(UUID id, MessageDestination anonymousDestination, Set<Goal> goals)
+	private UserAnonymized(UUID id, MessageDestination anonymousDestination, Set<Goal> goals, List<WeekActivity> weekActivities)
 	{
 		super(id);
 		this.anonymousDestination = anonymousDestination;
 		this.goals = new HashSet<>(goals);
 		this.buddiesAnonymized = new HashSet<>();
+		this.weekActivities = weekActivities;
 	}
 
 	public Set<Goal> getGoals()
 	{
 		return Collections.unmodifiableSet(goals);
+	}
+
+	public List<WeekActivity> getWeekActivities()
+	{
+		return Collections.unmodifiableList(weekActivities);
+	}
+
+	public void addWeekActivity(WeekActivity weekActivity)
+	{
+		weekActivities.add(weekActivity);
 	}
 
 	public MessageDestination getAnonymousDestination()
@@ -81,7 +99,7 @@ public class UserAnonymized extends EntityWithID
 
 	public static UserAnonymized createInstance(MessageDestination anonymousDestination, Set<Goal> goals)
 	{
-		return new UserAnonymized(UUID.randomUUID(), anonymousDestination, goals);
+		return new UserAnonymized(UUID.randomUUID(), anonymousDestination, goals, new ArrayList<WeekActivity>());
 	}
 
 	public Set<BuddyAnonymized> getBuddiesAnonymized()
