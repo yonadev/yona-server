@@ -8,6 +8,7 @@ package nu.yona.server
 
 import groovy.json.*
 import nu.yona.server.test.BudgetGoal
+import nu.yona.server.test.TimeZoneGoal
 
 class EditGoalsTest extends AbstractAppServiceIntegrationTest
 {
@@ -44,7 +45,8 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 200
 		response.responseData._embedded."yona:goals".size() == 2
-		def gamblingGoals = response.responseData._embedded."yona:goals".findAll{ it.activityCategoryName == 'gambling'}
+		def gamblingGoals = response.responseData._embedded."yona:goals".findAll
+		{ it.activityCategoryName == 'gambling' }
 		gamblingGoals.size() == 1
 		gamblingGoals[0]."@type" == "BudgetGoal"
 		!gamblingGoals[0]._links.edit //mandatory goal
@@ -65,6 +67,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		addedGoal
+		addedGoal.maxDuration == 60
 
 		def responseGoalsAfterAdd = appService.getGoals(richard)
 		responseGoalsAfterAdd.status == 200
@@ -80,6 +83,36 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].nickname == 'RQ'
 		assertEquals(goalChangeMessages[0].creationTime, new Date())
 		goalChangeMessages[0].message == "Going to monitor my social time!"
+		goalChangeMessages[0]._links.edit
+	}
+
+	def 'Add time zone goal'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		when:
+		def addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance("social", ["11:00-12:00"].toArray()), "Going to restrict my social time!")
+
+		then:
+		addedGoal
+		addedGoal.zones
+		addedGoal.zones.size() == 1
+
+		def responseGoalsAfterAdd = appService.getGoals(richard)
+		responseGoalsAfterAdd.status == 200
+		responseGoalsAfterAdd.responseData._embedded."yona:goals".size() == 3
+
+		def bobMessagesResponse = appService.getMessages(bob)
+		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}
+		goalChangeMessages.size() == 1
+		goalChangeMessages[0].change == 'GOAL_ADDED'
+		goalChangeMessages[0].changedGoal.activityCategoryName == 'social'
+		goalChangeMessages[0].user.firstName == 'Richard'
+		goalChangeMessages[0].nickname == 'RQ'
+		assertEquals(goalChangeMessages[0].creationTime, new Date())
+		goalChangeMessages[0].message == "Going to restrict my social time!"
 		goalChangeMessages[0]._links.edit
 	}
 

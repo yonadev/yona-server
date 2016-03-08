@@ -40,6 +40,7 @@ import nu.yona.server.crypto.PublicKeyUtil;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.goals.service.ActivityCategoryDTO;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -72,6 +73,8 @@ public class AnalysisEngineServiceTests
 	private Goal gamblingGoal;
 	private Goal newsGoal;
 	private Goal gamingGoal;
+	private Goal socialGoal;
+	private Goal shoppingGoal;
 	private MessageDestinationDTO anonMessageDestination;
 	private UUID userAnonID;
 	private UserAnonymized userAnonEntity;
@@ -85,10 +88,16 @@ public class AnalysisEngineServiceTests
 				new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
 		gamingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance("gaming", false,
 				new HashSet<String>(Arrays.asList("games")), Collections.emptySet()));
+		socialGoal = TimeZoneGoal.createInstance(ActivityCategory.createInstance("social", false,
+				new HashSet<String>(Arrays.asList("social")), Collections.emptySet()), new String[0]);
+		shoppingGoal = BudgetGoal.createInstance(ActivityCategory.createInstance("shopping", false,
+				new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet()), 1);
 
 		goalMap.put("gambling", gamblingGoal);
 		goalMap.put("news", newsGoal);
 		goalMap.put("gaming", gamingGoal);
+		goalMap.put("social", socialGoal);
+		goalMap.put("shopping", shoppingGoal);
 
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 
@@ -112,7 +121,7 @@ public class AnalysisEngineServiceTests
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
 		anonMessageDestination = new MessageDestinationDTO(anonMessageDestinationEntity.getID());
-		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(gamblingGoal, gamingGoal));
+		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		UserAnonymizedDTO userAnon = UserAnonymizedDTO.createInstance(userAnonEntity);
 		userAnonID = userAnon.getID();
@@ -134,7 +143,8 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void getRelevantSmoothwallCategories()
 	{
-		assertThat(service.getRelevantSmoothwallCategories(), containsInAnyOrder("poker", "lotto", "refdag", "bbc", "games"));
+		assertThat(service.getRelevantSmoothwallCategories(),
+				containsInAnyOrder("poker", "lotto", "refdag", "bbc", "games", "social", "webshop"));
 	}
 
 	/*
@@ -221,10 +231,7 @@ public class AnalysisEngineServiceTests
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag", "lotto"));
 		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
-		// Verify that there is an activity update.
-		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
-		verify(mockAnalysisEngineCacheService).updateDayActivityForUser(dayActivity.capture());
-		assertThat("Expect right goal set to activity", dayActivity.getValue().getGoal(), equalTo(gamblingGoal));
+		verifyActivityUpdate(gamblingGoal);
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		ArgumentCaptor<MessageDestinationDTO> messageDestination = ArgumentCaptor.forClass(MessageDestinationDTO.class);
@@ -317,7 +324,49 @@ public class AnalysisEngineServiceTests
 		// Verify that there was no attempted activity update.
 		verify(mockAnalysisEngineCacheService, never()).fetchDayActivityForUser(eq(userAnonID), any(), any());
 		verify(mockAnalysisEngineCacheService, never()).updateDayActivityForUser(any());
+
+		verifyNoMessagesCreated();
+	}
+
+	private void verifyNoMessagesCreated()
+	{
 		// Verify that there is no conflict message sent.
 		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
+	}
+
+	/**
+	 * Tests that no conflict messages are created when analysis service is called with non-matching category.
+	 */
+	@Test
+	public void noMessagesCreatedOnTimeZoneGoal()
+	{
+		// Execute the analysis engine service.
+		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("webshop"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+
+		verifyActivityUpdate(shoppingGoal);
+		verifyNoMessagesCreated();
+	}
+
+	private void verifyActivityUpdate(Goal forGoal)
+	{
+		// Verify that there is an activity update.
+		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
+		verify(mockAnalysisEngineCacheService).updateDayActivityForUser(dayActivity.capture());
+		assertThat("Expect right goal set to activity", dayActivity.getValue().getGoal(), equalTo(forGoal));
+	}
+
+	/**
+	 * Tests that no conflict messages are created when analysis service is called with non-matching category.
+	 */
+	@Test
+	public void noMessagesCreatedOnNonZeroBudgetGoal()
+	{
+		// Execute the analysis engine service.
+		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("social"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+
+		verifyActivityUpdate(socialGoal);
+		verifyNoMessagesCreated();
 	}
 }

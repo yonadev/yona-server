@@ -837,19 +837,37 @@ definitions:
         type: string
         enum:
         - BudgetGoal
+        - TimeZoneGoal
         description: The type of goal
       activityCategoryName:
         type: string
         description: The actity category of this goal
         example: Gambling
+    required:
+    - "@type"
+    - activityCategoryName
+  BudgetGoal:
+    allOf:
+      - $ref: '#/definitions/PostPutGoal'
+    properties:
       maxDuration:
         type: integer
         description: The budget (duration) for this goal
         example: 0
     required:
-    - "@type"
-    - maxDuration
-    - activityCategoryName
+      - maxDuration
+  TimeZoneGoal:
+    allOf:
+      - $ref: '#/definitions/PostPutGoal'
+    properties:
+      zones:
+        type: array
+        items:
+          type: string
+          example: "8:00-17:00"
+        description: The zones for this goal
+    required:
+      - zones
   Goal:
     allOf:
       - $ref: '#/definitions/PostPutGoal'
@@ -1014,7 +1032,6 @@ definitions:
     required:
       - nickname
       - message
-      - user
   BuddyMessageWithEmbeddedUser:
     allOf:
       - $ref: '#/definitions/BuddyMessage'

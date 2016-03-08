@@ -29,6 +29,10 @@ abstract class Goal
 		{
 			return new BudgetGoal(json)
 		}
+		else if(json["@type"] == "TimeZoneGoal")
+		{
+			return new TimeZoneGoal(json)
+		}
 		else throw new RuntimeException("Unknown goal type: " + json["@type"])
 	}
 
