@@ -843,19 +843,31 @@ definitions:
         type: string
         description: The actity category of this goal
         example: Gambling
+    required:
+    - "@type"
+    - activityCategoryName
+  PostPutBudgetGoal:
+    allOf:
+      - $ref: '#/definitions/PostPutGoal'
+    properties:
       maxDuration:
         type: integer
-        description: The budget (duration) for this goal, if the goal is a budget goal
+        description: The budget (duration) for this goal
         example: 0
+    required:
+      - maxDuration
+  PostPutTimeZoneGoal:
+    allOf:
+      - $ref: '#/definitions/PostPutGoal'
+    properties:
       zones:
         type: array
         items:
           type: string
           example: "8:00-17:00"
-        description: The zones for this goal, if the goal is a time zone goal
+        description: The zones for this goal
     required:
-    - "@type"
-    - activityCategoryName
+      - zones
   Goal:
     allOf:
       - $ref: '#/definitions/PostPutGoal'
@@ -1020,7 +1032,6 @@ definitions:
     required:
       - nickname
       - message
-      - user
   BuddyMessageWithEmbeddedUser:
     allOf:
       - $ref: '#/definitions/BuddyMessage'
