@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.messaging.service.BuddyMessageDTO;
+import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
@@ -30,7 +30,7 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 
 @JsonRootName("buddyConnectResponseMessage")
-public class BuddyConnectResponseMessageDTO extends BuddyMessageDTO
+public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 {
 	private static final String PROCESS = "process";
 	private Status status;

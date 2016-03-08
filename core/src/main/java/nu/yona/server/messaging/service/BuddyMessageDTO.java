@@ -7,6 +7,7 @@ package nu.yona.server.messaging.service;
 import java.util.Date;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.subscriptions.service.UserDTO;
@@ -26,15 +27,15 @@ public abstract class BuddyMessageDTO extends MessageDTO
 		this.message = message;
 	}
 
-	protected BuddyMessageDTO(UUID id, Date creationTime, UUID relatedAnonymousMessageID, UserDTO user, String nickname,
-			String message)
+	protected BuddyMessageDTO(UUID id, Date creationTime, UUID relatedMessageID, UserDTO user, String nickname, String message)
 	{
-		super(id, creationTime, relatedAnonymousMessageID);
+		super(id, creationTime, relatedMessageID);
 		this.user = user;
 		this.nickname = nickname;
 		this.message = message;
 	}
 
+	@JsonIgnore
 	public UserDTO getUser()
 	{
 		return user;

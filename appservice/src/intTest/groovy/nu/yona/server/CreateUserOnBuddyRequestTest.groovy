@@ -39,6 +39,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 201
 		response.responseData._embedded."yona:user".firstName == "Bob"
+		response.responseData._links."yona:user" == null
 		response.responseData._links.self.href.startsWith(richard.url)
 		response.responseData.userCreatedInviteURL
 
