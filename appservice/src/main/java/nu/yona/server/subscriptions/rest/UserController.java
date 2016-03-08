@@ -316,6 +316,11 @@ public class UserController
 		return linkBuilder.withSelfRel();
 	}
 
+	public static Link getUserLink(String rel, UUID userID)
+	{
+		return linkTo(methodOn(UserController.class).getPublicUser(Optional.empty(), userID)).withRel(rel);
+	}
+
 	static class UserResource extends Resource<UserDTO>
 	{
 		private final CurieProvider curieProvider;
@@ -354,7 +359,7 @@ public class UserController
 		}
 	}
 
-	static class UserResourceAssembler extends ResourceAssemblerSupport<UserDTO, UserResource>
+	public static class UserResourceAssembler extends ResourceAssemblerSupport<UserDTO, UserResource>
 	{
 		private final boolean includePrivateData;
 		private CurieProvider curieProvider;

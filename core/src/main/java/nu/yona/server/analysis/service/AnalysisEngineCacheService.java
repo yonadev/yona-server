@@ -4,30 +4,38 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
-import java.util.Date;
-import java.util.List;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import nu.yona.server.analysis.entities.Activity;
+import nu.yona.server.analysis.entities.DayActivity;
+import nu.yona.server.analysis.entities.WeekActivity;
 
 @Service
 public class AnalysisEngineCacheService
 {
-	@Cacheable(value = "activities", key = "{#userAnonymizedID,#goalID}")
-	public Activity fetchLatestActivityForUser(UUID userAnonymizedID, UUID goalID, Date minEndTime)
+	@Cacheable(value = "dayActivities", key = "{#userAnonymizedID,#goalID,#startOfDay}")
+	public DayActivity fetchDayActivityForUser(UUID userAnonymizedID, UUID goalID, ZonedDateTime startOfDay)
 	{
-		List<Activity> results = Activity.getRepository().findLatestActivity(userAnonymizedID, goalID, minEndTime);
-
-		return results != null && !results.isEmpty() ? results.get(0) : null;
+		return DayActivity.getRepository().findOne(userAnonymizedID, goalID, startOfDay);
 	}
 
-	@CachePut(value = "activities", key = "{#activity.userAnonymizedID,#activity.goalID}")
-	public Activity updateLatestActivityForUser(Activity activity)
+	@CachePut(value = "dayActivities", key = "{#dayActivity.userAnonymized.getID(),#dayActivity.goal.getID(),#dayActivity.startTime}")
+	public DayActivity updateDayActivityForUser(DayActivity dayActivity)
 	{
-		return Activity.getRepository().save(activity);
+		return DayActivity.getRepository().save(dayActivity);
+	}
+
+	public WeekActivity fetchWeekActivityForUser(UUID userAnonymizedID, UUID goalID, ZonedDateTime startOfWeek)
+	{
+		return WeekActivity.getRepository().findOne(userAnonymizedID, goalID, startOfWeek);
+	}
+
+	public WeekActivity updateWeekActivityForUser(WeekActivity weekActivity)
+	{
+		return WeekActivity.getRepository().save(weekActivity);
 	}
 }

@@ -44,6 +44,11 @@ public class UserAnonymizedDTO
 		return goals;
 	}
 
+	public String getTimeZoneId()
+	{
+		return "Europe/Amsterdam";
+	}
+
 	public MessageDestinationDTO getAnonymousDestination()
 	{
 		return anonymousMessageDestination;

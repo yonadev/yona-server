@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import nu.yona.server.goals.entities.GoalChangeMessage;
 import nu.yona.server.goals.entities.GoalChangeMessage.Change;
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.messaging.service.BuddyMessageDTO;
+import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
@@ -24,7 +24,7 @@ import nu.yona.server.messaging.service.MessageServiceException;
 import nu.yona.server.subscriptions.service.UserDTO;
 
 @JsonRootName("goalChangeMessage")
-public class GoalChangeMessageDTO extends BuddyMessageDTO
+public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 {
 	private GoalDTO changedGoal;
 	private Change change;

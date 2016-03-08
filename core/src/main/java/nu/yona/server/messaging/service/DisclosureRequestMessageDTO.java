@@ -18,7 +18,6 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
-import nu.yona.server.analysis.service.GoalConflictMessageDTO;
 import nu.yona.server.messaging.entities.DisclosureRequestMessage;
 import nu.yona.server.messaging.entities.DisclosureResponseMessage;
 import nu.yona.server.messaging.entities.Message;
@@ -28,21 +27,18 @@ import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDTO;
 
 @JsonRootName("disclosureRequestMessage")
-public class DisclosureRequestMessageDTO extends BuddyMessageDTO
+public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 {
 	private static final String ACCEPT = "accept";
 	private static final String REJECT = "reject";
 
 	private Status status;
 
-	private GoalConflictMessageDTO targetGoalConflictMessage;
-
 	private DisclosureRequestMessageDTO(UUID id, Date creationTime, UserDTO user, String nickname, String message, Status status,
-			UUID targetGoalConflictMessageOriginID, GoalConflictMessageDTO targetGoalConflictMessage)
+			UUID targetGoalConflictMessageID)
 	{
-		super(id, creationTime, targetGoalConflictMessageOriginID, user, nickname, message);
+		super(id, creationTime, targetGoalConflictMessageID, user, nickname, message);
 		this.status = status;
-		this.targetGoalConflictMessage = targetGoalConflictMessage;
 	}
 
 	@Override
@@ -63,11 +59,6 @@ public class DisclosureRequestMessageDTO extends BuddyMessageDTO
 		return possibleActions;
 	}
 
-	public GoalConflictMessageDTO getTargetGoalConflictMessage()
-	{
-		return targetGoalConflictMessage;
-	}
-
 	public Status getStatus()
 	{
 		return status;
@@ -84,8 +75,7 @@ public class DisclosureRequestMessageDTO extends BuddyMessageDTO
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
 		return new DisclosureRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
 				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getNickname(), messageEntity.getMessage(),
-				messageEntity.getStatus(), targetGoalConflictMessage.getOriginGoalConflictMessageID(),
-				GoalConflictMessageDTO.createInstance(targetGoalConflictMessage, null));
+				messageEntity.getStatus(), targetGoalConflictMessage.getOriginGoalConflictMessageID());
 	}
 
 	@Component
@@ -156,7 +146,8 @@ public class DisclosureRequestMessageDTO extends BuddyMessageDTO
 					.createInstanceActionDone(theDTOFactory.createInstance(actingUser, disclosureRequestMessageEntity));
 		}
 
-		private DisclosureRequestMessage updateMessageStatus(DisclosureRequestMessage disclosureRequestMessageEntity, Status status)
+		private DisclosureRequestMessage updateMessageStatus(DisclosureRequestMessage disclosureRequestMessageEntity,
+				Status status)
 		{
 			disclosureRequestMessageEntity.setStatus(status);
 			return Message.getRepository().save(disclosureRequestMessageEntity);

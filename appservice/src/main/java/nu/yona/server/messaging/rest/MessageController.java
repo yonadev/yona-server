@@ -39,10 +39,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDTO;
+import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.subscriptions.rest.UserController;
+import nu.yona.server.subscriptions.service.BuddyDTO;
+import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
@@ -67,7 +72,7 @@ public class MessageController
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> createOKResponse(pagedResourcesAssembler.toResource(messageService.getMessages(userID, pageable),
-						new MessageResourceAssembler(userID))));
+						new MessageResourceAssembler(curieProvider, userID))));
 	}
 
 	@RequestMapping(value = "/{messageID}", method = RequestMethod.GET)
@@ -77,7 +82,7 @@ public class MessageController
 	{
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
-				new MessageResourceAssembler(userID).toResource(messageService.getMessage(userID, messageID))));
+				new MessageResourceAssembler(curieProvider, userID).toResource(messageService.getMessage(userID, messageID))));
 
 	}
 
@@ -149,17 +154,19 @@ public class MessageController
 		{
 			Set<MessageDTO> affectedMessages = getContent().getAffectedMessages();
 			return Collections.singletonMap(curieProvider.getNamespacedRelFor("affectedMessages"),
-					new MessageResourceAssembler(userID).toResources(affectedMessages));
+					new MessageResourceAssembler(curieProvider, userID).toResources(affectedMessages));
 		}
 	}
 
 	private static class MessageResourceAssembler extends ResourceAssemblerSupport<MessageDTO, MessageDTO>
 	{
 		private UUID userID;
+		private CurieProvider curieProvider;
 
-		public MessageResourceAssembler(UUID userID)
+		public MessageResourceAssembler(CurieProvider curieProvider, UUID userID)
 		{
 			super(MessageController.class, MessageDTO.class);
+			this.curieProvider = curieProvider;
 			this.userID = userID;
 		}
 
@@ -175,6 +182,7 @@ public class MessageController
 			{
 				addEditLink(selfLinkBuilder, message);
 			}
+			doDynamicDecoration(message);
 			return message;
 		}
 
@@ -206,6 +214,37 @@ public class MessageController
 		private void addActionLinks(ControllerLinkBuilder selfLinkBuilder, MessageDTO messageResource)
 		{
 			messageResource.getPossibleActions().stream().forEach(a -> messageResource.add(selfLinkBuilder.slash(a).withRel(a)));
+		}
+
+		private void doDynamicDecoration(MessageDTO message)
+		{
+			if (message instanceof BuddyMessageEmbeddedUserDTO)
+			{
+				embedBuddyUserIfAvailable((BuddyMessageEmbeddedUserDTO) message);
+			}
+			if (message instanceof BuddyMessageLinkedUserDTO)
+			{
+				addUserLinkIfAvailable((BuddyMessageLinkedUserDTO) message);
+			}
+		}
+
+		private void embedBuddyUserIfAvailable(BuddyMessageEmbeddedUserDTO buddyMessage)
+		{
+			UserDTO user = buddyMessage.getUser();
+			if (user != null)
+			{
+				buddyMessage.setEmbeddedUser(curieProvider.getNamespacedRelFor(BuddyDTO.USER_REL_NAME),
+						new UserController.UserResourceAssembler(curieProvider, false).toResource(user));
+			}
+		}
+
+		private void addUserLinkIfAvailable(BuddyMessageLinkedUserDTO buddyMessage)
+		{
+			UserDTO user = buddyMessage.getUser();
+			if (user != null)
+			{
+				buddyMessage.add(UserController.getUserLink(BuddyDTO.USER_REL_NAME, user.getID()));
+			}
 		}
 	}
 }
