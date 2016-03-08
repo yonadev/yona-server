@@ -23,6 +23,7 @@ class BudgetGoal extends Goal
 		def selfLinkString = (url) ? """"_links":{"self":{"href":"$url"}},""" : ""
 		return """{
 			$selfLinkString,
+			"@type":"BudgetGoal",
 			"activityCategoryName":"${activityCategoryName}",
 			"maxDuration":"${maxDuration}"
 		}"""

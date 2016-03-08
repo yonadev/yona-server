@@ -8,9 +8,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
@@ -28,13 +27,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.goals.service.BudgetGoalDTO;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
+@ExposesResourceFor(GoalDTO.class)
 @RequestMapping(value = "/users/{userID}/goals")
 public class GoalController
 {
@@ -46,42 +45,46 @@ public class GoalController
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<Resources<GoalResource>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+	public HttpEntity<Resources<GoalDTO>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userID)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> new ResponseEntity<Resources<GoalResource>>(
+				() -> new ResponseEntity<Resources<GoalDTO>>(
 						createAllGoalsCollectionResource(userID, goalService.getGoalsOfUser(userID)), HttpStatus.OK));
 	}
 
-	@RequestMapping(value = "/budgetGoals/{goalID}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{goalID}", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<GoalResource> getBudgetGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+	public HttpEntity<GoalDTO> getGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userID, @PathVariable UUID goalID)
 	{
-
-		return getGoal(password, userID, goalID);
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> createResponse(userID, goalService.getGoal(userID, goalID), HttpStatus.OK));
 	}
 
-	@RequestMapping(value = "/budgetGoals/", method = RequestMethod.POST)
+	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseBody
-	public HttpEntity<GoalResource> addBudgetGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userID, @RequestBody Resource<BudgetGoalDTO> goal,
+	public HttpEntity<GoalDTO> addGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userID, @RequestBody GoalDTO goal,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
-		return addGoal(password, userID, goal, messageStr);
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createResponse(userID,
+				goalService.addGoal(userID, goal, Optional.ofNullable(messageStr)), HttpStatus.CREATED));
 	}
 
-	@RequestMapping(value = "/budgetGoals/{goalID}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/{goalID}", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	public void removeBudgetGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+	public void removeGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
 			@PathVariable UUID goalID, @RequestParam(value = "message", required = false) String messageStr)
 	{
-		removeGoal(password, userID, goalID, messageStr);
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> {
+			goalService.removeGoal(userID, goalID, Optional.ofNullable(messageStr));
+			return null;
+		});
 	}
 
-	public static Resources<GoalResource> createAllGoalsCollectionResource(UUID userID, Set<GoalDTO> allGoalsOfUser)
+	public static Resources<GoalDTO> createAllGoalsCollectionResource(UUID userID, Set<GoalDTO> allGoalsOfUser)
 	{
 		return new Resources<>(new GoalResourceAssembler(userID).toResources(allGoalsOfUser),
 				getAllGoalsLinkBuilder(userID).withSelfRel());
@@ -93,88 +96,52 @@ public class GoalController
 		return linkTo(methodOn.getAllGoals(null, userID));
 	}
 
-	private HttpEntity<GoalResource> getGoal(Optional<String> password, UUID userID, UUID goalID)
+	private HttpEntity<GoalDTO> createResponse(UUID userID, GoalDTO goal, HttpStatus status)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createResponse(userID, goalService.getGoal(userID, goalID), HttpStatus.OK));
-	}
-
-	private HttpEntity<GoalResource> addGoal(Optional<String> password, UUID userID, Resource<BudgetGoalDTO> goal,
-			String messageStr)
-	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createResponse(userID,
-				goalService.addGoal(userID, goal.getContent(), Optional.ofNullable(messageStr)), HttpStatus.CREATED));
-	}
-
-	private void removeGoal(Optional<String> password, UUID userID, UUID goalID, String messageStr)
-	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> {
-			goalService.removeGoal(userID, goalID, Optional.ofNullable(messageStr));
-			return null;
-		});
-	}
-
-	private HttpEntity<GoalResource> createResponse(UUID userID, GoalDTO goal, HttpStatus status)
-	{
-		return new ResponseEntity<GoalResource>(new GoalResourceAssembler(userID).toResource(goal), status);
+		return new ResponseEntity<GoalDTO>(new GoalResourceAssembler(userID).toResource(goal), status);
 	}
 
 	static ControllerLinkBuilder getGoalLinkBuilder(UUID userID, GoalDTO goal)
 	{
 		GoalController methodOn = methodOn(GoalController.class);
-		if (goal instanceof BudgetGoalDTO)
-		{
-			return linkTo(methodOn.getBudgetGoal(Optional.empty(), userID, goal.getID()));
-		}
-		else
-		{
-			throw new NotImplementedException("Goal type '" + goal.getClass() + "' not recognized");
-		}
+		return linkTo(methodOn.getGoal(Optional.empty(), userID, goal.getID()));
 	}
 
-	static class GoalResource extends Resource<GoalDTO>
-	{
-		public GoalResource(GoalDTO goal)
-		{
-			super(goal);
-		}
-	}
-
-	public static class GoalResourceAssembler extends ResourceAssemblerSupport<GoalDTO, GoalResource>
+	public static class GoalResourceAssembler extends ResourceAssemblerSupport<GoalDTO, GoalDTO>
 	{
 		private UUID userID;
 
 		public GoalResourceAssembler(UUID userID)
 		{
-			super(GoalController.class, GoalResource.class);
+			super(GoalController.class, GoalDTO.class);
 			this.userID = userID;
 		}
 
 		@Override
-		public GoalResource toResource(GoalDTO goal)
+		public GoalDTO toResource(GoalDTO goal)
 		{
-			GoalResource goalResource = instantiateResource(goal);
+			goal.removeLinks();
 			ControllerLinkBuilder selfLinkBuilder = getGoalLinkBuilder(userID, goal);
-			addSelfLink(selfLinkBuilder, goalResource);
+			addSelfLink(selfLinkBuilder, goal);
 			if (!goal.isMandatory())
 			{
-				addEditLink(selfLinkBuilder, goalResource);
+				addEditLink(selfLinkBuilder, goal);
 			}
-			return goalResource;
+			return goal;
 		}
 
 		@Override
-		protected GoalResource instantiateResource(GoalDTO goal)
+		protected GoalDTO instantiateResource(GoalDTO goal)
 		{
-			return new GoalResource(goal);
+			return goal;
 		}
 
-		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, GoalResource goalResource)
+		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, GoalDTO goalResource)
 		{
 			goalResource.add(selfLinkBuilder.withSelfRel());
 		}
 
-		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, GoalResource goalResource)
+		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, GoalDTO goalResource)
 		{
 			goalResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
 		}
