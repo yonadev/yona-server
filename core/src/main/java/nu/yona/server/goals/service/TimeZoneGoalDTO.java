@@ -21,7 +21,7 @@ public class TimeZoneGoalDTO extends GoalDTO
 		this(null, activityCategoryName, zones);
 	}
 
-	public TimeZoneGoalDTO(UUID id, String activityCategoryName, String[] zones)
+	private TimeZoneGoalDTO(UUID id, String activityCategoryName, String[] zones)
 	{
 		super(id, activityCategoryName, false);
 
@@ -39,7 +39,7 @@ public class TimeZoneGoalDTO extends GoalDTO
 		return zones;
 	}
 
-	public static TimeZoneGoalDTO createInstance(TimeZoneGoal entity)
+	static TimeZoneGoalDTO createInstance(TimeZoneGoal entity)
 	{
 		return new TimeZoneGoalDTO(entity.getID(), entity.getActivityCategory().getName(), entity.getZones());
 	}
