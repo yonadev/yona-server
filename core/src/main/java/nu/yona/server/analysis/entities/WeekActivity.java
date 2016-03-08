@@ -7,7 +7,6 @@ import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -26,7 +25,6 @@ public class WeekActivity extends IntervalActivity
 	}
 
 	@ManyToOne
-	@JoinColumn(name = "user_anonymized_id")
 	private UserAnonymized userAnonymized;
 
 	@OneToMany(cascade = CascadeType.ALL)

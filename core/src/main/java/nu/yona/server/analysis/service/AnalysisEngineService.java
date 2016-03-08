@@ -159,7 +159,6 @@ public class AnalysisEngineService
 		if (weekActivity == null)
 		{
 			weekActivity = WeekActivity.createInstance(userAnonymizedEntity, matchingGoal, startOfWeek);
-			userAnonymizedEntity.addWeekActivity(weekActivity);
 		}
 		weekActivity.addDayActivity(dayActivity);
 		cacheService.updateWeekActivityForUser(weekActivity);

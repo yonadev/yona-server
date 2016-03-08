@@ -13,7 +13,6 @@ import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -39,9 +38,6 @@ public class UserAnonymized extends EntityWithID
 	@OneToMany(cascade = CascadeType.ALL)
 	private Set<Goal> goals;
 
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "userAnonymized", fetch = FetchType.LAZY)
-	private List<WeekActivity> weekActivities;
-
 	@OneToMany
 	private Set<BuddyAnonymized> buddiesAnonymized;
 
@@ -57,22 +53,11 @@ public class UserAnonymized extends EntityWithID
 		this.anonymousDestination = anonymousDestination;
 		this.goals = new HashSet<>(goals);
 		this.buddiesAnonymized = new HashSet<>();
-		this.weekActivities = weekActivities;
 	}
 
 	public Set<Goal> getGoals()
 	{
 		return Collections.unmodifiableSet(goals);
-	}
-
-	public List<WeekActivity> getWeekActivities()
-	{
-		return Collections.unmodifiableList(weekActivities);
-	}
-
-	public void addWeekActivity(WeekActivity weekActivity)
-	{
-		weekActivities.add(weekActivity);
 	}
 
 	public MessageDestination getAnonymousDestination()

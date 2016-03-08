@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
@@ -214,6 +215,10 @@ public class UserService
 		{
 			throw UserOverwriteConfirmationException.confirmationCodeMismatch(mobileNumber, overwriteUserConfirmationCode);
 		}
+
+		// notice we can't delete the associated anonymized data
+		// because the anonymized data cannot be retrieved
+		// (the relation is encrypted, the password is not available)
 		User.getRepository().delete(existingUserEntity);
 	}
 
@@ -357,6 +362,8 @@ public class UserService
 		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
 				DropBuddyReason.USER_ACCOUNT_DELETED));
 
+		WeekActivity.getRepository().deleteAllForUser(userEntity.getUserAnonymizedID());
+
 		UUID vpnLoginID = userEntity.getVPNLoginID();
 		UUID userAnonymizedID = userEntity.getUserAnonymizedID();
 		userAnonymizedService.deleteUserAnonymized(userAnonymizedID);
@@ -367,7 +374,7 @@ public class UserService
 		User.getRepository().delete(userEntity);
 
 		ldapUserService.deleteVPNAccount(vpnLoginID.toString());
-		logger.info("Updated user with mobile number '{}' and ID '{}'", userEntity.getMobileNumber(), userEntity.getID());
+		logger.info("Deleted user with mobile number '{}' and ID '{}'", userEntity.getMobileNumber(), userEntity.getID());
 	}
 
 	@Transactional

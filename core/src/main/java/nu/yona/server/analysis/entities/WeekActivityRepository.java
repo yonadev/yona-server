@@ -3,6 +3,7 @@ package nu.yona.server.analysis.entities;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -15,4 +16,8 @@ public interface WeekActivityRepository extends CrudRepository<WeekActivity, UUI
 			+ " where a.userAnonymized.id = :userAnonymizedID and a.goal.id = :goalID and a.startTime = :startOfWeek")
 	WeekActivity findOne(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("goalID") UUID goalID,
 			@Param("startOfWeek") ZonedDateTime startOfWeek);
+
+	@Modifying
+	@Query("delete from WeekActivity a where a.userAnonymized.id = :userAnonymizedID")
+	void deleteAllForUser(@Param("userAnonymizedID") UUID userAnonymizedID);
 }
