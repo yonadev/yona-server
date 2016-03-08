@@ -846,7 +846,7 @@ definitions:
     required:
     - "@type"
     - activityCategoryName
-  PostPutBudgetGoal:
+  BudgetGoal:
     allOf:
       - $ref: '#/definitions/PostPutGoal'
     properties:
@@ -856,7 +856,7 @@ definitions:
         example: 0
     required:
       - maxDuration
-  PostPutTimeZoneGoal:
+  TimeZoneGoal:
     allOf:
       - $ref: '#/definitions/PostPutGoal'
     properties:
