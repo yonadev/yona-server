@@ -837,6 +837,7 @@ definitions:
         type: string
         enum:
         - BudgetGoal
+		- TimeZoneGoal
         description: The type of goal
       activityCategoryName:
         type: string
@@ -846,9 +847,13 @@ definitions:
         type: integer
         description: The budget (duration) for this goal
         example: 0
+      zones:
+        type: array
+		items:
+		  type: string
+        description: The zones for this goal
     required:
     - "@type"
-    - maxDuration
     - activityCategoryName
   Goal:
     allOf:
