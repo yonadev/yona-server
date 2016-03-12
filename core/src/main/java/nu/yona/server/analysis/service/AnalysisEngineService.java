@@ -19,6 +19,7 @@ import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.WeekActivity;
+import nu.yona.server.analysis.service.IntervalActivityDTO.ActivityTimeInterval;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDTO;
 import nu.yona.server.goals.service.ActivityCategoryService;
@@ -159,7 +160,7 @@ public class AnalysisEngineService
 
 		ZonedDateTime startOfWeek = getStartOfWeek(payload.startTime, userAnonymized);
 		WeekActivity weekActivity = cacheService.fetchWeekActivityForUser(userAnonymized.getID(), matchingGoal.getID(),
-				startOfWeek);
+				startOfWeek.toLocalDate());
 		if (weekActivity == null)
 		{
 			weekActivity = WeekActivity.createInstance(userAnonymizedEntity, matchingGoal, startOfWeek);
@@ -214,6 +215,22 @@ public class AnalysisEngineService
 		Set<Goal> matchingGoalsOfUser = goalsOfUser.stream()
 				.filter(g -> matchingActivityCategoryIDs.contains(g.getActivityCategory().getID())).collect(Collectors.toSet());
 		return matchingGoalsOfUser;
+	}
+
+	public Set<IntervalActivityDTO> getIntervalActivity(UUID userID, ActivityTimeInterval timeInterval)
+	{
+		UUID userAnonymizedID = userService.getPrivateUser(userID).getPrivateData().getUserAnonymizedID();
+		switch (timeInterval.getTimeUnit())
+		{
+			case DAYS:
+				return DayActivity.getRepository().findAll(userAnonymizedID, timeInterval.getStartTime()).stream()
+						.map(a -> IntervalActivityDTO.createInstance(a)).collect(Collectors.toSet());
+			case WEEKS:
+				return WeekActivity.getRepository().findAll(userAnonymizedID, timeInterval.getStartTime()).stream()
+						.map(a -> IntervalActivityDTO.createInstance(a)).collect(Collectors.toSet());
+			default:
+				throw new IllegalArgumentException("Invalid time unit");
+		}
 	}
 
 	class ActivityPayload

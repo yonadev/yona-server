@@ -1,6 +1,7 @@
 package nu.yona.server.analysis.entities;
 
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -54,6 +55,12 @@ public class WeekActivity extends IntervalActivity
 	public ZonedDateTime getEndTime()
 	{
 		return getStartTime().plusDays(7);
+	}
+
+	@Override
+	public ChronoUnit getTimeUnit()
+	{
+		return ChronoUnit.WEEKS;
 	}
 
 	public void addDayActivity(DayActivity dayActivity)

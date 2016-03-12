@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import org.springframework.cache.annotation.CachePut;
@@ -29,9 +29,9 @@ public class AnalysisEngineCacheService
 		return DayActivity.getRepository().save(dayActivity);
 	}
 
-	public WeekActivity fetchWeekActivityForUser(UUID userAnonymizedID, UUID goalID, ZonedDateTime startOfWeek)
+	public WeekActivity fetchWeekActivityForUser(UUID userAnonymizedID, UUID goalID, LocalDate date)
 	{
-		return WeekActivity.getRepository().findOne(userAnonymizedID, goalID, startOfWeek);
+		return WeekActivity.getRepository().findOne(userAnonymizedID, goalID, date);
 	}
 
 	public WeekActivity updateWeekActivityForUser(WeekActivity weekActivity)
