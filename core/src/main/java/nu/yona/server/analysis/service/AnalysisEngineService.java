@@ -78,8 +78,12 @@ public class AnalysisEngineService
 	private void addOrUpdateActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
 	{
 		Date minEndTime = new Date(payload.startTime.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
-		DayActivity dayActivity = cacheService.fetchDayActivityForUser(userAnonymized.getID(), matchingGoal.getID(),
-				getStartOfDay(payload.startTime, userAnonymized));
+		DayActivity dayActivity = cacheService.fetchDayActivityForUser(userAnonymized.getID(), matchingGoal.getID());
+		if (dayActivity.getStartTime().isBefore(getStartOfDay(payload.startTime, userAnonymized)))
+		{
+			// Last day cached was yesterday
+			dayActivity = null;
+		}
 		Activity activity = dayActivity == null ? null : dayActivity.getLastActivity();
 
 		if (activity == null || activity.getEndTime().before(minEndTime))
