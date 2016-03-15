@@ -49,7 +49,7 @@ public class TimeZoneGoal extends Goal
 	@Override
 	public boolean isGoalAccomplished(DayActivity dayActivity)
 	{
-		// TODO
+		// TODO: zones should be parsed? maybe in spread format
 		return true;
 	}
 }
