@@ -1,7 +1,7 @@
 package nu.yona.server.analysis.service;
 
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -11,10 +11,10 @@ public abstract class IntervalActivityDTO
 	private UUID goalID;
 	private ZonedDateTime startTime;
 
-	private int[] spread;
+	private List<Integer> spread;
 	private int totalActivityDurationMinutes;
 
-	protected IntervalActivityDTO(UUID goalID, ZonedDateTime startTime, int[] spread, int totalActivityDurationMinutes)
+	protected IntervalActivityDTO(UUID goalID, ZonedDateTime startTime, List<Integer> spread, int totalActivityDurationMinutes)
 	{
 		this.goalID = goalID;
 		this.startTime = startTime;
@@ -36,9 +36,9 @@ public abstract class IntervalActivityDTO
 	/*
 	 * The time zone in which the interval was recorded.
 	 */
-	public ZoneId getZoneId()
+	public String getTimeZoneId()
 	{
-		return startTime.getZone();
+		return startTime.getZone().getId();
 	}
 
 	/*
@@ -51,7 +51,7 @@ public abstract class IntervalActivityDTO
 		return goalID;
 	}
 
-	public int[] getSpread()
+	public List<Integer> getSpread()
 	{
 		return spread;
 	}

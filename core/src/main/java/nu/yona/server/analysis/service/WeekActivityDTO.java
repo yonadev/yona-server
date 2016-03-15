@@ -3,6 +3,7 @@ package nu.yona.server.analysis.service;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
@@ -14,7 +15,7 @@ public class WeekActivityDTO extends IntervalActivityDTO
 {
 	private final static String iso8601WeekFormat = "yyyy-'W'w";
 
-	private WeekActivityDTO(UUID goalID, ZonedDateTime startTime, int[] spread, int totalActivityDurationMinutes)
+	private WeekActivityDTO(UUID goalID, ZonedDateTime startTime, List<Integer> spread, int totalActivityDurationMinutes)
 	{
 		super(goalID, startTime, spread, totalActivityDurationMinutes);
 	}

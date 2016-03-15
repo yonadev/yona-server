@@ -36,11 +36,11 @@ public class DayActivity extends IntervalActivity
 	// Default constructor is required for JPA
 	public DayActivity()
 	{
-		super(null, null, null, null, 0, false);
+		super();
 	}
 
 	private DayActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay, List<Activity> activities,
-			int[] spread, int totalActivityDurationMinutes, boolean goalAccomplished, boolean aggregatesComputed)
+			List<Integer> spread, int totalActivityDurationMinutes, boolean goalAccomplished, boolean aggregatesComputed)
 	{
 		super(id, goal, startOfDay, spread, totalActivityDurationMinutes, aggregatesComputed);
 
@@ -82,9 +82,9 @@ public class DayActivity extends IntervalActivity
 	}
 
 	@Override
-	protected int[] computeSpread()
+	protected List<Integer> computeSpread()
 	{
-		int[] result = new int[IntervalActivity.SPREAD_COUNT];
+		List<Integer> result = getEmptySpread();
 		// TODO: add from activities
 		return result;
 	}
@@ -113,6 +113,6 @@ public class DayActivity extends IntervalActivity
 	public static DayActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay)
 	{
 		return new DayActivity(UUID.randomUUID(), userAnonymized, goal, startOfDay, new ArrayList<Activity>(),
-				new int[IntervalActivity.SPREAD_COUNT], 0, true, false);
+				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, true, false);
 	}
 }

@@ -3,8 +3,11 @@ package nu.yona.server.analysis.entities;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 
@@ -29,13 +32,21 @@ public abstract class IntervalActivity extends EntityWithID
 	 */
 	private ZonedDateTime startTime;
 
-	private int[] spread;
+	@ElementCollection
+	private List<Integer> spread;
+
 	private int totalActivityDurationMinutes;
 
 	private boolean aggregatesComputed;
 
-	protected IntervalActivity(UUID id, Goal goal, ZonedDateTime startTime, int[] spread, int totalActivityDurationMinutes,
-			boolean aggregatesComputed)
+	// Default constructor for JPA
+	protected IntervalActivity()
+	{
+		super(null);
+	}
+
+	protected IntervalActivity(UUID id, Goal goal, ZonedDateTime startTime, List<Integer> spread,
+			int totalActivityDurationMinutes, boolean aggregatesComputed)
 	{
 		super(id);
 		this.goal = goal;
@@ -70,7 +81,7 @@ public abstract class IntervalActivity extends EntityWithID
 
 	public abstract ChronoUnit getTimeUnit();
 
-	public int[] getSpread()
+	public List<Integer> getSpread()
 	{
 		if (areAggregatesComputed())
 		{
@@ -80,7 +91,7 @@ public abstract class IntervalActivity extends EntityWithID
 		return computeSpread();
 	}
 
-	protected abstract int[] computeSpread();
+	protected abstract List<Integer> computeSpread();
 
 	public int getTotalActivityDurationMinutes()
 	{
@@ -93,4 +104,11 @@ public abstract class IntervalActivity extends EntityWithID
 	}
 
 	protected abstract int computeTotalActivityDurationMinutes();
+
+	protected static List<Integer> getEmptySpread()
+	{
+		return Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	}
 }

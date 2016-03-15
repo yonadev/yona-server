@@ -21,7 +21,14 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 200
-		response.responseData
+		response.responseData._embedded
+		response.responseData._embedded."yona:dayActivities"
+		response.responseData._embedded."yona:dayActivities".size() == 1
+		//response.responseData._embedded."yona:dayActivities"[0].spread
+		response.responseData._embedded."yona:dayActivities"[0].totalActivityDurationMinutes == 0
+		response.responseData._embedded."yona:dayActivities"[0].goalAccomplished == false
+		response.responseData._embedded."yona:dayActivities"[0].date
+		response.responseData._embedded."yona:dayActivities"[0].timeZoneId == "Europe/Amsterdam"
 	}
 
 	def 'Get weeks activity'()
@@ -35,6 +42,12 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 200
-		response.responseData
+		response.responseData._embedded
+		response.responseData._embedded."yona:weekActivities"
+		response.responseData._embedded."yona:weekActivities".size() == 1
+		//response.responseData._embedded."yona:weekActivities"[0].spread
+		response.responseData._embedded."yona:weekActivities"[0].totalActivityDurationMinutes == 0
+		response.responseData._embedded."yona:weekActivities"[0].date
+		response.responseData._embedded."yona:weekActivities"[0].timeZoneId == "Europe/Amsterdam"
 	}
 }

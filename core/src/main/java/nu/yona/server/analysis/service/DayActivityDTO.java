@@ -3,6 +3,7 @@ package nu.yona.server.analysis.service;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -20,7 +21,7 @@ public class DayActivityDTO extends IntervalActivityDTO
 	private boolean goalAccomplished;
 	private Set<MessageDTO> messages;
 
-	private DayActivityDTO(UUID goalID, ZonedDateTime startTime, int[] spread, int totalActivityDurationMinutes,
+	private DayActivityDTO(UUID goalID, ZonedDateTime startTime, List<Integer> spread, int totalActivityDurationMinutes,
 			boolean goalAccomplished, Set<MessageDTO> messages)
 	{
 		super(goalID, startTime, spread, totalActivityDurationMinutes);

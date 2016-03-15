@@ -34,11 +34,11 @@ public class WeekActivity extends IntervalActivity
 	// Default constructor is required for JPA
 	public WeekActivity()
 	{
-		super(null, null, null, null, 0, false);
+		super();
 	}
 
 	private WeekActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek,
-			List<DayActivity> dayActivities, int[] spread, int totalActivityDurationMinutes, boolean aggregatesComputed)
+			List<DayActivity> dayActivities, List<Integer> spread, int totalActivityDurationMinutes, boolean aggregatesComputed)
 	{
 		super(id, goal, startOfWeek, spread, totalActivityDurationMinutes, aggregatesComputed);
 
@@ -69,18 +69,18 @@ public class WeekActivity extends IntervalActivity
 	}
 
 	@Override
-	protected int[] computeSpread()
+	protected List<Integer> computeSpread()
 	{
-		return this.dayActivities.stream().map(dayActivity -> dayActivity.getSpread())
-				.reduce(new int[IntervalActivity.SPREAD_COUNT], (one, other) -> sumSpread(one, other));
+		return this.dayActivities.stream().map(dayActivity -> dayActivity.getSpread()).reduce(getEmptySpread(),
+				(one, other) -> sumSpread(one, other));
 	}
 
-	private int[] sumSpread(int[] one, int[] other)
+	private List<Integer> sumSpread(List<Integer> one, List<Integer> other)
 	{
-		int[] result = new int[IntervalActivity.SPREAD_COUNT];
+		List<Integer> result = new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT);
 		for (int i = 0; i < IntervalActivity.SPREAD_COUNT; i++)
 		{
-			result[i] = one[i] + other[i];
+			result.add(one.get(i) + other.get(i));
 		}
 		return result;
 	}
@@ -95,6 +95,6 @@ public class WeekActivity extends IntervalActivity
 	public static WeekActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek)
 	{
 		return new WeekActivity(UUID.randomUUID(), userAnonymized, goal, startOfWeek, new ArrayList<DayActivity>(),
-				new int[IntervalActivity.SPREAD_COUNT], 0, false);
+				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, false);
 	}
 }
