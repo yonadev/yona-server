@@ -40,7 +40,7 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/UserWithPrivateData'
+            $ref: '#/definitions/Error'
   '/users/{id}':
     parameters:
       - name: id

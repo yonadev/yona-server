@@ -109,7 +109,8 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages.size() == 1
 		goalChangeMessages[0].change == 'GOAL_ADDED'
 		goalChangeMessages[0].changedGoal.activityCategoryName == 'social'
-		goalChangeMessages[0].user.firstName == 'Richard'
+		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
 		assertEquals(goalChangeMessages[0].creationTime, new Date())
 		goalChangeMessages[0].message == "Going to restrict my social time!"

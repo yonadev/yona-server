@@ -9,6 +9,11 @@ public class SecurityProperties
 	private boolean isDosProtectionEnabled = false;
 	private int maxCreateUserAttemptsPerTimeWindow = 1;
 
+	/**
+	 * If true, Cross Origin Resource Sharing is allowed. This is necessary for Swagger UI.
+	 */
+	private boolean isCorsAllowed;
+
 	public int getNewDeviceRequestExpirationDays()
 	{
 		return newDeviceRequestExpirationDays;
@@ -67,5 +72,15 @@ public class SecurityProperties
 	public void setMaxCreateUserAttemptsPerTimeWindow(int maxCreateUserAttemptsPerTimeWindow)
 	{
 		this.maxCreateUserAttemptsPerTimeWindow = maxCreateUserAttemptsPerTimeWindow;
+	}
+
+	public void setCorsAllowed(boolean isCorsAllowed)
+	{
+		this.isCorsAllowed = isCorsAllowed;
+	}
+
+	public boolean isCorsAllowed()
+	{
+		return isCorsAllowed;
 	}
 }
