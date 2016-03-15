@@ -31,18 +31,22 @@ public class DayActivity extends IntervalActivity
 	@OneToMany(cascade = CascadeType.ALL)
 	private List<Activity> activities;
 
+	private boolean goalAccomplished;
+
 	// Default constructor is required for JPA
 	public DayActivity()
 	{
-		super(null, null, null);
+		super(null, null, null, null, 0, false);
 	}
 
-	private DayActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay, List<Activity> activities)
+	private DayActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay, List<Activity> activities,
+			int[] spread, int totalActivityDurationMinutes, boolean goalAccomplished, boolean aggregatesComputed)
 	{
-		super(id, goal, startOfDay);
+		super(id, goal, startOfDay, spread, totalActivityDurationMinutes, aggregatesComputed);
 
 		this.userAnonymized = userAnonymized;
 		this.activities = activities;
+		this.goalAccomplished = goalAccomplished;
 	}
 
 	public UserAnonymized getUserAnonymized()
@@ -77,8 +81,38 @@ public class DayActivity extends IntervalActivity
 		this.activities.add(activity);
 	}
 
+	@Override
+	protected int[] computeSpread()
+	{
+		int[] result = new int[IntervalActivity.SPREAD_COUNT];
+		// TODO: add from activities
+		return result;
+	}
+
+	@Override
+	protected int computeTotalActivityDurationMinutes()
+	{
+		return activities.stream().map(activity -> activity.getDurationMinutes()).reduce(0, Integer::sum);
+	}
+
+	public boolean isGoalAccomplished()
+	{
+		if (areAggregatesComputed())
+		{
+			return goalAccomplished;
+		}
+
+		return computeGoalAccomplished();
+	}
+
+	private boolean computeGoalAccomplished()
+	{
+		return this.getGoal().isGoalAccomplished(this);
+	}
+
 	public static DayActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay)
 	{
-		return new DayActivity(UUID.randomUUID(), userAnonymized, goal, startOfDay, new ArrayList<Activity>());
+		return new DayActivity(UUID.randomUUID(), userAnonymized, goal, startOfDay, new ArrayList<Activity>(),
+				new int[IntervalActivity.SPREAD_COUNT], 0, true, false);
 	}
 }

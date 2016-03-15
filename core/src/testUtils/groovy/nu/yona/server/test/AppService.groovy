@@ -361,6 +361,16 @@ class AppService extends Service
 		yonaServer.getResourceWithPassword(user.messagesUrl, user.password, parameters)
 	}
 
+	def getWeeksActivity(User user, parameters = [:])
+	{
+		yonaServer.getResourceWithPassword(user.weeksActivityUrl, user.password, parameters)
+	}
+
+	def getDaysActivity(User user, parameters = [:])
+	{
+		yonaServer.getResourceWithPassword(user.daysActivityUrl, user.password, parameters)
+	}
+
 	def setNewDeviceRequest(newDeviceRequestUrl, password, userSecret)
 	{
 		def jsonString = """{ "userSecret": "$userSecret" }"""

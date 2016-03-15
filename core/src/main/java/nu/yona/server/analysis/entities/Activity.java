@@ -2,6 +2,7 @@ package nu.yona.server.analysis.entities;
 
 import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -46,6 +47,11 @@ public class Activity extends EntityWithID
 	public void setEndTime(Date endTime)
 	{
 		this.endTime = endTime;
+	}
+
+	public int getDurationMinutes()
+	{
+		return (int) TimeUnit.MILLISECONDS.toMinutes(this.getEndTime().getTime() - this.getStartTime().getTime());
 	}
 
 	public static Activity createInstance(Date startTime, Date endTime)

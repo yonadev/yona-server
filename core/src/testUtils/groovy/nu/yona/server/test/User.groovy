@@ -27,6 +27,8 @@ class User
 	final String buddiesUrl
 	final String goalsUrl
 	final String messagesUrl
+	final String daysActivityUrl
+	final String weeksActivityUrl
 	final String newDeviceRequestUrl
 	final String appActivityUrl
 	final String password
@@ -67,6 +69,8 @@ class User
 		this.buddiesUrl = json._embedded?."yona:buddies"?._links?.self?.href
 		this.goalsUrl = json._embedded?."yona:goals"?._links?.self?.href
 		this.messagesUrl = json._links?."yona:messages"?.href
+		this.daysActivityUrl = json._links?."yona:daysActivity"?.href
+		this.weeksActivityUrl = json._links?."yona:weeksActivity"?.href
 		this.newDeviceRequestUrl = json._links?."yona:newDeviceRequest"?.href
 		this.appActivityUrl = json._links?."yona:appActivity"?.href
 	}

@@ -3,26 +3,46 @@ package nu.yona.server.analysis.service;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Set;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.DayActivity;
+import nu.yona.server.messaging.service.MessageDTO;
 
 @JsonRootName("dayActivity")
 public class DayActivityDTO extends IntervalActivityDTO
 {
 	private final static String iso8601DayFormat = "yyyy-MM-dd";
 
-	private DayActivityDTO(UUID goalID, ZonedDateTime startTime)
+	private boolean goalAccomplished;
+	private Set<MessageDTO> messages;
+
+	private DayActivityDTO(UUID goalID, ZonedDateTime startTime, int[] spread, int totalActivityDurationMinutes,
+			boolean goalAccomplished, Set<MessageDTO> messages)
 	{
-		super(goalID, startTime);
+		super(goalID, startTime, spread, totalActivityDurationMinutes);
+		this.goalAccomplished = goalAccomplished;
+		this.messages = messages;
 	}
 
 	@Override
 	public String getDate()
 	{
 		return getStartTime().toLocalDate().format(DateTimeFormatter.ofPattern(iso8601DayFormat));
+	}
+
+	public boolean isGoalAccomplished()
+	{
+		return goalAccomplished;
+	}
+
+	@JsonIgnore
+	public Set<MessageDTO> getMessages()
+	{
+		return messages;
 	}
 
 	public static LocalDate parseDate(String iso8601)
@@ -32,6 +52,8 @@ public class DayActivityDTO extends IntervalActivityDTO
 
 	static DayActivityDTO createInstance(DayActivity dayActivity)
 	{
-		return new DayActivityDTO(dayActivity.getGoal().getID(), dayActivity.getStartTime());
+		// TODO: fetch related messages
+		return new DayActivityDTO(dayActivity.getGoal().getID(), dayActivity.getStartTime(), dayActivity.getSpread(),
+				dayActivity.getTotalActivityDurationMinutes(), dayActivity.isGoalAccomplished(), null);
 	}
 }

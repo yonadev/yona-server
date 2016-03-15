@@ -94,6 +94,18 @@ public class ActivityController
 				HttpStatus.OK));
 	}
 
+	public static ControllerLinkBuilder getDaysActivityLinkBuilder(UUID userID)
+	{
+		ActivityController methodOn = methodOn(ActivityController.class);
+		return linkTo(methodOn.getDaysActivity(null, userID, null, null));
+	}
+
+	public static ControllerLinkBuilder getWeeksActivityLinkBuilder(UUID userID)
+	{
+		ActivityController methodOn = methodOn(ActivityController.class);
+		return linkTo(methodOn.getWeeksActivity(null, userID, null, null));
+	}
+
 	static ControllerLinkBuilder getDayActivityLinkBuilder(UUID userID, String dateStr, UUID goalID)
 	{
 		ActivityController methodOn = methodOn(ActivityController.class);
@@ -155,8 +167,8 @@ public class ActivityController
 
 		private void addGoalLink(WeekActivityResource weekActivityResource)
 		{
-			weekActivityResource
-					.add(GoalController.getGoalLinkBuilder(userID, weekActivityResource.getContent().getGoalID()).withRel("goal"));
+			weekActivityResource.add(
+					GoalController.getGoalLinkBuilder(userID, weekActivityResource.getContent().getGoalID()).withRel("goal"));
 		}
 	}
 

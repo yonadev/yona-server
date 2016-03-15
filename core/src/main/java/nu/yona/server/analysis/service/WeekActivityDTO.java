@@ -14,9 +14,9 @@ public class WeekActivityDTO extends IntervalActivityDTO
 {
 	private final static String iso8601WeekFormat = "yyyy-'W'w";
 
-	private WeekActivityDTO(UUID goalID, ZonedDateTime startTime)
+	private WeekActivityDTO(UUID goalID, ZonedDateTime startTime, int[] spread, int totalActivityDurationMinutes)
 	{
-		super(goalID, startTime);
+		super(goalID, startTime, spread, totalActivityDurationMinutes);
 	}
 
 	@Override
@@ -32,6 +32,7 @@ public class WeekActivityDTO extends IntervalActivityDTO
 
 	static WeekActivityDTO createInstance(WeekActivity weekActivity)
 	{
-		return new WeekActivityDTO(weekActivity.getGoal().getID(), weekActivity.getStartTime());
+		return new WeekActivityDTO(weekActivity.getGoal().getID(), weekActivity.getStartTime(), weekActivity.getSpread(),
+				weekActivity.getTotalActivityDurationMinutes());
 	}
 }

@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import javax.persistence.Entity;
 
+import nu.yona.server.analysis.entities.DayActivity;
+
 @Entity
 public class BudgetGoal extends Goal
 {
@@ -52,5 +54,11 @@ public class BudgetGoal extends Goal
 	public boolean isMandatory()
 	{
 		return isNoGoGoal() && getActivityCategory().isMandatoryNoGo();
+	}
+
+	@Override
+	public boolean isGoalAccomplished(DayActivity dayActivity)
+	{
+		return dayActivity.getTotalActivityDurationMinutes() < this.getMaxDuration();
 	}
 }

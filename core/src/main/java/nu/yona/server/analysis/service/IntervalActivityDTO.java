@@ -11,10 +11,15 @@ public abstract class IntervalActivityDTO
 	private UUID goalID;
 	private ZonedDateTime startTime;
 
-	protected IntervalActivityDTO(UUID goalID, ZonedDateTime startTime)
+	private int[] spread;
+	private int totalActivityDurationMinutes;
+
+	protected IntervalActivityDTO(UUID goalID, ZonedDateTime startTime, int[] spread, int totalActivityDurationMinutes)
 	{
 		this.goalID = goalID;
 		this.startTime = startTime;
+		this.spread = spread;
+		this.totalActivityDurationMinutes = totalActivityDurationMinutes;
 	}
 
 	@JsonIgnore
@@ -44,5 +49,15 @@ public abstract class IntervalActivityDTO
 	public UUID getGoalID()
 	{
 		return goalID;
+	}
+
+	public int[] getSpread()
+	{
+		return spread;
+	}
+
+	public int getTotalActivityDurationMinutes()
+	{
+		return totalActivityDurationMinutes;
 	}
 }

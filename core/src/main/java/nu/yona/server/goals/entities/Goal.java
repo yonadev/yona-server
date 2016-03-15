@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
 
@@ -46,4 +47,6 @@ public abstract class Goal extends EntityWithID
 	public abstract boolean isMandatory();
 
 	public abstract boolean isNoGoGoal();
+
+	public abstract boolean isGoalAccomplished(DayActivity dayActivity);
 }
