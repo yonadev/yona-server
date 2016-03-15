@@ -38,7 +38,7 @@ public class AppServiceApplication
 				if (yonaProperties.getSecurity().isCorsAllowed())
 				{
 					// Enable CORS for the other resources, to allow testing the API through Swagger UI.
-					registry.addMapping("/**");
+					registry.addMapping("/**").allowedMethods("GET", "HEAD", "POST", "PUT", "DELETE");
 				}
 			}
 		};
