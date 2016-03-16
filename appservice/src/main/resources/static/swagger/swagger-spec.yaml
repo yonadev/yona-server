@@ -438,6 +438,41 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  '/users/{userID}/activity/days/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get day network and app activity
+      description: Get activity of the current day, pageable to yesterday and before 
+      parameters:
+        - name: size
+          in: query
+          description: The number of elements to be fetched
+          required: false
+          default: 10
+          type: number
+        - name: page
+          in: query
+          description: The page to be fetched
+          required: false
+          default: 10
+          type: number
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of this user.
+          schema:
+            $ref: '#/definitions/PagedDayActivity'
   '/users/{userID}/messages/':
     parameters:
       - name: userID
@@ -1166,6 +1201,115 @@ definitions:
     required:
       - status
       - _links
+  PagedDayActivity:
+    type: object
+    properties:
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+        properties:
+          next:
+            properties:
+              href:
+                type: string
+                description: Link to next page, if available
+            required:
+              - href
+          self:
+            properties:
+              href:
+                type: string
+                description: Identifies this same resource
+            required:
+              - href
+          prev:
+            properties:
+              href:
+                type: string
+                description: Link to previous page, if available
+            required:
+              - href
+        required:
+          - next
+          - self
+          - prev
+      _embedded:
+        properties:
+          "yona:dayActivities":
+            type: array
+            items:
+              $ref: '#/definitions/DayActivity'
+      page:
+        description: Information about the current page
+        properties:
+          size:
+            type: string
+            description: The number of elements on the current page
+          totalElements:
+            type: string
+            description: The total number of elements
+            example: 300
+          totalPages:
+            type: string
+            description: The total number of pages
+            example: 15
+          number:
+            type: string
+            description: The current page number.
+            example: 1
+        required:
+          - size
+          - totalElements
+          - totalPages
+          - number
+    required:
+      - _links
+      - _embedded
+      - page
+  DayActivity:
+    allOf:
+      - $ref: '#/definitions/IntervalActivity'
+    properties:
+      date:
+        type: string
+        example: 2016-03-16
+        description: The day date
+      goalAccomplished:
+        type: boolean
+        description: If the goal for this day was accomplished. If the day is not yet over, if the goal for this day was accomplished so far
+  IntervalActivity:
+    type: object
+    properties:
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+        properties:
+          "yona:goal":
+            type: object
+            properties:
+              href:
+                type: string
+            required:
+              - href
+            description: Link to the goal for which activity was recorded
+      spread:
+        type: array
+        items:
+          type: integer
+        description: Aggregates all activity on every quarter hour of the day (of which there are 96)
+      totalActivityDurationMinutes:
+        type: integer
+        description: Total minutes spent on the activity category during this interval
+      timeZoneId:
+        type: string
+        description: The time zone identifier that the user had configured for this day
+        example: Europe/Amsterdam
+    required:
+      - spread
+      - totalActivityDurationMinutes
+      - timeZoneId
   PagedMessages:
     type: object
     properties:
