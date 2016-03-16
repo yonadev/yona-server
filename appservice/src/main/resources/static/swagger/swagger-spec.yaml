@@ -850,12 +850,12 @@ definitions:
     allOf:
       - $ref: '#/definitions/PostPutGoal'
     properties:
-      maxDuration:
+      maxDurationMinutes:
         type: integer
         description: The budget (duration) for this goal
         example: 0
     required:
-      - maxDuration
+      - maxDurationMinutes
   TimeZoneGoal:
     allOf:
       - $ref: '#/definitions/PostPutGoal'
