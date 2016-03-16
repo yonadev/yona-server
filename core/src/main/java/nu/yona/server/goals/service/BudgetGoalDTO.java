@@ -12,20 +12,20 @@ import nu.yona.server.goals.entities.BudgetGoal;
 @JsonRootName("budgetGoal")
 public class BudgetGoalDTO extends GoalDTO
 {
-	private final int maxDuration;
+	private final int maxDurationMinutes;
 
 	@JsonCreator
 	public BudgetGoalDTO(@JsonProperty("activityCategoryName") String activityCategoryName,
-			@JsonProperty("maxDuration") int maxDuration)
+			@JsonProperty("maxDurationMinutes") int maxDurationMinutes)
 	{
-		this(null, activityCategoryName, maxDuration, false /* ignored */);
+		this(null, activityCategoryName, maxDurationMinutes, false /* ignored */);
 	}
 
-	public BudgetGoalDTO(UUID id, String activityCategoryName, int maxDuration, boolean mandatory)
+	public BudgetGoalDTO(UUID id, String activityCategoryName, int maxDurationMinutes, boolean mandatory)
 	{
 		super(id, activityCategoryName, mandatory);
 
-		this.maxDuration = maxDuration;
+		this.maxDurationMinutes = maxDurationMinutes;
 	}
 
 	@Override
@@ -34,14 +34,14 @@ public class BudgetGoalDTO extends GoalDTO
 		return "BudgetGoal";
 	}
 
-	public int getMaxDuration()
+	public int getMaxDurationMinutes()
 	{
-		return maxDuration;
+		return maxDurationMinutes;
 	}
 
 	public static BudgetGoalDTO createInstance(BudgetGoal entity)
 	{
-		return new BudgetGoalDTO(entity.getID(), entity.getActivityCategory().getName(), entity.getMaxDuration(),
+		return new BudgetGoalDTO(entity.getID(), entity.getActivityCategory().getName(), entity.getMaxDurationMinutes(),
 				entity.isMandatory());
 	}
 
@@ -52,6 +52,6 @@ public class BudgetGoalDTO extends GoalDTO
 		{
 			throw ActivityCategoryNotFoundException.notFoundByName(this.getActivityCategoryName());
 		}
-		return BudgetGoal.createInstance(activityCategory, this.maxDuration);
+		return BudgetGoal.createInstance(activityCategory, this.maxDurationMinutes);
 	}
 }

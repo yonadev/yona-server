@@ -67,7 +67,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		addedGoal
-		addedGoal.maxDuration == 60
+		addedGoal.maxDurationMinutes == 60
 
 		def responseGoalsAfterAdd = appService.getGoals(richard)
 		responseGoalsAfterAdd.status == 200
