@@ -16,7 +16,7 @@ import nu.yona.server.messaging.service.MessageDTO;
 @JsonRootName("dayActivity")
 public class DayActivityDTO extends IntervalActivityDTO
 {
-	private final static String iso8601DayFormat = "yyyy-MM-dd";
+	private final static String ISO8601_DAY_FORMAT = "yyyy-MM-dd";
 
 	private boolean goalAccomplished;
 	private Set<MessageDTO> messages;
@@ -32,7 +32,7 @@ public class DayActivityDTO extends IntervalActivityDTO
 	@Override
 	public String getDate()
 	{
-		return getStartTime().toLocalDate().format(DateTimeFormatter.ofPattern(iso8601DayFormat));
+		return getStartTime().toLocalDate().format(DateTimeFormatter.ofPattern(ISO8601_DAY_FORMAT));
 	}
 
 	public boolean isGoalAccomplished()
@@ -48,7 +48,7 @@ public class DayActivityDTO extends IntervalActivityDTO
 
 	public static LocalDate parseDate(String iso8601)
 	{
-		return LocalDate.parse(iso8601, DateTimeFormatter.ofPattern(iso8601DayFormat));
+		return LocalDate.parse(iso8601, DateTimeFormatter.ofPattern(ISO8601_DAY_FORMAT));
 	}
 
 	static DayActivityDTO createInstance(DayActivity dayActivity)

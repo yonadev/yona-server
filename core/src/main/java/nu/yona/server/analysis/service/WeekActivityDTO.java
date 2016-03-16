@@ -13,7 +13,7 @@ import nu.yona.server.analysis.entities.WeekActivity;
 @JsonRootName("weekActivity")
 public class WeekActivityDTO extends IntervalActivityDTO
 {
-	private final static String iso8601WeekFormat = "yyyy-'W'w";
+	private final static String ISO8601_WEEK_FORMAT = "yyyy-'W'w";
 
 	private WeekActivityDTO(UUID goalID, ZonedDateTime startTime, List<Integer> spread, int totalActivityDurationMinutes)
 	{
@@ -23,12 +23,12 @@ public class WeekActivityDTO extends IntervalActivityDTO
 	@Override
 	public String getDate()
 	{
-		return getStartTime().toLocalDate().format(DateTimeFormatter.ofPattern(iso8601WeekFormat));
+		return getStartTime().toLocalDate().format(DateTimeFormatter.ofPattern(ISO8601_WEEK_FORMAT));
 	}
 
 	public static LocalDate parseDate(String iso8601)
 	{
-		return LocalDate.parse(iso8601, DateTimeFormatter.ofPattern(iso8601WeekFormat));
+		return LocalDate.parse(iso8601, DateTimeFormatter.ofPattern(ISO8601_WEEK_FORMAT));
 	}
 
 	static WeekActivityDTO createInstance(WeekActivity weekActivity)
