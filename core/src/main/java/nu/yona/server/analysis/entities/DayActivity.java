@@ -1,5 +1,6 @@
 package nu.yona.server.analysis.entities;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -85,8 +86,53 @@ public class DayActivity extends IntervalActivity
 	protected List<Integer> computeSpread()
 	{
 		List<Integer> result = getEmptySpread();
-		// TODO: add from activities
+		for (Activity activity : activities)
+		{
+			// assumptions:
+			// - activities never overlap
+			// - activities never start before or end after the day
+			addToSpread(result, activity);
+		}
 		return result;
+	}
+
+	private void addToSpread(List<Integer> result, Activity activity)
+	{
+		ZoneId zone = getStartTime().getZone();
+		ZonedDateTime activityStartTime = activity.getStartTime().toInstant().atZone(zone);
+		ZonedDateTime activityEndTime = activity.getEndTime().toInstant().atZone(zone);
+		int spreadStartIndex = getSpreadIndex(activityStartTime);
+		int spreadEndIndex = getSpreadIndex(activityEndTime);
+		for (int spreadIndex = spreadStartIndex; spreadIndex <= spreadEndIndex; spreadIndex++)
+		{
+			int durationInSpreadItem;
+			if (spreadStartIndex == spreadEndIndex)
+			{
+				// partial span
+				durationInSpreadItem = activity.getDurationMinutes();
+			}
+			else if (spreadIndex == spreadStartIndex)
+			{
+				// start part
+				durationInSpreadItem = 15 - (activityStartTime.getMinute() % 15);
+			}
+			else if (spreadIndex == spreadEndIndex)
+			{
+				// end part
+				durationInSpreadItem = 1 + (activityEndTime.getMinute() % 15);
+			}
+			else
+			{
+				// total span
+				durationInSpreadItem = 15;
+			}
+			result.set(spreadIndex, result.get(spreadIndex) + durationInSpreadItem);
+		}
+	}
+
+	private int getSpreadIndex(ZonedDateTime atTime)
+	{
+		return (atTime.getHour() * 4) + (atTime.getMinute() / 15);
 	}
 
 	@Override

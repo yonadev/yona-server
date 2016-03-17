@@ -85,7 +85,7 @@ public class AnalysisEngineService
 		DayActivity dayActivity = cacheService.fetchDayActivityForUser(userAnonymized.getID(), matchingGoal.getID());
 		if (dayActivity != null && dayActivity.getStartTime().isBefore(getStartOfDay(payload.startTime, userAnonymized)))
 		{
-			// Last day cached was yesterday
+			// Last day cached was not today
 			dayActivity = null;
 		}
 		Activity activity = dayActivity == null ? null : dayActivity.getLastActivity();
