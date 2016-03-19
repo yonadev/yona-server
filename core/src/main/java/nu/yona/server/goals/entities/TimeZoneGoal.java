@@ -52,4 +52,11 @@ public class TimeZoneGoal extends Goal
 		// TODO: zones should be parsed? maybe in spread format
 		return true;
 	}
+
+	@Override
+	public int computeTotalMinutesBeyondGoal(DayActivity dayActivity)
+	{
+		// TODO compute from spread and allowed zones
+		return 0;
+	}
 }

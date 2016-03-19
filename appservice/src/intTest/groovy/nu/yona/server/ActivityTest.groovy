@@ -27,6 +27,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		//response.responseData._embedded."yona:dayActivities"[0].spread
 		response.responseData._embedded."yona:dayActivities"[0].totalActivityDurationMinutes == 0
 		response.responseData._embedded."yona:dayActivities"[0].goalAccomplished == false
+		response.responseData._embedded."yona:dayActivities"[0].totalMinutesBeyondGoal == 0
 		response.responseData._embedded."yona:dayActivities"[0].date
 		response.responseData._embedded."yona:dayActivities"[0].timeZoneId == "Europe/Amsterdam"
 	}

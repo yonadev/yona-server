@@ -61,4 +61,10 @@ public class BudgetGoal extends Goal
 	{
 		return dayActivity.getTotalActivityDurationMinutes() < this.getMaxDurationMinutes();
 	}
+
+	@Override
+	public int computeTotalMinutesBeyondGoal(DayActivity dayActivity)
+	{
+		return Math.max(dayActivity.getTotalActivityDurationMinutes() - this.getMaxDurationMinutes(), 0);
+	}
 }

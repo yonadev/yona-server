@@ -35,6 +35,7 @@ public class DayActivity extends IntervalActivity
 	private List<Activity> activities;
 
 	private boolean goalAccomplished;
+	private int totalMinutesBeyondGoal;
 
 	// Default constructor is required for JPA
 	public DayActivity()
@@ -133,7 +134,8 @@ public class DayActivity extends IntervalActivity
 		int spreadEndIndex = getSpreadIndex(endTime);
 		for (int spreadItemIndex = spreadStartIndex; spreadItemIndex <= spreadEndIndex; spreadItemIndex++)
 		{
-			int durationInSpreadItem = getDurationInSpreadItem(startTime, endTime, spreadStartIndex, spreadEndIndex, spreadItemIndex);
+			int durationInSpreadItem = getDurationInSpreadItem(startTime, endTime, spreadStartIndex, spreadEndIndex,
+					spreadItemIndex);
 			spread.set(spreadItemIndex, spread.get(spreadItemIndex) + durationInSpreadItem);
 		}
 	}
@@ -172,6 +174,21 @@ public class DayActivity extends IntervalActivity
 	protected int computeTotalActivityDurationMinutes()
 	{
 		return activities.stream().map(activity -> activity.getDurationMinutes()).reduce(0, Integer::sum);
+	}
+
+	public int getTotalMinutesBeyondGoal()
+	{
+		if (areAggregatesComputed())
+		{
+			return totalMinutesBeyondGoal;
+		}
+
+		return computeTotalMinutesBeyondGoal();
+	}
+
+	private int computeTotalMinutesBeyondGoal()
+	{
+		return this.getGoal().computeTotalMinutesBeyondGoal(this);
 	}
 
 	public boolean isGoalAccomplished()

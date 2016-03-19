@@ -1278,6 +1278,9 @@ definitions:
       goalAccomplished:
         type: boolean
         description: If the goal for this day was accomplished. If the day is not yet over, if the goal for this day was accomplished so far
+      totalMinutesBeyondGoal:
+        type: integer
+        description: The total minutes of time the user was active in the activity category outside the allowed time for the goal.
       # TODO: embedded messages
   IntervalActivity:
     type: object

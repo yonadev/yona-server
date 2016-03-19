@@ -49,4 +49,6 @@ public abstract class Goal extends EntityWithID
 	public abstract boolean isNoGoGoal();
 
 	public abstract boolean isGoalAccomplished(DayActivity dayActivity);
+
+	public abstract int computeTotalMinutesBeyondGoal(DayActivity dayActivity);
 }
