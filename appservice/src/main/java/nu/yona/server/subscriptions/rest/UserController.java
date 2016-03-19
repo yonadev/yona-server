@@ -388,8 +388,8 @@ public class UserController
 				if (user.isMobileNumberConfirmed())
 				{
 					addMessagesLink(userResource);
-					addDaysActivityLink(userResource);
-					addWeeksActivityLink(userResource);
+					addDayActivityOverviewsLink(userResource);
+					addWeekActivityOverviewsLink(userResource);
 					addNewDeviceRequestLink(userResource);
 					addAppActivityLink(userResource);
 				}
@@ -426,13 +426,13 @@ public class UserController
 			userResource.add(UserController.getConfirmMobileLink(userResource.getContent().getID()));
 		}
 
-		private void addWeeksActivityLink(UserResource userResource)
+		private void addWeekActivityOverviewsLink(UserResource userResource)
 		{
 			userResource.add(
 					ActivityController.getWeekActivityOverviewsLinkBuilder(userResource.getContent().getID()).withRel("weeksActivity"));
 		}
 
-		private void addDaysActivityLink(UserResource userResource)
+		private void addDayActivityOverviewsLink(UserResource userResource)
 		{
 			userResource.add(
 					ActivityController.getDayActivityOverviewsLinkBuilder(userResource.getContent().getID()).withRel("daysActivity"));
