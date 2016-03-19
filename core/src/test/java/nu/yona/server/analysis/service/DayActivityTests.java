@@ -94,14 +94,14 @@ public class DayActivityTests
 	}
 
 	@Test
-	public void testSpreadMultipleActivities()
+	public void testSpreadMultipleActivitiesOverlappingUnsorted()
 	{
 		DayActivity d = createDayActivity();
-		d.addActivity(Activity.createInstance(getDate(19, 46), getDate(19, 50)));
-		d.addActivity(Activity.createInstance(getDate(19, 55), getDate(19, 59)));
+		d.addActivity(Activity.createInstance(getDate(19, 48), getDate(19, 50)));
+		d.addActivity(Activity.createInstance(getDate(19, 46), getDate(19, 59)));
 		d.addActivity(Activity.createInstance(getDate(20, 1), getDate(20, 17)));
 		assertThat(d.getSpread().get(78), equalTo(0));
-		assertThat(d.getSpread().get(79), equalTo(8));
+		assertThat(d.getSpread().get(79), equalTo(13));
 		assertThat(d.getSpread().get(80), equalTo(14));
 		assertThat(d.getSpread().get(81), equalTo(3));
 		assertThat(d.getSpread().get(82), equalTo(0));

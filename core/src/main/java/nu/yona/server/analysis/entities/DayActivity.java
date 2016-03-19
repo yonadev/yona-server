@@ -4,8 +4,10 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -86,40 +88,61 @@ public class DayActivity extends IntervalActivity
 	protected List<Integer> computeSpread()
 	{
 		List<Integer> result = getEmptySpread();
-		for (Activity activity : activities)
+		// assumption:
+		// - activities are not always sorted
+		// - activities may overlap
+		List<Activity> activitiesSortedOnStartTime = activities.stream()
+				.sorted((a1, a2) -> a1.getStartTime().compareTo(a2.getStartTime())).collect(Collectors.toList());
+		for (int i = 0; i < activitiesSortedOnStartTime.size(); i++)
 		{
-			// assumptions:
-			// - activities never overlap
-			// - activities never start before or end after the day
-			addToSpread(result, activity);
+			Activity activity = activitiesSortedOnStartTime.get(i);
+
+			// continue until no overlap
+			Date activityBlockEndTime = activity.getEndTime();
+			while (i + 1 < activitiesSortedOnStartTime.size()
+					&& activitiesSortedOnStartTime.get(i + 1).getStartTime().before(activityBlockEndTime))
+			{
+				// overlapping
+				Date activityEndTime = activitiesSortedOnStartTime.get(i + 1).getEndTime();
+				if (activityEndTime.after(activityBlockEndTime))
+				{
+					// extend the block
+					activityBlockEndTime = activityEndTime;
+				}
+				i++;
+			}
+
+			addToSpread(result, activity.getStartTime(), activityBlockEndTime);
 		}
 		return result;
 	}
 
-	private void addToSpread(List<Integer> result, Activity activity)
+	private void addToSpread(List<Integer> result, Date activityBlockStartTime, Date activityBlockEndTime)
 	{
+		// assumption:
+		// - activities never start before or end after the day
 		ZoneId zone = getStartTime().getZone();
-		ZonedDateTime activityStartTime = activity.getStartTime().toInstant().atZone(zone);
-		ZonedDateTime activityEndTime = activity.getEndTime().toInstant().atZone(zone);
-		int spreadStartIndex = getSpreadIndex(activityStartTime);
-		int spreadEndIndex = getSpreadIndex(activityEndTime);
+		ZonedDateTime startTime = activityBlockStartTime.toInstant().atZone(zone);
+		ZonedDateTime endTime = activityBlockEndTime.toInstant().atZone(zone);
+		int spreadStartIndex = getSpreadIndex(startTime);
+		int spreadEndIndex = getSpreadIndex(endTime);
 		for (int spreadIndex = spreadStartIndex; spreadIndex <= spreadEndIndex; spreadIndex++)
 		{
 			int durationInSpreadItem;
 			if (spreadStartIndex == spreadEndIndex)
 			{
 				// partial span
-				durationInSpreadItem = activity.getDurationMinutes();
+				durationInSpreadItem = (int) startTime.until(endTime, ChronoUnit.MINUTES);
 			}
 			else if (spreadIndex == spreadStartIndex)
 			{
 				// start part
-				durationInSpreadItem = 15 - (activityStartTime.getMinute() % 15);
+				durationInSpreadItem = 15 - (startTime.getMinute() % 15);
 			}
 			else if (spreadIndex == spreadEndIndex)
 			{
 				// end part
-				durationInSpreadItem = 1 + (activityEndTime.getMinute() % 15);
+				durationInSpreadItem = 1 + (endTime.getMinute() % 15);
 			}
 			else
 			{
