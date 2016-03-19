@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import nu.yona.server.analysis.service.AnalysisEngineService;
+import nu.yona.server.analysis.service.ActivityService;
 import nu.yona.server.analysis.service.DayActivityDTO;
 import nu.yona.server.analysis.service.WeekActivityDTO;
 import nu.yona.server.crypto.CryptoSession;
@@ -41,7 +41,7 @@ import nu.yona.server.subscriptions.service.UserService;
 public class ActivityController
 {
 	@Autowired
-	private AnalysisEngineService analysisEngineService;
+	private ActivityService activityService;
 
 	@Autowired
 	private UserService userService;
@@ -54,7 +54,7 @@ public class ActivityController
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> new ResponseEntity<>(
-						pagedResourcesAssembler.toResource(analysisEngineService.getWeekActivity(userID, pageable),
+						pagedResourcesAssembler.toResource(activityService.getWeekActivity(userID, pageable),
 								new WeekActivityResourceAssembler(userID)),
 						HttpStatus.OK));
 	}
@@ -67,7 +67,7 @@ public class ActivityController
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> new ResponseEntity<>(
-						pagedResourcesAssembler.toResource(analysisEngineService.getDayActivity(userID, pageable),
+						pagedResourcesAssembler.toResource(activityService.getDayActivity(userID, pageable),
 								new DayActivityResourceAssembler(userID)),
 						HttpStatus.OK));
 	}
@@ -79,7 +79,7 @@ public class ActivityController
 	{
 		LocalDate date = WeekActivityDTO.parseDate(weekStr);
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> new ResponseEntity<>(
-				new WeekActivityResourceAssembler(userID).toResource(analysisEngineService.getWeekActivity(userID, date, goalID)),
+				new WeekActivityResourceAssembler(userID).toResource(activityService.getWeekActivity(userID, date, goalID)),
 				HttpStatus.OK));
 	}
 
@@ -90,7 +90,7 @@ public class ActivityController
 	{
 		LocalDate date = DayActivityDTO.parseDate(dateStr);
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> new ResponseEntity<>(
-				new DayActivityResourceAssembler(userID).toResource(analysisEngineService.getDayActivity(userID, date, goalID)),
+				new DayActivityResourceAssembler(userID).toResource(activityService.getDayActivity(userID, date, goalID)),
 				HttpStatus.OK));
 	}
 

@@ -3,6 +3,7 @@ package nu.yona.server.analysis.entities;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -107,6 +108,6 @@ public abstract class IntervalActivity extends EntityWithID
 
 	protected static List<Integer> getEmptySpread()
 	{
-		return Collections.nCopies(96, 0);
+		return new ArrayList<Integer>(Collections.nCopies(96, 0));
 	}
 }
