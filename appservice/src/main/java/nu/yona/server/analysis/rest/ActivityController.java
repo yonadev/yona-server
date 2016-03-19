@@ -46,9 +46,9 @@ public class ActivityController
 	@Autowired
 	private UserService userService;
 
-	@RequestMapping(value = "/week/", method = RequestMethod.GET)
+	@RequestMapping(value = "/weeks/", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<PagedResources<WeekActivityResource>> getWeeksActivity(
+	public HttpEntity<PagedResources<WeekActivityResource>> getWeekActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, Pageable pageable,
 			PagedResourcesAssembler<WeekActivityDTO> pagedResourcesAssembler)
 	{
@@ -59,9 +59,9 @@ public class ActivityController
 						HttpStatus.OK));
 	}
 
-	@RequestMapping(value = "/day/", method = RequestMethod.GET)
+	@RequestMapping(value = "/days/", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<PagedResources<DayActivityResource>> getDaysActivity(
+	public HttpEntity<PagedResources<DayActivityResource>> getDayActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, Pageable pageable,
 			PagedResourcesAssembler<DayActivityDTO> pagedResourcesAssembler)
 	{
@@ -72,7 +72,7 @@ public class ActivityController
 						HttpStatus.OK));
 	}
 
-	@RequestMapping(value = "/week/{week}", method = RequestMethod.GET)
+	@RequestMapping(value = "/weeks/{week}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<WeekActivityResource> getWeekActivity(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userID, @PathVariable(value = "week") String weekStr, @RequestParam(value = "goal") UUID goalID)
@@ -83,7 +83,7 @@ public class ActivityController
 				HttpStatus.OK));
 	}
 
-	@RequestMapping(value = "/day/{date}", method = RequestMethod.GET)
+	@RequestMapping(value = "/days/{date}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<DayActivityResource> getDayActivity(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userID, @PathVariable(value = "date") String dateStr, @RequestParam(value = "goal") UUID goalID)
@@ -94,16 +94,16 @@ public class ActivityController
 				HttpStatus.OK));
 	}
 
-	public static ControllerLinkBuilder getDaysActivityLinkBuilder(UUID userID)
+	public static ControllerLinkBuilder getDayActivityOverviewsLinkBuilder(UUID userID)
 	{
 		ActivityController methodOn = methodOn(ActivityController.class);
-		return linkTo(methodOn.getDaysActivity(null, userID, null, null));
+		return linkTo(methodOn.getDayActivityOverviews(null, userID, null, null));
 	}
 
-	public static ControllerLinkBuilder getWeeksActivityLinkBuilder(UUID userID)
+	public static ControllerLinkBuilder getWeekActivityOverviewsLinkBuilder(UUID userID)
 	{
 		ActivityController methodOn = methodOn(ActivityController.class);
-		return linkTo(methodOn.getWeeksActivity(null, userID, null, null));
+		return linkTo(methodOn.getWeekActivityOverviews(null, userID, null, null));
 	}
 
 	static ControllerLinkBuilder getDayActivityLinkBuilder(UUID userID, String dateStr, UUID goalID)

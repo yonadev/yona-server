@@ -17,7 +17,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
 
 		when:
-		def response = appService.getDaysActivity(richard)
+		def response = appService.getDayActivityOverviews(richard)
 
 		then:
 		response.status == 200
@@ -38,7 +38,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
 
 		when:
-		def response = appService.getWeeksActivity(richard)
+		def response = appService.getWeekActivityOverviews(richard)
 
 		then:
 		response.status == 200

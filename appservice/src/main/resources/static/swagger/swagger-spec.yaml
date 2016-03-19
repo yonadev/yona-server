@@ -458,13 +458,13 @@ paths:
           in: query
           description: The number of elements to be fetched
           required: false
-          default: 10
+          default: 3
           type: number
         - name: page
           in: query
           description: The page to be fetched
           required: false
-          default: 10
+          default: 0
           type: number
       tags:
         - Activity
@@ -499,7 +499,7 @@ paths:
           in: query
           description: The page to be fetched
           required: false
-          default: 10
+          default: 0
           type: number
       tags:
         - Message
@@ -887,7 +887,7 @@ definitions:
     properties:
       maxDurationMinutes:
         type: integer
-        description: The budget (duration) for this goal
+        description: The budget (duration) for this goal in minutes
         example: 0
     required:
       - maxDurationMinutes
