@@ -19,13 +19,15 @@ public class DayActivityDTO extends IntervalActivityDTO
 	private final static String ISO8601_DAY_FORMAT = "yyyy-MM-dd";
 
 	private boolean goalAccomplished;
+	private int totalMinutesBeyondGoal;
 	private Set<MessageDTO> messages;
 
 	private DayActivityDTO(UUID goalID, ZonedDateTime startTime, List<Integer> spread, int totalActivityDurationMinutes,
-			boolean goalAccomplished, Set<MessageDTO> messages)
+			boolean goalAccomplished, int totalMinutesBeyondGoal, Set<MessageDTO> messages)
 	{
 		super(goalID, startTime, spread, totalActivityDurationMinutes);
 		this.goalAccomplished = goalAccomplished;
+		this.totalMinutesBeyondGoal = totalMinutesBeyondGoal;
 		this.messages = messages;
 	}
 
@@ -38,6 +40,11 @@ public class DayActivityDTO extends IntervalActivityDTO
 	public boolean isGoalAccomplished()
 	{
 		return goalAccomplished;
+	}
+
+	public int getTotalMinutesBeyondGoal()
+	{
+		return totalMinutesBeyondGoal;
 	}
 
 	@JsonIgnore
@@ -55,6 +62,7 @@ public class DayActivityDTO extends IntervalActivityDTO
 	{
 		// TODO: fetch related messages
 		return new DayActivityDTO(dayActivity.getGoal().getID(), dayActivity.getStartTime(), dayActivity.getSpread(),
-				dayActivity.getTotalActivityDurationMinutes(), dayActivity.isGoalAccomplished(), null);
+				dayActivity.getTotalActivityDurationMinutes(), dayActivity.isGoalAccomplished(),
+				dayActivity.getTotalMinutesBeyondGoal(), null);
 	}
 }
