@@ -5,6 +5,9 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
@@ -26,9 +30,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import nu.yona.server.analysis.service.ActivityService;
 import nu.yona.server.analysis.service.DayActivityDTO;
 import nu.yona.server.analysis.service.WeekActivityDTO;
+import nu.yona.server.analysis.service.WeekActivityOverviewDTO;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.subscriptions.service.UserService;
@@ -46,16 +53,19 @@ public class ActivityController
 	@Autowired
 	private UserService userService;
 
+	@Autowired
+	private CurieProvider curieProvider;
+
 	@RequestMapping(value = "/weeks/", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<PagedResources<WeekActivityResource>> getWeekActivityOverviews(
+	public HttpEntity<PagedResources<WeekActivityOverviewResource>> getWeekActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, Pageable pageable,
-			PagedResourcesAssembler<WeekActivityDTO> pagedResourcesAssembler)
+			PagedResourcesAssembler<WeekActivityOverviewDTO> pagedResourcesAssembler)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> new ResponseEntity<>(
-						pagedResourcesAssembler.toResource(activityService.getWeekActivity(userID, pageable),
-								new WeekActivityResourceAssembler(userID)),
+						pagedResourcesAssembler.toResource(activityService.getWeekActivityOverviews(userID, pageable),
+								new WeekActivityOverviewResourceAssembler(curieProvider, userID)),
 						HttpStatus.OK));
 	}
 
@@ -66,10 +76,8 @@ public class ActivityController
 			PagedResourcesAssembler<DayActivityDTO> pagedResourcesAssembler)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> new ResponseEntity<>(
-						pagedResourcesAssembler.toResource(activityService.getDayActivity(userID, pageable),
-								new DayActivityResourceAssembler(userID)),
-						HttpStatus.OK));
+				() -> new ResponseEntity<>(pagedResourcesAssembler.toResource(activityService.getDayActivity(userID, pageable),
+						new DayActivityResourceAssembler(userID)), HttpStatus.OK));
 	}
 
 	@RequestMapping(value = "/weeks/{week}", method = RequestMethod.GET)
@@ -89,9 +97,10 @@ public class ActivityController
 			@PathVariable UUID userID, @PathVariable(value = "date") String dateStr, @RequestParam(value = "goal") UUID goalID)
 	{
 		LocalDate date = DayActivityDTO.parseDate(dateStr);
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> new ResponseEntity<>(
-				new DayActivityResourceAssembler(userID).toResource(activityService.getDayActivity(userID, date, goalID)),
-				HttpStatus.OK));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> new ResponseEntity<>(
+						new DayActivityResourceAssembler(userID).toResource(activityService.getDayActivity(userID, date, goalID)),
+						HttpStatus.OK));
 	}
 
 	public static ControllerLinkBuilder getDayActivityOverviewsLinkBuilder(UUID userID)
@@ -126,11 +135,61 @@ public class ActivityController
 		}
 	}
 
+	static class WeekActivityOverviewResource extends Resource<WeekActivityOverviewDTO>
+	{
+		private final CurieProvider curieProvider;
+		private final UUID userID;
+
+		public WeekActivityOverviewResource(CurieProvider curieProvider, UUID userID,
+				WeekActivityOverviewDTO weekActivityOverview)
+		{
+			super(weekActivityOverview);
+			this.curieProvider = curieProvider;
+			this.userID = userID;
+		}
+
+		@JsonProperty("_embedded")
+		public Map<String, List<WeekActivityResource>> getEmbeddedResources()
+		{
+			HashMap<String, List<WeekActivityResource>> result = new HashMap<String, List<WeekActivityResource>>();
+			result.put(curieProvider.getNamespacedRelFor("weekActivities"),
+					new WeekActivityResourceAssembler(userID).toResources(getContent().getWeekActivities()));
+			return result;
+		}
+	}
+
 	static class DayActivityResource extends Resource<DayActivityDTO>
 	{
 		public DayActivityResource(DayActivityDTO dayActivity)
 		{
 			super(dayActivity);
+		}
+	}
+
+	static class WeekActivityOverviewResourceAssembler
+			extends ResourceAssemblerSupport<WeekActivityOverviewDTO, WeekActivityOverviewResource>
+	{
+		private final CurieProvider curieProvider;
+		private final UUID userID;
+
+		public WeekActivityOverviewResourceAssembler(CurieProvider curieProvider, UUID userID)
+		{
+			super(ActivityController.class, WeekActivityOverviewResource.class);
+			this.curieProvider = curieProvider;
+			this.userID = userID;
+		}
+
+		@Override
+		public WeekActivityOverviewResource toResource(WeekActivityOverviewDTO weekActivityOverview)
+		{
+			WeekActivityOverviewResource weekActivityOverviewResource = instantiateResource(weekActivityOverview);
+			return weekActivityOverviewResource;
+		}
+
+		@Override
+		protected WeekActivityOverviewResource instantiateResource(WeekActivityOverviewDTO weekActivityOverview)
+		{
+			return new WeekActivityOverviewResource(curieProvider, userID, weekActivityOverview);
 		}
 	}
 

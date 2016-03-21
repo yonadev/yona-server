@@ -10,7 +10,7 @@ import groovy.json.*
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
-	def 'Get days activity'()
+	def 'Get day activity overviews'()
 	{
 		given:
 		def richard = addRichard()
@@ -32,7 +32,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded."yona:dayActivities"[0].timeZoneId == "Europe/Amsterdam"
 	}
 
-	def 'Get weeks activity'()
+	def 'Get week activity overviews'()
 	{
 		given:
 		def richard = addRichard()
@@ -44,11 +44,12 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 200
 		response.responseData._embedded
-		response.responseData._embedded."yona:weekActivities"
-		response.responseData._embedded."yona:weekActivities".size() == 1
-		//response.responseData._embedded."yona:weekActivities"[0].spread
-		response.responseData._embedded."yona:weekActivities"[0].totalActivityDurationMinutes == 0
-		response.responseData._embedded."yona:weekActivities"[0].date
-		response.responseData._embedded."yona:weekActivities"[0].timeZoneId == "Europe/Amsterdam"
+		response.responseData._embedded."yona:weekActivityOverviews"
+		response.responseData._embedded."yona:weekActivityOverviews".size() == 1
+		response.responseData._embedded."yona:weekActivityOverviews"[0]._embedded."yona:weekActivities"
+		//response.responseData._embedded."yona:weekActivityOverviews"[0]._embedded."yona:weekActivities"[0].spread
+		response.responseData._embedded."yona:weekActivityOverviews"[0]._embedded."yona:weekActivities"[0].totalActivityDurationMinutes == 0
+		response.responseData._embedded."yona:weekActivityOverviews"[0]._embedded."yona:weekActivities"[0].date
+		response.responseData._embedded."yona:weekActivityOverviews"[0]._embedded."yona:weekActivities"[0].timeZoneId == "Europe/Amsterdam"
 	}
 }
