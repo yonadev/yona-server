@@ -1,7 +1,6 @@
 package nu.yona.server.analysis.entities;
 
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -57,21 +56,20 @@ public class WeekActivity extends IntervalActivity
 		return getStartTime().plusDays(7);
 	}
 
-	@Override
-	public ChronoUnit getTimeUnit()
-	{
-		return ChronoUnit.WEEKS;
-	}
-
 	public void addDayActivity(DayActivity dayActivity)
 	{
-		this.dayActivities.add(dayActivity);
+		dayActivities.add(dayActivity);
+	}
+
+	public List<DayActivity> getDayActivities()
+	{
+		return dayActivities;
 	}
 
 	@Override
 	protected List<Integer> computeSpread()
 	{
-		return this.dayActivities.stream().map(dayActivity -> dayActivity.getSpread()).reduce(getEmptySpread(),
+		return dayActivities.stream().map(dayActivity -> dayActivity.getSpread()).reduce(getEmptySpread(),
 				(one, other) -> sumSpread(one, other));
 	}
 
@@ -88,8 +86,7 @@ public class WeekActivity extends IntervalActivity
 	@Override
 	protected int computeTotalActivityDurationMinutes()
 	{
-		return this.dayActivities.stream().map(dayActivity -> dayActivity.getTotalActivityDurationMinutes()).reduce(0,
-				Integer::sum);
+		return dayActivities.stream().map(dayActivity -> dayActivity.getTotalActivityDurationMinutes()).reduce(0, Integer::sum);
 	}
 
 	public static WeekActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek)

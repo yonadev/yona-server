@@ -64,12 +64,6 @@ public class DayActivity extends IntervalActivity
 		return getStartTime().plusDays(1);
 	}
 
-	@Override
-	public ChronoUnit getTimeUnit()
-	{
-		return ChronoUnit.DAYS;
-	}
-
 	public Activity getLastActivity()
 	{
 		if (this.activities.size() == 0)

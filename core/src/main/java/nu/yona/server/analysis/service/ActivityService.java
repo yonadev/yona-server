@@ -50,8 +50,8 @@ public class ActivityService
 	{
 		UUID userAnonymizedID = userService.getPrivateUser(userID).getPrivateData().getUserAnonymizedID();
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
-		LocalDate dateFrom = LocalDate.now(ZoneId.of(userAnonymized.getTimeZoneId())).minusWeeks(pageable.getOffset());
-		LocalDate dateUntil = dateFrom.minusWeeks(pageable.getPageSize());
+		LocalDate dateFrom = LocalDate.now(ZoneId.of(userAnonymized.getTimeZoneId())).minusDays(pageable.getOffset());
+		LocalDate dateUntil = dateFrom.minusDays(pageable.getPageSize());
 		Set<DayActivity> datActivityEntities = DayActivity.getRepository().findAll(userAnonymizedID, dateUntil, dateFrom);
 		Map<LocalDate, Set<DayActivity>> dayActivityEntitiesByDate = datActivityEntities.stream()
 				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
@@ -66,7 +66,7 @@ public class ActivityService
 		return WeekActivityDTO.createInstance(WeekActivity.getRepository().findOne(userAnonymizedID, date, goalID));
 	}
 
-	public DayActivityDTO getDayActivity(UUID userID, LocalDate date, UUID goalID)
+	public DayActivityDTO getDayActivityDetail(UUID userID, LocalDate date, UUID goalID)
 	{
 		UUID userAnonymizedID = userService.getPrivateUser(userID).getPrivateData().getUserAnonymizedID();
 		return DayActivityDTO.createInstance(DayActivity.getRepository().findOne(userAnonymizedID, date, goalID));

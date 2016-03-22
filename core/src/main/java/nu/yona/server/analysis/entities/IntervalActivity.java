@@ -2,7 +2,6 @@ package nu.yona.server.analysis.entities;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -79,8 +78,6 @@ public abstract class IntervalActivity extends EntityWithID
 	}
 
 	public abstract ZonedDateTime getEndTime();
-
-	public abstract ChronoUnit getTimeUnit();
 
 	public List<Integer> getSpread()
 	{

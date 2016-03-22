@@ -454,6 +454,11 @@ class AppService extends Service
 		yonaServer.deleteResourceWithPassword(path, password, parameters)
 	}
 
+	def getResourceWithPassword(path, password, parameters = [:])
+	{
+		yonaServer.getResourceWithPassword(path, password, parameters)
+	}
+
 	def getResource(path, headers = [:], parameters = [:])
 	{
 		yonaServer.getResource(path, headers, parameters)

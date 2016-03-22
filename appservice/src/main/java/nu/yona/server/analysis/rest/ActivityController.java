@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -83,27 +82,27 @@ public class ActivityController
 						HttpStatus.OK));
 	}
 
-	@RequestMapping(value = "/weeks/{week}", method = RequestMethod.GET)
+	@RequestMapping(value = "/weeks/{week}/{goalID}", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<WeekActivityResource> getWeekActivity(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userID, @PathVariable(value = "week") String weekStr, @RequestParam(value = "goal") UUID goalID)
+	public HttpEntity<WeekActivityResource> getWeekActivityDetail(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@PathVariable(value = "week") String weekStr, @PathVariable(value = "goalID") UUID goalID)
 	{
 		LocalDate date = WeekActivityDTO.parseDate(weekStr);
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> new ResponseEntity<>(
-				new WeekActivityResourceAssembler(userID).toResource(activityService.getWeekActivity(userID, date, goalID)),
-				HttpStatus.OK));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> new ResponseEntity<>(new WeekActivityResourceAssembler(curieProvider, userID)
+						.toResource(activityService.getWeekActivity(userID, date, goalID)), HttpStatus.OK));
 	}
 
-	@RequestMapping(value = "/days/{date}", method = RequestMethod.GET)
+	@RequestMapping(value = "/days/{date}/{goalID}", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<DayActivityResource> getDayActivity(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userID, @PathVariable(value = "date") String dateStr, @RequestParam(value = "goal") UUID goalID)
+	public HttpEntity<DayActivityResource> getDayActivityDetail(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userID, @PathVariable(value = "date") String dateStr, @PathVariable(value = "goalID") UUID goalID)
 	{
 		LocalDate date = DayActivityDTO.parseDate(dateStr);
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> new ResponseEntity<>(
-						new DayActivityResourceAssembler(userID).toResource(activityService.getDayActivity(userID, date, goalID)),
-						HttpStatus.OK));
+				() -> new ResponseEntity<>(new DayActivityResourceAssembler(userID, true)
+						.toResource(activityService.getDayActivityDetail(userID, date, goalID)), HttpStatus.OK));
 	}
 
 	public static ControllerLinkBuilder getDayActivityOverviewsLinkBuilder(UUID userID)
@@ -118,23 +117,37 @@ public class ActivityController
 		return linkTo(methodOn.getWeekActivityOverviews(null, userID, null, null));
 	}
 
-	static ControllerLinkBuilder getDayActivityLinkBuilder(UUID userID, String dateStr, UUID goalID)
+	static ControllerLinkBuilder getDayActivityDetailLinkBuilder(UUID userID, String dateStr, UUID goalID)
 	{
 		ActivityController methodOn = methodOn(ActivityController.class);
-		return linkTo(methodOn.getDayActivity(null, userID, dateStr, goalID));
+		return linkTo(methodOn.getDayActivityDetail(null, userID, dateStr, goalID));
 	}
 
-	static ControllerLinkBuilder getWeekActivityLinkBuilder(UUID userID, String weekStr, UUID goalID)
+	static ControllerLinkBuilder getWeekActivityDetailLinkBuilder(UUID userID, String weekStr, UUID goalID)
 	{
 		ActivityController methodOn = methodOn(ActivityController.class);
-		return linkTo(methodOn.getWeekActivity(null, userID, weekStr, goalID));
+		return linkTo(methodOn.getWeekActivityDetail(null, userID, weekStr, goalID));
 	}
 
 	static class WeekActivityResource extends Resource<WeekActivityDTO>
 	{
-		public WeekActivityResource(WeekActivityDTO weekActivity)
+		private final CurieProvider curieProvider;
+		private final UUID userID;
+
+		public WeekActivityResource(CurieProvider curieProvider, UUID userID, WeekActivityDTO weekActivity)
 		{
 			super(weekActivity);
+			this.curieProvider = curieProvider;
+			this.userID = userID;
+		}
+
+		@JsonProperty("_embedded")
+		public Map<String, List<DayActivityResource>> getEmbeddedResources()
+		{
+			HashMap<String, List<DayActivityResource>> result = new HashMap<String, List<DayActivityResource>>();
+			result.put(curieProvider.getNamespacedRelFor("dayActivities"),
+					new DayActivityResourceAssembler(userID, false).toResources(getContent().getDayActivities()));
+			return result;
 		}
 	}
 
@@ -156,7 +169,7 @@ public class ActivityController
 		{
 			HashMap<String, List<WeekActivityResource>> result = new HashMap<String, List<WeekActivityResource>>();
 			result.put(curieProvider.getNamespacedRelFor("weekActivities"),
-					new WeekActivityResourceAssembler(userID).toResources(getContent().getWeekActivities()));
+					new WeekActivityResourceAssembler(curieProvider, userID).toResources(getContent().getWeekActivities()));
 			return result;
 		}
 	}
@@ -186,7 +199,7 @@ public class ActivityController
 		{
 			HashMap<String, List<DayActivityResource>> result = new HashMap<String, List<DayActivityResource>>();
 			result.put(curieProvider.getNamespacedRelFor("dayActivities"),
-					new DayActivityResourceAssembler(userID).toResources(getContent().getWeekActivities()));
+					new DayActivityResourceAssembler(userID, true).toResources(getContent().getWeekActivities()));
 			return result;
 		}
 	}
@@ -220,11 +233,13 @@ public class ActivityController
 
 	static class WeekActivityResourceAssembler extends ResourceAssemblerSupport<WeekActivityDTO, WeekActivityResource>
 	{
-		private UUID userID;
+		private final CurieProvider curieProvider;
+		private final UUID userID;
 
-		public WeekActivityResourceAssembler(UUID userID)
+		public WeekActivityResourceAssembler(CurieProvider curieProvider, UUID userID)
 		{
 			super(ActivityController.class, WeekActivityResource.class);
+			this.curieProvider = curieProvider;
 			this.userID = userID;
 		}
 
@@ -240,12 +255,12 @@ public class ActivityController
 		@Override
 		protected WeekActivityResource instantiateResource(WeekActivityDTO weekActivity)
 		{
-			return new WeekActivityResource(weekActivity);
+			return new WeekActivityResource(curieProvider, userID, weekActivity);
 		}
 
 		private void addSelfLink(WeekActivityResource weekActivityResource)
 		{
-			weekActivityResource.add(getWeekActivityLinkBuilder(userID, weekActivityResource.getContent().getDate(),
+			weekActivityResource.add(getWeekActivityDetailLinkBuilder(userID, weekActivityResource.getContent().getDate(),
 					weekActivityResource.getContent().getGoalID()).withSelfRel());
 		}
 
@@ -258,12 +273,14 @@ public class ActivityController
 
 	static class DayActivityResourceAssembler extends ResourceAssemblerSupport<DayActivityDTO, DayActivityResource>
 	{
-		private UUID userID;
+		private final UUID userID;
+		private final boolean addGoalLink;
 
-		public DayActivityResourceAssembler(UUID userID)
+		public DayActivityResourceAssembler(UUID userID, boolean addGoalLink)
 		{
 			super(ActivityController.class, DayActivityResource.class);
 			this.userID = userID;
+			this.addGoalLink = addGoalLink;
 		}
 
 		@Override
@@ -271,7 +288,8 @@ public class ActivityController
 		{
 			DayActivityResource dayActivityResource = instantiateResource(dayActivity);
 			addSelfLink(dayActivityResource);
-			addGoalLink(dayActivityResource);
+			if (addGoalLink)
+				addGoalLink(dayActivityResource);
 			return dayActivityResource;
 		}
 
@@ -283,7 +301,7 @@ public class ActivityController
 
 		private void addSelfLink(DayActivityResource dayActivityResource)
 		{
-			dayActivityResource.add(getDayActivityLinkBuilder(userID, dayActivityResource.getContent().getDate(),
+			dayActivityResource.add(getDayActivityDetailLinkBuilder(userID, dayActivityResource.getContent().getDate(),
 					dayActivityResource.getContent().getGoalID()).withSelfRel());
 		}
 
