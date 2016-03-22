@@ -25,9 +25,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded."yona:dayActivities"
 		response.responseData._embedded."yona:dayActivities".size() == 1
 		//response.responseData._embedded."yona:dayActivities"[0].spread
-		response.responseData._embedded."yona:dayActivities"[0].totalActivityDurationMinutes == 0
+		response.responseData._embedded."yona:dayActivities"[0].totalActivityDurationMinutes == 1
 		response.responseData._embedded."yona:dayActivities"[0].goalAccomplished == false
-		response.responseData._embedded."yona:dayActivities"[0].totalMinutesBeyondGoal == 0
+		response.responseData._embedded."yona:dayActivities"[0].totalMinutesBeyondGoal == 1
 		response.responseData._embedded."yona:dayActivities"[0].date
 		response.responseData._embedded."yona:dayActivities"[0].timeZoneId == "Europe/Amsterdam"
 	}
@@ -48,7 +48,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded."yona:weekActivityOverviews".size() == 1
 		response.responseData._embedded."yona:weekActivityOverviews"[0]._embedded."yona:weekActivities"
 		//response.responseData._embedded."yona:weekActivityOverviews"[0]._embedded."yona:weekActivities"[0].spread
-		response.responseData._embedded."yona:weekActivityOverviews"[0]._embedded."yona:weekActivities"[0].totalActivityDurationMinutes == 0
+		response.responseData._embedded."yona:weekActivityOverviews"[0]._embedded."yona:weekActivities"[0].totalActivityDurationMinutes == 1
 		response.responseData._embedded."yona:weekActivityOverviews"[0]._embedded."yona:weekActivities"[0].date
 		response.responseData._embedded."yona:weekActivityOverviews"[0]._embedded."yona:weekActivities"[0].timeZoneId == "Europe/Amsterdam"
 	}

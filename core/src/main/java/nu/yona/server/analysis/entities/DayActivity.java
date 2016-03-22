@@ -146,7 +146,7 @@ public class DayActivity extends IntervalActivity
 		if (spreadStartIndex == spreadEndIndex)
 		{
 			// partial span
-			return (int) startTime.until(endTime, ChronoUnit.MINUTES);
+			return (int) startTime.until(endTime, ChronoUnit.MINUTES) + 1;
 		}
 		else if (spreadItemIndex == spreadStartIndex)
 		{

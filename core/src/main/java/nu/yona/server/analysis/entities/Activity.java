@@ -51,7 +51,7 @@ public class Activity extends EntityWithID
 
 	public int getDurationMinutes()
 	{
-		return (int) TimeUnit.MILLISECONDS.toMinutes(this.getEndTime().getTime() - this.getStartTime().getTime());
+		return (int) TimeUnit.MILLISECONDS.toMinutes(this.getEndTime().getTime() - this.getStartTime().getTime()) + 1;
 	}
 
 	public static Activity createInstance(Date startTime, Date endTime)
