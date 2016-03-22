@@ -472,7 +472,42 @@ paths:
         '200':
           description: Activity of this user.
           schema:
-            $ref: '#/definitions/PagedDayActivity'
+            $ref: '#/definitions/PagedDayActivityOverviews'
+  '/users/{userID}/activity/weeks/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get week network and app activity
+      description: Get activity of the current week, pageable to the weeks before 
+      parameters:
+        - name: size
+          in: query
+          description: The number of elements to be fetched
+          required: false
+          default: 2
+          type: number
+        - name: page
+          in: query
+          description: The page to be fetched
+          required: false
+          default: 0
+          type: number
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of this user.
+          schema:
+            $ref: '#/definitions/PagedWeekActivityOverviews'
   '/users/{userID}/messages/':
     parameters:
       - name: userID
@@ -1201,7 +1236,7 @@ definitions:
     required:
       - status
       - _links
-  PagedDayActivity:
+  PagedWeekActivityOverviews:
     type: object
     properties:
       _links:
@@ -1214,13 +1249,6 @@ definitions:
               href:
                 type: string
                 description: Link to next page, if available
-            required:
-              - href
-          self:
-            properties:
-              href:
-                type: string
-                description: Identifies this same resource
             required:
               - href
           prev:
@@ -1236,10 +1264,10 @@ definitions:
           - prev
       _embedded:
         properties:
-          "yona:dayActivities":
+          "yona:weekActivityOverviews":
             type: array
             items:
-              $ref: '#/definitions/DayActivity'
+              $ref: '#/definitions/WeekActivityOverview'
       page:
         description: Information about the current page
         properties:
@@ -1267,6 +1295,105 @@ definitions:
       - _links
       - _embedded
       - page
+  WeekActivityOverview:
+    type: object
+    properties:
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+      _embedded:
+        properties:
+          "yona:weekActivities":
+            type: array
+            items:
+              $ref: '#/definitions/WeekActivity'
+  WeekActivity:
+    allOf:
+      - $ref: '#/definitions/IntervalActivity'
+    properties:
+      date:
+        type: string
+        example: 2016-W2
+        description: The week date
+      _embedded:
+        properties:
+          "yona:dayActivities":
+            type: array
+            items:
+              $ref: '#/definitions/DayActivity'
+  PagedDayActivityOverviews:
+    type: object
+    properties:
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+        properties:
+          next:
+            properties:
+              href:
+                type: string
+                description: Link to next page, if available
+            required:
+              - href
+          prev:
+            properties:
+              href:
+                type: string
+                description: Link to previous page, if available
+            required:
+              - href
+        required:
+          - next
+          - self
+          - prev
+      _embedded:
+        properties:
+          "yona:dayActivityOverviews":
+            type: array
+            items:
+              $ref: '#/definitions/DayActivityOverview'
+      page:
+        description: Information about the current page
+        properties:
+          size:
+            type: string
+            description: The number of elements on the current page
+          totalElements:
+            type: string
+            description: The total number of elements
+            example: 300
+          totalPages:
+            type: string
+            description: The total number of pages
+            example: 15
+          number:
+            type: string
+            description: The current page number.
+            example: 1
+        required:
+          - size
+          - totalElements
+          - totalPages
+          - number
+    required:
+      - _links
+      - _embedded
+      - page
+  DayActivityOverview:
+    type: object
+    properties:
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+      _embedded:
+        properties:
+          "yona:dayActivities":
+            type: array
+            items:
+              $ref: '#/definitions/DayActivity'
   DayActivity:
     allOf:
       - $ref: '#/definitions/IntervalActivity'
@@ -1327,13 +1454,6 @@ definitions:
               href:
                 type: string
                 description: Link to next page, if available
-            required:
-              - href
-          self:
-            properties:
-              href:
-                type: string
-                description: Identifies this same resource
             required:
               - href
           prev:
