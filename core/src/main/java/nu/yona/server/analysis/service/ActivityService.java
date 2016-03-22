@@ -41,19 +41,23 @@ public class ActivityService
 		Set<WeekActivity> weekActivityEntities = WeekActivity.getRepository().findAll(userAnonymizedID, dateUntil, dateFrom);
 		Map<LocalDate, Set<WeekActivity>> weekActivityEntitiesByDate = weekActivityEntities.stream()
 				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
-		// TODO: add zero time items for living goals that recorded no activity
 		return new PageImpl<WeekActivityOverviewDTO>(weekActivityEntitiesByDate.entrySet().stream()
 				.map(e -> WeekActivityOverviewDTO.createInstance(e.getValue())).collect(Collectors.toList()), pageable,
 				yonaProperties.getAnalysisService().getWeeksActivityMemory());
 	}
 
-	public Page<DayActivityDTO> getDayActivity(UUID userID, Pageable pageable)
+	public Page<DayActivityOverviewDTO> getDayActivityOverviews(UUID userID, Pageable pageable)
 	{
 		UUID userAnonymizedID = userService.getPrivateUser(userID).getPrivateData().getUserAnonymizedID();
-		Page<DayActivity> dayActivityEntitiesPage = DayActivity.getRepository().findAll(userAnonymizedID, pageable);
-		return new PageImpl<DayActivityDTO>(dayActivityEntitiesPage.getContent().stream()
-				.map(a -> DayActivityDTO.createInstance(a)).collect(Collectors.toList()), pageable,
-				dayActivityEntitiesPage.getTotalElements());
+		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
+		LocalDate dateFrom = LocalDate.now(ZoneId.of(userAnonymized.getTimeZoneId())).minusWeeks(pageable.getOffset());
+		LocalDate dateUntil = dateFrom.minusWeeks(pageable.getPageSize());
+		Set<DayActivity> datActivityEntities = DayActivity.getRepository().findAll(userAnonymizedID, dateUntil, dateFrom);
+		Map<LocalDate, Set<DayActivity>> dayActivityEntitiesByDate = datActivityEntities.stream()
+				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
+		return new PageImpl<DayActivityOverviewDTO>(dayActivityEntitiesByDate.entrySet().stream()
+				.map(e -> DayActivityOverviewDTO.createInstance(e.getValue())).collect(Collectors.toList()), pageable,
+				yonaProperties.getAnalysisService().getDaysActivityMemory());
 	}
 
 	public WeekActivityDTO getWeekActivity(UUID userID, LocalDate date, UUID goalID)

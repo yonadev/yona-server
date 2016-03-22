@@ -34,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.analysis.service.ActivityService;
 import nu.yona.server.analysis.service.DayActivityDTO;
+import nu.yona.server.analysis.service.DayActivityOverviewDTO;
 import nu.yona.server.analysis.service.WeekActivityDTO;
 import nu.yona.server.analysis.service.WeekActivityOverviewDTO;
 import nu.yona.server.crypto.CryptoSession;
@@ -71,13 +72,15 @@ public class ActivityController
 
 	@RequestMapping(value = "/days/", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<PagedResources<DayActivityResource>> getDayActivityOverviews(
+	public HttpEntity<PagedResources<DayActivityOverviewResource>> getDayActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, Pageable pageable,
-			PagedResourcesAssembler<DayActivityDTO> pagedResourcesAssembler)
+			PagedResourcesAssembler<DayActivityOverviewDTO> pagedResourcesAssembler)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> new ResponseEntity<>(pagedResourcesAssembler.toResource(activityService.getDayActivity(userID, pageable),
-						new DayActivityResourceAssembler(userID)), HttpStatus.OK));
+				() -> new ResponseEntity<>(
+						pagedResourcesAssembler.toResource(activityService.getDayActivityOverviews(userID, pageable),
+								new DayActivityOverviewResourceAssembler(curieProvider, userID)),
+						HttpStatus.OK));
 	}
 
 	@RequestMapping(value = "/weeks/{week}", method = RequestMethod.GET)
@@ -163,6 +166,28 @@ public class ActivityController
 		public DayActivityResource(DayActivityDTO dayActivity)
 		{
 			super(dayActivity);
+		}
+	}
+
+	static class DayActivityOverviewResource extends Resource<DayActivityOverviewDTO>
+	{
+		private final CurieProvider curieProvider;
+		private final UUID userID;
+
+		public DayActivityOverviewResource(CurieProvider curieProvider, UUID userID, DayActivityOverviewDTO dayActivityOverview)
+		{
+			super(dayActivityOverview);
+			this.curieProvider = curieProvider;
+			this.userID = userID;
+		}
+
+		@JsonProperty("_embedded")
+		public Map<String, List<DayActivityResource>> getEmbeddedResources()
+		{
+			HashMap<String, List<DayActivityResource>> result = new HashMap<String, List<DayActivityResource>>();
+			result.put(curieProvider.getNamespacedRelFor("dayActivities"),
+					new DayActivityResourceAssembler(userID).toResources(getContent().getWeekActivities()));
+			return result;
 		}
 	}
 
@@ -266,6 +291,33 @@ public class ActivityController
 		{
 			dayActivityResource
 					.add(GoalController.getGoalLinkBuilder(userID, dayActivityResource.getContent().getGoalID()).withRel("goal"));
+		}
+	}
+
+	static class DayActivityOverviewResourceAssembler
+			extends ResourceAssemblerSupport<DayActivityOverviewDTO, DayActivityOverviewResource>
+	{
+		private final CurieProvider curieProvider;
+		private final UUID userID;
+
+		public DayActivityOverviewResourceAssembler(CurieProvider curieProvider, UUID userID)
+		{
+			super(ActivityController.class, DayActivityOverviewResource.class);
+			this.curieProvider = curieProvider;
+			this.userID = userID;
+		}
+
+		@Override
+		public DayActivityOverviewResource toResource(DayActivityOverviewDTO dayActivityOverview)
+		{
+			DayActivityOverviewResource dayActivityOverviewResource = instantiateResource(dayActivityOverview);
+			return dayActivityOverviewResource;
+		}
+
+		@Override
+		protected DayActivityOverviewResource instantiateResource(DayActivityOverviewDTO dayActivityOverview)
+		{
+			return new DayActivityOverviewResource(curieProvider, userID, dayActivityOverview);
 		}
 	}
 }

@@ -22,14 +22,19 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 200
 		response.responseData._embedded
-		response.responseData._embedded."yona:dayActivities"
-		response.responseData._embedded."yona:dayActivities".size() == 1
-		//response.responseData._embedded."yona:dayActivities"[0].spread
-		response.responseData._embedded."yona:dayActivities"[0].totalActivityDurationMinutes == 1
-		response.responseData._embedded."yona:dayActivities"[0].goalAccomplished == false
-		response.responseData._embedded."yona:dayActivities"[0].totalMinutesBeyondGoal == 1
-		response.responseData._embedded."yona:dayActivities"[0].date
-		response.responseData._embedded."yona:dayActivities"[0].timeZoneId == "Europe/Amsterdam"
+		response.responseData._embedded."yona:dayActivityOverviews"
+		response.responseData._embedded."yona:dayActivityOverviews".size() == 1
+		def dayActivityOverview = response.responseData._embedded."yona:dayActivityOverviews"[0]
+		dayActivityOverview._embedded."yona:dayActivities"
+		dayActivityOverview._embedded."yona:dayActivities".size() == 1
+		def dayActivityForGoal = dayActivityOverview._embedded."yona:dayActivities"[0]
+		dayActivityForGoal.spread
+		dayActivityForGoal.spread.size() <= 96
+		dayActivityForGoal.totalActivityDurationMinutes == 1
+		dayActivityForGoal.goalAccomplished == false
+		dayActivityForGoal.totalMinutesBeyondGoal == 1
+		dayActivityForGoal.date
+		dayActivityForGoal.timeZoneId == "Europe/Amsterdam"
 	}
 
 	def 'Get week activity overviews'()
@@ -46,10 +51,14 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded
 		response.responseData._embedded."yona:weekActivityOverviews"
 		response.responseData._embedded."yona:weekActivityOverviews".size() == 1
-		response.responseData._embedded."yona:weekActivityOverviews"[0]._embedded."yona:weekActivities"
-		//response.responseData._embedded."yona:weekActivityOverviews"[0]._embedded."yona:weekActivities"[0].spread
-		response.responseData._embedded."yona:weekActivityOverviews"[0]._embedded."yona:weekActivities"[0].totalActivityDurationMinutes == 1
-		response.responseData._embedded."yona:weekActivityOverviews"[0]._embedded."yona:weekActivities"[0].date
-		response.responseData._embedded."yona:weekActivityOverviews"[0]._embedded."yona:weekActivities"[0].timeZoneId == "Europe/Amsterdam"
+		def weekActivityOverview = response.responseData._embedded."yona:weekActivityOverviews"[0]
+		weekActivityOverview._embedded."yona:weekActivities"
+		weekActivityOverview._embedded."yona:weekActivities".size() == 1
+		def weekActivityForGoal = weekActivityOverview._embedded."yona:weekActivities"[0]
+		weekActivityForGoal.spread
+		weekActivityForGoal.spread.size() <= 96
+		weekActivityForGoal.totalActivityDurationMinutes == 1
+		weekActivityForGoal.date
+		weekActivityForGoal.timeZoneId == "Europe/Amsterdam"
 	}
 }

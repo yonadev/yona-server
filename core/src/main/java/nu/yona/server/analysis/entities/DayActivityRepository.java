@@ -1,10 +1,9 @@
 package nu.yona.server.analysis.entities;
 
 import java.time.LocalDate;
+import java.util.Set;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -22,6 +21,7 @@ public interface DayActivityRepository extends CrudRepository<DayActivity, UUID>
 	DayActivity findOne(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("date") LocalDate date,
 			@Param("goalID") UUID goalID);
 
-	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedID order by a.startTime desc")
-	Page<DayActivity> findAll(@Param("userAnonymizedID") UUID userAnonymizedID, Pageable pageable);
+	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedID and a.date >= :dateFrom and a.date <= :dateUntil order by a.startTime desc")
+	Set<DayActivity> findAll(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("dateFrom") LocalDate dateFrom,
+			@Param("dateUntil") LocalDate dateUntil);
 }
