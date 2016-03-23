@@ -11,6 +11,8 @@ import java.util.UUID;
 
 import javax.persistence.Entity;
 
+import nu.yona.server.analysis.entities.DayActivity;
+
 @Entity
 public class TimeZoneGoal extends Goal
 {
@@ -49,5 +51,19 @@ public class TimeZoneGoal extends Goal
 	public boolean isNoGoGoal()
 	{
 		return false;
+	}
+
+	@Override
+	public boolean isGoalAccomplished(DayActivity dayActivity)
+	{
+		// TODO: zones should be parsed? maybe in spread format
+		return true;
+	}
+
+	@Override
+	public int computeTotalMinutesBeyondGoal(DayActivity dayActivity)
+	{
+		// TODO compute from spread and allowed zones
+		return 0;
 	}
 }

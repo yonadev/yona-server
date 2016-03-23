@@ -108,10 +108,10 @@ public class GoalController
 		return new ResponseEntity<GoalDTO>(new GoalResourceAssembler(userID).toResource(goal), status);
 	}
 
-	static ControllerLinkBuilder getGoalLinkBuilder(UUID userID, GoalDTO goal)
+	public static ControllerLinkBuilder getGoalLinkBuilder(UUID userID, UUID goalID)
 	{
 		GoalController methodOn = methodOn(GoalController.class);
-		return linkTo(methodOn.getGoal(Optional.empty(), userID, goal.getID()));
+		return linkTo(methodOn.getGoal(Optional.empty(), userID, goalID));
 	}
 
 	public static class GoalResourceAssembler extends ResourceAssemblerSupport<GoalDTO, GoalDTO>
@@ -128,7 +128,7 @@ public class GoalController
 		public GoalDTO toResource(GoalDTO goal)
 		{
 			goal.removeLinks();
-			ControllerLinkBuilder selfLinkBuilder = getGoalLinkBuilder(userID, goal);
+			ControllerLinkBuilder selfLinkBuilder = getGoalLinkBuilder(userID, goal.getID());
 			addSelfLink(selfLinkBuilder, goal);
 			if (!goal.isMandatory())
 			{

@@ -43,6 +43,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.BruteForceAttemptService;
 import nu.yona.server.DOSProtectionService;
+import nu.yona.server.analysis.rest.ActivityController;
 import nu.yona.server.analysis.rest.AppActivityController;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.GoalController;
@@ -387,6 +388,8 @@ public class UserController
 				if (user.isMobileNumberConfirmed())
 				{
 					addMessagesLink(userResource);
+					addDayActivityOverviewsLink(userResource);
+					addWeekActivityOverviewsLink(userResource);
 					addNewDeviceRequestLink(userResource);
 					addAppActivityLink(userResource);
 				}
@@ -421,6 +424,18 @@ public class UserController
 		private static void addConfirmMobileNumberLink(Resource<UserDTO> userResource, String confirmationCode)
 		{
 			userResource.add(UserController.getConfirmMobileLink(userResource.getContent().getID()));
+		}
+
+		private void addWeekActivityOverviewsLink(UserResource userResource)
+		{
+			userResource.add(
+					ActivityController.getWeekActivityOverviewsLinkBuilder(userResource.getContent().getID()).withRel("weeksActivity"));
+		}
+
+		private void addDayActivityOverviewsLink(UserResource userResource)
+		{
+			userResource.add(
+					ActivityController.getDayActivityOverviewsLinkBuilder(userResource.getContent().getID()).withRel("daysActivity"));
 		}
 
 		private void addMessagesLink(UserResource userResource)

@@ -361,6 +361,16 @@ class AppService extends Service
 		yonaServer.getResourceWithPassword(user.messagesUrl, user.password, parameters)
 	}
 
+	def getWeekActivityOverviews(User user, parameters = [:])
+	{
+		yonaServer.getResourceWithPassword(user.weekActivityOverviewsUrl, user.password, parameters)
+	}
+
+	def getDayActivityOverviews(User user, parameters = [:])
+	{
+		yonaServer.getResourceWithPassword(user.dayActivityOverviewsUrl, user.password, parameters)
+	}
+
 	def setNewDeviceRequest(newDeviceRequestUrl, password, userSecret)
 	{
 		def jsonString = """{ "userSecret": "$userSecret" }"""
@@ -442,6 +452,11 @@ class AppService extends Service
 	def deleteResourceWithPassword(path, password, parameters = [:])
 	{
 		yonaServer.deleteResourceWithPassword(path, password, parameters)
+	}
+
+	def getResourceWithPassword(path, password, parameters = [:])
+	{
+		yonaServer.getResourceWithPassword(path, password, parameters)
 	}
 
 	def getResource(path, headers = [:], parameters = [:])

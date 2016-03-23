@@ -170,7 +170,7 @@ public class AnalysisEngineServiceTests
 		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, ZonedDateTime.now());
 		Activity earlierActivity = Activity.createInstance(new Date(), new Date());
 		dayActivity.addActivity(earlierActivity);
-		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID()), any()))
+		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
 				.thenReturn(dayActivity);
 
 		// Execute the analysis engine service after a period of inactivity longer than the conflict interval.
@@ -292,7 +292,7 @@ public class AnalysisEngineServiceTests
 		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, ZonedDateTime.now());
 		Activity earlierActivity = Activity.createInstance(t, t);
 		dayActivity.addActivity(earlierActivity);
-		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID()), any()))
+		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
 				.thenReturn(dayActivity);
 
 		// Execute the analysis engine service.
@@ -329,7 +329,7 @@ public class AnalysisEngineServiceTests
 		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
 
 		// Verify that there was no attempted activity update.
-		verify(mockAnalysisEngineCacheService, never()).fetchDayActivityForUser(eq(userAnonID), any(), any());
+		verify(mockAnalysisEngineCacheService, never()).fetchDayActivityForUser(eq(userAnonID), any());
 		verify(mockAnalysisEngineCacheService, never()).updateDayActivityForUser(any());
 
 		verifyNoMessagesCreated();

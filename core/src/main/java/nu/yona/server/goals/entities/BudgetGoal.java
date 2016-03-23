@@ -11,10 +11,12 @@ import java.util.UUID;
 
 import javax.persistence.Entity;
 
+import nu.yona.server.analysis.entities.DayActivity;
+
 @Entity
 public class BudgetGoal extends Goal
 {
-	private int maxDuration;
+	private int maxDurationMinutes;
 
 	// Default constructor is required for JPA
 	public BudgetGoal()
@@ -22,11 +24,11 @@ public class BudgetGoal extends Goal
 
 	}
 
-	private BudgetGoal(UUID id, ActivityCategory activityCategory, int maxDuration)
+	private BudgetGoal(UUID id, ActivityCategory activityCategory, int maxDurationMinutes)
 	{
 		super(id, activityCategory);
 
-		this.maxDuration = maxDuration;
+		this.maxDurationMinutes = maxDurationMinutes;
 	}
 
 	public static BudgetGoal createNoGoInstance(ActivityCategory activityCategory)
@@ -34,30 +36,42 @@ public class BudgetGoal extends Goal
 		return createInstance(activityCategory, 0);
 	}
 
-	public static BudgetGoal createInstance(ActivityCategory activityCategory, int maxDuration)
+	public static BudgetGoal createInstance(ActivityCategory activityCategory, int maxDurationMinutes)
 	{
-		return new BudgetGoal(UUID.randomUUID(), activityCategory, maxDuration);
+		return new BudgetGoal(UUID.randomUUID(), activityCategory, maxDurationMinutes);
 	}
 
-	public int getMaxDuration()
+	public int getMaxDurationMinutes()
 	{
-		return maxDuration;
+		return maxDurationMinutes;
 	}
 
-	public void setMaxDuration(int maxDuration)
+	public void setMaxDurationMinutes(int maxDurationMinutes)
 	{
-		this.maxDuration = maxDuration;
+		this.maxDurationMinutes = maxDurationMinutes;
 	}
 
 	@Override
 	public boolean isNoGoGoal()
 	{
-		return maxDuration <= 0;
+		return maxDurationMinutes <= 0;
 	}
 
 	@Override
 	public boolean isMandatory()
 	{
 		return isNoGoGoal() && getActivityCategory().isMandatoryNoGo();
+	}
+
+	@Override
+	public boolean isGoalAccomplished(DayActivity dayActivity)
+	{
+		return dayActivity.getTotalActivityDurationMinutes() < this.getMaxDurationMinutes();
+	}
+
+	@Override
+	public int computeTotalMinutesBeyondGoal(DayActivity dayActivity)
+	{
+		return Math.max(dayActivity.getTotalActivityDurationMinutes() - this.getMaxDurationMinutes(), 0);
 	}
 }

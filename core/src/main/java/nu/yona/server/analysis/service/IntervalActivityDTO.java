@@ -12,51 +12,59 @@ import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonRootName;
 
-import nu.yona.server.analysis.entities.IntervalActivity;
-
-@JsonRootName("intervalActivity")
-public class IntervalActivityDTO
+public abstract class IntervalActivityDTO
 {
 	private UUID goalID;
 	private ZonedDateTime startTime;
-	private ZonedDateTime endTime;
-	private List<ActivityDTO> activities;
 
-	private IntervalActivityDTO(UUID goalID, ZonedDateTime startTime, ZonedDateTime endTime, List<ActivityDTO> activities)
+	private List<Integer> spread;
+	private int totalActivityDurationMinutes;
+
+	protected IntervalActivityDTO(UUID goalID, ZonedDateTime startTime, List<Integer> spread, int totalActivityDurationMinutes)
 	{
 		this.goalID = goalID;
 		this.startTime = startTime;
-		this.endTime = endTime;
-		this.activities = activities;
+		this.spread = spread;
+		this.totalActivityDurationMinutes = totalActivityDurationMinutes;
 	}
 
+	@JsonIgnore
 	public ZonedDateTime getStartTime()
 	{
 		return startTime;
 	}
 
-	public ZonedDateTime getEndTime()
+	/*
+	 * The ISO-8601 week or day date.
+	 */
+	public abstract String getDate();
+
+	/*
+	 * The time zone in which the interval was recorded.
+	 */
+	public String getTimeZoneId()
 	{
-		return endTime;
+		return startTime.getZone().getId();
 	}
 
+	/*
+	 * As the goal is already in the user profile, just a reference suffices. Notice that a goal may be removed; in that case it
+	 * can be retrieved by the link.
+	 */
 	@JsonIgnore
 	public UUID getGoalID()
 	{
 		return goalID;
 	}
 
-	@JsonIgnore
-	public List<ActivityDTO> getActivities()
+	public List<Integer> getSpread()
 	{
-		return activities;
+		return spread;
 	}
 
-	static IntervalActivityDTO createInstance(IntervalActivity intervalActivity)
+	public int getTotalActivityDurationMinutes()
 	{
-		return new IntervalActivityDTO(intervalActivity.getGoal().getID(), intervalActivity.getStartTime(),
-				intervalActivity.getEndTime(), null);
+		return totalActivityDurationMinutes;
 	}
 }

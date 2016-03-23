@@ -10,12 +10,12 @@ import groovy.json.*
 
 class BudgetGoal extends Goal
 {
-	final int maxDuration
+	final int maxDurationMinutes
 	BudgetGoal(def json)
 	{
 		super(json)
 
-		this.maxDuration = json.maxDuration
+		this.maxDurationMinutes = json.maxDurationMinutes
 	}
 
 	def convertToJsonString()
@@ -25,7 +25,7 @@ class BudgetGoal extends Goal
 			$selfLinkString,
 			"@type":"BudgetGoal",
 			"activityCategoryName":"${activityCategoryName}",
-			"maxDuration":"${maxDuration}"
+			"maxDurationMinutes":"${maxDurationMinutes}"
 		}"""
 	}
 
@@ -34,8 +34,8 @@ class BudgetGoal extends Goal
 		createInstance(activityCategoryName, 0)
 	}
 
-	public static BudgetGoal createInstance(activityCategoryName, maxDuration)
+	public static BudgetGoal createInstance(activityCategoryName, maxDurationMinutes)
 	{
-		new BudgetGoal(["activityCategoryName": activityCategoryName, "maxDuration": maxDuration])
+		new BudgetGoal(["activityCategoryName": activityCategoryName, maxDurationMinutes: maxDurationMinutes])
 	}
 }

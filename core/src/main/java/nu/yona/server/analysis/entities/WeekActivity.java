@@ -40,13 +40,13 @@ public class WeekActivity extends IntervalActivity
 	// Default constructor is required for JPA
 	public WeekActivity()
 	{
-		super(null, null, null);
+		super();
 	}
 
 	private WeekActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek,
-			List<DayActivity> dayActivities)
+			List<DayActivity> dayActivities, List<Integer> spread, int totalActivityDurationMinutes, boolean aggregatesComputed)
 	{
-		super(id, goal, startOfWeek);
+		super(id, goal, startOfWeek, spread, totalActivityDurationMinutes, aggregatesComputed);
 
 		this.userAnonymized = userAnonymized;
 		this.dayActivities = dayActivities;
@@ -65,11 +65,40 @@ public class WeekActivity extends IntervalActivity
 
 	public void addDayActivity(DayActivity dayActivity)
 	{
-		this.dayActivities.add(dayActivity);
+		dayActivities.add(dayActivity);
+	}
+
+	public List<DayActivity> getDayActivities()
+	{
+		return dayActivities;
+	}
+
+	@Override
+	protected List<Integer> computeSpread()
+	{
+		return dayActivities.stream().map(dayActivity -> dayActivity.getSpread()).reduce(getEmptySpread(),
+				(one, other) -> sumSpread(one, other));
+	}
+
+	private List<Integer> sumSpread(List<Integer> one, List<Integer> other)
+	{
+		List<Integer> result = new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT);
+		for (int i = 0; i < IntervalActivity.SPREAD_COUNT; i++)
+		{
+			result.add(one.get(i) + other.get(i));
+		}
+		return result;
+	}
+
+	@Override
+	protected int computeTotalActivityDurationMinutes()
+	{
+		return dayActivities.stream().map(dayActivity -> dayActivity.getTotalActivityDurationMinutes()).reduce(0, Integer::sum);
 	}
 
 	public static WeekActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek)
 	{
-		return new WeekActivity(UUID.randomUUID(), userAnonymized, goal, startOfWeek, new ArrayList<DayActivity>());
+		return new WeekActivity(UUID.randomUUID(), userAnonymized, goal, startOfWeek, new ArrayList<DayActivity>(),
+				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, false);
 	}
 }

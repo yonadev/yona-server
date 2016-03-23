@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import org.springframework.cache.annotation.CachePut;
@@ -17,21 +17,21 @@ import nu.yona.server.analysis.entities.WeekActivity;
 @Service
 public class AnalysisEngineCacheService
 {
-	@Cacheable(value = "dayActivities", key = "{#userAnonymizedID,#goalID,#startOfDay}")
-	public DayActivity fetchDayActivityForUser(UUID userAnonymizedID, UUID goalID, ZonedDateTime startOfDay)
+	@Cacheable(value = "dayActivities", key = "{#userAnonymizedID,#goalID}")
+	public DayActivity fetchDayActivityForUser(UUID userAnonymizedID, UUID goalID)
 	{
-		return DayActivity.getRepository().findOne(userAnonymizedID, goalID, startOfDay);
+		return DayActivity.getRepository().findLast(userAnonymizedID, goalID);
 	}
 
-	@CachePut(value = "dayActivities", key = "{#dayActivity.userAnonymized.getID(),#dayActivity.goal.getID(),#dayActivity.startTime}")
+	@CachePut(value = "dayActivities", key = "{#dayActivity.userAnonymized.getID(),#dayActivity.goal.getID()}")
 	public DayActivity updateDayActivityForUser(DayActivity dayActivity)
 	{
 		return DayActivity.getRepository().save(dayActivity);
 	}
 
-	public WeekActivity fetchWeekActivityForUser(UUID userAnonymizedID, UUID goalID, ZonedDateTime startOfWeek)
+	public WeekActivity fetchWeekActivityForUser(UUID userAnonymizedID, UUID goalID, LocalDate date)
 	{
-		return WeekActivity.getRepository().findOne(userAnonymizedID, goalID, startOfWeek);
+		return WeekActivity.getRepository().findOne(userAnonymizedID, goalID, date);
 	}
 
 	public WeekActivity updateWeekActivityForUser(WeekActivity weekActivity)

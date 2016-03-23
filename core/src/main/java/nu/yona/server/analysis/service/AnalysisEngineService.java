@@ -78,8 +78,12 @@ public class AnalysisEngineService
 	private void addOrUpdateActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
 	{
 		Date minEndTime = new Date(payload.startTime.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
-		DayActivity dayActivity = cacheService.fetchDayActivityForUser(userAnonymized.getID(), matchingGoal.getID(),
-				getStartOfDay(payload.startTime, userAnonymized));
+		DayActivity dayActivity = cacheService.fetchDayActivityForUser(userAnonymized.getID(), matchingGoal.getID());
+		if (dayActivity != null && dayActivity.getStartTime().isBefore(getStartOfDay(payload.startTime, userAnonymized)))
+		{
+			// Last day cached was not today
+			dayActivity = null;
+		}
 		Activity activity = dayActivity == null ? null : dayActivity.getLastActivity();
 
 		if (activity == null || activity.getEndTime().before(minEndTime))
@@ -155,7 +159,7 @@ public class AnalysisEngineService
 
 		ZonedDateTime startOfWeek = getStartOfWeek(payload.startTime, userAnonymized);
 		WeekActivity weekActivity = cacheService.fetchWeekActivityForUser(userAnonymized.getID(), matchingGoal.getID(),
-				startOfWeek);
+				startOfWeek.toLocalDate());
 		if (weekActivity == null)
 		{
 			weekActivity = WeekActivity.createInstance(userAnonymizedEntity, matchingGoal, startOfWeek);
