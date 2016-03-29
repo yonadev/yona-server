@@ -5,7 +5,6 @@
 package nu.yona.server.subscriptions.service;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -34,7 +33,6 @@ import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
 import nu.yona.server.subscriptions.entities.Buddy;
-import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
@@ -407,61 +405,6 @@ public class UserService
 		return CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength());
 	}
 
-	@Transactional
-	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID userID, String userPassword, String userSecret)
-	{
-		User userEntity = getValidatedUserbyID(userID);
-
-		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(userPassword);
-		newDeviceRequestEntity.encryptUserPassword(userSecret);
-
-		boolean isUpdatingExistingRequest = userEntity.getNewDeviceRequest() != null;
-		userEntity.setNewDeviceRequest(newDeviceRequestEntity);
-
-		return NewDeviceRequestDTO.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest(),
-				isUpdatingExistingRequest);
-	}
-
-	@Transactional
-	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID userID, String userSecret)
-	{
-		User userEntity = getValidatedUserbyID(userID);
-		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
-
-		if (newDeviceRequestEntity == null)
-		{
-			throw DeviceRequestException.noDeviceRequestPresent(userID);
-		}
-
-		if (isExpired(newDeviceRequestEntity))
-		{
-			throw DeviceRequestException.deviceRequestExpired(userID);
-		}
-
-		if (StringUtils.isBlank(userSecret))
-		{
-			return NewDeviceRequestDTO.createInstance(userEntity.getNewDeviceRequest());
-		}
-		else
-		{
-			newDeviceRequestEntity.decryptUserPassword(userSecret);
-			return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
-		}
-	}
-
-	@Transactional
-	public void clearNewDeviceRequestForUser(UUID userID)
-	{
-		User userEntity = getValidatedUserbyID(userID);
-
-		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
-		if (existingNewDeviceRequestEntity != null)
-		{
-			userEntity.setNewDeviceRequest(null);
-			User.getRepository().save(userEntity);
-		}
-	}
-
 	static User findUserByMobileNumber(String mobileNumber)
 	{
 		User userEntity = User.getRepository().findByMobileNumber(mobileNumber);
@@ -546,17 +489,6 @@ public class UserService
 		return User.getRepository().save(retrievedEntitySet.userEntity);
 	}
 
-	private boolean isExpired(NewDeviceRequest newDeviceRequestEntity)
-	{
-		Date creationTime = newDeviceRequestEntity.getCreationTime();
-		return (creationTime.getTime() + getExpirationIntervalMillis() < System.currentTimeMillis());
-	}
-
-	private long getExpirationIntervalMillis()
-	{
-		return yonaProperties.getSecurity().getNewDeviceRequestExpirationDays() * 24 * 60 * 60 * 1000;
-	}
-
 	private void validateUserFields(UserDTO userResource)
 	{
 		if (StringUtils.isBlank(userResource.getFirstName()))
@@ -574,9 +506,14 @@ public class UserService
 			throw InvalidDataException.blankMobileNumber();
 		}
 
-		if (!REGEX_PHONE.matcher(userResource.getMobileNumber()).matches())
+		validateMobileNumber(userResource.getMobileNumber());
+	}
+
+	public void validateMobileNumber(String mobileNumber)
+	{
+		if (!REGEX_PHONE.matcher(mobileNumber).matches())
 		{
-			throw InvalidDataException.invalidMobileNumber(userResource.getMobileNumber());
+			throw InvalidDataException.invalidMobileNumber(mobileNumber);
 		}
 	}
 

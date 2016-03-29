@@ -27,15 +27,19 @@ import nu.yona.server.rest.Constants;
 import nu.yona.server.subscriptions.rest.UserController.NewDeviceRequestResource;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
+import nu.yona.server.subscriptions.service.NewDeviceRequestService;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(UserResource.class)
 @RequestMapping(value = "/newDeviceRequests")
-public class NewDeviceRequestsController
+public class NewDeviceRequestController
 {
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private NewDeviceRequestService newDeviceRequestService;
 
 	@RequestMapping(value = "/{mobileNumber}", method = RequestMethod.PUT)
 	@ResponseBody
@@ -43,9 +47,10 @@ public class NewDeviceRequestsController
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable String mobileNumber,
 			@RequestBody NewDeviceRequestCreationDTO newDeviceRequestCreation)
 	{
+		userService.validateMobileNumber(mobileNumber);
 		UUID userID = userService.getUserByMobileNumber(mobileNumber).getID();
 		checkPassword(password, userID);
-		NewDeviceRequestDTO newDeviceRequestResult = userService.setNewDeviceRequestForUser(userID, password.get(),
+		NewDeviceRequestDTO newDeviceRequestResult = newDeviceRequestService.setNewDeviceRequestForUser(userID, password.get(),
 				newDeviceRequestCreation.getUserSecret());
 		return createNewDeviceRequestResponse(newDeviceRequestResult, getNewDeviceRequestLinkBuilder(mobileNumber),
 				newDeviceRequestResult.getIsUpdatingExistingRequest() ? HttpStatus.OK : HttpStatus.CREATED);
@@ -57,8 +62,9 @@ public class NewDeviceRequestsController
 	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(@PathVariable String mobileNumber,
 			@RequestParam(value = "userSecret", required = false) String userSecret)
 	{
+		userService.validateMobileNumber(mobileNumber);
 		UUID userID = userService.getUserByMobileNumber(mobileNumber).getID();
-		return createNewDeviceRequestResponse(userService.getNewDeviceRequestForUser(userID, userSecret),
+		return createNewDeviceRequestResponse(newDeviceRequestService.getNewDeviceRequestForUser(userID, userSecret),
 				getNewDeviceRequestLinkBuilder(mobileNumber), HttpStatus.OK);
 	}
 
@@ -68,9 +74,10 @@ public class NewDeviceRequestsController
 	public void clearNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable String mobileNumber)
 	{
+		userService.validateMobileNumber(mobileNumber);
 		UUID userID = userService.getUserByMobileNumber(mobileNumber).getID();
 		checkPassword(password, userID);
-		userService.clearNewDeviceRequestForUser(userID);
+		newDeviceRequestService.clearNewDeviceRequestForUser(userID);
 	}
 
 	private void checkPassword(Optional<String> password, UUID userID)
@@ -87,7 +94,7 @@ public class NewDeviceRequestsController
 
 	static ControllerLinkBuilder getNewDeviceRequestLinkBuilder(String mobileNumber)
 	{
-		NewDeviceRequestsController methodOn = methodOn(NewDeviceRequestsController.class);
+		NewDeviceRequestController methodOn = methodOn(NewDeviceRequestController.class);
 		return linkTo(methodOn.getNewDeviceRequestForUser(mobileNumber, null));
 	}
 }

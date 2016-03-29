@@ -394,7 +394,7 @@ public class UserController
 
 		private void addNewDeviceRequestLink(UserResource userResource)
 		{
-			userResource.add(NewDeviceRequestsController
+			userResource.add(NewDeviceRequestController
 					.getNewDeviceRequestLinkBuilder(userResource.getContent().getMobileNumber()).withRel("newDeviceRequest"));
 		}
 
