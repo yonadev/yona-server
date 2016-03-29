@@ -48,7 +48,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def johnAfterNumberConfirmation = appService.confirmMobileNumber(appService.&assertUserGetResponseDetailsWithPrivateData, johnAsCreated)
 
 		then:
-		def john = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, johnAfterNumberConfirmation.url, true, johnAfterNumberConfirmation.password)
+		User john = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, johnAfterNumberConfirmation.url, true, johnAfterNumberConfirmation.password)
 		testUser(john, true, true, ts)
 		john.mobileNumberConfirmationUrl == null
 
@@ -56,7 +56,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		john.buddiesUrl == john.url + "/buddies/"
 		john.goalsUrl == john.url + "/goals/"
 		john.messagesUrl == john.url + "/messages/"
-		john.newDeviceRequestUrl == john.url + "/newDeviceRequest"
+		john.newDeviceRequestUrl == appService.url + "/newDeviceRequests/" + john.mobileNumber
 		john.appActivityUrl == john.url + "/appActivity/"
 
 		cleanup:
