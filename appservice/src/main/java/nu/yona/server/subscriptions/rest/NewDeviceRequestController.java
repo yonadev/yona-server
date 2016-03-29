@@ -25,13 +25,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.subscriptions.rest.UserController.NewDeviceRequestResource;
-import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
 import nu.yona.server.subscriptions.service.NewDeviceRequestService;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
-@ExposesResourceFor(UserResource.class)
+@ExposesResourceFor(NewDeviceRequestResource.class)
 @RequestMapping(value = "/newDeviceRequests")
 public class NewDeviceRequestController
 {
