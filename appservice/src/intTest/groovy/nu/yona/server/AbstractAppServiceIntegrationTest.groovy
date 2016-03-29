@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat
 import nu.yona.server.test.AnalysisService
 import nu.yona.server.test.AppService
 import nu.yona.server.test.BudgetGoal
+import nu.yona.server.test.User
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -30,7 +31,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	@Shared
 	private int sequenceNumber = 0
 
-	def addRichard()
+	User addRichard()
 	{
 		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
 				"+$timestamp", ["Nexus 6"])
@@ -39,7 +40,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		return richard
 	}
 
-	def addBob()
+	User addBob()
 	{
 		def bob = appService.addUser(appService.&assertUserCreationResponseDetails, "B o b", "Bob", "Dunn", "BD",
 				"+$timestamp", ["iPhone 5"])

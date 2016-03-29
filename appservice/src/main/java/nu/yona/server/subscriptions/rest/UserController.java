@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
@@ -169,67 +169,16 @@ public class UserController
 						() -> createOKResponse(userService.confirmMobileNumber(id, mobileNumberConfirmation.getCode()), true)));
 	}
 
-	@RequestMapping(value = "/{userID}/newDeviceRequest", method = RequestMethod.PUT)
-	@ResponseBody
-	public HttpEntity<NewDeviceRequestResource> setNewDeviceRequestForUser(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
-			@RequestBody NewDeviceRequestCreationDTO newDeviceRequestCreation)
-	{
-		checkPassword(password, userID);
-		NewDeviceRequestDTO newDeviceRequestResult = userService.setNewDeviceRequestForUser(userID, password.get(),
-				newDeviceRequestCreation.getUserSecret());
-		return createNewDeviceRequestResponse(newDeviceRequestResult, getNewDeviceRequestLinkBuilder(userID),
-				newDeviceRequestResult.getIsUpdatingExistingRequest() ? HttpStatus.OK : HttpStatus.CREATED);
-	}
-
-	@RequestMapping(value = "/{userID}/newDeviceRequest", params = { "userSecret" }, method = RequestMethod.GET)
-	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
-	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(@PathVariable UUID userID,
-			@RequestParam(value = "userSecret", required = false) String userSecret)
-	{
-		return createNewDeviceRequestResponse(userService.getNewDeviceRequestForUser(userID, userSecret),
-				getNewDeviceRequestLinkBuilder(userID), HttpStatus.OK);
-	}
-
-	@RequestMapping(value = "/{userID}/newDeviceRequest", method = RequestMethod.DELETE)
-	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
-	public void clearNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userID)
-	{
-		checkPassword(password, userID);
-		userService.clearNewDeviceRequestForUser(userID);
-	}
-
 	static ControllerLinkBuilder getAddUserLinkBuilder()
 	{
 		UserController methodOn = methodOn(UserController.class);
 		return linkTo(methodOn.addUser(Optional.empty(), null, null, null));
 	}
 
-	private void checkPassword(Optional<String> password, UUID userID)
-	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> null);
-	}
-
 	static ControllerLinkBuilder getConfirmMobileNumberLinkBuilder(UUID userID)
 	{
 		UserController methodOn = methodOn(UserController.class);
 		return linkTo(methodOn.confirmMobileNumber(Optional.empty(), userID, null));
-	}
-
-	static ControllerLinkBuilder getNewDeviceRequestLinkBuilder(UUID userID)
-	{
-		UserController methodOn = methodOn(UserController.class);
-		return linkTo(methodOn.getNewDeviceRequestForUser(userID, null));
-	}
-
-	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(NewDeviceRequestDTO newDeviceRequest,
-			ControllerLinkBuilder entityLinkBuilder, HttpStatus statusCode)
-	{
-		return new ResponseEntity<NewDeviceRequestResource>(new NewDeviceRequestResource(newDeviceRequest, entityLinkBuilder),
-				statusCode);
 	}
 
 	public static class NewDeviceRequestResource extends Resource<NewDeviceRequestDTO>
@@ -428,14 +377,14 @@ public class UserController
 
 		private void addWeekActivityOverviewsLink(UserResource userResource)
 		{
-			userResource.add(
-					ActivityController.getWeekActivityOverviewsLinkBuilder(userResource.getContent().getID()).withRel("weeksActivity"));
+			userResource.add(ActivityController.getWeekActivityOverviewsLinkBuilder(userResource.getContent().getID())
+					.withRel("weeksActivity"));
 		}
 
 		private void addDayActivityOverviewsLink(UserResource userResource)
 		{
-			userResource.add(
-					ActivityController.getDayActivityOverviewsLinkBuilder(userResource.getContent().getID()).withRel("daysActivity"));
+			userResource.add(ActivityController.getDayActivityOverviewsLinkBuilder(userResource.getContent().getID())
+					.withRel("daysActivity"));
 		}
 
 		private void addMessagesLink(UserResource userResource)
@@ -445,8 +394,8 @@ public class UserController
 
 		private void addNewDeviceRequestLink(UserResource userResource)
 		{
-			userResource.add(
-					UserController.getNewDeviceRequestLinkBuilder(userResource.getContent().getID()).withRel("newDeviceRequest"));
+			userResource.add(NewDeviceRequestsController
+					.getNewDeviceRequestLinkBuilder(userResource.getContent().getMobileNumber()).withRel("newDeviceRequest"));
 		}
 
 		private void addAppActivityLink(UserResource userResource)
