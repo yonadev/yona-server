@@ -155,93 +155,6 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  '/users/{id}/newDeviceRequest':
-    parameters:
-      - name: id
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
-    put:
-      summary: Request to add a new device
-      description: This stores an encrypted copy of the users device key on the server, for a limited period of time.
-      parameters:
-        - name: Yona-Password
-          in: header
-          description: The device password
-          required: true
-          type: string
-        - in: body
-          name: body
-          description: Message with user secret. The device password will be encrypted with this secret and stored for a limited period of time.
-          required: true
-          schema:
-            type: object
-            required:
-              - userSecret
-            properties:
-              userSecret:
-                type: string
-      tags:
-        - User
-      responses:
-        '200':
-          description: The new device request
-          schema:
-            # TODO: why do we return this? The app (on this device) cannot use it, right?
-            $ref: '#/definitions/NewDeviceRequest'
-        '201':
-          description: The newly added new device request
-          schema:
-            # TODO: why do we return this? The app (on this device) cannot use it, right?
-            $ref: '#/definitions/NewDeviceRequest'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-    get:
-      summary: Get new device request
-      description: If the user secret is given, the returned resource contains the device password. The app can check the presence of a new device request by omitting the user secret. In that case, a blank new device request is returned.
-      parameters:
-        - name: userSecret
-          in: header
-          description: The password used to encrypt the device key
-          required: false
-          type: string
-      tags:
-        - User
-      responses:
-        '200':
-          description: The new device request
-          schema:
-            $ref: '#/definitions/NewDeviceRequest'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-    delete:
-      summary: Delete new device request
-      description: Deletes the new device request
-      parameters:
-        - name: Yona-Password
-          in: header
-          description: The device password
-          required: true
-          type: string
-      tags:
-        - User
-      responses:
-        '200':
-          description: The new device request is deleted.
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
   '/users/{userID}/goals/':
     parameters:
       - name: userID
@@ -616,6 +529,93 @@ paths:
           description: The action response
           schema:
             $ref: '#/definitions/MessageAction'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/newDeviceRequests/{mobileNumber}':
+    parameters:
+      - name: mobileNumber
+        in: path
+        description: The mobile number of the user
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    put:
+      summary: Request to add a new device
+      description: This stores an encrypted copy of the users device key on the server, for a limited period of time.
+      parameters:
+        - name: Yona-Password
+          in: header
+          description: The device password
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Message with user secret. The device password will be encrypted with this secret and stored for a limited period of time.
+          required: true
+          schema:
+            type: object
+            required:
+              - userSecret
+            properties:
+              userSecret:
+                type: string
+      tags:
+        - New device requests
+      responses:
+        '200':
+          description: The new device request
+          schema:
+            # TODO: why do we return this? The app (on this device) cannot use it, right?
+            $ref: '#/definitions/NewDeviceRequest'
+        '201':
+          description: The newly added new device request
+          schema:
+            # TODO: why do we return this? The app (on this device) cannot use it, right?
+            $ref: '#/definitions/NewDeviceRequest'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    get:
+      summary: Get new device request
+      description: If the user secret is given, the returned resource contains the device password. The app can check the presence of a new device request by omitting the user secret. In that case, a blank new device request is returned.
+      parameters:
+        - name: userSecret
+          in: header
+          description: The password used to encrypt the device key
+          required: false
+          type: string
+      tags:
+        - New device requests
+      responses:
+        '200':
+          description: The new device request
+          schema:
+            $ref: '#/definitions/NewDeviceRequest'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete new device request
+      description: Deletes the new device request
+      parameters:
+        - name: Yona-Password
+          in: header
+          description: The device password
+          required: true
+          type: string
+      tags:
+        - New device requests
+      responses:
+        '200':
+          description: The new device request is deleted.
         default:
           description: Unexpected error
           schema:

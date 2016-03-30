@@ -12,6 +12,7 @@ import nu.yona.server.YonaServer
 class AppService extends Service
 {
 	final ACTIVITY_CATEGORIES_PATH = "/activityCategories/"
+	final NEW_DEVICE_REQUESTS_PATH = "/newDeviceRequests/"
 	final USERS_PATH = "/users/"
 	final OVERWRITE_USER_REQUEST_PATH = "/admin/requestUserOverwrite/"
 
@@ -368,20 +369,20 @@ class AppService extends Service
 		yonaServer.getResourceWithPassword(user.dayActivityOverviewsUrl, user.password, parameters)
 	}
 
-	def setNewDeviceRequest(newDeviceRequestUrl, password, userSecret)
+	def setNewDeviceRequest(mobileNumber, password, userSecret)
 	{
 		def jsonString = """{ "userSecret": "$userSecret" }"""
-		yonaServer.updateResourceWithPassword(newDeviceRequestUrl, jsonString, password)
+		yonaServer.updateResourceWithPassword("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", jsonString, password)
 	}
 
-	def getNewDeviceRequest(newDeviceRequestUrl, userSecret = null)
+	def getNewDeviceRequest(mobileNumber, userSecret = null)
 	{
-		yonaServer.getResource(newDeviceRequestUrl, [:], ["userSecret": userSecret])
+		yonaServer.getResource("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", [:], ["userSecret": userSecret])
 	}
 
-	def clearNewDeviceRequest(deviceRequestEditURL, password)
+	def clearNewDeviceRequest(mobileNumber, password)
 	{
-		yonaServer.deleteResourceWithPassword(deviceRequestEditURL, password)
+		yonaServer.deleteResourceWithPassword("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", password)
 	}
 
 	def addGoal(Closure asserter, User user, Goal goal, message = "")
