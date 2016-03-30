@@ -812,15 +812,8 @@ definitions:
         type: string
         description: Nickname known among buddies. Private data.
         example: RQ
-      devices:
-        type: array
-        items:
-          type: string
-          example: "Nexus 6"
-        description: Devices registered with Yona. Private data.
     required:
     - nickname
-    - devices
   PrivateUserData:
     allOf:
       - $ref: '#/definitions/PrivateUserDataNoVPN'

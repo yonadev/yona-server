@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
@@ -75,12 +75,12 @@ public class User extends EntityWithID
 	}
 
 	public static User createInstance(String firstName, String lastName, String nickname, String mobileNumber, String vpnPassword,
-			Set<String> deviceNames, Set<Goal> goals)
+			Set<Goal> goals)
 	{
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		UserPrivate userPrivate = UserPrivate.createInstance(nickname, vpnPassword, deviceNames, goals, anonymousMessageSource,
+		UserPrivate userPrivate = UserPrivate.createInstance(nickname, vpnPassword, goals, anonymousMessageSource,
 				namedMessageSource);
 		return new User(UUID.randomUUID(), initializationVector, firstName, lastName, mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
@@ -185,16 +185,6 @@ public class User extends EntityWithID
 	public void setNickname(String nickname)
 	{
 		getUserPrivate().setNickname(nickname);
-	}
-
-	public Set<String> getDeviceNames()
-	{
-		return getUserPrivate().getDeviceNames();
-	}
-
-	public void setDeviceNames(Set<String> deviceNames)
-	{
-		getUserPrivate().setDeviceNames(deviceNames);
 	}
 
 	public Set<Goal> getGoals()

@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -268,8 +268,7 @@ public class UserService
 	{
 		User newUser = User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
 				buddyUserResource.getPrivateData().getNickname(), buddyUserResource.getMobileNumber(),
-				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet(),
-				Collections.emptySet());
+				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet());
 		addMandatoryGoals(newUser);
 		newUser.setIsCreatedOnBuddyRequest();
 		setUserUnconfirmedWithNewConfirmationCode(newUser);

@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -40,12 +40,12 @@ public class UserDTO
 
 	private UserDTO(UUID id, String firstName, String lastName, String nickname, String mobileNumber, boolean isConfirmed,
 			UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
-			UUID anonymousMessageDestinationID, Set<String> deviceNames, Set<GoalDTO> goals, Set<UUID> buddyIDs,
-			UUID userAnonymizedID, VPNProfileDTO vpnProfile)
+			UUID anonymousMessageDestinationID, Set<GoalDTO> goals, Set<UUID> buddyIDs, UUID userAnonymizedID,
+			VPNProfileDTO vpnProfile)
 	{
 		this(id, firstName, lastName, null, mobileNumber, isConfirmed,
 				new UserPrivateDTO(nickname, namedMessageSourceID, namedMessageDestinationID, anonymousMessageSourceID,
-						anonymousMessageDestinationID, deviceNames, goals, buddyIDs, userAnonymizedID, vpnProfile));
+						anonymousMessageDestinationID, goals, buddyIDs, userAnonymizedID, vpnProfile));
 	}
 
 	private UserDTO(UUID id, String firstName, String lastName, String mobileNumber, boolean isConfirmed)
@@ -138,7 +138,7 @@ public class UserDTO
 	User createUserEntity()
 	{
 		return User.createInstance(firstName, lastName, privateData.getNickname(), mobileNumber,
-				privateData.getVpnProfile().getVpnPassword(), privateData.getDeviceNames(),
+				privateData.getVpnProfile().getVpnPassword(),
 				privateData.getGoals().stream().map(g -> g.createGoalEntity()).collect(Collectors.toSet()));
 	}
 
@@ -148,7 +148,6 @@ public class UserDTO
 		originalUserEntity.setLastName(lastName);
 		originalUserEntity.setMobileNumber(mobileNumber);
 		originalUserEntity.setNickname(privateData.getNickname());
-		originalUserEntity.setDeviceNames(privateData.getDeviceNames());
 
 		return originalUserEntity;
 	}
@@ -193,7 +192,7 @@ public class UserDTO
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickname(),
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSource().getID(),
 				userEntity.getNamedMessageDestination().getID(), userEntity.getAnonymousMessageSource().getID(),
-				userEntity.getAnonymousMessageSource().getDestination().getID(), userEntity.getDeviceNames(),
+				userEntity.getAnonymousMessageSource().getDestination().getID(),
 				userEntity.getGoals().stream().map(g -> GoalDTO.createInstance(g)).collect(Collectors.toSet()),
 				getBuddyIDs(userEntity), userEntity.getUserAnonymizedID(), VPNProfileDTO.createInstance(userEntity));
 	}

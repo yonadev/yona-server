@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
@@ -8,13 +8,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -44,9 +42,6 @@ public class UserPrivate extends EntityWithID
 	@Convert(converter = UUIDFieldEncrypter.class)
 	private UUID userAnonymizedID;
 
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	private Set<Device> devices;
-
 	@OneToMany(cascade = CascadeType.ALL)
 	private Set<Buddy> buddies;
 
@@ -65,15 +60,14 @@ public class UserPrivate extends EntityWithID
 		super(null);
 	}
 
-	private UserPrivate(UUID id, String nickname, UUID userAnonymizedID, String vpnPassword, Set<Device> devices,
-			UUID anonymousMessageSourceID, UUID namedMessageSourceID)
+	private UserPrivate(UUID id, String nickname, UUID userAnonymizedID, String vpnPassword, UUID anonymousMessageSourceID,
+			UUID namedMessageSourceID)
 	{
 		super(id);
 		this.decryptionCheck = buildDecryptionCheck();
 		this.nickname = nickname;
 		this.userAnonymizedID = userAnonymizedID;
 		this.vpnPassword = vpnPassword;
-		this.devices = devices;
 		this.buddies = new HashSet<>();
 		this.anonymousMessageSourceID = anonymousMessageSourceID;
 		this.namedMessageSourceID = namedMessageSourceID;
@@ -84,15 +78,13 @@ public class UserPrivate extends EntityWithID
 		return DECRYPTION_CHECK_STRING + CryptoUtil.getRandomString(DECRYPTION_CHECK_STRING.length());
 	}
 
-	public static UserPrivate createInstance(String nickname, String vpnPassword, Set<String> deviceNames, Set<Goal> goals,
+	public static UserPrivate createInstance(String nickname, String vpnPassword, Set<Goal> goals,
 			MessageSource anonymousMessageSource, MessageSource namedMessageSource)
 	{
 		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
 		UserAnonymized.getRepository().save(userAnonymized);
-		Set<Device> devices = deviceNames.stream().map(deviceName -> Device.createInstance(deviceName))
-				.collect(Collectors.toSet());
-		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymized.getID(), vpnPassword, devices,
-				anonymousMessageSource.getID(), namedMessageSource.getID());
+		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymized.getID(), vpnPassword, anonymousMessageSource.getID(),
+				namedMessageSource.getID());
 	}
 
 	public boolean isDecryptedProperly()
@@ -113,16 +105,6 @@ public class UserPrivate extends EntityWithID
 	UserAnonymized getUserAnonymized()
 	{
 		return UserAnonymized.getRepository().findOne(userAnonymizedID);
-	}
-
-	public Set<String> getDeviceNames()
-	{
-		return devices.stream().map(device -> device.getName()).collect(Collectors.toSet());
-	}
-
-	public void setDeviceNames(Set<String> deviceNames)
-	{
-		this.devices = deviceNames.stream().map(deviceName -> Device.createInstance(deviceName)).collect(Collectors.toSet());
 	}
 
 	public Set<Buddy> getBuddies()
