@@ -22,9 +22,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import nu.yona.server.crypto.CryptoException;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.subscriptions.rest.UserController.NewDeviceRequestResource;
+import nu.yona.server.subscriptions.service.DeviceRequestException;
 import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
 import nu.yona.server.subscriptions.service.NewDeviceRequestService;
 import nu.yona.server.subscriptions.service.UserService;
@@ -47,7 +49,7 @@ public class NewDeviceRequestController
 			@RequestBody NewDeviceRequestCreationDTO newDeviceRequestCreation)
 	{
 		userService.validateMobileNumber(mobileNumber);
-		UUID userID = userService.getUserByMobileNumber(mobileNumber).getID();
+		UUID userID = userService.getUserByMobileNumber(mobileNumber, () -> CryptoException.decryptingData()).getID();
 		checkPassword(password, userID);
 		NewDeviceRequestDTO newDeviceRequestResult = newDeviceRequestService.setNewDeviceRequestForUser(userID, password.get(),
 				newDeviceRequestCreation.getUserSecret());
@@ -62,7 +64,8 @@ public class NewDeviceRequestController
 			@RequestParam(value = "userSecret", required = false) String userSecret)
 	{
 		userService.validateMobileNumber(mobileNumber);
-		UUID userID = userService.getUserByMobileNumber(mobileNumber).getID();
+		UUID userID = userService
+				.getUserByMobileNumber(mobileNumber, () -> DeviceRequestException.noDeviceRequestPresent(mobileNumber)).getID();
 		return createNewDeviceRequestResponse(newDeviceRequestService.getNewDeviceRequestForUser(userID, userSecret),
 				getNewDeviceRequestLinkBuilder(mobileNumber), HttpStatus.OK);
 	}
@@ -74,7 +77,7 @@ public class NewDeviceRequestController
 			@PathVariable String mobileNumber)
 	{
 		userService.validateMobileNumber(mobileNumber);
-		UUID userID = userService.getUserByMobileNumber(mobileNumber).getID();
+		UUID userID = userService.getUserByMobileNumber(mobileNumber, () -> CryptoException.decryptingData()).getID();
 		checkPassword(password, userID);
 		newDeviceRequestService.clearNewDeviceRequestForUser(userID);
 	}
