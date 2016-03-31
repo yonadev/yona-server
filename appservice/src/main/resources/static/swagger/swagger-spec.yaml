@@ -862,8 +862,6 @@ definitions:
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
         properties:
-          # TODO add messages link
-          # TODO add buddies link
           "yona:confirmMobileNumber":
             type: object
             required:
@@ -872,6 +870,46 @@ definitions:
               href:
                 type: string
                 description: If this link is present, the mobile number of the user must be confirmed by posting the confirmation to this URL.
+          "yona:messages":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: Refers to the messages for this user
+          "yona:weeklyActivityReports":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: Refers to the weekly activity reports
+          "yona:dailyActivityReports":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: Refers to the daily activity reports
+          "yona:newDeviceRequest":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: Create, get or delete a "new device request" through this link
+          "yona:appActivity":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: Post new app activity data to this link
     required:
       - _embedded
       - _links
@@ -1157,7 +1195,25 @@ definitions:
       status:
         $ref: '#/definitions/GoalConflictStatus'
         example: ANNOUNCED
-      #TODO Add other properties of GoalConflictMessage
+      activityCategoryName:
+        # TODO: Replace this with a link to the related day activity
+        type: string
+        description: The name of the activity category
+        example: Gambling
+      url:
+        type: string
+        description: The URL on which the goal conflict was detected
+        example: http://www.poker.com
+      activityStartTime:
+        type: string
+        format: dateTime
+        description: The start time of this activity
+        example: 2016-02-31T21:03:52.290+0000
+      activityEndTime:
+        type: string
+        format: dateTime
+        description: The end time of this activity
+        example: 2016-02-31T21:03:57.721+0000
       _links:
         allOf:
           - $ref: '#/definitions/Curies'
@@ -1172,6 +1228,10 @@ definitions:
     required:
       - nickname
       - status
+      - activityCategoryName
+      - url
+      - activityStartTime
+      - activityEndTime
       - _links
   DisclosureRequestMessage:
     allOf:
