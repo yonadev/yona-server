@@ -378,13 +378,13 @@ public class UserController
 		private void addWeekActivityOverviewsLink(UserResource userResource)
 		{
 			userResource.add(ActivityController.getWeekActivityOverviewsLinkBuilder(userResource.getContent().getID())
-					.withRel("weeksActivity"));
+					.withRel("weeklyActivityReports"));
 		}
 
 		private void addDayActivityOverviewsLink(UserResource userResource)
 		{
 			userResource.add(ActivityController.getDayActivityOverviewsLinkBuilder(userResource.getContent().getID())
-					.withRel("daysActivity"));
+					.withRel("dailyActivityReports"));
 		}
 
 		private void addMessagesLink(UserResource userResource)
