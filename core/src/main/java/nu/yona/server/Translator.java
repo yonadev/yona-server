@@ -1,12 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server;
 
+import java.text.MessageFormat;
 import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,5 +43,25 @@ public class Translator
 		}
 
 		return msgSource.getMessage(messageId, parameters, locale);
+	}
+
+	public static String getStandardLocaleString(Locale locale)
+	{
+		return locale.toString().replace('_', '-');
+	}
+
+	public static String buildLocaleSpecificResourcePath(String format)
+	{
+		return MessageFormat.format(format, determineLocaleInfix());
+	}
+
+	private static Object determineLocaleInfix()
+	{
+		Locale locale = LocaleContextHolder.getLocale();
+		if (locale.equals(Locale.forLanguageTag("en-US")))
+		{
+			return "";
+		}
+		return "_" + locale.getLanguage();
 	}
 }

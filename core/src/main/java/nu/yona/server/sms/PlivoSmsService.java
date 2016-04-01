@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.sms;
 
@@ -37,6 +34,7 @@ import org.springframework.ui.velocity.VelocityEngineUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import nu.yona.server.Translator;
 import nu.yona.server.exceptions.SmsException;
 import nu.yona.server.properties.SmsProperties;
 import nu.yona.server.properties.YonaProperties;
@@ -54,8 +52,8 @@ public class PlivoSmsService implements SmsService
 	@Override
 	public void send(String phoneNumber, String messageTemplateName, Map<String, Object> templateParameters)
 	{
-		String message = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine, "sms/" + messageTemplateName + ".vm",
-				"UTF-8", templateParameters);
+		String message = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine,
+				Translator.buildLocaleSpecificResourcePath("sms/" + messageTemplateName + "{0}.vm"), "UTF-8", templateParameters);
 
 		logger.info("Sending SMS to number '{}'. Message: {}", phoneNumber, message);
 
