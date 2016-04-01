@@ -14,7 +14,6 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	final def firstName = "John"
 	final def lastName = "Doe"
 	final def nickname = "JD"
-	final def devices = ["Galaxy mini"]
 	def password = "J o h n   D o e"
 
 	def 'Create John Doe'()
@@ -209,7 +208,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	User createJohnDoe(def ts)
 	{
 		appService.addUser(appService.&assertUserCreationResponseDetails, password, firstName, lastName, nickname,
-				"+$ts", devices)
+				"+$ts")
 	}
 
 	void testUser(user, includePrivateData, mobileNumberConfirmed, timestamp)
@@ -221,8 +220,6 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		{
 			appService.assertUserWithPrivateData(user)
 			assert user.nickname == "JD"
-			assert user.devices.size() == 1
-			assert user.devices[0] == "Galaxy mini"
 
 			assert user.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 			assert user.vpnProfile.vpnPassword.length() == 32
@@ -244,7 +241,6 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		else
 		{
 			assert user.nickname == null
-			assert user.devices == null
 			assert user.goals == null
 		}
 	}

@@ -266,8 +266,7 @@ public class UserService
 	{
 		User newUser = User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
 				buddyUserResource.getPrivateData().getNickname(), buddyUserResource.getMobileNumber(),
-				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet(),
-				Collections.emptySet());
+				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet());
 		addMandatoryGoals(newUser);
 		newUser.setIsCreatedOnBuddyRequest();
 		setUserUnconfirmedWithNewConfirmationCode(newUser);

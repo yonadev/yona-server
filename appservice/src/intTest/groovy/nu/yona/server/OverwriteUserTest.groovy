@@ -17,7 +17,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def duplicateUser = appService.addUser(this.&userExistsAsserter, "A n o t h e r", "The", "Next", "TN",
-				"$richard.mobileNumber", ["Nexus 6"])
+				"$richard.mobileNumber")
 
 		then:
 		duplicateUser == null
@@ -59,7 +59,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
-				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"],
+				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": confirmationCode])
 
 		then:
@@ -68,7 +68,6 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		richardChanged.lastName == "${richard.lastName}Changed"
 		richardChanged.nickname == "${richard.nickname}Changed"
 		richardChanged.mobileNumber == richard.mobileNumber
-		richardChanged.devices == ["Nokia"]
 		richardChanged.goals.size() == 1 //mandatory goal
 		richardChanged.goals[0].activityCategoryName == 'gambling'
 
@@ -100,7 +99,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def bob = richardAndBob.bob
 		def confirmationCode = appService.requestOverwriteUser(richard.mobileNumber)?.responseData?.confirmationCode
 		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
-				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"],
+				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": confirmationCode])
 
 		when:
@@ -122,7 +121,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def bob = richardAndBob.bob
 		def confirmationCode = appService.requestOverwriteUser(richard.mobileNumber)?.responseData?.confirmationCode
 		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
-				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber, ["Nokia"],
+				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": confirmationCode])
 		def buddy = appService.getBuddies(bob)[0]
 
@@ -146,10 +145,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 						"firstName":"John",
 						"lastName":"Doe",
 						"nickname":"JD",
-						"mobileNumber":"${userCreationMobileNumber}",
-						"devices":[
-							"Galaxy mini"
-						]}"""
+						"mobileNumber":"${userCreationMobileNumber}"}"""
 
 		def userAddResponse = appService.addUser(userCreationJSON, "Password")
 		def overwriteRequestResponse = appService.requestOverwriteUser(userCreationMobileNumber)
