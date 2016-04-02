@@ -364,8 +364,8 @@ paths:
         required: true
         type: string
     get:
-      summary: Get day network and app activity
-      description: Get activity of the current day, pageable to yesterday and before 
+      summary: Get day activity overview
+      description: Get network and app activity of the current day, pageable to yesterday and before 
       parameters:
         - name: size
           in: query
@@ -409,7 +409,7 @@ paths:
         required: true
         type: string
     get:
-      summary: Get activity detail for day and goal
+      summary: Get day activity detail
       description: Get day network and app activity for a specific goal on a specific day
       tags:
         - Activity
@@ -431,8 +431,8 @@ paths:
         required: true
         type: string
     get:
-      summary: Get week network and app activity
-      description: Get activity of the current week, pageable to the weeks before 
+      summary: Get week activity overview
+      description: Get network and app activity of the current week, pageable to the weeks before 
       parameters:
         - name: size
           in: query
@@ -476,7 +476,7 @@ paths:
         required: true
         type: string
     get:
-      summary: Get activity detail for week and goal
+      summary: Get week activity detail
       description: Get day network and app activity for a specific goal on a specific week
       tags:
         - Activity
