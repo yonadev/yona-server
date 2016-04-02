@@ -7,6 +7,7 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.TimeZoneGoal
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
@@ -14,7 +15,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
+		def timeZoneGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance("social", ["11:00-12:00"].toArray()), "Going to restrict my social time!")
 		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(richard, ["social"], "http://www.facebook.com")
 
 		when:
 		def response = appService.getDayActivityOverviews(richard)
@@ -26,17 +29,23 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded."yona:dayActivityOverviews".size() == 1
 		def dayActivityOverview = response.responseData._embedded."yona:dayActivityOverviews"[0]
 		dayActivityOverview._embedded."yona:dayActivities"
-		dayActivityOverview._embedded."yona:dayActivities".size() == 1
-		def dayActivityForGoal = dayActivityOverview._embedded."yona:dayActivities"[0]
-		dayActivityForGoal.spread
-		dayActivityForGoal.spread.size() <= 96
-		dayActivityForGoal.totalActivityDurationMinutes == 1
-		dayActivityForGoal.goalAccomplished == false
-		dayActivityForGoal.totalMinutesBeyondGoal == 1
-		dayActivityForGoal.date =~ /\d{4}\-\d{2}\-\d{2}/
-		dayActivityForGoal.timeZoneId == "Europe/Amsterdam"
-		dayActivityForGoal._links."yona:goal"
-		dayActivityForGoal._links.self
+		dayActivityOverview._embedded."yona:dayActivities".size() == 2
+		def dayActivityForBudgetGoal = dayActivityOverview._embedded."yona:dayActivities".find{ it._links."yona:goal".href != timeZoneGoal.url}
+		dayActivityForBudgetGoal
+		!dayActivityForBudgetGoal.spread
+		dayActivityForBudgetGoal.totalActivityDurationMinutes == 1
+		dayActivityForBudgetGoal.goalAccomplished == false
+		dayActivityForBudgetGoal.totalMinutesBeyondGoal == 1
+		dayActivityForBudgetGoal.date =~ /\d{4}\-\d{2}\-\d{2}/
+		dayActivityForBudgetGoal.timeZoneId == "Europe/Amsterdam"
+		dayActivityForBudgetGoal._links."yona:goal"
+		dayActivityForBudgetGoal._links.self
+
+		//time zone goal should have spread
+		def dayActivityForTimeZoneGoal = dayActivityOverview._embedded."yona:dayActivities".find{ it._links."yona:goal".href == timeZoneGoal.url}
+		dayActivityForTimeZoneGoal
+		dayActivityForTimeZoneGoal.spread
+		dayActivityForTimeZoneGoal.spread.size() <= 96
 	}
 
 	def 'Get day activity detail'()
@@ -86,8 +95,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		weekActivityOverview._embedded."yona:weekActivities"
 		weekActivityOverview._embedded."yona:weekActivities".size() == 1
 		def weekActivityForGoal = weekActivityOverview._embedded."yona:weekActivities"[0]
-		// !weekActivityForGoal.spread //only in detail //TODO
-		weekActivityForGoal.totalActivityDurationMinutes == 1
+		!weekActivityForGoal.spread //only in detail
+		!weekActivityForGoal.totalActivityDurationMinutes //only in detail
 		!weekActivityForGoal.totalMinutesBeyondGoal //only for day
 		weekActivityForGoal.date =~ /\d{4}\-W\d{2}/
 		weekActivityForGoal.timeZoneId == "Europe/Amsterdam"
@@ -95,7 +104,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		weekActivityForGoal._embedded."yona:dayActivities"
 		weekActivityForGoal._embedded."yona:dayActivities".size() == 1
 		def dayActivityForGoal = weekActivityForGoal._embedded."yona:dayActivities"[0]
-		// !dayActivityForGoal.spread //only in detail //TODO
+		!dayActivityForGoal.spread //only in detail
 		dayActivityForGoal.totalActivityDurationMinutes == 1
 		dayActivityForGoal.goalAccomplished == false
 		dayActivityForGoal.totalMinutesBeyondGoal == 1
@@ -132,7 +141,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded."yona:dayActivities"
 		response.responseData._embedded."yona:dayActivities".size() == 1
 		def dayActivityForGoal = response.responseData._embedded."yona:dayActivities"[0]
-		//!dayActivityForGoal.spread //only in detail //TODO
+		!dayActivityForGoal.spread //only in detail
 		dayActivityForGoal.totalActivityDurationMinutes == 1
 		dayActivityForGoal.goalAccomplished == false
 		dayActivityForGoal.totalMinutesBeyondGoal == 1

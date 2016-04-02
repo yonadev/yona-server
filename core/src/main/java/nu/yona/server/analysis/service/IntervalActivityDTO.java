@@ -1,27 +1,33 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 public abstract class IntervalActivityDTO
 {
+	public enum LevelOfDetail
+	{
+		WeekOverview, WeekDetail, DayOverview, DayDetail
+	}
+
 	private UUID goalID;
 	private ZonedDateTime startTime;
 
 	private List<Integer> spread;
-	private int totalActivityDurationMinutes;
+	private Integer totalActivityDurationMinutes;
 
-	protected IntervalActivityDTO(UUID goalID, ZonedDateTime startTime, List<Integer> spread, int totalActivityDurationMinutes)
+	protected IntervalActivityDTO(UUID goalID, ZonedDateTime startTime, List<Integer> spread,
+			Integer totalActivityDurationMinutes)
 	{
 		this.goalID = goalID;
 		this.startTime = startTime;
@@ -58,13 +64,31 @@ public abstract class IntervalActivityDTO
 		return goalID;
 	}
 
+	@JsonInclude(Include.NON_NULL)
 	public List<Integer> getSpread()
 	{
 		return spread;
 	}
 
-	public int getTotalActivityDurationMinutes()
+	@JsonInclude(Include.NON_NULL)
+	public Integer getTotalActivityDurationMinutes()
 	{
 		return totalActivityDurationMinutes;
+	}
+
+	protected static <T> T includeIf(Callable<T> calculator, boolean condition)
+	{
+		if (condition)
+		{
+			try
+			{
+				return calculator.call();
+			}
+			catch (Exception e)
+			{
+				throw new RuntimeException(e);
+			}
+		}
+		return null;
 	}
 }

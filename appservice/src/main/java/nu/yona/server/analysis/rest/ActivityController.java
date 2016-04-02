@@ -91,7 +91,7 @@ public class ActivityController
 		LocalDate date = WeekActivityDTO.parseDate(weekStr);
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> new ResponseEntity<>(new WeekActivityResourceAssembler(curieProvider, userID)
-						.toResource(activityService.getWeekActivity(userID, date, goalID)), HttpStatus.OK));
+						.toResource(activityService.getWeekActivityDetail(userID, date, goalID)), HttpStatus.OK));
 	}
 
 	@RequestMapping(value = "/days/{date}/{goalID}", method = RequestMethod.GET)
@@ -180,6 +180,8 @@ public class ActivityController
 		{
 			super(dayActivity);
 		}
+
+		// TODO: embed messages if included on this detail level
 	}
 
 	static class DayActivityOverviewResource extends Resource<DayActivityOverviewDTO>
