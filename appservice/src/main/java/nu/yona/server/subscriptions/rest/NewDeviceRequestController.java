@@ -6,6 +6,8 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
@@ -30,12 +32,15 @@ import nu.yona.server.subscriptions.service.DeviceRequestException;
 import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
 import nu.yona.server.subscriptions.service.NewDeviceRequestService;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.subscriptions.service.UserServiceException;
 
 @Controller
 @ExposesResourceFor(NewDeviceRequestResource.class)
 @RequestMapping(value = "/newDeviceRequests")
 public class NewDeviceRequestController
 {
+	private static final Logger logger = LoggerFactory.getLogger(NewDeviceRequestController.class);
+
 	@Autowired
 	private UserService userService;
 
@@ -48,13 +53,21 @@ public class NewDeviceRequestController
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable String mobileNumber,
 			@RequestBody NewDeviceRequestCreationDTO newDeviceRequestCreation)
 	{
-		userService.validateMobileNumber(mobileNumber);
-		UUID userID = userService.getUserByMobileNumber(mobileNumber, () -> CryptoException.decryptingData()).getID();
-		checkPassword(password, userID);
-		NewDeviceRequestDTO newDeviceRequestResult = newDeviceRequestService.setNewDeviceRequestForUser(userID, password.get(),
-				newDeviceRequestCreation.getUserSecret());
-		return createNewDeviceRequestResponse(newDeviceRequestResult, getNewDeviceRequestLinkBuilder(mobileNumber),
-				newDeviceRequestResult.getIsUpdatingExistingRequest() ? HttpStatus.OK : HttpStatus.CREATED);
+		try
+		{
+			userService.validateMobileNumber(mobileNumber);
+			UUID userID = userService.getUserByMobileNumber(mobileNumber).getID();
+			checkPassword(password, userID);
+			NewDeviceRequestDTO newDeviceRequestResult = newDeviceRequestService.setNewDeviceRequestForUser(userID,
+					password.get(), newDeviceRequestCreation.getUserSecret());
+			return createNewDeviceRequestResponse(newDeviceRequestResult, getNewDeviceRequestLinkBuilder(mobileNumber),
+					newDeviceRequestResult.getIsUpdatingExistingRequest() ? HttpStatus.OK : HttpStatus.CREATED);
+		}
+		catch (UserServiceException e)
+		{
+			logger.error("Caught UserServiceException. Mapping it to CryptoException", e);
+			throw CryptoException.decryptingData();
+		}
 	}
 
 	@RequestMapping(value = "/{mobileNumber}", params = { "userSecret" }, method = RequestMethod.GET)
@@ -63,11 +76,18 @@ public class NewDeviceRequestController
 	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(@PathVariable String mobileNumber,
 			@RequestParam(value = "userSecret", required = false) String userSecret)
 	{
-		userService.validateMobileNumber(mobileNumber);
-		UUID userID = userService
-				.getUserByMobileNumber(mobileNumber, () -> DeviceRequestException.noDeviceRequestPresent(mobileNumber)).getID();
-		return createNewDeviceRequestResponse(newDeviceRequestService.getNewDeviceRequestForUser(userID, userSecret),
-				getNewDeviceRequestLinkBuilder(mobileNumber), HttpStatus.OK);
+		try
+		{
+			userService.validateMobileNumber(mobileNumber);
+			UUID userID = userService.getUserByMobileNumber(mobileNumber).getID();
+			return createNewDeviceRequestResponse(newDeviceRequestService.getNewDeviceRequestForUser(userID, userSecret),
+					getNewDeviceRequestLinkBuilder(mobileNumber), HttpStatus.OK);
+		}
+		catch (UserServiceException e)
+		{
+			logger.error("Caught UserServiceException. Mapping it to DeviceRequestException", e);
+			throw DeviceRequestException.noDeviceRequestPresent(mobileNumber);
+		}
 	}
 
 	@RequestMapping(value = "/{mobileNumber}", method = RequestMethod.DELETE)
@@ -76,10 +96,18 @@ public class NewDeviceRequestController
 	public void clearNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable String mobileNumber)
 	{
-		userService.validateMobileNumber(mobileNumber);
-		UUID userID = userService.getUserByMobileNumber(mobileNumber, () -> CryptoException.decryptingData()).getID();
-		checkPassword(password, userID);
-		newDeviceRequestService.clearNewDeviceRequestForUser(userID);
+		try
+		{
+			userService.validateMobileNumber(mobileNumber);
+			UUID userID = userService.getUserByMobileNumber(mobileNumber).getID();
+			checkPassword(password, userID);
+			newDeviceRequestService.clearNewDeviceRequestForUser(userID);
+		}
+		catch (UserServiceException e)
+		{
+			logger.error("Caught UserServiceException. Mapping it to CryptoException", e);
+			throw CryptoException.decryptingData();
+		}
 	}
 
 	private void checkPassword(Optional<String> password, UUID userID)

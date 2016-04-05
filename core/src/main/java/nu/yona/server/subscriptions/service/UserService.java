@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
@@ -26,7 +25,6 @@ import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.exceptions.UserOverwriteConfirmationException;
-import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.service.ActivityCategoryDTO;
@@ -409,15 +407,10 @@ public class UserService
 
 	static User findUserByMobileNumber(String mobileNumber)
 	{
-		return findUserByMobileNumber(mobileNumber, () -> UserServiceException.notFoundByMobileNumber(mobileNumber));
-	}
-
-	static User findUserByMobileNumber(String mobileNumber, Supplier<YonaException> exceptionSupplier)
-	{
 		User userEntity = User.getRepository().findByMobileNumber(mobileNumber);
 		if (userEntity == null)
 		{
-			throw exceptionSupplier.get();
+			throw UserServiceException.notFoundByMobileNumber(mobileNumber);
 		}
 		return userEntity;
 	}
@@ -451,9 +444,9 @@ public class UserService
 		return entity;
 	}
 
-	public UserDTO getUserByMobileNumber(String mobileNumber, Supplier<YonaException> exceptionSupplier)
+	public UserDTO getUserByMobileNumber(String mobileNumber)
 	{
-		return UserDTO.createInstance(findUserByMobileNumber(mobileNumber, exceptionSupplier));
+		return UserDTO.createInstance(findUserByMobileNumber(mobileNumber));
 	}
 
 	/**
