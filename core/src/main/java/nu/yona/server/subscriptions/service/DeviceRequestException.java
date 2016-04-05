@@ -1,13 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
-
-import java.util.UUID;
 
 import nu.yona.server.exceptions.YonaException;
 
@@ -20,18 +15,18 @@ public class DeviceRequestException extends YonaException
 		super(messageId, parameters);
 	}
 
-	public static DeviceRequestException noDeviceRequestPresent(UUID userID)
+	public static DeviceRequestException noDeviceRequestPresent(String mobileNumber)
 	{
-		return new DeviceRequestException("error.no.device.request.present", userID);
+		return new DeviceRequestException("error.no.device.request.present", mobileNumber);
 	}
 
-	public static DeviceRequestException deviceRequestExpired(UUID userID)
+	public static DeviceRequestException deviceRequestExpired(String mobileNumber)
 	{
-		return new DeviceRequestException("error.device.request.expired", userID);
+		return new DeviceRequestException("error.device.request.expired", mobileNumber);
 	}
 
-	public static DeviceRequestException invalidSecret()
+	public static DeviceRequestException invalidSecret(String mobileNumber)
 	{
-		return new DeviceRequestException("error.device.request.invalid.secret");
+		return new DeviceRequestException("error.device.request.invalid.secret", mobileNumber);
 	}
 }

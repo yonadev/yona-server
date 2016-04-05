@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
@@ -106,7 +103,7 @@ public class NewDeviceRequest extends EntityWithID
 		});
 	}
 
-	public void decryptUserPassword(String userSecret)
+	public void decryptUserPassword(String userSecret, String mobileNumber)
 	{
 		CryptoSession.execute(Optional.of(userSecret), null, () -> {
 			CryptoSession.getCurrent().setInitializationVector(this.initializationVector);
@@ -117,7 +114,7 @@ public class NewDeviceRequest extends EntityWithID
 
 		if (!this.isDecryptedProperly())
 		{
-			throw DeviceRequestException.invalidSecret();
+			throw DeviceRequestException.invalidSecret(mobileNumber);
 		}
 	}
 }

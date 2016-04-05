@@ -45,12 +45,12 @@ public class NewDeviceRequestService
 
 		if (newDeviceRequestEntity == null)
 		{
-			throw DeviceRequestException.noDeviceRequestPresent(userID);
+			throw DeviceRequestException.noDeviceRequestPresent(userEntity.getMobileNumber());
 		}
 
 		if (isExpired(newDeviceRequestEntity))
 		{
-			throw DeviceRequestException.deviceRequestExpired(userID);
+			throw DeviceRequestException.deviceRequestExpired(userEntity.getMobileNumber());
 		}
 
 		if (StringUtils.isBlank(userSecret))
@@ -59,7 +59,7 @@ public class NewDeviceRequestService
 		}
 		else
 		{
-			newDeviceRequestEntity.decryptUserPassword(userSecret);
+			newDeviceRequestEntity.decryptUserPassword(userSecret, userEntity.getMobileNumber());
 			return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
 		}
 	}
