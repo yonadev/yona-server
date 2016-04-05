@@ -23,6 +23,16 @@ import nu.yona.server.Translator;
 import nu.yona.server.properties.YonaProperties;
 
 @Component
+/**
+ * This servlet filter redirects requests for app resources to a locale specific path and it adds the Content-Language response
+ * header. The requested locale is taken from the Accept-Language header (an earlier filter converts that into the Locale of the
+ * request). That locale is matched against the set of supported locales. Of the requested locale is not supported, the default
+ * locale is used. <br/>
+ * If the request targets a localizable resource of the mobile app, then then request path is updated, to insert the locale into
+ * it. E.g. A request for /resources/android/messages.properties with the Dutch locale is rewired to
+ * /resources/android/nl-NL/messages.properties. <br/>
+ * The Content-Language header with the actual locale is added response headers.
+ */
 public class LocalizationFilter implements Filter
 {
 	public static class LocalizationRequestWrapper extends HttpServletRequestWrapper
