@@ -78,20 +78,4 @@ public abstract class IntervalActivityDTO
 	{
 		return totalActivityDurationMinutes.orElse(null);
 	}
-
-	protected static <T> T includeIf(Callable<T> calculator, boolean condition)
-	{
-		if (condition)
-		{
-			try
-			{
-				return calculator.call();
-			}
-			catch (Exception e)
-			{
-				throw YonaException.unexpected(e);
-			}
-		}
-		return null;
-	}
 }
