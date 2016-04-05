@@ -19,6 +19,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 	def userCreationJSON = """{
 				"firstName":"John",
 				"lastName":"Doe",
+				"nickname":"JD",
 				"mobileNumber":"+${timestamp}",
 				"devices":[
 					"Galaxy mini"
@@ -47,6 +48,18 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 400
 		response.responseData.code == "error.user.lastname"
+	}
+
+	def 'AddUser - empty nickname'()
+	{
+		when:
+		def object = jsonSlurper.parseText(userCreationJSON)
+		object.remove('nickname')
+		def response = appService.addUser(object, password)
+
+		then:
+		response.status == 400
+		response.responseData.code == "error.user.nickname"
 	}
 
 	def 'AddUser - empty mobile number'()
