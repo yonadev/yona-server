@@ -6,6 +6,7 @@ package nu.yona.server.analysis.service;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -26,10 +27,10 @@ public abstract class IntervalActivityDTO
 	private ZonedDateTime startTime;
 
 	private List<Integer> spread;
-	private Integer totalActivityDurationMinutes;
+	private Optional<Integer> totalActivityDurationMinutes;
 
 	protected IntervalActivityDTO(UUID goalID, ZonedDateTime startTime, List<Integer> spread,
-			Integer totalActivityDurationMinutes)
+			Optional<Integer> totalActivityDurationMinutes)
 	{
 		this.goalID = goalID;
 		this.startTime = startTime;
@@ -75,7 +76,7 @@ public abstract class IntervalActivityDTO
 	@JsonInclude(Include.NON_NULL)
 	public Integer getTotalActivityDurationMinutes()
 	{
-		return totalActivityDurationMinutes;
+		return totalActivityDurationMinutes.orElse(null);
 	}
 
 	protected static <T> T includeIf(Callable<T> calculator, boolean condition)
