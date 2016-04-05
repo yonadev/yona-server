@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
@@ -27,7 +27,6 @@ import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
-import nu.yona.server.subscriptions.service.UserService;
 
 @Service
 public class AnalysisEngineService
@@ -39,15 +38,12 @@ public class AnalysisEngineService
 	@Autowired
 	private AnalysisEngineCacheService cacheService;
 	@Autowired
-	private UserService userService;
-	@Autowired
 	private UserAnonymizedService userAnonymizedService;
 	@Autowired
 	private MessageService messageService;
 
-	public void analyze(UUID userID, AppActivityDTO[] appActivities)
+	public void analyze(UUID userAnonymizedID, AppActivityDTO[] appActivities)
 	{
-		UUID userAnonymizedID = userService.getPrivateUser(userID).getPrivateData().getUserAnonymizedID();
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
 		for (AppActivityDTO appActivity : appActivities)
 		{
@@ -77,15 +73,35 @@ public class AnalysisEngineService
 
 	private void addOrUpdateActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
 	{
-		Date minEndTime = new Date(payload.startTime.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
-		DayActivity dayActivity = cacheService.fetchDayActivityForUser(userAnonymized.getID(), matchingGoal.getID());
-		if (dayActivity != null && dayActivity.getStartTime().isBefore(getStartOfDay(payload.startTime, userAnonymized)))
+		ActivityPayload truncatedPayload = payload;
+		ActivityPayload nextDayPayload = null;
+		if (isCrossDayActivity(payload, userAnonymized))
 		{
-			// Last day cached was not today
-			dayActivity = null;
-		}
-		Activity activity = dayActivity == null ? null : dayActivity.getLastActivity();
+			// crossing day border
+			// set current payload to end of day
+			// use new payload for remainder
+			// assumption: activity never crosses 2 days
+			truncatedPayload = new ActivityPayload(payload.url, payload.startTime,
+					Date.from(getEndOfDay(payload.startTime, userAnonymized).toInstant()), payload.application);
 
+			nextDayPayload = new ActivityPayload(payload.url,
+					Date.from(getStartOfDay(payload.endTime, userAnonymized).toInstant()), payload.endTime, payload.application);
+		}
+
+		addOrUpdateDayTruncatedActivity(truncatedPayload, userAnonymized, matchingGoal);
+
+		if (nextDayPayload != null)
+		{
+			// day should be created
+			addActivity(nextDayPayload, userAnonymized, matchingGoal, null);
+		}
+	}
+
+	private void addOrUpdateDayTruncatedActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
+	{
+		Date minEndTime = new Date(payload.startTime.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
+		DayActivity dayActivity = getCachedDayActivity(payload, userAnonymized, matchingGoal);
+		Activity activity = dayActivity == null ? null : dayActivity.getLastActivity();
 		if (activity == null || activity.getEndTime().before(minEndTime))
 		{
 			addActivity(payload, userAnonymized, matchingGoal, dayActivity);
@@ -97,6 +113,22 @@ public class AnalysisEngineService
 		{
 			updateActivity(payload, userAnonymized, matchingGoal, dayActivity, activity);
 		}
+	}
+
+	private DayActivity getCachedDayActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
+	{
+		DayActivity dayActivity = cacheService.fetchDayActivityForUser(userAnonymized.getID(), matchingGoal.getID());
+		if (dayActivity != null && dayActivity.getStartTime().isBefore(getStartOfDay(payload.startTime, userAnonymized)))
+		{
+			// Last day cached was not today
+			dayActivity = null;
+		}
+		return dayActivity;
+	}
+
+	private boolean isCrossDayActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized)
+	{
+		return getStartOfDay(payload.startTime, userAnonymized).isBefore(getStartOfDay(payload.endTime, userAnonymized));
 	}
 
 	private void addActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal,
@@ -118,14 +150,19 @@ public class AnalysisEngineService
 		cacheService.updateDayActivityForUser(dayActivity);
 	}
 
-	private ZonedDateTime getStartOfDay(Date startTime, UserAnonymizedDTO userAnonymized)
+	private ZonedDateTime getStartOfDay(Date time, UserAnonymizedDTO userAnonymized)
 	{
-		return startTime.toInstant().atZone(ZoneId.of(userAnonymized.getTimeZoneId())).truncatedTo(ChronoUnit.DAYS);
+		return time.toInstant().atZone(ZoneId.of(userAnonymized.getTimeZoneId())).truncatedTo(ChronoUnit.DAYS);
 	}
 
-	private ZonedDateTime getStartOfWeek(Date startTime, UserAnonymizedDTO userAnonymized)
+	private ZonedDateTime getEndOfDay(Date time, UserAnonymizedDTO userAnonymized)
 	{
-		ZonedDateTime startOfDay = getStartOfDay(startTime, userAnonymized);
+		return getStartOfDay(time, userAnonymized).plusHours(23).plusMinutes(59).plusSeconds(59);
+	}
+
+	private ZonedDateTime getStartOfWeek(Date time, UserAnonymizedDTO userAnonymized)
+	{
+		ZonedDateTime startOfDay = getStartOfDay(time, userAnonymized);
 		switch (startOfDay.getDayOfWeek())
 		{
 			case SUNDAY:
@@ -237,6 +274,14 @@ public class AnalysisEngineService
 			this.startTime = appActivity.getStartTime();
 			this.endTime = appActivity.getEndTime();
 			this.application = appActivity.getApplication();
+		}
+
+		public ActivityPayload(String url, Date startTime, Date endTime, String application)
+		{
+			this.url = url;
+			this.startTime = startTime;
+			this.endTime = endTime;
+			this.application = application;
 		}
 	}
 }

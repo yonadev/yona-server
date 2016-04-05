@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
@@ -19,6 +16,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -89,8 +88,9 @@ public class AnalysisEngineServiceTests
 	@Before
 	public void setUp()
 	{
-		gamblingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance("gambling", false,
-				new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet()));
+		gamblingGoal = BudgetGoal.createNoGoInstance(
+				ActivityCategory.createInstance("gambling", false, new HashSet<String>(Arrays.asList("poker", "lotto")),
+						new HashSet<String>(Arrays.asList("Poker App", "Lotto App"))));
 		newsGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance("news", false,
 				new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
 		gamingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance("gaming", false,
@@ -120,6 +120,17 @@ public class AnalysisEngineServiceTests
 						return getAllActivityCategories()
 								.stream().filter(ac -> ac.getSmoothwallCategories().stream()
 										.filter(smoothwallCategories::contains).findAny().isPresent())
+								.collect(Collectors.toSet());
+					}
+				});
+		when(mockActivityCategoryService.getMatchingCategoriesForApp(any(String.class)))
+				.thenAnswer(new Answer<Set<ActivityCategoryDTO>>() {
+					@Override
+					public Set<ActivityCategoryDTO> answer(InvocationOnMock invocation) throws Throwable
+					{
+						Object[] args = invocation.getArguments();
+						String application = (String) args[0];
+						return getAllActivityCategories().stream().filter(ac -> ac.getApplications().contains(application))
 								.collect(Collectors.toSet());
 					}
 				});
@@ -375,5 +386,30 @@ public class AnalysisEngineServiceTests
 
 		verifyActivityUpdate(socialGoal);
 		verifyNoMessagesCreated();
+	}
+
+	@Test
+	public void crossDayActivity()
+	{
+		ZoneId zoneId = ZoneId.of(UserAnonymizedDTO.createInstance(userAnonEntity).getTimeZoneId());
+		Date startTime = Date.from(ZonedDateTime.of(2016, 4, 5, 19, 39, 0, 0, zoneId).toInstant());
+		Date endTime = Date.from(ZonedDateTime.of(2016, 4, 6, 1, 00, 0, 0, zoneId).toInstant());
+		service.analyze(userAnonID, new AppActivityDTO[] { new AppActivityDTO("Poker App", startTime, endTime) });
+
+		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
+		verify(mockAnalysisEngineCacheService, times(2)).updateDayActivityForUser(dayActivity.capture());
+
+		DayActivity firstDay = dayActivity.getAllValues().get(0);
+		DayActivity nextDay = dayActivity.getAllValues().get(1);
+		assertThat(firstDay.getDate(), equalTo(LocalDate.of(2016, 4, 5)));
+		assertThat(nextDay.getDate(), equalTo(LocalDate.of(2016, 4, 6)));
+
+		Activity firstPart = firstDay.getLastActivity();
+		Activity nextPart = nextDay.getLastActivity();
+
+		assertThat(firstPart.getStartTime(), equalTo(startTime));
+		assertThat(firstPart.getEndTime(), equalTo(Date.from(ZonedDateTime.of(2016, 4, 5, 23, 59, 59, 0, zoneId).toInstant())));
+		assertThat(nextPart.getStartTime(), equalTo(Date.from(ZonedDateTime.of(2016, 4, 6, 0, 0, 0, 0, zoneId).toInstant())));
+		assertThat(nextPart.getEndTime(), equalTo(endTime));
 	}
 }
