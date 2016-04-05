@@ -74,7 +74,7 @@ public class DayActivityDTO extends IntervalActivityDTO
 
 	private static Set<MessageDTO> getMessages(DayActivity dayActivity)
 	{
-		// TODO: fetch related messages
+		// TODO: fetch related messages here
 		return new HashSet<MessageDTO>();
 	}
 
