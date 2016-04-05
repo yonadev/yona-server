@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.email;
 
@@ -22,6 +19,7 @@ import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.velocity.VelocityEngineUtils;
 
+import nu.yona.server.Translator;
 import nu.yona.server.properties.YonaProperties;
 
 @Service
@@ -50,9 +48,11 @@ public class EmailService
 			public void prepare(MimeMessage mimeMessage) throws Exception
 			{
 				String subjectText = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine,
-						"email/" + subjectTemplateName + ".vm", "UTF-8", templateParameters);
-				String bodyText = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine, "email/" + bodyTemplateName + ".vm",
-						"UTF-8", templateParameters);
+						Translator.buildLocaleSpecificResourcePath("email/" + subjectTemplateName + "{0}.vm"), "UTF-8",
+						templateParameters);
+				String bodyText = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine,
+						Translator.buildLocaleSpecificResourcePath("email/" + bodyTemplateName + "{0}.vm"), "UTF-8",
+						templateParameters);
 
 				MimeMessageHelper message = new MimeMessageHelper(mimeMessage);
 				message.setFrom(new InternetAddress(yonaProperties.getEmail().getSenderAddress(), senderName));
