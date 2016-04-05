@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.WeekActivity;
+import nu.yona.server.analysis.service.IntervalActivityDTO.LevelOfDetail;
 
 @JsonRootName("weekActivityOverview")
 public class WeekActivityOverviewDTO
@@ -26,7 +27,7 @@ public class WeekActivityOverviewDTO
 
 	static WeekActivityOverviewDTO createInstance(Set<WeekActivity> weekActivities)
 	{
-		return new WeekActivityOverviewDTO(
-				weekActivities.stream().map(a -> WeekActivityDTO.createInstance(a)).collect(Collectors.toSet()));
+		return new WeekActivityOverviewDTO(weekActivities.stream()
+				.map(a -> WeekActivityDTO.createInstance(a, LevelOfDetail.WeekOverview)).collect(Collectors.toSet()));
 	}
 }

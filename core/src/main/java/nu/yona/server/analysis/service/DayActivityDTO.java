@@ -3,7 +3,9 @@ package nu.yona.server.analysis.service;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -11,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.DayActivity;
+import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.messaging.service.MessageDTO;
 
 @JsonRootName("dayActivity")
@@ -22,8 +25,9 @@ public class DayActivityDTO extends IntervalActivityDTO
 	private int totalMinutesBeyondGoal;
 	private Set<MessageDTO> messages;
 
-	private DayActivityDTO(UUID goalID, ZonedDateTime startTime, List<Integer> spread, int totalActivityDurationMinutes,
-			boolean goalAccomplished, int totalMinutesBeyondGoal, Set<MessageDTO> messages)
+	private DayActivityDTO(UUID goalID, ZonedDateTime startTime, List<Integer> spread,
+			Optional<Integer> totalActivityDurationMinutes, boolean goalAccomplished, int totalMinutesBeyondGoal,
+			Set<MessageDTO> messages)
 	{
 		super(goalID, startTime, spread, totalActivityDurationMinutes);
 		this.goalAccomplished = goalAccomplished;
@@ -58,11 +62,24 @@ public class DayActivityDTO extends IntervalActivityDTO
 		return LocalDate.parse(iso8601, ISO8601_DAY_FORMATTER);
 	}
 
-	static DayActivityDTO createInstance(DayActivity dayActivity)
+	static DayActivityDTO createInstance(DayActivity dayActivity, LevelOfDetail levelOfDetail)
 	{
-		// TODO: fetch related messages
-		return new DayActivityDTO(dayActivity.getGoal().getID(), dayActivity.getStartTime(), dayActivity.getSpread(),
-				dayActivity.getTotalActivityDurationMinutes(), dayActivity.isGoalAccomplished(),
-				dayActivity.getTotalMinutesBeyondGoal(), null);
+		return new DayActivityDTO(dayActivity.getGoal().getID(), dayActivity.getStartTime(),
+				includeSpread(dayActivity, levelOfDetail) ? dayActivity.getSpread() : Collections.emptyList(),
+				Optional.of(dayActivity.getTotalActivityDurationMinutes()), dayActivity.isGoalAccomplished(),
+				dayActivity.getTotalMinutesBeyondGoal(),
+				levelOfDetail == LevelOfDetail.DayDetail ? getMessages(dayActivity) : Collections.emptySet());
+	}
+
+	private static Set<MessageDTO> getMessages(DayActivity dayActivity)
+	{
+		// TODO: fetch related messages here
+		return Collections.emptySet();
+	}
+
+	private static boolean includeSpread(DayActivity dayActivity, LevelOfDetail levelOfDetail)
+	{
+		return levelOfDetail == LevelOfDetail.DayDetail
+				|| levelOfDetail == LevelOfDetail.DayOverview && dayActivity.getGoal() instanceof TimeZoneGoal;
 	}
 }

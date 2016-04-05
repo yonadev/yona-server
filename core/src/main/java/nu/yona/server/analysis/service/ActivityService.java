@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.WeekActivity;
+import nu.yona.server.analysis.service.IntervalActivityDTO.LevelOfDetail;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
@@ -60,15 +61,17 @@ public class ActivityService
 				yonaProperties.getAnalysisService().getDaysActivityMemory());
 	}
 
-	public WeekActivityDTO getWeekActivity(UUID userID, LocalDate date, UUID goalID)
+	public WeekActivityDTO getWeekActivityDetail(UUID userID, LocalDate date, UUID goalID)
 	{
 		UUID userAnonymizedID = userService.getPrivateUser(userID).getPrivateData().getUserAnonymizedID();
-		return WeekActivityDTO.createInstance(WeekActivity.getRepository().findOne(userAnonymizedID, date, goalID));
+		return WeekActivityDTO.createInstance(WeekActivity.getRepository().findOne(userAnonymizedID, date, goalID),
+				LevelOfDetail.WeekDetail);
 	}
 
 	public DayActivityDTO getDayActivityDetail(UUID userID, LocalDate date, UUID goalID)
 	{
 		UUID userAnonymizedID = userService.getPrivateUser(userID).getPrivateData().getUserAnonymizedID();
-		return DayActivityDTO.createInstance(DayActivity.getRepository().findOne(userAnonymizedID, date, goalID));
+		return DayActivityDTO.createInstance(DayActivity.getRepository().findOne(userAnonymizedID, date, goalID),
+				LevelOfDetail.DayDetail);
 	}
 }

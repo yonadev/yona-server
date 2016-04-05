@@ -6,7 +6,9 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.WeekFields;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -22,8 +24,8 @@ public class WeekActivityDTO extends IntervalActivityDTO
 
 	private List<DayActivityDTO> dayActivities;
 
-	private WeekActivityDTO(UUID goalID, ZonedDateTime startTime, List<Integer> spread, int totalActivityDurationMinutes,
-			List<DayActivityDTO> dayActivities)
+	private WeekActivityDTO(UUID goalID, ZonedDateTime startTime, List<Integer> spread,
+			Optional<Integer> totalActivityDurationMinutes, List<DayActivityDTO> dayActivities)
 	{
 		super(goalID, startTime, spread, totalActivityDurationMinutes);
 		this.dayActivities = dayActivities;
@@ -45,10 +47,14 @@ public class WeekActivityDTO extends IntervalActivityDTO
 		return LocalDate.parse(iso8601, ISO8601_WEEK_FORMATTER);
 	}
 
-	static WeekActivityDTO createInstance(WeekActivity weekActivity)
+	static WeekActivityDTO createInstance(WeekActivity weekActivity, LevelOfDetail levelOfDetail)
 	{
-		return new WeekActivityDTO(weekActivity.getGoal().getID(), weekActivity.getStartTime(), weekActivity.getSpread(),
-				weekActivity.getTotalActivityDurationMinutes(), weekActivity.getDayActivities().stream()
-						.map(dayActivity -> DayActivityDTO.createInstance(dayActivity)).collect(Collectors.toList()));
+		boolean includeDetail = levelOfDetail == LevelOfDetail.WeekDetail;
+		return new WeekActivityDTO(weekActivity.getGoal().getID(), weekActivity.getStartTime(),
+				includeDetail ? weekActivity.getSpread() : Collections.emptyList(),
+				includeDetail ? Optional.of(weekActivity.getTotalActivityDurationMinutes()) : Optional.empty(),
+				weekActivity.getDayActivities().stream()
+						.map(dayActivity -> DayActivityDTO.createInstance(dayActivity, levelOfDetail))
+						.collect(Collectors.toList()));
 	}
 }

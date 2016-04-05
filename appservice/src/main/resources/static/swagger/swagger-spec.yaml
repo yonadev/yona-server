@@ -364,8 +364,8 @@ paths:
         required: true
         type: string
     get:
-      summary: Get day network and app activity
-      description: Get activity of the current day, pageable to yesterday and before 
+      summary: Get day activity overview
+      description: Get network and app activity of the current day, pageable to yesterday and before 
       parameters:
         - name: size
           in: query
@@ -386,6 +386,38 @@ paths:
           description: Activity of this user.
           schema:
             $ref: '#/definitions/PagedDayActivityOverviews'
+  '/users/{userID}/activity/days/{date}/details/{goalID}':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: date
+        in: path
+        description: The date of the day in ISO 8601 format (yyyy-MM-dd)
+        required: true
+        type: string
+      - name: goalID
+        in: path
+        description: The ID of the goal for which the activity was recorded
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get day activity detail
+      description: Get day network and app activity for a specific goal on a specific day
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of this user for the specific goal on the specific day.
+          schema:
+            $ref: '#/definitions/DayActivity'
   '/users/{userID}/activity/weeks/':
     parameters:
       - name: userID
@@ -399,8 +431,8 @@ paths:
         required: true
         type: string
     get:
-      summary: Get week network and app activity
-      description: Get activity of the current week, pageable to the weeks before 
+      summary: Get week activity overview
+      description: Get network and app activity of the current week, pageable to the weeks before 
       parameters:
         - name: size
           in: query
@@ -421,6 +453,38 @@ paths:
           description: Activity of this user.
           schema:
             $ref: '#/definitions/PagedWeekActivityOverviews'
+  '/users/{userID}/activity/weeks/{week}/details/{goalID}':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: week
+        in: path
+        description: The date of the week in ISO 8601 format (YYYY-'W'w)
+        required: true
+        type: string
+      - name: goalID
+        in: path
+        description: The ID of the goal for which the activity was recorded
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get week activity detail
+      description: Get day network and app activity for a specific goal on a specific week
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of this user for the specific goal on the specific week.
+          schema:
+            $ref: '#/definitions/WeekActivity'
   '/users/{userID}/messages/':
     parameters:
       - name: userID
@@ -1347,7 +1411,7 @@ definitions:
       date:
         type: string
         example: 2016-W2
-        description: The week date
+        description: The week date in ISO 8601 format (YYYY-'W'w)
       _embedded:
         properties:
           "yona:dayActivities":
@@ -1433,7 +1497,7 @@ definitions:
       date:
         type: string
         example: 2016-03-16
-        description: The day date
+        description: The day date in ISO 8601 format (yyyy-MM-dd)
       goalAccomplished:
         type: boolean
         description: If the goal for this day was accomplished. If the day is not yet over, if the goal for this day was accomplished so far
@@ -1461,17 +1525,15 @@ definitions:
         type: array
         items:
           type: integer
-        description: Aggregates all activity on every quarter hour of the day (of which there are 96)
+        description: Aggregates all activity on every quarter hour of the day (of which there are 96). This information is included in day detail, week detail, and also, for time zone goals, in day overview.
       totalActivityDurationMinutes:
         type: integer
-        description: Total minutes spent on the activity category during this interval
+        description: Total minutes spent on the activity category during this interval. This information is not included in week overview.
       timeZoneId:
         type: string
         description: The time zone identifier that the user had configured for this day
         example: Europe/Amsterdam
     required:
-      - spread
-      - totalActivityDurationMinutes
       - timeZoneId
   PagedMessages:
     type: object
