@@ -13,6 +13,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import nu.yona.server.exceptions.YonaException;
+
 public abstract class IntervalActivityDTO
 {
 	public enum LevelOfDetail
@@ -64,7 +66,7 @@ public abstract class IntervalActivityDTO
 		return goalID;
 	}
 
-	@JsonInclude(Include.NON_NULL)
+	@JsonInclude(Include.NON_EMPTY)
 	public List<Integer> getSpread()
 	{
 		return spread;
@@ -86,7 +88,7 @@ public abstract class IntervalActivityDTO
 			}
 			catch (Exception e)
 			{
-				throw new RuntimeException(e);
+				throw YonaException.unexpected(e);
 			}
 		}
 		return null;

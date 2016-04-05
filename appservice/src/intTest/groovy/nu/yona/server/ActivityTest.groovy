@@ -45,7 +45,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def dayActivityForTimeZoneGoal = dayActivityOverview._embedded."yona:dayActivities".find{ it._links."yona:goal".href == timeZoneGoal.url}
 		dayActivityForTimeZoneGoal
 		dayActivityForTimeZoneGoal.spread
-		dayActivityForTimeZoneGoal.spread.size() <= 96
+		dayActivityForTimeZoneGoal.spread.size() == 96
 	}
 
 	def 'Get day activity detail'()
@@ -68,7 +68,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 200
 		response.responseData.spread
-		response.responseData.spread.size() <= 96
+		response.responseData.spread.size() == 96
 		response.responseData.totalActivityDurationMinutes == 1
 		response.responseData.goalAccomplished == false
 		response.responseData.totalMinutesBeyondGoal == 1
@@ -133,7 +133,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 200
 		response.responseData.spread
-		response.responseData.spread.size() <= 96
+		response.responseData.spread.size() == 96
 		response.responseData.totalActivityDurationMinutes == 1
 		response.responseData.date =~ /\d{4}\-W\d{2}/
 		response.responseData.timeZoneId == "Europe/Amsterdam"
