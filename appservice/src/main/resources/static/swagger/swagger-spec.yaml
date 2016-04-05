@@ -386,7 +386,7 @@ paths:
           description: Activity of this user.
           schema:
             $ref: '#/definitions/PagedDayActivityOverviews'
-  '/users/{userID}/activity/days/{date}/{goalID}':
+  '/users/{userID}/activity/days/{date}/details/{goalID}':
     parameters:
       - name: userID
         in: path
@@ -453,7 +453,7 @@ paths:
           description: Activity of this user.
           schema:
             $ref: '#/definitions/PagedWeekActivityOverviews'
-  '/users/{userID}/activity/weeks/{week}/{goalID}':
+  '/users/{userID}/activity/weeks/{week}/details/{goalID}':
     parameters:
       - name: userID
         in: path

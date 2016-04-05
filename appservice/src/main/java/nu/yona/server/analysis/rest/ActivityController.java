@@ -82,7 +82,7 @@ public class ActivityController
 						HttpStatus.OK));
 	}
 
-	@RequestMapping(value = "/weeks/{week}/{goalID}", method = RequestMethod.GET)
+	@RequestMapping(value = "/weeks/{week}/details/{goalID}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<WeekActivityResource> getWeekActivityDetail(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
@@ -94,7 +94,7 @@ public class ActivityController
 						.toResource(activityService.getWeekActivityDetail(userID, date, goalID)), HttpStatus.OK));
 	}
 
-	@RequestMapping(value = "/days/{date}/{goalID}", method = RequestMethod.GET)
+	@RequestMapping(value = "/days/{date}/details/{goalID}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<DayActivityResource> getDayActivityDetail(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userID, @PathVariable(value = "date") String dateStr, @PathVariable(value = "goalID") UUID goalID)
