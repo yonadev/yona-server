@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -75,7 +74,7 @@ public class DayActivityDTO extends IntervalActivityDTO
 	private static Set<MessageDTO> getMessages(DayActivity dayActivity)
 	{
 		// TODO: fetch related messages here
-		return new HashSet<MessageDTO>();
+		return Collections.emptySet();
 	}
 
 	private static boolean includeSpread(DayActivity dayActivity, LevelOfDetail levelOfDetail)
