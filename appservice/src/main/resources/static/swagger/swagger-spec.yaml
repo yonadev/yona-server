@@ -569,15 +569,7 @@ paths:
         - New device requests
       responses:
         '200':
-          description: The new device request
-          schema:
-            # TODO: why do we return this? The app (on this device) cannot use it, right?
-            $ref: '#/definitions/NewDeviceRequest'
-        '201':
-          description: The newly added new device request
-          schema:
-            # TODO: why do we return this? The app (on this device) cannot use it, right?
-            $ref: '#/definitions/NewDeviceRequest'
+          description: The new device request is available
         default:
           description: Unexpected error
           schema:
@@ -812,15 +804,8 @@ definitions:
         type: string
         description: Nickname known among buddies. Private data.
         example: RQ
-      devices:
-        type: array
-        items:
-          type: string
-          example: "Nexus 6"
-        description: Devices registered with Yona. Private data.
     required:
     - nickname
-    - devices
   PrivateUserData:
     allOf:
       - $ref: '#/definitions/PrivateUserDataNoVPN'
@@ -877,8 +862,6 @@ definitions:
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
         properties:
-          # TODO add messages link
-          # TODO add buddies link
           "yona:confirmMobileNumber":
             type: object
             required:
@@ -887,6 +870,46 @@ definitions:
               href:
                 type: string
                 description: If this link is present, the mobile number of the user must be confirmed by posting the confirmation to this URL.
+          "yona:messages":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: Refers to the messages for this user
+          "yona:weeklyActivityReports":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: Refers to the weekly activity reports
+          "yona:dailyActivityReports":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: Refers to the daily activity reports
+          "yona:newDeviceRequest":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: Create, get or delete a "new device request" through this link
+          "yona:appActivity":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: Post new app activity data to this link
     required:
       - _embedded
       - _links
@@ -1017,11 +1040,6 @@ definitions:
         type: string
         description: The device key. If the user secret was not provided in the request, this property will be blank.
         example: Only I know this
-      isUpdatingExistingRequest:
-        # TODO: is this of relevance for the app? If not, we should tag it with @JsonIgnore
-        type: boolean
-        description: True when an existing device request has been updated
-        example: false
       _links:
         allOf:
           - $ref: '#/definitions/Curies'
@@ -1029,7 +1047,6 @@ definitions:
           - $ref: '#/definitions/EditLink'
     required:
       - userPassword
-      - isUpdatingExistingRequest
       - _links
   ActivityCategory:
     type: object
@@ -1050,12 +1067,6 @@ definitions:
         example:
           - Roulette
           - Blackjack
-      smoothwallCategories:
-        # TODO: Is this relevant to the app? If not, we should remove it from the DTO.
-        type: array
-        items:
-          type: string
-        description: The set of Smootwall categories linked to this activity category
       _links:
         allOf:
           - $ref: '#/definitions/Curies'
@@ -1064,7 +1075,6 @@ definitions:
       - name
       - isMandatory
       - applications
-      - smoothwallCategories
       - _links
   Message:
     type: object
@@ -1185,7 +1195,25 @@ definitions:
       status:
         $ref: '#/definitions/GoalConflictStatus'
         example: ANNOUNCED
-      #TODO Add other properties of GoalConflictMessage
+      activityCategoryName:
+        # TODO: Replace this with a link to the related day activity
+        type: string
+        description: The name of the activity category
+        example: Gambling
+      url:
+        type: string
+        description: The URL on which the goal conflict was detected
+        example: http://www.poker.com
+      activityStartTime:
+        type: string
+        format: dateTime
+        description: The start time of this activity
+        example: 2016-02-31T21:03:52.290+0000
+      activityEndTime:
+        type: string
+        format: dateTime
+        description: The end time of this activity
+        example: 2016-02-31T21:03:57.721+0000
       _links:
         allOf:
           - $ref: '#/definitions/Curies'
@@ -1200,6 +1228,10 @@ definitions:
     required:
       - nickname
       - status
+      - activityCategoryName
+      - url
+      - activityStartTime
+      - activityEndTime
       - _links
   DisclosureRequestMessage:
     allOf:

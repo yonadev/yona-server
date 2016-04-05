@@ -30,9 +30,9 @@ class AppService extends Service
 		return (isSuccess(response)) ? new User(response.responseData, user.password, true) : null
 	}
 
-	def addUser(Closure asserter, password, firstName, lastName, nickname, mobileNumber, devices, parameters = [:])
+	def addUser(Closure asserter, password, firstName, lastName, nickname, mobileNumber, parameters = [:])
 	{
-		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber, devices)
+		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber)
 		def response = addUser(jsonStr, password, parameters)
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData, password) : null
@@ -158,8 +158,6 @@ class AppService extends Service
 	{
 		assertVpnProfile(user)
 		assert user.nickname != null
-		assert user.devices.size() == 1
-		assert user.devices[0]
 
 		/*
 		 * The below asserts use exclusive or operators. Either there should be a mobile number confirmation URL, or the other URL.
@@ -192,7 +190,6 @@ class AppService extends Service
 	{
 		assertPublicUserData(user)
 		assert user.nickname == null
-		assert user.devices == null
 		assert user.goals == null
 		assert user.vpnProfile == null
 	}
@@ -364,12 +361,12 @@ class AppService extends Service
 
 	def getWeekActivityOverviews(User user, parameters = [:])
 	{
-		yonaServer.getResourceWithPassword(user.weekActivityOverviewsUrl, user.password, parameters)
+		yonaServer.getResourceWithPassword(user.weeklyActivityReportsUrl, user.password, parameters)
 	}
 
 	def getDayActivityOverviews(User user, parameters = [:])
 	{
-		yonaServer.getResourceWithPassword(user.dayActivityOverviewsUrl, user.password, parameters)
+		yonaServer.getResourceWithPassword(user.dailyActivityReportsUrl, user.password, parameters)
 	}
 
 	def setNewDeviceRequest(mobileNumber, password, userSecret)

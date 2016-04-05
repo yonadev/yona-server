@@ -18,7 +18,6 @@ class User
 	final boolean hasPrivateData
 	final String mobileNumberConfirmationCode
 	final String nickname
-	final List<String> devices
 	final List<Goal> goals
 	final List<Buddy> buddies
 	final VPNProfile vpnProfile
@@ -27,8 +26,8 @@ class User
 	final String buddiesUrl
 	final String goalsUrl
 	final String messagesUrl
-	final String dayActivityOverviewsUrl
-	final String weekActivityOverviewsUrl
+	final String dailyActivityReportsUrl
+	final String weeklyActivityReportsUrl
 	final String newDeviceRequestUrl
 	final String appActivityUrl
 	final String password
@@ -60,7 +59,6 @@ class User
 			this.nickname = json.nickname
 
 			this.buddies = (json._embedded?."yona:buddies"?._embedded) ? json._embedded."yona:buddies"._embedded."yona:buddies".collect{new Buddy(it)} : []
-			this.devices = json.devices.collect{"$it"}
 			this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJSON(it)} : []
 			this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
 		}
@@ -69,39 +67,35 @@ class User
 		this.buddiesUrl = json._embedded?."yona:buddies"?._links?.self?.href
 		this.goalsUrl = json._embedded?."yona:goals"?._links?.self?.href
 		this.messagesUrl = json._links?."yona:messages"?.href
-		this.dayActivityOverviewsUrl = json._links?."yona:daysActivity"?.href
-		this.weekActivityOverviewsUrl = json._links?."yona:weeksActivity"?.href
+		this.dailyActivityReportsUrl = json._links?."yona:dailyActivityReports"?.href
+		this.weeklyActivityReportsUrl = json._links?."yona:weeklyActivityReports"?.href
 		this.newDeviceRequestUrl = json._links?."yona:newDeviceRequest"?.href
 		this.appActivityUrl = json._links?."yona:appActivity"?.href
 	}
 
 	def convertToJSON()
 	{
-		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, nickname, mobileNumber, devices)
+		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, nickname, mobileNumber)
 
 		return new JsonSlurper().parseText(jsonStr)
 	}
 
-	private static String makeUserJsonStringInternal(url, firstName, lastName, nickname, mobileNumber, devices)
+	private static String makeUserJsonStringInternal(url, firstName, lastName, nickname, mobileNumber)
 	{
 		def selfLinkString = (url) ? """"_links":{"self":{"href":"$url"}},""" : ""
-		def devicesString = YonaServer.makeStringList(devices)
 		def json = """{
 				$selfLinkString
 				"firstName":"${firstName}",
 				"lastName":"${lastName}",
 				"nickname":"${nickname}",
-				"mobileNumber":"${mobileNumber}",
-				"devices":[
-					${devicesString}
-				]
+				"mobileNumber":"${mobileNumber}"
 		}"""
 		return json
 	}
 
-	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber, devices)
+	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber)
 	{
-		makeUserJsonStringInternal(null, firstName, lastName, nickname, mobileNumber, devices)
+		makeUserJsonStringInternal(null, firstName, lastName, nickname, mobileNumber)
 	}
 }
 

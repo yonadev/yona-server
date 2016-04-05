@@ -1,16 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.properties;
 
 public class SmsProperties
 {
 	private boolean isEnabled = false;
-	private int mobileNumberConfirmationCodeDigits = 5;
+	private int mobileNumberConfirmationCodeDigits = 4;
 	private String senderNumber = "";
 	private String plivoUrl = "https://api.plivo.com/v1/Account/{0}/Message/";
 	private String plivoAuthId = "";

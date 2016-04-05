@@ -22,7 +22,7 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		def response = appService.setNewDeviceRequest(richard.mobileNumber, richard.password, userSecret)
 
 		then:
-		response.status == 201
+		response.status == 200
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber)
 		getResponseAfter.status == 200
 

@@ -1,0 +1,19 @@
+<html lang="nl-NL">
+    <body>
+		<h3>Hi ${buddyName}, Word vriend op Yona!</h3>
+		
+		<p>${message}</p>
+		
+		<p>We hadden het er al even over: ik zie je graag als vriend op Yona. Als je de Yona app nog niet geïnstalleerd hebt, is dat het begin. Dit zijn de links:</p>
+
+		<p>Open daarna de onderstaande link door er op te tikken en dan Yona te kiezen om de link te openen.</p>
+		
+		<p>Belangrijk: Let op of de uitnodiging werkelijk van @{requestingUserName} komt. Bij Yona is dit mobiele nummer bekend voor deze gebruiker: ${requestingUserMobileNumber}.</p>
+		
+ 		<p><a href="${inviteURL}">${inviteURL}</a></p>
+		
+		<p>Groetjes,<br/>
+			${requestingUserName} | ${requestingUserNickname}
+		</p>
+    </body>
+</html>
