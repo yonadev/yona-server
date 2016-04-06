@@ -44,6 +44,11 @@ public class InvalidDataException extends YonaException
 		return new InvalidDataException("error.user.lastname");
 	}
 
+	public static InvalidDataException blankNickname()
+	{
+		return new InvalidDataException("error.user.nickname");
+	}
+
 	public static InvalidDataException blankMobileNumber()
 	{
 		return new InvalidDataException("error.user.mobile.number");

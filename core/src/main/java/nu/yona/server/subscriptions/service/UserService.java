@@ -500,6 +500,11 @@ public class UserService
 			throw InvalidDataException.blankLastName();
 		}
 
+		if (StringUtils.isBlank(userResource.getPrivateData().getNickname()))
+		{
+			throw InvalidDataException.blankNickname();
+		}
+
 		if (StringUtils.isBlank(userResource.getMobileNumber()))
 		{
 			throw InvalidDataException.blankMobileNumber();
