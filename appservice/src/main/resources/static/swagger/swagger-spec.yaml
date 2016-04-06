@@ -38,9 +38,9 @@ paths:
           schema:
             $ref: '#/definitions/UserWithPrivateData'
         default:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/ConfirmationError'
   '/users/{id}':
     parameters:
       - name: id
@@ -152,9 +152,9 @@ paths:
           schema:
             $ref: '#/definitions/UserWithPrivateData'
         default:
-          description: Unexpected error
+          description: Confirmation failed
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/ConfirmationError'
   '/users/{userID}/goals/':
     parameters:
       - name: userID
@@ -1622,3 +1622,11 @@ definitions:
         type: string
         description: A localized error message
         example: The mobile number ''+31 6 12345678'' is invalid. It must start with a + sign, with no spaces between the digits
+  ConfirmationError:
+    allOf:
+      - $ref: '#/definitions/Error'
+    properties:
+      remainingAttempts:
+        type: integer
+        description: The number of remaining attempts. Only available upon a failed confirmation attempt
+        example: 4        

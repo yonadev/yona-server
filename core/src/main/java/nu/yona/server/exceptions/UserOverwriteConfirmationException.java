@@ -10,20 +10,31 @@ package nu.yona.server.exceptions;
 public class UserOverwriteConfirmationException extends YonaException
 {
 	private static final long serialVersionUID = -3653199898915579250L;
+	public static final String FAILED_ATTEMPT_MESSAGE_ID = "error.user.overwrite.confirmation.code.mismatch";
+	private final int remainingAttempts;
 
 	private UserOverwriteConfirmationException(String messageId, Object... parameters)
 	{
 		super(messageId, parameters);
+		this.remainingAttempts = -1;
 	}
 
 	private UserOverwriteConfirmationException(Throwable t, String messageId, Object... parameters)
 	{
 		super(t, messageId, parameters);
+		this.remainingAttempts = -1;
 	}
 
-	public static UserOverwriteConfirmationException confirmationCodeMismatch(String mobileNumber, String code)
+	public UserOverwriteConfirmationException(int remainingAttempts, String messageId, Object... parameters)
 	{
-		return new UserOverwriteConfirmationException("error.user.overwrite.confirmation.code.mismatch", mobileNumber, code);
+		super(messageId, parameters);
+		this.remainingAttempts = remainingAttempts;
+	}
+
+	public static UserOverwriteConfirmationException confirmationCodeMismatch(String mobileNumber, String code,
+			int remainingAttempts)
+	{
+		return new UserOverwriteConfirmationException(remainingAttempts, FAILED_ATTEMPT_MESSAGE_ID, mobileNumber, code);
 	}
 
 	public static UserOverwriteConfirmationException confirmationCodeNotSet(String mobileNumber)
@@ -35,5 +46,10 @@ public class UserOverwriteConfirmationException extends YonaException
 	{
 		return new UserOverwriteConfirmationException("error.user.overwrite.confirmation.code.too.many.failed.attempts",
 				mobileNumber);
+	}
+
+	public int getRemainingAttempts()
+	{
+		return remainingAttempts;
 	}
 }

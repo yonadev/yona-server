@@ -10,20 +10,31 @@ package nu.yona.server.exceptions;
 public class MobileNumberConfirmationException extends YonaException
 {
 	private static final long serialVersionUID = -7917208280838423613L;
+	public static final String FAILED_ATTEMPT_MESSAGE_ID = "error.mobile.number.confirmation.code.mismatch";
+	private final int remainingAttempts;
 
 	private MobileNumberConfirmationException(String messageId, Object... parameters)
 	{
 		super(messageId, parameters);
+		this.remainingAttempts = -1;
 	}
 
 	private MobileNumberConfirmationException(Throwable t, String messageId, Object... parameters)
 	{
 		super(t, messageId, parameters);
+		this.remainingAttempts = -1;
 	}
 
-	public static MobileNumberConfirmationException confirmationCodeMismatch(String mobileNumber, String code)
+	public MobileNumberConfirmationException(int remainingAttempts, String messageId, Object... parameters)
 	{
-		return new MobileNumberConfirmationException("error.mobile.number.confirmation.code.mismatch", mobileNumber, code);
+		super(messageId, parameters);
+		this.remainingAttempts = remainingAttempts;
+	}
+
+	public static MobileNumberConfirmationException confirmationCodeMismatch(String mobileNumber, String code,
+			int remainingAttempts)
+	{
+		return new MobileNumberConfirmationException(remainingAttempts, FAILED_ATTEMPT_MESSAGE_ID, mobileNumber, code);
 	}
 
 	public static MobileNumberConfirmationException confirmationCodeNotSet(String mobileNumber)
@@ -45,5 +56,10 @@ public class MobileNumberConfirmationException extends YonaException
 	{
 		return new MobileNumberConfirmationException("error.mobile.number.confirmation.code.too.many.failed.attempts",
 				mobileNumber);
+	}
+
+	public int getRemainingAttempts()
+	{
+		return remainingAttempts;
 	}
 }

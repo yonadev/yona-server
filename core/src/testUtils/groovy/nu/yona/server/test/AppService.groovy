@@ -200,7 +200,7 @@ class AppService extends Service
 
 	def assertResponseStatusSuccess(def response)
 	{
-		assert isSuccess(response)
+		assert response.status >= 200 && response.status < 300
 	}
 
 	def isSuccess(def response)

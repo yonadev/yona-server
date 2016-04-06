@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
@@ -197,8 +198,8 @@ public class UserService
 
 		verifyConfirmationCode(existingUserEntity, confirmationCode, userProvidedConfirmationCode,
 				() -> UserOverwriteConfirmationException.confirmationCodeNotSet(existingUserEntity.getMobileNumber()),
-				() -> UserOverwriteConfirmationException.confirmationCodeMismatch(existingUserEntity.getMobileNumber(),
-						userProvidedConfirmationCode),
+				(r) -> UserOverwriteConfirmationException.confirmationCodeMismatch(existingUserEntity.getMobileNumber(),
+						userProvidedConfirmationCode, r),
 				() -> UserOverwriteConfirmationException.tooManyAttempts(existingUserEntity.getMobileNumber()));
 
 		// notice we can't delete the associated anonymized data
@@ -215,8 +216,8 @@ public class UserService
 
 		verifyConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
 				() -> MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()),
-				() -> MobileNumberConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
-						userProvidedConfirmationCode),
+				(r) -> MobileNumberConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
+						userProvidedConfirmationCode, r),
 				() -> MobileNumberConfirmationException.tooManyAttempts(userEntity.getMobileNumber()));
 
 		if (userEntity.isMobileNumberConfirmed())
@@ -449,16 +450,17 @@ public class UserService
 	}
 
 	private void verifyConfirmationCode(User userEntity, ConfirmationCode confirmationCode, String userProvidedConfirmationCode,
-			Supplier<YonaException> noConformationCodeExceptionSupplier,
-			Supplier<YonaException> invalidConformationCodeExceptionSupplier,
+			Supplier<YonaException> noConfirmationCodeExceptionSupplier,
+			Function<Integer, YonaException> invalidConfirmationCodeExceptionSupplier,
 			Supplier<YonaException> tooManyAttemptsExceptionSupplier)
 	{
 		if (confirmationCode == null)
 		{
-			throw noConformationCodeExceptionSupplier.get();
+			throw noConfirmationCodeExceptionSupplier.get();
 		}
 
-		if (confirmationCode.getAttempts() >= yonaProperties.getSecurity().getConfirmationCodeMaxAttempts())
+		int remainingAttempts = yonaProperties.getSecurity().getConfirmationCodeMaxAttempts() - confirmationCode.getAttempts();
+		if (remainingAttempts <= 0)
 		{
 			throw tooManyAttemptsExceptionSupplier.get();
 		}
@@ -466,7 +468,7 @@ public class UserService
 		if (!confirmationCode.getConfirmationCode().equals(userProvidedConfirmationCode))
 		{
 			registerFailedAttempt(userEntity, confirmationCode);
-			throw invalidConformationCodeExceptionSupplier.get();
+			throw invalidConfirmationCodeExceptionSupplier.apply(remainingAttempts - 1);
 		}
 	}
 

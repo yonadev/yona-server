@@ -87,7 +87,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def response1TimeWrong = confirmMobileNumber(john, "12341")
 		confirmMobileNumber(john, "12342")
 		confirmMobileNumber(john, "12343")
-		confirmMobileNumber(john, "12344")
+		def response4TimesWrong = confirmMobileNumber(john, "12344")
 		def response5TimesWrong = confirmMobileNumber(john, "12345")
 		def response6TimesWrong = confirmMobileNumber(john, "12346")
 		def response7thTimeRight = confirmMobileNumber(john, "1234")
@@ -95,10 +95,16 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		then:
 		response1TimeWrong.status == 400
 		response1TimeWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
+		response1TimeWrong.responseData.remainingAttempts == 4
+		response4TimesWrong.status == 400
+		response4TimesWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
+		response4TimesWrong.responseData.remainingAttempts == 1
 		response5TimesWrong.status == 400
 		response5TimesWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
+		response5TimesWrong.responseData.remainingAttempts == 0
 		response6TimesWrong.status == 400
 		response6TimesWrong.responseData.code == "error.mobile.number.confirmation.code.too.many.failed.attempts"
+		response6TimesWrong.responseData.remainingAttempts == null
 		response7thTimeRight.status == 400
 		response7thTimeRight.responseData.code == "error.mobile.number.confirmation.code.too.many.failed.attempts"
 

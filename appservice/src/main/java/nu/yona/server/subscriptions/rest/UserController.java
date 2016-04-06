@@ -28,6 +28,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -45,15 +46,20 @@ import nu.yona.server.DOSProtectionService;
 import nu.yona.server.analysis.rest.ActivityController;
 import nu.yona.server.analysis.rest.AppActivityController;
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.exceptions.MobileNumberConfirmationException;
+import nu.yona.server.exceptions.UserOverwriteConfirmationException;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
+import nu.yona.server.rest.ErrorResponseDTO;
+import nu.yona.server.rest.GlobalExceptionMapping;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDTO;
 import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
@@ -77,6 +83,9 @@ public class UserController
 
 	@Autowired
 	private CurieProvider curieProvider;
+
+	@Autowired
+	private GlobalExceptionMapping globalExceptionMapping;
 
 	@RequestMapping(value = "/{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
@@ -159,6 +168,30 @@ public class UserController
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
 				() -> createOKResponse(userService.confirmMobileNumber(id, mobileNumberConfirmation.getCode()), true));
+	}
+
+	@ExceptionHandler(MobileNumberConfirmationException.class)
+	private ResponseEntity<ErrorResponseDTO> handleException(MobileNumberConfirmationException e)
+	{
+		if (MobileNumberConfirmationException.FAILED_ATTEMPT_MESSAGE_ID.equals(e.getMessageId()))
+		{
+			ErrorResponseDTO responseMessage = new ConfirmationFailedResponseDTO(e.getMessageId(), e.getMessage(),
+					e.getRemainingAttempts());
+			return new ResponseEntity<ErrorResponseDTO>(responseMessage, e.getStatusCode());
+		}
+		return globalExceptionMapping.handleYonaException(e);
+	}
+
+	@ExceptionHandler(UserOverwriteConfirmationException.class)
+	private ResponseEntity<ErrorResponseDTO> handleException(UserOverwriteConfirmationException e)
+	{
+		if (UserOverwriteConfirmationException.FAILED_ATTEMPT_MESSAGE_ID.equals(e.getMessageId()))
+		{
+			ErrorResponseDTO responseMessage = new ConfirmationFailedResponseDTO(e.getMessageId(), e.getMessage(),
+					e.getRemainingAttempts());
+			return new ResponseEntity<ErrorResponseDTO>(responseMessage, e.getStatusCode());
+		}
+		return globalExceptionMapping.handleYonaException(e);
 	}
 
 	static ControllerLinkBuilder getAddUserLinkBuilder()

@@ -152,9 +152,10 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def response1TimeWrong = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "12341"])
+		response1TimeWrong.responseData.remainingAttempts == 4
 		appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "12342"])
 		appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "12343"])
-		appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "12344"])
+		def response4TimesWrong = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "12344"])
 		def response5TimesWrong = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "12345"])
 		def response6TimesWrong = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "12346"])
 		def response7thTimeRight = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "1234"])
@@ -164,10 +165,16 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		userAddResponse.responseData._links."yona:confirmMobileNumber".href != null
 		response1TimeWrong.status == 400
 		response1TimeWrong.responseData.code == "error.user.overwrite.confirmation.code.mismatch"
+		response1TimeWrong.responseData.remainingAttempts == 4
+		response4TimesWrong.status == 400
+		response4TimesWrong.responseData.code == "error.user.overwrite.confirmation.code.mismatch"
+		response4TimesWrong.responseData.remainingAttempts == 1
 		response5TimesWrong.status == 400
 		response5TimesWrong.responseData.code == "error.user.overwrite.confirmation.code.mismatch"
+		response5TimesWrong.responseData.remainingAttempts == 0
 		response6TimesWrong.status == 400
 		response6TimesWrong.responseData.code == "error.user.overwrite.confirmation.code.too.many.failed.attempts"
+		response6TimesWrong.responseData.remainingAttempts == null
 		response7thTimeRight.status == 400
 		response7thTimeRight.responseData.code == "error.user.overwrite.confirmation.code.too.many.failed.attempts"
 
