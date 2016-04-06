@@ -1,14 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.properties;
 
 public class SecurityProperties
 {
+	private int confirmationCodeDigits = 4;
+	private int confirmationCodeMaxAttempts = 5;
 	private int newDeviceRequestExpirationDays = 1;
 	private int passwordLength = 32;
 	private long bruteForceBlockMinutes = 60;
@@ -20,6 +19,26 @@ public class SecurityProperties
 	 * If true, Cross Origin Resource Sharing is allowed. This is necessary for Swagger UI.
 	 */
 	private boolean isCorsAllowed;
+
+	public int getConfirmationCodeDigits()
+	{
+		return confirmationCodeDigits;
+	}
+
+	public void setConfirmationCodeDigits(int confirmationCodeDigits)
+	{
+		this.confirmationCodeDigits = confirmationCodeDigits;
+	}
+
+	public int getConfirmationCodeMaxAttempts()
+	{
+		return confirmationCodeMaxAttempts;
+	}
+
+	public void setConfirmationMaxAttempts(int confirmationMaxAttempts)
+	{
+		this.confirmationCodeMaxAttempts = confirmationMaxAttempts;
+	}
 
 	public int getNewDeviceRequestExpirationDays()
 	{

@@ -42,10 +42,11 @@ public class User extends EntityWithID
 
 	private boolean isCreatedOnBuddyRequest;
 
-	private boolean isMobileNumberConfirmed;
-	private String mobileNumberConfirmationCode;
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private ConfirmationCode mobileNumberConfirmationCode;
 
-	private String overwriteUserConfirmationCode;
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private ConfirmationCode overwriteUserConfirmationCode;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private UserPrivate userPrivate;
@@ -148,27 +149,22 @@ public class User extends EntityWithID
 
 	public boolean isMobileNumberConfirmed()
 	{
-		return isMobileNumberConfirmed;
+		return mobileNumberConfirmationCode == null;
 	}
 
 	public void markMobileNumberConfirmed()
 	{
-		this.isMobileNumberConfirmed = true;
+		this.mobileNumberConfirmationCode = null;
 	}
 
-	public void markMobileNumberUnconfirmed()
-	{
-		this.isMobileNumberConfirmed = false;
-	}
-
-	public String getMobileNumberConfirmationCode()
-	{
-		return mobileNumberConfirmationCode;
-	}
-
-	public void setMobileNumberConfirmationCode(String mobileNumberConfirmationCode)
+	public void setMobileNumberConfirmationCode(ConfirmationCode mobileNumberConfirmationCode)
 	{
 		this.mobileNumberConfirmationCode = mobileNumberConfirmationCode;
+	}
+
+	public ConfirmationCode getMobileNumberConfirmationCode()
+	{
+		return mobileNumberConfirmationCode;
 	}
 
 	private UserPrivate getUserPrivate()
@@ -274,18 +270,18 @@ public class User extends EntityWithID
 
 	public void assertMobileNumberConfirmed()
 	{
-		if (!isMobileNumberConfirmed)
+		if (!isMobileNumberConfirmed())
 		{
 			throw MobileNumberConfirmationException.notConfirmed(mobileNumber);
 		}
 	}
 
-	public void setOverwriteUserConfirmationCode(String overwriteUserConfirmationCode)
+	public void setOverwriteUserConfirmationCode(ConfirmationCode overwriteUserConfirmationCode)
 	{
 		this.overwriteUserConfirmationCode = overwriteUserConfirmationCode;
 	}
 
-	public String getOverwriteUserConfirmationCode()
+	public ConfirmationCode getOverwriteUserConfirmationCode()
 	{
 		return overwriteUserConfirmationCode;
 	}

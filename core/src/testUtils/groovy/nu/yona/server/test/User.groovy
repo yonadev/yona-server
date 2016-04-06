@@ -16,7 +16,6 @@ class User
 	final String mobileNumber
 	final String mobileNumberConfirmationUrl
 	final boolean hasPrivateData
-	final String mobileNumberConfirmationCode
 	final String nickname
 	final List<Goal> goals
 	final List<Buddy> buddies
@@ -53,7 +52,6 @@ class User
 		this.mobileNumber = json.mobileNumber
 		this.mobileNumberConfirmationUrl = json._links?."yona:confirmMobileNumber"?.href
 		this.hasPrivateData = hasPrivateData
-		this.mobileNumberConfirmationCode = json.mobileNumberConfirmationCode
 		if (hasPrivateData)
 		{
 			this.nickname = json.nickname

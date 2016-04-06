@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
@@ -25,6 +26,7 @@ import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.exceptions.UserOverwriteConfirmationException;
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.service.ActivityCategoryDTO;
@@ -33,6 +35,7 @@ import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
 import nu.yona.server.subscriptions.entities.Buddy;
+import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
@@ -91,19 +94,13 @@ public class UserService
 	}
 
 	@Transactional
-	public OverwriteUserDTO setOverwriteUserConfirmationCode(String mobileNumber)
+	public void setOverwriteUserConfirmationCode(String mobileNumber)
 	{
 		User existingUserEntity = findUserByMobileNumber(mobileNumber);
-		existingUserEntity.setOverwriteUserConfirmationCode(
-				CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
+		ConfirmationCode confirmationCode = createConfirmationCode();
+		existingUserEntity.setOverwriteUserConfirmationCode(confirmationCode);
 		User.getRepository().save(existingUserEntity);
-		OverwriteUserDTO overwriteUserDTO = OverwriteUserDTO.createInstance();
-		if (!yonaProperties.getSms().isEnabled())
-		{
-			overwriteUserDTO.setConfirmationCode(existingUserEntity.getOverwriteUserConfirmationCode());
-		}
-		sendOverwriteUserConfirmationMessage(mobileNumber, existingUserEntity);
-		return overwriteUserDTO;
+		sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsService.TemplateName_OverwriteUserNumberConfirmation);
 	}
 
 	@Transactional
@@ -112,13 +109,6 @@ public class UserService
 		User existingUserEntity = findUserByMobileNumber(mobileNumber);
 		existingUserEntity.setOverwriteUserConfirmationCode(null);
 		User.getRepository().save(existingUserEntity);
-	}
-
-	private void sendOverwriteUserConfirmationMessage(String mobileNumber, User existingUserEntity)
-	{
-		Map<String, Object> templateParams = new HashMap<String, Object>();
-		templateParams.put("confirmationCode", existingUserEntity.getOverwriteUserConfirmationCode());
-		smsService.send(mobileNumber, SmsService.TemplateName_OverwriteUserNumberConfirmation, templateParams);
 	}
 
 	@Transactional
@@ -136,6 +126,7 @@ public class UserService
 
 		User userEntity = user.createUserEntity();
 		addMandatoryGoals(userEntity);
+		Optional<ConfirmationCode> confirmationCode = Optional.empty();
 		if (overwriteUserConfirmationCode.isPresent())
 		{
 			// no need to confirm again
@@ -143,19 +134,17 @@ public class UserService
 		}
 		else
 		{
-			setUserUnconfirmedWithNewConfirmationCode(userEntity);
+			confirmationCode = Optional.of(createConfirmationCode());
+			userEntity.setMobileNumberConfirmationCode(confirmationCode.get());
 		}
 		userEntity = User.getRepository().save(userEntity);
 		ldapUserService.createVPNAccount(userEntity.getUserAnonymizedID().toString(), userEntity.getVPNPassword());
 
 		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(userEntity);
-		if (!userDTO.isMobileNumberConfirmed())
+		if (confirmationCode.isPresent())
 		{
-			if (!yonaProperties.getSms().isEnabled())
-			{
-				userDTO.setMobileNumberConfirmationCode(userEntity.getMobileNumberConfirmationCode());
-			}
-			sendMobileNumberConfirmationMessage(userEntity, SmsService.TemplateName_AddUserNumberConfirmation);
+			sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode.get(),
+					SmsService.TemplateName_AddUserNumberConfirmation);
 		}
 
 		logger.info("Added new user with mobile number '{}' and ID '{}'", userDTO.getMobileNumber(), userDTO.getID());
@@ -201,18 +190,16 @@ public class UserService
 		throw UserServiceException.userExists(mobileNumber);
 	}
 
-	private void deleteExistingUserToOverwriteIt(String mobileNumber, String overwriteUserConfirmationCode)
+	private void deleteExistingUserToOverwriteIt(String mobileNumber, String userProvidedConfirmationCode)
 	{
 		User existingUserEntity = findUserByMobileNumber(mobileNumber);
-		String expectedOverwriteUserConfirmationCode = existingUserEntity.getOverwriteUserConfirmationCode();
-		if (expectedOverwriteUserConfirmationCode == null)
-		{
-			throw UserOverwriteConfirmationException.confirmationCodeNotSet(mobileNumber);
-		}
-		if (!expectedOverwriteUserConfirmationCode.equals(overwriteUserConfirmationCode))
-		{
-			throw UserOverwriteConfirmationException.confirmationCodeMismatch(mobileNumber, overwriteUserConfirmationCode);
-		}
+		ConfirmationCode confirmationCode = existingUserEntity.getOverwriteUserConfirmationCode();
+
+		verifyConfirmationCode(existingUserEntity, confirmationCode, userProvidedConfirmationCode,
+				() -> UserOverwriteConfirmationException.confirmationCodeNotSet(existingUserEntity.getMobileNumber()),
+				() -> UserOverwriteConfirmationException.confirmationCodeMismatch(existingUserEntity.getMobileNumber(),
+						userProvidedConfirmationCode),
+				() -> UserOverwriteConfirmationException.tooManyAttempts(existingUserEntity.getMobileNumber()));
 
 		// notice we can't delete the associated anonymized data
 		// because the anonymized data cannot be retrieved
@@ -221,19 +208,16 @@ public class UserService
 	}
 
 	@Transactional
-	public UserDTO confirmMobileNumber(UUID userID, String code)
+	public UserDTO confirmMobileNumber(UUID userID, String userProvidedConfirmationCode)
 	{
 		User userEntity = getUserByID(userID);
+		ConfirmationCode confirmationCode = userEntity.getMobileNumberConfirmationCode();
 
-		if (userEntity.getMobileNumberConfirmationCode() == null)
-		{
-			throw MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber());
-		}
-
-		if (!userEntity.getMobileNumberConfirmationCode().equals(code))
-		{
-			throw MobileNumberConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(), code);
-		}
+		verifyConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
+				() -> MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()),
+				() -> MobileNumberConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
+						userProvidedConfirmationCode),
+				() -> MobileNumberConfirmationException.tooManyAttempts(userEntity.getMobileNumber()));
 
 		if (userEntity.isMobileNumberConfirmed())
 		{
@@ -269,7 +253,7 @@ public class UserService
 				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet());
 		addMandatoryGoals(newUser);
 		newUser.setIsCreatedOnBuddyRequest();
-		setUserUnconfirmedWithNewConfirmationCode(newUser);
+		newUser.setMobileNumberConfirmationCode(createConfirmationCode());
 		User savedUser = User.getRepository().save(newUser);
 		ldapUserService.createVPNAccount(savedUser.getUserAnonymizedID().toString(), savedUser.getVPNPassword());
 		return savedUser;
@@ -287,29 +271,21 @@ public class UserService
 
 		boolean isMobileNumberDifferent = !user.getMobileNumber().equals(originalUserEntity.getMobileNumber());
 		User updatedUserEntity = user.updateUser(originalUserEntity);
+		Optional<ConfirmationCode> confirmationCode = Optional.empty();
 		if (isMobileNumberDifferent)
 		{
-			setUserUnconfirmedWithNewConfirmationCode(updatedUserEntity);
+			confirmationCode = Optional.of(createConfirmationCode());
+			updatedUserEntity.setMobileNumberConfirmationCode(confirmationCode.get());
 		}
 		User savedUserEntity = User.getRepository().save(updatedUserEntity);
 		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(savedUserEntity);
-		if (isMobileNumberDifferent)
+		if (confirmationCode.isPresent())
 		{
-			if (!yonaProperties.getSms().isEnabled())
-			{
-				userDTO.setMobileNumberConfirmationCode(savedUserEntity.getMobileNumberConfirmationCode());
-			}
-			sendMobileNumberConfirmationMessage(updatedUserEntity, SmsService.TemplateName_ChangedUserNumberConfirmation);
+			sendConfirmationCodeTextMessage(updatedUserEntity.getMobileNumber(), confirmationCode.get(),
+					SmsService.TemplateName_ChangedUserNumberConfirmation);
 		}
 		logger.info("Updated user with mobile number '{}' and ID '{}'", userDTO.getMobileNumber(), userDTO.getID());
 		return userDTO;
-	}
-
-	void setUserUnconfirmedWithNewConfirmationCode(User userEntity)
-	{
-		userEntity.markMobileNumberUnconfirmed();
-		userEntity.setMobileNumberConfirmationCode(
-				CryptoUtil.getRandomDigits(yonaProperties.getSms().getMobileNumberConfirmationCodeDigits()));
 	}
 
 	@Transactional
@@ -324,13 +300,9 @@ public class UserService
 
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
 		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, userResource);
-		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(savedUserEntity);
-		if (!yonaProperties.getSms().isEnabled())
-		{
-			userDTO.setMobileNumberConfirmationCode(savedUserEntity.getMobileNumberConfirmationCode());
-		}
-		sendMobileNumberConfirmationMessage(savedUserEntity, SmsService.TemplateName_AddUserNumberConfirmation);
-		return userDTO;
+		sendConfirmationCodeTextMessage(savedUserEntity.getMobileNumber(), savedUserEntity.getMobileNumberConfirmationCode(),
+				SmsService.TemplateName_AddUserNumberConfirmation);
+		return UserDTO.createInstanceWithPrivateData(savedUserEntity);
 	}
 
 	private EncryptedUserData retrieveUserEncryptedData(User originalUserEntity, String password)
@@ -462,16 +434,49 @@ public class UserService
 		return retVal;
 	}
 
-	private void sendMobileNumberConfirmationMessage(User userEntity, String messageTemplateName)
+	private ConfirmationCode createConfirmationCode()
 	{
-		String confirmationCode = userEntity.getMobileNumberConfirmationCode();
-		if (confirmationCode == null)
-		{
-			throw MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber());
-		}
+		String confirmationCode = (yonaProperties.getSms().isEnabled())
+				? CryptoUtil.getRandomDigits(yonaProperties.getSecurity().getConfirmationCodeDigits()) : "1234";
+		return ConfirmationCode.createInstance(confirmationCode);
+	}
+
+	private void sendConfirmationCodeTextMessage(String mobileNumber, ConfirmationCode confirmationCode, String templateName)
+	{
 		Map<String, Object> templateParams = new HashMap<String, Object>();
 		templateParams.put("confirmationCode", confirmationCode);
-		smsService.send(userEntity.getMobileNumber(), messageTemplateName, templateParams);
+		smsService.send(mobileNumber, templateName, templateParams);
+	}
+
+	private void verifyConfirmationCode(User userEntity, ConfirmationCode confirmationCode, String userProvidedConfirmationCode,
+			Supplier<YonaException> noConformationCodeExceptionSupplier,
+			Supplier<YonaException> invalidConformationCodeExceptionSupplier,
+			Supplier<YonaException> tooManyAttemptsExceptionSupplier)
+	{
+		if (confirmationCode == null)
+		{
+			throw noConformationCodeExceptionSupplier.get();
+		}
+
+		if (confirmationCode.getAttempts() >= yonaProperties.getSecurity().getConfirmationCodeMaxAttempts())
+		{
+			throw tooManyAttemptsExceptionSupplier.get();
+		}
+
+		if (!confirmationCode.getConfirmationCode().equals(userProvidedConfirmationCode))
+		{
+			registerFailedAttempt(userEntity, confirmationCode);
+			throw invalidConformationCodeExceptionSupplier.get();
+		}
+	}
+
+	private void registerFailedAttempt(User userEntity, ConfirmationCode confirmationCode)
+	{
+		transactionHelper.executeInNewTransaction(() -> {
+			confirmationCode.incrementAttempts();
+			User.getRepository().save(userEntity);
+			return null;
+		});
 	}
 
 	private User saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDTO userResource)

@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.exceptions;
 
@@ -42,5 +39,11 @@ public class MobileNumberConfirmationException extends YonaException
 	public static MobileNumberConfirmationException notConfirmed(String mobileNumber)
 	{
 		return new MobileNumberConfirmationException("error.mobile.number.not.confirmed", mobileNumber);
+	}
+
+	public static MobileNumberConfirmationException tooManyAttempts(String mobileNumber)
+	{
+		return new MobileNumberConfirmationException("error.mobile.number.confirmation.code.too.many.failed.attempts",
+				mobileNumber);
 	}
 }

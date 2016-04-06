@@ -91,7 +91,6 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		response.responseData.mobileNumber == bob.mobileNumber
 		response.responseData.nickname == newNickname
 		!(response.responseData._links.self.href ==~ /tempPassword/)
-		response.responseData.mobileNumberConfirmationCode
 
 		def getUserResponse = appService.getUser(inviteURL, true, null)
 		getUserResponse.status == 400

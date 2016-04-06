@@ -41,7 +41,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import nu.yona.server.BruteForceAttemptService;
 import nu.yona.server.DOSProtectionService;
 import nu.yona.server.analysis.rest.ActivityController;
 import nu.yona.server.analysis.rest.AppActivityController;
@@ -69,9 +68,6 @@ public class UserController
 
 	@Autowired
 	private BuddyService buddyService;
-
-	@Autowired
-	private BruteForceAttemptService bruteForceAttemptService;
 
 	@Autowired
 	private DOSProtectionService dosProtectionService;
@@ -161,12 +157,8 @@ public class UserController
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
 			@RequestBody MobileNumberConfirmationDTO mobileNumberConfirmation)
 	{
-		return CryptoSession
-				.execute(password, () -> userService.canAccessPrivateData(id),
-						() -> bruteForceAttemptService.executeAttempt(getConfirmMobileNumberLinkBuilder(id).toUri(),
-								yonaProperties.getSms()
-										.getMobileNumberConfirmationMaxAttempts(),
-						() -> createOKResponse(userService.confirmMobileNumber(id, mobileNumberConfirmation.getCode()), true)));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+				() -> createOKResponse(userService.confirmMobileNumber(id, mobileNumberConfirmation.getCode()), true));
 	}
 
 	static ControllerLinkBuilder getAddUserLinkBuilder()
@@ -195,12 +187,8 @@ public class UserController
 	{
 		if (overwriteUserConfirmationCode.isPresent())
 		{
-			return bruteForceAttemptService.executeAttempt(getAddUserLinkBuilder().toUri(),
-					yonaProperties.getSms().getMobileNumberConfirmationMaxAttempts(),
-					() -> CryptoSession.execute(password,
-							() -> createResponse(userService.addUser(user, overwriteUserConfirmationCode), true,
-									HttpStatus.CREATED)),
-					() -> userService.clearOverwriteUserConfirmationCode(user.getMobileNumber()), user.getMobileNumber());
+			return CryptoSession.execute(password,
+					() -> createResponse(userService.addUser(user, overwriteUserConfirmationCode), true, HttpStatus.CREATED));
 		}
 		else
 		{
@@ -329,7 +317,7 @@ public class UserController
 			if (includePrivateData && !user.isMobileNumberConfirmed())
 			{
 				// The mobile number is not yet confirmed, so we can add the link
-				addConfirmMobileNumberLink(userResource, user.getMobileNumberConfirmationCode());
+				addConfirmMobileNumberLink(userResource);
 			}
 			if (includePrivateData)
 			{
@@ -370,7 +358,7 @@ public class UserController
 							.withRel(JsonRootRelProvider.EDIT_REL));
 		}
 
-		private static void addConfirmMobileNumberLink(Resource<UserDTO> userResource, String confirmationCode)
+		private static void addConfirmMobileNumberLink(Resource<UserDTO> userResource)
 		{
 			userResource.add(UserController.getConfirmMobileLink(userResource.getContent().getID()));
 		}
