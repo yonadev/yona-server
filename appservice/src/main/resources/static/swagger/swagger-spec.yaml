@@ -729,9 +729,7 @@ paths:
         - Admin
       responses:
         '200':
-          description: The status of the overwrite request
-          schema:
-            $ref: '#/definitions/UserOverwriteResponse'
+          description: The request was successfully created. The confirmation will be texted to the mobile number.
         default:
           description: Unexpected error
           schema:
@@ -1613,13 +1611,6 @@ definitions:
         example: "+31612345678"
     required:
       - mobileNumber
-  UserOverwriteResponse:
-    type: object
-    properties:
-      confirmationCode:
-        type: string
-        description: The confirmation code that is to be used when overwriting the account. This code is only returned when the server is configured as test server. Normally, this code is sent to the user through SMS.
-        example: 58947
   Error:
     type: object
     properties:
