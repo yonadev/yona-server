@@ -7,28 +7,24 @@ package nu.yona.server.exceptions;
 /**
  * This exception is to be used in case the mobile number confirmation code is wrong.
  */
-public class MobileNumberConfirmationException extends YonaException
+public class MobileNumberConfirmationException extends ConfirmationException
 {
 	private static final long serialVersionUID = -7917208280838423613L;
 	public static final String FAILED_ATTEMPT_MESSAGE_ID = "error.mobile.number.confirmation.code.mismatch";
-	private final int remainingAttempts;
 
 	private MobileNumberConfirmationException(String messageId, Object... parameters)
 	{
 		super(messageId, parameters);
-		this.remainingAttempts = -1;
 	}
 
 	private MobileNumberConfirmationException(Throwable t, String messageId, Object... parameters)
 	{
 		super(t, messageId, parameters);
-		this.remainingAttempts = -1;
 	}
 
 	public MobileNumberConfirmationException(int remainingAttempts, String messageId, Object... parameters)
 	{
-		super(messageId, parameters);
-		this.remainingAttempts = remainingAttempts;
+		super(remainingAttempts, messageId, parameters);
 	}
 
 	public static MobileNumberConfirmationException confirmationCodeMismatch(String mobileNumber, String code,
@@ -56,10 +52,5 @@ public class MobileNumberConfirmationException extends YonaException
 	{
 		return new MobileNumberConfirmationException("error.mobile.number.confirmation.code.too.many.failed.attempts",
 				mobileNumber);
-	}
-
-	public int getRemainingAttempts()
-	{
-		return remainingAttempts;
 	}
 }

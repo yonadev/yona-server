@@ -7,28 +7,24 @@ package nu.yona.server.exceptions;
 /**
  * This exception is to be used in case user overwrite confirmation code is wrong.
  */
-public class UserOverwriteConfirmationException extends YonaException
+public class UserOverwriteConfirmationException extends ConfirmationException
 {
 	private static final long serialVersionUID = -3653199898915579250L;
 	public static final String FAILED_ATTEMPT_MESSAGE_ID = "error.user.overwrite.confirmation.code.mismatch";
-	private final int remainingAttempts;
 
 	private UserOverwriteConfirmationException(String messageId, Object... parameters)
 	{
 		super(messageId, parameters);
-		this.remainingAttempts = -1;
 	}
 
 	private UserOverwriteConfirmationException(Throwable t, String messageId, Object... parameters)
 	{
 		super(t, messageId, parameters);
-		this.remainingAttempts = -1;
 	}
 
 	public UserOverwriteConfirmationException(int remainingAttempts, String messageId, Object... parameters)
 	{
-		super(messageId, parameters);
-		this.remainingAttempts = remainingAttempts;
+		super(remainingAttempts, messageId, parameters);
 	}
 
 	public static UserOverwriteConfirmationException confirmationCodeMismatch(String mobileNumber, String code,
@@ -46,10 +42,5 @@ public class UserOverwriteConfirmationException extends YonaException
 	{
 		return new UserOverwriteConfirmationException("error.user.overwrite.confirmation.code.too.many.failed.attempts",
 				mobileNumber);
-	}
-
-	public int getRemainingAttempts()
-	{
-		return remainingAttempts;
 	}
 }

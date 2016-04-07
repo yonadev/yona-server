@@ -17,6 +17,8 @@ import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
@@ -46,8 +48,7 @@ import nu.yona.server.DOSProtectionService;
 import nu.yona.server.analysis.rest.ActivityController;
 import nu.yona.server.analysis.rest.AppActivityController;
 import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.exceptions.MobileNumberConfirmationException;
-import nu.yona.server.exceptions.UserOverwriteConfirmationException;
+import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.messaging.rest.MessageController;
@@ -69,6 +70,8 @@ import nu.yona.server.subscriptions.service.UserService;
 @RequestMapping(value = "/users")
 public class UserController
 {
+	private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
 	@Autowired
 	private UserService userService;
 
@@ -180,25 +183,14 @@ public class UserController
 		return new ResponseEntity<Void>(HttpStatus.OK);
 	}
 
-	@ExceptionHandler(MobileNumberConfirmationException.class)
-	private ResponseEntity<ErrorResponseDTO> handleException(MobileNumberConfirmationException e)
+	@ExceptionHandler(ConfirmationException.class)
+	private ResponseEntity<ErrorResponseDTO> handleException(ConfirmationException e)
 	{
-		if (MobileNumberConfirmationException.FAILED_ATTEMPT_MESSAGE_ID.equals(e.getMessageId()))
+		if (e.getRemainingAttempts() >= 0)
 		{
 			ErrorResponseDTO responseMessage = new ConfirmationFailedResponseDTO(e.getMessageId(), e.getMessage(),
 					e.getRemainingAttempts());
-			return new ResponseEntity<ErrorResponseDTO>(responseMessage, e.getStatusCode());
-		}
-		return globalExceptionMapping.handleYonaException(e);
-	}
-
-	@ExceptionHandler(UserOverwriteConfirmationException.class)
-	private ResponseEntity<ErrorResponseDTO> handleException(UserOverwriteConfirmationException e)
-	{
-		if (UserOverwriteConfirmationException.FAILED_ATTEMPT_MESSAGE_ID.equals(e.getMessageId()))
-		{
-			ErrorResponseDTO responseMessage = new ConfirmationFailedResponseDTO(e.getMessageId(), e.getMessage(),
-					e.getRemainingAttempts());
+			logger.error("Confirmation failed", e);
 			return new ResponseEntity<ErrorResponseDTO>(responseMessage, e.getStatusCode());
 		}
 		return globalExceptionMapping.handleYonaException(e);
