@@ -155,6 +155,30 @@ paths:
           description: Confirmation failed
           schema:
             $ref: '#/definitions/ConfirmationError'
+  '/users/{id}/resendMobileNumberConfirmationCode':
+    parameters:
+      - name: id
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    post:
+      summary: Request resend of a mobile number confirmation code
+      description: Post an empty request to get a new mobile number confirmation code texted to the user
+      tags:
+        - User
+      responses:
+        '200':
+          description: The request is successfully handled
+        default:
+          description: Confirmation failed
+          schema:
+            $ref: '#/definitions/ConfirmationError'
   '/users/{userID}/goals/':
     parameters:
       - name: userID
@@ -1629,4 +1653,4 @@ definitions:
       remainingAttempts:
         type: integer
         description: The number of remaining attempts. Only available upon a failed confirmation attempt
-        example: 4        
+        example: 4

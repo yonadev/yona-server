@@ -170,6 +170,16 @@ public class UserController
 				() -> createOKResponse(userService.confirmMobileNumber(id, mobileNumberConfirmation.getCode()), true));
 	}
 
+	@RequestMapping(value = "/{id}/resendMobileNumberConfirmationCode", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Void> resendMobileNumberConfirmationCode(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
+	{
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+				() -> userService.resendMobileNumberConfirmationCode(id));
+		return new ResponseEntity<Void>(HttpStatus.OK);
+	}
+
 	@ExceptionHandler(MobileNumberConfirmationException.class)
 	private ResponseEntity<ErrorResponseDTO> handleException(MobileNumberConfirmationException e)
 	{
@@ -273,6 +283,13 @@ public class UserController
 		return linkBuilder.withRel("confirmMobileNumber");
 	}
 
+	public static Link getResendMobileNumberConfirmationLink(UUID userID)
+	{
+		ControllerLinkBuilder linkBuilder = linkTo(
+				methodOn(UserController.class).resendMobileNumberConfirmationCode(Optional.empty(), userID));
+		return linkBuilder.withRel("resendMobileNumberConfirmationCode");
+	}
+
 	private static Link getUserSelfLink(UUID userID, boolean includePrivateData)
 	{
 		ControllerLinkBuilder linkBuilder;
@@ -351,6 +368,7 @@ public class UserController
 			{
 				// The mobile number is not yet confirmed, so we can add the link
 				addConfirmMobileNumberLink(userResource);
+				addResendMobileNumberConfirmationLink(userResource);
 			}
 			if (includePrivateData)
 			{
@@ -394,6 +412,11 @@ public class UserController
 		private static void addConfirmMobileNumberLink(Resource<UserDTO> userResource)
 		{
 			userResource.add(UserController.getConfirmMobileLink(userResource.getContent().getID()));
+		}
+
+		private static void addResendMobileNumberConfirmationLink(Resource<UserDTO> userResource)
+		{
+			userResource.add(UserController.getResendMobileNumberConfirmationLink(userResource.getContent().getID()));
 		}
 
 		private void addWeekActivityOverviewsLink(UserResource userResource)

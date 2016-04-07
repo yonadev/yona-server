@@ -233,6 +233,18 @@ public class UserService
 	}
 
 	@Transactional
+	public Object resendMobileNumberConfirmationCode(UUID userID)
+	{
+		User userEntity = getUserByID(userID);
+		ConfirmationCode confirmationCode = createConfirmationCode();
+		userEntity.setMobileNumberConfirmationCode(confirmationCode);
+		User.getRepository().save(userEntity);
+		sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode,
+				SmsService.TemplateName_AddUserNumberConfirmation);
+		return null;
+	}
+
+	@Transactional
 	public User addUserCreatedOnBuddyRequest(UserDTO buddyUser, String tempPassword)
 	{
 		if (buddyUser == null)
