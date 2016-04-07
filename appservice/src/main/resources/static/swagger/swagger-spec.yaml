@@ -38,9 +38,9 @@ paths:
           schema:
             $ref: '#/definitions/UserWithPrivateData'
         default:
-          description: Unexpected error
+          description: Unexpected error.
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/ConfirmationError'
   '/users/{id}':
     parameters:
       - name: id
@@ -152,9 +152,33 @@ paths:
           schema:
             $ref: '#/definitions/UserWithPrivateData'
         default:
-          description: Unexpected error
+          description: Confirmation failed
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/ConfirmationError'
+  '/users/{id}/resendMobileNumberConfirmationCode':
+    parameters:
+      - name: id
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    post:
+      summary: Request resend of a mobile number confirmation code
+      description: Post an empty request to get a new mobile number confirmation code texted to the user
+      tags:
+        - User
+      responses:
+        '200':
+          description: The request is successfully handled
+        default:
+          description: Confirmation failed
+          schema:
+            $ref: '#/definitions/ConfirmationError'
   '/users/{userID}/goals/':
     parameters:
       - name: userID
@@ -729,9 +753,7 @@ paths:
         - Admin
       responses:
         '200':
-          description: The status of the overwrite request
-          schema:
-            $ref: '#/definitions/UserOverwriteResponse'
+          description: The request was successfully created. The confirmation will be texted to the mobile number.
         default:
           description: Unexpected error
           schema:
@@ -934,6 +956,14 @@ definitions:
               href:
                 type: string
                 description: If this link is present, the mobile number of the user must be confirmed by posting the confirmation to this URL.
+          "yona:resendMobileNumberConfirmationCode":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: This link allows requesting a resend of the mobile number confirmation code.
           "yona:messages":
             type: object
             required:
@@ -1613,13 +1643,6 @@ definitions:
         example: "+31612345678"
     required:
       - mobileNumber
-  UserOverwriteResponse:
-    type: object
-    properties:
-      confirmationCode:
-        type: string
-        description: The confirmation code that is to be used when overwriting the account. This code is only returned when the server is configured as test server. Normally, this code is sent to the user through SMS.
-        example: 58947
   Error:
     type: object
     properties:
@@ -1631,3 +1654,11 @@ definitions:
         type: string
         description: A localized error message
         example: The mobile number ''+31 6 12345678'' is invalid. It must start with a + sign, with no spaces between the digits
+  ConfirmationError:
+    allOf:
+      - $ref: '#/definitions/Error'
+    properties:
+      remainingAttempts:
+        type: integer
+        description: The number of remaining attempts. Only available upon a failed confirmation attempt
+        example: 4

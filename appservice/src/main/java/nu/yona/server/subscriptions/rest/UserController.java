@@ -17,6 +17,8 @@ import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
@@ -28,6 +30,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -41,20 +44,23 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import nu.yona.server.BruteForceAttemptService;
 import nu.yona.server.DOSProtectionService;
 import nu.yona.server.analysis.rest.ActivityController;
 import nu.yona.server.analysis.rest.AppActivityController;
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
+import nu.yona.server.rest.ErrorResponseDTO;
+import nu.yona.server.rest.GlobalExceptionMapping;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDTO;
 import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
@@ -64,14 +70,13 @@ import nu.yona.server.subscriptions.service.UserService;
 @RequestMapping(value = "/users")
 public class UserController
 {
+	private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
 	@Autowired
 	private UserService userService;
 
 	@Autowired
 	private BuddyService buddyService;
-
-	@Autowired
-	private BruteForceAttemptService bruteForceAttemptService;
 
 	@Autowired
 	private DOSProtectionService dosProtectionService;
@@ -81,6 +86,9 @@ public class UserController
 
 	@Autowired
 	private CurieProvider curieProvider;
+
+	@Autowired
+	private GlobalExceptionMapping globalExceptionMapping;
 
 	@RequestMapping(value = "/{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
@@ -161,12 +169,31 @@ public class UserController
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
 			@RequestBody MobileNumberConfirmationDTO mobileNumberConfirmation)
 	{
-		return CryptoSession
-				.execute(password, () -> userService.canAccessPrivateData(id),
-						() -> bruteForceAttemptService.executeAttempt(getConfirmMobileNumberLinkBuilder(id).toUri(),
-								yonaProperties.getSms()
-										.getMobileNumberConfirmationMaxAttempts(),
-						() -> createOKResponse(userService.confirmMobileNumber(id, mobileNumberConfirmation.getCode()), true)));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+				() -> createOKResponse(userService.confirmMobileNumber(id, mobileNumberConfirmation.getCode()), true));
+	}
+
+	@RequestMapping(value = "/{id}/resendMobileNumberConfirmationCode", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Void> resendMobileNumberConfirmationCode(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
+	{
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+				() -> userService.resendMobileNumberConfirmationCode(id));
+		return new ResponseEntity<Void>(HttpStatus.OK);
+	}
+
+	@ExceptionHandler(ConfirmationException.class)
+	private ResponseEntity<ErrorResponseDTO> handleException(ConfirmationException e)
+	{
+		if (e.getRemainingAttempts() >= 0)
+		{
+			ErrorResponseDTO responseMessage = new ConfirmationFailedResponseDTO(e.getMessageId(), e.getMessage(),
+					e.getRemainingAttempts());
+			logger.error("Confirmation failed", e);
+			return new ResponseEntity<ErrorResponseDTO>(responseMessage, e.getStatusCode());
+		}
+		return globalExceptionMapping.handleYonaException(e);
 	}
 
 	static ControllerLinkBuilder getAddUserLinkBuilder()
@@ -195,12 +222,8 @@ public class UserController
 	{
 		if (overwriteUserConfirmationCode.isPresent())
 		{
-			return bruteForceAttemptService.executeAttempt(getAddUserLinkBuilder().toUri(),
-					yonaProperties.getSms().getMobileNumberConfirmationMaxAttempts(),
-					() -> CryptoSession.execute(password,
-							() -> createResponse(userService.addUser(user, overwriteUserConfirmationCode), true,
-									HttpStatus.CREATED)),
-					() -> userService.clearOverwriteUserConfirmationCode(user.getMobileNumber()), user.getMobileNumber());
+			return CryptoSession.execute(password,
+					() -> createResponse(userService.addUser(user, overwriteUserConfirmationCode), true, HttpStatus.CREATED));
 		}
 		else
 		{
@@ -250,6 +273,13 @@ public class UserController
 		ControllerLinkBuilder linkBuilder = linkTo(
 				methodOn(UserController.class).confirmMobileNumber(Optional.empty(), userID, null));
 		return linkBuilder.withRel("confirmMobileNumber");
+	}
+
+	public static Link getResendMobileNumberConfirmationLink(UUID userID)
+	{
+		ControllerLinkBuilder linkBuilder = linkTo(
+				methodOn(UserController.class).resendMobileNumberConfirmationCode(Optional.empty(), userID));
+		return linkBuilder.withRel("resendMobileNumberConfirmationCode");
 	}
 
 	private static Link getUserSelfLink(UUID userID, boolean includePrivateData)
@@ -329,7 +359,8 @@ public class UserController
 			if (includePrivateData && !user.isMobileNumberConfirmed())
 			{
 				// The mobile number is not yet confirmed, so we can add the link
-				addConfirmMobileNumberLink(userResource, user.getMobileNumberConfirmationCode());
+				addConfirmMobileNumberLink(userResource);
+				addResendMobileNumberConfirmationLink(userResource);
 			}
 			if (includePrivateData)
 			{
@@ -370,9 +401,14 @@ public class UserController
 							.withRel(JsonRootRelProvider.EDIT_REL));
 		}
 
-		private static void addConfirmMobileNumberLink(Resource<UserDTO> userResource, String confirmationCode)
+		private static void addConfirmMobileNumberLink(Resource<UserDTO> userResource)
 		{
 			userResource.add(UserController.getConfirmMobileLink(userResource.getContent().getID()));
+		}
+
+		private static void addResendMobileNumberConfirmationLink(Resource<UserDTO> userResource)
+		{
+			userResource.add(UserController.getResendMobileNumberConfirmationLink(userResource.getContent().getID()));
 		}
 
 		private void addWeekActivityOverviewsLink(UserResource userResource)

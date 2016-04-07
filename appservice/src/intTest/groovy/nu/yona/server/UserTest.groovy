@@ -28,6 +28,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		testUser(john, true, false, ts)
 		// The below assert checks the path fragment. If it fails, the Swagger spec needs to be updated too
 		john.mobileNumberConfirmationUrl == john.url + "/confirmMobileNumber"
+		john.resendMobileNumberConfirmationCodeUrl == john.url + "/resendMobileNumberConfirmationCode"
 
 		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(john.url + "/messages/", john.password)
 		getMessagesResponse.status == 400
@@ -82,26 +83,59 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		given:
 		def ts = timestamp
 		def john = createJohnDoe(ts)
-		def mobileNumberConfirmationCode = john.mobileNumberConfirmationCode
 
 		when:
-		def response1TimeWrong = confirmMobileNumber(john, "${mobileNumberConfirmationCode}1")
-		confirmMobileNumber(john, "${mobileNumberConfirmationCode}2")
-		confirmMobileNumber(john, "${mobileNumberConfirmationCode}3")
-		confirmMobileNumber(john, "${mobileNumberConfirmationCode}4")
-		def response5TimesWrong = confirmMobileNumber(john, "${mobileNumberConfirmationCode}5")
-		def response6TimesWrong = confirmMobileNumber(john, "${mobileNumberConfirmationCode}6")
-		def response7thTimeRight = confirmMobileNumber(john, "${mobileNumberConfirmationCode}")
+		def response1TimeWrong = confirmMobileNumber(john, "12341")
+		confirmMobileNumber(john, "12342")
+		confirmMobileNumber(john, "12343")
+		def response4TimesWrong = confirmMobileNumber(john, "12344")
+		def response5TimesWrong = confirmMobileNumber(john, "12345")
+		def response6TimesWrong = confirmMobileNumber(john, "12346")
+		def response7thTimeRight = confirmMobileNumber(john, "1234")
 
 		then:
 		response1TimeWrong.status == 400
 		response1TimeWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
+		response1TimeWrong.responseData.remainingAttempts == 4
+		response4TimesWrong.status == 400
+		response4TimesWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
+		response4TimesWrong.responseData.remainingAttempts == 1
 		response5TimesWrong.status == 400
 		response5TimesWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
+		response5TimesWrong.responseData.remainingAttempts == 0
 		response6TimesWrong.status == 400
-		response6TimesWrong.responseData.code == "error.too.many.wrong.attempts"
+		response6TimesWrong.responseData.code == "error.mobile.number.confirmation.code.too.many.failed.attempts"
+		response6TimesWrong.responseData.remainingAttempts == null
 		response7thTimeRight.status == 400
-		response7thTimeRight.responseData.code == "error.too.many.wrong.attempts"
+		response7thTimeRight.responseData.code == "error.mobile.number.confirmation.code.too.many.failed.attempts"
+
+		cleanup:
+		appService.deleteUser(john)
+	}
+
+	def 'Request resend of confirmation code'()
+	{
+		given:
+		def ts = timestamp
+		User john = createJohnDoe(ts)
+		def response1TimeWrong = confirmMobileNumber(john, "12341")
+
+		when:
+		def responseRequestResend = appService.yonaServer.postJson(john.resendMobileNumberConfirmationCodeUrl, "{}", ["Yona-Password" : john.password])
+
+		then:
+		response1TimeWrong.status == 400
+		response1TimeWrong.responseData.code == "error.mobile.number.confirmation.code.mismatch"
+		response1TimeWrong.responseData.remainingAttempts == 4
+
+		responseRequestResend.status == 200
+
+		def response1TimeWrongAgain = confirmMobileNumber(john, "12341")
+		response1TimeWrongAgain.status == 400
+		response1TimeWrongAgain.responseData.code == "error.mobile.number.confirmation.code.mismatch"
+		response1TimeWrongAgain.responseData.remainingAttempts == 4
+		def responseRight = confirmMobileNumber(john, "1234")
+		responseRight.status == 200
 
 		cleanup:
 		appService.deleteUser(john)
@@ -202,7 +236,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 	def confirmMobileNumber(User user, code)
 	{
-		appService.confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${code}1" } """, user.password)
+		appService.confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${code}" } """, user.password)
 	}
 
 	User createJohnDoe(def ts)

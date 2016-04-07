@@ -25,7 +25,7 @@ class AppService extends Service
 
 	User confirmMobileNumber(Closure asserter, User user)
 	{
-		def response = confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${user.mobileNumberConfirmationCode}" }""", user.password)
+		def response = confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"1234" }""", user.password)
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData, user.password, true) : null
 	}
@@ -100,7 +100,6 @@ class AppService extends Service
 	{
 		assertResponseStatusCreated(response)
 		assertUserWithPrivateData(response.responseData)
-		assert response.responseData.mobileNumberConfirmationCode
 	}
 
 	def assertUserUpdateResponseDetails(def response)
@@ -201,7 +200,7 @@ class AppService extends Service
 
 	def assertResponseStatusSuccess(def response)
 	{
-		assert isSuccess(response)
+		assert response.status >= 200 && response.status < 300
 	}
 
 	def isSuccess(def response)

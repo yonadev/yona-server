@@ -33,11 +33,10 @@ public class UserDTO
 	private final String mobileNumber;
 	private boolean isMobileNumberConfirmed;
 	private final UserPrivateDTO privateData;
+
 	/*
 	 * Only intended for test purposes.
 	 */
-	private String mobileNumberConfirmationCode;
-
 	private UserDTO(UUID id, String firstName, String lastName, String nickname, String mobileNumber, boolean isConfirmed,
 			UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
 			UUID anonymousMessageDestinationID, Set<GoalDTO> goals, Set<UUID> buddyIDs, UUID userAnonymizedID,
@@ -116,23 +115,6 @@ public class UserDTO
 	public UserPrivateDTO getPrivateData()
 	{
 		return privateData;
-	}
-
-	/*
-	 * Only intended for test purposes.
-	 */
-	public void setMobileNumberConfirmationCode(String mobileNumberConfirmationCode)
-	{
-		this.mobileNumberConfirmationCode = mobileNumberConfirmationCode;
-	}
-
-	/*
-	 * Only intended for test purposes.
-	 */
-	@JsonInclude(Include.NON_EMPTY)
-	public String getMobileNumberConfirmationCode()
-	{
-		return mobileNumberConfirmationCode;
 	}
 
 	User createUserEntity()
