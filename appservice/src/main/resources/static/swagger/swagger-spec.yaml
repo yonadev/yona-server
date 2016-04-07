@@ -956,6 +956,14 @@ definitions:
               href:
                 type: string
                 description: If this link is present, the mobile number of the user must be confirmed by posting the confirmation to this URL.
+          "yona:resendMobileNumberConfirmationCode":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: This link allows requesting a resend of the mobile number confirmation code.
           "yona:messages":
             type: object
             required:
