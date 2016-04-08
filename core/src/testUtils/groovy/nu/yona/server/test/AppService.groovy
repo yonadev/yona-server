@@ -368,15 +368,15 @@ class AppService extends Service
 		yonaServer.getResourceWithPassword(user.dailyActivityReportsUrl, user.password, parameters)
 	}
 
-	def setNewDeviceRequest(mobileNumber, password, userSecret)
+	def setNewDeviceRequest(mobileNumber, password, newDeviceRequestPassword)
 	{
-		def jsonString = """{ "userSecret": "$userSecret" }"""
+		def jsonString = """{ "newDeviceRequestPassword": "$newDeviceRequestPassword" }"""
 		yonaServer.updateResourceWithPassword("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", jsonString, password)
 	}
 
-	def getNewDeviceRequest(mobileNumber, userSecret = null)
+	def getNewDeviceRequest(mobileNumber, newDeviceRequestPassword = null)
 	{
-		yonaServer.getResource("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", [:], ["userSecret": userSecret])
+		yonaServer.getResource("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", ["Yona-NewDeviceRequestPassword":newDeviceRequestPassword], [:])
 	}
 
 	def clearNewDeviceRequest(mobileNumber, password)

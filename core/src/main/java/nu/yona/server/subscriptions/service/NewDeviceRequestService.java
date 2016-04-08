@@ -1,11 +1,11 @@
 package nu.yona.server.subscriptions.service;
 
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.transaction.Transactional;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,22 +23,20 @@ public class NewDeviceRequestService
 	private YonaProperties yonaProperties;
 
 	@Transactional
-	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID userID, String userPassword, String userSecret)
+	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID userID, String yonaPassword, String newDeviceRequestPassword)
 	{
 		User userEntity = userService.getValidatedUserbyID(userID);
 
-		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(userPassword);
-		newDeviceRequestEntity.encryptUserPassword(userSecret);
+		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(yonaPassword);
+		newDeviceRequestEntity.encryptYonaPassword(newDeviceRequestPassword);
 
-		boolean isUpdatingExistingRequest = userEntity.getNewDeviceRequest() != null;
 		userEntity.setNewDeviceRequest(newDeviceRequestEntity);
 
-		return NewDeviceRequestDTO.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest(),
-				isUpdatingExistingRequest);
+		return NewDeviceRequestDTO.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest());
 	}
 
 	@Transactional
-	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID userID, String userSecret)
+	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID userID, Optional<String> newDeviceRequestPassword)
 	{
 		User userEntity = userService.getValidatedUserbyID(userID);
 		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
@@ -53,14 +51,14 @@ public class NewDeviceRequestService
 			throw DeviceRequestException.deviceRequestExpired(userEntity.getMobileNumber());
 		}
 
-		if (StringUtils.isBlank(userSecret))
+		if (newDeviceRequestPassword.isPresent())
 		{
-			return NewDeviceRequestDTO.createInstance(userEntity.getNewDeviceRequest());
+			newDeviceRequestEntity.decryptYonaPassword(newDeviceRequestPassword.get(), userEntity.getMobileNumber());
+			return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
 		}
 		else
 		{
-			newDeviceRequestEntity.decryptUserPassword(userSecret, userEntity.getMobileNumber());
-			return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
+			return NewDeviceRequestDTO.createInstance(userEntity.getNewDeviceRequest());
 		}
 	}
 
