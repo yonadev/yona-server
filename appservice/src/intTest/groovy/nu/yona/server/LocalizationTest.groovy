@@ -15,7 +15,7 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		given:
 		def wrongNumber = "NotANumber"
 		when:
-		def response = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", [ : ], ["userSecret": ""])
+		def response = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", ["Yona-NewDeviceRequestPassword" : ""])
 
 		then:
 		response.status == 400
@@ -29,7 +29,7 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		given:
 		def wrongNumber = "NotANumber"
 		when:
-		def response = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", ["Accept-Language" : "nl-NL"], ["userSecret": ""])
+		def response = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", ["Accept-Language" : "nl-NL", "Yona-NewDeviceRequestPassword" : ""])
 
 		then:
 		response.status == 400
@@ -43,7 +43,7 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		given:
 		def wrongNumber = "NotANumber"
 		when:
-		def response = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", ["Accept-Language" : "la"], ["userSecret": ""])
+		def response = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", ["Accept-Language" : "la", "Yona-NewDeviceRequestPassword" : ""])
 
 		then:
 		response.status == 400

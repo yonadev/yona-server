@@ -628,11 +628,6 @@ paths:
         description: The mobile number of the user
         required: true
         type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     put:
       summary: Request to add a new device
       description: This stores an encrypted copy of the users device key on the server, for a limited period of time.
@@ -644,15 +639,16 @@ paths:
           type: string
         - in: body
           name: body
-          description: Message with user secret. The device password will be encrypted with this secret and stored for a limited period of time.
+          description: Message with new device request password. The device password will be encrypted with this temporary password and stored for a limited period of time.
           required: true
           schema:
             type: object
             required:
-              - userSecret
+              - newDeviceRequestPassword
             properties:
-              userSecret:
+              newDeviceRequestPassword:
                 type: string
+                example: id82rQ
       tags:
         - New device requests
       responses:
@@ -664,11 +660,11 @@ paths:
             $ref: '#/definitions/Error'
     get:
       summary: Get new device request
-      description: If the user secret is given, the returned resource contains the device password. The app can check the presence of a new device request by omitting the user secret. In that case, a blank new device request is returned.
+      description: If the new device request password is given, the returned resource contains the device password. The app can check the presence of a new device request by omitting the new device request password. In that case, a blank new device request is returned.
       parameters:
-        - name: userSecret
+        - name: Yona-NewDeviceRequestPassword
           in: header
-          description: The password used to encrypt the device key
+          description: The temporary password used to encrypt the device key
           required: false
           type: string
       tags:
@@ -1130,17 +1126,17 @@ definitions:
   NewDeviceRequest:
     type: object
     properties:
-      userPassword:
+      yonaPassword:
         type: string
-        description: The device key. If the user secret was not provided in the request, this property will be blank.
-        example: Only I know this
+        description: The Yona password used to encrypt this account. If the new device request password was not provided in the request, this property will be blank.
+        example: Gl3BHx6AaTPVHlNNb1HF
       _links:
         allOf:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
     required:
-      - userPassword
+      - yonaPassword
       - _links
   ActivityCategory:
     type: object
