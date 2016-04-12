@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -57,7 +56,7 @@ public class NewDeviceRequestController
 			userService.validateMobileNumber(mobileNumber);
 			UUID userID = userService.getUserByMobileNumber(mobileNumber).getID();
 			checkPassword(password, userID);
-			newDeviceRequestService.setNewDeviceRequestForUser(userID, password.get(), newDeviceRequestCreation.getUserSecret());
+			newDeviceRequestService.setNewDeviceRequestForUser(userID, password.get(), newDeviceRequestCreation.getNewDeviceRequestPassword());
 		}
 		catch (UserServiceException e)
 		{
@@ -66,17 +65,19 @@ public class NewDeviceRequestController
 		}
 	}
 
-	@RequestMapping(value = "/{mobileNumber}", params = { "userSecret" }, method = RequestMethod.GET)
+	@RequestMapping(value = "/{mobileNumber}", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(@PathVariable String mobileNumber,
-			@RequestParam(value = "userSecret", required = false) String userSecret)
+	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(
+			@RequestHeader(value = "Yona-NewDeviceRequestPassword") Optional<String> newDeviceRequestPassword,
+			@PathVariable String mobileNumber)
 	{
 		try
 		{
 			userService.validateMobileNumber(mobileNumber);
 			UUID userID = userService.getUserByMobileNumber(mobileNumber).getID();
-			return createNewDeviceRequestResponse(newDeviceRequestService.getNewDeviceRequestForUser(userID, userSecret),
+			return createNewDeviceRequestResponse(
+					newDeviceRequestService.getNewDeviceRequestForUser(userID, newDeviceRequestPassword),
 					getNewDeviceRequestLinkBuilder(mobileNumber), HttpStatus.OK);
 		}
 		catch (UserServiceException e)
@@ -121,6 +122,6 @@ public class NewDeviceRequestController
 	static ControllerLinkBuilder getNewDeviceRequestLinkBuilder(String mobileNumber)
 	{
 		NewDeviceRequestController methodOn = methodOn(NewDeviceRequestController.class);
-		return linkTo(methodOn.getNewDeviceRequestForUser(mobileNumber, null));
+		return linkTo(methodOn.getNewDeviceRequestForUser(null, mobileNumber));
 	}
 }

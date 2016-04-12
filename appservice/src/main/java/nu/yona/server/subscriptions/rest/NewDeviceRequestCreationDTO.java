@@ -14,16 +14,16 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 @JsonRootName("newDeviceCreationRequest")
 public class NewDeviceRequestCreationDTO
 {
-	private String userSecret;
+	private String newDeviceRequestPassword;
 
-	public String getUserSecret()
+	public String getNewDeviceRequestPassword()
 	{
-		return userSecret;
+		return newDeviceRequestPassword;
 	}
 
 	@JsonCreator
-	public NewDeviceRequestCreationDTO(@JsonProperty("userSecret") String userSecret)
+	public NewDeviceRequestCreationDTO(@JsonProperty("userSecret") String newDeviceRequestPassword)
 	{
-		this.userSecret = userSecret;
+		this.newDeviceRequestPassword = newDeviceRequestPassword;
 	}
 }

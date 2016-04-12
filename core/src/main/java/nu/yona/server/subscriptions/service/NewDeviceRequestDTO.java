@@ -11,30 +11,25 @@ import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 @JsonRootName("newDeviceRequest")
 public class NewDeviceRequestDTO
 {
-	private String userPassword;
+	private String yonaPassword;
 
-	public NewDeviceRequestDTO(String userPassword, boolean isUpdatingExistingRequest)
+	public NewDeviceRequestDTO(String yonaPassword)
 	{
-		this.userPassword = userPassword;
+		this.yonaPassword = yonaPassword;
 	}
 
-	public String getUserPassword()
+	public String getYonaPassword()
 	{
-		return userPassword;
-	}
-
-	public static NewDeviceRequestDTO createInstance(NewDeviceRequest newDeviceRequestEntity, boolean isUpdatingExistingRequest)
-	{
-		return new NewDeviceRequestDTO(null, isUpdatingExistingRequest);
+		return yonaPassword;
 	}
 
 	public static NewDeviceRequestDTO createInstance(NewDeviceRequest newDeviceRequestEntity)
 	{
-		return new NewDeviceRequestDTO(null, false);
+		return new NewDeviceRequestDTO(null);
 	}
 
 	public static NewDeviceRequestDTO createInstanceWithPassword(NewDeviceRequest newDeviceRequestEntity)
 	{
-		return new NewDeviceRequestDTO(newDeviceRequestEntity.getUserPassword(), false);
+		return new NewDeviceRequestDTO(newDeviceRequestEntity.getYonaPassword());
 	}
 }

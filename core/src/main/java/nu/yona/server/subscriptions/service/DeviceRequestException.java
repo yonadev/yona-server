@@ -25,8 +25,8 @@ public class DeviceRequestException extends YonaException
 		return new DeviceRequestException("error.device.request.expired", mobileNumber);
 	}
 
-	public static DeviceRequestException invalidSecret(String mobileNumber)
+	public static DeviceRequestException invalidNewDeviceRequestPassword(String mobileNumber)
 	{
-		return new DeviceRequestException("error.device.request.invalid.secret", mobileNumber);
+		return new DeviceRequestException("error.device.request.invalid.password", mobileNumber);
 	}
 }
