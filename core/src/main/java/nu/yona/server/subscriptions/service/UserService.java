@@ -565,4 +565,9 @@ public class UserService
 			this.userEntity.loadFully();
 		}
 	}
+
+	public UUID getUserAnonymizedID(UUID userID)
+	{
+		return getPrivateUser(userID).getPrivateData().getUserAnonymizedID();
+	}
 }
