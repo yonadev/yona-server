@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
@@ -34,7 +31,7 @@ import nu.yona.server.goals.entities.ActivityCategoryRepository;
 public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 {
 	@Mock
-	ActivityCategoryRepository mockRepository = mock(ActivityCategoryRepository.class);
+	private ActivityCategoryRepository mockRepository = mock(ActivityCategoryRepository.class);
 	@InjectMocks
 	private ActivityCategoryService service = new ActivityCategoryService();
 

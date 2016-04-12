@@ -40,10 +40,10 @@ public class ActivityService
 	@Autowired
 	private UserAnonymizedService userAnonymizedService;
 
-	@Autowired
+	@Autowired(required = false)
 	private WeekActivityRepository weekActivityRepository;
 
-	@Autowired
+	@Autowired(required = false)
 	private DayActivityRepository dayActivityRepository;
 
 	@Autowired

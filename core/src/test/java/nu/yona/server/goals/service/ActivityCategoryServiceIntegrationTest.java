@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
@@ -39,7 +36,7 @@ import nu.yona.server.goals.service.ActivityCategoryServiceIntegrationTest.TestC
 public class ActivityCategoryServiceIntegrationTest extends ActivityCategoryServiceTestBase
 {
 	@Autowired
-	ActivityCategoryRepository mockRepository;
+	private ActivityCategoryRepository mockRepository;
 
 	@Autowired
 	private ActivityCategoryService service;
@@ -94,7 +91,7 @@ public class ActivityCategoryServiceIntegrationTest extends ActivityCategoryServ
 	@Configuration
 	@EnableCaching
 	@ComponentScan(value = "nu.yona.server.goals.service", resourcePattern = "**/ActivityCategoryService.class")
-	public static class TestConfiguration
+	static class TestConfiguration
 	{
 		@Bean
 		public SimpleCacheManager cacheManager()
