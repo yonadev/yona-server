@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.DayActivity;
+import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.goals.entities.Goal;
@@ -41,6 +42,8 @@ public class AnalysisEngineService
 	private UserAnonymizedService userAnonymizedService;
 	@Autowired
 	private MessageService messageService;
+	@Autowired
+	private DayActivityRepository dayActivityRepository;
 
 	public void analyze(UUID userAnonymizedID, AppActivityDTO[] appActivities)
 	{
@@ -73,57 +76,114 @@ public class AnalysisEngineService
 
 	private void addOrUpdateActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
 	{
-		ActivityPayload truncatedPayload = payload;
-		ActivityPayload nextDayPayload = null;
 		if (isCrossDayActivity(payload, userAnonymized))
 		{
-			// crossing day border
-			// set current payload to end of day
-			// use new payload for remainder
 			// assumption: activity never crosses 2 days
-			truncatedPayload = new ActivityPayload(payload.url, payload.startTime,
+			ActivityPayload truncatedPayload = new ActivityPayload(payload.url, payload.startTime,
 					Date.from(getEndOfDay(payload.startTime, userAnonymized).toInstant()), payload.application);
 
-			nextDayPayload = new ActivityPayload(payload.url,
+			ActivityPayload nextDayPayload = new ActivityPayload(payload.url,
 					Date.from(getStartOfDay(payload.endTime, userAnonymized).toInstant()), payload.endTime, payload.application);
+
+			addOrUpdateDayTruncatedActivity(truncatedPayload, userAnonymized, matchingGoal);
+			addOrUpdateDayTruncatedActivity(nextDayPayload, userAnonymized, matchingGoal);
 		}
-
-		addOrUpdateDayTruncatedActivity(truncatedPayload, userAnonymized, matchingGoal);
-
-		if (nextDayPayload != null)
+		else
 		{
-			// day should be created
-			addActivity(nextDayPayload, userAnonymized, matchingGoal, null);
+			addOrUpdateDayTruncatedActivity(payload, userAnonymized, matchingGoal);
 		}
 	}
 
 	private void addOrUpdateDayTruncatedActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
 	{
-		Date minEndTime = new Date(payload.startTime.getTime() - yonaProperties.getAnalysisService().getConflictInterval());
-		DayActivity dayActivity = getCachedDayActivity(payload, userAnonymized, matchingGoal);
-		Activity activity = dayActivity == null ? null : dayActivity.getLastActivity();
-		if (activity == null || activity.getEndTime().before(minEndTime))
+		DayActivityCacheResult dayActivity = getRegisteredDayActivity(payload, userAnonymized, matchingGoal);
+		if (canCombineWithLastRegisteredActivity(payload, lastRegisteredActivity))
+		{
+			if (isBeyondSkipWindowAfterLastRegisteredActivity(payload, lastRegisteredActivity))
+			{
+				// Update message only if it is within five seconds to avoid unnecessary cache flushes.
+				updateActivityEndTime(payload, userAnonymized, matchingGoal, dayActivity, lastRegisteredActivity);
+			}
+		}
+		else
 		{
 			addActivity(payload, userAnonymized, matchingGoal, dayActivity);
 		}
-		// Update message only if it is within five seconds to avoid unnecessary cache flushes.
-		// Or if the start time is earlier than the existing start time (this can happen with app activity, see below).
-		else if (payload.endTime.getTime() - activity.getEndTime().getTime() >= yonaProperties.getAnalysisService()
-				.getUpdateSkipWindow() || payload.startTime.before(activity.getStartTime()))
+	}
+
+	private boolean isBeyondSkipWindowAfterLastRegisteredActivity(ActivityPayload payload, Activity lastRegisteredActivity)
+	{
+		return payload.endTime.getTime() - lastRegisteredActivity.getEndTime().getTime() >= yonaProperties.getAnalysisService()
+				.getUpdateSkipWindow();
+	}
+
+	private boolean canCombineWithLastRegisteredActivity(ActivityPayload payload, Activity lastRegisteredActivity)
+	{
+		if (lastRegisteredActivity == null)
 		{
-			updateActivity(payload, userAnonymized, matchingGoal, dayActivity, activity);
+			return false;
+		}
+
+		if (precedesLastRegisteredActivity(payload, lastRegisteredActivity))
+		{
+			// This can happen with app activity.
+			// Do not try to combine, add separately.
+			return false;
+		}
+
+		if (isBeyondCombineIntervalWithLastRegisteredActivity(payload, lastRegisteredActivity))
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	private boolean precedesLastRegisteredActivity(ActivityPayload payload, Activity lastRegisteredActivity)
+	{
+		return payload.startTime.before(lastRegisteredActivity.getStartTime());
+	}
+
+	private boolean isBeyondCombineIntervalWithLastRegisteredActivity(ActivityPayload payload, Activity lastRegisteredActivity)
+	{
+		Date intervalEndTime = new Date(
+				lastRegisteredActivity.getEndTime().getTime() + yonaProperties.getAnalysisService().getConflictInterval());
+		return payload.startTime.after(intervalEndTime);
+	}
+
+	private DayActivityCacheResult getRegisteredDayActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized,
+			Goal matchingGoal)
+	{
+		DayActivity lastRegisteredDayActivity = cacheService.fetchDayActivityForUser(userAnonymized.getID(),
+				matchingGoal.getID());
+		if (lastRegisteredDayActivity == null)
+		{
+			return DayActivityCacheResult.none();
+		}
+		else if (isOnPrecedingDay(payload, lastRegisteredDayActivity))
+		{
+			// Fetch from the database because it is no longer in the cache
+			return DayActivityCacheResult.preceding(dayActivityRepository.findOne(userAnonymized.getID(),
+					getStartOfDay(payload.startTime, userAnonymized).toLocalDate(), matchingGoal.getID()));
+		}
+		else if (isOnFollowingDay(payload, lastRegisteredDayActivity))
+		{
+			return DayActivityCacheResult.following();
+		}
+		else
+		{
+			return DayActivityCacheResult.fromCache(lastRegisteredDayActivity);
 		}
 	}
 
-	private DayActivity getCachedDayActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
+	private boolean isOnFollowingDay(ActivityPayload payload, DayActivity lastRegisteredDayActivity)
 	{
-		DayActivity dayActivity = cacheService.fetchDayActivityForUser(userAnonymized.getID(), matchingGoal.getID());
-		if (dayActivity != null && dayActivity.getStartTime().isBefore(getStartOfDay(payload.startTime, userAnonymized)))
-		{
-			// Last day cached was not today
-			dayActivity = null;
-		}
-		return dayActivity;
+		return payload.startTime.after(Date.from(lastRegisteredDayActivity.getEndTime().toInstant()));
+	}
+
+	private boolean isOnPrecedingDay(ActivityPayload payload, DayActivity lastRegisteredDayActivity)
+	{
+		return payload.startTime.before(Date.from(lastRegisteredDayActivity.getStartTime().toInstant()));
 	}
 
 	private boolean isCrossDayActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized)
@@ -132,22 +192,32 @@ public class AnalysisEngineService
 	}
 
 	private void addActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal,
-			DayActivity dayActivity)
+			DayActivityCacheResult dayActivity)
 	{
-		dayActivity = createNewActivity(dayActivity, payload, userAnonymized, matchingGoal);
-		cacheService.updateDayActivityForUser(dayActivity);
+		DayActivity updatedDayActivity = createNewActivity(dayActivity.content, payload, userAnonymized, matchingGoal);
+		if (dayActivity.shouldUpdateCache())
+		{
+			cacheService.updateDayActivityForUser(updatedDayActivity);
+		}
 
 		if (matchingGoal.isNoGoGoal())
 		{
-			sendConflictMessageToAllDestinationsOfUser(payload, userAnonymized, dayActivity.getLastActivity(), matchingGoal);
+			sendConflictMessageToAllDestinationsOfUser(payload, userAnonymized, updatedDayActivity.getLastActivity(),
+					matchingGoal);
 		}
 	}
 
-	private void updateActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal,
-			DayActivity dayActivity, Activity activity)
+	private void updateActivityEndTime(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal,
+			DayActivityCacheResult dayActivity, Activity activity)
 	{
-		updateLastActivity(dayActivity, payload, userAnonymized, matchingGoal, activity);
-		cacheService.updateDayActivityForUser(dayActivity);
+		assert userAnonymized.getID().equals(dayActivity.content.getUserAnonymized().getID());
+		assert matchingGoal.getID().equals(dayActivity.content.getGoal().getID());
+
+		activity.setEndTime(payload.endTime);
+		if (dayActivity.shouldUpdateCache())
+		{
+			cacheService.updateDayActivityForUser(dayActivity.content);
+		}
 	}
 
 	private ZonedDateTime getStartOfDay(Date time, UserAnonymizedDTO userAnonymized)
@@ -207,24 +277,6 @@ public class AnalysisEngineService
 		return dayActivity;
 	}
 
-	private void updateLastActivity(DayActivity dayActivity, ActivityPayload payload, UserAnonymizedDTO userAnonymized,
-			Goal matchingGoal, Activity activity)
-	{
-		assert userAnonymized.getID().equals(dayActivity.getUserAnonymized().getID());
-		assert matchingGoal.getID().equals(dayActivity.getGoal().getID());
-
-		activity.setEndTime(payload.endTime);
-		if (payload.startTime.before(activity.getStartTime()))
-		{
-			// This can happen if app activity is posted after some
-			// network activity is posted during the use of the same app.
-			// Solution: extend start time of the existing activity.
-			// Notice this will possible create overlap with other network activity posted earlier, but after the start of the
-			// app.
-			activity.setStartTime(payload.startTime);
-		}
-	}
-
 	public Set<String> getRelevantSmoothwallCategories()
 	{
 		return activityCategoryService.getAllActivityCategories().stream().flatMap(g -> g.getSmoothwallCategories().stream())
@@ -253,7 +305,49 @@ public class AnalysisEngineService
 		return matchingGoalsOfUser;
 	}
 
-	class ActivityPayload
+	private enum DayActivityCacheResultStatus
+	{
+		CACHE_EMPTY, FROM_CACHE, FOLLOWING_LAST_CACHED, PRECEDING_LAST_CACHED
+	}
+
+	private static class DayActivityCacheResult
+	{
+		public final DayActivityCacheResultStatus status;
+		public DayActivity content;
+
+		public DayActivityCacheResult(DayActivity content, DayActivityCacheResultStatus status)
+		{
+			this.status = status;
+			this.content = content;
+		}
+
+		public boolean shouldUpdateCache()
+		{
+			return this.status != DayActivityCacheResultStatus.PRECEDING_LAST_CACHED;
+		}
+
+		public static DayActivityCacheResult none()
+		{
+			return new DayActivityCacheResult(null, DayActivityCacheResultStatus.CACHE_EMPTY);
+		}
+
+		public static DayActivityCacheResult fromCache(DayActivity lastRegisteredDayActivity)
+		{
+			return new DayActivityCacheResult(lastRegisteredDayActivity, DayActivityCacheResultStatus.FROM_CACHE);
+		}
+
+		public static DayActivityCacheResult following()
+		{
+			return new DayActivityCacheResult(null, DayActivityCacheResultStatus.FROM_CACHE);
+		}
+
+		public static DayActivityCacheResult preceding(DayActivity resultFromDatabase)
+		{
+			return new DayActivityCacheResult(resultFromDatabase, DayActivityCacheResultStatus.PRECEDING_LAST_CACHED);
+		}
+	}
+
+	private class ActivityPayload
 	{
 		public final String url;
 		public final Date startTime;
