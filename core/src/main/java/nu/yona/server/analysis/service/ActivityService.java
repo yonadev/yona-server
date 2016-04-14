@@ -53,7 +53,7 @@ public class ActivityService
 	{
 		UUID userAnonymizedID = userService.getUserAnonymizedID(userID);
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
-		StartEndDate startEndDate = getStartEndDate(getCurrentWeekDate(userAnonymized), pageable, ChronoUnit.WEEKS);
+		Interval startEndDate = getStartEndDate(getCurrentWeekDate(userAnonymized), pageable, ChronoUnit.WEEKS);
 
 		Set<WeekActivity> weekActivityEntities = weekActivityRepository.findAll(userAnonymizedID, startEndDate.startDate,
 				startEndDate.endDate);
@@ -70,7 +70,7 @@ public class ActivityService
 	{
 		UUID userAnonymizedID = userService.getUserAnonymizedID(userID);
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
-		StartEndDate startEndDate = getStartEndDate(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
+		Interval startEndDate = getStartEndDate(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
 
 		Set<DayActivity> dayActivityEntities = dayActivityRepository.findAll(userAnonymizedID, startEndDate.startDate,
 				startEndDate.endDate);
@@ -83,11 +83,11 @@ public class ActivityService
 				yonaProperties.getAnalysisService().getDaysActivityMemory());
 	}
 
-	private StartEndDate getStartEndDate(LocalDate currentUnitDate, Pageable pageable, ChronoUnit timeUnit)
+	private Interval getStartEndDate(LocalDate currentUnitDate, Pageable pageable, ChronoUnit timeUnit)
 	{
 		LocalDate endDate = currentUnitDate.minus(pageable.getOffset(), timeUnit);
 		LocalDate startDate = endDate.minus(pageable.getPageSize() - 1, timeUnit);
-		return new StartEndDate(startDate, endDate);
+		return new Interval(startDate, endDate);
 	}
 
 	private LocalDate getCurrentWeekDate(UserAnonymizedDTO userAnonymized)
@@ -110,7 +110,7 @@ public class ActivityService
 	}
 
 	private <T extends IntervalActivity> void addMissingInactivity(Map<LocalDate, Set<T>> activityEntitiesByDate,
-			StartEndDate startEndDate, ChronoUnit timeUnit, UserAnonymizedDTO userAnonymized,
+			Interval startEndDate, ChronoUnit timeUnit, UserAnonymizedDTO userAnonymized,
 			BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier)
 	{
 		for (LocalDate date = startEndDate.startDate; date.isBefore(startEndDate.endDate)
@@ -197,12 +197,12 @@ public class ActivityService
 		return inactivityEntitySupplier.apply(goal.get(), dateAtStartOfDay);
 	}
 
-	class StartEndDate
+	private class Interval
 	{
 		public final LocalDate startDate;
 		public final LocalDate endDate;
 
-		public StartEndDate(LocalDate startDate, LocalDate endDate)
+		public Interval(LocalDate startDate, LocalDate endDate)
 		{
 			this.startDate = startDate;
 			this.endDate = endDate;
