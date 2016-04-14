@@ -24,17 +24,17 @@ public class WeekActivityDTO extends IntervalActivityDTO
 
 	private List<DayActivityDTO> dayActivities;
 
-	private WeekActivityDTO(UUID goalID, ZonedDateTime startTime, List<Integer> spread,
+	private WeekActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
 			Optional<Integer> totalActivityDurationMinutes, List<DayActivityDTO> dayActivities)
 	{
-		super(goalID, startTime, spread, totalActivityDurationMinutes);
+		super(goalID, startTime, shouldSerializeDate, spread, totalActivityDurationMinutes);
 		this.dayActivities = dayActivities;
 	}
 
 	@Override
-	public String getDate()
+	public DateTimeFormatter getDateFormatter()
 	{
-		return getStartTime().toLocalDate().format(ISO8601_WEEK_FORMATTER);
+		return ISO8601_WEEK_FORMATTER;
 	}
 
 	public List<DayActivityDTO> getDayActivities()
@@ -50,7 +50,7 @@ public class WeekActivityDTO extends IntervalActivityDTO
 	static WeekActivityDTO createInstance(WeekActivity weekActivity, LevelOfDetail levelOfDetail)
 	{
 		boolean includeDetail = levelOfDetail == LevelOfDetail.WeekDetail;
-		return new WeekActivityDTO(weekActivity.getGoal().getID(), weekActivity.getStartTime(),
+		return new WeekActivityDTO(weekActivity.getGoal().getID(), weekActivity.getStartTime(), includeDetail,
 				includeDetail ? weekActivity.getSpread() : Collections.emptyList(),
 				includeDetail ? Optional.of(weekActivity.getTotalActivityDurationMinutes()) : Optional.empty(),
 				weekActivity.getDayActivities().stream()
