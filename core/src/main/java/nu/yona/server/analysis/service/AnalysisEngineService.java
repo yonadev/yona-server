@@ -42,7 +42,7 @@ public class AnalysisEngineService
 	private UserAnonymizedService userAnonymizedService;
 	@Autowired
 	private MessageService messageService;
-	@Autowired
+	@Autowired(required = false)
 	private DayActivityRepository dayActivityRepository;
 
 	public void analyze(UUID userAnonymizedID, AppActivityDTO[] appActivities)
