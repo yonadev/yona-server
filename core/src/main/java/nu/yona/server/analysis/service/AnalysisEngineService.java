@@ -97,6 +97,7 @@ public class AnalysisEngineService
 	private void addOrUpdateDayTruncatedActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
 	{
 		DayActivityCacheResult dayActivity = getRegisteredDayActivity(payload, userAnonymized, matchingGoal);
+		Activity lastRegisteredActivity = dayActivity.content == null ? null : dayActivity.content.getLastActivity();
 		if (canCombineWithLastRegisteredActivity(payload, lastRegisteredActivity))
 		{
 			if (isBeyondSkipWindowAfterLastRegisteredActivity(payload, lastRegisteredActivity))
@@ -199,6 +200,10 @@ public class AnalysisEngineService
 		{
 			cacheService.updateDayActivityForUser(updatedDayActivity);
 		}
+		else
+		{
+			dayActivityRepository.save(updatedDayActivity);
+		}
 
 		if (matchingGoal.isNoGoGoal())
 		{
@@ -217,6 +222,10 @@ public class AnalysisEngineService
 		if (dayActivity.shouldUpdateCache())
 		{
 			cacheService.updateDayActivityForUser(dayActivity.content);
+		}
+		else
+		{
+			dayActivityRepository.save(dayActivity.content);
 		}
 	}
 
