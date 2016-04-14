@@ -210,7 +210,7 @@ public class DayActivity extends IntervalActivity
 				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, true, false);
 	}
 
-	public static DayActivity createInstanceZeroActivity(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay)
+	public static DayActivity createInstanceInactivity(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay)
 	{
 		return createInstance(userAnonymized, goal, startOfDay);
 	}

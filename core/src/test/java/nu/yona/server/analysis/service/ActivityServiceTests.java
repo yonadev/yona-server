@@ -114,57 +114,57 @@ public class ActivityServiceTests
 	}
 
 	@Test
-	public void dayActivityOverviewZero()
+	public void dayActivityOverviewInactivity()
 	{
-		Page<DayActivityOverviewDTO> zeroActivityDayOverviews = service.getDayActivityOverviews(userID, new PageRequest(0, 3));
+		Page<DayActivityOverviewDTO> inactivityDayOverviews = service.getDayActivityOverviews(userID, new PageRequest(0, 3));
 		// because the goals were added this day, previous days are left out
-		assertThat(zeroActivityDayOverviews.getNumberOfElements(), equalTo(1));
-		DayActivityOverviewDTO zeroActivityDayOverview = zeroActivityDayOverviews.getContent().get(0);
-		assertThat(zeroActivityDayOverview.getDayActivities().size(), equalTo(userAnonEntity.getGoals().size()));
-		DayActivityDTO zeroActivityDayForGambling = zeroActivityDayOverview.getDayActivities().stream()
+		assertThat(inactivityDayOverviews.getNumberOfElements(), equalTo(1));
+		DayActivityOverviewDTO inactivityDayOverview = inactivityDayOverviews.getContent().get(0);
+		assertThat(inactivityDayOverview.getDayActivities().size(), equalTo(userAnonEntity.getGoals().size()));
+		DayActivityDTO inactivityDayForGambling = inactivityDayOverview.getDayActivities().stream()
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
-		assertThat(zeroActivityDayForGambling.getStartTime(),
+		assertThat(inactivityDayForGambling.getStartTime(),
 				equalTo(ZonedDateTime.now(userAnonZone).truncatedTo(ChronoUnit.DAYS)));
-		assertThat(zeroActivityDayForGambling.getTimeZoneId(), equalTo(userAnonZone.getId()));
-		assertThat(zeroActivityDayForGambling.getTotalActivityDurationMinutes(), equalTo(0));
-		assertThat(zeroActivityDayForGambling.getTotalMinutesBeyondGoal(), equalTo(0));
+		assertThat(inactivityDayForGambling.getTimeZoneId(), equalTo(userAnonZone.getId()));
+		assertThat(inactivityDayForGambling.getTotalActivityDurationMinutes(), equalTo(0));
+		assertThat(inactivityDayForGambling.getTotalMinutesBeyondGoal(), equalTo(0));
 	}
 
 	@Test
-	public void weekActivityOverviewZero()
+	public void weekActivityOverviewInactivity()
 	{
-		Page<WeekActivityOverviewDTO> zeroActivityWeekOverviews = service.getWeekActivityOverviews(userID, new PageRequest(0, 5));
+		Page<WeekActivityOverviewDTO> inactivityWeekOverviews = service.getWeekActivityOverviews(userID, new PageRequest(0, 5));
 		// because the goals were added this week, previous weeks are left out
-		assertThat(zeroActivityWeekOverviews.getNumberOfElements(), equalTo(1));
-		WeekActivityOverviewDTO zeroActivityWeekOverview = zeroActivityWeekOverviews.getContent().get(0);
-		assertThat(zeroActivityWeekOverview.getWeekActivities().size(), equalTo(userAnonEntity.getGoals().size()));
-		WeekActivityDTO zeroActivityWeekForGambling = zeroActivityWeekOverview.getWeekActivities().stream()
+		assertThat(inactivityWeekOverviews.getNumberOfElements(), equalTo(1));
+		WeekActivityOverviewDTO inactivityWeekOverview = inactivityWeekOverviews.getContent().get(0);
+		assertThat(inactivityWeekOverview.getWeekActivities().size(), equalTo(userAnonEntity.getGoals().size()));
+		WeekActivityDTO inactivityWeekForGambling = inactivityWeekOverview.getWeekActivities().stream()
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
-		assertThat(zeroActivityWeekForGambling.getStartTime(), equalTo(getWeekStartTime(ZonedDateTime.now(userAnonZone))));
-		assertThat(zeroActivityWeekForGambling.getTimeZoneId(), equalTo(userAnonZone.getId()));
-		assertThat(zeroActivityWeekForGambling.getDayActivities().size(), equalTo(0));
+		assertThat(inactivityWeekForGambling.getStartTime(), equalTo(getWeekStartTime(ZonedDateTime.now(userAnonZone))));
+		assertThat(inactivityWeekForGambling.getTimeZoneId(), equalTo(userAnonZone.getId()));
+		assertThat(inactivityWeekForGambling.getDayActivities().size(), equalTo(0));
 	}
 
 	@Test
-	public void dayActivityDetailZero()
+	public void dayActivityDetailInactivity()
 	{
-		DayActivityDTO zeroActivityDay = service.getDayActivityDetail(userID, LocalDate.now(userAnonZone), gamblingGoal.getID());
-		assertThat(zeroActivityDay.getSpread().size(), equalTo(96));
-		assertThat(zeroActivityDay.getStartTime(), equalTo(ZonedDateTime.now(userAnonZone).truncatedTo(ChronoUnit.DAYS)));
-		assertThat(zeroActivityDay.getTimeZoneId(), equalTo(userAnonZone.getId()));
-		assertThat(zeroActivityDay.getTotalActivityDurationMinutes(), equalTo(0));
-		assertThat(zeroActivityDay.getTotalMinutesBeyondGoal(), equalTo(0));
+		DayActivityDTO inactivityDay = service.getDayActivityDetail(userID, LocalDate.now(userAnonZone), gamblingGoal.getID());
+		assertThat(inactivityDay.getSpread().size(), equalTo(96));
+		assertThat(inactivityDay.getStartTime(), equalTo(ZonedDateTime.now(userAnonZone).truncatedTo(ChronoUnit.DAYS)));
+		assertThat(inactivityDay.getTimeZoneId(), equalTo(userAnonZone.getId()));
+		assertThat(inactivityDay.getTotalActivityDurationMinutes(), equalTo(0));
+		assertThat(inactivityDay.getTotalMinutesBeyondGoal(), equalTo(0));
 	}
 
 	@Test
-	public void weekActivityDetailZero()
+	public void weekActivityDetailInactivity()
 	{
-		WeekActivityDTO zeroActivityWeek = service.getWeekActivityDetail(userID, getWeekStartDate(LocalDate.now(userAnonZone)),
+		WeekActivityDTO inactivityWeek = service.getWeekActivityDetail(userID, getWeekStartDate(LocalDate.now(userAnonZone)),
 				gamblingGoal.getID());
-		assertThat(zeroActivityWeek.getSpread().size(), equalTo(96));
-		assertThat(zeroActivityWeek.getStartTime(), equalTo(getWeekStartTime(ZonedDateTime.now(userAnonZone))));
-		assertThat(zeroActivityWeek.getTimeZoneId(), equalTo(userAnonZone.getId()));
-		assertThat(zeroActivityWeek.getTotalActivityDurationMinutes(), equalTo(0));
+		assertThat(inactivityWeek.getSpread().size(), equalTo(96));
+		assertThat(inactivityWeek.getStartTime(), equalTo(getWeekStartTime(ZonedDateTime.now(userAnonZone))));
+		assertThat(inactivityWeek.getTimeZoneId(), equalTo(userAnonZone.getId()));
+		assertThat(inactivityWeek.getTotalActivityDurationMinutes(), equalTo(0));
 	}
 
 	private ZonedDateTime getWeekStartTime(ZonedDateTime dateTime)

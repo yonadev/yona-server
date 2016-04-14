@@ -50,9 +50,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		dayActivityForTimeZoneGoal.spread
 		dayActivityForTimeZoneGoal.spread.size() == 96
 
-		def zeroDayActivityForBudgetGoal = dayActivityOverview._embedded."yona:dayActivities".find{ it._links."yona:goal".href == budgetGoalNewsUrl}
-		zeroDayActivityForBudgetGoal.totalActivityDurationMinutes == 0
-		zeroDayActivityForBudgetGoal.totalMinutesBeyondGoal == 0
+		def inactivityDayActivityForBudgetGoal = dayActivityOverview._embedded."yona:dayActivities".find{ it._links."yona:goal".href == budgetGoalNewsUrl}
+		inactivityDayActivityForBudgetGoal.totalActivityDurationMinutes == 0
+		inactivityDayActivityForBudgetGoal.totalMinutesBeyondGoal == 0
 	}
 
 	def 'Get day activity detail'()
@@ -125,8 +125,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		dayActivityForGoal.timeZoneId == "Europe/Amsterdam"
 		!dayActivityForGoal._links."yona:goal" //already present on week
 
-		def zeroWeekActivityForGoal = weekActivityOverview._embedded."yona:weekActivities".find{ it._links."yona:goal".href == budgetGoalNewsUrl}
-		!zeroWeekActivityForGoal._embedded."yona:dayActivities"
+		def inactivityWeekActivityForGoal = weekActivityOverview._embedded."yona:weekActivities".find{ it._links."yona:goal".href == budgetGoalNewsUrl}
+		!inactivityWeekActivityForGoal._embedded."yona:dayActivities"
 	}
 
 	def 'Get week activity detail'()

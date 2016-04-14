@@ -59,8 +59,8 @@ public class ActivityService
 				startEndDate.endDate);
 		Map<LocalDate, Set<WeekActivity>> weekActivityEntitiesByDate = weekActivityEntities.stream()
 				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
-		addMissingZeroActivity(weekActivityEntitiesByDate, startEndDate, ChronoUnit.WEEKS, userAnonymized,
-				(goal, startOfWeek) -> WeekActivity.createInstanceZeroActivity(null, goal, startOfWeek));
+		addMissingInactivity(weekActivityEntitiesByDate, startEndDate, ChronoUnit.WEEKS, userAnonymized,
+				(goal, startOfWeek) -> WeekActivity.createInstanceInactivity(null, goal, startOfWeek));
 		return new PageImpl<WeekActivityOverviewDTO>(weekActivityEntitiesByDate.entrySet().stream()
 				.map(e -> WeekActivityOverviewDTO.createInstance(e.getValue())).collect(Collectors.toList()), pageable,
 				yonaProperties.getAnalysisService().getWeeksActivityMemory());
@@ -76,8 +76,8 @@ public class ActivityService
 				startEndDate.endDate);
 		Map<LocalDate, Set<DayActivity>> dayActivityEntitiesByDate = dayActivityEntities.stream()
 				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
-		addMissingZeroActivity(dayActivityEntitiesByDate, startEndDate, ChronoUnit.DAYS, userAnonymized,
-				(goal, startOfDay) -> DayActivity.createInstanceZeroActivity(null, goal, startOfDay));
+		addMissingInactivity(dayActivityEntitiesByDate, startEndDate, ChronoUnit.DAYS, userAnonymized,
+				(goal, startOfDay) -> DayActivity.createInstanceInactivity(null, goal, startOfDay));
 		return new PageImpl<DayActivityOverviewDTO>(dayActivityEntitiesByDate.entrySet().stream()
 				.map(e -> DayActivityOverviewDTO.createInstance(e.getValue())).collect(Collectors.toList()), pageable,
 				yonaProperties.getAnalysisService().getDaysActivityMemory());
@@ -109,9 +109,9 @@ public class ActivityService
 		return LocalDate.now(ZoneId.of(userAnonymized.getTimeZoneId()));
 	}
 
-	private <T extends IntervalActivity> void addMissingZeroActivity(Map<LocalDate, Set<T>> activityEntitiesByDate,
+	private <T extends IntervalActivity> void addMissingInactivity(Map<LocalDate, Set<T>> activityEntitiesByDate,
 			StartEndDate startEndDate, ChronoUnit timeUnit, UserAnonymizedDTO userAnonymized,
-			BiFunction<Goal, ZonedDateTime, T> zeroActivityEntitySupplier)
+			BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier)
 	{
 		for (LocalDate date = startEndDate.startDate; date.isBefore(startEndDate.endDate)
 				|| date.isEqual(startEndDate.endDate); date = date.plus(1, timeUnit))
@@ -129,8 +129,8 @@ public class ActivityService
 				activityEntitiesByDate.put(date, new HashSet<T>());
 			}
 			Set<T> activityEntitiesAtDate = activityEntitiesByDate.get(date);
-			activeGoals.forEach(g -> addMissingZeroActivity(g, dateAtStartOfDay, activityEntitiesAtDate, userAnonymized,
-					zeroActivityEntitySupplier));
+			activeGoals.forEach(g -> addMissingInactivity(g, dateAtStartOfDay, activityEntitiesAtDate, userAnonymized,
+					inactivityEntitySupplier));
 		}
 	}
 
@@ -141,13 +141,13 @@ public class ActivityService
 		return activeGoals;
 	}
 
-	private <T extends IntervalActivity> void addMissingZeroActivity(Goal activeGoal, ZonedDateTime dateAtStartOfDay,
+	private <T extends IntervalActivity> void addMissingInactivity(Goal activeGoal, ZonedDateTime dateAtStartOfDay,
 			Set<T> activityEntitiesAtDate, UserAnonymizedDTO userAnonymized,
-			BiFunction<Goal, ZonedDateTime, T> zeroActivityEntitySupplier)
+			BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier)
 	{
 		if (!containsActivityForGoal(activityEntitiesAtDate, activeGoal))
 		{
-			activityEntitiesAtDate.add(zeroActivityEntitySupplier.apply(activeGoal, dateAtStartOfDay));
+			activityEntitiesAtDate.add(inactivityEntitySupplier.apply(activeGoal, dateAtStartOfDay));
 		}
 	}
 
@@ -162,8 +162,8 @@ public class ActivityService
 		WeekActivity weekActivityEntity = weekActivityRepository.findOne(userAnonymizedID, date, goalID);
 		if (weekActivityEntity == null)
 		{
-			weekActivityEntity = getMissingZeroActivity(userID, date, goalID, userAnonymizedID, ChronoUnit.WEEKS,
-					(goal, startOfWeek) -> WeekActivity.createInstanceZeroActivity(null, goal, startOfWeek));
+			weekActivityEntity = getMissingInactivity(userID, date, goalID, userAnonymizedID, ChronoUnit.WEEKS,
+					(goal, startOfWeek) -> WeekActivity.createInstanceInactivity(null, goal, startOfWeek));
 		}
 		return WeekActivityDTO.createInstance(weekActivityEntity, LevelOfDetail.WeekDetail);
 	}
@@ -174,14 +174,14 @@ public class ActivityService
 		DayActivity dayActivityEntity = dayActivityRepository.findOne(userAnonymizedID, date, goalID);
 		if (dayActivityEntity == null)
 		{
-			dayActivityEntity = getMissingZeroActivity(userID, date, goalID, userAnonymizedID, ChronoUnit.DAYS,
-					(goal, startOfDay) -> DayActivity.createInstanceZeroActivity(null, goal, startOfDay));
+			dayActivityEntity = getMissingInactivity(userID, date, goalID, userAnonymizedID, ChronoUnit.DAYS,
+					(goal, startOfDay) -> DayActivity.createInstanceInactivity(null, goal, startOfDay));
 		}
 		return DayActivityDTO.createInstance(dayActivityEntity, LevelOfDetail.DayDetail);
 	}
 
-	private <T extends IntervalActivity> T getMissingZeroActivity(UUID userID, LocalDate date, UUID goalID, UUID userAnonymizedID,
-			ChronoUnit timeUnit, BiFunction<Goal, ZonedDateTime, T> zeroActivityEntitySupplier)
+	private <T extends IntervalActivity> T getMissingInactivity(UUID userID, LocalDate date, UUID goalID, UUID userAnonymizedID,
+			ChronoUnit timeUnit, BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier)
 	{
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
 		Optional<Goal> goal = userAnonymized.getGoals().stream().filter(g -> g.getID().equals(goalID)).findAny();
@@ -194,7 +194,7 @@ public class ActivityService
 		{
 			throw ActivityServiceException.activityDateGoalMismatch(userID, date, goalID);
 		}
-		return zeroActivityEntitySupplier.apply(goal.get(), dateAtStartOfDay);
+		return inactivityEntitySupplier.apply(goal.get(), dateAtStartOfDay);
 	}
 
 	class StartEndDate

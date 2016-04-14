@@ -99,7 +99,7 @@ public class WeekActivity extends IntervalActivity
 				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, false);
 	}
 
-	public static WeekActivity createInstanceZeroActivity(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek)
+	public static WeekActivity createInstanceInactivity(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek)
 	{
 		WeekActivity result = createInstance(userAnonymized, goal, startOfWeek);
 		// leave days out
