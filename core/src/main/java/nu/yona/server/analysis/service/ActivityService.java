@@ -53,13 +53,13 @@ public class ActivityService
 	{
 		UUID userAnonymizedID = userService.getUserAnonymizedID(userID);
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
-		Interval startEndDate = getStartEndDate(getCurrentWeekDate(userAnonymized), pageable, ChronoUnit.WEEKS);
+		Interval interval = getInterval(getCurrentWeekDate(userAnonymized), pageable, ChronoUnit.WEEKS);
 
-		Set<WeekActivity> weekActivityEntities = weekActivityRepository.findAll(userAnonymizedID, startEndDate.startDate,
-				startEndDate.endDate);
+		Set<WeekActivity> weekActivityEntities = weekActivityRepository.findAll(userAnonymizedID, interval.startDate,
+				interval.endDate);
 		Map<LocalDate, Set<WeekActivity>> weekActivityEntitiesByDate = weekActivityEntities.stream()
 				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
-		addMissingInactivity(weekActivityEntitiesByDate, startEndDate, ChronoUnit.WEEKS, userAnonymized,
+		addMissingInactivity(weekActivityEntitiesByDate, interval, ChronoUnit.WEEKS, userAnonymized,
 				(goal, startOfWeek) -> WeekActivity.createInstanceInactivity(null, goal, startOfWeek));
 		return new PageImpl<WeekActivityOverviewDTO>(weekActivityEntitiesByDate.entrySet().stream()
 				.map(e -> WeekActivityOverviewDTO.createInstance(e.getValue())).collect(Collectors.toList()), pageable,
@@ -70,20 +70,20 @@ public class ActivityService
 	{
 		UUID userAnonymizedID = userService.getUserAnonymizedID(userID);
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
-		Interval startEndDate = getStartEndDate(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
+		Interval interval = getInterval(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
 
-		Set<DayActivity> dayActivityEntities = dayActivityRepository.findAll(userAnonymizedID, startEndDate.startDate,
-				startEndDate.endDate);
+		Set<DayActivity> dayActivityEntities = dayActivityRepository.findAll(userAnonymizedID, interval.startDate,
+				interval.endDate);
 		Map<LocalDate, Set<DayActivity>> dayActivityEntitiesByDate = dayActivityEntities.stream()
 				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
-		addMissingInactivity(dayActivityEntitiesByDate, startEndDate, ChronoUnit.DAYS, userAnonymized,
+		addMissingInactivity(dayActivityEntitiesByDate, interval, ChronoUnit.DAYS, userAnonymized,
 				(goal, startOfDay) -> DayActivity.createInstanceInactivity(null, goal, startOfDay));
 		return new PageImpl<DayActivityOverviewDTO>(dayActivityEntitiesByDate.entrySet().stream()
 				.map(e -> DayActivityOverviewDTO.createInstance(e.getValue())).collect(Collectors.toList()), pageable,
 				yonaProperties.getAnalysisService().getDaysActivityMemory());
 	}
 
-	private Interval getStartEndDate(LocalDate currentUnitDate, Pageable pageable, ChronoUnit timeUnit)
+	private Interval getInterval(LocalDate currentUnitDate, Pageable pageable, ChronoUnit timeUnit)
 	{
 		LocalDate endDate = currentUnitDate.minus(pageable.getOffset(), timeUnit);
 		LocalDate startDate = endDate.minus(pageable.getPageSize() - 1, timeUnit);
@@ -110,11 +110,11 @@ public class ActivityService
 	}
 
 	private <T extends IntervalActivity> void addMissingInactivity(Map<LocalDate, Set<T>> activityEntitiesByDate,
-			Interval startEndDate, ChronoUnit timeUnit, UserAnonymizedDTO userAnonymized,
+			Interval interval, ChronoUnit timeUnit, UserAnonymizedDTO userAnonymized,
 			BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier)
 	{
-		for (LocalDate date = startEndDate.startDate; date.isBefore(startEndDate.endDate)
-				|| date.isEqual(startEndDate.endDate); date = date.plus(1, timeUnit))
+		for (LocalDate date = interval.startDate; date.isBefore(interval.endDate)
+				|| date.isEqual(interval.endDate); date = date.plus(1, timeUnit))
 		{
 			ZonedDateTime dateAtStartOfDay = date.atStartOfDay(ZoneId.of(userAnonymized.getTimeZoneId()));
 
