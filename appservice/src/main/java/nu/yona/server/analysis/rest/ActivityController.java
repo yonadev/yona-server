@@ -201,7 +201,7 @@ public class ActivityController
 		{
 			HashMap<String, List<DayActivityResource>> result = new HashMap<String, List<DayActivityResource>>();
 			result.put(curieProvider.getNamespacedRelFor("dayActivities"),
-					new DayActivityResourceAssembler(userID, true).toResources(getContent().getWeekActivities()));
+					new DayActivityResourceAssembler(userID, true).toResources(getContent().getDayActivities()));
 			return result;
 		}
 	}

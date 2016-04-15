@@ -153,7 +153,7 @@ public class AnalysisEngineServiceTests
 		userAnonID = userAnon.getID();
 		userAnonZoneId = ZoneId.of(userAnon.getTimeZoneId());
 
-		// Stub the UserAnonymizedRepository to return our user.
+		// Stub the UserAnonymizedService to return our user.
 		when(mockUserAnonymizedService.getUserAnonymized(userAnonID)).thenReturn(userAnon);
 		when(mockUserAnonymizedService.getUserAnonymizedEntity(userAnonID)).thenReturn(userAnonEntity);
 	}

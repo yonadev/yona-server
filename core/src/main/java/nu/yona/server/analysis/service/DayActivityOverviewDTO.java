@@ -20,7 +20,7 @@ public class DayActivityOverviewDTO
 	}
 
 	@JsonIgnore
-	public Set<DayActivityDTO> getWeekActivities()
+	public Set<DayActivityDTO> getDayActivities()
 	{
 		return dayActivities;
 	}

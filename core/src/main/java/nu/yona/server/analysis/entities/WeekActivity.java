@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
@@ -100,5 +97,12 @@ public class WeekActivity extends IntervalActivity
 	{
 		return new WeekActivity(UUID.randomUUID(), userAnonymized, goal, startOfWeek, new ArrayList<DayActivity>(),
 				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, false);
+	}
+
+	public static WeekActivity createInstanceInactivity(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek)
+	{
+		WeekActivity result = createInstance(userAnonymized, goal, startOfWeek);
+		// leave days out
+		return result;
 	}
 }

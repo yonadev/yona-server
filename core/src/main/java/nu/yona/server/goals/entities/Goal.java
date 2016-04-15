@@ -1,12 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -29,6 +27,8 @@ public abstract class Goal extends EntityWithID
 	@ManyToOne
 	private ActivityCategory activityCategory;
 
+	private ZonedDateTime creationTime;
+
 	// Default constructor is required for JPA
 	public Goal()
 	{
@@ -44,11 +44,17 @@ public abstract class Goal extends EntityWithID
 			throw new IllegalArgumentException("activityCategory cannot be null");
 		}
 		this.activityCategory = activityCategory;
+		this.creationTime = ZonedDateTime.now();
 	}
 
 	public ActivityCategory getActivityCategory()
 	{
 		return activityCategory;
+	}
+
+	public ZonedDateTime getCreationTime()
+	{
+		return creationTime;
 	}
 
 	public abstract boolean isMandatory();
