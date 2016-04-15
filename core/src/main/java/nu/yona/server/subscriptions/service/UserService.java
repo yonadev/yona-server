@@ -484,7 +484,7 @@ public class UserService
 		}
 	}
 
-	private void registerFailedAttempt(User userEntity, ConfirmationCode confirmationCode)
+	public void registerFailedAttempt(User userEntity, ConfirmationCode confirmationCode)
 	{
 		transactionHelper.executeInNewTransaction(() -> {
 			confirmationCode.incrementAttempts();

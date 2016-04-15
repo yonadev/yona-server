@@ -9,6 +9,7 @@ public class SecurityProperties
 	private int confirmationCodeDigits = 4;
 	private int confirmationCodeMaxAttempts = 5;
 	private int newDeviceRequestExpirationDays = 1;
+	private int pinResetRequestExpirationDays = 7;
 	private int passwordLength = 32;
 	private long bruteForceBlockMinutes = 60;
 	private long dosProtectionWindowSeconds = 300;
@@ -48,6 +49,16 @@ public class SecurityProperties
 	public void setNewDeviceRequestExpirationDays(int newDeviceRequestExpiration)
 	{
 		this.newDeviceRequestExpirationDays = newDeviceRequestExpiration;
+	}
+
+	public int getPinResetRequestExpirationDays()
+	{
+		return pinResetRequestExpirationDays;
+	}
+
+	public void setPinResetRequestExpirationDays(int pinResetRequestExpirationDays)
+	{
+		this.pinResetRequestExpirationDays = pinResetRequestExpirationDays;
 	}
 
 	public int getPasswordLength()

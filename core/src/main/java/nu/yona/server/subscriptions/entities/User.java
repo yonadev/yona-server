@@ -290,4 +290,14 @@ public class User extends EntityWithID
 	{
 		return getUserPrivate().getVPNLoginID();
 	}
+
+	public ConfirmationCode getPinResetConfirmationCode()
+	{
+		return getUserPrivate().getPinResetConfirmationCode();
+	}
+
+	public void setPinResetConfirmationCode(ConfirmationCode pinResetConfirmationCode)
+	{
+		getUserPrivate().setPinResetConfirmationCode(pinResetConfirmationCode);
+	}
 }
