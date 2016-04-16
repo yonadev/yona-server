@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
@@ -13,7 +10,10 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -30,10 +30,10 @@ public abstract class ActivityCategoryServiceTestBase
 
 	protected void setUp(ActivityCategoryRepository mockRepository)
 	{
-		gambling = ActivityCategory.createInstance("gambling", false, new HashSet<String>(Arrays.asList("poker", "lotto")),
-				Collections.emptySet());
-		news = ActivityCategory.createInstance("news", false, new HashSet<String>(Arrays.asList("refdag", "bbc")),
-				Collections.emptySet());
+		gambling = ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
+				new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet());
+		news = ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
+				new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet());
 
 		activityCategories.add(gambling);
 		activityCategories.add(news);
@@ -49,5 +49,10 @@ public abstract class ActivityCategoryServiceTestBase
 				return (ActivityCategory) args[0];
 			}
 		});
+	}
+
+	protected Map<Locale, String> usString(String string)
+	{
+		return Collections.singletonMap(Locale.forLanguageTag("en-US"), string);
 	}
 }

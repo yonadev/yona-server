@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
@@ -22,15 +19,15 @@ public class TimeZoneGoalDTO extends GoalDTO
 	private final String[] zones;
 
 	@JsonCreator
-	public TimeZoneGoalDTO(@JsonProperty("activityCategoryName") String activityCategoryName,
-			@JsonProperty("zones") String[] zones)
+	public TimeZoneGoalDTO(@JsonProperty(required = true, value = "activityCategoryUrl") String activityCategoryUrl,
+			@JsonProperty(required = true, value = "zones") String[] zones)
 	{
-		this(null, activityCategoryName, zones);
+		this(null, determineActivityCategoryID(activityCategoryUrl), zones);
 	}
 
-	private TimeZoneGoalDTO(UUID id, String activityCategoryName, String[] zones)
+	private TimeZoneGoalDTO(UUID id, UUID activityCategoryID, String[] zones)
 	{
-		super(id, activityCategoryName, false);
+		super(id, activityCategoryID, false);
 
 		this.zones = zones;
 	}
@@ -48,15 +45,15 @@ public class TimeZoneGoalDTO extends GoalDTO
 
 	static TimeZoneGoalDTO createInstance(TimeZoneGoal entity)
 	{
-		return new TimeZoneGoalDTO(entity.getID(), entity.getActivityCategory().getName(), entity.getZones());
+		return new TimeZoneGoalDTO(entity.getID(), entity.getActivityCategory().getID(), entity.getZones());
 	}
 
 	public TimeZoneGoal createGoalEntity()
 	{
-		ActivityCategory activityCategory = ActivityCategory.getRepository().findByName(this.getActivityCategoryName());
+		ActivityCategory activityCategory = ActivityCategory.getRepository().findOne(this.getActivityCategoryID());
 		if (activityCategory == null)
 		{
-			throw ActivityCategoryNotFoundException.notFoundByName(this.getActivityCategoryName());
+			throw ActivityCategoryNotFoundException.notFound(this.getActivityCategoryID());
 		}
 		return TimeZoneGoal.createInstance(activityCategory, this.zones);
 	}

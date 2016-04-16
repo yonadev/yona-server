@@ -12,5 +12,4 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ActivityCategoryRepository extends CrudRepository<ActivityCategory, UUID>
 {
-	ActivityCategory findByName(String name);
 }

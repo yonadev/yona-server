@@ -860,6 +860,14 @@ definitions:
           href:
             type: string
             description: Post an empty MessageAction on this link to process this response
+  ActivityCategoryLink:
+    type: object
+    properties:
+      "yona:activityCategory":
+        properties:
+          href:
+            type: string
+            description: The related activity category
   BaseUser:
     type: object
     properties:
@@ -1022,13 +1030,12 @@ definitions:
         - BudgetGoal
         - TimeZoneGoal
         description: The type of goal
-      activityCategoryName:
+      activityCategoryUrl:
         type: string
         description: The actity category of this goal
-        example: Gambling
     required:
     - "@type"
-    - activityCategoryName
+    - activityCategoryUrl
   BudgetGoal:
     allOf:
       - $ref: '#/definitions/PostPutGoal'
@@ -1052,14 +1059,24 @@ definitions:
     required:
       - zones
   Goal:
-    allOf:
-      - $ref: '#/definitions/PostPutGoal'
+    type: object
+    discriminator: "@type"
+    properties:
+      "@type":
+        type: string
+        enum:
+        - BudgetGoal
+        - TimeZoneGoal
+        description: The type of goal
+    required:
+    - "@type"
     properties:
       _links:
         allOf:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/ActivityCategoryLink'
     required:
       - _links
   VPNProfile:
@@ -1172,6 +1189,7 @@ definitions:
         - BuddyConnectResponseMessage
         - BuddyDisconnectMessage
         - GoalConflictMessage
+        - GoalChangeMessage
         - DisclosureRequestMessage
         - DisclosureResponseMessage
       creationTime:
@@ -1269,6 +1287,12 @@ definitions:
     - DISCLOSURE_REQUESTED
     - DISCLOSURE_ACCEPTED
     - DISCLOSURE_REJECTED
+  GoalChange:
+    type: string
+    description: The change applied to a goal
+    enum:
+    - GOAL_ADDED
+    - GOAL_DELETED
   GoalConflictMessage:
     allOf:
       - $ref: '#/definitions/Message'
@@ -1280,11 +1304,6 @@ definitions:
       status:
         $ref: '#/definitions/GoalConflictStatus'
         example: ANNOUNCED
-      activityCategoryName:
-        # TODO: Replace this with a link to the related day activity
-        type: string
-        description: The name of the activity category
-        example: Gambling
       url:
         type: string
         description: The URL on which the goal conflict was detected
@@ -1304,6 +1323,7 @@ definitions:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/ActivityCategoryLink'
         properties:
           "yona:requestDisclosure":
             properties:
@@ -1313,10 +1333,25 @@ definitions:
     required:
       - nickname
       - status
-      - activityCategoryName
       - url
       - activityStartTime
       - activityEndTime
+      - _links
+  GoalChangeMessage:
+    allOf:
+      - $ref: '#/definitions/Message'
+    properties:
+      change:
+        $ref: '#/definitions/GoalChange'
+        example: GOAL_ADDED
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+          - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/ActivityCategoryLink'
+    required:
+      - change
       - _links
   DisclosureRequestMessage:
     allOf:

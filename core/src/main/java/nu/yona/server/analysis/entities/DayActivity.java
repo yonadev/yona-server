@@ -80,6 +80,7 @@ public class DayActivity extends IntervalActivity
 
 	public void addActivity(Activity activity)
 	{
+		activity.setActivityCategory(getGoal().getActivityCategory());
 		this.activities.add(activity);
 	}
 

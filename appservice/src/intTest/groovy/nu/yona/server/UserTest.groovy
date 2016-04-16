@@ -245,7 +245,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 				"+$ts")
 	}
 
-	void testUser(user, includePrivateData, mobileNumberConfirmed, timestamp)
+	void testUser(User user, includePrivateData, mobileNumberConfirmed, timestamp)
 	{
 		assert user.firstName == "John"
 		assert user.lastName == "Doe"
@@ -265,7 +265,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			if (mobileNumberConfirmed)
 			{
 				assert user.goals.size() == 1 //mandatory goal added
-				assert user.goals[0].activityCategoryName == 'gambling'
+				assert user.goals[0].activityCategoryUrl == GAMBLING_ACT_CAT_URL
 			}
 			else
 			{

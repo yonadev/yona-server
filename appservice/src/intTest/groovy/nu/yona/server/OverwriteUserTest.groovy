@@ -7,6 +7,7 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.User
 
 class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 {
@@ -57,7 +58,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.requestOverwriteUser(richard.mobileNumber)
 
 		when:
-		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": "1234"])
 
@@ -68,14 +69,14 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		richardChanged.nickname == "${richard.nickname}Changed"
 		richardChanged.mobileNumber == richard.mobileNumber
 		richardChanged.goals.size() == 1 //mandatory goal
-		richardChanged.goals[0].activityCategoryName == 'gambling'
+		richardChanged.goals[0].activityCategoryUrl == GAMBLING_ACT_CAT_URL
 
 		def getMessagesResponse = appService.getMessages(bob)
 		getMessagesResponse.status == 200
 		def goalConflictMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessages.size() == 1
 		goalConflictMessages[0].nickname == richard.nickname
-		goalConflictMessages[0].activityCategoryName == "news"
+		goalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		goalConflictMessages[0].url == null
 
 		def buddies = appService.getBuddies(bob)

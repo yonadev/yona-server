@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
@@ -25,9 +22,9 @@ public class GoalServiceException extends YonaException
 		return new GoalServiceException("error.goal.not.found.id", userID, goalID);
 	}
 
-	public static GoalServiceException cannotAddSecondGoalOnActivityCategory(String activityCategoryName)
+	public static GoalServiceException cannotAddSecondGoalOnActivityCategory(UUID activityCategoryID)
 	{
-		return new GoalServiceException("error.goal.cannot.add.second.on.activity.category", activityCategoryName);
+		return new GoalServiceException("error.goal.cannot.add.second.on.activity.category", activityCategoryID);
 	}
 
 	public static GoalServiceException cannotRemoveMandatoryGoal(UUID userID, UUID goalID)

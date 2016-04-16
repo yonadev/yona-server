@@ -1,15 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -26,8 +27,8 @@ public class ActivityCategory extends EntityWithID
 		return (ActivityCategoryRepository) RepositoryProvider.getRepository(ActivityCategory.class, UUID.class);
 	}
 
-	@Column(unique = true)
-	private String name;
+	@ElementCollection
+	private Map<Locale, String> name;
 
 	private boolean mandatoryNoGo;
 
@@ -43,7 +44,8 @@ public class ActivityCategory extends EntityWithID
 		super(null);
 	}
 
-	public ActivityCategory(UUID id, String name, boolean mandatoryNoGo, Set<String> smoothwallCategories, Set<String> applications)
+	public ActivityCategory(UUID id, Map<Locale, String> name, boolean mandatoryNoGo, Set<String> smoothwallCategories,
+			Set<String> applications)
 	{
 		super(id);
 		this.name = name;
@@ -52,9 +54,9 @@ public class ActivityCategory extends EntityWithID
 		this.applications = new HashSet<>(applications);
 	}
 
-	public String getName()
+	public Map<Locale, String> getName()
 	{
-		return name;
+		return Collections.unmodifiableMap(name);
 	}
 
 	public boolean isMandatoryNoGo()
@@ -72,7 +74,7 @@ public class ActivityCategory extends EntityWithID
 		return Collections.unmodifiableSet(applications);
 	}
 
-	public void setName(String name)
+	public void setName(Map<Locale, String> name)
 	{
 		this.name = name;
 	}
@@ -82,9 +84,9 @@ public class ActivityCategory extends EntityWithID
 		this.smoothwallCategories = new HashSet<>(smoothwallCategories);
 	}
 
-	public static ActivityCategory createInstance(String name, boolean mandatoryNoGo, Set<String> smoothwallCategories,
-			Set<String> applications)
+	public static ActivityCategory createInstance(UUID id, Map<Locale, String> name, boolean mandatoryNoGo,
+			Set<String> smoothwallCategories, Set<String> applications)
 	{
-		return new ActivityCategory(UUID.randomUUID(), name, mandatoryNoGo, smoothwallCategories, applications);
+		return new ActivityCategory(id, name, mandatoryNoGo, smoothwallCategories, applications);
 	}
 }

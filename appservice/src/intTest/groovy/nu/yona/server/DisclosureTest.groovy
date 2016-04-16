@@ -27,7 +27,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def messagesRichard = responseRichard.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		messagesRichard.size() == 1
 		messagesRichard[0].nickname == "<self>"
-		messagesRichard[0].activityCategoryName == "news"
+		messagesRichard[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		messagesRichard[0].url != null
 		messagesRichard[0]._links."yona:requestDisclosure" == null
 
@@ -35,7 +35,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def messagesBob = responseBob.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		messagesBob.size() == 1
 		messagesBob[0].nickname == richard.nickname
-		messagesBob[0].activityCategoryName == "news"
+		messagesBob[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		messagesBob[0].url == null
 		messagesBob[0]._links."yona:requestDisclosure"
 
