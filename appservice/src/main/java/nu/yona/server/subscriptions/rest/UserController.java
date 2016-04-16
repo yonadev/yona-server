@@ -348,6 +348,11 @@ public class UserController
 		private CurieProvider curieProvider;
 		private PinResetRequestController pinResetRequestController;
 
+		public UserResourceAssembler(CurieProvider curieProvider, boolean includePrivateData)
+		{
+			this(curieProvider, null, includePrivateData);
+		}
+
 		public UserResourceAssembler(CurieProvider curieProvider, PinResetRequestController pinResetRequestController,
 				boolean includePrivateData)
 		{

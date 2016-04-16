@@ -167,7 +167,7 @@ public class BuddyController
 
 			HashMap<String, Object> result = new HashMap<String, Object>();
 			result.put(curieProvider.getNamespacedRelFor(BuddyDTO.USER_REL_NAME),
-					new UserController.UserResourceAssembler(curieProvider, null, false).toResource(getContent().getUser()));
+					new UserController.UserResourceAssembler(curieProvider, false).toResource(getContent().getUser()));
 			if (getContent().getUser() != null && getContent().getGoals() != null)
 			{
 				result.put(curieProvider.getNamespacedRelFor(BuddyDTO.GOALS_REL_NAME),

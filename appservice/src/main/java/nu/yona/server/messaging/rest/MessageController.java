@@ -234,7 +234,7 @@ public class MessageController
 			if (user != null)
 			{
 				buddyMessage.setEmbeddedUser(curieProvider.getNamespacedRelFor(BuddyDTO.USER_REL_NAME),
-						new UserController.UserResourceAssembler(curieProvider, null, false).toResource(user));
+						new UserController.UserResourceAssembler(curieProvider, false).toResource(user));
 			}
 		}
 
