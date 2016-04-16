@@ -1145,10 +1145,6 @@ definitions:
         type: string
         description: The name of this activity category
         example: Gambling
-      isMandatory:
-        type: boolean
-        description: True when this activity category is mandatory for all users. The server will add a goal for such activity categories upon sign up of a user
-        example: true
       applications:
         type: array
         items:
@@ -1163,7 +1159,6 @@ definitions:
           - $ref: '#/definitions/SelfLink'
     required:
       - name
-      - isMandatory
       - applications
       - _links
   Message:
