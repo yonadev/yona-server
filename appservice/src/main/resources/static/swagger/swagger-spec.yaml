@@ -138,12 +138,7 @@ paths:
           description: Message with confirmation code
           required: true
           schema:
-            type: object
-            required:
-              - code
-            properties:
-              code:
-                type: string
+            $ref: '#/definitions/ConfirmationCode'
       tags:
         - User
       responses:
@@ -665,12 +660,8 @@ paths:
           description: Message with confirmation code
           required: true
           schema:
-            type: object
-            required:
-              - code
-            properties:
-              code:
-                type: string
+          schema:
+            $ref: '#/definitions/ConfirmationCode'
       tags:
         - Message
       responses:
@@ -1099,6 +1090,13 @@ definitions:
           - $ref: '#/definitions/SelfLink'
     required:
       - _links
+  ConfirmationCode:
+    type: object
+    properties:
+      code:
+        type: string
+    required:
+      - code
   PostPutGoal:
     type: object
     discriminator: "@type"
