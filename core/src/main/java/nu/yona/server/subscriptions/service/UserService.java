@@ -101,7 +101,7 @@ public class UserService
 		ConfirmationCode confirmationCode = createConfirmationCode();
 		existingUserEntity.setOverwriteUserConfirmationCode(confirmationCode);
 		User.getRepository().save(existingUserEntity);
-		sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsService.TemplateName_OverwriteUserNumberConfirmation);
+		sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsService.TemplateName_OverwriteUserConfirmation);
 	}
 
 	@Transactional
@@ -449,12 +449,16 @@ public class UserService
 
 	private ConfirmationCode createConfirmationCode()
 	{
-		String confirmationCode = (yonaProperties.getSms().isEnabled())
-				? CryptoUtil.getRandomDigits(yonaProperties.getSecurity().getConfirmationCodeDigits()) : "1234";
-		return ConfirmationCode.createInstance(confirmationCode);
+		return ConfirmationCode.createInstance(generateConfirmationCode());
 	}
 
-	private void sendConfirmationCodeTextMessage(String mobileNumber, ConfirmationCode confirmationCode, String templateName)
+	public String generateConfirmationCode()
+	{
+		return (yonaProperties.getSms().isEnabled())
+				? CryptoUtil.getRandomDigits(yonaProperties.getSecurity().getConfirmationCodeDigits()) : "1234";
+	}
+
+	public void sendConfirmationCodeTextMessage(String mobileNumber, ConfirmationCode confirmationCode, String templateName)
 	{
 		Map<String, Object> templateParams = new HashMap<String, Object>();
 		templateParams.put("confirmationCode", confirmationCode);

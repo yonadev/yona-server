@@ -39,6 +39,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 200
+		response.responseData.delay == "PT0S"
 		User  richardAfterGet = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
 		!richardAfterGet.pinResetRequestUrl
 
@@ -87,6 +88,9 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		richardAfterGet.pinResetRequestUrl
 		!richardAfterGet.verifyPinResetUrl
 		!richardAfterGet.clearPinResetUrl
+		def verifyPinResetAttemptResponse = appService.yonaServer.postJson(richard.verifyPinResetUrl, """{"code" : "1234"}""", ["Yona-Password" : richard.password])
+		verifyPinResetAttemptResponse.status == 400
+		verifyPinResetAttemptResponse.responseData.code == "error.pin.reset.request.confirmation.code.not.set"
 
 		cleanup:
 		appService.deleteUser(richard)

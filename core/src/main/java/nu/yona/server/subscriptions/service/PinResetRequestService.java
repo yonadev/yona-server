@@ -1,5 +1,6 @@
 package nu.yona.server.subscriptions.service;
 
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import nu.yona.server.exceptions.PinResetRequestConfirmationException;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.sms.SmsService;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
 
@@ -25,8 +27,14 @@ public class PinResetRequestService
 	@Transactional
 	public void requestPinReset(UUID userID)
 	{
+		User userEntity = userService.getUserByID(userID);
 		ConfirmationCode confirmationCode = createConfirmationCode();
-		setConfirmationCode(userID, confirmationCode);
+		setConfirmationCode(userEntity, confirmationCode);
+		if (confirmationCode.getConfirmationCode() != null)
+		{
+			userService.sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode,
+					SmsService.TemplateName_AddUserNumberConfirmation);
+		}
 	}
 
 	@Transactional
@@ -56,18 +64,19 @@ public class PinResetRequestService
 	@Transactional
 	public void clearPinResetRequest(UUID userID)
 	{
-		setConfirmationCode(userID, null);
+		User userEntity = userService.getUserByID(userID);
+		setConfirmationCode(userEntity, null);
 	}
 
 	private ConfirmationCode createConfirmationCode()
 	{
-		String confirmationCode = (yonaProperties.getSms().isEnabled()) ? null : "1234";
+		String confirmationCode = yonaProperties.getSecurity().getPinResetRequestConformationCodeDelay().equals(Duration.ZERO)
+				? userService.generateConfirmationCode() : null;
 		return ConfirmationCode.createInstance(confirmationCode);
 	}
 
-	private void setConfirmationCode(UUID userID, ConfirmationCode confirmationCode)
+	private void setConfirmationCode(User userEntity, ConfirmationCode confirmationCode)
 	{
-		User userEntity = userService.getUserByID(userID);
 		userEntity.setPinResetConfirmationCode(confirmationCode);
 		User.getRepository().save(userEntity);
 	}

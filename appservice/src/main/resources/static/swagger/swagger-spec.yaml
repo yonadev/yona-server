@@ -632,10 +632,19 @@ paths:
           required: true
           type: string
       tags:
-        - Message
+        - Pin reset
       responses:
         '200':
           description: Request registered successfully
+          schema:
+            type: object
+            properties:
+              delay:
+                type: string
+                description: Delay till the confirmation code will be sent by text message. The format complies with the ISO-8601 duration format (PnDTnHnMn.nS).
+                example: P1D
+            required:
+              - delay
         default:
           description: Unexpected error
           schema:
@@ -663,7 +672,7 @@ paths:
           schema:
             $ref: '#/definitions/ConfirmationCode'
       tags:
-        - Message
+        - Pin reset
       responses:
         '200':
           description: Confirmation code correct
@@ -687,7 +696,7 @@ paths:
           required: true
           type: string
       tags:
-        - Message
+        - Pin reset
       responses:
         '200':
           description: Request cleared successfully
