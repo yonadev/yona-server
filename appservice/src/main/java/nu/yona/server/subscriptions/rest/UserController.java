@@ -90,6 +90,9 @@ public class UserController
 	@Autowired
 	private GlobalExceptionMapping globalExceptionMapping;
 
+	@Autowired
+	private PinResetRequestController pinResetRequestController;
+
 	@RequestMapping(value = "/{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
@@ -167,7 +170,7 @@ public class UserController
 	@ResponseBody
 	public HttpEntity<UserResource> confirmMobileNumber(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
-			@RequestBody MobileNumberConfirmationDTO mobileNumberConfirmation)
+			@RequestBody ConfirmationCodeDTO mobileNumberConfirmation)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
 				() -> createOKResponse(userService.confirmMobileNumber(id, mobileNumberConfirmation.getCode()), true));
@@ -252,8 +255,8 @@ public class UserController
 			Set<BuddyDTO> buddies = buddyService.getBuddiesOfUser(user.getID());
 			user.getPrivateData().setBuddies(buddies);
 		}
-		return new ResponseEntity<UserResource>(new UserResourceAssembler(curieProvider, includePrivateData).toResource(user),
-				status);
+		return new ResponseEntity<UserResource>(
+				new UserResourceAssembler(curieProvider, pinResetRequestController, includePrivateData).toResource(user), status);
 	}
 
 	private HttpEntity<UserResource> createOKResponse(UserDTO user, boolean includePrivateData)
@@ -343,11 +346,19 @@ public class UserController
 	{
 		private final boolean includePrivateData;
 		private CurieProvider curieProvider;
+		private PinResetRequestController pinResetRequestController;
 
 		public UserResourceAssembler(CurieProvider curieProvider, boolean includePrivateData)
 		{
+			this(curieProvider, null, includePrivateData);
+		}
+
+		public UserResourceAssembler(CurieProvider curieProvider, PinResetRequestController pinResetRequestController,
+				boolean includePrivateData)
+		{
 			super(UserController.class, UserResource.class);
 			this.curieProvider = curieProvider;
+			this.pinResetRequestController = pinResetRequestController;
 			this.includePrivateData = includePrivateData;
 		}
 
@@ -372,6 +383,7 @@ public class UserController
 					addWeekActivityOverviewsLink(userResource);
 					addNewDeviceRequestLink(userResource);
 					addAppActivityLink(userResource);
+					pinResetRequestController.addLinks(userResource);
 				}
 			}
 			return userResource;
@@ -438,6 +450,5 @@ public class UserController
 		{
 			userResource.add(AppActivityController.getAppActivityLink(userResource.getContent().getID()));
 		}
-
 	}
 }

@@ -13,7 +13,9 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import nu.yona.server.crypto.CryptoUtil;
@@ -53,6 +55,9 @@ public class UserPrivate extends EntityWithID
 
 	@Convert(converter = StringFieldEncrypter.class)
 	private String vpnPassword;
+
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private ConfirmationCode pinResetConfirmationCode;
 
 	// Default constructor is required for JPA
 	public UserPrivate()
@@ -161,5 +166,15 @@ public class UserPrivate extends EntityWithID
 	public UUID getUserAnonymizedID()
 	{
 		return userAnonymizedID;
+	}
+
+	public ConfirmationCode getPinResetConfirmationCode()
+	{
+		return pinResetConfirmationCode;
+	}
+
+	public void setPinResetConfirmationCode(ConfirmationCode pinResetConfirmationCode)
+	{
+		this.pinResetConfirmationCode = pinResetConfirmationCode;
 	}
 }
