@@ -24,19 +24,19 @@ import nu.yona.server.rest.PolymorphicDTO;
 public abstract class GoalDTO extends PolymorphicDTO
 {
 	private final UUID id;
-	private final UUID activityCategoryID;
+	private UUID activityCategoryID;
 	private final boolean mandatory;
 
 	protected GoalDTO(UUID id, UUID activityCategoryID, boolean mandatory)
 	{
 		this.id = id;
-		this.activityCategoryID = activityCategoryID;
+		this.setActivityCategoryID(activityCategoryID);
 		this.mandatory = mandatory;
 	}
 
 	public GoalDTO(String activityCategoryUrl)
 	{
-		this(null, determineActivityCategoryID(activityCategoryUrl), false /* ignored */);
+		this(null, null, false /* ignored */);
 	}
 
 	@JsonIgnore
@@ -52,17 +52,18 @@ public abstract class GoalDTO extends PolymorphicDTO
 	}
 
 	@JsonIgnore
+	public void setActivityCategoryID(UUID activityCategoryID)
+	{
+		this.activityCategoryID = activityCategoryID;
+	}
+
+	@JsonIgnore
 	public boolean isMandatory()
 	{
 		return mandatory;
 	}
 
 	public abstract Goal createGoalEntity();
-
-	private static UUID determineActivityCategoryID(String activityCategoryUrl)
-	{
-		return UUID.fromString(activityCategoryUrl.substring(activityCategoryUrl.lastIndexOf('/') + 1));
-	}
 
 	public static GoalDTO createInstance(Goal goal)
 	{

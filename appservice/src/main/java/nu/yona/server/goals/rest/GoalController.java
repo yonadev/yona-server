@@ -14,7 +14,9 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resources;
+import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
@@ -31,6 +33,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.rest.JsonRootRelProvider;
@@ -41,11 +44,16 @@ import nu.yona.server.subscriptions.service.UserService;
 @RequestMapping(value = "/users/{userID}/goals")
 public class GoalController
 {
+	private static final String ACTIVITY_CATEGORY_REL = "activityCategory";
+
 	@Autowired
 	private UserService userService;
 
 	@Autowired
 	private GoalService goalService;
+
+	@Autowired
+	private CurieProvider curieProvider;
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
@@ -72,6 +80,7 @@ public class GoalController
 			@PathVariable UUID userID, @RequestBody GoalDTO goal,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
+		setActivityCategoryID(goal);
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createResponse(userID,
 				goalService.addGoal(userID, goal, Optional.ofNullable(messageStr)), HttpStatus.CREATED));
 	}
@@ -103,6 +112,22 @@ public class GoalController
 	private HttpEntity<GoalDTO> createResponse(UUID userID, GoalDTO goal, HttpStatus status)
 	{
 		return new ResponseEntity<GoalDTO>(new GoalResourceAssembler(userID).toResource(goal), status);
+	}
+
+	private void setActivityCategoryID(GoalDTO goal)
+	{
+		Link activityCategoryLink = goal.getLink(curieProvider.getNamespacedRelFor(ACTIVITY_CATEGORY_REL));
+		if (activityCategoryLink == null)
+		{
+			throw InvalidDataException.missingActivityCategoryLink();
+		}
+		UUID activityCategoryID = determineActivityCategoryID(activityCategoryLink.getHref());
+		goal.setActivityCategoryID(activityCategoryID);
+	}
+
+	private static UUID determineActivityCategoryID(String activityCategoryUrl)
+	{
+		return UUID.fromString(activityCategoryUrl.substring(activityCategoryUrl.lastIndexOf('/') + 1));
 	}
 
 	public static ControllerLinkBuilder getGoalLinkBuilder(UUID userID, UUID goalID)
@@ -138,7 +163,7 @@ public class GoalController
 		private void addActivityCategoryLink(GoalDTO goalResource)
 		{
 			goalResource.add(ActivityCategoryController.getActivityCategoryLinkBuilder(goalResource.getActivityCategoryID())
-					.withRel("activityCategory"));
+					.withRel(GoalController.ACTIVITY_CATEGORY_REL));
 		}
 
 		@Override

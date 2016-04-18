@@ -21,15 +21,25 @@ class TimeZoneGoal extends Goal
 
 	def convertToJsonString()
 	{
-		def selfLinkString = (url) ? """"_links":{"self":{"href":"$url"}},""" : ""
 		def zonesString = YonaServer.makeStringList(zones)
+		def selfLinkString = (url) ? """"
+							"self":
+								{
+									"href":"$url"
+								},""" : ""
 		return """{
-			$selfLinkString,
 			"@type":"TimeZoneGoal",
-			"activityCategoryUrl":"${activityCategoryUrl}",
 			"zones":[
 				${zonesString}
-			]
+			],
+			"_links":
+				{
+					$selfLinkString
+					"yona:activityCategory":
+						{
+							"href":"$activityCategoryUrl"
+						}
+				}
 		}"""
 	}
 

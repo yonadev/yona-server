@@ -20,12 +20,22 @@ class BudgetGoal extends Goal
 
 	def convertToJsonString()
 	{
-		def selfLinkString = (url) ? """"_links":{"self":{"href":"$url"}},""" : ""
+		def selfLinkString = (url) ? """"
+							"self":
+								{
+									"href":"$url"
+								},""" : ""
 		return """{
-			$selfLinkString,
 			"@type":"BudgetGoal",
-			"activityCategoryUrl":"${activityCategoryUrl}",
-			"maxDurationMinutes":"${maxDurationMinutes}"
+			"maxDurationMinutes":"${maxDurationMinutes}",
+			"_links":
+				{
+					$selfLinkString
+					"yona:activityCategory":
+						{
+							"href":"$activityCategoryUrl"
+						}
+				}
 		}"""
 	}
 

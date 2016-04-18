@@ -1120,12 +1120,12 @@ definitions:
         - BudgetGoal
         - TimeZoneGoal
         description: The type of goal
-      activityCategoryUrl:
-        type: string
-        description: The actity category of this goal
+      _links:
+        allOf:
+          - $ref: '#/definitions/ActivityCategoryLink'
     required:
-    - "@type"
-    - activityCategoryUrl
+      - "@type"
+      - _links
   BudgetGoal:
     allOf:
       - $ref: '#/definitions/PostPutGoal'
