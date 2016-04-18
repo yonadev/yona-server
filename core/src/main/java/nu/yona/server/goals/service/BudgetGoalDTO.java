@@ -22,7 +22,9 @@ public class BudgetGoalDTO extends GoalDTO
 	public BudgetGoalDTO(@JsonProperty(required = true, value = "activityCategoryUrl") String activityCategoryUrl,
 			@JsonProperty(required = true, value = "maxDurationMinutes") int maxDurationMinutes)
 	{
-		this(null, determineActivityCategoryID(activityCategoryUrl), maxDurationMinutes, false /* ignored */);
+		super(activityCategoryUrl);
+
+		this.maxDurationMinutes = maxDurationMinutes;
 	}
 
 	public BudgetGoalDTO(UUID id, UUID activityCategoryID, int maxDurationMinutes, boolean mandatory)

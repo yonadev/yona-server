@@ -22,9 +22,9 @@ public class GoalServiceException extends YonaException
 		return new GoalServiceException("error.goal.not.found.id", userID, goalID);
 	}
 
-	public static GoalServiceException cannotAddSecondGoalOnActivityCategory(UUID activityCategoryID)
+	public static GoalServiceException cannotAddSecondGoalOnActivityCategory(String activityCategoryName)
 	{
-		return new GoalServiceException("error.goal.cannot.add.second.on.activity.category", activityCategoryID);
+		return new GoalServiceException("error.goal.cannot.add.second.on.activity.category", activityCategoryName);
 	}
 
 	public static GoalServiceException cannotRemoveMandatoryGoal(UUID userID, UUID goalID)

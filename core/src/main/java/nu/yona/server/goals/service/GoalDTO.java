@@ -34,6 +34,11 @@ public abstract class GoalDTO extends PolymorphicDTO
 		this.mandatory = mandatory;
 	}
 
+	public GoalDTO(String activityCategoryUrl)
+	{
+		this(null, determineActivityCategoryID(activityCategoryUrl), false /* ignored */);
+	}
+
 	@JsonIgnore
 	public UUID getID()
 	{
@@ -54,7 +59,7 @@ public abstract class GoalDTO extends PolymorphicDTO
 
 	public abstract Goal createGoalEntity();
 
-	protected static UUID determineActivityCategoryID(String activityCategoryUrl)
+	private static UUID determineActivityCategoryID(String activityCategoryUrl)
 	{
 		return UUID.fromString(activityCategoryUrl.substring(activityCategoryUrl.lastIndexOf('/') + 1));
 	}

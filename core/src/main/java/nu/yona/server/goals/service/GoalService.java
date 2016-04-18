@@ -11,6 +11,7 @@ import java.util.UUID;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.goals.entities.Goal;
@@ -63,7 +64,8 @@ public class GoalService
 				.findFirst();
 		if (conflictingExistingGoal.isPresent())
 		{
-			throw GoalServiceException.cannotAddSecondGoalOnActivityCategory(goal.getActivityCategoryID());
+			throw GoalServiceException.cannotAddSecondGoalOnActivityCategory(
+					conflictingExistingGoal.get().getActivityCategory().getName().get(LocaleContextHolder.getLocale()));
 		}
 
 		Goal goalEntity = goal.createGoalEntity();
