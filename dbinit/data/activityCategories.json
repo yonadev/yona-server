@@ -1,34 +1,33 @@
-[
-  {
-    "name": "gambling",
-    "mandatoryNoGo": true,
-    "smoothwallCategories": [
-      "Gambling",
-      "lotto"
-    ],
-    "applications": [
-      "Poker App",
-      "Lotto App"
-    ]
-  },
-  {
-    "name": "news",
-    "mandatoryNoGo": false,
-    "smoothwallCategories": [
-      "news/media",
-      "newsgroups/forums"
-    ],
-    "applications": [
-    ]
-  },
-  {
-    "name": "social",
-    "mandatoryNoGo": false,
-    "smoothwallCategories": [
-      "social"
-    ],
-    "applications": [
-      "Facebook"
-    ]
-  }
-]
+[{
+	"id": "192d69f4-8d3e-499b-983c-36ca97340ba9",
+	"name": {
+		"en-US": "Gambling",
+		"nl-NL": "Gokken"
+	},
+	"mandatoryNoGo": true,
+	"smoothwallCategories": ["Gambling",
+	"lotto"],
+	"applications": ["Poker App",
+	"Lotto App"]
+},
+{
+	"id": "743738fd-052f-4532-a2a3-ba60dcb1adbf",
+	"name": {
+		"en-US": "News",
+		"nl-NL": "Nieuws"
+	},
+	"mandatoryNoGo": false,
+	"smoothwallCategories": ["news/media",
+	"newsgroups/forums"],
+	"applications": []
+},
+{
+	"id": "27395d17-7022-4f71-9daf-f431ff4f11e8",
+	"name": {
+		"en-US": "Social",
+		"nl-NL": "Social media"
+	},
+	"mandatoryNoGo": false,
+	"smoothwallCategories": ["social"],
+	"applications": ["Facebook"]
+}]

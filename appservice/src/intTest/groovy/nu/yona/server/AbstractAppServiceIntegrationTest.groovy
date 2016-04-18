@@ -31,12 +31,22 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	@Shared
 	private int sequenceNumber = 0
 
+	@Shared
+	public String NEWS_ACT_CAT_URL = appService.composeActivityCategoryUrl("743738fd-052f-4532-a2a3-ba60dcb1adbf")
+
+	@Shared
+	public String GAMBLING_ACT_CAT_URL = appService.composeActivityCategoryUrl("192d69f4-8d3e-499b-983c-36ca97340ba9")
+
+	@Shared
+	public String SOCIAL_ACT_CAT_URL = appService.composeActivityCategoryUrl("27395d17-7022-4f71-9daf-f431ff4f11e8")
+
 	User addRichard()
 	{
 		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
 				"+$timestamp")
 		richard = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, richard)
-		appService.addGoal(richard, BudgetGoal.createNoGoInstance("news"))
+		def response = appService.addGoal(richard, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
+		assert response.status == 201
 		return richard
 	}
 
@@ -45,7 +55,8 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		def bob = appService.addUser(appService.&assertUserCreationResponseDetails, "B o b", "Bob", "Dunn", "BD",
 				"+$timestamp")
 		bob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bob)
-		appService.addGoal(bob, BudgetGoal.createNoGoInstance("news"))
+		def response = appService.addGoal(bob, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
+		assert response.status == 201
 		return bob
 	}
 
@@ -80,5 +91,10 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert dateTime < new Date(comparisonDateTime.getTime() + epsilonMilliseconds)
 
 		return true
+	}
+
+	def findGoal(def response, def activityCategoryUrl)
+	{
+		response.responseData._embedded."yona:goals".find{ it._links."yona:activityCategory".href == activityCategoryUrl }
 	}
 }

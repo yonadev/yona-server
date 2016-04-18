@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
@@ -114,12 +114,12 @@ public class ActivityCategoryService
 	private void addOrUpdateNewActivityCategories(Set<ActivityCategoryDTO> activityCategoryDTOs,
 			Set<ActivityCategory> activityCategoriesInRepository)
 	{
-		Map<String, ActivityCategory> activityCategoriesInRepositoryMap = activityCategoriesInRepository.stream()
-				.collect(Collectors.toMap(ac -> ac.getName(), ac -> ac));
+		Map<UUID, ActivityCategory> activityCategoriesInRepositoryMap = activityCategoriesInRepository.stream()
+				.collect(Collectors.toMap(ac -> ac.getID(), ac -> ac));
 
 		for (ActivityCategoryDTO activityCategoryDTO : activityCategoryDTOs)
 		{
-			ActivityCategory activityCategoryInRepository = activityCategoriesInRepositoryMap.get(activityCategoryDTO.getName());
+			ActivityCategory activityCategoryInRepository = activityCategoriesInRepositoryMap.get(activityCategoryDTO.getID());
 			if (activityCategoryInRepository == null)
 			{
 				addActivityCategory(activityCategoryDTO);
@@ -137,10 +137,10 @@ public class ActivityCategoryService
 	private void deleteRemovedActivityCategories(Set<ActivityCategory> activityCategoriesInRepository,
 			Set<ActivityCategoryDTO> activityCategoryDTOs)
 	{
-		Map<String, ActivityCategoryDTO> activityCategoryDTOsMap = activityCategoryDTOs.stream()
-				.collect(Collectors.toMap(ac -> ac.getName(), ac -> ac));
+		Map<UUID, ActivityCategoryDTO> activityCategoryDTOsMap = activityCategoryDTOs.stream()
+				.collect(Collectors.toMap(ac -> ac.getID(), ac -> ac));
 
-		activityCategoriesInRepository.stream().filter(ac -> !activityCategoryDTOsMap.containsKey(ac.getName()))
+		activityCategoriesInRepository.stream().filter(ac -> !activityCategoryDTOsMap.containsKey(ac.getID()))
 				.forEach(this::deleteActivityCategory);
 	}
 

@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.rest;
 
@@ -134,7 +131,14 @@ public class GoalController
 			{
 				addEditLink(selfLinkBuilder, goal);
 			}
+			addActivityCategoryLink(goal);
 			return goal;
+		}
+
+		private void addActivityCategoryLink(GoalDTO goalResource)
+		{
+			goalResource.add(ActivityCategoryController.getActivityCategoryLinkBuilder(goalResource.getActivityCategoryID())
+					.withRel("activityCategory"));
 		}
 
 		@Override

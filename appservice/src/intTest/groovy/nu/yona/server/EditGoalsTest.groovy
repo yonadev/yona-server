@@ -17,11 +17,12 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		when:
-		def response = appService.addGoal(richard, BudgetGoal.createInstance("not existing", 60))
+		def notExistingActivityCategoryUrl = SOCIAL_ACT_CAT_URL.substring(0, SOCIAL_ACT_CAT_URL.lastIndexOf('/')) + "/" + UUID.randomUUID()
+		def response = appService.addGoal(richard, BudgetGoal.createInstance(notExistingActivityCategoryUrl, 60))
 
 		then:
 		response.status == 404
-		response.responseData.code == "error.activitycategory.not.found.by.name"
+		response.responseData.code == "error.activitycategory.not.found"
 	}
 
 	def 'Validation: Try to add second goal for activity category'()
@@ -29,7 +30,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		when:
-		def response = appService.addGoal(richard, BudgetGoal.createInstance("gambling", 60))
+		def response = appService.addGoal(richard, BudgetGoal.createInstance(GAMBLING_ACT_CAT_URL, 60))
 
 		then:
 		response.status == 400
@@ -45,12 +46,11 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 200
 		response.responseData._embedded."yona:goals".size() == 2
-		def gamblingGoals = response.responseData._embedded."yona:goals".findAll
-		{ it.activityCategoryName == 'gambling' }
+		def gamblingGoals = filterGoals(response, GAMBLING_ACT_CAT_URL)
 		gamblingGoals.size() == 1
 		gamblingGoals[0]."@type" == "BudgetGoal"
 		!gamblingGoals[0]._links.edit //mandatory goal
-		def newsGoals = response.responseData._embedded."yona:goals".findAll{ it.activityCategoryName == 'news'}
+		def newsGoals = filterGoals(response, NEWS_ACT_CAT_URL)
 		newsGoals.size() == 1
 		newsGoals[0]."@type" == "BudgetGoal"
 		newsGoals[0]._links.edit.href
@@ -63,7 +63,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		when:
-		def addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60), "Going to monitor my social time!")
+		def addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60), "Going to monitor my social time!")
 
 		then:
 		addedGoal
@@ -77,7 +77,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}
 		goalChangeMessages.size() == 1
 		goalChangeMessages[0].change == 'GOAL_ADDED'
-		goalChangeMessages[0].changedGoal.activityCategoryName == 'social'
+		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
@@ -93,7 +93,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		when:
-		def addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance("social", ["11:00-12:00"].toArray()), "Going to restrict my social time!")
+		def addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
 
 		then:
 		addedGoal
@@ -108,7 +108,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}
 		goalChangeMessages.size() == 1
 		goalChangeMessages[0].change == 'GOAL_ADDED'
-		goalChangeMessages[0].changedGoal.activityCategoryName == 'social'
+		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
@@ -123,7 +123,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
-		def addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance("social", 60))
+		def addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60))
 		when:
 		def response = appService.removeGoal(richard, addedGoal, "Don't want to monitor my social time anymore")
 
@@ -138,7 +138,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}
 		goalChangeMessages.size() == 2
 		goalChangeMessages[0].change == 'GOAL_DELETED'
-		goalChangeMessages[0].changedGoal.activityCategoryName == 'social'
+		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
@@ -158,5 +158,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def responseGoalsAfterDelete = appService.getGoals(richard)
 		responseGoalsAfterDelete.status == 200
 		responseGoalsAfterDelete.responseData._embedded."yona:goals".size() == 2
+	}
+
+	def filterGoals(def response, def activityCategoryUrl)
+	{
+		response.responseData._embedded."yona:goals".findAll{ it._links."yona:activityCategory".href == activityCategoryUrl }
 	}
 }

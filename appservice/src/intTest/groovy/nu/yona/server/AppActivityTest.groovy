@@ -52,7 +52,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		goalConflictMessagesRichard.size() == 1
 		goalConflictMessagesRichard[0].nickname == "<self>"
 		assertEquals(goalConflictMessagesRichard[0].creationTime, new Date())
-		goalConflictMessagesRichard[0].activityCategoryName == "gambling"
+		goalConflictMessagesRichard[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
@@ -62,7 +62,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		assertEquals(goalConflictMessagesBob[0].creationTime, new Date())
 		assertEquals(goalConflictMessagesBob[0].activityStartTime, startTime)
 		assertEquals(goalConflictMessagesBob[0].activityEndTime, endTime)
-		goalConflictMessagesBob[0].activityCategoryName == "gambling"
+		goalConflictMessagesBob[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 
 		cleanup:
 		appService.deleteUser(richard)

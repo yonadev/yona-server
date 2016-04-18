@@ -38,7 +38,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import nu.yona.server.analysis.service.GoalConflictMessageDTO;
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.goals.rest.ActivityCategoryController;
+import nu.yona.server.goals.service.GoalChangeMessageDTO;
 import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDTO;
 import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
@@ -226,6 +229,26 @@ public class MessageController
 			{
 				addUserLinkIfAvailable((BuddyMessageLinkedUserDTO) message);
 			}
+			if (message instanceof GoalConflictMessageDTO)
+			{
+				addActivityCategoryLink((GoalConflictMessageDTO) message);
+			}
+			if (message instanceof GoalChangeMessageDTO)
+			{
+				addRelatedActivityCategoryLink((GoalChangeMessageDTO) message);
+			}
+		}
+
+		private void addRelatedActivityCategoryLink(GoalChangeMessageDTO message)
+		{
+			message.add(ActivityCategoryController
+					.getActivityCategoryLinkBuilder(message.getChangedGoal().getActivityCategoryID()).withRel("related"));
+		}
+
+		private void addActivityCategoryLink(GoalConflictMessageDTO message)
+		{
+			message.add(ActivityCategoryController.getActivityCategoryLinkBuilder(message.getActivityCategoryID())
+					.withRel("activityCategory"));
 		}
 
 		private void embedBuddyUserIfAvailable(BuddyMessageEmbeddedUserDTO buddyMessage)

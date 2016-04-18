@@ -5,10 +5,15 @@
 package nu.yona.server.goals.service;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+
+import org.springframework.context.i18n.LocaleContextHolder;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -22,12 +27,22 @@ import nu.yona.server.goals.entities.ActivityCategory;
 public class ActivityCategoryDTO
 {
 	private final UUID id;
-	private final String name;
+	private final Map<Locale, String> name;
 	private boolean mandatoryNoGo;
 	private Set<String> smoothwallCategories;
 	private Set<String> applications;
 
-	private ActivityCategoryDTO(UUID id, String name, boolean mandatory, Set<String> smoothwallCategories,
+	@JsonCreator
+	public ActivityCategoryDTO(@JsonProperty("id") UUID id,
+			@JsonProperty("name") @JsonDeserialize(as = HashMap.class, keyAs = String.class, contentAs = String.class) HashMap<String, String> name,
+			@JsonProperty("mandatoryNoGo") boolean mandatory,
+			@JsonProperty("smoothwallCategories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> smoothwallCategories,
+			@JsonProperty("applications") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> applications)
+	{
+		this(id, mapToLocaleMap(name), mandatory, smoothwallCategories, applications);
+	}
+
+	public ActivityCategoryDTO(UUID id, Map<Locale, String> name, boolean mandatory, Set<String> smoothwallCategories,
 			Set<String> applications)
 	{
 		this.id = id;
@@ -37,12 +52,14 @@ public class ActivityCategoryDTO
 		this.applications = new HashSet<>(applications);
 	}
 
-	@JsonCreator
-	public ActivityCategoryDTO(@JsonProperty("name") String name, @JsonProperty("mandatoryNoGo") boolean mandatory,
-			@JsonProperty("smoothwallCategories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> smoothwallCategories,
-			@JsonProperty("applications") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> applications)
+	private static Map<Locale, String> mapToLocaleMap(Map<String, String> localeStringMap)
 	{
-		this(null, name, mandatory, smoothwallCategories, applications);
+		Map<Locale, String> localeMap = new HashMap<>();
+		for (String languageTag : localeStringMap.keySet())
+		{
+			localeMap.put(Locale.forLanguageTag(languageTag), localeStringMap.get(languageTag));
+		}
+		return localeMap;
 	}
 
 	@JsonIgnore
@@ -53,7 +70,9 @@ public class ActivityCategoryDTO
 
 	public String getName()
 	{
-		return name;
+		String retVal = name.get(LocaleContextHolder.getLocale());
+		assert retVal != null;
+		return retVal;
 	}
 
 	@JsonIgnore
@@ -82,7 +101,7 @@ public class ActivityCategoryDTO
 
 	public ActivityCategory createActivityCategoryEntity()
 	{
-		return ActivityCategory.createInstance(name, mandatoryNoGo, smoothwallCategories, applications);
+		return ActivityCategory.createInstance(id, name, mandatoryNoGo, smoothwallCategories, applications);
 	}
 
 	public ActivityCategory updateActivityCategory(ActivityCategory originalActivityCategoryEntity)

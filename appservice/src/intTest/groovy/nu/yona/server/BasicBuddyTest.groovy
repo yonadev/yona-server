@@ -223,7 +223,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertEquals(richardGoalConflictMessages[0].creationTime, new Date())
 		assertEquals(richardGoalConflictMessages[0].activityStartTime, new Date())
 		assertEquals(richardGoalConflictMessages[0].activityEndTime, new Date())
-		richardGoalConflictMessages[0].activityCategoryName == "news"
+		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		richardGoalConflictMessages[0].url == "http://www.refdag.nl"
 
 		def getMessagesBobResponse = appService.getMessages(bob)
@@ -234,7 +234,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertEquals(bobGoalConflictMessages[0].creationTime, new Date())
 		assertEquals(bobGoalConflictMessages[0].activityStartTime, new Date())
 		assertEquals(bobGoalConflictMessages[0].activityEndTime, new Date())
-		bobGoalConflictMessages[0].activityCategoryName == "news"
+		bobGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		bobGoalConflictMessages[0].url == null
 
 		cleanup:
@@ -279,7 +279,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		richardGoalConflictMessages.size() == 1
 		richardGoalConflictMessages[0].nickname == bob.nickname
-		richardGoalConflictMessages[0].activityCategoryName == "gambling"
+		richardGoalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 		richardGoalConflictMessages[0].url == null
 
 		def getMessagesBobResponse = appService.getMessages(bob)
@@ -287,7 +287,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		bobGoalConflictMessages.size() == 1
 		bobGoalConflictMessages[0].nickname == "<self>"
-		bobGoalConflictMessages[0].activityCategoryName == "gambling"
+		bobGoalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 		bobGoalConflictMessages[0].url == "http://www.poker.com"
 
 		cleanup:
@@ -319,7 +319,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		richardGoalConflictMessages.size() == 1
 		richardGoalConflictMessages[0].nickname == "<self>"
-		richardGoalConflictMessages[0].activityCategoryName == "news"
+		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
@@ -327,7 +327,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		bobGoalConflictMessages.size() == 1
 		bobGoalConflictMessages[0].nickname == "<self>"
-		bobGoalConflictMessages[0].activityCategoryName == "gambling"
+		bobGoalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -420,14 +420,14 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		richardGoalConflictMessages.size() == 1
 		richardGoalConflictMessages[0].nickname == "<self>"
-		richardGoalConflictMessages[0].activityCategoryName == "news"
+		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
 		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		bobGoalConflictMessages.size() == 1
 		bobGoalConflictMessages[0].nickname == "<self>"
-		bobGoalConflictMessages[0].activityCategoryName == "gambling"
+		bobGoalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 
 		cleanup:
 		appService.deleteUser(richard)

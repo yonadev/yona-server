@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -75,15 +76,15 @@ public class ActivityServiceTests
 	@Before
 	public void setUp()
 	{
-		gamblingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance("gambling", false,
-				new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet()));
-		newsGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance("news", false,
+		gamblingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"),
+				false, new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet()));
+		newsGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
 				new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
-		gamingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance("gaming", false,
+		gamingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
 				new HashSet<String>(Arrays.asList("games")), Collections.emptySet()));
-		socialGoal = TimeZoneGoal.createInstance(ActivityCategory.createInstance("social", false,
+		socialGoal = TimeZoneGoal.createInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("social"), false,
 				new HashSet<String>(Arrays.asList("social")), Collections.emptySet()), new String[0]);
-		shoppingGoal = BudgetGoal.createInstance(ActivityCategory.createInstance("shopping", false,
+		shoppingGoal = BudgetGoal.createInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("shopping"), false,
 				new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet()), 1);
 
 		goalMap.put("gambling", gamblingGoal);
@@ -111,6 +112,11 @@ public class ActivityServiceTests
 		// Stub the UserAnonymizedService to return our user.
 		when(mockUserAnonymizedService.getUserAnonymized(userAnonID)).thenReturn(userAnon);
 		when(mockUserAnonymizedService.getUserAnonymizedEntity(userAnonID)).thenReturn(userAnonEntity);
+	}
+
+	private Map<Locale, String> usString(String string)
+	{
+		return Collections.singletonMap(Locale.forLanguageTag("en-US"), string);
 	}
 
 	@Test

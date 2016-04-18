@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
@@ -14,6 +14,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
@@ -38,18 +39,18 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private static final String SELF_NICKNAME = "<self>";
 	private static final String REQUEST_DISCLOSURE = "requestDisclosure";
 	private final String nickname;
-	private final String activityCategoryName;
 	private final String url;
 	private Status status;
 	private final Date activityStartTime;
 	private final Date activityEndTime;
+	private final UUID activityCategoryID;
 
-	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, String activityCategoryName, String url,
+	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, UUID activityCategoryID, String url,
 			Status status, Date activityStartTime, Date activityEndTime)
 	{
 		super(id, creationTime);
 		this.nickname = nickname;
-		this.activityCategoryName = activityCategoryName;
+		this.activityCategoryID = activityCategoryID;
 		this.url = url;
 		this.status = status;
 		this.activityStartTime = activityStartTime;
@@ -83,9 +84,10 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return nickname;
 	}
 
-	public String getActivityCategoryName()
+	@JsonIgnore
+	public UUID getActivityCategoryID()
 	{
-		return activityCategoryName;
+		return activityCategoryID;
 	}
 
 	public Status getStatus()
@@ -117,7 +119,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 	public static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, String nickname)
 	{
 		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), nickname,
-				messageEntity.getGoal().getActivityCategory().getName(),
+				messageEntity.getActivity().getActivityCategory().getID(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null, messageEntity.getStatus(),
 				messageEntity.getActivity().getStartTime(), messageEntity.getActivity().getEndTime());
 	}

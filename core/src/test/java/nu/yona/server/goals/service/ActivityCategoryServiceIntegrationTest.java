@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.junit.Before;
@@ -61,8 +62,8 @@ public class ActivityCategoryServiceIntegrationTest extends ActivityCategoryServ
 	{
 		assertGetAllActivityCategoriesResult("Initial", "gambling", "news");
 
-		ActivityCategory gaming = ActivityCategory.createInstance("gaming", false, new HashSet<String>(Arrays.asList("games")),
-				Collections.emptySet());
+		ActivityCategory gaming = ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
+				new HashSet<String>(Arrays.asList("games")), Collections.emptySet());
 		activityCategories.add(gaming);
 		when(mockRepository.findOne(gaming.getID())).thenReturn(gaming);
 
@@ -72,7 +73,7 @@ public class ActivityCategoryServiceIntegrationTest extends ActivityCategoryServ
 
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after add", "gambling", "news", "gaming");
 
-		gaming.setName("amusement");
+		gaming.setName(usString("amusement"));
 		service.updateActivityCategory(gaming.getID(), ActivityCategoryDTO.createInstance(gaming));
 
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after add", "gambling", "news", "amusement");

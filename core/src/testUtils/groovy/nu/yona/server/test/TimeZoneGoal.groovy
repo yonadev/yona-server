@@ -26,15 +26,15 @@ class TimeZoneGoal extends Goal
 		return """{
 			$selfLinkString,
 			"@type":"TimeZoneGoal",
-			"activityCategoryName":"${activityCategoryName}",
+			"activityCategoryUrl":"${activityCategoryUrl}",
 			"zones":[
 				${zonesString}
 			]
 		}"""
 	}
 
-	public static TimeZoneGoal createInstance(activityCategoryName, zones)
+	public static TimeZoneGoal createInstance(activityCategoryUrl, zones)
 	{
-		new TimeZoneGoal(["activityCategoryName": activityCategoryName, "zones": zones])
+		new TimeZoneGoal(["activityCategoryUrl": activityCategoryUrl, "zones": zones])
 	}
 }
