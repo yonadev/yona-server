@@ -19,10 +19,9 @@ public class TimeZoneGoalDTO extends GoalDTO
 	private final String[] zones;
 
 	@JsonCreator
-	public TimeZoneGoalDTO(@JsonProperty(required = true, value = "activityCategoryUrl") String activityCategoryUrl,
-			@JsonProperty(required = true, value = "zones") String[] zones)
+	public TimeZoneGoalDTO(@JsonProperty(required = true, value = "zones") String[] zones)
 	{
-		super(activityCategoryUrl);
+		super(null);
 
 		this.zones = zones;
 	}
