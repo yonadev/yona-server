@@ -138,12 +138,7 @@ paths:
           description: Message with confirmation code
           required: true
           schema:
-            type: object
-            required:
-              - code
-            properties:
-              code:
-                type: string
+            $ref: '#/definitions/ConfirmationCode'
       tags:
         - User
       responses:
@@ -621,6 +616,94 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  '/users/{userID}/pinResetRequest/request':
+    post:
+      summary: Request pin reset confirmation code
+      description: Post an empty body to this URL to trigger the generation of a pin reset confirmation code
+      parameters:
+        - name: userID
+          in: path
+          description: The ID of the user
+          required: true
+          type: string
+        - name: Yona-Password
+          in: header
+          description: The device password
+          required: true
+          type: string
+      tags:
+        - Pin reset
+      responses:
+        '200':
+          description: Request registered successfully
+          schema:
+            type: object
+            properties:
+              delay:
+                type: string
+                description: Delay till the confirmation code will be sent by text message. The format complies with the ISO-8601 duration format (PnDTnHnMn.nS).
+                example: P1D
+            required:
+              - delay
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/pinResetRequest/verify':
+    post:
+      summary: Verify pin reset confirmation code
+      description: Post the pin reset confirmation code here for verification
+      parameters:
+        - name: userID
+          in: path
+          description: The ID of the user
+          required: true
+          type: string
+        - name: Yona-Password
+          in: header
+          description: The device password
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Message with confirmation code
+          required: true
+          schema:
+          schema:
+            $ref: '#/definitions/ConfirmationCode'
+      tags:
+        - Pin reset
+      responses:
+        '200':
+          description: Confirmation code correct
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/pinResetRequest/clear':
+    post:
+      summary: Clear pin reset confirmation code
+      description: Post an empty body to this URL to clear the pin reset confirmation code
+      parameters:
+        - name: userID
+          in: path
+          description: The ID of the user
+          required: true
+          type: string
+        - name: Yona-Password
+          in: header
+          description: The device password
+          required: true
+          type: string
+      tags:
+        - Pin reset
+      responses:
+        '200':
+          description: Request cleared successfully
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   '/newDeviceRequests/{mobileNumber}':
     parameters:
       - name: mobileNumber
@@ -1020,6 +1103,13 @@ definitions:
           - $ref: '#/definitions/SelfLink'
     required:
       - _links
+  ConfirmationCode:
+    type: object
+    properties:
+      code:
+        type: string
+    required:
+      - code
   PostPutGoal:
     type: object
     discriminator: "@type"

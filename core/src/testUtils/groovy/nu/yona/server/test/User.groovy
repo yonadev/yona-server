@@ -30,6 +30,9 @@ class User
 	final String weeklyActivityReportsUrl
 	final String newDeviceRequestUrl
 	final String appActivityUrl
+	final String pinResetRequestUrl
+	final String verifyPinResetUrl
+	final String clearPinResetUrl
 	final String password
 
 	User(def json, String password)
@@ -71,6 +74,9 @@ class User
 		this.weeklyActivityReportsUrl = json._links?."yona:weeklyActivityReports"?.href
 		this.newDeviceRequestUrl = json._links?."yona:newDeviceRequest"?.href
 		this.appActivityUrl = json._links?."yona:appActivity"?.href
+		this.pinResetRequestUrl = json._links?."yona:requestPinReset"?.href
+		this.verifyPinResetUrl = json._links?."yona:verifyPinReset"?.href
+		this.clearPinResetUrl = json._links?."yona:clearPinReset"?.href
 	}
 
 	def convertToJSON()

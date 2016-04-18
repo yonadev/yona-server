@@ -10,7 +10,6 @@ package nu.yona.server.exceptions;
 public class UserOverwriteConfirmationException extends ConfirmationException
 {
 	private static final long serialVersionUID = -3653199898915579250L;
-	public static final String FAILED_ATTEMPT_MESSAGE_ID = "error.user.overwrite.confirmation.code.mismatch";
 
 	private UserOverwriteConfirmationException(String messageId, Object... parameters)
 	{
@@ -22,7 +21,7 @@ public class UserOverwriteConfirmationException extends ConfirmationException
 		super(t, messageId, parameters);
 	}
 
-	public UserOverwriteConfirmationException(int remainingAttempts, String messageId, Object... parameters)
+	private UserOverwriteConfirmationException(int remainingAttempts, String messageId, Object... parameters)
 	{
 		super(remainingAttempts, messageId, parameters);
 	}
@@ -30,7 +29,8 @@ public class UserOverwriteConfirmationException extends ConfirmationException
 	public static UserOverwriteConfirmationException confirmationCodeMismatch(String mobileNumber, String code,
 			int remainingAttempts)
 	{
-		return new UserOverwriteConfirmationException(remainingAttempts, FAILED_ATTEMPT_MESSAGE_ID, mobileNumber, code);
+		return new UserOverwriteConfirmationException(remainingAttempts, "error.user.overwrite.confirmation.code.mismatch",
+				mobileNumber, code);
 	}
 
 	public static UserOverwriteConfirmationException confirmationCodeNotSet(String mobileNumber)

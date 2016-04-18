@@ -49,6 +49,7 @@ dependencies {
 	compile("com.google.guava:guava:18.0")
 
 	runtime("org.hsqldb:hsqldb")
+	runtime("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.3")
 	providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
 
 	testCompile project(path: ':core', configuration: 'testUtils')
