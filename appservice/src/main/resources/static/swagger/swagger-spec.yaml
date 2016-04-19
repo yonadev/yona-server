@@ -669,7 +669,6 @@ paths:
           description: Message with confirmation code
           required: true
           schema:
-          schema:
             $ref: '#/definitions/ConfirmationCode'
       tags:
         - Pin reset
@@ -947,6 +946,9 @@ definitions:
     type: object
     properties:
       "yona:activityCategory":
+        type: object
+        required:
+          - href
         properties:
           href:
             type: string
@@ -1158,9 +1160,6 @@ definitions:
         - BudgetGoal
         - TimeZoneGoal
         description: The type of goal
-    required:
-    - "@type"
-    properties:
       _links:
         allOf:
           - $ref: '#/definitions/Curies'
@@ -1168,6 +1167,7 @@ definitions:
           - $ref: '#/definitions/EditLink'
           - $ref: '#/definitions/ActivityCategoryLink'
     required:
+      - "@type"
       - _links
   VPNProfile:
     type: object
