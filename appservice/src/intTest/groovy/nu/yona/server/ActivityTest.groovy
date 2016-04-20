@@ -7,6 +7,10 @@
 package nu.yona.server
 
 import groovy.json.*
+
+import java.time.ZoneId
+import java.time.ZonedDateTime
+
 import nu.yona.server.test.TimeZoneGoal
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
@@ -28,6 +32,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded."yona:dayActivityOverviews"
 		response.responseData._embedded."yona:dayActivityOverviews".size() == 1
 		def dayActivityOverview = response.responseData._embedded."yona:dayActivityOverviews"[0]
+		dayActivityOverview.date =~ /\d{4}\-\d{2}\-\d{2}/
 		dayActivityOverview._embedded."yona:dayActivities"
 		dayActivityOverview._embedded."yona:dayActivities".size() == 2
 		def dayActivityForBudgetGoal = dayActivityOverview._embedded."yona:dayActivities".find{ it._links."yona:goal".href != timeZoneGoal.url}
@@ -36,7 +41,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		dayActivityForBudgetGoal.totalActivityDurationMinutes == 1
 		dayActivityForBudgetGoal.goalAccomplished == false
 		dayActivityForBudgetGoal.totalMinutesBeyondGoal == 1
-		dayActivityForBudgetGoal.date =~ /\d{4}\-\d{2}\-\d{2}/
+		!dayActivityForBudgetGoal.date
 		dayActivityForBudgetGoal.timeZoneId == "Europe/Amsterdam"
 		dayActivityForBudgetGoal._links."yona:goal"
 		dayActivityForBudgetGoal._links.self
@@ -81,6 +86,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
+		def dateTime = ZonedDateTime.now(ZoneId.of("Europe/Amsterdam"))
 		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
 
 		when:
@@ -92,23 +98,24 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded."yona:weekActivityOverviews"
 		response.responseData._embedded."yona:weekActivityOverviews".size() == 1
 		def weekActivityOverview = response.responseData._embedded."yona:weekActivityOverviews"[0]
+		weekActivityOverview.date =~ /\d{4}\-W\d{2}/
 		weekActivityOverview._embedded."yona:weekActivities"
 		weekActivityOverview._embedded."yona:weekActivities".size() == 1
 		def weekActivityForGoal = weekActivityOverview._embedded."yona:weekActivities"[0]
 		!weekActivityForGoal.spread //only in detail
 		!weekActivityForGoal.totalActivityDurationMinutes //only in detail
 		!weekActivityForGoal.totalMinutesBeyondGoal //only for day
-		weekActivityForGoal.date =~ /\d{4}\-W\d{2}/
+		!weekActivityForGoal.date
 		weekActivityForGoal.timeZoneId == "Europe/Amsterdam"
 		weekActivityForGoal._links."yona:goal"
-		weekActivityForGoal._embedded."yona:dayActivities"
-		weekActivityForGoal._embedded."yona:dayActivities".size() == 1
-		def dayActivityForGoal = weekActivityForGoal._embedded."yona:dayActivities"[0]
+		weekActivityForGoal._embedded[dateTime.getDayOfWeek().toString()]
+		weekActivityForGoal._embedded.size() == 1
+		def dayActivityForGoal = weekActivityForGoal._embedded[dateTime.getDayOfWeek().toString()]
 		!dayActivityForGoal.spread //only in detail
 		dayActivityForGoal.totalActivityDurationMinutes == 1
 		dayActivityForGoal.goalAccomplished == false
 		dayActivityForGoal.totalMinutesBeyondGoal == 1
-		dayActivityForGoal.date =~ /\d{4}\-\d{2}\-\d{2}/
+		!weekActivityForGoal.date
 		dayActivityForGoal.timeZoneId == "Europe/Amsterdam"
 		!dayActivityForGoal._links."yona:goal" //already present on week
 	}
@@ -117,6 +124,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
+		def dateTime = ZonedDateTime.now(ZoneId.of("Europe/Amsterdam"))
 		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
 
 		when:
@@ -138,14 +146,14 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		response.responseData.date =~ /\d{4}\-W\d{2}/
 		response.responseData.timeZoneId == "Europe/Amsterdam"
 		response.responseData._links."yona:goal"
-		response.responseData._embedded."yona:dayActivities"
-		response.responseData._embedded."yona:dayActivities".size() == 1
-		def dayActivityForGoal = response.responseData._embedded."yona:dayActivities"[0]
+		response.responseData._embedded[dateTime.getDayOfWeek().toString()]
+		response.responseData._embedded.size() == 1
+		def dayActivityForGoal = response.responseData._embedded[dateTime.getDayOfWeek().toString()]
 		!dayActivityForGoal.spread //only in detail
 		dayActivityForGoal.totalActivityDurationMinutes == 1
 		dayActivityForGoal.goalAccomplished == false
 		dayActivityForGoal.totalMinutesBeyondGoal == 1
-		dayActivityForGoal.date =~ /\d{4}\-\d{2}\-\d{2}/
+		!dayActivityForGoal.date
 		dayActivityForGoal.timeZoneId == "Europe/Amsterdam"
 		!dayActivityForGoal._links."yona:goal" //already present on week
 	}

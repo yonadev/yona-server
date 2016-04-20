@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.WeekFields;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -19,13 +20,13 @@ import nu.yona.server.analysis.entities.WeekActivity;
 @JsonRootName("weekActivity")
 public class WeekActivityDTO extends IntervalActivityDTO
 {
-	private static final DateTimeFormatter ISO8601_WEEK_FORMATTER = new DateTimeFormatterBuilder().appendPattern("YYYY-'W'w")
+	static final DateTimeFormatter ISO8601_WEEK_FORMATTER = new DateTimeFormatterBuilder().appendPattern("YYYY-'W'w")
 			.parseDefaulting(WeekFields.ISO.dayOfWeek(), DayOfWeek.SUNDAY.getValue()).toFormatter();
 
-	private List<DayActivityDTO> dayActivities;
+	private Map<DayOfWeek, DayActivityDTO> dayActivities;
 
 	private WeekActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
-			Optional<Integer> totalActivityDurationMinutes, List<DayActivityDTO> dayActivities)
+			Optional<Integer> totalActivityDurationMinutes, Map<DayOfWeek, DayActivityDTO> dayActivities)
 	{
 		super(goalID, startTime, shouldSerializeDate, spread, totalActivityDurationMinutes);
 		this.dayActivities = dayActivities;
@@ -37,7 +38,7 @@ public class WeekActivityDTO extends IntervalActivityDTO
 		return ISO8601_WEEK_FORMATTER;
 	}
 
-	public List<DayActivityDTO> getDayActivities()
+	public Map<DayOfWeek, DayActivityDTO> getDayActivities()
 	{
 		return dayActivities;
 	}
@@ -54,7 +55,7 @@ public class WeekActivityDTO extends IntervalActivityDTO
 				includeDetail ? weekActivity.getSpread() : Collections.emptyList(),
 				includeDetail ? Optional.of(weekActivity.getTotalActivityDurationMinutes()) : Optional.empty(),
 				weekActivity.getDayActivities().stream()
-						.map(dayActivity -> DayActivityDTO.createInstance(dayActivity, levelOfDetail))
-						.collect(Collectors.toList()));
+						.collect(Collectors.toMap(dayActivity -> dayActivity.getDate().getDayOfWeek(),
+								dayActivity -> DayActivityDTO.createInstance(dayActivity, levelOfDetail))));
 	}
 }

@@ -13,6 +13,7 @@ import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public abstract class IntervalActivityDTO
 {
@@ -45,15 +46,25 @@ public abstract class IntervalActivityDTO
 	}
 
 	/*
-	 * The ISO-8601 week or day date.
+	 * The ISO-8601 week or day date, or {null} if it should not be serialized.
 	 */
 	@JsonInclude(Include.NON_EMPTY)
-	public String getDate()
+	@JsonProperty("date")
+	public String getDateIfRequired()
 	{
 		if (!shouldSerializeDate)
 		{
 			return null;
 		}
+		return getDate();
+	}
+
+	/*
+	 * The ISO-8601 week or day date.
+	 */
+	@JsonIgnore
+	public String getDate()
+	{
 		return getStartTime().toLocalDate().format(getDateFormatter());
 	}
 

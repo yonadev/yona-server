@@ -4,12 +4,14 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -89,9 +91,9 @@ public class ActivityController
 			@PathVariable(value = "week") String weekStr, @PathVariable(value = "goalID") UUID goalID)
 	{
 		LocalDate date = WeekActivityDTO.parseDate(weekStr);
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> new ResponseEntity<>(new WeekActivityResourceAssembler(curieProvider, userID)
-						.toResource(activityService.getWeekActivityDetail(userID, date, goalID)), HttpStatus.OK));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> new ResponseEntity<>(
+				new WeekActivityResourceAssembler(userID).toResource(activityService.getWeekActivityDetail(userID, date, goalID)),
+				HttpStatus.OK));
 	}
 
 	@RequestMapping(value = "/days/{date}/details/{goalID}", method = RequestMethod.GET)
@@ -131,23 +133,20 @@ public class ActivityController
 
 	static class WeekActivityResource extends Resource<WeekActivityDTO>
 	{
-		private final CurieProvider curieProvider;
 		private final UUID userID;
 
-		public WeekActivityResource(CurieProvider curieProvider, UUID userID, WeekActivityDTO weekActivity)
+		public WeekActivityResource(UUID userID, WeekActivityDTO weekActivity)
 		{
 			super(weekActivity);
-			this.curieProvider = curieProvider;
 			this.userID = userID;
 		}
 
 		@JsonProperty("_embedded")
-		public Map<String, List<DayActivityResource>> getEmbeddedResources()
+		public Map<DayOfWeek, DayActivityResource> getEmbeddedResources()
 		{
-			HashMap<String, List<DayActivityResource>> result = new HashMap<String, List<DayActivityResource>>();
-			result.put(curieProvider.getNamespacedRelFor("dayActivities"),
-					new DayActivityResourceAssembler(userID, false).toResources(getContent().getDayActivities()));
-			return result;
+			DayActivityResourceAssembler a = new DayActivityResourceAssembler(userID, false);
+			return getContent().getDayActivities().entrySet().stream()
+					.collect(Collectors.toMap(e -> e.getKey(), e -> a.toResource(e.getValue())));
 		}
 	}
 
@@ -169,7 +168,7 @@ public class ActivityController
 		{
 			HashMap<String, List<WeekActivityResource>> result = new HashMap<String, List<WeekActivityResource>>();
 			result.put(curieProvider.getNamespacedRelFor("weekActivities"),
-					new WeekActivityResourceAssembler(curieProvider, userID).toResources(getContent().getWeekActivities()));
+					new WeekActivityResourceAssembler(userID).toResources(getContent().getWeekActivities()));
 			return result;
 		}
 	}
@@ -201,7 +200,7 @@ public class ActivityController
 		{
 			HashMap<String, List<DayActivityResource>> result = new HashMap<String, List<DayActivityResource>>();
 			result.put(curieProvider.getNamespacedRelFor("dayActivities"),
-					new DayActivityResourceAssembler(userID, true).toResources(getContent().getWeekActivities()));
+					new DayActivityResourceAssembler(userID, true).toResources(getContent().getDayActivities()));
 			return result;
 		}
 	}
@@ -235,13 +234,11 @@ public class ActivityController
 
 	static class WeekActivityResourceAssembler extends ResourceAssemblerSupport<WeekActivityDTO, WeekActivityResource>
 	{
-		private final CurieProvider curieProvider;
 		private final UUID userID;
 
-		public WeekActivityResourceAssembler(CurieProvider curieProvider, UUID userID)
+		public WeekActivityResourceAssembler(UUID userID)
 		{
 			super(ActivityController.class, WeekActivityResource.class);
-			this.curieProvider = curieProvider;
 			this.userID = userID;
 		}
 
@@ -257,7 +254,7 @@ public class ActivityController
 		@Override
 		protected WeekActivityResource instantiateResource(WeekActivityDTO weekActivity)
 		{
-			return new WeekActivityResource(curieProvider, userID, weekActivity);
+			return new WeekActivityResource(userID, weekActivity);
 		}
 
 		private void addSelfLink(WeekActivityResource weekActivityResource)

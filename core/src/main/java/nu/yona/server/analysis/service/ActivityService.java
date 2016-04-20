@@ -42,9 +42,10 @@ public class ActivityService
 		Set<WeekActivity> weekActivityEntities = WeekActivity.getRepository().findAll(userAnonymizedID, dateUntil, dateFrom);
 		Map<LocalDate, Set<WeekActivity>> weekActivityEntitiesByDate = weekActivityEntities.stream()
 				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
-		return new PageImpl<WeekActivityOverviewDTO>(weekActivityEntitiesByDate.entrySet().stream()
-				.map(e -> WeekActivityOverviewDTO.createInstance(e.getValue())).collect(Collectors.toList()), pageable,
-				yonaProperties.getAnalysisService().getWeeksActivityMemory());
+		return new PageImpl<WeekActivityOverviewDTO>(
+				weekActivityEntitiesByDate.entrySet().stream()
+						.map(e -> WeekActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
+				pageable, yonaProperties.getAnalysisService().getWeeksActivityMemory());
 	}
 
 	public Page<DayActivityOverviewDTO> getDayActivityOverviews(UUID userID, Pageable pageable)
@@ -56,9 +57,10 @@ public class ActivityService
 		Set<DayActivity> datActivityEntities = DayActivity.getRepository().findAll(userAnonymizedID, dateUntil, dateFrom);
 		Map<LocalDate, Set<DayActivity>> dayActivityEntitiesByDate = datActivityEntities.stream()
 				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
-		return new PageImpl<DayActivityOverviewDTO>(dayActivityEntitiesByDate.entrySet().stream()
-				.map(e -> DayActivityOverviewDTO.createInstance(e.getValue())).collect(Collectors.toList()), pageable,
-				yonaProperties.getAnalysisService().getDaysActivityMemory());
+		return new PageImpl<DayActivityOverviewDTO>(
+				dayActivityEntitiesByDate.entrySet().stream()
+						.map(e -> DayActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
+				pageable, yonaProperties.getAnalysisService().getDaysActivityMemory());
 	}
 
 	public WeekActivityDTO getWeekActivityDetail(UUID userID, LocalDate date, UUID goalID)
