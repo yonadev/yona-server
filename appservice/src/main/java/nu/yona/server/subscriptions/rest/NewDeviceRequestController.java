@@ -10,7 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
+import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,10 +28,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import nu.yona.server.crypto.CryptoException;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.rest.Constants;
-import nu.yona.server.subscriptions.rest.UserController.NewDeviceRequestResource;
+import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.subscriptions.rest.NewDeviceRequestController.NewDeviceRequestResource;
+import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.DeviceRequestException;
 import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
 import nu.yona.server.subscriptions.service.NewDeviceRequestService;
+import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 import nu.yona.server.subscriptions.service.UserServiceException;
 
@@ -56,7 +61,8 @@ public class NewDeviceRequestController
 			userService.validateMobileNumber(mobileNumber);
 			UUID userID = userService.getUserByMobileNumber(mobileNumber).getID();
 			checkPassword(password, userID);
-			newDeviceRequestService.setNewDeviceRequestForUser(userID, password.get(), newDeviceRequestCreation.getNewDeviceRequestPassword());
+			newDeviceRequestService.setNewDeviceRequestForUser(userID, password.get(),
+					newDeviceRequestCreation.getNewDeviceRequestPassword());
 		}
 		catch (UserServiceException e)
 		{
@@ -75,10 +81,9 @@ public class NewDeviceRequestController
 		try
 		{
 			userService.validateMobileNumber(mobileNumber);
-			UUID userID = userService.getUserByMobileNumber(mobileNumber).getID();
-			return createNewDeviceRequestResponse(
-					newDeviceRequestService.getNewDeviceRequestForUser(userID, newDeviceRequestPassword),
-					getNewDeviceRequestLinkBuilder(mobileNumber), HttpStatus.OK);
+			UserDTO user = userService.getUserByMobileNumber(mobileNumber);
+			return createNewDeviceRequestResponse(user,
+					newDeviceRequestService.getNewDeviceRequestForUser(user.getID(), newDeviceRequestPassword), HttpStatus.OK);
 		}
 		catch (UserServiceException e)
 		{
@@ -112,16 +117,69 @@ public class NewDeviceRequestController
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> null);
 	}
 
-	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(NewDeviceRequestDTO newDeviceRequest,
-			ControllerLinkBuilder entityLinkBuilder, HttpStatus statusCode)
+	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(UserDTO user,
+			NewDeviceRequestDTO newDeviceRequest, HttpStatus statusCode)
 	{
-		return new ResponseEntity<NewDeviceRequestResource>(new NewDeviceRequestResource(newDeviceRequest, entityLinkBuilder),
-				statusCode);
+		return new ResponseEntity<NewDeviceRequestResource>(
+				new NewDeviceRequestResourceAssembler(user).toResource(newDeviceRequest), statusCode);
 	}
 
 	static ControllerLinkBuilder getNewDeviceRequestLinkBuilder(String mobileNumber)
 	{
 		NewDeviceRequestController methodOn = methodOn(NewDeviceRequestController.class);
 		return linkTo(methodOn.getNewDeviceRequestForUser(null, mobileNumber));
+	}
+
+	public static class NewDeviceRequestResource extends Resource<NewDeviceRequestDTO>
+	{
+		public NewDeviceRequestResource(NewDeviceRequestDTO newDeviceRequest)
+		{
+			super(newDeviceRequest);
+		}
+	}
+
+	public static class NewDeviceRequestResourceAssembler
+			extends ResourceAssemblerSupport<NewDeviceRequestDTO, NewDeviceRequestResource>
+	{
+		private UserDTO user;
+
+		public NewDeviceRequestResourceAssembler(UserDTO user)
+		{
+			super(NewDeviceRequestController.class, NewDeviceRequestResource.class);
+			this.user = user;
+		}
+
+		@Override
+		public NewDeviceRequestResource toResource(NewDeviceRequestDTO newDeviceRequest)
+		{
+			NewDeviceRequestResource newDeviceRequestResource = instantiateResource(newDeviceRequest);
+			addSelfLink(newDeviceRequestResource);
+			addEditLink(newDeviceRequestResource);/* always editable */
+			addUserLink(newDeviceRequestResource);
+			return newDeviceRequestResource;
+		}
+
+		@Override
+		protected NewDeviceRequestResource instantiateResource(NewDeviceRequestDTO newDeviceRequest)
+		{
+			return new NewDeviceRequestResource(newDeviceRequest);
+		}
+
+		private void addSelfLink(Resource<NewDeviceRequestDTO> newDeviceRequestResource)
+		{
+			newDeviceRequestResource
+					.add(NewDeviceRequestController.getNewDeviceRequestLinkBuilder(user.getMobileNumber()).withSelfRel());
+		}
+
+		private void addEditLink(Resource<NewDeviceRequestDTO> newDeviceRequestResource)
+		{
+			newDeviceRequestResource.add(NewDeviceRequestController.getNewDeviceRequestLinkBuilder(user.getMobileNumber())
+					.withRel(JsonRootRelProvider.EDIT_REL));
+		}
+
+		private void addUserLink(Resource<NewDeviceRequestDTO> newDeviceRequestResource)
+		{
+			newDeviceRequestResource.add(UserController.getPrivateUserLink(BuddyDTO.USER_REL_NAME, user.getID()));
+		}
 	}
 }

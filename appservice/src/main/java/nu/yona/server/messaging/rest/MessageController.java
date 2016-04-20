@@ -266,7 +266,7 @@ public class MessageController
 			UserDTO user = buddyMessage.getUser();
 			if (user != null)
 			{
-				buddyMessage.add(UserController.getUserLink(BuddyDTO.USER_REL_NAME, user.getID()));
+				buddyMessage.add(UserController.getPublicUserLink(BuddyDTO.USER_REL_NAME, user.getID()));
 			}
 		}
 	}

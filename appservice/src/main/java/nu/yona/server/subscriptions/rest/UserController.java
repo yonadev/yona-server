@@ -61,7 +61,6 @@ import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDTO;
-import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -211,15 +210,6 @@ public class UserController
 		return linkTo(methodOn.confirmMobileNumber(Optional.empty(), userID, null));
 	}
 
-	public static class NewDeviceRequestResource extends Resource<NewDeviceRequestDTO>
-	{
-		public NewDeviceRequestResource(NewDeviceRequestDTO newDeviceRequest, ControllerLinkBuilder entityLinkBuilder)
-		{
-			super(newDeviceRequest, entityLinkBuilder.withSelfRel(),
-					entityLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL) /* always editable */);
-		}
-	}
-
 	private HttpEntity<UserResource> addUser(Optional<String> password, Optional<String> overwriteUserConfirmationCode,
 			UserDTO user)
 	{
@@ -299,9 +289,15 @@ public class UserController
 		return linkBuilder.withSelfRel();
 	}
 
-	public static Link getUserLink(String rel, UUID userID)
+	public static Link getPublicUserLink(String rel, UUID userID)
 	{
 		return linkTo(methodOn(UserController.class).getPublicUser(Optional.empty(), userID)).withRel(rel);
+	}
+
+	public static Link getPrivateUserLink(String rel, UUID userID)
+	{
+		return linkTo(methodOn(UserController.class).getUser(Optional.empty(), null, Boolean.TRUE.toString(), userID))
+				.withRel(rel);
 	}
 
 	static class UserResource extends Resource<UserDTO>
