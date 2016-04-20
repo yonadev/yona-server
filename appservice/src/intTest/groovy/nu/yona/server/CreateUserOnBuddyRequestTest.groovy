@@ -265,7 +265,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		richardGoalConflictMessages.size() == 1
 		richardGoalConflictMessages[0].nickname == "<self>"
-		richardGoalConflictMessages[0].activityCategoryName == "news"
+		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		richardGoalConflictMessages[0].url == "http://www.refdag.nl"
 
 		def getMessagesBobResponse = appService.getMessages(updatedBob)
@@ -273,7 +273,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		bobGoalConflictMessages.size() == 1
 		bobGoalConflictMessages[0].nickname == richard.nickname
-		bobGoalConflictMessages[0].activityCategoryName == "news"
+		bobGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		bobGoalConflictMessages[0].url == null
 
 		cleanup:

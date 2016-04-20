@@ -5,22 +5,32 @@ import static org.junit.Assert.assertThat;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Locale;
+import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.DayActivity;
+import nu.yona.server.goals.entities.ActivityCategory;
+import nu.yona.server.goals.entities.BudgetGoal;
 
 public class DayActivityTests
 {
 	private ZoneId testZone;
 
+	private BudgetGoal goal;
+
 	@Before
 	public void setUp()
 	{
 		testZone = ZoneId.of("Europe/Amsterdam");
+		ActivityCategory activityCategory = ActivityCategory.createInstance(UUID.randomUUID(),
+				Collections.singletonMap(Locale.US, "being bored"), false, Collections.emptySet(), Collections.emptySet());
+		goal = BudgetGoal.createInstance(activityCategory, 60);
 	}
 
 	private ZonedDateTime getZonedDateTime(int hour, int minute, int second)
@@ -30,7 +40,7 @@ public class DayActivityTests
 
 	private DayActivity createDayActivity()
 	{
-		return DayActivity.createInstance(null, null, getZonedDateTime(0, 0, 0));
+		return DayActivity.createInstance(null, goal, getZonedDateTime(0, 0, 0));
 	}
 
 	private Date getDate(int hour, int minute)

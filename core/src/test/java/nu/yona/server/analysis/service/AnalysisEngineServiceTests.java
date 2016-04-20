@@ -1,13 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
@@ -19,12 +18,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -42,6 +45,7 @@ import org.mockito.stubbing.Answer;
 
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.DayActivity;
+import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.crypto.PublicKeyUtil;
 import nu.yona.server.goals.entities.ActivityCategory;
@@ -74,6 +78,8 @@ public class AnalysisEngineServiceTests
 	private YonaProperties mockYonaProperties;
 	@Mock
 	private AnalysisEngineCacheService mockAnalysisEngineCacheService;
+	@Mock
+	private DayActivityRepository mockDayActivityRepository;
 	@InjectMocks
 	private AnalysisEngineService service = new AnalysisEngineService();
 
@@ -86,18 +92,21 @@ public class AnalysisEngineServiceTests
 	private UUID userAnonID;
 	private UserAnonymized userAnonEntity;
 
+	private ZoneId userAnonZoneId;
+
 	@Before
 	public void setUp()
 	{
-		gamblingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance("gambling", false,
-				new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet()));
-		newsGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance("news", false,
+		gamblingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"),
+				false, new HashSet<String>(Arrays.asList("poker", "lotto")),
+				new HashSet<String>(Arrays.asList("Poker App", "Lotto App"))));
+		newsGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
 				new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
-		gamingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance("gaming", false,
+		gamingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
 				new HashSet<String>(Arrays.asList("games")), Collections.emptySet()));
-		socialGoal = TimeZoneGoal.createInstance(ActivityCategory.createInstance("social", false,
+		socialGoal = TimeZoneGoal.createInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("social"), false,
 				new HashSet<String>(Arrays.asList("social")), Collections.emptySet()), new String[0]);
-		shoppingGoal = BudgetGoal.createInstance(ActivityCategory.createInstance("shopping", false,
+		shoppingGoal = BudgetGoal.createInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("shopping"), false,
 				new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet()), 1);
 
 		goalMap.put("gambling", gamblingGoal);
@@ -123,19 +132,36 @@ public class AnalysisEngineServiceTests
 								.collect(Collectors.toSet());
 					}
 				});
+		when(mockActivityCategoryService.getMatchingCategoriesForApp(any(String.class)))
+				.thenAnswer(new Answer<Set<ActivityCategoryDTO>>() {
+					@Override
+					public Set<ActivityCategoryDTO> answer(InvocationOnMock invocation) throws Throwable
+					{
+						Object[] args = invocation.getArguments();
+						String application = (String) args[0];
+						return getAllActivityCategories().stream().filter(ac -> ac.getApplications().contains(application))
+								.collect(Collectors.toSet());
+					}
+				});
 
 		// Set up UserAnonymized instance.
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
-		anonMessageDestination = new MessageDestinationDTO(anonMessageDestinationEntity.getID());
 		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		UserAnonymizedDTO userAnon = UserAnonymizedDTO.createInstance(userAnonEntity);
+		anonMessageDestination = userAnon.getAnonymousDestination();
 		userAnonID = userAnon.getID();
+		userAnonZoneId = ZoneId.of(userAnon.getTimeZoneId());
 
-		// Stub the UserAnonymizedRepository to return our user.
+		// Stub the UserAnonymizedService to return our user.
 		when(mockUserAnonymizedService.getUserAnonymized(userAnonID)).thenReturn(userAnon);
 		when(mockUserAnonymizedService.getUserAnonymizedEntity(userAnonID)).thenReturn(userAnonEntity);
+	}
+
+	private Map<Locale, String> usString(String string)
+	{
+		return Collections.singletonMap(Locale.forLanguageTag("en-US"), string);
 	}
 
 	private Set<ActivityCategoryDTO> getAllActivityCategories()
@@ -167,7 +193,8 @@ public class AnalysisEngineServiceTests
 		p.setConflictInterval(10L);
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
-		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, ZonedDateTime.now());
+		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal,
+				ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS));
 		Activity earlierActivity = Activity.createInstance(new Date(), new Date());
 		dayActivity.addActivity(earlierActivity);
 		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
@@ -289,7 +316,8 @@ public class AnalysisEngineServiceTests
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
 		Date t = new Date();
-		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, ZonedDateTime.now());
+		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal,
+				ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS));
 		Activity earlierActivity = Activity.createInstance(t, t);
 		dayActivity.addActivity(earlierActivity);
 		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
@@ -375,5 +403,94 @@ public class AnalysisEngineServiceTests
 
 		verifyActivityUpdate(socialGoal);
 		verifyNoMessagesCreated();
+	}
+
+	@Test
+	public void activityOnNewDay()
+	{
+		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
+
+		DayActivity earlierDayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal,
+				now.minusDays(1).truncatedTo(ChronoUnit.DAYS));
+		Date earlierActivityTime = Date.from(now.minusDays(1).toInstant());
+		Activity earlierActivity = Activity.createInstance(earlierActivityTime, earlierActivityTime);
+		earlierDayActivity.addActivity(earlierActivity);
+		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
+				.thenReturn(earlierDayActivity);
+
+		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+
+		// Verify that there is a new conflict message sent.
+		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
+		// Verify that a new day was cached.
+		ArgumentCaptor<DayActivity> newDayActivity = ArgumentCaptor.forClass(DayActivity.class);
+		verify(mockAnalysisEngineCacheService, times(1)).updateDayActivityForUser(newDayActivity.capture());
+		assertThat("Expect new day", newDayActivity.getValue(), not(equalTo(earlierDayActivity)));
+		assertThat("Expect right date", newDayActivity.getValue().getStartTime(), equalTo(now.truncatedTo(ChronoUnit.DAYS)));
+		assertThat("Expect activity added", newDayActivity.getValue().getLastActivity(), notNullValue());
+	}
+
+	@Test
+	public void appActivityPrecedingLastCachedActivity()
+	{
+		// TODO
+	}
+
+	@Test
+	public void appActivityPrecedingCachedDayActivity()
+	{
+		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
+		ZonedDateTime yesterdayTime = now.minusDays(1);
+
+		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, now.truncatedTo(ChronoUnit.DAYS));
+		Date earlierActivityTime = Date.from(now.toInstant());
+		Activity earlierActivity = Activity.createInstance(earlierActivityTime, earlierActivityTime);
+		dayActivity.addActivity(earlierActivity);
+		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
+				.thenReturn(dayActivity);
+
+		Date startTime = Date.from(yesterdayTime.minusMinutes(10).toInstant());
+		Date endTime = Date.from(yesterdayTime.toInstant());
+		service.analyze(userAnonID, new AppActivityDTO[] { new AppActivityDTO("Poker App", startTime, endTime) });
+
+		// Verify that there is a new conflict message sent.
+		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
+		// Verify that a database lookup was done for yesterday
+		verify(mockDayActivityRepository, times(1)).findOne(userAnonID, yesterdayTime.toLocalDate(), gamblingGoal.getID());
+		// Verify that yesterday was inserted in the database
+		ArgumentCaptor<DayActivity> precedingDayActivity = ArgumentCaptor.forClass(DayActivity.class);
+		verify(mockDayActivityRepository, times(1)).save(precedingDayActivity.capture());
+		assertThat("Expect right date", precedingDayActivity.getValue().getStartTime(),
+				equalTo(yesterdayTime.truncatedTo(ChronoUnit.DAYS)));
+		assertThat("Expect activity added", precedingDayActivity.getValue().getLastActivity(), notNullValue());
+		// Verify that the day preceding the cached day was not cached!
+		verify(mockAnalysisEngineCacheService, never()).updateDayActivityForUser(any());
+	}
+
+	@Test
+	public void crossDayActivity()
+	{
+		Date startTime = Date.from(ZonedDateTime.of(2016, 4, 5, 19, 39, 0, 0, userAnonZoneId).toInstant());
+		Date endTime = Date.from(ZonedDateTime.of(2016, 4, 6, 1, 00, 0, 0, userAnonZoneId).toInstant());
+		service.analyze(userAnonID, new AppActivityDTO[] { new AppActivityDTO("Poker App", startTime, endTime) });
+
+		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
+		verify(mockAnalysisEngineCacheService, times(2)).updateDayActivityForUser(dayActivity.capture());
+
+		DayActivity firstDay = dayActivity.getAllValues().get(0);
+		DayActivity nextDay = dayActivity.getAllValues().get(1);
+		assertThat(firstDay.getDate(), equalTo(LocalDate.of(2016, 4, 5)));
+		assertThat(nextDay.getDate(), equalTo(LocalDate.of(2016, 4, 6)));
+
+		Activity firstPart = firstDay.getLastActivity();
+		Activity nextPart = nextDay.getLastActivity();
+
+		assertThat(firstPart.getStartTime(), equalTo(startTime));
+		assertThat(firstPart.getEndTime(),
+				equalTo(Date.from(ZonedDateTime.of(2016, 4, 5, 23, 59, 59, 0, userAnonZoneId).toInstant())));
+		assertThat(nextPart.getStartTime(),
+				equalTo(Date.from(ZonedDateTime.of(2016, 4, 6, 0, 0, 0, 0, userAnonZoneId).toInstant())));
+		assertThat(nextPart.getEndTime(), equalTo(endTime));
 	}
 }

@@ -61,7 +61,6 @@ import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDTO;
-import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -89,6 +88,9 @@ public class UserController
 
 	@Autowired
 	private GlobalExceptionMapping globalExceptionMapping;
+
+	@Autowired
+	private PinResetRequestController pinResetRequestController;
 
 	@RequestMapping(value = "/{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
@@ -167,7 +169,7 @@ public class UserController
 	@ResponseBody
 	public HttpEntity<UserResource> confirmMobileNumber(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
-			@RequestBody MobileNumberConfirmationDTO mobileNumberConfirmation)
+			@RequestBody ConfirmationCodeDTO mobileNumberConfirmation)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
 				() -> createOKResponse(userService.confirmMobileNumber(id, mobileNumberConfirmation.getCode()), true));
@@ -208,15 +210,6 @@ public class UserController
 		return linkTo(methodOn.confirmMobileNumber(Optional.empty(), userID, null));
 	}
 
-	public static class NewDeviceRequestResource extends Resource<NewDeviceRequestDTO>
-	{
-		public NewDeviceRequestResource(NewDeviceRequestDTO newDeviceRequest, ControllerLinkBuilder entityLinkBuilder)
-		{
-			super(newDeviceRequest, entityLinkBuilder.withSelfRel(),
-					entityLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL) /* always editable */);
-		}
-	}
-
 	private HttpEntity<UserResource> addUser(Optional<String> password, Optional<String> overwriteUserConfirmationCode,
 			UserDTO user)
 	{
@@ -252,8 +245,8 @@ public class UserController
 			Set<BuddyDTO> buddies = buddyService.getBuddiesOfUser(user.getID());
 			user.getPrivateData().setBuddies(buddies);
 		}
-		return new ResponseEntity<UserResource>(new UserResourceAssembler(curieProvider, includePrivateData).toResource(user),
-				status);
+		return new ResponseEntity<UserResource>(
+				new UserResourceAssembler(curieProvider, pinResetRequestController, includePrivateData).toResource(user), status);
 	}
 
 	private HttpEntity<UserResource> createOKResponse(UserDTO user, boolean includePrivateData)
@@ -296,9 +289,15 @@ public class UserController
 		return linkBuilder.withSelfRel();
 	}
 
-	public static Link getUserLink(String rel, UUID userID)
+	public static Link getPublicUserLink(String rel, UUID userID)
 	{
 		return linkTo(methodOn(UserController.class).getPublicUser(Optional.empty(), userID)).withRel(rel);
+	}
+
+	public static Link getPrivateUserLink(String rel, UUID userID)
+	{
+		return linkTo(methodOn(UserController.class).getUser(Optional.empty(), null, Boolean.TRUE.toString(), userID))
+				.withRel(rel);
 	}
 
 	static class UserResource extends Resource<UserDTO>
@@ -343,11 +342,19 @@ public class UserController
 	{
 		private final boolean includePrivateData;
 		private CurieProvider curieProvider;
+		private PinResetRequestController pinResetRequestController;
 
 		public UserResourceAssembler(CurieProvider curieProvider, boolean includePrivateData)
 		{
+			this(curieProvider, null, includePrivateData);
+		}
+
+		public UserResourceAssembler(CurieProvider curieProvider, PinResetRequestController pinResetRequestController,
+				boolean includePrivateData)
+		{
 			super(UserController.class, UserResource.class);
 			this.curieProvider = curieProvider;
+			this.pinResetRequestController = pinResetRequestController;
 			this.includePrivateData = includePrivateData;
 		}
 
@@ -372,6 +379,7 @@ public class UserController
 					addWeekActivityOverviewsLink(userResource);
 					addNewDeviceRequestLink(userResource);
 					addAppActivityLink(userResource);
+					pinResetRequestController.addLinks(userResource);
 				}
 			}
 			return userResource;
@@ -438,6 +446,5 @@ public class UserController
 		{
 			userResource.add(AppActivityController.getAppActivityLink(userResource.getContent().getID()));
 		}
-
 	}
 }

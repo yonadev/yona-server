@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
@@ -22,15 +19,16 @@ public class BudgetGoalDTO extends GoalDTO
 	private final int maxDurationMinutes;
 
 	@JsonCreator
-	public BudgetGoalDTO(@JsonProperty("activityCategoryName") String activityCategoryName,
-			@JsonProperty("maxDurationMinutes") int maxDurationMinutes)
+	public BudgetGoalDTO(@JsonProperty(required = true, value = "maxDurationMinutes") int maxDurationMinutes)
 	{
-		this(null, activityCategoryName, maxDurationMinutes, false /* ignored */);
+		super(null);
+
+		this.maxDurationMinutes = maxDurationMinutes;
 	}
 
-	public BudgetGoalDTO(UUID id, String activityCategoryName, int maxDurationMinutes, boolean mandatory)
+	public BudgetGoalDTO(UUID id, UUID activityCategoryID, int maxDurationMinutes, boolean mandatory)
 	{
-		super(id, activityCategoryName, mandatory);
+		super(id, activityCategoryID, mandatory);
 
 		this.maxDurationMinutes = maxDurationMinutes;
 	}
@@ -48,16 +46,16 @@ public class BudgetGoalDTO extends GoalDTO
 
 	public static BudgetGoalDTO createInstance(BudgetGoal entity)
 	{
-		return new BudgetGoalDTO(entity.getID(), entity.getActivityCategory().getName(), entity.getMaxDurationMinutes(),
+		return new BudgetGoalDTO(entity.getID(), entity.getActivityCategory().getID(), entity.getMaxDurationMinutes(),
 				entity.isMandatory());
 	}
 
 	public BudgetGoal createGoalEntity()
 	{
-		ActivityCategory activityCategory = ActivityCategory.getRepository().findByName(this.getActivityCategoryName());
+		ActivityCategory activityCategory = ActivityCategory.getRepository().findOne(this.getActivityCategoryID());
 		if (activityCategory == null)
 		{
-			throw ActivityCategoryNotFoundException.notFoundByName(this.getActivityCategoryName());
+			throw ActivityCategoryNotFoundException.notFound(this.getActivityCategoryID());
 		}
 		return BudgetGoal.createInstance(activityCategory, this.maxDurationMinutes);
 	}

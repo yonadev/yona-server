@@ -10,7 +10,6 @@ package nu.yona.server.exceptions;
 public class MobileNumberConfirmationException extends ConfirmationException
 {
 	private static final long serialVersionUID = -7917208280838423613L;
-	public static final String FAILED_ATTEMPT_MESSAGE_ID = "error.mobile.number.confirmation.code.mismatch";
 
 	private MobileNumberConfirmationException(String messageId, Object... parameters)
 	{
@@ -22,7 +21,7 @@ public class MobileNumberConfirmationException extends ConfirmationException
 		super(t, messageId, parameters);
 	}
 
-	public MobileNumberConfirmationException(int remainingAttempts, String messageId, Object... parameters)
+	private MobileNumberConfirmationException(int remainingAttempts, String messageId, Object... parameters)
 	{
 		super(remainingAttempts, messageId, parameters);
 	}
@@ -30,7 +29,8 @@ public class MobileNumberConfirmationException extends ConfirmationException
 	public static MobileNumberConfirmationException confirmationCodeMismatch(String mobileNumber, String code,
 			int remainingAttempts)
 	{
-		return new MobileNumberConfirmationException(remainingAttempts, FAILED_ATTEMPT_MESSAGE_ID, mobileNumber, code);
+		return new MobileNumberConfirmationException(remainingAttempts, "error.mobile.number.confirmation.code.mismatch",
+				mobileNumber, code);
 	}
 
 	public static MobileNumberConfirmationException confirmationCodeNotSet(String mobileNumber)

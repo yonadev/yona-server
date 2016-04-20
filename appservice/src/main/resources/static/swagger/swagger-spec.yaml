@@ -138,12 +138,7 @@ paths:
           description: Message with confirmation code
           required: true
           schema:
-            type: object
-            required:
-              - code
-            properties:
-              code:
-                type: string
+            $ref: '#/definitions/ConfirmationCode'
       tags:
         - User
       responses:
@@ -621,6 +616,93 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  '/users/{userID}/pinResetRequest/request':
+    post:
+      summary: Request pin reset confirmation code
+      description: Post an empty body to this URL to trigger the generation of a pin reset confirmation code
+      parameters:
+        - name: userID
+          in: path
+          description: The ID of the user
+          required: true
+          type: string
+        - name: Yona-Password
+          in: header
+          description: The device password
+          required: true
+          type: string
+      tags:
+        - Pin reset
+      responses:
+        '200':
+          description: Request registered successfully
+          schema:
+            type: object
+            properties:
+              delay:
+                type: string
+                description: Delay till the confirmation code will be sent by text message. The format complies with the ISO-8601 duration format (PnDTnHnMn.nS).
+                example: P1D
+            required:
+              - delay
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/pinResetRequest/verify':
+    post:
+      summary: Verify pin reset confirmation code
+      description: Post the pin reset confirmation code here for verification
+      parameters:
+        - name: userID
+          in: path
+          description: The ID of the user
+          required: true
+          type: string
+        - name: Yona-Password
+          in: header
+          description: The device password
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Message with confirmation code
+          required: true
+          schema:
+            $ref: '#/definitions/ConfirmationCode'
+      tags:
+        - Pin reset
+      responses:
+        '200':
+          description: Confirmation code correct
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/pinResetRequest/clear':
+    post:
+      summary: Clear pin reset confirmation code
+      description: Post an empty body to this URL to clear the pin reset confirmation code
+      parameters:
+        - name: userID
+          in: path
+          description: The ID of the user
+          required: true
+          type: string
+        - name: Yona-Password
+          in: header
+          description: The device password
+          required: true
+          type: string
+      tags:
+        - Pin reset
+      responses:
+        '200':
+          description: Request cleared successfully
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   '/newDeviceRequests/{mobileNumber}':
     parameters:
       - name: mobileNumber
@@ -860,6 +942,17 @@ definitions:
           href:
             type: string
             description: Post an empty MessageAction on this link to process this response
+  ActivityCategoryLink:
+    type: object
+    properties:
+      "yona:activityCategory":
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: The related activity category
   BaseUser:
     type: object
     properties:
@@ -1012,6 +1105,13 @@ definitions:
           - $ref: '#/definitions/SelfLink'
     required:
       - _links
+  ConfirmationCode:
+    type: object
+    properties:
+      code:
+        type: string
+    required:
+      - code
   PostPutGoal:
     type: object
     discriminator: "@type"
@@ -1022,13 +1122,12 @@ definitions:
         - BudgetGoal
         - TimeZoneGoal
         description: The type of goal
-      activityCategoryName:
-        type: string
-        description: The actity category of this goal
-        example: Gambling
+      _links:
+        allOf:
+          - $ref: '#/definitions/ActivityCategoryLink'
     required:
-    - "@type"
-    - activityCategoryName
+      - "@type"
+      - _links
   BudgetGoal:
     allOf:
       - $ref: '#/definitions/PostPutGoal'
@@ -1052,15 +1151,23 @@ definitions:
     required:
       - zones
   Goal:
-    allOf:
-      - $ref: '#/definitions/PostPutGoal'
+    type: object
+    discriminator: "@type"
     properties:
+      "@type":
+        type: string
+        enum:
+        - BudgetGoal
+        - TimeZoneGoal
+        description: The type of goal
       _links:
         allOf:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/ActivityCategoryLink'
     required:
+      - "@type"
       - _links
   VPNProfile:
     type: object
@@ -1135,6 +1242,7 @@ definitions:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/UserLink'
     required:
       - yonaPassword
       - _links
@@ -1145,10 +1253,6 @@ definitions:
         type: string
         description: The name of this activity category
         example: Gambling
-      isMandatory:
-        type: boolean
-        description: True when this activity category is mandatory for all users. The server will add a goal for such activity categories upon sign up of a user
-        example: true
       applications:
         type: array
         items:
@@ -1163,7 +1267,6 @@ definitions:
           - $ref: '#/definitions/SelfLink'
     required:
       - name
-      - isMandatory
       - applications
       - _links
   Message:
@@ -1177,6 +1280,7 @@ definitions:
         - BuddyConnectResponseMessage
         - BuddyDisconnectMessage
         - GoalConflictMessage
+        - GoalChangeMessage
         - DisclosureRequestMessage
         - DisclosureResponseMessage
       creationTime:
@@ -1274,6 +1378,12 @@ definitions:
     - DISCLOSURE_REQUESTED
     - DISCLOSURE_ACCEPTED
     - DISCLOSURE_REJECTED
+  GoalChange:
+    type: string
+    description: The change applied to a goal
+    enum:
+    - GOAL_ADDED
+    - GOAL_DELETED
   GoalConflictMessage:
     allOf:
       - $ref: '#/definitions/Message'
@@ -1285,11 +1395,6 @@ definitions:
       status:
         $ref: '#/definitions/GoalConflictStatus'
         example: ANNOUNCED
-      activityCategoryName:
-        # TODO: Replace this with a link to the related day activity
-        type: string
-        description: The name of the activity category
-        example: Gambling
       url:
         type: string
         description: The URL on which the goal conflict was detected
@@ -1309,6 +1414,7 @@ definitions:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/ActivityCategoryLink'
         properties:
           "yona:requestDisclosure":
             properties:
@@ -1318,10 +1424,25 @@ definitions:
     required:
       - nickname
       - status
-      - activityCategoryName
       - url
       - activityStartTime
       - activityEndTime
+      - _links
+  GoalChangeMessage:
+    allOf:
+      - $ref: '#/definitions/Message'
+    properties:
+      change:
+        $ref: '#/definitions/GoalChange'
+        example: GOAL_ADDED
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+          - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/ActivityCategoryLink'
+    required:
+      - change
       - _links
   DisclosureRequestMessage:
     allOf:

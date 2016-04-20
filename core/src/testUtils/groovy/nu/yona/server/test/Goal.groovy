@@ -11,12 +11,12 @@ import nu.yona.server.YonaServer
 
 abstract class Goal
 {
-	final String activityCategoryName
+	final String activityCategoryUrl
 	final String url
 	final String editURL
 	Goal(def json)
 	{
-		this.activityCategoryName = json.activityCategoryName
+		this.activityCategoryUrl = (json.activityCategoryUrl) ? json.activityCategoryUrl : json._links."yona:activityCategory".href
 		this.url = json._links ? YonaServer.stripQueryString(json._links.self.href) : null
 		this.editURL = json._links?.edit?.href
 	}

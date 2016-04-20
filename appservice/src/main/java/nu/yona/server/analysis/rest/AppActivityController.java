@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.rest;
 
@@ -61,7 +58,8 @@ public class AppActivityController
 			@RequestBody AppActivityDTO[] appActivities)
 	{
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> {
-			analysisEngineService.analyze(userID, appActivities);
+			UUID userAnonymizedID = userService.getPrivateUser(userID).getPrivateData().getUserAnonymizedID();
+			analysisEngineService.analyze(userAnonymizedID, appActivities);
 			return null;
 		});
 	}

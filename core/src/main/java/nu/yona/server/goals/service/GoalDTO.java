@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
@@ -27,14 +24,19 @@ import nu.yona.server.rest.PolymorphicDTO;
 public abstract class GoalDTO extends PolymorphicDTO
 {
 	private final UUID id;
-	private final String activityCategoryName;
+	private UUID activityCategoryID;
 	private final boolean mandatory;
 
-	protected GoalDTO(UUID id, String activityCategoryName, boolean mandatory)
+	protected GoalDTO(UUID id, UUID activityCategoryID, boolean mandatory)
 	{
 		this.id = id;
-		this.activityCategoryName = activityCategoryName;
+		this.setActivityCategoryID(activityCategoryID);
 		this.mandatory = mandatory;
+	}
+
+	public GoalDTO(String activityCategoryUrl)
+	{
+		this(null, null, false /* ignored */);
 	}
 
 	@JsonIgnore
@@ -43,9 +45,16 @@ public abstract class GoalDTO extends PolymorphicDTO
 		return id;
 	}
 
-	public String getActivityCategoryName()
+	@JsonIgnore
+	public UUID getActivityCategoryID()
 	{
-		return activityCategoryName;
+		return activityCategoryID;
+	}
+
+	@JsonIgnore
+	public void setActivityCategoryID(UUID activityCategoryID)
+	{
+		this.activityCategoryID = activityCategoryID;
 	}
 
 	@JsonIgnore

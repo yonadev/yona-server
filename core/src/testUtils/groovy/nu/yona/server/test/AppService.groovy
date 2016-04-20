@@ -465,4 +465,8 @@ class AppService extends Service
 	{
 		yonaServer.updateResource(path, jsonString, headers, parameters)
 	}
+
+	def composeActivityCategoryUrl(def activityCategoryID) {
+		"$yonaServer.restClient.uri$ACTIVITY_CATEGORIES_PATH$activityCategoryID"
+	}
 }

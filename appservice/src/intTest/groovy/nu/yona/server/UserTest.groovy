@@ -58,6 +58,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		john.messagesUrl == john.url + "/messages/"
 		john.newDeviceRequestUrl == appService.url + "/newDeviceRequests/" + john.mobileNumber
 		john.appActivityUrl == john.url + "/appActivity/"
+		john.pinResetRequestUrl == john.url + "/pinResetRequest/request"
 
 		cleanup:
 		appService.deleteUser(johnAfterNumberConfirmation)
@@ -245,7 +246,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 				"+$ts")
 	}
 
-	void testUser(user, includePrivateData, mobileNumberConfirmed, timestamp)
+	void testUser(User user, includePrivateData, mobileNumberConfirmed, timestamp)
 	{
 		assert user.firstName == "John"
 		assert user.lastName == "Doe"
@@ -265,7 +266,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			if (mobileNumberConfirmed)
 			{
 				assert user.goals.size() == 1 //mandatory goal added
-				assert user.goals[0].activityCategoryName == 'gambling'
+				assert user.goals[0].activityCategoryUrl == GAMBLING_ACT_CAT_URL
 			}
 			else
 			{

@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
@@ -83,6 +80,7 @@ public class DayActivity extends IntervalActivity
 
 	public void addActivity(Activity activity)
 	{
+		activity.setActivityCategory(getGoal().getActivityCategory());
 		this.activities.add(activity);
 	}
 
@@ -211,5 +209,10 @@ public class DayActivity extends IntervalActivity
 	{
 		return new DayActivity(UUID.randomUUID(), userAnonymized, goal, startOfDay, new ArrayList<Activity>(),
 				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, true, false);
+	}
+
+	public static DayActivity createInstanceInactivity(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay)
+	{
+		return createInstance(userAnonymized, goal, startOfDay);
 	}
 }

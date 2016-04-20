@@ -101,7 +101,7 @@ public class UserService
 		ConfirmationCode confirmationCode = createConfirmationCode();
 		existingUserEntity.setOverwriteUserConfirmationCode(confirmationCode);
 		User.getRepository().save(existingUserEntity);
-		sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsService.TemplateName_OverwriteUserNumberConfirmation);
+		sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsService.TemplateName_OverwriteUserConfirmation);
 	}
 
 	@Transactional
@@ -449,12 +449,16 @@ public class UserService
 
 	private ConfirmationCode createConfirmationCode()
 	{
-		String confirmationCode = (yonaProperties.getSms().isEnabled())
-				? CryptoUtil.getRandomDigits(yonaProperties.getSecurity().getConfirmationCodeDigits()) : "1234";
-		return ConfirmationCode.createInstance(confirmationCode);
+		return ConfirmationCode.createInstance(generateConfirmationCode());
 	}
 
-	private void sendConfirmationCodeTextMessage(String mobileNumber, ConfirmationCode confirmationCode, String templateName)
+	public String generateConfirmationCode()
+	{
+		return (yonaProperties.getSms().isEnabled())
+				? CryptoUtil.getRandomDigits(yonaProperties.getSecurity().getConfirmationCodeDigits()) : "1234";
+	}
+
+	public void sendConfirmationCodeTextMessage(String mobileNumber, ConfirmationCode confirmationCode, String templateName)
 	{
 		Map<String, Object> templateParams = new HashMap<String, Object>();
 		templateParams.put("confirmationCode", confirmationCode);
@@ -484,7 +488,7 @@ public class UserService
 		}
 	}
 
-	private void registerFailedAttempt(User userEntity, ConfirmationCode confirmationCode)
+	public void registerFailedAttempt(User userEntity, ConfirmationCode confirmationCode)
 	{
 		transactionHelper.executeInNewTransaction(() -> {
 			confirmationCode.incrementAttempts();
@@ -564,5 +568,10 @@ public class UserService
 			// (this could also be achieved with very complex reflection)
 			this.userEntity.loadFully();
 		}
+	}
+
+	public UUID getUserAnonymizedID(UUID userID)
+	{
+		return getPrivateUser(userID).getPrivateData().getUserAnonymizedID();
 	}
 }

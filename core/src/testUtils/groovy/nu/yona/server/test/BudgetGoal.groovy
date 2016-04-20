@@ -20,22 +20,33 @@ class BudgetGoal extends Goal
 
 	def convertToJsonString()
 	{
-		def selfLinkString = (url) ? """"_links":{"self":{"href":"$url"}},""" : ""
+		def selfLinkString = (url) ? """"
+							"self":
+								{
+									"href":"$url"
+								},""" : ""
 		return """{
-			$selfLinkString,
 			"@type":"BudgetGoal",
-			"activityCategoryName":"${activityCategoryName}",
-			"maxDurationMinutes":"${maxDurationMinutes}"
+			"maxDurationMinutes":"${maxDurationMinutes}",
+			"_links":
+				{
+					$selfLinkString
+					"yona:activityCategory":
+						{
+							"href":"$activityCategoryUrl"
+						}
+				}
 		}"""
 	}
 
-	public static BudgetGoal createNoGoInstance(activityCategoryName)
+	public static BudgetGoal createNoGoInstance(activityCategoryUrl)
 	{
-		createInstance(activityCategoryName, 0)
+		createInstance(activityCategoryUrl, 0)
 	}
 
-	public static BudgetGoal createInstance(activityCategoryName, maxDurationMinutes)
+	public static BudgetGoal createInstance(activityCategoryUrl, maxDurationMinutes)
 	{
-		new BudgetGoal(["activityCategoryName": activityCategoryName, maxDurationMinutes: maxDurationMinutes])
+		assert activityCategoryUrl
+		new BudgetGoal(["activityCategoryUrl": activityCategoryUrl, maxDurationMinutes: maxDurationMinutes])
 	}
 }

@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
@@ -14,6 +11,7 @@ import java.util.UUID;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.goals.entities.Goal;
@@ -62,11 +60,12 @@ public class GoalService
 		User userEntity = userService.getUserByID(userID);
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		Optional<Goal> conflictingExistingGoal = userAnonymizedEntity.getGoals().stream()
-				.filter(existingGoal -> existingGoal.getActivityCategory().getName().equals(goal.getActivityCategoryName()))
+				.filter(existingGoal -> existingGoal.getActivityCategory().getID().equals(goal.getActivityCategoryID()))
 				.findFirst();
 		if (conflictingExistingGoal.isPresent())
 		{
-			throw GoalServiceException.cannotAddSecondGoalOnActivityCategory(goal.getActivityCategoryName());
+			throw GoalServiceException.cannotAddSecondGoalOnActivityCategory(
+					conflictingExistingGoal.get().getActivityCategory().getName().get(LocaleContextHolder.getLocale()));
 		}
 
 		Goal goalEntity = goal.createGoalEntity();
