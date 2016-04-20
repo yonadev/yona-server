@@ -10,7 +10,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -29,14 +28,12 @@ import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ErrorResponseDTO;
 import nu.yona.server.rest.GlobalExceptionMapping;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
-import nu.yona.server.subscriptions.rest.UserController.NewDeviceRequestResource;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDTO;
 import nu.yona.server.subscriptions.service.PinResetRequestService;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
-@ExposesResourceFor(NewDeviceRequestResource.class)
 @RequestMapping(value = "/users/{id}/pinResetRequest")
 public class PinResetRequestController
 {

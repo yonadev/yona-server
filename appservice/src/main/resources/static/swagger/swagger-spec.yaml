@@ -1242,6 +1242,7 @@ definitions:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/UserLink'
     required:
       - yonaPassword
       - _links
