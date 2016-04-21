@@ -821,12 +821,11 @@ paths:
       summary: Request user overwrite
       description: Request to overwrite the user account after a device loss
       parameters:
-        - in: body
-          name: body
-          description: User overwrite request
+        - name: mobileNumber
+          in: query
+          description: The mobile number to be overwritten
           required: true
-          schema:
-            $ref: '#/definitions/UserOverwriteRequest'
+          type: string
       tags:
         - Admin
       responses:
@@ -1751,15 +1750,6 @@ definitions:
           type: string
     required:
       - "properties"
-  UserOverwriteRequest:
-    type: object
-    properties:
-      mobileNumber:
-        type: string
-        description: The mobile number to be overwritten
-        example: "+31612345678"
-    required:
-      - mobileNumber
   Error:
     type: object
     properties:
