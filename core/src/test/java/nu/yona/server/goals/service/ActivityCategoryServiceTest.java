@@ -13,7 +13,6 @@ import static org.mockito.Mockito.verify;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,7 +31,6 @@ import nu.yona.server.goals.entities.ActivityCategoryRepository;
 @RunWith(MockitoJUnitRunner.class)
 public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 {
-	private static final Locale USEnglishLocale = Locale.forLanguageTag("en-US");
 	@Mock
 	private ActivityCategoryRepository mockRepository = mock(ActivityCategoryRepository.class);
 	@InjectMocks
@@ -79,10 +77,10 @@ public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 
 		// modify
 		Set<ActivityCategoryDTO> importActivityCategories = new HashSet<ActivityCategoryDTO>();
-		ActivityCategoryDTO newsModified = new ActivityCategoryDTO(news.getID(), usString("news"), false,
+		ActivityCategoryDTO newsModified = new ActivityCategoryDTO(news.getID(), localeString("news"), false,
 				new HashSet<String>(Arrays.asList("refdag", "bbc", "atom feeds")), new HashSet<String>());
 		importActivityCategories.add(newsModified);
-		ActivityCategoryDTO gaming = new ActivityCategoryDTO(UUID.randomUUID(), usString("gaming"), false,
+		ActivityCategoryDTO gaming = new ActivityCategoryDTO(UUID.randomUUID(), localeString("gaming"), false,
 				new HashSet<String>(Arrays.asList("games")), new HashSet<String>());
 		importActivityCategories.add(gaming);
 
@@ -91,10 +89,10 @@ public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 		ArgumentCaptor<ActivityCategory> matchActivityCategory = ArgumentCaptor.forClass(ActivityCategory.class);
 		// 1 added and 1 updated
 		verify(mockRepository, times(2)).save(matchActivityCategory.capture());
-		assertThat(matchActivityCategory.getAllValues().stream().map(x -> x.getName().get(USEnglishLocale))
+		assertThat(matchActivityCategory.getAllValues().stream().map(x -> x.getName().get(getCurrentLocale()))
 				.collect(Collectors.toSet()), containsInAnyOrder("news", "gaming"));
 		// 1 deleted
 		verify(mockRepository, times(1)).delete(matchActivityCategory.capture());
-		assertThat(matchActivityCategory.getValue().getName().get(USEnglishLocale), equalTo("gambling"));
+		assertThat(matchActivityCategory.getValue().getName().get(getCurrentLocale()), equalTo("gambling"));
 	}
 }

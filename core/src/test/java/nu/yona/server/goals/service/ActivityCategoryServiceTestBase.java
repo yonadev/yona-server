@@ -17,6 +17,7 @@ import java.util.UUID;
 
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.ActivityCategoryRepository;
@@ -28,11 +29,16 @@ public abstract class ActivityCategoryServiceTestBase
 	protected ActivityCategory gambling;
 	protected ActivityCategory news;
 
+	protected Locale getCurrentLocale()
+	{
+		return LocaleContextHolder.getLocale();
+	}
+
 	protected void setUp(ActivityCategoryRepository mockRepository)
 	{
-		gambling = ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
+		gambling = ActivityCategory.createInstance(UUID.randomUUID(), localeString("gambling"), false,
 				new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet());
-		news = ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
+		news = ActivityCategory.createInstance(UUID.randomUUID(), localeString("news"), false,
 				new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet());
 
 		activityCategories.add(gambling);
@@ -51,8 +57,8 @@ public abstract class ActivityCategoryServiceTestBase
 		});
 	}
 
-	protected Map<Locale, String> usString(String string)
+	protected Map<Locale, String> localeString(String string)
 	{
-		return Collections.singletonMap(Locale.forLanguageTag("en-US"), string);
+		return Collections.singletonMap(getCurrentLocale(), string);
 	}
 }

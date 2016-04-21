@@ -148,7 +148,7 @@ public class ActivityServiceTests
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
 		assertThat(inactivityWeekForGambling.getStartTime(), equalTo(getWeekStartTime(ZonedDateTime.now(userAnonZone))));
 		assertThat(inactivityWeekForGambling.getTimeZoneId(), equalTo(userAnonZone.getId()));
-		assertThat(inactivityWeekForGambling.getDayActivities().size(), equalTo(0));
+		assertThat(inactivityWeekForGambling.getDayActivities().size(), equalTo(1));
 	}
 
 	@Test

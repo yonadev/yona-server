@@ -75,6 +75,11 @@ public class ActivityCategoryDTO
 		return retVal;
 	}
 
+	public String getName(Locale locale)
+	{
+		return name.get(locale);
+	}
+
 	@JsonIgnore
 	public boolean isMandatoryNoGo()
 	{
