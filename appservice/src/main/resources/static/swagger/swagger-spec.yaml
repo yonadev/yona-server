@@ -190,6 +190,11 @@ paths:
       summary: Add a new goal
       description: Add a new goal to an existing user
       parameters:
+        - name: message
+          in: query
+          description: A text message that will be sent to buddies to inform them about the new goal
+          required: false
+          type: string
         - in: body
           name: body
           description: New goal
@@ -254,10 +259,41 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+    put:
+      summary: Update a goal
+      description: Update an existing goal
+      parameters:
+        - name: message
+          in: query
+          description: A text message that will be sent to buddies to inform them about the goal change
+          required: false
+          type: string
+        - in: body
+          name: body
+          description: Updated goal
+          required: true
+          schema:
+            $ref: '#/definitions/PostPutGoal'
+      tags:
+        - Goal
+      responses:
+        '200':
+          description: The updated goal
+          schema:
+            $ref: '#/definitions/Goal'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
     delete:
       summary: Delete goal
       description: Deletes this goal
       parameters:
+        - name: message
+          in: query
+          description: A text message that will be sent to buddies to inform them about the deletion of the goal
+          required: false
+          type: string
         - name: Yona-Password
           in: header
           description: The device password

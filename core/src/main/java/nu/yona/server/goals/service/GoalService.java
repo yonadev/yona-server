@@ -44,12 +44,16 @@ public class GoalService
 
 	public GoalDTO getGoal(UUID userID, UUID goalID)
 	{
-		UserDTO user = userService.getPrivateUser(userID);
-		Optional<GoalDTO> foundGoal = user.getPrivateData().getGoals().stream().filter(goal -> goal.getID().equals(goalID))
-				.findFirst();
+		User userEntity = userService.getUserByID(userID);
+		return GoalDTO.createInstance(getGoalEntity(userEntity, goalID));
+	}
+
+	private Goal getGoalEntity(User userEntity, UUID goalID)
+	{
+		Optional<Goal> foundGoal = userEntity.getGoals().stream().filter(goal -> goal.getID().equals(goalID)).findFirst();
 		if (!foundGoal.isPresent())
 		{
-			throw GoalServiceException.goalNotFoundById(userID, goalID);
+			throw GoalServiceException.goalNotFoundById(userEntity.getID(), goalID);
 		}
 		return foundGoal.get();
 	}
@@ -75,6 +79,45 @@ public class GoalService
 		broadcastGoalChangeMessage(userEntity, goalEntity, GoalChangeMessage.Change.GOAL_ADDED, message);
 
 		return GoalDTO.createInstance(goalEntity);
+	}
+
+	@Transactional
+	public GoalDTO updateGoal(UUID userID, UUID goalID, GoalDTO newGoalDTO, Optional<String> message)
+	{
+		User userEntity = userService.getUserByID(userID);
+		Goal existingGoal = getGoalEntity(userEntity, goalID);
+		GoalDTO existingGoalDTO = GoalDTO.createInstance(existingGoal);
+		assertNoTypeChange(newGoalDTO, existingGoalDTO);
+		assertNoActivityCategoryChange(newGoalDTO, existingGoalDTO);
+
+		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
+
+		newGoalDTO.updateGoalEntity(existingGoal); // TODO: Change the implementation to retain the old goal, linked to related
+													// activities. With that, also check whether the goal really changed.
+		userAnonymizedEntity.addGoal(existingGoal);
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getID(), userAnonymizedEntity);
+
+		broadcastGoalChangeMessage(userEntity, existingGoal, GoalChangeMessage.Change.GOAL_CHANGED, message);
+
+		return GoalDTO.createInstance(existingGoal);
+	}
+
+	private void assertNoActivityCategoryChange(GoalDTO newGoalDTO, GoalDTO existingGoalDTO)
+	{
+		if (!newGoalDTO.getActivityCategoryID().equals(existingGoalDTO.getActivityCategoryID()))
+		{
+			throw GoalServiceException.cannotChangeActivityCategoryOfGoal(newGoalDTO.getActivityCategoryID(),
+					existingGoalDTO.getActivityCategoryID());
+		}
+	}
+
+	private void assertNoTypeChange(GoalDTO newGoalDTO, GoalDTO existingGoalDTO)
+	{
+		if (!newGoalDTO.getClass().equals(existingGoalDTO.getClass()))
+		{
+			throw GoalServiceException.cannotChangeTypeOfGoal(existingGoalDTO.getClass().getSimpleName(),
+					newGoalDTO.getClass().getSimpleName());
+		}
 	}
 
 	@Transactional

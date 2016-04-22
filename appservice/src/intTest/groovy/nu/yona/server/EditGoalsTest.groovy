@@ -8,6 +8,7 @@ package nu.yona.server
 
 import groovy.json.*
 import nu.yona.server.test.BudgetGoal
+import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
 
 class EditGoalsTest extends AbstractAppServiceIntegrationTest
@@ -56,14 +57,14 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		newsGoals[0]._links.edit.href
 	}
 
-	def 'Add goal'()
+	def 'Add budget goal'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		when:
-		def addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60), "Going to monitor my social time!")
+		BudgetGoal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60), "Going to monitor my social time!")
 
 		then:
 		addedGoal
@@ -93,7 +94,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		when:
-		def addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
+		TimeZoneGoal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
 
 		then:
 		addedGoal
@@ -115,6 +116,100 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		assertEquals(goalChangeMessages[0].creationTime, new Date())
 		goalChangeMessages[0].message == "Going to restrict my social time!"
 		goalChangeMessages[0]._links.edit
+	}
+
+	def 'Update budget goal'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		BudgetGoal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60), "Going to monitor my social time!")
+		BudgetGoal updatedGoal = BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 120)
+		when:
+		def response = appService.updateGoal(richard, addedGoal.url, updatedGoal, "Want to become a bit more social :)")
+
+		then:
+		response.status == 200
+		response.responseData.maxDurationMinutes == 120
+
+		def responseGoalsAfterUpdate = appService.getGoals(richard)
+		responseGoalsAfterUpdate.status == 200
+		responseGoalsAfterUpdate.responseData._embedded."yona:goals".size() == 3
+		findGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).maxDurationMinutes == 120
+
+		def bobMessagesResponse = appService.getMessages(bob)
+		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}
+		goalChangeMessages.size() == 2
+		goalChangeMessages[0].change == 'GOAL_CHANGED'
+		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
+		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._embedded?."yona:user" == null
+		goalChangeMessages[0].nickname == 'RQ'
+		assertEquals(goalChangeMessages[0].creationTime, new Date())
+		goalChangeMessages[0].message == "Want to become a bit more social :)"
+		goalChangeMessages[0]._links.edit
+	}
+
+	def 'Update time zone goal'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		TimeZoneGoal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
+		TimeZoneGoal updatedGoal = TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00", "20:00-22:00"].toArray())
+		when:
+		def response = appService.updateGoal(richard, addedGoal.url, updatedGoal, "Will be social in the evening too")
+
+		then:
+		response.status == 200
+		response.responseData.zones.size() == 2
+
+		def responseGoalsAfterUpdate = appService.getGoals(richard)
+		responseGoalsAfterUpdate.status == 200
+		responseGoalsAfterUpdate.responseData._embedded."yona:goals".size() == 3
+		findGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).zones.size() == 2
+
+		def bobMessagesResponse = appService.getMessages(bob)
+		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}
+		goalChangeMessages.size() == 2
+		goalChangeMessages[0].change == 'GOAL_CHANGED'
+		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
+		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._embedded?."yona:user" == null
+		goalChangeMessages[0].nickname == 'RQ'
+		assertEquals(goalChangeMessages[0].creationTime, new Date())
+		goalChangeMessages[0].message == "Will be social in the evening too"
+		goalChangeMessages[0]._links.edit
+	}
+
+	def 'Try update type of goal'()
+	{
+		given:
+		def richard = addRichard()
+		Goal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60), "Going to monitor my social time!")
+		TimeZoneGoal updatedGoal = TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray())
+		when:
+		def response = appService.updateGoal(richard, addedGoal.url, updatedGoal)
+
+		then:
+		response.status == 400
+		response.responseData.code == "error.goal.cannot.change.type"
+	}
+
+	def 'Try update activity category of goal'()
+	{
+		given:
+		def richard = addRichard()
+		Goal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60), "Going to monitor my social time!")
+		BudgetGoal updatedGoal = BudgetGoal.createInstance(NEWS_ACT_CAT_URL, 60)
+		when:
+		def response = appService.updateGoal(richard, addedGoal.url, updatedGoal)
+
+		then:
+		response.status == 400
+		response.responseData.code == "error.goal.cannot.change.activity.category"
 	}
 
 	def 'Delete goal'()

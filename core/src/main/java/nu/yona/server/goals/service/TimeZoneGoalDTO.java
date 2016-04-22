@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.goals.entities.ActivityCategory;
+import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.TimeZoneGoal;
 
 @JsonRootName("timeZoneGoal")
@@ -37,6 +38,12 @@ public class TimeZoneGoalDTO extends GoalDTO
 	public String getType()
 	{
 		return "TimeZoneGoal";
+	}
+
+	@Override
+	public void updateGoalEntity(Goal existingGoal)
+	{
+		((TimeZoneGoal) existingGoal).setZones(zones);
 	}
 
 	public String[] getZones()

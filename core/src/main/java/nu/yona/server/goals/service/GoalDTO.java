@@ -65,6 +65,8 @@ public abstract class GoalDTO extends PolymorphicDTO
 
 	public abstract Goal createGoalEntity();
 
+	public abstract void updateGoalEntity(Goal existingGoal);
+
 	public static GoalDTO createInstance(Goal goal)
 	{
 		if (goal instanceof BudgetGoal)
