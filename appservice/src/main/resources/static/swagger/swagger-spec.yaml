@@ -173,7 +173,7 @@ paths:
         default:
           description: Confirmation failed
           schema:
-            $ref: '#/definitions/ConfirmationError'
+            $ref: '#/definitions/Error'
   '/users/{userID}/goals/':
     parameters:
       - name: userID
@@ -714,7 +714,7 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/ConfirmationError'
   '/users/{userID}/pinResetRequest/clear':
     post:
       summary: Clear pin reset confirmation code
