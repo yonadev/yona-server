@@ -24,21 +24,18 @@ import nu.yona.server.goals.entities.ActivityCategoryRepository;
 
 public abstract class ActivityCategoryServiceTestBase
 {
+	protected static final Locale USEnglishLocale = Locale.forLanguageTag("en-US");
 	protected Set<ActivityCategory> activityCategories = new HashSet<ActivityCategory>();
 
 	protected ActivityCategory gambling;
 	protected ActivityCategory news;
 
-	protected Locale getCurrentLocale()
-	{
-		return LocaleContextHolder.getLocale();
-	}
-
 	protected void setUp(ActivityCategoryRepository mockRepository)
 	{
-		gambling = ActivityCategory.createInstance(UUID.randomUUID(), localeString("gambling"), false,
+		LocaleContextHolder.setLocale(USEnglishLocale);
+		gambling = ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
 				new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet());
-		news = ActivityCategory.createInstance(UUID.randomUUID(), localeString("news"), false,
+		news = ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
 				new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet());
 
 		activityCategories.add(gambling);
@@ -57,8 +54,8 @@ public abstract class ActivityCategoryServiceTestBase
 		});
 	}
 
-	protected Map<Locale, String> localeString(String string)
+	protected Map<Locale, String> usString(String string)
 	{
-		return Collections.singletonMap(getCurrentLocale(), string);
+		return Collections.singletonMap(Locale.forLanguageTag("en-US"), string);
 	}
 }

@@ -77,10 +77,10 @@ public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 
 		// modify
 		Set<ActivityCategoryDTO> importActivityCategories = new HashSet<ActivityCategoryDTO>();
-		ActivityCategoryDTO newsModified = new ActivityCategoryDTO(news.getID(), localeString("news"), false,
+		ActivityCategoryDTO newsModified = new ActivityCategoryDTO(news.getID(), usString("news"), false,
 				new HashSet<String>(Arrays.asList("refdag", "bbc", "atom feeds")), new HashSet<String>());
 		importActivityCategories.add(newsModified);
-		ActivityCategoryDTO gaming = new ActivityCategoryDTO(UUID.randomUUID(), localeString("gaming"), false,
+		ActivityCategoryDTO gaming = new ActivityCategoryDTO(UUID.randomUUID(), usString("gaming"), false,
 				new HashSet<String>(Arrays.asList("games")), new HashSet<String>());
 		importActivityCategories.add(gaming);
 
@@ -89,10 +89,10 @@ public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 		ArgumentCaptor<ActivityCategory> matchActivityCategory = ArgumentCaptor.forClass(ActivityCategory.class);
 		// 1 added and 1 updated
 		verify(mockRepository, times(2)).save(matchActivityCategory.capture());
-		assertThat(matchActivityCategory.getAllValues().stream().map(x -> x.getName().get(getCurrentLocale()))
+		assertThat(matchActivityCategory.getAllValues().stream().map(x -> x.getName().get(USEnglishLocale))
 				.collect(Collectors.toSet()), containsInAnyOrder("news", "gaming"));
 		// 1 deleted
 		verify(mockRepository, times(1)).delete(matchActivityCategory.capture());
-		assertThat(matchActivityCategory.getValue().getName().get(getCurrentLocale()), equalTo("gambling"));
+		assertThat(matchActivityCategory.getValue().getName().get(USEnglishLocale), equalTo("gambling"));
 	}
 }
