@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
+import nu.yona.server.goals.entities.Goal;
 
 @JsonRootName("budgetGoal")
 public class BudgetGoalDTO extends GoalDTO
@@ -37,6 +38,12 @@ public class BudgetGoalDTO extends GoalDTO
 	public String getType()
 	{
 		return "BudgetGoal";
+	}
+
+	@Override
+	public void updateGoalEntity(Goal existingGoal)
+	{
+		((BudgetGoal) existingGoal).setMaxDurationMinutes(maxDurationMinutes);
 	}
 
 	public int getMaxDurationMinutes()

@@ -85,6 +85,17 @@ public class GoalController
 				goalService.addGoal(userID, goal, Optional.ofNullable(messageStr)), HttpStatus.CREATED));
 	}
 
+	@RequestMapping(value = "/{goalID}", method = RequestMethod.PUT)
+	@ResponseBody
+	public HttpEntity<GoalDTO> updateGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userID, @PathVariable UUID goalID, @RequestBody GoalDTO goal,
+			@RequestParam(value = "message", required = false) String messageStr)
+	{
+		setActivityCategoryID(goal);
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createResponse(userID,
+				goalService.updateGoal(userID, goalID, goal, Optional.ofNullable(messageStr)), HttpStatus.OK));
+	}
+
 	@RequestMapping(value = "/{goalID}", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)

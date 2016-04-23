@@ -31,4 +31,14 @@ public class GoalServiceException extends YonaException
 	{
 		return new GoalServiceException("error.goal.cannot.remove.mandatory", userID, goalID);
 	}
+
+	public static GoalServiceException cannotChangeTypeOfGoal(String existingClassName, String newClassName)
+	{
+		return new GoalServiceException("error.goal.cannot.change.type", existingClassName, newClassName);
+	}
+
+	public static GoalServiceException cannotChangeActivityCategoryOfGoal(UUID existingCategoryID, UUID newCategoryID)
+	{
+		return new GoalServiceException("error.goal.cannot.change.activity.category", existingCategoryID, newCategoryID);
+	}
 }

@@ -384,7 +384,7 @@ class AppService extends Service
 		yonaServer.deleteResourceWithPassword("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", password)
 	}
 
-	def addGoal(Closure asserter, User user, Goal goal, message = "")
+	Goal addGoal(Closure asserter, User user, Goal goal, message = "")
 	{
 		def response = addGoal(user, goal, message)
 		asserter(response)
@@ -394,6 +394,11 @@ class AppService extends Service
 	def addGoal(User user, Goal goal, message = "")
 	{
 		yonaServer.postJson(user.goalsUrl, goal.convertToJsonString(), ["Yona-Password": user.password], ["message": message])
+	}
+
+	def updateGoal(User user, String url, Goal goal, message = "")
+	{
+		yonaServer.putJson(url, goal.convertToJsonString(), ["Yona-Password": user.password], ["message": message])
 	}
 
 	def removeGoal(User user, Goal goal, message = "")
