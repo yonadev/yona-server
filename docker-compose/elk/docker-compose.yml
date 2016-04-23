@@ -11,7 +11,7 @@ configuration:
 ###########################################
 
 elasticsearch:
-  image: elasticsearch
+  image: elasticsearch:2.3.1
   environment:
       TZ: Europe/Amsterdam
   volumes:
@@ -20,7 +20,7 @@ elasticsearch:
       - "9200:9200"
 
 logstash:
-  image: logstash
+  image: logstash:2.3.1
   environment:
       TZ: Europe/Amsterdam
   ports:
@@ -33,7 +33,7 @@ logstash:
   command: logstash -f /config/gelf.conf
 
 kibana:
-  image: kibana
+  image: kibana:4.5.0
   environment:
       TZ: Europe/Amsterdam
   links:
