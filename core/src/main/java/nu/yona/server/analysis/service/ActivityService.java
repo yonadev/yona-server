@@ -139,13 +139,8 @@ public class ActivityService
 	private Set<Goal> getActiveGoals(UserAnonymizedDTO userAnonymized, ZonedDateTime dateAtStartOfInterval, ChronoUnit timeUnit)
 	{
 		Set<Goal> activeGoals = userAnonymized.getGoals().stream()
-				.filter(g -> wasGoalActiveAtInterval(g, dateAtStartOfInterval, timeUnit)).collect(Collectors.toSet());
+				.filter(g -> g.wasActiveAtInterval(dateAtStartOfInterval, timeUnit)).collect(Collectors.toSet());
 		return activeGoals;
-	}
-
-	private boolean wasGoalActiveAtInterval(Goal goal, ZonedDateTime dateAtStartOfInterval, ChronoUnit timeUnit)
-	{
-		return goal.getCreationTime().isBefore(dateAtStartOfInterval.plus(1, timeUnit));
 	}
 
 	private <T extends IntervalActivity> void addMissingInactivity(Goal activeGoal, ZonedDateTime dateAtStartOfInterval,
@@ -197,7 +192,7 @@ public class ActivityService
 			throw GoalServiceException.goalNotFoundById(userID, goalID);
 		}
 		ZonedDateTime dateAtStartOfInterval = date.atStartOfDay(ZoneId.of(userAnonymized.getTimeZoneId()));
-		if (!wasGoalActiveAtInterval(goal.get(), dateAtStartOfInterval, timeUnit))
+		if (!goal.get().wasActiveAtInterval(dateAtStartOfInterval, timeUnit))
 		{
 			throw ActivityServiceException.activityDateGoalMismatch(userID, date, goalID);
 		}
