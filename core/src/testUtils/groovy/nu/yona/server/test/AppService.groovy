@@ -431,19 +431,9 @@ class AppService extends Service
 		yonaServer.postJson(path, jsonString, headers)
 	}
 
-	def postAppActivityToAnalysisEngine(User user, def appActivities)
+	def postAppActivityToAnalysisEngine(User user, def appActivity)
 	{
-		def json = "["
-		boolean isFirst = true
-		for (def appActivity : appActivities) {
-			if (!isFirst) {
-				json += ", "
-			}
-			isFirst = false
-			json += appActivity.getJson()
-		}
-		json += "]"
-		yonaServer.createResourceWithPassword(user.appActivityUrl, json, user.password)
+		yonaServer.createResourceWithPassword(user.appActivityUrl, appActivity.getJson(), user.password)
 	}
 
 	def createResourceWithPassword(path, jsonString, password, parameters = [:])

@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -45,15 +46,29 @@ public class AnalysisEngineService
 	@Autowired(required = false)
 	private DayActivityRepository dayActivityRepository;
 
-	public void analyze(UUID userAnonymizedID, AppActivityDTO[] appActivities)
+	public void analyze(UUID userAnonymizedID, AppActivityDTO appActivities)
 	{
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
-		for (AppActivityDTO appActivity : appActivities)
+		Duration deviceTimeOffset = Duration.between(ZonedDateTime.now(), appActivities.getDeviceDateTime());
+		for (AppActivityDTO.Activity appActivity : appActivities.getActivities())
 		{
 			Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryService
 					.getMatchingCategoriesForApp(appActivity.getApplication());
-			analyze(new ActivityPayload(appActivity), userAnonymized, matchingActivityCategories);
+			analyze(createActivityPayload(deviceTimeOffset, appActivity), userAnonymized, matchingActivityCategories);
 		}
+	}
+
+	private ActivityPayload createActivityPayload(Duration deviceTimeOffset, AppActivityDTO.Activity appActivity)
+	{
+		Date correctedStartTime = correctTime(deviceTimeOffset, appActivity.getStartTime());
+		Date correctedendTime = correctTime(deviceTimeOffset, appActivity.getEndTime());
+		return new ActivityPayload(correctedStartTime, correctedendTime, appActivity.getApplication());
+	}
+
+	private Date correctTime(Duration deviceTimeOffset, Date time)
+	{
+		ZonedDateTime zonedTime = ZonedDateTime.ofInstant(time.toInstant(), ZoneId.of("Z"));
+		return Date.from(zonedTime.minus(deviceTimeOffset).toInstant());
 	}
 
 	public void analyze(NetworkActivityDTO networkActivity)
@@ -371,12 +386,12 @@ public class AnalysisEngineService
 			this.application = null;
 		}
 
-		public ActivityPayload(AppActivityDTO appActivity)
+		public ActivityPayload(Date startTime, Date endTime, String application)
 		{
 			this.url = null;
-			this.startTime = appActivity.getStartTime();
-			this.endTime = appActivity.getEndTime();
-			this.application = appActivity.getApplication();
+			this.startTime = startTime;
+			this.endTime = endTime;
+			this.application = application;
 		}
 
 		public ActivityPayload(String url, Date startTime, Date endTime, String application)
