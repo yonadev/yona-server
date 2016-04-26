@@ -420,7 +420,7 @@ public class AnalysisEngineServiceTests
 
 		Date startTime = Date.from(now.minusMinutes(10).toInstant());
 		Date endTime = Date.from(now.toInstant());
-		service.analyze(userAnonID, new AppActivityDTO[] { new AppActivityDTO("Poker App", startTime, endTime) });
+		service.analyze(userAnonID, createSingleAppActivity("Poker App", startTime, endTime));
 
 		// Verify that there is a new conflict message sent.
 		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
@@ -448,7 +448,7 @@ public class AnalysisEngineServiceTests
 		
 		Date startTime = Date.from(now.minusMinutes(10).toInstant());
 		Date endTime = Date.from(now.toInstant());
-		service.analyze(userAnonID, new AppActivityDTO[] { new AppActivityDTO("Poker App", startTime, endTime) });
+		service.analyze(userAnonID, createSingleAppActivity("Poker App", startTime, endTime));
 		
 		// Verify that there is a new conflict message sent.
 		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
