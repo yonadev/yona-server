@@ -10,6 +10,8 @@ import groovy.json.*
 import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 class EditGoalsTest extends AbstractAppServiceIntegrationTest
 {
@@ -42,6 +44,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
+		def creationTime = new Date()
 		when:
 		def response = appService.getGoals(richard)
 		then:
@@ -51,12 +54,12 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		gamblingGoals.size() == 1
 		gamblingGoals[0]."@type" == "BudgetGoal"
 		!gamblingGoals[0]._links.edit //mandatory goal
-		gamblingGoals[0].creationTime =~ /\d{4}\-\d{2}\-\d{2}T\d{2}\:\d{2}\:\d{2}\.\d{3}\+\d{2}\:\d{2}/
+		assertEquals(gamblingGoals[0].creationTime, creationTime)
 		def newsGoals = filterGoals(response, NEWS_ACT_CAT_URL)
 		newsGoals.size() == 1
 		newsGoals[0]."@type" == "BudgetGoal"
 		newsGoals[0]._links.edit.href
-		newsGoals[0].creationTime =~ /\d{4}\-\d{2}\-\d{2}T\d{2}\:\d{2}\:\d{2}\.\d{3}\+\d{2}\:\d{2}/
+		assertEquals(newsGoals[0].creationTime, creationTime)
 	}
 
 	def 'Add budget goal'()

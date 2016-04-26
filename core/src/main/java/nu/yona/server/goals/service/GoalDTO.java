@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import org.apache.commons.lang.NotImplementedException;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -48,6 +49,7 @@ public abstract class GoalDTO extends PolymorphicDTO
 		return id;
 	}
 
+	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 	public ZonedDateTime getCreationTime()
 	{
 		return creationTime;
