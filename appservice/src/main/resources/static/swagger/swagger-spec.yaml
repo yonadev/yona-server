@@ -391,17 +391,75 @@ paths:
     delete:
       summary: Delete buddy
       description: Deletes this buddy
-      parameters:
-        - name: Yona-Password
-          in: header
-          description: The device password
-          required: true
-          type: string
       tags:
         - Buddy
       responses:
         '200':
           description: The new buddy is deleted.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/appActivity/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    post:
+      summary: Report app activities
+      description: Reports the usage of apps on the device
+      parameters:
+        - in: body
+          name: body
+          description: The app activity report
+          required: true
+          schema:
+            type: object
+            properties:
+              deviceDateTime:
+                type: string
+                format: dateTime
+                description: The actual time on the device
+                example: 2016-02-31T21:03:52.290+0000
+              activities:
+                type: array
+                description: A set of app activities
+                items:
+                  type: object
+                  properties:
+                    application:
+                      type: string
+                      description: The name of the app 
+                      example: Facebook
+                    startTime:
+                      type: string
+                      format: dateTime
+                      description: The time the app was activiated
+                      example: 2016-02-31T21:03:52.290+0000
+                    endTime:
+                      type: string
+                      format: dateTime
+                      description: The time the app was deactiviated
+                      example: 2016-02-31T21:28:02.290+0000
+                  required:
+                    - application
+                    - startTime
+                    - endTime
+            required:
+              - deviceDateTime
+              - activities
+      tags:
+        - App activity
+      responses:
+        '200':
+          description: App activity reported correctly
         default:
           description: Unexpected error
           schema:

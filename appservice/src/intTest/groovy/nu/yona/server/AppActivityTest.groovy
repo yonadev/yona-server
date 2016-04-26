@@ -15,17 +15,21 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
+		def now = new Date()
 		def startTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000))
-		def endTime = new Date()
+		def endTime = now
+		def nowString = YonaServer.toIsoDateString(now)
 		def startTimeString = YonaServer.toIsoDateString(startTime)
 		def endTimeString = YonaServer.toIsoDateString(endTime)
 
 		when:
-		def response = appService.createResourceWithPassword(richard.appActivityUrl, """[{
+		def response = appService.createResourceWithPassword(richard.appActivityUrl, """{
+				"deviceDateTime" : "$nowString",
+				"activities" : [{
 					"application":"Poker App",
 					"startTime":"$startTimeString",
 					"endTime":"$endTimeString"
-				}]""", "Hack")
+				}]}""", "Hack")
 
 		then:
 		response.status == 400
@@ -42,7 +46,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def endTime = new Date()
 
 		when:
-		def response = appService.postAppActivityToAnalysisEngine(richard, [new AppActivity("Poker App", startTime, endTime)])
+		def response = appService.postAppActivityToAnalysisEngine(richard, AppActivity.singleActivity("Poker App", startTime, endTime))
 
 		then:
 		response.status == 200
@@ -69,6 +73,48 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Device time difference is properly resolved'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		long nowMillis = System.currentTimeMillis()
+		long offsetMillis = 45 * 60 * 1000 // Off by 45 minutes
+		long startTimeMillis = nowMillis - (60 * 60 * 1000)
+		long endTimeMillis = nowMillis
+
+		when:
+		def nowWrong = new Date(nowMillis + offsetMillis)
+		def startTimeWrong = new Date(startTimeMillis + offsetMillis)
+		def endTimeWrong = new Date(endTimeMillis + offsetMillis)
+		def response = appService.postAppActivityToAnalysisEngine(richard, AppActivity.singleActivity(nowWrong, "Poker App", startTimeWrong, endTimeWrong))
+
+		then:
+		response.status == 200
+		def getMessagesRichardResponse = appService.getMessages(richard)
+		getMessagesRichardResponse.status == 200
+		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		goalConflictMessagesRichard.size() == 1
+		goalConflictMessagesRichard[0].nickname == "<self>"
+		assertEquals(goalConflictMessagesRichard[0].creationTime, new Date())
+		goalConflictMessagesRichard[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
+
+		def getMessagesBobResponse = appService.getMessages(bob)
+		getMessagesBobResponse.status == 200
+		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		goalConflictMessagesBob.size() == 1
+		goalConflictMessagesBob[0].nickname == richard.nickname
+		assertEquals(goalConflictMessagesBob[0].creationTime, new Date(nowMillis))
+		assertEquals(goalConflictMessagesBob[0].activityStartTime, new Date(startTimeMillis))
+		assertEquals(goalConflictMessagesBob[0].activityEndTime, new Date(endTimeMillis))
+		goalConflictMessagesBob[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
 	def 'Two conflicts within the conflict interval are reported as one message for each person'()
 	{
 		given:
@@ -81,9 +127,9 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def endTime1 = new Date()
 
 		when:
-		appService.postAppActivityToAnalysisEngine(richard, [new AppActivity("Poker App", startTime, endTime)])
+		appService.postAppActivityToAnalysisEngine(richard, AppActivity.singleActivity("Poker App", startTime, endTime))
 		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
-		appService.postAppActivityToAnalysisEngine(richard, [new AppActivity("Lotto App", startTime1, endTime1)])
+		appService.postAppActivityToAnalysisEngine(richard, AppActivity.singleActivity("Lotto App", startTime1, endTime1))
 
 		then:
 		def getMessagesRichardResponse = appService.getMessages(richard)
@@ -109,7 +155,8 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def endTime1 = new Date()
 
 		when:
-		def response = appService.postAppActivityToAnalysisEngine(richard, [new AppActivity("Poker App", startTime, endTime), new AppActivity("Lotto App", , startTime1, endTime1)])
+		def response = appService.postAppActivityToAnalysisEngine(richard,
+				new AppActivity([new AppActivity.Activity("Poker App", startTime, endTime), new AppActivity.Activity("Lotto App", , startTime1, endTime1)].toArray()))
 
 		then:
 		response.status == 200

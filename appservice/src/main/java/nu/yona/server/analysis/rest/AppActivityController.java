@@ -14,8 +14,8 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.analysis.service.AnalysisEngineService;
 import nu.yona.server.analysis.service.AppActivityDTO;
@@ -53,25 +52,15 @@ public class AppActivityController
 	 */
 	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
-	public void addAppActivity(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
-			@RequestBody AppActivityDTO[] appActivities)
+	public ResponseEntity<Void> addAppActivity(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userID, @RequestBody AppActivityDTO appActivities)
 	{
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> {
 			UUID userAnonymizedID = userService.getPrivateUser(userID).getPrivateData().getUserAnonymizedID();
 			analysisEngineService.analyze(userAnonymizedID, appActivities);
 			return null;
 		});
-	}
-
-	@RequestMapping(value = "/", method = RequestMethod.GET)
-	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
-	public HttpEntity<AppActivityDTO[]> getAppActivities(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userID)
-	{
-		// This method is just a shorthand to facilitate link building
-		return null;
+		return new ResponseEntity<Void>(HttpStatus.OK);
 	}
 
 	public static Link getAppActivityLink(UUID userID)
@@ -79,7 +68,7 @@ public class AppActivityController
 		try
 		{
 			ControllerLinkBuilder linkBuilder = linkTo(
-					methodOn(AppActivityController.class).getAppActivities(Optional.empty(), userID));
+					methodOn(AppActivityController.class).addAppActivity(Optional.empty(), userID, null));
 			return linkBuilder.withRel("appActivity");
 		}
 		catch (SecurityException e)

@@ -11,24 +11,74 @@ import nu.yona.server.YonaServer
 
 class AppActivity
 {
-	final def application
-	final Date startTime
-	final Date endTime
-	AppActivity(application, Date startTime, Date endTime)
+	static class Activity
 	{
-		this.application = application
-		this.startTime = startTime
-		this.endTime = endTime
+		final String application
+		final Date startTime
+		final Date endTime
+
+		public Activity(String application, Date startTime, Date endTime)
+		{
+			this.application = application
+			this.startTime = startTime
+			this.endTime = endTime
+		}
+
+		String getJson()
+		{
+			def startTimeString = YonaServer.toIsoDateString(startTime)
+			def endTimeString = YonaServer.toIsoDateString(endTime)
+			"""{
+				"application":"$application",
+				"startTime":"$startTimeString",
+				"endTime":"$endTimeString"
+			}"""
+		}
+	}
+	Date deviceDateTime
+	def activities
+
+	AppActivity(def activities)
+	{
+		this(new Date(), activities)
+	}
+
+	AppActivity(Date deviceDateTime, def activities)
+	{
+		this.deviceDateTime = deviceDateTime
+		this.activities = activities
 	}
 
 	String getJson()
 	{
-		def startTimeString = YonaServer.toIsoDateString(startTime)
-		def endTimeString = YonaServer.toIsoDateString(endTime)
+		def deviceDateTimeString = YonaServer.toIsoDateString(deviceDateTime)
+		def activitiesString = buildActivitiesString(activities)
 		"""{
-			"application":"$application",
-			"startTime":"$startTimeString",
-			"endTime":"$endTimeString"
+			"deviceDateTime":"$deviceDateTimeString",
+			"activities": $activitiesString
 		}"""
+	}
+
+	static String buildActivitiesString(def activities)
+	{
+		def activitiesString = ""
+		def first = true
+		activities.each(
+				{
+					activitiesString += (activitiesString) ? ", " : ""
+					activitiesString += it.getJson()
+				})
+		return "[" + activitiesString + "]"
+	}
+
+
+	static AppActivity singleActivity(application, Date startTime, Date endTime)
+	{
+		new AppActivity([new AppActivity.Activity(application, startTime, endTime)].toArray())
+	}
+
+	static AppActivity singleActivity(Date deviceDateTime, application, Date startTime, Date endTime)
+	{
+		new AppActivity(deviceDateTime, [new AppActivity.Activity(application, startTime, endTime)].toArray())
 	}
 }
