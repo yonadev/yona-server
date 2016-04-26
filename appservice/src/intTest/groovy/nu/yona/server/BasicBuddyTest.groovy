@@ -19,7 +19,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		when:
 		def response = appService.requestBuddy(richard, """{
 						"_embedded":{
-							"user":{
+							"yona:user":{
 								"firstName":"Bob",
 								"lastName":"Dun",
 								"emailAddress":"bob@dunn.net",

@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -56,5 +53,10 @@ public class BuddyServiceException extends YonaException
 	public static BuddyServiceException acceptingUserIsNull()
 	{
 		return new BuddyServiceException("error.buddy.accepting.user.is.null");
+	}
+
+	public static BuddyServiceException missingUser(String rel)
+	{
+		return new BuddyServiceException("error.buddy.request.must.contain.user.inside.embedded", rel);
 	}
 }

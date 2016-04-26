@@ -227,7 +227,7 @@ class AppService extends Service
 		// Send the buddy request
 		def response = requestBuddy(sendingUser, """{
 			"_embedded":{
-				"user":{
+				"yona:user":{
 					"firstName":"${receivingUser.firstName}",
 					"lastName":"${receivingUser.lastName}",
 					"mobileNumber":"${receivingUser.mobileNumber}",
