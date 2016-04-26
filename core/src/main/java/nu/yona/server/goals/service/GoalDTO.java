@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import org.apache.commons.lang.NotImplementedException;
@@ -25,24 +26,31 @@ public abstract class GoalDTO extends PolymorphicDTO
 {
 	private final UUID id;
 	private UUID activityCategoryID;
+	private final ZonedDateTime creationTime;
 	private final boolean mandatory;
 
-	protected GoalDTO(UUID id, UUID activityCategoryID, boolean mandatory)
+	protected GoalDTO(UUID id, UUID activityCategoryID, ZonedDateTime creationTime, boolean mandatory)
 	{
 		this.id = id;
 		this.setActivityCategoryID(activityCategoryID);
+		this.creationTime = creationTime;
 		this.mandatory = mandatory;
 	}
 
 	public GoalDTO(String activityCategoryUrl)
 	{
-		this(null, null, false /* ignored */);
+		this(null, null, null /* ignored */, false /* ignored */);
 	}
 
 	@JsonIgnore
 	public UUID getID()
 	{
 		return id;
+	}
+
+	public ZonedDateTime getCreationTime()
+	{
+		return creationTime;
 	}
 
 	@JsonIgnore

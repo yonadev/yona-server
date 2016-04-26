@@ -51,10 +51,12 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		gamblingGoals.size() == 1
 		gamblingGoals[0]."@type" == "BudgetGoal"
 		!gamblingGoals[0]._links.edit //mandatory goal
+		gamblingGoals[0].creationTime =~ /\d{4}\-\d{2}\-\d{2}T\d{2}\:\d{2}\:\d{2}\.\d{3}\+\d{2}\:\d{2}/
 		def newsGoals = filterGoals(response, NEWS_ACT_CAT_URL)
 		newsGoals.size() == 1
 		newsGoals[0]."@type" == "BudgetGoal"
 		newsGoals[0]._links.edit.href
+		newsGoals[0].creationTime =~ /\d{4}\-\d{2}\-\d{2}T\d{2}\:\d{2}\:\d{2}\.\d{3}\+\d{2}\:\d{2}/
 	}
 
 	def 'Add budget goal'()

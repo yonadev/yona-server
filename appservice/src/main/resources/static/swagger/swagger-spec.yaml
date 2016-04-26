@@ -1201,9 +1201,15 @@ definitions:
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
           - $ref: '#/definitions/ActivityCategoryLink'
+      creationTime:
+        type: string
+        format: dateTime
+        description: The creation time of this goal
+        example: 2016-04-26T20:08:55.365+02:00
     required:
       - "@type"
       - _links
+      - creationTime
   VPNProfile:
     type: object
     description: VPN profile. Private data.
