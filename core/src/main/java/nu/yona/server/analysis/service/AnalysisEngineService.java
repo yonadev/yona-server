@@ -49,13 +49,19 @@ public class AnalysisEngineService
 	public void analyze(UUID userAnonymizedID, AppActivityDTO appActivities)
 	{
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
-		Duration deviceTimeOffset = Duration.between(ZonedDateTime.now(), appActivities.getDeviceDateTime());
+		Duration deviceTimeOffset = determineDeviceTimeOffset(appActivities);
 		for (AppActivityDTO.Activity appActivity : appActivities.getActivities())
 		{
 			Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryService
 					.getMatchingCategoriesForApp(appActivity.getApplication());
 			analyze(createActivityPayload(deviceTimeOffset, appActivity), userAnonymized, matchingActivityCategories);
 		}
+	}
+
+	private Duration determineDeviceTimeOffset(AppActivityDTO appActivities)
+	{
+		Duration offset = Duration.between(ZonedDateTime.now(), appActivities.getDeviceDateTime());
+		return (offset.abs().compareTo(Duration.ofSeconds(10)) > 0) ? offset : Duration.ZERO; // Ignore if less than 10 seconds
 	}
 
 	private ActivityPayload createActivityPayload(Duration deviceTimeOffset, AppActivityDTO.Activity appActivity)
