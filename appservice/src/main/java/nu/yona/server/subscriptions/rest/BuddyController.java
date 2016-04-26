@@ -35,14 +35,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.BuddyServiceException;
+import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
@@ -90,13 +94,23 @@ public class BuddyController
 	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<BuddyResource> addBuddy(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID requestingUserID, @RequestBody BuddyDTO buddy)
+			@PathVariable UUID requestingUserID, @RequestBody PostPutBuddyDTO postPutBuddy)
 	{
-		return CryptoSession
-				.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
-						() -> createResponse(requestingUserID,
-								buddyService.addBuddyToRequestingUser(requestingUserID, buddy, this::getInviteURL),
-								HttpStatus.CREATED));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
+				() -> createResponse(requestingUserID,
+						buddyService.addBuddyToRequestingUser(requestingUserID, convertToBuddy(postPutBuddy), this::getInviteURL),
+						HttpStatus.CREATED));
+	}
+
+	private BuddyDTO convertToBuddy(PostPutBuddyDTO postPutBuddy)
+	{
+		String userRelName = curieProvider.getNamespacedRelFor(BuddyDTO.USER_REL_NAME);
+		UserDTO user = postPutBuddy.userInMap.get(userRelName);
+		if (user == null)
+		{
+			throw BuddyServiceException.missingUser(userRelName);
+		}
+		return new BuddyDTO(user, postPutBuddy.message, postPutBuddy.sendingStatus, postPutBuddy.receivingStatus);
 	}
 
 	@RequestMapping(value = "/{buddyID}", method = RequestMethod.DELETE)
@@ -145,6 +159,26 @@ public class BuddyController
 	{
 		BuddyController methodOn = methodOn(BuddyController.class);
 		return linkTo(methodOn.getBuddy(Optional.empty(), userID, buddyID));
+	}
+
+	static class PostPutBuddyDTO
+	{
+		private final Map<String, UserDTO> userInMap;
+		private final String message;
+		private final Status sendingStatus;
+		private final Status receivingStatus;
+
+		@JsonCreator
+		public PostPutBuddyDTO(@JsonProperty(value = "_embedded", required = true) Map<String, UserDTO> userInMap,
+				@JsonProperty("message") String message,
+				@JsonProperty(value = "sendingStatus", required = true) Status sendingStatus,
+				@JsonProperty(value = "receivingStatus", required = true) Status receivingStatus)
+		{
+			this.userInMap = userInMap;
+			this.message = message;
+			this.sendingStatus = sendingStatus;
+			this.receivingStatus = receivingStatus;
+		}
 	}
 
 	static class BuddyResource extends Resource<BuddyDTO>

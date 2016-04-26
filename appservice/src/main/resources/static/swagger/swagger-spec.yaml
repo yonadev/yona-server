@@ -1232,28 +1232,41 @@ definitions:
     - REQUESTED
     - ACCEPTED
     - REJECTED
+  PostPutBuddyUser:
+    allOf:
+      - $ref: '#/definitions/BaseUser'
+    properties:
+      emailAddress:
+        type: string
+        format: email
+        description: E-mail address used to inform the buddy about the new buddy request
+        example: richard@quin.net
+    required:
+      - emailAddress
   PostPutBuddy:
     type: object
     properties:
-      nickname:
-        type: string
-        description: Nickname of this buddy
-        example: RQ
       sendingStatus:
         $ref: '#/definitions/BuddyStatus'
         example: REQUESTED
       receivingStatus:
         $ref: '#/definitions/BuddyStatus'
         example: REQUESTED
+      message:
+        type: string
+        description: A message to the buddy
+        example: Hi there, would you want to become my buddy?
       _embedded:
         type: object
         properties:
           "yona:user":
-              $ref: "#/definitions/UserWithOnlyPublicData"
+              $ref: "#/definitions/PostPutBuddyUser"
+        required:
+          - "yona:user"
     required:
-      - nickname
       - sendingStatus
       - receivingStatus
+      - _embedded
   Buddy:
     allOf:
       - $ref: '#/definitions/PostPutBuddy'

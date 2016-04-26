@@ -1,18 +1,15 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.goals.service.GoalDTO;
@@ -28,7 +25,6 @@ public class BuddyDTO
 	private final UUID id;
 	private UserDTO user;
 	private String message;
-	private String password;
 	private String nickname;
 	private UUID userAnonymizedID;
 	private Status sendingStatus;
@@ -40,13 +36,12 @@ public class BuddyDTO
 	 */
 	private String userCreatedInviteURL;
 
-	public BuddyDTO(UUID id, UserDTO user, String message, String password, String nickname, UUID userAnonymizedID,
-			Status sendingStatus, Status receivingStatus)
+	public BuddyDTO(UUID id, UserDTO user, String message, String nickname, UUID userAnonymizedID, Status sendingStatus,
+			Status receivingStatus)
 	{
 		this.id = id;
 		this.user = user;
 		this.message = message;
-		this.password = password;
 		this.nickname = nickname;
 		this.userAnonymizedID = userAnonymizedID;
 		this.sendingStatus = sendingStatus;
@@ -55,15 +50,12 @@ public class BuddyDTO
 
 	public BuddyDTO(UUID id, UserDTO user, String nickname, UUID userAnonymizedID, Status sendingStatus, Status receivingStatus)
 	{
-		this(id, user, null, null, nickname, userAnonymizedID, sendingStatus, receivingStatus);
+		this(id, user, null, nickname, userAnonymizedID, sendingStatus, receivingStatus);
 	}
 
-	@JsonCreator
-	public BuddyDTO(@JsonProperty("_embedded") Map<String, UserDTO> userInMap, @JsonProperty("nickname") String nickname,
-			@JsonProperty("message") String message, @JsonProperty("password") String password,
-			@JsonProperty("sendingStatus") Status sendingStatus, @JsonProperty("receivingStatus") Status receivingStatus)
+	public BuddyDTO(UserDTO user, String message, Status sendingStatus, Status receivingStatus)
 	{
-		this(null, userInMap.get(USER_REL_NAME), message, password, nickname, null, sendingStatus, receivingStatus);
+		this(null, user, message, null, null, sendingStatus, receivingStatus);
 	}
 
 	@JsonIgnore
@@ -102,11 +94,6 @@ public class BuddyDTO
 	}
 
 	@JsonInclude(Include.NON_EMPTY)
-	public String getPassword()
-	{
-		return password;
-	}
-
 	public String getNickname()
 	{
 		return nickname;
