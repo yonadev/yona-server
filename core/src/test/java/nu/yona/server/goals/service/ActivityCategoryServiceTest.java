@@ -13,7 +13,6 @@ import static org.mockito.Mockito.verify;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,7 +31,6 @@ import nu.yona.server.goals.entities.ActivityCategoryRepository;
 @RunWith(MockitoJUnitRunner.class)
 public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 {
-	private static final Locale USEnglishLocale = Locale.forLanguageTag("en-US");
 	@Mock
 	private ActivityCategoryRepository mockRepository = mock(ActivityCategoryRepository.class);
 	@InjectMocks

@@ -17,12 +17,14 @@ import java.util.UUID;
 
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.ActivityCategoryRepository;
 
 public abstract class ActivityCategoryServiceTestBase
 {
+	protected static final Locale USEnglishLocale = Locale.forLanguageTag("en-US");
 	protected Set<ActivityCategory> activityCategories = new HashSet<ActivityCategory>();
 
 	protected ActivityCategory gambling;
@@ -30,6 +32,7 @@ public abstract class ActivityCategoryServiceTestBase
 
 	protected void setUp(ActivityCategoryRepository mockRepository)
 	{
+		LocaleContextHolder.setLocale(USEnglishLocale);
 		gambling = ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
 				new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet());
 		news = ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,

@@ -5,6 +5,7 @@
 package nu.yona.server.goals.service;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -50,7 +51,7 @@ public class ActivityCategoryService
 	@Transactional
 	public ActivityCategoryDTO addActivityCategory(ActivityCategoryDTO activityCategoryDTO)
 	{
-		logger.info("Adding activity category '{}'", activityCategoryDTO.getName());
+		logger.info("Adding activity category '{}'", activityCategoryDTO.getName(Locale.forLanguageTag("en-US")));
 		return ActivityCategoryDTO.createInstance(repository.save(activityCategoryDTO.createActivityCategoryEntity()));
 	}
 
@@ -65,7 +66,7 @@ public class ActivityCategoryService
 	private ActivityCategory updateActivityCategory(ActivityCategory activityCategoryTargetEntity,
 			ActivityCategoryDTO activityCategorySourceDTO)
 	{
-		logger.info("Updating activity category '{}'", activityCategorySourceDTO.getName());
+		logger.info("Updating activity category '{}'", activityCategorySourceDTO.getName(Locale.forLanguageTag("en-US")));
 		return repository.save(activityCategorySourceDTO.updateActivityCategory(activityCategoryTargetEntity));
 	}
 

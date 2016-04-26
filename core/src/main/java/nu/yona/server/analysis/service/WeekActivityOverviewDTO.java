@@ -1,5 +1,7 @@
 package nu.yona.server.analysis.service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -10,13 +12,20 @@ import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.service.IntervalActivityDTO.LevelOfDetail;
 
 @JsonRootName("weekActivityOverview")
-public class WeekActivityOverviewDTO
+public class WeekActivityOverviewDTO extends IntervalActivityOverviewDTO
 {
 	private Set<WeekActivityDTO> weekActivities;
 
-	private WeekActivityOverviewDTO(Set<WeekActivityDTO> weekActivities)
+	private WeekActivityOverviewDTO(LocalDate date, Set<WeekActivityDTO> weekActivities)
 	{
+		super(date);
 		this.weekActivities = weekActivities;
+	}
+
+	@Override
+	public DateTimeFormatter getDateFormatter()
+	{
+		return WeekActivityDTO.ISO8601_WEEK_FORMATTER;
 	}
 
 	@JsonIgnore
@@ -25,9 +34,9 @@ public class WeekActivityOverviewDTO
 		return weekActivities;
 	}
 
-	static WeekActivityOverviewDTO createInstance(Set<WeekActivity> weekActivities)
+	static WeekActivityOverviewDTO createInstance(LocalDate date, Set<WeekActivity> weekActivities)
 	{
-		return new WeekActivityOverviewDTO(weekActivities.stream()
+		return new WeekActivityOverviewDTO(date, weekActivities.stream()
 				.map(a -> WeekActivityDTO.createInstance(a, LevelOfDetail.WeekOverview)).collect(Collectors.toSet()));
 	}
 }

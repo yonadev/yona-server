@@ -5,6 +5,7 @@
 package nu.yona.server.analysis.service;
 
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -12,6 +13,7 @@ import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public abstract class IntervalActivityDTO
 {
@@ -22,15 +24,17 @@ public abstract class IntervalActivityDTO
 
 	private UUID goalID;
 	private ZonedDateTime startTime;
+	private boolean shouldSerializeDate;
 
 	private List<Integer> spread;
 	private Optional<Integer> totalActivityDurationMinutes;
 
-	protected IntervalActivityDTO(UUID goalID, ZonedDateTime startTime, List<Integer> spread,
+	protected IntervalActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
 			Optional<Integer> totalActivityDurationMinutes)
 	{
 		this.goalID = goalID;
 		this.startTime = startTime;
+		this.shouldSerializeDate = shouldSerializeDate;
 		this.spread = spread;
 		this.totalActivityDurationMinutes = totalActivityDurationMinutes;
 	}
@@ -42,9 +46,32 @@ public abstract class IntervalActivityDTO
 	}
 
 	/*
+	 * The ISO-8601 week or day date, or {null} if it should not be serialized.
+	 */
+	@JsonInclude(Include.NON_EMPTY)
+	@JsonProperty("date")
+	public String getDateIfRequired()
+	{
+		if (!shouldSerializeDate)
+		{
+			return null;
+		}
+		return getDate();
+	}
+
+	/*
 	 * The ISO-8601 week or day date.
 	 */
-	public abstract String getDate();
+	@JsonIgnore
+	public String getDate()
+	{
+		return getStartTime().toLocalDate().format(getDateFormatter());
+	}
+
+	/*
+	 * The ISO-8601 date formatter.
+	 */
+	public abstract DateTimeFormatter getDateFormatter();
 
 	/*
 	 * The time zone in which the interval was recorded.

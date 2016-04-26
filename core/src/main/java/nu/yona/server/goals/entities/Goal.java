@@ -5,6 +5,7 @@
 package nu.yona.server.goals.entities;
 
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -64,4 +65,9 @@ public abstract class Goal extends EntityWithID
 	public abstract boolean isGoalAccomplished(DayActivity dayActivity);
 
 	public abstract int computeTotalMinutesBeyondGoal(DayActivity dayActivity);
+
+	public boolean wasActiveAtInterval(ZonedDateTime dateAtStartOfInterval, ChronoUnit timeUnit)
+	{
+		return creationTime.isBefore(dateAtStartOfInterval.plus(1, timeUnit));
+	}
 }

@@ -4,7 +4,9 @@
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -102,7 +104,26 @@ public class WeekActivity extends IntervalActivity
 	public static WeekActivity createInstanceInactivity(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek)
 	{
 		WeekActivity result = createInstance(userAnonymized, goal, startOfWeek);
-		// leave days out
+		// add the days
+		// notice this doesn't take care of user time zone changes during the week
+		// so for consistency it is important that the batch script adding inactivity does so
+		for (int i = 0; i < 7; i++)
+		{
+			ZonedDateTime startOfDay = startOfWeek.plusDays(i);
+			if (isInFuture(startOfDay, startOfWeek.getZone()))
+			{
+				break;
+			}
+			if (goal.wasActiveAtInterval(startOfDay, ChronoUnit.DAYS))
+			{
+				result.addDayActivity(DayActivity.createInstanceInactivity(userAnonymized, goal, startOfDay));
+			}
+		}
 		return result;
+	}
+
+	public static boolean isInFuture(ZonedDateTime startOfDay, ZoneId zone)
+	{
+		return startOfDay.isAfter(ZonedDateTime.now(zone));
 	}
 }

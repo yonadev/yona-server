@@ -61,9 +61,10 @@ public class ActivityService
 				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
 		addMissingInactivity(weekActivityEntitiesByDate, interval, ChronoUnit.WEEKS, userAnonymized,
 				(goal, startOfWeek) -> WeekActivity.createInstanceInactivity(null, goal, startOfWeek));
-		return new PageImpl<WeekActivityOverviewDTO>(weekActivityEntitiesByDate.entrySet().stream()
-				.map(e -> WeekActivityOverviewDTO.createInstance(e.getValue())).collect(Collectors.toList()), pageable,
-				yonaProperties.getAnalysisService().getWeeksActivityMemory());
+		return new PageImpl<WeekActivityOverviewDTO>(
+				weekActivityEntitiesByDate.entrySet().stream()
+						.map(e -> WeekActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
+				pageable, yonaProperties.getAnalysisService().getWeeksActivityMemory());
 	}
 
 	public Page<DayActivityOverviewDTO> getDayActivityOverviews(UUID userID, Pageable pageable)
@@ -78,9 +79,10 @@ public class ActivityService
 				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
 		addMissingInactivity(dayActivityEntitiesByDate, interval, ChronoUnit.DAYS, userAnonymized,
 				(goal, startOfDay) -> DayActivity.createInstanceInactivity(null, goal, startOfDay));
-		return new PageImpl<DayActivityOverviewDTO>(dayActivityEntitiesByDate.entrySet().stream()
-				.map(e -> DayActivityOverviewDTO.createInstance(e.getValue())).collect(Collectors.toList()), pageable,
-				yonaProperties.getAnalysisService().getDaysActivityMemory());
+		return new PageImpl<DayActivityOverviewDTO>(
+				dayActivityEntitiesByDate.entrySet().stream()
+						.map(e -> DayActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
+				pageable, yonaProperties.getAnalysisService().getDaysActivityMemory());
 	}
 
 	private Interval getInterval(LocalDate currentUnitDate, Pageable pageable, ChronoUnit timeUnit)
@@ -116,9 +118,9 @@ public class ActivityService
 		for (LocalDate date = interval.startDate; date.isBefore(interval.endDate)
 				|| date.isEqual(interval.endDate); date = date.plus(1, timeUnit))
 		{
-			ZonedDateTime dateAtStartOfDay = date.atStartOfDay(ZoneId.of(userAnonymized.getTimeZoneId()));
+			ZonedDateTime dateAtStartOfInterval = date.atStartOfDay(ZoneId.of(userAnonymized.getTimeZoneId()));
 
-			Set<Goal> activeGoals = getActiveGoals(userAnonymized, dateAtStartOfDay, timeUnit);
+			Set<Goal> activeGoals = getActiveGoals(userAnonymized, dateAtStartOfInterval, timeUnit);
 			if (activeGoals.isEmpty())
 			{
 				continue;
@@ -129,25 +131,25 @@ public class ActivityService
 				activityEntitiesByDate.put(date, new HashSet<T>());
 			}
 			Set<T> activityEntitiesAtDate = activityEntitiesByDate.get(date);
-			activeGoals.forEach(g -> addMissingInactivity(g, dateAtStartOfDay, activityEntitiesAtDate, userAnonymized,
+			activeGoals.forEach(g -> addMissingInactivity(g, dateAtStartOfInterval, activityEntitiesAtDate, userAnonymized,
 					inactivityEntitySupplier));
 		}
 	}
 
-	private Set<Goal> getActiveGoals(UserAnonymizedDTO userAnonymized, ZonedDateTime dateAtStartOfDay, ChronoUnit timeUnit)
+	private Set<Goal> getActiveGoals(UserAnonymizedDTO userAnonymized, ZonedDateTime dateAtStartOfInterval, ChronoUnit timeUnit)
 	{
 		Set<Goal> activeGoals = userAnonymized.getGoals().stream()
-				.filter(g -> g.getCreationTime().isBefore(dateAtStartOfDay.plus(1, timeUnit))).collect(Collectors.toSet());
+				.filter(g -> g.wasActiveAtInterval(dateAtStartOfInterval, timeUnit)).collect(Collectors.toSet());
 		return activeGoals;
 	}
 
-	private <T extends IntervalActivity> void addMissingInactivity(Goal activeGoal, ZonedDateTime dateAtStartOfDay,
+	private <T extends IntervalActivity> void addMissingInactivity(Goal activeGoal, ZonedDateTime dateAtStartOfInterval,
 			Set<T> activityEntitiesAtDate, UserAnonymizedDTO userAnonymized,
 			BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier)
 	{
 		if (!containsActivityForGoal(activityEntitiesAtDate, activeGoal))
 		{
-			activityEntitiesAtDate.add(inactivityEntitySupplier.apply(activeGoal, dateAtStartOfDay));
+			activityEntitiesAtDate.add(inactivityEntitySupplier.apply(activeGoal, dateAtStartOfInterval));
 		}
 	}
 
@@ -189,12 +191,12 @@ public class ActivityService
 		{
 			throw GoalServiceException.goalNotFoundById(userID, goalID);
 		}
-		ZonedDateTime dateAtStartOfDay = date.atStartOfDay(ZoneId.of(userAnonymized.getTimeZoneId()));
-		if (!goal.get().getCreationTime().isBefore(dateAtStartOfDay.plus(1, timeUnit)))
+		ZonedDateTime dateAtStartOfInterval = date.atStartOfDay(ZoneId.of(userAnonymized.getTimeZoneId()));
+		if (!goal.get().wasActiveAtInterval(dateAtStartOfInterval, timeUnit))
 		{
 			throw ActivityServiceException.activityDateGoalMismatch(userID, date, goalID);
 		}
-		return inactivityEntitySupplier.apply(goal.get(), dateAtStartOfDay);
+		return inactivityEntitySupplier.apply(goal.get(), dateAtStartOfInterval);
 	}
 
 	private class Interval

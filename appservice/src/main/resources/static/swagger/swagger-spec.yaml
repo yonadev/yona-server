@@ -1580,12 +1580,18 @@ definitions:
         allOf:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
+      date:
+        type: string
+        example: 2016-W2
+        description: The week date in ISO 8601 format (YYYY-'W'w)
       _embedded:
         properties:
           "yona:weekActivities":
             type: array
             items:
               $ref: '#/definitions/WeekActivity'
+    required:
+      - date
   WeekActivity:
     allOf:
       - $ref: '#/definitions/IntervalActivity'
@@ -1593,12 +1599,22 @@ definitions:
       date:
         type: string
         example: 2016-W2
-        description: The week date in ISO 8601 format (YYYY-'W'w)
+        description: The week date in ISO 8601 format (YYYY-'W'w). Only included in week detail because the information is otherwise present on the parent
       _embedded:
         properties:
-          "yona:dayActivities":
-            type: array
-            items:
+          SUNDAY:
+              $ref: '#/definitions/DayActivity'
+          MONDAY:
+              $ref: '#/definitions/DayActivity'
+          TUESDAY:
+              $ref: '#/definitions/DayActivity'
+          WEDNESDAY:
+              $ref: '#/definitions/DayActivity'
+          THURSDAY:
+              $ref: '#/definitions/DayActivity'
+          FRIDAY:
+              $ref: '#/definitions/DayActivity'
+          SATURDAY:
               $ref: '#/definitions/DayActivity'
   PagedDayActivityOverviews:
     type: object
@@ -1666,12 +1682,18 @@ definitions:
         allOf:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
+      date:
+        type: string
+        example: 2016-03-16
+        description: The day date in ISO 8601 format (yyyy-MM-dd)
       _embedded:
         properties:
           "yona:dayActivities":
             type: array
             items:
               $ref: '#/definitions/DayActivity'
+    required:
+      - date
   DayActivity:
     allOf:
       - $ref: '#/definitions/IntervalActivity'
@@ -1679,7 +1701,7 @@ definitions:
       date:
         type: string
         example: 2016-03-16
-        description: The day date in ISO 8601 format (yyyy-MM-dd)
+        description: The day date in ISO 8601 format (yyyy-MM-dd). Only included in day detail because the information is otherwise present on the parent
       goalAccomplished:
         type: boolean
         description: If the goal for this day was accomplished. If the day is not yet over, if the goal for this day was accomplished so far
