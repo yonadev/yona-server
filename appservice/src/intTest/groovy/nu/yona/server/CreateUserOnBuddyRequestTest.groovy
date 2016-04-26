@@ -388,7 +388,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		appService.yonaServer.createResourceWithPassword(user.url + "/buddies/", """{
 			"_embedded":{
-				"user":{
+				"yona:user":{
 					"firstName":"Bob",
 					"lastName":"Dunn",
 					"emailAddress":"bobdunn325@gmail.com",

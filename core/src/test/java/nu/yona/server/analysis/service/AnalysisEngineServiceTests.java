@@ -476,7 +476,7 @@ public class AnalysisEngineServiceTests
 
 		Date startTime = Date.from(yesterdayTime.minusMinutes(10).toInstant());
 		Date endTime = Date.from(yesterdayTime.toInstant());
-		service.analyze(userAnonID, new AppActivityDTO[] { new AppActivityDTO("Poker App", startTime, endTime) });
+		service.analyze(userAnonID, createSingleAppActivity("Poker App", startTime, endTime));
 
 		// Verify that there is a new conflict message sent.
 		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
@@ -497,7 +497,7 @@ public class AnalysisEngineServiceTests
 	{
 		Date startTime = Date.from(ZonedDateTime.of(2016, 4, 5, 19, 39, 0, 0, userAnonZoneId).toInstant());
 		Date endTime = Date.from(ZonedDateTime.of(2016, 4, 6, 1, 00, 0, 0, userAnonZoneId).toInstant());
-		service.analyze(userAnonID, new AppActivityDTO[] { new AppActivityDTO("Poker App", startTime, endTime) });
+		service.analyze(userAnonID, createSingleAppActivity("Poker App", startTime, endTime));
 
 		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
 		verify(mockAnalysisEngineCacheService, times(2)).updateDayActivityForUser(dayActivity.capture());
@@ -516,5 +516,11 @@ public class AnalysisEngineServiceTests
 		assertThat(nextPart.getStartTime(),
 				equalTo(Date.from(ZonedDateTime.of(2016, 4, 6, 0, 0, 0, 0, userAnonZoneId).toInstant())));
 		assertThat(nextPart.getEndTime(), equalTo(endTime));
+	}
+
+	private AppActivityDTO createSingleAppActivity(String app, Date startTime, Date endTime)
+	{
+		AppActivityDTO.Activity[] activities = { new AppActivityDTO.Activity(app, startTime, endTime) };
+		return new AppActivityDTO(ZonedDateTime.now(), activities);
 	}
 }
