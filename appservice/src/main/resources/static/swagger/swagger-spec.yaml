@@ -391,12 +391,6 @@ paths:
     delete:
       summary: Delete buddy
       description: Deletes this buddy
-      parameters:
-        - name: Yona-Password
-          in: header
-          description: The device password
-          required: true
-          type: string
       tags:
         - Buddy
       responses:
