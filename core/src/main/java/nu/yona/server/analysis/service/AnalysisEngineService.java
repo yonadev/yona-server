@@ -67,8 +67,8 @@ public class AnalysisEngineService
 	private ActivityPayload createActivityPayload(Duration deviceTimeOffset, AppActivityDTO.Activity appActivity)
 	{
 		Date correctedStartTime = correctTime(deviceTimeOffset, appActivity.getStartTime());
-		Date correctedendTime = correctTime(deviceTimeOffset, appActivity.getEndTime());
-		return new ActivityPayload(correctedStartTime, correctedendTime, appActivity.getApplication());
+		Date correctedEndTime = correctTime(deviceTimeOffset, appActivity.getEndTime());
+		return new ActivityPayload(correctedStartTime, correctedEndTime, appActivity.getApplication());
 	}
 
 	private Date correctTime(Duration deviceTimeOffset, Date time)

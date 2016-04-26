@@ -422,8 +422,6 @@ paths:
           required: true
           schema:
             type: object
-            required:
-              - newDeviceRequestPassword
             properties:
               deviceDateTime:
                 type: string
@@ -454,6 +452,9 @@ paths:
                     - application
                     - startTime
                     - endTime
+            required:
+              - deviceDateTime
+              - activities
       tags:
         - App activity
       responses:
