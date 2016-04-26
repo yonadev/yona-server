@@ -408,7 +408,7 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void activityOnNewDay()
 	{
-		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
+		ZonedDateTime now = ZonedDateTime.of(2016, 4, 29, 20, 29, 1, 0, userAnonZoneId);
 
 		DayActivity earlierDayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal,
 				now.minusDays(1).truncatedTo(ChronoUnit.DAYS));
@@ -418,8 +418,9 @@ public class AnalysisEngineServiceTests
 		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
 				.thenReturn(earlierDayActivity);
 
-		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		Date startTime = Date.from(now.minusMinutes(10).toInstant());
+		Date endTime = Date.from(now.toInstant());
+		service.analyze(userAnonID, createSingleAppActivity("Poker App", startTime, endTime));
 
 		// Verify that there is a new conflict message sent.
 		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
@@ -429,18 +430,41 @@ public class AnalysisEngineServiceTests
 		assertThat("Expect new day", newDayActivity.getValue(), not(equalTo(earlierDayActivity)));
 		assertThat("Expect right date", newDayActivity.getValue().getStartTime(), equalTo(now.truncatedTo(ChronoUnit.DAYS)));
 		assertThat("Expect activity added", newDayActivity.getValue().getLastActivity(), notNullValue());
+		assertThat("Expect matching start time", newDayActivity.getValue().getLastActivity().getStartTime(), equalTo(startTime));
+		assertThat("Expect matching end time", newDayActivity.getValue().getLastActivity().getEndTime(), equalTo(endTime));
 	}
 
 	@Test
 	public void appActivityPrecedingLastCachedActivity()
 	{
-		// TODO
+		ZonedDateTime now = ZonedDateTime.of(2016, 4, 29, 20, 29, 1, 0, userAnonZoneId);
+		
+		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, now.truncatedTo(ChronoUnit.DAYS));
+		Date earlierActivityTime = Date.from(now.toInstant());
+		Activity earlierActivity = Activity.createInstance(earlierActivityTime, earlierActivityTime);
+		dayActivity.addActivity(earlierActivity);
+		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
+				.thenReturn(dayActivity);
+		
+		Date startTime = Date.from(now.minusMinutes(10).toInstant());
+		Date endTime = Date.from(now.toInstant());
+		service.analyze(userAnonID, createSingleAppActivity("Poker App", startTime, endTime));
+		
+		// Verify that there is a new conflict message sent.
+		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
+		// Verify that no database lookup was done
+		verify(mockDayActivityRepository, never()).findOne(userAnonID, now.toLocalDate(), gamblingGoal.getID());
+		// Verify that the day was updated in the cache
+		verify(mockAnalysisEngineCacheService, times(1)).updateDayActivityForUser(dayActivity);
+		
+		assertThat("Expect a new activity added (merge is quite complicated so has not been implemented yet)", dayActivity.getLastActivity().getID(), not(equalTo(earlierActivity.getID())));
+		assertThat("Expect right activity start time", dayActivity.getLastActivity().getStartTime(), equalTo(startTime));
 	}
 
 	@Test
 	public void appActivityPrecedingCachedDayActivity()
 	{
-		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
+		ZonedDateTime now = ZonedDateTime.of(2016, 4, 29, 20, 29, 1, 0, userAnonZoneId);
 		ZonedDateTime yesterdayTime = now.minusDays(1);
 
 		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, now.truncatedTo(ChronoUnit.DAYS));
