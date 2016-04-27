@@ -5,6 +5,7 @@
 package nu.yona.server.goals.entities;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
@@ -56,7 +57,7 @@ public class ActivityCategory extends EntityWithID
 
 	public Map<Locale, String> getName()
 	{
-		return Collections.unmodifiableMap(name);
+		return new HashMap<>(name);
 	}
 
 	public boolean isMandatoryNoGo()
