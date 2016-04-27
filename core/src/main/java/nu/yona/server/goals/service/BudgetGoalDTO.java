@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -27,9 +28,9 @@ public class BudgetGoalDTO extends GoalDTO
 		this.maxDurationMinutes = maxDurationMinutes;
 	}
 
-	public BudgetGoalDTO(UUID id, UUID activityCategoryID, int maxDurationMinutes, boolean mandatory)
+	public BudgetGoalDTO(UUID id, UUID activityCategoryID, int maxDurationMinutes, ZonedDateTime creationTime, boolean mandatory)
 	{
-		super(id, activityCategoryID, mandatory);
+		super(id, activityCategoryID, creationTime, mandatory);
 
 		this.maxDurationMinutes = maxDurationMinutes;
 	}
@@ -54,7 +55,7 @@ public class BudgetGoalDTO extends GoalDTO
 	public static BudgetGoalDTO createInstance(BudgetGoal entity)
 	{
 		return new BudgetGoalDTO(entity.getID(), entity.getActivityCategory().getID(), entity.getMaxDurationMinutes(),
-				entity.isMandatory());
+				entity.getCreationTime(), entity.isMandatory());
 	}
 
 	public BudgetGoal createGoalEntity()
