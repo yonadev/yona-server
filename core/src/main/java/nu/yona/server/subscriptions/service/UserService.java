@@ -461,7 +461,7 @@ public class UserService
 	public void sendConfirmationCodeTextMessage(String mobileNumber, ConfirmationCode confirmationCode, String templateName)
 	{
 		Map<String, Object> templateParams = new HashMap<String, Object>();
-		templateParams.put("confirmationCode", confirmationCode);
+		templateParams.put("confirmationCode", confirmationCode.getConfirmationCode());
 		smsService.send(mobileNumber, templateName, templateParams);
 	}
 
