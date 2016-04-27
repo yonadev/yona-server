@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -336,18 +336,19 @@ public class BuddyService
 	{
 		UserDTO buddyUser = buddy.getUser();
 
-		String tempPassword = userService.generatePassword();
+		String tempPassword = getTempPassword();
 		User buddyUserEntity = userService.addUserCreatedOnBuddyRequest(buddyUser, tempPassword);
 		BuddyDTO savedBuddy = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
 
 		String inviteURL = inviteURLGetter.apply(buddyUserEntity.getID(), tempPassword);
-		if (!properties.getEmail().isEnabled())
-		{
-			savedBuddy.setUserCreatedInviteURL(inviteURL);
-		}
 		sendInvitationMessage(requestingUser, buddyUserEntity, buddy, inviteURL);
 
 		return savedBuddy;
+	}
+
+	private String getTempPassword()
+	{
+		return (properties.getEmail().isEnabled()) ? userService.generatePassword() : "abcd";
 	}
 
 	private BuddyDTO handleBuddyRequestForExistingUser(UserDTO requestingUser, BuddyDTO buddy, User buddyUserEntity)
