@@ -8,7 +8,7 @@
 
 		<p>Next, open the below link by tapping on it and selecting Yona as the app to open it with.</p>
 		
-		<p>Important: Validate that @{requestingUserName} has really invited you. The mobile number registered with Yona for this user is ${requestingUserMobileNumber}.</p>
+		<p>Important: Validate that ${requestingUserName} has really invited you. The mobile number registered with Yona for this user is ${requestingUserMobileNumber}.</p>
 		
  		<p><a href="${inviteURL}">${inviteURL}</a></p>
 		

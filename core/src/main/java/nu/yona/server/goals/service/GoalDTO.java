@@ -4,10 +4,12 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import org.apache.commons.lang.NotImplementedException;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -25,18 +27,20 @@ public abstract class GoalDTO extends PolymorphicDTO
 {
 	private final UUID id;
 	private UUID activityCategoryID;
+	private final ZonedDateTime creationTime;
 	private final boolean mandatory;
 
-	protected GoalDTO(UUID id, UUID activityCategoryID, boolean mandatory)
+	protected GoalDTO(UUID id, UUID activityCategoryID, ZonedDateTime creationTime, boolean mandatory)
 	{
 		this.id = id;
 		this.setActivityCategoryID(activityCategoryID);
+		this.creationTime = creationTime;
 		this.mandatory = mandatory;
 	}
 
 	public GoalDTO(String activityCategoryUrl)
 	{
-		this(null, null, false /* ignored */);
+		this(null, null, null /* ignored */, false /* ignored */);
 	}
 
 	public abstract void validate();
@@ -45,6 +49,12 @@ public abstract class GoalDTO extends PolymorphicDTO
 	public UUID getID()
 	{
 		return id;
+	}
+
+	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+	public ZonedDateTime getCreationTime()
+	{
+		return creationTime;
 	}
 
 	@JsonIgnore

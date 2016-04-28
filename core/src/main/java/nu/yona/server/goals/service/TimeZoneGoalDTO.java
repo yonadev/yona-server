@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -30,9 +31,9 @@ public class TimeZoneGoalDTO extends GoalDTO
 		this.zones = zones;
 	}
 
-	private TimeZoneGoalDTO(UUID id, UUID activityCategoryID, String[] zones)
+	private TimeZoneGoalDTO(UUID id, UUID activityCategoryID, String[] zones, ZonedDateTime creationTime)
 	{
-		super(id, activityCategoryID, false);
+		super(id, activityCategoryID, creationTime, false);
 
 		this.zones = zones;
 	}
@@ -102,7 +103,8 @@ public class TimeZoneGoalDTO extends GoalDTO
 
 	static TimeZoneGoalDTO createInstance(TimeZoneGoal entity)
 	{
-		return new TimeZoneGoalDTO(entity.getID(), entity.getActivityCategory().getID(), entity.getZones());
+		return new TimeZoneGoalDTO(entity.getID(), entity.getActivityCategory().getID(), entity.getZones(),
+				entity.getCreationTime());
 	}
 
 	public TimeZoneGoal createGoalEntity()
