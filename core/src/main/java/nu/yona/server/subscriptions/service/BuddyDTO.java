@@ -31,11 +31,6 @@ public class BuddyDTO
 	private Status receivingStatus;
 	private Set<GoalDTO> goals;
 
-	/*
-	 * Only intended for test purposes.
-	 */
-	private String userCreatedInviteURL;
-
 	public BuddyDTO(UUID id, UserDTO user, String message, String nickname, UUID userAnonymizedID, Status sendingStatus,
 			Status receivingStatus)
 	{
@@ -113,23 +108,6 @@ public class BuddyDTO
 	public UUID getUserAnonymizedID()
 	{
 		return userAnonymizedID;
-	}
-
-	/*
-	 * Only intended for test purposes.
-	 */
-	public void setUserCreatedInviteURL(String userCreatedInviteURL)
-	{
-		this.userCreatedInviteURL = userCreatedInviteURL;
-	}
-
-	/*
-	 * Only intended for test purposes.
-	 */
-	@JsonInclude(Include.NON_EMPTY)
-	public String getUserCreatedInviteURL()
-	{
-		return userCreatedInviteURL;
 	}
 
 	public void setGoals(Set<GoalDTO> goals)
