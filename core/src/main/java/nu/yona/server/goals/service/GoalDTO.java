@@ -39,6 +39,8 @@ public abstract class GoalDTO extends PolymorphicDTO
 		this(null, null, false /* ignored */);
 	}
 
+	public abstract void validate();
+
 	@JsonIgnore
 	public UUID getID()
 	{

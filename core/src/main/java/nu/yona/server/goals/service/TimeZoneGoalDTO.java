@@ -4,7 +4,9 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.util.Arrays;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -17,6 +19,7 @@ import nu.yona.server.goals.entities.TimeZoneGoal;
 @JsonRootName("timeZoneGoal")
 public class TimeZoneGoalDTO extends GoalDTO
 {
+	private static Pattern zonePattern = Pattern.compile("[0-2][0-9]:[0-5][0-9]-[0-2][0-9]:[0-5][0-9]");
 	private final String[] zones;
 
 	@JsonCreator
@@ -38,6 +41,52 @@ public class TimeZoneGoalDTO extends GoalDTO
 	public String getType()
 	{
 		return "TimeZoneGoal";
+	}
+
+	@Override
+	public void validate()
+	{
+		if ((zones == null) || zones.length == 0)
+		{
+			throw GoalServiceException.timeZoneGoalAtLeastOneZoneRequired();
+		}
+		for (String zone : zones)
+		{
+			validateZone(zone);
+		}
+	}
+
+	private void validateZone(String zone)
+	{
+		if (!zonePattern.matcher(zone).matches())
+		{
+			throw GoalServiceException.timeZoneGoalInvalidZoneFormat(zone);
+		}
+		int[] numbers = Arrays.asList(zone.split("[-:]")).stream().mapToInt(Integer::parseInt).toArray();
+		validateHour(zone, numbers[0]);
+		validateMinute(zone, numbers[1]);
+		validateHour(zone, numbers[2]);
+		validateMinute(zone, numbers[3]);
+		if (numbers[0] * 60 + numbers[1] >= numbers[2] * 60 + numbers[3])
+		{
+			throw GoalServiceException.timeZoneGoalToNotBeyondFrom(zone);
+		}
+	}
+
+	private void validateHour(String zone, int hour)
+	{
+		if (hour > 23)
+		{
+			throw GoalServiceException.timeZoneGoalInvalidHour(zone, hour);
+		}
+	}
+
+	private void validateMinute(String zone, int minute)
+	{
+		if (minute % 15 != 0)
+		{
+			throw GoalServiceException.timeZoneGoalNotQuarterHour(zone, minute);
+		}
 	}
 
 	@Override

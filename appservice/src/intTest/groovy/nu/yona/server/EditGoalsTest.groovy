@@ -212,6 +212,48 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		response.responseData.code == "error.goal.cannot.change.activity.category"
 	}
 
+	def 'Try invalid budget goal'()
+	{
+		given:
+		def richard = addRichard()
+		when:
+		def response = appService.addGoal(richard, BudgetGoal.createInstance(NEWS_ACT_CAT_URL, -1))
+
+		then:
+		response.status == 400
+		response.responseData.code == "error.goal.budget.invalid.max.duration.cannot.be.negative"
+	}
+
+	def 'Try invalid time zone goal'()
+	{
+		given:
+		def richard = addRichard()
+		when:
+		def noZoneResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, [].toArray()))
+		def invalidFormatResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["31:00-12:00"].toArray()))
+		def toNotBeyondFromResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["12:00-12:00"].toArray()))
+		def invalidFirstHourResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["24:00-12:00"].toArray()))
+		def invalidSecondHourResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-24:00"].toArray()))
+		def notQuarterHourFirstResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:01-12:00"].toArray()))
+		def notQuarterHourSecondResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:16"].toArray()))
+
+		then:
+		noZoneResponse.status == 400
+		noZoneResponse.responseData.code == "error.goal.time.zone.invalid.at.least.one.zone.required"
+		invalidFormatResponse.status == 400
+		invalidFormatResponse.responseData.code == "error.goal.time.zone.invalid.zone.format"
+		toNotBeyondFromResponse.status == 400
+		toNotBeyondFromResponse.responseData.code == "error.goal.time.zone.to.not.beyond.from"
+		invalidFirstHourResponse.status == 400
+		invalidFirstHourResponse.responseData.code == "error.goal.time.zone.not.a.valid.hour"
+		invalidSecondHourResponse.status == 400
+		invalidSecondHourResponse.responseData.code == "error.goal.time.zone.not.a.valid.hour"
+		notQuarterHourFirstResponse.status == 400
+		notQuarterHourFirstResponse.responseData.code == "error.goal.time.zone.not.a.quarter.hour"
+		notQuarterHourSecondResponse.status == 400
+		notQuarterHourSecondResponse.responseData.code == "error.goal.time.zone.not.a.quarter.hour"
+	}
+
 	def 'Delete goal'()
 	{
 		given:

@@ -41,4 +41,34 @@ public class GoalServiceException extends YonaException
 	{
 		return new GoalServiceException("error.goal.cannot.change.activity.category", existingCategoryID, newCategoryID);
 	}
+
+	public static GoalServiceException budgetGoalMaxDurationNegative(int maxDurationMinutes)
+	{
+		return new GoalServiceException("error.goal.budget.invalid.max.duration.cannot.be.negative", maxDurationMinutes);
+	}
+
+	public static GoalServiceException timeZoneGoalAtLeastOneZoneRequired()
+	{
+		return new GoalServiceException("error.goal.time.zone.invalid.at.least.one.zone.required");
+	}
+
+	public static GoalServiceException timeZoneGoalInvalidZoneFormat(String zone)
+	{
+		return new GoalServiceException("error.goal.time.zone.invalid.zone.format", zone);
+	}
+
+	public static GoalServiceException timeZoneGoalToNotBeyondFrom(String zone)
+	{
+		return new GoalServiceException("error.goal.time.zone.to.not.beyond.from", zone);
+	}
+
+	public static GoalServiceException timeZoneGoalInvalidHour(String zone, int hour)
+	{
+		return new GoalServiceException("error.goal.time.zone.not.a.valid.hour", zone, hour);
+	}
+
+	public static GoalServiceException timeZoneGoalNotQuarterHour(String zone, int minute)
+	{
+		return new GoalServiceException("error.goal.time.zone.not.a.quarter.hour", zone, minute);
+	}
 }
