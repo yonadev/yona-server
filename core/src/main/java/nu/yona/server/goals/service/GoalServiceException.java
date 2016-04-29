@@ -71,4 +71,9 @@ public class GoalServiceException extends YonaException
 	{
 		return new GoalServiceException("error.goal.time.zone.not.a.quarter.hour", zone, minute);
 	}
+
+	public static GoalServiceException timeZoneGoalBeyondTwentyFour(String zone, int minute)
+	{
+		return new GoalServiceException("error.goal.time.zone.beyond.twenty.four", zone, minute);
+	}
 }

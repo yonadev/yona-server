@@ -10,8 +10,6 @@ import groovy.json.*
 import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
 class EditGoalsTest extends AbstractAppServiceIntegrationTest
 {
@@ -237,10 +235,13 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def noZoneResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, [].toArray()))
 		def invalidFormatResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["31:00-12:00"].toArray()))
 		def toNotBeyondFromResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["12:00-12:00"].toArray()))
-		def invalidFirstHourResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["24:00-12:00"].toArray()))
-		def invalidSecondHourResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-24:00"].toArray()))
-		def notQuarterHourFirstResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:01-12:00"].toArray()))
-		def notQuarterHourSecondResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:16"].toArray()))
+		def invalidFromHourResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["25:00-12:00"].toArray()))
+		def invalidToHourResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-25:00"].toArray()))
+		def fromNotQuarterHourResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:01-12:00"].toArray()))
+		def toNotQuarterHourResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:16"].toArray()))
+		def fromBeyond24Response = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["24:15-24:30"].toArray()))
+		def toBeyond24Response = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["24:00-24:15"].toArray()))
+		def fullDayResponse = appService.addGoal(richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["00:00-24:00"].toArray()))
 
 		then:
 		noZoneResponse.status == 400
@@ -249,14 +250,19 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		invalidFormatResponse.responseData.code == "error.goal.time.zone.invalid.zone.format"
 		toNotBeyondFromResponse.status == 400
 		toNotBeyondFromResponse.responseData.code == "error.goal.time.zone.to.not.beyond.from"
-		invalidFirstHourResponse.status == 400
-		invalidFirstHourResponse.responseData.code == "error.goal.time.zone.not.a.valid.hour"
-		invalidSecondHourResponse.status == 400
-		invalidSecondHourResponse.responseData.code == "error.goal.time.zone.not.a.valid.hour"
-		notQuarterHourFirstResponse.status == 400
-		notQuarterHourFirstResponse.responseData.code == "error.goal.time.zone.not.a.quarter.hour"
-		notQuarterHourSecondResponse.status == 400
-		notQuarterHourSecondResponse.responseData.code == "error.goal.time.zone.not.a.quarter.hour"
+		invalidFromHourResponse.status == 400
+		invalidFromHourResponse.responseData.code == "error.goal.time.zone.not.a.valid.hour"
+		invalidToHourResponse.status == 400
+		invalidToHourResponse.responseData.code == "error.goal.time.zone.not.a.valid.hour"
+		fromNotQuarterHourResponse.status == 400
+		fromNotQuarterHourResponse.responseData.code == "error.goal.time.zone.not.a.quarter.hour"
+		toNotQuarterHourResponse.status == 400
+		toNotQuarterHourResponse.responseData.code == "error.goal.time.zone.not.a.quarter.hour"
+		fromBeyond24Response.status == 400
+		fromBeyond24Response.responseData.code == "error.goal.time.zone.beyond.twenty.four"
+		toBeyond24Response.status == 400
+		toBeyond24Response.responseData.code == "error.goal.time.zone.beyond.twenty.four"
+		fullDayResponse.status == 201
 	}
 
 	def 'Delete goal'()

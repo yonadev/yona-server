@@ -64,11 +64,31 @@ public class TimeZoneGoalDTO extends GoalDTO
 			throw GoalServiceException.timeZoneGoalInvalidZoneFormat(zone);
 		}
 		int[] numbers = Arrays.asList(zone.split("[-:]")).stream().mapToInt(Integer::parseInt).toArray();
-		validateHour(zone, numbers[0]);
-		validateMinute(zone, numbers[1]);
-		validateHour(zone, numbers[2]);
-		validateMinute(zone, numbers[3]);
-		if (numbers[0] * 60 + numbers[1] >= numbers[2] * 60 + numbers[3])
+		int fromHour = numbers[0];
+		int fromMinute = numbers[1];
+		int toHour = numbers[2];
+		int toMinute = numbers[3];
+
+		validateHour(zone, fromHour);
+		validateMinute(zone, fromMinute);
+		validateHour(zone, toHour);
+		validateMinute(zone, toMinute);
+		validateToBeyondFrom(zone, fromHour, fromMinute, toHour, toMinute);
+		validateNotBeyondTwentyFour(zone, fromHour, fromMinute);
+		validateNotBeyondTwentyFour(zone, toHour, toMinute);
+	}
+
+	private void validateNotBeyondTwentyFour(String zone, int fromHour, int fromMinute)
+	{
+		if (fromHour == 24 && fromMinute != 0)
+		{
+			throw GoalServiceException.timeZoneGoalBeyondTwentyFour(zone, fromMinute);
+		}
+	}
+
+	private void validateToBeyondFrom(String zone, int fromHour, int fromMinute, int toHour, int toMinute)
+	{
+		if (fromHour * 60 + fromMinute >= toHour * 60 + toMinute)
 		{
 			throw GoalServiceException.timeZoneGoalToNotBeyondFrom(zone);
 		}
@@ -76,7 +96,7 @@ public class TimeZoneGoalDTO extends GoalDTO
 
 	private void validateHour(String zone, int hour)
 	{
-		if (hour > 23)
+		if (hour > 24)
 		{
 			throw GoalServiceException.timeZoneGoalInvalidHour(zone, hour);
 		}
