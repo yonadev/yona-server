@@ -61,6 +61,7 @@ public class GoalService
 	@Transactional
 	public GoalDTO addGoal(UUID userID, GoalDTO goal, Optional<String> message)
 	{
+		goal.validate();
 		User userEntity = userService.getUserByID(userID);
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		Optional<Goal> conflictingExistingGoal = userAnonymizedEntity.getGoals().stream()
@@ -84,6 +85,7 @@ public class GoalService
 	@Transactional
 	public GoalDTO updateGoal(UUID userID, UUID goalID, GoalDTO newGoalDTO, Optional<String> message)
 	{
+		newGoalDTO.validate();
 		User userEntity = userService.getUserByID(userID);
 		Goal existingGoal = getGoalEntity(userEntity, goalID);
 		GoalDTO existingGoalDTO = GoalDTO.createInstance(existingGoal);

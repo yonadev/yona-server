@@ -42,6 +42,15 @@ public class BudgetGoalDTO extends GoalDTO
 	}
 
 	@Override
+	public void validate()
+	{
+		if (maxDurationMinutes < 0)
+		{
+			throw GoalServiceException.budgetGoalMaxDurationNegative(maxDurationMinutes);
+		}
+	}
+
+	@Override
 	public void updateGoalEntity(Goal existingGoal)
 	{
 		((BudgetGoal) existingGoal).setMaxDurationMinutes(maxDurationMinutes);
