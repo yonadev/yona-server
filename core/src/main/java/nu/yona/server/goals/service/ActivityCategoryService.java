@@ -37,6 +37,7 @@ public class ActivityCategoryService
 	}
 
 	@Cacheable(value = "activityCategorySet", key = "'instance'")
+	@Transactional
 	public Set<ActivityCategoryDTO> getAllActivityCategories()
 	{
 		Set<ActivityCategoryDTO> activityCategories = new HashSet<ActivityCategoryDTO>();
