@@ -6,7 +6,6 @@ package nu.yona.server;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration;
@@ -17,8 +16,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import de.codecentric.batch.SpringBatchAdmin;
-import de.codecentric.batch.config.MainConfiguration;
+import nu.yona.server.admin.batch.SpringBatchAdmin;
+import nu.yona.server.admin.batch.config.MainConfiguration;
 
 @ComponentScan("nu.yona.server")
 @EnableCaching

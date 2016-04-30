@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.codecentric.batch;
+package nu.yona.server.admin.batch;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -25,7 +25,7 @@ import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import de.codecentric.batch.config.MainConfiguration;
+import nu.yona.server.admin.batch.config.MainConfiguration;
 
 /**
  * Main class to start the Spring Boot application. There are two ways to start it. First: Just run the main method of

@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.codecentric.batch.config;
+package nu.yona.server.admin.batch.config;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.Import;
 
 /**
- * Just the import of the servlet-config.xml of spring-batch-admin-manager.
+ * This is the main configuration class for the application.
  *
  * @author Thomas Bosch
  */
 @Configuration
-@ImportResource("classpath:/org/springframework/batch/admin/web/resources/servlet-config.xml")
-public class ServletConfiguration {
+@Import({ ServletConfiguration.class, WebappConfiguration.class })
+public class MainConfiguration {
 
 }
