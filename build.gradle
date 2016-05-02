@@ -40,6 +40,11 @@ subprojects {
 		yona_appservice_port=project.hasProperty('yona_appservice_port')? project.yona_appservice_port : '8082'
 		yona_appservice_debug_port=project.hasProperty('yona_appservice_debug_port')? project.yona_appservice_debug_port : '8842'
 		yona_appservice_url=project.hasProperty('yona_appservice_url')? project.yona_appservice_url : "${yona_appservice_scheme}://${yona_appservice_host}:${yona_appservice_port}"
+		yona_batchservice_scheme=project.hasProperty('yona_batchservice_scheme')? project.yona_batchservice_scheme : 'http'
+		yona_batchservice_host=project.hasProperty('yona_batchservice_host')? project.yona_batchservice_host : 'localhost'
+		yona_batchservice_port=project.hasProperty('yona_batchservice_port')? project.yona_batchservice_port : '8083'
+		yona_batchservice_debug_port=project.hasProperty('yona_batchservice_debug_port')? project.yona_batchservice_debug_port : '8843'
+		yona_batchservice_url=project.hasProperty('yona_batchservice_url')? project.yona_batchservice_url : "${yona_batchservice_scheme}://${yona_batchservice_host}:${yona_batchservice_port}"
 	}
 
 	repositories {

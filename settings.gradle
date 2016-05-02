@@ -1,1 +1,1 @@
-include 'core', 'dbinit', 'analysisservice', 'adminservice', 'appservice'
+include 'core', 'dbinit', 'analysisservice', 'adminservice', 'appservice', 'batchservice'
