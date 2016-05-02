@@ -32,8 +32,7 @@ public class PinResetRequestService
 		setConfirmationCode(userEntity, confirmationCode);
 		if (confirmationCode.getConfirmationCode() != null)
 		{
-			userService.sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode,
-					SmsService.TemplateName_AddUserNumberConfirmation);
+			sendConfirmationCodeTextMessage(userEntity, confirmationCode);
 		}
 	}
 
@@ -66,6 +65,12 @@ public class PinResetRequestService
 	{
 		User userEntity = userService.getUserByID(userID);
 		setConfirmationCode(userEntity, null);
+	}
+
+	public void sendConfirmationCodeTextMessage(User userEntity, ConfirmationCode confirmationCode)
+	{
+		userService.sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode,
+				SmsService.TemplateName_AddUserNumberConfirmation);
 	}
 
 	private ConfirmationCode createConfirmationCode()
