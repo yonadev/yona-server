@@ -75,7 +75,7 @@ public class PinResetRequestService
 
 	private ConfirmationCode createConfirmationCode()
 	{
-		String confirmationCode = yonaProperties.getSecurity().getPinResetRequestConformationCodeDelay().equals(Duration.ZERO)
+		String confirmationCode = yonaProperties.getSecurity().getPinResetRequestConfirmationCodeDelay().equals(Duration.ZERO)
 				? userService.generateConfirmationCode() : null;
 		return ConfirmationCode.createInstance(confirmationCode);
 	}
