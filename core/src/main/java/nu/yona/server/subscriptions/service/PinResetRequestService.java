@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +20,8 @@ import nu.yona.server.subscriptions.entities.User;
 @Service
 public class PinResetRequestService
 {
+	private static final Logger logger = LoggerFactory.getLogger(PinResetRequestService.class);
+
 	@Autowired
 	private UserService userService;
 
@@ -28,6 +32,8 @@ public class PinResetRequestService
 	public void requestPinReset(UUID userID)
 	{
 		User userEntity = userService.getUserByID(userID);
+		logger.info("Received pin reset request for user with mobile number '{}' and ID '{}'", userEntity.getMobileNumber(),
+				userID);
 		ConfirmationCode confirmationCode = createConfirmationCode();
 		setConfirmationCode(userEntity, confirmationCode);
 		if (confirmationCode.getConfirmationCode() != null)
@@ -40,6 +46,8 @@ public class PinResetRequestService
 	public void verifyPinResetConfirmationCode(UUID userID, String userProvidedConfirmationCode)
 	{
 		User userEntity = userService.getUserByID(userID);
+		logger.info("Received pin reset verification request for user with mobile number '{}' and ID '{}'",
+				userEntity.getMobileNumber(), userID);
 		ConfirmationCode confirmationCode = userEntity.getPinResetConfirmationCode();
 		if ((confirmationCode == null) || isExpired(confirmationCode))
 		{
@@ -52,7 +60,7 @@ public class PinResetRequestService
 			throw PinResetRequestConfirmationException.tooManyAttempts(userEntity.getMobileNumber());
 		}
 
-		if (!confirmationCode.getConfirmationCode().equals(userProvidedConfirmationCode))
+		if (!userProvidedConfirmationCode.equals(confirmationCode.getConfirmationCode()))
 		{
 			userService.registerFailedAttempt(userEntity, confirmationCode);
 			throw PinResetRequestConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
@@ -64,6 +72,8 @@ public class PinResetRequestService
 	public void clearPinResetRequest(UUID userID)
 	{
 		User userEntity = userService.getUserByID(userID);
+		logger.info("Received pin reset clearance request for user with mobile number '{}' and ID '{}'",
+				userEntity.getMobileNumber(), userID);
 		setConfirmationCode(userEntity, null);
 	}
 
