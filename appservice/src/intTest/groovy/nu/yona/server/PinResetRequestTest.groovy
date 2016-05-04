@@ -8,6 +8,9 @@ package nu.yona.server
 
 
 import groovy.json.*
+
+import java.time.Duration
+
 import nu.yona.server.test.User
 
 class PinResetRequestTest extends AbstractAppServiceIntegrationTest
@@ -39,13 +42,18 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 200
-		response.responseData.delay == "PT0S"
+		response.responseData.delay == "PT10S"
 		User  richardAfterGet = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
 		!richardAfterGet.pinResetRequestUrl
 
+		!richardAfterGet.verifyPinResetUrl
+		!richardAfterGet.clearPinResetUrl
+
+		sleep(Duration.parse(response.responseData.delay).toMillis())
+		User  richardAfterDelayedGet = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
 		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
-		richardAfterGet.verifyPinResetUrl == richard.url + "/pinResetRequest/verify"
-		richardAfterGet.clearPinResetUrl == richard.url + "/pinResetRequest/clear"
+		richardAfterDelayedGet.verifyPinResetUrl == richard.url + "/pinResetRequest/verify"
+		richardAfterDelayedGet.clearPinResetUrl == richard.url + "/pinResetRequest/clear"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -55,7 +63,8 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		User richard = addRichard()
-		appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password])
+		def resetRequestResponse = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password])
+		sleep(Duration.parse(resetRequestResponse.responseData.delay).toMillis())
 		richard = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
 
 		when:
@@ -72,11 +81,30 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Clear pin reset request before verification'()
+	def 'Try to verify pin reset confirmation code before end of delay period'()
 	{
 		given:
 		User richard = addRichard()
 		appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password])
+		richard = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
+
+		when:
+		def response = appService.yonaServer.postJson(richard.url + "/pinResetRequest/verify", """{"code" : "1234"}""", ["Yona-Password" : richard.password])
+
+		then:
+		response.status == 400
+		response.responseData.code == "error.pin.reset.request.confirmation.code.mismatch"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Clear pin reset request before verification'()
+	{
+		given:
+		User richard = addRichard()
+		def resetRequestResponse = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password])
+		sleep(Duration.parse(resetRequestResponse.responseData.delay).toMillis())
 		richard = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
 
 		when:
@@ -100,7 +128,8 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		User richard = addRichard()
-		appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password])
+		def resetRequestResponse = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password])
+		sleep(Duration.parse(resetRequestResponse.responseData.delay).toMillis())
 		appService.yonaServer.postJson(richard.verifyPinResetUrl, """{"code" : "1234"}""", ["Yona-Password" : richard.password])
 		richard = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
 
@@ -122,7 +151,8 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		User richard = addRichard()
-		appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password])
+		def resetRequestResponse = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password])
+		sleep(Duration.parse(resetRequestResponse.responseData.delay).toMillis())
 		richard = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
 
 		when:

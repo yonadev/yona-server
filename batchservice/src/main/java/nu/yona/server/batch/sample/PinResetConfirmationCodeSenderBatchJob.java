@@ -1,5 +1,10 @@
 package nu.yona.server.batch.sample;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.Date;
+
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
@@ -12,34 +17,47 @@ import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.JobRestartException;
-import org.springframework.batch.core.step.tasklet.TaskletStep;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.stereotype.Component;
 
 import nu.yona.server.exceptions.YonaException;
+import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.PinResetRequestService;
 import nu.yona.server.subscriptions.service.UserService;
 
-@Configuration
-public class BatchConfiguration
+@Component
+public class PinResetConfirmationCodeSenderBatchJob
 {
 	private static final int CHUNK_SIZE = 10;
 
-	private static final Logger log = LoggerFactory.getLogger(BatchConfiguration.class);
+	private static final Logger logger = LoggerFactory.getLogger(PinResetConfirmationCodeSenderBatchJob.class);
+
+	@Autowired
+	private YonaProperties yonaProperties;
+
+	@Autowired
+	private UserService userService;
+
+	@Autowired
+	private PinResetRequestService pinResetRequestService;
 
 	@Autowired
 	private JobRepository jobRepository;
@@ -54,20 +72,22 @@ public class BatchConfiguration
 	private EntityManager entityManager;
 
 	@Autowired
-	private UserService userService;
+	private JpaPagingItemReader<User> reader;
 
 	@Autowired
-	private PinResetRequestService pinResetRequestService;
+	private TaskScheduler scheduler;
 
-	@Bean
-	public JpaPagingItemReader<User> reader()
+	@Bean(destroyMethod = "")
+	@StepScope
+	public JpaPagingItemReader<User> reader(@Value("#{jobParameters[tillDate]}") final Date tillDate)
 	{
 		try
 		{
-			String jpqlQuery = "select u from User u where u.pinResetConfirmationCode IS NOT NULL and u.pinResetConfirmationCode.confirmationCode IS NULL";
+			String jpqlQuery = "SELECT u FROM User u WHERE u.pinResetConfirmationCode IS NOT NULL AND u.pinResetConfirmationCode.confirmationCode IS NULL AND u.pinResetConfirmationCode.creationTime < :tillDate";
 
 			JpaPagingItemReader<User> reader = new JpaPagingItemReader<User>();
 			reader.setQueryString(jpqlQuery);
+			reader.setParameterValues(Collections.singletonMap("tillDate", toZonedDateTime(tillDate)));
 			reader.setEntityManagerFactory(entityManager.getEntityManagerFactory());
 			reader.setPageSize(CHUNK_SIZE);
 			reader.afterPropertiesSet();
@@ -88,14 +108,14 @@ public class BatchConfiguration
 			@Override
 			public User process(final User user) throws Exception
 			{
-				log.info("Generating pin reset confirmation code for user with mobilen number {}", user.getMobileNumber());
+				logger.info("Generating pin reset confirmation code for user with mobile number '{}' and ID '{}'",
+						user.getMobileNumber(), user.getID());
 				ConfirmationCode pinResetConfirmationCode = user.getPinResetConfirmationCode();
 				pinResetConfirmationCode.setConfirmationCode(userService.generateConfirmationCode());
 				pinResetRequestService.sendConfirmationCodeTextMessage(user, pinResetConfirmationCode);
 
 				return user;
 			}
-
 		};
 	}
 
@@ -109,20 +129,28 @@ public class BatchConfiguration
 	}
 
 	@Bean
-	public Job importUserJob()
+	public Step step1()
 	{
-		return jobBuilderFactory.get("importUserJob").incrementer(new RunIdIncrementer()).flow(step1()).end().build();
+		return stepBuilderFactory.get("step1").<User, User> chunk(CHUNK_SIZE).reader(reader).processor(processor())
+				.writer(writer()).build();
 	}
 
 	@Bean
-	public Step step1()
+	public Job pinResetConfirmationCodeSenderJob()
 	{
-		TaskletStep step = stepBuilderFactory.get("step1").<User, User> chunk(CHUNK_SIZE).reader(reader()).processor(processor())
-				.writer(writer()).build();
-		return step;
+		return jobBuilderFactory.get("pinResetConfirmationCodeSenderJob").incrementer(new RunIdIncrementer()).flow(step1()).end()
+				.build();
 	}
 
-	@Scheduled(fixedRate = 5000)
+	@EventListener({ ContextRefreshedEvent.class })
+	void onContextStarted(ContextRefreshedEvent event)
+	{
+		scheduler.scheduleWithFixedDelay(this::runJob,
+				yonaProperties.getBatch().getPinResetRequestConfirmationCodeInterval().toMillis());
+	}
+
+	// TODO SPR-13625 @Scheduled(fixedRateString =
+	// "#{T(java.time.Duration).parse('${yona.batch.pinResetRequestConfirmationCodeInterval}').toMillis()}")
 	public void runJob()
 	{
 		try
@@ -130,15 +158,29 @@ public class BatchConfiguration
 			SimpleJobLauncher launcher = new SimpleJobLauncher();
 			launcher.setJobRepository(jobRepository);
 			launcher.setTaskExecutor(new SimpleAsyncTaskExecutor());
-			JobParameters jobParameters = new JobParametersBuilder().addLong("startTime", System.currentTimeMillis())
-					.toJobParameters();
-			launcher.run(importUserJob(), jobParameters);
+
+			Date tillDate = toDate(
+					ZonedDateTime.now().plus(yonaProperties.getBatch().getPinResetRequestConfirmationCodeInterval())
+							.minus(yonaProperties.getSecurity().getPinResetRequestConfirmationCodeDelay()));
+			System.out.println("Till date: " + tillDate);
+			JobParameters jobParameters = new JobParametersBuilder().addDate("tillDate", tillDate).toJobParameters();
+			launcher.run(pinResetConfirmationCodeSenderJob(), jobParameters);
 		}
 		catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
 				| JobParametersInvalidException e)
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Unexpected exception", e);
+			throw YonaException.unexpected(e);
 		}
+	}
+
+	private static ZonedDateTime toZonedDateTime(final Date date)
+	{
+		return ZonedDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+	}
+
+	private static Date toDate(final ZonedDateTime zonedDateTime)
+	{
+		return Date.from(zonedDateTime.toInstant());
 	}
 }
