@@ -43,6 +43,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
+import nu.yona.server.Translator;
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.DayActivityRepository;
@@ -161,7 +162,7 @@ public class AnalysisEngineServiceTests
 
 	private Map<Locale, String> usString(String string)
 	{
-		return Collections.singletonMap(Locale.forLanguageTag("en-US"), string);
+		return Collections.singletonMap(Translator.EN_US_LOCALE, string);
 	}
 
 	private Set<ActivityCategoryDTO> getAllActivityCategories()
@@ -438,26 +439,27 @@ public class AnalysisEngineServiceTests
 	public void appActivityPrecedingLastCachedActivity()
 	{
 		ZonedDateTime now = ZonedDateTime.of(2016, 4, 29, 20, 29, 1, 0, userAnonZoneId);
-		
+
 		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, now.truncatedTo(ChronoUnit.DAYS));
 		Date earlierActivityTime = Date.from(now.toInstant());
 		Activity earlierActivity = Activity.createInstance(earlierActivityTime, earlierActivityTime);
 		dayActivity.addActivity(earlierActivity);
 		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
 				.thenReturn(dayActivity);
-		
+
 		Date startTime = Date.from(now.minusMinutes(10).toInstant());
 		Date endTime = Date.from(now.toInstant());
 		service.analyze(userAnonID, createSingleAppActivity("Poker App", startTime, endTime));
-		
+
 		// Verify that there is a new conflict message sent.
 		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
 		// Verify that no database lookup was done
 		verify(mockDayActivityRepository, never()).findOne(userAnonID, now.toLocalDate(), gamblingGoal.getID());
 		// Verify that the day was updated in the cache
 		verify(mockAnalysisEngineCacheService, times(1)).updateDayActivityForUser(dayActivity);
-		
-		assertThat("Expect a new activity added (merge is quite complicated so has not been implemented yet)", dayActivity.getLastActivity().getID(), not(equalTo(earlierActivity.getID())));
+
+		assertThat("Expect a new activity added (merge is quite complicated so has not been implemented yet)",
+				dayActivity.getLastActivity().getID(), not(equalTo(earlierActivity.getID())));
 		assertThat("Expect right activity start time", dayActivity.getLastActivity().getStartTime(), equalTo(startTime));
 	}
 

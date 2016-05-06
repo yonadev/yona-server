@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class Translator
 {
+	public static final Locale EN_US_LOCALE = Locale.forLanguageTag("en-US");
 	/** The source for the messages to use */
 	@Autowired
 	private MessageSource msgSource;
@@ -58,7 +59,7 @@ public class Translator
 	private static Object determineLocaleInfix()
 	{
 		Locale locale = LocaleContextHolder.getLocale();
-		if (locale.equals(Locale.forLanguageTag("en-US")))
+		if (locale.equals(EN_US_LOCALE))
 		{
 			return "";
 		}
