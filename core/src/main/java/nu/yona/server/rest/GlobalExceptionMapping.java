@@ -41,7 +41,7 @@ public class GlobalExceptionMapping
 	@ResponseBody
 	public ErrorResponseDTO handleOtherException(Exception exception)
 	{
-		logUnhandledException(exception);
+		logUnhandledException("Request completed with unknown exception: ", exception);
 
 		return new ErrorResponseDTO(null, exception.getMessage());
 	}
@@ -56,20 +56,20 @@ public class GlobalExceptionMapping
 	@ExceptionHandler(YonaException.class)
 	public ResponseEntity<ErrorResponseDTO> handleYonaException(YonaException exception)
 	{
-		logUnhandledException(exception);
+		logUnhandledException("Request completed with Yona exception: ", exception);
 
 		ErrorResponseDTO responseMessage = new ErrorResponseDTO(exception.getMessageId(), exception.getMessage());
 
 		return new ResponseEntity<ErrorResponseDTO>(responseMessage, exception.getStatusCode());
 	}
 
-	private void logUnhandledException(Exception exception)
+	private void logUnhandledException(String message, Exception exception)
 	{
 		Locale currentLocale = LocaleContextHolder.getLocale();
 		try
 		{
 			LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
-			logger.error("Unhandled exception: " + exception.getMessage(), exception);
+			logger.error(message + exception.getMessage(), exception);
 		}
 		finally
 		{
