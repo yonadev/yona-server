@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
@@ -31,14 +28,11 @@ public class BudgetGoal extends Goal
 		this.maxDurationMinutes = maxDurationMinutes;
 	}
 
-	public static BudgetGoal createNoGoInstance(ActivityCategory activityCategory)
+	private BudgetGoal(UUID id, BudgetGoal originalGoal)
 	{
-		return createInstance(activityCategory, 0);
-	}
+		super(id, originalGoal);
 
-	public static BudgetGoal createInstance(ActivityCategory activityCategory, int maxDurationMinutes)
-	{
-		return new BudgetGoal(UUID.randomUUID(), activityCategory, maxDurationMinutes);
+		this.maxDurationMinutes = originalGoal.maxDurationMinutes;
 	}
 
 	public int getMaxDurationMinutes()
@@ -52,15 +46,21 @@ public class BudgetGoal extends Goal
 	}
 
 	@Override
-	public boolean isNoGoGoal()
+	public Goal cloneAsHistoryItem()
 	{
-		return maxDurationMinutes <= 0;
+		return createInstance(this);
 	}
 
 	@Override
 	public boolean isMandatory()
 	{
 		return isNoGoGoal() && getActivityCategory().isMandatoryNoGo();
+	}
+
+	@Override
+	public boolean isNoGoGoal()
+	{
+		return maxDurationMinutes <= 0;
 	}
 
 	@Override
@@ -73,5 +73,20 @@ public class BudgetGoal extends Goal
 	public int computeTotalMinutesBeyondGoal(DayActivity dayActivity)
 	{
 		return Math.max(dayActivity.getTotalActivityDurationMinutes() - this.getMaxDurationMinutes(), 0);
+	}
+
+	public static BudgetGoal createNoGoInstance(ActivityCategory activityCategory)
+	{
+		return createInstance(activityCategory, 0);
+	}
+
+	public static BudgetGoal createInstance(ActivityCategory activityCategory, int maxDurationMinutes)
+	{
+		return new BudgetGoal(UUID.randomUUID(), activityCategory, maxDurationMinutes);
+	}
+
+	private static BudgetGoal createInstance(BudgetGoal originalGoal)
+	{
+		return new BudgetGoal(UUID.randomUUID(), originalGoal);
 	}
 }

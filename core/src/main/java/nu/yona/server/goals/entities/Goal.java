@@ -8,8 +8,11 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import nu.yona.server.analysis.entities.DayActivity;
@@ -29,6 +32,10 @@ public abstract class Goal extends EntityWithID
 	private ActivityCategory activityCategory;
 
 	private ZonedDateTime creationTime;
+	private ZonedDateTime endTime;
+
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private Goal previousGoal;
 
 	// Default constructor is required for JPA
 	public Goal()
@@ -48,6 +55,19 @@ public abstract class Goal extends EntityWithID
 		this.creationTime = ZonedDateTime.now();
 	}
 
+	protected Goal(UUID id, Goal originalGoal)
+	{
+		super(id);
+
+		if (originalGoal == null)
+		{
+			throw new IllegalArgumentException("originalGoal cannot be null");
+		}
+		this.activityCategory = originalGoal.activityCategory;
+		this.creationTime = originalGoal.creationTime;
+		this.endTime = ZonedDateTime.now();
+	}
+
 	public ActivityCategory getActivityCategory()
 	{
 		return activityCategory;
@@ -57,6 +77,23 @@ public abstract class Goal extends EntityWithID
 	{
 		return creationTime;
 	}
+
+	public ZonedDateTime getEndTime()
+	{
+		return endTime;
+	}
+
+	public Goal getPreviousGoal()
+	{
+		return previousGoal;
+	}
+
+	public void setPreviousGoal(Goal previousGoal)
+	{
+		this.previousGoal = previousGoal;
+	}
+
+	public abstract Goal cloneAsHistoryItem();
 
 	public abstract boolean isMandatory();
 

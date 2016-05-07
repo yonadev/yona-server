@@ -7,9 +7,11 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.AppActivity
 import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
+import nu.yona.server.test.User
 
 class EditGoalsTest extends AbstractAppServiceIntegrationTest
 {
@@ -128,6 +130,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		BudgetGoal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60), "Going to monitor my social time!")
+		postFacebookActivityPastHour(richard)
 		BudgetGoal updatedGoal = BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 120)
 		when:
 		def response = appService.updateGoal(richard, addedGoal.url, updatedGoal, "Want to become a bit more social :)")
@@ -161,6 +164,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		TimeZoneGoal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
+		postFacebookActivityPastHour(richard)
 		TimeZoneGoal updatedGoal = TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00", "20:00-22:00"].toArray())
 		when:
 		def response = appService.updateGoal(richard, addedGoal.url, updatedGoal, "Will be social in the evening too")
@@ -311,5 +315,12 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 	def filterGoals(def response, def activityCategoryUrl)
 	{
 		response.responseData._embedded."yona:goals".findAll{ it._links."yona:activityCategory".href == activityCategoryUrl }
+	}
+
+	def postFacebookActivityPastHour(User user)
+	{
+		def startTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000))
+		def endTime = new Date()
+		appService.postAppActivityToAnalysisEngine(user, AppActivity.singleActivity("Facebook", startTime, endTime))
 	}
 }
