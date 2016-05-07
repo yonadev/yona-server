@@ -23,6 +23,7 @@ import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,7 +47,7 @@ import nu.yona.server.subscriptions.service.UserService;
  * Controller to retrieve activity data for a user.
  */
 @Controller
-@RequestMapping(value = "/users/{userID}/activity")
+@RequestMapping(value = "/users/{userID}/activity", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class ActivityController
 {
 	@Autowired
