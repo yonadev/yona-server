@@ -61,10 +61,10 @@ public class ActivityService
 		Map<LocalDate, Set<WeekActivity>> weekActivityEntitiesByDate = weekActivityEntities.stream()
 				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
 		addMissingInactivity(weekActivityEntitiesByDate, interval, ChronoUnit.WEEKS, userAnonymized,
-				(goal, startOfWeek) -> WeekActivity.createInstanceInactivity(null, goal, startOfWeek), a -> a.addInactivityDaysIfNeeded());
+				(goal, startOfWeek) -> WeekActivity.createInstanceInactivity(null, goal, startOfWeek),
+				a -> a.addInactivityDaysIfNeeded());
 		return new PageImpl<WeekActivityOverviewDTO>(
-				weekActivityEntitiesByDate.entrySet().stream()
-						.sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
+				weekActivityEntitiesByDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 						.map(e -> WeekActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
 				pageable, yonaProperties.getAnalysisService().getWeeksActivityMemory());
 	}
@@ -80,11 +80,10 @@ public class ActivityService
 		Map<LocalDate, Set<DayActivity>> dayActivityEntitiesByDate = dayActivityEntities.stream()
 				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
 		addMissingInactivity(dayActivityEntitiesByDate, interval, ChronoUnit.DAYS, userAnonymized,
-				(goal, startOfDay) -> DayActivity.createInstanceInactivity(null, goal, startOfDay),
-				a -> {});
+				(goal, startOfDay) -> DayActivity.createInstanceInactivity(null, goal, startOfDay), a -> {
+				});
 		return new PageImpl<DayActivityOverviewDTO>(
-				dayActivityEntitiesByDate.entrySet().stream()
-						.sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
+				dayActivityEntitiesByDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 						.map(e -> DayActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
 				pageable, yonaProperties.getAnalysisService().getDaysActivityMemory());
 	}
@@ -154,6 +153,8 @@ public class ActivityService
 		Optional<T> activityForGoal = getActivityForGoal(activityEntitiesAtDate, activeGoal);
 		if (activityForGoal.isPresent())
 		{
+			// even if activity was already recorded, it might be that this is not for the complete period
+			// so make the interval activity complete with a consumer
 			existingEntityInactivityCompletor.accept(activityForGoal.get());
 		}
 		else
