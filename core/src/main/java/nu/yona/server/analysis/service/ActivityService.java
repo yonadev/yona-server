@@ -61,7 +61,7 @@ public class ActivityService
 		Map<LocalDate, Set<WeekActivity>> weekActivityEntitiesByDate = weekActivityEntities.stream()
 				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
 		addMissingInactivity(weekActivityEntitiesByDate, interval, ChronoUnit.WEEKS, userAnonymized,
-				(goal, startOfWeek) -> WeekActivity.createInstanceInactivity(null, goal, startOfWeek), a -> a.addInactivityDays());
+				(goal, startOfWeek) -> WeekActivity.createInstanceInactivity(null, goal, startOfWeek), a -> a.addInactivityDaysIfNeeded());
 		return new PageImpl<WeekActivityOverviewDTO>(
 				weekActivityEntitiesByDate.entrySet().stream()
 						.sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
