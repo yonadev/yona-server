@@ -58,6 +58,14 @@ public abstract class Goal extends EntityWithID
 		return creationTime;
 	}
 
+	/*
+	 * For unit test purposes only.
+	 */
+	public void setCreationTime(ZonedDateTime creationTime)
+	{
+		this.creationTime = creationTime;
+	}
+
 	public abstract boolean isMandatory();
 
 	public abstract boolean isNoGoGoal();

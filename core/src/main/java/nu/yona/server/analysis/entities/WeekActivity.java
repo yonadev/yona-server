@@ -104,25 +104,38 @@ public class WeekActivity extends IntervalActivity
 	public static WeekActivity createInstanceInactivity(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek)
 	{
 		WeekActivity result = createInstance(userAnonymized, goal, startOfWeek);
-		// add the days
+		result.addInactivityDaysIfNeeded();
+		return result;
+	}
+
+	public void addInactivityDaysIfNeeded()
+	{
+		// if the batch job has already run, skip
+		if (dayActivities.size() == 7)
+		{
+			return;
+		}
 		// notice this doesn't take care of user time zone changes during the week
 		// so for consistency it is important that the batch script adding inactivity does so
 		for (int i = 0; i < 7; i++)
 		{
-			ZonedDateTime startOfDay = startOfWeek.plusDays(i);
-			if (isInFuture(startOfDay, startOfWeek.getZone()))
+			ZonedDateTime startOfDay = getStartTime().plusDays(i);
+			if (isInFuture(startOfDay, getStartTime().getZone()))
 			{
 				break;
 			}
-			if (goal.wasActiveAtInterval(startOfDay, ChronoUnit.DAYS))
+			if (getGoal().wasActiveAtInterval(startOfDay, ChronoUnit.DAYS))
 			{
-				result.addDayActivity(DayActivity.createInstanceInactivity(userAnonymized, goal, startOfDay));
+				if (!dayActivities.stream()
+						.anyMatch(dayActivity -> dayActivity.getDate().getDayOfWeek().equals(startOfDay.getDayOfWeek())))
+				{
+					addDayActivity(DayActivity.createInstanceInactivity(userAnonymized, getGoal(), startOfDay));
+				}
 			}
 		}
-		return result;
 	}
 
-	public static boolean isInFuture(ZonedDateTime startOfDay, ZoneId zone)
+	private static boolean isInFuture(ZonedDateTime startOfDay, ZoneId zone)
 	{
 		return startOfDay.isAfter(ZonedDateTime.now(zone));
 	}
