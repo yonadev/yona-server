@@ -81,7 +81,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Try to verify pin reset confirmation code before end of delay period'()
+	def 'Hacking attempt: Try to verify pin reset confirmation code before end of delay period'()
 	{
 		given:
 		User richard = addRichard()
