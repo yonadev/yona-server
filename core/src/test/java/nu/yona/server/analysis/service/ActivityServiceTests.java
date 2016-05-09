@@ -149,7 +149,8 @@ public class ActivityServiceTests
 		// assert that the right retrieve from database was done
 		verify(mockDayActivityRepository, times(1)).findAll(userAnonID, today.minusDays(2).toLocalDate(), today.toLocalDate());
 
-		// because the gambling goal was added with creation date two weeks ago, there are multiple days
+		// because the gambling goal was added with creation date two weeks ago, there are multiple days, equal to the limit of
+		// our page request = 3
 		assertThat(dayOverviews.getNumberOfElements(), equalTo(3));
 
 		// get the current day (first item)
