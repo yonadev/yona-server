@@ -5,10 +5,8 @@
 package nu.yona.server.analysis.service;
 
 import java.time.Duration;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -66,15 +64,14 @@ public class AnalysisEngineService
 
 	private ActivityPayload createActivityPayload(Duration deviceTimeOffset, AppActivityDTO.Activity appActivity)
 	{
-		Date correctedStartTime = correctTime(deviceTimeOffset, appActivity.getStartTime());
-		Date correctedEndTime = correctTime(deviceTimeOffset, appActivity.getEndTime());
+		ZonedDateTime correctedStartTime = correctTime(deviceTimeOffset, appActivity.getStartTime());
+		ZonedDateTime correctedEndTime = correctTime(deviceTimeOffset, appActivity.getEndTime());
 		return new ActivityPayload(correctedStartTime, correctedEndTime, appActivity.getApplication());
 	}
 
-	private Date correctTime(Duration deviceTimeOffset, Date time)
+	private ZonedDateTime correctTime(Duration deviceTimeOffset, ZonedDateTime time)
 	{
-		ZonedDateTime zonedTime = ZonedDateTime.ofInstant(time.toInstant(), ZoneId.of("Z"));
-		return Date.from(zonedTime.minus(deviceTimeOffset).toInstant());
+		return time.minus(deviceTimeOffset);
 	}
 
 	public void analyze(NetworkActivityDTO networkActivity)
@@ -101,10 +98,10 @@ public class AnalysisEngineService
 		{
 			// assumption: activity never crosses 2 days
 			ActivityPayload truncatedPayload = new ActivityPayload(payload.url, payload.startTime,
-					Date.from(getEndOfDay(payload.startTime, userAnonymized).toInstant()), payload.application);
+					getEndOfDay(payload.startTime, userAnonymized), payload.application);
 
-			ActivityPayload nextDayPayload = new ActivityPayload(payload.url,
-					Date.from(getStartOfDay(payload.endTime, userAnonymized).toInstant()), payload.endTime, payload.application);
+			ActivityPayload nextDayPayload = new ActivityPayload(payload.url, getStartOfDay(payload.endTime, userAnonymized),
+					payload.endTime, payload.application);
 
 			addOrUpdateDayTruncatedActivity(truncatedPayload, userAnonymized, matchingGoal);
 			addOrUpdateDayTruncatedActivity(nextDayPayload, userAnonymized, matchingGoal);
@@ -135,8 +132,8 @@ public class AnalysisEngineService
 
 	private boolean isBeyondSkipWindowAfterLastRegisteredActivity(ActivityPayload payload, Activity lastRegisteredActivity)
 	{
-		return payload.endTime.getTime() - lastRegisteredActivity.getEndTime().getTime() >= yonaProperties.getAnalysisService()
-				.getUpdateSkipWindow();
+		return Duration.between(lastRegisteredActivity.getEndTime(), payload.endTime).toMillis() >= yonaProperties
+				.getAnalysisService().getUpdateSkipWindow();
 	}
 
 	private boolean canCombineWithLastRegisteredActivity(ActivityPayload payload, Activity lastRegisteredActivity)
@@ -163,14 +160,14 @@ public class AnalysisEngineService
 
 	private boolean precedesLastRegisteredActivity(ActivityPayload payload, Activity lastRegisteredActivity)
 	{
-		return payload.startTime.before(lastRegisteredActivity.getStartTime());
+		return payload.startTime.isBefore(lastRegisteredActivity.getStartTime());
 	}
 
 	private boolean isBeyondCombineIntervalWithLastRegisteredActivity(ActivityPayload payload, Activity lastRegisteredActivity)
 	{
-		Date intervalEndTime = new Date(
-				lastRegisteredActivity.getEndTime().getTime() + yonaProperties.getAnalysisService().getConflictInterval());
-		return payload.startTime.after(intervalEndTime);
+		ZonedDateTime intervalEndTime = lastRegisteredActivity.getEndTime()
+				.plus(Duration.ofMillis(yonaProperties.getAnalysisService().getConflictInterval()));
+		return payload.startTime.isAfter(intervalEndTime);
 	}
 
 	private DayActivityCacheResult getRegisteredDayActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized,
@@ -200,12 +197,12 @@ public class AnalysisEngineService
 
 	private boolean isOnFollowingDay(ActivityPayload payload, DayActivity lastRegisteredDayActivity)
 	{
-		return payload.startTime.after(Date.from(lastRegisteredDayActivity.getEndTime().toInstant()));
+		return payload.startTime.isAfter(lastRegisteredDayActivity.getEndTime());
 	}
 
 	private boolean isOnPrecedingDay(ActivityPayload payload, DayActivity lastRegisteredDayActivity)
 	{
-		return payload.startTime.before(Date.from(lastRegisteredDayActivity.getStartTime().toInstant()));
+		return payload.startTime.isBefore(lastRegisteredDayActivity.getStartTime());
 	}
 
 	private boolean isCrossDayActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized)
@@ -250,17 +247,17 @@ public class AnalysisEngineService
 		}
 	}
 
-	private ZonedDateTime getStartOfDay(Date time, UserAnonymizedDTO userAnonymized)
+	private ZonedDateTime getStartOfDay(ZonedDateTime time, UserAnonymizedDTO userAnonymized)
 	{
-		return time.toInstant().atZone(ZoneId.of(userAnonymized.getTimeZoneId())).truncatedTo(ChronoUnit.DAYS);
+		return time.truncatedTo(ChronoUnit.DAYS);
 	}
 
-	private ZonedDateTime getEndOfDay(Date time, UserAnonymizedDTO userAnonymized)
+	private ZonedDateTime getEndOfDay(ZonedDateTime time, UserAnonymizedDTO userAnonymized)
 	{
 		return getStartOfDay(time, userAnonymized).plusHours(23).plusMinutes(59).plusSeconds(59);
 	}
 
-	private ZonedDateTime getStartOfWeek(Date time, UserAnonymizedDTO userAnonymized)
+	private ZonedDateTime getStartOfWeek(ZonedDateTime time, UserAnonymizedDTO userAnonymized)
 	{
 		ZonedDateTime startOfDay = getStartOfDay(time, userAnonymized);
 		switch (startOfDay.getDayOfWeek())
@@ -380,19 +377,19 @@ public class AnalysisEngineService
 	private class ActivityPayload
 	{
 		public final String url;
-		public final Date startTime;
-		public final Date endTime;
+		public final ZonedDateTime startTime;
+		public final ZonedDateTime endTime;
 		public final String application;
 
 		public ActivityPayload(NetworkActivityDTO networkActivity)
 		{
 			this.url = networkActivity.getURL();
-			this.startTime = new Date(); // now
+			this.startTime = ZonedDateTime.now(); // now
 			this.endTime = this.startTime;
 			this.application = null;
 		}
 
-		public ActivityPayload(Date startTime, Date endTime, String application)
+		public ActivityPayload(ZonedDateTime startTime, ZonedDateTime endTime, String application)
 		{
 			this.url = null;
 			this.startTime = startTime;
@@ -400,7 +397,7 @@ public class AnalysisEngineService
 			this.application = application;
 		}
 
-		public ActivityPayload(String url, Date startTime, Date endTime, String application)
+		public ActivityPayload(String url, ZonedDateTime startTime, ZonedDateTime endTime, String application)
 		{
 			this.url = url;
 			this.startTime = startTime;

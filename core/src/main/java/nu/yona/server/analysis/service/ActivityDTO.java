@@ -1,15 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
@@ -18,22 +16,25 @@ import nu.yona.server.analysis.entities.Activity;
 @JsonRootName("activity")
 public class ActivityDTO
 {
-	private Date startTime;
-	private Date endTime;
+	private ZonedDateTime startTime;
+	private ZonedDateTime endTime;
 
 	@JsonCreator
-	public ActivityDTO(@JsonProperty("startTime") Date startTime, @JsonProperty("endTime") Date endTime)
+	public ActivityDTO(@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ") @JsonProperty("startTime") ZonedDateTime startTime,
+			@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ") @JsonProperty("endTime") ZonedDateTime endTime)
 	{
 		this.startTime = startTime;
 		this.endTime = endTime;
 	}
 
-	public Date getStartTime()
+	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+	public ZonedDateTime getStartTime()
 	{
 		return startTime;
 	}
 
-	public Date getEndTime()
+	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+	public ZonedDateTime getEndTime()
 	{
 		return endTime;
 	}

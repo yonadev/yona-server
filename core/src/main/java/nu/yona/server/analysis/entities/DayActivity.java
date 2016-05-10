@@ -4,11 +4,9 @@
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -97,12 +95,12 @@ public class DayActivity extends IntervalActivity
 			Activity activity = activitiesSorted.get(i);
 
 			// continue until no overlap
-			Date activityBlockEndTime = activity.getEndTime();
-			while (i + 1 < activitiesSorted.size() && activitiesSorted.get(i + 1).getStartTime().before(activityBlockEndTime))
+			ZonedDateTime activityBlockEndTime = activity.getEndTime();
+			while (i + 1 < activitiesSorted.size() && activitiesSorted.get(i + 1).getStartTime().isBefore(activityBlockEndTime))
 			{
 				// overlapping
-				Date activityEndTime = activitiesSorted.get(i + 1).getEndTime();
-				if (activityEndTime.after(activityBlockEndTime))
+				ZonedDateTime activityEndTime = activitiesSorted.get(i + 1).getEndTime();
+				if (activityEndTime.isAfter(activityBlockEndTime))
 				{
 					// extend the block
 					activityBlockEndTime = activityEndTime;
@@ -122,13 +120,10 @@ public class DayActivity extends IntervalActivity
 		return activitiesSortedOnStartTime;
 	}
 
-	private void addToSpread(List<Integer> spread, Date activityBlockStartTime, Date activityBlockEndTime)
+	private void addToSpread(List<Integer> spread, ZonedDateTime startTime, ZonedDateTime endTime)
 	{
 		// assumption:
 		// - activities never start before or end after the day
-		ZoneId zone = getStartTime().getZone();
-		ZonedDateTime startTime = activityBlockStartTime.toInstant().atZone(zone);
-		ZonedDateTime endTime = activityBlockEndTime.toInstant().atZone(zone);
 		int spreadStartIndex = getSpreadIndex(startTime);
 		int spreadEndIndex = getSpreadIndex(endTime);
 		for (int spreadItemIndex = spreadStartIndex; spreadItemIndex <= spreadEndIndex; spreadItemIndex++)

@@ -18,7 +18,6 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -138,8 +137,8 @@ public class ActivityServiceTests
 		// gambling goal was created 2 weeks ago, see above
 		// mock some activity on yesterday 20:58-21:00
 		DayActivity yesterdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, yesterday);
-		Activity recordedActivity = Activity.createInstance(Date.from(yesterday.plusHours(20).plusMinutes(58).toInstant()),
-				Date.from(yesterday.plusHours(21).plusMinutes(00).toInstant()));
+		Activity recordedActivity = Activity.createInstance(yesterday.plusHours(20).plusMinutes(58),
+				yesterday.plusHours(21).plusMinutes(00));
 		yesterdayRecordedActivity.addActivity(recordedActivity);
 		when(mockDayActivityRepository.findAll(userAnonID, today.minusDays(2).toLocalDate(), today.toLocalDate()))
 				.thenReturn(new HashSet<DayActivity>(Arrays.asList(yesterdayRecordedActivity)));
@@ -187,9 +186,8 @@ public class ActivityServiceTests
 		ZonedDateTime saturdayStartOfDay = getWeekStartTime(today).minusDays(1);
 		DayActivity previousWeekSaturdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal,
 				saturdayStartOfDay);
-		Activity recordedActivity = Activity.createInstance(
-				Date.from(saturdayStartOfDay.plusHours(19).plusMinutes(10).toInstant()),
-				Date.from(saturdayStartOfDay.plusHours(19).plusMinutes(55).toInstant()));
+		Activity recordedActivity = Activity.createInstance(saturdayStartOfDay.plusHours(19).plusMinutes(10),
+				saturdayStartOfDay.plusHours(19).plusMinutes(55));
 		previousWeekSaturdayRecordedActivity.addActivity(recordedActivity);
 		previousWeekRecordedActivity.addDayActivity(previousWeekSaturdayRecordedActivity);
 		when(mockWeekActivityRepository.findAll(userAnonID, getWeekStartTime(today.minusWeeks(4)).toLocalDate(),

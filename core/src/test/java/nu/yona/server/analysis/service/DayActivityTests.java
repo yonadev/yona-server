@@ -6,7 +6,6 @@ import static org.junit.Assert.assertThat;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -43,14 +42,14 @@ public class DayActivityTests
 		return DayActivity.createInstance(null, goal, getZonedDateTime(0, 0, 0));
 	}
 
-	private Date getDate(int hour, int minute)
+	private ZonedDateTime getDate(int hour, int minute)
 	{
 		return getDate(hour, minute, 0);
 	}
 
-	private Date getDate(int hour, int minute, int second)
+	private ZonedDateTime getDate(int hour, int minute, int second)
 	{
-		return Date.from(getZonedDateTime(hour, minute, second).toInstant());
+		return getZonedDateTime(hour, minute, second);
 	}
 
 	@Test
