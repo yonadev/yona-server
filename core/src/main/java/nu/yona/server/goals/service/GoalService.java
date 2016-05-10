@@ -121,7 +121,7 @@ public class GoalService
 	private void cloneExistingGoalAsHistoryItem(UserAnonymized userAnonymizedEntity, Goal existingGoal)
 	{
 		Goal historyGoal = existingGoal.cloneAsHistoryItem();
-		existingGoal.setPreviousGoal(historyGoal);
+		existingGoal.setPreviousVersionOfThisGoal(historyGoal);
 		WeekActivity.getRepository().findByGoal(existingGoal).stream().forEach(a -> a.setGoal(historyGoal));
 		DayActivity.getRepository().findByGoal(existingGoal).stream().forEach(a -> a.setGoal(historyGoal));
 	}

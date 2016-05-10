@@ -35,7 +35,7 @@ public abstract class Goal extends EntityWithID
 	private ZonedDateTime endTime;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private Goal previousGoal;
+	private Goal previousInstanceOfThisGoal;
 
 	// Default constructor is required for JPA
 	public Goal()
@@ -83,14 +83,14 @@ public abstract class Goal extends EntityWithID
 		return endTime;
 	}
 
-	public Goal getPreviousGoal()
+	public Goal getPreviousVersionOfThisGoal()
 	{
-		return previousGoal;
+		return previousInstanceOfThisGoal;
 	}
 
-	public void setPreviousGoal(Goal previousGoal)
+	public void setPreviousVersionOfThisGoal(Goal previousGoal)
 	{
-		this.previousGoal = previousGoal;
+		this.previousInstanceOfThisGoal = previousGoal;
 	}
 
 	public abstract Goal cloneAsHistoryItem();
