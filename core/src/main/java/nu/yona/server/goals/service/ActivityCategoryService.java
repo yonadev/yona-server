@@ -5,7 +5,6 @@
 package nu.yona.server.goals.service;
 
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -19,6 +18,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import nu.yona.server.Translator;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.ActivityCategoryRepository;
 
@@ -51,7 +51,7 @@ public class ActivityCategoryService
 	@Transactional
 	public ActivityCategoryDTO addActivityCategory(ActivityCategoryDTO activityCategoryDTO)
 	{
-		logger.info("Adding activity category '{}'", activityCategoryDTO.getName(Locale.forLanguageTag("en-US")));
+		logger.info("Adding activity category '{}'", activityCategoryDTO.getName(Translator.EN_US_LOCALE));
 		return ActivityCategoryDTO.createInstance(repository.save(activityCategoryDTO.createActivityCategoryEntity()));
 	}
 
@@ -66,7 +66,7 @@ public class ActivityCategoryService
 	private ActivityCategory updateActivityCategory(ActivityCategory activityCategoryTargetEntity,
 			ActivityCategoryDTO activityCategorySourceDTO)
 	{
-		logger.info("Updating activity category '{}'", activityCategorySourceDTO.getName(Locale.forLanguageTag("en-US")));
+		logger.info("Updating activity category '{}'", activityCategorySourceDTO.getName(Translator.EN_US_LOCALE));
 		return repository.save(activityCategorySourceDTO.updateActivityCategory(activityCategoryTargetEntity));
 	}
 
