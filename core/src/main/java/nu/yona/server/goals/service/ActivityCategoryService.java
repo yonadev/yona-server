@@ -30,6 +30,7 @@ public class ActivityCategoryService
 
 	private static final Logger logger = LoggerFactory.getLogger(ActivityCategoryService.class);
 
+	@Transactional
 	public ActivityCategoryDTO getActivityCategory(UUID id)
 	{
 		ActivityCategory activityCategoryEntity = getEntityByID(id);

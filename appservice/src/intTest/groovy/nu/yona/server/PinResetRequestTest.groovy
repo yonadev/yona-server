@@ -86,7 +86,6 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password])
-		richard = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
 
 		when:
 		def response = appService.yonaServer.postJson(richard.url + "/pinResetRequest/verify", """{"code" : "1234"}""", ["Yona-Password" : richard.password])

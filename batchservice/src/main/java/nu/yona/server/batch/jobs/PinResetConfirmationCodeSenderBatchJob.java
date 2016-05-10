@@ -1,4 +1,4 @@
-package nu.yona.server.batch.sample;
+package nu.yona.server.batch.jobs;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -142,6 +142,9 @@ public class PinResetConfirmationCodeSenderBatchJob
 				.build();
 	}
 
+	/*
+	 * This method is created as alternative to the Spring expression annotation on runJob, as that is not supported yet.
+	 */
 	@EventListener({ ContextRefreshedEvent.class })
 	void onContextStarted(ContextRefreshedEvent event)
 	{
@@ -151,7 +154,7 @@ public class PinResetConfirmationCodeSenderBatchJob
 
 	// TODO SPR-13625 @Scheduled(fixedRateString =
 	// "#{T(java.time.Duration).parse('${yona.batch.pinResetRequestConfirmationCodeInterval}').toMillis()}")
-	public void runJob()
+	private void runJob()
 	{
 		try
 		{

@@ -114,22 +114,3 @@ task intTest(type:Test){
 	testClassesDir = project.sourceSets.intTest.output.classesDir
 	classpath = project.sourceSets.intTest.runtimeClasspath
 }
-
-task setupIntTest(type: Test) {
-	include '**/InitialGoalCreationTest.*'
-	description = "Run tintegration test setup."
-	testClassesDir = project.sourceSets.intTest.output.classesDir
-	classpath = project.sourceSets.intTest.runtimeClasspath
-
-	systemProperties = [
-		'yona.batchservice.url': project.ext.yona_batchservice_url,
-		'yona.analysisservice.url': project.ext.yona_analysisservice_url,
-		'yona.appservice.url': project.ext.yona_appservice_url
-	]
-}
-
-intTest {
-	exclude '**/InitialGoalCreationTest.*'
-}
-
-intTest.dependsOn setupIntTest
