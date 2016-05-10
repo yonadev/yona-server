@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. 
  *******************************************************************************/
 package nu.yona.server;
 
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class Translator
 {
+	public static final Locale EN_US_LOCALE = Locale.forLanguageTag("en-US");
 	/** The source for the messages to use */
 	@Autowired
 	private MessageSource msgSource;
@@ -58,7 +59,7 @@ public class Translator
 	private static Object determineLocaleInfix()
 	{
 		Locale locale = LocaleContextHolder.getLocale();
-		if (locale.equals(Locale.forLanguageTag("en-US")))
+		if (locale.equals(EN_US_LOCALE))
 		{
 			return "";
 		}

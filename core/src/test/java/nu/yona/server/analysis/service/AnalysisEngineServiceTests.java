@@ -42,6 +42,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
+import nu.yona.server.Translator;
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.DayActivityRepository;
@@ -160,7 +161,7 @@ public class AnalysisEngineServiceTests
 
 	private Map<Locale, String> usString(String string)
 	{
-		return Collections.singletonMap(Locale.forLanguageTag("en-US"), string);
+		return Collections.singletonMap(Translator.EN_US_LOCALE, string);
 	}
 
 	private Set<ActivityCategoryDTO> getAllActivityCategories()

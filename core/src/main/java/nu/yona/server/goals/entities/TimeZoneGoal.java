@@ -28,6 +28,13 @@ public class TimeZoneGoal extends Goal
 		this.zones = zones;
 	}
 
+	private TimeZoneGoal(UUID id, TimeZoneGoal originalGoal)
+	{
+		super(id, originalGoal);
+
+		this.zones = originalGoal.zones;
+	}
+
 	public String[] getZones()
 	{
 		return zones;
@@ -38,9 +45,10 @@ public class TimeZoneGoal extends Goal
 		this.zones = zones;
 	}
 
-	public static TimeZoneGoal createInstance(ActivityCategory activityCategory, String[] zones)
+	@Override
+	public Goal cloneAsHistoryItem()
 	{
-		return new TimeZoneGoal(UUID.randomUUID(), activityCategory, zones);
+		return createInstance(this);
 	}
 
 	@Override
@@ -67,5 +75,15 @@ public class TimeZoneGoal extends Goal
 	{
 		// TODO compute from spread and allowed zones
 		return 0;
+	}
+
+	public static TimeZoneGoal createInstance(ActivityCategory activityCategory, String[] zones)
+	{
+		return new TimeZoneGoal(UUID.randomUUID(), activityCategory, zones);
+	}
+
+	private static TimeZoneGoal createInstance(TimeZoneGoal originalGoal)
+	{
+		return new TimeZoneGoal(UUID.randomUUID(), originalGoal);
 	}
 }
