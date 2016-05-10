@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.analysis.entities.DayActivity;
+import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.GoalChangeMessage;
 import nu.yona.server.messaging.service.MessageService;
@@ -85,23 +87,43 @@ public class GoalService
 	@Transactional
 	public GoalDTO updateGoal(UUID userID, UUID goalID, GoalDTO newGoalDTO, Optional<String> message)
 	{
-		newGoalDTO.validate();
 		User userEntity = userService.getUserByID(userID);
 		Goal existingGoal = getGoalEntity(userEntity, goalID);
+
+		verifyGoalUpdate(existingGoal, newGoalDTO);
+
+		if (newGoalDTO.isGoalChanged(existingGoal))
+		{
+			updateGoal(userEntity, existingGoal, newGoalDTO, message);
+		}
+
+		return GoalDTO.createInstance(existingGoal);
+	}
+
+	private void verifyGoalUpdate(Goal existingGoal, GoalDTO newGoalDTO)
+	{
+		newGoalDTO.validate();
 		GoalDTO existingGoalDTO = GoalDTO.createInstance(existingGoal);
 		assertNoTypeChange(newGoalDTO, existingGoalDTO);
 		assertNoActivityCategoryChange(newGoalDTO, existingGoalDTO);
+	}
 
+	private void updateGoal(User userEntity, Goal existingGoal, GoalDTO newGoalDTO, Optional<String> message)
+	{
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
-
-		newGoalDTO.updateGoalEntity(existingGoal); // TODO: Change the implementation to retain the old goal, linked to related
-													// activities. With that, also check whether the goal really changed.
-		userAnonymizedEntity.addGoal(existingGoal);
+		cloneExistingGoalAsHistoryItem(userAnonymizedEntity, existingGoal);
+		newGoalDTO.updateGoalEntity(existingGoal);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getID(), userAnonymizedEntity);
 
 		broadcastGoalChangeMessage(userEntity, existingGoal, GoalChangeMessage.Change.GOAL_CHANGED, message);
+	}
 
-		return GoalDTO.createInstance(existingGoal);
+	private void cloneExistingGoalAsHistoryItem(UserAnonymized userAnonymizedEntity, Goal existingGoal)
+	{
+		Goal historyGoal = existingGoal.cloneAsHistoryItem();
+		existingGoal.setPreviousVersionOfThisGoal(historyGoal);
+		WeekActivity.getRepository().findByGoal(existingGoal).stream().forEach(a -> a.setGoal(historyGoal));
+		DayActivity.getRepository().findByGoal(existingGoal).stream().forEach(a -> a.setGoal(historyGoal));
 	}
 
 	private void assertNoActivityCategoryChange(GoalDTO newGoalDTO, GoalDTO existingGoalDTO)
