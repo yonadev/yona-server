@@ -139,22 +139,22 @@ public class DayActivity extends IntervalActivity
 	{
 		if (spreadStartIndex == spreadEndIndex)
 		{
-			// partial span
-			return (int) startTime.until(endTime, ChronoUnit.MINUTES) + 1;
+			// partial span of spread item
+			return (int) startTime.until(endTime, ChronoUnit.MINUTES);
 		}
 		else if (spreadItemIndex == spreadStartIndex)
 		{
-			// start part
+			// start spread item
 			return 15 - (startTime.getMinute() % 15);
 		}
 		else if (spreadItemIndex == spreadEndIndex)
 		{
-			// end part
-			return 1 + (endTime.getMinute() % 15);
+			// end spread item
+			return (endTime.getMinute() % 15);
 		}
 		else
 		{
-			// total span
+			// full span of spread item
 			return 15;
 		}
 	}

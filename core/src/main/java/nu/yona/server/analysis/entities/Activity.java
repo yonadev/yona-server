@@ -59,7 +59,7 @@ public class Activity extends EntityWithID
 
 	public int getDurationMinutes()
 	{
-		return (int) Duration.between(getStartTime(), getEndTime()).toMinutes() + 1; // TODO: Remove this plus one
+		return (int) Duration.between(getStartTime(), getEndTime()).toMinutes();
 	}
 
 	public void setActivityCategory(ActivityCategory activityCategory)

@@ -170,8 +170,8 @@ public class ActivityServiceTests
 				.findAny().get();
 		assertThat(dayActivityForGambling.getStartTime(), equalTo(yesterday));
 		assertThat(dayActivityForGambling.getTimeZoneId(), equalTo(userAnonZone.getId()));
-		assertThat(dayActivityForGambling.getTotalActivityDurationMinutes(), equalTo(3));
-		assertThat(dayActivityForGambling.getTotalMinutesBeyondGoal(), equalTo(3));
+		assertThat(dayActivityForGambling.getTotalActivityDurationMinutes(), equalTo(2));
+		assertThat(dayActivityForGambling.getTotalMinutesBeyondGoal(), equalTo(2));
 	}
 
 	@Test
@@ -224,8 +224,8 @@ public class ActivityServiceTests
 		assertThat(weekActivityForGambling.getTimeZoneId(), equalTo(userAnonZone.getId()));
 		assertThat(weekActivityForGambling.getDayActivities().size(), equalTo(7));
 		DayActivityDTO previousWeekSaturdayActivity = weekActivityForGambling.getDayActivities().get(DayOfWeek.SATURDAY);
-		assertThat(previousWeekSaturdayActivity.getTotalActivityDurationMinutes(), equalTo(46));
-		assertThat(previousWeekSaturdayActivity.getTotalMinutesBeyondGoal(), equalTo(46));
+		assertThat(previousWeekSaturdayActivity.getTotalActivityDurationMinutes(), equalTo(45));
+		assertThat(previousWeekSaturdayActivity.getTotalMinutesBeyondGoal(), equalTo(45));
 		DayActivityDTO previousWeekFridayActivity = weekActivityForGambling.getDayActivities().get(DayOfWeek.FRIDAY);
 		assertThat(previousWeekFridayActivity.getTotalActivityDurationMinutes(), equalTo(0));
 

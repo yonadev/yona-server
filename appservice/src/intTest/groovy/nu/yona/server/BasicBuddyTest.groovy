@@ -222,7 +222,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		richardGoalConflictMessages[0].nickname == "<self>"
 		assertEquals(richardGoalConflictMessages[0].creationTime, new Date())
 		assertEquals(richardGoalConflictMessages[0].activityStartTime, new Date())
-		assertEquals(richardGoalConflictMessages[0].activityEndTime, new Date())
+		assertEquals(richardGoalConflictMessages[0].activityEndTime, new Date(System.currentTimeMillis() + 60 * 1000)) // Minimum duration 1 minute
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		richardGoalConflictMessages[0].url == "http://www.refdag.nl"
 
@@ -233,7 +233,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		bobGoalConflictMessages[0].nickname == richard.nickname
 		assertEquals(bobGoalConflictMessages[0].creationTime, new Date())
 		assertEquals(bobGoalConflictMessages[0].activityStartTime, new Date())
-		assertEquals(bobGoalConflictMessages[0].activityEndTime, new Date())
+		assertEquals(bobGoalConflictMessages[0].activityEndTime, new Date(System.currentTimeMillis() + 60 * 1000)) // Minimum duration 1 minute
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		bobGoalConflictMessages[0].url == null
 

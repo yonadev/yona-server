@@ -32,6 +32,7 @@ import nu.yona.server.subscriptions.service.UserAnonymizedService;
 @Service
 public class AnalysisEngineService
 {
+	private static final Duration ONE_MINUTE = Duration.ofMinutes(1);
 	@Autowired
 	private YonaProperties yonaProperties;
 	@Autowired
@@ -280,9 +281,20 @@ public class AnalysisEngineService
 			dayActivity = createNewDayActivity(payload, userAnonymized, matchingGoal);
 		}
 
-		Activity activity = Activity.createInstance(payload.startTime, payload.endTime);
+		ZonedDateTime endTime = ensureMinimumDurationOneMinute(payload);
+		Activity activity = Activity.createInstance(payload.startTime, endTime);
 		dayActivity.addActivity(activity);
 		return dayActivity;
+	}
+
+	private ZonedDateTime ensureMinimumDurationOneMinute(ActivityPayload payload)
+	{
+		Duration duration = Duration.between(payload.startTime, payload.endTime);
+		if (duration.compareTo(ONE_MINUTE) < 0)
+		{
+			return payload.endTime.plus(ONE_MINUTE);
+		}
+		return payload.endTime;
 	}
 
 	private DayActivity createNewDayActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
