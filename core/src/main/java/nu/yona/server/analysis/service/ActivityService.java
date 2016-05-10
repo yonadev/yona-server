@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,9 +61,10 @@ public class ActivityService
 		Map<LocalDate, Set<WeekActivity>> weekActivityEntitiesByDate = weekActivityEntities.stream()
 				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
 		addMissingInactivity(weekActivityEntitiesByDate, interval, ChronoUnit.WEEKS, userAnonymized,
-				(goal, startOfWeek) -> WeekActivity.createInstanceInactivity(null, goal, startOfWeek));
+				(goal, startOfWeek) -> WeekActivity.createInstanceInactivity(null, goal, startOfWeek),
+				a -> a.addInactivityDaysIfNeeded());
 		return new PageImpl<WeekActivityOverviewDTO>(
-				weekActivityEntitiesByDate.entrySet().stream()
+				weekActivityEntitiesByDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 						.map(e -> WeekActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
 				pageable, yonaProperties.getAnalysisService().getWeeksActivityMemory());
 	}
@@ -78,9 +80,10 @@ public class ActivityService
 		Map<LocalDate, Set<DayActivity>> dayActivityEntitiesByDate = dayActivityEntities.stream()
 				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
 		addMissingInactivity(dayActivityEntitiesByDate, interval, ChronoUnit.DAYS, userAnonymized,
-				(goal, startOfDay) -> DayActivity.createInstanceInactivity(null, goal, startOfDay));
+				(goal, startOfDay) -> DayActivity.createInstanceInactivity(null, goal, startOfDay), a -> {
+				});
 		return new PageImpl<DayActivityOverviewDTO>(
-				dayActivityEntitiesByDate.entrySet().stream()
+				dayActivityEntitiesByDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 						.map(e -> DayActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
 				pageable, yonaProperties.getAnalysisService().getDaysActivityMemory());
 	}
@@ -113,7 +116,7 @@ public class ActivityService
 
 	private <T extends IntervalActivity> void addMissingInactivity(Map<LocalDate, Set<T>> activityEntitiesByDate,
 			Interval interval, ChronoUnit timeUnit, UserAnonymizedDTO userAnonymized,
-			BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier)
+			BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier, Consumer<T> existingEntityInactivityCompletor)
 	{
 		for (LocalDate date = interval.startDate; date.isBefore(interval.endDate)
 				|| date.isEqual(interval.endDate); date = date.plus(1, timeUnit))
@@ -132,7 +135,7 @@ public class ActivityService
 			}
 			Set<T> activityEntitiesAtDate = activityEntitiesByDate.get(date);
 			activeGoals.forEach(g -> addMissingInactivity(g, dateAtStartOfInterval, activityEntitiesAtDate, userAnonymized,
-					inactivityEntitySupplier));
+					inactivityEntitySupplier, existingEntityInactivityCompletor));
 		}
 	}
 
@@ -145,17 +148,24 @@ public class ActivityService
 
 	private <T extends IntervalActivity> void addMissingInactivity(Goal activeGoal, ZonedDateTime dateAtStartOfInterval,
 			Set<T> activityEntitiesAtDate, UserAnonymizedDTO userAnonymized,
-			BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier)
+			BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier, Consumer<T> existingEntityInactivityCompletor)
 	{
-		if (!containsActivityForGoal(activityEntitiesAtDate, activeGoal))
+		Optional<T> activityForGoal = getActivityForGoal(activityEntitiesAtDate, activeGoal);
+		if (activityForGoal.isPresent())
+		{
+			// even if activity was already recorded, it might be that this is not for the complete period
+			// so make the interval activity complete with a consumer
+			existingEntityInactivityCompletor.accept(activityForGoal.get());
+		}
+		else
 		{
 			activityEntitiesAtDate.add(inactivityEntitySupplier.apply(activeGoal, dateAtStartOfInterval));
 		}
 	}
 
-	private <T extends IntervalActivity> boolean containsActivityForGoal(Set<T> dayActivityEntitiesAtDate, Goal goal)
+	private <T extends IntervalActivity> Optional<T> getActivityForGoal(Set<T> dayActivityEntitiesAtDate, Goal goal)
 	{
-		return dayActivityEntitiesAtDate.stream().anyMatch(a -> a.getGoal().equals(goal));
+		return dayActivityEntitiesAtDate.stream().filter(a -> a.getGoal().equals(goal)).findAny();
 	}
 
 	public WeekActivityDTO getWeekActivityDetail(UUID userID, LocalDate date, UUID goalID)
