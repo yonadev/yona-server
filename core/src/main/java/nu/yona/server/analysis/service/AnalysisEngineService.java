@@ -5,6 +5,7 @@
 package nu.yona.server.analysis.service;
 
 import java.time.Duration;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Set;
@@ -249,7 +250,7 @@ public class AnalysisEngineService
 
 	private ZonedDateTime getStartOfDay(ZonedDateTime time, UserAnonymizedDTO userAnonymized)
 	{
-		return time.truncatedTo(ChronoUnit.DAYS);
+		return time.withZoneSameInstant(ZoneId.of(userAnonymized.getTimeZoneId())).truncatedTo(ChronoUnit.DAYS);
 	}
 
 	private ZonedDateTime getEndOfDay(ZonedDateTime time, UserAnonymizedDTO userAnonymized)
