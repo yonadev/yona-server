@@ -21,6 +21,7 @@ import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,7 +42,7 @@ import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(GoalDTO.class)
-@RequestMapping(value = "/users/{userID}/goals")
+@RequestMapping(value = "/users/{userID}/goals", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class GoalController
 {
 	private static final String ACTIVITY_CATEGORY_REL = "activityCategory";

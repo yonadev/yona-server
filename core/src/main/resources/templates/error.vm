@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head><title>Request handling failed</title></head>
+<body>
+
+<h1>Error</h1>
+
+<p>Request handling failed: ${status} ${error}</p>
+<p><b>Note:</b> the Yona services do not expose a web UI.</p>
+</body>
+</html>
