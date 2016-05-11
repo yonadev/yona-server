@@ -32,10 +32,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
+import nu.yona.server.Translator;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
@@ -110,6 +112,7 @@ public class PinResetConfirmationCodeSenderBatchJob
 			{
 				logger.info("Generating pin reset confirmation code for user with mobile number '{}' and ID '{}'",
 						user.getMobileNumber(), user.getID());
+				LocaleContextHolder.setLocale(Translator.EN_US_LOCALE); // TODO: Make this the user's locale
 				ConfirmationCode pinResetConfirmationCode = user.getPinResetConfirmationCode();
 				pinResetConfirmationCode.setConfirmationCode(userService.generateConfirmationCode());
 				pinResetRequestService.sendConfirmationCodeTextMessage(user, pinResetConfirmationCode);
@@ -165,7 +168,6 @@ public class PinResetConfirmationCodeSenderBatchJob
 			Date tillDate = toDate(
 					ZonedDateTime.now().plus(yonaProperties.getBatch().getPinResetRequestConfirmationCodeInterval())
 							.minus(yonaProperties.getSecurity().getPinResetRequestConfirmationCodeDelay()));
-			System.out.println("Till date: " + tillDate);
 			JobParameters jobParameters = new JobParametersBuilder().addDate("tillDate", tillDate).toJobParameters();
 			launcher.run(pinResetConfirmationCodeSenderJob(), jobParameters);
 		}
