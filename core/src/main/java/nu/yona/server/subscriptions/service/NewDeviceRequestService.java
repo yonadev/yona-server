@@ -1,6 +1,7 @@
 package nu.yona.server.subscriptions.service;
 
-import java.util.Date;
+import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -89,8 +90,8 @@ public class NewDeviceRequestService
 
 	private boolean isExpired(NewDeviceRequest newDeviceRequestEntity)
 	{
-		Date creationTime = newDeviceRequestEntity.getCreationTime();
-		return (creationTime.getTime() + getExpirationIntervalMillis() < System.currentTimeMillis());
+		ZonedDateTime creationTime = newDeviceRequestEntity.getCreationTime();
+		return creationTime.plus(Duration.ofMillis(getExpirationIntervalMillis())).isBefore(ZonedDateTime.now());
 	}
 
 	private long getExpirationIntervalMillis()

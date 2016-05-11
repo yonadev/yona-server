@@ -5,7 +5,6 @@
 package nu.yona.server.analysis.service;
 
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -47,7 +46,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private final ZonedDateTime activityEndTime;
 	private final UUID activityCategoryID;
 
-	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, UUID activityCategoryID, String url,
+	private GoalConflictMessageDTO(UUID id, ZonedDateTime creationTime, String nickname, UUID activityCategoryID, String url,
 			Status status, ZonedDateTime activityStartTime, ZonedDateTime activityEndTime)
 	{
 		super(id, creationTime);
