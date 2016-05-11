@@ -134,8 +134,8 @@ public class AnalysisEngineService
 
 	private boolean isBeyondSkipWindowAfterLastRegisteredActivity(ActivityPayload payload, Activity lastRegisteredActivity)
 	{
-		return Duration.between(lastRegisteredActivity.getEndTime(), payload.endTime).toMillis() >= yonaProperties
-				.getAnalysisService().getUpdateSkipWindow();
+		return Duration.between(lastRegisteredActivity.getEndTime(), payload.endTime)
+				.compareTo(yonaProperties.getAnalysisService().getUpdateSkipWindow()) >= 0;
 	}
 
 	private boolean canCombineWithLastRegisteredActivity(ActivityPayload payload, Activity lastRegisteredActivity)
@@ -168,7 +168,7 @@ public class AnalysisEngineService
 	private boolean isBeyondCombineIntervalWithLastRegisteredActivity(ActivityPayload payload, Activity lastRegisteredActivity)
 	{
 		ZonedDateTime intervalEndTime = lastRegisteredActivity.getEndTime()
-				.plus(Duration.ofMillis(yonaProperties.getAnalysisService().getConflictInterval()));
+				.plus(yonaProperties.getAnalysisService().getConflictInterval());
 		return payload.startTime.isAfter(intervalEndTime);
 	}
 

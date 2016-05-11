@@ -189,8 +189,8 @@ public class AnalysisEngineServiceTests
 		// Normally there is one conflict message sent.
 		// Set a short conflict interval such that the conflict messages are not aggregated.
 		AnalysisServiceProperties p = new AnalysisServiceProperties();
-		p.setUpdateSkipWindow(1L);
-		p.setConflictInterval(10L);
+		p.setUpdateSkipWindow("PT0.001S");
+		p.setConflictInterval("PT0.01S");
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
 		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal,
@@ -312,7 +312,7 @@ public class AnalysisEngineServiceTests
 		// Normally there is one conflict message sent.
 		// Set update skip window to 0 such that the conflict messages are aggregated immediately.
 		AnalysisServiceProperties p = new AnalysisServiceProperties();
-		p.setUpdateSkipWindow(0L);
+		p.setUpdateSkipWindow("PT0S");
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
 		ZonedDateTime t = ZonedDateTime.now();
