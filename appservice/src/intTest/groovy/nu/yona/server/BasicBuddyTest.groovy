@@ -8,6 +8,9 @@ package nu.yona.server
 
 import groovy.json.*
 
+import java.time.Duration
+import java.time.ZonedDateTime
+
 class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 {
 	def 'Hacking attempt: Try to request one-way connection'()
@@ -81,7 +84,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def buddyConnectRequestMessages = response.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}
 		buddyConnectRequestMessages.size() == 1
 		buddyConnectRequestMessages[0].nickname == richard.nickname
-		assertEquals(buddyConnectRequestMessages[0].creationTime, new Date())
+		assertEquals(buddyConnectRequestMessages[0].creationTime, ZonedDateTime.now())
 		buddyConnectRequestMessages[0].status == "REQUESTED"
 		buddyConnectRequestMessages[0]._embedded."yona:user".firstName == "Richard"
 		buddyConnectRequestMessages[0]._links."yona:user" == null
@@ -152,7 +155,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyConnectResponseMessages[0]._links?."yona:user"?.href == bob.url
 		buddyConnectResponseMessages[0]._embedded?."yona:user" == null
 		buddyConnectResponseMessages[0].nickname == bob.nickname
-		assertEquals(buddyConnectResponseMessages[0].creationTime, new Date())
+		assertEquals(buddyConnectResponseMessages[0].creationTime, ZonedDateTime.now())
 		buddyConnectResponseMessages[0].status == "ACCEPTED"
 		buddyConnectResponseMessages[0]._links.self.href.startsWith(richard.messagesUrl)
 		buddyConnectResponseMessages[0]._links."yona:process".href.startsWith(buddyConnectResponseMessages[0]._links.self.href)
@@ -217,12 +220,13 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		response.status == 200
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		getMessagesRichardResponse.status == 200
-		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "GoalConflictMessage" }
 		richardGoalConflictMessages.size() == 1
 		richardGoalConflictMessages[0].nickname == "<self>"
-		assertEquals(richardGoalConflictMessages[0].creationTime, new Date())
-		assertEquals(richardGoalConflictMessages[0].activityStartTime, new Date())
-		assertEquals(richardGoalConflictMessages[0].activityEndTime, new Date(System.currentTimeMillis() + 60 * 1000)) // Minimum duration 1 minute
+		assertEquals(richardGoalConflictMessages[0].creationTime, ZonedDateTime.now())
+		assertEquals(richardGoalConflictMessages[0].activityStartTime, ZonedDateTime.now())
+		assertEquals(richardGoalConflictMessages[0].activityEndTime, ZonedDateTime.now().plus(Duration.ofMinutes(1))) // Minimum duration 1 minute
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		richardGoalConflictMessages[0].url == "http://www.refdag.nl"
 
@@ -231,9 +235,9 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		bobGoalConflictMessages.size() == 1
 		bobGoalConflictMessages[0].nickname == richard.nickname
-		assertEquals(bobGoalConflictMessages[0].creationTime, new Date())
-		assertEquals(bobGoalConflictMessages[0].activityStartTime, new Date())
-		assertEquals(bobGoalConflictMessages[0].activityEndTime, new Date(System.currentTimeMillis() + 60 * 1000)) // Minimum duration 1 minute
+		assertEquals(bobGoalConflictMessages[0].creationTime, ZonedDateTime.now())
+		assertEquals(bobGoalConflictMessages[0].activityStartTime, ZonedDateTime.now())
+		assertEquals(bobGoalConflictMessages[0].activityEndTime, ZonedDateTime.now().plus(Duration.ofMinutes(1))) // Minimum duration 1 minute
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		bobGoalConflictMessages[0].url == null
 
@@ -357,7 +361,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages[0].nickname == "${richard.nickname}"
 		buddyDisconnectMessages[0]._embedded?."yona:user"?.firstName == "Richard"
 		buddyDisconnectMessages[0]._links."yona:user" == null
-		assertEquals(buddyDisconnectMessages[0].creationTime, new Date())
+		assertEquals(buddyDisconnectMessages[0].creationTime, ZonedDateTime.now())
 		buddyDisconnectMessages[0].message == message
 		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.messagesUrl)
 		buddyDisconnectMessages[0]._links."yona:process".href.startsWith(buddyDisconnectMessages[0]._links.self.href)
