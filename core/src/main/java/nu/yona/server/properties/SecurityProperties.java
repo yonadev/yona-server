@@ -12,7 +12,7 @@ public class SecurityProperties
 	private int confirmationCodeMaxAttempts = 5;
 	private int newDeviceRequestExpirationDays = 1;
 	private int pinResetRequestExpirationDays = 7;
-	private Duration pinResetRequestConformationCodeDelay = Duration.ZERO;
+	private Duration pinResetRequestConfirmationCodeDelay = Duration.ZERO;
 	private int passwordLength = 32;
 	private long bruteForceBlockMinutes = 60;
 	private long dosProtectionWindowSeconds = 300;
@@ -64,14 +64,14 @@ public class SecurityProperties
 		this.pinResetRequestExpirationDays = pinResetRequestExpirationDays;
 	}
 
-	public Duration getPinResetRequestConformationCodeDelay()
+	public Duration getPinResetRequestConfirmationCodeDelay()
 	{
-		return pinResetRequestConformationCodeDelay;
+		return pinResetRequestConfirmationCodeDelay;
 	}
 
-	public void setPinResetRequestConformationCodeDelay(String pinResetRequestConformationCodeDelay)
+	public void setPinResetRequestConfirmationCodeDelay(String pinResetRequestConfirmationCodeDelay)
 	{
-		this.pinResetRequestConformationCodeDelay = Duration.parse(pinResetRequestConformationCodeDelay);
+		this.pinResetRequestConfirmationCodeDelay = Duration.parse(pinResetRequestConfirmationCodeDelay);
 	}
 
 	public int getPasswordLength()

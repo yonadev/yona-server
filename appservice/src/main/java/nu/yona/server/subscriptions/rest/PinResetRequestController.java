@@ -61,7 +61,7 @@ public class PinResetRequestController
 			return null;
 		});
 		return new ResponseEntity<ConfirmationCodeDelayDTO>(
-				new ConfirmationCodeDelayDTO(yonaProperties.getSecurity().getPinResetRequestConformationCodeDelay()),
+				new ConfirmationCodeDelayDTO(yonaProperties.getSecurity().getPinResetRequestConfirmationCodeDelay()),
 				HttpStatus.OK);
 	}
 

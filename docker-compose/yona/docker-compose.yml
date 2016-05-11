@@ -54,3 +54,15 @@ appservice:
     gelf-address: "udp://localhost:12201"
   volumes_from:
         - configuration:ro
+
+batchservice:
+  image: yonadev/batchservice:0.0.8-SNAPSHOT
+  links:
+    - hsqldb:yonadbserver
+  ports:
+    - 8083:8080
+  log_driver: "gelf"
+  log_opt:
+    gelf-address: "udp://localhost:12201"
+  volumes_from:
+        - configuration:ro
