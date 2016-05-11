@@ -4,32 +4,37 @@
  *******************************************************************************/
 package nu.yona.server;
 
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 
-import nu.yona.server.admin.batch.config.MainConfiguration;
-
-@SpringBootApplication(scanBasePackages = { "nu.yona.server" }, exclude = { BatchAutoConfiguration.class,
-		DataSourceAutoConfiguration.class, WebMvcAutoConfiguration.class })
 @EnableCaching
-@Import(MainConfiguration.class)
-public class AdminServiceApplication extends SpringBootServletInitializer
+@EnableBatchProcessing
+@EnableScheduling
+@SpringBootApplication(scanBasePackages = { "nu.yona.server" })
+public class BatchServiceApplication extends SpringBootServletInitializer
 {
 	public static void main(String[] args)
 	{
-		SpringApplication.run(AdminServiceApplication.class, args);
+		SpringApplication.run(BatchServiceApplication.class, args);
 	}
 
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder application)
 	{
-		return application.sources(AdminServiceApplication.class);
+		return application.sources(BatchServiceApplication.class);
+	}
+
+	@Bean
+	public TaskScheduler taskScheduler()
+	{
+		return new ConcurrentTaskScheduler(); // single threaded by default
 	}
 }

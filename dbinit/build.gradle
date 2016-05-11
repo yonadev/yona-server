@@ -34,6 +34,7 @@ release {
 dependencies {
 	compile project(":core")
 	compile("org.springframework.boot:spring-boot-starter-data-jpa")
+	compile("org.springframework.batch:spring-batch-core:3.0.7.RELEASE")
 
 	runtime("org.hsqldb:hsqldb")
 }
@@ -63,6 +64,7 @@ bootRun {
 
 	systemProperties = [
 		'spring.datasource.url': "jdbc:hsqldb:file:../YonaDB",
+		'spring.batch.initializer.enabled': "true",
 		'spring.jpa.hibernate.ddl-auto': "update"
 	]
 }

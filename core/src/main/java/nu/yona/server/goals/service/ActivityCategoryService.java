@@ -30,6 +30,7 @@ public class ActivityCategoryService
 
 	private static final Logger logger = LoggerFactory.getLogger(ActivityCategoryService.class);
 
+	@Transactional
 	public ActivityCategoryDTO getActivityCategory(UUID id)
 	{
 		ActivityCategory activityCategoryEntity = getEntityByID(id);
@@ -37,6 +38,7 @@ public class ActivityCategoryService
 	}
 
 	@Cacheable(value = "activityCategorySet", key = "'instance'")
+	@Transactional
 	public Set<ActivityCategoryDTO> getAllActivityCategories()
 	{
 		Set<ActivityCategoryDTO> activityCategories = new HashSet<ActivityCategoryDTO>();

@@ -25,6 +25,8 @@ waitTillPortIsListenedTo 8080
 waitTillPortIsListenedTo 8081
 ./gradlew $@ :appservice:bootRun > /dev/null 2>&1 &
 waitTillPortIsListenedTo 8082
+./gradlew $@ :batchservice:bootRun > /dev/null 2>&1 &
+waitTillPortIsListenedTo 8083
 
 export GRADLE_OPTS=
 ./gradlew --rerun-tasks :adminservice:intTest :analysisservice:intTest :appservice:intTest 

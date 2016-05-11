@@ -48,6 +48,9 @@ public class User extends EntityWithID
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private ConfirmationCode overwriteUserConfirmationCode;
 
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private ConfirmationCode pinResetConfirmationCode;
+
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private UserPrivate userPrivate;
 
@@ -293,11 +296,11 @@ public class User extends EntityWithID
 
 	public ConfirmationCode getPinResetConfirmationCode()
 	{
-		return getUserPrivate().getPinResetConfirmationCode();
+		return pinResetConfirmationCode;
 	}
 
 	public void setPinResetConfirmationCode(ConfirmationCode pinResetConfirmationCode)
 	{
-		getUserPrivate().setPinResetConfirmationCode(pinResetConfirmationCode);
+		this.pinResetConfirmationCode = pinResetConfirmationCode;
 	}
 }
