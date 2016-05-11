@@ -64,6 +64,7 @@ bootRun {
 
 	systemProperties = [
 		'spring.datasource.url': "jdbc:hsqldb:file:../YonaDB",
+		'spring.batch.initializer.enabled': "true",
 		'spring.jpa.hibernate.ddl-auto': "update"
 	]
 }
