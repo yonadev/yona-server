@@ -139,22 +139,22 @@ public class DayActivity extends IntervalActivity
 	{
 		if (spreadStartIndex == spreadEndIndex)
 		{
-			// partial span of spread item
+			// Activity starts and ends inside the spread item
 			return (int) startTime.until(endTime, ChronoUnit.MINUTES);
 		}
 		else if (spreadItemIndex == spreadStartIndex)
 		{
-			// start spread item
+			// Activity starts in the spread item and ends at the end of this item or after it
 			return 15 - (startTime.getMinute() % 15);
 		}
 		else if (spreadItemIndex == spreadEndIndex)
 		{
-			// end spread item
+			// Activity starts at the begin of the spread item or before it and ends in this spread item
 			return (endTime.getMinute() % 15);
 		}
 		else
 		{
-			// full span of spread item
+			// Activity starts at the begin of the spread item or before it and ends at the end of this item or after it
 			return 15;
 		}
 	}

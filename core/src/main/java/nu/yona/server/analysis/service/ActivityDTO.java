@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.Constants;
 import nu.yona.server.analysis.entities.Activity;
 
 @JsonRootName("activity")
@@ -20,20 +21,20 @@ public class ActivityDTO
 	private ZonedDateTime endTime;
 
 	@JsonCreator
-	public ActivityDTO(@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ") @JsonProperty("startTime") ZonedDateTime startTime,
-			@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ") @JsonProperty("endTime") ZonedDateTime endTime)
+	public ActivityDTO(@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("startTime") ZonedDateTime startTime,
+			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("endTime") ZonedDateTime endTime)
 	{
 		this.startTime = startTime;
 		this.endTime = endTime;
 	}
 
-	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
 	public ZonedDateTime getStartTime()
 	{
 		return startTime;
 	}
 
-	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
 	public ZonedDateTime getEndTime()
 	{
 		return endTime;

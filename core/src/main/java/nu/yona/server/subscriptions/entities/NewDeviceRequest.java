@@ -14,6 +14,7 @@ import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import nu.yona.server.Constants;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.StringFieldEncrypter;
@@ -50,7 +51,7 @@ public class NewDeviceRequest extends EntityWithID
 
 	private byte[] initializationVector;
 
-	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
 	public ZonedDateTime getCreationTime()
 	{
 		return creationDateTime;

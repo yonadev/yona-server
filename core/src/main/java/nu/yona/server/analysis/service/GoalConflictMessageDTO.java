@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.Constants;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.messaging.entities.DisclosureRequestMessage;
@@ -101,13 +102,13 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return url;
 	}
 
-	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
 	public ZonedDateTime getActivityStartTime()
 	{
 		return activityStartTime;
 	}
 
-	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
 	public ZonedDateTime getActivityEndTime()
 	{
 		return activityEndTime;

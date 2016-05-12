@@ -11,6 +11,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.Constants;
+
 /*
  * Offline activity for applications registered by the Yona app.
  * @see AnalysisEngineService
@@ -27,8 +29,9 @@ public class AppActivityDTO
 		private final ZonedDateTime endTime;
 
 		@JsonCreator
-		public Activity(@JsonProperty("application") String application, @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ") @JsonProperty("startTime") ZonedDateTime startTime,
-				@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ") @JsonProperty("endTime") ZonedDateTime endTime)
+		public Activity(@JsonProperty("application") String application,
+				@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("startTime") ZonedDateTime startTime,
+				@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("endTime") ZonedDateTime endTime)
 		{
 			this.application = application;
 			this.startTime = startTime;
@@ -40,13 +43,13 @@ public class AppActivityDTO
 			return application;
 		}
 
-		@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+		@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
 		public ZonedDateTime getStartTime()
 		{
 			return startTime;
 		}
 
-		@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+		@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
 		public ZonedDateTime getEndTime()
 		{
 			return endTime;
@@ -58,14 +61,14 @@ public class AppActivityDTO
 
 	@JsonCreator
 	public AppActivityDTO(
-			@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ") @JsonProperty("deviceDateTime") ZonedDateTime deviceDateTime,
+			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("deviceDateTime") ZonedDateTime deviceDateTime,
 			@JsonProperty("activities") Activity[] activities)
 	{
 		this.deviceDateTime = deviceDateTime;
 		this.activities = activities;
 	}
 
-	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
 	public ZonedDateTime getDeviceDateTime()
 	{
 		return deviceDateTime;
