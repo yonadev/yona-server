@@ -99,7 +99,6 @@ public class PinResetRequestService
 	public boolean isExpired(ConfirmationCode confirmationCode)
 	{
 		ZonedDateTime creationTime = confirmationCode.getCreationTime();
-		return creationTime.plusDays(yonaProperties.getSecurity().getPinResetRequestExpirationDays())
-				.isBefore(ZonedDateTime.now());
+		return creationTime.plus(yonaProperties.getSecurity().getPinResetRequestExpirationTime()).isBefore(ZonedDateTime.now());
 	}
 }

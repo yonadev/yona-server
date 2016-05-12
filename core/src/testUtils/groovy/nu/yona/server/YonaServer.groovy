@@ -10,7 +10,8 @@ import groovy.json.*
 import groovyx.net.http.RESTClient
 import groovyx.net.http.URIBuilder
 
-import java.text.SimpleDateFormat
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 class YonaServer
 {
@@ -26,8 +27,8 @@ class YonaServer
 
 	def static getTimeStamp()
 	{
-		def formatter = new SimpleDateFormat("yyyyMMddhhmmss")
-		formatter.format(new Date())
+		def formatter = DateTimeFormatter.ofPattern("yyyyMMddhhmmss")
+		formatter.format(ZonedDateTime.now())
 	}
 
 	def createResourceWithPassword(path, jsonString, password, parameters = [:])
@@ -162,14 +163,13 @@ class YonaServer
 		return stringList
 	}
 
-	static Date parseIsoDateString(dateTimeString)
+	static ZonedDateTime parseIsoDateString(dateTimeString)
 	{
-		Date dateTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").parse(dateTimeString)
-		return dateTime
+		ZonedDateTime.parse(dateTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"))
 	}
 
-	static String toIsoDateString(Date dateTime)
+	static String toIsoDateString(ZonedDateTime dateTime)
 	{
-		return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(dateTime)
+		DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(dateTime)
 	}
 }

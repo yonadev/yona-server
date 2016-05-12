@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -22,7 +22,7 @@ public abstract class Message extends EntityWithID
 {
 	private UUID relatedUserAnonymizedID;
 
-	private Date creationTime;
+	private ZonedDateTime creationTime;
 
 	public static MessageRepository getRepository()
 	{
@@ -44,7 +44,7 @@ public abstract class Message extends EntityWithID
 		}
 
 		this.relatedUserAnonymizedID = relatedUserAnonymizedID;
-		this.creationTime = new Date();
+		this.creationTime = ZonedDateTime.now();
 	}
 
 	public void encryptMessage(Encryptor encryptor)
@@ -57,7 +57,7 @@ public abstract class Message extends EntityWithID
 		decrypt(decryptor);
 	}
 
-	public Date getCreationTime()
+	public ZonedDateTime getCreationTime()
 	{
 		return creationTime;
 	}

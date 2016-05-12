@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,6 +12,9 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import nu.yona.server.Constants;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.StringFieldEncrypter;
@@ -40,7 +43,7 @@ public class NewDeviceRequest extends EntityWithID
 	private String decryptionCheck;
 	private String decryptionCheckCipherText;
 
-	private Date creationDateTime;
+	private ZonedDateTime creationDateTime;
 
 	@Transient
 	private String yonaPassword;
@@ -48,7 +51,8 @@ public class NewDeviceRequest extends EntityWithID
 
 	private byte[] initializationVector;
 
-	public Date getCreationTime()
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	public ZonedDateTime getCreationTime()
 	{
 		return creationDateTime;
 	}
@@ -64,7 +68,7 @@ public class NewDeviceRequest extends EntityWithID
 		super(null);
 	}
 
-	private NewDeviceRequest(UUID id, String yonaPassword, Date creationDateTime)
+	private NewDeviceRequest(UUID id, String yonaPassword, ZonedDateTime creationDateTime)
 	{
 		super(id);
 		this.yonaPassword = yonaPassword;
@@ -74,7 +78,7 @@ public class NewDeviceRequest extends EntityWithID
 
 	public static NewDeviceRequest createInstance(String yonaPassword)
 	{
-		return new NewDeviceRequest(UUID.randomUUID(), yonaPassword, new Date());
+		return new NewDeviceRequest(UUID.randomUUID(), yonaPassword, ZonedDateTime.now());
 	}
 
 	private static String buildDecryptionCheck()

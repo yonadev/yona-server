@@ -5,12 +5,13 @@
 package nu.yona.server.analysis.service;
 
 import java.time.ZonedDateTime;
-import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+
+import nu.yona.server.Constants;
 
 /*
  * Offline activity for applications registered by the Yona app.
@@ -24,12 +25,13 @@ public class AppActivityDTO
 	public static class Activity
 	{
 		private String application;
-		private final Date startTime;
-		private final Date endTime;
+		private final ZonedDateTime startTime;
+		private final ZonedDateTime endTime;
 
 		@JsonCreator
-		public Activity(@JsonProperty("application") String application, @JsonProperty("startTime") Date startTime,
-				@JsonProperty("endTime") Date endTime)
+		public Activity(@JsonProperty("application") String application,
+				@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("startTime") ZonedDateTime startTime,
+				@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("endTime") ZonedDateTime endTime)
 		{
 			this.application = application;
 			this.startTime = startTime;
@@ -41,12 +43,14 @@ public class AppActivityDTO
 			return application;
 		}
 
-		public Date getStartTime()
+		@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+		public ZonedDateTime getStartTime()
 		{
 			return startTime;
 		}
 
-		public Date getEndTime()
+		@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+		public ZonedDateTime getEndTime()
 		{
 			return endTime;
 		}
@@ -57,13 +61,14 @@ public class AppActivityDTO
 
 	@JsonCreator
 	public AppActivityDTO(
-			@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ") @JsonProperty("deviceDateTime") ZonedDateTime deviceDateTime,
+			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("deviceDateTime") ZonedDateTime deviceDateTime,
 			@JsonProperty("activities") Activity[] activities)
 	{
 		this.deviceDateTime = deviceDateTime;
 		this.activities = activities;
 	}
 
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
 	public ZonedDateTime getDeviceDateTime()
 	{
 		return deviceDateTime;

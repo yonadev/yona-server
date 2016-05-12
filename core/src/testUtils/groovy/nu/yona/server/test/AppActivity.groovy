@@ -7,6 +7,9 @@
 package nu.yona.server.test
 
 import groovy.json.*
+
+import java.time.ZonedDateTime
+
 import nu.yona.server.YonaServer
 
 class AppActivity
@@ -14,10 +17,10 @@ class AppActivity
 	static class Activity
 	{
 		final String application
-		final Date startTime
-		final Date endTime
+		final ZonedDateTime startTime
+		final ZonedDateTime endTime
 
-		public Activity(String application, Date startTime, Date endTime)
+		public Activity(String application, ZonedDateTime startTime, ZonedDateTime endTime)
 		{
 			this.application = application
 			this.startTime = startTime
@@ -35,15 +38,15 @@ class AppActivity
 			}"""
 		}
 	}
-	Date deviceDateTime
+	ZonedDateTime deviceDateTime
 	def activities
 
 	AppActivity(def activities)
 	{
-		this(new Date(), activities)
+		this(ZonedDateTime.now(), activities)
 	}
 
-	AppActivity(Date deviceDateTime, def activities)
+	AppActivity(ZonedDateTime deviceDateTime, def activities)
 	{
 		this.deviceDateTime = deviceDateTime
 		this.activities = activities
@@ -72,12 +75,12 @@ class AppActivity
 	}
 
 
-	static AppActivity singleActivity(application, Date startTime, Date endTime)
+	static AppActivity singleActivity(application, ZonedDateTime startTime, ZonedDateTime endTime)
 	{
 		new AppActivity([new AppActivity.Activity(application, startTime, endTime)].toArray())
 	}
 
-	static AppActivity singleActivity(Date deviceDateTime, application, Date startTime, Date endTime)
+	static AppActivity singleActivity(ZonedDateTime deviceDateTime, application, ZonedDateTime startTime, ZonedDateTime endTime)
 	{
 		new AppActivity(deviceDateTime, [new AppActivity.Activity(application, startTime, endTime)].toArray())
 	}

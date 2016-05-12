@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -19,7 +19,7 @@ public abstract class BuddyMessageDTO extends MessageDTO
 	private final String nickname;
 	private final String message;
 
-	protected BuddyMessageDTO(UUID id, Date creationTime, UserDTO user, String nickname, String message)
+	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO user, String nickname, String message)
 	{
 		super(id, creationTime);
 		this.user = user;
@@ -27,7 +27,8 @@ public abstract class BuddyMessageDTO extends MessageDTO
 		this.message = message;
 	}
 
-	protected BuddyMessageDTO(UUID id, Date creationTime, UUID relatedMessageID, UserDTO user, String nickname, String message)
+	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, UUID relatedMessageID, UserDTO user, String nickname,
+			String message)
 	{
 		super(id, creationTime, relatedMessageID);
 		this.user = user;

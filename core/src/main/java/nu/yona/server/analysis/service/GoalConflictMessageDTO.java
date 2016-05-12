@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -14,9 +14,11 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.Constants;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.messaging.entities.DisclosureRequestMessage;
@@ -41,12 +43,12 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private final String nickname;
 	private final String url;
 	private Status status;
-	private final Date activityStartTime;
-	private final Date activityEndTime;
+	private final ZonedDateTime activityStartTime;
+	private final ZonedDateTime activityEndTime;
 	private final UUID activityCategoryID;
 
-	private GoalConflictMessageDTO(UUID id, Date creationTime, String nickname, UUID activityCategoryID, String url,
-			Status status, Date activityStartTime, Date activityEndTime)
+	private GoalConflictMessageDTO(UUID id, ZonedDateTime creationTime, String nickname, UUID activityCategoryID, String url,
+			Status status, ZonedDateTime activityStartTime, ZonedDateTime activityEndTime)
 	{
 		super(id, creationTime);
 		this.nickname = nickname;
@@ -100,12 +102,14 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return url;
 	}
 
-	public Date getActivityStartTime()
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	public ZonedDateTime getActivityStartTime()
 	{
 		return activityStartTime;
 	}
 
-	public Date getActivityEndTime()
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	public ZonedDateTime getActivityEndTime()
 	{
 		return activityEndTime;
 	}

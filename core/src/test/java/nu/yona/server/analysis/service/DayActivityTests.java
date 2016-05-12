@@ -6,7 +6,6 @@ import static org.junit.Assert.assertThat;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -43,14 +42,14 @@ public class DayActivityTests
 		return DayActivity.createInstance(null, goal, getZonedDateTime(0, 0, 0));
 	}
 
-	private Date getDate(int hour, int minute)
+	private ZonedDateTime getDate(int hour, int minute)
 	{
 		return getDate(hour, minute, 0);
 	}
 
-	private Date getDate(int hour, int minute, int second)
+	private ZonedDateTime getDate(int hour, int minute, int second)
 	{
-		return Date.from(getZonedDateTime(hour, minute, second).toInstant());
+		return getZonedDateTime(hour, minute, second);
 	}
 
 	@Test
@@ -59,7 +58,7 @@ public class DayActivityTests
 		DayActivity d = createDayActivity();
 		d.addActivity(Activity.createInstance(getDate(19, 55), getDate(19, 59)));
 		assertThat(d.getSpread().get(78), equalTo(0));
-		assertThat(d.getSpread().get(79), equalTo(5));
+		assertThat(d.getSpread().get(79), equalTo(4));
 		assertThat(d.getSpread().get(80), equalTo(0));
 	}
 
@@ -70,7 +69,7 @@ public class DayActivityTests
 		d.addActivity(Activity.createInstance(getDate(19, 55), getDate(20, 1)));
 		assertThat(d.getSpread().get(78), equalTo(0));
 		assertThat(d.getSpread().get(79), equalTo(5));
-		assertThat(d.getSpread().get(80), equalTo(2));
+		assertThat(d.getSpread().get(80), equalTo(1));
 		assertThat(d.getSpread().get(81), equalTo(0));
 	}
 
@@ -81,7 +80,7 @@ public class DayActivityTests
 		d.addActivity(Activity.createInstance(getDate(19, 45), getDate(20, 1)));
 		assertThat(d.getSpread().get(78), equalTo(0));
 		assertThat(d.getSpread().get(79), equalTo(15));
-		assertThat(d.getSpread().get(80), equalTo(2));
+		assertThat(d.getSpread().get(80), equalTo(1));
 		assertThat(d.getSpread().get(81), equalTo(0));
 	}
 
@@ -93,7 +92,7 @@ public class DayActivityTests
 		assertThat(d.getSpread().get(78), equalTo(0));
 		assertThat(d.getSpread().get(79), equalTo(5));
 		assertThat(d.getSpread().get(80), equalTo(15));
-		assertThat(d.getSpread().get(81), equalTo(1));
+		assertThat(d.getSpread().get(81), equalTo(0));
 	}
 
 	@Test
@@ -102,7 +101,7 @@ public class DayActivityTests
 		DayActivity d = createDayActivity();
 		d.addActivity(Activity.createInstance(getDate(19, 45, 00), getDate(19, 59, 59)));
 		assertThat(d.getSpread().get(78), equalTo(0));
-		assertThat(d.getSpread().get(79), equalTo(15));
+		assertThat(d.getSpread().get(79), equalTo(14));
 		assertThat(d.getSpread().get(80), equalTo(0));
 	}
 
@@ -114,7 +113,7 @@ public class DayActivityTests
 		assertThat(d.getSpread().get(78), equalTo(0));
 		assertThat(d.getSpread().get(79), equalTo(5));
 		assertThat(d.getSpread().get(80), equalTo(15));
-		assertThat(d.getSpread().get(81), equalTo(2));
+		assertThat(d.getSpread().get(81), equalTo(1));
 		assertThat(d.getSpread().get(82), equalTo(0));
 	}
 
@@ -126,9 +125,9 @@ public class DayActivityTests
 		d.addActivity(Activity.createInstance(getDate(19, 46), getDate(19, 59)));
 		d.addActivity(Activity.createInstance(getDate(20, 1), getDate(20, 17)));
 		assertThat(d.getSpread().get(78), equalTo(0));
-		assertThat(d.getSpread().get(79), equalTo(14));
+		assertThat(d.getSpread().get(79), equalTo(13));
 		assertThat(d.getSpread().get(80), equalTo(14));
-		assertThat(d.getSpread().get(81), equalTo(3));
+		assertThat(d.getSpread().get(81), equalTo(2));
 		assertThat(d.getSpread().get(82), equalTo(0));
 	}
 }

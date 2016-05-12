@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -29,8 +29,8 @@ public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 {
 	private Status status;
 
-	private DisclosureResponseMessageDTO(UUID id, Date creationTime, UserDTO user, Status status, String nickname, String message,
-			UUID targetGoalConflictMessageID)
+	private DisclosureResponseMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO user, Status status, String nickname,
+			String message, UUID targetGoalConflictMessageID)
 	{
 		super(id, creationTime, targetGoalConflictMessageID, user, nickname, message);
 		this.status = status;

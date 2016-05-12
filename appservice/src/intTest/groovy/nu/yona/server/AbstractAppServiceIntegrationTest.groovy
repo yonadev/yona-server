@@ -8,7 +8,8 @@ package nu.yona.server
 
 import groovy.json.*
 
-import java.text.SimpleDateFormat
+import java.time.Duration
+import java.time.ZonedDateTime
 
 import nu.yona.server.test.AnalysisService
 import nu.yona.server.test.AppService
@@ -70,8 +71,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	private static String createBaseTimestamp()
 	{
-		def formatter = new SimpleDateFormat("yyyyMMddhhmmss")
-		formatter.format(new Date())
+		YonaServer.getTimeStamp()
 	}
 
 	protected String getTimestamp()
@@ -80,15 +80,15 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		return "$baseTimestamp$num"
 	}
 
-	def assertEquals(dateTimeString, Date comparisonDateTime, int epsilonSeconds = 10)
+	def assertEquals(dateTimeString, ZonedDateTime comparisonDateTime, int epsilonSeconds = 10)
 	{
 		// Example date string: 2016-02-23T21:28:58.556+0000
 		assert dateTimeString ==~ /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}\+\d{4}/
-		Date dateTime = YonaServer.parseIsoDateString(dateTimeString)
+		ZonedDateTime dateTime = YonaServer.parseIsoDateString(dateTimeString)
 		int epsilonMilliseconds = epsilonSeconds * 1000
 
-		assert dateTime > new Date(comparisonDateTime.getTime() - epsilonMilliseconds)
-		assert dateTime < new Date(comparisonDateTime.getTime() + epsilonMilliseconds)
+		assert dateTime.isAfter(comparisonDateTime.minus(Duration.ofMillis(epsilonMilliseconds)))
+		assert dateTime.isBefore(comparisonDateTime.plus(Duration.ofMillis(epsilonMilliseconds)))
 
 		return true
 	}

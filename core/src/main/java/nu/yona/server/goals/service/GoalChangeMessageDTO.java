@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -35,8 +35,8 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 	private GoalDTO changedGoal;
 	private Change change;
 
-	private GoalChangeMessageDTO(UUID id, Date creationTime, UserDTO user, String nickname, GoalDTO changedGoal, Change change,
-			String message)
+	private GoalChangeMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO user, String nickname, GoalDTO changedGoal,
+			Change change, String message)
 	{
 		super(id, creationTime, user, nickname, message);
 

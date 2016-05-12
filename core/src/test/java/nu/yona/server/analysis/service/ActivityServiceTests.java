@@ -18,7 +18,6 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -139,8 +138,8 @@ public class ActivityServiceTests
 		// gambling goal was created 2 weeks ago, see above
 		// mock some activity on yesterday 20:58-21:00
 		DayActivity yesterdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, yesterday);
-		Activity recordedActivity = Activity.createInstance(Date.from(yesterday.plusHours(20).plusMinutes(58).toInstant()),
-				Date.from(yesterday.plusHours(21).plusMinutes(00).toInstant()));
+		Activity recordedActivity = Activity.createInstance(yesterday.plusHours(20).plusMinutes(58),
+				yesterday.plusHours(21).plusMinutes(00));
 		yesterdayRecordedActivity.addActivity(recordedActivity);
 		when(mockDayActivityRepository.findAll(userAnonID, today.minusDays(2).toLocalDate(), today.toLocalDate()))
 				.thenReturn(new HashSet<DayActivity>(Arrays.asList(yesterdayRecordedActivity)));
@@ -171,8 +170,8 @@ public class ActivityServiceTests
 				.findAny().get();
 		assertThat(dayActivityForGambling.getStartTime(), equalTo(yesterday));
 		assertThat(dayActivityForGambling.getTimeZoneId(), equalTo(userAnonZone.getId()));
-		assertThat(dayActivityForGambling.getTotalActivityDurationMinutes(), equalTo(3));
-		assertThat(dayActivityForGambling.getTotalMinutesBeyondGoal(), equalTo(3));
+		assertThat(dayActivityForGambling.getTotalActivityDurationMinutes(), equalTo(2));
+		assertThat(dayActivityForGambling.getTotalMinutesBeyondGoal(), equalTo(2));
 	}
 
 	@Test
@@ -188,9 +187,8 @@ public class ActivityServiceTests
 		ZonedDateTime saturdayStartOfDay = getWeekStartTime(today).minusDays(1);
 		DayActivity previousWeekSaturdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal,
 				saturdayStartOfDay);
-		Activity recordedActivity = Activity.createInstance(
-				Date.from(saturdayStartOfDay.plusHours(19).plusMinutes(10).toInstant()),
-				Date.from(saturdayStartOfDay.plusHours(19).plusMinutes(55).toInstant()));
+		Activity recordedActivity = Activity.createInstance(saturdayStartOfDay.plusHours(19).plusMinutes(10),
+				saturdayStartOfDay.plusHours(19).plusMinutes(55));
 		previousWeekSaturdayRecordedActivity.addActivity(recordedActivity);
 		previousWeekRecordedActivity.addDayActivity(previousWeekSaturdayRecordedActivity);
 		when(mockWeekActivityRepository.findAll(userAnonID, getWeekStartTime(today.minusWeeks(4)).toLocalDate(),
@@ -226,8 +224,8 @@ public class ActivityServiceTests
 		assertThat(weekActivityForGambling.getTimeZoneId(), equalTo(userAnonZone.getId()));
 		assertThat(weekActivityForGambling.getDayActivities().size(), equalTo(7));
 		DayActivityDTO previousWeekSaturdayActivity = weekActivityForGambling.getDayActivities().get(DayOfWeek.SATURDAY);
-		assertThat(previousWeekSaturdayActivity.getTotalActivityDurationMinutes(), equalTo(46));
-		assertThat(previousWeekSaturdayActivity.getTotalMinutesBeyondGoal(), equalTo(46));
+		assertThat(previousWeekSaturdayActivity.getTotalActivityDurationMinutes(), equalTo(45));
+		assertThat(previousWeekSaturdayActivity.getTotalMinutesBeyondGoal(), equalTo(45));
 		DayActivityDTO previousWeekFridayActivity = weekActivityForGambling.getDayActivities().get(DayOfWeek.FRIDAY);
 		assertThat(previousWeekFridayActivity.getTotalActivityDurationMinutes(), equalTo(0));
 
