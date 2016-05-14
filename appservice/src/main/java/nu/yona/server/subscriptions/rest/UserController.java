@@ -46,8 +46,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.DOSProtectionService;
-import nu.yona.server.analysis.rest.ActivityController;
 import nu.yona.server.analysis.rest.AppActivityController;
+import nu.yona.server.analysis.rest.UserActivityController;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.goals.rest.GoalController;
@@ -422,13 +422,13 @@ public class UserController
 
 		private void addWeekActivityOverviewsLink(UserResource userResource)
 		{
-			userResource.add(ActivityController.getWeekActivityOverviewsLinkBuilder(userResource.getContent().getID())
+			userResource.add(UserActivityController.getUserWeekActivityOverviewsLinkBuilder(userResource.getContent().getID())
 					.withRel("weeklyActivityReports"));
 		}
 
 		private void addDayActivityOverviewsLink(UserResource userResource)
 		{
-			userResource.add(ActivityController.getDayActivityOverviewsLinkBuilder(userResource.getContent().getID())
+			userResource.add(UserActivityController.getUserDayActivityOverviewsLinkBuilder(userResource.getContent().getID())
 					.withRel("dailyActivityReports"));
 		}
 

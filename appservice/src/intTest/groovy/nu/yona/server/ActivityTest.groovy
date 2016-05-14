@@ -12,24 +12,62 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 import nu.yona.server.test.TimeZoneGoal
+import nu.yona.server.test.User
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
+	void addSomeTestActivity(User user)
+	{
+		analysisService.postToAnalysisEngine(user, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(user, ["social"], "http://www.facebook.com")
+	}
+
 	def 'Get day activity overviews'()
 	{
 		given:
-		def richard = addRichard()
-		def goals = appService.getGoals(richard)
+		def bob = addBob()
+		def goals = appService.getGoals(bob)
 		def budgetGoalGamblingUrl = findGoal(goals, GAMBLING_ACT_CAT_URL)._links.self.href
 		def budgetGoalNewsUrl = findGoal(goals, NEWS_ACT_CAT_URL)._links.self.href
-		def timeZoneGoalUrl = appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!").url
-		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
-		analysisService.postToAnalysisEngine(richard, ["social"], "http://www.facebook.com")
+		def timeZoneGoalUrl = appService.addGoal(appService.&assertResponseStatusCreated, bob, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!").url
+		addSomeTestActivity(bob)
 
 		when:
-		def response = appService.getDayActivityOverviews(richard)
+		def response = appService.getDayActivityOverviews(bob)
 
 		then:
+		testDayActivityOverviews(response, budgetGoalGamblingUrl, budgetGoalNewsUrl, timeZoneGoalUrl)
+	}
+
+	def 'Get day activity overviews from buddy'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		appService.addGoal(appService.&assertResponseStatusCreated, bob, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
+		def richardWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+		richardWithBuddy.buddies != null
+		richardWithBuddy.buddies.size() == 1
+		def dailyActivityReportsUrl = richardWithBuddy.buddies[0].dailyActivityReportsUrl
+		def goals = richardWithBuddy.buddies[0].goals
+		def budgetGoalGamblingUrl = goals.find{it.activityCategoryUrl == GAMBLING_ACT_CAT_URL}.url
+		budgetGoalGamblingUrl != null
+		def budgetGoalNewsUrl = goals.find{it.activityCategoryUrl == NEWS_ACT_CAT_URL}.url
+		budgetGoalNewsUrl != null
+		def timeZoneGoalUrl = goals.find{it.activityCategoryUrl == SOCIAL_ACT_CAT_URL}.url
+		timeZoneGoalUrl != null
+		addSomeTestActivity(bob)
+
+		when:
+		def response = appService.getResourceWithPassword(dailyActivityReportsUrl, richard.password)
+
+		then:
+		testDayActivityOverviews(response, budgetGoalGamblingUrl, budgetGoalNewsUrl, timeZoneGoalUrl)
+	}
+
+	void testDayActivityOverviews(response, budgetGoalGamblingUrl, budgetGoalNewsUrl, timeZoneGoalUrl)
+	{
 		response.status == 200
 		response.responseData._embedded
 		response.responseData._embedded."yona:dayActivityOverviews"
@@ -39,7 +77,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		dayActivityOverview._embedded."yona:dayActivities"
 		dayActivityOverview._embedded."yona:dayActivities".size() == 3
 		def dayActivityForBudgetGoal = dayActivityOverview._embedded."yona:dayActivities".find{ it._links."yona:goal".href == budgetGoalGamblingUrl}
-		dayActivityForBudgetGoal
+		dayActivityForBudgetGoal != null
 		!dayActivityForBudgetGoal.spread
 		dayActivityForBudgetGoal.totalActivityDurationMinutes == 1
 		dayActivityForBudgetGoal.goalAccomplished == false
@@ -51,7 +89,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		//time zone goal should have spread
 		def dayActivityForTimeZoneGoal = dayActivityOverview._embedded."yona:dayActivities".find{ it._links."yona:goal".href == timeZoneGoalUrl}
-		dayActivityForTimeZoneGoal
+		dayActivityForTimeZoneGoal != null
 		dayActivityForTimeZoneGoal.spread
 		dayActivityForTimeZoneGoal.spread.size() == 96
 
@@ -67,7 +105,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def goals = appService.getGoals(richard)
 		def budgetGoalGamblingUrl = findGoal(goals, GAMBLING_ACT_CAT_URL)._links.self.href
 		def budgetGoalNewsUrl = findGoal(goals, NEWS_ACT_CAT_URL)._links.self.href
-		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
+		addSomeTestActivity(richard)
 
 		when:
 		def overviewsResponse = appService.getDayActivityOverviews(richard)
@@ -100,7 +138,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def goals = appService.getGoals(richard)
 		def budgetGoalGamblingUrl = findGoal(goals, GAMBLING_ACT_CAT_URL)._links.self.href
 		def budgetGoalNewsUrl = findGoal(goals, NEWS_ACT_CAT_URL)._links.self.href
-		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
+		addSomeTestActivity(richard)
 
 		when:
 		def response = appService.getWeekActivityOverviews(richard)
@@ -144,7 +182,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def goals = appService.getGoals(richard)
 		def budgetGoalGamblingUrl = findGoal(goals, GAMBLING_ACT_CAT_URL)._links.self.href
 		def budgetGoalNewsUrl = findGoal(goals, NEWS_ACT_CAT_URL)._links.self.href
-		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
+		addSomeTestActivity(richard)
 
 		when:
 		def overviewsResponse = appService.getWeekActivityOverviews(richard)

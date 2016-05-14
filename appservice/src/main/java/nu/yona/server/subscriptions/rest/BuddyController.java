@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import nu.yona.server.analysis.rest.BuddyActivityController;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.rest.JsonRootRelProvider;
@@ -231,6 +232,8 @@ public class BuddyController
 			ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(buddy.getID());
 			addSelfLink(selfLinkBuilder, buddyResource);
 			addEditLink(selfLinkBuilder, buddyResource);
+			addDayActivityOverviewsLink(buddyResource);
+			addWeekActivityOverviewsLink(buddyResource);
 			return buddyResource;
 		}
 
@@ -253,6 +256,20 @@ public class BuddyController
 		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
 		{
 			buddyResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
+		}
+
+		private void addWeekActivityOverviewsLink(BuddyResource buddyResource)
+		{
+			buddyResource.add(BuddyActivityController
+					.getBuddyWeekActivityOverviewsLinkBuilder(requestingUserID, buddyResource.getContent().getID())
+					.withRel("weeklyActivityReports"));
+		}
+
+		private void addDayActivityOverviewsLink(BuddyResource buddyResource)
+		{
+			buddyResource.add(BuddyActivityController
+					.getBuddyDayActivityOverviewsLinkBuilder(requestingUserID, buddyResource.getContent().getID())
+					.withRel("dailyActivityReports"));
 		}
 	}
 }

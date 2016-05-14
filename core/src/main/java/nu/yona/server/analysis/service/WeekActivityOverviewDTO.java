@@ -23,7 +23,7 @@ public class WeekActivityOverviewDTO extends IntervalActivityOverviewDTO
 	}
 
 	@Override
-	public DateTimeFormatter getDateFormatter()
+	protected DateTimeFormatter getDateFormatter()
 	{
 		return WeekActivityDTO.ISO8601_WEEK_FORMATTER;
 	}
