@@ -34,7 +34,7 @@ public abstract class MessageDTO extends PolymorphicDTO
 {
 	private final UUID id;
 	private final ZonedDateTime creationTime;
-	private final UUID relatedAnonymousMessageID;
+	private final UUID relatedMessageID;
 
 	protected MessageDTO(UUID id, ZonedDateTime creationTime)
 	{
@@ -45,7 +45,7 @@ public abstract class MessageDTO extends PolymorphicDTO
 	{
 		this.id = id;
 		this.creationTime = creationTime;
-		this.relatedAnonymousMessageID = relatedMessageID;
+		this.relatedMessageID = relatedMessageID;
 	}
 
 	@JsonIgnore
@@ -61,9 +61,9 @@ public abstract class MessageDTO extends PolymorphicDTO
 	}
 
 	@JsonIgnore
-	public UUID getRelatedAnonymousMessageID()
+	public UUID getRelatedMessageID()
 	{
-		return relatedAnonymousMessageID;
+		return relatedMessageID;
 	}
 
 	@JsonIgnore

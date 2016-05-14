@@ -25,12 +25,12 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		super();
 	}
 
-	private BuddyConnectRequestMessage(UUID id, UUID userID, UUID userAnonymizedID, String nickname, String message, UUID buddyID,
+	private BuddyConnectRequestMessage(UUID id, UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname, String message, UUID buddyID,
 			boolean isRequestingSending, boolean isRequestingReceiving)
 	{
-		super(id, userAnonymizedID, userID, nickname, message, buddyID);
+		super(id, senderUserID, senderUserAnonymizedID, senderNickname, message, buddyID);
 
-		if (userID == null)
+		if (senderUserID == null)
 		{
 			throw BuddyServiceException.requestingUserCannotBeNull();
 		}
@@ -60,10 +60,10 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		return this.status;
 	}
 
-	public static BuddyConnectRequestMessage createInstance(UUID requestingUserID, UUID requestingUserUserAnonymizedID,
-			String nickname, String message, UUID buddyID, boolean isRequestingSending, boolean isRequestingReceiving)
+	public static BuddyConnectRequestMessage createInstance(UUID senderUserID, UUID senderUserAnonymizedID,
+			String senderNickname, String message, UUID buddyID, boolean isRequestingSending, boolean isRequestingReceiving)
 	{
-		return new BuddyConnectRequestMessage(UUID.randomUUID(), requestingUserID, requestingUserUserAnonymizedID, nickname,
+		return new BuddyConnectRequestMessage(UUID.randomUUID(), senderUserID, senderUserAnonymizedID, senderNickname,
 				message, buddyID, isRequestingSending, isRequestingReceiving);
 	}
 }

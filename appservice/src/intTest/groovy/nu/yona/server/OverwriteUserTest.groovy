@@ -48,7 +48,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Overwrite the existing user'()
+	def 'Overwrite Richard while being a buddy of Bob'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
@@ -73,25 +73,118 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesResponse = appService.getMessages(bob)
 		getMessagesResponse.status == 200
-		def goalConflictMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
-		goalConflictMessages.size() == 1
-		goalConflictMessages[0].nickname == richard.nickname
-		goalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
-		goalConflictMessages[0].url == null
+		getMessagesResponse.responseData._embedded."yona:messages".size() == 1
+		def buddyDisconnectMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}
+		buddyDisconnectMessages.size() == 1
+		def disconnectMessage = buddyDisconnectMessages[0]
+		disconnectMessage.reason == "USER_ACCOUNT_DELETED"
+		disconnectMessage.message == "User account was deleted"
+		disconnectMessage.nickname == richard.nickname
+		disconnectMessage._links.self.href.startsWith(bob.messagesUrl)
+		disconnectMessage._links?."yona:process"?.href?.startsWith(getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links.self.href)
 
 		def buddies = appService.getBuddies(bob)
-		buddies.size() == 1
-		buddies[0].user == null
-		buddies[0].nickname == richard.nickname // TODO: Shouldn't this change be communicated to Bob?
-		buddies[0].sendingStatus == "ACCEPTED" // Shouldn't the status change now that the user is removed?
-		buddies[0].receivingStatus == "ACCEPTED"
+		buddies.size() == 0
 
 		cleanup:
-		appService.deleteUser(richard)
+		appService.deleteUser(richardChanged)
 		appService.deleteUser(bob)
 	}
 
-	def 'Classification engine detects a potential conflict for Bob after Richard overwrote his account'()
+	def 'Overwrite Richard with pending buddy invitation to Bob'()
+	{
+		given:
+		def richard = addRichard()
+		def bob = addBob()
+		appService.sendBuddyConnectRequest(richard, bob)
+		appService.requestOverwriteUser(richard.mobileNumber)
+
+		when:
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
+				["overwriteUserConfirmationCode": "1234"])
+
+		then:
+		richardChanged
+		richardChanged.firstName == "${richard.firstName}Changed"
+
+		def getMessagesBobResponse = appService.getMessages(bob)
+		getMessagesBobResponse.status == 200
+		getMessagesBobResponse.responseData._embedded."yona:messages".size() == 1
+		def buddyConnectRequestMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}
+		buddyConnectRequestMessages.size() == 1
+		buddyConnectRequestMessages[0].nickname == richard.nickname
+
+		def acceptURL = buddyConnectRequestMessages[0]._links?."yona:accept"?.href
+		def acceptBuddyRequestResponse = appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
+		acceptBuddyRequestResponse.status == 400
+		acceptBuddyRequestResponse.responseData.code == "error.user.not.found.id"
+
+		def rejectURL = buddyConnectRequestMessages[0]._links?."yona:reject"?.href
+		def rejectBuddyRequestResponse = appService.postMessageActionWithPassword(rejectURL, ["message" : "Too bad!"], bob.password)
+		rejectBuddyRequestResponse.status == 200
+
+		def buddiesRichard = appService.getBuddies(richardChanged)
+		buddiesRichard.size() == 0
+
+		def buddiesBob = appService.getBuddies(bob)
+		buddiesBob.size() == 0
+
+		cleanup:
+		appService.deleteUser(richardChanged)
+		appService.deleteUser(bob)
+	}
+
+	def 'Overwrite Richard with pending buddy invitation from Bob'()
+	{
+		given:
+		def richard = addRichard()
+		def bob = addBob()
+		appService.sendBuddyConnectRequest(bob, richard)
+		appService.requestOverwriteUser(richard.mobileNumber)
+
+		when:
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
+				["overwriteUserConfirmationCode": "1234"])
+
+		then:
+		richardChanged
+		richardChanged.firstName == "${richard.firstName}Changed"
+
+		def buddiesRichard = appService.getBuddies(richardChanged)
+		buddiesRichard.size() == 0
+
+		def buddiesBob = appService.getBuddies(bob)
+		buddiesBob.size() == 0
+
+		def getMessagesRichardResponse = appService.getMessages(richardChanged)
+		getMessagesRichardResponse.status == 200
+		getMessagesRichardResponse.responseData._embedded == null
+
+		def getMessagesBobResponse = appService.getMessages(bob)
+		getMessagesBobResponse.status == 200
+		getMessagesBobResponse.responseData._embedded."yona:messages".size() == 1
+		def buddyConnectResponseMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}
+		buddyConnectResponseMessages.size() == 1
+		def buddyConnectResponseMessage = buddyConnectResponseMessages[0]
+		buddyConnectResponseMessage.message == "User account was deleted"
+		buddyConnectResponseMessage.nickname == "$richard.firstName $richard.lastName"
+		buddyConnectResponseMessage._links.self.href.startsWith(bob.messagesUrl)
+		buddyConnectResponseMessage._links?."yona:process"?.href?.startsWith(getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}[0]._links.self.href)
+
+		def response = appService.postMessageActionWithPassword(buddyConnectResponseMessages[0]._links."yona:process".href, [:], bob.password)
+		response.status == 200
+		response.responseData._embedded."yona:affectedMessages".size() == 1
+		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == buddyConnectResponseMessage._links.self.href
+		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
+
+		cleanup:
+		appService.deleteUser(richardChanged)
+		appService.deleteUser(bob)
+	}
+
+	def 'Goal conflict for Bob after Richard overwrote his account is not reported to Richard'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
@@ -105,35 +198,15 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		when:
 		def response = analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
 
+		def getMessagesResponse = appService.getMessages(richard)
+		getMessagesResponse.status == 200
+		getMessagesResponse.responseData._embedded == null
+
 		then:
 		response.status == 200
 
 		cleanup:
-		appService.deleteUser(richard)
-		appService.deleteUser(bob)
-	}
-
-	def 'Bob removes overwritten user Richard as buddy'()
-	{
-		given:
-		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
-		appService.requestOverwriteUser(richard.mobileNumber)
-		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
-				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
-				["overwriteUserConfirmationCode": "1234"])
-		def buddy = appService.getBuddies(bob)[0]
-
-		when:
-		def response = appService.removeBuddy(bob, buddy, "Good bye friend")
-
-		then:
-		response.status == 200
-		appService.getBuddies(bob).size() == 0
-
-		cleanup:
-		appService.deleteUser(richard)
+		appService.deleteUser(richardChanged)
 		appService.deleteUser(bob)
 	}
 

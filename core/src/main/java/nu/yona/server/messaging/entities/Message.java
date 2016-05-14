@@ -14,7 +14,6 @@ import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
-import nu.yona.server.messaging.service.MessageServiceException;
 
 @Entity
 @Table(name = "MESSAGES")
@@ -33,15 +32,12 @@ public abstract class Message extends EntityWithID
 	 * This is the only constructor, to ensure that subclasses don't accidentally omit the ID.
 	 * 
 	 * @param id The ID of the entity
+	 * @param relatedUserAnonymizedID The ID of the related anonymized user. This is either the sender of this message or the one
+	 *            for which this message is sent (e.g in case of a goal conflict message).
 	 */
 	protected Message(UUID id, UUID relatedUserAnonymizedID)
 	{
 		super(id);
-
-		if (id != null && relatedUserAnonymizedID == null)
-		{
-			throw MessageServiceException.anonymizedUserIdMustBeSet();
-		}
 
 		this.relatedUserAnonymizedID = relatedUserAnonymizedID;
 		this.creationTime = ZonedDateTime.now();
@@ -62,6 +58,13 @@ public abstract class Message extends EntityWithID
 		return creationTime;
 	}
 
+	/**
+	 * The ID of the related anonymized user. This is either the sender of this message or the one for which this message is sent
+	 * (e.g in case of a goal conflict message).
+	 * 
+	 * @return The ID of the related anonymized user. Might be null if that user was already deleted at the time this message was
+	 *         sent on behalf of that user.
+	 */
 	public UUID getRelatedUserAnonymizedID()
 	{
 		return relatedUserAnonymizedID;

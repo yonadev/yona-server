@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.Translator;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
@@ -71,9 +72,15 @@ public class BuddyDTO
 		return user;
 	}
 
-	Buddy createBuddyEntity()
+	Buddy createBuddyEntity(Translator translator)
 	{
-		return Buddy.createInstance(user.getID(), user.getPrivateData().getNickname(), getSendingStatus(), getReceivingStatus());
+		return Buddy.createInstance(user.getID(), determineTempNickname(translator), getSendingStatus(), getReceivingStatus());
+	}
+
+	private String determineTempNickname(Translator translator)
+	{
+		// Used to till the user accepted the request and shared their nickname
+		return translator.getLocalizedMessage("message.temp.nickname", user.getFirstName(), user.getLastName());
 	}
 
 	public static BuddyDTO createInstance(Buddy buddyEntity)
