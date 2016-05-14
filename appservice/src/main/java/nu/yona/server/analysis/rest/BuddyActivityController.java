@@ -7,6 +7,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import nu.yona.server.analysis.service.DayActivityOverviewDTO;
 import nu.yona.server.analysis.service.WeekActivityOverviewDTO;
 import nu.yona.server.goals.rest.GoalController;
+import nu.yona.server.subscriptions.service.BuddyService;
 
 /*
  * Controller to retrieve activity data for a user.
@@ -31,6 +33,9 @@ import nu.yona.server.goals.rest.GoalController;
 @RequestMapping(value = "/users/{userID}/buddies/{buddyID}/activity", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class BuddyActivityController extends ActivityControllerBase
 {
+	@Autowired
+	private BuddyService buddyService;
+
 	@RequestMapping(value = WEEK_ACTIVITY_OVERVIEWS_URI_FRAGMENT, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<PagedResources<WeekActivityOverviewResource>> getBuddyWeekActivityOverviews(
@@ -40,7 +45,7 @@ public class BuddyActivityController extends ActivityControllerBase
 	{
 		return getWeekActivityOverviews(password, userID, pageable, pagedResourcesAssembler,
 				() -> activityService.getBuddyWeekActivityOverviews(buddyID, pageable),
-				new BuddyActivityLinkProvider(userID, buddyID));
+				new BuddyActivityLinkProvider(buddyService, userID, buddyID));
 	}
 
 	@RequestMapping(value = DAY_OVERVIEWS_URI_FRAGMENT, method = RequestMethod.GET)
@@ -52,7 +57,7 @@ public class BuddyActivityController extends ActivityControllerBase
 	{
 		return getDayActivityOverviews(password, userID, pageable, pagedResourcesAssembler,
 				() -> activityService.getBuddyDayActivityOverviews(buddyID, pageable),
-				new BuddyActivityLinkProvider(userID, buddyID));
+				new BuddyActivityLinkProvider(buddyService, userID, buddyID));
 	}
 
 	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_URI_FRAGMENT, method = RequestMethod.GET)
@@ -64,7 +69,7 @@ public class BuddyActivityController extends ActivityControllerBase
 	{
 		return getWeekActivityDetail(password, userID, dateStr,
 				date -> activityService.getBuddyWeekActivityDetail(buddyID, date, goalID),
-				new BuddyActivityLinkProvider(userID, buddyID));
+				new BuddyActivityLinkProvider(buddyService, userID, buddyID));
 	}
 
 	@RequestMapping(value = DAY_ACTIVITY_DETAIL_URI_FRAGMENT, method = RequestMethod.GET)
@@ -76,7 +81,7 @@ public class BuddyActivityController extends ActivityControllerBase
 	{
 		return getDayActivityDetail(password, userID, dateStr,
 				date -> activityService.getBuddyDayActivityDetail(buddyID, date, goalID),
-				new BuddyActivityLinkProvider(userID, buddyID));
+				new BuddyActivityLinkProvider(buddyService, userID, buddyID));
 	}
 
 	public static ControllerLinkBuilder getBuddyDayActivityOverviewsLinkBuilder(UUID userID, UUID buddyID)
@@ -91,13 +96,15 @@ public class BuddyActivityController extends ActivityControllerBase
 		return linkTo(methodOn.getBuddyWeekActivityOverviews(null, userID, buddyID, null, null));
 	}
 
-	static final class BuddyActivityLinkProvider implements LinkProvider
+	private static final class BuddyActivityLinkProvider implements LinkProvider
 	{
+		private final BuddyService buddyService;
 		private final UUID userID;
 		private final UUID buddyID;
 
-		public BuddyActivityLinkProvider(UUID userID, UUID buddyID)
+		public BuddyActivityLinkProvider(BuddyService buddyService, UUID userID, UUID buddyID)
 		{
+			this.buddyService = buddyService;
 			this.userID = userID;
 			this.buddyID = buddyID;
 		}
@@ -119,8 +126,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		@Override
 		public ControllerLinkBuilder getGoalLinkBuilder(UUID goalID)
 		{
-			// TODO
-			return GoalController.getGoalLinkBuilder(userID, goalID);
+			return GoalController.getGoalLinkBuilder(buddyService.getBuddy(buddyID).getUser().getID(), goalID);
 		}
 	}
 }
