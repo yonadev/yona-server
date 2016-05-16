@@ -184,6 +184,58 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Overwrite Richard while being a buddy of Bob and verify that Bob can move on with everything'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		appService.requestOverwriteUser(richard.mobileNumber)
+
+		when:
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
+				["overwriteUserConfirmationCode": "1234"])
+
+		then:
+		richardChanged
+		richardChanged.firstName == "${richard.firstName}Changed"
+
+		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(richardChanged, "news/media", "http://www.refdag.nl")
+
+		def getMessagesRichardResponse = appService.getMessages(richardChanged)
+		getMessagesRichardResponse.status == 200
+		getMessagesRichardResponse.responseData._embedded == null
+
+		def getMessagesBobResponse = appService.getMessages(bob)
+		getMessagesBobResponse.status == 200
+		getMessagesBobResponse.responseData._embedded."yona:messages".size() == 2
+
+		def goalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		goalConflictMessages.size == 1
+		goalConflictMessages[0].nickname == "<self>"
+		goalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
+		goalConflictMessages[0].url =~ /poker/
+
+		def buddyDisconnectMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}
+		buddyDisconnectMessages.size() == 1
+		def disconnectMessage = buddyDisconnectMessages[0]
+		disconnectMessage.reason == "USER_ACCOUNT_DELETED"
+		disconnectMessage.message == "User account was deleted"
+		disconnectMessage.nickname == richard.nickname
+		disconnectMessage._links.self.href.startsWith(bob.messagesUrl)
+		disconnectMessage._links?."yona:process"?.href?.startsWith(getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links.self.href)
+
+		def buddies = appService.getBuddies(bob)
+		buddies.size() == 0
+
+		cleanup:
+		appService.deleteUser(richardChanged)
+		appService.deleteUser(bob)
+	}
+
+
 	def 'Goal conflict for Bob after Richard overwrote his account is not reported to Richard'()
 	{
 		given:

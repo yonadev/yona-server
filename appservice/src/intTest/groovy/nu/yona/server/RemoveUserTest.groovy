@@ -122,6 +122,78 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Remove Richard with pending buddy request to Bob and verify buddy request is removed'()
+	{
+		given:
+		def richard = addRichard()
+		def bob = addBob()
+		appService.sendBuddyConnectRequest(richard, bob)
+
+		when:
+		def message = "Goodbye friends! I deinstalled the Internet"
+		appService.deleteUser(richard, message)
+
+		then:
+		def getMessagesResponse = appService.getMessages(bob)
+		getMessagesResponse.status == 200
+		getMessagesResponse.responseData._embedded == null
+
+		def buddies = appService.getBuddies(bob)
+		buddies.size() == 0
+
+		cleanup:
+		appService.deleteUser(bob)
+	}
+
+	def 'Remove Richard while being a buddy of Bob and verify that Bob can move on with everything'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		when:
+		def message = "Goodbye friends! I deinstalled the Internet"
+		appService.deleteUser(richard, message)
+
+		then:
+		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
+		analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl")
+
+		def getMessagesResponse = appService.getMessages(bob)
+		getMessagesResponse.status == 200
+		getMessagesResponse.responseData._embedded
+		getMessagesResponse.responseData._embedded."yona:messages".size() == 2
+
+		def buddyDisconnectMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}
+		buddyDisconnectMessages.size() == 1
+
+		def disconnectMessage = buddyDisconnectMessages[0]
+		disconnectMessage.reason == "USER_ACCOUNT_DELETED"
+		disconnectMessage.message == message
+		disconnectMessage.nickname == richard.nickname
+		disconnectMessage._links.self.href.startsWith(bob.messagesUrl)
+		disconnectMessage._links?."yona:process"?.href?.startsWith(getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links.self.href)
+
+		def goalConflictMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		goalConflictMessages.size == 1
+		goalConflictMessages[0].nickname == "<self>"
+		goalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
+		goalConflictMessages[0].url =~ /poker/
+		getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}.size() == 0
+
+		def response = appService.postMessageActionWithPassword(buddyDisconnectMessages[0]._links."yona:process".href, [:], bob.password)
+		response.status == 200
+		response.responseData._embedded."yona:affectedMessages".size() == 1
+		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == disconnectMessage._links.self.href
+		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
+
+		def buddies = appService.getBuddies(bob)
+		buddies.size() == 0
+
+		cleanup:
+		appService.deleteUser(bob)
+	}
+
 	def 'Conflicts for Bob are still processed after the unsubscribe of Richard'()
 	{
 		given:
