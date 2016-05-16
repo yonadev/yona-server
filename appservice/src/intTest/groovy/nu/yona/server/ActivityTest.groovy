@@ -16,6 +16,38 @@ import nu.yona.server.test.User
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
+	def bob, richard
+	def bobBudgetGoalGamblingUrl, bobBudgetGoalGamblingUrlForRichard, bobBudgetGoalNewsUrl, bobBudgetGoalNewsUrlForRichard, bobTimeZoneGoalUrl, bobTimeZoneGoalUrlForRichard
+	def bobDailyActivityReportsUrlForRichard, bobWeeklyActivityReportsUrlForRichard
+	def dateTime
+
+	void setupTestScenario()
+	{
+		def richardAndBob = addRichardAndBobAsBuddies()
+		richard = richardAndBob.richard
+		bob = richardAndBob.bob
+		appService.addGoal(appService.&assertResponseStatusCreated, bob, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
+		def goals = appService.getGoals(bob)
+		bobBudgetGoalGamblingUrl = findGoal(goals, GAMBLING_ACT_CAT_URL)._links.self.href
+		bobBudgetGoalNewsUrl = findGoal(goals, NEWS_ACT_CAT_URL)._links.self.href
+		bobTimeZoneGoalUrl = findGoal(goals, SOCIAL_ACT_CAT_URL)._links.self.href
+
+		def richardWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+		assert richardWithBuddy.buddies != null
+		assert richardWithBuddy.buddies.size() == 1
+		def bobGoalsForRichard = richardWithBuddy.buddies[0].goals
+		bobBudgetGoalGamblingUrlForRichard = bobGoalsForRichard.find{it.activityCategoryUrl == GAMBLING_ACT_CAT_URL}.url
+		bobBudgetGoalNewsUrlForRichard = bobGoalsForRichard.find{it.activityCategoryUrl == NEWS_ACT_CAT_URL}.url
+		bobTimeZoneGoalUrlForRichard = bobGoalsForRichard.find{it.activityCategoryUrl == SOCIAL_ACT_CAT_URL}.url
+		bobDailyActivityReportsUrlForRichard = richardWithBuddy.buddies[0].dailyActivityReportsUrl
+		assert bobDailyActivityReportsUrlForRichard
+		bobWeeklyActivityReportsUrlForRichard = richardWithBuddy.buddies[0].weeklyActivityReportsUrl
+		assert bobWeeklyActivityReportsUrlForRichard
+
+		addSomeTestActivity(bob)
+		dateTime = ZonedDateTime.now(ZoneId.of("Europe/Amsterdam"))
+	}
+
 	void addSomeTestActivity(User user)
 	{
 		analysisService.postToAnalysisEngine(user, ["Gambling"], "http://www.poker.com")
@@ -25,45 +57,25 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	def 'Get day activity overviews'()
 	{
 		given:
-		def bob = addBob()
-		def goals = appService.getGoals(bob)
-		def budgetGoalGamblingUrl = findGoal(goals, GAMBLING_ACT_CAT_URL)._links.self.href
-		def budgetGoalNewsUrl = findGoal(goals, NEWS_ACT_CAT_URL)._links.self.href
-		def timeZoneGoalUrl = appService.addGoal(appService.&assertResponseStatusCreated, bob, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!").url
-		addSomeTestActivity(bob)
+		setupTestScenario()
 
 		when:
 		def response = appService.getDayActivityOverviews(bob)
 
 		then:
-		testDayActivityOverviews(response, budgetGoalGamblingUrl, budgetGoalNewsUrl, timeZoneGoalUrl)
+		testDayActivityOverviews(response, bobBudgetGoalGamblingUrl, bobBudgetGoalNewsUrl, bobTimeZoneGoalUrl)
 	}
 
 	def 'Get day activity overviews from buddy'()
 	{
 		given:
-		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
-		appService.addGoal(appService.&assertResponseStatusCreated, bob, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
-		def richardWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
-		assert richardWithBuddy.buddies != null
-		assert richardWithBuddy.buddies.size() == 1
-		def dailyActivityReportsUrl = richardWithBuddy.buddies[0].dailyActivityReportsUrl
-		def goals = richardWithBuddy.buddies[0].goals
-		def budgetGoalGamblingUrl = goals.find{it.activityCategoryUrl == GAMBLING_ACT_CAT_URL}.url
-		assert budgetGoalGamblingUrl != null
-		def budgetGoalNewsUrl = goals.find{it.activityCategoryUrl == NEWS_ACT_CAT_URL}.url
-		assert budgetGoalNewsUrl != null
-		def timeZoneGoalUrl = goals.find{it.activityCategoryUrl == SOCIAL_ACT_CAT_URL}.url
-		assert timeZoneGoalUrl != null
-		addSomeTestActivity(bob)
+		setupTestScenario()
 
 		when:
-		def response = appService.getResourceWithPassword(dailyActivityReportsUrl, richard.password)
+		def response = appService.getResourceWithPassword(bobDailyActivityReportsUrlForRichard, richard.password)
 
 		then:
-		testDayActivityOverviews(response, budgetGoalGamblingUrl, budgetGoalNewsUrl, timeZoneGoalUrl)
+		testDayActivityOverviews(response, bobBudgetGoalGamblingUrlForRichard, bobBudgetGoalNewsUrlForRichard, bobTimeZoneGoalUrlForRichard)
 	}
 
 	void testDayActivityOverviews(response, budgetGoalGamblingUrl, budgetGoalNewsUrl, timeZoneGoalUrl)
@@ -101,79 +113,75 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	def 'Get day activity detail'()
 	{
 		given:
-		def richard = addRichard()
-		def goals = appService.getGoals(richard)
-		def budgetGoalGamblingUrl = findGoal(goals, GAMBLING_ACT_CAT_URL)._links.self.href
-		def budgetGoalNewsUrl = findGoal(goals, NEWS_ACT_CAT_URL)._links.self.href
-		addSomeTestActivity(richard)
+		setupTestScenario()
 
 		when:
-		def overviewsResponse = appService.getDayActivityOverviews(richard)
-		overviewsResponse.responseData._embedded."yona:dayActivityOverviews"
-		overviewsResponse.responseData._embedded."yona:dayActivityOverviews".size() == 1
-		def dayActivityOverview = overviewsResponse.responseData._embedded."yona:dayActivityOverviews"[0]
-		dayActivityOverview._embedded."yona:dayActivities"
-		dayActivityOverview._embedded."yona:dayActivities".size() == 2
-		def dayActivityForGoal = dayActivityOverview._embedded."yona:dayActivities".find{ it._links."yona:goal".href == budgetGoalGamblingUrl}
-		dayActivityForGoal?._links?.self?.href
-		def response = appService.getResourceWithPassword(dayActivityForGoal._links.self.href, richard.password)
+		true
 
 		then:
-		response.status == 200
-		response.responseData.spread
-		response.responseData.spread.size() == 96
-		response.responseData.totalActivityDurationMinutes == 1
-		response.responseData.goalAccomplished == false
-		response.responseData.totalMinutesBeyondGoal == 1
-		response.responseData.date =~ /\d{4}\-\d{2}\-\d{2}/
-		response.responseData.timeZoneId == "Europe/Amsterdam"
-		response.responseData._links."yona:goal"
+		testDayActivityDetail(bob, bob.dailyActivityReportsUrl, bobBudgetGoalGamblingUrl, bobBudgetGoalNewsUrl)
+	}
+
+	def 'Get day activity detail from buddy'()
+	{
+		given:
+		setupTestScenario()
+
+		when:
+		true
+
+		then:
+		testDayActivityDetail(richard, bobDailyActivityReportsUrlForRichard, bobBudgetGoalGamblingUrlForRichard, bobBudgetGoalNewsUrlForRichard)
+	}
+
+	void testDayActivityDetail(fromUser, dailyActivityReportsUrl, budgetGoalGamblingUrl, budgetGoalNewsUrl)
+	{
+		def overviewsResponse = appService.getResourceWithPassword(dailyActivityReportsUrl, fromUser.password)
+		assert overviewsResponse.responseData._embedded."yona:dayActivityOverviews"
+		assert overviewsResponse.responseData._embedded."yona:dayActivityOverviews".size() == 1
+		def dayActivityOverview = overviewsResponse.responseData._embedded."yona:dayActivityOverviews"[0]
+		assert dayActivityOverview._embedded."yona:dayActivities"
+		assert dayActivityOverview._embedded."yona:dayActivities".size() == 3
+		def dayActivityForGoal = dayActivityOverview._embedded."yona:dayActivities".find{ it._links."yona:goal".href == budgetGoalGamblingUrl}
+		assert dayActivityForGoal?._links?.self?.href
+		def response = appService.getResourceWithPassword(dayActivityForGoal._links.self.href, fromUser.password)
+		assert response.status == 200
+		assert response.responseData.spread
+		assert response.responseData.spread.size() == 96
+		assert response.responseData.totalActivityDurationMinutes == 1
+		assert response.responseData.goalAccomplished == false
+		assert response.responseData.totalMinutesBeyondGoal == 1
+		assert response.responseData.date =~ /\d{4}\-\d{2}\-\d{2}/
+		assert response.responseData.timeZoneId == "Europe/Amsterdam"
+		assert response.responseData._links."yona:goal"
 	}
 
 	def 'Get week activity overviews'()
 	{
 		given:
-		def richard = addRichard()
-		def dateTime = ZonedDateTime.now(ZoneId.of("Europe/Amsterdam"))
-		def goals = appService.getGoals(richard)
-		def budgetGoalGamblingUrl = findGoal(goals, GAMBLING_ACT_CAT_URL)._links.self.href
-		def budgetGoalNewsUrl = findGoal(goals, NEWS_ACT_CAT_URL)._links.self.href
-		addSomeTestActivity(richard)
+		setupTestScenario()
 
 		when:
-		def response = appService.getWeekActivityOverviews(richard)
+		def response = appService.getWeekActivityOverviews(bob)
 
 		then:
-		testWeekActivityOverviews(response, budgetGoalGamblingUrl, budgetGoalNewsUrl)
+		testWeekActivityOverviews(response, bobBudgetGoalGamblingUrl, bobBudgetGoalNewsUrl)
 	}
-	
+
 	def 'Get week activity overviews from buddy'()
 	{
 		given:
-		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
-		def richardWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
-		assert richardWithBuddy.buddies != null
-		assert richardWithBuddy.buddies.size() == 1
-		def weeklyActivityReportsUrl = richardWithBuddy.buddies[0].weeklyActivityReportsUrl
-		def goals = richardWithBuddy.buddies[0].goals
-		def budgetGoalGamblingUrl = goals.find{it.activityCategoryUrl == GAMBLING_ACT_CAT_URL}.url
-		assert budgetGoalGamblingUrl != null
-		def budgetGoalNewsUrl = goals.find{it.activityCategoryUrl == NEWS_ACT_CAT_URL}.url
-		assert budgetGoalNewsUrl != null
-		addSomeTestActivity(bob)
+		setupTestScenario()
 
 		when:
-		def response = appService.getResourceWithPassword(weeklyActivityReportsUrl, richard.password)
-		
+		def response = appService.getResourceWithPassword(bobWeeklyActivityReportsUrlForRichard, richard.password)
+
 		then:
-		testWeekActivityOverviews(response, budgetGoalGamblingUrl, budgetGoalNewsUrl)
+		testWeekActivityOverviews(response, bobBudgetGoalGamblingUrlForRichard, bobBudgetGoalNewsUrlForRichard)
 	}
-	
+
 	void testWeekActivityOverviews(response, budgetGoalGamblingUrl, budgetGoalNewsUrl)
 	{
-		def dateTime = ZonedDateTime.now(ZoneId.of("Europe/Amsterdam"))
 		assert response.status == 200
 		assert response.responseData._embedded
 		assert response.responseData._embedded."yona:weekActivityOverviews"
@@ -181,7 +189,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def weekActivityOverview = response.responseData._embedded."yona:weekActivityOverviews"[0]
 		assert weekActivityOverview.date =~ /\d{4}\-W\d{2}/
 		assert weekActivityOverview._embedded."yona:weekActivities"
-		assert weekActivityOverview._embedded."yona:weekActivities".size() == 2
+		assert weekActivityOverview._embedded."yona:weekActivities".size() == 3
 		def weekActivityForGoal = weekActivityOverview._embedded."yona:weekActivities".find{ it._links."yona:goal".href == budgetGoalGamblingUrl}
 		assert !weekActivityForGoal.spread //only in detail
 		assert !weekActivityForGoal.totalActivityDurationMinutes //only in detail
@@ -207,41 +215,54 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	def 'Get week activity detail'()
 	{
 		given:
-		def richard = addRichard()
-		def dateTime = ZonedDateTime.now(ZoneId.of("Europe/Amsterdam"))
-		def goals = appService.getGoals(richard)
-		def budgetGoalGamblingUrl = findGoal(goals, GAMBLING_ACT_CAT_URL)._links.self.href
-		def budgetGoalNewsUrl = findGoal(goals, NEWS_ACT_CAT_URL)._links.self.href
-		addSomeTestActivity(richard)
+		setupTestScenario()
 
 		when:
-		def overviewsResponse = appService.getWeekActivityOverviews(richard)
-		overviewsResponse.responseData._embedded."yona:weekActivityOverviews"
-		overviewsResponse.responseData._embedded."yona:weekActivityOverviews".size() == 1
-		def weekActivityOverview = overviewsResponse.responseData._embedded."yona:weekActivityOverviews"[0]
-		weekActivityOverview._embedded."yona:weekActivities"
-		weekActivityOverview._embedded."yona:weekActivities".size() == 2
-		def weekActivityForGoal = weekActivityOverview._embedded."yona:weekActivities".find{ it._links."yona:goal".href == budgetGoalGamblingUrl}
-		weekActivityForGoal._links.self
-		def response = appService.getResourceWithPassword(weekActivityForGoal._links.self.href, richard.password)
+		true
 
 		then:
-		response.status == 200
-		response.responseData.spread
-		response.responseData.spread.size() == 96
-		response.responseData.totalActivityDurationMinutes == 1
-		response.responseData.date =~ /\d{4}\-W\d{2}/
-		response.responseData.timeZoneId == "Europe/Amsterdam"
-		response.responseData._links."yona:goal"
-		response.responseData._embedded[dateTime.getDayOfWeek().toString()]
-		response.responseData._embedded.size() == 1
+		testWeekActivityDetail(bob, bob.weeklyActivityReportsUrl, bobBudgetGoalGamblingUrl, bobBudgetGoalNewsUrl)
+	}
+
+	def 'Get week activity detail from buddy'()
+	{
+		given:
+		setupTestScenario()
+
+		when:
+		true
+
+		then:
+		testWeekActivityDetail(richard, bobWeeklyActivityReportsUrlForRichard, bobBudgetGoalGamblingUrlForRichard, bobBudgetGoalNewsUrlForRichard)
+	}
+
+	void testWeekActivityDetail(fromUser, weeklyActivityReportsUrl, budgetGoalGamblingUrl, budgetGoalNewsUrl)
+	{
+		def overviewsResponse = appService.getResourceWithPassword(weeklyActivityReportsUrl, fromUser.password)
+		assert overviewsResponse.responseData._embedded."yona:weekActivityOverviews"
+		assert overviewsResponse.responseData._embedded."yona:weekActivityOverviews".size() == 1
+		def weekActivityOverview = overviewsResponse.responseData._embedded."yona:weekActivityOverviews"[0]
+		assert weekActivityOverview._embedded."yona:weekActivities"
+		assert weekActivityOverview._embedded."yona:weekActivities".size() == 3
+		def weekActivityForGoal = weekActivityOverview._embedded."yona:weekActivities".find{ it._links."yona:goal".href == budgetGoalGamblingUrl}
+		assert weekActivityForGoal._links.self
+		def response = appService.getResourceWithPassword(weekActivityForGoal._links.self.href, fromUser.password)
+		assert response.status == 200
+		assert response.responseData.spread
+		assert response.responseData.spread.size() == 96
+		assert response.responseData.totalActivityDurationMinutes == 1
+		assert response.responseData.date =~ /\d{4}\-W\d{2}/
+		assert response.responseData.timeZoneId == "Europe/Amsterdam"
+		assert response.responseData._links."yona:goal"
+		assert response.responseData._embedded[dateTime.getDayOfWeek().toString()]
+		assert response.responseData._embedded.size() == 1
 		def dayActivityForGoal = response.responseData._embedded[dateTime.getDayOfWeek().toString()]
-		!dayActivityForGoal.spread //only in detail
-		dayActivityForGoal.totalActivityDurationMinutes == 1
-		dayActivityForGoal.goalAccomplished == false
-		dayActivityForGoal.totalMinutesBeyondGoal == 1
-		!dayActivityForGoal.date
-		dayActivityForGoal.timeZoneId == "Europe/Amsterdam"
-		!dayActivityForGoal._links."yona:goal" //already present on week
+		assert !dayActivityForGoal.spread //only in detail
+		assert dayActivityForGoal.totalActivityDurationMinutes == 1
+		assert dayActivityForGoal.goalAccomplished == false
+		assert dayActivityForGoal.totalMinutesBeyondGoal == 1
+		assert !dayActivityForGoal.date
+		assert dayActivityForGoal.timeZoneId == "Europe/Amsterdam"
+		assert !dayActivityForGoal._links."yona:goal" //already present on week
 	}
 }
