@@ -1213,6 +1213,7 @@ definitions:
     properties:
       code:
         type: string
+        example: 1234
     required:
       - code
   PostPutGoal:
