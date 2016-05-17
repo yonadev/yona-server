@@ -192,10 +192,9 @@ public class MessageController
 
 		private void addRelatedMessageLink(MessageDTO message, MessageDTO messageResource)
 		{
-			if (message.getRelatedAnonymousMessageID() != null)
+			if (message.getRelatedMessageID() != null)
 			{
-				messageResource
-						.add(getAnonymousMessageLinkBuilder(userID, message.getRelatedAnonymousMessageID()).withRel("related"));
+				messageResource.add(getAnonymousMessageLinkBuilder(userID, message.getRelatedMessageID()).withRel("related"));
 			}
 		}
 

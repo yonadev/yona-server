@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -161,5 +162,10 @@ public class UserPrivate extends EntityWithID
 	public UUID getUserAnonymizedID()
 	{
 		return userAnonymizedID;
+	}
+
+	public Set<Buddy> getBuddiesRelatedToRemovedUsers()
+	{
+		return buddies.stream().filter(b -> b.getUser() == null).collect(Collectors.toSet());
 	}
 }

@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -85,13 +86,17 @@ public class UserService
 	@Transactional
 	public UserDTO getPrivateUser(UUID id)
 	{
-		return UserDTO.createInstanceWithPrivateData(getUserByID(id));
+		User user = getUserByID(id);
+		handleBuddyUsersRemovedWhileOffline(user);
+		return UserDTO.createInstanceWithPrivateData(user);
 	}
 
 	@Transactional
 	public UserDTO getPrivateValidatedUser(UUID id)
 	{
-		return UserDTO.createInstanceWithPrivateData(getValidatedUserbyID(id));
+		User validatedUser = getValidatedUserbyID(id);
+		handleBuddyUsersRemovedWhileOffline(validatedUser);
+		return UserDTO.createInstanceWithPrivateData(validatedUser);
 	}
 
 	@Transactional
@@ -515,6 +520,12 @@ public class UserService
 			registerFailedAttempt(userEntity, confirmationCode);
 			throw invalidConfirmationCodeExceptionSupplier.apply(remainingAttempts - 1);
 		}
+	}
+
+	private void handleBuddyUsersRemovedWhileOffline(User user)
+	{
+		Set<Buddy> buddiesOfRemovedUsers = user.getBuddiesRelatedToRemovedUsers();
+		buddiesOfRemovedUsers.stream().forEach(b -> buddyService.removeBuddyInfoForRemovedUser(user, b));
 	}
 
 	public void registerFailedAttempt(User userEntity, ConfirmationCode confirmationCode)

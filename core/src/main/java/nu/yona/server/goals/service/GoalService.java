@@ -169,7 +169,7 @@ public class GoalService
 			Optional<String> message)
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDTO.createInstance(userEntity.getAnonymized()),
-				() -> GoalChangeMessage.createInstance(userEntity.getUserAnonymizedID(), userEntity.getID(),
+				() -> GoalChangeMessage.createInstance(userEntity.getID(), userEntity.getUserAnonymizedID(),
 						userEntity.getNickname(), changedGoal, change, message.orElse(null)));
 	}
 }
