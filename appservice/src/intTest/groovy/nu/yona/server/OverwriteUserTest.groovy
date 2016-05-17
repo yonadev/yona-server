@@ -236,7 +236,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 	}
 
 
-	def 'Goal conflict for Bob after Richard overwrote his account is not reported to Richard'()
+	def 'Overwrite Richard while being a buddy of Bob and verify Richard does not receive Bob\'s goal conflicts anymore'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()

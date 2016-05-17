@@ -418,12 +418,9 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		buddyConnectResponseMessage._links.self.href.startsWith(richard.messagesUrl)
 		buddyConnectResponseMessage._links?."yona:process"?.href?.startsWith(getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}[0]._links.self.href)
 
-		def getResponse = appService.getMessages(richard)
-		def disconnectMessage = getResponse.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}[0]
-		def processURL = disconnectMessage?._links?."yona:process"?.href
-		processURL
-		def processDisconnectResponse = appService.postMessageActionWithPassword(processURL, [:], richard.password)
-		processDisconnectResponse.status == 200
+		def processURL = buddyConnectResponseMessage._links."yona:process".href
+		def processBuddyConnectResponse = appService.postMessageActionWithPassword(processURL, [:], richard.password)
+		processBuddyConnectResponse.status == 200
 
 		User richardAfterBobOverwrite = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
 		richardAfterBobOverwrite.buddies.size() == 0
