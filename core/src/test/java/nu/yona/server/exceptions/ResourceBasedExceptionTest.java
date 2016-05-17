@@ -40,7 +40,7 @@ public class ResourceBasedExceptionTest
 
 	}
 
-	// @Test
+	@Test
 	public void testSuccessfulMessageTranslationWithoutInsertions()
 	{
 		String messageId = "error.invalid.request";
@@ -56,7 +56,7 @@ public class ResourceBasedExceptionTest
 		assertExceptionTranslation(expectedResult, messageID);
 	}
 
-	// @Test
+	@Test
 	public void testSuccessfulMessageTranslationWithInsertions()
 	{
 		String messageId = "error.sms.sending.failed.httpStatus";
