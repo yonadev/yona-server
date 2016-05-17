@@ -510,7 +510,7 @@ public class UserService
 
 	private void handleBuddyUsersRemovedWhileOffline(User user)
 	{
-		Set<Buddy> buddiesOfRemovedUsers = user.getBuddiesOfRemovedUsers();
+		Set<Buddy> buddiesOfRemovedUsers = user.getBuddiesRelatedToRemovedUsers();
 		buddiesOfRemovedUsers.stream().forEach(b -> buddyService.removeBuddyInfoForRemovedUser(user, b));
 	}
 

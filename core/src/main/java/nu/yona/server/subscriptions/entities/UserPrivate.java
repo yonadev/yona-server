@@ -164,7 +164,7 @@ public class UserPrivate extends EntityWithID
 		return userAnonymizedID;
 	}
 
-	public Set<Buddy> getBuddiesOfRemovedUsers()
+	public Set<Buddy> getBuddiesRelatedToRemovedUsers()
 	{
 		return buddies.stream().filter(b -> b.getUser() == null).collect(Collectors.toSet());
 	}
