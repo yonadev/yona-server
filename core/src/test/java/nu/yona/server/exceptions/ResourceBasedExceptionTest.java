@@ -7,6 +7,10 @@ package nu.yona.server.exceptions;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import java.util.Locale;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -14,8 +18,11 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import nu.yona.server.Translator;
 
 @Configuration
 @ComponentScan(basePackages = { "nu.yona.server" })
@@ -29,6 +36,8 @@ class MainContext
 public class ResourceBasedExceptionTest
 {
 
+	private static Locale originalLocale;
+
 	private static class TestException extends ResourceBasedException
 	{
 		protected TestException(String messageId, Object... parameters)
@@ -38,6 +47,19 @@ public class ResourceBasedExceptionTest
 
 		private static final long serialVersionUID = 1L;
 
+	}
+
+	@BeforeClass
+	public static void setUp()
+	{
+		originalLocale = LocaleContextHolder.getLocale();
+		LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
+	}
+
+	@AfterClass
+	public static void tearDown()
+	{
+		LocaleContextHolder.setLocale(originalLocale);
 	}
 
 	@Test
