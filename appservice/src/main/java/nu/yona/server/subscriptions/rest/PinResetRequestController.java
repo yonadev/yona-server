@@ -79,6 +79,18 @@ public class PinResetRequestController
 		return new ResponseEntity<Void>(HttpStatus.OK);
 	}
 
+	@RequestMapping(value = "/resend", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Void> resendPinResetConfirmationCode(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
+	{
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
+			pinResetRequestService.resendPinResetConfirmationCode(id);
+			return null;
+		});
+		return new ResponseEntity<Void>(HttpStatus.OK);
+	}
+
 	@RequestMapping(value = "/clear", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<Void> clearPinResetRequest(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
@@ -114,8 +126,9 @@ public class PinResetRequestController
 		}
 		else if (confirmationCode.getConfirmationCode() != null)
 		{
-			addClearPinResetLink(userResource);
 			addVerifyPinResetLink(userResource);
+			addResendPinResetConfirmationCodeLink(userResource);
+			addClearPinResetLink(userResource);
 		}
 	}
 
@@ -131,6 +144,13 @@ public class PinResetRequestController
 		PinResetRequestController methodOn = methodOn(PinResetRequestController.class);
 		ResponseEntity<Void> method = methodOn.verifyPinResetConfirmationCode(null, userResource.getContent().getID(), null);
 		addLink(userResource, method, "yona:verifyPinReset");
+	}
+
+	private void addResendPinResetConfirmationCodeLink(UserResource userResource)
+	{
+		PinResetRequestController methodOn = methodOn(PinResetRequestController.class);
+		ResponseEntity<Void> method = methodOn.resendPinResetConfirmationCode(null, userResource.getContent().getID());
+		addLink(userResource, method, "yona:resendPinResetConfirmationCode");
 	}
 
 	private void addClearPinResetLink(UserResource userResource)
