@@ -41,9 +41,9 @@ paths:
           description: Unexpected error.
           schema:
             $ref: '#/definitions/ConfirmationError'
-  '/users/{id}':
+  '/users/{userID}':
     parameters:
-      - name: id
+      - name: userID
         in: path
         description: The ID of the user
         required: true
@@ -102,9 +102,9 @@ paths:
         - User
       responses:
         '200':
-          description: The requested user
+          description: The updated user
           schema:
-            $ref: '#/definitions/PostPutUser'
+            $ref: '#/definitions/UserWithPrivateData'
         default:
           description: Unexpected error
           schema:
@@ -118,6 +118,11 @@ paths:
           description: The device password
           required: true
           type: string
+        - name: message
+          in: query
+          description: A message of the user to their buddies, explaining why they unsubscribe from Yona
+          required: false
+          type: string
       tags:
         - User
       responses:
@@ -127,9 +132,9 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  '/users/{id}/confirmMobileNumber':
+  '/users/{userID}/confirmMobileNumber':
     parameters:
-      - name: id
+      - name: userID
         in: path
         description: The ID of the user
         required: true
@@ -160,9 +165,9 @@ paths:
           description: Confirmation failed
           schema:
             $ref: '#/definitions/ConfirmationError'
-  '/users/{id}/resendMobileNumberConfirmationCode':
+  '/users/{userID}/resendMobileNumberConfirmationCode':
     parameters:
-      - name: id
+      - name: userID
         in: path
         description: The ID of the user
         required: true
@@ -238,14 +243,14 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  '/users/{userID}/goals/{id}':
+  '/users/{userID}/goals/{goalID}':
     parameters:
       - name: userID
         in: path
         description: The ID of the user
         required: true
         type: string
-      - name: id
+      - name: goalID
         in: path
         description: The ID of the goal
         required: true
@@ -367,14 +372,14 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  '/users/{userID}/buddies/{id}':
+  '/users/{userID}/buddies/{buddyID}':
     parameters:
       - name: userID
         in: path
         description: The ID of the user
         required: true
         type: string
-      - name: id
+      - name: buddyID
         in: path
         description: The ID of the buddy
         required: true
@@ -643,14 +648,14 @@ paths:
           description: Messages of this user.
           schema:
             $ref: '#/definitions/PagedMessages'
-  '/users/{userID}/messages/{id}':
+  '/users/{userID}/messages/{messageID}':
     parameters:
       - name: userID
         in: path
         description: The ID of the user
         required: true
         type: string
-      - name: id
+      - name: messageID
         in: path
         description: The ID of the message
         required: true
@@ -678,7 +683,7 @@ paths:
       responses:
         '200':
           description: Messages of this user.
-  '/users/{userID}/messages/{id}/{messageAction}':
+  '/users/{userID}/messages/{messageID}/{messageAction}':
     post:
       summary: Act on a message
       description: Perform the Process action on the message with the given ID
@@ -688,7 +693,7 @@ paths:
           description: The ID of the user
           required: true
           type: string
-        - name: id
+        - name: messageID
           in: path
           description: The ID of the message
           required: true
@@ -899,12 +904,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  '/activityCategories/{id}':
+  '/activityCategories/{activityCategoryID}':
     get:
       summary: Get an activity category
       description: Fetches the activity category identified by the given ID
       parameters:
-        - name: id
+        - name: activityCategoryID
           in: path
           description: The ID of the activity category
           required: true
