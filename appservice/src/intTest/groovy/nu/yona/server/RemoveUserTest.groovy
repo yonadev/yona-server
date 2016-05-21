@@ -118,6 +118,10 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == buddyConnectResponseMessage._links.self.href
 		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
 
+		def newRichard = addRichard()
+		appService.makeBuddies(newRichard, bob)
+		appService.deleteUser(newRichard, "Sorry, going again").status == 200
+
 		cleanup:
 		appService.deleteUser(bob)
 	}
