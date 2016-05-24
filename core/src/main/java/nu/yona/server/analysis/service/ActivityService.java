@@ -28,6 +28,8 @@ import nu.yona.server.analysis.service.IntervalActivityDTO.LevelOfDetail;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalServiceException;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.subscriptions.service.BuddyDTO;
+import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserService;
@@ -37,6 +39,9 @@ public class ActivityService
 {
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private BuddyService buddyService;
 
 	@Autowired
 	private UserAnonymizedService userAnonymizedService;
@@ -50,9 +55,18 @@ public class ActivityService
 	@Autowired
 	private YonaProperties yonaProperties;
 
-	public Page<WeekActivityOverviewDTO> getWeekActivityOverviews(UUID userID, Pageable pageable)
+	public Page<WeekActivityOverviewDTO> getUserWeekActivityOverviews(UUID userID, Pageable pageable)
 	{
-		UUID userAnonymizedID = userService.getUserAnonymizedID(userID);
+		return getWeekActivityOverviews(userService.getUserAnonymizedID(userID), pageable);
+	}
+
+	public Page<WeekActivityOverviewDTO> getBuddyWeekActivityOverviews(UUID buddyID, Pageable pageable)
+	{
+		return getWeekActivityOverviews(buddyService.getBuddy(buddyID).getUserAnonymizedID(), pageable);
+	}
+
+	private Page<WeekActivityOverviewDTO> getWeekActivityOverviews(UUID userAnonymizedID, Pageable pageable)
+	{
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
 		Interval interval = getInterval(getCurrentWeekDate(userAnonymized), pageable, ChronoUnit.WEEKS);
 
@@ -69,9 +83,18 @@ public class ActivityService
 				pageable, yonaProperties.getAnalysisService().getWeeksActivityMemory());
 	}
 
-	public Page<DayActivityOverviewDTO> getDayActivityOverviews(UUID userID, Pageable pageable)
+	public Page<DayActivityOverviewDTO> getUserDayActivityOverviews(UUID userID, Pageable pageable)
 	{
-		UUID userAnonymizedID = userService.getUserAnonymizedID(userID);
+		return getDayActivityOverviews(userService.getUserAnonymizedID(userID), pageable);
+	}
+
+	public Page<DayActivityOverviewDTO> getBuddyDayActivityOverviews(UUID buddyID, Pageable pageable)
+	{
+		return getDayActivityOverviews(buddyService.getBuddy(buddyID).getUserAnonymizedID(), pageable);
+	}
+
+	private Page<DayActivityOverviewDTO> getDayActivityOverviews(UUID userAnonymizedID, Pageable pageable)
+	{
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
 		Interval interval = getInterval(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
 
@@ -168,9 +191,19 @@ public class ActivityService
 		return dayActivityEntitiesAtDate.stream().filter(a -> a.getGoal().equals(goal)).findAny();
 	}
 
-	public WeekActivityDTO getWeekActivityDetail(UUID userID, LocalDate date, UUID goalID)
+	public WeekActivityDTO getUserWeekActivityDetail(UUID userID, LocalDate date, UUID goalID)
 	{
-		UUID userAnonymizedID = userService.getUserAnonymizedID(userID);
+		return getWeekActivityDetail(userID, userService.getUserAnonymizedID(userID), date, goalID);
+	}
+
+	public WeekActivityDTO getBuddyWeekActivityDetail(UUID buddyID, LocalDate date, UUID goalID)
+	{
+		BuddyDTO buddy = buddyService.getBuddy(buddyID);
+		return getWeekActivityDetail(buddy.getUser().getID(), buddy.getUserAnonymizedID(), date, goalID);
+	}
+
+	private WeekActivityDTO getWeekActivityDetail(UUID userID, UUID userAnonymizedID, LocalDate date, UUID goalID)
+	{
 		WeekActivity weekActivityEntity = weekActivityRepository.findOne(userAnonymizedID, date, goalID);
 		if (weekActivityEntity == null)
 		{
@@ -180,9 +213,19 @@ public class ActivityService
 		return WeekActivityDTO.createInstance(weekActivityEntity, LevelOfDetail.WeekDetail);
 	}
 
-	public DayActivityDTO getDayActivityDetail(UUID userID, LocalDate date, UUID goalID)
+	public DayActivityDTO getUserDayActivityDetail(UUID userID, LocalDate date, UUID goalID)
 	{
-		UUID userAnonymizedID = userService.getUserAnonymizedID(userID);
+		return getDayActivityDetail(userID, userService.getUserAnonymizedID(userID), date, goalID);
+	}
+
+	public DayActivityDTO getBuddyDayActivityDetail(UUID buddyID, LocalDate date, UUID goalID)
+	{
+		BuddyDTO buddy = buddyService.getBuddy(buddyID);
+		return getDayActivityDetail(buddy.getUser().getID(), buddy.getUserAnonymizedID(), date, goalID);
+	}
+
+	private DayActivityDTO getDayActivityDetail(UUID userID, UUID userAnonymizedID, LocalDate date, UUID goalID)
+	{
 		DayActivity dayActivityEntity = dayActivityRepository.findOne(userAnonymizedID, date, goalID);
 		if (dayActivityEntity == null)
 		{

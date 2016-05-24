@@ -23,7 +23,7 @@ public class DayActivityOverviewDTO extends IntervalActivityOverviewDTO
 	}
 
 	@Override
-	public DateTimeFormatter getDateFormatter()
+	protected DateTimeFormatter getDateFormatter()
 	{
 		return DayActivityDTO.ISO8601_DAY_FORMATTER;
 	}

@@ -368,6 +368,28 @@ class AppService extends Service
 		yonaServer.getResourceWithPassword(user.dailyActivityReportsUrl, user.password, parameters)
 	}
 
+	def getBuddyDayActivityOverviews(User user, int buddyIndex = 0, parameters = [:])
+	{
+		def userWithBuddies = this.getUser(this.&assertUserGetResponseDetailsWithPrivateData, user.url, true, user.password)
+		assert userWithBuddies.buddies != null
+		def buddy = userWithBuddies.buddies[buddyIndex]
+		assert buddy
+		assert buddy.dailyActivityReportsUrl
+
+		yonaServer.getResourceWithPassword(userWithBuddies.buddies[buddyIndex].dailyActivityReportsUrl, user.password, parameters)
+	}
+
+	def getBuddyWeekActivityOverviews(User user, int buddyIndex = 0, parameters = [:])
+	{
+		def userWithBuddies = this.getUser(this.&assertUserGetResponseDetailsWithPrivateData, user.url, true, user.password)
+		assert userWithBuddies.buddies != null
+		def buddy = userWithBuddies.buddies[buddyIndex]
+		assert buddy
+		assert buddy.weeklyActivityReportsUrl
+
+		yonaServer.getResourceWithPassword(userWithBuddies.buddies[buddyIndex].weeklyActivityReportsUrl, user.password, parameters)
+	}
+
 	def setNewDeviceRequest(mobileNumber, password, newDeviceRequestPassword)
 	{
 		def jsonString = """{ "newDeviceRequestPassword": "$newDeviceRequestPassword" }"""

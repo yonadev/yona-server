@@ -7,6 +7,8 @@ package nu.yona.server.analysis.service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public abstract class IntervalActivityOverviewDTO
 {
 	private LocalDate date;
@@ -27,5 +29,6 @@ public abstract class IntervalActivityOverviewDTO
 	/*
 	 * The ISO-8601 date formatter.
 	 */
-	public abstract DateTimeFormatter getDateFormatter();
+	@JsonIgnore
+	protected abstract DateTimeFormatter getDateFormatter();
 }
