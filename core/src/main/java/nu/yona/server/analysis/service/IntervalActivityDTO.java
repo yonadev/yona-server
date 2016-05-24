@@ -71,6 +71,7 @@ public abstract class IntervalActivityDTO
 	/*
 	 * The ISO-8601 date formatter.
 	 */
+	@JsonIgnore
 	public abstract DateTimeFormatter getDateFormatter();
 
 	/*

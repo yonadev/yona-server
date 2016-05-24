@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.WeekActivity;
@@ -38,6 +39,7 @@ public class WeekActivityDTO extends IntervalActivityDTO
 		return ISO8601_WEEK_FORMATTER;
 	}
 
+	@JsonIgnore
 	public Map<DayOfWeek, DayActivityDTO> getDayActivities()
 	{
 		return dayActivities;

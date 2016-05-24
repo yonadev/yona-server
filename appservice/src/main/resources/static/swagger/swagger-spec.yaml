@@ -608,6 +608,160 @@ paths:
           description: Activity of this user for the specific goal on the specific week.
           schema:
             $ref: '#/definitions/WeekActivity'
+  '/users/{userID}/buddies/{buddyID}/activity/days/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string        
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get day activity overview
+      description: Get network and app activity of the current day, pageable to yesterday and before 
+      parameters:
+        - name: size
+          in: query
+          description: The number of elements to be fetched
+          required: false
+          default: 3
+          type: number
+        - name: page
+          in: query
+          description: The page to be fetched
+          required: false
+          default: 0
+          type: number
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of the buddy.
+          schema:
+            $ref: '#/definitions/PagedDayActivityOverviews'
+  '/users/{userID}/buddies/{buddyID}/activity/days/{date}/details/{goalID}':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string        
+      - name: date
+        in: path
+        description: The date of the day in ISO 8601 format (yyyy-MM-dd)
+        required: true
+        type: string
+      - name: goalID
+        in: path
+        description: The ID of the goal for which the activity was recorded
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get day activity detail
+      description: Get day network and app activity for a specific goal on a specific day
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of the buddy for the specific goal on the specific day.
+          schema:
+            $ref: '#/definitions/DayActivity'
+  '/users/{userID}/buddies/{buddyID}/activity/weeks/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get week activity overview
+      description: Get network and app activity of the current week, pageable to the weeks before 
+      parameters:
+        - name: size
+          in: query
+          description: The number of elements to be fetched
+          required: false
+          default: 2
+          type: number
+        - name: page
+          in: query
+          description: The page to be fetched
+          required: false
+          default: 0
+          type: number
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of the buddy.
+          schema:
+            $ref: '#/definitions/PagedWeekActivityOverviews'
+  '/users/{userID}/buddies/{buddyID}/activity/weeks/{week}/details/{goalID}':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string        
+      - name: week
+        in: path
+        description: The date of the week in ISO 8601 format (YYYY-'W'w)
+        required: true
+        type: string
+      - name: goalID
+        in: path
+        description: The ID of the goal for which the activity was recorded
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get week activity detail
+      description: Get day network and app activity for a specific goal on a specific week
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of the buddy for the specific goal on the specific week.
+          schema:
+            $ref: '#/definitions/WeekActivity'            
   '/users/{userID}/messages/':
     parameters:
       - name: userID
@@ -1679,15 +1833,41 @@ definitions:
             items:
               $ref: '#/definitions/WeekActivity'
     required:
+      - _links
       - date
+      - _embedded
   WeekActivity:
-    allOf:
-      - $ref: '#/definitions/IntervalActivity'
+    type: object
     properties:
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+        properties:
+          "yona:goal":
+            type: object
+            properties:
+              href:
+                type: string
+            required:
+              - href
+            description: Link to the goal for which activity was recorded
       date:
         type: string
         example: 2016-W2
-        description: The week date in ISO 8601 format (YYYY-'W'w). Only included in week detail because the information is otherwise present on the parent
+        description: The week date in ISO 8601 format (YYYY-'W'w). Only included in week detail because the information is otherwise present on the parent.
+      timeZoneId:
+        type: string
+        description: The time zone identifier that the user had configured when this week started.
+        example: Europe/Amsterdam
+      spread:
+        type: array
+        items:
+          type: integer
+        description: Aggregates all activity on every quarter hour of the day (of which there are 96) taking the average for all days in the week. This information is included in week detail only.
+      totalActivityDurationMinutes:
+        type: integer
+        description: Total minutes spent on the activity category during this week. This information is included in week detail only.
       _embedded:
         properties:
           SUNDAY:
@@ -1704,6 +1884,12 @@ definitions:
               $ref: '#/definitions/DayActivity'
           SATURDAY:
               $ref: '#/definitions/DayActivity'
+    required:
+      - _links
+      - date
+      - timeZoneId
+      - totalActivityDurationMinutes
+      - _embedded              
   PagedDayActivityOverviews:
     type: object
     properties:
@@ -1781,23 +1967,10 @@ definitions:
             items:
               $ref: '#/definitions/DayActivity'
     required:
+      - _links
       - date
+      - _embedded
   DayActivity:
-    allOf:
-      - $ref: '#/definitions/IntervalActivity'
-    properties:
-      date:
-        type: string
-        example: 2016-03-16
-        description: The day date in ISO 8601 format (yyyy-MM-dd). Only included in day detail because the information is otherwise present on the parent
-      goalAccomplished:
-        type: boolean
-        description: If the goal for this day was accomplished. If the day is not yet over, if the goal for this day was accomplished so far
-      totalMinutesBeyondGoal:
-        type: integer
-        description: The total minutes of time the user was active in the activity category outside the allowed time for the goal.
-      # TODO: embedded messages
-  IntervalActivity:
     type: object
     properties:
       _links:
@@ -1813,20 +1986,36 @@ definitions:
             required:
               - href
             description: Link to the goal for which activity was recorded
+      date:
+        type: string
+        example: 2016-03-16
+        description: The day date in ISO 8601 format (yyyy-MM-dd). Only included in day detail because the information is otherwise present on the parent.
+      timeZoneId:
+        type: string
+        description: The time zone identifier that the user had configured when this day started.
+        example: Europe/Amsterdam
+      totalActivityDurationMinutes:
+        type: integer
+        description: Total minutes spent on the activity category during this day.
+      goalAccomplished:
+        type: boolean
+        description: If the goal for this day was accomplished. If the day is not yet over, if the goal for this day was accomplished so far.
+      totalMinutesBeyondGoal:
+        type: integer
+        description: The total minutes of time the user was active in the activity category outside the allowed time for the goal.
       spread:
         type: array
         items:
           type: integer
-        description: Aggregates all activity on every quarter hour of the day (of which there are 96). This information is included in day detail, week detail, and also, for time zone goals, in day overview.
-      totalActivityDurationMinutes:
-        type: integer
-        description: Total minutes spent on the activity category during this interval. This information is not included in week overview.
-      timeZoneId:
-        type: string
-        description: The time zone identifier that the user had configured for this day
-        example: Europe/Amsterdam
+        description: Aggregates all activity on every quarter hour of the day (of which there are 96). This information is only included in day detail and for time zone goals in day overview.
+      # TODO: embedded messages
     required:
+      - _links
+      - date
       - timeZoneId
+      - totalActivityDurationMinutes
+      - goalAccomplished
+      - totalMinutesBeyondGoal
   PagedMessages:
     type: object
     properties:

@@ -144,7 +144,7 @@ public class ActivityServiceTests
 		when(mockDayActivityRepository.findAll(userAnonID, today.minusDays(2).toLocalDate(), today.toLocalDate()))
 				.thenReturn(new HashSet<DayActivity>(Arrays.asList(yesterdayRecordedActivity)));
 
-		Page<DayActivityOverviewDTO> dayOverviews = service.getDayActivityOverviews(userID, new PageRequest(0, 3));
+		Page<DayActivityOverviewDTO> dayOverviews = service.getUserDayActivityOverviews(userID, new PageRequest(0, 3));
 
 		// assert that the right retrieve from database was done
 		verify(mockDayActivityRepository, times(1)).findAll(userAnonID, today.minusDays(2).toLocalDate(), today.toLocalDate());
@@ -195,7 +195,7 @@ public class ActivityServiceTests
 				getWeekStartTime(today).toLocalDate()))
 						.thenReturn(new HashSet<WeekActivity>(Arrays.asList(previousWeekRecordedActivity)));
 
-		Page<WeekActivityOverviewDTO> weekOverviews = service.getWeekActivityOverviews(userID, new PageRequest(0, 5));
+		Page<WeekActivityOverviewDTO> weekOverviews = service.getUserWeekActivityOverviews(userID, new PageRequest(0, 5));
 
 		// assert that the right retrieve from database was done
 		verify(mockWeekActivityRepository, times(1)).findAll(userAnonID, getWeekStartTime(today.minusWeeks(4)).toLocalDate(),
@@ -248,7 +248,7 @@ public class ActivityServiceTests
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 
-		Page<DayActivityOverviewDTO> inactivityDayOverviews = service.getDayActivityOverviews(userID, new PageRequest(0, 3));
+		Page<DayActivityOverviewDTO> inactivityDayOverviews = service.getUserDayActivityOverviews(userID, new PageRequest(0, 3));
 		// because the gambling goal was added with creation date two weeks ago, there are multiple days
 		assertThat(inactivityDayOverviews.getNumberOfElements(), equalTo(3));
 		// the other goals were created today, so get the most recent (first) element
@@ -268,7 +268,7 @@ public class ActivityServiceTests
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 		int thisWeekNumberOfWeekDaysPast = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
 
-		Page<WeekActivityOverviewDTO> inactivityWeekOverviews = service.getWeekActivityOverviews(userID, new PageRequest(0, 5));
+		Page<WeekActivityOverviewDTO> inactivityWeekOverviews = service.getUserWeekActivityOverviews(userID, new PageRequest(0, 5));
 		// because the gambling goal was added with creation date two weeks ago, there are multiple weeks
 		assertThat(inactivityWeekOverviews.getNumberOfElements(), equalTo(3));
 		// the other goals were created today, so get the most recent (first) element
@@ -286,7 +286,7 @@ public class ActivityServiceTests
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 
-		DayActivityDTO inactivityDay = service.getDayActivityDetail(userID, LocalDate.now(userAnonZone), gamblingGoal.getID());
+		DayActivityDTO inactivityDay = service.getUserDayActivityDetail(userID, LocalDate.now(userAnonZone), gamblingGoal.getID());
 		assertThat(inactivityDay.getSpread().size(), equalTo(96));
 		assertThat(inactivityDay.getStartTime(), equalTo(today));
 		assertThat(inactivityDay.getTimeZoneId(), equalTo(userAnonZone.getId()));
@@ -297,7 +297,7 @@ public class ActivityServiceTests
 	@Test
 	public void weekActivityDetailInactivity()
 	{
-		WeekActivityDTO inactivityWeek = service.getWeekActivityDetail(userID, getWeekStartDate(LocalDate.now(userAnonZone)),
+		WeekActivityDTO inactivityWeek = service.getUserWeekActivityDetail(userID, getWeekStartDate(LocalDate.now(userAnonZone)),
 				gamblingGoal.getID());
 		assertThat(inactivityWeek.getSpread().size(), equalTo(96));
 		assertThat(inactivityWeek.getStartTime(), equalTo(getWeekStartTime(ZonedDateTime.now(userAnonZone))));
