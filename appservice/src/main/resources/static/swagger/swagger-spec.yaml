@@ -937,6 +937,30 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/ConfirmationError'
+  '/users/{userID}/pinResetRequest/resend':
+    post:
+      summary: Request resend of a pin reset confirmation code
+      description: Post an empty request to get a new pin reset confirmation code texted to the user
+      parameters:
+        - name: userID
+          in: path
+          description: The ID of the user
+          required: true
+          type: string
+        - name: Yona-Password
+          in: header
+          description: The device password
+          required: true
+          type: string
+      tags:
+        - Pin reset
+      responses:
+        '200':
+          description: The request is successfully handled
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   '/users/{userID}/pinResetRequest/clear':
     post:
       summary: Clear pin reset confirmation code
@@ -1310,6 +1334,38 @@ definitions:
               href:
                 type: string
                 description: This link allows requesting a resend of the mobile number confirmation code.
+          "yona:requestPinReset":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: This link allows requesting a pin reset confirmation code.
+          "yona:verifyPinReset":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: This link allows verifying the pin reset confirmation code.
+          "yona:resendPinResetConfirmationCode":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: This link allows requesting a resend of a new pin reset confirmation code.
+          "yona:clearPinReset":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: This link allows clearing the pin reset confirmation code.
           "yona:messages":
             type: object
             required:
