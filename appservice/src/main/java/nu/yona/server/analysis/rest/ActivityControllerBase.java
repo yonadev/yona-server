@@ -57,40 +57,40 @@ abstract class ActivityControllerBase
 
 	protected HttpEntity<PagedResources<WeekActivityOverviewResource>> getWeekActivityOverviews(Optional<String> password,
 			UUID userID, Pageable pageable, PagedResourcesAssembler<WeekActivityOverviewDTO> pagedResourcesAssembler,
-			Supplier<Page<WeekActivityOverviewDTO>> activityFunction, LinkProvider linkProvider)
+			Supplier<Page<WeekActivityOverviewDTO>> activitySupplier, LinkProvider linkProvider)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> new ResponseEntity<>(pagedResourcesAssembler.toResource(activityFunction.get(),
+				() -> new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
 						new WeekActivityOverviewResourceAssembler(linkProvider, curieProvider)), HttpStatus.OK));
 	}
 
 	protected HttpEntity<PagedResources<DayActivityOverviewResource>> getDayActivityOverviews(Optional<String> password,
 			UUID userID, Pageable pageable, PagedResourcesAssembler<DayActivityOverviewDTO> pagedResourcesAssembler,
-			Supplier<Page<DayActivityOverviewDTO>> activityFunction, LinkProvider linkProvider)
+			Supplier<Page<DayActivityOverviewDTO>> activitySupplier, LinkProvider linkProvider)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> new ResponseEntity<>(pagedResourcesAssembler.toResource(activityFunction.get(),
+				() -> new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
 						new DayActivityOverviewResourceAssembler(linkProvider, curieProvider)), HttpStatus.OK));
 	}
 
 	protected HttpEntity<WeekActivityResource> getWeekActivityDetail(Optional<String> password, UUID userID, String dateStr,
-			Function<LocalDate, WeekActivityDTO> activityFunction, LinkProvider linkProvider)
+			Function<LocalDate, WeekActivityDTO> activitySupplier, LinkProvider linkProvider)
 	{
 		LocalDate date = WeekActivityDTO.parseDate(dateStr);
 		return CryptoSession
 				.execute(password, () -> userService.canAccessPrivateData(userID),
 						() -> new ResponseEntity<>(
-								new WeekActivityResourceAssembler(linkProvider).toResource(activityFunction.apply(date)),
+								new WeekActivityResourceAssembler(linkProvider).toResource(activitySupplier.apply(date)),
 								HttpStatus.OK));
 	}
 
 	protected HttpEntity<DayActivityResource> getDayActivityDetail(Optional<String> password, UUID userID, String dateStr,
-			Function<LocalDate, DayActivityDTO> activityFunction, LinkProvider linkProvider)
+			Function<LocalDate, DayActivityDTO> activitySupplier, LinkProvider linkProvider)
 	{
 		LocalDate date = DayActivityDTO.parseDate(dateStr);
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> new ResponseEntity<>(
-						new DayActivityResourceAssembler(linkProvider, true).toResource(activityFunction.apply(date)),
+						new DayActivityResourceAssembler(linkProvider, true).toResource(activitySupplier.apply(date)),
 						HttpStatus.OK));
 	}
 
