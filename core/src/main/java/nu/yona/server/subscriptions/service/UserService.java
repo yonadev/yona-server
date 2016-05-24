@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -85,13 +86,17 @@ public class UserService
 	@Transactional
 	public UserDTO getPrivateUser(UUID id)
 	{
-		return UserDTO.createInstanceWithPrivateData(getUserByID(id));
+		User user = getUserByID(id);
+		handleBuddyUsersRemovedWhileOffline(user);
+		return UserDTO.createInstanceWithPrivateData(user);
 	}
 
 	@Transactional
 	public UserDTO getPrivateValidatedUser(UUID id)
 	{
-		return UserDTO.createInstanceWithPrivateData(getValidatedUserbyID(id));
+		User validatedUser = getValidatedUserbyID(id);
+		handleBuddyUsersRemovedWhileOffline(validatedUser);
+		return UserDTO.createInstanceWithPrivateData(validatedUser);
 	}
 
 	@Transactional
@@ -288,13 +293,9 @@ public class UserService
 	public UserDTO updateUser(UUID id, UserDTO user)
 	{
 		User originalUserEntity = getUserByID(id);
-		if (originalUserEntity.isCreatedOnBuddyRequest())
-		{
-			// security check: should not be able to update a user created on buddy request with its temp password
-			throw UserServiceException.cannotUpdateBecauseCreatedOnBuddyRequest(id);
-		}
+		validateUpdateRequest(user, originalUserEntity);
 
-		boolean isMobileNumberDifferent = !user.getMobileNumber().equals(originalUserEntity.getMobileNumber());
+		boolean isMobileNumberDifferent = isMobileNumberDifferent(user, originalUserEntity);
 		User updatedUserEntity = user.updateUser(originalUserEntity);
 		Optional<ConfirmationCode> confirmationCode = Optional.empty();
 		if (isMobileNumberDifferent)
@@ -311,6 +312,24 @@ public class UserService
 		}
 		logger.info("Updated user with mobile number '{}' and ID '{}'", userDTO.getMobileNumber(), userDTO.getID());
 		return userDTO;
+	}
+
+	private void validateUpdateRequest(UserDTO user, User originalUserEntity)
+	{
+		if (originalUserEntity.isCreatedOnBuddyRequest())
+		{
+			// security check: should not be able to update a user created on buddy request with its temp password
+			throw UserServiceException.cannotUpdateBecauseCreatedOnBuddyRequest(user.getID());
+		}
+		if (isMobileNumberDifferent(user, originalUserEntity))
+		{
+			verifyUserDoesNotExist(user.getMobileNumber());
+		}
+	}
+
+	private boolean isMobileNumberDifferent(UserDTO user, User originalUserEntity)
+	{
+		return !user.getMobileNumber().equals(originalUserEntity.getMobileNumber());
 	}
 
 	@Transactional
@@ -501,6 +520,12 @@ public class UserService
 			registerFailedAttempt(userEntity, confirmationCode);
 			throw invalidConfirmationCodeExceptionSupplier.apply(remainingAttempts - 1);
 		}
+	}
+
+	private void handleBuddyUsersRemovedWhileOffline(User user)
+	{
+		Set<Buddy> buddiesOfRemovedUsers = user.getBuddiesRelatedToRemovedUsers();
+		buddiesOfRemovedUsers.stream().forEach(b -> buddyService.removeBuddyInfoForRemovedUser(user, b));
 	}
 
 	public void registerFailedAttempt(User userEntity, ConfirmationCode confirmationCode)

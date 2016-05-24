@@ -81,8 +81,8 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	public static BuddyConnectResponseMessageDTO createInstance(UserDTO actingUser, BuddyConnectResponseMessage messageEntity)
 	{
 		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getNickname(), messageEntity.getMessage(),
-				messageEntity.getStatus(), messageEntity.isProcessed());
+				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getSenderNickname(),
+				messageEntity.getMessage(), messageEntity.getStatus(), messageEntity.isProcessed());
 	}
 
 	@Component
@@ -134,15 +134,19 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 			else
 			{
 				buddyService.setBuddyAcceptedWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
-						connectResponseMessageEntity.getRelatedUserAnonymizedID(), connectResponseMessageEntity.getNickname());
+						connectResponseMessageEntity.getRelatedUserAnonymizedID(),
+						connectResponseMessageEntity.getSenderNickname());
 			}
 
 			connectResponseMessageEntity = updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
+			String mobileNumber = (connectResponseMessageEntity.getSenderUser() == null) ? "already deleted"
+					: connectResponseMessageEntity.getSenderUser().getMobileNumber();
+			String id = (connectResponseMessageEntity.getSenderUser() == null) ? "already deleted"
+					: connectResponseMessageEntity.getSenderUser().getID().toString();
 			logger.info(
 					"User with mobile number '{}' and ID '{}' processed buddy connect response from user with mobile number '{}' and ID '{}'",
-					actingUser.getMobileNumber(), actingUser.getID(), connectResponseMessageEntity.getUser().getMobileNumber(),
-					connectResponseMessageEntity.getUser().getID());
+					actingUser.getMobileNumber(), actingUser.getID(), mobileNumber, id);
 
 			return MessageActionDTO
 					.createInstanceActionDone(theDTOFactory.createInstance(actingUser, connectResponseMessageEntity));

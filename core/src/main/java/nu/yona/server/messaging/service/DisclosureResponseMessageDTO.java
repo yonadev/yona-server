@@ -64,7 +64,7 @@ public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
 		return new DisclosureResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getStatus(), messageEntity.getNickname(),
+				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getStatus(), messageEntity.getSenderNickname(),
 				messageEntity.getMessage(), targetGoalConflictMessage.getID());
 	}
 

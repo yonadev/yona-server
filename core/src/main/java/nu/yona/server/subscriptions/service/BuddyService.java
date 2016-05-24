@@ -36,6 +36,7 @@ import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
+import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
@@ -103,14 +104,14 @@ public class BuddyService
 		requestingUser.assertMobileNumberConfirmed();
 
 		User buddyUserEntity = getBuddyUser(buddy);
-		BuddyDTO newBuddyEntity;
+		BuddyDTO savedBuddy;
 		if (buddyUserEntity == null)
 		{
-			newBuddyEntity = handleBuddyRequestForNewUser(requestingUser, buddy, inviteURLGetter);
+			savedBuddy = handleBuddyRequestForNewUser(requestingUser, buddy, inviteURLGetter);
 		}
 		else
 		{
-			newBuddyEntity = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
+			savedBuddy = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
 		}
 
 		logger.info(
@@ -118,7 +119,7 @@ public class BuddyService
 				requestingUser.getMobileNumber(), requestingUser.getID(), (buddyUserEntity == null) ? "new" : "existing",
 				buddy.getUser().getMobileNumber(), buddy.getUser().getID());
 
-		return newBuddyEntity;
+		return savedBuddy;
 	}
 
 	@Transactional
@@ -144,15 +145,20 @@ public class BuddyService
 	public void removeBuddyAfterConnectRejection(UUID idOfRequestingUser, UUID buddyID)
 	{
 		User user = userService.getValidatedUserbyID(idOfRequestingUser);
-		Buddy buddy = getEntityByID(buddyID);
+		Buddy buddy = Buddy.getRepository().findOne(buddyID);
 
-		removeBuddy(user, buddy);
+		if (buddy != null)
+		{
+			removeBuddy(user, buddy);
+		}
+		// else: buddy already removed, probably in response to removing the user
 	}
 
 	private void removeBuddy(User user, Buddy buddy)
 	{
 		user.removeBuddy(buddy);
 		User.getRepository().save(user);
+		Buddy.getRepository().delete(buddy);
 
 		UserAnonymized userAnonymizedEntity = user.getAnonymized();
 		userAnonymizedEntity.removeBuddyAnonymized(buddy.getBuddyAnonymized());
@@ -209,6 +215,26 @@ public class BuddyService
 	}
 
 	@Transactional
+	void removeBuddyInfoForRemovedUser(User user, Buddy buddy)
+	{
+		if (buddy.getSendingStatus() == Status.ACCEPTED || buddy.getReceivingStatus() == Status.ACCEPTED)
+		{
+			// Buddy request was accepted
+			removeMessagesSentByBuddy(user, buddy);
+
+			sendDropBuddyMessage(null, buddy.getUserAnonymizedID(), buddy.getNickname(), user.getUserAnonymizedID(),
+					Optional.empty(), DropBuddyReason.USER_ACCOUNT_DELETED);
+		}
+		else if (buddy.getSendingStatus() != Status.REJECTED && buddy.getReceivingStatus() != Status.REJECTED)
+		{
+			// Buddy request was not accepted or rejected yet
+			sendBuddyConnectResponseMessage(null, buddy.getUserAnonymizedID(), buddy.getNickname(), user.getUserAnonymizedID(),
+					buddy.getID(), Status.REJECTED, getDropBuddyMessage(DropBuddyReason.USER_ACCOUNT_DELETED, Optional.empty()));
+		}
+		removeBuddy(user, buddy);
+	}
+
+	@Transactional
 	public void removeBuddyAfterBuddyRemovedConnection(UUID idOfRequestingUser, UUID relatedUserID)
 	{
 		User user = userService.getValidatedUserbyID(idOfRequestingUser);
@@ -252,12 +278,27 @@ public class BuddyService
 	private void sendDropBuddyMessage(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
 			DropBuddyReason reason)
 	{
-		MessageDestinationDTO messageDestination = userAnonymizedService
-				.getUserAnonymized(requestingUserBuddy.getUserAnonymizedID()).getAnonymousDestination();
-		messageService.sendMessage(BuddyDisconnectMessage.createInstance(requestingUser.getID(),
-				requestingUser.getUserAnonymizedID(), requestingUser.getNickname(), getDropBuddyMessage(reason, message), reason),
-				messageDestination);
+		sendDropBuddyMessage(requestingUser.getID(), requestingUser.getUserAnonymizedID(), requestingUser.getNickname(),
+				requestingUserBuddy.getUserAnonymizedID(), message, reason);
+	}
 
+	private void sendDropBuddyMessage(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname,
+			UUID receiverUserAnonymizedID, Optional<String> message, DropBuddyReason reason)
+	{
+		MessageDestinationDTO messageDestination = userAnonymizedService.getUserAnonymized(receiverUserAnonymizedID)
+				.getAnonymousDestination();
+		messageService.sendMessage(BuddyDisconnectMessage.createInstance(senderUserID, senderUserAnonymizedID, senderNickname,
+				getDropBuddyMessage(reason, message), reason), messageDestination);
+	}
+
+	void sendBuddyConnectResponseMessage(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname,
+			UUID receiverUserAnonymizedID, UUID buddyID, Status status, String responseMessage)
+	{
+		MessageDestinationDTO messageDestination = userAnonymizedService.getUserAnonymized(receiverUserAnonymizedID)
+				.getAnonymousDestination();
+		assert messageDestination != null;
+		messageService.sendMessage(BuddyConnectResponseMessage.createInstance(senderUserID, senderUserAnonymizedID,
+				senderNickname, responseMessage, buddyID, status), messageDestination);
 	}
 
 	private void disconnectBuddy(UserAnonymizedDTO userAnonymized, UUID userAnonymizedID)
@@ -358,7 +399,7 @@ public class BuddyService
 		{
 			throw BuddyServiceException.onlyTwoWayBuddiesAllowed();
 		}
-		Buddy buddyEntity = buddy.createBuddyEntity();
+		Buddy buddyEntity = buddy.createBuddyEntity(translator);
 		Buddy savedBuddyEntity = Buddy.getRepository().save(buddyEntity);
 		BuddyDTO savedBuddy = BuddyDTO.createInstance(savedBuddyEntity);
 		userService.addBuddy(requestingUser, savedBuddy);

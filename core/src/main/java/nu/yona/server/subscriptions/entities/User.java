@@ -303,4 +303,9 @@ public class User extends EntityWithID
 	{
 		this.pinResetConfirmationCode = pinResetConfirmationCode;
 	}
+
+	public Set<Buddy> getBuddiesRelatedToRemovedUsers()
+	{
+		return userPrivate.getBuddiesRelatedToRemovedUsers();
+	}
 }

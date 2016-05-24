@@ -20,9 +20,9 @@ public class BuddyDisconnectMessage extends BuddyMessage
 	private boolean isProcessed;
 	private DropBuddyReason reason;
 
-	public BuddyDisconnectMessage(UUID id, UUID userID, UUID loginID, String nickname, String message, DropBuddyReason reason)
+	public BuddyDisconnectMessage(UUID id, UUID senderUserID, UUID senderAnonymizedUserID, String senderNickname, String message, DropBuddyReason reason)
 	{
-		super(id, loginID, userID, nickname, message);
+		super(id, senderUserID, senderAnonymizedUserID, senderNickname, message);
 		this.reason = reason;
 	}
 
@@ -30,12 +30,6 @@ public class BuddyDisconnectMessage extends BuddyMessage
 	public BuddyDisconnectMessage()
 	{
 		super();
-	}
-
-	public static BuddyDisconnectMessage createInstance(UUID userID, UUID loginID, String nickname, String message,
-			DropBuddyReason reason)
-	{
-		return new BuddyDisconnectMessage(UUID.randomUUID(), userID, loginID, nickname, message, reason);
 	}
 
 	public DropBuddyReason getReason()
@@ -51,5 +45,11 @@ public class BuddyDisconnectMessage extends BuddyMessage
 	public void setProcessed()
 	{
 		this.isProcessed = true;
+	}
+
+	public static BuddyDisconnectMessage createInstance(UUID senderUserID, UUID senderAnonymizedUserID, String senderNickname, String message,
+			DropBuddyReason reason)
+	{
+		return new BuddyDisconnectMessage(UUID.randomUUID(), senderUserID, senderAnonymizedUserID, senderNickname, message, reason);
 	}
 }
