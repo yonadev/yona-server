@@ -32,7 +32,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		richardBudgetGoalNewsUrl = findGoal(goals, NEWS_ACT_CAT_URL)._links.self.href
 		richardTimeZoneGoalUrl = findGoal(goals, SOCIAL_ACT_CAT_URL)._links.self.href
 
-		def bobWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+		def bobWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, bob.url, true, bob.password)
 		assert bobWithBuddy.buddies != null
 		assert bobWithBuddy.buddies.size() == 1
 		def richardGoalsForBob = bobWithBuddy.buddies[0].goals
