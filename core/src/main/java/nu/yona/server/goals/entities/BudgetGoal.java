@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -21,16 +22,16 @@ public class BudgetGoal extends Goal
 
 	}
 
-	private BudgetGoal(UUID id, ActivityCategory activityCategory, int maxDurationMinutes)
+	private BudgetGoal(UUID id, ZonedDateTime creationTime, ActivityCategory activityCategory, int maxDurationMinutes)
 	{
-		super(id, activityCategory);
+		super(id, creationTime, activityCategory);
 
 		this.maxDurationMinutes = maxDurationMinutes;
 	}
 
-	private BudgetGoal(UUID id, BudgetGoal originalGoal)
+	private BudgetGoal(UUID id, BudgetGoal originalGoal, ZonedDateTime endTime)
 	{
-		super(id, originalGoal);
+		super(id, originalGoal, endTime);
 
 		this.maxDurationMinutes = originalGoal.maxDurationMinutes;
 	}
@@ -46,9 +47,9 @@ public class BudgetGoal extends Goal
 	}
 
 	@Override
-	public Goal cloneAsHistoryItem()
+	public Goal cloneAsHistoryItem(ZonedDateTime endTime)
 	{
-		return createInstance(this);
+		return createInstance(this, endTime);
 	}
 
 	@Override
@@ -75,18 +76,18 @@ public class BudgetGoal extends Goal
 		return Math.max(dayActivity.getTotalActivityDurationMinutes() - this.getMaxDurationMinutes(), 0);
 	}
 
-	public static BudgetGoal createNoGoInstance(ActivityCategory activityCategory)
+	public static BudgetGoal createNoGoInstance(ZonedDateTime creationTime, ActivityCategory activityCategory)
 	{
-		return createInstance(activityCategory, 0);
+		return createInstance(creationTime, activityCategory, 0);
 	}
 
-	public static BudgetGoal createInstance(ActivityCategory activityCategory, int maxDurationMinutes)
+	public static BudgetGoal createInstance(ZonedDateTime creationTime, ActivityCategory activityCategory, int maxDurationMinutes)
 	{
-		return new BudgetGoal(UUID.randomUUID(), activityCategory, maxDurationMinutes);
+		return new BudgetGoal(UUID.randomUUID(), creationTime, activityCategory, maxDurationMinutes);
 	}
 
-	private static BudgetGoal createInstance(BudgetGoal originalGoal)
+	private static BudgetGoal createInstance(BudgetGoal originalGoal, ZonedDateTime endTime)
 	{
-		return new BudgetGoal(UUID.randomUUID(), originalGoal);
+		return new BudgetGoal(UUID.randomUUID(), originalGoal, endTime);
 	}
 }

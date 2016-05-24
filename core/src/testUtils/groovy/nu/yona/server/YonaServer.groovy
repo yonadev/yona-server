@@ -10,8 +10,12 @@ import groovy.json.*
 import groovyx.net.http.RESTClient
 import groovyx.net.http.URIBuilder
 
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
+import java.time.temporal.ChronoField
 
 class YonaServer
 {
@@ -68,10 +72,16 @@ class YonaServer
 
 	def getResource(path, headers = [:], parameters = [:])
 	{
+		def queryParametersOfURI = [ : ]
+		if (path ==~ /.*\?.*/)
+		{
+			queryParametersOfURI = getQueryParams(path)
+			path = path.substring(0, path.indexOf('?'))
+		}
 		restClient.get(path: path,
 		contentType:'application/json',
 		headers: headers,
-		query: parameters)
+		query: queryParametersOfURI + parameters)
 	}
 
 	def postJson(path, jsonString, headers = [:], parameters = [:])
@@ -171,5 +181,42 @@ class YonaServer
 	static String toIsoDateString(ZonedDateTime dateTime)
 	{
 		DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(dateTime)
+	}
+
+	static def parseRelativeDateString(relativeDateString)
+	{
+		def fields = relativeDateString.tokenize(' ')
+		assert fields.size() <= 3
+		assert fields.size() > 0
+		int parsedFields = 0
+		int weekOffset = 0
+		int dayOffset = 0
+
+		LocalDateTime now = LocalDateTime.now()
+		switch (fields.size())
+		{
+			case 3:
+				assert fields[0].startsWith("W")
+				weekOffset = Integer.parseInt(fields[0].substring(1))
+				parsedFields++
+			case 2:
+				int weekDay = DateTimeFormatter.ofPattern("eee").parse(fields[parsedFields]).get(ChronoField.DAY_OF_WEEK)
+				dayOffset = weekDay - now.dayOfWeek.value
+				parsedFields++
+			case 1:
+				ZonedDateTime dateTime = parseTimeForDay(fields[parsedFields], now.plusDays(dayOffset).plusWeeks(weekOffset).getLong(ChronoField.EPOCH_DAY))
+				assert dateTime.compareTo(ZonedDateTime.now()) <= 0 // Must be in the past
+				return dateTime
+		}
+	}
+
+	private static ZonedDateTime parseTimeForDay(String timeString, long epochDay)
+	{
+		DateTimeFormatter formatter =
+				new DateTimeFormatterBuilder().appendPattern("HH:mm[:ss][.SSS]")
+				.parseDefaulting(ChronoField.EPOCH_DAY, epochDay)
+				.toFormatter()
+				.withZone(ZoneId.of("Europe/Amsterdam"))
+		ZonedDateTime.parse(timeString, formatter)
 	}
 }

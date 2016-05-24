@@ -306,9 +306,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 	def 'Validation: Try to remove mandatory goal'()
 	{
 		given:
-		def richard = addRichard()
+		User richard = addRichard()
+		def Goal gamblingGoal = richard.findGoal(GAMBLING_ACT_CAT_URL)
 		when:
-		def response = appService.deleteResourceWithPassword(richard.goals[0].url, richard.password)
+		def response = appService.deleteResourceWithPassword(gamblingGoal.url, richard.password)
 		then:
 		response.status == 400
 		def responseGoalsAfterDelete = appService.getGoals(richard)

@@ -397,7 +397,7 @@ public class AnalysisEngineService
 		public ActivityPayload(NetworkActivityDTO networkActivity)
 		{
 			this.url = networkActivity.getURL();
-			this.startTime = ZonedDateTime.now(); // now
+			this.startTime = networkActivity.getEventTime().orElse(ZonedDateTime.now());
 			this.endTime = this.startTime;
 			this.application = null;
 		}

@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -169,8 +170,8 @@ public class UserService
 
 	private void addGoal(User userEntity, ActivityCategoryDTO category)
 	{
-		userEntity.getAnonymized()
-				.addGoal(BudgetGoal.createNoGoInstance(ActivityCategory.getRepository().findOne(category.getID())));
+		userEntity.getAnonymized().addGoal(
+				BudgetGoal.createNoGoInstance(ZonedDateTime.now(), ActivityCategory.getRepository().findOne(category.getID())));
 	}
 
 	private void handleExistingUserForMobileNumber(String mobileNumber, Optional<String> overwriteUserConfirmationCode)

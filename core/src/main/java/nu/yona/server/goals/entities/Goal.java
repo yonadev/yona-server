@@ -43,7 +43,7 @@ public abstract class Goal extends EntityWithID
 		super(null);
 	}
 
-	protected Goal(UUID id, ActivityCategory activityCategory)
+	protected Goal(UUID id, ZonedDateTime creationTime, ActivityCategory activityCategory)
 	{
 		super(id);
 
@@ -51,11 +51,11 @@ public abstract class Goal extends EntityWithID
 		{
 			throw new IllegalArgumentException("activityCategory cannot be null");
 		}
+		this.creationTime = creationTime;
 		this.activityCategory = activityCategory;
-		this.creationTime = ZonedDateTime.now();
 	}
 
-	protected Goal(UUID id, Goal originalGoal)
+	protected Goal(UUID id, Goal originalGoal, ZonedDateTime endTime)
 	{
 		super(id);
 
@@ -65,7 +65,7 @@ public abstract class Goal extends EntityWithID
 		}
 		this.activityCategory = originalGoal.activityCategory;
 		this.creationTime = originalGoal.creationTime;
-		this.endTime = ZonedDateTime.now();
+		this.endTime = endTime;
 	}
 
 	public ActivityCategory getActivityCategory()
@@ -78,8 +78,8 @@ public abstract class Goal extends EntityWithID
 		return creationTime;
 	}
 
-	/*
-	 * For unit test purposes only.
+	/**
+	 * For test purposes only.
 	 */
 	public void setCreationTime(ZonedDateTime creationTime)
 	{
@@ -101,7 +101,7 @@ public abstract class Goal extends EntityWithID
 		this.previousInstanceOfThisGoal = previousGoal;
 	}
 
-	public abstract Goal cloneAsHistoryItem();
+	public abstract Goal cloneAsHistoryItem(ZonedDateTime endTime);
 
 	public abstract boolean isMandatory();
 

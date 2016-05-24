@@ -12,9 +12,60 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 import nu.yona.server.test.TimeZoneGoal
+import spock.lang.Ignore
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
+	@Ignore
+	def 'New style test'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-2 Mon 02:18")
+		reportAppActivity(richard, "NU.nl", "W-1 Mon 01:18", "W-1 Mon 02:28")
+		reportAppActivities(richard, [createAppActivity("NU.nl", "W-1 Mon 08:45", "W-1 Mon 09:05"), createAppActivity("Facebook", "W-1 Mon 09:05", "W-1 Mon 09:28")])
+		addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["11:00-12:00"], "W-1 Wed 13:54")
+		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Wed 11:02")
+		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+
+		def budgetGoalNewsUrl = richard.findGoal(NEWS_ACT_CAT_URL).url
+
+		when:
+		def response = appService.getWeekActivityOverviews(richard)
+
+		then:
+		response.status == 200
+		response.responseData._embedded?."yona:weekActivityOverviews"?.size() == 2
+		response.responseData._links?.next?.href != null
+		def weekActivityOverview = response.responseData._embedded."yona:weekActivityOverviews"[1]
+		weekActivityOverview.date =~ /\d{4}\-W\d{2}/
+		weekActivityOverview._embedded."yona:weekActivities"
+		weekActivityOverview._embedded."yona:weekActivities".size() == 1
+		def weekActivityForGoal = weekActivityOverview._embedded."yona:weekActivities".find{ it._links."yona:goal".href == budgetGoalNewsUrl}
+		!weekActivityForGoal.spread //only in detail
+		!weekActivityForGoal.totalActivityDurationMinutes //only in detail
+		!weekActivityForGoal.totalMinutesBeyondGoal //only for day
+		!weekActivityForGoal.date
+		weekActivityForGoal.timeZoneId == "Europe/Amsterdam"
+		weekActivityForGoal._links."yona:goal"
+		weekActivityForGoal._embedded[dateTime.getDayOfWeek().toString()]
+		weekActivityForGoal._embedded.size() == 1
+		def dayActivityForGoal = weekActivityForGoal._embedded[1]
+		!dayActivityForGoal.spread //only in detail
+		dayActivityForGoal.totalActivityDurationMinutes == 1
+		dayActivityForGoal.goalAccomplished == false
+		dayActivityForGoal.totalMinutesBeyondGoal == 1
+		!weekActivityForGoal.date
+		dayActivityForGoal.timeZoneId == "Europe/Amsterdam"
+		!dayActivityForGoal._links."yona:goal" //already present on week
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
 	def 'Get day activity overviews'()
 	{
 		given:

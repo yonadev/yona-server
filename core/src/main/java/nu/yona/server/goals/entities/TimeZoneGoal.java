@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -21,16 +22,16 @@ public class TimeZoneGoal extends Goal
 
 	}
 
-	private TimeZoneGoal(UUID id, ActivityCategory activityCategory, String[] zones)
+	private TimeZoneGoal(UUID id, ZonedDateTime creationTime, ActivityCategory activityCategory, String[] zones)
 	{
-		super(id, activityCategory);
+		super(id, creationTime, activityCategory);
 
 		this.zones = zones;
 	}
 
-	private TimeZoneGoal(UUID id, TimeZoneGoal originalGoal)
+	private TimeZoneGoal(UUID id, TimeZoneGoal originalGoal, ZonedDateTime endTime)
 	{
-		super(id, originalGoal);
+		super(id, originalGoal, endTime);
 
 		this.zones = originalGoal.zones;
 	}
@@ -46,9 +47,9 @@ public class TimeZoneGoal extends Goal
 	}
 
 	@Override
-	public Goal cloneAsHistoryItem()
+	public Goal cloneAsHistoryItem(ZonedDateTime endTime)
 	{
-		return createInstance(this);
+		return createInstance(this, endTime);
 	}
 
 	@Override
@@ -77,13 +78,13 @@ public class TimeZoneGoal extends Goal
 		return 0;
 	}
 
-	public static TimeZoneGoal createInstance(ActivityCategory activityCategory, String[] zones)
+	public static TimeZoneGoal createInstance(ZonedDateTime creationTime, ActivityCategory activityCategory, String[] zones)
 	{
-		return new TimeZoneGoal(UUID.randomUUID(), activityCategory, zones);
+		return new TimeZoneGoal(UUID.randomUUID(), creationTime, activityCategory, zones);
 	}
 
-	private static TimeZoneGoal createInstance(TimeZoneGoal originalGoal)
+	private static TimeZoneGoal createInstance(TimeZoneGoal originalGoal, ZonedDateTime endTime)
 	{
-		return new TimeZoneGoal(UUID.randomUUID(), originalGoal);
+		return new TimeZoneGoal(UUID.randomUUID(), originalGoal, endTime);
 	}
 }

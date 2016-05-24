@@ -12,8 +12,11 @@ import java.time.Duration
 import java.time.ZonedDateTime
 
 import nu.yona.server.test.AnalysisService
+import nu.yona.server.test.AppActivity
 import nu.yona.server.test.AppService
 import nu.yona.server.test.BudgetGoal
+import nu.yona.server.test.Goal
+import nu.yona.server.test.TimeZoneGoal
 import nu.yona.server.test.User
 import spock.lang.Shared
 import spock.lang.Specification
@@ -48,7 +51,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		richard = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, richard)
 		def response = appService.addGoal(richard, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assert response.status == 201
-		return richard
+		return appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
 	}
 
 	User addBob()
@@ -58,7 +61,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		bob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bob)
 		def response = appService.addGoal(bob, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assert response.status == 201
-		return bob
+		return appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, bob.url, true, bob.password)
 	}
 
 	def addRichardAndBobAsBuddies()
@@ -96,5 +99,44 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	def findGoal(def response, def activityCategoryUrl)
 	{
 		response.responseData._embedded."yona:goals".find{ it._links."yona:activityCategory".href == activityCategoryUrl }
+	}
+
+	void setGoalCreationTime(User user, activityCategoryURL, relativeCreationDateTimeString)
+	{
+		Goal goal = user.findGoal(activityCategoryURL)
+		goal.creationTime = YonaServer.parseRelativeDateString(relativeCreationDateTimeString)
+		def response = appService.updateGoal(user, goal.url, goal)
+		assert response.status == 200
+	}
+
+	void addTimeZoneGoal(User user, activityCategoryURL, zones, relativeCreationDateTimeString)
+	{
+		ZonedDateTime creationTime = YonaServer.parseRelativeDateString(relativeCreationDateTimeString)
+		appService.addGoal(appService.&assertResponseStatusCreated, user, TimeZoneGoal.createInstance(creationTime, activityCategoryURL, zones.toArray()))
+	}
+
+	void reportAppActivity(User user, def appName, def relativeStartDateTimeString, relativeEndDateTimeString)
+	{
+		reportAppActivities(user, createAppActivity(appName, relativeStartDateTimeString, relativeEndDateTimeString))
+	}
+
+	AppActivity createAppActivity(def appName, def relativeStartDateTimeString, relativeEndDateTimeString)
+	{
+		def startDateTime = YonaServer.parseRelativeDateString(relativeStartDateTimeString)
+		def endDateTime = YonaServer.parseRelativeDateString(relativeEndDateTimeString)
+		AppActivity.singleActivity(appName, startDateTime, endDateTime)
+	}
+
+	void reportAppActivities(User user, def appActivities)
+	{
+		appActivities.collect
+		{
+			def response = appService.postAppActivityToAnalysisEngine(user, it)
+			assert response.status == 200
+		}
+	}
+	void reportNetworkActivity(User user, def categories, def url, relativeDateTimeString)
+	{
+		analysisService.postToAnalysisEngine(user, categories, url, YonaServer.parseRelativeDateString(relativeDateTimeString))
 	}
 }

@@ -7,6 +7,9 @@
 package nu.yona.server.test
 
 import groovy.json.*
+
+import java.time.ZonedDateTime
+
 import nu.yona.server.YonaServer
 
 class TimeZoneGoal extends Goal
@@ -22,13 +25,11 @@ class TimeZoneGoal extends Goal
 	def convertToJsonString()
 	{
 		def zonesString = YonaServer.makeStringList(zones)
-		def selfLinkString = (url) ? """"
-							"self":
-								{
-									"href":"$url"
-								},""" : ""
+		def selfLinkString = buildSelfLinkString()
+		def creationTimeString = buildCreationTimeString()
 		return """{
 			"@type":"TimeZoneGoal",
+			$creationTimeString
 			"zones":[
 				${zonesString}
 			],
@@ -42,9 +43,13 @@ class TimeZoneGoal extends Goal
 				}
 		}"""
 	}
-
 	public static TimeZoneGoal createInstance(activityCategoryUrl, zones)
 	{
-		new TimeZoneGoal(["activityCategoryUrl": activityCategoryUrl, "zones": zones])
+		createInstance(null, activityCategoryUrl, zones)
+	}
+
+	public static TimeZoneGoal createInstance(ZonedDateTime creationTime, activityCategoryUrl, zones)
+	{
+		new TimeZoneGoal([creationTime:creationTime, activityCategoryUrl: activityCategoryUrl, zones: zones])
 	}
 }

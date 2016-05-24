@@ -99,6 +99,11 @@ class User
 		return json
 	}
 
+	def findGoal(def activityCategoryUrl)
+	{
+		goals.find{ it.activityCategoryUrl == activityCategoryUrl }
+	}
+
 	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber)
 	{
 		makeUserJsonStringInternal(null, firstName, lastName, nickname, mobileNumber)
