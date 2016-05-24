@@ -1851,7 +1851,7 @@ definitions:
                 type: string
             required:
               - href
-            description: Link to the goal for which activity was recorded
+            description: Link to the goal for which activity was recorded.
       date:
         type: string
         example: 2016-W2
@@ -1985,7 +1985,7 @@ definitions:
                 type: string
             required:
               - href
-            description: Link to the goal for which activity was recorded
+            description: Link to the goal for which activity was recorded. Only included in day overview or day detail because the information is ohterwise present on the week activity parent.
       date:
         type: string
         example: 2016-03-16
