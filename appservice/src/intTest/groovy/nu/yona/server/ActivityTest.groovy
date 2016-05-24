@@ -72,7 +72,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		setupTestScenario()
 
 		when:
-		def response = appService.getResourceWithPassword(bobDailyActivityReportsUrlForRichard, richard.password)
+		def response = appService.getBuddyDayActivityOverviews(richard)
 
 		then:
 		testDayActivityOverviews(response, bobBudgetGoalGamblingUrlForRichard, bobBudgetGoalNewsUrlForRichard, bobTimeZoneGoalUrlForRichard)
@@ -174,7 +174,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		setupTestScenario()
 
 		when:
-		def response = appService.getResourceWithPassword(bobWeeklyActivityReportsUrlForRichard, richard.password)
+		def response = appService.getBuddyWeekActivityOverviews(richard)
 
 		then:
 		testWeekActivityOverviews(response, bobBudgetGoalGamblingUrlForRichard, bobBudgetGoalNewsUrlForRichard)
