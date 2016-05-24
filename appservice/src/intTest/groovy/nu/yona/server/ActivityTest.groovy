@@ -17,8 +17,8 @@ import nu.yona.server.test.User
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
 	def bob, richard
-	def bobBudgetGoalGamblingUrl, bobBudgetGoalGamblingUrlForRichard, bobBudgetGoalNewsUrl, bobBudgetGoalNewsUrlForRichard, bobTimeZoneGoalUrl, bobTimeZoneGoalUrlForRichard
-	def bobDailyActivityReportsUrlForRichard, bobWeeklyActivityReportsUrlForRichard
+	def richardBudgetGoalGamblingUrl, richardBudgetGoalGamblingUrlForBob, richardBudgetGoalNewsUrl, richardBudgetGoalNewsUrlForBob, richardTimeZoneGoalUrl, richardTimeZoneGoalUrlForBob
+	def richardDailyActivityReportsUrlForBob, richardWeeklyActivityReportsUrlForBob
 	def dateTime
 
 	void setupTestScenario()
@@ -26,25 +26,25 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		richard = richardAndBob.richard
 		bob = richardAndBob.bob
-		appService.addGoal(appService.&assertResponseStatusCreated, bob, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
-		def goals = appService.getGoals(bob)
-		bobBudgetGoalGamblingUrl = findGoal(goals, GAMBLING_ACT_CAT_URL)._links.self.href
-		bobBudgetGoalNewsUrl = findGoal(goals, NEWS_ACT_CAT_URL)._links.self.href
-		bobTimeZoneGoalUrl = findGoal(goals, SOCIAL_ACT_CAT_URL)._links.self.href
+		appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
+		def goals = appService.getGoals(richard)
+		richardBudgetGoalGamblingUrl = findGoal(goals, GAMBLING_ACT_CAT_URL)._links.self.href
+		richardBudgetGoalNewsUrl = findGoal(goals, NEWS_ACT_CAT_URL)._links.self.href
+		richardTimeZoneGoalUrl = findGoal(goals, SOCIAL_ACT_CAT_URL)._links.self.href
 
-		def richardWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
-		assert richardWithBuddy.buddies != null
-		assert richardWithBuddy.buddies.size() == 1
-		def bobGoalsForRichard = richardWithBuddy.buddies[0].goals
-		bobBudgetGoalGamblingUrlForRichard = bobGoalsForRichard.find{it.activityCategoryUrl == GAMBLING_ACT_CAT_URL}.url
-		bobBudgetGoalNewsUrlForRichard = bobGoalsForRichard.find{it.activityCategoryUrl == NEWS_ACT_CAT_URL}.url
-		bobTimeZoneGoalUrlForRichard = bobGoalsForRichard.find{it.activityCategoryUrl == SOCIAL_ACT_CAT_URL}.url
-		bobDailyActivityReportsUrlForRichard = richardWithBuddy.buddies[0].dailyActivityReportsUrl
-		assert bobDailyActivityReportsUrlForRichard
-		bobWeeklyActivityReportsUrlForRichard = richardWithBuddy.buddies[0].weeklyActivityReportsUrl
-		assert bobWeeklyActivityReportsUrlForRichard
+		def bobWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+		assert bobWithBuddy.buddies != null
+		assert bobWithBuddy.buddies.size() == 1
+		def richardGoalsForBob = bobWithBuddy.buddies[0].goals
+		richardBudgetGoalGamblingUrlForBob = richardGoalsForBob.find{it.activityCategoryUrl == GAMBLING_ACT_CAT_URL}.url
+		richardBudgetGoalNewsUrlForBob = richardGoalsForBob.find{it.activityCategoryUrl == NEWS_ACT_CAT_URL}.url
+		richardTimeZoneGoalUrlForBob = richardGoalsForBob.find{it.activityCategoryUrl == SOCIAL_ACT_CAT_URL}.url
+		richardDailyActivityReportsUrlForBob = bobWithBuddy.buddies[0].dailyActivityReportsUrl
+		assert richardDailyActivityReportsUrlForBob
+		richardWeeklyActivityReportsUrlForBob = bobWithBuddy.buddies[0].weeklyActivityReportsUrl
+		assert richardWeeklyActivityReportsUrlForBob
 
-		addSomeTestActivity(bob)
+		addSomeTestActivity(richard)
 		dateTime = ZonedDateTime.now(ZoneId.of("Europe/Amsterdam"))
 	}
 
@@ -60,10 +60,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		setupTestScenario()
 
 		when:
-		def response = appService.getDayActivityOverviews(bob)
+		def response = appService.getDayActivityOverviews(richard)
 
 		then:
-		testDayActivityOverviews(response, bobBudgetGoalGamblingUrl, bobBudgetGoalNewsUrl, bobTimeZoneGoalUrl)
+		testDayActivityOverviews(response, richardBudgetGoalGamblingUrl, richardBudgetGoalNewsUrl, richardTimeZoneGoalUrl)
 	}
 
 	def 'Get day activity overviews from buddy'()
@@ -72,10 +72,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		setupTestScenario()
 
 		when:
-		def response = appService.getBuddyDayActivityOverviews(richard)
+		def response = appService.getBuddyDayActivityOverviews(bob)
 
 		then:
-		testDayActivityOverviews(response, bobBudgetGoalGamblingUrlForRichard, bobBudgetGoalNewsUrlForRichard, bobTimeZoneGoalUrlForRichard)
+		testDayActivityOverviews(response, richardBudgetGoalGamblingUrlForBob, richardBudgetGoalNewsUrlForBob, richardTimeZoneGoalUrlForBob)
 	}
 
 	void testDayActivityOverviews(response, budgetGoalGamblingUrl, budgetGoalNewsUrl, timeZoneGoalUrl)
@@ -119,7 +119,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		true
 
 		then:
-		testDayActivityDetail(bob, bob.dailyActivityReportsUrl, bobBudgetGoalGamblingUrl, bobBudgetGoalNewsUrl)
+		testDayActivityDetail(richard, richard.dailyActivityReportsUrl, richardBudgetGoalGamblingUrl, richardBudgetGoalNewsUrl)
 	}
 
 	def 'Get day activity detail from buddy'()
@@ -131,7 +131,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		true
 
 		then:
-		testDayActivityDetail(richard, bobDailyActivityReportsUrlForRichard, bobBudgetGoalGamblingUrlForRichard, bobBudgetGoalNewsUrlForRichard)
+		testDayActivityDetail(bob, richardDailyActivityReportsUrlForBob, richardBudgetGoalGamblingUrlForBob, richardBudgetGoalNewsUrlForBob)
 	}
 
 	void testDayActivityDetail(fromUser, dailyActivityReportsUrl, budgetGoalGamblingUrl, budgetGoalNewsUrl)
@@ -162,10 +162,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		setupTestScenario()
 
 		when:
-		def response = appService.getWeekActivityOverviews(bob)
+		def response = appService.getWeekActivityOverviews(richard)
 
 		then:
-		testWeekActivityOverviews(response, bobBudgetGoalGamblingUrl, bobBudgetGoalNewsUrl)
+		testWeekActivityOverviews(response, richardBudgetGoalGamblingUrl, richardBudgetGoalNewsUrl)
 	}
 
 	def 'Get week activity overviews from buddy'()
@@ -174,10 +174,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		setupTestScenario()
 
 		when:
-		def response = appService.getBuddyWeekActivityOverviews(richard)
+		def response = appService.getBuddyWeekActivityOverviews(bob)
 
 		then:
-		testWeekActivityOverviews(response, bobBudgetGoalGamblingUrlForRichard, bobBudgetGoalNewsUrlForRichard)
+		testWeekActivityOverviews(response, richardBudgetGoalGamblingUrlForBob, richardBudgetGoalNewsUrlForBob)
 	}
 
 	void testWeekActivityOverviews(response, budgetGoalGamblingUrl, budgetGoalNewsUrl)
@@ -221,7 +221,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		true
 
 		then:
-		testWeekActivityDetail(bob, bob.weeklyActivityReportsUrl, bobBudgetGoalGamblingUrl, bobBudgetGoalNewsUrl)
+		testWeekActivityDetail(richard, richard.weeklyActivityReportsUrl, richardBudgetGoalGamblingUrl, richardBudgetGoalNewsUrl)
 	}
 
 	def 'Get week activity detail from buddy'()
@@ -233,7 +233,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		true
 
 		then:
-		testWeekActivityDetail(richard, bobWeeklyActivityReportsUrlForRichard, bobBudgetGoalGamblingUrlForRichard, bobBudgetGoalNewsUrlForRichard)
+		testWeekActivityDetail(bob, richardWeeklyActivityReportsUrlForBob, richardBudgetGoalGamblingUrlForBob, richardBudgetGoalNewsUrlForBob)
 	}
 
 	void testWeekActivityDetail(fromUser, weeklyActivityReportsUrl, budgetGoalGamblingUrl, budgetGoalNewsUrl)
