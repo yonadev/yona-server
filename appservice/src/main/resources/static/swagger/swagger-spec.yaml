@@ -608,6 +608,160 @@ paths:
           description: Activity of this user for the specific goal on the specific week.
           schema:
             $ref: '#/definitions/WeekActivity'
+  '/users/{userID}/buddies/{buddyID}/activity/days/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string        
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get day activity overview
+      description: Get network and app activity of the current day, pageable to yesterday and before 
+      parameters:
+        - name: size
+          in: query
+          description: The number of elements to be fetched
+          required: false
+          default: 3
+          type: number
+        - name: page
+          in: query
+          description: The page to be fetched
+          required: false
+          default: 0
+          type: number
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of the buddy.
+          schema:
+            $ref: '#/definitions/PagedDayActivityOverviews'
+  '/users/{userID}/buddies/{buddyID}/activity/days/{date}/details/{goalID}':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string        
+      - name: date
+        in: path
+        description: The date of the day in ISO 8601 format (yyyy-MM-dd)
+        required: true
+        type: string
+      - name: goalID
+        in: path
+        description: The ID of the goal for which the activity was recorded
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get day activity detail
+      description: Get day network and app activity for a specific goal on a specific day
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of the buddy for the specific goal on the specific day.
+          schema:
+            $ref: '#/definitions/DayActivity'
+  '/users/{userID}/buddies/{buddyID}/activity/weeks/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get week activity overview
+      description: Get network and app activity of the current week, pageable to the weeks before 
+      parameters:
+        - name: size
+          in: query
+          description: The number of elements to be fetched
+          required: false
+          default: 2
+          type: number
+        - name: page
+          in: query
+          description: The page to be fetched
+          required: false
+          default: 0
+          type: number
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of the buddy.
+          schema:
+            $ref: '#/definitions/PagedWeekActivityOverviews'
+  '/users/{userID}/buddies/{buddyID}/activity/weeks/{week}/details/{goalID}':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string        
+      - name: week
+        in: path
+        description: The date of the week in ISO 8601 format (YYYY-'W'w)
+        required: true
+        type: string
+      - name: goalID
+        in: path
+        description: The ID of the goal for which the activity was recorded
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get week activity detail
+      description: Get day network and app activity for a specific goal on a specific week
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of the buddy for the specific goal on the specific week.
+          schema:
+            $ref: '#/definitions/WeekActivity'            
   '/users/{userID}/messages/':
     parameters:
       - name: userID
