@@ -183,9 +183,9 @@ class YonaServer
 		DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(dateTime)
 	}
 
-	static def parseRelativeDateString(relativeDateString)
+	static def relativeDateTimeStringToZonedDateTime(relativeDateTimeString)
 	{
-		def fields = relativeDateString.tokenize(' ')
+		def fields = relativeDateTimeString.tokenize(' ')
 		assert fields.size() <= 3
 		assert fields.size() > 0
 		int parsedFields = 0
@@ -199,10 +199,12 @@ class YonaServer
 				assert fields[0].startsWith("W")
 				weekOffset = Integer.parseInt(fields[0].substring(1))
 				parsedFields++
+			// Fall through
 			case 2:
 				int weekDay = DateTimeFormatter.ofPattern("eee").parse(fields[parsedFields]).get(ChronoField.DAY_OF_WEEK)
 				dayOffset = weekDay - now.dayOfWeek.value
 				parsedFields++
+			// Fall through
 			case 1:
 				ZonedDateTime dateTime = parseTimeForDay(fields[parsedFields], now.plusDays(dayOffset).plusWeeks(weekOffset).getLong(ChronoField.EPOCH_DAY))
 				assert dateTime.compareTo(ZonedDateTime.now()) <= 0 // Must be in the past
@@ -218,5 +220,42 @@ class YonaServer
 				.toFormatter()
 				.withZone(ZoneId.of("Europe/Amsterdam"))
 		ZonedDateTime.parse(timeString, formatter)
+	}
+
+	static def relativeDateStringToDaysOffset(relativeDateTimeString)
+	{
+		def fields = relativeDateTimeString.tokenize(' ')
+		assert fields.size() >= 1
+		assert fields.size() <= 2
+		int parsedFields = 0
+		int weekOffset = 0
+
+		switch (fields.size())
+		{
+			case 2:
+				assert fields[0].startsWith("W")
+				weekOffset = Integer.parseInt(fields[0].substring(1)) * -1
+				assert weekOffset >= 0
+				parsedFields++
+			// Fall through
+			case 1:
+				int weekDay = getDayOfWeek(DateTimeFormatter.ofPattern("eee").parse(fields[parsedFields]).get(ChronoField.DAY_OF_WEEK))
+				return weekOffset * 7 - weekDay + LocalDateTime.now().dayOfWeek.value
+		}
+	}
+
+	public static int getCurrentDayOfWeek()
+	{
+		getDayOfWeek(ZonedDateTime.now())
+	}
+
+	public static int getDayOfWeek(ZonedDateTime dateTime)
+	{
+		getDayOfWeek(dateTime.dayOfWeek.value)
+	}
+
+	public static int getDayOfWeek(int javaDayOfWeek)
+	{
+		(javaDayOfWeek == 7) ? 0 : javaDayOfWeek
 	}
 }

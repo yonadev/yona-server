@@ -44,6 +44,9 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	@Shared
 	public String SOCIAL_ACT_CAT_URL = appService.composeActivityCategoryUrl("27395d17-7022-4f71-9daf-f431ff4f11e8")
 
+	@Shared
+	private def fullDay = [ Sun: "SUNDAY", Mon : "MONDAY", Tue : "TUESDAY", Wed : "WEDNESDAY", Thu : "THURSDAY", Fri: "FRIDAY", Sat: "SATURDAY" ]
+
 	User addRichard()
 	{
 		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
@@ -104,14 +107,14 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	void setGoalCreationTime(User user, activityCategoryURL, relativeCreationDateTimeString)
 	{
 		Goal goal = user.findGoal(activityCategoryURL)
-		goal.creationTime = YonaServer.parseRelativeDateString(relativeCreationDateTimeString)
+		goal.creationTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
 		def response = appService.updateGoal(user, goal.url, goal)
 		assert response.status == 200
 	}
 
 	void addTimeZoneGoal(User user, activityCategoryURL, zones, relativeCreationDateTimeString)
 	{
-		ZonedDateTime creationTime = YonaServer.parseRelativeDateString(relativeCreationDateTimeString)
+		ZonedDateTime creationTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
 		appService.addGoal(appService.&assertResponseStatusCreated, user, TimeZoneGoal.createInstance(creationTime, activityCategoryURL, zones.toArray()))
 	}
 
@@ -122,8 +125,8 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	AppActivity createAppActivity(def appName, def relativeStartDateTimeString, relativeEndDateTimeString)
 	{
-		def startDateTime = YonaServer.parseRelativeDateString(relativeStartDateTimeString)
-		def endDateTime = YonaServer.parseRelativeDateString(relativeEndDateTimeString)
+		def startDateTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeStartDateTimeString)
+		def endDateTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeEndDateTimeString)
 		AppActivity.singleActivity(appName, startDateTime, endDateTime)
 	}
 
@@ -137,6 +140,77 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	}
 	void reportNetworkActivity(User user, def categories, def url, relativeDateTimeString)
 	{
-		analysisService.postToAnalysisEngine(user, categories, url, YonaServer.parseRelativeDateString(relativeDateTimeString))
+		analysisService.postToAnalysisEngine(user, categories, url, YonaServer.relativeDateTimeStringToZonedDateTime(relativeDateTimeString))
+	}
+
+	void assertNumberOfReportedGoalsInWeekOverview(weekActivityOverview, numberOfReportedGoals)
+	{
+		assert weekActivityOverview?.date =~ /\d{4}\-W\d{2}/
+		assert weekActivityOverview._embedded?."yona:weekActivities"?.size() == numberOfReportedGoals
+	}
+
+	void assertNumberOfReportedDaysForGoalInWeekOverview(weekActivityOverview, goalUrl, numberOfReportedDays)
+	{
+		def weekActivityForGoal = weekActivityOverview._embedded."yona:weekActivities".find{ it._links."yona:goal".href == goalUrl}
+		assert weekActivityForGoal.spread == null //only in detail
+		assert weekActivityForGoal.totalActivityDurationMinutes == null //only in detail
+		assert weekActivityForGoal.totalMinutesBeyondGoal == null //only for day
+		assert weekActivityForGoal.date == null // Only for day
+		assert weekActivityForGoal.timeZoneId == "Europe/Amsterdam"
+		assert weekActivityForGoal._links."yona:goal"
+		assert weekActivityForGoal?._embedded.size() == numberOfReportedDays
+	}
+
+	void assertDayInWeekOverviewForGoal(weekActivityOverview, goalUrl, shortDay, activityDurationMinutes, goalAccomplished, totalMinutesBeyondGoal)
+	{
+		def weekActivityForGoal = weekActivityOverview._embedded."yona:weekActivities".find{ it._links."yona:goal".href == goalUrl}
+		def dayActivityForGoal = weekActivityForGoal._embedded[fullDay[shortDay]]
+		assert dayActivityForGoal
+		assert dayActivityForGoal.spread == null //only in detail
+		assert dayActivityForGoal.totalActivityDurationMinutes == activityDurationMinutes
+		assert dayActivityForGoal.goalAccomplished == goalAccomplished
+		assert dayActivityForGoal.totalMinutesBeyondGoal == totalMinutesBeyondGoal
+		assert dayActivityForGoal.timeZoneId == "Europe/Amsterdam"
+		assert dayActivityForGoal._links."yona:goal" == null //already present on week
+	}
+
+	void assertDayOverviewForTimeZoneGoal(response, expectedNumberOfGoalsForDay, goalUrl, relativeDateString, activityDurationMinutes, goalAccomplished, totalMinutesBeyondGoal)
+	{
+		def dayOffset = YonaServer.relativeDateStringToDaysOffset(relativeDateString)
+		def dayActivityOverview = response.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
+		assert dayActivityOverview?.date =~ /\d{4}\-\d{2}\-\d{2}/
+		assert dayActivityOverview._embedded?."yona:dayActivities"?.size() == expectedNumberOfGoalsForDay
+		def dayActivityForBudgetGoal = dayActivityOverview._embedded."yona:dayActivities".find{ it._links."yona:goal".href == goalUrl}
+		assert dayActivityForBudgetGoal?.spread.size() == 96
+		assert dayActivityForBudgetGoal.totalActivityDurationMinutes == activityDurationMinutes
+		assert dayActivityForBudgetGoal.goalAccomplished == goalAccomplished
+		assert dayActivityForBudgetGoal.totalMinutesBeyondGoal == totalMinutesBeyondGoal
+		assert dayActivityForBudgetGoal.date == null
+		assert dayActivityForBudgetGoal.timeZoneId == "Europe/Amsterdam"
+		assert dayActivityForBudgetGoal._links.self
+	}
+
+	void assertDayOverviewForBudgetGoal(response, expectedNumberOfGoalsForDay, goalUrl, relativeDateString, activityDurationMinutes, goalAccomplished, totalMinutesBeyondGoal)
+	{
+		def dayOffset = YonaServer.relativeDateStringToDaysOffset(relativeDateString)
+		def dayActivityOverview = response.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
+		assert dayActivityOverview?.date =~ /\d{4}\-\d{2}\-\d{2}/
+		assert dayActivityOverview._embedded?."yona:dayActivities"?.size() == expectedNumberOfGoalsForDay
+		def dayActivityForBudgetGoal = dayActivityOverview._embedded."yona:dayActivities".find{ it._links."yona:goal".href == goalUrl}
+		assert dayActivityForBudgetGoal?.spread == null
+		assert dayActivityForBudgetGoal.totalActivityDurationMinutes == activityDurationMinutes
+		assert dayActivityForBudgetGoal.goalAccomplished == goalAccomplished
+		assert dayActivityForBudgetGoal.totalMinutesBeyondGoal == totalMinutesBeyondGoal
+		assert dayActivityForBudgetGoal.date == null
+		assert dayActivityForBudgetGoal.timeZoneId == "Europe/Amsterdam"
+		assert dayActivityForBudgetGoal._links.self
+	}
+
+	void assertNumberOfReportedDaysInDayOverview(response, daysBeforeThisWeek)
+	{
+		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
+		assert response.status == 200
+		assert response.responseData._embedded?."yona:dayActivityOverviews"?.size() == daysBeforeThisWeek + currentDayOfWeek + 1
+		assert response.responseData._links?.next?.href != null
 	}
 }

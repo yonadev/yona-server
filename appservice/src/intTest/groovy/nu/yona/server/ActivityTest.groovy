@@ -13,7 +13,6 @@ import java.time.ZonedDateTime
 
 import nu.yona.server.test.TimeZoneGoal
 import nu.yona.server.test.User
-import spock.lang.Ignore
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
@@ -22,50 +21,60 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	def richardDailyActivityReportsUrlForBob, richardWeeklyActivityReportsUrlForBob
 	def dateTime
 
-	@Ignore
 	def 'New style test'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
-		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-2 Mon 02:18")
-		reportAppActivity(richard, "NU.nl", "W-1 Mon 01:18", "W-1 Mon 02:28")
-		reportAppActivities(richard, [createAppActivity("NU.nl", "W-1 Mon 08:45", "W-1 Mon 09:05"), createAppActivity("Facebook", "W-1 Mon 09:05", "W-1 Mon 09:28")])
-		addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["11:00-12:00"], "W-1 Wed 13:54")
-		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Wed 11:02")
-		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
 
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
+		reportAppActivities(richard, [createAppActivity("NU.nl", "W-1 Tue 08:45", "W-1 Tue 09:10"), createAppActivity("Facebook", "W-1 Tue 09:35", "W-1 Mon 10:10")])
+		addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["11:00-12:00"], "W-1 Wed 13:55")
+		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Wed 15:00")
+		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Thu 11:30")
+
+		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
 		def budgetGoalNewsUrl = richard.findGoal(NEWS_ACT_CAT_URL).url
+		def timeZoneGoalSocialUrl = richard.findGoal(SOCIAL_ACT_CAT_URL).url
 
 		when:
-		def response = appService.getWeekActivityOverviews(richard)
+		def responseWeekOverviews = appService.getWeekActivityOverviews(richard)
+		def responseDayOverviews = appService.getDayActivityOverviews(richard)
 
 		then:
-		response.status == 200
-		response.responseData._embedded?."yona:weekActivityOverviews"?.size() == 2
-		response.responseData._links?.next?.href != null
-		def weekActivityOverview = response.responseData._embedded."yona:weekActivityOverviews"[1]
-		weekActivityOverview.date =~ /\d{4}\-W\d{2}/
-		weekActivityOverview._embedded."yona:weekActivities"
-		weekActivityOverview._embedded."yona:weekActivities".size() == 1
-		def weekActivityForGoal = weekActivityOverview._embedded."yona:weekActivities".find{ it._links."yona:goal".href == budgetGoalNewsUrl}
-		!weekActivityForGoal.spread //only in detail
-		!weekActivityForGoal.totalActivityDurationMinutes //only in detail
-		!weekActivityForGoal.totalMinutesBeyondGoal //only for day
-		!weekActivityForGoal.date
-		weekActivityForGoal.timeZoneId == "Europe/Amsterdam"
-		weekActivityForGoal._links."yona:goal"
-		weekActivityForGoal._embedded[dateTime.getDayOfWeek().toString()]
-		weekActivityForGoal._embedded.size() == 1
-		def dayActivityForGoal = weekActivityForGoal._embedded[1]
-		!dayActivityForGoal.spread //only in detail
-		dayActivityForGoal.totalActivityDurationMinutes == 1
-		dayActivityForGoal.goalAccomplished == false
-		dayActivityForGoal.totalMinutesBeyondGoal == 1
-		!weekActivityForGoal.date
-		dayActivityForGoal.timeZoneId == "Europe/Amsterdam"
-		!dayActivityForGoal._links."yona:goal" //already present on week
+		responseWeekOverviews.status == 200
+		responseWeekOverviews.responseData._embedded?."yona:weekActivityOverviews"?.size() == 2
+		responseWeekOverviews.responseData._links?.next?.href != null
+		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		assertNumberOfReportedGoalsInWeekOverview(weekOverviewLastWeek, 2)
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalNewsUrl, 6)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsUrl, "Mon", 20, false, 20)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsUrl, "Tue", 25, false, 25)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsUrl, "Wed", 0, true, 0)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsUrl, "Thu", 0, true, 0)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsUrl, "Fri", 0, true, 0)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsUrl, "Sat", 0, true, 0)
+
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, timeZoneGoalSocialUrl, 4)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialUrl, "Wed", 1, true, 0) // Should be "1, false, 1)", see YD-251
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialUrl, "Thu", 1, true, 0)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialUrl, "Fri", 0, true, 0)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialUrl, "Sat", 0, true, 0)
+
+		assertNumberOfReportedDaysInDayOverview(responseDayOverviews, 6)
+		assertDayOverviewForBudgetGoal(responseDayOverviews, 1, budgetGoalNewsUrl, "W-1 Mon", 20, false, 20)
+		assertDayOverviewForBudgetGoal(responseDayOverviews, 1, budgetGoalNewsUrl, "W-1 Tue", 25, false, 25)
+		assertDayOverviewForBudgetGoal(responseDayOverviews, 2, budgetGoalNewsUrl, "W-1 Wed", 0, true, 0)
+		assertDayOverviewForBudgetGoal(responseDayOverviews, 2, budgetGoalNewsUrl, "W-1 Thu", 0, true, 0)
+		assertDayOverviewForBudgetGoal(responseDayOverviews, 2, budgetGoalNewsUrl, "W-1 Fri", 0, true, 0)
+		assertDayOverviewForBudgetGoal(responseDayOverviews, 2, budgetGoalNewsUrl, "W-1 Sat", 0, true, 0)
+
+		assertDayOverviewForTimeZoneGoal(responseDayOverviews, 2, timeZoneGoalSocialUrl, "W-1 Wed", 1, true, 0) // Should be "1, false, 1)", see YD-251
+		assertDayOverviewForTimeZoneGoal(responseDayOverviews, 2, timeZoneGoalSocialUrl, "W-1 Thu", 1, true, 0)
+		assertDayOverviewForTimeZoneGoal(responseDayOverviews, 2, timeZoneGoalSocialUrl, "W-1 Fri", 0, true, 0)
+		assertDayOverviewForTimeZoneGoal(responseDayOverviews, 2, timeZoneGoalSocialUrl, "W-1 Sat", 0, true, 0)
 
 		cleanup:
 		appService.deleteUser(richard)
