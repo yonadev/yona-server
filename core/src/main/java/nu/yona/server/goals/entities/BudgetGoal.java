@@ -67,7 +67,7 @@ public class BudgetGoal extends Goal
 	@Override
 	public boolean isGoalAccomplished(DayActivity dayActivity)
 	{
-		return dayActivity.getTotalActivityDurationMinutes() < this.getMaxDurationMinutes();
+		return dayActivity.getTotalActivityDurationMinutes() <= this.getMaxDurationMinutes();
 	}
 
 	@Override
