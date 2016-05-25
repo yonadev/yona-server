@@ -213,4 +213,37 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert response.responseData._embedded?."yona:dayActivityOverviews"?.size() == daysBeforeThisWeek + currentDayOfWeek + 1
 		assert response.responseData._links?.next?.href != null
 	}
+
+	void assertWeekDetailForGoal(User user, weekActivityOverview, goalUrl, spreadPerDay)
+	{
+		def totalDurationMinutes = 0
+		spreadPerDay.each{ it.value.spread.each { totalDurationMinutes += it.value }}
+		assert weekActivityOverview._embedded."yona:weekActivities"
+		def weekActivityForGoal = weekActivityOverview._embedded."yona:weekActivities".find{ it._links."yona:goal".href == goalUrl}
+		def response = appService.getResourceWithPassword(weekActivityForGoal._links.self.href, user.password)
+		assert response.status == 200
+		assert response.responseData.spread?.size() == 96
+		def expectedSpread = (0..95).collect { 0 }
+		spreadPerDay.each{ it.value.spread.each { expectedSpread[it.key] += it.value }}
+		assert response.responseData.spread == expectedSpread
+		assert response.responseData.totalActivityDurationMinutes == totalDurationMinutes
+		assert response.responseData.date =~ /\d{4}\-W\d{2}/
+		assert response.responseData.timeZoneId == "Europe/Amsterdam"
+		assert response.responseData._links?."yona:goal"
+		assert response.responseData._embedded?.size() == spreadPerDay.size()
+		spreadPerDay.each
+		{
+			def dayActivityForGoal = response.responseData._embedded[fullDay[it.key]]
+			assert dayActivityForGoal
+			assert dayActivityForGoal.spread == null //only in detail
+			def dayDurationMinutes = 0
+			it.value.spread.each { dayDurationMinutes += it.value }
+			assert dayActivityForGoal.totalActivityDurationMinutes == dayDurationMinutes
+			assert dayActivityForGoal.goalAccomplished == it.value.goalAccomplished
+			assert dayActivityForGoal.totalMinutesBeyondGoal == it.value.minutesBeyondGoal
+			assert dayActivityForGoal.date == null
+			assert dayActivityForGoal.timeZoneId == "Europe/Amsterdam"
+			assert dayActivityForGoal._links."yona:goal" == null //already present on week
+		}
+	}
 }

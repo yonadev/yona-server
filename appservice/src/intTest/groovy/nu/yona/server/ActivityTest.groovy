@@ -57,8 +57,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsUrl, "Fri", 0, true, 0)
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsUrl, "Sat", 0, true, 0)
 
+		assertWeekDetailForGoal(richard, weekOverviewLastWeek, budgetGoalNewsUrl, [ "Mon" : [ goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]],
+			"Tue" : [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35 : 15, 36 : 10]]]) // TODO: Include inactive days, see YD-254
+
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, timeZoneGoalSocialUrl, 4)
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialUrl, "Wed", 1, true, 0) // Should be "1, false, 1)", see YD-251
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialUrl, "Wed", 1, true, 0) // TODO: Should be "1, false, 1)", see YD-251
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialUrl, "Thu", 1, true, 0)
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialUrl, "Fri", 0, true, 0)
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialUrl, "Sat", 0, true, 0)
@@ -71,7 +74,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayOverviewForBudgetGoal(responseDayOverviews, 2, budgetGoalNewsUrl, "W-1 Fri", 0, true, 0)
 		assertDayOverviewForBudgetGoal(responseDayOverviews, 2, budgetGoalNewsUrl, "W-1 Sat", 0, true, 0)
 
-		assertDayOverviewForTimeZoneGoal(responseDayOverviews, 2, timeZoneGoalSocialUrl, "W-1 Wed", 1, true, 0) // Should be "1, false, 1)", see YD-251
+		assertDayOverviewForTimeZoneGoal(responseDayOverviews, 2, timeZoneGoalSocialUrl, "W-1 Wed", 1, true, 0) // TODO: Should be "1, false, 1)", see YD-251
 		assertDayOverviewForTimeZoneGoal(responseDayOverviews, 2, timeZoneGoalSocialUrl, "W-1 Thu", 1, true, 0)
 		assertDayOverviewForTimeZoneGoal(responseDayOverviews, 2, timeZoneGoalSocialUrl, "W-1 Fri", 0, true, 0)
 		assertDayOverviewForTimeZoneGoal(responseDayOverviews, 2, timeZoneGoalSocialUrl, "W-1 Sat", 0, true, 0)
