@@ -222,26 +222,10 @@ class YonaServer
 		ZonedDateTime.parse(timeString, formatter)
 	}
 
-	static def relativeDateStringToDaysOffset(relativeDateTimeString)
+	static def relativeDateStringToDaysOffset(weeksBack, shortDay)
 	{
-		def fields = relativeDateTimeString.tokenize(' ')
-		assert fields.size() >= 1
-		assert fields.size() <= 2
-		int parsedFields = 0
-		int weekOffset = 0
-
-		switch (fields.size())
-		{
-			case 2:
-				assert fields[0].startsWith("W")
-				weekOffset = Integer.parseInt(fields[0].substring(1)) * -1
-				assert weekOffset >= 0
-				parsedFields++
-			// Fall through
-			case 1:
-				int weekDay = getDayOfWeek(DateTimeFormatter.ofPattern("eee").parse(fields[parsedFields]).get(ChronoField.DAY_OF_WEEK))
-				return weekOffset * 7 - weekDay + LocalDateTime.now().dayOfWeek.value
-		}
+		int weekDay = getDayOfWeek(DateTimeFormatter.ofPattern("eee").parse(shortDay).get(ChronoField.DAY_OF_WEEK))
+		return weeksBack * 7 - weekDay + LocalDateTime.now().dayOfWeek.value
 	}
 
 	public static int getCurrentDayOfWeek()
