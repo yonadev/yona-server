@@ -208,7 +208,7 @@ class AppService extends Service
 		response.status >= 200 && response.status < 300
 	}
 
-	def makeBuddies(requestingUser, respondingUser)
+	void makeBuddies(requestingUser, respondingUser)
 	{
 		sendBuddyConnectRequest(requestingUser, respondingUser)
 		def acceptURL = fetchBuddyConnectRequestMessage(respondingUser).acceptURL
