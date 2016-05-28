@@ -2067,6 +2067,10 @@ definitions:
         format: date
         example: 2016-03-16
         description: The day date in ISO 8601 format (yyyy-MM-dd)
+      timeZoneId:
+        type: string
+        description: The time zone identifier that the user had configured when this day started.
+        example: Europe/Amsterdam
       dayActivities:
         type: array
         items:
