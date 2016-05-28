@@ -53,11 +53,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def responseDayOverviews = appService.getDayActivityOverviews(richard)
 
 		then:
-		responseWeekOverviews.status == 200
-		responseWeekOverviews.responseData._embedded?."yona:weekActivityOverviews"?.size() == 2
-		responseWeekOverviews.responseData._links?.next?.href != null
+		assertWeekOverviewBasics(responseWeekOverviews, [3, 2])
 		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
-		assertNumberOfReportedGoalsInWeekOverview(weekOverviewLastWeek, 2)
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalNewsUrl, 6)
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsUrl, expectedValuesLastWeek, "Mon")
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsUrl, expectedValuesLastWeek, "Tue")
@@ -74,7 +71,6 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialUrl, expectedValuesLastWeek, "Fri")
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialUrl, expectedValuesLastWeek, "Sat")
 
-		assertNumberOfReportedDaysInDayOverview(responseDayOverviews, 6)
 		assertDayOverviewForBudgetGoal(responseDayOverviews, budgetGoalNewsUrl, expectedValuesLastWeek, 1, "Mon")
 		assertDayOverviewForBudgetGoal(responseDayOverviews, budgetGoalNewsUrl, expectedValuesLastWeek, 1, "Tue")
 		assertDayOverviewForBudgetGoal(responseDayOverviews, budgetGoalNewsUrl, expectedValuesLastWeek, 1, "Wed")
@@ -100,7 +96,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayDetail(richard, responseDayOverviews, timeZoneGoalSocialUrl, expectedValuesLastWeek, 1, "Sat")
 
 		cleanup:
-		appService.deleteUser(richard)
+		println "richardWeekActivityReportsURL:$richard.weeklyActivityReportsUrl"
+		//appService.deleteUser(richard)
 		appService.deleteUser(bob)
 	}
 
@@ -169,26 +166,26 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assert response.responseData._embedded."yona:dayActivityOverviews".size() == 1
 		def dayActivityOverview = response.responseData._embedded."yona:dayActivityOverviews"[0]
 		assert dayActivityOverview.date =~ /\d{4}\-\d{2}\-\d{2}/
-		assert dayActivityOverview._embedded."yona:dayActivities"
-		assert dayActivityOverview._embedded."yona:dayActivities".size() == 3
-		def dayActivityForBudgetGoal = dayActivityOverview._embedded."yona:dayActivities".find{ it._links."yona:goal".href == budgetGoalGamblingUrl}
+		assert dayActivityOverview.dayActivities
+		assert dayActivityOverview.dayActivities.size() == 3
+		def dayActivityForBudgetGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == budgetGoalGamblingUrl}
 		assert dayActivityForBudgetGoal
 		assert !dayActivityForBudgetGoal.spread
 		assert dayActivityForBudgetGoal.totalActivityDurationMinutes == 1
 		assert dayActivityForBudgetGoal.goalAccomplished == false
 		assert dayActivityForBudgetGoal.totalMinutesBeyondGoal == 1
-		assert !dayActivityForBudgetGoal.date
-		assert dayActivityForBudgetGoal.timeZoneId == "Europe/Amsterdam"
+		assert dayActivityForBudgetGoal.date == null
+		assert dayActivityForBudgetGoal.timeZoneId == null
 		assert dayActivityForBudgetGoal._links."yona:goal"
-		assert dayActivityForBudgetGoal._links.self
+		assert dayActivityForBudgetGoal._links."yona:dayDetails"
 
 		//time zone goal should have spread
-		def dayActivityForTimeZoneGoal = dayActivityOverview._embedded."yona:dayActivities".find{ it._links."yona:goal".href == timeZoneGoalUrl}
+		def dayActivityForTimeZoneGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == timeZoneGoalUrl}
 		assert dayActivityForTimeZoneGoal
 		assert dayActivityForTimeZoneGoal.spread
 		assert dayActivityForTimeZoneGoal.spread.size() == 96
 
-		def inactivityDayActivityForBudgetGoal = dayActivityOverview._embedded."yona:dayActivities".find{ it._links."yona:goal".href == budgetGoalNewsUrl}
+		def inactivityDayActivityForBudgetGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == budgetGoalNewsUrl}
 		assert inactivityDayActivityForBudgetGoal.totalActivityDurationMinutes == 0
 		assert inactivityDayActivityForBudgetGoal.totalMinutesBeyondGoal == 0
 	}
@@ -223,11 +220,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assert overviewsResponse.responseData._embedded."yona:dayActivityOverviews"
 		assert overviewsResponse.responseData._embedded."yona:dayActivityOverviews".size() == 1
 		def dayActivityOverview = overviewsResponse.responseData._embedded."yona:dayActivityOverviews"[0]
-		assert dayActivityOverview._embedded."yona:dayActivities"
-		assert dayActivityOverview._embedded."yona:dayActivities".size() == 3
-		def dayActivityForGoal = dayActivityOverview._embedded."yona:dayActivities".find{ it._links."yona:goal".href == budgetGoalGamblingUrl}
-		assert dayActivityForGoal?._links?.self?.href
-		def response = appService.getResourceWithPassword(dayActivityForGoal._links.self.href, fromUser.password)
+		assert dayActivityOverview.dayActivities
+		assert dayActivityOverview.dayActivities.size() == 3
+		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == budgetGoalGamblingUrl}
+		assert dayActivityForGoal?._links?."yona:dayDetails"?.href
+		def response = appService.getResourceWithPassword(dayActivityForGoal._links."yona:dayDetails".href, fromUser.password)
 		assert response.status == 200
 		assert response.responseData.spread
 		assert response.responseData.spread.size() == 96
@@ -271,28 +268,31 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assert response.responseData._embedded."yona:weekActivityOverviews".size() == 1
 		def weekActivityOverview = response.responseData._embedded."yona:weekActivityOverviews"[0]
 		assert weekActivityOverview.date =~ /\d{4}\-W\d{2}/
-		assert weekActivityOverview._embedded."yona:weekActivities"
-		assert weekActivityOverview._embedded."yona:weekActivities".size() == 3
-		def weekActivityForGoal = weekActivityOverview._embedded."yona:weekActivities".find{ it._links."yona:goal".href == budgetGoalGamblingUrl}
+		assert weekActivityOverview.weekActivities
+		assert weekActivityOverview.weekActivities.size() == 3
+		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == budgetGoalGamblingUrl}
 		assert !weekActivityForGoal.spread //only in detail
 		assert !weekActivityForGoal.totalActivityDurationMinutes //only in detail
 		assert !weekActivityForGoal.totalMinutesBeyondGoal //only for day
-		assert !weekActivityForGoal.date
-		assert weekActivityForGoal.timeZoneId == "Europe/Amsterdam"
+		assert weekActivityForGoal.date == null
+		assert weekActivityForGoal.timeZoneId == null
 		assert weekActivityForGoal._links."yona:goal"
-		assert weekActivityForGoal._embedded[dateTime.getDayOfWeek().toString()]
-		assert weekActivityForGoal._embedded.size() == 1
-		def dayActivityForGoal = weekActivityForGoal._embedded[dateTime.getDayOfWeek().toString()]
+		assert weekActivityForGoal.dayActivities.size() == 1
+		assert weekActivityForGoal.dayActivities[dateTime.getDayOfWeek().toString()]
+		def dayActivityForGoal = weekActivityForGoal.dayActivities[dateTime.getDayOfWeek().toString()]
 		assert !dayActivityForGoal.spread //only in detail
 		assert dayActivityForGoal.totalActivityDurationMinutes == 1
 		assert dayActivityForGoal.goalAccomplished == false
 		assert dayActivityForGoal.totalMinutesBeyondGoal == 1
-		assert !weekActivityForGoal.date
-		assert dayActivityForGoal.timeZoneId == "Europe/Amsterdam"
-		assert !dayActivityForGoal._links."yona:goal" //already present on week
+		assert weekActivityForGoal.date == null
+		assert dayActivityForGoal.timeZoneId == null
+		assert dayActivityForGoal._links."yona:goal" == null //already present on week
 
-		def inactivityWeekActivityForGoal = weekActivityOverview._embedded."yona:weekActivities".find{ it._links."yona:goal".href == budgetGoalNewsUrl}
-		assert !inactivityWeekActivityForGoal._embedded."yona:dayActivities"
+		def inactivityWeekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == budgetGoalNewsUrl}
+		inactivityWeekActivityForGoal.dayActivities.each {
+			assert it.value.goalAccomplished
+			assert it.value.totalActivityDurationMinutes == 0
+			assert it.value.totalMinutesBeyondGoal == 0}
 	}
 
 	def 'Get week activity detail'()
@@ -325,11 +325,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assert overviewsResponse.responseData._embedded."yona:weekActivityOverviews"
 		assert overviewsResponse.responseData._embedded."yona:weekActivityOverviews".size() == 1
 		def weekActivityOverview = overviewsResponse.responseData._embedded."yona:weekActivityOverviews"[0]
-		assert weekActivityOverview._embedded."yona:weekActivities"
-		assert weekActivityOverview._embedded."yona:weekActivities".size() == 3
-		def weekActivityForGoal = weekActivityOverview._embedded."yona:weekActivities".find{ it._links."yona:goal".href == budgetGoalGamblingUrl}
-		assert weekActivityForGoal._links.self
-		def response = appService.getResourceWithPassword(weekActivityForGoal._links.self.href, fromUser.password)
+		assert weekActivityOverview.weekActivities
+		assert weekActivityOverview.weekActivities.size() == 3
+		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == budgetGoalGamblingUrl}
+		assert weekActivityForGoal._links."yona:weekDetails"
+		def response = appService.getResourceWithPassword(weekActivityForGoal._links."yona:weekDetails".href, fromUser.password)
 		assert response.status == 200
 		assert response.responseData.spread
 		assert response.responseData.spread.size() == 96
@@ -337,15 +337,15 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assert response.responseData.date =~ /\d{4}\-W\d{2}/
 		assert response.responseData.timeZoneId == "Europe/Amsterdam"
 		assert response.responseData._links."yona:goal"
-		assert response.responseData._embedded[dateTime.getDayOfWeek().toString()]
-		assert response.responseData._embedded.size() == 1
-		def dayActivityForGoal = response.responseData._embedded[dateTime.getDayOfWeek().toString()]
+		assert response.responseData.dayActivities.size() == 1
+		assert response.responseData.dayActivities[dateTime.getDayOfWeek().toString()]
+		def dayActivityForGoal = response.responseData.dayActivities[dateTime.getDayOfWeek().toString()]
 		assert !dayActivityForGoal.spread //only in detail
 		assert dayActivityForGoal.totalActivityDurationMinutes == 1
 		assert dayActivityForGoal.goalAccomplished == false
 		assert dayActivityForGoal.totalMinutesBeyondGoal == 1
-		assert !dayActivityForGoal.date
-		assert dayActivityForGoal.timeZoneId == "Europe/Amsterdam"
-		assert !dayActivityForGoal._links."yona:goal" //already present on week
+		assert dayActivityForGoal.date == null
+		assert dayActivityForGoal.timeZoneId == null
+		assert dayActivityForGoal._links."yona:goal" == null //already present on week
 	}
 }

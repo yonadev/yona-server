@@ -1201,6 +1201,28 @@ definitions:
           href:
             type: string
             description: Refers to the previous page
+  FirstLink:
+    type: object
+    properties:
+      first:
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Refers to the first page
+  LastLink:
+    type: object
+    properties:
+      last:
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Refers to the last page
   UserLink:
     type: object
     properties:
@@ -1286,6 +1308,7 @@ definitions:
         properties:
           size:
             type: string
+            example: 20
             description: The number of elements on the current page
           totalElements:
             type: string
@@ -1898,6 +1921,8 @@ definitions:
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/NextLink'
           - $ref: '#/definitions/PrevLink'
+          - $ref: '#/definitions/FirstLink'
+          - $ref: '#/definitions/LastLink'
         required:
           - self
     required:
@@ -1923,8 +1948,7 @@ definitions:
         allOf:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
-        required:
-          - self
+        description: The self link is currently not returned from the server. See YD-203
     required:
       - _links
       - date
@@ -1933,20 +1957,22 @@ definitions:
   WeekGoalActivityOverview:
     type: object
     properties:
-      SUNDAY:
-          $ref: '#/definitions/DayGoalActivityInWeek'
-      MONDAY:
-          $ref: '#/definitions/DayGoalActivityInWeek'
-      TUESDAY:
-          $ref: '#/definitions/DayGoalActivityInWeek'
-      WEDNESDAY:
-          $ref: '#/definitions/DayGoalActivityInWeek'
-      THURSDAY:
-          $ref: '#/definitions/DayGoalActivityInWeek'
-      FRIDAY:
-          $ref: '#/definitions/DayGoalActivityInWeek'
-      SATURDAY:
-          $ref: '#/definitions/DayGoalActivityInWeek'
+      dayActivities:
+        properties:
+          SUNDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          MONDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          TUESDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          WEDNESDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          THURSDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          FRIDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          SATURDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
       _links:
         allOf:
           - $ref: '#/definitions/GoalLink'
@@ -1981,20 +2007,22 @@ definitions:
       totalActivityDurationMinutes:
         type: integer
         description: Total minutes spent on the activity category during this week.
-      SUNDAY:
-          $ref: '#/definitions/DayGoalActivityInWeek'
-      MONDAY:
-          $ref: '#/definitions/DayGoalActivityInWeek'
-      TUESDAY:
-          $ref: '#/definitions/DayGoalActivityInWeek'
-      WEDNESDAY:
-          $ref: '#/definitions/DayGoalActivityInWeek'
-      THURSDAY:
-          $ref: '#/definitions/DayGoalActivityInWeek'
-      FRIDAY:
-          $ref: '#/definitions/DayGoalActivityInWeek'
-      SATURDAY:
-          $ref: '#/definitions/DayGoalActivityInWeek'
+      dayActivities:
+        properties:
+          SUNDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          MONDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          TUESDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          WEDNESDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          THURSDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          FRIDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          SATURDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
       _links:
         allOf:
           - $ref: '#/definitions/Curies'
@@ -2022,6 +2050,8 @@ definitions:
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/NextLink'
           - $ref: '#/definitions/PrevLink'
+          - $ref: '#/definitions/FirstLink'
+          - $ref: '#/definitions/LastLink'
         required:
           - curies
           - self
@@ -2045,6 +2075,7 @@ definitions:
         allOf:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
+        description: The self link is currently not returned from the server. See YD-203
     required:
       - date
       - dayActivities
@@ -2140,6 +2171,8 @@ definitions:
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/NextLink'
           - $ref: '#/definitions/PrevLink'
+          - $ref: '#/definitions/FirstLink'
+          - $ref: '#/definitions/LastLink'
         required:
           - self
       _embedded:

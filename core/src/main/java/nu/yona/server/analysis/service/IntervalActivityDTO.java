@@ -45,7 +45,7 @@ public abstract class IntervalActivityDTO
 		return startTime;
 	}
 
-	/*
+	/**
 	 * The ISO-8601 week or day date, or {null} if it should not be serialized.
 	 */
 	@JsonInclude(Include.NON_EMPTY)
@@ -74,11 +74,16 @@ public abstract class IntervalActivityDTO
 	@JsonIgnore
 	public abstract DateTimeFormatter getDateFormatter();
 
-	/*
-	 * The time zone in which the interval was recorded.
+	/**
+	 * The time zone in which the interval was recorded, or {null} if the date should not be serialized.
 	 */
+	@JsonInclude(Include.NON_EMPTY)
 	public String getTimeZoneId()
 	{
+		if (!shouldSerializeDate)
+		{
+			return null;
+		}
 		return startTime.getZone().getId();
 	}
 

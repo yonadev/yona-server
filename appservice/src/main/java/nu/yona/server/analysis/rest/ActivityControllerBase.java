@@ -2,7 +2,6 @@ package nu.yona.server.analysis.rest;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -15,16 +14,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import nu.yona.server.analysis.service.ActivityService;
 import nu.yona.server.analysis.service.DayActivityDTO;
@@ -45,9 +44,6 @@ abstract class ActivityControllerBase
 	@Autowired
 	private UserService userService;
 
-	@Autowired
-	private CurieProvider curieProvider;
-
 	protected final String WEEK_ACTIVITY_OVERVIEWS_URI_FRAGMENT = "/weeks/";
 	protected final String DAY_OVERVIEWS_URI_FRAGMENT = "/days/";
 	protected final String WEEK_ACTIVITY_DETAIL_URI_FRAGMENT = "/weeks/{date}/details/{goalID}";
@@ -61,7 +57,7 @@ abstract class ActivityControllerBase
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
-						new WeekActivityOverviewResourceAssembler(linkProvider, curieProvider)), HttpStatus.OK));
+						new WeekActivityOverviewResourceAssembler(linkProvider)), HttpStatus.OK));
 	}
 
 	protected HttpEntity<PagedResources<DayActivityOverviewResource>> getDayActivityOverviews(Optional<String> password,
@@ -70,18 +66,17 @@ abstract class ActivityControllerBase
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
-						new DayActivityOverviewResourceAssembler(linkProvider, curieProvider)), HttpStatus.OK));
+						new DayActivityOverviewResourceAssembler(linkProvider)), HttpStatus.OK));
 	}
 
 	protected HttpEntity<WeekActivityResource> getWeekActivityDetail(Optional<String> password, UUID userID, String dateStr,
 			Function<LocalDate, WeekActivityDTO> activitySupplier, LinkProvider linkProvider)
 	{
 		LocalDate date = WeekActivityDTO.parseDate(dateStr);
-		return CryptoSession
-				.execute(password, () -> userService.canAccessPrivateData(userID),
-						() -> new ResponseEntity<>(
-								new WeekActivityResourceAssembler(linkProvider).toResource(activitySupplier.apply(date)),
-								HttpStatus.OK));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> new ResponseEntity<>(
+						new WeekActivityResourceAssembler(linkProvider, true).toResource(activitySupplier.apply(date)),
+						HttpStatus.OK));
 	}
 
 	protected HttpEntity<DayActivityResource> getDayActivityDetail(Optional<String> password, UUID userID, String dateStr,
@@ -90,7 +85,7 @@ abstract class ActivityControllerBase
 		LocalDate date = DayActivityDTO.parseDate(dateStr);
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> new ResponseEntity<>(
-						new DayActivityResourceAssembler(linkProvider, true).toResource(activitySupplier.apply(date)),
+						new DayActivityResourceAssembler(linkProvider, true, true).toResource(activitySupplier.apply(date)),
 						HttpStatus.OK));
 	}
 
@@ -113,10 +108,10 @@ abstract class ActivityControllerBase
 			this.linkProvider = linkProvider;
 		}
 
-		@JsonProperty("_embedded")
-		public Map<DayOfWeek, DayActivityResource> getEmbeddedResources()
+		@JsonFormat(shape = JsonFormat.Shape.OBJECT)
+		public Map<DayOfWeek, DayActivityResource> getDayActivities()
 		{
-			DayActivityResourceAssembler a = new DayActivityResourceAssembler(linkProvider, false);
+			DayActivityResourceAssembler a = new DayActivityResourceAssembler(linkProvider, false, false);
 			return getContent().getDayActivities().entrySet().stream()
 					.collect(Collectors.toMap(e -> e.getKey(), e -> a.toResource(e.getValue())));
 		}
@@ -125,23 +120,16 @@ abstract class ActivityControllerBase
 	static class WeekActivityOverviewResource extends Resource<WeekActivityOverviewDTO>
 	{
 		private final LinkProvider linkProvider;
-		private final CurieProvider curieProvider;
 
-		public WeekActivityOverviewResource(LinkProvider linkProvider, CurieProvider curieProvider,
-				WeekActivityOverviewDTO weekActivityOverview)
+		public WeekActivityOverviewResource(LinkProvider linkProvider, WeekActivityOverviewDTO weekActivityOverview)
 		{
 			super(weekActivityOverview);
 			this.linkProvider = linkProvider;
-			this.curieProvider = curieProvider;
 		}
 
-		@JsonProperty("_embedded")
-		public Map<String, List<WeekActivityResource>> getEmbeddedResources()
+		public List<WeekActivityResource> getWeekActivities()
 		{
-			HashMap<String, List<WeekActivityResource>> result = new HashMap<String, List<WeekActivityResource>>();
-			result.put(curieProvider.getNamespacedRelFor("weekActivities"),
-					new WeekActivityResourceAssembler(linkProvider).toResources(getContent().getWeekActivities()));
-			return result;
+			return new WeekActivityResourceAssembler(linkProvider, false).toResources(getContent().getWeekActivities());
 		}
 	}
 
@@ -158,23 +146,16 @@ abstract class ActivityControllerBase
 	static class DayActivityOverviewResource extends Resource<DayActivityOverviewDTO>
 	{
 		private final LinkProvider linkProvider;
-		private final CurieProvider curieProvider;
 
-		public DayActivityOverviewResource(LinkProvider linkProvider, CurieProvider curieProvider,
-				DayActivityOverviewDTO dayActivityOverview)
+		public DayActivityOverviewResource(LinkProvider linkProvider, DayActivityOverviewDTO dayActivityOverview)
 		{
 			super(dayActivityOverview);
 			this.linkProvider = linkProvider;
-			this.curieProvider = curieProvider;
 		}
 
-		@JsonProperty("_embedded")
-		public Map<String, List<DayActivityResource>> getEmbeddedResources()
+		public List<DayActivityResource> getDayActivities()
 		{
-			HashMap<String, List<DayActivityResource>> result = new HashMap<String, List<DayActivityResource>>();
-			result.put(curieProvider.getNamespacedRelFor("dayActivities"),
-					new DayActivityResourceAssembler(linkProvider, true).toResources(getContent().getDayActivities()));
-			return result;
+			return new DayActivityResourceAssembler(linkProvider, true, false).toResources(getContent().getDayActivities());
 		}
 	}
 
@@ -182,13 +163,11 @@ abstract class ActivityControllerBase
 			extends ResourceAssemblerSupport<WeekActivityOverviewDTO, WeekActivityOverviewResource>
 	{
 		private final LinkProvider linkProvider;
-		private final CurieProvider curieProvider;
 
-		public WeekActivityOverviewResourceAssembler(LinkProvider linkProvider, CurieProvider curieProvider)
+		public WeekActivityOverviewResourceAssembler(LinkProvider linkProvider)
 		{
 			super(ActivityControllerBase.class, WeekActivityOverviewResource.class);
 			this.linkProvider = linkProvider;
-			this.curieProvider = curieProvider;
 		}
 
 		@Override
@@ -201,25 +180,34 @@ abstract class ActivityControllerBase
 		@Override
 		protected WeekActivityOverviewResource instantiateResource(WeekActivityOverviewDTO weekActivityOverview)
 		{
-			return new WeekActivityOverviewResource(linkProvider, curieProvider, weekActivityOverview);
+			return new WeekActivityOverviewResource(linkProvider, weekActivityOverview);
 		}
 	}
 
 	static class WeekActivityResourceAssembler extends ResourceAssemblerSupport<WeekActivityDTO, WeekActivityResource>
 	{
 		private final LinkProvider linkProvider;
+		private boolean addSelfLink;
 
-		public WeekActivityResourceAssembler(LinkProvider linkProvider)
+		public WeekActivityResourceAssembler(LinkProvider linkProvider, boolean addSelfLink)
 		{
 			super(ActivityControllerBase.class, WeekActivityResource.class);
 			this.linkProvider = linkProvider;
+			this.addSelfLink = addSelfLink;
 		}
 
 		@Override
 		public WeekActivityResource toResource(WeekActivityDTO weekActivity)
 		{
 			WeekActivityResource weekActivityResource = instantiateResource(weekActivity);
-			addSelfLink(weekActivityResource);
+			if (addSelfLink)
+			{
+				addWeekDetailsLink(weekActivityResource, Link.REL_SELF);
+			}
+			else
+			{
+				addWeekDetailsLink(weekActivityResource, "weekDetails");
+			}
 			addGoalLink(weekActivityResource);
 			return weekActivityResource;
 		}
@@ -230,10 +218,10 @@ abstract class ActivityControllerBase
 			return new WeekActivityResource(linkProvider, weekActivity);
 		}
 
-		private void addSelfLink(WeekActivityResource weekActivityResource)
+		private void addWeekDetailsLink(WeekActivityResource weekActivityResource, String rel)
 		{
 			weekActivityResource.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getDate(),
-					weekActivityResource.getContent().getGoalID()).withSelfRel());
+					weekActivityResource.getContent().getGoalID()).withRel(rel));
 		}
 
 		private void addGoalLink(WeekActivityResource weekActivityResource)
@@ -247,21 +235,32 @@ abstract class ActivityControllerBase
 	{
 		private final LinkProvider linkProvider;
 		private final boolean addGoalLink;
+		private boolean addSelfLink;
 
-		public DayActivityResourceAssembler(LinkProvider linkProvider, boolean addGoalLink)
+		public DayActivityResourceAssembler(LinkProvider linkProvider, boolean addGoalLink, boolean addSelfLink)
 		{
 			super(ActivityControllerBase.class, DayActivityResource.class);
 			this.linkProvider = linkProvider;
 			this.addGoalLink = addGoalLink;
+			this.addSelfLink = addSelfLink;
 		}
 
 		@Override
 		public DayActivityResource toResource(DayActivityDTO dayActivity)
 		{
 			DayActivityResource dayActivityResource = instantiateResource(dayActivity);
-			addSelfLink(dayActivityResource);
 			if (addGoalLink)
+			{
 				addGoalLink(dayActivityResource);
+			}
+			if (addSelfLink)
+			{
+				addDayDetailsLink(dayActivityResource, Link.REL_SELF);
+			}
+			else
+			{
+				addDayDetailsLink(dayActivityResource, "dayDetails");
+			}
 			return dayActivityResource;
 		}
 
@@ -271,16 +270,16 @@ abstract class ActivityControllerBase
 			return new DayActivityResource(dayActivity);
 		}
 
-		private void addSelfLink(DayActivityResource dayActivityResource)
-		{
-			dayActivityResource.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getDate(),
-					dayActivityResource.getContent().getGoalID()).withSelfRel());
-		}
-
 		private void addGoalLink(DayActivityResource dayActivityResource)
 		{
 			dayActivityResource
 					.add(linkProvider.getGoalLinkBuilder(dayActivityResource.getContent().getGoalID()).withRel("goal"));
+		}
+
+		private void addDayDetailsLink(DayActivityResource dayActivityResource, String rel)
+		{
+			dayActivityResource.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getDate(),
+					dayActivityResource.getContent().getGoalID()).withRel(rel));
 		}
 	}
 
@@ -288,13 +287,11 @@ abstract class ActivityControllerBase
 			extends ResourceAssemblerSupport<DayActivityOverviewDTO, DayActivityOverviewResource>
 	{
 		private final LinkProvider linkProvider;
-		private final CurieProvider curieProvider;
 
-		public DayActivityOverviewResourceAssembler(LinkProvider linkProvider, CurieProvider curieProvider)
+		public DayActivityOverviewResourceAssembler(LinkProvider linkProvider)
 		{
 			super(ActivityControllerBase.class, DayActivityOverviewResource.class);
 			this.linkProvider = linkProvider;
-			this.curieProvider = curieProvider;
 		}
 
 		@Override
@@ -307,7 +304,7 @@ abstract class ActivityControllerBase
 		@Override
 		protected DayActivityOverviewResource instantiateResource(DayActivityOverviewDTO dayActivityOverview)
 		{
-			return new DayActivityOverviewResource(linkProvider, curieProvider, dayActivityOverview);
+			return new DayActivityOverviewResource(linkProvider, dayActivityOverview);
 		}
 	}
 }
