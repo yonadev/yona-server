@@ -102,9 +102,9 @@ paths:
         - User
       responses:
         '200':
-          description: The requested user
+          description: The updated user
           schema:
-            $ref: '#/definitions/PostPutUser'
+            $ref: '#/definitions/UserWithPrivateData'
         default:
           description: Unexpected error
           schema:
@@ -117,6 +117,11 @@ paths:
           in: header
           description: The device password
           required: true
+          type: string
+        - name: message
+          in: query
+          description: A message of the user to their buddies, explaining why they unsubscribe from Yona
+          required: false
           type: string
       tags:
         - User
