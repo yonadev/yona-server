@@ -79,15 +79,22 @@ public class TimeZoneGoal extends Goal
 	@Override
 	public boolean isGoalAccomplished(DayActivity dayActivity)
 	{
-		// TODO: zones should be parsed? maybe in spread format
-		return true;
+		int[] spread = determineSpreadOutsideGoal(dayActivity);
+		return !Arrays.stream(spread).anyMatch(i -> (i > 0));
+	}
+
+	private int[] determineSpreadOutsideGoal(DayActivity dayActivity)
+	{
+		int[] spread = dayActivity.getSpread().stream().mapToInt(i -> i.intValue()).toArray();
+		Arrays.stream(goalSpreadCells).forEach(i -> spread[i] = 0);
+		return spread;
 	}
 
 	@Override
 	public int computeTotalMinutesBeyondGoal(DayActivity dayActivity)
 	{
-		// TODO compute from spread and allowed zones
-		return 0;
+		int[] spread = determineSpreadOutsideGoal(dayActivity);
+		return Arrays.stream(spread).sum();
 	}
 
 	public static TimeZoneGoal createInstance(ZonedDateTime creationTime, ActivityCategory activityCategory, String[] zones)
