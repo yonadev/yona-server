@@ -161,9 +161,10 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	void assertNumberOfReportedDaysForGoalInWeekOverview(weekActivityOverview, goalUrl, numberOfReportedDays)
 	{
 		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goalUrl}
-		assert weekActivityForGoal.spread == null //only in detail
-		assert weekActivityForGoal.totalActivityDurationMinutes == null //only in detail
-		assert weekActivityForGoal.totalMinutesBeyondGoal == null //only for day
+		assert weekActivityForGoal.spread == null // Only in detail
+		assert weekActivityForGoal.goalSpreadCells == null // Not in week data
+		assert weekActivityForGoal.totalActivityDurationMinutes == null // Only in detail
+		assert weekActivityForGoal.totalMinutesBeyondGoal == null // Only for day
 		assert weekActivityForGoal.date == null // Only on week overview level
 		assert weekActivityForGoal.timeZoneId == null // Only on week overview level
 		assert weekActivityForGoal._links."yona:goal"
@@ -178,7 +179,8 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goalUrl}
 		assert weekActivityForGoal.dayActivities[fullDay[shortDay]]
 		def dayActivityForGoal = weekActivityForGoal.dayActivities[fullDay[shortDay]]
-		assert dayActivityForGoal.spread == null //only in detail
+		assert dayActivityForGoal.spread == null // Only in detail
+		assert dayActivityForGoal.goalSpreadCells == null // Not in week data
 		assert dayActivityForGoal.totalActivityDurationMinutes == calculateExpectedDurationFromSpread(expectedDataForDayAndGoal.spread)
 		assert dayActivityForGoal.goalAccomplished == expectedDataForDayAndGoal.goalAccomplished
 		assert dayActivityForGoal.totalMinutesBeyondGoal == expectedDataForDayAndGoal.minutesBeyondGoal
@@ -211,8 +213,10 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	void assertDayOverviewForTimeZoneGoal(response, goalUrl, expectedValues, weeksBack, shortDay)
 	{
+		def expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, goalUrl)
 		def dayActivityForTimeZoneGoal = assertDayOverviewForGoal(response, goalUrl, expectedValues, weeksBack, shortDay)
 		assert dayActivityForTimeZoneGoal?.spread.size() == 96
+		assert dayActivityForTimeZoneGoal?.goalSpreadCells == expectedDataForDayAndGoal.goalSpreadCells
 	}
 
 	void assertDayOverviewForBudgetGoal(response, goalUrl, expectedValues, weeksBack, shortDay)
@@ -243,6 +247,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		def expectedSpread = (0..95).collect { 0 }
 		expectedValues.each { it.value.findAll{it.goalUrl == goalUrl}.each {it.data.spread.each { expectedSpread[it.key] += it.value }}}
 		assert response.responseData.spread == expectedSpread
+		assert response.responseData.goalSpreadCells == null // Not in week data
 		assert response.responseData.totalActivityDurationMinutes == totalDurationMinutes
 		assert response.responseData.date =~ /\d{4}\-W\d{2}/
 		assert response.responseData.timeZoneId == "Europe/Amsterdam"
@@ -257,7 +262,8 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 				def expectedDataForGoalOnDay = it.data
 				assert response.responseData.dayActivities[fullDay[day]]
 				def dayActivityForGoal = response.responseData.dayActivities[fullDay[day]]
-				assert dayActivityForGoal.spread == null //only in detail
+				assert dayActivityForGoal.spread == null // Only in detail
+				assert dayActivityForGoal.goalSpreadCells == null // Not in week data
 				def expectedDayDurationMinutes = calculateExpectedDurationFromSpread(expectedDataForGoalOnDay.spread)
 				assert dayActivityForGoal.totalActivityDurationMinutes == expectedDayDurationMinutes
 				assert dayActivityForGoal.goalAccomplished == expectedDataForGoalOnDay.goalAccomplished
@@ -279,6 +285,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		def response = appService.getResourceWithPassword(dayActivityDetailUrl, user.password)
 		assert response.status == 200
 		assert response.responseData.spread?.size() == 96
+		assert response.responseData.goalSpreadCells == expectedDataForDayAndGoal.goalSpreadCells
 		assert response.responseData.totalActivityDurationMinutes ==  calculateExpectedDurationFromSpread(calculateExpectedDurationFromSpread(expectedDataForDayAndGoal.spread))
 		assert response.responseData.goalAccomplished == expectedDataForDayAndGoal.goalAccomplished
 		assert response.responseData.totalMinutesBeyondGoal == expectedDataForDayAndGoal.minutesBeyondGoal

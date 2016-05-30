@@ -43,10 +43,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def expectedValuesLastWeek = [
 			"Mon" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [5 : 15, 6 : 5]]]],
 			"Tue" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [27 : 15, 28 : 10]]]],
-			"Wed" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [60 : 1]]]], // TODO: Should be "goalAccomplished: false, minutesBeyondGoal: 1", see YD-251
-			"Thu" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [46 : 1]]]],
-			"Fri" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Sat" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
+			"Wed" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalSpreadCells: [44, 45, 46, 47], goalAccomplished: true, minutesBeyondGoal: 0, spread: [60 : 1]]]], // TODO: Should be "goalAccomplished: false, minutesBeyondGoal: 1", see YD-251
+			"Thu" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalSpreadCells: [44, 45, 46, 47], goalAccomplished: true, minutesBeyondGoal: 0, spread: [46 : 1]]]],
+			"Fri" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalSpreadCells: [44, 45, 46, 47], goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Sat" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalSpreadCells: [44, 45, 46, 47], goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
 
 		when:
 		def responseWeekOverviews = appService.getWeekActivityOverviews(richard)

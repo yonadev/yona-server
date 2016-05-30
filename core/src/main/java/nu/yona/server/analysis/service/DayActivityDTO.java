@@ -26,10 +26,10 @@ public class DayActivityDTO extends IntervalActivityDTO
 	private Set<MessageDTO> messages;
 
 	private DayActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
-			Optional<Integer> totalActivityDurationMinutes, boolean goalAccomplished, int totalMinutesBeyondGoal,
-			Set<MessageDTO> messages)
+			List<Integer> goalSpreadCells, Optional<Integer> totalActivityDurationMinutes, boolean goalAccomplished,
+			int totalMinutesBeyondGoal, Set<MessageDTO> messages)
 	{
-		super(goalID, startTime, shouldSerializeDate, spread, totalActivityDurationMinutes);
+		super(goalID, startTime, shouldSerializeDate, spread, goalSpreadCells, totalActivityDurationMinutes);
 		this.goalAccomplished = goalAccomplished;
 		this.totalMinutesBeyondGoal = totalMinutesBeyondGoal;
 		this.messages = messages;
@@ -65,11 +65,21 @@ public class DayActivityDTO extends IntervalActivityDTO
 	static DayActivityDTO createInstance(DayActivity dayActivity, LevelOfDetail levelOfDetail)
 	{
 		return new DayActivityDTO(dayActivity.getGoal().getID(), dayActivity.getStartTime(),
-				levelOfDetail == LevelOfDetail.DayDetail,
-				includeSpread(dayActivity, levelOfDetail) ? dayActivity.getSpread() : Collections.emptyList(),
-				Optional.of(dayActivity.getTotalActivityDurationMinutes()), dayActivity.isGoalAccomplished(),
-				dayActivity.getTotalMinutesBeyondGoal(),
+				levelOfDetail == LevelOfDetail.DayDetail, getSpread(dayActivity, levelOfDetail),
+				getGoalSpreadCells(dayActivity, levelOfDetail), Optional.of(dayActivity.getTotalActivityDurationMinutes()),
+				dayActivity.isGoalAccomplished(), dayActivity.getTotalMinutesBeyondGoal(),
 				levelOfDetail == LevelOfDetail.DayDetail ? getMessages(dayActivity) : Collections.emptySet());
+	}
+
+	private static List<Integer> getSpread(DayActivity dayActivity, LevelOfDetail levelOfDetail)
+	{
+		return includeSpread(dayActivity, levelOfDetail) ? dayActivity.getSpread() : Collections.emptyList();
+	}
+
+	static private List<Integer> getGoalSpreadCells(DayActivity dayActivity, LevelOfDetail levelOfDetail)
+	{
+		return includeGoalSpreadCells(dayActivity, levelOfDetail) ? ((TimeZoneGoal) dayActivity.getGoal()).getGoalSpreadCells()
+				: Collections.emptyList();
 	}
 
 	private static Set<MessageDTO> getMessages(DayActivity dayActivity)
@@ -82,5 +92,11 @@ public class DayActivityDTO extends IntervalActivityDTO
 	{
 		return levelOfDetail == LevelOfDetail.DayDetail
 				|| levelOfDetail == LevelOfDetail.DayOverview && dayActivity.getGoal() instanceof TimeZoneGoal;
+	}
+
+	private static boolean includeGoalSpreadCells(DayActivity dayActivity, LevelOfDetail levelOfDetail)
+	{
+		return dayActivity.getGoal() instanceof TimeZoneGoal
+				&& (levelOfDetail == LevelOfDetail.DayDetail || levelOfDetail == LevelOfDetail.DayOverview);
 	}
 }
