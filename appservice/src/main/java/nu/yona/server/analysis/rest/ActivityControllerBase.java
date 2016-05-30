@@ -200,14 +200,7 @@ abstract class ActivityControllerBase
 		public WeekActivityResource toResource(WeekActivityDTO weekActivity)
 		{
 			WeekActivityResource weekActivityResource = instantiateResource(weekActivity);
-			if (addSelfLink)
-			{
-				addWeekDetailsLink(weekActivityResource, Link.REL_SELF);
-			}
-			else
-			{
-				addWeekDetailsLink(weekActivityResource, "weekDetails");
-			}
+			addWeekDetailsLink(weekActivityResource, (addSelfLink) ? Link.REL_SELF : "weekDetails");
 			addGoalLink(weekActivityResource);
 			return weekActivityResource;
 		}
@@ -253,14 +246,7 @@ abstract class ActivityControllerBase
 			{
 				addGoalLink(dayActivityResource);
 			}
-			if (addSelfLink)
-			{
-				addDayDetailsLink(dayActivityResource, Link.REL_SELF);
-			}
-			else
-			{
-				addDayDetailsLink(dayActivityResource, "dayDetails");
-			}
+			addDayDetailsLink(dayActivityResource, (addSelfLink) ? Link.REL_SELF : "dayDetails");
 			return dayActivityResource;
 		}
 

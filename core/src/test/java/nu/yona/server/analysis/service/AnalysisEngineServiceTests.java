@@ -232,7 +232,7 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void messageCreatedOnMatch()
 	{
-		ZonedDateTime t = ZonedDateTime.now();
+		ZonedDateTime t = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Amsterdam"));
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
 		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
@@ -335,7 +335,7 @@ public class AnalysisEngineServiceTests
 		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories2, "http://localhost/test2", Optional.empty()));
 		service.analyze(
 				new NetworkActivityDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test3", Optional.empty()));
-		ZonedDateTime t2 = ZonedDateTime.now();
+		ZonedDateTime t2 = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Amsterdam"));
 		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories2, "http://localhost/test4", Optional.empty()));
 
 		// Verify that there is no new conflict message sent.

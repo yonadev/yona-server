@@ -71,7 +71,7 @@ public class AnalysisEngineService
 	{
 		ZonedDateTime correctedStartTime = correctTime(deviceTimeOffset, appActivity.getStartTime());
 		ZonedDateTime correctedEndTime = correctTime(deviceTimeOffset, appActivity.getEndTime());
-		return ActivityPayload.createInstance(correctedStartTime, correctedEndTime, appActivity.getApplication(), userAnonymized);
+		return ActivityPayload.createInstance(userAnonymized, correctedStartTime, correctedEndTime, appActivity.getApplication());
 	}
 
 	private ZonedDateTime correctTime(Duration deviceTimeOffset, ZonedDateTime time)
@@ -84,7 +84,7 @@ public class AnalysisEngineService
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(networkActivity.getVPNLoginID());
 		Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryService
 				.getMatchingCategoriesForSmoothwallCategories(networkActivity.getCategories());
-		analyze(ActivityPayload.createInstance(networkActivity, userAnonymized), userAnonymized, matchingActivityCategories);
+		analyze(ActivityPayload.createInstance(userAnonymized, networkActivity), userAnonymized, matchingActivityCategories);
 	}
 
 	private void analyze(ActivityPayload payload, UserAnonymizedDTO userAnonymized,
@@ -102,11 +102,10 @@ public class AnalysisEngineService
 		if (isCrossDayActivity(payload, userAnonymized))
 		{
 			// assumption: activity never crosses 2 days
-			ActivityPayload truncatedPayload = new ActivityPayload(payload.url, payload.startTime,
-					getEndOfDay(payload.startTime, userAnonymized), payload.application);
-
-			ActivityPayload nextDayPayload = new ActivityPayload(payload.url, getStartOfDay(payload.endTime, userAnonymized),
-					payload.endTime, payload.application);
+			ActivityPayload truncatedPayload = ActivityPayload.copyTillEndTime(payload,
+					getEndOfDay(payload.startTime, userAnonymized));
+			ActivityPayload nextDayPayload = ActivityPayload.copyFromStartTime(payload,
+					getStartOfDay(payload.endTime, userAnonymized));
 
 			addOrUpdateDayTruncatedActivity(truncatedPayload, userAnonymized, matchingGoal);
 			addOrUpdateDayTruncatedActivity(nextDayPayload, userAnonymized, matchingGoal);
@@ -397,15 +396,8 @@ public class AnalysisEngineService
 		public final ZonedDateTime endTime;
 		public final Optional<String> application;
 
-		public static ActivityPayload createInstance(ZonedDateTime startTime, ZonedDateTime endTime, String application,
-				UserAnonymizedDTO userAnonymized)
-		{
-			ZoneId userTimeZone = ZoneId.of(userAnonymized.getTimeZoneId());
-			return new ActivityPayload(Optional.empty(), startTime.withZoneSameInstant(userTimeZone),
-					endTime.withZoneSameInstant(userTimeZone), Optional.of(application));
-		}
-
-		public ActivityPayload(Optional<String> url, ZonedDateTime startTime, ZonedDateTime endTime, Optional<String> application)
+		private ActivityPayload(Optional<String> url, ZonedDateTime startTime, ZonedDateTime endTime,
+				Optional<String> application)
 		{
 			this.url = url;
 			this.startTime = startTime;
@@ -413,11 +405,29 @@ public class AnalysisEngineService
 			this.application = application;
 		}
 
-		public static ActivityPayload createInstance(NetworkActivityDTO networkActivity, UserAnonymizedDTO userAnonymized)
+		static ActivityPayload copyTillEndTime(ActivityPayload payload, ZonedDateTime endTime)
+		{
+			return new ActivityPayload(payload.url, payload.startTime, endTime, payload.application);
+		}
+
+		static ActivityPayload copyFromStartTime(ActivityPayload payload, ZonedDateTime startTime)
+		{
+			return new ActivityPayload(payload.url, startTime, payload.endTime, payload.application);
+		}
+
+		static ActivityPayload createInstance(UserAnonymizedDTO userAnonymized, NetworkActivityDTO networkActivity)
 		{
 			ZonedDateTime startTime = networkActivity.getEventTime().orElse(ZonedDateTime.now())
 					.withZoneSameInstant(ZoneId.of(userAnonymized.getTimeZoneId()));
 			return new ActivityPayload(Optional.of(networkActivity.getURL()), startTime, startTime, Optional.empty());
+		}
+
+		static ActivityPayload createInstance(UserAnonymizedDTO userAnonymized, ZonedDateTime startTime, ZonedDateTime endTime,
+				String application)
+		{
+			ZoneId userTimeZone = ZoneId.of(userAnonymized.getTimeZoneId());
+			return new ActivityPayload(Optional.empty(), startTime.withZoneSameInstant(userTimeZone),
+					endTime.withZoneSameInstant(userTimeZone), Optional.of(application));
 		}
 	}
 }
