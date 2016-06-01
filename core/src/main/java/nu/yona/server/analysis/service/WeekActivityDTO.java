@@ -29,7 +29,7 @@ public class WeekActivityDTO extends IntervalActivityDTO
 	private WeekActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
 			Optional<Integer> totalActivityDurationMinutes, Map<DayOfWeek, DayActivityDTO> dayActivities)
 	{
-		super(goalID, startTime, shouldSerializeDate, spread, Collections.emptyList(), totalActivityDurationMinutes);
+		super(goalID, startTime, shouldSerializeDate, spread, totalActivityDurationMinutes);
 		this.dayActivities = dayActivities;
 	}
 

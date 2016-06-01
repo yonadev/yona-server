@@ -28,16 +28,14 @@ public abstract class IntervalActivityDTO
 
 	private List<Integer> spread;
 	private Optional<Integer> totalActivityDurationMinutes;
-	private List<Integer> goalSpreadCells;
 
 	protected IntervalActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
-			List<Integer> goalSpreadCells, Optional<Integer> totalActivityDurationMinutes)
+			Optional<Integer> totalActivityDurationMinutes)
 	{
 		this.goalID = goalID;
 		this.startTime = startTime;
 		this.shouldSerializeDate = shouldSerializeDate;
 		this.spread = spread;
-		this.goalSpreadCells = goalSpreadCells;
 		this.totalActivityDurationMinutes = totalActivityDurationMinutes;
 	}
 
@@ -103,12 +101,6 @@ public abstract class IntervalActivityDTO
 	public List<Integer> getSpread()
 	{
 		return spread;
-	}
-
-	@JsonInclude(Include.NON_EMPTY)
-	public List<Integer> getGoalSpreadCells()
-	{
-		return goalSpreadCells;
 	}
 
 	@JsonInclude(Include.NON_NULL)

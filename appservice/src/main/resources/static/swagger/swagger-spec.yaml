@@ -2128,6 +2128,9 @@ definitions:
         items:
           type: integer
         description: Aggregates all activity on every quarter hour of the day (of which there are 96). This information is only included for time zone goals.
+      goalBudget:
+        type: integer
+        description: The time budget of the related goal. This information is only included for budget goals.
       goalSpreadCells:
         type: array
         items:
@@ -2159,6 +2162,9 @@ definitions:
         items:
           type: integer
         description: Aggregates all activity on every quarter hour of the day (of which there are 96).
+      goalBudget:
+        type: integer
+        description: The time budget of the related goal. This information is only included for budget goals.
       goalSpreadCells:
         type: array
         items:
