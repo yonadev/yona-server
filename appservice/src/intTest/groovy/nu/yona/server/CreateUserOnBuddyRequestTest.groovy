@@ -65,7 +65,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		cleanup:
 		appService.deleteUser(richard)
-		appService.deleteUser(bob)
+		// Cannot delete Bob, as he did not set up a Yona password yet.
 	}
 
 	def 'Bob adjusts data and submits; app saves with the device password'()
