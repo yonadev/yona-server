@@ -257,11 +257,11 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert response.responseData.timeZoneId == "Europe/Amsterdam"
 		assert response.responseData._links?."yona:goal"
 		def activeDays = 0
-		expectedValues.each { activeDays += it.value.findAll{it.goalUrl == goalUrl && it.data.spread.size() > 0}.size()} // TODO: Remove  && it.data.spread.size() > 0, see YD-254
+		expectedValues.each { activeDays += it.value.findAll{it.goalUrl == goalUrl}.size()}
 		assert response.responseData.dayActivities?.size() == activeDays
 		expectedValues.each {
 			def day = it.key
-			it.value.findAll{it.goalUrl == goalUrl && it.data.spread.size() > 0}.each // TODO: Remove  && it.data.spread.size() > 0, see YD-254
+			it.value.findAll{it.goalUrl == goalUrl}.each
 			{
 				def expectedDataForGoalOnDay = it.data
 				assert response.responseData.dayActivities[fullDay[day]]

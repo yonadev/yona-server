@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.DayActivityRepository;
@@ -55,11 +56,13 @@ public class ActivityService
 	@Autowired
 	private YonaProperties yonaProperties;
 
+	@Transactional
 	public Page<WeekActivityOverviewDTO> getUserWeekActivityOverviews(UUID userID, Pageable pageable)
 	{
 		return getWeekActivityOverviews(userService.getUserAnonymizedID(userID), pageable);
 	}
 
+	@Transactional
 	public Page<WeekActivityOverviewDTO> getBuddyWeekActivityOverviews(UUID buddyID, Pageable pageable)
 	{
 		return getWeekActivityOverviews(buddyService.getBuddy(buddyID).getUserAnonymizedID(), pageable);
@@ -100,11 +103,13 @@ public class ActivityService
 		return weekActivityEntitiesByLocalDate;
 	}
 
+	@Transactional
 	public Page<DayActivityOverviewDTO> getUserDayActivityOverviews(UUID userID, Pageable pageable)
 	{
 		return getDayActivityOverviews(userService.getUserAnonymizedID(userID), pageable);
 	}
 
+	@Transactional
 	public Page<DayActivityOverviewDTO> getBuddyDayActivityOverviews(UUID buddyID, Pageable pageable)
 	{
 		return getDayActivityOverviews(buddyService.getBuddy(buddyID).getUserAnonymizedID(), pageable);
@@ -209,11 +214,13 @@ public class ActivityService
 		return dayActivityEntitiesAtDate.stream().filter(a -> a.getGoal().equals(goal)).findAny();
 	}
 
+	@Transactional
 	public WeekActivityDTO getUserWeekActivityDetail(UUID userID, LocalDate date, UUID goalID)
 	{
 		return getWeekActivityDetail(userID, userService.getUserAnonymizedID(userID), date, goalID);
 	}
 
+	@Transactional
 	public WeekActivityDTO getBuddyWeekActivityDetail(UUID buddyID, LocalDate date, UUID goalID)
 	{
 		BuddyDTO buddy = buddyService.getBuddy(buddyID);
@@ -231,11 +238,13 @@ public class ActivityService
 		return WeekActivityDTO.createInstance(weekActivityEntity, LevelOfDetail.WeekDetail);
 	}
 
+	@Transactional
 	public DayActivityDTO getUserDayActivityDetail(UUID userID, LocalDate date, UUID goalID)
 	{
 		return getDayActivityDetail(userID, userService.getUserAnonymizedID(userID), date, goalID);
 	}
 
+	@Transactional
 	public DayActivityDTO getBuddyDayActivityDetail(UUID buddyID, LocalDate date, UUID goalID)
 	{
 		BuddyDTO buddy = buddyService.getBuddy(buddyID);
