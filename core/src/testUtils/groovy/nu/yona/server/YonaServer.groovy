@@ -10,7 +10,6 @@ import groovy.json.*
 import groovyx.net.http.RESTClient
 import groovyx.net.http.URIBuilder
 
-import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -19,6 +18,8 @@ import java.time.temporal.ChronoField
 
 class YonaServer
 {
+
+	static final ZoneId EUROPE_AMSTERDAM_ZONE = ZoneId.of("Europe/Amsterdam")
 	JsonSlurper jsonSlurper = new JsonSlurper()
 	RESTClient restClient
 
@@ -192,7 +193,7 @@ class YonaServer
 		int weekOffset = 0
 		int dayOffset = 0
 
-		LocalDateTime now = LocalDateTime.now()
+		ZonedDateTime now = ZonedDateTime.now(EUROPE_AMSTERDAM_ZONE)
 		switch (fields.size())
 		{
 			case 3:
@@ -218,7 +219,7 @@ class YonaServer
 				new DateTimeFormatterBuilder().appendPattern("HH:mm[:ss][.SSS]")
 				.parseDefaulting(ChronoField.EPOCH_DAY, epochDay)
 				.toFormatter()
-				.withZone(ZoneId.of("Europe/Amsterdam"))
+				.withZone(EUROPE_AMSTERDAM_ZONE)
 		ZonedDateTime.parse(timeString, formatter)
 	}
 
@@ -234,7 +235,7 @@ class YonaServer
 	static def relativeDateStringToDaysOffset(int weeksBack, String shortDay)
 	{
 		int targetWeekDay = getDayOfWeek(DateTimeFormatter.ofPattern("eee").parse(shortDay).get(ChronoField.DAY_OF_WEEK))
-		int currentWeekDay = ZonedDateTime.now(ZoneId.of("Europe/Amsterdam")).dayOfWeek.value
+		int currentWeekDay = ZonedDateTime.now(EUROPE_AMSTERDAM_ZONE).dayOfWeek.value
 		int dayOffset = currentWeekDay - targetWeekDay
 		return weeksBack * 7 + dayOffset
 	}
