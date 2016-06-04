@@ -104,7 +104,7 @@ public class DayActivityDTO extends IntervalActivityDTO
 
 	static private List<Integer> getGoalSpreadCells(DayActivity dayActivity, LevelOfDetail levelOfDetail)
 	{
-		return includeGoalSpreadCells(dayActivity, levelOfDetail) ? ((TimeZoneGoal) dayActivity.getGoal()).getGoalSpreadCells()
+		return includeGoalSpreadCells(dayActivity, levelOfDetail) ? ((TimeZoneGoal) dayActivity.getGoal()).getSpreadCells()
 				: Collections.emptyList();
 	}
 

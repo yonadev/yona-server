@@ -36,8 +36,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Thu 11:30")
 
 		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
-		def budgetGoalNewsUrl = richard.findGoal(NEWS_ACT_CAT_URL).url
-		def timeZoneGoalSocialUrl = richard.findGoal(SOCIAL_ACT_CAT_URL).url
+		def budgetGoalNewsUrl = richard.findActiveGoal(NEWS_ACT_CAT_URL).url
+		def timeZoneGoalSocialUrl = richard.findActiveGoal(SOCIAL_ACT_CAT_URL).url
 
 		def expectedValuesLastWeek = [
 			"Mon" : [[goalUrl:budgetGoalNewsUrl, data: [goalBudget: 0, goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
@@ -106,9 +106,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		bob = richardAndBob.bob
 		appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
 		def goals = appService.getGoals(richard)
-		richardBudgetGoalGamblingUrl = findGoal(goals, GAMBLING_ACT_CAT_URL)._links.self.href
-		richardBudgetGoalNewsUrl = findGoal(goals, NEWS_ACT_CAT_URL)._links.self.href
-		richardTimeZoneGoalUrl = findGoal(goals, SOCIAL_ACT_CAT_URL)._links.self.href
+		richardBudgetGoalGamblingUrl = findActiveGoal(goals, GAMBLING_ACT_CAT_URL)._links.self.href
+		richardBudgetGoalNewsUrl = findActiveGoal(goals, NEWS_ACT_CAT_URL)._links.self.href
+		richardTimeZoneGoalUrl = findActiveGoal(goals, SOCIAL_ACT_CAT_URL)._links.self.href
 
 		def bobWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, bob.url, true, bob.password)
 		assert bobWithBuddy.buddies != null

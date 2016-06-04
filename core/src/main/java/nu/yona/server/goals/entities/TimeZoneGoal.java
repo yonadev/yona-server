@@ -24,7 +24,7 @@ import nu.yona.server.analysis.entities.DayActivity;
 public class TimeZoneGoal extends Goal
 {
 	private String[] zones;
-	private int[] goalSpreadCells;
+	private int[] spreadCells;
 
 	// Default constructor is required for JPA
 	public TimeZoneGoal()
@@ -33,12 +33,12 @@ public class TimeZoneGoal extends Goal
 	}
 
 	private TimeZoneGoal(UUID id, ZonedDateTime creationTime, ActivityCategory activityCategory, String[] zones,
-			int[] goalSpreadCells)
+			int[] spreadCells)
 	{
 		super(id, creationTime, activityCategory);
 
 		this.zones = zones;
-		this.goalSpreadCells = goalSpreadCells;
+		this.spreadCells = spreadCells;
 	}
 
 	private TimeZoneGoal(UUID id, TimeZoneGoal originalGoal, ZonedDateTime endTime)
@@ -46,6 +46,7 @@ public class TimeZoneGoal extends Goal
 		super(id, originalGoal, endTime);
 
 		this.zones = originalGoal.zones;
+		this.spreadCells = originalGoal.spreadCells;
 	}
 
 	public String[] getZones()
@@ -86,7 +87,7 @@ public class TimeZoneGoal extends Goal
 	private int[] determineSpreadOutsideGoal(DayActivity dayActivity)
 	{
 		int[] spread = dayActivity.getSpread().stream().mapToInt(i -> i.intValue()).toArray();
-		Arrays.stream(goalSpreadCells).forEach(i -> spread[i] = 0);
+		Arrays.stream(spreadCells).forEach(i -> spread[i] = 0);
 		return spread;
 	}
 
@@ -99,28 +100,28 @@ public class TimeZoneGoal extends Goal
 
 	public static TimeZoneGoal createInstance(ZonedDateTime creationTime, ActivityCategory activityCategory, String[] zones)
 	{
-		return new TimeZoneGoal(UUID.randomUUID(), creationTime, activityCategory, zones, calculateGoalSpreadCells(zones));
+		return new TimeZoneGoal(UUID.randomUUID(), creationTime, activityCategory, zones, calculateSpreadCells(zones));
 	}
 
-	private static int[] calculateGoalSpreadCells(String[] zones)
+	private static int[] calculateSpreadCells(String[] zones)
 	{
-		Set<Integer> goalSpreadCells = new HashSet<>();
+		Set<Integer> spreadCells = new HashSet<>();
 		DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("HH:mm").toFormatter();
 		for (String zone : zones)
 		{
 			String[] zoneBeginEnd = zone.split("-");
 			int beginIndex = calculateSpreadIndex(formatter, zoneBeginEnd[0]);
 			int endIndex = calculateSpreadIndex(formatter, zoneBeginEnd[1]);
-			addIndexes(goalSpreadCells, beginIndex, endIndex);
+			addIndexes(spreadCells, beginIndex, endIndex);
 		}
-		return goalSpreadCells.stream().mapToInt(i -> i.intValue()).sorted().toArray();
+		return spreadCells.stream().mapToInt(i -> i.intValue()).sorted().toArray();
 	}
 
-	private static void addIndexes(Set<Integer> goalSpreadCells, int beginIndex, int endIndex)
+	private static void addIndexes(Set<Integer> spreadCells, int beginIndex, int endIndex)
 	{
 		for (int i = beginIndex; (i < endIndex); i++)
 		{
-			goalSpreadCells.add(i);
+			spreadCells.add(i);
 		}
 	}
 
@@ -135,8 +136,8 @@ public class TimeZoneGoal extends Goal
 		return new TimeZoneGoal(UUID.randomUUID(), originalGoal, endTime);
 	}
 
-	public List<Integer> getGoalSpreadCells()
+	public List<Integer> getSpreadCells()
 	{
-		return Arrays.stream(goalSpreadCells).mapToObj(i -> new Integer(i)).collect(Collectors.toList());
+		return Arrays.stream(spreadCells).mapToObj(i -> new Integer(i)).collect(Collectors.toList());
 	}
 }

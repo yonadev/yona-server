@@ -15,11 +15,13 @@ import nu.yona.server.YonaServer
 class TimeZoneGoal extends Goal
 {
 	final String[] zones
+	final int[] spreadCells
 	TimeZoneGoal(def json)
 	{
 		super(json)
 
 		this.zones = json.zones
+		this.spreadCells = json.spreadCells
 	}
 
 	def convertToJsonString()

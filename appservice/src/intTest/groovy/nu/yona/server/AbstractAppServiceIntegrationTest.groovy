@@ -99,14 +99,19 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		return true
 	}
 
-	def findGoal(def response, def activityCategoryUrl)
+	def findActiveGoal(def response, def activityCategoryUrl)
 	{
-		response.responseData._embedded."yona:goals".find{ it._links."yona:activityCategory".href == activityCategoryUrl }
+		response.responseData._embedded."yona:goals".find{ it._links."yona:activityCategory".href == activityCategoryUrl && !it.historyItem }
+	}
+
+	def findGoalsIncludingHistoryItems(def response, def activityCategoryUrl)
+	{
+		response.responseData._embedded."yona:goals".findAll{ it._links."yona:activityCategory".href == activityCategoryUrl }
 	}
 
 	void setGoalCreationTime(User user, activityCategoryURL, relativeCreationDateTimeString)
 	{
-		Goal goal = user.findGoal(activityCategoryURL)
+		Goal goal = user.findActiveGoal(activityCategoryURL)
 		goal.creationTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
 		def response = appService.updateGoal(user, goal.url, goal)
 		assert response.status == 200

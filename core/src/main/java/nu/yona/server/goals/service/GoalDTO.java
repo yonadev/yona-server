@@ -32,19 +32,22 @@ public abstract class GoalDTO extends PolymorphicDTO
 	private UUID activityCategoryID;
 	private final Optional<ZonedDateTime> creationTime;
 	private final boolean mandatory;
+	private final Optional<ZonedDateTime> endTime;
 
-	protected GoalDTO(UUID id, Optional<ZonedDateTime> creationTime, UUID activityCategoryID, boolean mandatory)
+	protected GoalDTO(UUID id, Optional<ZonedDateTime> creationTime, Optional<ZonedDateTime> endTime, UUID activityCategoryID,
+			boolean mandatory)
 	{
 		Objects.requireNonNull(creationTime);
 		this.id = id;
 		this.setActivityCategoryID(activityCategoryID);
 		this.creationTime = creationTime;
+		this.endTime = endTime;
 		this.mandatory = mandatory;
 	}
 
 	protected GoalDTO(Optional<ZonedDateTime> creationTime)
 	{
-		this(null, creationTime, null, false /* ignored */);
+		this(null, creationTime, Optional.empty(), null, false /* ignored */);
 	}
 
 	public abstract void validate();
@@ -59,6 +62,11 @@ public abstract class GoalDTO extends PolymorphicDTO
 	public Optional<ZonedDateTime> getCreationTime()
 	{
 		return creationTime;
+	}
+
+	public boolean isHistoryItem()
+	{
+		return endTime.isPresent();
 	}
 
 	@JsonIgnore
