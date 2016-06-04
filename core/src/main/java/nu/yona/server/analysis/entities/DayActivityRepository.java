@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -30,6 +31,10 @@ public interface DayActivityRepository extends CrudRepository<DayActivity, UUID>
 	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedID and a.date >= :dateFrom and a.date <= :dateUntil order by a.startTime desc")
 	Set<DayActivity> findAll(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("dateFrom") LocalDate dateFrom,
 			@Param("dateUntil") LocalDate dateUntil);
+
+	@Modifying
+	@Query("delete from DayActivity a where a.userAnonymized.id = :userAnonymizedID")
+	void deleteAllForUser(@Param("userAnonymizedID") UUID userAnonymizedID);
 
 	Set<DayActivity> findByGoal(Goal goal);
 }

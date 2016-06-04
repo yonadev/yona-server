@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
@@ -380,6 +381,7 @@ public class UserService
 				DropBuddyReason.USER_ACCOUNT_DELETED));
 
 		WeekActivity.getRepository().deleteAllForUser(userEntity.getUserAnonymizedID());
+		DayActivity.getRepository().deleteAllForUser(userEntity.getUserAnonymizedID());
 
 		UUID vpnLoginID = userEntity.getVPNLoginID();
 		UUID userAnonymizedID = userEntity.getUserAnonymizedID();

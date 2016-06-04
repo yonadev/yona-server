@@ -39,7 +39,7 @@ public class MessageDestination extends EntityWithID
 	@Transient
 	private PublicKey publicKey;
 
-	@OneToMany(cascade = CascadeType.ALL)
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Message> messages;
 
 	// Default constructor is required for JPA
