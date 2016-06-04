@@ -87,20 +87,18 @@ public class ActivityService
 	}
 
 	private <T extends IntervalActivity> Map<ZonedDateTime, Set<T>> mapToZonedDateTime(
-			Map<LocalDate, Set<T>> weekActivityEntitiesByLocalDate)
+			Map<LocalDate, Set<T>> intervalActivityEntitiesByLocalDate)
 	{
-		Map<ZonedDateTime, Set<T>> weekActivityEntitiesByZonedDate = weekActivityEntitiesByLocalDate.entrySet().stream()
+		Map<ZonedDateTime, Set<T>> intervalActivityEntitiesByZonedDate = intervalActivityEntitiesByLocalDate.entrySet().stream()
 				.collect(Collectors.toMap(e -> e.getValue().iterator().next().getStartTime(), e -> e.getValue()));
-		return weekActivityEntitiesByZonedDate;
+		return intervalActivityEntitiesByZonedDate;
 	}
 
 	private Map<LocalDate, Set<WeekActivity>> getWeekActivitiesGroupedByDate(UUID userAnonymizedID, Interval interval)
 	{
 		Set<WeekActivity> weekActivityEntities = weekActivityRepository.findAll(userAnonymizedID, interval.startDate,
 				interval.endDate);
-		Map<LocalDate, Set<WeekActivity>> weekActivityEntitiesByLocalDate = weekActivityEntities.stream()
-				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
-		return weekActivityEntitiesByLocalDate;
+		return weekActivityEntities.stream().collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
 	}
 
 	@Transactional
@@ -120,10 +118,8 @@ public class ActivityService
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
 		Interval interval = getInterval(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
 
-		Set<DayActivity> dayActivityEntities = dayActivityRepository.findAll(userAnonymizedID, interval.startDate,
-				interval.endDate);
-		Map<LocalDate, Set<DayActivity>> dayActivityEntitiesByLocalDate = dayActivityEntities.stream()
-				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
+		Map<LocalDate, Set<DayActivity>> dayActivityEntitiesByLocalDate = getDayActivitiesGroupedByDate(userAnonymizedID,
+				interval);
 		addMissingInactivity(dayActivityEntitiesByLocalDate, interval, ChronoUnit.DAYS, userAnonymized,
 				(goal, startOfDay) -> DayActivity.createInstanceInactivity(null, goal, startOfDay), a -> {
 				});
@@ -132,6 +128,13 @@ public class ActivityService
 				dayActivityEntitiesByZonedDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 						.map(e -> DayActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
 				pageable, yonaProperties.getAnalysisService().getDaysActivityMemory());
+	}
+
+	private Map<LocalDate, Set<DayActivity>> getDayActivitiesGroupedByDate(UUID userAnonymizedID, Interval interval)
+	{
+		Set<DayActivity> dayActivityEntities = dayActivityRepository.findAll(userAnonymizedID, interval.startDate,
+				interval.endDate);
+		return dayActivityEntities.stream().collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
 	}
 
 	private Interval getInterval(LocalDate currentUnitDate, Pageable pageable, ChronoUnit timeUnit)

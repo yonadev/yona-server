@@ -93,6 +93,7 @@ public class GoalService
 
 		if (newGoalDTO.getCreationTime().isPresent())
 		{
+			// Tests update the creation time. Handle that as a special case.
 			updateGoalCreationTime(userEntity, existingGoal, newGoalDTO);
 		}
 		else

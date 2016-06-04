@@ -222,10 +222,21 @@ class YonaServer
 		ZonedDateTime.parse(timeString, formatter)
 	}
 
-	static def relativeDateStringToDaysOffset(weeksBack, shortDay)
+	/**
+	 * Given a number of weeks back and a short day (e.g. Mon), calculates the number of days since today.
+	 * This allows to use it in an array of days, where [0] is today.
+	 * 
+	 * @param weeksBack The number of weeks back in time
+	 * @param shortDay Short day, e.g. Sun or Mon
+	 *  
+	 * @return The number of days since today.
+	 */
+	static def relativeDateStringToDaysOffset(int weeksBack, String shortDay)
 	{
-		int weekDay = getDayOfWeek(DateTimeFormatter.ofPattern("eee").parse(shortDay).get(ChronoField.DAY_OF_WEEK))
-		return weeksBack * 7 - weekDay + LocalDateTime.now().dayOfWeek.value
+		int targetWeekDay = getDayOfWeek(DateTimeFormatter.ofPattern("eee").parse(shortDay).get(ChronoField.DAY_OF_WEEK))
+		int currentWeekDay = ZonedDateTime.now(ZoneId.of("Europe/Amsterdam")).dayOfWeek.value
+		int dayOffset = currentWeekDay - targetWeekDay
+		return weeksBack * 7 + dayOffset
 	}
 
 	public static int getCurrentDayOfWeek()
@@ -240,6 +251,7 @@ class YonaServer
 
 	public static int getDayOfWeek(int javaDayOfWeek)
 	{
+		// In Java, Sunday is the last day of the week, but in Yona the first one
 		(javaDayOfWeek == 7) ? 0 : javaDayOfWeek
 	}
 }

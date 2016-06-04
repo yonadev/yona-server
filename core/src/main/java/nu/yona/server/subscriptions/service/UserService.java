@@ -165,10 +165,10 @@ public class UserService
 	private void addMandatoryGoals(User userEntity)
 	{
 		activityCategoryService.getAllActivityCategories().stream().filter(c -> c.isMandatoryNoGo())
-				.forEach(c -> addGoal(userEntity, c));
+				.forEach(c -> addNoGoGoal(userEntity, c));
 	}
 
-	private void addGoal(User userEntity, ActivityCategoryDTO category)
+	private void addNoGoGoal(User userEntity, ActivityCategoryDTO category)
 	{
 		userEntity.getAnonymized().addGoal(
 				BudgetGoal.createNoGoInstance(ZonedDateTime.now(), ActivityCategory.getRepository().findOne(category.getID())));
