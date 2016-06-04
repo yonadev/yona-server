@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -90,14 +91,29 @@ public class GoalService
 		User userEntity = userService.getUserByID(userID);
 		Goal existingGoal = getGoalEntity(userEntity, goalID);
 
-		verifyGoalUpdate(existingGoal, newGoalDTO);
-
-		if (newGoalDTO.isGoalChanged(existingGoal))
+		if (newGoalDTO.getCreationTime().isPresent())
 		{
-			updateGoal(userEntity, existingGoal, newGoalDTO, message);
+			// Tests update the creation time. Handle that as a special case.
+			updateGoalCreationTime(userEntity, existingGoal, newGoalDTO);
+		}
+		else
+		{
+			verifyGoalUpdate(existingGoal, newGoalDTO);
+
+			if (newGoalDTO.isGoalChanged(existingGoal))
+			{
+				updateGoal(userEntity, existingGoal, newGoalDTO, message);
+			}
 		}
 
 		return GoalDTO.createInstance(existingGoal);
+	}
+
+	private void updateGoalCreationTime(User userEntity, Goal existingGoal, GoalDTO newGoalDTO)
+	{
+		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
+		existingGoal.setCreationTime(newGoalDTO.getCreationTime().get());
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getID(), userAnonymizedEntity);
 	}
 
 	private void verifyGoalUpdate(Goal existingGoal, GoalDTO newGoalDTO)
@@ -111,16 +127,17 @@ public class GoalService
 	private void updateGoal(User userEntity, Goal existingGoal, GoalDTO newGoalDTO, Optional<String> message)
 	{
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
-		cloneExistingGoalAsHistoryItem(userAnonymizedEntity, existingGoal);
+		cloneExistingGoalAsHistoryItem(userAnonymizedEntity, existingGoal,
+				newGoalDTO.getCreationTime().orElse(ZonedDateTime.now()));
 		newGoalDTO.updateGoalEntity(existingGoal);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getID(), userAnonymizedEntity);
 
 		broadcastGoalChangeMessage(userEntity, existingGoal, GoalChangeMessage.Change.GOAL_CHANGED, message);
 	}
 
-	private void cloneExistingGoalAsHistoryItem(UserAnonymized userAnonymizedEntity, Goal existingGoal)
+	private void cloneExistingGoalAsHistoryItem(UserAnonymized userAnonymizedEntity, Goal existingGoal, ZonedDateTime endTime)
 	{
-		Goal historyGoal = existingGoal.cloneAsHistoryItem();
+		Goal historyGoal = existingGoal.cloneAsHistoryItem(endTime);
 		existingGoal.setPreviousVersionOfThisGoal(historyGoal);
 		WeekActivity.getRepository().findByGoal(existingGoal).stream().forEach(a -> a.setGoal(historyGoal));
 		DayActivity.getRepository().findByGoal(existingGoal).stream().forEach(a -> a.setGoal(historyGoal));

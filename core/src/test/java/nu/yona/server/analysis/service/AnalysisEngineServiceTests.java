@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -97,17 +98,18 @@ public class AnalysisEngineServiceTests
 	@Before
 	public void setUp()
 	{
-		gamblingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"),
-				false, new HashSet<String>(Arrays.asList("poker", "lotto")),
-				new HashSet<String>(Arrays.asList("Poker App", "Lotto App"))));
-		newsGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
-				new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
-		gamingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
-				new HashSet<String>(Arrays.asList("games")), Collections.emptySet()));
-		socialGoal = TimeZoneGoal.createInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("social"), false,
-				new HashSet<String>(Arrays.asList("social")), Collections.emptySet()), new String[0]);
-		shoppingGoal = BudgetGoal.createInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("shopping"), false,
-				new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet()), 1);
+		gamblingGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(),
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
+						new HashSet<String>(Arrays.asList("poker", "lotto")),
+						new HashSet<String>(Arrays.asList("Poker App", "Lotto App"))));
+		newsGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
+				usString("news"), false, new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
+		gamingGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
+				usString("gaming"), false, new HashSet<String>(Arrays.asList("games")), Collections.emptySet()));
+		socialGoal = TimeZoneGoal.createInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
+				usString("social"), false, new HashSet<String>(Arrays.asList("social")), Collections.emptySet()), new String[0]);
+		shoppingGoal = BudgetGoal.createInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
+				usString("shopping"), false, new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet()), 1);
 
 		goalMap.put("gambling", gamblingGoal);
 		goalMap.put("news", newsGoal);
@@ -212,7 +214,7 @@ public class AnalysisEngineServiceTests
 		}
 
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test1"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test1", Optional.empty()));
 
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<MessageDestinationDTO> messageDestination = ArgumentCaptor.forClass(MessageDestinationDTO.class);
@@ -230,10 +232,10 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void messageCreatedOnMatch()
 	{
-		ZonedDateTime t = ZonedDateTime.now();
+		ZonedDateTime t = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Amsterdam"));
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify that there is an activity update.
 		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
@@ -263,7 +265,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag", "lotto"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
 
 		verifyActivityUpdate(gamblingGoal);
 		// Verify that there is a new conflict message sent.
@@ -284,7 +286,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto", "games"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify that there are 2 activities updated, for both goals.
 		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
@@ -327,12 +329,14 @@ public class AnalysisEngineServiceTests
 		Set<String> conflictCategories1 = new HashSet<String>(Arrays.asList("lotto"));
 		Set<String> conflictCategories2 = new HashSet<String>(Arrays.asList("poker"));
 		Set<String> conflictCategoriesNotMatching1 = new HashSet<String>(Arrays.asList("refdag"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories1, "http://localhost/test1"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories2, "http://localhost/test2"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test3"));
-		ZonedDateTime t2 = ZonedDateTime.now();
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories2, "http://localhost/test4"));
+		service.analyze(
+				new NetworkActivityDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test", Optional.empty()));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories1, "http://localhost/test1", Optional.empty()));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories2, "http://localhost/test2", Optional.empty()));
+		service.analyze(
+				new NetworkActivityDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test3", Optional.empty()));
+		ZonedDateTime t2 = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Amsterdam"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories2, "http://localhost/test4", Optional.empty()));
 
 		// Verify that there is no new conflict message sent.
 		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
@@ -354,7 +358,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify that there was no attempted activity update.
 		verify(mockAnalysisEngineCacheService, never()).fetchDayActivityForUser(eq(userAnonID), any());
@@ -377,7 +381,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("webshop"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
 
 		verifyActivityUpdate(shoppingGoal);
 		verifyNoMessagesCreated();
@@ -399,7 +403,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("social"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
 
 		verifyActivityUpdate(socialGoal);
 		verifyNoMessagesCreated();

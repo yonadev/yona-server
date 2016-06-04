@@ -29,7 +29,7 @@ public class DayActivityTests
 		testZone = ZoneId.of("Europe/Amsterdam");
 		ActivityCategory activityCategory = ActivityCategory.createInstance(UUID.randomUUID(),
 				Collections.singletonMap(Locale.US, "being bored"), false, Collections.emptySet(), Collections.emptySet());
-		goal = BudgetGoal.createInstance(activityCategory, 60);
+		goal = BudgetGoal.createInstance(ZonedDateTime.now(), activityCategory, 60);
 	}
 
 	private ZonedDateTime getZonedDateTime(int hour, int minute, int second)

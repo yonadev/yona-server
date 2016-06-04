@@ -84,18 +84,18 @@ public class ActivityServiceTests
 	@Before
 	public void setUp()
 	{
-		gamblingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"),
-				false, new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet()));
 		// created 2 weeks ago
-		gamblingGoal.setCreationTime(ZonedDateTime.now().minusWeeks(2));
-		newsGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
-				new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
-		gamingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
-				new HashSet<String>(Arrays.asList("games")), Collections.emptySet()));
-		socialGoal = TimeZoneGoal.createInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("social"), false,
-				new HashSet<String>(Arrays.asList("social")), Collections.emptySet()), new String[0]);
-		shoppingGoal = BudgetGoal.createInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("shopping"), false,
-				new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet()), 1);
+		gamblingGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now().minusWeeks(2),
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
+						new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet()));
+		newsGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
+				usString("news"), false, new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
+		gamingGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
+				usString("gaming"), false, new HashSet<String>(Arrays.asList("games")), Collections.emptySet()));
+		socialGoal = TimeZoneGoal.createInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
+				usString("social"), false, new HashSet<String>(Arrays.asList("social")), Collections.emptySet()), new String[0]);
+		shoppingGoal = BudgetGoal.createInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
+				usString("shopping"), false, new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet()), 1);
 
 		goalMap.put("gambling", gamblingGoal);
 		goalMap.put("news", newsGoal);
@@ -159,7 +159,6 @@ public class ActivityServiceTests
 		DayActivityDTO dayActivityForGambling = dayOverview.getDayActivities().stream()
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
 		assertThat(dayActivityForGambling.getStartTime(), equalTo(today));
-		assertThat(dayActivityForGambling.getTimeZoneId(), equalTo(userAnonZone.getId()));
 		assertThat(dayActivityForGambling.getTotalActivityDurationMinutes(), equalTo(0));
 		assertThat(dayActivityForGambling.getTotalMinutesBeyondGoal(), equalTo(0));
 
@@ -169,7 +168,6 @@ public class ActivityServiceTests
 		dayActivityForGambling = dayOverview.getDayActivities().stream().filter(a -> a.getGoalID().equals(gamblingGoal.getID()))
 				.findAny().get();
 		assertThat(dayActivityForGambling.getStartTime(), equalTo(yesterday));
-		assertThat(dayActivityForGambling.getTimeZoneId(), equalTo(userAnonZone.getId()));
 		assertThat(dayActivityForGambling.getTotalActivityDurationMinutes(), equalTo(2));
 		assertThat(dayActivityForGambling.getTotalMinutesBeyondGoal(), equalTo(2));
 	}
@@ -210,7 +208,6 @@ public class ActivityServiceTests
 		WeekActivityDTO weekActivityForGambling = weekOverview.getWeekActivities().stream()
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
 		assertThat(weekActivityForGambling.getStartTime(), equalTo(getWeekStartTime(today)));
-		assertThat(weekActivityForGambling.getTimeZoneId(), equalTo(userAnonZone.getId()));
 		assertThat(weekActivityForGambling.getDayActivities().size(), equalTo(1 + thisWeekNumberOfWeekDaysPast));
 		// always contains Sunday because it is the first day of the week
 		assertThat(weekActivityForGambling.getDayActivities(), hasKey(DayOfWeek.SUNDAY));
@@ -221,7 +218,6 @@ public class ActivityServiceTests
 		weekActivityForGambling = weekOverview.getWeekActivities().stream()
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
 		assertThat(weekActivityForGambling.getStartTime(), equalTo(getWeekStartTime(today.minusWeeks(1))));
-		assertThat(weekActivityForGambling.getTimeZoneId(), equalTo(userAnonZone.getId()));
 		assertThat(weekActivityForGambling.getDayActivities().size(), equalTo(7));
 		DayActivityDTO previousWeekSaturdayActivity = weekActivityForGambling.getDayActivities().get(DayOfWeek.SATURDAY);
 		assertThat(previousWeekSaturdayActivity.getTotalActivityDurationMinutes(), equalTo(45));
@@ -235,7 +231,6 @@ public class ActivityServiceTests
 		weekActivityForGambling = weekOverview.getWeekActivities().stream()
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
 		assertThat(weekActivityForGambling.getStartTime(), equalTo(getWeekStartTime(today.minusWeeks(2))));
-		assertThat(weekActivityForGambling.getTimeZoneId(), equalTo(userAnonZone.getId()));
 		int expectedNumberOfWeekDaysRecorded = gamblingGoal.getCreationTime().getDayOfWeek() == DayOfWeek.SUNDAY ? 7
 				: 7 - gamblingGoal.getCreationTime().getDayOfWeek().getValue();
 		assertThat(weekActivityForGambling.getDayActivities().size(), equalTo(expectedNumberOfWeekDaysRecorded));
@@ -257,7 +252,6 @@ public class ActivityServiceTests
 		DayActivityDTO inactivityDayForGambling = inactivityDayOverview.getDayActivities().stream()
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
 		assertThat(inactivityDayForGambling.getStartTime(), equalTo(today));
-		assertThat(inactivityDayForGambling.getTimeZoneId(), equalTo(userAnonZone.getId()));
 		assertThat(inactivityDayForGambling.getTotalActivityDurationMinutes(), equalTo(0));
 		assertThat(inactivityDayForGambling.getTotalMinutesBeyondGoal(), equalTo(0));
 	}
@@ -268,7 +262,8 @@ public class ActivityServiceTests
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 		int thisWeekNumberOfWeekDaysPast = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
 
-		Page<WeekActivityOverviewDTO> inactivityWeekOverviews = service.getUserWeekActivityOverviews(userID, new PageRequest(0, 5));
+		Page<WeekActivityOverviewDTO> inactivityWeekOverviews = service.getUserWeekActivityOverviews(userID,
+				new PageRequest(0, 5));
 		// because the gambling goal was added with creation date two weeks ago, there are multiple weeks
 		assertThat(inactivityWeekOverviews.getNumberOfElements(), equalTo(3));
 		// the other goals were created today, so get the most recent (first) element
@@ -277,7 +272,6 @@ public class ActivityServiceTests
 		WeekActivityDTO inactivityWeekForGambling = inactivityWeekOverview.getWeekActivities().stream()
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
 		assertThat(inactivityWeekForGambling.getStartTime(), equalTo(getWeekStartTime(ZonedDateTime.now(userAnonZone))));
-		assertThat(inactivityWeekForGambling.getTimeZoneId(), equalTo(userAnonZone.getId()));
 		assertThat(inactivityWeekForGambling.getDayActivities().size(), equalTo(1 + thisWeekNumberOfWeekDaysPast));
 	}
 
@@ -286,7 +280,8 @@ public class ActivityServiceTests
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 
-		DayActivityDTO inactivityDay = service.getUserDayActivityDetail(userID, LocalDate.now(userAnonZone), gamblingGoal.getID());
+		DayActivityDTO inactivityDay = service.getUserDayActivityDetail(userID, LocalDate.now(userAnonZone),
+				gamblingGoal.getID());
 		assertThat(inactivityDay.getSpread().size(), equalTo(96));
 		assertThat(inactivityDay.getStartTime(), equalTo(today));
 		assertThat(inactivityDay.getTimeZoneId(), equalTo(userAnonZone.getId()));

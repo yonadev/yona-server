@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -54,7 +55,8 @@ public class AnalysisEngineService
 		{
 			Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryService
 					.getMatchingCategoriesForApp(appActivity.getApplication());
-			analyze(createActivityPayload(deviceTimeOffset, appActivity), userAnonymized, matchingActivityCategories);
+			analyze(createActivityPayload(deviceTimeOffset, appActivity, userAnonymized), userAnonymized,
+					matchingActivityCategories);
 		}
 	}
 
@@ -64,11 +66,12 @@ public class AnalysisEngineService
 		return (offset.abs().compareTo(Duration.ofSeconds(10)) > 0) ? offset : Duration.ZERO; // Ignore if less than 10 seconds
 	}
 
-	private ActivityPayload createActivityPayload(Duration deviceTimeOffset, AppActivityDTO.Activity appActivity)
+	private ActivityPayload createActivityPayload(Duration deviceTimeOffset, AppActivityDTO.Activity appActivity,
+			UserAnonymizedDTO userAnonymized)
 	{
 		ZonedDateTime correctedStartTime = correctTime(deviceTimeOffset, appActivity.getStartTime());
 		ZonedDateTime correctedEndTime = correctTime(deviceTimeOffset, appActivity.getEndTime());
-		return new ActivityPayload(correctedStartTime, correctedEndTime, appActivity.getApplication());
+		return ActivityPayload.createInstance(userAnonymized, correctedStartTime, correctedEndTime, appActivity.getApplication());
 	}
 
 	private ZonedDateTime correctTime(Duration deviceTimeOffset, ZonedDateTime time)
@@ -81,7 +84,7 @@ public class AnalysisEngineService
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(networkActivity.getVPNLoginID());
 		Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryService
 				.getMatchingCategoriesForSmoothwallCategories(networkActivity.getCategories());
-		analyze(new ActivityPayload(networkActivity), userAnonymized, matchingActivityCategories);
+		analyze(ActivityPayload.createInstance(userAnonymized, networkActivity), userAnonymized, matchingActivityCategories);
 	}
 
 	private void analyze(ActivityPayload payload, UserAnonymizedDTO userAnonymized,
@@ -99,11 +102,10 @@ public class AnalysisEngineService
 		if (isCrossDayActivity(payload, userAnonymized))
 		{
 			// assumption: activity never crosses 2 days
-			ActivityPayload truncatedPayload = new ActivityPayload(payload.url, payload.startTime,
-					getEndOfDay(payload.startTime, userAnonymized), payload.application);
-
-			ActivityPayload nextDayPayload = new ActivityPayload(payload.url, getStartOfDay(payload.endTime, userAnonymized),
-					payload.endTime, payload.application);
+			ActivityPayload truncatedPayload = ActivityPayload.copyTillEndTime(payload,
+					getEndOfDay(payload.startTime, userAnonymized));
+			ActivityPayload nextDayPayload = ActivityPayload.copyFromStartTime(payload,
+					getStartOfDay(payload.endTime, userAnonymized));
 
 			addOrUpdateDayTruncatedActivity(truncatedPayload, userAnonymized, matchingGoal);
 			addOrUpdateDayTruncatedActivity(nextDayPayload, userAnonymized, matchingGoal);
@@ -387,35 +389,45 @@ public class AnalysisEngineService
 		}
 	}
 
-	private class ActivityPayload
+	private static class ActivityPayload
 	{
-		public final String url;
+		public final Optional<String> url;
 		public final ZonedDateTime startTime;
 		public final ZonedDateTime endTime;
-		public final String application;
+		public final Optional<String> application;
 
-		public ActivityPayload(NetworkActivityDTO networkActivity)
-		{
-			this.url = networkActivity.getURL();
-			this.startTime = ZonedDateTime.now(); // now
-			this.endTime = this.startTime;
-			this.application = null;
-		}
-
-		public ActivityPayload(ZonedDateTime startTime, ZonedDateTime endTime, String application)
-		{
-			this.url = null;
-			this.startTime = startTime;
-			this.endTime = endTime;
-			this.application = application;
-		}
-
-		public ActivityPayload(String url, ZonedDateTime startTime, ZonedDateTime endTime, String application)
+		private ActivityPayload(Optional<String> url, ZonedDateTime startTime, ZonedDateTime endTime,
+				Optional<String> application)
 		{
 			this.url = url;
 			this.startTime = startTime;
 			this.endTime = endTime;
 			this.application = application;
+		}
+
+		static ActivityPayload copyTillEndTime(ActivityPayload payload, ZonedDateTime endTime)
+		{
+			return new ActivityPayload(payload.url, payload.startTime, endTime, payload.application);
+		}
+
+		static ActivityPayload copyFromStartTime(ActivityPayload payload, ZonedDateTime startTime)
+		{
+			return new ActivityPayload(payload.url, startTime, payload.endTime, payload.application);
+		}
+
+		static ActivityPayload createInstance(UserAnonymizedDTO userAnonymized, NetworkActivityDTO networkActivity)
+		{
+			ZonedDateTime startTime = networkActivity.getEventTime().orElse(ZonedDateTime.now())
+					.withZoneSameInstant(ZoneId.of(userAnonymized.getTimeZoneId()));
+			return new ActivityPayload(Optional.of(networkActivity.getURL()), startTime, startTime, Optional.empty());
+		}
+
+		static ActivityPayload createInstance(UserAnonymizedDTO userAnonymized, ZonedDateTime startTime, ZonedDateTime endTime,
+				String application)
+		{
+			ZoneId userTimeZone = ZoneId.of(userAnonymized.getTimeZoneId());
+			return new ActivityPayload(Optional.empty(), startTime.withZoneSameInstant(userTimeZone),
+					endTime.withZoneSameInstant(userTimeZone), Optional.of(application));
 		}
 	}
 }

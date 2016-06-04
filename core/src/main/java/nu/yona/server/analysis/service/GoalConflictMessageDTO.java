@@ -6,6 +6,7 @@ package nu.yona.server.analysis.service;
 
 import java.time.ZonedDateTime;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -41,14 +42,14 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private static final String SELF_NICKNAME = "<self>";
 	private static final String REQUEST_DISCLOSURE = "requestDisclosure";
 	private final String nickname;
-	private final String url;
+	private final Optional<String> url;
 	private Status status;
 	private final ZonedDateTime activityStartTime;
 	private final ZonedDateTime activityEndTime;
 	private final UUID activityCategoryID;
 
-	private GoalConflictMessageDTO(UUID id, ZonedDateTime creationTime, String nickname, UUID activityCategoryID, String url,
-			Status status, ZonedDateTime activityStartTime, ZonedDateTime activityEndTime)
+	private GoalConflictMessageDTO(UUID id, ZonedDateTime creationTime, String nickname, UUID activityCategoryID,
+			Optional<String> url, Status status, ZonedDateTime activityStartTime, ZonedDateTime activityEndTime)
 	{
 		super(id, creationTime);
 		this.nickname = nickname;
@@ -97,7 +98,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return status;
 	}
 
-	public String getUrl()
+	public Optional<String> getUrl()
 	{
 		return url;
 	}
@@ -124,7 +125,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 	{
 		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), nickname,
 				messageEntity.getActivity().getActivityCategory().getID(),
-				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : null, messageEntity.getStatus(),
+				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : Optional.empty(), messageEntity.getStatus(),
 				messageEntity.getActivity().getStartTime(), messageEntity.getActivity().getEndTime());
 	}
 

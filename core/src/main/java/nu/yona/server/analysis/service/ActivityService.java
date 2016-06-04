@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.DayActivityRepository;
@@ -55,11 +56,13 @@ public class ActivityService
 	@Autowired
 	private YonaProperties yonaProperties;
 
+	@Transactional
 	public Page<WeekActivityOverviewDTO> getUserWeekActivityOverviews(UUID userID, Pageable pageable)
 	{
 		return getWeekActivityOverviews(userService.getUserAnonymizedID(userID), pageable);
 	}
 
+	@Transactional
 	public Page<WeekActivityOverviewDTO> getBuddyWeekActivityOverviews(UUID buddyID, Pageable pageable)
 	{
 		return getWeekActivityOverviews(buddyService.getBuddy(buddyID).getUserAnonymizedID(), pageable);
@@ -70,24 +73,41 @@ public class ActivityService
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
 		Interval interval = getInterval(getCurrentWeekDate(userAnonymized), pageable, ChronoUnit.WEEKS);
 
-		Set<WeekActivity> weekActivityEntities = weekActivityRepository.findAll(userAnonymizedID, interval.startDate,
-				interval.endDate);
-		Map<LocalDate, Set<WeekActivity>> weekActivityEntitiesByDate = weekActivityEntities.stream()
-				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
-		addMissingInactivity(weekActivityEntitiesByDate, interval, ChronoUnit.WEEKS, userAnonymized,
+		Map<LocalDate, Set<WeekActivity>> weekActivityEntitiesByLocalDate = getWeekActivitiesGroupedByDate(userAnonymizedID,
+				interval);
+		addMissingInactivity(weekActivityEntitiesByLocalDate, interval, ChronoUnit.WEEKS, userAnonymized,
 				(goal, startOfWeek) -> WeekActivity.createInstanceInactivity(null, goal, startOfWeek),
 				a -> a.addInactivityDaysIfNeeded());
+		Map<ZonedDateTime, Set<WeekActivity>> weekActivityEntitiesByZonedDate = mapToZonedDateTime(
+				weekActivityEntitiesByLocalDate);
 		return new PageImpl<WeekActivityOverviewDTO>(
-				weekActivityEntitiesByDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
+				weekActivityEntitiesByZonedDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 						.map(e -> WeekActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
 				pageable, yonaProperties.getAnalysisService().getWeeksActivityMemory());
 	}
 
+	private <T extends IntervalActivity> Map<ZonedDateTime, Set<T>> mapToZonedDateTime(
+			Map<LocalDate, Set<T>> intervalActivityEntitiesByLocalDate)
+	{
+		Map<ZonedDateTime, Set<T>> intervalActivityEntitiesByZonedDate = intervalActivityEntitiesByLocalDate.entrySet().stream()
+				.collect(Collectors.toMap(e -> e.getValue().iterator().next().getStartTime(), e -> e.getValue()));
+		return intervalActivityEntitiesByZonedDate;
+	}
+
+	private Map<LocalDate, Set<WeekActivity>> getWeekActivitiesGroupedByDate(UUID userAnonymizedID, Interval interval)
+	{
+		Set<WeekActivity> weekActivityEntities = weekActivityRepository.findAll(userAnonymizedID, interval.startDate,
+				interval.endDate);
+		return weekActivityEntities.stream().collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
+	}
+
+	@Transactional
 	public Page<DayActivityOverviewDTO> getUserDayActivityOverviews(UUID userID, Pageable pageable)
 	{
 		return getDayActivityOverviews(userService.getUserAnonymizedID(userID), pageable);
 	}
 
+	@Transactional
 	public Page<DayActivityOverviewDTO> getBuddyDayActivityOverviews(UUID buddyID, Pageable pageable)
 	{
 		return getDayActivityOverviews(buddyService.getBuddy(buddyID).getUserAnonymizedID(), pageable);
@@ -98,17 +118,23 @@ public class ActivityService
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
 		Interval interval = getInterval(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
 
-		Set<DayActivity> dayActivityEntities = dayActivityRepository.findAll(userAnonymizedID, interval.startDate,
-				interval.endDate);
-		Map<LocalDate, Set<DayActivity>> dayActivityEntitiesByDate = dayActivityEntities.stream()
-				.collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
-		addMissingInactivity(dayActivityEntitiesByDate, interval, ChronoUnit.DAYS, userAnonymized,
+		Map<LocalDate, Set<DayActivity>> dayActivityEntitiesByLocalDate = getDayActivitiesGroupedByDate(userAnonymizedID,
+				interval);
+		addMissingInactivity(dayActivityEntitiesByLocalDate, interval, ChronoUnit.DAYS, userAnonymized,
 				(goal, startOfDay) -> DayActivity.createInstanceInactivity(null, goal, startOfDay), a -> {
 				});
+		Map<ZonedDateTime, Set<DayActivity>> dayActivityEntitiesByZonedDate = mapToZonedDateTime(dayActivityEntitiesByLocalDate);
 		return new PageImpl<DayActivityOverviewDTO>(
-				dayActivityEntitiesByDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
+				dayActivityEntitiesByZonedDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 						.map(e -> DayActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
 				pageable, yonaProperties.getAnalysisService().getDaysActivityMemory());
+	}
+
+	private Map<LocalDate, Set<DayActivity>> getDayActivitiesGroupedByDate(UUID userAnonymizedID, Interval interval)
+	{
+		Set<DayActivity> dayActivityEntities = dayActivityRepository.findAll(userAnonymizedID, interval.startDate,
+				interval.endDate);
+		return dayActivityEntities.stream().collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
 	}
 
 	private Interval getInterval(LocalDate currentUnitDate, Pageable pageable, ChronoUnit timeUnit)
@@ -191,11 +217,13 @@ public class ActivityService
 		return dayActivityEntitiesAtDate.stream().filter(a -> a.getGoal().equals(goal)).findAny();
 	}
 
+	@Transactional
 	public WeekActivityDTO getUserWeekActivityDetail(UUID userID, LocalDate date, UUID goalID)
 	{
 		return getWeekActivityDetail(userID, userService.getUserAnonymizedID(userID), date, goalID);
 	}
 
+	@Transactional
 	public WeekActivityDTO getBuddyWeekActivityDetail(UUID buddyID, LocalDate date, UUID goalID)
 	{
 		BuddyDTO buddy = buddyService.getBuddy(buddyID);
@@ -213,11 +241,13 @@ public class ActivityService
 		return WeekActivityDTO.createInstance(weekActivityEntity, LevelOfDetail.WeekDetail);
 	}
 
+	@Transactional
 	public DayActivityDTO getUserDayActivityDetail(UUID userID, LocalDate date, UUID goalID)
 	{
 		return getDayActivityDetail(userID, userService.getUserAnonymizedID(userID), date, goalID);
 	}
 
+	@Transactional
 	public DayActivityDTO getBuddyDayActivityDetail(UUID buddyID, LocalDate date, UUID goalID)
 	{
 		BuddyDTO buddy = buddyService.getBuddy(buddyID);

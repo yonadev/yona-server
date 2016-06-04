@@ -1,6 +1,6 @@
 package nu.yona.server.analysis.service;
 
-import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -16,7 +16,7 @@ public class DayActivityOverviewDTO extends IntervalActivityOverviewDTO
 {
 	private Set<DayActivityDTO> dayActivities;
 
-	private DayActivityOverviewDTO(LocalDate date, Set<DayActivityDTO> dayActivities)
+	private DayActivityOverviewDTO(ZonedDateTime date, Set<DayActivityDTO> dayActivities)
 	{
 		super(date);
 		this.dayActivities = dayActivities;
@@ -34,7 +34,7 @@ public class DayActivityOverviewDTO extends IntervalActivityOverviewDTO
 		return dayActivities;
 	}
 
-	static DayActivityOverviewDTO createInstance(LocalDate date, Set<DayActivity> dayActivities)
+	static DayActivityOverviewDTO createInstance(ZonedDateTime date, Set<DayActivity> dayActivities)
 	{
 		return new DayActivityOverviewDTO(date,
 				dayActivities.stream().map(weekActivity -> DayActivityDTO.createInstance(weekActivity, LevelOfDetail.DayOverview))

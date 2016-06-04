@@ -6,13 +6,16 @@ package nu.yona.server.goals.service;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.Constants;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.TimeZoneGoal;
@@ -24,16 +27,18 @@ public class TimeZoneGoalDTO extends GoalDTO
 	private final String[] zones;
 
 	@JsonCreator
-	public TimeZoneGoalDTO(@JsonProperty(required = true, value = "zones") String[] zones)
+	public TimeZoneGoalDTO(
+			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("creationTime") Optional<ZonedDateTime> creationTime,
+			@JsonProperty(required = true, value = "zones") String[] zones)
 	{
-		super(null);
+		super(creationTime);
 
 		this.zones = zones;
 	}
 
 	private TimeZoneGoalDTO(UUID id, UUID activityCategoryID, String[] zones, ZonedDateTime creationTime)
 	{
-		super(id, activityCategoryID, creationTime, false);
+		super(id, Optional.of(creationTime), activityCategoryID, false);
 
 		this.zones = zones;
 	}
@@ -140,6 +145,6 @@ public class TimeZoneGoalDTO extends GoalDTO
 		{
 			throw ActivityCategoryNotFoundException.notFound(this.getActivityCategoryID());
 		}
-		return TimeZoneGoal.createInstance(activityCategory, this.zones);
+		return TimeZoneGoal.createInstance(getCreationTime().orElse(ZonedDateTime.now()), activityCategory, this.zones);
 	}
 }

@@ -10,9 +10,12 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.DayActivity;
+import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.messaging.service.MessageDTO;
 
@@ -24,14 +27,18 @@ public class DayActivityDTO extends IntervalActivityDTO
 	private boolean goalAccomplished;
 	private int totalMinutesBeyondGoal;
 	private Set<MessageDTO> messages;
+	private Optional<Integer> goalBudget;
+	private List<Integer> goalSpreadCells;
 
 	private DayActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
-			Optional<Integer> totalActivityDurationMinutes, boolean goalAccomplished, int totalMinutesBeyondGoal,
-			Set<MessageDTO> messages)
+			Optional<Integer> goalBudget, List<Integer> goalSpreadCells, Optional<Integer> totalActivityDurationMinutes,
+			boolean goalAccomplished, int totalMinutesBeyondGoal, Set<MessageDTO> messages)
 	{
 		super(goalID, startTime, shouldSerializeDate, spread, totalActivityDurationMinutes);
 		this.goalAccomplished = goalAccomplished;
 		this.totalMinutesBeyondGoal = totalMinutesBeyondGoal;
+		this.goalBudget = goalBudget;
+		this.goalSpreadCells = goalSpreadCells;
 		this.messages = messages;
 	}
 
@@ -57,6 +64,18 @@ public class DayActivityDTO extends IntervalActivityDTO
 		return messages;
 	}
 
+	@JsonInclude(Include.NON_EMPTY)
+	public List<Integer> getGoalSpreadCells()
+	{
+		return goalSpreadCells;
+	}
+
+	@JsonInclude(Include.NON_EMPTY)
+	public Optional<Integer> getGoalBudget()
+	{
+		return goalBudget;
+	}
+
 	public static LocalDate parseDate(String iso8601)
 	{
 		return LocalDate.parse(iso8601, ISO8601_DAY_FORMATTER);
@@ -65,11 +84,28 @@ public class DayActivityDTO extends IntervalActivityDTO
 	static DayActivityDTO createInstance(DayActivity dayActivity, LevelOfDetail levelOfDetail)
 	{
 		return new DayActivityDTO(dayActivity.getGoal().getID(), dayActivity.getStartTime(),
-				levelOfDetail == LevelOfDetail.DayDetail,
-				includeSpread(dayActivity, levelOfDetail) ? dayActivity.getSpread() : Collections.emptyList(),
+				levelOfDetail == LevelOfDetail.DayDetail, getSpread(dayActivity, levelOfDetail),
+				getGoalBudget(dayActivity, levelOfDetail), getGoalSpreadCells(dayActivity, levelOfDetail),
 				Optional.of(dayActivity.getTotalActivityDurationMinutes()), dayActivity.isGoalAccomplished(),
 				dayActivity.getTotalMinutesBeyondGoal(),
 				levelOfDetail == LevelOfDetail.DayDetail ? getMessages(dayActivity) : Collections.emptySet());
+	}
+
+	private static List<Integer> getSpread(DayActivity dayActivity, LevelOfDetail levelOfDetail)
+	{
+		return includeSpread(dayActivity, levelOfDetail) ? dayActivity.getSpread() : Collections.emptyList();
+	}
+
+	static private Optional<Integer> getGoalBudget(DayActivity dayActivity, LevelOfDetail levelOfDetail)
+	{
+		return includeGoalBudget(dayActivity, levelOfDetail)
+				? Optional.of(((BudgetGoal) dayActivity.getGoal()).getMaxDurationMinutes()) : Optional.empty();
+	}
+
+	static private List<Integer> getGoalSpreadCells(DayActivity dayActivity, LevelOfDetail levelOfDetail)
+	{
+		return includeGoalSpreadCells(dayActivity, levelOfDetail) ? ((TimeZoneGoal) dayActivity.getGoal()).getGoalSpreadCells()
+				: Collections.emptyList();
 	}
 
 	private static Set<MessageDTO> getMessages(DayActivity dayActivity)
@@ -82,5 +118,20 @@ public class DayActivityDTO extends IntervalActivityDTO
 	{
 		return levelOfDetail == LevelOfDetail.DayDetail
 				|| levelOfDetail == LevelOfDetail.DayOverview && dayActivity.getGoal() instanceof TimeZoneGoal;
+	}
+
+	private static boolean includeGoalBudget(DayActivity dayActivity, LevelOfDetail levelOfDetail)
+	{
+		return dayActivity.getGoal() instanceof BudgetGoal && isLevelOfDetailDay(levelOfDetail);
+	}
+
+	private static boolean includeGoalSpreadCells(DayActivity dayActivity, LevelOfDetail levelOfDetail)
+	{
+		return dayActivity.getGoal() instanceof TimeZoneGoal && isLevelOfDetailDay(levelOfDetail);
+	}
+
+	private static boolean isLevelOfDetailDay(LevelOfDetail levelOfDetail)
+	{
+		return levelOfDetail == LevelOfDetail.DayDetail || levelOfDetail == LevelOfDetail.DayOverview;
 	}
 }
