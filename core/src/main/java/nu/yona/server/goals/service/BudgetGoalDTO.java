@@ -33,9 +33,10 @@ public class BudgetGoalDTO extends GoalDTO
 		this.maxDurationMinutes = maxDurationMinutes;
 	}
 
-	public BudgetGoalDTO(UUID id, UUID activityCategoryID, int maxDurationMinutes, ZonedDateTime creationTime, boolean mandatory)
+	public BudgetGoalDTO(UUID id, UUID activityCategoryID, int maxDurationMinutes, ZonedDateTime creationTime,
+			Optional<ZonedDateTime> endTime, boolean mandatory)
 	{
-		super(id, Optional.of(creationTime), activityCategoryID, mandatory);
+		super(id, Optional.of(creationTime), endTime, activityCategoryID, mandatory);
 
 		this.maxDurationMinutes = maxDurationMinutes;
 	}
@@ -75,7 +76,7 @@ public class BudgetGoalDTO extends GoalDTO
 	public static BudgetGoalDTO createInstance(BudgetGoal entity)
 	{
 		return new BudgetGoalDTO(entity.getID(), entity.getActivityCategory().getID(), entity.getMaxDurationMinutes(),
-				entity.getCreationTime(), entity.isMandatory());
+				entity.getCreationTime(), Optional.ofNullable(entity.getEndTime()), entity.isMandatory());
 	}
 
 	public BudgetGoal createGoalEntity()

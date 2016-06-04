@@ -36,16 +36,16 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Thu 11:30")
 
 		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
-		def budgetGoalNewsUrl = richard.findGoal(NEWS_ACT_CAT_URL).url
-		def timeZoneGoalSocialUrl = richard.findGoal(SOCIAL_ACT_CAT_URL).url
+		def budgetGoalNewsUrl = richard.findActiveGoal(NEWS_ACT_CAT_URL).url
+		def timeZoneGoalSocialUrl = richard.findActiveGoal(SOCIAL_ACT_CAT_URL).url
 
 		def expectedValuesLastWeek = [
-			"Mon" : [[goalUrl:budgetGoalNewsUrl, data: [goalBudget: 0, goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
-			"Tue" : [[goalUrl:budgetGoalNewsUrl, data: [goalBudget: 0, goalAccomplished: false, minutesBeyondGoal: 25, spread: [35 : 15, 36 : 10]]]],
-			"Wed" : [[goalUrl:budgetGoalNewsUrl, data: [goalBudget: 0, goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalSpreadCells: [44, 45, 46, 47], goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]],
-			"Thu" : [[goalUrl:budgetGoalNewsUrl, data: [goalBudget: 0, goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalSpreadCells: [44, 45, 46, 47], goalAccomplished: true, minutesBeyondGoal: 0, spread: [48 : 1]]]],
-			"Fri" : [[goalUrl:budgetGoalNewsUrl, data: [goalBudget: 0, goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalSpreadCells: [44, 45, 46, 47], goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
-			"Sat" : [[goalUrl:budgetGoalNewsUrl, data: [goalBudget: 0, goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalSpreadCells: [44, 45, 46, 47], goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
+			"Mon" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
+			"Tue" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35 : 15, 36 : 10]]]],
+			"Wed" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]],
+			"Thu" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [48 : 1]]]],
+			"Fri" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Sat" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
 
 		when:
 		def responseWeekOverviews = appService.getWeekActivityOverviews(richard)
@@ -106,9 +106,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		bob = richardAndBob.bob
 		appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
 		def goals = appService.getGoals(richard)
-		richardBudgetGoalGamblingUrl = findGoal(goals, GAMBLING_ACT_CAT_URL)._links.self.href
-		richardBudgetGoalNewsUrl = findGoal(goals, NEWS_ACT_CAT_URL)._links.self.href
-		richardTimeZoneGoalUrl = findGoal(goals, SOCIAL_ACT_CAT_URL)._links.self.href
+		richardBudgetGoalGamblingUrl = findActiveGoal(goals, GAMBLING_ACT_CAT_URL)._links.self.href
+		richardBudgetGoalNewsUrl = findActiveGoal(goals, NEWS_ACT_CAT_URL)._links.self.href
+		richardTimeZoneGoalUrl = findActiveGoal(goals, SOCIAL_ACT_CAT_URL)._links.self.href
 
 		def bobWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, bob.url, true, bob.password)
 		assert bobWithBuddy.buddies != null

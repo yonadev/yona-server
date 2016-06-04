@@ -6,6 +6,8 @@ package nu.yona.server.goals.service;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -25,6 +27,7 @@ public class TimeZoneGoalDTO extends GoalDTO
 {
 	private static Pattern zonePattern = Pattern.compile("[0-2][0-9]:[0-5][0-9]-[0-2][0-9]:[0-5][0-9]");
 	private final String[] zones;
+	private final List<Integer> spreadCells;
 
 	@JsonCreator
 	public TimeZoneGoalDTO(
@@ -34,13 +37,16 @@ public class TimeZoneGoalDTO extends GoalDTO
 		super(creationTime);
 
 		this.zones = zones;
+		this.spreadCells = Collections.emptyList();
 	}
 
-	private TimeZoneGoalDTO(UUID id, UUID activityCategoryID, String[] zones, ZonedDateTime creationTime)
+	private TimeZoneGoalDTO(UUID id, UUID activityCategoryID, String[] zones, ZonedDateTime creationTime,
+			Optional<ZonedDateTime> endTime, List<Integer> spreadCells)
 	{
-		super(id, Optional.of(creationTime), activityCategoryID, false);
+		super(id, Optional.of(creationTime), endTime, activityCategoryID, false);
 
 		this.zones = zones;
+		this.spreadCells = spreadCells;
 	}
 
 	@Override
@@ -132,10 +138,15 @@ public class TimeZoneGoalDTO extends GoalDTO
 		return zones;
 	}
 
+	public List<Integer> getSpreadCells()
+	{
+		return spreadCells;
+	}
+
 	static TimeZoneGoalDTO createInstance(TimeZoneGoal entity)
 	{
 		return new TimeZoneGoalDTO(entity.getID(), entity.getActivityCategory().getID(), entity.getZones(),
-				entity.getCreationTime());
+				entity.getCreationTime(), Optional.ofNullable(entity.getEndTime()), entity.getSpreadCells());
 	}
 
 	public TimeZoneGoal createGoalEntity()

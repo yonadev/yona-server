@@ -99,14 +99,19 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		return true
 	}
 
-	def findGoal(def response, def activityCategoryUrl)
+	def findActiveGoal(def response, def activityCategoryUrl)
 	{
-		response.responseData._embedded."yona:goals".find{ it._links."yona:activityCategory".href == activityCategoryUrl }
+		response.responseData._embedded."yona:goals".find{ it._links."yona:activityCategory".href == activityCategoryUrl && !it.historyItem }
+	}
+
+	def findGoalsIncludingHistoryItems(def response, def activityCategoryUrl)
+	{
+		response.responseData._embedded."yona:goals".findAll{ it._links."yona:activityCategory".href == activityCategoryUrl }
 	}
 
 	void setGoalCreationTime(User user, activityCategoryURL, relativeCreationDateTimeString)
 	{
-		Goal goal = user.findGoal(activityCategoryURL)
+		Goal goal = user.findActiveGoal(activityCategoryURL)
 		goal.creationTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
 		def response = appService.updateGoal(user, goal.url, goal)
 		assert response.status == 200
@@ -162,8 +167,6 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goalUrl}
 		assert weekActivityForGoal.spread == null // Only in detail
-		assert weekActivityForGoal.goalBudget == null // Not in week data
-		assert weekActivityForGoal.goalSpreadCells == null // Not in week data
 		assert weekActivityForGoal.totalActivityDurationMinutes == null // Only in detail
 		assert weekActivityForGoal.totalMinutesBeyondGoal == null // Only for day
 		assert weekActivityForGoal.date == null // Only on week overview level
@@ -181,8 +184,6 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert weekActivityForGoal.dayActivities[fullDay[shortDay]]
 		def dayActivityForGoal = weekActivityForGoal.dayActivities[fullDay[shortDay]]
 		assert dayActivityForGoal.spread == null // Only in detail
-		assert dayActivityForGoal.goalBudget == null // Not in week data
-		assert dayActivityForGoal.goalSpreadCells == null // Not in week data
 		assert dayActivityForGoal.totalActivityDurationMinutes == calculateExpectedDurationFromSpread(expectedDataForDayAndGoal.spread)
 		assert dayActivityForGoal.goalAccomplished == expectedDataForDayAndGoal.goalAccomplished
 		assert dayActivityForGoal.totalMinutesBeyondGoal == expectedDataForDayAndGoal.minutesBeyondGoal
@@ -218,8 +219,6 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		def expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, goalUrl)
 		def dayActivityForTimeZoneGoal = assertDayOverviewForGoal(response, goalUrl, expectedValues, weeksBack, shortDay)
 		assert dayActivityForTimeZoneGoal?.spread.size() == 96
-		assert dayActivityForTimeZoneGoal?.goalBudget == expectedDataForDayAndGoal.goalBudget
-		assert dayActivityForTimeZoneGoal?.goalSpreadCells == expectedDataForDayAndGoal.goalSpreadCells
 	}
 
 	void assertDayOverviewForBudgetGoal(response, goalUrl, expectedValues, weeksBack, shortDay)
@@ -250,8 +249,6 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		def expectedSpread = (0..95).collect { 0 }
 		expectedValues.each { it.value.findAll{it.goalUrl == goalUrl}.each {it.data.spread.each { expectedSpread[it.key] += it.value }}}
 		assert response.responseData.spread == expectedSpread
-		assert response.responseData.goalBudget == null // Not in week data
-		assert response.responseData.goalSpreadCells == null // Not in week data
 		assert response.responseData.totalActivityDurationMinutes == totalDurationMinutes
 		assert response.responseData.date =~ /\d{4}\-W\d{2}/
 		assert response.responseData.timeZoneId == "Europe/Amsterdam"
@@ -267,8 +264,6 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 				assert response.responseData.dayActivities[fullDay[day]]
 				def dayActivityForGoal = response.responseData.dayActivities[fullDay[day]]
 				assert dayActivityForGoal.spread == null // Only in detail
-				assert dayActivityForGoal.goalBudget == null // Not in week data
-				assert dayActivityForGoal.goalSpreadCells == null // Not in week data
 				def expectedDayDurationMinutes = calculateExpectedDurationFromSpread(expectedDataForGoalOnDay.spread)
 				assert dayActivityForGoal.totalActivityDurationMinutes == expectedDayDurationMinutes
 				assert dayActivityForGoal.goalAccomplished == expectedDataForGoalOnDay.goalAccomplished
@@ -290,8 +285,6 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		def response = appService.getResourceWithPassword(dayActivityDetailUrl, user.password)
 		assert response.status == 200
 		assert response.responseData.spread?.size() == 96
-		assert response.responseData.goalBudget == expectedDataForDayAndGoal.goalBudget
-		assert response.responseData.goalSpreadCells == expectedDataForDayAndGoal.goalSpreadCells
 		assert response.responseData.totalActivityDurationMinutes ==  calculateExpectedDurationFromSpread(calculateExpectedDurationFromSpread(expectedDataForDayAndGoal.spread))
 		assert response.responseData.goalAccomplished == expectedDataForDayAndGoal.goalAccomplished
 		assert response.responseData.totalMinutesBeyondGoal == expectedDataForDayAndGoal.minutesBeyondGoal

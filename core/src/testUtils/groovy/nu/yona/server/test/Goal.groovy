@@ -18,12 +18,14 @@ abstract class Goal
 	final String url
 	final String editURL
 	ZonedDateTime creationTime
+	final boolean historyItem
 	Goal(def json)
 	{
 		this.creationTime = (json.creationTime instanceof ZonedDateTime) ? json.creationTime : null // Only set the creation time when explicitly provided
 		this.activityCategoryUrl = (json.activityCategoryUrl) ?: json._links."yona:activityCategory".href
 		this.url = json._links ? YonaServer.stripQueryString(json._links.self.href) : null
 		this.editURL = json._links?.edit?.href
+		this.historyItem = json.historyItem
 	}
 
 	def abstract convertToJsonString()

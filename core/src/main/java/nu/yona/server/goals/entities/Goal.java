@@ -6,6 +6,7 @@ package nu.yona.server.goals.entities;
 
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.persistence.CascadeType;
@@ -14,6 +15,8 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+
+import org.hibernate.proxy.HibernateProxy;
 
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.entities.EntityWithID;
@@ -91,9 +94,16 @@ public abstract class Goal extends EntityWithID
 		return endTime;
 	}
 
-	public Goal getPreviousVersionOfThisGoal()
+	public Optional<Goal> getPreviousVersionOfThisGoal()
 	{
-		return previousInstanceOfThisGoal;
+		if (previousInstanceOfThisGoal == null)
+		{
+			return Optional.empty();
+		}
+		// See http://stackoverflow.com/a/2216603/4353482
+		// Simply returning the value causes a failure in instanceof and cast
+		return Optional
+				.of((Goal) ((HibernateProxy) previousInstanceOfThisGoal).getHibernateLazyInitializer().getImplementation());
 	}
 
 	public void setPreviousVersionOfThisGoal(Goal previousGoal)

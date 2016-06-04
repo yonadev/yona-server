@@ -1534,6 +1534,10 @@ definitions:
         - BudgetGoal
         - TimeZoneGoal
         description: The type of goal
+      historyItem:
+        type: boolean
+        example: true
+        description: Indicates whether the goal is retained for historical reasons only. Such goals should not feature in the user's goal list but should be used when displaying activity information.
       _links:
         allOf:
           - $ref: '#/definitions/ActivityCategoryLink'
@@ -1560,6 +1564,11 @@ definitions:
           type: string
           example: "8:00-17:00"
         description: The zones for this goal
+      spreadCells:
+        type: array
+        items:
+          type: integer
+        description: This property cannot be passed in PUT/POST. An array with indexes of the spread that are within the goal boundaries, used to interpret the spread as defined in the day and week activity. 
     required:
       - zones
   Goal:
@@ -2128,14 +2137,6 @@ definitions:
         items:
           type: integer
         description: Aggregates all activity on every quarter hour of the day (of which there are 96). This information is only included for time zone goals.
-      goalBudget:
-        type: integer
-        description: The time budget of the related goal. This information is only included for budget goals.
-      goalSpreadCells:
-        type: array
-        items:
-          type: integer
-        description: An array with indexes of the spread that are within the goal boundaries. This information is only included for time zone goals.
       _links:
         allOf:
           - $ref: '#/definitions/GoalLink'
@@ -2162,14 +2163,6 @@ definitions:
         items:
           type: integer
         description: Aggregates all activity on every quarter hour of the day (of which there are 96).
-      goalBudget:
-        type: integer
-        description: The time budget of the related goal. This information is only included for budget goals.
-      goalSpreadCells:
-        type: array
-        items:
-          type: integer
-        description: An array with indexes of the spread that are within the goal boundaries. This information is only included for time zone goals.
       _links:
         allOf:
           - $ref: '#/definitions/Curies'

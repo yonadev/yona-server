@@ -101,9 +101,9 @@ class User
 		return json
 	}
 
-	def findGoal(def activityCategoryUrl)
+	def findActiveGoal(def activityCategoryUrl)
 	{
-		goals.find{ it.activityCategoryUrl == activityCategoryUrl }
+		goals.find{ it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
 	}
 
 	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber)
