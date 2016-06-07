@@ -191,8 +191,8 @@ public class UserDTO
 				userEntity.getMobileNumber(), userEntity.getCreationTime(), userEntity.isMobileNumberConfirmed(),
 				userEntity.getNamedMessageSource().getID(), userEntity.getNamedMessageDestination().getID(),
 				userEntity.getAnonymousMessageSource().getID(), userEntity.getAnonymousMessageSource().getDestination().getID(),
-				getGetGoalsIncludingHistoryItems(userEntity),
-				getBuddyIDs(userEntity), userEntity.getUserAnonymizedID(), VPNProfileDTO.createInstance(userEntity));
+				getGetGoalsIncludingHistoryItems(userEntity), getBuddyIDs(userEntity), userEntity.getUserAnonymizedID(),
+				VPNProfileDTO.createInstance(userEntity));
 	}
 
 	private static Set<GoalDTO> getGetGoalsIncludingHistoryItems(User userEntity)
