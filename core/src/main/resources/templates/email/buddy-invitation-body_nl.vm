@@ -8,7 +8,7 @@
 
 		<p>Open daarna de onderstaande link door er op te tikken en dan Yona te kiezen om de link te openen.</p>
 		
-		<p>Belangrijk: Let op of de uitnodiging werkelijk van @{requestingUserName} komt. Bij Yona is dit mobiele nummer bekend voor deze gebruiker: ${requestingUserMobileNumber}.</p>
+		<p>Belangrijk: Let op of de uitnodiging werkelijk van ${requestingUserName} komt. Bij Yona is dit mobiele nummer bekend voor deze gebruiker: ${requestingUserMobileNumber}.</p>
 		
  		<p><a href="${inviteURL}">${inviteURL}</a></p>
 		

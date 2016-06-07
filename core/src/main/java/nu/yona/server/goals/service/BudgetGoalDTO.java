@@ -4,12 +4,16 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.time.ZonedDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.Constants;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
@@ -20,16 +24,19 @@ public class BudgetGoalDTO extends GoalDTO
 	private final int maxDurationMinutes;
 
 	@JsonCreator
-	public BudgetGoalDTO(@JsonProperty(required = true, value = "maxDurationMinutes") int maxDurationMinutes)
+	public BudgetGoalDTO(
+			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("creationTime") Optional<ZonedDateTime> creationTime,
+			@JsonProperty(required = true, value = "maxDurationMinutes") int maxDurationMinutes)
 	{
-		super(null);
+		super(creationTime);
 
 		this.maxDurationMinutes = maxDurationMinutes;
 	}
 
-	public BudgetGoalDTO(UUID id, UUID activityCategoryID, int maxDurationMinutes, boolean mandatory)
+	public BudgetGoalDTO(UUID id, UUID activityCategoryID, int maxDurationMinutes, ZonedDateTime creationTime,
+			Optional<ZonedDateTime> endTime, boolean mandatory)
 	{
-		super(id, activityCategoryID, mandatory);
+		super(id, Optional.of(creationTime), endTime, activityCategoryID, mandatory);
 
 		this.maxDurationMinutes = maxDurationMinutes;
 	}
@@ -38,6 +45,21 @@ public class BudgetGoalDTO extends GoalDTO
 	public String getType()
 	{
 		return "BudgetGoal";
+	}
+
+	@Override
+	public void validate()
+	{
+		if (maxDurationMinutes < 0)
+		{
+			throw GoalServiceException.budgetGoalMaxDurationNegative(maxDurationMinutes);
+		}
+	}
+
+	@Override
+	public boolean isGoalChanged(Goal existingGoal)
+	{
+		return ((BudgetGoal) existingGoal).getMaxDurationMinutes() != maxDurationMinutes;
 	}
 
 	@Override
@@ -54,7 +76,7 @@ public class BudgetGoalDTO extends GoalDTO
 	public static BudgetGoalDTO createInstance(BudgetGoal entity)
 	{
 		return new BudgetGoalDTO(entity.getID(), entity.getActivityCategory().getID(), entity.getMaxDurationMinutes(),
-				entity.isMandatory());
+				entity.getCreationTime(), Optional.ofNullable(entity.getEndTime()), entity.isMandatory());
 	}
 
 	public BudgetGoal createGoalEntity()
@@ -64,6 +86,7 @@ public class BudgetGoalDTO extends GoalDTO
 		{
 			throw ActivityCategoryNotFoundException.notFound(this.getActivityCategoryID());
 		}
-		return BudgetGoal.createInstance(activityCategory, this.maxDurationMinutes);
+		return BudgetGoal.createInstance(getCreationTime().orElse(ZonedDateTime.now()), activityCategory,
+				this.maxDurationMinutes);
 	}
 }

@@ -231,8 +231,29 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		userUpdateResponse.status == 200
-		userUpdateResponse.responseData._links."yona:confirmMobileNumber".href != null
+		userUpdateResponse.responseData._links?."yona:confirmMobileNumber"?.href != null
 		userUpdateResponse.responseData.mobileNumber == newMobileNumber
+
+		cleanup:
+		appService.deleteUser(john)
+	}
+
+	def 'Try update John Doe with an existing mobile number'()
+	{
+		given:
+		def ts = timestamp
+		User richard = addRichard()
+		def john = createJohnDoe(ts)
+		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, john)
+
+		when:
+		def updatedJohn = john.convertToJSON()
+		updatedJohn.mobileNumber = richard.mobileNumber
+		def response = appService.updateUser(john.url, updatedJohn, john.password)
+
+		then:
+		assert response.status == 400
+		assert response.responseData.code == "error.user.exists"
 
 		cleanup:
 		appService.deleteUser(john)

@@ -19,12 +19,12 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.context.i18n.LocaleContextHolder;
 
+import nu.yona.server.Translator;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.ActivityCategoryRepository;
 
 public abstract class ActivityCategoryServiceTestBase
 {
-	protected static final Locale USEnglishLocale = Locale.forLanguageTag("en-US");
 	protected Set<ActivityCategory> activityCategories = new HashSet<ActivityCategory>();
 
 	protected ActivityCategory gambling;
@@ -32,7 +32,7 @@ public abstract class ActivityCategoryServiceTestBase
 
 	protected void setUp(ActivityCategoryRepository mockRepository)
 	{
-		LocaleContextHolder.setLocale(USEnglishLocale);
+		LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
 		gambling = ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
 				new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet());
 		news = ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
@@ -56,6 +56,6 @@ public abstract class ActivityCategoryServiceTestBase
 
 	protected Map<Locale, String> usString(String string)
 	{
-		return Collections.singletonMap(Locale.forLanguageTag("en-US"), string);
+		return Collections.singletonMap(Translator.EN_US_LOCALE, string);
 	}
 }

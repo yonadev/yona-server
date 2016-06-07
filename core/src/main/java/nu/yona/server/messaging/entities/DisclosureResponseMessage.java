@@ -28,10 +28,10 @@ public class DisclosureResponseMessage extends BuddyMessage
 
 	}
 
-	private DisclosureResponseMessage(UUID id, UUID respondingUserID, UUID relatedUserAnonymizedID,
-			UUID targetGoalConflictMessageID, Status status, String nickname, String message)
+	private DisclosureResponseMessage(UUID id, UUID senderUserID, UUID senderUserAnonymizedID,
+			UUID targetGoalConflictMessageID, Status status, String senderNickname, String message)
 	{
-		super(id, relatedUserAnonymizedID, respondingUserID, nickname, message);
+		super(id, senderUserID, senderUserAnonymizedID, senderNickname, message);
 		this.targetGoalConflictMessageID = targetGoalConflictMessageID;
 		this.status = status;
 	}
@@ -58,10 +58,10 @@ public class DisclosureResponseMessage extends BuddyMessage
 		super.decrypt(decryptor);
 	}
 
-	public static DisclosureResponseMessage createInstance(UUID respondingUserID, UUID relatedUserAnonymizedID,
-			UUID targetGoalConflictMessageID, Status status, String nickname, String message)
+	public static DisclosureResponseMessage createInstance(UUID senderUserID, UUID senderUserAnonymizedID,
+			UUID targetGoalConflictMessageID, Status status, String senderNickname, String message)
 	{
-		return new DisclosureResponseMessage(UUID.randomUUID(), respondingUserID, relatedUserAnonymizedID,
-				targetGoalConflictMessageID, status, nickname, message);
+		return new DisclosureResponseMessage(UUID.randomUUID(), senderUserID, senderUserAnonymizedID,
+				targetGoalConflictMessageID, status, senderNickname, message);
 	}
 }

@@ -12,6 +12,7 @@ configuration:
 
 elasticsearch:
   image: elasticsearch:2.3.1
+  restart: unless-stopped
   environment:
       TZ: Europe/Amsterdam
   volumes:
@@ -21,6 +22,7 @@ elasticsearch:
 
 logstash:
   image: logstash:2.3.1
+  restart: unless-stopped
   environment:
       TZ: Europe/Amsterdam
   ports:
@@ -34,6 +36,7 @@ logstash:
 
 kibana:
   image: kibana:4.5.0
+  restart: unless-stopped
   environment:
       TZ: Europe/Amsterdam
   links:

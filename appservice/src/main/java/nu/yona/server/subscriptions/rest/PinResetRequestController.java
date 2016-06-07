@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -34,7 +35,7 @@ import nu.yona.server.subscriptions.service.PinResetRequestService;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
-@RequestMapping(value = "/users/{id}/pinResetRequest")
+@RequestMapping(value = "/users/{id}/pinResetRequest", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class PinResetRequestController
 {
 	@Autowired
@@ -61,7 +62,7 @@ public class PinResetRequestController
 			return null;
 		});
 		return new ResponseEntity<ConfirmationCodeDelayDTO>(
-				new ConfirmationCodeDelayDTO(yonaProperties.getSecurity().getPinResetRequestConformationCodeDelay()),
+				new ConfirmationCodeDelayDTO(yonaProperties.getSecurity().getPinResetRequestConfirmationCodeDelay()),
 				HttpStatus.OK);
 	}
 
@@ -73,6 +74,18 @@ public class PinResetRequestController
 	{
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
 			pinResetRequestService.verifyPinResetConfirmationCode(id, confirmationCode.getCode());
+			return null;
+		});
+		return new ResponseEntity<Void>(HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/resend", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Void> resendPinResetConfirmationCode(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
+	{
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
+			pinResetRequestService.resendPinResetConfirmationCode(id);
 			return null;
 		});
 		return new ResponseEntity<Void>(HttpStatus.OK);
@@ -113,8 +126,9 @@ public class PinResetRequestController
 		}
 		else if (confirmationCode.getConfirmationCode() != null)
 		{
-			addClearPinResetLink(userResource);
 			addVerifyPinResetLink(userResource);
+			addResendPinResetConfirmationCodeLink(userResource);
+			addClearPinResetLink(userResource);
 		}
 	}
 
@@ -130,6 +144,13 @@ public class PinResetRequestController
 		PinResetRequestController methodOn = methodOn(PinResetRequestController.class);
 		ResponseEntity<Void> method = methodOn.verifyPinResetConfirmationCode(null, userResource.getContent().getID(), null);
 		addLink(userResource, method, "yona:verifyPinReset");
+	}
+
+	private void addResendPinResetConfirmationCodeLink(UserResource userResource)
+	{
+		PinResetRequestController methodOn = methodOn(PinResetRequestController.class);
+		ResponseEntity<Void> method = methodOn.resendPinResetConfirmationCode(null, userResource.getContent().getID());
+		addLink(userResource, method, "yona:resendPinResetConfirmationCode");
 	}
 
 	private void addClearPinResetLink(UserResource userResource)

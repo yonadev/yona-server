@@ -25,6 +25,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import nu.yona.server.Translator;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.ActivityCategoryRepository;
 
@@ -89,10 +90,10 @@ public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 		ArgumentCaptor<ActivityCategory> matchActivityCategory = ArgumentCaptor.forClass(ActivityCategory.class);
 		// 1 added and 1 updated
 		verify(mockRepository, times(2)).save(matchActivityCategory.capture());
-		assertThat(matchActivityCategory.getAllValues().stream().map(x -> x.getName().get(USEnglishLocale))
+		assertThat(matchActivityCategory.getAllValues().stream().map(x -> x.getName().get(Translator.EN_US_LOCALE))
 				.collect(Collectors.toSet()), containsInAnyOrder("news", "gaming"));
 		// 1 deleted
 		verify(mockRepository, times(1)).delete(matchActivityCategory.capture());
-		assertThat(matchActivityCategory.getValue().getName().get(USEnglishLocale), equalTo("gambling"));
+		assertThat(matchActivityCategory.getValue().getName().get(Translator.EN_US_LOCALE), equalTo("gambling"));
 	}
 }

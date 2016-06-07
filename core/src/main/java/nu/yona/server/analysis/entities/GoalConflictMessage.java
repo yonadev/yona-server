@@ -1,9 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -36,7 +37,7 @@ public class GoalConflictMessage extends Message
 	private Status status;
 
 	@Transient
-	private String url;
+	private Optional<String> url;
 	private byte[] urlCiphertext;
 
 	// Default constructor is required for JPA
@@ -46,7 +47,7 @@ public class GoalConflictMessage extends Message
 	}
 
 	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedID, UUID originGoalConflictMessageID, Activity activity,
-			Goal goal, String url, Status status)
+			Goal goal, Optional<String> url, Status status)
 	{
 		super(id, relatedUserAnonymizedID);
 
@@ -72,7 +73,7 @@ public class GoalConflictMessage extends Message
 		return originGoalConflictMessageID;
 	}
 
-	public String getURL()
+	public Optional<String> getURL()
 	{
 		return url;
 	}
@@ -80,13 +81,13 @@ public class GoalConflictMessage extends Message
 	@Override
 	public void encrypt(Encryptor encryptor)
 	{
-		urlCiphertext = encryptor.encrypt(url);
+		urlCiphertext = encryptor.encrypt(url.orElse(null));
 	}
 
 	@Override
 	public void decrypt(Decryptor decryptor)
 	{
-		url = decryptor.decryptString(urlCiphertext);
+		url = Optional.ofNullable(decryptor.decryptString(urlCiphertext));
 	}
 
 	public boolean isFromBuddy()
@@ -116,7 +117,8 @@ public class GoalConflictMessage extends Message
 				origin.getGoal(), origin.getURL(), Status.ANNOUNCED);
 	}
 
-	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedID, Activity activity, Goal goal, String url)
+	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedID, Activity activity, Goal goal,
+			Optional<String> url)
 	{
 		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, null, activity, goal, url, Status.ANNOUNCED);
 	}

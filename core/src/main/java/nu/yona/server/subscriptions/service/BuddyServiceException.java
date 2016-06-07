@@ -20,11 +20,6 @@ public class BuddyServiceException extends YonaException
 		super(t, messageId, parameters);
 	}
 
-	public static BuddyServiceException userCannotBeNull()
-	{
-		return new BuddyServiceException("error.buddy.user.cannot.be.null");
-	}
-
 	public static BuddyServiceException messageEntityCannotBeNull()
 	{
 		return new BuddyServiceException("error.buddy.message.entity.cannot.be.null");

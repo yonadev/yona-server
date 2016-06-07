@@ -6,11 +6,17 @@ package nu.yona.server.goals.entities;
 
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
+
+import org.hibernate.proxy.HibernateProxy;
 
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.entities.EntityWithID;
@@ -29,6 +35,10 @@ public abstract class Goal extends EntityWithID
 	private ActivityCategory activityCategory;
 
 	private ZonedDateTime creationTime;
+	private ZonedDateTime endTime;
+
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private Goal previousInstanceOfThisGoal;
 
 	// Default constructor is required for JPA
 	public Goal()
@@ -36,7 +46,7 @@ public abstract class Goal extends EntityWithID
 		super(null);
 	}
 
-	protected Goal(UUID id, ActivityCategory activityCategory)
+	protected Goal(UUID id, ZonedDateTime creationTime, ActivityCategory activityCategory)
 	{
 		super(id);
 
@@ -44,8 +54,21 @@ public abstract class Goal extends EntityWithID
 		{
 			throw new IllegalArgumentException("activityCategory cannot be null");
 		}
+		this.creationTime = creationTime;
 		this.activityCategory = activityCategory;
-		this.creationTime = ZonedDateTime.now();
+	}
+
+	protected Goal(UUID id, Goal originalGoal, ZonedDateTime endTime)
+	{
+		super(id);
+
+		if (originalGoal == null)
+		{
+			throw new IllegalArgumentException("originalGoal cannot be null");
+		}
+		this.activityCategory = originalGoal.activityCategory;
+		this.creationTime = originalGoal.creationTime;
+		this.endTime = endTime;
 	}
 
 	public ActivityCategory getActivityCategory()
@@ -57,6 +80,38 @@ public abstract class Goal extends EntityWithID
 	{
 		return creationTime;
 	}
+
+	/**
+	 * For test purposes only.
+	 */
+	public void setCreationTime(ZonedDateTime creationTime)
+	{
+		this.creationTime = creationTime;
+	}
+
+	public ZonedDateTime getEndTime()
+	{
+		return endTime;
+	}
+
+	public Optional<Goal> getPreviousVersionOfThisGoal()
+	{
+		if (previousInstanceOfThisGoal == null)
+		{
+			return Optional.empty();
+		}
+		// See http://stackoverflow.com/a/2216603/4353482
+		// Simply returning the value causes a failure in instanceof and cast
+		return Optional
+				.of((Goal) ((HibernateProxy) previousInstanceOfThisGoal).getHibernateLazyInitializer().getImplementation());
+	}
+
+	public void setPreviousVersionOfThisGoal(Goal previousGoal)
+	{
+		this.previousInstanceOfThisGoal = previousGoal;
+	}
+
+	public abstract Goal cloneAsHistoryItem(ZonedDateTime endTime);
 
 	public abstract boolean isMandatory();
 

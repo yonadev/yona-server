@@ -24,11 +24,11 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -43,6 +43,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
+import nu.yona.server.Translator;
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.DayActivityRepository;
@@ -97,17 +98,18 @@ public class AnalysisEngineServiceTests
 	@Before
 	public void setUp()
 	{
-		gamblingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"),
-				false, new HashSet<String>(Arrays.asList("poker", "lotto")),
-				new HashSet<String>(Arrays.asList("Poker App", "Lotto App"))));
-		newsGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
-				new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
-		gamingGoal = BudgetGoal.createNoGoInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
-				new HashSet<String>(Arrays.asList("games")), Collections.emptySet()));
-		socialGoal = TimeZoneGoal.createInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("social"), false,
-				new HashSet<String>(Arrays.asList("social")), Collections.emptySet()), new String[0]);
-		shoppingGoal = BudgetGoal.createInstance(ActivityCategory.createInstance(UUID.randomUUID(), usString("shopping"), false,
-				new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet()), 1);
+		gamblingGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(),
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
+						new HashSet<String>(Arrays.asList("poker", "lotto")),
+						new HashSet<String>(Arrays.asList("Poker App", "Lotto App"))));
+		newsGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
+				usString("news"), false, new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
+		gamingGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
+				usString("gaming"), false, new HashSet<String>(Arrays.asList("games")), Collections.emptySet()));
+		socialGoal = TimeZoneGoal.createInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
+				usString("social"), false, new HashSet<String>(Arrays.asList("social")), Collections.emptySet()), new String[0]);
+		shoppingGoal = BudgetGoal.createInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
+				usString("shopping"), false, new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet()), 1);
 
 		goalMap.put("gambling", gamblingGoal);
 		goalMap.put("news", newsGoal);
@@ -161,7 +163,7 @@ public class AnalysisEngineServiceTests
 
 	private Map<Locale, String> usString(String string)
 	{
-		return Collections.singletonMap(Locale.forLanguageTag("en-US"), string);
+		return Collections.singletonMap(Translator.EN_US_LOCALE, string);
 	}
 
 	private Set<ActivityCategoryDTO> getAllActivityCategories()
@@ -189,13 +191,13 @@ public class AnalysisEngineServiceTests
 		// Normally there is one conflict message sent.
 		// Set a short conflict interval such that the conflict messages are not aggregated.
 		AnalysisServiceProperties p = new AnalysisServiceProperties();
-		p.setUpdateSkipWindow(1L);
-		p.setConflictInterval(10L);
+		p.setUpdateSkipWindow("PT0.001S");
+		p.setConflictInterval("PT0.01S");
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
 		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal,
 				ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS));
-		Activity earlierActivity = Activity.createInstance(new Date(), new Date());
+		Activity earlierActivity = Activity.createInstance(ZonedDateTime.now(), ZonedDateTime.now());
 		dayActivity.addActivity(earlierActivity);
 		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
 				.thenReturn(dayActivity);
@@ -212,7 +214,7 @@ public class AnalysisEngineServiceTests
 		}
 
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test1"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test1", Optional.empty()));
 
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<MessageDestinationDTO> messageDestination = ArgumentCaptor.forClass(MessageDestinationDTO.class);
@@ -230,10 +232,10 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void messageCreatedOnMatch()
 	{
-		Date t = new Date();
+		ZonedDateTime t = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Amsterdam"));
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify that there is an activity update.
 		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
@@ -263,7 +265,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag", "lotto"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
 
 		verifyActivityUpdate(gamblingGoal);
 		// Verify that there is a new conflict message sent.
@@ -284,7 +286,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto", "games"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify that there are 2 activities updated, for both goals.
 		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
@@ -312,10 +314,10 @@ public class AnalysisEngineServiceTests
 		// Normally there is one conflict message sent.
 		// Set update skip window to 0 such that the conflict messages are aggregated immediately.
 		AnalysisServiceProperties p = new AnalysisServiceProperties();
-		p.setUpdateSkipWindow(0L);
+		p.setUpdateSkipWindow("PT0S");
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
-		Date t = new Date();
+		ZonedDateTime t = ZonedDateTime.now();
 		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal,
 				ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS));
 		Activity earlierActivity = Activity.createInstance(t, t);
@@ -327,12 +329,14 @@ public class AnalysisEngineServiceTests
 		Set<String> conflictCategories1 = new HashSet<String>(Arrays.asList("lotto"));
 		Set<String> conflictCategories2 = new HashSet<String>(Arrays.asList("poker"));
 		Set<String> conflictCategoriesNotMatching1 = new HashSet<String>(Arrays.asList("refdag"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories1, "http://localhost/test1"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories2, "http://localhost/test2"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test3"));
-		Date t2 = new Date();
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories2, "http://localhost/test4"));
+		service.analyze(
+				new NetworkActivityDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test", Optional.empty()));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories1, "http://localhost/test1", Optional.empty()));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories2, "http://localhost/test2", Optional.empty()));
+		service.analyze(
+				new NetworkActivityDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test3", Optional.empty()));
+		ZonedDateTime t2 = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Amsterdam"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories2, "http://localhost/test4", Optional.empty()));
 
 		// Verify that there is no new conflict message sent.
 		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
@@ -354,7 +358,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify that there was no attempted activity update.
 		verify(mockAnalysisEngineCacheService, never()).fetchDayActivityForUser(eq(userAnonID), any());
@@ -377,7 +381,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("webshop"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
 
 		verifyActivityUpdate(shoppingGoal);
 		verifyNoMessagesCreated();
@@ -399,7 +403,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("social"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
 
 		verifyActivityUpdate(socialGoal);
 		verifyNoMessagesCreated();
@@ -408,18 +412,19 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void activityOnNewDay()
 	{
-		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
+		ZonedDateTime now = ZonedDateTime.of(2016, 4, 29, 20, 29, 1, 0, userAnonZoneId);
 
 		DayActivity earlierDayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal,
 				now.minusDays(1).truncatedTo(ChronoUnit.DAYS));
-		Date earlierActivityTime = Date.from(now.minusDays(1).toInstant());
+		ZonedDateTime earlierActivityTime = now.minusDays(1);
 		Activity earlierActivity = Activity.createInstance(earlierActivityTime, earlierActivityTime);
 		earlierDayActivity.addActivity(earlierActivity);
 		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
 				.thenReturn(earlierDayActivity);
 
-		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test"));
+		ZonedDateTime startTime = now.minusMinutes(10);
+		ZonedDateTime endTime = now;
+		service.analyze(userAnonID, createSingleAppActivity("Poker App", startTime, endTime));
 
 		// Verify that there is a new conflict message sent.
 		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
@@ -429,29 +434,53 @@ public class AnalysisEngineServiceTests
 		assertThat("Expect new day", newDayActivity.getValue(), not(equalTo(earlierDayActivity)));
 		assertThat("Expect right date", newDayActivity.getValue().getStartTime(), equalTo(now.truncatedTo(ChronoUnit.DAYS)));
 		assertThat("Expect activity added", newDayActivity.getValue().getLastActivity(), notNullValue());
+		assertThat("Expect matching start time", newDayActivity.getValue().getLastActivity().getStartTime(), equalTo(startTime));
+		assertThat("Expect matching end time", newDayActivity.getValue().getLastActivity().getEndTime(), equalTo(endTime));
 	}
 
 	@Test
 	public void appActivityPrecedingLastCachedActivity()
 	{
-		// TODO
-	}
-
-	@Test
-	public void appActivityPrecedingCachedDayActivity()
-	{
-		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
-		ZonedDateTime yesterdayTime = now.minusDays(1);
+		ZonedDateTime now = ZonedDateTime.of(2016, 4, 29, 20, 29, 1, 0, userAnonZoneId);
 
 		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, now.truncatedTo(ChronoUnit.DAYS));
-		Date earlierActivityTime = Date.from(now.toInstant());
+		ZonedDateTime earlierActivityTime = now;
 		Activity earlierActivity = Activity.createInstance(earlierActivityTime, earlierActivityTime);
 		dayActivity.addActivity(earlierActivity);
 		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
 				.thenReturn(dayActivity);
 
-		Date startTime = Date.from(yesterdayTime.minusMinutes(10).toInstant());
-		Date endTime = Date.from(yesterdayTime.toInstant());
+		ZonedDateTime startTime = now.minusMinutes(10);
+		ZonedDateTime endTime = now;
+		service.analyze(userAnonID, createSingleAppActivity("Poker App", startTime, endTime));
+
+		// Verify that there is a new conflict message sent.
+		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
+		// Verify that no database lookup was done
+		verify(mockDayActivityRepository, never()).findOne(userAnonID, now.toLocalDate(), gamblingGoal.getID());
+		// Verify that the day was updated in the cache
+		verify(mockAnalysisEngineCacheService, times(1)).updateDayActivityForUser(dayActivity);
+
+		assertThat("Expect a new activity added (merge is quite complicated so has not been implemented yet)",
+				dayActivity.getLastActivity().getID(), not(equalTo(earlierActivity.getID())));
+		assertThat("Expect right activity start time", dayActivity.getLastActivity().getStartTime(), equalTo(startTime));
+	}
+
+	@Test
+	public void appActivityPrecedingCachedDayActivity()
+	{
+		ZonedDateTime now = ZonedDateTime.of(2016, 4, 29, 20, 29, 1, 0, userAnonZoneId);
+		ZonedDateTime yesterdayTime = now.minusDays(1);
+
+		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, now.truncatedTo(ChronoUnit.DAYS));
+		ZonedDateTime earlierActivityTime = now;
+		Activity earlierActivity = Activity.createInstance(earlierActivityTime, earlierActivityTime);
+		dayActivity.addActivity(earlierActivity);
+		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
+				.thenReturn(dayActivity);
+
+		ZonedDateTime startTime = yesterdayTime.minusMinutes(10);
+		ZonedDateTime endTime = yesterdayTime;
 		service.analyze(userAnonID, createSingleAppActivity("Poker App", startTime, endTime));
 
 		// Verify that there is a new conflict message sent.
@@ -471,8 +500,8 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void crossDayActivity()
 	{
-		Date startTime = Date.from(ZonedDateTime.of(2016, 4, 5, 19, 39, 0, 0, userAnonZoneId).toInstant());
-		Date endTime = Date.from(ZonedDateTime.of(2016, 4, 6, 1, 00, 0, 0, userAnonZoneId).toInstant());
+		ZonedDateTime startTime = ZonedDateTime.of(2016, 4, 5, 19, 39, 0, 0, userAnonZoneId);
+		ZonedDateTime endTime = ZonedDateTime.of(2016, 4, 6, 1, 00, 0, 0, userAnonZoneId);
 		service.analyze(userAnonID, createSingleAppActivity("Poker App", startTime, endTime));
 
 		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
@@ -487,14 +516,12 @@ public class AnalysisEngineServiceTests
 		Activity nextPart = nextDay.getLastActivity();
 
 		assertThat(firstPart.getStartTime(), equalTo(startTime));
-		assertThat(firstPart.getEndTime(),
-				equalTo(Date.from(ZonedDateTime.of(2016, 4, 5, 23, 59, 59, 0, userAnonZoneId).toInstant())));
-		assertThat(nextPart.getStartTime(),
-				equalTo(Date.from(ZonedDateTime.of(2016, 4, 6, 0, 0, 0, 0, userAnonZoneId).toInstant())));
+		assertThat(firstPart.getEndTime(), equalTo(ZonedDateTime.of(2016, 4, 5, 23, 59, 59, 0, userAnonZoneId)));
+		assertThat(nextPart.getStartTime(), equalTo(ZonedDateTime.of(2016, 4, 6, 0, 0, 0, 0, userAnonZoneId)));
 		assertThat(nextPart.getEndTime(), equalTo(endTime));
 	}
 
-	private AppActivityDTO createSingleAppActivity(String app, Date startTime, Date endTime)
+	private AppActivityDTO createSingleAppActivity(String app, ZonedDateTime startTime, ZonedDateTime endTime)
 	{
 		AppActivityDTO.Activity[] activities = { new AppActivityDTO.Activity(app, startTime, endTime) };
 		return new AppActivityDTO(ZonedDateTime.now(), activities);

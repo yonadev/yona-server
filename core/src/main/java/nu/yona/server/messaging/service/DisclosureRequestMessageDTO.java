@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -34,8 +34,8 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 
 	private Status status;
 
-	private DisclosureRequestMessageDTO(UUID id, Date creationTime, UserDTO user, String nickname, String message, Status status,
-			UUID targetGoalConflictMessageID)
+	private DisclosureRequestMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO user, String nickname, String message,
+			Status status, UUID targetGoalConflictMessageID)
 	{
 		super(id, creationTime, targetGoalConflictMessageID, user, nickname, message);
 		this.status = status;
@@ -74,7 +74,7 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
 		return new DisclosureRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getNickname(), messageEntity.getMessage(),
+				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getSenderNickname(), messageEntity.getMessage(),
 				messageEntity.getStatus(), targetGoalConflictMessage.getOriginGoalConflictMessageID());
 	}
 

@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.Translator;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
@@ -30,11 +31,6 @@ public class BuddyDTO
 	private Status sendingStatus;
 	private Status receivingStatus;
 	private Set<GoalDTO> goals;
-
-	/*
-	 * Only intended for test purposes.
-	 */
-	private String userCreatedInviteURL;
 
 	public BuddyDTO(UUID id, UserDTO user, String message, String nickname, UUID userAnonymizedID, Status sendingStatus,
 			Status receivingStatus)
@@ -76,9 +72,15 @@ public class BuddyDTO
 		return user;
 	}
 
-	Buddy createBuddyEntity()
+	Buddy createBuddyEntity(Translator translator)
 	{
-		return Buddy.createInstance(user.getID(), user.getPrivateData().getNickname(), getSendingStatus(), getReceivingStatus());
+		return Buddy.createInstance(user.getID(), determineTempNickname(translator), getSendingStatus(), getReceivingStatus());
+	}
+
+	private String determineTempNickname(Translator translator)
+	{
+		// Used to till the user accepted the request and shared their nickname
+		return translator.getLocalizedMessage("message.temp.nickname", user.getFirstName(), user.getLastName());
 	}
 
 	public static BuddyDTO createInstance(Buddy buddyEntity)
@@ -113,23 +115,6 @@ public class BuddyDTO
 	public UUID getUserAnonymizedID()
 	{
 		return userAnonymizedID;
-	}
-
-	/*
-	 * Only intended for test purposes.
-	 */
-	public void setUserCreatedInviteURL(String userCreatedInviteURL)
-	{
-		this.userCreatedInviteURL = userCreatedInviteURL;
-	}
-
-	/*
-	 * Only intended for test purposes.
-	 */
-	@JsonInclude(Include.NON_EMPTY)
-	public String getUserCreatedInviteURL()
-	{
-		return userCreatedInviteURL;
 	}
 
 	public void setGoals(Set<GoalDTO> goals)

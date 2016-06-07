@@ -89,6 +89,8 @@ class AppService extends Service
 			return null
 		}
 		def response = yonaServer.deleteResourceWithPassword(user.editURL, user.password, ["message":message])
+		// assert response.status == 200 Enable this after fixing YD-261
+		return response
 	}
 
 	def deleteUser(userEditURL, password, message = "")
@@ -208,7 +210,7 @@ class AppService extends Service
 		response.status >= 200 && response.status < 300
 	}
 
-	def makeBuddies(requestingUser, respondingUser)
+	void makeBuddies(requestingUser, respondingUser)
 	{
 		sendBuddyConnectRequest(requestingUser, respondingUser)
 		def acceptURL = fetchBuddyConnectRequestMessage(respondingUser).acceptURL
@@ -366,6 +368,28 @@ class AppService extends Service
 	def getDayActivityOverviews(User user, parameters = [:])
 	{
 		yonaServer.getResourceWithPassword(user.dailyActivityReportsUrl, user.password, parameters)
+	}
+
+	def getBuddyDayActivityOverviews(User user, int buddyIndex = 0, parameters = [:])
+	{
+		def userWithBuddies = this.getUser(this.&assertUserGetResponseDetailsWithPrivateData, user.url, true, user.password)
+		assert userWithBuddies.buddies != null
+		def buddy = userWithBuddies.buddies[buddyIndex]
+		assert buddy
+		assert buddy.dailyActivityReportsUrl
+
+		yonaServer.getResourceWithPassword(userWithBuddies.buddies[buddyIndex].dailyActivityReportsUrl, user.password, parameters)
+	}
+
+	def getBuddyWeekActivityOverviews(User user, int buddyIndex = 0, parameters = [:])
+	{
+		def userWithBuddies = this.getUser(this.&assertUserGetResponseDetailsWithPrivateData, user.url, true, user.password)
+		assert userWithBuddies.buddies != null
+		def buddy = userWithBuddies.buddies[buddyIndex]
+		assert buddy
+		assert buddy.weeklyActivityReportsUrl
+
+		yonaServer.getResourceWithPassword(userWithBuddies.buddies[buddyIndex].weeklyActivityReportsUrl, user.password, parameters)
 	}
 
 	def setNewDeviceRequest(mobileNumber, password, newDeviceRequestPassword)

@@ -11,6 +11,7 @@ start "HSQL database" java -cp "%HSQLDB_HOME%/lib/sqltool.jar" org.hsqldb.Server
 start "Admin service" cmd /c gradlew %1 :adminservice:bootRun
 start "Analysis service" cmd /c gradlew %1 :analysisservice:bootRun
 start "App service" cmd /c gradlew %1 :appservice:bootRun
+start "Batch service" cmd /c gradlew %1 :batchservice:bootRun
 
 set GRADLE_OPTS=
 echo Wait until all services are started.

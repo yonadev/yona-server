@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,20 +33,22 @@ public class UserPrivateDTO
 	@JsonCreator
 	public UserPrivateDTO(@JsonProperty("nickname") String nickname)
 	{
-		this(nickname, null, null, null, null, null, null, null, new VPNProfileDTO(null));
+		this(nickname, null, null, null, null, Collections.emptySet(), Collections.emptySet(), null, new VPNProfileDTO(null));
 	}
 
 	UserPrivateDTO(String nickname, UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
 			UUID anonymousMessageDestinationID, Set<GoalDTO> goals, Set<UUID> buddyIDs, UUID userAnonymizedID,
 			VPNProfileDTO vpnProfile)
 	{
+		Objects.requireNonNull(goals);
+		Objects.requireNonNull(buddyIDs);
 		this.nickname = nickname;
 		this.namedMessageSourceID = namedMessageSourceID;
 		this.namedMessageDestinationID = namedMessageDestinationID;
 		this.anonymousMessageSourceID = anonymousMessageSourceID;
 		this.anonymousMessageDestinationID = anonymousMessageDestinationID;
-		this.goals = (goals == null) ? Collections.emptySet() : goals;
-		this.buddyIDs = (buddyIDs == null) ? Collections.emptySet() : buddyIDs;
+		this.goals = goals;
+		this.buddyIDs = buddyIDs;
 		this.userAnonymizedID = userAnonymizedID;
 		this.vpnProfile = vpnProfile;
 

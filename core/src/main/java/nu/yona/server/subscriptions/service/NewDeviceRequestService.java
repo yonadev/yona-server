@@ -1,11 +1,13 @@
 package nu.yona.server.subscriptions.service;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,8 @@ import nu.yona.server.subscriptions.entities.User;
 @Service
 public class NewDeviceRequestService
 {
+	private static final Logger logger = LoggerFactory.getLogger(NewDeviceRequestService.class);
+
 	@Autowired
 	private UserService userService;
 
@@ -32,6 +36,8 @@ public class NewDeviceRequestService
 
 		userEntity.setNewDeviceRequest(newDeviceRequestEntity);
 
+		logger.info("User with mobile number '{}' and ID '{}' set a new device request", userEntity.getMobileNumber(),
+				userEntity.getID());
 		return NewDeviceRequestDTO.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest());
 	}
 
@@ -54,10 +60,14 @@ public class NewDeviceRequestService
 		if (newDeviceRequestPassword.isPresent())
 		{
 			newDeviceRequestEntity.decryptYonaPassword(newDeviceRequestPassword.get(), userEntity.getMobileNumber());
+			logger.info("User with mobile number '{}' and ID '{}' fetched the new device request", userEntity.getMobileNumber(),
+					userEntity.getID());
 			return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
 		}
 		else
 		{
+			logger.info("User with mobile number '{}' and ID '{}' verified the existence of new device request",
+					userEntity.getMobileNumber(), userEntity.getID());
 			return NewDeviceRequestDTO.createInstance(userEntity.getNewDeviceRequest());
 		}
 	}
@@ -70,6 +80,8 @@ public class NewDeviceRequestService
 		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
 		if (existingNewDeviceRequestEntity != null)
 		{
+			logger.info("User with mobile number '{}' and ID '{}' cleared the new device request", userEntity.getMobileNumber(),
+					userEntity.getID());
 			userEntity.setNewDeviceRequest(null);
 			User.getRepository().save(userEntity);
 		}
@@ -77,12 +89,7 @@ public class NewDeviceRequestService
 
 	private boolean isExpired(NewDeviceRequest newDeviceRequestEntity)
 	{
-		Date creationTime = newDeviceRequestEntity.getCreationTime();
-		return (creationTime.getTime() + getExpirationIntervalMillis() < System.currentTimeMillis());
-	}
-
-	private long getExpirationIntervalMillis()
-	{
-		return yonaProperties.getSecurity().getNewDeviceRequestExpirationDays() * 24 * 60 * 60 * 1000;
+		ZonedDateTime creationTime = newDeviceRequestEntity.getCreationTime();
+		return creationTime.plus(yonaProperties.getSecurity().getNewDeviceRequestExpirationTime()).isBefore(ZonedDateTime.now());
 	}
 }

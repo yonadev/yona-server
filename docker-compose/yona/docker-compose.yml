@@ -12,6 +12,7 @@ configuration:
 
 hsqldb:
   image: yonadev/yonahsqldb:0.0.8-SNAPSHOT
+  restart: unless-stopped
   expose:
     - "9001"
 
@@ -21,6 +22,7 @@ hsqldb:
 
 adminservice:
   image: yonadev/adminservice:0.0.8-SNAPSHOT
+  restart: unless-stopped
   links:
     - hsqldb:yonadbserver
   ports:
@@ -33,6 +35,7 @@ adminservice:
 
 analysisservice:
   image: yonadev/analysisservice:0.0.8-SNAPSHOT
+  restart: unless-stopped
   links:
     - hsqldb:yonadbserver
   ports:
@@ -45,10 +48,24 @@ analysisservice:
 
 appservice:
   image: yonadev/appservice:0.0.8-SNAPSHOT
+  restart: unless-stopped
   links:
     - hsqldb:yonadbserver
   ports:
     - 80:8080
+  log_driver: "gelf"
+  log_opt:
+    gelf-address: "udp://localhost:12201"
+  volumes_from:
+        - configuration:ro
+
+batchservice:
+  image: yonadev/batchservice:0.0.8-SNAPSHOT
+  restart: unless-stopped
+  links:
+    - hsqldb:yonadbserver
+  ports:
+    - 8083:8080
   log_driver: "gelf"
   log_opt:
     gelf-address: "udp://localhost:12201"

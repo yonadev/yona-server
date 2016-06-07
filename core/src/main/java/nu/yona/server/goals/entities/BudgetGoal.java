@@ -1,12 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -24,21 +22,18 @@ public class BudgetGoal extends Goal
 
 	}
 
-	private BudgetGoal(UUID id, ActivityCategory activityCategory, int maxDurationMinutes)
+	private BudgetGoal(UUID id, ZonedDateTime creationTime, ActivityCategory activityCategory, int maxDurationMinutes)
 	{
-		super(id, activityCategory);
+		super(id, creationTime, activityCategory);
 
 		this.maxDurationMinutes = maxDurationMinutes;
 	}
 
-	public static BudgetGoal createNoGoInstance(ActivityCategory activityCategory)
+	private BudgetGoal(UUID id, BudgetGoal originalGoal, ZonedDateTime endTime)
 	{
-		return createInstance(activityCategory, 0);
-	}
+		super(id, originalGoal, endTime);
 
-	public static BudgetGoal createInstance(ActivityCategory activityCategory, int maxDurationMinutes)
-	{
-		return new BudgetGoal(UUID.randomUUID(), activityCategory, maxDurationMinutes);
+		this.maxDurationMinutes = originalGoal.maxDurationMinutes;
 	}
 
 	public int getMaxDurationMinutes()
@@ -52,9 +47,9 @@ public class BudgetGoal extends Goal
 	}
 
 	@Override
-	public boolean isNoGoGoal()
+	public Goal cloneAsHistoryItem(ZonedDateTime endTime)
 	{
-		return maxDurationMinutes <= 0;
+		return createInstance(this, endTime);
 	}
 
 	@Override
@@ -64,14 +59,35 @@ public class BudgetGoal extends Goal
 	}
 
 	@Override
+	public boolean isNoGoGoal()
+	{
+		return maxDurationMinutes <= 0;
+	}
+
+	@Override
 	public boolean isGoalAccomplished(DayActivity dayActivity)
 	{
-		return dayActivity.getTotalActivityDurationMinutes() < this.getMaxDurationMinutes();
+		return dayActivity.getTotalActivityDurationMinutes() <= this.getMaxDurationMinutes();
 	}
 
 	@Override
 	public int computeTotalMinutesBeyondGoal(DayActivity dayActivity)
 	{
 		return Math.max(dayActivity.getTotalActivityDurationMinutes() - this.getMaxDurationMinutes(), 0);
+	}
+
+	public static BudgetGoal createNoGoInstance(ZonedDateTime creationTime, ActivityCategory activityCategory)
+	{
+		return createInstance(creationTime, activityCategory, 0);
+	}
+
+	public static BudgetGoal createInstance(ZonedDateTime creationTime, ActivityCategory activityCategory, int maxDurationMinutes)
+	{
+		return new BudgetGoal(UUID.randomUUID(), creationTime, activityCategory, maxDurationMinutes);
+	}
+
+	private static BudgetGoal createInstance(BudgetGoal originalGoal, ZonedDateTime endTime)
+	{
+		return new BudgetGoal(UUID.randomUUID(), originalGoal, endTime);
 	}
 }

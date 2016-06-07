@@ -41,7 +41,6 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded."yona:user".firstName == "Bob"
 		response.responseData._links."yona:user" == null
 		response.responseData._links.self.href.startsWith(richard.url)
-		response.responseData.userCreatedInviteURL
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -53,7 +52,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def mobileNumberBob = "+$timestamp"
-		def inviteURL = sendBuddyRequestForBob(richard, mobileNumberBob).responseData.userCreatedInviteURL
+		def inviteURL = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 
 		when:
 		def bob = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, inviteURL, true, null)
@@ -66,7 +65,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		cleanup:
 		appService.deleteUser(richard)
-		appService.deleteUser(bob)
+		// Cannot delete Bob, as he did not set up a Yona password yet.
 	}
 
 	def 'Bob adjusts data and submits; app saves with the device password'()
@@ -74,7 +73,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def mobileNumberBob = "+$timestamp"
-		def inviteURL = sendBuddyRequestForBob(richard, mobileNumberBob).responseData.userCreatedInviteURL
+		def inviteURL = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 		def bob = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, inviteURL, true, null)
 
 		when:
@@ -118,7 +117,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def mobileNumberBob = "+$timestamp"
-		def inviteURL = sendBuddyRequestForBob(richard, mobileNumberBob).responseData.userCreatedInviteURL
+		def inviteURL = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 		def bob = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, inviteURL, true, null)
 		def newNickname = "Bobby"
 		def newPassword = "B o b"
@@ -146,7 +145,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def mobileNumberBob = "+$timestamp"
-		def inviteURL = sendBuddyRequestForBob(richard, mobileNumberBob).responseData.userCreatedInviteURL
+		def inviteURL = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 		def bob = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, inviteURL, true, null)
 		def newNickname = "Bobby"
 		def newPassword = "B o b"
@@ -175,7 +174,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def mobileNumberBob = "+$timestamp"
-		def inviteURL = sendBuddyRequestForBob(richard, mobileNumberBob).responseData.userCreatedInviteURL
+		def inviteURL = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 		def bob = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, inviteURL, true, null)
 		def newNickname = "Bobby"
 		def newPassword = "B o b"
@@ -207,7 +206,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def mobileNumberBob = "+$timestamp"
-		def inviteURL = sendBuddyRequestForBob(richard, mobileNumberBob).responseData.userCreatedInviteURL
+		def inviteURL = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 		def bob = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, inviteURL, true, null)
 		def newNickname = "Bobby"
 		def newPassword = "B o b"
@@ -243,7 +242,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def mobileNumberBob = "+$timestamp"
-		def inviteURL = sendBuddyRequestForBob(richard, mobileNumberBob).responseData.userCreatedInviteURL
+		def inviteURL = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 		def bob = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, inviteURL, true, null)
 		def newNickname = "Bobby"
 		def newPassword = "B o b"
@@ -304,7 +303,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def inviteURL = sendBuddyRequestForBob(richard, "+$timestamp").responseData.userCreatedInviteURL
+		def inviteURL = buildInviteUrl(sendBuddyRequestForBob(richard, "+$timestamp"))
 
 		when:
 		def response = appService.getResource(YonaServer.stripQueryString(inviteURL), [:], ["tempPassword": "hack", "includePrivateData": "true"])
@@ -322,7 +321,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def inviteURL = sendBuddyRequestForBob(richard, "+$timestamp").responseData.userCreatedInviteURL
+		def inviteURL = buildInviteUrl(sendBuddyRequestForBob(richard, "+$timestamp"))
 
 		when:
 		def response = appService.updateResource(YonaServer.stripQueryString(inviteURL), """{
@@ -378,10 +377,114 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
+	def 'Overwrite user created on buddy request'()
+	{
+		given:
+		def richard = addRichard()
+		def mobileNumberBob = "+$timestamp"
+		def inviteURL = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
+
+		when:
+		def response = appService.requestOverwriteUser(mobileNumberBob)
+
+		then:
+		response.status == 200
+
+		User bob = appService.addUser(this.&assertUserOverwriteResponseDetails, "B o b", "Bob Changed",
+				"Dunn Changed", "BD Changed", mobileNumberBob, ["overwriteUserConfirmationCode": "1234"])
+		bob
+		bob.firstName == "Bob Changed"
+		bob.lastName == "Dunn Changed"
+		bob.nickname == "BD Changed"
+		bob.mobileNumber == mobileNumberBob
+		bob.goals.size() == 1 //mandatory goal
+		bob.goals[0].activityCategoryUrl == GAMBLING_ACT_CAT_URL
+
+		def buddiesRichard = appService.getBuddies(richard)
+		buddiesRichard.size() == 0
+
+		def buddiesBob = appService.getBuddies(bob)
+		buddiesBob.size() == 0
+
+		def getMessagesResponse = appService.getMessages(richard)
+		getMessagesResponse.status == 200
+		getMessagesResponse.responseData._embedded
+		getMessagesResponse.responseData._embedded."yona:messages".size() == 1
+
+		def buddyConnectResponseMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}
+		def buddyConnectResponseMessage = buddyConnectResponseMessages[0]
+		buddyConnectResponseMessage.message == "User account was deleted"
+		buddyConnectResponseMessage.nickname == "Bob Dunn"
+		buddyConnectResponseMessage._links.self.href.startsWith(richard.messagesUrl)
+		buddyConnectResponseMessage._links?."yona:process"?.href?.startsWith(getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}[0]._links.self.href)
+
+		def processURL = buddyConnectResponseMessage._links."yona:process".href
+		def processBuddyConnectResponse = appService.postMessageActionWithPassword(processURL, [:], richard.password)
+		processBuddyConnectResponse.status == 200
+
+		User richardAfterBobOverwrite = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
+		richardAfterBobOverwrite.buddies.size() == 0
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Overwrite user created on buddy request and connect again'()
+	{
+		given:
+		def richard = addRichard()
+		def mobileNumberBob = "+$timestamp"
+		def inviteURL = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
+		appService.requestOverwriteUser(mobileNumberBob)
+		User bob = appService.addUser(this.&assertUserOverwriteResponseDetails, "B o b", "Bob Changed",
+				"Dunn Changed", "BD Changed", mobileNumberBob, ["overwriteUserConfirmationCode": "1234"])
+
+		when:
+		appService.makeBuddies(richard, bob)
+		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+
+		then:
+
+		def buddiesRichard = appService.getBuddies(richard)
+		buddiesRichard.size() == 1
+		buddiesRichard[0].user.firstName == "Bob Changed"
+
+		def buddiesBob = appService.getBuddies(bob)
+		buddiesBob.size() == 1
+		buddiesBob[0].user.firstName == "Richard"
+
+		def getMessagesRichardResponse = appService.getMessages(richard)
+		getMessagesRichardResponse.status == 200
+		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		richardGoalConflictMessages.size() == 1
+		richardGoalConflictMessages[0].nickname == "<self>"
+		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
+		richardGoalConflictMessages[0].url == "http://www.refdag.nl"
+
+		def getMessagesBobResponse = appService.getMessages(bob)
+		getMessagesBobResponse.status == 200
+		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		bobGoalConflictMessages.size() == 1
+		bobGoalConflictMessages[0].nickname == richard.nickname
+		bobGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
+		bobGoalConflictMessages[0].url == null
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
 	def assertUserCreationFailedBecauseOfDuplicate(response)
 	{
 		response.status == 400
 		response.responseData.code == "error.user.exists.created.on.buddy.request"
+	}
+
+	def assertUserOverwriteResponseDetails(def response)
+	{
+		appService.assertResponseStatusCreated(response)
+		appService.assertUserWithPrivateData(response.responseData)
 	}
 
 	def sendBuddyRequestForBob(User user, String mobileNumber)
@@ -399,5 +502,10 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 			"sendingStatus":"REQUESTED",
 			"receivingStatus":"REQUESTED"
 		}""", user.password)
+	}
+
+	String buildInviteUrl(def response)
+	{
+		response.responseData._embedded."yona:user"._links.self.href + "?tempPassword=abcd"
 	}
 }

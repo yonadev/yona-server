@@ -41,9 +41,9 @@ paths:
           description: Unexpected error.
           schema:
             $ref: '#/definitions/ConfirmationError'
-  '/users/{id}':
+  '/users/{userID}':
     parameters:
-      - name: id
+      - name: userID
         in: path
         description: The ID of the user
         required: true
@@ -55,6 +55,11 @@ paths:
         - name: Yona-Password
           in: header
           description: The device password
+          required: false
+          type: string
+        - name: tempPassword
+          in: query
+          description: The temporary password that was included in the invitation e-mail when a user invited a non-Yona user as buddy
           required: false
           type: string
         - name: includePrivateData
@@ -82,6 +87,11 @@ paths:
           description: The device password
           required: true
           type: string
+        - name: tempPassword
+          in: query
+          description: The temporary password that was included in the invitation e-mail when a user invited a non-Yona user as buddy
+          required: false
+          type: string
         - in: body
           name: body
           description: New user
@@ -92,9 +102,9 @@ paths:
         - User
       responses:
         '200':
-          description: The requested user
+          description: The updated user
           schema:
-            $ref: '#/definitions/PostPutUser'
+            $ref: '#/definitions/UserWithPrivateData'
         default:
           description: Unexpected error
           schema:
@@ -108,6 +118,11 @@ paths:
           description: The device password
           required: true
           type: string
+        - name: message
+          in: query
+          description: A message of the user to their buddies, explaining why they unsubscribe from Yona
+          required: false
+          type: string
       tags:
         - User
       responses:
@@ -117,9 +132,9 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  '/users/{id}/confirmMobileNumber':
+  '/users/{userID}/confirmMobileNumber':
     parameters:
-      - name: id
+      - name: userID
         in: path
         description: The ID of the user
         required: true
@@ -150,9 +165,9 @@ paths:
           description: Confirmation failed
           schema:
             $ref: '#/definitions/ConfirmationError'
-  '/users/{id}/resendMobileNumberConfirmationCode':
+  '/users/{userID}/resendMobileNumberConfirmationCode':
     parameters:
-      - name: id
+      - name: userID
         in: path
         description: The ID of the user
         required: true
@@ -222,20 +237,20 @@ paths:
           description: All goals of this user.
           schema:
             type: array
-            items: 
+            items:
               $ref: '#/definitions/Goal'
         default:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  '/users/{userID}/goals/{id}':
+  '/users/{userID}/goals/{goalID}':
     parameters:
       - name: userID
         in: path
         description: The ID of the user
         required: true
         type: string
-      - name: id
+      - name: goalID
         in: path
         description: The ID of the goal
         required: true
@@ -351,20 +366,20 @@ paths:
           description: All buddies of this user.
           schema:
             type: array
-            items: 
+            items:
               $ref: '#/definitions/Buddy'
         default:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  '/users/{userID}/buddies/{id}':
+  '/users/{userID}/buddies/{buddyID}':
     parameters:
       - name: userID
         in: path
         description: The ID of the user
         required: true
         type: string
-      - name: id
+      - name: buddyID
         in: path
         description: The ID of the buddy
         required: true
@@ -436,7 +451,7 @@ paths:
                   properties:
                     application:
                       type: string
-                      description: The name of the app 
+                      description: The name of the app
                       example: Facebook
                     startTime:
                       type: string
@@ -478,7 +493,7 @@ paths:
         type: string
     get:
       summary: Get day activity overview
-      description: Get network and app activity of the current day, pageable to yesterday and before 
+      description: Get network and app activity of the current day, pageable to yesterday and before
       parameters:
         - name: size
           in: query
@@ -530,7 +545,7 @@ paths:
         '200':
           description: Activity of this user for the specific goal on the specific day.
           schema:
-            $ref: '#/definitions/DayActivity'
+            $ref: '#/definitions/DayGoalActivityDetail'
   '/users/{userID}/activity/weeks/':
     parameters:
       - name: userID
@@ -545,7 +560,7 @@ paths:
         type: string
     get:
       summary: Get week activity overview
-      description: Get network and app activity of the current week, pageable to the weeks before 
+      description: Get network and app activity of the current week, pageable to the weeks before
       parameters:
         - name: size
           in: query
@@ -597,7 +612,161 @@ paths:
         '200':
           description: Activity of this user for the specific goal on the specific week.
           schema:
-            $ref: '#/definitions/WeekActivity'
+            $ref: '#/definitions/WeekGoalActivityDetail'
+  '/users/{userID}/buddies/{buddyID}/activity/days/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get day activity overview
+      description: Get network and app activity of the current day, pageable to yesterday and before
+      parameters:
+        - name: size
+          in: query
+          description: The number of elements to be fetched
+          required: false
+          default: 3
+          type: number
+        - name: page
+          in: query
+          description: The page to be fetched
+          required: false
+          default: 0
+          type: number
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of the buddy.
+          schema:
+            $ref: '#/definitions/PagedDayActivityOverviews'
+  '/users/{userID}/buddies/{buddyID}/activity/days/{date}/details/{goalID}':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string
+      - name: date
+        in: path
+        description: The date of the day in ISO 8601 format (yyyy-MM-dd)
+        required: true
+        type: string
+      - name: goalID
+        in: path
+        description: The ID of the goal for which the activity was recorded
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get day activity detail
+      description: Get day network and app activity for a specific goal on a specific day
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of the buddy for the specific goal on the specific day.
+          schema:
+            $ref: '#/definitions/DayGoalActivityDetail'
+  '/users/{userID}/buddies/{buddyID}/activity/weeks/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get week activity overview
+      description: Get network and app activity of the current week, pageable to the weeks before
+      parameters:
+        - name: size
+          in: query
+          description: The number of elements to be fetched
+          required: false
+          default: 2
+          type: number
+        - name: page
+          in: query
+          description: The page to be fetched
+          required: false
+          default: 0
+          type: number
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of the buddy.
+          schema:
+            $ref: '#/definitions/PagedWeekActivityOverviews'
+  '/users/{userID}/buddies/{buddyID}/activity/weeks/{week}/details/{goalID}':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string
+      - name: week
+        in: path
+        description: The date of the week in ISO 8601 format (YYYY-'W'w)
+        required: true
+        type: string
+      - name: goalID
+        in: path
+        description: The ID of the goal for which the activity was recorded
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get week activity detail
+      description: Get day network and app activity for a specific goal on a specific week
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of the buddy for the specific goal on the specific week.
+          schema:
+            $ref: '#/definitions/WeekGoalActivityDetail'
   '/users/{userID}/messages/':
     parameters:
       - name: userID
@@ -633,14 +802,14 @@ paths:
           description: Messages of this user.
           schema:
             $ref: '#/definitions/PagedMessages'
-  '/users/{userID}/messages/{id}':
+  '/users/{userID}/messages/{messageID}':
     parameters:
       - name: userID
         in: path
         description: The ID of the user
         required: true
         type: string
-      - name: id
+      - name: messageID
         in: path
         description: The ID of the message
         required: true
@@ -668,7 +837,7 @@ paths:
       responses:
         '200':
           description: Messages of this user.
-  '/users/{userID}/messages/{id}/{messageAction}':
+  '/users/{userID}/messages/{messageID}/{messageAction}':
     post:
       summary: Act on a message
       description: Perform the Process action on the message with the given ID
@@ -678,7 +847,7 @@ paths:
           description: The ID of the user
           required: true
           type: string
-        - name: id
+        - name: messageID
           in: path
           description: The ID of the message
           required: true
@@ -773,6 +942,30 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/ConfirmationError'
+  '/users/{userID}/pinResetRequest/resend':
+    post:
+      summary: Request resend of a pin reset confirmation code
+      description: Post an empty request to get a new pin reset confirmation code texted to the user
+      parameters:
+        - name: userID
+          in: path
+          description: The ID of the user
+          required: true
+          type: string
+        - name: Yona-Password
+          in: header
+          description: The device password
+          required: true
+          type: string
+      tags:
+        - Pin reset
+      responses:
+        '200':
+          description: The request is successfully handled
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   '/users/{userID}/pinResetRequest/clear':
     post:
       summary: Clear pin reset confirmation code
@@ -883,18 +1076,18 @@ paths:
           description: The activity categories.
           schema:
             type: array
-            items: 
+            items:
               $ref: '#/definitions/ActivityCategory'
         default:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  '/activityCategories/{id}':
+  '/activityCategories/{activityCategoryID}':
     get:
       summary: Get an activity category
       description: Fetches the activity category identified by the given ID
       parameters:
-        - name: id
+        - name: activityCategoryID
           in: path
           description: The ID of the activity category
           required: true
@@ -991,6 +1184,50 @@ definitions:
           href:
             type: string
             description: Refers to a related resource
+  NextLink:
+    type: object
+    properties:
+      next:
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Refers to the next page
+  PrevLink:
+    type: object
+    properties:
+      prev:
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Refers to the previous page
+  FirstLink:
+    type: object
+    properties:
+      first:
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Refers to the first page
+  LastLink:
+    type: object
+    properties:
+      last:
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Refers to the last page
   UserLink:
     type: object
     properties:
@@ -1046,6 +1283,55 @@ definitions:
           href:
             type: string
             description: The related activity category
+  GoalLink:
+    type: object
+    properties:
+      "yona:goal":
+        type: object
+        properties:
+          href:
+            type: string
+        required:
+          - href
+        description: The related goal
+  DayDetailsLink:
+    type: object
+    properties:
+      "yona:dayDetails":
+        type: object
+        properties:
+          href:
+            type: string
+        required:
+          - href
+        description: Link to the details for this goal on this day
+  Page:
+    type: object
+    properties:
+      page:
+        description: Information about the current page
+        properties:
+          size:
+            type: string
+            example: 20
+            description: The number of elements on the current page
+          totalElements:
+            type: string
+            description: The total number of elements
+            example: 300
+          totalPages:
+            type: string
+            description: The total number of pages
+            example: 15
+          number:
+            type: string
+            description: The current page number.
+            example: 1
+        required:
+          - size
+          - totalElements
+          - totalPages
+          - number
   BaseUser:
     type: object
     properties:
@@ -1146,6 +1432,38 @@ definitions:
               href:
                 type: string
                 description: This link allows requesting a resend of the mobile number confirmation code.
+          "yona:requestPinReset":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: This link allows requesting a pin reset confirmation code.
+          "yona:verifyPinReset":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: This link allows verifying the pin reset confirmation code.
+          "yona:resendPinResetConfirmationCode":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: This link allows requesting a resend of a new pin reset confirmation code.
+          "yona:clearPinReset":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: This link allows clearing the pin reset confirmation code.
           "yona:messages":
             type: object
             required:
@@ -1203,6 +1521,7 @@ definitions:
     properties:
       code:
         type: string
+        example: 1234
     required:
       - code
   PostPutGoal:
@@ -1215,6 +1534,10 @@ definitions:
         - BudgetGoal
         - TimeZoneGoal
         description: The type of goal
+      historyItem:
+        type: boolean
+        example: true
+        description: Indicates whether the goal is retained for historical reasons only. Such goals should not feature in the user's goal list but should be used when displaying activity information.
       _links:
         allOf:
           - $ref: '#/definitions/ActivityCategoryLink'
@@ -1241,6 +1564,11 @@ definitions:
           type: string
           example: "8:00-17:00"
         description: The zones for this goal
+      spreadCells:
+        type: array
+        items:
+          type: integer
+        description: This property cannot be passed in PUT/POST. An array with indexes of the spread that are within the goal boundaries, used to interpret the spread as defined in the day and week activity. 
     required:
       - zones
   Goal:
@@ -1259,9 +1587,15 @@ definitions:
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
           - $ref: '#/definitions/ActivityCategoryLink'
+      creationTime:
+        type: string
+        format: dateTime
+        description: The creation time of this goal
+        example: 2016-04-26T20:08:55.365+0200
     required:
       - "@type"
       - _links
+      - creationTime
   VPNProfile:
     type: object
     description: VPN profile. Private data.
@@ -1421,8 +1755,8 @@ definitions:
         properties:
           "yona:user":
               $ref: "#/definitions/UserWithOnlyPublicData"
-    required:
-      - _embedded
+        required:
+          - "yona:user"
   BuddyConnectRequestMessage:
     allOf:
       - $ref: '#/definitions/BuddyMessageWithEmbeddedUser'
@@ -1586,60 +1920,25 @@ definitions:
       - status
       - _links
   PagedWeekActivityOverviews:
-    type: object
+    allOf:
+      - $ref: '#/definitions/Page'
     properties:
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-        properties:
-          next:
-            properties:
-              href:
-                type: string
-                description: Link to next page, if available
-            required:
-              - href
-          prev:
-            properties:
-              href:
-                type: string
-                description: Link to previous page, if available
-            required:
-              - href
-        required:
-          - next
-          - self
-          - prev
       _embedded:
         properties:
           "yona:weekActivityOverviews":
             type: array
             items:
               $ref: '#/definitions/WeekActivityOverview'
-      page:
-        description: Information about the current page
-        properties:
-          size:
-            type: string
-            description: The number of elements on the current page
-          totalElements:
-            type: string
-            description: The total number of elements
-            example: 300
-          totalPages:
-            type: string
-            description: The total number of pages
-            example: 15
-          number:
-            type: string
-            description: The current page number.
-            example: 1
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+          - $ref: '#/definitions/NextLink'
+          - $ref: '#/definitions/PrevLink'
+          - $ref: '#/definitions/FirstLink'
+          - $ref: '#/definitions/LastLink'
         required:
-          - size
-          - totalElements
-          - totalPages
-          - number
+          - self
     required:
       - _links
       - _embedded
@@ -1647,224 +1946,259 @@ definitions:
   WeekActivityOverview:
     type: object
     properties:
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
       date:
         type: string
         example: 2016-W2
         description: The week date in ISO 8601 format (YYYY-'W'w)
-      _embedded:
-        properties:
-          "yona:weekActivities":
-            type: array
-            items:
-              $ref: '#/definitions/WeekActivity'
-    required:
-      - date
-  WeekActivity:
-    allOf:
-      - $ref: '#/definitions/IntervalActivity'
-    properties:
-      date:
+      timeZoneId:
         type: string
-        example: 2016-W2
-        description: The week date in ISO 8601 format (YYYY-'W'w). Only included in week detail because the information is otherwise present on the parent
-      _embedded:
-        properties:
-          SUNDAY:
-              $ref: '#/definitions/DayActivity'
-          MONDAY:
-              $ref: '#/definitions/DayActivity'
-          TUESDAY:
-              $ref: '#/definitions/DayActivity'
-          WEDNESDAY:
-              $ref: '#/definitions/DayActivity'
-          THURSDAY:
-              $ref: '#/definitions/DayActivity'
-          FRIDAY:
-              $ref: '#/definitions/DayActivity'
-          SATURDAY:
-              $ref: '#/definitions/DayActivity'
-  PagedDayActivityOverviews:
-    type: object
-    properties:
+        description: The time zone identifier that the user had configured when this week started.
+        example: Europe/Amsterdam
+      weekActivities:
+        type: array
+        items:
+          $ref: '#/definitions/WeekGoalActivityOverview'
       _links:
         allOf:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
-        properties:
-          next:
-            properties:
-              href:
-                type: string
-                description: Link to next page, if available
-            required:
-              - href
-          prev:
-            properties:
-              href:
-                type: string
-                description: Link to previous page, if available
-            required:
-              - href
-        required:
-          - next
-          - self
-          - prev
-      _embedded:
-        properties:
-          "yona:dayActivityOverviews":
-            type: array
-            items:
-              $ref: '#/definitions/DayActivityOverview'
-      page:
-        description: Information about the current page
-        properties:
-          size:
-            type: string
-            description: The number of elements on the current page
-          totalElements:
-            type: string
-            description: The total number of elements
-            example: 300
-          totalPages:
-            type: string
-            description: The total number of pages
-            example: 15
-          number:
-            type: string
-            description: The current page number.
-            example: 1
-        required:
-          - size
-          - totalElements
-          - totalPages
-          - number
+        description: The self link is currently not returned from the server. See YD-203
     required:
       - _links
-      - _embedded
-      - page
-  DayActivityOverview:
-    type: object
-    properties:
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-      date:
-        type: string
-        example: 2016-03-16
-        description: The day date in ISO 8601 format (yyyy-MM-dd)
-      _embedded:
-        properties:
-          "yona:dayActivities":
-            type: array
-            items:
-              $ref: '#/definitions/DayActivity'
-    required:
       - date
-  DayActivity:
-    allOf:
-      - $ref: '#/definitions/IntervalActivity'
-    properties:
-      date:
-        type: string
-        example: 2016-03-16
-        description: The day date in ISO 8601 format (yyyy-MM-dd). Only included in day detail because the information is otherwise present on the parent
-      goalAccomplished:
-        type: boolean
-        description: If the goal for this day was accomplished. If the day is not yet over, if the goal for this day was accomplished so far
-      totalMinutesBeyondGoal:
-        type: integer
-        description: The total minutes of time the user was active in the activity category outside the allowed time for the goal.
-      # TODO: embedded messages
-  IntervalActivity:
+      - timeZoneId
+      - weekActivities
+  WeekGoalActivityOverview:
     type: object
     properties:
+      dayActivities:
+        properties:
+          SUNDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          MONDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          TUESDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          WEDNESDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          THURSDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          FRIDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          SATURDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
       _links:
         allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
+          - $ref: '#/definitions/GoalLink'
         properties:
-          "yona:goal":
+          "yona:weekDetails":
             type: object
             properties:
               href:
                 type: string
             required:
               - href
-            description: Link to the goal for which activity was recorded
+            description: Link to the details for this goal in this week
+        required:
+          - "yona:goal"
+          - "yona:weekDetails"
+  WeekGoalActivityDetail:
+    type: object
+    properties:
+      date:
+        type: string
+        example: 2016-W2
+        description: The week date in ISO 8601 format (YYYY-'W'w).
+      timeZoneId:
+        type: string
+        description: The time zone identifier that the user had configured when this week started.
+        example: Europe/Amsterdam
       spread:
         type: array
         items:
           type: integer
-        description: Aggregates all activity on every quarter hour of the day (of which there are 96). This information is included in day detail, week detail, and also, for time zone goals, in day overview.
+        description: Aggregates all activity on every quarter hour of the day (of which there are 96) taking the average for all days in the week.
       totalActivityDurationMinutes:
         type: integer
-        description: Total minutes spent on the activity category during this interval. This information is not included in week overview.
+        description: Total minutes spent on the activity category during this week.
+      dayActivities:
+        properties:
+          SUNDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          MONDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          TUESDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          WEDNESDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          THURSDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          FRIDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+          SATURDAY:
+              $ref: '#/definitions/DayGoalActivityInWeek'
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+          - $ref: '#/definitions/GoalLink'
+    required:
+      - date
+      - timeZoneId
+      - spread
+      - totalActivityDurationMinutes
+      - _links
+  PagedDayActivityOverviews:
+    allOf:
+      - $ref: '#/definitions/Page'
+    properties:
+      _embedded:
+        properties:
+          "yona:dayActivityOverviews":
+            type: array
+            items:
+              $ref: '#/definitions/DayActivityOverview'
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+          - $ref: '#/definitions/NextLink'
+          - $ref: '#/definitions/PrevLink'
+          - $ref: '#/definitions/FirstLink'
+          - $ref: '#/definitions/LastLink'
+        required:
+          - curies
+          - self
+    required:
+      - _embedded
+      - page
+      - _links
+  DayActivityOverview:
+    type: object
+    properties:
+      date:
+        type: string
+        format: date
+        example: 2016-03-16
+        description: The day date in ISO 8601 format (yyyy-MM-dd)
       timeZoneId:
         type: string
-        description: The time zone identifier that the user had configured for this day
+        description: The time zone identifier that the user had configured when this day started.
         example: Europe/Amsterdam
+      dayActivities:
+        type: array
+        items:
+          $ref: '#/definitions/DayGoalActivityOverview'
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+        description: The self link is currently not returned from the server. See YD-203
     required:
-      - timeZoneId
-  PagedMessages:
+      - date
+      - dayActivities
+      - _links
+  DayGoalActivityBase:
     type: object
+    properties:
+      totalActivityDurationMinutes:
+        type: integer
+        example: 20
+        description: Total minutes spent on the activity category during this day.
+      goalAccomplished:
+        type: boolean
+        example: true
+        description: If the goal for this day was accomplished. If the day is not yet over, if the goal for this day was accomplished so far.
+      totalMinutesBeyondGoal:
+        type: integer
+        example: 0
+        description: The total minutes of time the user was active in the activity category outside the allowed time for the goal.
+    required:
+      - totalActivityDurationMinutes
+      - goalAccomplished
+      - totalMinutesBeyondGoal
+  DayGoalActivityInWeek:
+    allOf:
+      - $ref: '#/definitions/DayGoalActivityBase'
+    properties:
+      _links:
+        allOf:
+          - $ref: '#/definitions/DayDetailsLink'
+        required:
+          - "yona:dayDetails"
+    required:
+      - _links
+  DayGoalActivityOverview:
+    allOf:
+      - $ref: '#/definitions/DayGoalActivityBase'
+    properties:
+      spread:
+        type: array
+        items:
+          type: integer
+        description: Aggregates all activity on every quarter hour of the day (of which there are 96). This information is only included for time zone goals.
+      _links:
+        allOf:
+          - $ref: '#/definitions/GoalLink'
+          - $ref: '#/definitions/DayDetailsLink'
+        required:
+          - "yona:goal"
+          - "yona:dayDetails"
+    required:
+      - _links
+  DayGoalActivityDetail:
+    allOf:
+      - $ref: '#/definitions/DayGoalActivityBase'
+    properties:
+      date:
+        type: string
+        example: 2016-03-16
+        description: The day date in ISO 8601 format (yyyy-MM-dd).
+      timeZoneId:
+        type: string
+        description: The time zone identifier that the user had configured when this day started.
+        example: Europe/Amsterdam
+      spread:
+        type: array
+        items:
+          type: integer
+        description: Aggregates all activity on every quarter hour of the day (of which there are 96).
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+          - $ref: '#/definitions/GoalLink'
+        required:
+          - self
+          - "yona:goal"
+      # TODO: embedded messages
+    required:
+      - date
+      - timeZoneId
+      - totalActivityDurationMinutes
+      - goalAccomplished
+      - totalMinutesBeyondGoal
+      - _links
+  PagedMessages:
+    allOf:
+      - $ref: '#/definitions/Page'
     properties:
       _links:
         allOf:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
-        properties:
-          next:
-            properties:
-              href:
-                type: string
-                description: Link to next page, if available
-            required:
-              - href
-          prev:
-            properties:
-              href:
-                type: string
-                description: Link to previous page, if available
-            required:
-              - href
+          - $ref: '#/definitions/NextLink'
+          - $ref: '#/definitions/PrevLink'
+          - $ref: '#/definitions/FirstLink'
+          - $ref: '#/definitions/LastLink'
         required:
-          - next
           - self
-          - prev
       _embedded:
         properties:
           "yona:messages":
             type: array
             items:
               $ref: '#/definitions/Message'
-      page:
-        description: Information about the current page
-        properties:
-          size:
-            type: string
-            description: The number of elements on the current page
-          totalElements:
-            type: string
-            description: The total number of elements
-            example: 300
-          totalPages:
-            type: string
-            description: The total number of pages
-            example: 15
-          number:
-            type: string
-            description: The current page number.
-            example: 1
-        required:
-          - size
-          - totalElements
-          - totalPages
-          - number
     required:
       - _links
       - _embedded

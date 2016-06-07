@@ -47,6 +47,8 @@ dependencies {
 	compile("com.google.guava:guava:18.0")
 
 	runtime("org.hsqldb:hsqldb")
+	runtime("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.6.6")
+	runtime("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.6.6")
 	providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
 
 	testCompile project(path: ':core', configuration: 'testUtils')
@@ -54,7 +56,7 @@ dependencies {
 	testCompile("junit:junit:4.12")
 
 	// mandatory dependencies for using Spock
-	testCompile "org.codehaus.groovy:groovy-all:2.4.5"
+	testCompile "org.codehaus.groovy:groovy-all:2.4.6"
 	testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
 
 	// optional dependencies for using Spock

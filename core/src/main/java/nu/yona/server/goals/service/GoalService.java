@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -14,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.analysis.entities.DayActivity;
+import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.GoalChangeMessage;
 import nu.yona.server.messaging.service.MessageService;
@@ -61,6 +64,7 @@ public class GoalService
 	@Transactional
 	public GoalDTO addGoal(UUID userID, GoalDTO goal, Optional<String> message)
 	{
+		goal.validate();
 		User userEntity = userService.getUserByID(userID);
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		Optional<Goal> conflictingExistingGoal = userAnonymizedEntity.getGoals().stream()
@@ -86,20 +90,57 @@ public class GoalService
 	{
 		User userEntity = userService.getUserByID(userID);
 		Goal existingGoal = getGoalEntity(userEntity, goalID);
+
+		if (newGoalDTO.getCreationTime().isPresent())
+		{
+			// Tests update the creation time. Handle that as a special case.
+			updateGoalCreationTime(userEntity, existingGoal, newGoalDTO);
+		}
+		else
+		{
+			verifyGoalUpdate(existingGoal, newGoalDTO);
+
+			if (newGoalDTO.isGoalChanged(existingGoal))
+			{
+				updateGoal(userEntity, existingGoal, newGoalDTO, message);
+			}
+		}
+
+		return GoalDTO.createInstance(existingGoal);
+	}
+
+	private void updateGoalCreationTime(User userEntity, Goal existingGoal, GoalDTO newGoalDTO)
+	{
+		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
+		existingGoal.setCreationTime(newGoalDTO.getCreationTime().get());
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getID(), userAnonymizedEntity);
+	}
+
+	private void verifyGoalUpdate(Goal existingGoal, GoalDTO newGoalDTO)
+	{
+		newGoalDTO.validate();
 		GoalDTO existingGoalDTO = GoalDTO.createInstance(existingGoal);
 		assertNoTypeChange(newGoalDTO, existingGoalDTO);
 		assertNoActivityCategoryChange(newGoalDTO, existingGoalDTO);
+	}
 
+	private void updateGoal(User userEntity, Goal existingGoal, GoalDTO newGoalDTO, Optional<String> message)
+	{
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
-
-		newGoalDTO.updateGoalEntity(existingGoal); // TODO: Change the implementation to retain the old goal, linked to related
-													// activities. With that, also check whether the goal really changed.
-		userAnonymizedEntity.addGoal(existingGoal);
+		cloneExistingGoalAsHistoryItem(userAnonymizedEntity, existingGoal,
+				newGoalDTO.getCreationTime().orElse(ZonedDateTime.now()));
+		newGoalDTO.updateGoalEntity(existingGoal);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getID(), userAnonymizedEntity);
 
 		broadcastGoalChangeMessage(userEntity, existingGoal, GoalChangeMessage.Change.GOAL_CHANGED, message);
+	}
 
-		return GoalDTO.createInstance(existingGoal);
+	private void cloneExistingGoalAsHistoryItem(UserAnonymized userAnonymizedEntity, Goal existingGoal, ZonedDateTime endTime)
+	{
+		Goal historyGoal = existingGoal.cloneAsHistoryItem(endTime);
+		existingGoal.setPreviousVersionOfThisGoal(historyGoal);
+		WeekActivity.getRepository().findByGoal(existingGoal).stream().forEach(a -> a.setGoal(historyGoal));
+		DayActivity.getRepository().findByGoal(existingGoal).stream().forEach(a -> a.setGoal(historyGoal));
 	}
 
 	private void assertNoActivityCategoryChange(GoalDTO newGoalDTO, GoalDTO existingGoalDTO)
@@ -145,7 +186,7 @@ public class GoalService
 			Optional<String> message)
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDTO.createInstance(userEntity.getAnonymized()),
-				() -> GoalChangeMessage.createInstance(userEntity.getUserAnonymizedID(), userEntity.getID(),
+				() -> GoalChangeMessage.createInstance(userEntity.getID(), userEntity.getUserAnonymizedID(),
 						userEntity.getNickname(), changedGoal, change, message.orElse(null)));
 	}
 }

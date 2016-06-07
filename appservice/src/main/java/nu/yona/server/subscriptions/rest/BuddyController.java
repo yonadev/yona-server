@@ -24,6 +24,7 @@ import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,6 +39,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import nu.yona.server.analysis.rest.BuddyActivityController;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.rest.JsonRootRelProvider;
@@ -51,7 +53,7 @@ import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(BuddyResource.class)
-@RequestMapping(value = "/users/{requestingUserID}/buddies")
+@RequestMapping(value = "/users/{requestingUserID}/buddies", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class BuddyController
 {
 	@Autowired
@@ -230,6 +232,8 @@ public class BuddyController
 			ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(buddy.getID());
 			addSelfLink(selfLinkBuilder, buddyResource);
 			addEditLink(selfLinkBuilder, buddyResource);
+			addDayActivityOverviewsLink(buddyResource);
+			addWeekActivityOverviewsLink(buddyResource);
 			return buddyResource;
 		}
 
@@ -252,6 +256,20 @@ public class BuddyController
 		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
 		{
 			buddyResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
+		}
+
+		private void addWeekActivityOverviewsLink(BuddyResource buddyResource)
+		{
+			buddyResource.add(BuddyActivityController
+					.getBuddyWeekActivityOverviewsLinkBuilder(requestingUserID, buddyResource.getContent().getID())
+					.withRel("weeklyActivityReports"));
+		}
+
+		private void addDayActivityOverviewsLink(BuddyResource buddyResource)
+		{
+			buddyResource.add(BuddyActivityController
+					.getBuddyDayActivityOverviewsLinkBuilder(requestingUserID, buddyResource.getContent().getID())
+					.withRel("dailyActivityReports"));
 		}
 	}
 }

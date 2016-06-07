@@ -28,6 +28,7 @@ import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -45,8 +46,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.DOSProtectionService;
-import nu.yona.server.analysis.rest.ActivityController;
 import nu.yona.server.analysis.rest.AppActivityController;
+import nu.yona.server.analysis.rest.UserActivityController;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.goals.rest.GoalController;
@@ -66,7 +67,7 @@ import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(UserResource.class)
-@RequestMapping(value = "/users")
+@RequestMapping(value = "/users", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class UserController
 {
 	private static final Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -421,13 +422,13 @@ public class UserController
 
 		private void addWeekActivityOverviewsLink(UserResource userResource)
 		{
-			userResource.add(ActivityController.getWeekActivityOverviewsLinkBuilder(userResource.getContent().getID())
+			userResource.add(UserActivityController.getUserWeekActivityOverviewsLinkBuilder(userResource.getContent().getID())
 					.withRel("weeklyActivityReports"));
 		}
 
 		private void addDayActivityOverviewsLink(UserResource userResource)
 		{
-			userResource.add(ActivityController.getDayActivityOverviewsLinkBuilder(userResource.getContent().getID())
+			userResource.add(UserActivityController.getUserDayActivityOverviewsLinkBuilder(userResource.getContent().getID())
 					.withRel("dailyActivityReports"));
 		}
 

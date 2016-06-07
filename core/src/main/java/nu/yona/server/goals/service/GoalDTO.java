@@ -4,15 +4,20 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.time.ZonedDateTime;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.lang.NotImplementedException;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
+import nu.yona.server.Constants;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.TimeZoneGoal;
@@ -25,24 +30,43 @@ public abstract class GoalDTO extends PolymorphicDTO
 {
 	private final UUID id;
 	private UUID activityCategoryID;
+	private final Optional<ZonedDateTime> creationTime;
 	private final boolean mandatory;
+	private final Optional<ZonedDateTime> endTime;
 
-	protected GoalDTO(UUID id, UUID activityCategoryID, boolean mandatory)
+	protected GoalDTO(UUID id, Optional<ZonedDateTime> creationTime, Optional<ZonedDateTime> endTime, UUID activityCategoryID,
+			boolean mandatory)
 	{
+		Objects.requireNonNull(creationTime);
 		this.id = id;
 		this.setActivityCategoryID(activityCategoryID);
+		this.creationTime = creationTime;
+		this.endTime = endTime;
 		this.mandatory = mandatory;
 	}
 
-	public GoalDTO(String activityCategoryUrl)
+	protected GoalDTO(Optional<ZonedDateTime> creationTime)
 	{
-		this(null, null, false /* ignored */);
+		this(null, creationTime, Optional.empty(), null, false /* ignored */);
 	}
+
+	public abstract void validate();
 
 	@JsonIgnore
 	public UUID getID()
 	{
 		return id;
+	}
+
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	public Optional<ZonedDateTime> getCreationTime()
+	{
+		return creationTime;
+	}
+
+	public boolean isHistoryItem()
+	{
+		return endTime.isPresent();
 	}
 
 	@JsonIgnore
@@ -64,6 +88,8 @@ public abstract class GoalDTO extends PolymorphicDTO
 	}
 
 	public abstract Goal createGoalEntity();
+
+	public abstract boolean isGoalChanged(Goal existingGoal);
 
 	public abstract void updateGoalEntity(Goal existingGoal);
 

@@ -65,11 +65,15 @@ public class DayActivityDTO extends IntervalActivityDTO
 	static DayActivityDTO createInstance(DayActivity dayActivity, LevelOfDetail levelOfDetail)
 	{
 		return new DayActivityDTO(dayActivity.getGoal().getID(), dayActivity.getStartTime(),
-				levelOfDetail == LevelOfDetail.DayDetail,
-				includeSpread(dayActivity, levelOfDetail) ? dayActivity.getSpread() : Collections.emptyList(),
+				levelOfDetail == LevelOfDetail.DayDetail, getSpread(dayActivity, levelOfDetail),
 				Optional.of(dayActivity.getTotalActivityDurationMinutes()), dayActivity.isGoalAccomplished(),
 				dayActivity.getTotalMinutesBeyondGoal(),
 				levelOfDetail == LevelOfDetail.DayDetail ? getMessages(dayActivity) : Collections.emptySet());
+	}
+
+	private static List<Integer> getSpread(DayActivity dayActivity, LevelOfDetail levelOfDetail)
+	{
+		return includeSpread(dayActivity, levelOfDetail) ? dayActivity.getSpread() : Collections.emptyList();
 	}
 
 	private static Set<MessageDTO> getMessages(DayActivity dayActivity)

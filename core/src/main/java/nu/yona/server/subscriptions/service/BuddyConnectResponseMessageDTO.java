@@ -1,10 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -36,7 +36,7 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	private Status status;
 	private boolean isProcessed;
 
-	private BuddyConnectResponseMessageDTO(UUID id, Date creationTime, UserDTO user, String nickname, String message,
+	private BuddyConnectResponseMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO user, String nickname, String message,
 			Status status, boolean isProcessed)
 	{
 		super(id, creationTime, user, nickname, message);
@@ -81,8 +81,8 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	public static BuddyConnectResponseMessageDTO createInstance(UserDTO actingUser, BuddyConnectResponseMessage messageEntity)
 	{
 		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getNickname(), messageEntity.getMessage(),
-				messageEntity.getStatus(), messageEntity.isProcessed());
+				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getSenderNickname(),
+				messageEntity.getMessage(), messageEntity.getStatus(), messageEntity.isProcessed());
 	}
 
 	@Component
@@ -134,15 +134,19 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 			else
 			{
 				buddyService.setBuddyAcceptedWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
-						connectResponseMessageEntity.getRelatedUserAnonymizedID(), connectResponseMessageEntity.getNickname());
+						connectResponseMessageEntity.getRelatedUserAnonymizedID(),
+						connectResponseMessageEntity.getSenderNickname());
 			}
 
 			connectResponseMessageEntity = updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
+			String mobileNumber = (connectResponseMessageEntity.getSenderUser() == null) ? "already deleted"
+					: connectResponseMessageEntity.getSenderUser().getMobileNumber();
+			String id = (connectResponseMessageEntity.getSenderUser() == null) ? "already deleted"
+					: connectResponseMessageEntity.getSenderUser().getID().toString();
 			logger.info(
 					"User with mobile number '{}' and ID '{}' processed buddy connect response from user with mobile number '{}' and ID '{}'",
-					actingUser.getMobileNumber(), actingUser.getID(), connectResponseMessageEntity.getUser().getMobileNumber(),
-					connectResponseMessageEntity.getUser().getID());
+					actingUser.getMobileNumber(), actingUser.getID(), mobileNumber, id);
 
 			return MessageActionDTO
 					.createInstanceActionDone(theDTOFactory.createInstance(actingUser, connectResponseMessageEntity));

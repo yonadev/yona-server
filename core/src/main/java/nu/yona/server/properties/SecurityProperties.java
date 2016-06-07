@@ -10,12 +10,11 @@ public class SecurityProperties
 {
 	private int confirmationCodeDigits = 4;
 	private int confirmationCodeMaxAttempts = 5;
-	private int newDeviceRequestExpirationDays = 1;
-	private int pinResetRequestExpirationDays = 7;
-	private Duration pinResetRequestConformationCodeDelay = Duration.ZERO;
+	private Duration newDeviceRequestExpirationTime = Duration.ofDays(1);
+	private Duration pinResetRequestExpirationTime = Duration.ofDays(7);
+	private Duration pinResetRequestConfirmationCodeDelay = Duration.ofSeconds(10);
 	private int passwordLength = 32;
-	private long bruteForceBlockMinutes = 60;
-	private long dosProtectionWindowSeconds = 300;
+	private Duration dosProtectionWindow = Duration.ofMinutes(5);
 	private boolean isDosProtectionEnabled = false;
 	private int maxCreateUserAttemptsPerTimeWindow = 1;
 
@@ -44,34 +43,34 @@ public class SecurityProperties
 		this.confirmationCodeMaxAttempts = confirmationMaxAttempts;
 	}
 
-	public int getNewDeviceRequestExpirationDays()
+	public Duration getNewDeviceRequestExpirationTime()
 	{
-		return newDeviceRequestExpirationDays;
+		return newDeviceRequestExpirationTime;
 	}
 
-	public void setNewDeviceRequestExpirationDays(int newDeviceRequestExpiration)
+	public void setNewDeviceRequestExpirationTime(String newDeviceRequestExpiration)
 	{
-		this.newDeviceRequestExpirationDays = newDeviceRequestExpiration;
+		this.newDeviceRequestExpirationTime = Duration.parse(newDeviceRequestExpiration);
 	}
 
-	public int getPinResetRequestExpirationDays()
+	public Duration getPinResetRequestExpirationTime()
 	{
-		return pinResetRequestExpirationDays;
+		return pinResetRequestExpirationTime;
 	}
 
-	public void setPinResetRequestExpirationDays(int pinResetRequestExpirationDays)
+	public void setPinResetRequestExpirationTime(String pinResetRequestExpiration)
 	{
-		this.pinResetRequestExpirationDays = pinResetRequestExpirationDays;
+		this.pinResetRequestExpirationTime = Duration.parse(pinResetRequestExpiration);
 	}
 
-	public Duration getPinResetRequestConformationCodeDelay()
+	public Duration getPinResetRequestConfirmationCodeDelay()
 	{
-		return pinResetRequestConformationCodeDelay;
+		return pinResetRequestConfirmationCodeDelay;
 	}
 
-	public void setPinResetRequestConformationCodeDelay(String pinResetRequestConformationCodeDelay)
+	public void setPinResetRequestConfirmationCodeDelay(String pinResetRequestConfirmationCodeDelay)
 	{
-		this.pinResetRequestConformationCodeDelay = Duration.parse(pinResetRequestConformationCodeDelay);
+		this.pinResetRequestConfirmationCodeDelay = Duration.parse(pinResetRequestConfirmationCodeDelay);
 	}
 
 	public int getPasswordLength()
@@ -84,24 +83,14 @@ public class SecurityProperties
 		this.passwordLength = passwordLength;
 	}
 
-	public void setBruteForceBlockMinutes(long bruteForceBlockMinutes)
+	public void setDosProtectionWindow(String dosProtectionWindow)
 	{
-		this.bruteForceBlockMinutes = bruteForceBlockMinutes;
+		this.dosProtectionWindow = Duration.parse(dosProtectionWindow);
 	}
 
-	public long getBruteForceBlockMinutes()
+	public Duration getDosProtectionWindow()
 	{
-		return bruteForceBlockMinutes;
-	}
-
-	public void setDosProtectionWindowSeconds(long dosProtectionWindowSeconds)
-	{
-		this.dosProtectionWindowSeconds = dosProtectionWindowSeconds;
-	}
-
-	public long getDosProtectionWindowSeconds()
-	{
-		return dosProtectionWindowSeconds;
+		return dosProtectionWindow;
 	}
 
 	public void setDosProtectionEnabled(boolean isDosProtectionEnabled)

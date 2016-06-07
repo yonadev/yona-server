@@ -7,6 +7,9 @@
 package nu.yona.server.test
 
 import groovy.json.*
+
+import java.time.ZonedDateTime
+
 import nu.yona.server.YonaServer
 
 abstract class Goal
@@ -14,11 +17,15 @@ abstract class Goal
 	final String activityCategoryUrl
 	final String url
 	final String editURL
+	ZonedDateTime creationTime
+	final boolean historyItem
 	Goal(def json)
 	{
-		this.activityCategoryUrl = (json.activityCategoryUrl) ? json.activityCategoryUrl : json._links."yona:activityCategory".href
+		this.creationTime = (json.creationTime instanceof ZonedDateTime) ? json.creationTime : null // Only set the creation time when explicitly provided
+		this.activityCategoryUrl = (json.activityCategoryUrl) ?: json._links."yona:activityCategory".href
 		this.url = json._links ? YonaServer.stripQueryString(json._links.self.href) : null
 		this.editURL = json._links?.edit?.href
+		this.historyItem = json.historyItem
 	}
 
 	def abstract convertToJsonString()
@@ -41,5 +48,20 @@ abstract class Goal
 		def jsonStr = convertToJsonString()
 
 		return new JsonSlurper().parseText(jsonStr)
+	}
+
+	protected def buildSelfLinkString()
+	{
+		(url) ? """
+				"self":
+					{
+						"href":"$url"
+					},""" : ""
+	}
+
+	protected def buildCreationTimeString()
+	{
+		def creationTimeString = (creationTime) ? YonaServer.toIsoDateString(creationTime) : null
+		(creationTimeString) ? """"creationTime" : "$creationTimeString",""" : ""
 	}
 }

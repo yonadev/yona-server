@@ -1,13 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -37,8 +34,8 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 	private DropBuddyReason reason;
 	private boolean isProcessed;
 
-	private BuddyDisconnectMessageDTO(UUID id, Date creationTime, UserDTO user, UUID loginID, String nickname, String message,
-			DropBuddyReason reason, boolean isProcessed)
+	private BuddyDisconnectMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO user, UUID loginID, String nickname,
+			String message, DropBuddyReason reason, boolean isProcessed)
 	{
 		super(id, creationTime, user, nickname, message);
 		this.reason = reason;
@@ -82,8 +79,8 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 	public static BuddyDisconnectMessageDTO createInstance(UserDTO actingUser, BuddyDisconnectMessage messageEntity)
 	{
 		return new BuddyDisconnectMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getUser()), messageEntity.getRelatedUserAnonymizedID(),
-				messageEntity.getNickname(), messageEntity.getMessage(), messageEntity.getReason(), messageEntity.isProcessed());
+				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getRelatedUserAnonymizedID(),
+				messageEntity.getSenderNickname(), messageEntity.getMessage(), messageEntity.getReason(), messageEntity.isProcessed());
 	}
 
 	@Component
@@ -123,7 +120,7 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 		private MessageActionDTO handleAction_Process(UserDTO actingUser, BuddyDisconnectMessage messageEntity,
 				MessageActionDTO requestPayload)
 		{
-			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getID(), messageEntity.getUserID());
+			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getID(), messageEntity.getSenderUserID());
 
 			messageEntity = updateMessageStatusAsProcessed(messageEntity);
 

@@ -8,6 +8,8 @@ package nu.yona.server.test
 
 import groovy.json.*
 
+import java.time.ZonedDateTime
+
 class BudgetGoal extends Goal
 {
 	final int maxDurationMinutes
@@ -20,13 +22,11 @@ class BudgetGoal extends Goal
 
 	def convertToJsonString()
 	{
-		def selfLinkString = (url) ? """"
-							"self":
-								{
-									"href":"$url"
-								},""" : ""
+		def selfLinkString = buildSelfLinkString()
+		def creationTimeString = buildCreationTimeString()
 		return """{
 			"@type":"BudgetGoal",
+			$creationTimeString
 			"maxDurationMinutes":"${maxDurationMinutes}",
 			"_links":
 				{
@@ -46,7 +46,12 @@ class BudgetGoal extends Goal
 
 	public static BudgetGoal createInstance(activityCategoryUrl, maxDurationMinutes)
 	{
+		createInstance(null, activityCategoryUrl, maxDurationMinutes)
+	}
+
+	public static BudgetGoal createInstance(ZonedDateTime creationTime, activityCategoryUrl, maxDurationMinutes)
+	{
 		assert activityCategoryUrl
-		new BudgetGoal(["activityCategoryUrl": activityCategoryUrl, maxDurationMinutes: maxDurationMinutes])
+		new BudgetGoal([creationTime: creationTime, activityCategoryUrl: activityCategoryUrl, maxDurationMinutes: maxDurationMinutes])
 	}
 }

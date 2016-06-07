@@ -33,6 +33,7 @@ class User
 	final String appActivityUrl
 	final String pinResetRequestUrl
 	final String verifyPinResetUrl
+	final String resendPinResetConfirmationCodeUrl
 	final String clearPinResetUrl
 	final String password
 
@@ -78,6 +79,7 @@ class User
 		this.appActivityUrl = json._links?."yona:appActivity"?.href
 		this.pinResetRequestUrl = json._links?."yona:requestPinReset"?.href
 		this.verifyPinResetUrl = json._links?."yona:verifyPinReset"?.href
+		this.resendPinResetConfirmationCodeUrl = json._links?."yona:resendPinResetConfirmationCode"?.href
 		this.clearPinResetUrl = json._links?."yona:clearPinReset"?.href
 	}
 
@@ -99,6 +101,11 @@ class User
 				"mobileNumber":"${mobileNumber}"
 		}"""
 		return json
+	}
+
+	def findActiveGoal(def activityCategoryUrl)
+	{
+		goals.find{ it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
 	}
 
 	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber)

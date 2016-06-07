@@ -19,7 +19,7 @@ public class ConfirmationCodeDTO
 	}
 
 	@JsonCreator
-	public ConfirmationCodeDTO(@JsonProperty("code") String code)
+	public ConfirmationCodeDTO(@JsonProperty(value = "code", required = true) String code)
 	{
 		this.code = code;
 	}

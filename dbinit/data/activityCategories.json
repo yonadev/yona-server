@@ -19,7 +19,7 @@
 	"mandatoryNoGo": false,
 	"smoothwallCategories": ["news/media",
 	"newsgroups/forums"],
-	"applications": []
+	"applications": ["NU.nl"]
 },
 {
 	"id": "27395d17-7022-4f71-9daf-f431ff4f11e8",

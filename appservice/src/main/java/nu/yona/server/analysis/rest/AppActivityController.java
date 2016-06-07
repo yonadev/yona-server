@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,7 +36,7 @@ import nu.yona.server.subscriptions.service.UserService;
  * the application service once there is a network connection.
  */
 @Controller
-@RequestMapping(value = "/users/{userID}/appActivity")
+@RequestMapping(value = "/users/{userID}/appActivity", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class AppActivityController
 {
 	@Autowired

@@ -4,9 +4,9 @@
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
-import java.util.Date;
+import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
@@ -19,8 +19,8 @@ import nu.yona.server.goals.entities.ActivityCategory;
 @Table(name = "ACTIVITIES")
 public class Activity extends EntityWithID
 {
-	private Date startTime;
-	private Date endTime;
+	private ZonedDateTime startTime;
+	private ZonedDateTime endTime;
 	@ManyToOne
 	private ActivityCategory activityCategory;
 
@@ -30,36 +30,36 @@ public class Activity extends EntityWithID
 		super(null);
 	}
 
-	public Activity(UUID id, Date startTime, Date endTime)
+	public Activity(UUID id, ZonedDateTime startTime, ZonedDateTime endTime)
 	{
 		super(id);
 		this.startTime = startTime;
 		this.endTime = endTime;
 	}
 
-	public Date getStartTime()
+	public ZonedDateTime getStartTime()
 	{
 		return startTime;
 	}
 
-	public void setStartTime(Date startTime)
+	public void setStartTime(ZonedDateTime startTime)
 	{
 		this.startTime = startTime;
 	}
 
-	public Date getEndTime()
+	public ZonedDateTime getEndTime()
 	{
 		return endTime;
 	}
 
-	public void setEndTime(Date endTime)
+	public void setEndTime(ZonedDateTime endTime)
 	{
 		this.endTime = endTime;
 	}
 
 	public int getDurationMinutes()
 	{
-		return (int) TimeUnit.MILLISECONDS.toMinutes(this.getEndTime().getTime() - this.getStartTime().getTime()) + 1;
+		return (int) Duration.between(getStartTime(), getEndTime()).toMinutes();
 	}
 
 	public void setActivityCategory(ActivityCategory activityCategory)
@@ -72,7 +72,7 @@ public class Activity extends EntityWithID
 		return activityCategory;
 	}
 
-	public static Activity createInstance(Date startTime, Date endTime)
+	public static Activity createInstance(ZonedDateTime startTime, ZonedDateTime endTime)
 	{
 		return new Activity(UUID.randomUUID(), startTime, endTime);
 	}
