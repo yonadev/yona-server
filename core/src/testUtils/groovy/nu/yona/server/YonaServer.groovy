@@ -202,8 +202,8 @@ class YonaServer
 				parsedFields++
 			// Fall through
 			case 2:
-				int weekDay = DateTimeFormatter.ofPattern("eee").parse(fields[parsedFields]).get(ChronoField.DAY_OF_WEEK)
-				dayOffset = weekDay - now.dayOfWeek.value
+				int weekDay = getDayOfWeek(DateTimeFormatter.ofPattern("eee").parse(fields[parsedFields]).get(ChronoField.DAY_OF_WEEK))
+				dayOffset = weekDay - getDayOfWeek(now)
 				parsedFields++
 			// Fall through
 			case 1:
