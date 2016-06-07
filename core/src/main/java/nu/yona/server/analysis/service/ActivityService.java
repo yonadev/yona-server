@@ -1,5 +1,6 @@
 package nu.yona.server.analysis.service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -83,7 +84,26 @@ public class ActivityService
 		return new PageImpl<WeekActivityOverviewDTO>(
 				weekActivityEntitiesByZonedDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 						.map(e -> WeekActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
-				pageable, yonaProperties.getAnalysisService().getWeeksActivityMemory());
+				pageable, getTotal(userAnonymized, ChronoUnit.WEEKS));
+	}
+
+	private long getTotal(UserAnonymizedDTO userAnonymized, ChronoUnit timeUnit)
+	{
+		long activityMemoryDays = yonaProperties.getAnalysisService().getActivityMemory().toDays();
+		Optional<ZonedDateTime> oldestGoalCreationTime = userAnonymized.getOldestGoalCreationTime();
+		long activityRecordedDays = oldestGoalCreationTime.isPresent() ? (Duration
+				.between(oldestGoalCreationTime.get(), ZonedDateTime.now(ZoneId.of(userAnonymized.getTimeZoneId()))).toDays() + 1)
+				: 0;
+		long totalDays = Math.min(activityRecordedDays, activityMemoryDays);
+		switch (timeUnit)
+		{
+			case WEEKS:
+				return (long) Math.ceil((double) totalDays / 7);
+			case DAYS:
+				return totalDays;
+			default:
+				throw new IllegalArgumentException("timeUnit should be weeks or days");
+		}
 	}
 
 	private <T extends IntervalActivity> Map<ZonedDateTime, Set<T>> mapToZonedDateTime(
@@ -127,7 +147,7 @@ public class ActivityService
 		return new PageImpl<DayActivityOverviewDTO>(
 				dayActivityEntitiesByZonedDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 						.map(e -> DayActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
-				pageable, yonaProperties.getAnalysisService().getDaysActivityMemory());
+				pageable, getTotal(userAnonymized, ChronoUnit.DAYS));
 	}
 
 	private Map<LocalDate, Set<DayActivity>> getDayActivitiesGroupedByDate(UUID userAnonymizedID, Interval interval)

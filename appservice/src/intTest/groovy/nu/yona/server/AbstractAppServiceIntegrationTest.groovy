@@ -150,7 +150,12 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	void assertWeekOverviewBasics(response, numberOfReportedGoals)
 	{
+		def expectedTotalElements = numberOfReportedGoals.size()
+		def expectedPageSize = 2
 		assert response.status == 200
+		assert response.responseData.page
+		assert response.responseData.page.size == expectedPageSize
+		assert response.responseData.page.totalElements == Math.min(expectedPageSize, expectedTotalElements)
 		assert response.responseData._embedded?."yona:weekActivityOverviews"?.size() == numberOfReportedGoals.size()
 		assert response.responseData._links?.self?.href != null
 
@@ -227,11 +232,15 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert dayActivityForBudgetGoal?.spread == null
 	}
 
-	void assertDayOverviewBasics(response, daysBeforeThisWeek)
+	void assertDayOverviewBasics(response, numberOfReportedDaysBeforeCurrentWeek, expectedPageSize = 3)
 	{
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
+		def expectedTotalElements = numberOfReportedDaysBeforeCurrentWeek + currentDayOfWeek + 1
 		assert response.status == 200
-		assert response.responseData._embedded?."yona:dayActivityOverviews"?.size() == daysBeforeThisWeek + currentDayOfWeek + 1
+		assert response.responseData._embedded?."yona:dayActivityOverviews"?.size() == Math.min(expectedPageSize, expectedTotalElements)
+		assert response.responseData.page
+		assert response.responseData.page.size == expectedPageSize
+		assert response.responseData.page.totalElements == expectedTotalElements
 		assert response.responseData._links?.self?.href
 	}
 
