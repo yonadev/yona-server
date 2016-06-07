@@ -7,6 +7,9 @@
 package nu.yona.server
 
 import groovy.json.*
+
+import java.time.ZonedDateTime
+
 import nu.yona.server.test.User
 
 class UserTest extends AbstractAppServiceIntegrationTest
@@ -251,6 +254,8 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		assert user.firstName == "John"
 		assert user.lastName == "Doe"
 		assert user.mobileNumber == "+${timestamp}"
+		assertEquals(user.creationTime, ZonedDateTime.now())
+
 		if (includePrivateData)
 		{
 			appService.assertUserWithPrivateData(user)
