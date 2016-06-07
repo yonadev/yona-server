@@ -1534,10 +1534,6 @@ definitions:
         - BudgetGoal
         - TimeZoneGoal
         description: The type of goal
-      historyItem:
-        type: boolean
-        example: true
-        description: Indicates whether the goal is retained for historical reasons only. Such goals should not feature in the user's goal list but should be used when displaying activity information.
       _links:
         allOf:
           - $ref: '#/definitions/ActivityCategoryLink'
@@ -1592,6 +1588,10 @@ definitions:
         format: dateTime
         description: The creation time of this goal
         example: 2016-04-26T20:08:55.365+0200
+      historyItem:
+        type: boolean
+        example: true
+        description: Indicates whether the goal is retained for historical reasons only. Such goals should not feature in the user's goal list but should be used when displaying activity information.
     required:
       - "@type"
       - _links
