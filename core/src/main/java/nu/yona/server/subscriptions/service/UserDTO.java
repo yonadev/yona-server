@@ -39,7 +39,7 @@ public class UserDTO
 	private final String mobileNumber;
 	private boolean isMobileNumberConfirmed;
 	private final UserPrivateDTO privateData;
-	private ZonedDateTime creationTime;
+	private final Optional<ZonedDateTime> creationTime;
 
 	/*
 	 * Only intended for test purposes.
@@ -49,7 +49,7 @@ public class UserDTO
 			UUID anonymousMessageDestinationID, Set<GoalDTO> goals, Set<UUID> buddyIDs, UUID userAnonymizedID,
 			VPNProfileDTO vpnProfile)
 	{
-		this(id, firstName, lastName, null, mobileNumber, creationTime, isConfirmed,
+		this(id, firstName, lastName, null, mobileNumber, Optional.of(creationTime), isConfirmed,
 				new UserPrivateDTO(nickname, namedMessageSourceID, namedMessageDestinationID, anonymousMessageSourceID,
 						anonymousMessageDestinationID, goals, buddyIDs, userAnonymizedID, vpnProfile));
 	}
@@ -57,20 +57,20 @@ public class UserDTO
 	private UserDTO(UUID id, String firstName, String lastName, String mobileNumber, ZonedDateTime creationTime,
 			boolean isConfirmed)
 	{
-		this(id, firstName, lastName, null, mobileNumber, creationTime, isConfirmed, null);
+		this(id, firstName, lastName, null, mobileNumber, Optional.of(creationTime), isConfirmed, null);
 	}
 
 	@JsonCreator
 	public UserDTO(@JsonProperty("firstName") String firstName, @JsonProperty("lastName") String lastName,
 			@JsonProperty("emailAddress") String emailAddress, @JsonProperty("mobileNumber") String mobileNumber,
-			@JsonProperty("creationTime") ZonedDateTime creationTime, @JsonUnwrapped UserPrivateDTO privateData)
+			@JsonUnwrapped UserPrivateDTO privateData)
 	{
-		this(null, firstName, lastName, emailAddress, mobileNumber, creationTime, false /* default value, ignored */,
+		this(null, firstName, lastName, emailAddress, mobileNumber, Optional.empty(), false /* default value, ignored */,
 				privateData);
 	}
 
 	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber,
-			ZonedDateTime creationTime, boolean isMobileNumberConfirmed, UserPrivateDTO privateData)
+			Optional<ZonedDateTime> creationTime, boolean isMobileNumberConfirmed, UserPrivateDTO privateData)
 	{
 		this.id = id;
 		this.firstName = firstName;
@@ -116,7 +116,7 @@ public class UserDTO
 	}
 
 	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
-	public ZonedDateTime getCreationTime()
+	public Optional<ZonedDateTime> getCreationTime()
 	{
 		return creationTime;
 	}
