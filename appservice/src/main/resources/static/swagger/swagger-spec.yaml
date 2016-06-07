@@ -1413,7 +1413,7 @@ definitions:
                     type: array
                     items:
                       $ref: "#/definitions/Goal"
-              links:
+              _links:
                 allOf:
                   - $ref: '#/definitions/SelfLink'
                   - $ref: '#/definitions/EditLink'
@@ -1428,7 +1428,7 @@ definitions:
                     type: array
                     items:
                       $ref: "#/definitions/Buddy"
-              links:
+              _links:
                 allOf:
                   - $ref: '#/definitions/SelfLink'
                   - $ref: '#/definitions/EditLink'
@@ -1643,7 +1643,7 @@ definitions:
         example: richard@quin.net
     required:
       - emailAddress
-  PostPutBuddy:
+  BaseBuddy:
     type: object
     properties:
       sendingStatus:
@@ -1652,6 +1652,13 @@ definitions:
       receivingStatus:
         $ref: '#/definitions/BuddyStatus'
         example: REQUESTED
+    required:
+      - sendingStatus
+      - receivingStatus
+  PostPutBuddy:
+    allOf:
+      - $ref: '#/definitions/BaseBuddy'
+    properties:
       message:
         type: string
         description: A message to the buddy
@@ -1664,13 +1671,36 @@ definitions:
         required:
           - "yona:user"
     required:
-      - sendingStatus
-      - receivingStatus
       - _embedded
   Buddy:
     allOf:
-      - $ref: '#/definitions/PostPutBuddy'
+      - $ref: '#/definitions/BaseBuddy'
     properties:
+      nickname:
+        type: string
+        description: The nickname of the buddy
+        example: RQ
+      _embedded:
+        type: object
+        properties:
+          "yona:goals":
+            type: object
+            description: The goals of this buddy.
+            properties:
+              _embedded:
+                type: object
+                properties:
+                  "yona:goals":
+                    type: array
+                    items:
+                      $ref: "#/definitions/Goal"
+              _links:
+                allOf:
+                  - $ref: '#/definitions/SelfLink'
+          "yona:user":
+              $ref: "#/definitions/UserWithOnlyPublicData"
+        required:
+          - "yona:user"
       _links:
         allOf:
           - $ref: '#/definitions/Curies'
@@ -1679,6 +1709,7 @@ definitions:
           - $ref: '#/definitions/WeeklyActivityReportsLink'
           - $ref: '#/definitions/DailyActivityReportsLink'
     required:
+      - _embedded
       - _links
   NewDeviceRequest:
     type: object
