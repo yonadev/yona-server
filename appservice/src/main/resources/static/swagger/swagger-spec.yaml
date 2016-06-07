@@ -1305,6 +1305,28 @@ definitions:
         required:
           - href
         description: Link to the details for this goal on this day
+  WeeklyActivityReportsLink:
+    type: object
+    properties:
+      "yona:weeklyActivityReports":
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Refers to the weekly activity reports
+  DailyActivityReportsLink:
+    type: object
+    properties:
+      "yona:dailyActivityReports":
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Refers to the daily activity reports
   Page:
     type: object
     properties:
@@ -1415,6 +1437,8 @@ definitions:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/WeeklyActivityReportsLink'
+          - $ref: '#/definitions/DailyActivityReportsLink'
         properties:
           "yona:confirmMobileNumber":
             type: object
@@ -1472,22 +1496,6 @@ definitions:
               href:
                 type: string
                 description: Refers to the messages for this user
-          "yona:weeklyActivityReports":
-            type: object
-            required:
-              - href
-            properties:
-              href:
-                type: string
-                description: Refers to the weekly activity reports
-          "yona:dailyActivityReports":
-            type: object
-            required:
-              - href
-            properties:
-              href:
-                type: string
-                description: Refers to the daily activity reports
           "yona:newDeviceRequest":
             type: object
             required:
@@ -1668,6 +1676,8 @@ definitions:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/WeeklyActivityReportsLink'
+          - $ref: '#/definitions/DailyActivityReportsLink'
     required:
       - _links
   NewDeviceRequest:
