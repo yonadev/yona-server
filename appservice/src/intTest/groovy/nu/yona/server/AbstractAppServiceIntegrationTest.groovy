@@ -232,12 +232,10 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert dayActivityForBudgetGoal?.spread == null
 	}
 
-	void assertDayOverviewBasics(response, numberOfReportedDaysBeforeCurrentWeek, expectedPageSize = 3)
+	void assertDayOverviewBasics(response, expectedSize, expectedTotalElements, expectedPageSize = 3)
 	{
-		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
-		def expectedTotalElements = numberOfReportedDaysBeforeCurrentWeek + currentDayOfWeek + 1
 		assert response.status == 200
-		assert response.responseData._embedded?."yona:dayActivityOverviews"?.size() == Math.min(expectedPageSize, expectedTotalElements)
+		assert response.responseData._embedded?."yona:dayActivityOverviews"?.size() == expectedSize
 		assert response.responseData.page
 		assert response.responseData.page.size == expectedPageSize
 		assert response.responseData.page.totalElements == expectedTotalElements
