@@ -11,12 +11,42 @@ import nu.yona.server.test.User
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
-	def bob, richard
-	def richardBudgetGoalGamblingUrl, richardBudgetGoalGamblingUrlForBob, richardBudgetGoalNewsUrl, richardBudgetGoalNewsUrlForBob, richardTimeZoneGoalUrl, richardTimeZoneGoalUrlForBob
-	def richardDailyActivityReportsUrlForBob, richardWeeklyActivityReportsUrlForBob
-	def dateTime
+	def 'Test pagination multiple weeks'()
+	{
+		given:
+		def richard = addRichard()
 
-	def 'New style test'()
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-4 Mon 02:18")
+
+		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+		def budgetGoalNewsUrl = richard.findActiveGoal(NEWS_ACT_CAT_URL).url
+
+		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
+		def expectedTotalDays = 6 + 7*3 + currentDayOfWeek + 1
+		def expectedTotalWeeks = 5
+
+		when:
+		//we can safely get two normal pages
+		def responseWeekOverviewsPage1 = appService.getWeekActivityOverviews(richard)
+		def responseWeekOverviewsPage2 = appService.getWeekActivityOverviews(richard, ["page": 1])
+		def responseWeekOverviewsPage3 = appService.getWeekActivityOverviews(richard, ["page": 2])
+		//we can safely get two normal pages
+		def responseDayOverviewsPage1 = appService.getDayActivityOverviews(richard)
+		def responseDayOverviewsPage2 = appService.getDayActivityOverviews(richard, ["page": 1])
+
+		then:
+		assertWeekOverviewBasics(responseWeekOverviewsPage1, [2, 1], expectedTotalWeeks)
+		assertWeekOverviewBasics(responseWeekOverviewsPage2, [1, 1], expectedTotalWeeks)
+		assertWeekOverviewBasics(responseWeekOverviewsPage3, [1], expectedTotalWeeks)
+
+		assertDayOverviewBasics(responseDayOverviewsPage1, 3, expectedTotalDays)
+		assertDayOverviewBasics(responseDayOverviewsPage2, 3, expectedTotalDays)
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Test activity in previous week'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
@@ -56,6 +86,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
 		def expectedTotalDays = 6 + currentDayOfWeek + 1
+		def expectedTotalWeeks = 2
 
 		when:
 		def responseWeekOverviews = appService.getWeekActivityOverviews(richard)
@@ -63,10 +94,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def responseDayOverviewsAll = appService.getDayActivityOverviews(richard, ["size": 14])
 		//the min amount of days is 1 this week + 6 previous week, so we can safely get two normal pages
 		def responseDayOverviewsPage1 = appService.getDayActivityOverviews(richard)
-		def responseDayOverviewsPage2 = appService.getDayActivityOverviews(richard, ["page": 2])
+		def responseDayOverviewsPage2 = appService.getDayActivityOverviews(richard, ["page": 1])
 
 		then:
-		assertWeekOverviewBasics(responseWeekOverviews, [3, 2])
+		assertWeekOverviewBasics(responseWeekOverviews, [3, 2], expectedTotalWeeks)
 		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalNewsUrl, 6)
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsUrl, expectedValuesLastWeek, "Mon")

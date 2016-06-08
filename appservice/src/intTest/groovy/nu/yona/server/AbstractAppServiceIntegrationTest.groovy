@@ -148,14 +148,13 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		analysisService.postToAnalysisEngine(user, categories, url, YonaServer.relativeDateTimeStringToZonedDateTime(relativeDateTimeString))
 	}
 
-	void assertWeekOverviewBasics(response, numberOfReportedGoals)
+	void assertWeekOverviewBasics(response, numberOfReportedGoals, expectedTotalElements)
 	{
-		def expectedTotalElements = numberOfReportedGoals.size()
 		def expectedPageSize = 2
 		assert response.status == 200
 		assert response.responseData.page
 		assert response.responseData.page.size == expectedPageSize
-		assert response.responseData.page.totalElements == Math.min(expectedPageSize, expectedTotalElements)
+		assert response.responseData.page.totalElements == expectedTotalElements
 		assert response.responseData._embedded?."yona:weekActivityOverviews"?.size() == numberOfReportedGoals.size()
 		assert response.responseData._links?.self?.href != null
 
