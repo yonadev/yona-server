@@ -48,7 +48,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def creationTime = ZonedDateTime.now()
+		def creationTime = YonaServer.now
 		when:
 		def response = appService.getGoals(richard)
 		then:
@@ -91,7 +91,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
-		assertEquals(goalChangeMessages[0].creationTime, ZonedDateTime.now())
+		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Going to monitor my social time!"
 		goalChangeMessages[0]._links.edit
 
@@ -127,7 +127,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
-		assertEquals(goalChangeMessages[0].creationTime, ZonedDateTime.now())
+		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Going to restrict my social time!"
 		goalChangeMessages[0]._links.edit
 
@@ -171,7 +171,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
-		assertEquals(goalChangeMessages[0].creationTime, ZonedDateTime.now())
+		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Want to become a bit more social :)"
 		goalChangeMessages[0]._links.edit
 	}
@@ -210,7 +210,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
-		assertEquals(goalChangeMessages[0].creationTime, ZonedDateTime.now())
+		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Will be social in the evening too"
 		goalChangeMessages[0]._links.edit
 	}
@@ -318,7 +318,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
-		assertEquals(goalChangeMessages[0].creationTime, ZonedDateTime.now())
+		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Don't want to monitor my social time anymore"
 		goalChangeMessages[0]._links.edit
 	}
@@ -344,8 +344,8 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 
 	def postFacebookActivityPastHour(User user)
 	{
-		def startTime = ZonedDateTime.now().minus(Duration.ofHours(1))
-		def endTime = ZonedDateTime.now()
+		def startTime = YonaServer.now.minus(Duration.ofHours(1))
+		def endTime = YonaServer.now
 		appService.postAppActivityToAnalysisEngine(user, AppActivity.singleActivity("Facebook", startTime, endTime))
 	}
 }

@@ -62,12 +62,10 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 
 	private void sleepTillPinResetCodeIsGenerated(User user, def delayString)
 	{
-		ZonedDateTime now = ZonedDateTime.now()
 		long millis = Duration.parse(delayString).toMillis()
-		println("$now: sleepTillPinResetCodeIsGenerated: delayString=$delayString, user.url=$user.url, millis: $millis. Entering sleep")
+		println("$YonaServer.now: sleepTillPinResetCodeIsGenerated: delayString=$delayString, user.url=$user.url, millis: $millis. Entering sleep")
 		sleep(millis)
-		now = ZonedDateTime.now()
-		println("$now: sleepTillPinResetCodeIsGenerated: sleep completed")
+		println("$YonaServer.now: sleepTillPinResetCodeIsGenerated: sleep completed")
 	}
 
 	def 'Verify pin reset confirmation code'()

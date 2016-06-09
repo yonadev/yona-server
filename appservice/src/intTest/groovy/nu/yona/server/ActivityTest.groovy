@@ -11,6 +11,7 @@ import groovy.json.*
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
+import nu.yona.server.test.AppActivity
 import nu.yona.server.test.TimeZoneGoal
 import nu.yona.server.test.User
 
@@ -97,6 +98,44 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
+	}
+
+	def 'Add activity after retrieving the report'()
+	{
+		given:
+		User richard = addRichard()
+		def ZonedDateTime now = YonaServer.now
+		def budgetGoalGamblingUrl = richard.findActiveGoal(GAMBLING_ACT_CAT_URL).url
+		def budgetGoalNewsUrl = richard.findActiveGoal(NEWS_ACT_CAT_URL).url
+		def currentShortDay = getCurrentShortDay(now)
+		def initialExpectedValues = [
+			(currentShortDay) : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:budgetGoalGamblingUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
+		def initialResponseWeekOverviews = appService.getWeekActivityOverviews(richard)
+		def initialResponseDayOverviews = appService.getDayActivityOverviews(richard)
+		assert initialResponseWeekOverviews.status == 200
+		def initialCurrentWeekOverview = initialResponseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0]
+		assertDayInWeekOverviewForGoal(initialCurrentWeekOverview, budgetGoalNewsUrl, initialExpectedValues, currentShortDay)
+		assertWeekDetailForGoal(richard, initialCurrentWeekOverview, budgetGoalNewsUrl, initialExpectedValues)
+		assertDayOverviewForBudgetGoal(initialResponseDayOverviews, budgetGoalNewsUrl, initialExpectedValues, 0, currentShortDay)
+		assertDayDetail(richard, initialResponseDayOverviews, budgetGoalNewsUrl, initialExpectedValues, 0, currentShortDay)
+
+		when:
+		reportAppActivities(richard, AppActivity.singleActivity("NU.nl", now, now))
+
+		then:
+		def expectedValuesAfterActivity = [
+			(currentShortDay) : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [(getCurrentSpreadCell(now)) : 1]]], [goalUrl:budgetGoalGamblingUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
+		def responseWeekOverviewsAfterActivity = appService.getWeekActivityOverviews(richard)
+		def currentWeekOverviewAfterActivity = responseWeekOverviewsAfterActivity.responseData._embedded."yona:weekActivityOverviews"[0]
+		assertDayInWeekOverviewForGoal(currentWeekOverviewAfterActivity, budgetGoalNewsUrl, expectedValuesAfterActivity, currentShortDay)
+		assertWeekDetailForGoal(richard, currentWeekOverviewAfterActivity, budgetGoalNewsUrl, expectedValuesAfterActivity)
+
+		def responseDayOverviewsAfterActivity = appService.getDayActivityOverviews(richard)
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAfterActivity, budgetGoalNewsUrl, expectedValuesAfterActivity, 0, currentShortDay)
+		assertDayDetail(richard, responseDayOverviewsAfterActivity, budgetGoalNewsUrl, expectedValuesAfterActivity, 0, currentShortDay)
+
+		cleanup:
+		appService.deleteUser(richard)
 	}
 
 	void setupTestScenario()

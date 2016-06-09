@@ -43,7 +43,7 @@ class AppActivity
 
 	AppActivity(def activities)
 	{
-		this(ZonedDateTime.now(), activities)
+		this(YonaServer.now, activities)
 	}
 
 	AppActivity(ZonedDateTime deviceDateTime, def activities)

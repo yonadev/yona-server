@@ -10,6 +10,8 @@ import groovy.json.*
 
 import java.time.Duration
 import java.time.ZonedDateTime
+import java.time.format.TextStyle
+import java.time.temporal.ChronoField
 
 import nu.yona.server.test.AnalysisService
 import nu.yona.server.test.AppActivity
@@ -143,9 +145,23 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 			assert response.status == 200
 		}
 	}
+	void reportNetworkActivity(User user, def categories, def url)
+	{
+		analysisService.postToAnalysisEngine(user, categories, url)
+	}
 	void reportNetworkActivity(User user, def categories, def url, relativeDateTimeString)
 	{
 		analysisService.postToAnalysisEngine(user, categories, url, YonaServer.relativeDateTimeStringToZonedDateTime(relativeDateTimeString))
+	}
+
+	def getCurrentShortDay(ZonedDateTime dateTime)
+	{
+		dateTime.dayOfWeek.getDisplayName(TextStyle.SHORT, YonaServer.EN_US_LOCALE)
+	}
+
+	int getCurrentSpreadCell(ZonedDateTime dateTime)
+	{
+		dateTime.get(ChronoField.MINUTE_OF_DAY)/15
 	}
 
 	void assertWeekOverviewBasics(response, numberOfReportedGoals)
