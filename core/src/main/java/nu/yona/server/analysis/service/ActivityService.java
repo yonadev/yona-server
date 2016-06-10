@@ -84,10 +84,10 @@ public class ActivityService
 		return new PageImpl<WeekActivityOverviewDTO>(
 				weekActivityEntitiesByZonedDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 						.map(e -> WeekActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
-				pageable, getTotal(userAnonymized, ChronoUnit.WEEKS));
+				pageable, getTotalPageableItems(userAnonymized, ChronoUnit.WEEKS));
 	}
 
-	private long getTotal(UserAnonymizedDTO userAnonymized, ChronoUnit timeUnit)
+	private long getTotalPageableItems(UserAnonymizedDTO userAnonymized, ChronoUnit timeUnit)
 	{
 		long activityMemoryDays = yonaProperties.getAnalysisService().getActivityMemory().toDays();
 		Optional<ZonedDateTime> oldestGoalCreationTime = userAnonymized.getOldestGoalCreationTime();
@@ -147,7 +147,7 @@ public class ActivityService
 		return new PageImpl<DayActivityOverviewDTO>(
 				dayActivityEntitiesByZonedDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 						.map(e -> DayActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
-				pageable, getTotal(userAnonymized, ChronoUnit.DAYS));
+				pageable, getTotalPageableItems(userAnonymized, ChronoUnit.DAYS));
 	}
 
 	private Map<LocalDate, Set<DayActivity>> getDayActivitiesGroupedByDate(UUID userAnonymizedID, Interval interval)
