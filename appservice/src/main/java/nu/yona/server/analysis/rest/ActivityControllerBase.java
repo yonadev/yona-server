@@ -44,12 +44,14 @@ abstract class ActivityControllerBase
 	@Autowired
 	private UserService userService;
 
-	protected final String WEEK_ACTIVITY_OVERVIEWS_URI_FRAGMENT = "/weeks/";
-	protected final String DAY_OVERVIEWS_URI_FRAGMENT = "/days/";
-	protected final String WEEK_ACTIVITY_DETAIL_URI_FRAGMENT = "/weeks/{date}/details/{goalID}";
-	protected final String DAY_ACTIVITY_DETAIL_URI_FRAGMENT = "/days/{date}/details/{goalID}";
-	protected final String GOAL_PATH_VARIABLE = "goalID";
-	protected final String DATE_PATH_VARIABLE = "date";
+	protected static final String WEEK_ACTIVITY_OVERVIEWS_URI_FRAGMENT = "/weeks/";
+	protected static final String DAY_OVERVIEWS_URI_FRAGMENT = "/days/";
+	protected static final String WEEK_ACTIVITY_DETAIL_URI_FRAGMENT = "/weeks/{date}/details/{goalID}";
+	protected static final String DAY_ACTIVITY_DETAIL_URI_FRAGMENT = "/days/{date}/details/{goalID}";
+	protected static final String GOAL_PATH_VARIABLE = "goalID";
+	protected static final String DATE_PATH_VARIABLE = "date";
+	protected static final int WEEKS_DEFAULT_PAGE_SIZE = 2;
+	protected static final int DAYS_DEFAULT_PAGE_SIZE = 3;
 
 	protected HttpEntity<PagedResources<WeekActivityOverviewResource>> getWeekActivityOverviews(Optional<String> password,
 			UUID userID, Pageable pageable, PagedResourcesAssembler<WeekActivityOverviewDTO> pagedResourcesAssembler,
