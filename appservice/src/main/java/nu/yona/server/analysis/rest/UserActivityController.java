@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
@@ -34,7 +35,8 @@ public class UserActivityController extends ActivityControllerBase
 	@RequestMapping(value = WEEK_ACTIVITY_OVERVIEWS_URI_FRAGMENT, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<PagedResources<WeekActivityOverviewResource>> getUserWeekActivityOverviews(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, Pageable pageable,
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@PageableDefault(size = WEEKS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<WeekActivityOverviewDTO> pagedResourcesAssembler)
 	{
 		return getWeekActivityOverviews(password, userID, pageable, pagedResourcesAssembler,
@@ -44,7 +46,8 @@ public class UserActivityController extends ActivityControllerBase
 	@RequestMapping(value = DAY_OVERVIEWS_URI_FRAGMENT, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<PagedResources<DayActivityOverviewResource>> getUserDayActivityOverviews(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, Pageable pageable,
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@PageableDefault(size = DAYS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<DayActivityOverviewDTO> pagedResourcesAssembler)
 	{
 		return getDayActivityOverviews(password, userID, pageable, pagedResourcesAssembler,

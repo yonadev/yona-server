@@ -1,13 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.time.ZonedDateTime;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -73,5 +72,22 @@ public class UserAnonymizedDTO
 	{
 		return buddyAnonymizedIDs.stream().map(id -> BuddyAnonymized.getRepository().findOne(id))
 				.filter(ba -> ba.getUserAnonymizedID().equals(fromUserAnonymizedID)).findAny().orElse(null);
+	}
+
+	public Optional<ZonedDateTime> getOldestGoalCreationTime()
+	{
+		return getGoals().stream().map(goal -> getOldestVersionOfGoal(goal).getCreationTime()).min(ZonedDateTime::compareTo);
+	}
+
+	private Goal getOldestVersionOfGoal(Goal goal)
+	{
+		if (!goal.getPreviousVersionOfThisGoal().isPresent())
+		{
+			// no earlier version
+			return goal;
+		}
+
+		// recursive on previous version
+		return getOldestVersionOfGoal(goal.getPreviousVersionOfThisGoal().get());
 	}
 }
