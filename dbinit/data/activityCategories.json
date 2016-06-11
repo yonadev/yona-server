@@ -5,8 +5,7 @@
 		"nl-NL": "Gokken"
 	},
 	"mandatoryNoGo": true,
-	"smoothwallCategories": ["Gambling",
-	"lotto"],
+	"smoothwallCategories": ["Gambling", "KS-Gokken", "lotto"],
 	"applications": ["Poker App",
 	"Lotto App"]
 },
@@ -17,9 +16,8 @@
 		"nl-NL": "Nieuws"
 	},
 	"mandatoryNoGo": false,
-	"smoothwallCategories": ["news/media",
-	"newsgroups/forums"],
-	"applications": ["NU.nl"]
+	"smoothwallCategories": ["News", "KS-Nieuws", "KS-Radio En Tv", "news/media", "newsgroups/forums"],
+	"applications": ["nl.sanomamedia.android.nu", "nl.nos.app", "NU.nl"]
 },
 {
 	"id": "27395d17-7022-4f71-9daf-f431ff4f11e8",
@@ -28,6 +26,36 @@
 		"nl-NL": "Social media"
 	},
 	"mandatoryNoGo": false,
-	"smoothwallCategories": ["social"],
-	"applications": ["Facebook"]
+	"smoothwallCategories": ["Facebook", "Social Media", "Social Networking Sites", "social"],
+	"applications": ["com.facebook.katana", "com.instagram.android", "com.twitter.android", "Facebook"]
+},
+{
+	"id": "eb7be352-b449-4d30-98fe-3be6ad555b43",
+	"name": {
+		"en-US": "Multimedia",
+		"nl-NL": "Multimedia"
+	},
+	"mandatoryNoGo": false,
+	"smoothwallCategories": ["YouTube", "Netflix"],
+	"applications": ["nl.uitzendinggemist", "com.google.android.youtube", "com.netflix.mediaclient"]
+},
+{
+	"id": "90b9838f-1430-484b-94c1-e169318091cb",
+	"name": {
+		"en-US": "Communication",
+		"nl-NL": "Communicatie"
+	},
+	"mandatoryNoGo": false,
+	"smoothwallCategories": ["Chat", "Webmail"],
+	"applications": ["com.whatsapp", "com.google.android.gm", "com.skype.raider", "com.facebook.orca", "com.snapchat.android"]
+},
+{
+	"id": "1f088f0b-9952-4ac7-bdc0-fd242238bc1d",
+	"name": {
+		"en-US": "Adult content",
+		"nl-NL": "Adult"
+	},
+	"mandatoryNoGo": false,
+	"smoothwallCategories": ["Adult Sites", "Adult Themes", "KS-Adult", "KS-Sexuality", "Sexuality Sites"],
+	"applications": []
 }]
