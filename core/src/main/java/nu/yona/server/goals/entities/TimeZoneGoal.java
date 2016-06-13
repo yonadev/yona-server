@@ -11,7 +11,6 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -57,12 +56,12 @@ public class TimeZoneGoal extends Goal
 
 	public List<String> getZones()
 	{
-		return Collections.unmodifiableList(zones);
+		return new ArrayList<>(zones);
 	}
 
 	public void setZones(List<String> zones)
 	{
-		this.zones = zones;
+		this.zones = new ArrayList<>(zones);
 	}
 
 	@Override
@@ -145,6 +144,6 @@ public class TimeZoneGoal extends Goal
 
 	public List<Integer> getSpreadCells()
 	{
-		return Collections.unmodifiableList(spreadCells);
+		return new ArrayList<>(spreadCells);
 	}
 }

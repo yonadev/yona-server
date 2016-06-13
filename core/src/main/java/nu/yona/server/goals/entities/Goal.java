@@ -100,10 +100,14 @@ public abstract class Goal extends EntityWithID
 		{
 			return Optional.empty();
 		}
-		// See http://stackoverflow.com/a/2216603/4353482
-		// Simply returning the value causes a failure in instanceof and cast
-		return Optional
-				.of((Goal) ((HibernateProxy) previousInstanceOfThisGoal).getHibernateLazyInitializer().getImplementation());
+		if (previousInstanceOfThisGoal instanceof HibernateProxy)
+		{
+			// See http://stackoverflow.com/a/2216603/4353482
+			// Simply returning the value causes a failure in instanceof and cast
+			return Optional
+					.of((Goal) ((HibernateProxy) previousInstanceOfThisGoal).getHibernateLazyInitializer().getImplementation());
+		}
+		return Optional.of(previousInstanceOfThisGoal);
 	}
 
 	public void setPreviousVersionOfThisGoal(Goal previousGoal)
