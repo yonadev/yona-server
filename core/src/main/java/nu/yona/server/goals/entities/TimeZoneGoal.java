@@ -20,16 +20,17 @@ import java.util.stream.Collectors;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 
 import nu.yona.server.analysis.entities.DayActivity;
 
 @Entity
 public class TimeZoneGoal extends Goal
 {
-	@ElementCollection
+	@ElementCollection(fetch = FetchType.EAGER)
 	private List<String> zones;
 
-	@ElementCollection
+	@ElementCollection(fetch = FetchType.EAGER)
 	private List<Integer> spreadCells;
 
 	// Default constructor is required for JPA
