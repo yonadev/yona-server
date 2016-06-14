@@ -28,7 +28,8 @@ import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
 import nu.yona.server.analysis.service.IntervalActivityDTO.LevelOfDetail;
 import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.goals.service.GoalServiceException;
+import nu.yona.server.goals.service.GoalDTO;
+import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
@@ -44,6 +45,9 @@ public class ActivityService
 
 	@Autowired
 	private BuddyService buddyService;
+
+	@Autowired
+	private GoalService goalService;
 
 	@Autowired
 	private UserAnonymizedService userAnonymizedService;
@@ -192,7 +196,7 @@ public class ActivityService
 		{
 			ZonedDateTime dateAtStartOfInterval = date.atStartOfDay(ZoneId.of(userAnonymized.getTimeZoneId()));
 
-			Set<Goal> activeGoals = getActiveGoals(userAnonymized, dateAtStartOfInterval, timeUnit);
+			Set<GoalDTO> activeGoals = getActiveGoals(userAnonymized, dateAtStartOfInterval, timeUnit);
 			if (activeGoals.isEmpty())
 			{
 				continue;
@@ -203,14 +207,16 @@ public class ActivityService
 				activityEntitiesByDate.put(date, new HashSet<T>());
 			}
 			Set<T> activityEntitiesAtDate = activityEntitiesByDate.get(date);
-			activeGoals.forEach(g -> addMissingInactivity(g, dateAtStartOfInterval, activityEntitiesAtDate, userAnonymized,
-					inactivityEntitySupplier, existingEntityInactivityCompletor));
+			activeGoals.stream().map(g -> goalService.getGoalEntityForUserAnonymizedID(userAnonymized.getID(), g.getID()))
+					.forEach(g -> addMissingInactivity(g, dateAtStartOfInterval, activityEntitiesAtDate, userAnonymized,
+							inactivityEntitySupplier, existingEntityInactivityCompletor));
 		}
 	}
 
-	private Set<Goal> getActiveGoals(UserAnonymizedDTO userAnonymized, ZonedDateTime dateAtStartOfInterval, ChronoUnit timeUnit)
+	private Set<GoalDTO> getActiveGoals(UserAnonymizedDTO userAnonymized, ZonedDateTime dateAtStartOfInterval,
+			ChronoUnit timeUnit)
 	{
-		Set<Goal> activeGoals = userAnonymized.getGoals().stream()
+		Set<GoalDTO> activeGoals = userAnonymized.getGoals().stream()
 				.filter(g -> g.wasActiveAtInterval(dateAtStartOfInterval, timeUnit)).collect(Collectors.toSet());
 		return activeGoals;
 	}
@@ -289,17 +295,13 @@ public class ActivityService
 			ChronoUnit timeUnit, BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier)
 	{
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
-		Optional<Goal> goal = userAnonymized.getGoals().stream().filter(g -> g.getID().equals(goalID)).findAny();
-		if (!goal.isPresent())
-		{
-			throw GoalServiceException.goalNotFoundById(userID, goalID);
-		}
+		Goal goal = goalService.getGoalEntityForUserAnonymizedID(userAnonymized.getID(), goalID);
 		ZonedDateTime dateAtStartOfInterval = date.atStartOfDay(ZoneId.of(userAnonymized.getTimeZoneId()));
-		if (!goal.get().wasActiveAtInterval(dateAtStartOfInterval, timeUnit))
+		if (!goal.wasActiveAtInterval(dateAtStartOfInterval, timeUnit))
 		{
 			throw ActivityServiceException.activityDateGoalMismatch(userID, date, goalID);
 		}
-		return inactivityEntitySupplier.apply(goal.get(), dateAtStartOfInterval);
+		return inactivityEntitySupplier.apply(goal, dateAtStartOfInterval);
 	}
 
 	private class Interval

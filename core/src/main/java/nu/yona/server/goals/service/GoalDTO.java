@@ -5,6 +5,7 @@
 package nu.yona.server.goals.service;
 
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -69,6 +70,15 @@ public abstract class GoalDTO extends PolymorphicDTO
 		return endTime.isPresent();
 	}
 
+	public boolean wasActiveAtInterval(ZonedDateTime dateAtStartOfInterval, ChronoUnit timeUnit)
+	{
+		if (!creationTime.isPresent())
+		{
+			return false;
+		}
+		return creationTime.get().isBefore(dateAtStartOfInterval.plus(1, timeUnit));
+	}
+
 	@JsonIgnore
 	public UUID getActivityCategoryID()
 	{
@@ -92,6 +102,9 @@ public abstract class GoalDTO extends PolymorphicDTO
 	public abstract boolean isGoalChanged(Goal existingGoal);
 
 	public abstract void updateGoalEntity(Goal existingGoal);
+
+	@JsonIgnore
+	public abstract boolean isNoGoGoal();
 
 	public static GoalDTO createInstance(Goal goal)
 	{

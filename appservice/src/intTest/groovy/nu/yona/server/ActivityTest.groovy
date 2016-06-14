@@ -71,10 +71,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def expectedValuesLastWeek = [
 			"Mon" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
 			"Tue" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35 : 15, 36 : 10]]]],
-			"Wed" : [
-				[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]],
-				[goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]
-			],
+			"Wed" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]],
 			"Thu" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [48 : 1]]]],
 			"Fri" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
 			"Sat" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
@@ -178,6 +175,24 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def responseDayOverviewsAfterActivity = appService.getDayActivityOverviews(richard)
 		assertDayOverviewForBudgetGoal(responseDayOverviewsAfterActivity, budgetGoalNewsUrl, expectedValuesAfterActivity, 0, currentShortDay)
 		assertDayDetail(richard, responseDayOverviewsAfterActivity, budgetGoalNewsUrl, expectedValuesAfterActivity, 0, currentShortDay)
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Add goals and fetch activities'()
+	{
+		given:
+		User richard = addRichard()
+		addTimeZoneGoal(richard, MULTIMEDIA_ACT_CAT_URL, ["11:00-12:00"])
+		assert appService.getDayActivityOverviews(richard).status == 200
+		assert appService.getWeekActivityOverviews(richard).status == 200
+
+		when:
+		addBudgetGoal(richard, COMMUNICATION_ACT_CAT_URL, 60)
+		then:
+		appService.getDayActivityOverviews(richard).status == 200
+		appService.getWeekActivityOverviews(richard).status == 200
 
 		cleanup:
 		appService.deleteUser(richard)

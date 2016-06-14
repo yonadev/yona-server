@@ -24,6 +24,8 @@ import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDTO;
 import nu.yona.server.goals.service.ActivityCategoryService;
+import nu.yona.server.goals.service.GoalDTO;
+import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
@@ -42,6 +44,8 @@ public class AnalysisEngineService
 	private AnalysisEngineCacheService cacheService;
 	@Autowired
 	private UserAnonymizedService userAnonymizedService;
+	@Autowired
+	private GoalService goalService;
 	@Autowired
 	private MessageService messageService;
 	@Autowired(required = false)
@@ -90,14 +94,14 @@ public class AnalysisEngineService
 	private void analyze(ActivityPayload payload, UserAnonymizedDTO userAnonymized,
 			Set<ActivityCategoryDTO> matchingActivityCategories)
 	{
-		Set<Goal> matchingGoalsOfUser = determineMatchingGoalsForUser(userAnonymized, matchingActivityCategories);
-		for (Goal matchingGoalOfUser : matchingGoalsOfUser)
+		Set<GoalDTO> matchingGoalsOfUser = determineMatchingGoalsForUser(userAnonymized, matchingActivityCategories);
+		for (GoalDTO matchingGoalOfUser : matchingGoalsOfUser)
 		{
 			addOrUpdateActivity(payload, userAnonymized, matchingGoalOfUser);
 		}
 	}
 
-	private void addOrUpdateActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
+	private void addOrUpdateActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, GoalDTO matchingGoal)
 	{
 		if (isCrossDayActivity(payload, userAnonymized))
 		{
@@ -116,7 +120,7 @@ public class AnalysisEngineService
 		}
 	}
 
-	private void addOrUpdateDayTruncatedActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
+	private void addOrUpdateDayTruncatedActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, GoalDTO matchingGoal)
 	{
 		DayActivityCacheResult dayActivity = getRegisteredDayActivity(payload, userAnonymized, matchingGoal);
 		Activity lastRegisteredActivity = dayActivity.content == null ? null : dayActivity.content.getLastActivity();
@@ -175,7 +179,7 @@ public class AnalysisEngineService
 	}
 
 	private DayActivityCacheResult getRegisteredDayActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized,
-			Goal matchingGoal)
+			GoalDTO matchingGoal)
 	{
 		DayActivity lastRegisteredDayActivity = cacheService.fetchDayActivityForUser(userAnonymized.getID(),
 				matchingGoal.getID());
@@ -214,10 +218,11 @@ public class AnalysisEngineService
 		return getStartOfDay(payload.startTime, userAnonymized).isBefore(getStartOfDay(payload.endTime, userAnonymized));
 	}
 
-	private void addActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal,
+	private void addActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, GoalDTO matchingGoal,
 			DayActivityCacheResult dayActivity)
 	{
-		DayActivity updatedDayActivity = createNewActivity(dayActivity.content, payload, userAnonymized, matchingGoal);
+		Goal matchingGoalEntity = goalService.getGoalEntityForUserAnonymizedID(userAnonymized.getID(), matchingGoal.getID());
+		DayActivity updatedDayActivity = createNewActivity(dayActivity.content, payload, userAnonymized, matchingGoalEntity);
 		if (dayActivity.shouldUpdateCache())
 		{
 			cacheService.updateDayActivityForUser(updatedDayActivity);
@@ -230,11 +235,11 @@ public class AnalysisEngineService
 		if (matchingGoal.isNoGoGoal())
 		{
 			sendConflictMessageToAllDestinationsOfUser(payload, userAnonymized, updatedDayActivity.getLastActivity(),
-					matchingGoal);
+					matchingGoalEntity);
 		}
 	}
 
-	private void updateActivityEndTime(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal,
+	private void updateActivityEndTime(ActivityPayload payload, UserAnonymizedDTO userAnonymized, GoalDTO matchingGoal,
 			DayActivityCacheResult dayActivity, Activity activity)
 	{
 		assert userAnonymized.getID().equals(dayActivity.content.getUserAnonymized().getID());
@@ -336,14 +341,14 @@ public class AnalysisEngineService
 				() -> GoalConflictMessage.createInstanceFromBuddy(userAnonymized.getID(), selfGoalConflictMessage));
 	}
 
-	private Set<Goal> determineMatchingGoalsForUser(UserAnonymizedDTO userAnonymized,
+	private Set<GoalDTO> determineMatchingGoalsForUser(UserAnonymizedDTO userAnonymized,
 			Set<ActivityCategoryDTO> matchingActivityCategories)
 	{
 		Set<UUID> matchingActivityCategoryIDs = matchingActivityCategories.stream().map(ac -> ac.getID())
 				.collect(Collectors.toSet());
-		Set<Goal> goalsOfUser = userAnonymized.getGoals();
-		Set<Goal> matchingGoalsOfUser = goalsOfUser.stream()
-				.filter(g -> matchingActivityCategoryIDs.contains(g.getActivityCategory().getID())).collect(Collectors.toSet());
+		Set<GoalDTO> goalsOfUser = userAnonymized.getGoals();
+		Set<GoalDTO> matchingGoalsOfUser = goalsOfUser.stream().filter(g -> !g.isHistoryItem())
+				.filter(g -> matchingActivityCategoryIDs.contains(g.getActivityCategoryID())).collect(Collectors.toSet());
 		return matchingGoalsOfUser;
 	}
 
