@@ -276,7 +276,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		responseGoalsAfterUpdate.responseData._embedded."yona:goals".size() == 4
 		def timeZoneGoalAfterUpdate = findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL)
 		timeZoneGoalAfterUpdate.zones.size() == 2
-		timeZoneGoalAfterUpdate.spreadCells == [45, 45, 46, 47, 80, 81, 82, 83]
+		timeZoneGoalAfterUpdate.spreadCells == [44, 45, 46, 47, 80, 81, 82, 83, 84, 85, 86, 87]
 
 		def allSocialGoals = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL)
 		allSocialGoals.size() == 2
