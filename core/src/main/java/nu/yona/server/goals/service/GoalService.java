@@ -183,20 +183,27 @@ public class GoalService
 	{
 		User userEntity = userService.getUserEntityByID(userID);
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
-		Optional<Goal> goalEntity = userAnonymizedEntity.getGoals().stream().filter(goal -> goal.getID().equals(goalID))
-				.findFirst();
-		if (!goalEntity.isPresent())
-		{
-			throw GoalServiceException.goalNotFoundById(userID, goalID);
-		}
-		if (goalEntity.get().isMandatory())
+		Goal goalEntity = userAnonymizedEntity.getGoals().stream().filter(goal -> goal.getID().equals(goalID)).findFirst()
+				.orElseThrow(() -> GoalServiceException.goalNotFoundById(userID, goalID));
+		if (goalEntity.isMandatory())
 		{
 			throw GoalServiceException.cannotRemoveMandatoryGoal(userID, goalID);
 		}
-		userAnonymizedEntity.removeGoal(goalEntity.get());
+
+		deleteActivitiesForGoal(goalEntity);
+		userAnonymizedEntity.removeGoal(goalEntity);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getID(), userAnonymizedEntity);
 
-		broadcastGoalChangeMessage(userEntity, goalEntity.get(), GoalChangeMessage.Change.GOAL_DELETED, message);
+		broadcastGoalChangeMessage(userEntity, goalEntity, GoalChangeMessage.Change.GOAL_DELETED, message);
+	}
+
+	private void deleteActivitiesForGoal(Goal goalEntity)
+	{
+		goalEntity.getPreviousVersionOfThisGoal().ifPresent(g -> deleteActivitiesForGoal(g));
+
+		UUID goalID = goalEntity.getID();
+		WeekActivity.getRepository().deleteAllForGoal(goalID);
+		DayActivity.getRepository().deleteAllForGoal(goalID);
 	}
 
 	private void broadcastGoalChangeMessage(User userEntity, Goal changedGoal, GoalChangeMessage.Change change,
