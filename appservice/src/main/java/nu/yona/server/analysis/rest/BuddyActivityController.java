@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
@@ -40,7 +41,7 @@ public class BuddyActivityController extends ActivityControllerBase
 	@ResponseBody
 	public HttpEntity<PagedResources<WeekActivityOverviewResource>> getBuddyWeekActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
-			@PathVariable UUID buddyID, Pageable pageable,
+			@PathVariable UUID buddyID, @PageableDefault(size = WEEKS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<WeekActivityOverviewDTO> pagedResourcesAssembler)
 	{
 		return getWeekActivityOverviews(password, userID, pageable, pagedResourcesAssembler,
@@ -52,7 +53,7 @@ public class BuddyActivityController extends ActivityControllerBase
 	@ResponseBody
 	public HttpEntity<PagedResources<DayActivityOverviewResource>> getBuddyDayActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
-			@PathVariable UUID buddyID, Pageable pageable,
+			@PathVariable UUID buddyID, @PageableDefault(size = DAYS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<DayActivityOverviewDTO> pagedResourcesAssembler)
 	{
 		return getDayActivityOverviews(password, userID, pageable, pagedResourcesAssembler,

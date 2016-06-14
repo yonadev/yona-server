@@ -10,27 +10,16 @@ public class AnalysisServiceProperties
 {
 	private Duration conflictInterval = Duration.ofMinutes(15);
 	private Duration updateSkipWindow = Duration.ofSeconds(5);
-	private int daysActivityMemory = 40;
-	private int weeksActivityMemory = 70;
+	private Duration activityMemory = Duration.ofDays(490);
 
-	public int getDaysActivityMemory()
+	public Duration getActivityMemory()
 	{
-		return daysActivityMemory;
+		return activityMemory;
 	}
 
-	public void setDaysActivityMemory(int daysActivityMemory)
+	public void setActivityMemory(Duration activityMemory)
 	{
-		this.daysActivityMemory = daysActivityMemory;
-	}
-
-	public int getWeeksActivityMemory()
-	{
-		return weeksActivityMemory;
-	}
-
-	public void setWeeksActivityMemory(int weeksActivityMemory)
-	{
-		this.weeksActivityMemory = weeksActivityMemory;
+		this.activityMemory = activityMemory;
 	}
 
 	public Duration getConflictInterval()

@@ -18,8 +18,8 @@ import java.time.temporal.ChronoField
 
 class YonaServer
 {
-
 	static final ZoneId EUROPE_AMSTERDAM_ZONE = ZoneId.of("Europe/Amsterdam")
+	static final Locale EN_US_LOCALE = Locale.forLanguageTag("en-US")
 	JsonSlurper jsonSlurper = new JsonSlurper()
 	RESTClient restClient
 
@@ -30,10 +30,15 @@ class YonaServer
 		restClient.handler.failure = restClient.handler.success
 	}
 
+	static ZonedDateTime getNow()
+	{
+		ZonedDateTime.now(YonaServer.EUROPE_AMSTERDAM_ZONE)
+	}
+
 	def static getTimeStamp()
 	{
 		def formatter = DateTimeFormatter.ofPattern("yyyyMMddhhmmss")
-		formatter.format(ZonedDateTime.now())
+		formatter.format(now)
 	}
 
 	def createResourceWithPassword(path, jsonString, password, parameters = [:])
@@ -193,7 +198,6 @@ class YonaServer
 		int weekOffset = 0
 		int dayOffset = 0
 
-		ZonedDateTime now = ZonedDateTime.now(EUROPE_AMSTERDAM_ZONE)
 		switch (fields.size())
 		{
 			case 3:
@@ -208,7 +212,7 @@ class YonaServer
 			// Fall through
 			case 1:
 				ZonedDateTime dateTime = parseTimeForDay(fields[parsedFields], now.plusDays(dayOffset).plusWeeks(weekOffset).getLong(ChronoField.EPOCH_DAY))
-				assert dateTime.compareTo(ZonedDateTime.now()) <= 0 // Must be in the past
+				assert dateTime.compareTo(now) <= 0 // Must be in the past
 				return dateTime
 		}
 	}
@@ -235,14 +239,14 @@ class YonaServer
 	static def relativeDateStringToDaysOffset(int weeksBack, String shortDay)
 	{
 		int targetWeekDay = getDayOfWeek(DateTimeFormatter.ofPattern("eee").parse(shortDay).get(ChronoField.DAY_OF_WEEK))
-		int currentWeekDay = ZonedDateTime.now(EUROPE_AMSTERDAM_ZONE).dayOfWeek.value
+		int currentWeekDay = now.dayOfWeek.value
 		int dayOffset = currentWeekDay - targetWeekDay
 		return weeksBack * 7 + dayOffset
 	}
 
 	public static int getCurrentDayOfWeek()
 	{
-		getDayOfWeek(ZonedDateTime.now())
+		getDayOfWeek(now)
 	}
 
 	public static int getDayOfWeek(ZonedDateTime dateTime)

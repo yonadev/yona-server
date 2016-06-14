@@ -10,6 +10,8 @@ import groovy.json.*
 
 import java.time.Duration
 import java.time.ZonedDateTime
+import java.time.format.TextStyle
+import java.time.temporal.ChronoField
 
 import nu.yona.server.test.AnalysisService
 import nu.yona.server.test.AppActivity
@@ -143,14 +145,31 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 			assert response.status == 200
 		}
 	}
+	void reportNetworkActivity(User user, def categories, def url)
+	{
+		analysisService.postToAnalysisEngine(user, categories, url)
+	}
 	void reportNetworkActivity(User user, def categories, def url, relativeDateTimeString)
 	{
 		analysisService.postToAnalysisEngine(user, categories, url, YonaServer.relativeDateTimeStringToZonedDateTime(relativeDateTimeString))
 	}
 
-	void assertWeekOverviewBasics(response, numberOfReportedGoals)
+	def getCurrentShortDay(ZonedDateTime dateTime)
+	{
+		dateTime.dayOfWeek.getDisplayName(TextStyle.SHORT, YonaServer.EN_US_LOCALE)
+	}
+
+	int getCurrentSpreadCell(ZonedDateTime dateTime)
+	{
+		dateTime.get(ChronoField.MINUTE_OF_DAY)/15
+	}
+
+	void assertWeekOverviewBasics(response, numberOfReportedGoals, expectedTotalElements, expectedPageSize = 2)
 	{
 		assert response.status == 200
+		assert response.responseData.page
+		assert response.responseData.page.size == expectedPageSize
+		assert response.responseData.page.totalElements == expectedTotalElements
 		assert response.responseData._embedded?."yona:weekActivityOverviews"?.size() == numberOfReportedGoals.size()
 		assert response.responseData._links?.self?.href != null
 
@@ -227,11 +246,13 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert dayActivityForBudgetGoal?.spread == null
 	}
 
-	void assertDayOverviewBasics(response, daysBeforeThisWeek)
+	void assertDayOverviewBasics(response, expectedSize, expectedTotalElements, expectedPageSize = 3)
 	{
-		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
 		assert response.status == 200
-		assert response.responseData._embedded?."yona:dayActivityOverviews"?.size() == daysBeforeThisWeek + currentDayOfWeek + 1
+		assert response.responseData._embedded?."yona:dayActivityOverviews"?.size() == expectedSize
+		assert response.responseData.page
+		assert response.responseData.page.size == expectedPageSize
+		assert response.responseData.page.totalElements == expectedTotalElements
 		assert response.responseData._links?.self?.href
 	}
 

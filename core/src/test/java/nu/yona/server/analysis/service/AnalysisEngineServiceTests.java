@@ -107,7 +107,8 @@ public class AnalysisEngineServiceTests
 		gamingGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
 				usString("gaming"), false, new HashSet<String>(Arrays.asList("games")), Collections.emptySet()));
 		socialGoal = TimeZoneGoal.createInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
-				usString("social"), false, new HashSet<String>(Arrays.asList("social")), Collections.emptySet()), new String[0]);
+				usString("social"), false, new HashSet<String>(Arrays.asList("social")), Collections.emptySet()),
+				Collections.emptyList());
 		shoppingGoal = BudgetGoal.createInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
 				usString("shopping"), false, new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet()), 1);
 

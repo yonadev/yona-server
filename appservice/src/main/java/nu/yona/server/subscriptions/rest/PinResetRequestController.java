@@ -110,7 +110,7 @@ public class PinResetRequestController
 		{
 			ErrorResponseDTO responseMessage = new ConfirmationFailedResponseDTO(e.getMessageId(), e.getMessage(),
 					e.getRemainingAttempts());
-			logger.error("{Pin reset confirmation failed", e);
+			logger.error("Pin reset confirmation failed", e);
 			return new ResponseEntity<ErrorResponseDTO>(responseMessage, e.getStatusCode());
 		}
 		return globalExceptionMapping.handleYonaException(e);

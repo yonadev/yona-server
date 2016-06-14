@@ -26,13 +26,13 @@ import nu.yona.server.goals.entities.TimeZoneGoal;
 public class TimeZoneGoalDTO extends GoalDTO
 {
 	private static Pattern zonePattern = Pattern.compile("[0-2][0-9]:[0-5][0-9]-[0-2][0-9]:[0-5][0-9]");
-	private final String[] zones;
+	private final List<String> zones;
 	private final List<Integer> spreadCells;
 
 	@JsonCreator
 	public TimeZoneGoalDTO(
 			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("creationTime") Optional<ZonedDateTime> creationTime,
-			@JsonProperty(required = true, value = "zones") String[] zones)
+			@JsonProperty(required = true, value = "zones") List<String> zones)
 	{
 		super(creationTime);
 
@@ -40,7 +40,7 @@ public class TimeZoneGoalDTO extends GoalDTO
 		this.spreadCells = Collections.emptyList();
 	}
 
-	private TimeZoneGoalDTO(UUID id, UUID activityCategoryID, String[] zones, ZonedDateTime creationTime,
+	private TimeZoneGoalDTO(UUID id, UUID activityCategoryID, List<String> zones, ZonedDateTime creationTime,
 			Optional<ZonedDateTime> endTime, List<Integer> spreadCells)
 	{
 		super(id, Optional.of(creationTime), endTime, activityCategoryID, false);
@@ -58,7 +58,7 @@ public class TimeZoneGoalDTO extends GoalDTO
 	@Override
 	public void validate()
 	{
-		if ((zones == null) || zones.length == 0)
+		if ((zones == null) || zones.size() == 0)
 		{
 			throw GoalServiceException.timeZoneGoalAtLeastOneZoneRequired();
 		}
@@ -124,7 +124,7 @@ public class TimeZoneGoalDTO extends GoalDTO
 	@Override
 	public boolean isGoalChanged(Goal existingGoal)
 	{
-		return !Arrays.equals(zones, ((TimeZoneGoal) existingGoal).getZones());
+		return !zones.equals(((TimeZoneGoal) existingGoal).getZones());
 	}
 
 	@Override
@@ -133,7 +133,7 @@ public class TimeZoneGoalDTO extends GoalDTO
 		((TimeZoneGoal) existingGoal).setZones(zones);
 	}
 
-	public String[] getZones()
+	public List<String> getZones()
 	{
 		return zones;
 	}
