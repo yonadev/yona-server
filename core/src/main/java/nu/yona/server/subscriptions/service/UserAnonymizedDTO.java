@@ -36,7 +36,7 @@ public class UserAnonymizedDTO
 
 	public static UserAnonymizedDTO createInstance(UserAnonymized entity)
 	{
-		return new UserAnonymizedDTO(entity.getID(), getGetGoalsIncludingHistoryItems(entity),
+		return new UserAnonymizedDTO(entity.getID(), getGoalsIncludingHistoryItems(entity),
 				MessageDestinationDTO.createInstance(entity.getAnonymousDestination()), entity.getBuddiesAnonymized().stream()
 						.map(buddyAnonymized -> buddyAnonymized.getID()).collect(Collectors.toSet()));
 	}
@@ -86,7 +86,7 @@ public class UserAnonymizedDTO
 		return goal;
 	}
 
-	static Set<GoalDTO> getGetGoalsIncludingHistoryItems(UserAnonymized userAnonymizedEntity)
+	static Set<GoalDTO> getGoalsIncludingHistoryItems(UserAnonymized userAnonymizedEntity)
 	{
 		Set<Goal> activeGoals = userAnonymizedEntity.getGoals();
 		Set<Goal> historyItems = getGoalHistoryItems(activeGoals);

@@ -175,7 +175,7 @@ public class UserDTO
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSource().getID(),
 				userEntity.getNamedMessageDestination().getID(), userEntity.getAnonymousMessageSource().getID(),
 				userEntity.getAnonymousMessageSource().getDestination().getID(),
-				UserAnonymizedDTO.getGetGoalsIncludingHistoryItems(userEntity.getAnonymized()), getBuddyIDs(userEntity),
+				UserAnonymizedDTO.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), getBuddyIDs(userEntity),
 				userEntity.getUserAnonymizedID(), VPNProfileDTO.createInstance(userEntity));
 	}
 
