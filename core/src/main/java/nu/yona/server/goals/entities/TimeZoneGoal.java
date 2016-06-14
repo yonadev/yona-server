@@ -62,7 +62,7 @@ public class TimeZoneGoal extends Goal
 
 	public void setZones(List<String> zones)
 	{
-		this.zones = zones;
+		this.spreadCells = calculateSpreadCells(zones);
 	}
 
 	@Override

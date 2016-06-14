@@ -9,7 +9,6 @@ package nu.yona.server
 import groovy.json.*
 
 import java.time.Duration
-import java.time.ZonedDateTime
 
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.BudgetGoal
@@ -275,12 +274,15 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		def responseGoalsAfterUpdate = appService.getGoals(richard)
 		responseGoalsAfterUpdate.status == 200
 		responseGoalsAfterUpdate.responseData._embedded."yona:goals".size() == 4
-		findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).zones.size() == 2
+		def timeZoneGoalAfterUpdate = findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL)
+		timeZoneGoalAfterUpdate.zones.size() == 2
+		timeZoneGoalAfterUpdate.spreadCells == [45, 45, 46, 47, 80, 81, 82, 83]
 
 		def allSocialGoals = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL)
 		allSocialGoals.size() == 2
 		def historyItem = allSocialGoals.find{ it.historyItem }
 		historyItem.zones.size() == 1
+		historyItem.spreadCells == [40, 41, 42, 43]
 
 		def bobMessagesResponse = appService.getMessages(bob)
 		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}
