@@ -68,6 +68,12 @@ public class BudgetGoalDTO extends GoalDTO
 		((BudgetGoal) existingGoal).setMaxDurationMinutes(maxDurationMinutes);
 	}
 
+	@Override
+	public boolean isNoGoGoal()
+	{
+		return maxDurationMinutes == 0;
+	}
+
 	public int getMaxDurationMinutes()
 	{
 		return maxDurationMinutes;

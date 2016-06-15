@@ -12,6 +12,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
@@ -20,11 +21,11 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 public class UserAnonymizedDTO
 {
 	private UUID id;
-	private Set<Goal> goals;
+	private Set<GoalDTO> goals;
 	private MessageDestinationDTO anonymousMessageDestination;
 	private Set<UUID> buddyAnonymizedIDs;
 
-	public UserAnonymizedDTO(UUID id, Set<Goal> goals, MessageDestinationDTO anonymousMessageDestination,
+	public UserAnonymizedDTO(UUID id, Set<GoalDTO> goals, MessageDestinationDTO anonymousMessageDestination,
 			Set<UUID> buddyAnonymizedIDs)
 	{
 		this.id = id;
@@ -35,7 +36,7 @@ public class UserAnonymizedDTO
 
 	public static UserAnonymizedDTO createInstance(UserAnonymized entity)
 	{
-		return new UserAnonymizedDTO(entity.getID(), entity.getGoals(),
+		return new UserAnonymizedDTO(entity.getID(), getGoalsIncludingHistoryItems(entity),
 				MessageDestinationDTO.createInstance(entity.getAnonymousDestination()), entity.getBuddiesAnonymized().stream()
 						.map(buddyAnonymized -> buddyAnonymized.getID()).collect(Collectors.toSet()));
 	}
@@ -45,7 +46,7 @@ public class UserAnonymizedDTO
 		return id;
 	}
 
-	public Set<Goal> getGoals()
+	public Set<GoalDTO> getGoals()
 	{
 		return goals;
 	}
@@ -76,18 +77,35 @@ public class UserAnonymizedDTO
 
 	public Optional<ZonedDateTime> getOldestGoalCreationTime()
 	{
-		return getGoals().stream().map(goal -> getOldestVersionOfGoal(goal).getCreationTime()).min(ZonedDateTime::compareTo);
+		return getGoals().stream().map(goal -> getOldestVersionOfGoal(goal).getCreationTime()).filter(Optional::isPresent)
+				.map(Optional::get).min(ZonedDateTime::compareTo);
 	}
 
-	private Goal getOldestVersionOfGoal(Goal goal)
+	private GoalDTO getOldestVersionOfGoal(GoalDTO goal)
 	{
-		if (!goal.getPreviousVersionOfThisGoal().isPresent())
-		{
-			// no earlier version
-			return goal;
-		}
+		return goal;
+	}
 
-		// recursive on previous version
-		return getOldestVersionOfGoal(goal.getPreviousVersionOfThisGoal().get());
+	static Set<GoalDTO> getGoalsIncludingHistoryItems(UserAnonymized userAnonymizedEntity)
+	{
+		Set<Goal> activeGoals = userAnonymizedEntity.getGoals();
+		Set<Goal> historyItems = getGoalHistoryItems(activeGoals);
+		Set<Goal> allGoals = new HashSet<>(activeGoals);
+		allGoals.addAll(historyItems);
+		return allGoals.stream().map(g -> GoalDTO.createInstance(g)).collect(Collectors.toSet());
+	}
+
+	private static Set<Goal> getGoalHistoryItems(Set<Goal> activeGoals)
+	{
+		Set<Goal> historyItems = new HashSet<>();
+		activeGoals.stream().forEach(g -> {
+			Optional<Goal> historyItem = g.getPreviousVersionOfThisGoal();
+			while (historyItem.isPresent())
+			{
+				historyItems.add(historyItem.get());
+				historyItem = historyItem.get().getPreviousVersionOfThisGoal();
+			}
+		});
+		return historyItems;
 	}
 }

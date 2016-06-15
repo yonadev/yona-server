@@ -37,5 +37,9 @@ public interface WeekActivityRepository extends CrudRepository<WeekActivity, UUI
 	@Query("delete from WeekActivity a where a.userAnonymized.id = :userAnonymizedID")
 	void deleteAllForUser(@Param("userAnonymizedID") UUID userAnonymizedID);
 
+	@Modifying
+	@Query("delete from WeekActivity a where a.goal.id = :goalID")
+	void deleteAllForGoal(@Param("goalID") UUID goalID);
+
 	Set<WeekActivity> findByGoal(Goal goal);
 }

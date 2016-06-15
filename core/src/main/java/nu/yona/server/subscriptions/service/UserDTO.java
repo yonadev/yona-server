@@ -4,8 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -19,7 +17,6 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
-import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.subscriptions.entities.User;
 
@@ -177,31 +174,9 @@ public class UserDTO
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickname(),
 				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSource().getID(),
 				userEntity.getNamedMessageDestination().getID(), userEntity.getAnonymousMessageSource().getID(),
-				userEntity.getAnonymousMessageSource().getDestination().getID(), getGetGoalsIncludingHistoryItems(userEntity),
-				getBuddyIDs(userEntity), userEntity.getUserAnonymizedID(), VPNProfileDTO.createInstance(userEntity));
-	}
-
-	private static Set<GoalDTO> getGetGoalsIncludingHistoryItems(User userEntity)
-	{
-		Set<Goal> activeGoals = userEntity.getGoals();
-		Set<Goal> historyItems = getGoalHistoryItems(activeGoals);
-		Set<Goal> allGoals = new HashSet<>(activeGoals);
-		allGoals.addAll(historyItems);
-		return allGoals.stream().map(g -> GoalDTO.createInstance(g)).collect(Collectors.toSet());
-	}
-
-	private static Set<Goal> getGoalHistoryItems(Set<Goal> activeGoals)
-	{
-		Set<Goal> historyItems = new HashSet<>();
-		activeGoals.stream().forEach(g -> {
-			Optional<Goal> historyItem = g.getPreviousVersionOfThisGoal();
-			while (historyItem.isPresent())
-			{
-				historyItems.add(historyItem.get());
-				historyItem = historyItem.get().getPreviousVersionOfThisGoal();
-			}
-		});
-		return historyItems;
+				userEntity.getAnonymousMessageSource().getDestination().getID(),
+				UserAnonymizedDTO.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), getBuddyIDs(userEntity),
+				userEntity.getUserAnonymizedID(), VPNProfileDTO.createInstance(userEntity));
 	}
 
 	private static Set<UUID> getBuddyIDs(User userEntity)

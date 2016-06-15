@@ -36,5 +36,9 @@ public interface DayActivityRepository extends CrudRepository<DayActivity, UUID>
 	@Query("delete from DayActivity a where a.userAnonymized.id = :userAnonymizedID")
 	void deleteAllForUser(@Param("userAnonymizedID") UUID userAnonymizedID);
 
+	@Modifying
+	@Query("delete from DayActivity a where a.goal.id = :goalID")
+	void deleteAllForGoal(@Param("goalID") UUID goalID);
+
 	Set<DayActivity> findByGoal(Goal goal);
 }

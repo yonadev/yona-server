@@ -44,6 +44,15 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	public String GAMBLING_ACT_CAT_URL = appService.composeActivityCategoryUrl("192d69f4-8d3e-499b-983c-36ca97340ba9")
 
 	@Shared
+	public String MULTIMEDIA_ACT_CAT_URL = appService.composeActivityCategoryUrl("eb7be352-b449-4d30-98fe-3be6ad555b43")
+
+	@Shared
+	public String COMMUNICATION_ACT_CAT_URL = appService.composeActivityCategoryUrl("90b9838f-1430-484b-94c1-e169318091cb")
+
+	@Shared
+	public String ADULT_CONTENT_ACT_CAT_URL = appService.composeActivityCategoryUrl("1f088f0b-9952-4ac7-bdc0-fd242238bc1d")
+
+	@Shared
 	public String SOCIAL_ACT_CAT_URL = appService.composeActivityCategoryUrl("27395d17-7022-4f71-9daf-f431ff4f11e8")
 
 	@Shared
@@ -122,7 +131,23 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	void addTimeZoneGoal(User user, activityCategoryURL, zones, relativeCreationDateTimeString)
 	{
 		ZonedDateTime creationTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
+		addTimeZoneGoal(user, activityCategoryURL, zones, creationTime)
+	}
+
+	void addTimeZoneGoal(User user, activityCategoryURL, zones, ZonedDateTime creationTime = YonaServer.now)
+	{
 		appService.addGoal(appService.&assertResponseStatusCreated, user, TimeZoneGoal.createInstance(creationTime, activityCategoryURL, zones.toArray()))
+	}
+
+	void addBudgetGoal(User user, activityCategoryURL, int maxDurationMinutes, relativeCreationDateTimeString)
+	{
+		ZonedDateTime creationTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
+		addBudgetGoal(user, activityCategoryURL, maxDurationMinutes, creationTime)
+	}
+
+	void addBudgetGoal(User user, activityCategoryURL, int maxDurationMinutes, ZonedDateTime creationTime = YonaServer.now)
+	{
+		appService.addGoal(appService.&assertResponseStatusCreated, user, BudgetGoal.createInstance(creationTime, activityCategoryURL, maxDurationMinutes))
 	}
 
 	void reportAppActivity(User user, def appName, def relativeStartDateTimeString, relativeEndDateTimeString)

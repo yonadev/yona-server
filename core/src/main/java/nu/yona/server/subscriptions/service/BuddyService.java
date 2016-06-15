@@ -26,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import nu.yona.server.Translator;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
-import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.messaging.service.MessageService;
@@ -80,7 +79,7 @@ public class BuddyService
 		if (canIncludePrivateData(buddyEntity))
 		{
 			result.setGoals(userAnonymizedService.getUserAnonymized(buddyEntity.getUserAnonymizedID()).getGoals().stream()
-					.map(g -> GoalDTO.createInstance(g)).collect(Collectors.toSet()));
+					.collect(Collectors.toSet()));
 		}
 		return result;
 	}

@@ -72,7 +72,7 @@ public class GoalController
 			@PathVariable UUID userID, @PathVariable UUID goalID)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createResponse(userID, goalService.getGoal(userID, goalID), HttpStatus.OK));
+				() -> createResponse(userID, goalService.getGoalForUserID(userID, goalID), HttpStatus.OK));
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)

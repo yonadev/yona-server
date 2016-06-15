@@ -11,6 +11,7 @@ import groovy.json.*
 import java.time.ZonedDateTime
 
 import nu.yona.server.test.AppActivity
+import nu.yona.server.test.Goal
 import nu.yona.server.test.User
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
@@ -71,10 +72,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def expectedValuesLastWeek = [
 			"Mon" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
 			"Tue" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35 : 15, 36 : 10]]]],
-			"Wed" : [
-				[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]],
-				[goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]
-			],
+			"Wed" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]],
 			"Thu" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [48 : 1]]]],
 			"Fri" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
 			"Sat" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
@@ -166,10 +164,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		def expectedValuesAfterActivity = [
-			(currentShortDay) : [
-				[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [(getCurrentSpreadCell(now)) : 1]]],
-				[goalUrl:budgetGoalGamblingUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]
-			]]
+			(currentShortDay) : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [(getCurrentSpreadCell(now)) : 1]]], [goalUrl:budgetGoalGamblingUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
 		def responseWeekOverviewsAfterActivity = appService.getWeekActivityOverviews(richard)
 		def currentWeekOverviewAfterActivity = responseWeekOverviewsAfterActivity.responseData._embedded."yona:weekActivityOverviews"[0]
 		assertDayInWeekOverviewForGoal(currentWeekOverviewAfterActivity, budgetGoalNewsUrl, expectedValuesAfterActivity, currentShortDay)
@@ -178,6 +173,132 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def responseDayOverviewsAfterActivity = appService.getDayActivityOverviews(richard)
 		assertDayOverviewForBudgetGoal(responseDayOverviewsAfterActivity, budgetGoalNewsUrl, expectedValuesAfterActivity, 0, currentShortDay)
 		assertDayDetail(richard, responseDayOverviewsAfterActivity, budgetGoalNewsUrl, expectedValuesAfterActivity, 0, currentShortDay)
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Remove goal after adding activities'()
+	{
+		given:
+		User richard = addRichard()
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
+		reportAppActivities(richard, [createAppActivity("NU.nl", "W-1 Tue 08:45", "W-1 Tue 09:10"), createAppActivity("Facebook", "W-1 Tue 09:35", "W-1 Mon 10:10")])
+		addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["11:00-12:00"], "W-1 Wed 13:55")
+		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Wed 15:00")
+		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Thu 11:30")
+
+		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+		Goal budgetGoalNews = richard.findActiveGoal(NEWS_ACT_CAT_URL)
+		def budgetGoalNewsUrl = budgetGoalNews.url
+		Goal timeZoneGoalSocial = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
+		def timeZoneGoalSocialUrl = timeZoneGoalSocial.url
+
+		def expectedValuesLastWeekBeforeDelete = [
+			"Mon" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
+			"Tue" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35 : 15, 36 : 10]]]],
+			"Wed" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]],
+			"Thu" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [48 : 1]]]],
+			"Fri" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Sat" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
+		def expectedGoalsPerWeekBeforeDelete = [3, 2]
+
+		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
+		def expectedTotalDaysBeforeDelete = 6 + currentDayOfWeek + 1
+		def expectedTotalWeeksBeforeDelete = 2
+		def responseWeekOverviewsBeforeDelete = appService.getWeekActivityOverviews(richard)
+		//get all days at once (max 2 weeks) to make assertion easy
+		def responseDayOverviewsAllBeforeDelete = appService.getDayActivityOverviews(richard, ["size": 14])
+
+		assertWeekOverviewBasics(responseWeekOverviewsBeforeDelete, expectedGoalsPerWeekBeforeDelete, expectedTotalWeeksBeforeDelete)
+		def weekOverviewLastWeekBeforeDelete = responseWeekOverviewsBeforeDelete.responseData._embedded."yona:weekActivityOverviews"[1]
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeekBeforeDelete, budgetGoalNewsUrl, 6)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, budgetGoalNewsUrl, expectedValuesLastWeekBeforeDelete, "Mon")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, budgetGoalNewsUrl, expectedValuesLastWeekBeforeDelete, "Tue")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, budgetGoalNewsUrl, expectedValuesLastWeekBeforeDelete, "Wed")
+
+		assertWeekDetailForGoal(richard, weekOverviewLastWeekBeforeDelete, budgetGoalNewsUrl, expectedValuesLastWeekBeforeDelete)
+
+		assertDayOverviewBasics(responseDayOverviewsAllBeforeDelete, expectedTotalDaysBeforeDelete, expectedTotalDaysBeforeDelete, 14)
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAllBeforeDelete, budgetGoalNewsUrl, expectedValuesLastWeekBeforeDelete, 1, "Mon")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAllBeforeDelete, budgetGoalNewsUrl, expectedValuesLastWeekBeforeDelete, 1, "Tue")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAllBeforeDelete, budgetGoalNewsUrl, expectedValuesLastWeekBeforeDelete, 1, "Wed")
+
+		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, budgetGoalNewsUrl, expectedValuesLastWeekBeforeDelete, 1, "Mon")
+		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, budgetGoalNewsUrl, expectedValuesLastWeekBeforeDelete, 1, "Tue")
+		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, budgetGoalNewsUrl, expectedValuesLastWeekBeforeDelete, 1, "Wed")
+
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeekBeforeDelete, timeZoneGoalSocialUrl, 4)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, timeZoneGoalSocialUrl, expectedValuesLastWeekBeforeDelete, "Wed")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, timeZoneGoalSocialUrl, expectedValuesLastWeekBeforeDelete, "Thu")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, timeZoneGoalSocialUrl, expectedValuesLastWeekBeforeDelete, "Fri")
+
+		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, timeZoneGoalSocialUrl, expectedValuesLastWeekBeforeDelete, 1, "Wed")
+		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, timeZoneGoalSocialUrl, expectedValuesLastWeekBeforeDelete, 1, "Thu")
+		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, timeZoneGoalSocialUrl, expectedValuesLastWeekBeforeDelete, 1, "Fri")
+
+		when:
+		def response = appService.removeGoal(richard, budgetGoalNews)
+
+		then:
+		def expectedTotalDaysAfterDelete = expectedTotalDaysBeforeDelete - 2
+		def expectedTotalWeeksAfterDelete = expectedTotalWeeksBeforeDelete
+		def expectedValuesLastWeekAfterDelete = [
+			"Mon" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
+			"Tue" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35 : 15, 36 : 10]]]],
+			"Wed" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]],
+			"Thu" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [48 : 1]]]],
+			"Fri" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Sat" : [[goalUrl:budgetGoalNewsUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goalUrl:timeZoneGoalSocialUrl, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
+		def expectedGoalsPerWeekAfterDelete = expectedGoalsPerWeekBeforeDelete.collect{it - 1}
+
+		//get all days at once (max 2 weeks) to make assertion easy
+		def responseWeekOverviewsAfterDelete = appService.getWeekActivityOverviews(richard)
+		assertWeekOverviewBasics(responseWeekOverviewsAfterDelete, expectedGoalsPerWeekAfterDelete, expectedTotalWeeksAfterDelete)
+
+		def weekOverviewLastWeekAfterDelete = responseWeekOverviewsAfterDelete.responseData._embedded."yona:weekActivityOverviews"[1]
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeekAfterDelete, timeZoneGoalSocialUrl, 4)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekAfterDelete, timeZoneGoalSocialUrl, expectedValuesLastWeekAfterDelete, "Wed")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekAfterDelete, timeZoneGoalSocialUrl, expectedValuesLastWeekAfterDelete, "Thu")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekAfterDelete, timeZoneGoalSocialUrl, expectedValuesLastWeekAfterDelete, "Fri")
+
+		def responseDayOverviewsAllAfterDelete = appService.getDayActivityOverviews(richard, ["size": 14])
+		assertDayOverviewBasics(responseDayOverviewsAllAfterDelete, expectedTotalDaysAfterDelete, expectedTotalDaysAfterDelete, 14)
+		assertDayDetail(richard, responseDayOverviewsAllAfterDelete, timeZoneGoalSocialUrl, expectedValuesLastWeekAfterDelete, 1, "Wed")
+		assertDayDetail(richard, responseDayOverviewsAllAfterDelete, timeZoneGoalSocialUrl, expectedValuesLastWeekAfterDelete, 1, "Thu")
+		assertDayDetail(richard, responseDayOverviewsAllAfterDelete, timeZoneGoalSocialUrl, expectedValuesLastWeekAfterDelete, 1, "Fri")
+
+		// See whether we can still report activities the activity category of the deleted goal
+		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
+
+		// Activity report should be identical
+		def responseWeekOverviewsNewActivity = appService.getWeekActivityOverviews(richard)
+		assertWeekOverviewBasics(responseWeekOverviewsNewActivity, expectedGoalsPerWeekAfterDelete, expectedTotalWeeksAfterDelete)
+
+		def weekOverviewLastWeekAfterNewActivity = responseWeekOverviewsNewActivity.responseData._embedded."yona:weekActivityOverviews"[1]
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeekAfterNewActivity, timeZoneGoalSocialUrl, 4)
+
+		def responseDayOverviewsAllAfterNewActivity = appService.getDayActivityOverviews(richard, ["size": 14])
+		assertDayOverviewBasics(responseDayOverviewsAllAfterNewActivity, expectedTotalDaysAfterDelete, expectedTotalDaysAfterDelete, 14)
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Add goals and fetch activities'()
+	{
+		given:
+		User richard = addRichard()
+		addTimeZoneGoal(richard, MULTIMEDIA_ACT_CAT_URL, ["11:00-12:00"])
+		assert appService.getDayActivityOverviews(richard).status == 200
+		assert appService.getWeekActivityOverviews(richard).status == 200
+
+		when:
+		addBudgetGoal(richard, COMMUNICATION_ACT_CAT_URL, 60)
+		then:
+		appService.getDayActivityOverviews(richard).status == 200
+		appService.getWeekActivityOverviews(richard).status == 200
 
 		cleanup:
 		appService.deleteUser(richard)

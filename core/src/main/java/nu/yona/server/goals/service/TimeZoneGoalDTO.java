@@ -133,6 +133,12 @@ public class TimeZoneGoalDTO extends GoalDTO
 		((TimeZoneGoal) existingGoal).setZones(zones);
 	}
 
+	@Override
+	public boolean isNoGoGoal()
+	{
+		return false;
+	}
+
 	public List<String> getZones()
 	{
 		return zones;
