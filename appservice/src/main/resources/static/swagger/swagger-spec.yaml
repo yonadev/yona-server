@@ -323,98 +323,6 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  '/users/{userID}/buddies/':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
-    post:
-      summary: Add a new buddy
-      description: Add a new buddy to an existing user
-      parameters:
-        - in: body
-          name: body
-          description: New buddy
-          required: true
-          schema:
-            $ref: '#/definitions/PostPutBuddy'
-      tags:
-        - Buddy
-      responses:
-        '201':
-          description: The created buddy
-          schema:
-            $ref: '#/definitions/Buddy'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-    get:
-      summary: Get all buddies
-      description: Fetches all buddies of the user with the given ID
-      tags:
-        - Buddy
-      responses:
-        '200':
-          description: All buddies of this user.
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Buddy'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  '/users/{userID}/buddies/{buddyID}':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: buddyID
-        in: path
-        description: The ID of the buddy
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
-    get:
-      summary: Get a buddy
-      description: Fetches the buddy identified by the given ID
-      tags:
-        - Buddy
-      responses:
-        '200':
-          description: The requested buddy.
-          schema:
-            $ref: '#/definitions/Buddy'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-    delete:
-      summary: Delete buddy
-      description: Deletes this buddy
-      tags:
-        - Buddy
-      responses:
-        '200':
-          description: The new buddy is deleted.
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
   '/users/{userID}/appActivity/':
     parameters:
       - name: userID
@@ -613,6 +521,41 @@ paths:
           description: Activity of this user for the specific goal on the specific week.
           schema:
             $ref: '#/definitions/WeekGoalActivityDetail'
+  '/users/{userID}/activity/withBuddies/days/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get day activity overview of user with buddies
+      description: Get network and app activity of the current day of this user and their buddies, pageable to yesterday and before
+      parameters:
+        - name: size
+          in: query
+          description: The number of elements to be fetched
+          required: false
+          default: 3
+          type: number
+        - name: page
+          in: query
+          description: The page to be fetched
+          required: false
+          default: 0
+          type: number
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of this user and their buddies.
+          schema:
+            $ref: '#/definitions/PagedDayActivityOverviewsWithBuddies'
   '/users/{userID}/buddies/{buddyID}/activity/days/':
     parameters:
       - name: userID
@@ -653,6 +596,167 @@ paths:
           description: Activity of the buddy.
           schema:
             $ref: '#/definitions/PagedDayActivityOverviews'
+  '/users/{userID}/buddies/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    post:
+      summary: Add a new buddy
+      description: Add a new buddy to an existing user
+      parameters:
+        - in: body
+          name: body
+          description: New buddy
+          required: true
+          schema:
+            $ref: '#/definitions/PostPutBuddy'
+      tags:
+        - Buddy
+      responses:
+        '201':
+          description: The created buddy
+          schema:
+            $ref: '#/definitions/Buddy'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    get:
+      summary: Get all buddies
+      description: Fetches all buddies of the user with the given ID
+      tags:
+        - Buddy
+      responses:
+        '200':
+          description: All buddies of this user.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Buddy'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/buddies/{buddyID}':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get a buddy
+      description: Fetches the buddy identified by the given ID
+      tags:
+        - Buddy
+      responses:
+        '200':
+          description: The requested buddy.
+          schema:
+            $ref: '#/definitions/Buddy'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete buddy
+      description: Deletes this buddy
+      tags:
+        - Buddy
+      responses:
+        '200':
+          description: The new buddy is deleted.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/buddies/{buddyID}/goals/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get all goals
+      description: Fetches all goals of the buddy with the given ID
+      tags:
+        - Buddy
+      responses:
+        '200':
+          description: All goals of this user.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Goal'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/buddies/{buddyID}/goals/{goalID}':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string
+      - name: goalID
+        in: path
+        description: The ID of the goal
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get a goal
+      description: Fetches the goal identified by the given ID
+      tags:
+        - Buddy
+      responses:
+        '200':
+          description: The requested goal.
+          schema:
+            $ref: '#/definitions/Goal'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   '/users/{userID}/buddies/{buddyID}/activity/days/{date}/details/{goalID}':
     parameters:
       - name: userID
@@ -1239,6 +1343,17 @@ definitions:
           href:
             type: string
             description: The related user
+  BuddyLink:
+    type: object
+    properties:
+      "yona:buddy":
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: The related buddy
   AcceptLink:
     type: object
     properties:
@@ -1327,6 +1442,17 @@ definitions:
           href:
             type: string
             description: Refers to the daily activity reports
+  DailyActivityReportsWithBuddiesLink:
+    type: object
+    properties:
+      "yona:dailyActivityReportsWithBuddies":
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Refers to the daily activity reports of the user with their buddies
   Page:
     type: object
     properties:
@@ -1439,6 +1565,7 @@ definitions:
           - $ref: '#/definitions/EditLink'
           - $ref: '#/definitions/WeeklyActivityReportsLink'
           - $ref: '#/definitions/DailyActivityReportsLink'
+          - $ref: '#/definitions/DailyActivityReportsWithBuddiesLink'
         properties:
           "yona:confirmMobileNumber":
             type: object
@@ -2219,6 +2346,91 @@ definitions:
       - totalActivityDurationMinutes
       - goalAccomplished
       - totalMinutesBeyondGoal
+      - _links
+  PagedDayActivityOverviewsWithBuddies:
+    allOf:
+      - $ref: '#/definitions/Page'
+    properties:
+      _embedded:
+        properties:
+          "yona:dayActivityOverviews":
+            type: array
+            items:
+              $ref: '#/definitions/DayActivityOverviewWithBuddies'
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+          - $ref: '#/definitions/NextLink'
+          - $ref: '#/definitions/PrevLink'
+          - $ref: '#/definitions/FirstLink'
+          - $ref: '#/definitions/LastLink'
+        required:
+          - curies
+          - self
+    required:
+      - _embedded
+      - page
+      - _links
+  DayActivityOverviewWithBuddies:
+    type: object
+    properties:
+      date:
+        type: string
+        format: date
+        example: 2016-03-16
+        description: The day date in ISO 8601 format (yyyy-MM-dd)
+      timeZoneId:
+        type: string
+        description: The time zone identifier that the user had configured when this day started.
+        example: Europe/Amsterdam
+      dayActivities:
+        type: array
+        items:
+          $ref: '#/definitions/DayGoalActivityOverviewWithBuddies'
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+        description: The self link is currently not returned from the server. See YD-203
+    required:
+      - date
+      - dayActivities
+      - _links
+  DayGoalActivityOverviewWithBuddies:
+    type: object
+    properties:
+      dayActivitiesForUsers:
+        type: array
+        items:
+          $ref: '#/definitions/DayGoalActivityOverviewForUser'
+      _links:
+        allOf:
+          - $ref: '#/definitions/ActivityCategoryLink'
+        required:
+          - "yona:activityCategory"
+    required:
+      - _links
+  DayGoalActivityOverviewForUser:
+    allOf:
+      - $ref: '#/definitions/DayGoalActivityBase'
+    properties:
+      spread:
+        type: array
+        items:
+          type: integer
+        description: Aggregates all activity on every quarter hour of the day (of which there are 96). This information is only included for time zone goals.
+      _links:
+        allOf:
+          - $ref: '#/definitions/GoalLink'
+          - $ref: '#/definitions/DayDetailsLink'
+          - $ref: '#/definitions/UserLink'
+          - $ref: '#/definitions/BuddyLink'
+        required:
+          - "yona:goal"
+          - "yona:dayDetails"
+          - "yona:user"
+    required:
       - _links
   PagedMessages:
     allOf:

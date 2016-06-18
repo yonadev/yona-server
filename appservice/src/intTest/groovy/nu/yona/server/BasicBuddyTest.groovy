@@ -11,13 +11,15 @@ import groovy.json.*
 import java.time.Duration
 import java.time.ZonedDateTime
 
+import nu.yona.server.test.User
+
 class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 {
 	def 'Hacking attempt: Try to request one-way connection'()
 	{
 		given:
-		def richard = addRichard()
-		def bob = addBob()
+		User richard = addRichard()
+		User bob = addBob()
 
 		when:
 		def response = appService.requestBuddy(richard, """{
@@ -42,8 +44,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 	def 'Richard requests Bob to become his buddy'()
 	{
 		given:
-		def richard = addRichard()
-		def bob = addBob()
+		User richard = addRichard()
+		User bob = addBob()
 
 		when:
 		def response = appService.sendBuddyConnectRequest(richard, bob)
@@ -71,8 +73,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 	def 'Bob finds the buddy request'()
 	{
 		given:
-		def richard = addRichard()
-		def bob = addBob()
+		User richard = addRichard()
+		User bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
 
 		when:
@@ -99,8 +101,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 	def 'Bob accepts Richard\'s buddy request'()
 	{
 		given:
-		def richard = addRichard()
-		def bob = addBob()
+		User richard = addRichard()
+		User bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
 		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
 		def acceptURL = connectRequestMessage.acceptURL
@@ -140,8 +142,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 	def 'Richard finds Bob\'s buddy connect response'()
 	{
 		given:
-		def richard = addRichard()
-		def bob = addBob()
+		User richard = addRichard()
+		User bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(bob).acceptURL
 		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
@@ -168,8 +170,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 	def 'Richard processes Bob\'s buddy acceptance'()
 	{
 		given:
-		def richard = addRichard()
-		def bob = addBob()
+		User richard = addRichard()
+		User bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
 		def acceptURL = appService.fetchBuddyConnectRequestMessage(bob).acceptURL
 		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
@@ -206,12 +208,42 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Richard and Bob can see each other\'s goals'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+
+		when:
+		def buddiesRichard = appService.getBuddies(richard)
+		def buddiesBob = appService.getBuddies(bob)
+
+		then:
+		buddiesRichard[0].goals.size() == 2
+		buddiesBob[0].goals.size() == 2
+
+		buddiesRichard[0].goals.each
+		{
+			assert appService.yonaServer.getResource(it.url, ["Yona-Password": richard.password]).status == 200
+		}
+
+		buddiesBob[0].goals.each
+		{
+			assert appService.yonaServer.getResource(it.url, ["Yona-Password": bob.password]).status == 200
+		}
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
 	def 'Goal conflict of Richard is reported to Richard and Bob'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
 		ZonedDateTime now = YonaServer.now
 
 		when:
@@ -251,8 +283,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
 
 		when:
 		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
@@ -272,8 +304,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
 
 		when:
 		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
@@ -304,8 +336,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
 		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
 		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
 		def buddy = appService.getBuddies(richard)[0]
@@ -343,8 +375,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
 		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
 		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
 		def buddy = appService.getBuddies(richard)[0]
@@ -376,8 +408,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
 		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
 		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
 		def buddy = appService.getBuddies(richard)[0]
@@ -406,8 +438,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
 		def buddy = appService.getBuddies(richard)[0]
 		appService.removeBuddy(richard, buddy, "Bob, as you know our ways parted, so I'll remove you as buddy.")
 

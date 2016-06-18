@@ -19,11 +19,11 @@ import nu.yona.server.messaging.service.MessageDTO;
 @JsonRootName("dayActivity")
 public class DayActivityDTO extends IntervalActivityDTO
 {
-	final static DateTimeFormatter ISO8601_DAY_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	static final DateTimeFormatter ISO8601_DAY_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-	private boolean goalAccomplished;
-	private int totalMinutesBeyondGoal;
-	private Set<MessageDTO> messages;
+	private final boolean goalAccomplished;
+	private final int totalMinutesBeyondGoal;
+	private final Set<MessageDTO> messages;
 
 	private DayActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
 			Optional<Integer> totalActivityDurationMinutes, boolean goalAccomplished, int totalMinutesBeyondGoal,

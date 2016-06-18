@@ -57,7 +57,7 @@ import nu.yona.server.subscriptions.service.UserService;
 @RunWith(MockitoJUnitRunner.class)
 public class ActivityServiceTests
 {
-	private Map<String, Goal> goalMap = new HashMap<String, Goal>();
+	private final Map<String, Goal> goalMap = new HashMap<String, Goal>();
 
 	@Mock
 	private UserService mockUserService;
@@ -72,7 +72,7 @@ public class ActivityServiceTests
 	@Mock
 	private DayActivityRepository mockDayActivityRepository;
 	@InjectMocks
-	private ActivityService service = new ActivityService();
+	private final ActivityService service = new ActivityService();
 
 	private Goal gamblingGoal;
 	private Goal newsGoal;
@@ -155,7 +155,8 @@ public class ActivityServiceTests
 		when(mockDayActivityRepository.findAll(userAnonID, today.minusDays(2).toLocalDate(), today.toLocalDate()))
 				.thenReturn(new HashSet<DayActivity>(Arrays.asList(yesterdayRecordedActivity)));
 
-		Page<DayActivityOverviewDTO> dayOverviews = service.getUserDayActivityOverviews(userID, new PageRequest(0, 3));
+		Page<DayActivityOverviewDTO<DayActivityDTO>> dayOverviews = service.getUserDayActivityOverviews(userID,
+				new PageRequest(0, 3));
 
 		// assert that the right retrieve from database was done
 		verify(mockDayActivityRepository, times(1)).findAll(userAnonID, today.minusDays(2).toLocalDate(), today.toLocalDate());
@@ -165,7 +166,7 @@ public class ActivityServiceTests
 		assertThat(dayOverviews.getNumberOfElements(), equalTo(3));
 
 		// get the current day (first item)
-		DayActivityOverviewDTO dayOverview = dayOverviews.getContent().get(0);
+		DayActivityOverviewDTO<DayActivityDTO> dayOverview = dayOverviews.getContent().get(0);
 		assertThat(dayOverview.getDayActivities().size(), equalTo(userAnonEntity.getGoals().size()));
 		DayActivityDTO dayActivityForGambling = dayOverview.getDayActivities().stream()
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
@@ -254,11 +255,12 @@ public class ActivityServiceTests
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 
-		Page<DayActivityOverviewDTO> inactivityDayOverviews = service.getUserDayActivityOverviews(userID, new PageRequest(0, 3));
+		Page<DayActivityOverviewDTO<DayActivityDTO>> inactivityDayOverviews = service.getUserDayActivityOverviews(userID,
+				new PageRequest(0, 3));
 		// because the gambling goal was added with creation date two weeks ago, there are multiple days
 		assertThat(inactivityDayOverviews.getNumberOfElements(), equalTo(3));
 		// the other goals were created today, so get the most recent (first) element
-		DayActivityOverviewDTO inactivityDayOverview = inactivityDayOverviews.getContent().get(0);
+		DayActivityOverviewDTO<DayActivityDTO> inactivityDayOverview = inactivityDayOverviews.getContent().get(0);
 		assertThat(inactivityDayOverview.getDayActivities().size(), equalTo(userAnonEntity.getGoals().size()));
 		DayActivityDTO inactivityDayForGambling = inactivityDayOverview.getDayActivities().stream()
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();

@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
@@ -90,7 +91,7 @@ public class UserService
 	{
 		User user = getUserEntityByID(id);
 		handleBuddyUsersRemovedWhileOffline(user);
-		return UserDTO.createInstanceWithPrivateData(user);
+		return createUserDTOWithPrivateData(user);
 	}
 
 	@Transactional
@@ -98,7 +99,7 @@ public class UserService
 	{
 		User validatedUser = getValidatedUserbyID(id);
 		handleBuddyUsersRemovedWhileOffline(validatedUser);
-		return UserDTO.createInstanceWithPrivateData(validatedUser);
+		return createUserDTOWithPrivateData(validatedUser);
 	}
 
 	@Transactional
@@ -152,7 +153,7 @@ public class UserService
 		userEntity = User.getRepository().save(userEntity);
 		ldapUserService.createVPNAccount(userEntity.getUserAnonymizedID().toString(), userEntity.getVPNPassword());
 
-		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(userEntity);
+		UserDTO userDTO = createUserDTOWithPrivateData(userEntity);
 		if (confirmationCode.isPresent())
 		{
 			sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode.get(),
@@ -161,6 +162,12 @@ public class UserService
 
 		logger.info("Added new user with mobile number '{}' and ID '{}'", userDTO.getMobileNumber(), userDTO.getID());
 		return userDTO;
+	}
+
+	private UserDTO createUserDTOWithPrivateData(User user)
+	{
+		return UserDTO.createInstanceWithPrivateData(user,
+				(buddyIDs) -> buddyIDs.stream().map((bid) -> buddyService.getBuddy(bid)).collect(Collectors.toSet()));
 	}
 
 	private void addMandatoryGoals(User userEntity)
@@ -244,7 +251,7 @@ public class UserService
 
 		logger.info("User with mobile number '{}' and ID '{}' successfully confirmed their mobile number",
 				userEntity.getMobileNumber(), userEntity.getID());
-		return UserDTO.createInstanceWithPrivateData(userEntity);
+		return createUserDTOWithPrivateData(userEntity);
 	}
 
 	@Transactional
@@ -306,7 +313,7 @@ public class UserService
 			updatedUserEntity.setMobileNumberConfirmationCode(confirmationCode.get());
 		}
 		User savedUserEntity = User.getRepository().save(updatedUserEntity);
-		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(savedUserEntity);
+		UserDTO userDTO = createUserDTOWithPrivateData(savedUserEntity);
 		if (confirmationCode.isPresent())
 		{
 			sendConfirmationCodeTextMessage(updatedUserEntity.getMobileNumber(), confirmationCode.get(),
@@ -348,7 +355,7 @@ public class UserService
 		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, userResource);
 		sendConfirmationCodeTextMessage(savedUserEntity.getMobileNumber(), savedUserEntity.getMobileNumberConfirmationCode(),
 				SmsService.TemplateName_AddUserNumberConfirmation);
-		UserDTO userDTO = UserDTO.createInstanceWithPrivateData(savedUserEntity);
+		UserDTO userDTO = createUserDTOWithPrivateData(savedUserEntity);
 		logger.info("Updated user (created on buddy request) with mobile number '{}' and ID '{}'", userDTO.getMobileNumber(),
 				userDTO.getID());
 		return userDTO;

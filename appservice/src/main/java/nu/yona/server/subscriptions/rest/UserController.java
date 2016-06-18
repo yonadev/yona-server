@@ -60,7 +60,6 @@ import nu.yona.server.rest.GlobalExceptionMapping;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
-import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
@@ -74,9 +73,6 @@ public class UserController
 
 	@Autowired
 	private UserService userService;
-
-	@Autowired
-	private BuddyService buddyService;
 
 	@Autowired
 	private DOSProtectionService dosProtectionService;
@@ -241,11 +237,6 @@ public class UserController
 
 	private HttpEntity<UserResource> createResponse(UserDTO user, boolean includePrivateData, HttpStatus status)
 	{
-		if (includePrivateData)
-		{
-			Set<BuddyDTO> buddies = buddyService.getBuddiesOfUser(user.getID());
-			user.getPrivateData().setBuddies(buddies);
-		}
 		return new ResponseEntity<UserResource>(
 				new UserResourceAssembler(curieProvider, pinResetRequestController, includePrivateData).toResource(user), status);
 	}
@@ -342,8 +333,8 @@ public class UserController
 	public static class UserResourceAssembler extends ResourceAssemblerSupport<UserDTO, UserResource>
 	{
 		private final boolean includePrivateData;
-		private CurieProvider curieProvider;
-		private PinResetRequestController pinResetRequestController;
+		private final CurieProvider curieProvider;
+		private final PinResetRequestController pinResetRequestController;
 
 		public UserResourceAssembler(CurieProvider curieProvider, boolean includePrivateData)
 		{
@@ -378,6 +369,7 @@ public class UserController
 					addMessagesLink(userResource);
 					addDayActivityOverviewsLink(userResource);
 					addWeekActivityOverviewsLink(userResource);
+					addDayActivityOverviewsWithBuddiesLink(userResource);
 					addNewDeviceRequestLink(userResource);
 					addAppActivityLink(userResource);
 					pinResetRequestController.addLinks(userResource);
@@ -430,6 +422,13 @@ public class UserController
 		{
 			userResource.add(UserActivityController.getUserDayActivityOverviewsLinkBuilder(userResource.getContent().getID())
 					.withRel("dailyActivityReports"));
+		}
+
+		private void addDayActivityOverviewsWithBuddiesLink(UserResource userResource)
+		{
+			userResource
+					.add(UserActivityController.getDayActivityOverviewsWithBuddiesLinkBuilder(userResource.getContent().getID())
+							.withRel("dailyActivityReportsWithBuddies"));
 		}
 
 		private void addMessagesLink(UserResource userResource)

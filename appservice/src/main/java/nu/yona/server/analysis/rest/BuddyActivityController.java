@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import nu.yona.server.analysis.service.DayActivityDTO;
 import nu.yona.server.analysis.service.DayActivityOverviewDTO;
 import nu.yona.server.analysis.service.WeekActivityOverviewDTO;
 import nu.yona.server.goals.rest.GoalController;
@@ -54,7 +55,7 @@ public class BuddyActivityController extends ActivityControllerBase
 	public HttpEntity<PagedResources<DayActivityOverviewResource>> getBuddyDayActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
 			@PathVariable UUID buddyID, @PageableDefault(size = DAYS_DEFAULT_PAGE_SIZE) Pageable pageable,
-			PagedResourcesAssembler<DayActivityOverviewDTO> pagedResourcesAssembler)
+			PagedResourcesAssembler<DayActivityOverviewDTO<DayActivityDTO>> pagedResourcesAssembler)
 	{
 		return getDayActivityOverviews(password, userID, pageable, pagedResourcesAssembler,
 				() -> activityService.getBuddyDayActivityOverviews(buddyID, pageable),
@@ -97,6 +98,13 @@ public class BuddyActivityController extends ActivityControllerBase
 		return linkTo(methodOn.getBuddyWeekActivityOverviews(null, userID, buddyID, null, null));
 	}
 
+	public static ControllerLinkBuilder getBuddyDayActivityDetailLinkBuilder(UUID userID, UUID buddyID, String dateStr,
+			UUID goalID)
+	{
+		BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
+		return linkTo(methodOn.getBuddyDayActivityDetail(null, userID, buddyID, dateStr, goalID));
+	}
+
 	private static final class BuddyActivityLinkProvider implements LinkProvider
 	{
 		private final BuddyService buddyService;
@@ -113,8 +121,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		@Override
 		public ControllerLinkBuilder getDayActivityDetailLinkBuilder(String dateStr, UUID goalID)
 		{
-			BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
-			return linkTo(methodOn.getBuddyDayActivityDetail(null, userID, buddyID, dateStr, goalID));
+			return getBuddyDayActivityDetailLinkBuilder(userID, buddyID, dateStr, goalID);
 		}
 
 		@Override
