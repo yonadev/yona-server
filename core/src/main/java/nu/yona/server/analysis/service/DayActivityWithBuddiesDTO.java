@@ -72,6 +72,7 @@ public class DayActivityWithBuddiesDTO
 					dayActivity.isGoalAccomplished(), dayActivity.getTotalMinutesBeyondGoal());
 		}
 
+		@JsonIgnore
 		public UUID getGoalID()
 		{
 			return goalID;

@@ -202,7 +202,7 @@ public class BuddyController
 				.toResources(allGoalsOfUser), getAllGoalsLinkBuilder(userID, buddyID).withSelfRel());
 	}
 
-	static ControllerLinkBuilder getBuddyLinkBuilder(UUID userID, UUID buddyID)
+	public static ControllerLinkBuilder getBuddyLinkBuilder(UUID userID, UUID buddyID)
 	{
 		BuddyController methodOn = methodOn(BuddyController.class);
 		return linkTo(methodOn.getBuddy(Optional.empty(), userID, buddyID));

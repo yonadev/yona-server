@@ -98,6 +98,13 @@ public class BuddyActivityController extends ActivityControllerBase
 		return linkTo(methodOn.getBuddyWeekActivityOverviews(null, userID, buddyID, null, null));
 	}
 
+	public static ControllerLinkBuilder getBuddyDayActivityDetailLinkBuilder(UUID userID, UUID buddyID, String dateStr,
+			UUID goalID)
+	{
+		BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
+		return linkTo(methodOn.getBuddyDayActivityDetail(null, userID, buddyID, dateStr, goalID));
+	}
+
 	private static final class BuddyActivityLinkProvider implements LinkProvider
 	{
 		private final BuddyService buddyService;
@@ -114,8 +121,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		@Override
 		public ControllerLinkBuilder getDayActivityDetailLinkBuilder(String dateStr, UUID goalID)
 		{
-			BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
-			return linkTo(methodOn.getBuddyDayActivityDetail(null, userID, buddyID, dateStr, goalID));
+			return getBuddyDayActivityDetailLinkBuilder(userID, buddyID, dateStr, goalID);
 		}
 
 		@Override

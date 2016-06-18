@@ -60,7 +60,6 @@ import nu.yona.server.rest.GlobalExceptionMapping;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDTO;
-import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
@@ -74,9 +73,6 @@ public class UserController
 
 	@Autowired
 	private UserService userService;
-
-	@Autowired
-	private BuddyService buddyService;
 
 	@Autowired
 	private DOSProtectionService dosProtectionService;
@@ -241,11 +237,6 @@ public class UserController
 
 	private HttpEntity<UserResource> createResponse(UserDTO user, boolean includePrivateData, HttpStatus status)
 	{
-		if (includePrivateData)
-		{
-			Set<BuddyDTO> buddies = buddyService.getBuddiesOfUser(user.getID());
-			user.getPrivateData().setBuddies(buddies);
-		}
 		return new ResponseEntity<UserResource>(
 				new UserResourceAssembler(curieProvider, pinResetRequestController, includePrivateData).toResource(user), status);
 	}
