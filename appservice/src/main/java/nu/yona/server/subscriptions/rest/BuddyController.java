@@ -41,7 +41,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.analysis.rest.BuddyActivityController;
 import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.goals.rest.GoalController;
+import nu.yona.server.goals.rest.GoalController.GoalResourceAssembler;
+import nu.yona.server.goals.service.GoalDTO;
+import nu.yona.server.goals.service.GoalServiceException;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
@@ -104,17 +106,6 @@ public class BuddyController
 						HttpStatus.CREATED));
 	}
 
-	private BuddyDTO convertToBuddy(PostPutBuddyDTO postPutBuddy)
-	{
-		String userRelName = curieProvider.getNamespacedRelFor(BuddyDTO.USER_REL_NAME);
-		UserDTO user = postPutBuddy.userInMap.get(userRelName);
-		if (user == null)
-		{
-			throw BuddyServiceException.missingUser(userRelName);
-		}
-		return new BuddyDTO(user, postPutBuddy.message, postPutBuddy.sendingStatus, postPutBuddy.receivingStatus);
-	}
-
 	@RequestMapping(value = "/{buddyID}", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
@@ -126,6 +117,49 @@ public class BuddyController
 			buddyService.removeBuddy(requestingUserID, buddyID, Optional.ofNullable(messageStr));
 			return null;
 		});
+	}
+
+	@RequestMapping(value = "/{buddyID}/goals/{goalID}", method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<GoalDTO> getGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID requestingUserID, @PathVariable UUID buddyID, @PathVariable UUID goalID)
+	{
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
+				() -> createResponse(requestingUserID, getGoal(requestingUserID, buddyID, goalID), HttpStatus.OK));
+	}
+
+	@RequestMapping(value = "/{buddyID}/goals/", method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<Resources<GoalDTO>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID requestingUserID, @PathVariable UUID buddyID)
+	{
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(requestingUserID),
+				() -> new ResponseEntity<Resources<GoalDTO>>(
+						createAllGoalsCollectionResource(requestingUserID, buddyID, getGoals(requestingUserID, buddyID)),
+						HttpStatus.OK));
+	}
+
+	private GoalDTO getGoal(UUID requestingUserID, UUID buddyID, UUID goalID)
+	{
+		BuddyDTO buddy = buddyService.getBuddy(buddyID);
+		Optional<GoalDTO> goal = buddy.getGoals().stream().filter(g -> g.getID().equals(goalID)).findAny();
+		return goal.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForBuddy(requestingUserID, buddyID, goalID));
+	}
+
+	private Set<GoalDTO> getGoals(UUID requestingUserID, UUID buddyID)
+	{
+		return buddyService.getBuddy(buddyID).getGoals();
+	}
+
+	private BuddyDTO convertToBuddy(PostPutBuddyDTO postPutBuddy)
+	{
+		String userRelName = curieProvider.getNamespacedRelFor(BuddyDTO.USER_REL_NAME);
+		UserDTO user = postPutBuddy.userInMap.get(userRelName);
+		if (user == null)
+		{
+			throw BuddyServiceException.missingUser(userRelName);
+		}
+		return new BuddyDTO(user, postPutBuddy.message, postPutBuddy.sendingStatus, postPutBuddy.receivingStatus);
 	}
 
 	public static Resources<BuddyResource> createAllBuddiesCollectionResource(CurieProvider curieProvider, UUID userID,
@@ -157,10 +191,33 @@ public class BuddyController
 				status);
 	}
 
+	private HttpEntity<GoalDTO> createResponse(UUID userID, GoalDTO goal, HttpStatus status)
+	{
+		return new ResponseEntity<GoalDTO>(new GoalResourceAssembler(userID).toResource(goal), status);
+	}
+
+	public static Resources<GoalDTO> createAllGoalsCollectionResource(UUID userID, UUID buddyID, Set<GoalDTO> allGoalsOfUser)
+	{
+		return new Resources<>(new GoalResourceAssembler(true, (goalID) -> getGoalLinkBuilder(userID, buddyID, goalID))
+				.toResources(allGoalsOfUser), getAllGoalsLinkBuilder(userID, buddyID).withSelfRel());
+	}
+
 	static ControllerLinkBuilder getBuddyLinkBuilder(UUID userID, UUID buddyID)
 	{
 		BuddyController methodOn = methodOn(BuddyController.class);
 		return linkTo(methodOn.getBuddy(Optional.empty(), userID, buddyID));
+	}
+
+	public static ControllerLinkBuilder getGoalLinkBuilder(UUID userID, UUID buddyID, UUID goalID)
+	{
+		BuddyController methodOn = methodOn(BuddyController.class);
+		return linkTo(methodOn.getGoal(Optional.empty(), userID, buddyID, goalID));
+	}
+
+	public static ControllerLinkBuilder getAllGoalsLinkBuilder(UUID userID, UUID buddyID)
+	{
+		BuddyController methodOn = methodOn(BuddyController.class);
+		return linkTo(methodOn.getAllGoals(Optional.empty(), userID, buddyID));
 	}
 
 	static class PostPutBuddyDTO
@@ -185,12 +242,14 @@ public class BuddyController
 
 	static class BuddyResource extends Resource<BuddyDTO>
 	{
-		private CurieProvider curieProvider;
+		private final CurieProvider curieProvider;
+		private final UUID requestingUserID;
 
-		public BuddyResource(CurieProvider curieProvider, BuddyDTO buddy)
+		public BuddyResource(CurieProvider curieProvider, UUID requestingUserID, BuddyDTO buddy)
 		{
 			super(buddy);
 			this.curieProvider = curieProvider;
+			this.requestingUserID = requestingUserID;
 		}
 
 		@JsonProperty("_embedded")
@@ -206,8 +265,8 @@ public class BuddyController
 					new UserController.UserResourceAssembler(curieProvider, false).toResource(getContent().getUser()));
 			if (getContent().getUser() != null && getContent().getGoals() != null)
 			{
-				result.put(curieProvider.getNamespacedRelFor(BuddyDTO.GOALS_REL_NAME),
-						GoalController.createAllGoalsCollectionResource(getContent().getUser().getID(), getContent().getGoals()));
+				result.put(curieProvider.getNamespacedRelFor(BuddyDTO.GOALS_REL_NAME), BuddyController
+						.createAllGoalsCollectionResource(requestingUserID, getContent().getID(), getContent().getGoals()));
 			}
 			return result;
 		}
@@ -215,8 +274,8 @@ public class BuddyController
 
 	static class BuddyResourceAssembler extends ResourceAssemblerSupport<BuddyDTO, BuddyResource>
 	{
-		private UUID requestingUserID;
-		private CurieProvider curieProvider;
+		private final UUID requestingUserID;
+		private final CurieProvider curieProvider;
 
 		public BuddyResourceAssembler(CurieProvider curieProvider, UUID requestingUserID)
 		{
@@ -240,7 +299,7 @@ public class BuddyController
 		@Override
 		protected BuddyResource instantiateResource(BuddyDTO buddy)
 		{
-			return new BuddyResource(curieProvider, buddy);
+			return new BuddyResource(curieProvider, requestingUserID, buddy);
 		}
 
 		private ControllerLinkBuilder getSelfLinkBuilder(UUID buddyID)

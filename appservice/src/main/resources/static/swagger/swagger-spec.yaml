@@ -688,6 +688,75 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  '/users/{userID}/buddies/{buddyID}/goals/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get all goals
+      description: Fetches all goals of the buddy with the given ID
+      tags:
+        - Buddy
+      responses:
+        '200':
+          description: All goals of this user.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Goal'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/buddies/{buddyID}/goals/{goalID}':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string
+      - name: goalID
+        in: path
+        description: The ID of the goal
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get a goal
+      description: Fetches the goal identified by the given ID
+      tags:
+        - Buddy
+      responses:
+        '200':
+          description: The requested goal.
+          schema:
+            $ref: '#/definitions/Goal'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   '/users/{userID}/buddies/{buddyID}/activity/days/{date}/details/{goalID}':
     parameters:
       - name: userID

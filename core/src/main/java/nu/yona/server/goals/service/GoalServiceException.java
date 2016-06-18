@@ -17,9 +17,19 @@ public class GoalServiceException extends YonaException
 		super(messageId, parameters);
 	}
 
-	public static GoalServiceException goalNotFoundById(UUID userID, UUID goalID)
+	public static GoalServiceException goalNotFoundByIdForUserAnonymized(UUID userAnonymizedID, UUID goalID)
 	{
-		return new GoalServiceException("error.goal.not.found.id", userID, goalID);
+		return new GoalServiceException("error.goal.not.found.id.for.user.anonymized", userAnonymizedID, goalID);
+	}
+
+	public static GoalServiceException goalNotFoundByIdForUser(UUID userID, UUID goalID)
+	{
+		return new GoalServiceException("error.goal.not.found.id.for.user", userID, goalID);
+	}
+
+	public static GoalServiceException goalNotFoundByIdForBuddy(UUID userID, UUID buddyID, UUID goalID)
+	{
+		return new GoalServiceException("error.goal.not.found.id.for.buddy", userID, buddyID, goalID);
 	}
 
 	public static GoalServiceException cannotAddSecondGoalOnActivityCategory(String activityCategoryName)
