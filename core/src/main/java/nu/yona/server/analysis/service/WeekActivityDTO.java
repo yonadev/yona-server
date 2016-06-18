@@ -24,7 +24,7 @@ public class WeekActivityDTO extends IntervalActivityDTO
 	static final DateTimeFormatter ISO8601_WEEK_FORMATTER = new DateTimeFormatterBuilder().appendPattern("YYYY-'W'w")
 			.parseDefaulting(WeekFields.ISO.dayOfWeek(), DayOfWeek.SUNDAY.getValue()).toFormatter();
 
-	private Map<DayOfWeek, DayActivityDTO> dayActivities;
+	private final Map<DayOfWeek, DayActivityDTO> dayActivities;
 
 	private WeekActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
 			Optional<Integer> totalActivityDurationMinutes, Map<DayOfWeek, DayActivityDTO> dayActivities)

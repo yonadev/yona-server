@@ -342,8 +342,8 @@ public class UserController
 	public static class UserResourceAssembler extends ResourceAssemblerSupport<UserDTO, UserResource>
 	{
 		private final boolean includePrivateData;
-		private CurieProvider curieProvider;
-		private PinResetRequestController pinResetRequestController;
+		private final CurieProvider curieProvider;
+		private final PinResetRequestController pinResetRequestController;
 
 		public UserResourceAssembler(CurieProvider curieProvider, boolean includePrivateData)
 		{
@@ -378,6 +378,7 @@ public class UserController
 					addMessagesLink(userResource);
 					addDayActivityOverviewsLink(userResource);
 					addWeekActivityOverviewsLink(userResource);
+					addDayActivityOverviewsWithBuddiesLink(userResource);
 					addNewDeviceRequestLink(userResource);
 					addAppActivityLink(userResource);
 					pinResetRequestController.addLinks(userResource);
@@ -430,6 +431,13 @@ public class UserController
 		{
 			userResource.add(UserActivityController.getUserDayActivityOverviewsLinkBuilder(userResource.getContent().getID())
 					.withRel("dailyActivityReports"));
+		}
+
+		private void addDayActivityOverviewsWithBuddiesLink(UserResource userResource)
+		{
+			userResource
+					.add(UserActivityController.getDayActivityOverviewsWithBuddiesLinkBuilder(userResource.getContent().getID())
+							.withRel("dailyActivityReportsWithBuddies"));
 		}
 
 		private void addMessagesLink(UserResource userResource)

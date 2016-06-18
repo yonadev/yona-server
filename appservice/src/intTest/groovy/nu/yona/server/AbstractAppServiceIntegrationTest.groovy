@@ -207,9 +207,9 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		}
 	}
 
-	void assertNumberOfReportedDaysForGoalInWeekOverview(weekActivityOverview, goalUrl, numberOfReportedDays)
+	void assertNumberOfReportedDaysForGoalInWeekOverview(weekActivityOverview, Goal goal, numberOfReportedDays)
 	{
-		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goalUrl}
+		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goal.url}
 		assert weekActivityForGoal.spread == null // Only in detail
 		assert weekActivityForGoal.totalActivityDurationMinutes == null // Only in detail
 		assert weekActivityForGoal.totalMinutesBeyondGoal == null // Only for day
@@ -221,10 +221,10 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert weekActivityForGoal?.dayActivities.size() == numberOfReportedDays
 	}
 
-	void assertDayInWeekOverviewForGoal(weekActivityOverview, goalUrl, expectedValues, shortDay)
+	void assertDayInWeekOverviewForGoal(weekActivityOverview, Goal goal, expectedValues, shortDay)
 	{
-		def expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, goalUrl)
-		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goalUrl}
+		def expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, goal)
+		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goal.url}
 		assert weekActivityForGoal.dayActivities[fullDay[shortDay]]
 		def dayActivityForGoal = weekActivityForGoal.dayActivities[fullDay[shortDay]]
 		assert dayActivityForGoal.spread == null // Only in detail
@@ -238,16 +238,16 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert dayActivityForGoal._links.self == null  // This is not a top level or embedded resource
 	}
 
-	private def assertDayOverviewForGoal(response, goalUrl, expectedValues, weeksBack, shortDay)
+	private def assertDayOverviewForGoal(response, Goal goal, expectedValues, weeksBack, shortDay)
 	{
 		def dayOffset = YonaServer.relativeDateStringToDaysOffset(weeksBack, shortDay)
-		def expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, goalUrl)
+		def expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, goal)
 		def dayActivityOverview = response.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
 		assert dayActivityOverview?.date =~ /\d{4}\-\d{2}\-\d{2}/
 		assert dayActivityOverview.timeZoneId == "Europe/Amsterdam"
 		assert dayActivityOverview.dayActivities?.size() == expectedValues[shortDay].size()
 		// YD-203 assert dayActivityOverview._links?.self?.href
-		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goalUrl}
+		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
 		assert dayActivityForGoal.totalActivityDurationMinutes == calculateExpectedDurationFromSpread(calculateExpectedDurationFromSpread(expectedDataForDayAndGoal.spread))
 		assert dayActivityForGoal.goalAccomplished == expectedDataForDayAndGoal.goalAccomplished
 		assert dayActivityForGoal.totalMinutesBeyondGoal == expectedDataForDayAndGoal.minutesBeyondGoal
@@ -258,16 +258,16 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		return dayActivityForGoal
 	}
 
-	void assertDayOverviewForTimeZoneGoal(response, goalUrl, expectedValues, weeksBack, shortDay)
+	void assertDayOverviewForTimeZoneGoal(response, Goal goal, expectedValues, weeksBack, shortDay)
 	{
-		def expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, goalUrl)
-		def dayActivityForTimeZoneGoal = assertDayOverviewForGoal(response, goalUrl, expectedValues, weeksBack, shortDay)
+		def expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, goal)
+		def dayActivityForTimeZoneGoal = assertDayOverviewForGoal(response, goal, expectedValues, weeksBack, shortDay)
 		assert dayActivityForTimeZoneGoal?.spread.size() == 96
 	}
 
-	void assertDayOverviewForBudgetGoal(response, goalUrl, expectedValues, weeksBack, shortDay)
+	void assertDayOverviewForBudgetGoal(response, Goal goal, expectedValues, weeksBack, shortDay)
 	{
-		def dayActivityForBudgetGoal = assertDayOverviewForGoal(response, goalUrl, expectedValues, weeksBack, shortDay)
+		def dayActivityForBudgetGoal = assertDayOverviewForGoal(response, goal, expectedValues, weeksBack, shortDay)
 		assert dayActivityForBudgetGoal?.spread == null
 	}
 
@@ -281,30 +281,30 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert response.responseData._links?.self?.href
 	}
 
-	void assertWeekDetailForGoal(User user, weekActivityOverview, String goalUrl, expectedValues)
+	void assertWeekDetailForGoal(User user, weekActivityOverview, Goal goal, expectedValues)
 	{
 		def totalDurationMinutes = 0
-		expectedValues.each { it.value.findAll{it.goalUrl == goalUrl}.each {it.data.spread.each { totalDurationMinutes += it.value }}}
+		expectedValues.each { it.value.findAll{it.goal.url == goal.url}.each {it.data.spread.each { totalDurationMinutes += it.value }}}
 		assert weekActivityOverview.weekActivities
-		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goalUrl}
+		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goal.url}
 		assert weekActivityForGoal?._links?."yona:weekDetails"?.href
 		def weekActivityDetailUrl = weekActivityForGoal?._links?."yona:weekDetails"?.href
 		def response = appService.getResourceWithPassword(weekActivityDetailUrl, user.password)
 		assert response.status == 200
 		assert response.responseData.spread?.size() == 96
 		def expectedSpread = (0..95).collect { 0 }
-		expectedValues.each { it.value.findAll{it.goalUrl == goalUrl}.each {it.data.spread.each { expectedSpread[it.key] += it.value }}}
+		expectedValues.each { it.value.findAll{it.goal.url == goal.url}.each {it.data.spread.each { expectedSpread[it.key] += it.value }}}
 		assert response.responseData.spread == expectedSpread
 		assert response.responseData.totalActivityDurationMinutes == totalDurationMinutes
 		assert response.responseData.date =~ /\d{4}\-W\d{2}/
 		assert response.responseData.timeZoneId == "Europe/Amsterdam"
 		assert response.responseData._links?."yona:goal"
 		def activeDays = 0
-		expectedValues.each { activeDays += it.value.findAll{it.goalUrl == goalUrl}.size()}
+		expectedValues.each { activeDays += it.value.findAll{it.goal.url == goal.url}.size()}
 		assert response.responseData.dayActivities?.size() == activeDays
 		expectedValues.each {
 			def day = it.key
-			it.value.findAll{it.goalUrl == goalUrl}.each
+			it.value.findAll{it.goal.url == goal.url}.each
 			{
 				def expectedDataForGoalOnDay = it.data
 				assert response.responseData.dayActivities[fullDay[day]]
@@ -320,12 +320,12 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 			}}
 	}
 
-	void assertDayDetail(User user, dayActivityOverviewResponse, goalUrl, expectedValues, weeksBack, shortDay)
+	void assertDayDetail(User user, dayActivityOverviewResponse, Goal goal, expectedValues, weeksBack, shortDay)
 	{
 		def dayOffset = YonaServer.relativeDateStringToDaysOffset(weeksBack, shortDay)
-		def expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, goalUrl)
+		def expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, goal)
 		def dayActivityOverview = dayActivityOverviewResponse.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
-		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goalUrl}
+		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
 		assert dayActivityForGoal?._links?."yona:dayDetails"?.href
 		def dayActivityDetailUrl =  dayActivityForGoal?._links?."yona:dayDetails"?.href
 		def response = appService.getResourceWithPassword(dayActivityDetailUrl, user.password)
@@ -339,6 +339,58 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert response.responseData._links."yona:goal"
 	}
 
+	void assertDayOverviewWithBuddiesBasics(response, expectedSize, expectedTotalElements, expectedPageSize = 3)
+	{
+		assert response.status == 200
+		assert response.responseData._embedded?."yona:dayActivityOverviews"?.size() == expectedSize
+		assert response.responseData.page
+		assert response.responseData.page.size == expectedPageSize
+		assert response.responseData.page.totalElements == expectedTotalElements
+		assert response.responseData._links?.self?.href
+	}
+
+	void assertDayOverviewWithBuddies(response, User user, activityCategoryUrl, expectedValues, weeksBack, shortDay)
+	{
+		def dayOffset = YonaServer.relativeDateStringToDaysOffset(weeksBack, shortDay)
+		def dayActivityOverview = response.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
+		assert dayActivityOverview.dayActivities.find{ it._links?."yona:activityCategory"?.href == activityCategoryUrl}
+		def dayActivitiesForCategory = dayActivityOverview.dayActivities.find{ it._links."yona:activityCategory".href == activityCategoryUrl}
+		assert dayActivitiesForCategory._links.size() == 1
+	}
+
+	private def assertDayOverviewWithBuddiesForGoal(response, User user, Goal goal, expectedValues, weeksBack, shortDay)
+	{
+		def dayOffset = YonaServer.relativeDateStringToDaysOffset(weeksBack, shortDay)
+		def expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, goal)
+		def dayActivityOverview = response.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
+		assert dayActivityOverview?.date =~ /\d{4}\-\d{2}\-\d{2}/
+		assert dayActivityOverview.timeZoneId == "Europe/Amsterdam"
+		assert dayActivityOverview.dayActivities?.size() == expectedValues[shortDay].size()
+		// YD-203 assert dayActivityOverview._links?.self?.href
+		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
+		assert dayActivityForGoal.totalActivityDurationMinutes == calculateExpectedDurationFromSpread(calculateExpectedDurationFromSpread(expectedDataForDayAndGoal.spread))
+		assert dayActivityForGoal.goalAccomplished == expectedDataForDayAndGoal.goalAccomplished
+		assert dayActivityForGoal.totalMinutesBeyondGoal == expectedDataForDayAndGoal.minutesBeyondGoal
+		assert dayActivityForGoal.date == null // Only on day overview level
+		assert dayActivityForGoal.timeZoneId == null // Only on day overview level
+		assert dayActivityForGoal._links."yona:dayDetails"
+		assert dayActivityForGoal._links.self == null  // This is not a top level or embedded resource
+		return dayActivityForGoal
+	}
+
+	void assertDayOverviewWithBuddiesForTimeZoneGoal(response, User user, Goal goal, expectedValues, weeksBack, shortDay)
+	{
+		def expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, goal)
+		def dayActivityForTimeZoneGoal = assertDayOverviewWithBuddiesForGoal(response, user, goal, expectedValues, weeksBack, shortDay)
+		assert dayActivityForTimeZoneGoal?.spread.size() == 96
+	}
+
+	void assertDayOverviewWithBuddiesForBudgetGoal(response, User user, Goal goal, expectedValues, weeksBack, shortDay)
+	{
+		def dayActivityForBudgetGoal = assertDayOverviewWithBuddiesForGoal(response, user, goal, expectedValues, weeksBack, shortDay)
+		assert dayActivityForBudgetGoal?.spread == null
+	}
+
 	int calculateExpectedDurationFromSpread(spread)
 	{
 		def dayDurationMinutes = 0
@@ -346,8 +398,8 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		return dayDurationMinutes
 	}
 
-	def getExpectedDataForDayAndGoal(expectedValues, shortDay, goalUrl)
+	def getExpectedDataForDayAndGoal(expectedValues, shortDay, Goal goal)
 	{
-		expectedValues[shortDay].find{it.goalUrl == goalUrl}.data
+		expectedValues[shortDay].find{it.goal.url == goal.url}.data
 	}
 }

@@ -22,12 +22,12 @@ public abstract class IntervalActivityDTO
 		WeekOverview, WeekDetail, DayOverview, DayDetail
 	}
 
-	private UUID goalID;
-	private ZonedDateTime startTime;
-	private boolean shouldSerializeDate;
+	private final UUID goalID;
+	private final ZonedDateTime startTime;
+	private final boolean shouldSerializeDate;
 
-	private List<Integer> spread;
-	private Optional<Integer> totalActivityDurationMinutes;
+	private final List<Integer> spread;
+	private final Optional<Integer> totalActivityDurationMinutes;
 
 	protected IntervalActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
 			Optional<Integer> totalActivityDurationMinutes)
