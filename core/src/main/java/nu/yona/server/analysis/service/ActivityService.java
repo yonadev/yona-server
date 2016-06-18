@@ -134,7 +134,7 @@ public class ActivityService
 	}
 
 	@Transactional
-	public Page<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> getUserAndBuddiesDayActivityOverviews(UUID userID,
+	public Page<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> getUserDayActivityOverviewsWithBuddies(UUID userID,
 			Pageable pageable)
 	{
 		UUID userAnonymizedID = userService.getUserAnonymizedID(userID);

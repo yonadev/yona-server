@@ -42,10 +42,6 @@ class Buddy
 	Goal findGoal(Goal goal)
 	{
 		def goalID = goal.url.substring(goal.url.lastIndexOf('/') + 1)
-		println "*** Debug log"
-		println "Goal ID: $goalID"
-		println "Goal URLs:"
-		goals.each{println it.url}
 		Goal matchingGoal = goals.find{it.url.endsWith(goalID)}
 		assert matchingGoal
 		return matchingGoal

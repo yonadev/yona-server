@@ -104,7 +104,7 @@ public class UserActivityController extends ActivityControllerBase
 			PagedResourcesAssembler<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> pagedResourcesAssembler)
 	{
 		return getDayActivityOverviewsWithBuddies(password, userID, pageable, pagedResourcesAssembler,
-				() -> activityService.getUserAndBuddiesDayActivityOverviews(userID, pageable),
+				() -> activityService.getUserDayActivityOverviewsWithBuddies(userID, pageable),
 				new UserActivityLinkProvider(userID));
 	}
 
@@ -124,6 +124,59 @@ public class UserActivityController extends ActivityControllerBase
 		GoalIDMapping goalIDMapping = GoalIDMapping.createInstance(userService.getPrivateUser(userID));
 		return new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
 				new DayActivityOverviewWithBuddiesResourceAssembler(goalIDMapping)), HttpStatus.OK);
+	}
+
+	public static ControllerLinkBuilder getUserDayActivityOverviewsLinkBuilder(UUID userID)
+	{
+		UserActivityController methodOn = methodOn(UserActivityController.class);
+		return linkTo(methodOn.getUserDayActivityOverviews(null, userID, null, null));
+	}
+
+	public static ControllerLinkBuilder getDayActivityOverviewsWithBuddiesLinkBuilder(UUID userID)
+	{
+		UserActivityController methodOn = methodOn(UserActivityController.class);
+		return linkTo(methodOn.getDayActivityOverviewsWithBuddies(null, userID, null, null));
+	}
+
+	public static ControllerLinkBuilder getUserWeekActivityOverviewsLinkBuilder(UUID userID)
+	{
+		UserActivityController methodOn = methodOn(UserActivityController.class);
+		return linkTo(methodOn.getUserWeekActivityOverviews(null, userID, null, null));
+	}
+
+	public static ControllerLinkBuilder getUserDayActivityDetailLinkBuilder(UUID userID, String dateStr, UUID goalID)
+	{
+		UserActivityController methodOn = methodOn(UserActivityController.class);
+		return linkTo(methodOn.getUserDayActivityDetail(null, userID, dateStr, goalID));
+	}
+
+	static final class UserActivityLinkProvider implements LinkProvider
+	{
+		private final UUID userID;
+
+		public UserActivityLinkProvider(UUID userID)
+		{
+			this.userID = userID;
+		}
+
+		@Override
+		public ControllerLinkBuilder getDayActivityDetailLinkBuilder(String dateStr, UUID goalID)
+		{
+			return UserActivityController.getUserDayActivityDetailLinkBuilder(userID, dateStr, goalID);
+		}
+
+		@Override
+		public ControllerLinkBuilder getWeekActivityDetailLinkBuilder(String dateStr, UUID goalID)
+		{
+			UserActivityController methodOn = methodOn(UserActivityController.class);
+			return linkTo(methodOn.getUserWeekActivityDetail(null, userID, dateStr, goalID));
+		}
+
+		@Override
+		public ControllerLinkBuilder getGoalLinkBuilder(UUID goalID)
+		{
+			return GoalController.getGoalLinkBuilder(userID, goalID);
+		}
 	}
 
 	private static class GoalIDMapping
@@ -170,30 +223,6 @@ public class UserActivityController extends ActivityControllerBase
 		}
 	}
 
-	public static ControllerLinkBuilder getUserDayActivityOverviewsLinkBuilder(UUID userID)
-	{
-		UserActivityController methodOn = methodOn(UserActivityController.class);
-		return linkTo(methodOn.getUserDayActivityOverviews(null, userID, null, null));
-	}
-
-	public static ControllerLinkBuilder getDayActivityOverviewsWithBuddiesLinkBuilder(UUID userID)
-	{
-		UserActivityController methodOn = methodOn(UserActivityController.class);
-		return linkTo(methodOn.getDayActivityOverviewsWithBuddies(null, userID, null, null));
-	}
-
-	public static ControllerLinkBuilder getUserWeekActivityOverviewsLinkBuilder(UUID userID)
-	{
-		UserActivityController methodOn = methodOn(UserActivityController.class);
-		return linkTo(methodOn.getUserWeekActivityOverviews(null, userID, null, null));
-	}
-
-	public static ControllerLinkBuilder getUserDayActivityDetailLinkBuilder(UUID userID, String dateStr, UUID goalID)
-	{
-		UserActivityController methodOn = methodOn(UserActivityController.class);
-		return linkTo(methodOn.getUserDayActivityDetail(null, userID, dateStr, goalID));
-	}
-
 	static class DayActivityOverviewWithBuddiesResource extends Resource<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>>
 	{
 		private final GoalIDMapping goalIDMapping;
@@ -209,35 +238,6 @@ public class UserActivityController extends ActivityControllerBase
 		{
 			return new DayActivityWithBuddiesResourceAssembler(goalIDMapping, getContent().getDate())
 					.toResources(getContent().getDayActivities());
-		}
-	}
-
-	static final class UserActivityLinkProvider implements LinkProvider
-	{
-		private final UUID userID;
-
-		public UserActivityLinkProvider(UUID userID)
-		{
-			this.userID = userID;
-		}
-
-		@Override
-		public ControllerLinkBuilder getDayActivityDetailLinkBuilder(String dateStr, UUID goalID)
-		{
-			return UserActivityController.getUserDayActivityDetailLinkBuilder(userID, dateStr, goalID);
-		}
-
-		@Override
-		public ControllerLinkBuilder getWeekActivityDetailLinkBuilder(String dateStr, UUID goalID)
-		{
-			UserActivityController methodOn = methodOn(UserActivityController.class);
-			return linkTo(methodOn.getUserWeekActivityDetail(null, userID, dateStr, goalID));
-		}
-
-		@Override
-		public ControllerLinkBuilder getGoalLinkBuilder(UUID goalID)
-		{
-			return GoalController.getGoalLinkBuilder(userID, goalID);
 		}
 	}
 
