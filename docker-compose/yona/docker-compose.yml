@@ -11,7 +11,7 @@ configuration:
 ###########################################
 
 hsqldb:
-  image: yonadev/yonahsqldb:0.0.8-SNAPSHOT
+  image: yonadev/yonahsqldb:{$yonatag}
   restart: unless-stopped
   expose:
     - "9001"
@@ -21,7 +21,7 @@ hsqldb:
 ###########################################
 
 adminservice:
-  image: yonadev/adminservice:0.0.8-SNAPSHOT
+  image: yonadev/adminservice:{$yonatag}
   restart: unless-stopped
   links:
     - hsqldb:yonadbserver
@@ -34,7 +34,7 @@ adminservice:
         - configuration:ro
 
 analysisservice:
-  image: yonadev/analysisservice:0.0.8-SNAPSHOT
+  image: yonadev/analysisservice:{$yonatag}
   restart: unless-stopped
   links:
     - hsqldb:yonadbserver
@@ -47,7 +47,7 @@ analysisservice:
         - configuration:ro
 
 appservice:
-  image: yonadev/appservice:0.0.8-SNAPSHOT
+  image: yonadev/appservice:{$yonatag}
   restart: unless-stopped
   links:
     - hsqldb:yonadbserver
@@ -60,7 +60,7 @@ appservice:
         - configuration:ro
 
 batchservice:
-  image: yonadev/batchservice:0.0.8-SNAPSHOT
+  image: yonadev/batchservice:{$yonatag}
   restart: unless-stopped
   links:
     - hsqldb:yonadbserver
