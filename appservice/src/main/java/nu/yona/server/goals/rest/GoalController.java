@@ -11,6 +11,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
@@ -150,21 +151,28 @@ public class GoalController
 
 	public static class GoalResourceAssembler extends ResourceAssemblerSupport<GoalDTO, GoalDTO>
 	{
-		private UUID userID;
+		private final boolean canBeEditable;
+		private final Function<UUID, ControllerLinkBuilder> selfLinkBuilderSupplier;
 
 		public GoalResourceAssembler(UUID userID)
 		{
+			this(true, (goalID) -> getGoalLinkBuilder(userID, goalID));
+		}
+
+		public GoalResourceAssembler(boolean canBeEditable, Function<UUID, ControllerLinkBuilder> selfLinkBuilderSupplier)
+		{
 			super(GoalController.class, GoalDTO.class);
-			this.userID = userID;
+			this.canBeEditable = canBeEditable;
+			this.selfLinkBuilderSupplier = selfLinkBuilderSupplier;
 		}
 
 		@Override
 		public GoalDTO toResource(GoalDTO goal)
 		{
 			goal.removeLinks();
-			ControllerLinkBuilder selfLinkBuilder = getGoalLinkBuilder(userID, goal.getID());
+			ControllerLinkBuilder selfLinkBuilder = selfLinkBuilderSupplier.apply(goal.getID());
 			addSelfLink(selfLinkBuilder, goal);
-			if (!goal.isMandatory())
+			if (canBeEditable && !goal.isMandatory())
 			{
 				addEditLink(selfLinkBuilder, goal);
 			}

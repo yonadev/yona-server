@@ -5,7 +5,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -126,32 +128,82 @@ public class ActivityService
 	}
 
 	@Transactional
-	public Page<DayActivityOverviewDTO> getUserDayActivityOverviews(UUID userID, Pageable pageable)
+	public Page<DayActivityOverviewDTO<DayActivityDTO>> getUserDayActivityOverviews(UUID userID, Pageable pageable)
 	{
 		return getDayActivityOverviews(userService.getUserAnonymizedID(userID), pageable);
 	}
 
 	@Transactional
-	public Page<DayActivityOverviewDTO> getBuddyDayActivityOverviews(UUID buddyID, Pageable pageable)
+	public Page<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> getUserDayActivityOverviewsWithBuddies(UUID userID,
+			Pageable pageable)
+	{
+		UUID userAnonymizedID = userService.getUserAnonymizedID(userID);
+		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
+		Interval interval = getInterval(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
+
+		Set<BuddyDTO> buddies = buddyService.getBuddiesOfUser(userID);
+		Set<UUID> userAnonymizedIDs = buddies.stream().map(b -> b.getUserAnonymizedID()).collect(Collectors.toSet());
+		userAnonymizedIDs.add(userAnonymizedID);
+		Map<ZonedDateTime, Set<DayActivity>> dayActivityEntitiesByZonedDate = userAnonymizedIDs.stream()
+				.map(id -> getDayActivities(userAnonymizedService.getUserAnonymized(id), interval)).map(Map::entrySet)
+				.flatMap(Collection::stream).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
+					Set<DayActivity> allActivities = new HashSet<>(a);
+					allActivities.addAll(b);
+					return allActivities;
+				}));
+		List<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> dayActivityOverviews = dayActivityEntitiesToOverviewsUserWithBuddies(
+				dayActivityEntitiesByZonedDate);
+		return new PageImpl<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>>(dayActivityOverviews, pageable,
+				getTotalPageableItems(userAnonymized, ChronoUnit.DAYS));
+	}
+
+	@Transactional
+	public Page<DayActivityOverviewDTO<DayActivityDTO>> getBuddyDayActivityOverviews(UUID buddyID, Pageable pageable)
 	{
 		return getDayActivityOverviews(buddyService.getBuddy(buddyID).getUserAnonymizedID(), pageable);
 	}
 
-	private Page<DayActivityOverviewDTO> getDayActivityOverviews(UUID userAnonymizedID, Pageable pageable)
+	private Page<DayActivityOverviewDTO<DayActivityDTO>> getDayActivityOverviews(UUID userAnonymizedID, Pageable pageable)
 	{
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
 		Interval interval = getInterval(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
 
-		Map<LocalDate, Set<DayActivity>> dayActivityEntitiesByLocalDate = getDayActivitiesGroupedByDate(userAnonymizedID,
+		Map<ZonedDateTime, Set<DayActivity>> dayActivityEntitiesByZonedDate = getDayActivities(userAnonymized, interval);
+		List<DayActivityOverviewDTO<DayActivityDTO>> dayActivityOverviews = dayActivityEntitiesToOverviews(
+				dayActivityEntitiesByZonedDate);
+
+		return new PageImpl<DayActivityOverviewDTO<DayActivityDTO>>(dayActivityOverviews, pageable,
+				getTotalPageableItems(userAnonymized, ChronoUnit.DAYS));
+	}
+
+	private Map<ZonedDateTime, Set<DayActivity>> getDayActivities(UserAnonymizedDTO userAnonymized, Interval interval)
+	{
+		Map<LocalDate, Set<DayActivity>> dayActivityEntitiesByLocalDate = getDayActivitiesGroupedByDate(userAnonymized.getID(),
 				interval);
 		addMissingInactivity(dayActivityEntitiesByLocalDate, interval, ChronoUnit.DAYS, userAnonymized,
 				(goal, startOfDay) -> DayActivity.createInstanceInactivity(null, goal, startOfDay), a -> {
 				});
 		Map<ZonedDateTime, Set<DayActivity>> dayActivityEntitiesByZonedDate = mapToZonedDateTime(dayActivityEntitiesByLocalDate);
-		return new PageImpl<DayActivityOverviewDTO>(
-				dayActivityEntitiesByZonedDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
-						.map(e -> DayActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
-				pageable, getTotalPageableItems(userAnonymized, ChronoUnit.DAYS));
+		return dayActivityEntitiesByZonedDate;
+	}
+
+	private List<DayActivityOverviewDTO<DayActivityDTO>> dayActivityEntitiesToOverviews(
+			Map<ZonedDateTime, Set<DayActivity>> dayActivityEntitiesByZonedDate)
+	{
+		List<DayActivityOverviewDTO<DayActivityDTO>> dayActivityOverviews = dayActivityEntitiesByZonedDate.entrySet().stream()
+				.sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
+				.map(e -> DayActivityOverviewDTO.createInstanceForUser(e.getKey(), e.getValue())).collect(Collectors.toList());
+		return dayActivityOverviews;
+	}
+
+	private List<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> dayActivityEntitiesToOverviewsUserWithBuddies(
+			Map<ZonedDateTime, Set<DayActivity>> dayActivityEntitiesByZonedDate)
+	{
+		List<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> dayActivityOverviews = dayActivityEntitiesByZonedDate
+				.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
+				.map(e -> DayActivityOverviewDTO.createInstanceForUserWithBuddies(e.getKey(), e.getValue()))
+				.collect(Collectors.toList());
+		return dayActivityOverviews;
 	}
 
 	private Map<LocalDate, Set<DayActivity>> getDayActivitiesGroupedByDate(UUID userAnonymizedID, Interval interval)

@@ -42,7 +42,7 @@ abstract class ActivityControllerBase
 	protected ActivityService activityService;
 
 	@Autowired
-	private UserService userService;
+	protected UserService userService;
 
 	protected static final String WEEK_ACTIVITY_OVERVIEWS_URI_FRAGMENT = "/weeks/";
 	protected static final String DAY_OVERVIEWS_URI_FRAGMENT = "/days/";
@@ -63,8 +63,9 @@ abstract class ActivityControllerBase
 	}
 
 	protected HttpEntity<PagedResources<DayActivityOverviewResource>> getDayActivityOverviews(Optional<String> password,
-			UUID userID, Pageable pageable, PagedResourcesAssembler<DayActivityOverviewDTO> pagedResourcesAssembler,
-			Supplier<Page<DayActivityOverviewDTO>> activitySupplier, LinkProvider linkProvider)
+			UUID userID, Pageable pageable,
+			PagedResourcesAssembler<DayActivityOverviewDTO<DayActivityDTO>> pagedResourcesAssembler,
+			Supplier<Page<DayActivityOverviewDTO<DayActivityDTO>>> activitySupplier, LinkProvider linkProvider)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
 				() -> new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
@@ -145,11 +146,11 @@ abstract class ActivityControllerBase
 		// TODO: embed messages if included on this detail level
 	}
 
-	static class DayActivityOverviewResource extends Resource<DayActivityOverviewDTO>
+	static class DayActivityOverviewResource extends Resource<DayActivityOverviewDTO<DayActivityDTO>>
 	{
 		private final LinkProvider linkProvider;
 
-		public DayActivityOverviewResource(LinkProvider linkProvider, DayActivityOverviewDTO dayActivityOverview)
+		public DayActivityOverviewResource(LinkProvider linkProvider, DayActivityOverviewDTO<DayActivityDTO> dayActivityOverview)
 		{
 			super(dayActivityOverview);
 			this.linkProvider = linkProvider;
@@ -189,7 +190,7 @@ abstract class ActivityControllerBase
 	static class WeekActivityResourceAssembler extends ResourceAssemblerSupport<WeekActivityDTO, WeekActivityResource>
 	{
 		private final LinkProvider linkProvider;
-		private boolean addSelfLink;
+		private final boolean addSelfLink;
 
 		public WeekActivityResourceAssembler(LinkProvider linkProvider, boolean addSelfLink)
 		{
@@ -230,7 +231,7 @@ abstract class ActivityControllerBase
 	{
 		private final LinkProvider linkProvider;
 		private final boolean addGoalLink;
-		private boolean addSelfLink;
+		private final boolean addSelfLink;
 
 		public DayActivityResourceAssembler(LinkProvider linkProvider, boolean addGoalLink, boolean addSelfLink)
 		{
@@ -272,7 +273,7 @@ abstract class ActivityControllerBase
 	}
 
 	static class DayActivityOverviewResourceAssembler
-			extends ResourceAssemblerSupport<DayActivityOverviewDTO, DayActivityOverviewResource>
+			extends ResourceAssemblerSupport<DayActivityOverviewDTO<DayActivityDTO>, DayActivityOverviewResource>
 	{
 		private final LinkProvider linkProvider;
 
@@ -283,14 +284,14 @@ abstract class ActivityControllerBase
 		}
 
 		@Override
-		public DayActivityOverviewResource toResource(DayActivityOverviewDTO dayActivityOverview)
+		public DayActivityOverviewResource toResource(DayActivityOverviewDTO<DayActivityDTO> dayActivityOverview)
 		{
 			DayActivityOverviewResource dayActivityOverviewResource = instantiateResource(dayActivityOverview);
 			return dayActivityOverviewResource;
 		}
 
 		@Override
-		protected DayActivityOverviewResource instantiateResource(DayActivityOverviewDTO dayActivityOverview)
+		protected DayActivityOverviewResource instantiateResource(DayActivityOverviewDTO<DayActivityDTO> dayActivityOverview)
 		{
 			return new DayActivityOverviewResource(linkProvider, dayActivityOverview);
 		}

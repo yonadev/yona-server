@@ -59,6 +59,9 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		john.newDeviceRequestUrl == appService.url + "/newDeviceRequests/" + john.mobileNumber
 		john.appActivityUrl == john.url + "/appActivity/"
 		john.pinResetRequestUrl == john.url + "/pinResetRequest/request"
+		john.dailyActivityReportsUrl == john.url + "/activity/days/"
+		john.dailyActivityReportsWithBuddiesUrl == john.url + "/activity/withBuddies/days/"
+		john.weeklyActivityReportsUrl == john.url + "/activity/weeks/"
 
 		cleanup:
 		appService.deleteUser(johnAfterNumberConfirmation)

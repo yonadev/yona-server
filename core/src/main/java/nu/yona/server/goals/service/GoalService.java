@@ -54,7 +54,7 @@ public class GoalService
 	public GoalDTO getGoalForUserAnonymizedID(UUID userAnonymizedID, UUID goalID)
 	{
 		return userAnonymizedService.getUserAnonymized(userAnonymizedID).getGoals().stream().filter(g -> g.getID().equals(goalID))
-				.findFirst().orElseThrow(() -> GoalServiceException.goalNotFoundById(userAnonymizedID, goalID));
+				.findFirst().orElseThrow(() -> GoalServiceException.goalNotFoundByIdForUserAnonymized(userAnonymizedID, goalID));
 	}
 
 	public Goal getGoalEntityForUserAnonymizedID(UUID userAnonymizedID, UUID goalID)
@@ -73,7 +73,7 @@ public class GoalService
 		Optional<Goal> foundGoal = userAnonymized.getGoals().stream().filter(goal -> goal.getID().equals(goalID)).findFirst();
 		if (!foundGoal.isPresent())
 		{
-			throw GoalServiceException.goalNotFoundById(userAnonymized.getID(), goalID);
+			throw GoalServiceException.goalNotFoundByIdForUserAnonymized(userAnonymized.getID(), goalID);
 		}
 		return foundGoal.get();
 	}
@@ -184,7 +184,7 @@ public class GoalService
 		User userEntity = userService.getUserEntityByID(userID);
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		Goal goalEntity = userAnonymizedEntity.getGoals().stream().filter(goal -> goal.getID().equals(goalID)).findFirst()
-				.orElseThrow(() -> GoalServiceException.goalNotFoundById(userID, goalID));
+				.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForUser(userID, goalID));
 		if (goalEntity.isMandatory())
 		{
 			throw GoalServiceException.cannotRemoveMandatoryGoal(userID, goalID);
