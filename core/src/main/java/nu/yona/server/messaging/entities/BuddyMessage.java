@@ -34,11 +34,11 @@ public abstract class BuddyMessage extends Message
 		super(null, null);
 	}
 
-	protected BuddyMessage(UUID id, UUID sendingUserID, UUID sendingUserAnonymizedID, String sendingUserNickname, String message)
+	protected BuddyMessage(UUID id, UUID senderUserID, UUID senderUserAnonymizedID, String senderUserNickname, String message)
 	{
-		super(id, sendingUserAnonymizedID);
-		this.senderUserID = sendingUserID;
-		this.senderNickname = sendingUserNickname;
+		super(id, senderUserAnonymizedID);
+		this.senderUserID = senderUserID;
+		this.senderNickname = senderUserNickname;
 		this.message = message;
 	}
 

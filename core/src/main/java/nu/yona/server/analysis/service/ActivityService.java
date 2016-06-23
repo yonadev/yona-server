@@ -42,6 +42,7 @@ import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.subscriptions.service.UserPrivateDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Service
@@ -392,7 +393,7 @@ public class ActivityService
 	public MessageDTO addMessageToDayActivity(UUID userID, UUID buddyID, LocalDate date, UUID goalID,
 			PostPutActivityCommentMessageDTO message)
 	{
-		UserDTO user = userService.getPrivateUser(userID);
+		UserDTO sendingUser = userService.getPrivateUser(userID);
 		BuddyDTO buddy = buddyService.getBuddy(buddyID);
 		DayActivity dayActivityEntity = dayActivityRepository.findOne(buddy.getUserAnonymizedID(), date, goalID);
 		if (dayActivityEntity == null)
@@ -400,11 +401,11 @@ public class ActivityService
 			throw ActivityServiceException.buddyDayActivityNotFound(userID, buddyID, date, goalID);
 		}
 
-		addMessage(user, buddy.getUserAnonymizedID(), dayActivityEntity, message);
-		ActivityCommentMessage messageToSelf = addMessage(user, user.getPrivateData().getUserAnonymizedID(), dayActivityEntity,
-				message);
+		addMessage(sendingUser, buddy.getUserAnonymizedID(), dayActivityEntity, message);
+		ActivityCommentMessage messageToSelf = addMessage(sendingUser, sendingUser.getPrivateData().getUserAnonymizedID(),
+				dayActivityEntity, message);
 
-		return messageService.messageToDTO(user, messageToSelf);
+		return messageService.messageToDTO(sendingUser, messageToSelf);
 	}
 
 	private ActivityCommentMessage addMessage(UserDTO sendingUser, UUID targetUserAnonymizedID, IntervalActivity activityEntity,
@@ -430,6 +431,27 @@ public class ActivityService
 			throw ActivityServiceException.activityDateGoalMismatch(userID, date, goalID);
 		}
 		return inactivityEntitySupplier.apply(goal, dateAtStartOfInterval);
+	}
+
+	@Transactional
+	public MessageDTO replyToMessage(UserDTO sendingUser, ActivityCommentMessage repliedMessage, String message)
+	{
+		UUID targetUserAnonymizedID = repliedMessage.getRelatedUserAnonymizedID();
+		sendReply(sendingUser, targetUserAnonymizedID, repliedMessage, message);
+		ActivityCommentMessage messageToSelf = sendReply(sendingUser, sendingUser.getPrivateData().getUserAnonymizedID(),
+				repliedMessage, message);
+		return messageService.messageToDTO(sendingUser, messageToSelf);
+	}
+
+	private ActivityCommentMessage sendReply(UserDTO sendingUser, UUID targetUserAnonymizedID,
+			ActivityCommentMessage repliedMessage, String message)
+	{
+		UserPrivateDTO actingUserPrivate = sendingUser.getPrivateData();
+		ActivityCommentMessage reply = ActivityCommentMessage.createInstance(sendingUser.getID(),
+				actingUserPrivate.getUserAnonymizedID(), actingUserPrivate.getNickname(), repliedMessage.getActivityID(), message,
+				repliedMessage);
+		messageService.sendMessageToUserAnonymized(userAnonymizedService.getUserAnonymized(targetUserAnonymizedID), reply);
+		return reply;
 	}
 
 	private class Interval

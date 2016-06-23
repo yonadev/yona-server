@@ -355,24 +355,76 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal budgetGoalNewsBob = bob.findActiveGoal(NEWS_ACT_CAT_URL)
 
 		//get all days at once (max 2 weeks) to make assertion easy
-		def responseDayOverviewsAll = appService.getDayActivityOverviews(richard, richard.buddies[0], ["size": 14])
-		assert responseDayOverviewsAll.status == 200
+		def responseDayOverviewsBobAsBuddyAll = appService.getDayActivityOverviews(richard, richard.buddies[0], ["size": 14])
+		assert responseDayOverviewsBobAsBuddyAll.status == 200
 
-		def responseDayDetailsTue = getDayDetails(responseDayOverviewsAll, richard, budgetGoalNewsBob, 1, "Tue")
-		assert responseDayDetailsTue.responseData._links."yona:addComment".href
-		assert responseDayDetailsTue.responseData._links."yona:messages".href
+		def responseDayDetailsBobAsBuddyTue = getDayDetails(responseDayOverviewsBobAsBuddyAll, richard, budgetGoalNewsBob, 1, "Tue")
+		assert responseDayDetailsBobAsBuddyTue.responseData._links."yona:addComment".href
+		assert responseDayDetailsBobAsBuddyTue.responseData._links."yona:messages".href
 
 		when:
 		def message = """{"message": "Quiet day?"}"""
-		def response = appService.yonaServer.createResourceWithPassword(responseDayDetailsTue.responseData._links."yona:addComment".href, message, richard.password)
+		def response = appService.yonaServer.createResourceWithPassword(responseDayDetailsBobAsBuddyTue.responseData._links."yona:addComment".href, message, richard.password)
 
 		then:
 		response.status == 200
 		// TODO: assert details of newly created message
 
-		def responseGetCommentMessagesRichard = appService.yonaServer.getResourceWithPassword(responseDayDetailsTue.responseData._links."yona:messages".href, richard.password)
-		responseGetCommentMessagesRichard.status == 200
-		responseGetCommentMessagesRichard.responseData?._embedded?."yona:messages"?.size() == 1
+		def responseInitialGetCommentMessagesSeenByRichard = appService.yonaServer.getResourceWithPassword(responseDayDetailsBobAsBuddyTue.responseData._links."yona:messages".href, richard.password)
+		responseInitialGetCommentMessagesSeenByRichard.status == 200
+		responseInitialGetCommentMessagesSeenByRichard.responseData?._embedded?."yona:messages"?.size() == 1
+		// TODO Assert pagination details
+
+		def initialMessageSeenByRichard = responseInitialGetCommentMessagesSeenByRichard.responseData._embedded."yona:messages"[0]
+		initialMessageSeenByRichard.message == "Quiet day?"
+		initialMessageSeenByRichard._links?."yona:reply"?.href == null
+		// TODO Assert other links
+
+		def responseDayOverviewsBobAll = appService.getDayActivityOverviews(bob, ["size": 14])
+		assert responseDayOverviewsBobAll.status == 200
+
+		def responseDayDetailsBobTue = getDayDetails(responseDayOverviewsBobAll, bob, budgetGoalNewsBob, 1, "Tue")
+		responseDayDetailsBobTue.responseData._links."yona:addComment" == null
+		responseDayDetailsBobTue.responseData._links."yona:messages".href
+
+		def responseInitialGetCommentMessagesSeenByBob = appService.yonaServer.getResourceWithPassword(responseDayDetailsBobTue.responseData._links."yona:messages".href, bob.password)
+		responseInitialGetCommentMessagesSeenByBob.status == 200
+		responseInitialGetCommentMessagesSeenByBob.responseData?._embedded?."yona:messages"?.size() == 1
+		// TODO Assert pagination details
+
+		def initialMessageSeenByBob = responseInitialGetCommentMessagesSeenByBob.responseData._embedded."yona:messages"[0]
+		initialMessageSeenByBob.message == "Quiet day?"
+		initialMessageSeenByBob._links?."yona:reply"?.href
+		// TODO Assert other links
+
+		def responseReplyFromBob = appService.postMessageActionWithPassword(initialMessageSeenByBob._links."yona:reply".href, ["message" : "My battery died :)"], bob.password)
+		responseReplyFromBob.status == 200
+		// TODO: assert details of newly created message
+
+		def responseSecondGetCommentMessagesSeenByRichard = appService.yonaServer.getResourceWithPassword(responseDayDetailsBobAsBuddyTue.responseData._links."yona:messages".href, richard.password)
+		responseSecondGetCommentMessagesSeenByRichard.status == 200
+		responseSecondGetCommentMessagesSeenByRichard.responseData?._embedded?."yona:messages"?.size() == 2
+		// TODO Assert pagination details
+
+		def replyMessageSeenByRichard = responseSecondGetCommentMessagesSeenByRichard.responseData._embedded."yona:messages"[0]
+		replyMessageSeenByRichard.message == "My battery died :)"
+		replyMessageSeenByRichard._links?."yona:reply"?.href
+		// TODO Assert other links
+
+		def responseReplyToReplyFromBob = appService.postMessageActionWithPassword(replyMessageSeenByRichard._links."yona:reply".href, ["message" : "Too bad!"], richard.password)
+		responseReplyToReplyFromBob.status == 200
+		// TODO: assert details of newly created message
+
+		def responseThirdGetCommentMessagesSeenByRichard = appService.yonaServer.getResourceWithPassword(responseDayDetailsBobAsBuddyTue.responseData._links."yona:messages".href, richard.password)
+		responseThirdGetCommentMessagesSeenByRichard.status == 200
+		responseThirdGetCommentMessagesSeenByRichard.responseData?._embedded?."yona:messages"?.size() == 3
+		// TODO Assert pagination details
+
+		def responseSecondGetCommentMessagesSeenByBob = appService.yonaServer.getResourceWithPassword(responseDayDetailsBobTue.responseData._links."yona:messages".href, bob.password)
+		responseSecondGetCommentMessagesSeenByBob.status == 200
+		responseSecondGetCommentMessagesSeenByBob.responseData?._embedded?."yona:messages"?.size() == 3
+		// TODO Assert pagination details
+
 
 		cleanup:
 		appService.deleteUser(richard)

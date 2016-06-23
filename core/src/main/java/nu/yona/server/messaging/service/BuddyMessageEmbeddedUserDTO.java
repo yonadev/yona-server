@@ -19,9 +19,9 @@ public abstract class BuddyMessageEmbeddedUserDTO extends BuddyMessageDTO
 {
 	private Map<String, Object> embeddedResources = Collections.emptyMap();
 
-	protected BuddyMessageEmbeddedUserDTO(UUID id, ZonedDateTime creationTime, UserDTO user, String nickname, String message)
+	protected BuddyMessageEmbeddedUserDTO(UUID id, ZonedDateTime creationTime, UserDTO senderUser, String senderNickname, String message)
 	{
-		super(id, creationTime, user, nickname, message);
+		super(id, creationTime, senderUser, senderNickname, message);
 	}
 
 	protected BuddyMessageEmbeddedUserDTO(UUID id, ZonedDateTime creationTime, UUID targetGoalConflictMessageOriginID,

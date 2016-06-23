@@ -24,18 +24,20 @@ import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.messaging.service.MessageServiceException;
-import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserDTO;
 
 @JsonRootName("activityCommentMessage")
 public class ActivityCommentMessageDTO extends BuddyMessageEmbeddedUserDTO
 {
+	private static final String MESSAGE_PROPERTY = "message";
 	private static final String REPLY = "reply";
+	private final boolean canReplyTo;
 
-	private ActivityCommentMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO user, UUID loginID, String nickname,
-			String message)
+	private ActivityCommentMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO senderUser, UUID senderUserAnonymizedID,
+			String senderNickname, String message, boolean canReplyTo)
 	{
-		super(id, creationTime, user, nickname, message);
+		super(id, creationTime, senderUser, senderNickname, message);
+		this.canReplyTo = canReplyTo;
 	}
 
 	@Override
@@ -48,7 +50,7 @@ public class ActivityCommentMessageDTO extends BuddyMessageEmbeddedUserDTO
 	public Set<String> getPossibleActions()
 	{
 		Set<String> possibleActions = new HashSet<>();
-		// TODO if (!isProcessed)
+		if (canReplyTo)
 		{
 			possibleActions.add(REPLY);
 		}
@@ -63,19 +65,21 @@ public class ActivityCommentMessageDTO extends BuddyMessageEmbeddedUserDTO
 
 	public static ActivityCommentMessageDTO createInstance(UserDTO actingUser, ActivityCommentMessage messageEntity)
 	{
+		boolean canReplyTo = !actingUser.getID().equals(messageEntity.getSenderUserID());
 		return new ActivityCommentMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
 				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getRelatedUserAnonymizedID(),
-				messageEntity.getSenderNickname(), messageEntity.getMessage());
+				messageEntity.getSenderNickname(), messageEntity.getMessage(), canReplyTo);
 	}
 
 	@Component
 	private static class Factory implements DTOManager
 	{
+
 		@Autowired
 		private TheDTOManager theDTOFactory;
 
 		@Autowired
-		private BuddyService buddyService;
+		private ActivityService activityService;
 
 		@PostConstruct
 		private void init()
@@ -105,17 +109,13 @@ public class ActivityCommentMessageDTO extends BuddyMessageEmbeddedUserDTO
 		private MessageActionDTO handleAction_Reply(UserDTO actingUser, ActivityCommentMessage messageEntity,
 				MessageActionDTO requestPayload)
 		{
-			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getID(), messageEntity.getSenderUserID());
-
-			messageEntity = updateMessageStatusAsProcessed(messageEntity);
-
-			return MessageActionDTO.createInstanceActionDone(theDTOFactory.createInstance(actingUser, messageEntity));
-		}
-
-		private ActivityCommentMessage updateMessageStatusAsProcessed(ActivityCommentMessage messageEntity)
-		{
-			// TODO messageEntity.setProcessed();
-			return Message.getRepository().save(messageEntity);
+			String message = requestPayload.getProperty(MESSAGE_PROPERTY);
+			if (message == null)
+			{
+				throw MessageServiceException.missingMandatoryActionProperty(REPLY, MESSAGE_PROPERTY);
+			}
+			MessageDTO reply = activityService.replyToMessage(actingUser, messageEntity, message);
+			return MessageActionDTO.createInstanceActionDone(reply);
 		}
 	}
 }

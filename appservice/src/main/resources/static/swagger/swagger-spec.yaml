@@ -1727,10 +1727,10 @@ definitions:
           href:
             type: string
             description: Post a MessageAction with a message on this link to reply to this message
-  ReplyToLink:
+  RepliedMessageLink:
     type: object
     properties:
-      "yona:replyTo":
+      "yona:repliedMessage":
         type: object
         properties:
           href:
@@ -2379,7 +2379,7 @@ definitions:
           - $ref: '#/definitions/DayDetailsLink'
           - $ref: '#/definitions/WeekDetailsLink'
           - $ref: '#/definitions/ReplyLink'
-          - $ref: '#/definitions/ReplyToLink'
+          - $ref: '#/definitions/RepliedMessageLink'
     required:
       - _links
   PostPutActivityCommentMessage:
