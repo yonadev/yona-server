@@ -8,12 +8,12 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -30,9 +30,6 @@ public class DayActivity extends IntervalActivity
 		return (DayActivityRepository) RepositoryProvider.getRepository(DayActivity.class, UUID.class);
 	}
 
-	@ManyToOne
-	private UserAnonymized userAnonymized;
-
 	@OneToMany(cascade = CascadeType.ALL)
 	private List<Activity> activities;
 
@@ -48,16 +45,11 @@ public class DayActivity extends IntervalActivity
 	private DayActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay, List<Activity> activities,
 			List<Integer> spread, int totalActivityDurationMinutes, boolean goalAccomplished, boolean aggregatesComputed)
 	{
-		super(id, goal, startOfDay, spread, totalActivityDurationMinutes, aggregatesComputed);
+		super(id, userAnonymized, goal, startOfDay, spread, totalActivityDurationMinutes, aggregatesComputed);
 
-		this.userAnonymized = userAnonymized;
+		Objects.requireNonNull(activities);
 		this.activities = activities;
 		this.goalAccomplished = goalAccomplished;
-	}
-
-	public UserAnonymized getUserAnonymized()
-	{
-		return this.userAnonymized;
 	}
 
 	@Override

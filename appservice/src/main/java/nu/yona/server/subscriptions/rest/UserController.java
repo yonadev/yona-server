@@ -433,7 +433,7 @@ public class UserController
 
 		private void addMessagesLink(UserResource userResource)
 		{
-			userResource.add(MessageController.getConfirmMobileLink(userResource.getContent().getID()));
+			userResource.add(MessageController.getMessagesLink(userResource.getContent().getID()));
 		}
 
 		private void addNewDeviceRequestLink(UserResource userResource)

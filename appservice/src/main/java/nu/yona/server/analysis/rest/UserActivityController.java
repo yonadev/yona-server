@@ -43,6 +43,7 @@ import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.ActivityCategoryController;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDTO;
+import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.rest.UserController;
 import nu.yona.server.subscriptions.service.UserDTO;
@@ -105,6 +106,20 @@ public class UserActivityController extends ActivityControllerBase
 	{
 		return getDayActivityOverviewsWithBuddies(password, userID, pageable, pagedResourcesAssembler,
 				() -> activityService.getUserDayActivityOverviewsWithBuddies(userID, pageable),
+				new UserActivityLinkProvider(userID));
+	}
+
+	@RequestMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<PagedResources<MessageDTO>> getUserDayActivityDetailMessages(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr, @PathVariable(value = GOAL_PATH_VARIABLE) UUID goalID,
+			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
+			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
+	{
+		return getDayActivityDetailMessages(
+				password, userID, pageable, pagedResourcesAssembler, () -> activityService
+						.getUserDayActivityDetailMessages(userID, DayActivityDTO.parseDate(dateStr), goalID, pageable),
 				new UserActivityLinkProvider(userID));
 	}
 
@@ -176,6 +191,19 @@ public class UserActivityController extends ActivityControllerBase
 		public ControllerLinkBuilder getGoalLinkBuilder(UUID goalID)
 		{
 			return GoalController.getGoalLinkBuilder(userID, goalID);
+		}
+
+		@Override
+		public ControllerLinkBuilder getDayActivityDetailMessagesLinkBuilder(String dateStr, UUID goalID)
+		{
+			UserActivityController methodOn = methodOn(UserActivityController.class);
+			return linkTo(methodOn.getUserDayActivityDetailMessages(Optional.empty(), userID, dateStr, goalID, null, null));
+		}
+
+		@Override
+		public Optional<ControllerLinkBuilder> getDayActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalID)
+		{
+			return Optional.empty();
 		}
 	}
 

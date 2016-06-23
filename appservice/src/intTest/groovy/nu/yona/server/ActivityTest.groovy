@@ -60,7 +60,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
-		reportAppActivities(richard, [createAppActivity("NU.nl", "W-1 Tue 08:45", "W-1 Tue 09:10"), createAppActivity("Facebook", "W-1 Tue 09:35", "W-1 Mon 10:10")])
+		reportAppActivities(richard, [createAppActivity("NU.nl", "W-1 Tue 08:45", "W-1 Tue 09:10"), createAppActivity("Facebook", "W-1 Tue 09:35", "W-1 Tue 10:10")])
 		addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["11:00-12:00"], "W-1 Wed 13:55")
 		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Wed 15:00")
 		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Thu 11:30")
@@ -222,7 +222,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
-		reportAppActivities(richard, [createAppActivity("NU.nl", "W-1 Tue 08:45", "W-1 Tue 09:10"), createAppActivity("Facebook", "W-1 Tue 09:35", "W-1 Mon 10:10")])
+		reportAppActivities(richard, [createAppActivity("NU.nl", "W-1 Tue 08:45", "W-1 Tue 09:10"), createAppActivity("Facebook", "W-1 Tue 09:35", "W-1 Tue 10:10")])
 		addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["11:00-12:00"], "W-1 Wed 13:55")
 		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Wed 15:00")
 		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Thu 11:30")
@@ -338,5 +338,55 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		cleanup:
 		appService.deleteUser(richard)
+	}
+
+	def 'Comment on buddy activity'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+
+		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+
+		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+
+		bob = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, bob.url, true, bob.password)
+		Goal budgetGoalNewsBob = bob.findActiveGoal(NEWS_ACT_CAT_URL)
+
+		//get all days at once (max 2 weeks) to make assertion easy
+		def responseDayOverviewsAll = appService.getDayActivityOverviews(richard, richard.buddies[0], ["size": 14])
+		assert responseDayOverviewsAll.status == 200
+
+		def responseDayDetailsTue = getDayDetails(responseDayOverviewsAll, richard, budgetGoalNewsBob, 1, "Tue")
+		assert responseDayDetailsTue.responseData._links."yona:addComment".href
+		assert responseDayDetailsTue.responseData._links."yona:messages".href
+
+		when:
+		def message = """{"message": "Quiet day?"}"""
+		def response = appService.yonaServer.createResourceWithPassword(responseDayDetailsTue.responseData._links."yona:addComment".href, message, richard.password)
+
+		then:
+		response.status == 200
+		// TODO: assert details of newly created message
+
+		def responseGetCommentMessagesRichard = appService.yonaServer.getResourceWithPassword(responseDayDetailsTue.responseData._links."yona:messages".href, richard.password)
+		responseGetCommentMessagesRichard.status == 200
+		responseGetCommentMessagesRichard.responseData?._embedded?."yona:messages"?.size() == 1
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	private getDayDetails(responseDayOverviewsAll, User user, Goal goal, int weeksBack, String shortDay) {
+		def dayOffset = YonaServer.relativeDateStringToDaysOffset(weeksBack, shortDay)
+		def dayActivityOverview = responseDayOverviewsAll.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
+		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
+		assert dayActivityForGoal?._links?."yona:dayDetails"?.href
+		def dayActivityDetailUrl =  dayActivityForGoal?._links?."yona:dayDetails"?.href
+		def response = appService.getResourceWithPassword(dayActivityDetailUrl, user.password)
+		assert response.status == 200
+		return response
 	}
 }

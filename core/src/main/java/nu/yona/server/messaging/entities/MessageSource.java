@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
@@ -74,10 +74,15 @@ public class MessageSource extends EntityWithID
 
 	public Page<Message> getMessages(Pageable pageable)
 	{
-		Page<Message> decryptedMessages = messageDestination.getMessages(pageable);
+		Page<Message> messages = messageDestination.getMessages(pageable);
+		decryptMessagePage(messages);
+		return messages;
+	}
+
+	private void decryptMessagePage(Page<Message> messages)
+	{
 		PublicKeyDecryptor decryptor = PublicKeyDecryptor.createInstance(loadPrivateKey());
-		decryptedMessages.forEach(m -> m.decryptMessage(decryptor));
-		return decryptedMessages;
+		messages.forEach(m -> m.decryptMessage(decryptor));
 	}
 
 	private PrivateKey loadPrivateKey()
@@ -105,5 +110,12 @@ public class MessageSource extends EntityWithID
 	{
 		privateKeyBytes = Arrays.copyOf(privateKeyBytes, privateKeyBytes.length);
 		return this;
+	}
+
+	public Page<? extends Message> getActivityRelatedMessages(UUID activityID, Pageable pageable)
+	{
+		Page<Message> messages = messageDestination.getActivityRelatedMessages(activityID, pageable);
+		decryptMessagePage(messages);
+		return messages;
 	}
 }

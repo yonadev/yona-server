@@ -9,19 +9,26 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.Table;
 
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 
-@MappedSuperclass
+@Entity
+@Table(name = "INTERVAL_ACTIVITIES")
 public abstract class IntervalActivity extends EntityWithID
 {
 	public static final int SPREAD_COUNT = 96;
+
+	@ManyToOne
+	private UserAnonymized userAnonymized;
 
 	@ManyToOne
 	private Goal goal;
@@ -49,16 +56,26 @@ public abstract class IntervalActivity extends EntityWithID
 		super(null);
 	}
 
-	protected IntervalActivity(UUID id, Goal goal, ZonedDateTime startTime, List<Integer> spread,
+	protected IntervalActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startTime, List<Integer> spread,
 			int totalActivityDurationMinutes, boolean aggregatesComputed)
 	{
 		super(id);
+		Objects.requireNonNull(userAnonymized);
+		Objects.requireNonNull(goal);
+		Objects.requireNonNull(startTime);
+		Objects.requireNonNull(spread);
+		this.userAnonymized = userAnonymized;
 		this.goal = goal;
 		this.date = startTime.toLocalDate();
 		this.startTime = startTime;
 		this.spread = spread;
 		this.totalActivityDurationMinutes = totalActivityDurationMinutes;
 		this.aggregatesComputed = aggregatesComputed;
+	}
+
+	public UserAnonymized getUserAnonymized()
+	{
+		return userAnonymized;
 	}
 
 	public Goal getGoal()
@@ -92,7 +109,7 @@ public abstract class IntervalActivity extends EntityWithID
 	{
 		if (areAggregatesComputed())
 		{
-			return spread;
+			return Collections.unmodifiableList(spread);
 		}
 
 		return computeSpread();

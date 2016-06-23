@@ -85,9 +85,14 @@ public class MessageController
 			@PathVariable UUID userID, @PathVariable UUID messageID)
 	{
 
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
-				new MessageResourceAssembler(curieProvider, userID).toResource(messageService.getMessage(userID, messageID))));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> createOKResponse(toMessageResource(userID, messageService.getMessage(userID, messageID))));
 
+	}
+
+	public MessageDTO toMessageResource(UUID userID, MessageDTO message)
+	{
+		return new MessageResourceAssembler(curieProvider, userID).toResource(message);
 	}
 
 	@RequestMapping(value = "/{id}/{action}", method = RequestMethod.POST)
@@ -134,7 +139,7 @@ public class MessageController
 		return linkTo(methodOn.getMessage(Optional.empty(), userID, messageID));
 	}
 
-	public static Link getConfirmMobileLink(UUID userID)
+	public static Link getMessagesLink(UUID userID)
 	{
 		ControllerLinkBuilder linkBuilder = linkTo(
 				methodOn(MessageController.class).getMessages(Optional.empty(), userID, null, null));
@@ -143,8 +148,8 @@ public class MessageController
 
 	static class MessageActionResource extends Resource<MessageActionDTO>
 	{
-		private UUID userID;
-		private CurieProvider curieProvider;
+		private final UUID userID;
+		private final CurieProvider curieProvider;
 
 		public MessageActionResource(CurieProvider curieProvider, MessageActionDTO messageAction, UUID userID)
 		{
@@ -162,10 +167,10 @@ public class MessageController
 		}
 	}
 
-	private static class MessageResourceAssembler extends ResourceAssemblerSupport<MessageDTO, MessageDTO>
+	public static class MessageResourceAssembler extends ResourceAssemblerSupport<MessageDTO, MessageDTO>
 	{
-		private UUID userID;
-		private CurieProvider curieProvider;
+		private final UUID userID;
+		private final CurieProvider curieProvider;
 
 		public MessageResourceAssembler(CurieProvider curieProvider, UUID userID)
 		{

@@ -14,9 +14,12 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -24,8 +27,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import nu.yona.server.analysis.service.DayActivityDTO;
 import nu.yona.server.analysis.service.DayActivityOverviewDTO;
+import nu.yona.server.analysis.service.PostPutActivityCommentMessageDTO;
 import nu.yona.server.analysis.service.WeekActivityOverviewDTO;
+import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.GoalController;
+import nu.yona.server.messaging.rest.MessageController;
+import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
 
 /*
@@ -37,6 +44,9 @@ public class BuddyActivityController extends ActivityControllerBase
 {
 	@Autowired
 	private BuddyService buddyService;
+
+	@Autowired
+	private MessageController messageController;
 
 	@RequestMapping(value = WEEK_ACTIVITY_OVERVIEWS_URI_FRAGMENT, method = RequestMethod.GET)
 	@ResponseBody
@@ -84,6 +94,38 @@ public class BuddyActivityController extends ActivityControllerBase
 		return getDayActivityDetail(password, userID, dateStr,
 				date -> activityService.getBuddyDayActivityDetail(buddyID, date, goalID),
 				new BuddyActivityLinkProvider(buddyService, userID, buddyID));
+	}
+
+	@RequestMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<PagedResources<MessageDTO>> getBuddyDayActivityDetailMessages(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@PathVariable UUID buddyID, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
+			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalID,
+			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
+			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
+	{
+		return getDayActivityDetailMessages(password, userID, pageable,
+				pagedResourcesAssembler, () -> activityService.getBuddyDayActivityDetailMessages(userID, buddyID,
+						DayActivityDTO.parseDate(dateStr), goalID, pageable),
+				new BuddyActivityLinkProvider(buddyService, userID, buddyID));
+	}
+
+	@RequestMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.POST)
+	@ResponseBody
+	public HttpEntity<MessageDTO> addBuddyDayActivityDetailMessage(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@PathVariable UUID buddyID, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
+			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalID, @RequestBody PostPutActivityCommentMessageDTO newMessage)
+	{
+		return CryptoSession
+				.execute(password,
+						() -> userService
+								.canAccessPrivateData(
+										userID),
+						() -> new ResponseEntity<>(messageController.toMessageResource(userID, activityService
+								.addMessageToDayActivity(userID, buddyID, DayActivityDTO.parseDate(dateStr), goalID, newMessage)),
+				HttpStatus.OK));
 	}
 
 	public static ControllerLinkBuilder getBuddyDayActivityOverviewsLinkBuilder(UUID userID, UUID buddyID)
@@ -135,6 +177,22 @@ public class BuddyActivityController extends ActivityControllerBase
 		public ControllerLinkBuilder getGoalLinkBuilder(UUID goalID)
 		{
 			return GoalController.getGoalLinkBuilder(buddyService.getBuddy(buddyID).getUser().getID(), goalID);
+		}
+
+		@Override
+		public ControllerLinkBuilder getDayActivityDetailMessagesLinkBuilder(String dateStr, UUID goalID)
+		{
+			BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
+			return linkTo(
+					methodOn.getBuddyDayActivityDetailMessages(Optional.empty(), userID, buddyID, dateStr, goalID, null, null));
+		}
+
+		@Override
+		public Optional<ControllerLinkBuilder> getDayActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalID)
+		{
+			BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
+			return Optional.of(
+					linkTo(methodOn.addBuddyDayActivityDetailMessage(Optional.empty(), userID, buddyID, dateStr, goalID, null)));
 		}
 	}
 }

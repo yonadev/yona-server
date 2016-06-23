@@ -89,4 +89,9 @@ public class MessageDestination extends EntityWithID
 	{
 		messages.removeIf(message -> sentByUserAnonymizedID.equals(message.getRelatedUserAnonymizedID()));
 	}
+
+	public Page<Message> getActivityRelatedMessages(UUID activityID, Pageable pageable)
+	{
+		return Message.getRepository().findByActivityID(getID(), activityID, pageable);
+	}
 }

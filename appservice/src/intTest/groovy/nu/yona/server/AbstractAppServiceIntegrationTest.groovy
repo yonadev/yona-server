@@ -177,7 +177,8 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	}
 	void reportNetworkActivity(User user, def categories, def url, relativeDateTimeString)
 	{
-		analysisService.postToAnalysisEngine(user, categories, url, YonaServer.relativeDateTimeStringToZonedDateTime(relativeDateTimeString))
+		def response = analysisService.postToAnalysisEngine(user, categories, url, YonaServer.relativeDateTimeStringToZonedDateTime(relativeDateTimeString))
+		assert response.status == 200
 	}
 
 	def getCurrentShortDay(ZonedDateTime dateTime)

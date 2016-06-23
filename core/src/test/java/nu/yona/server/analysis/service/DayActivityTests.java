@@ -5,8 +5,11 @@ import static org.junit.Assert.assertThat;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.Before;
@@ -14,14 +17,20 @@ import org.junit.Test;
 
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.DayActivity;
+import nu.yona.server.crypto.PublicKeyUtil;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
+import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 public class DayActivityTests
 {
 	private ZoneId testZone;
 
 	private BudgetGoal goal;
+
+	private UserAnonymized userAnonEntity;
 
 	@Before
 	public void setUp()
@@ -30,6 +39,11 @@ public class DayActivityTests
 		ActivityCategory activityCategory = ActivityCategory.createInstance(UUID.randomUUID(),
 				Collections.singletonMap(Locale.US, "being bored"), false, Collections.emptySet(), Collections.emptySet());
 		goal = BudgetGoal.createInstance(ZonedDateTime.now(), activityCategory, 60);
+		// Set up UserAnonymized instance.
+		MessageDestination anonMessageDestinationEntity = MessageDestination
+				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
+		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(goal));
+		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 	}
 
 	private ZonedDateTime getZonedDateTime(int hour, int minute, int second)
@@ -39,7 +53,7 @@ public class DayActivityTests
 
 	private DayActivity createDayActivity()
 	{
-		return DayActivity.createInstance(null, goal, getZonedDateTime(0, 0, 0));
+		return DayActivity.createInstance(userAnonEntity, goal, getZonedDateTime(0, 0, 0));
 	}
 
 	private ZonedDateTime getDate(int hour, int minute)
