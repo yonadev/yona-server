@@ -365,6 +365,11 @@ class AppService extends Service
 		yonaServer.getResourceWithPassword(user.weeklyActivityReportsUrl, user.password, parameters)
 	}
 
+	def getWeekActivityOverviews(User user, Buddy buddy, parameters = [:])
+	{
+		yonaServer.getResourceWithPassword(buddy.weeklyActivityReportsUrl, user.password, parameters)
+	}
+
 	def getDayActivityOverviews(User user, parameters = [:])
 	{
 		yonaServer.getResourceWithPassword(user.dailyActivityReportsUrl, user.password, parameters)

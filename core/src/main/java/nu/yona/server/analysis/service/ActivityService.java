@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -340,6 +341,24 @@ public class ActivityService
 	}
 
 	@Transactional
+	public Page<MessageDTO> getUserWeekActivityDetailMessages(UUID userID, LocalDate date, UUID goalID, Pageable pageable)
+	{
+		Supplier<IntervalActivity> activitySupplier = () -> weekActivityRepository
+				.findOne(userService.getUserAnonymizedID(userID), date, goalID);
+		return getActivityDetailMessages(userID, activitySupplier, pageable);
+	}
+
+	@Transactional
+	public Page<MessageDTO> getBuddyWeekActivityDetailMessages(UUID userID, UUID buddyID, LocalDate date, UUID goalID,
+			Pageable pageable)
+	{
+		BuddyDTO buddy = buddyService.getBuddy(buddyID);
+		Supplier<IntervalActivity> activitySupplier = () -> weekActivityRepository.findOne(buddy.getUserAnonymizedID(), date,
+				goalID);
+		return getActivityDetailMessages(userID, activitySupplier, pageable);
+	}
+
+	@Transactional
 	public DayActivityDTO getUserDayActivityDetail(UUID userID, LocalDate date, UUID goalID)
 	{
 		return getDayActivityDetail(userID, userService.getUserAnonymizedID(userID), date, goalID);
@@ -366,7 +385,9 @@ public class ActivityService
 	@Transactional
 	public Page<MessageDTO> getUserDayActivityDetailMessages(UUID userID, LocalDate date, UUID goalID, Pageable pageable)
 	{
-		return getDayActivityDetailMessages(userID, userService.getUserAnonymizedID(userID), date, goalID, pageable);
+		Supplier<IntervalActivity> activitySupplier = () -> dayActivityRepository.findOne(userService.getUserAnonymizedID(userID),
+				date, goalID);
+		return getActivityDetailMessages(userID, activitySupplier, pageable);
 	}
 
 	@Transactional
@@ -374,13 +395,15 @@ public class ActivityService
 			Pageable pageable)
 	{
 		BuddyDTO buddy = buddyService.getBuddy(buddyID);
-		return getDayActivityDetailMessages(userID, buddy.getUserAnonymizedID(), date, goalID, pageable);
+		Supplier<IntervalActivity> activitySupplier = () -> dayActivityRepository.findOne(buddy.getUserAnonymizedID(), date,
+				goalID);
+		return getActivityDetailMessages(userID, activitySupplier, pageable);
 	}
 
-	private Page<MessageDTO> getDayActivityDetailMessages(UUID userID, UUID userAnonymizedID, LocalDate date, UUID goalID,
+	private Page<MessageDTO> getActivityDetailMessages(UUID userID, Supplier<IntervalActivity> activitySupplier,
 			Pageable pageable)
 	{
-		DayActivity dayActivityEntity = dayActivityRepository.findOne(userAnonymizedID, date, goalID);
+		IntervalActivity dayActivityEntity = activitySupplier.get();
 		if (dayActivityEntity == null)
 		{
 			return new PageImpl<>(Collections.emptyList());
@@ -388,13 +411,35 @@ public class ActivityService
 		return messageService.getActivityRelatedMessages(userID, dayActivityEntity.getID(), pageable);
 	}
 
+	@FunctionalInterface
+	static interface ActivitySupplier
+	{
+		IntervalActivity get(BuddyDTO buddy, LocalDate date, UUID goalID);
+	}
+
 	@Transactional
 	public MessageDTO addMessageToDayActivity(UUID userID, UUID buddyID, LocalDate date, UUID goalID,
 			PostPutActivityCommentMessageDTO message)
 	{
+		ActivitySupplier activitySupplier = (b, d, g) -> dayActivityRepository.findOne(b.getUserAnonymizedID(), d, g);
+		return addMessageToActivity(userID, buddyID, date, goalID, activitySupplier, message);
+	}
+
+	@Transactional
+	public MessageDTO addMessageToWeekActivity(UUID userID, UUID buddyID, LocalDate date, UUID goalID,
+			PostPutActivityCommentMessageDTO message)
+	{
+		ActivitySupplier activitySupplier = (b, d, g) -> weekActivityRepository.findOne(b.getUserAnonymizedID(), d, g);
+		return addMessageToActivity(userID, buddyID, date, goalID, activitySupplier, message);
+	}
+
+	@Transactional
+	public MessageDTO addMessageToActivity(UUID userID, UUID buddyID, LocalDate date, UUID goalID,
+			ActivitySupplier activitySupplier, PostPutActivityCommentMessageDTO message)
+	{
 		UserDTO sendingUser = userService.getPrivateUser(userID);
 		BuddyDTO buddy = buddyService.getBuddy(buddyID);
-		DayActivity dayActivityEntity = dayActivityRepository.findOne(buddy.getUserAnonymizedID(), date, goalID);
+		IntervalActivity dayActivityEntity = activitySupplier.get(buddy, date, goalID);
 		if (dayActivityEntity == null)
 		{
 			throw ActivityServiceException.buddyDayActivityNotFound(userID, buddyID, date, goalID);

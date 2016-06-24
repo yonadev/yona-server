@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import nu.yona.server.analysis.service.DayActivityDTO;
 import nu.yona.server.analysis.service.DayActivityOverviewDTO;
 import nu.yona.server.analysis.service.PostPutActivityCommentMessageDTO;
+import nu.yona.server.analysis.service.WeekActivityDTO;
 import nu.yona.server.analysis.service.WeekActivityOverviewDTO;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.GoalController;
@@ -84,6 +85,39 @@ public class BuddyActivityController extends ActivityControllerBase
 				new BuddyActivityLinkProvider(buddyService, userID, buddyID));
 	}
 
+	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<PagedResources<MessageDTO>> getBuddyWeekActivityDetailMessages(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@PathVariable UUID buddyID, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
+			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalID,
+			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
+			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
+	{
+		return getActivityDetailMessages(password, userID, pageable,
+				pagedResourcesAssembler, () -> activityService.getBuddyWeekActivityDetailMessages(userID, buddyID,
+						WeekActivityDTO.parseDate(dateStr), goalID, pageable),
+				new BuddyActivityLinkProvider(buddyService, userID, buddyID));
+	}
+
+	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.POST)
+	@ResponseBody
+	public HttpEntity<MessageDTO> addBuddyWeekActivityDetailMessage(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@PathVariable UUID buddyID, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
+			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalID, @RequestBody PostPutActivityCommentMessageDTO newMessage)
+	{
+		return CryptoSession
+				.execute(password,
+						() -> userService
+								.canAccessPrivateData(
+										userID),
+						() -> new ResponseEntity<>(
+								messageController.toMessageResource(userID, activityService.addMessageToWeekActivity(userID,
+										buddyID, WeekActivityDTO.parseDate(dateStr), goalID, newMessage)),
+								HttpStatus.OK));
+	}
+
 	@RequestMapping(value = DAY_ACTIVITY_DETAIL_URI_FRAGMENT, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<DayActivityResource> getBuddyDayActivityDetail(
@@ -105,7 +139,7 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
 	{
-		return getDayActivityDetailMessages(password, userID, pageable,
+		return getActivityDetailMessages(password, userID, pageable,
 				pagedResourcesAssembler, () -> activityService.getBuddyDayActivityDetailMessages(userID, buddyID,
 						DayActivityDTO.parseDate(dateStr), goalID, pageable),
 				new BuddyActivityLinkProvider(buddyService, userID, buddyID));
@@ -193,6 +227,22 @@ public class BuddyActivityController extends ActivityControllerBase
 			BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
 			return Optional.of(
 					linkTo(methodOn.addBuddyDayActivityDetailMessage(Optional.empty(), userID, buddyID, dateStr, goalID, null)));
+		}
+
+		@Override
+		public ControllerLinkBuilder getWeekActivityDetailMessagesLinkBuilder(String dateStr, UUID goalID)
+		{
+			BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
+			return linkTo(
+					methodOn.getBuddyWeekActivityDetailMessages(Optional.empty(), userID, buddyID, dateStr, goalID, null, null));
+		}
+
+		@Override
+		public Optional<ControllerLinkBuilder> getWeekActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalID)
+		{
+			BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
+			return Optional.of(
+					linkTo(methodOn.addBuddyWeekActivityDetailMessage(Optional.empty(), userID, buddyID, dateStr, goalID, null)));
 		}
 	}
 }

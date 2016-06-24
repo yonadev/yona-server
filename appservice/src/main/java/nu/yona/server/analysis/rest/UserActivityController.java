@@ -38,6 +38,7 @@ import nu.yona.server.analysis.service.DayActivityDTO;
 import nu.yona.server.analysis.service.DayActivityOverviewDTO;
 import nu.yona.server.analysis.service.DayActivityWithBuddiesDTO;
 import nu.yona.server.analysis.service.DayActivityWithBuddiesDTO.ActivityForOneUser;
+import nu.yona.server.analysis.service.WeekActivityDTO;
 import nu.yona.server.analysis.service.WeekActivityOverviewDTO;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.ActivityCategoryController;
@@ -87,6 +88,20 @@ public class UserActivityController extends ActivityControllerBase
 				date -> activityService.getUserWeekActivityDetail(userID, date, goalID), new UserActivityLinkProvider(userID));
 	}
 
+	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<PagedResources<MessageDTO>> getUserWeekActivityDetailMessages(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr, @PathVariable(value = GOAL_PATH_VARIABLE) UUID goalID,
+			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
+			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
+	{
+		return getActivityDetailMessages(
+				password, userID, pageable, pagedResourcesAssembler, () -> activityService
+						.getUserWeekActivityDetailMessages(userID, WeekActivityDTO.parseDate(dateStr), goalID, pageable),
+				new UserActivityLinkProvider(userID));
+	}
+
 	@RequestMapping(value = DAY_ACTIVITY_DETAIL_URI_FRAGMENT, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<DayActivityResource> getUserDayActivityDetail(
@@ -95,6 +110,20 @@ public class UserActivityController extends ActivityControllerBase
 	{
 		return getDayActivityDetail(password, userID, dateStr,
 				date -> activityService.getUserDayActivityDetail(userID, date, goalID), new UserActivityLinkProvider(userID));
+	}
+
+	@RequestMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<PagedResources<MessageDTO>> getUserDayActivityDetailMessages(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr, @PathVariable(value = GOAL_PATH_VARIABLE) UUID goalID,
+			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
+			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
+	{
+		return getActivityDetailMessages(
+				password, userID, pageable, pagedResourcesAssembler, () -> activityService
+						.getUserDayActivityDetailMessages(userID, DayActivityDTO.parseDate(dateStr), goalID, pageable),
+				new UserActivityLinkProvider(userID));
 	}
 
 	@RequestMapping(value = "/withBuddies/days/", method = RequestMethod.GET)
@@ -106,20 +135,6 @@ public class UserActivityController extends ActivityControllerBase
 	{
 		return getDayActivityOverviewsWithBuddies(password, userID, pageable, pagedResourcesAssembler,
 				() -> activityService.getUserDayActivityOverviewsWithBuddies(userID, pageable),
-				new UserActivityLinkProvider(userID));
-	}
-
-	@RequestMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
-	@ResponseBody
-	public HttpEntity<PagedResources<MessageDTO>> getUserDayActivityDetailMessages(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
-			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr, @PathVariable(value = GOAL_PATH_VARIABLE) UUID goalID,
-			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
-			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
-	{
-		return getDayActivityDetailMessages(
-				password, userID, pageable, pagedResourcesAssembler, () -> activityService
-						.getUserDayActivityDetailMessages(userID, DayActivityDTO.parseDate(dateStr), goalID, pageable),
 				new UserActivityLinkProvider(userID));
 	}
 
@@ -202,6 +217,19 @@ public class UserActivityController extends ActivityControllerBase
 
 		@Override
 		public Optional<ControllerLinkBuilder> getDayActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalID)
+		{
+			return Optional.empty();
+		}
+
+		@Override
+		public ControllerLinkBuilder getWeekActivityDetailMessagesLinkBuilder(String dateStr, UUID goalID)
+		{
+			UserActivityController methodOn = methodOn(UserActivityController.class);
+			return linkTo(methodOn.getUserWeekActivityDetailMessages(Optional.empty(), userID, dateStr, goalID, null, null));
+		}
+
+		@Override
+		public Optional<ControllerLinkBuilder> getWeekActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalID)
 		{
 			return Optional.empty();
 		}
