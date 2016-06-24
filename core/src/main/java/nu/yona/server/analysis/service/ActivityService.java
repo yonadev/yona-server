@@ -42,7 +42,6 @@ import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDTO;
-import nu.yona.server.subscriptions.service.UserPrivateDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Service
@@ -401,22 +400,37 @@ public class ActivityService
 			throw ActivityServiceException.buddyDayActivityNotFound(userID, buddyID, date, goalID);
 		}
 
-		addMessage(sendingUser, buddy.getUserAnonymizedID(), dayActivityEntity, message);
-		ActivityCommentMessage messageToSelf = addMessage(sendingUser, sendingUser.getPrivateData().getUserAnonymizedID(),
-				dayActivityEntity, message);
+		return sendMessagePair(sendingUser, buddy.getUserAnonymizedID(), dayActivityEntity.getID(), Optional.empty(),
+				Optional.empty(), message.getMessage());
+	}
+
+	private MessageDTO sendMessagePair(UserDTO sendingUser, UUID targetUserAnonymizedID, UUID activityID,
+			Optional<ActivityCommentMessage> repliedMessageOfSelf, Optional<ActivityCommentMessage> repliedMessageOfBuddy,
+			String message)
+	{
+		ActivityCommentMessage messageToBuddy = createMessage(sendingUser, activityID,
+				repliedMessageOfBuddy.map(ActivityCommentMessage::getID), message);
+		ActivityCommentMessage messageToSelf = createMessage(sendingUser, activityID,
+				repliedMessageOfSelf.map(ActivityCommentMessage::getID), message);
+		sendMessage(sendingUser.getPrivateData().getUserAnonymizedID(), messageToSelf);
+		messageToBuddy.setSenderCopyMessage(messageToSelf);
+		sendMessage(targetUserAnonymizedID, messageToBuddy);
 
 		return messageService.messageToDTO(sendingUser, messageToSelf);
 	}
 
-	private ActivityCommentMessage addMessage(UserDTO sendingUser, UUID targetUserAnonymizedID, IntervalActivity activityEntity,
-			PostPutActivityCommentMessageDTO message)
+	private void sendMessage(UUID targetUserAnonymizedID, ActivityCommentMessage messageEntity)
 	{
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(targetUserAnonymizedID);
-		ActivityCommentMessage messageEntity = ActivityCommentMessage.createInstance(sendingUser.getID(),
-				sendingUser.getPrivateData().getUserAnonymizedID(), sendingUser.getPrivateData().getNickname(),
-				activityEntity.getID(), message.getMessage());
 		messageService.sendMessageToUserAnonymized(userAnonymized, messageEntity);
+	}
 
+	private ActivityCommentMessage createMessage(UserDTO sendingUser, UUID activityID, Optional<UUID> repliedMessageID,
+			String message)
+	{
+		ActivityCommentMessage messageEntity = ActivityCommentMessage.createInstance(sendingUser.getID(),
+				sendingUser.getPrivateData().getUserAnonymizedID(), sendingUser.getPrivateData().getNickname(), activityID,
+				message, repliedMessageID);
 		return messageEntity;
 	}
 
@@ -437,21 +451,8 @@ public class ActivityService
 	public MessageDTO replyToMessage(UserDTO sendingUser, ActivityCommentMessage repliedMessage, String message)
 	{
 		UUID targetUserAnonymizedID = repliedMessage.getRelatedUserAnonymizedID();
-		sendReply(sendingUser, targetUserAnonymizedID, repliedMessage, message);
-		ActivityCommentMessage messageToSelf = sendReply(sendingUser, sendingUser.getPrivateData().getUserAnonymizedID(),
-				repliedMessage, message);
-		return messageService.messageToDTO(sendingUser, messageToSelf);
-	}
-
-	private ActivityCommentMessage sendReply(UserDTO sendingUser, UUID targetUserAnonymizedID,
-			ActivityCommentMessage repliedMessage, String message)
-	{
-		UserPrivateDTO actingUserPrivate = sendingUser.getPrivateData();
-		ActivityCommentMessage reply = ActivityCommentMessage.createInstance(sendingUser.getID(),
-				actingUserPrivate.getUserAnonymizedID(), actingUserPrivate.getNickname(), repliedMessage.getActivityID(), message,
-				repliedMessage);
-		messageService.sendMessageToUserAnonymized(userAnonymizedService.getUserAnonymized(targetUserAnonymizedID), reply);
-		return reply;
+		return sendMessagePair(sendingUser, targetUserAnonymizedID, repliedMessage.getActivityID(), Optional.of(repliedMessage),
+				Optional.of(repliedMessage.getSenderCopyMessage()), message);
 	}
 
 	private class Interval

@@ -17,15 +17,21 @@ public class ActivityCommentMessage extends BuddyMessage
 {
 	private UUID activityID;
 
+	private UUID repliedMessageID;
+
+	/**
+	 * Buddy comment messages are always sent in pairs: a message to the buddy and a copy for the user. This property maintains
+	 * the relationship between the two.
+	 */
 	@ManyToOne
-	private ActivityCommentMessage repliedMessage;
+	private ActivityCommentMessage senderCopyMessage;
 
 	private ActivityCommentMessage(UUID id, UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname,
-			UUID activityID, String message, ActivityCommentMessage repliedMessage)
+			UUID activityID, String message, Optional<UUID> repliedMessageID)
 	{
 		super(id, senderUserID, senderUserAnonymizedID, senderNickname, message);
 		this.activityID = activityID;
-		this.repliedMessage = repliedMessage;
+		this.repliedMessageID = repliedMessageID.orElse(null);
 	}
 
 	// Default constructor is required for JPA
@@ -34,26 +40,30 @@ public class ActivityCommentMessage extends BuddyMessage
 		super();
 	}
 
+	public ActivityCommentMessage getSenderCopyMessage()
+	{
+		return this.senderCopyMessage;
+	}
+
+	public void setSenderCopyMessage(ActivityCommentMessage senderCopyMessage)
+	{
+		this.senderCopyMessage = senderCopyMessage;
+	}
+
 	public UUID getActivityID()
 	{
 		return activityID;
 	}
 
-	public Optional<ActivityCommentMessage> getRepliedMessage()
+	public Optional<UUID> getRepliedMessageID()
 	{
-		return Optional.ofNullable(repliedMessage);
+		return Optional.ofNullable(repliedMessageID);
 	}
 
 	public static ActivityCommentMessage createInstance(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname,
-			UUID actitityID, String message)
-	{
-		return createInstance(senderUserID, senderUserAnonymizedID, senderNickname, actitityID, message, null);
-	}
-
-	public static ActivityCommentMessage createInstance(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname,
-			UUID actitityID, String message, ActivityCommentMessage repliedMessage)
+			UUID actitityID, String message, Optional<UUID> repliedMessageID)
 	{
 		return new ActivityCommentMessage(UUID.randomUUID(), senderUserID, senderUserAnonymizedID, senderNickname, actitityID,
-				message, repliedMessage);
+				message, repliedMessageID);
 	}
 }
