@@ -179,6 +179,79 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Retrieve buddy activity report of previous week'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+
+		addBudgetGoal(bob, SOCIAL_ACT_CAT_URL, 180, "W-1 Thu 18:00")
+		reportAppActivity(bob, "Facebook", "W-1 Thu 20:00", "W-1 Thu 20:35")
+
+		addTimeZoneGoal(bob, MULTIMEDIA_ACT_CAT_URL, ["20:00-22:00"], "W-1 Fri 14:00")
+		reportNetworkActivity(bob, ["YouTube"], "http://www.facebook.com", "W-1 Fri 15:00")
+		reportNetworkActivity(bob, ["YouTube"], "http://www.facebook.com", "W-1 Sat 21:00")
+
+		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+		Goal budgetGoalSocialBob = richard.buddies[0].findActiveGoal(SOCIAL_ACT_CAT_URL)
+		Goal timeZoneGoalMultimediaBob = richard.buddies[0].findActiveGoal(MULTIMEDIA_ACT_CAT_URL)
+
+		def expectedValuesBobLastWeek = [
+			"Mon" : [],
+			"Tue" : [],
+			"Wed" : [],
+			"Thu" : [[goal:budgetGoalSocialBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [80 : 15, 81 : 15, 82: 5]]]],
+			"Fri" : [[goal:budgetGoalSocialBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60 : 1]]]],
+			"Sat" : [[goal:budgetGoalSocialBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [84 : 1]]]]]
+
+		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
+		def expectedTotalDays = 6 + currentDayOfWeek + 1
+		def expectedTotalWeeks = 2
+
+		when:
+		def responseWeekOverviews = appService.getWeekActivityOverviews(richard, richard.buddies[0])
+		def responseDayOverviews = appService.getDayActivityOverviews(richard, richard.buddies[0], ["size": 14])
+
+		then:
+		// TODO: extend the below test to make it full fledged like the above one, preferrably based on the same APIs
+		responseWeekOverviews.status == 200
+		responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews".size() == 2
+		def weekActivityOverview = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == budgetGoalSocialBob.url}
+		weekActivityForGoal.dayActivities["THURSDAY"]
+		def dayActivityInWeekForGoal = weekActivityForGoal.dayActivities["THURSDAY"]
+		dayActivityInWeekForGoal.spread == null // Only in detail
+		dayActivityInWeekForGoal.totalActivityDurationMinutes == 35
+		dayActivityInWeekForGoal.goalAccomplished
+		dayActivityInWeekForGoal.totalMinutesBeyondGoal == 0
+		dayActivityInWeekForGoal.date == null // Only on week overview level
+		dayActivityInWeekForGoal.timeZoneId == null // Only on week overview level
+		dayActivityInWeekForGoal._links."yona:goal" == null //already present on week
+		dayActivityInWeekForGoal._links."yona:dayDetails"
+		dayActivityInWeekForGoal._links.self == null  // This is not a top level or embedded resource
+
+		responseDayOverviews.status == 200
+		def dayOffset = YonaServer.relativeDateStringToDaysOffset(1, "Thu")
+		def dayActivityOverview = responseDayOverviews.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
+		assert dayActivityOverview?.date =~ /\d{4}\-\d{2}\-\d{2}/
+		assert dayActivityOverview.timeZoneId == "Europe/Amsterdam"
+		assert dayActivityOverview.dayActivities?.size() == 1
+		// YD-203 assert dayActivityOverview._links?.self?.href
+		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == budgetGoalSocialBob.url}
+		assert dayActivityForGoal.totalActivityDurationMinutes == 35
+		assert dayActivityForGoal.goalAccomplished
+		assert dayActivityForGoal.totalMinutesBeyondGoal == 0
+		assert dayActivityForGoal.date == null // Only on day overview level
+		assert dayActivityForGoal.timeZoneId == null // Only on day overview level
+		assert dayActivityForGoal._links."yona:dayDetails"
+		assert dayActivityForGoal._links.self == null  // This is not a top level or embedded resource
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
 	def 'Add activity after retrieving the report'()
 	{
 		given:
@@ -389,12 +462,13 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 	void assertCommentingWorks(User richard, User bob, boolean isWeek, Closure userOverviewRetriever, Closure buddyOverviewRetriever, Closure detailsRetriever)
 	{
+		Goal budgetGoalNewsBuddyBob = richard.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal budgetGoalNewsBob = bob.findActiveGoal(NEWS_ACT_CAT_URL)
 
 		def responseOverviewsBobAsBuddyAll = buddyOverviewRetriever(richard)
 		assert responseOverviewsBobAsBuddyAll.status == 200
 
-		def responseDetailsBobAsBuddy = detailsRetriever(responseOverviewsBobAsBuddyAll, richard, budgetGoalNewsBob)
+		def responseDetailsBobAsBuddy = detailsRetriever(responseOverviewsBobAsBuddyAll, richard, budgetGoalNewsBuddyBob)
 		assert responseDetailsBobAsBuddy.responseData._links."yona:addComment".href
 		assert responseDetailsBobAsBuddy.responseData._links."yona:messages".href
 

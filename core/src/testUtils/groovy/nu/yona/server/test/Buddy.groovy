@@ -36,6 +36,11 @@ class Buddy
 		this.editURL = json._links?.edit?.href
 	}
 
+	def findActiveGoal(def activityCategoryUrl)
+	{
+		goals.find{ it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
+	}
+
 	/**
 	 * Finds a goal in the buddy context given the goal from the user context
 	 */
