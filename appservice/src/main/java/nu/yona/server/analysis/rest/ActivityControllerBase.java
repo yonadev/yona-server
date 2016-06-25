@@ -69,7 +69,7 @@ public abstract class ActivityControllerBase
 	protected static final String DATE_PATH_VARIABLE = "date";
 	protected static final int WEEKS_DEFAULT_PAGE_SIZE = 2;
 	protected static final int DAYS_DEFAULT_PAGE_SIZE = 3;
-	protected static final int MESSAGES_DEFAULT_PAGE_SIZE = 3;
+	protected static final int MESSAGES_DEFAULT_PAGE_SIZE = 4;
 
 	protected HttpEntity<PagedResources<WeekActivityOverviewResource>> getWeekActivityOverviews(Optional<String> password,
 			UUID userID, Pageable pageable, PagedResourcesAssembler<WeekActivityOverviewDTO> pagedResourcesAssembler,

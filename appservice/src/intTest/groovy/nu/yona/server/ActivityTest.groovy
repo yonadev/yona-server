@@ -434,18 +434,24 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		replyToMessage(secondReplyMessageSeenByBob, bob, "Yes, it is...", isWeek, responseDetailsBob)
 
-		def responseFinalGetCommentMessagesSeenByRichard = getActivityDetailMessages(responseDetailsBobAsBuddy, richard, 4)
+		def responseThirdGetCommentMessagesSeenByRichard = getActivityDetailMessages(responseDetailsBobAsBuddy, richard, 4)
+		def replyToReplyMessageSeenByRichard = responseThirdGetCommentMessagesSeenByRichard.responseData._embedded."yona:messages"[0]
+		assertCommentMessageDetails(replyToReplyMessageSeenByRichard, richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "Yes, it is...")
+
+		replyToMessage(replyToReplyMessageSeenByRichard, richard, "No budget for a new one?", isWeek, responseDetailsBobAsBuddy)
+
+		def responseFinalGetCommentMessagesSeenByRichard = getActivityDetailMessages(responseDetailsBobAsBuddy, richard, 5)
 		def messagesRichard = responseFinalGetCommentMessagesSeenByRichard.responseData._embedded."yona:messages"
-		assertCommentMessageDetails(messagesRichard[0], richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "Yes, it is...")
-		assertCommentMessageDetails(messagesRichard[1], richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "Too bad!")
-		assertCommentMessageDetails(messagesRichard[2], richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "My battery died :)")
+		assertCommentMessageDetails(messagesRichard[0], richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "No budget for a new one?")
+		assertCommentMessageDetails(messagesRichard[1], richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "Yes, it is...")
+		assertCommentMessageDetails(messagesRichard[2], richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "Too bad!")
 		assertNextPage(responseFinalGetCommentMessagesSeenByRichard, richard)
 
-		def responseFinalGetCommentMessagesSeenByBob = getActivityDetailMessages(responseDetailsBob, bob, 4)
+		def responseFinalGetCommentMessagesSeenByBob = getActivityDetailMessages(responseDetailsBob, bob, 5)
 		def messagesBob = responseFinalGetCommentMessagesSeenByBob.responseData._embedded."yona:messages"
-		assertCommentMessageDetails(messagesBob[0], bob, isWeek, bob, responseDetailsBob.responseData._links.self.href, "Yes, it is...")
-		assertCommentMessageDetails(messagesBob[1], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "Too bad!")
-		assertCommentMessageDetails(messagesBob[2], bob, isWeek, bob, responseDetailsBob.responseData._links.self.href, "My battery died :)")
+		assertCommentMessageDetails(messagesBob[0], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "No budget for a new one?")
+		assertCommentMessageDetails(messagesBob[1], bob, isWeek, bob, responseDetailsBob.responseData._links.self.href, "Yes, it is...")
+		assertCommentMessageDetails(messagesBob[2], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "Too bad!")
 		assertNextPage(responseFinalGetCommentMessagesSeenByBob, bob)
 	}
 
@@ -459,7 +465,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	}
 
 	private getActivityDetailMessages(responseGetActivityDetails, User user, int expectedNumMessages) {
-		int defaultPageSize = 3
+		int defaultPageSize = 4
 		int expectedNumMessagesInPage = Math.min(expectedNumMessages, defaultPageSize)
 		def response = appService.yonaServer.getResourceWithPassword(responseGetActivityDetails.responseData._links."yona:messages".href, user.password)
 
@@ -480,13 +486,13 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	}
 
 	private void assertNextPage(responseGetActivityDetails, User user) {
-		int defaultPageSize = 3
+		int defaultPageSize = 4
 		def response = appService.yonaServer.getResourceWithPassword(responseGetActivityDetails.responseData._links.next.href, user.password)
 
 		assert response.status == 200
 		assert response.responseData?._embedded?."yona:messages"?.size() == 1
 		assert response.responseData.page.size == defaultPageSize
-		assert response.responseData.page.totalElements == 4
+		assert response.responseData.page.totalElements == 5
 		assert response.responseData.page.totalPages == 2
 		assert response.responseData.page.number == 1
 
