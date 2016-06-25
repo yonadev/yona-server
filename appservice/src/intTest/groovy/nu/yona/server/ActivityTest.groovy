@@ -391,61 +391,61 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		Goal budgetGoalNewsBob = bob.findActiveGoal(NEWS_ACT_CAT_URL)
 
-		def responseXOverviewsBobAsBuddyAll = buddyOverviewRetriever(richard)
-		assert responseXOverviewsBobAsBuddyAll.status == 200
+		def responseOverviewsBobAsBuddyAll = buddyOverviewRetriever(richard)
+		assert responseOverviewsBobAsBuddyAll.status == 200
 
-		def responseXDetailsBobAsBuddy = detailsRetriever(responseXOverviewsBobAsBuddyAll, richard, budgetGoalNewsBob)
-		assert responseXDetailsBobAsBuddy.responseData._links."yona:addComment".href
-		assert responseXDetailsBobAsBuddy.responseData._links."yona:messages".href
+		def responseDetailsBobAsBuddy = detailsRetriever(responseOverviewsBobAsBuddyAll, richard, budgetGoalNewsBob)
+		assert responseDetailsBobAsBuddy.responseData._links."yona:addComment".href
+		assert responseDetailsBobAsBuddy.responseData._links."yona:messages".href
 
 		def message = """{"message": "You're quiet!"}"""
-		def responseAddMessage = appService.yonaServer.createResourceWithPassword(responseXDetailsBobAsBuddy.responseData._links."yona:addComment".href, message, richard.password)
+		def responseAddMessage = appService.yonaServer.createResourceWithPassword(responseDetailsBobAsBuddy.responseData._links."yona:addComment".href, message, richard.password)
 
 		assert responseAddMessage.status == 200
 		def addedMessage = responseAddMessage.responseData
-		assertCommentMessageDetails(addedMessage, richard, isWeek, richard, responseXDetailsBobAsBuddy.responseData._links.self.href, "You're quiet!")
+		assertCommentMessageDetails(addedMessage, richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "You're quiet!")
 
-		def responseInitialGetCommentMessagesSeenByRichard = getActivityDetailMessages(responseXDetailsBobAsBuddy, richard, 1)
+		def responseInitialGetCommentMessagesSeenByRichard = getActivityDetailMessages(responseDetailsBobAsBuddy, richard, 1)
 		def initialMessageSeenByRichard = responseInitialGetCommentMessagesSeenByRichard.responseData._embedded."yona:messages"[0]
-		assertCommentMessageDetails(addedMessage, richard, isWeek, richard, responseXDetailsBobAsBuddy.responseData._links.self.href, "You're quiet!")
+		assertCommentMessageDetails(addedMessage, richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "You're quiet!")
 
-		def responseXOverviewsBobAll = userOverviewRetriever(bob)
-		assert responseXOverviewsBobAll.status == 200
+		def responseOverviewsBobAll = userOverviewRetriever(bob)
+		assert responseOverviewsBobAll.status == 200
 
-		def responseXDetailsBob = detailsRetriever(responseXOverviewsBobAll, bob, budgetGoalNewsBob)
-		assert responseXDetailsBob.responseData._links."yona:addComment" == null
-		assert responseXDetailsBob.responseData._links."yona:messages".href
+		def responseDetailsBob = detailsRetriever(responseOverviewsBobAll, bob, budgetGoalNewsBob)
+		assert responseDetailsBob.responseData._links."yona:addComment" == null
+		assert responseDetailsBob.responseData._links."yona:messages".href
 
-		def responseInitialGetCommentMessagesSeenByBob = getActivityDetailMessages(responseXDetailsBob, bob, 1)
+		def responseInitialGetCommentMessagesSeenByBob = getActivityDetailMessages(responseDetailsBob, bob, 1)
 		def initialMessageSeenByBob = responseInitialGetCommentMessagesSeenByBob.responseData._embedded."yona:messages"[0]
-		assertCommentMessageDetails(initialMessageSeenByBob, bob, isWeek, bob.buddies[0], responseXDetailsBob.responseData._links.self.href, "You're quiet!")
+		assertCommentMessageDetails(initialMessageSeenByBob, bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "You're quiet!")
 
-		replyToMessage(initialMessageSeenByBob, bob, "My battery died :)", isWeek, responseXDetailsBob)
+		replyToMessage(initialMessageSeenByBob, bob, "My battery died :)", isWeek, responseDetailsBob)
 
-		def responseSecondGetCommentMessagesSeenByRichard = getActivityDetailMessages(responseXDetailsBobAsBuddy, richard, 2)
+		def responseSecondGetCommentMessagesSeenByRichard = getActivityDetailMessages(responseDetailsBobAsBuddy, richard, 2)
 		def replyMessageSeenByRichard = responseSecondGetCommentMessagesSeenByRichard.responseData._embedded."yona:messages"[0]
-		assertCommentMessageDetails(replyMessageSeenByRichard, richard, isWeek, richard.buddies[0], responseXDetailsBobAsBuddy.responseData._links.self.href, "My battery died :)")
+		assertCommentMessageDetails(replyMessageSeenByRichard, richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "My battery died :)")
 
-		replyToMessage(replyMessageSeenByRichard, richard, "Too bad!", isWeek, responseXDetailsBobAsBuddy)
+		replyToMessage(replyMessageSeenByRichard, richard, "Too bad!", isWeek, responseDetailsBobAsBuddy)
 
-		def responseSecondGetCommentMessagesSeenByBob = getActivityDetailMessages(responseXDetailsBob, bob, 3)
+		def responseSecondGetCommentMessagesSeenByBob = getActivityDetailMessages(responseDetailsBob, bob, 3)
 		def secondReplyMessageSeenByBob = responseSecondGetCommentMessagesSeenByBob.responseData._embedded."yona:messages"[0]
-		assertCommentMessageDetails(secondReplyMessageSeenByBob, bob, isWeek, bob.buddies[0], responseXDetailsBob.responseData._links.self.href, "Too bad!")
+		assertCommentMessageDetails(secondReplyMessageSeenByBob, bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "Too bad!")
 
-		replyToMessage(secondReplyMessageSeenByBob, bob, "Yes, it is...", isWeek, responseXDetailsBob)
+		replyToMessage(secondReplyMessageSeenByBob, bob, "Yes, it is...", isWeek, responseDetailsBob)
 
-		def responseFinalGetCommentMessagesSeenByRichard = getActivityDetailMessages(responseXDetailsBobAsBuddy, richard, 4)
+		def responseFinalGetCommentMessagesSeenByRichard = getActivityDetailMessages(responseDetailsBobAsBuddy, richard, 4)
 		def messagesRichard = responseFinalGetCommentMessagesSeenByRichard.responseData._embedded."yona:messages"
-		assertCommentMessageDetails(messagesRichard[0], richard, isWeek, richard.buddies[0], responseXDetailsBobAsBuddy.responseData._links.self.href, "Yes, it is...")
-		assertCommentMessageDetails(messagesRichard[1], richard, isWeek, richard, responseXDetailsBobAsBuddy.responseData._links.self.href, "Too bad!")
-		assertCommentMessageDetails(messagesRichard[2], richard, isWeek, richard.buddies[0], responseXDetailsBobAsBuddy.responseData._links.self.href, "My battery died :)")
+		assertCommentMessageDetails(messagesRichard[0], richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "Yes, it is...")
+		assertCommentMessageDetails(messagesRichard[1], richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "Too bad!")
+		assertCommentMessageDetails(messagesRichard[2], richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "My battery died :)")
 		assertNextPage(responseFinalGetCommentMessagesSeenByRichard, richard)
 
-		def responseFinalGetCommentMessagesSeenByBob = getActivityDetailMessages(responseXDetailsBob, bob, 4)
+		def responseFinalGetCommentMessagesSeenByBob = getActivityDetailMessages(responseDetailsBob, bob, 4)
 		def messagesBob = responseFinalGetCommentMessagesSeenByBob.responseData._embedded."yona:messages"
-		assertCommentMessageDetails(messagesBob[0], bob, isWeek, bob, responseXDetailsBob.responseData._links.self.href, "Yes, it is...")
-		assertCommentMessageDetails(messagesBob[1], bob, isWeek, bob.buddies[0], responseXDetailsBob.responseData._links.self.href, "Too bad!")
-		assertCommentMessageDetails(messagesBob[2], bob, isWeek, bob, responseXDetailsBob.responseData._links.self.href, "My battery died :)")
+		assertCommentMessageDetails(messagesBob[0], bob, isWeek, bob, responseDetailsBob.responseData._links.self.href, "Yes, it is...")
+		assertCommentMessageDetails(messagesBob[1], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "Too bad!")
+		assertCommentMessageDetails(messagesBob[2], bob, isWeek, bob, responseDetailsBob.responseData._links.self.href, "My battery died :)")
 		assertNextPage(responseFinalGetCommentMessagesSeenByBob, bob)
 	}
 
