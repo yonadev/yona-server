@@ -33,9 +33,9 @@ import nu.yona.server.analysis.service.PostPutActivityCommentMessageDTO;
 import nu.yona.server.analysis.service.WeekActivityDTO;
 import nu.yona.server.analysis.service.WeekActivityOverviewDTO;
 import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.messaging.service.MessageDTO;
+import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.GoalIDMapping;
 
@@ -222,7 +222,7 @@ public class BuddyActivityController extends ActivityControllerBase
 		@Override
 		public ControllerLinkBuilder getGoalLinkBuilder(UUID goalID)
 		{
-			return GoalController.getGoalLinkBuilder(buddyService.getBuddy(buddyID).getUser().getID(), goalID);
+			return BuddyController.getGoalLinkBuilder(userID, buddyID, goalID);
 		}
 
 		@Override
