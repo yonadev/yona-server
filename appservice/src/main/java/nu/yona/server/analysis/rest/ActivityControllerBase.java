@@ -45,7 +45,7 @@ import nu.yona.server.subscriptions.service.UserService;
 /*
  * Activity controller base class.
  */
-public abstract class ActivityControllerBase
+abstract class ActivityControllerBase
 {
 	@Autowired
 	protected ActivityService activityService;
