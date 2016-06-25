@@ -18,6 +18,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
@@ -25,6 +26,11 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 @Table(name = "INTERVAL_ACTIVITIES")
 public abstract class IntervalActivity extends EntityWithID
 {
+	public static IntervalActivityRepository getIntervalActivityRepository()
+	{
+		return (IntervalActivityRepository) RepositoryProvider.getRepository(IntervalActivity.class, UUID.class);
+	}
+
 	public static final int SPREAD_COUNT = 96;
 
 	@ManyToOne

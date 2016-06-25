@@ -26,20 +26,26 @@ import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import nu.yona.server.analysis.entities.IntervalActivity;
+import nu.yona.server.analysis.entities.WeekActivity;
+import nu.yona.server.analysis.service.ActivityCommentMessageDTO;
 import nu.yona.server.analysis.service.ActivityService;
 import nu.yona.server.analysis.service.DayActivityDTO;
 import nu.yona.server.analysis.service.DayActivityOverviewDTO;
 import nu.yona.server.analysis.service.WeekActivityDTO;
 import nu.yona.server.analysis.service.WeekActivityOverviewDTO;
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.messaging.rest.MessageController.MessageResourceAssembler;
 import nu.yona.server.messaging.service.MessageDTO;
+import nu.yona.server.subscriptions.rest.BuddyController;
+import nu.yona.server.subscriptions.service.GoalIDMapping;
 import nu.yona.server.subscriptions.service.UserService;
 
 /*
  * Activity controller base class.
  */
-abstract class ActivityControllerBase
+public abstract class ActivityControllerBase
 {
 	@Autowired
 	protected ActivityService activityService;
@@ -49,6 +55,9 @@ abstract class ActivityControllerBase
 
 	@Autowired
 	private CurieProvider curieProvider;
+
+	@Autowired
+	private MessageController messageController;
 
 	protected static final String WEEK_ACTIVITY_OVERVIEWS_URI_FRAGMENT = "/weeks/";
 	protected static final String DAY_OVERVIEWS_URI_FRAGMENT = "/days/";
@@ -105,9 +114,68 @@ abstract class ActivityControllerBase
 			Pageable pageable, PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler,
 			Supplier<Page<MessageDTO>> messageSupplier, LinkProvider linkProvider)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> new ResponseEntity<>(
-				pagedResourcesAssembler.toResource(messageSupplier.get(), new MessageResourceAssembler(curieProvider, userID)),
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> new ResponseEntity<>(
+						pagedResourcesAssembler.toResource(messageSupplier.get(),
+								new MessageResourceAssembler(curieProvider, createGoalIDMapping(userID), messageController)),
 				HttpStatus.OK));
+	}
+
+	protected GoalIDMapping createGoalIDMapping(UUID userID)
+	{
+		return GoalIDMapping.createInstance(userService.getPrivateUser(userID));
+	}
+
+	public abstract void addLinks(GoalIDMapping goalIDMapping, IntervalActivity activity, ActivityCommentMessageDTO message);
+
+	protected void addStandardLinks(GoalIDMapping goalIDMapping, LinkProvider linkProvider, IntervalActivity activity,
+			ActivityCommentMessageDTO message)
+	{
+		if (activity instanceof WeekActivity)
+		{
+			addWeekDetailsLink(linkProvider, activity, message);
+		}
+		else
+		{
+			addDayDetailsLink(linkProvider, activity, message);
+		}
+		if (!message.getUser().getID().equals(goalIDMapping.getUserID()))
+		{
+			UUID buddyID = determineBuddyID(goalIDMapping, message);
+			addBuddyLink(goalIDMapping.getUserID(), buddyID, message);
+		}
+		message.getRepliedMessageID().ifPresent(rmid -> addRepliedMessageLink(goalIDMapping.getUserID(), rmid, message));
+	}
+
+	private UUID determineBuddyID(GoalIDMapping goalIDMapping, ActivityCommentMessageDTO message)
+	{
+		return goalIDMapping.getUser().getPrivateData().getBuddies().stream()
+				.filter(b -> b.getUser().getID().equals(message.getUser().getID())).map(b -> b.getID()).findAny()
+				.orElseThrow(() -> new IllegalArgumentException("User with ID " + message.getUser().getID() + "is not a buddy"));
+	}
+
+	private void addWeekDetailsLink(LinkProvider linkProvider, IntervalActivity activity, ActivityCommentMessageDTO message)
+	{
+		message.add(linkProvider
+				.getWeekActivityDetailLinkBuilder(WeekActivityDTO.formatDate(activity.getDate()), activity.getGoal().getID())
+				.withRel("weekDetails"));
+	}
+
+	private void addDayDetailsLink(LinkProvider linkProvider, IntervalActivity activity, ActivityCommentMessageDTO message)
+	{
+		message.add(linkProvider
+				.getDayActivityDetailLinkBuilder(DayActivityDTO.formatDate(activity.getDate()), activity.getGoal().getID())
+				.withRel("dayDetails"));
+	}
+
+	private void addRepliedMessageLink(UUID userID, UUID repliedMessageID, ActivityCommentMessageDTO message)
+	{
+		message.add(MessageController.getAnonymousMessageLinkBuilder(userID, repliedMessageID).withRel("repliedMessage"));
+	}
+
+	private void addBuddyLink(UUID userID, UUID buddyID, ActivityCommentMessageDTO message)
+	{
+		message.add(BuddyController.getBuddyLinkBuilder(userID, buddyID).withRel("buddy"));
 	}
 
 	interface LinkProvider

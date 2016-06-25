@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import nu.yona.server.analysis.entities.IntervalActivity;
+import nu.yona.server.analysis.service.ActivityCommentMessageDTO;
 import nu.yona.server.analysis.service.DayActivityDTO;
 import nu.yona.server.analysis.service.DayActivityOverviewDTO;
 import nu.yona.server.analysis.service.PostPutActivityCommentMessageDTO;
@@ -35,6 +37,7 @@ import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.GoalIDMapping;
 
 /*
  * Controller to retrieve activity data for a user.
@@ -112,9 +115,9 @@ public class BuddyActivityController extends ActivityControllerBase
 						() -> userService
 								.canAccessPrivateData(
 										userID),
-						() -> new ResponseEntity<>(
-								messageController.toMessageResource(userID, activityService.addMessageToWeekActivity(userID,
-										buddyID, WeekActivityDTO.parseDate(dateStr), goalID, newMessage)),
+						() -> new ResponseEntity<>(messageController.toMessageResource(createGoalIDMapping(userID),
+								activityService.addMessageToWeekActivity(userID, buddyID, WeekActivityDTO.parseDate(dateStr),
+										goalID, newMessage)),
 								HttpStatus.OK));
 	}
 
@@ -157,9 +160,18 @@ public class BuddyActivityController extends ActivityControllerBase
 						() -> userService
 								.canAccessPrivateData(
 										userID),
-						() -> new ResponseEntity<>(messageController.toMessageResource(userID, activityService
-								.addMessageToDayActivity(userID, buddyID, DayActivityDTO.parseDate(dateStr), goalID, newMessage)),
-				HttpStatus.OK));
+						() -> new ResponseEntity<>(messageController.toMessageResource(createGoalIDMapping(userID),
+								activityService.addMessageToDayActivity(userID, buddyID, DayActivityDTO.parseDate(dateStr),
+										goalID, newMessage)),
+								HttpStatus.OK));
+	}
+
+	@Override
+	public void addLinks(GoalIDMapping goalIDMapping, IntervalActivity activity, ActivityCommentMessageDTO message)
+	{
+		LinkProvider linkProvider = new BuddyActivityLinkProvider(buddyService, goalIDMapping.getUserID(),
+				goalIDMapping.getBuddyID(activity.getGoal().getID()));
+		addStandardLinks(goalIDMapping, linkProvider, activity, message);
 	}
 
 	public static ControllerLinkBuilder getBuddyDayActivityOverviewsLinkBuilder(UUID userID, UUID buddyID)

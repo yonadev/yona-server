@@ -6,6 +6,7 @@ package nu.yona.server.analysis.service;
 
 import java.time.ZonedDateTime;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -14,11 +15,12 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.ActivityCommentMessage;
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDTO;
+import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
@@ -27,16 +29,20 @@ import nu.yona.server.messaging.service.MessageServiceException;
 import nu.yona.server.subscriptions.service.UserDTO;
 
 @JsonRootName("activityCommentMessage")
-public class ActivityCommentMessageDTO extends BuddyMessageEmbeddedUserDTO
+public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 {
 	private static final String MESSAGE_PROPERTY = "message";
 	private static final String REPLY = "reply";
 	private final boolean canReplyTo;
+	private final UUID activityID;
+	private final Optional<UUID> repliedMessageID;
 
 	private ActivityCommentMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO senderUser, UUID senderUserAnonymizedID,
-			String senderNickname, String message, boolean canReplyTo)
+			String senderNickname, UUID activityID, Optional<UUID> repliedMessageID, String message, boolean canReplyTo)
 	{
 		super(id, creationTime, senderUser, senderNickname, message);
+		this.activityID = activityID;
+		this.repliedMessageID = repliedMessageID;
 		this.canReplyTo = canReplyTo;
 	}
 
@@ -63,12 +69,25 @@ public class ActivityCommentMessageDTO extends BuddyMessageEmbeddedUserDTO
 		return true;
 	}
 
+	@JsonIgnore
+	public UUID getActivityID()
+	{
+		return activityID;
+	}
+
+	@JsonIgnore
+	public Optional<UUID> getRepliedMessageID()
+	{
+		return repliedMessageID;
+	}
+
 	public static ActivityCommentMessageDTO createInstance(UserDTO actingUser, ActivityCommentMessage messageEntity)
 	{
 		boolean canReplyTo = !actingUser.getID().equals(messageEntity.getSenderUserID());
 		return new ActivityCommentMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
 				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getRelatedUserAnonymizedID(),
-				messageEntity.getSenderNickname(), messageEntity.getMessage(), canReplyTo);
+				messageEntity.getSenderNickname(), messageEntity.getActivityID(), messageEntity.getRepliedMessageID(),
+				messageEntity.getMessage(), canReplyTo);
 	}
 
 	@Component
