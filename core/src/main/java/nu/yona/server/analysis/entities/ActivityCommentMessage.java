@@ -27,9 +27,9 @@ public class ActivityCommentMessage extends BuddyMessage
 	private ActivityCommentMessage senderCopyMessage;
 
 	private ActivityCommentMessage(UUID id, UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname,
-			UUID activityID, String message, Optional<UUID> repliedMessageID)
+			UUID activityID, boolean isSentItem, String message, Optional<UUID> repliedMessageID)
 	{
-		super(id, senderUserID, senderUserAnonymizedID, senderNickname, message);
+		super(id, senderUserID, senderUserAnonymizedID, senderNickname, isSentItem, message);
 		this.activityID = activityID;
 		this.repliedMessageID = repliedMessageID.orElse(null);
 	}
@@ -61,9 +61,9 @@ public class ActivityCommentMessage extends BuddyMessage
 	}
 
 	public static ActivityCommentMessage createInstance(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname,
-			UUID actitityID, String message, Optional<UUID> repliedMessageID)
+			UUID actitityID, boolean isSentItem, String message, Optional<UUID> repliedMessageID)
 	{
 		return new ActivityCommentMessage(UUID.randomUUID(), senderUserID, senderUserAnonymizedID, senderNickname, actitityID,
-				message, repliedMessageID);
+				isSentItem, message, repliedMessageID);
 	}
 }

@@ -86,7 +86,7 @@ public class MessageController
 	{
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(pagedResourcesAssembler.toResource(messageService.getMessages(userID, pageable),
+				() -> createOKResponse(pagedResourcesAssembler.toResource(messageService.getReceivedMessages(userID, pageable),
 						new MessageResourceAssembler(curieProvider, createGoalIDMapping(userID), this))));
 	}
 

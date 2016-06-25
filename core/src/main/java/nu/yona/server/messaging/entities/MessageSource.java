@@ -79,6 +79,13 @@ public class MessageSource extends EntityWithID
 		return messages;
 	}
 
+	public Page<Message> getReceivedMessages(Pageable pageable)
+	{
+		Page<Message> messages = messageDestination.getReceivedMessages(pageable);
+		decryptMessagePage(messages);
+		return messages;
+	}
+
 	private void decryptMessagePage(Page<Message> messages)
 	{
 		PublicKeyDecryptor decryptor = PublicKeyDecryptor.createInstance(loadPrivateKey());

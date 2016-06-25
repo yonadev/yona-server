@@ -38,14 +38,14 @@ public class MessageService
 	private TheDTOManager dtoManager;
 
 	@Transactional
-	public Page<MessageDTO> getMessages(UUID userID, Pageable pageable)
+	public Page<MessageDTO> getReceivedMessages(UUID userID, Pageable pageable)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
 
 		transferDirectMessagesToAnonymousDestination(user);
 
 		MessageSource messageSource = getAnonymousMessageSource(user);
-		return wrapAllMessagesAsDTOs(user, messageSource, pageable);
+		return wrapAllReceivedMessagesAsDTOs(user, messageSource, pageable);
 	}
 
 	public MessageDTO getMessage(UUID userID, UUID messageID)
@@ -116,9 +116,9 @@ public class MessageService
 		return MessageSource.getRepository().findOne(user.getPrivateData().getAnonymousMessageSourceID());
 	}
 
-	private Page<MessageDTO> wrapAllMessagesAsDTOs(UserDTO user, MessageSource messageSource, Pageable pageable)
+	private Page<MessageDTO> wrapAllReceivedMessagesAsDTOs(UserDTO user, MessageSource messageSource, Pageable pageable)
 	{
-		return wrapMessagesAsDTOs(user, messageSource.getMessages(pageable), pageable);
+		return wrapMessagesAsDTOs(user, messageSource.getReceivedMessages(pageable), pageable);
 	}
 
 	private Page<MessageDTO> wrapMessagesAsDTOs(UserDTO user, Page<? extends Message> messageEntities, Pageable pageable)

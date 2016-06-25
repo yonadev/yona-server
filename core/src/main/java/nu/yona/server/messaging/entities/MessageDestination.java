@@ -76,6 +76,11 @@ public class MessageDestination extends EntityWithID
 		return Message.getRepository().findFromDestination(this.getID(), pageable);
 	}
 
+	public Page<Message> getReceivedMessages(Pageable pageable)
+	{
+		return Message.getRepository().findReceivedMessagesFromDestination(this.getID(), pageable);
+	}
+
 	private PublicKey loadPublicKey()
 	{
 		if (publicKey == null)

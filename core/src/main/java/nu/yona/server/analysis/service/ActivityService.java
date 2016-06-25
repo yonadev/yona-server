@@ -454,9 +454,9 @@ public class ActivityService
 			String message)
 	{
 		ActivityCommentMessage messageToBuddy = createMessage(sendingUser, activityID,
-				repliedMessageOfBuddy.map(ActivityCommentMessage::getID), message);
+				repliedMessageOfBuddy.map(ActivityCommentMessage::getID), false, message);
 		ActivityCommentMessage messageToSelf = createMessage(sendingUser, activityID,
-				repliedMessageOfSelf.map(ActivityCommentMessage::getID), message);
+				repliedMessageOfSelf.map(ActivityCommentMessage::getID), true, message);
 		sendMessage(sendingUser.getPrivateData().getUserAnonymizedID(), messageToSelf);
 		messageToBuddy.setSenderCopyMessage(messageToSelf);
 		sendMessage(targetUserAnonymizedID, messageToBuddy);
@@ -471,11 +471,11 @@ public class ActivityService
 	}
 
 	private ActivityCommentMessage createMessage(UserDTO sendingUser, UUID activityID, Optional<UUID> repliedMessageID,
-			String message)
+			boolean isSentItem, String message)
 	{
 		ActivityCommentMessage messageEntity = ActivityCommentMessage.createInstance(sendingUser.getID(),
 				sendingUser.getPrivateData().getUserAnonymizedID(), sendingUser.getPrivateData().getNickname(), activityID,
-				message, repliedMessageID);
+				isSentItem, message, repliedMessageID);
 		return messageEntity;
 	}
 

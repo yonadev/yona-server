@@ -36,7 +36,13 @@ public abstract class BuddyMessage extends Message
 
 	protected BuddyMessage(UUID id, UUID senderUserID, UUID senderUserAnonymizedID, String senderUserNickname, String message)
 	{
-		super(id, senderUserAnonymizedID);
+		this(id, senderUserID, senderUserAnonymizedID, senderUserNickname, false, message);
+	}
+
+	protected BuddyMessage(UUID id, UUID senderUserID, UUID senderUserAnonymizedID, String senderUserNickname, boolean isSentItem,
+			String message)
+	{
+		super(id, senderUserAnonymizedID, isSentItem);
 		this.senderUserID = senderUserID;
 		this.senderNickname = senderUserNickname;
 		this.message = message;
