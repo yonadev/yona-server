@@ -4,14 +4,10 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,18 +30,21 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import nu.yona.server.analysis.entities.IntervalActivity;
+import nu.yona.server.analysis.service.ActivityCommentMessageDTO;
 import nu.yona.server.analysis.service.DayActivityDTO;
 import nu.yona.server.analysis.service.DayActivityOverviewDTO;
 import nu.yona.server.analysis.service.DayActivityWithBuddiesDTO;
 import nu.yona.server.analysis.service.DayActivityWithBuddiesDTO.ActivityForOneUser;
+import nu.yona.server.analysis.service.WeekActivityDTO;
 import nu.yona.server.analysis.service.WeekActivityOverviewDTO;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.ActivityCategoryController;
 import nu.yona.server.goals.rest.GoalController;
-import nu.yona.server.goals.service.GoalDTO;
+import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.rest.UserController;
-import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.subscriptions.service.GoalIDMapping;
 
 /*
  * Controller to retrieve activity data for a user.
@@ -86,6 +85,20 @@ public class UserActivityController extends ActivityControllerBase
 				date -> activityService.getUserWeekActivityDetail(userID, date, goalID), new UserActivityLinkProvider(userID));
 	}
 
+	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<PagedResources<MessageDTO>> getUserWeekActivityDetailMessages(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr, @PathVariable(value = GOAL_PATH_VARIABLE) UUID goalID,
+			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
+			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
+	{
+		return getActivityDetailMessages(
+				password, userID, pageable, pagedResourcesAssembler, () -> activityService
+						.getUserWeekActivityDetailMessages(userID, WeekActivityDTO.parseDate(dateStr), goalID, pageable),
+				new UserActivityLinkProvider(userID));
+	}
+
 	@RequestMapping(value = DAY_ACTIVITY_DETAIL_URI_FRAGMENT, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<DayActivityResource> getUserDayActivityDetail(
@@ -94,6 +107,20 @@ public class UserActivityController extends ActivityControllerBase
 	{
 		return getDayActivityDetail(password, userID, dateStr,
 				date -> activityService.getUserDayActivityDetail(userID, date, goalID), new UserActivityLinkProvider(userID));
+	}
+
+	@RequestMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<PagedResources<MessageDTO>> getUserDayActivityDetailMessages(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
+			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr, @PathVariable(value = GOAL_PATH_VARIABLE) UUID goalID,
+			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
+			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
+	{
+		return getActivityDetailMessages(
+				password, userID, pageable, pagedResourcesAssembler, () -> activityService
+						.getUserDayActivityDetailMessages(userID, DayActivityDTO.parseDate(dateStr), goalID, pageable),
+				new UserActivityLinkProvider(userID));
 	}
 
 	@RequestMapping(value = "/withBuddies/days/", method = RequestMethod.GET)
@@ -124,6 +151,13 @@ public class UserActivityController extends ActivityControllerBase
 		GoalIDMapping goalIDMapping = GoalIDMapping.createInstance(userService.getPrivateUser(userID));
 		return new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
 				new DayActivityOverviewWithBuddiesResourceAssembler(goalIDMapping)), HttpStatus.OK);
+	}
+
+	@Override
+	public void addLinks(GoalIDMapping goalIDMapping, IntervalActivity activity, ActivityCommentMessageDTO message)
+	{
+		LinkProvider linkProvider = new UserActivityLinkProvider(goalIDMapping.getUserID());
+		addStandardLinks(goalIDMapping, linkProvider, activity, message);
 	}
 
 	public static ControllerLinkBuilder getUserDayActivityOverviewsLinkBuilder(UUID userID)
@@ -177,49 +211,31 @@ public class UserActivityController extends ActivityControllerBase
 		{
 			return GoalController.getGoalLinkBuilder(userID, goalID);
 		}
-	}
 
-	private static class GoalIDMapping
-	{
-		private final UUID userID;
-		private final Set<UUID> userGoalIDs;
-		private final Map<UUID, UUID> goalIDToBuddyIDmapping;
-
-		private GoalIDMapping(UUID userID, Set<UUID> userGoalIDs, Map<UUID, UUID> goalIDToBuddyIDmapping)
+		@Override
+		public ControllerLinkBuilder getDayActivityDetailMessagesLinkBuilder(String dateStr, UUID goalID)
 		{
-			this.userID = userID;
-			this.userGoalIDs = userGoalIDs;
-			this.goalIDToBuddyIDmapping = goalIDToBuddyIDmapping;
+			UserActivityController methodOn = methodOn(UserActivityController.class);
+			return linkTo(methodOn.getUserDayActivityDetailMessages(Optional.empty(), userID, dateStr, goalID, null, null));
 		}
 
-		public UUID getUserID()
+		@Override
+		public Optional<ControllerLinkBuilder> getDayActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalID)
 		{
-			return userID;
+			return Optional.empty();
 		}
 
-		public boolean isUserGoal(UUID goalID)
+		@Override
+		public ControllerLinkBuilder getWeekActivityDetailMessagesLinkBuilder(String dateStr, UUID goalID)
 		{
-			return userGoalIDs.contains(goalID);
+			UserActivityController methodOn = methodOn(UserActivityController.class);
+			return linkTo(methodOn.getUserWeekActivityDetailMessages(Optional.empty(), userID, dateStr, goalID, null, null));
 		}
 
-		public UUID getBuddyID(UUID goalID)
+		@Override
+		public Optional<ControllerLinkBuilder> getWeekActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalID)
 		{
-			UUID uuid = goalIDToBuddyIDmapping.get(goalID);
-			if (uuid == null)
-			{
-				throw new IllegalArgumentException("Goal " + goalID + " not found");
-			}
-			return uuid;
-		}
-
-		static GoalIDMapping createInstance(UserDTO user)
-		{
-			UUID userID = user.getID();
-			Set<UUID> userGoalIDs = user.getPrivateData().getGoals().stream().map(GoalDTO::getID).collect(Collectors.toSet());
-			Map<UUID, UUID> goalIDToBuddyIDmapping = new HashMap<>();
-			user.getPrivateData().getBuddies()
-					.forEach(b -> b.getGoals().forEach(g -> goalIDToBuddyIDmapping.put(g.getID(), b.getID())));
-			return new GoalIDMapping(userID, userGoalIDs, goalIDToBuddyIDmapping);
+			return Optional.empty();
 		}
 	}
 

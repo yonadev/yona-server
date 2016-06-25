@@ -62,6 +62,11 @@ public class DayActivityDTO extends IntervalActivityDTO
 		return LocalDate.parse(iso8601, ISO8601_DAY_FORMATTER);
 	}
 
+	public static String formatDate(LocalDate date)
+	{
+		return date.format(ISO8601_DAY_FORMATTER);
+	}
+
 	static DayActivityDTO createInstance(DayActivity dayActivity, LevelOfDetail levelOfDetail)
 	{
 		return new DayActivityDTO(dayActivity.getGoal().getID(), dayActivity.getStartTime(),

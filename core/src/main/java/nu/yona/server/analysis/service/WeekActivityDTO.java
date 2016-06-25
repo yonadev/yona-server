@@ -50,6 +50,11 @@ public class WeekActivityDTO extends IntervalActivityDTO
 		return LocalDate.parse(iso8601, ISO8601_WEEK_FORMATTER);
 	}
 
+	public static String formatDate(LocalDate date)
+	{
+		return date.format(ISO8601_WEEK_FORMATTER);
+	}
+
 	static WeekActivityDTO createInstance(WeekActivity weekActivity, LevelOfDetail levelOfDetail)
 	{
 		boolean includeDetail = levelOfDetail == LevelOfDetail.WeekDetail;

@@ -19,9 +19,11 @@ import nu.yona.server.entities.RepositoryProvider;
 @Table(name = "MESSAGES")
 public abstract class Message extends EntityWithID
 {
-	private UUID relatedUserAnonymizedID;
+	private final UUID relatedUserAnonymizedID;
 
-	private ZonedDateTime creationTime;
+	private final ZonedDateTime creationTime;
+
+	private final boolean isSentItem;
 
 	public static MessageRepository getRepository()
 	{
@@ -37,10 +39,16 @@ public abstract class Message extends EntityWithID
 	 */
 	protected Message(UUID id, UUID relatedUserAnonymizedID)
 	{
+		this(id, relatedUserAnonymizedID, false);
+	}
+
+	protected Message(UUID id, UUID relatedUserAnonymizedID, boolean isSentItem)
+	{
 		super(id);
 
 		this.relatedUserAnonymizedID = relatedUserAnonymizedID;
 		this.creationTime = ZonedDateTime.now();
+		this.isSentItem = isSentItem;
 	}
 
 	public void encryptMessage(Encryptor encryptor)
@@ -56,6 +64,11 @@ public abstract class Message extends EntityWithID
 	public ZonedDateTime getCreationTime()
 	{
 		return creationTime;
+	}
+
+	public boolean isSentItem()
+	{
+		return isSentItem;
 	}
 
 	/**

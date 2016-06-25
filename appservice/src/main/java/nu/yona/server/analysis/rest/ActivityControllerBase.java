@@ -17,6 +17,7 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
@@ -25,12 +26,20 @@ import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import nu.yona.server.analysis.entities.IntervalActivity;
+import nu.yona.server.analysis.entities.WeekActivity;
+import nu.yona.server.analysis.service.ActivityCommentMessageDTO;
 import nu.yona.server.analysis.service.ActivityService;
 import nu.yona.server.analysis.service.DayActivityDTO;
 import nu.yona.server.analysis.service.DayActivityOverviewDTO;
 import nu.yona.server.analysis.service.WeekActivityDTO;
 import nu.yona.server.analysis.service.WeekActivityOverviewDTO;
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.messaging.rest.MessageController;
+import nu.yona.server.messaging.rest.MessageController.MessageResourceAssembler;
+import nu.yona.server.messaging.service.MessageDTO;
+import nu.yona.server.subscriptions.rest.BuddyController;
+import nu.yona.server.subscriptions.service.GoalIDMapping;
 import nu.yona.server.subscriptions.service.UserService;
 
 /*
@@ -44,14 +53,23 @@ abstract class ActivityControllerBase
 	@Autowired
 	protected UserService userService;
 
+	@Autowired
+	private CurieProvider curieProvider;
+
+	@Autowired
+	private MessageController messageController;
+
 	protected static final String WEEK_ACTIVITY_OVERVIEWS_URI_FRAGMENT = "/weeks/";
 	protected static final String DAY_OVERVIEWS_URI_FRAGMENT = "/days/";
 	protected static final String WEEK_ACTIVITY_DETAIL_URI_FRAGMENT = "/weeks/{date}/details/{goalID}";
+	protected static final String WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT = WEEK_ACTIVITY_DETAIL_URI_FRAGMENT + "/messages/";
 	protected static final String DAY_ACTIVITY_DETAIL_URI_FRAGMENT = "/days/{date}/details/{goalID}";
+	protected static final String DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT = DAY_ACTIVITY_DETAIL_URI_FRAGMENT + "/messages/";
 	protected static final String GOAL_PATH_VARIABLE = "goalID";
 	protected static final String DATE_PATH_VARIABLE = "date";
 	protected static final int WEEKS_DEFAULT_PAGE_SIZE = 2;
 	protected static final int DAYS_DEFAULT_PAGE_SIZE = 3;
+	protected static final int MESSAGES_DEFAULT_PAGE_SIZE = 4;
 
 	protected HttpEntity<PagedResources<WeekActivityOverviewResource>> getWeekActivityOverviews(Optional<String> password,
 			UUID userID, Pageable pageable, PagedResourcesAssembler<WeekActivityOverviewDTO> pagedResourcesAssembler,
@@ -92,6 +110,74 @@ abstract class ActivityControllerBase
 						HttpStatus.OK));
 	}
 
+	protected HttpEntity<PagedResources<MessageDTO>> getActivityDetailMessages(Optional<String> password, UUID userID,
+			Pageable pageable, PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler,
+			Supplier<Page<MessageDTO>> messageSupplier, LinkProvider linkProvider)
+	{
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+				() -> new ResponseEntity<>(
+						pagedResourcesAssembler.toResource(messageSupplier.get(),
+								new MessageResourceAssembler(curieProvider, createGoalIDMapping(userID), messageController)),
+				HttpStatus.OK));
+	}
+
+	protected GoalIDMapping createGoalIDMapping(UUID userID)
+	{
+		return GoalIDMapping.createInstance(userService.getPrivateUser(userID));
+	}
+
+	public abstract void addLinks(GoalIDMapping goalIDMapping, IntervalActivity activity, ActivityCommentMessageDTO message);
+
+	protected void addStandardLinks(GoalIDMapping goalIDMapping, LinkProvider linkProvider, IntervalActivity activity,
+			ActivityCommentMessageDTO message)
+	{
+		if (activity instanceof WeekActivity)
+		{
+			addWeekDetailsLink(linkProvider, activity, message);
+		}
+		else
+		{
+			addDayDetailsLink(linkProvider, activity, message);
+		}
+		if (!message.getUser().getID().equals(goalIDMapping.getUserID()))
+		{
+			UUID buddyID = determineBuddyID(goalIDMapping, message);
+			addBuddyLink(goalIDMapping.getUserID(), buddyID, message);
+		}
+		message.getRepliedMessageID().ifPresent(rmid -> addRepliedMessageLink(goalIDMapping.getUserID(), rmid, message));
+	}
+
+	private UUID determineBuddyID(GoalIDMapping goalIDMapping, ActivityCommentMessageDTO message)
+	{
+		return goalIDMapping.getUser().getPrivateData().getBuddies().stream()
+				.filter(b -> b.getUser().getID().equals(message.getUser().getID())).map(b -> b.getID()).findAny()
+				.orElseThrow(() -> new IllegalArgumentException("User with ID " + message.getUser().getID() + "is not a buddy"));
+	}
+
+	private void addWeekDetailsLink(LinkProvider linkProvider, IntervalActivity activity, ActivityCommentMessageDTO message)
+	{
+		message.add(linkProvider
+				.getWeekActivityDetailLinkBuilder(WeekActivityDTO.formatDate(activity.getDate()), activity.getGoal().getID())
+				.withRel("weekDetails"));
+	}
+
+	private void addDayDetailsLink(LinkProvider linkProvider, IntervalActivity activity, ActivityCommentMessageDTO message)
+	{
+		message.add(linkProvider
+				.getDayActivityDetailLinkBuilder(DayActivityDTO.formatDate(activity.getDate()), activity.getGoal().getID())
+				.withRel("dayDetails"));
+	}
+
+	private void addRepliedMessageLink(UUID userID, UUID repliedMessageID, ActivityCommentMessageDTO message)
+	{
+		message.add(MessageController.getAnonymousMessageLinkBuilder(userID, repliedMessageID).withRel("repliedMessage"));
+	}
+
+	private void addBuddyLink(UUID userID, UUID buddyID, ActivityCommentMessageDTO message)
+	{
+		message.add(BuddyController.getBuddyLinkBuilder(userID, buddyID).withRel("buddy"));
+	}
+
 	interface LinkProvider
 	{
 		public ControllerLinkBuilder getDayActivityDetailLinkBuilder(String dateStr, UUID goalID);
@@ -99,6 +185,14 @@ abstract class ActivityControllerBase
 		public ControllerLinkBuilder getWeekActivityDetailLinkBuilder(String dateStr, UUID goalID);
 
 		public ControllerLinkBuilder getGoalLinkBuilder(UUID goalID);
+
+		public ControllerLinkBuilder getDayActivityDetailMessagesLinkBuilder(String dateStr, UUID goalID);
+
+		public Optional<ControllerLinkBuilder> getDayActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalID);
+
+		public ControllerLinkBuilder getWeekActivityDetailMessagesLinkBuilder(String dateStr, UUID goalID);
+
+		public Optional<ControllerLinkBuilder> getWeekActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalID);
 	}
 
 	static class WeekActivityResource extends Resource<WeekActivityDTO>
@@ -190,21 +284,26 @@ abstract class ActivityControllerBase
 	static class WeekActivityResourceAssembler extends ResourceAssemblerSupport<WeekActivityDTO, WeekActivityResource>
 	{
 		private final LinkProvider linkProvider;
-		private final boolean addSelfLink;
+		private final boolean isWeekDetail;
 
-		public WeekActivityResourceAssembler(LinkProvider linkProvider, boolean addSelfLink)
+		public WeekActivityResourceAssembler(LinkProvider linkProvider, boolean isWeekDetail)
 		{
 			super(ActivityControllerBase.class, WeekActivityResource.class);
 			this.linkProvider = linkProvider;
-			this.addSelfLink = addSelfLink;
+			this.isWeekDetail = isWeekDetail;
 		}
 
 		@Override
 		public WeekActivityResource toResource(WeekActivityDTO weekActivity)
 		{
 			WeekActivityResource weekActivityResource = instantiateResource(weekActivity);
-			addWeekDetailsLink(weekActivityResource, (addSelfLink) ? Link.REL_SELF : "weekDetails");
+			addWeekDetailsLink(weekActivityResource, (isWeekDetail) ? Link.REL_SELF : "weekDetails");
 			addGoalLink(weekActivityResource);
+			if (isWeekDetail)
+			{
+				addMessagesLink(weekActivityResource);
+				addAddCommentLink(weekActivityResource);
+			}
 			return weekActivityResource;
 		}
 
@@ -225,31 +324,50 @@ abstract class ActivityControllerBase
 			weekActivityResource
 					.add(linkProvider.getGoalLinkBuilder(weekActivityResource.getContent().getGoalID()).withRel("goal"));
 		}
+
+		private void addMessagesLink(WeekActivityResource weekActivityResource)
+		{
+			weekActivityResource
+					.add(linkProvider.getWeekActivityDetailMessagesLinkBuilder(weekActivityResource.getContent().getDate(),
+							weekActivityResource.getContent().getGoalID()).withRel("messages"));
+		}
+
+		private void addAddCommentLink(WeekActivityResource weekActivityResource)
+		{
+			Optional<ControllerLinkBuilder> linkBuilder = linkProvider.getWeekActivityDetailAddCommentLinkBuilder(
+					weekActivityResource.getContent().getDate(), weekActivityResource.getContent().getGoalID());
+			linkBuilder.ifPresent(lb -> weekActivityResource.add(lb.withRel("addComment")));
+		}
 	}
 
 	static class DayActivityResourceAssembler extends ResourceAssemblerSupport<DayActivityDTO, DayActivityResource>
 	{
 		private final LinkProvider linkProvider;
 		private final boolean addGoalLink;
-		private final boolean addSelfLink;
+		private final boolean isDayDetail;
 
-		public DayActivityResourceAssembler(LinkProvider linkProvider, boolean addGoalLink, boolean addSelfLink)
+		public DayActivityResourceAssembler(LinkProvider linkProvider, boolean addGoalLink, boolean isDayDetail)
 		{
 			super(ActivityControllerBase.class, DayActivityResource.class);
 			this.linkProvider = linkProvider;
 			this.addGoalLink = addGoalLink;
-			this.addSelfLink = addSelfLink;
+			this.isDayDetail = isDayDetail;
 		}
 
 		@Override
 		public DayActivityResource toResource(DayActivityDTO dayActivity)
 		{
 			DayActivityResource dayActivityResource = instantiateResource(dayActivity);
+			addDayDetailsLink(dayActivityResource, (isDayDetail) ? Link.REL_SELF : "dayDetails");
 			if (addGoalLink)
 			{
 				addGoalLink(dayActivityResource);
 			}
-			addDayDetailsLink(dayActivityResource, (addSelfLink) ? Link.REL_SELF : "dayDetails");
+			if (isDayDetail)
+			{
+				addMessagesLink(dayActivityResource);
+				addAddCommentLink(dayActivityResource);
+			}
 			return dayActivityResource;
 		}
 
@@ -269,6 +387,20 @@ abstract class ActivityControllerBase
 		{
 			dayActivityResource.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getDate(),
 					dayActivityResource.getContent().getGoalID()).withRel(rel));
+		}
+
+		private void addMessagesLink(DayActivityResource dayActivityResource)
+		{
+			dayActivityResource
+					.add(linkProvider.getDayActivityDetailMessagesLinkBuilder(dayActivityResource.getContent().getDate(),
+							dayActivityResource.getContent().getGoalID()).withRel("messages"));
+		}
+
+		private void addAddCommentLink(DayActivityResource dayActivityResource)
+		{
+			Optional<ControllerLinkBuilder> linkBuilder = linkProvider.getDayActivityDetailAddCommentLinkBuilder(
+					dayActivityResource.getContent().getDate(), dayActivityResource.getContent().getGoalID());
+			linkBuilder.ifPresent(lb -> dayActivityResource.add(lb.withRel("addComment")));
 		}
 	}
 

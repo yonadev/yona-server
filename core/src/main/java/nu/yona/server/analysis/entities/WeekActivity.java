@@ -13,7 +13,6 @@ import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -30,9 +29,6 @@ public class WeekActivity extends IntervalActivity
 		return (WeekActivityRepository) RepositoryProvider.getRepository(WeekActivity.class, UUID.class);
 	}
 
-	@ManyToOne
-	private UserAnonymized userAnonymized;
-
 	@OneToMany(cascade = CascadeType.ALL)
 	private List<DayActivity> dayActivities;
 
@@ -45,15 +41,9 @@ public class WeekActivity extends IntervalActivity
 	private WeekActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek,
 			List<DayActivity> dayActivities, List<Integer> spread, int totalActivityDurationMinutes, boolean aggregatesComputed)
 	{
-		super(id, goal, startOfWeek, spread, totalActivityDurationMinutes, aggregatesComputed);
+		super(id, userAnonymized, goal, startOfWeek, spread, totalActivityDurationMinutes, aggregatesComputed);
 
-		this.userAnonymized = userAnonymized;
 		this.dayActivities = dayActivities;
-	}
-
-	public UserAnonymized getUserAnonymized()
-	{
-		return userAnonymized;
 	}
 
 	@Override
@@ -129,7 +119,7 @@ public class WeekActivity extends IntervalActivity
 				if (!dayActivities.stream()
 						.anyMatch(dayActivity -> dayActivity.getDate().getDayOfWeek().equals(startOfDay.getDayOfWeek())))
 				{
-					addDayActivity(DayActivity.createInstanceInactivity(userAnonymized, getGoal(), startOfDay));
+					addDayActivity(DayActivity.createInstanceInactivity(getUserAnonymized(), getGoal(), startOfDay));
 				}
 			}
 		}

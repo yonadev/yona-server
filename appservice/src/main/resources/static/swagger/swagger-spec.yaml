@@ -454,6 +454,52 @@ paths:
           description: Activity of this user for the specific goal on the specific day.
           schema:
             $ref: '#/definitions/DayGoalActivityDetail'
+  '/users/{userID}/activity/days/{date}/details/{goalID}/messages/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: date
+        in: path
+        description: The date of the day in ISO 8601 format (yyyy-MM-dd)
+        required: true
+        type: string
+      - name: goalID
+        in: path
+        description: The ID of the goal for which the activity was recorded
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get messages
+      description: Fetches all messages related to this activity
+      parameters:
+        - name: size
+          in: query
+          description: The number of elements to be fetched
+          required: false
+          default: 3
+          type: number
+        - name: page
+          in: query
+          description: The page to be fetched
+          required: false
+          default: 0
+          type: number
+      tags:
+        - Activity
+        - Message
+      responses:
+        '200':
+          description: Messages related to this activity.
+          schema:
+            $ref: '#/definitions/PagedMessages'
   '/users/{userID}/activity/weeks/':
     parameters:
       - name: userID
@@ -556,6 +602,52 @@ paths:
           description: Activity of this user and their buddies.
           schema:
             $ref: '#/definitions/PagedDayActivityOverviewsWithBuddies'
+  '/users/{userID}/activity/weeks/{week}/details/{goalID}/messages/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: week
+        in: path
+        description: The date of the week in ISO 8601 format (YYYY-'W'w)
+        required: true
+        type: string
+      - name: goalID
+        in: path
+        description: The ID of the goal for which the activity was recorded
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get messages
+      description: Fetches all messages related to this activity
+      parameters:
+        - name: size
+          in: query
+          description: The number of elements to be fetched
+          required: false
+          default: 3
+          type: number
+        - name: page
+          in: query
+          description: The page to be fetched
+          required: false
+          default: 0
+          type: number
+      tags:
+        - Activity
+        - Message
+      responses:
+        '200':
+          description: Messages related to this activity.
+          schema:
+            $ref: '#/definitions/PagedMessages'
   '/users/{userID}/buddies/{buddyID}/activity/days/':
     parameters:
       - name: userID
@@ -794,6 +886,75 @@ paths:
           description: Activity of the buddy for the specific goal on the specific day.
           schema:
             $ref: '#/definitions/DayGoalActivityDetail'
+  '/users/{userID}/buddies/{buddyID}/activity/days/{date}/details/{goalID}/messages/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string
+      - name: date
+        in: path
+        description: The date of the day in ISO 8601 format (yyyy-MM-dd)
+        required: true
+        type: string
+      - name: goalID
+        in: path
+        description: The ID of the goal for which the activity was recorded
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get messages
+      description: Fetches all messages related to this activity
+      parameters:
+        - name: size
+          in: query
+          description: The number of elements to be fetched
+          required: false
+          default: 3
+          type: number
+        - name: page
+          in: query
+          description: The page to be fetched
+          required: false
+          default: 0
+          type: number
+      tags:
+        - Activity
+        - Message
+      responses:
+        '200':
+          description: Messages related to this activity.
+          schema:
+            $ref: '#/definitions/PagedMessages'
+    post:
+      summary: Post new message
+      description: Post a new message on this activity.
+      parameters:
+        - in: body
+          name: body
+          description: New message
+          required: true
+          schema:
+            $ref: '#/definitions/PostPutActivityCommentMessage'
+      tags:
+        - Activity
+        - Message
+      responses:
+        '200':
+          description: The posted message
+          schema:
+            $ref: '#/definitions/Message'
   '/users/{userID}/buddies/{buddyID}/activity/weeks/':
     parameters:
       - name: userID
@@ -871,6 +1032,75 @@ paths:
           description: Activity of the buddy for the specific goal on the specific week.
           schema:
             $ref: '#/definitions/WeekGoalActivityDetail'
+  '/users/{userID}/buddies/{buddyID}/activity/weeks/{week}/details/{goalID}/messages/':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: buddyID
+        in: path
+        description: The ID of the buddy
+        required: true
+        type: string
+      - name: week
+        in: path
+        description: The date of the week in ISO 8601 format (YYYY-'W'w)
+        required: true
+        type: string
+      - name: goalID
+        in: path
+        description: The ID of the goal for which the activity was recorded
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get messages
+      description: Fetches all messages related to this activity
+      parameters:
+        - name: size
+          in: query
+          description: The number of elements to be fetched
+          required: false
+          default: 3
+          type: number
+        - name: page
+          in: query
+          description: The page to be fetched
+          required: false
+          default: 0
+          type: number
+      tags:
+        - Activity
+        - Message
+      responses:
+        '200':
+          description: Messages related to this activity.
+          schema:
+            $ref: '#/definitions/PagedMessages'
+    post:
+      summary: Post new message
+      description: Post a new message on this activity.
+      parameters:
+        - in: body
+          name: body
+          description: New message
+          required: true
+          schema:
+            $ref: '#/definitions/PostPutActivityCommentMessage'
+      tags:
+        - Activity
+        - Message
+      responses:
+        '200':
+          description: The posted message
+          schema:
+            $ref: '#/definitions/Message'
   '/users/{userID}/messages/':
     parameters:
       - name: userID
@@ -930,7 +1160,7 @@ paths:
         - Message
       responses:
         '200':
-          description: Messages of this user.
+          description: The message
           schema:
             $ref: '#/definitions/Message'
     delete:
@@ -1277,6 +1507,17 @@ definitions:
           href:
             type: string
             description: Through this link, this resource can be edited or deleted. Note that this link is not always present. Certain resources can never be edited. Some others can only be edited or deleted in a specific state. Unprocessed messages for example cannot be deleted.
+  MessagesLink:
+    type: object
+    properties:
+      "yona:messages":
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Refers to the related messages
   RelatedLink:
     type: object
     properties:
@@ -1420,6 +1661,17 @@ definitions:
         required:
           - href
         description: Link to the details for this goal on this day
+  WeekDetailsLink:
+    type: object
+    properties:
+      "yona:weekDetails":
+        type: object
+        properties:
+          href:
+            type: string
+        required:
+          - href
+        description: Link to the details for this goal in this week
   WeeklyActivityReportsLink:
     type: object
     properties:
@@ -1453,6 +1705,39 @@ definitions:
           href:
             type: string
             description: Refers to the daily activity reports of the user with their buddies
+  AddCommentLink:
+    type: object
+    properties:
+      "yona:addComment":
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Post a PostPutActivityCommentMessage to this link to add a comment to this activity
+  ReplyLink:
+    type: object
+    properties:
+      "yona:reply":
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Post a MessageAction with a message on this link to reply to this message
+  RepliedMessageLink:
+    type: object
+    properties:
+      "yona:repliedMessage":
+        type: object
+        properties:
+          href:
+            type: string
+        required:
+          - href
+        description: Link to earlier message to which the current one is a reply to
   Page:
     type: object
     properties:
@@ -1566,6 +1851,7 @@ definitions:
           - $ref: '#/definitions/WeeklyActivityReportsLink'
           - $ref: '#/definitions/DailyActivityReportsLink'
           - $ref: '#/definitions/DailyActivityReportsWithBuddiesLink'
+          - $ref: '#/definitions/MessagesLink'
         properties:
           "yona:confirmMobileNumber":
             type: object
@@ -1615,14 +1901,6 @@ definitions:
               href:
                 type: string
                 description: This link allows clearing the pin reset confirmation code.
-          "yona:messages":
-            type: object
-            required:
-              - href
-            properties:
-              href:
-                type: string
-                description: Refers to the messages for this user
           "yona:newDeviceRequest":
             type: object
             required:
@@ -1891,6 +2169,7 @@ definitions:
         - GoalChangeMessage
         - DisclosureRequestMessage
         - DisclosureResponseMessage
+        - ActivityCommentMessage
       creationTime:
         type: string
         format: dateTime
@@ -2087,6 +2366,32 @@ definitions:
     required:
       - status
       - _links
+  ActivityCommentMessage:
+    allOf:
+      - $ref: '#/definitions/BuddyMessage'
+    properties:
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+          - $ref: '#/definitions/UserLink'
+          - $ref: '#/definitions/BuddyLink'
+          - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/DayDetailsLink'
+          - $ref: '#/definitions/WeekDetailsLink'
+          - $ref: '#/definitions/ReplyLink'
+          - $ref: '#/definitions/RepliedMessageLink'
+    required:
+      - _links
+  PostPutActivityCommentMessage:
+    type: object
+    properties:
+      message:
+        type: string
+        description: The message from the buddy
+        example: Good job!
+    required:
+      - message
   PagedWeekActivityOverviews:
     allOf:
       - $ref: '#/definitions/Page'
@@ -2210,6 +2515,8 @@ definitions:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/GoalLink'
+          - $ref: '#/definitions/AddCommentLink'
+          - $ref: '#/definitions/MessagesLink'
     required:
       - date
       - timeZoneId
@@ -2336,6 +2643,8 @@ definitions:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/GoalLink'
+          - $ref: '#/definitions/AddCommentLink'
+          - $ref: '#/definitions/MessagesLink'
         required:
           - self
           - "yona:goal"

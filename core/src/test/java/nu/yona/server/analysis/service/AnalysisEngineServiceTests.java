@@ -68,7 +68,7 @@ import nu.yona.server.subscriptions.service.UserAnonymizedService;
 @RunWith(MockitoJUnitRunner.class)
 public class AnalysisEngineServiceTests
 {
-	private Map<String, Goal> goalMap = new HashMap<String, Goal>();
+	private final Map<String, Goal> goalMap = new HashMap<String, Goal>();
 
 	@Mock
 	private ActivityCategoryService mockActivityCategoryService;
@@ -85,7 +85,7 @@ public class AnalysisEngineServiceTests
 	@Mock
 	private DayActivityRepository mockDayActivityRepository;
 	@InjectMocks
-	private AnalysisEngineService service = new AnalysisEngineService();
+	private final AnalysisEngineService service = new AnalysisEngineService();
 
 	private Goal gamblingGoal;
 	private Goal newsGoal;

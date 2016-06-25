@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
@@ -24,13 +25,13 @@ public class BuddyDTO
 	public static final String GOALS_REL_NAME = "goals";
 
 	private final UUID id;
-	private UserDTO user;
-	private String message;
-	private String nickname;
-	private UUID userAnonymizedID;
-	private Status sendingStatus;
-	private Status receivingStatus;
-	private Set<GoalDTO> goals;
+	private final UserDTO user;
+	private final String message;
+	private final String nickname;
+	private final UUID userAnonymizedID;
+	private final Status sendingStatus;
+	private final Status receivingStatus;
+	private Set<GoalDTO> goals = Collections.emptySet();
 
 	public BuddyDTO(UUID id, UserDTO user, String message, String nickname, UUID userAnonymizedID, Status sendingStatus,
 			Status receivingStatus)

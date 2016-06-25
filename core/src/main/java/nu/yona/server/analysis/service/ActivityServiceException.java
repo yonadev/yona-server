@@ -20,6 +20,11 @@ public class ActivityServiceException extends YonaException
 
 	public static ActivityServiceException activityDateGoalMismatch(UUID userID, LocalDate date, UUID goalID)
 	{
-		return new ActivityServiceException("activity.date.goal.mismatch", userID, date, goalID);
+		return new ActivityServiceException("error.activity.date.goal.mismatch", userID, date, goalID);
+	}
+
+	public static ActivityServiceException buddyDayActivityNotFound(UUID userID, UUID buddyID, LocalDate date, UUID goalID)
+	{
+		return new ActivityServiceException("error.activity.buddy.day.activity.not.found", userID, buddyID, date, goalID);
 	}
 }
