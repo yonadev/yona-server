@@ -28,8 +28,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.analysis.service.ActivityCommentMessageDTO;
 import nu.yona.server.analysis.service.DayActivityDTO;
@@ -295,7 +293,6 @@ public class UserActivityController extends ActivityControllerBase
 			this.dateStr = dateStr;
 		}
 
-		@JsonInclude
 		public List<ActivityForOneUserResource> getDayActivitiesForUsers()
 		{
 			return new ActivityForOneUserResourceAssembler(goalIDMapping, dateStr)
