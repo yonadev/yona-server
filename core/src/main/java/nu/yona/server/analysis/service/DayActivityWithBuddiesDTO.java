@@ -32,7 +32,7 @@ public class DayActivityWithBuddiesDTO
 		return activityCategoryID;
 	}
 
-	@JsonInclude
+	@JsonIgnore
 	public Collection<ActivityForOneUser> getDayActivitiesForUsers()
 	{
 		return Collections.unmodifiableCollection(activitiesByUser);
