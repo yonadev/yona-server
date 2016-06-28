@@ -113,6 +113,9 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goal.spreadCells == null
 		goal.historyItem == false
 
+		def richardMessagesResponse = appService.getMessages(richard)
+		richardMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}.size() == 0
+
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
@@ -153,6 +156,9 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goal.maxDurationMinutes == null
 		goal.spreadCells == [44, 45, 46, 47]
 		goal.historyItem == false
+
+		def richardMessagesResponse = appService.getMessages(richard)
+		richardMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}.size() == 0
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -248,6 +254,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Want to become a bit more social :)"
 		goalChangeMessages[0]._links.edit
+		goalChangeMessages[1].change == 'GOAL_ADDED'
+
+		def richardMessagesResponse = appService.getMessages(richard)
+		richardMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}.size() == 0
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -295,6 +305,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Will be social in the evening too"
 		goalChangeMessages[0]._links.edit
+		goalChangeMessages[1].change == 'GOAL_ADDED'
+
+		def richardMessagesResponse = appService.getMessages(richard)
+		richardMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}.size() == 0
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -424,6 +438,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Don't want to monitor my social time anymore"
 		goalChangeMessages[0]._links.edit
+		goalChangeMessages[1].change == 'GOAL_ADDED'
+
+		def richardMessagesResponse = appService.getMessages(richard)
+		richardMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}.size() == 0
 
 		cleanup:
 		appService.deleteUser(richard)
