@@ -48,7 +48,6 @@ public class GoalIDMapping
 
 	public static GoalIDMapping createInstance(UserDTO user)
 	{
-		UUID userID = user.getID();
 		Set<UUID> userGoalIDs = user.getPrivateData().getGoals().stream().map(GoalDTO::getID).collect(Collectors.toSet());
 		Map<UUID, UUID> goalIDToBuddyIDmapping = new HashMap<>();
 		user.getPrivateData().getBuddies()

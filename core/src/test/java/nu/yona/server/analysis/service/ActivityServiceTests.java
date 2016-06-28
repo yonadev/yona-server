@@ -56,7 +56,7 @@ import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserService;
 
 @RunWith(MockitoJUnitRunner.class)
-@Ignore // TODO
+@Ignore // TODO See YD-287
 public class ActivityServiceTests
 {
 	private final Map<String, Goal> goalMap = new HashMap<String, Goal>();
