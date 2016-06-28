@@ -36,7 +36,6 @@ import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.subscriptions.rest.BuddyController;
-import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.GoalIDMapping;
 
 /*
@@ -46,9 +45,6 @@ import nu.yona.server.subscriptions.service.GoalIDMapping;
 @RequestMapping(value = "/users/{userID}/buddies/{buddyID}/activity", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class BuddyActivityController extends ActivityControllerBase
 {
-	@Autowired
-	private BuddyService buddyService;
-
 	@Autowired
 	private MessageController messageController;
 
@@ -61,7 +57,7 @@ public class BuddyActivityController extends ActivityControllerBase
 	{
 		return getWeekActivityOverviews(password, userID, pageable, pagedResourcesAssembler,
 				() -> activityService.getBuddyWeekActivityOverviews(buddyID, pageable),
-				new BuddyActivityLinkProvider(buddyService, userID, buddyID));
+				new BuddyActivityLinkProvider(userID, buddyID));
 	}
 
 	@RequestMapping(value = DAY_OVERVIEWS_URI_FRAGMENT, method = RequestMethod.GET)
@@ -73,7 +69,7 @@ public class BuddyActivityController extends ActivityControllerBase
 	{
 		return getDayActivityOverviews(password, userID, pageable, pagedResourcesAssembler,
 				() -> activityService.getBuddyDayActivityOverviews(buddyID, pageable),
-				new BuddyActivityLinkProvider(buddyService, userID, buddyID));
+				new BuddyActivityLinkProvider(userID, buddyID));
 	}
 
 	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_URI_FRAGMENT, method = RequestMethod.GET)
@@ -85,7 +81,7 @@ public class BuddyActivityController extends ActivityControllerBase
 	{
 		return getWeekActivityDetail(password, userID, dateStr,
 				date -> activityService.getBuddyWeekActivityDetail(buddyID, date, goalID),
-				new BuddyActivityLinkProvider(buddyService, userID, buddyID));
+				new BuddyActivityLinkProvider(userID, buddyID));
 	}
 
 	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
@@ -97,10 +93,10 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
 	{
-		return getActivityDetailMessages(password, userID, pageable,
-				pagedResourcesAssembler, () -> activityService.getBuddyWeekActivityDetailMessages(userID, buddyID,
-						WeekActivityDTO.parseDate(dateStr), goalID, pageable),
-				new BuddyActivityLinkProvider(buddyService, userID, buddyID));
+		return getActivityDetailMessages(password,
+				userID, pageable, pagedResourcesAssembler, () -> activityService.getBuddyWeekActivityDetailMessages(userID,
+						buddyID, WeekActivityDTO.parseDate(dateStr), goalID, pageable),
+				new BuddyActivityLinkProvider(userID, buddyID));
 	}
 
 	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.POST)
@@ -130,7 +126,7 @@ public class BuddyActivityController extends ActivityControllerBase
 	{
 		return getDayActivityDetail(password, userID, dateStr,
 				date -> activityService.getBuddyDayActivityDetail(buddyID, date, goalID),
-				new BuddyActivityLinkProvider(buddyService, userID, buddyID));
+				new BuddyActivityLinkProvider(userID, buddyID));
 	}
 
 	@RequestMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
@@ -142,10 +138,10 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
 	{
-		return getActivityDetailMessages(password, userID, pageable,
-				pagedResourcesAssembler, () -> activityService.getBuddyDayActivityDetailMessages(userID, buddyID,
-						DayActivityDTO.parseDate(dateStr), goalID, pageable),
-				new BuddyActivityLinkProvider(buddyService, userID, buddyID));
+		return getActivityDetailMessages(password,
+				userID, pageable, pagedResourcesAssembler, () -> activityService.getBuddyDayActivityDetailMessages(userID,
+						buddyID, DayActivityDTO.parseDate(dateStr), goalID, pageable),
+				new BuddyActivityLinkProvider(userID, buddyID));
 	}
 
 	@RequestMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.POST)
@@ -169,7 +165,7 @@ public class BuddyActivityController extends ActivityControllerBase
 	@Override
 	public void addLinks(GoalIDMapping goalIDMapping, IntervalActivity activity, ActivityCommentMessageDTO message)
 	{
-		LinkProvider linkProvider = new BuddyActivityLinkProvider(buddyService, goalIDMapping.getUserID(),
+		LinkProvider linkProvider = new BuddyActivityLinkProvider(goalIDMapping.getUserID(),
 				goalIDMapping.getBuddyID(activity.getGoal().getID()));
 		addStandardLinks(goalIDMapping, linkProvider, activity, message);
 	}
@@ -195,13 +191,11 @@ public class BuddyActivityController extends ActivityControllerBase
 
 	private static final class BuddyActivityLinkProvider implements LinkProvider
 	{
-		private final BuddyService buddyService;
 		private final UUID userID;
 		private final UUID buddyID;
 
-		public BuddyActivityLinkProvider(BuddyService buddyService, UUID userID, UUID buddyID)
+		public BuddyActivityLinkProvider(UUID userID, UUID buddyID)
 		{
-			this.buddyService = buddyService;
 			this.userID = userID;
 			this.buddyID = buddyID;
 		}
