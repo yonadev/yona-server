@@ -434,6 +434,69 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Richard receives the buddy removal of Bob'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
+		def buddy = appService.getBuddies(bob)[0]
+		def message = "Richard, as you know our ways parted, so I'll remove you as buddy."
+		appService.removeBuddy(bob, buddy, message)
+
+		when:
+		def response = appService.getMessages(richard)
+
+		then:
+		response.status == 200
+		def buddyDisconnectMessages = response.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}
+		buddyDisconnectMessages.size() == 1
+		buddyDisconnectMessages[0].reason == "USER_REMOVED_BUDDY"
+		buddyDisconnectMessages[0].nickname == "${bob.nickname}"
+		buddyDisconnectMessages[0]._embedded?."yona:user"?.firstName == "Bob"
+		buddyDisconnectMessages[0]._links."yona:user" == null
+		assertEquals(buddyDisconnectMessages[0].creationTime, YonaServer.now)
+		buddyDisconnectMessages[0].message == message
+		buddyDisconnectMessages[0]._links.self.href.startsWith(richard.messagesUrl)
+		buddyDisconnectMessages[0]._links."yona:process".href.startsWith(buddyDisconnectMessages[0]._links.self.href)
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Richard processes the buddy removal of Bob, so Bob is removed from his buddy list'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
+		def buddy = appService.getBuddies(bob)[0]
+		def message = "Richard, as you know our ways parted, so I'll remove you as buddy."
+		appService.removeBuddy(bob, buddy, message)
+		def disconnectMessage = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
+		def processURL = disconnectMessage._links."yona:process".href
+
+		when:
+		def response = appService.postMessageActionWithPassword(processURL, [ : ], richard.password)
+
+		then:
+		response.status == 200
+		response.responseData._embedded."yona:affectedMessages".size() == 1
+		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == disconnectMessage._links.self.href
+		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
+
+		appService.getBuddies(richard).size() == 0
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
 	def 'After Richard removed Bob as buddy, new goal conflicts are not reported to the buddies anymore'()
 	{
 		given:
