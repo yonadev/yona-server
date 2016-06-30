@@ -313,7 +313,7 @@ public class AnalysisEngineService
 		{
 			weekActivity = WeekActivity.createInstance(userAnonymizedEntity, matchingGoal, startOfWeek);
 		}
-		weekActivity.addDayActivity(dayActivity);
+		dayActivityRepository.save(dayActivity);
 		cacheService.updateWeekActivityForUser(weekActivity);
 
 		return dayActivity;

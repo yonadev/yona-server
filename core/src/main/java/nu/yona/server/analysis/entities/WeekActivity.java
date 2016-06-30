@@ -8,12 +8,12 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import nu.yona.server.entities.RepositoryProvider;
@@ -29,21 +29,16 @@ public class WeekActivity extends IntervalActivity
 		return (WeekActivityRepository) RepositoryProvider.getRepository(WeekActivity.class, UUID.class);
 	}
 
-	@OneToMany(cascade = CascadeType.ALL)
-	private List<DayActivity> dayActivities;
-
 	// Default constructor is required for JPA
 	public WeekActivity()
 	{
 		super();
 	}
 
-	private WeekActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek,
-			List<DayActivity> dayActivities, List<Integer> spread, int totalActivityDurationMinutes, boolean aggregatesComputed)
+	private WeekActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek, List<Integer> spread,
+			int totalActivityDurationMinutes, boolean aggregatesComputed)
 	{
 		super(id, userAnonymized, goal, startOfWeek, spread, totalActivityDurationMinutes, aggregatesComputed);
-
-		this.dayActivities = dayActivities;
 	}
 
 	@Override
@@ -52,20 +47,24 @@ public class WeekActivity extends IntervalActivity
 		return getStartTime().plusDays(7);
 	}
 
-	public void addDayActivity(DayActivity dayActivity)
-	{
-		dayActivities.add(dayActivity);
-	}
-
 	public List<DayActivity> getDayActivities()
 	{
+		List<DayActivity> dayActivities = DayActivity.getRepository().findActivitiesForUserAndGoalInIntervalEndExcluded(
+				getUserAnonymized().getID(), getGoal().getID(), getStartTime().toLocalDate(), getEndTime().toLocalDate());
+
+		if (dayActivities.size() > 7)
+		{
+			throw new IllegalStateException(
+					"Invalid number of day activities in week starting at " + getStartTime() + ": " + dayActivities.size());
+		}
+
 		return dayActivities;
 	}
 
 	@Override
 	protected List<Integer> computeSpread()
 	{
-		return dayActivities.stream().map(dayActivity -> dayActivity.getSpread()).reduce(getEmptySpread(),
+		return getDayActivities().stream().map(dayActivity -> dayActivity.getSpread()).reduce(getEmptySpread(),
 				(one, other) -> sumSpread(one, other));
 	}
 
@@ -82,28 +81,24 @@ public class WeekActivity extends IntervalActivity
 	@Override
 	protected int computeTotalActivityDurationMinutes()
 	{
-		return dayActivities.stream().map(dayActivity -> dayActivity.getTotalActivityDurationMinutes()).reduce(0, Integer::sum);
+		return getDayActivities().stream().map(dayActivity -> dayActivity.getTotalActivityDurationMinutes()).reduce(0,
+				Integer::sum);
 	}
 
 	public static WeekActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek)
 	{
-		return new WeekActivity(UUID.randomUUID(), userAnonymized, goal, startOfWeek, new ArrayList<DayActivity>(),
+		return new WeekActivity(UUID.randomUUID(), userAnonymized, goal, startOfWeek,
 				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, false);
 	}
 
-	public static WeekActivity createInstanceInactivity(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek)
+	public Collection<DayActivity> createRequiredInactivityDays()
 	{
-		WeekActivity result = createInstance(userAnonymized, goal, startOfWeek);
-		result.addInactivityDaysIfNeeded();
-		return result;
-	}
-
-	public void addInactivityDaysIfNeeded()
-	{
+		List<DayActivity> existingActivities = getDayActivities();
+		Collection<DayActivity> newDayActivities = new ArrayList<>();
 		// if the batch job has already run, skip
-		if (dayActivities.size() == 7)
+		if (existingActivities.size() == 7)
 		{
-			return;
+			return Collections.emptyList();
 		}
 		// notice this doesn't take care of user time zone changes during the week
 		// so for consistency it is important that the batch script adding inactivity does so
@@ -116,13 +111,14 @@ public class WeekActivity extends IntervalActivity
 			}
 			if (getGoal().wasActiveAtInterval(startOfDay, ChronoUnit.DAYS))
 			{
-				if (!dayActivities.stream()
+				if (!existingActivities.stream()
 						.anyMatch(dayActivity -> dayActivity.getDate().getDayOfWeek().equals(startOfDay.getDayOfWeek())))
 				{
-					addDayActivity(DayActivity.createInstanceInactivity(getUserAnonymized(), getGoal(), startOfDay));
+					newDayActivities.add(DayActivity.createInstanceInactivity(getUserAnonymized(), getGoal(), startOfDay));
 				}
 			}
 		}
+		return newDayActivities;
 	}
 
 	private static boolean isInFuture(ZonedDateTime startOfDay, ZoneId zone)

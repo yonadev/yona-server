@@ -14,11 +14,9 @@ import nu.yona.server.test.AppActivity
 import nu.yona.server.test.Buddy
 import nu.yona.server.test.Goal
 import nu.yona.server.test.User
-import spock.lang.IgnoreRest
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
-	@IgnoreRest
 	def 'Fetch activity reports without activity'()
 	{
 		given:
@@ -67,6 +65,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		//we can safely get two normal pages
 		def responseWeekOverviewsPage1 = appService.getWeekActivityOverviews(richard)
+		assert responseWeekOverviewsPage1.status == 200
 		def responseWeekOverviewsPage2 = appService.getWeekActivityOverviews(richard, ["page": 1])
 		def responseWeekOverviewsPage3 = appService.getWeekActivityOverviews(richard, ["page": 2])
 		//we can safely get two normal pages

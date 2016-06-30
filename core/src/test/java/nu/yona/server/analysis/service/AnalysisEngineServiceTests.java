@@ -500,7 +500,7 @@ public class AnalysisEngineServiceTests
 		verify(mockDayActivityRepository, times(1)).findOne(userAnonID, yesterdayTime.toLocalDate(), gamblingGoal.getID());
 		// Verify that yesterday was inserted in the database
 		ArgumentCaptor<DayActivity> precedingDayActivity = ArgumentCaptor.forClass(DayActivity.class);
-		verify(mockDayActivityRepository, times(1)).save(precedingDayActivity.capture());
+		verify(mockDayActivityRepository, times(2)).save(precedingDayActivity.capture());
 		assertThat("Expect right date", precedingDayActivity.getValue().getStartTime(),
 				equalTo(yesterdayTime.truncatedTo(ChronoUnit.DAYS)));
 		assertThat("Expect activity added", precedingDayActivity.getValue().getLastActivity(), notNullValue());

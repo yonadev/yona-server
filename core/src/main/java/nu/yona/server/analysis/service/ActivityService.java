@@ -38,6 +38,7 @@ import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
@@ -93,7 +94,7 @@ public class ActivityService
 				interval);
 		addMissingInactivity(weekActivityEntitiesByLocalDate, interval, ChronoUnit.WEEKS, userAnonymized,
 				(goal, startOfWeek) -> createAndSaveWeekInactivity(userAnonymizedID, goal, startOfWeek),
-				a -> a.addInactivityDaysIfNeeded());
+				wa -> createAndSaveInactivityDays(wa));
 		Map<ZonedDateTime, Set<WeekActivity>> weekActivityEntitiesByZonedDate = mapToZonedDateTime(
 				weekActivityEntitiesByLocalDate);
 		return new PageImpl<WeekActivityOverviewDTO>(
@@ -104,8 +105,18 @@ public class ActivityService
 
 	private WeekActivity createAndSaveWeekInactivity(UUID userAnonymizedID, Goal goal, ZonedDateTime startOfWeek)
 	{
-		return WeekActivity.getRepository().save(WeekActivity
-				.createInstanceInactivity(userAnonymizedService.getUserAnonymizedEntity(userAnonymizedID), goal, startOfWeek));
+		UserAnonymized userAnonymized = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedID);
+		WeekActivity weekActivity = WeekActivity.createInstance(userAnonymized, goal, startOfWeek);
+		createAndSaveInactivityDays(weekActivity);
+
+		return weekActivityRepository.save(weekActivity);
+	}
+
+	private void createAndSaveInactivityDays(WeekActivity weekActivity)
+	{
+		Collection<DayActivity> inactivityDays = weekActivity.createRequiredInactivityDays();
+
+		inactivityDays.forEach(da -> dayActivityRepository.save(da));
 	}
 
 	private long getTotalPageableItems(UserAnonymizedDTO userAnonymized, ChronoUnit timeUnit)
@@ -229,7 +240,7 @@ public class ActivityService
 
 	private Map<LocalDate, Set<DayActivity>> getDayActivitiesGroupedByDate(UUID userAnonymizedID, Interval interval)
 	{
-		Set<DayActivity> dayActivityEntities = dayActivityRepository.findAllActivitiesForUserInInterval(userAnonymizedID,
+		List<DayActivity> dayActivityEntities = dayActivityRepository.findAllActivitiesForUserInIntervalEndIncluded(userAnonymizedID,
 				interval.startDate, interval.endDate);
 		return dayActivityEntities.stream().collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
 	}
@@ -335,7 +346,7 @@ public class ActivityService
 		if (weekActivityEntity == null)
 		{
 			weekActivityEntity = getMissingInactivity(userID, date, goalID, userAnonymizedID, ChronoUnit.WEEKS,
-					(goal, startOfWeek) -> WeekActivity.createInstanceInactivity(null, goal, startOfWeek));
+					(goal, startOfWeek) -> createAndSaveWeekInactivity(userAnonymizedID, goal, startOfWeek));
 		}
 		return WeekActivityDTO.createInstance(weekActivityEntity, LevelOfDetail.WeekDetail);
 	}
