@@ -14,9 +14,42 @@ import nu.yona.server.test.AppActivity
 import nu.yona.server.test.Buddy
 import nu.yona.server.test.Goal
 import nu.yona.server.test.User
+import spock.lang.IgnoreRest
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
+	@IgnoreRest
+	def 'Fetch activity reports without activity'()
+	{
+		given:
+		def richard = addRichard()
+		Goal goal = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
+
+		when:
+		def responseDayOverviews = appService.getDayActivityOverviews(richard)
+		def responseWeekOverviews = appService.getWeekActivityOverviews(richard)
+
+		then:
+		assertDayOverviewBasics(responseDayOverviews, 1, 1)
+		assertWeekOverviewBasics(responseWeekOverviews, [2], 1)
+
+		def weekActivityForGoal = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == goal.url}
+		assert weekActivityForGoal?._links?."yona:weekDetails"?.href
+		def weekActivityDetailUrl = weekActivityForGoal?._links?."yona:weekDetails"?.href
+		def response = appService.getResourceWithPassword(weekActivityDetailUrl, richard.password)
+		assert response.status == 200
+
+		def dayActivityOverview = responseDayOverviews.responseData._embedded."yona:dayActivityOverviews"[0]
+		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
+		assert dayActivityForGoal?._links?."yona:dayDetails"?.href
+		def dayActivityDetailUrl =  dayActivityForGoal?._links?."yona:dayDetails"?.href
+		def responseDayDetail = appService.getResourceWithPassword(dayActivityDetailUrl, richard.password)
+		assert responseDayDetail.status == 200
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def 'Page through multiple weeks'()
 	{
 		given:

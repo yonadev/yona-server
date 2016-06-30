@@ -204,7 +204,7 @@ public class ActivityService
 
 	private DayActivity createAndSaveDayInactivity(UUID userAnonymizedID, Goal goal, ZonedDateTime startOfDay)
 	{
-		return DayActivity.getRepository().save(DayActivity
+		return dayActivityRepository.save(DayActivity
 				.createInstanceInactivity(userAnonymizedService.getUserAnonymizedEntity(userAnonymizedID), goal, startOfDay));
 	}
 
@@ -229,8 +229,8 @@ public class ActivityService
 
 	private Map<LocalDate, Set<DayActivity>> getDayActivitiesGroupedByDate(UUID userAnonymizedID, Interval interval)
 	{
-		Set<DayActivity> dayActivityEntities = dayActivityRepository.findAll(userAnonymizedID, interval.startDate,
-				interval.endDate);
+		Set<DayActivity> dayActivityEntities = dayActivityRepository.findAllActivitiesForUserInInterval(userAnonymizedID,
+				interval.startDate, interval.endDate);
 		return dayActivityEntities.stream().collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
 	}
 
