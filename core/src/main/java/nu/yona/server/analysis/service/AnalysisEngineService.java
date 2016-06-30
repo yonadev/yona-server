@@ -41,7 +41,7 @@ public class AnalysisEngineService
 	@Autowired
 	private ActivityCategoryService activityCategoryService;
 	@Autowired
-	private AnalysisEngineCacheService cacheService;
+	private ActivityCacheService cacheService;
 	@Autowired
 	private UserAnonymizedService userAnonymizedService;
 	@Autowired
@@ -181,7 +181,7 @@ public class AnalysisEngineService
 	private DayActivityCacheResult getRegisteredDayActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized,
 			GoalDTO matchingGoal)
 	{
-		DayActivity lastRegisteredDayActivity = cacheService.fetchDayActivityForUser(userAnonymized.getID(),
+		DayActivity lastRegisteredDayActivity = cacheService.fetchLastDayActivityForUser(userAnonymized.getID(),
 				matchingGoal.getID());
 		if (lastRegisteredDayActivity == null)
 		{
@@ -219,17 +219,15 @@ public class AnalysisEngineService
 	}
 
 	private void addActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, GoalDTO matchingGoal,
-			DayActivityCacheResult dayActivity)
+			DayActivityCacheResult dayActivityCacheResult)
 	{
 		Goal matchingGoalEntity = goalService.getGoalEntityForUserAnonymizedID(userAnonymized.getID(), matchingGoal.getID());
-		DayActivity updatedDayActivity = createNewActivity(dayActivity.content, payload, userAnonymized, matchingGoalEntity);
-		if (dayActivity.shouldUpdateCache())
+		DayActivity updatedDayActivity = createNewActivity(dayActivityCacheResult.content, payload, userAnonymized,
+				matchingGoalEntity);
+		dayActivityRepository.save(updatedDayActivity);
+		if (dayActivityCacheResult.shouldUpdateCache())
 		{
-			cacheService.updateDayActivityForUser(updatedDayActivity);
-		}
-		else
-		{
-			dayActivityRepository.save(updatedDayActivity);
+			cacheService.updateLastDayActivityForUser(updatedDayActivity);
 		}
 
 		if (matchingGoal.isNoGoGoal())
@@ -246,13 +244,10 @@ public class AnalysisEngineService
 		assert matchingGoal.getID().equals(dayActivity.content.getGoal().getID());
 
 		activity.setEndTime(payload.endTime);
+		dayActivityRepository.save(dayActivity.content);
 		if (dayActivity.shouldUpdateCache())
 		{
-			cacheService.updateDayActivityForUser(dayActivity.content);
-		}
-		else
-		{
-			dayActivityRepository.save(dayActivity.content);
+			cacheService.updateLastDayActivityForUser(dayActivity.content);
 		}
 	}
 
@@ -318,7 +313,7 @@ public class AnalysisEngineService
 		{
 			weekActivity = WeekActivity.createInstance(userAnonymizedEntity, matchingGoal, startOfWeek);
 		}
-		weekActivity.addDayActivity(dayActivity);
+		dayActivityRepository.save(dayActivity);
 		cacheService.updateWeekActivityForUser(weekActivity);
 
 		return dayActivity;

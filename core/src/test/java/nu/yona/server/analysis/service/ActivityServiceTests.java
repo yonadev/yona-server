@@ -154,14 +154,15 @@ public class ActivityServiceTests
 		Activity recordedActivity = Activity.createInstance(yesterday.plusHours(20).plusMinutes(58),
 				yesterday.plusHours(21).plusMinutes(00));
 		yesterdayRecordedActivity.addActivity(recordedActivity);
-		when(mockDayActivityRepository.findAll(userAnonID, today.minusDays(2).toLocalDate(), today.toLocalDate()))
-				.thenReturn(new HashSet<DayActivity>(Arrays.asList(yesterdayRecordedActivity)));
+		when(mockDayActivityRepository.findAllActivitiesForUserInIntervalEndIncluded(userAnonID, today.minusDays(2).toLocalDate(),
+				today.toLocalDate())).thenReturn(Arrays.asList(yesterdayRecordedActivity));
 
 		Page<DayActivityOverviewDTO<DayActivityDTO>> dayOverviews = service.getUserDayActivityOverviews(userID,
 				new PageRequest(0, 3));
 
 		// assert that the right retrieve from database was done
-		verify(mockDayActivityRepository, times(1)).findAll(userAnonID, today.minusDays(2).toLocalDate(), today.toLocalDate());
+		verify(mockDayActivityRepository, times(1)).findAllActivitiesForUserInIntervalEndIncluded(userAnonID,
+				today.minusDays(2).toLocalDate(), today.toLocalDate());
 
 		// because the gambling goal was added with creation date two weeks ago, there are multiple days, equal to the limit of
 		// our page request = 3
@@ -202,7 +203,6 @@ public class ActivityServiceTests
 		Activity recordedActivity = Activity.createInstance(saturdayStartOfDay.plusHours(19).plusMinutes(10),
 				saturdayStartOfDay.plusHours(19).plusMinutes(55));
 		previousWeekSaturdayRecordedActivity.addActivity(recordedActivity);
-		previousWeekRecordedActivity.addDayActivity(previousWeekSaturdayRecordedActivity);
 		when(mockWeekActivityRepository.findAll(userAnonID, getWeekStartTime(today.minusWeeks(4)).toLocalDate(),
 				getWeekStartTime(today).toLocalDate()))
 						.thenReturn(new HashSet<WeekActivity>(Arrays.asList(previousWeekRecordedActivity)));

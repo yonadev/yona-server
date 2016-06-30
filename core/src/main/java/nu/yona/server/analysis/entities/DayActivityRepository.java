@@ -5,6 +5,7 @@
 package nu.yona.server.analysis.entities;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -20,7 +21,7 @@ import nu.yona.server.goals.entities.Goal;
 public interface DayActivityRepository extends CrudRepository<DayActivity, UUID>
 {
 	@Query("select a from DayActivity a"
-			+ " where a.userAnonymized.id = :userAnonymizedID and a.goal.id = :goalID order by a.startTime desc")
+			+ " where a.userAnonymized.id = :userAnonymizedID and a.goal.id = :goalID order by a.date desc")
 	DayActivity findLast(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("goalID") UUID goalID);
 
 	@Query("select a from DayActivity a"
@@ -28,9 +29,13 @@ public interface DayActivityRepository extends CrudRepository<DayActivity, UUID>
 	DayActivity findOne(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("date") LocalDate date,
 			@Param("goalID") UUID goalID);
 
-	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedID and a.date >= :dateFrom and a.date <= :dateUntil order by a.startTime desc")
-	Set<DayActivity> findAll(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("dateFrom") LocalDate dateFrom,
-			@Param("dateUntil") LocalDate dateUntil);
+	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedID and a.date >= :dateFrom and a.date <= :dateUntil order by a.date desc")
+	List<DayActivity> findAllActivitiesForUserInIntervalEndIncluded(@Param("userAnonymizedID") UUID userAnonymizedID,
+			@Param("dateFrom") LocalDate dateFrom, @Param("dateUntil") LocalDate dateUntil);
+
+	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedID and a.goal.id = :goalID and a.date >= :dateFrom and a.date < :dateUntil order by a.date desc")
+	List<DayActivity> findActivitiesForUserAndGoalInIntervalEndExcluded(@Param("userAnonymizedID") UUID userAnonymizedID,
+			@Param("goalID") UUID goalID, @Param("dateFrom") LocalDate dateFrom, @Param("dateUntil") LocalDate dateUntil);
 
 	@Modifying
 	@Query("delete from DayActivity a where a.userAnonymized.id = :userAnonymizedID")
