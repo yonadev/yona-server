@@ -226,7 +226,7 @@ class AppService extends Service
 		response.status >= 200 && response.status < 300
 	}
 
-	void makeBuddies(requestingUser, respondingUser)
+	void makeBuddies(User requestingUser, User respondingUser)
 	{
 		sendBuddyConnectRequest(requestingUser, respondingUser)
 		def acceptURL = fetchBuddyConnectRequestMessage(respondingUser).acceptURL
@@ -358,7 +358,7 @@ class AppService extends Service
 		yonaServer.getResource(ACTIVITY_CATEGORIES_PATH)
 	}
 
-	def getBuddies(User user)
+	List<Buddy> getBuddies(User user)
 	{
 		def response = yonaServer.getResourceWithPassword(user.buddiesUrl, user.password)
 		assert response.status == 200
