@@ -24,7 +24,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-4 Mon 02:18")
 
-		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+		richard = appService.reloadUser(richard)
 		Goal budgetGoalNews = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
@@ -73,11 +73,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		reportNetworkActivity(bob, ["YouTube"], "http://www.facebook.com", "W-1 Fri 15:00")
 		reportNetworkActivity(bob, ["YouTube"], "http://www.facebook.com", "W-1 Sat 21:00")
 
-		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+		richard = appService.reloadUser(richard)
 		Goal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal timeZoneGoalSocialRichard = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
 
-		bob = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, bob.url, true, bob.password)
+		bob = appService.reloadUser(bob)
 		Goal budgetGoalSocialBob = bob.findActiveGoal(SOCIAL_ACT_CAT_URL)
 		Goal timeZoneGoalMultimediaBob = bob.findActiveGoal(MULTIMEDIA_ACT_CAT_URL)
 
@@ -193,7 +193,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		reportNetworkActivity(bob, ["YouTube"], "http://www.facebook.com", "W-1 Fri 15:00")
 		reportNetworkActivity(bob, ["YouTube"], "http://www.facebook.com", "W-1 Sat 21:00")
 
-		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+		richard = appService.reloadUser(richard)
 		Goal budgetGoalSocialBob = richard.buddies[0].findActiveGoal(SOCIAL_ACT_CAT_URL)
 		Goal timeZoneGoalMultimediaBob = richard.buddies[0].findActiveGoal(MULTIMEDIA_ACT_CAT_URL)
 
@@ -301,7 +301,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Wed 15:00")
 		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Thu 11:30")
 
-		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+		richard = appService.reloadUser(richard)
 		Goal budgetGoalNews = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal timeZoneGoalSocial = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
 
@@ -424,8 +424,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 
-		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
-		bob = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, bob.url, true, bob.password)
+		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
 
 		then:
 		assertCommentingWorks(richard, bob, false, {user -> appService.getDayActivityOverviews(user, ["size": 14])},
@@ -447,8 +447,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		when:
 		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 
-		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
-		bob = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, bob.url, true, bob.password)
+		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
 
 		then:
 		assertCommentingWorks(richard, bob, true, {user -> appService.getWeekActivityOverviews(user, ["size": 14])},
@@ -466,7 +466,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		User bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
-		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+		richard = appService.reloadUser(richard)
 
 		when:
 		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(richard, ["size": 14])
@@ -491,7 +491,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
 		def acceptURL = connectRequestMessage.acceptURL
 		assert appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password).status == 200
-		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+		richard = appService.reloadUser(richard)
 
 		when:
 		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(richard, ["size": 14])

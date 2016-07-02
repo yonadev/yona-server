@@ -57,7 +57,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		response.responseData._links."yona:user" == null
 		response.responseData._links.self.href.startsWith(richard.url)
 
-		def richardWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
+		def richardWithBuddy = appService.reloadUser(richard)
 		richardWithBuddy.buddies != null
 		richardWithBuddy.buddies.size() == 1
 		richardWithBuddy.buddies[0].user.firstName == bob.firstName
@@ -128,7 +128,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddies[0].sendingStatus == "ACCEPTED"
 		buddies[0].receivingStatus == "ACCEPTED"
 
-		def bobWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, bob.url, true, bob.password)
+		def bobWithBuddy = appService.reloadUser(bob)
 		bobWithBuddy.buddies != null
 		bobWithBuddy.buddies.size() == 1
 		bobWithBuddy.buddies[0].user.firstName == richard.firstName
@@ -198,7 +198,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddies[0].sendingStatus == "ACCEPTED"
 		buddies[0].receivingStatus == "ACCEPTED"
 
-		def richardWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
+		def richardWithBuddy = appService.reloadUser(richard)
 		richardWithBuddy.buddies != null
 		richardWithBuddy.buddies.size() == 1
 		richardWithBuddy.buddies[0].user.firstName == bob.firstName
