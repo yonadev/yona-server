@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.entities;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.persistence.Column;
@@ -93,7 +94,7 @@ public class Buddy extends EntityWithID
 		return User.getRepository().findOne(userID);
 	}
 
-	public UUID getUserAnonymizedID()
+	public Optional<UUID> getUserAnonymizedID()
 	{
 		return getBuddyAnonymized().getUserAnonymizedID();
 	}

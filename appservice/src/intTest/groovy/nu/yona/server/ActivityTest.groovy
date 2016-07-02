@@ -214,7 +214,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def responseDayOverviews = appService.getDayActivityOverviews(richard, richard.buddies[0], ["size": 14])
 
 		then:
-		// TODO: extend the below test to make it full fledged like the above one, preferrably based on the same APIs
+		// TODO: extend the below test to make it full fledged like the above one, preferably based on the same APIs
 		responseWeekOverviews.status == 200
 		responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews".size() == 2
 		def weekActivityOverview = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
@@ -454,6 +454,86 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertCommentingWorks(richard, bob, true, {user -> appService.getWeekActivityOverviews(user, ["size": 14])},
 		{user -> appService.getWeekActivityOverviews(user, user.buddies[0], ["size": 14])},
 		{responseOverviews, user, goal -> getWeekDetails(responseOverviews, user, goal, 1)})
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Richard retrieves buddy activity info before Bob accepted Richard\'s buddy request'()
+	{
+		given:
+		User richard = addRichard()
+		User bob = addBob()
+		appService.sendBuddyConnectRequest(richard, bob)
+		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+
+		when:
+		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(richard, ["size": 14])
+
+		then:
+		richard.buddies[0].dailyActivityReportsUrl == null
+		richard.buddies[0].weeklyActivityReportsUrl == null
+		responseDayOverviewsWithBuddies.status == 200
+		responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[0].dayActivities.find{ it._links."yona:activityCategory"?.href == GAMBLING_ACT_CAT_URL}.dayActivitiesForUsers.size() == 1
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Richard retrieves buddy activity info before he processed Bob\'s acceptance'()
+	{
+		given:
+		User richard = addRichard()
+		User bob = addBob()
+		appService.sendBuddyConnectRequest(richard, bob)
+		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
+		def acceptURL = connectRequestMessage.acceptURL
+		assert appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password).status == 200
+		richard = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+
+		when:
+		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(richard, ["size": 14])
+
+		then:
+		richard.buddies[0].dailyActivityReportsUrl == null
+		richard.buddies[0].weeklyActivityReportsUrl == null
+		responseDayOverviewsWithBuddies.status == 200
+		responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[0].dayActivities.find{ it._links."yona:activityCategory"?.href == GAMBLING_ACT_CAT_URL}.dayActivitiesForUsers.size() == 1
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Bob retrieves buddy activity info before Richard processed Bob\'s acceptance'()
+	{
+		given:
+		User richard = addRichard()
+		User bob = addBob()
+		appService.sendBuddyConnectRequest(richard, bob)
+		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
+		def acceptURL = connectRequestMessage.acceptURL
+		assert appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password).status == 200
+		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
+		Goal budgetGoalGamblingRichard = bob.buddies[0].findActiveGoal(GAMBLING_ACT_CAT_URL)
+
+		when:
+		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(bob, ["size": 14])
+
+		then:
+		responseDayOverviewsWithBuddies.status == 200
+		responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[0].dayActivities.find{ it._links."yona:activityCategory"?.href == GAMBLING_ACT_CAT_URL}.dayActivitiesForUsers.size() == 2
+		def responseWeekOverviews = appService.getWeekActivityOverviews(bob, bob.buddies[0])
+		responseWeekOverviews.status == 200
+		responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == budgetGoalGamblingRichard.url}
+		def weekActivityForGoal = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == budgetGoalGamblingRichard.url}
+		def dayActivityInWeekForGoal = weekActivityForGoal.dayActivities[YonaServer.now.dayOfWeek.toString()]
+		dayActivityInWeekForGoal.totalActivityDurationMinutes == 0
+
+		def responseDayOverviews = appService.getDayActivityOverviews(bob, bob.buddies[0])
 
 		cleanup:
 		appService.deleteUser(richard)

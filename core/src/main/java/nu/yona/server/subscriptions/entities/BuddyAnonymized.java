@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -78,13 +80,14 @@ public class BuddyAnonymized extends EntityWithID
 		this.receivingStatus = receivingStatus;
 	}
 
-	public UUID getUserAnonymizedID()
+	public Optional<UUID> getUserAnonymizedID()
 	{
-		return userAnonymizedID;
+		return Optional.ofNullable(userAnonymizedID);
 	}
 
 	public void setUserAnonymizedID(UUID userAnonymizedID)
 	{
+		Objects.requireNonNull(userAnonymizedID);
 		this.userAnonymizedID = userAnonymizedID;
 	}
 

@@ -70,6 +70,22 @@ class AppService extends Service
 		}
 	}
 
+	def reloadUser(User user)
+	{
+		def response
+		if (user.hasPrivateData)
+		{
+			response = yonaServer.getResourceWithPassword(yonaServer.stripQueryString(user.url), user.password, yonaServer.getQueryParams(user.url) + ["includePrivateData": "true"])
+			assertUserGetResponseDetailsWithPrivateData(response)
+		}
+		else
+		{
+			response = yonaServer.getResourceWithPassword(user.url, user.password)
+			assertUserGetResponseDetailsWithoutPrivateData(response)
+		}
+		return (isSuccess(response)) ? new User(response.responseData, user.password, user.hasPrivateData) : null
+	}
+
 	def updateUser(Closure asserter, User user, url = null)
 	{
 		def response = updateUser((url) ?: user.url, user.convertToJSON(), user.password)
