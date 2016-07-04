@@ -41,11 +41,23 @@ public class MessageService
 	public Page<MessageDTO> getReceivedMessages(UUID userID, Pageable pageable)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
+		return wrapMessagesAsDTOs(user, getReceivedMessageEntities(user, pageable), pageable);
+	}
 
+	@Transactional
+	public Page<Message> getReceivedMessageEntities(UUID userID, Pageable pageable)
+	{
+		UserDTO user = userService.getPrivateValidatedUser(userID);
+
+		return getReceivedMessageEntities(user, pageable);
+	}
+
+	private Page<Message> getReceivedMessageEntities(UserDTO user, Pageable pageable)
+	{
 		transferDirectMessagesToAnonymousDestination(user);
 
 		MessageSource messageSource = getAnonymousMessageSource(user);
-		return wrapAllReceivedMessagesAsDTOs(user, messageSource, pageable);
+		return messageSource.getReceivedMessages(pageable);
 	}
 
 	public MessageDTO getMessage(UUID userID, UUID messageID)
@@ -116,16 +128,15 @@ public class MessageService
 		return MessageSource.getRepository().findOne(user.getPrivateData().getAnonymousMessageSourceID());
 	}
 
-	private Page<MessageDTO> wrapAllReceivedMessagesAsDTOs(UserDTO user, MessageSource messageSource, Pageable pageable)
-	{
-		return wrapMessagesAsDTOs(user, messageSource.getReceivedMessages(pageable), pageable);
-	}
-
 	private Page<MessageDTO> wrapMessagesAsDTOs(UserDTO user, Page<? extends Message> messageEntities, Pageable pageable)
 	{
-		List<MessageDTO> allMessagePayloads = messageEntities.getContent().stream().map(m -> messageToDTO(user, m))
-				.collect(Collectors.toList());
+		List<MessageDTO> allMessagePayloads = wrapMessagesAsDTOs(user, messageEntities.getContent());
 		return new PageImpl<MessageDTO>(allMessagePayloads, pageable, messageEntities.getTotalElements());
+	}
+
+	private List<MessageDTO> wrapMessagesAsDTOs(UserDTO user, List<? extends Message> messageEntities)
+	{
+		return messageEntities.stream().map(m -> messageToDTO(user, m)).collect(Collectors.toList());
 	}
 
 	public MessageDTO messageToDTO(UserDTO user, Message message)

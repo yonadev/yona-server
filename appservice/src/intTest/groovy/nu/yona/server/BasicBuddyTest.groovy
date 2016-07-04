@@ -574,13 +574,24 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 200
-		appService.getBuddies(bob).size() == 1 // Buddy not yet removed for Bob (didn't get a message)
+		appService.getBuddies(bob).size() == 1 // Buddy not yet removed for Bob (didn't process the disconnect)
 		appService.getBuddies(richard).size() == 0 // Buddy removed for Richard
 
-		appService.getMessages(bob).responseData.page.totalElements == 1 // Only the request message (already processed)
+		appService.getMessages(bob).responseData.page.totalElements == 1 // Only the disconnect message
 
-		// Bob now has a broken buddy relationship: it exists at his side, but not at Richard's
-		// TODO: address this scenario
+		def disconnectMessage = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
+		def processURL = disconnectMessage._links."yona:process".href
+
+		when:
+		def responseProcessDisconnect = appService.postMessageActionWithPassword(processURL, [ : ], bob.password)
+
+		then:
+		responseProcessDisconnect.status == 200
+		responseProcessDisconnect.responseData._embedded."yona:affectedMessages".size() == 1
+		responseProcessDisconnect.responseData._embedded."yona:affectedMessages"[0]._links.self.href == disconnectMessage._links.self.href
+		responseProcessDisconnect.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
+
+		appService.getBuddies(bob).size() == 0 // Buddy removed now
 
 		cleanup:
 		appService.deleteUser(richard)

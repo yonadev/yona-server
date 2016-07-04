@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -12,6 +13,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.mail.internet.InternetAddress;
 
@@ -20,13 +22,17 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import nu.yona.server.Translator;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
+import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
@@ -66,6 +72,9 @@ public class BuddyService
 
 	@Autowired
 	private UserAnonymizedService userAnonymizedService;
+
+	@Autowired
+	private BuddyConnectResponseMessageDTO.Factory connectResponseMessageHandler;
 
 	public enum DropBuddyReason
 	{
@@ -177,6 +186,11 @@ public class BuddyService
 		User user = userService.getValidatedUserbyID(idOfRequestingUser);
 		Buddy buddy = getEntityByID(buddyID);
 
+		if (buddy.getSendingStatus() == Status.REQUESTED || buddy.getReceivingStatus() == Status.REQUESTED)
+		{
+			processPossiblePendingBuddyResponseMessage(user, buddy);
+		}
+
 		removeMessagesSentByBuddy(user, buddy);
 		removeBuddyInfoForBuddy(user, buddy, message, DropBuddyReason.USER_REMOVED_BUDDY);
 
@@ -193,6 +207,40 @@ public class BuddyService
 			logger.info("User with mobile number '{}' and ID '{}' removed buddy with mobile number '{}' and ID '{}' as buddy",
 					user.getID(), user.getMobileNumber(), buddyUser.getMobileNumber(), buddyUser.getID());
 		}
+	}
+
+	private void processPossiblePendingBuddyResponseMessage(User userEntity, Buddy buddy)
+	{
+		int page = 0;
+		final int pageSize = 50;
+		Page<Message> messagePage;
+		boolean messageFound = false;
+		UserDTO user = UserDTO.createInstance(userEntity);
+		do
+		{
+			messagePage = messageService.getReceivedMessageEntities(user.getID(), new PageRequest(page++, pageSize));
+
+			messageFound = processPossiblePendingBuddyResponseMessage(user, buddy, messagePage);
+		}
+		while (!messageFound && messagePage.getNumberOfElements() == pageSize);
+	}
+
+	private boolean processPossiblePendingBuddyResponseMessage(UserDTO user, Buddy buddy, Page<Message> messagePage)
+	{
+
+		Stream<BuddyConnectResponseMessage> buddyConnectResponseMessages = messagePage.getContent().stream()
+				.filter(m -> m instanceof BuddyConnectResponseMessage).map(m -> (BuddyConnectResponseMessage) m);
+		Stream<BuddyConnectResponseMessage> messagesFromBuddy = buddyConnectResponseMessages
+				.filter(m -> buddy.getUserID().equals(getUserID(m)));
+		Optional<BuddyConnectResponseMessage> messageToBeProcessed = messagesFromBuddy.filter(m -> m.isProcessed() == false).findFirst();
+		messageToBeProcessed.ifPresent(m -> connectResponseMessageHandler.handleAction_Process(user, m, new MessageActionDTO(Collections.emptyMap())));
+		return messageToBeProcessed.isPresent();
+	}
+
+	private UUID getUserID(BuddyConnectResponseMessage message)
+	{
+		User buddyUser = message.getSenderUser();
+		return (buddyUser == null) ? null : buddyUser.getID();
 	}
 
 	@Transactional
