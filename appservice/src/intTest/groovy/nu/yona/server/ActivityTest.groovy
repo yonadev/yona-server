@@ -553,6 +553,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 	private void assertWeekDateForCurrentWeek(responseWeekOverviews)
 	{
+		// Java treats Sunday as last day of the week while Yona treats it as first.
+		// For that reason, we ignore mismatches when they occur on a Sunday.
 		boolean isSunday = YonaServer.now.getDayOfWeek() == DayOfWeek.SUNDAY
 		DateTimeFormatter weekFormatter = new DateTimeFormatterBuilder()
 				.parseCaseInsensitive()
