@@ -81,7 +81,7 @@ public class AnalysisEngineServiceTests
 	@Mock
 	private YonaProperties mockYonaProperties;
 	@Mock
-	private AnalysisEngineCacheService mockAnalysisEngineCacheService;
+	private ActivityCacheService mockAnalysisEngineCacheService;
 	@Mock
 	private DayActivityRepository mockDayActivityRepository;
 	@InjectMocks
@@ -210,7 +210,7 @@ public class AnalysisEngineServiceTests
 				ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS));
 		Activity earlierActivity = Activity.createInstance(ZonedDateTime.now(), ZonedDateTime.now());
 		dayActivity.addActivity(earlierActivity);
-		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
+		when(mockAnalysisEngineCacheService.fetchLastDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
 				.thenReturn(dayActivity);
 
 		// Execute the analysis engine service after a period of inactivity longer than the conflict interval.
@@ -250,7 +250,7 @@ public class AnalysisEngineServiceTests
 
 		// Verify that there is an activity update.
 		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
-		verify(mockAnalysisEngineCacheService).updateDayActivityForUser(dayActivity.capture());
+		verify(mockAnalysisEngineCacheService).updateLastDayActivityForUser(dayActivity.capture());
 		Activity activity = dayActivity.getValue().getLastActivity();
 		assertThat("Expect right user set to activity", dayActivity.getValue().getUserAnonymized(), equalTo(userAnonEntity));
 		assertThat("Expect start time set just about time of analysis", activity.getStartTime(), greaterThanOrEqualTo(t));
@@ -301,7 +301,7 @@ public class AnalysisEngineServiceTests
 
 		// Verify that there are 2 activities updated, for both goals.
 		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
-		verify(mockAnalysisEngineCacheService, times(2)).updateDayActivityForUser(dayActivity.capture());
+		verify(mockAnalysisEngineCacheService, times(2)).updateLastDayActivityForUser(dayActivity.capture());
 		assertThat("Expect right goals set to activities",
 				dayActivity.getAllValues().stream().map(a -> a.getGoal()).collect(Collectors.toSet()),
 				containsInAnyOrder(gamblingGoal, gamingGoal));
@@ -333,7 +333,7 @@ public class AnalysisEngineServiceTests
 				ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS));
 		Activity earlierActivity = Activity.createInstance(t, t);
 		dayActivity.addActivity(earlierActivity);
-		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
+		when(mockAnalysisEngineCacheService.fetchLastDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
 				.thenReturn(dayActivity);
 
 		// Execute the analysis engine service.
@@ -352,7 +352,7 @@ public class AnalysisEngineServiceTests
 		// Verify that there is no new conflict message sent.
 		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
 		// Verify that the existing activity was updated in the cache.
-		verify(mockAnalysisEngineCacheService, times(3)).updateDayActivityForUser(dayActivity);
+		verify(mockAnalysisEngineCacheService, times(3)).updateLastDayActivityForUser(dayActivity);
 		assertThat("Expect start time to remain the same", earlierActivity.getStartTime(), equalTo(t));
 		assertThat("Expect end time updated at the last executed analysis matching the goals", earlierActivity.getEndTime(),
 				greaterThanOrEqualTo(t2));
@@ -372,8 +372,8 @@ public class AnalysisEngineServiceTests
 		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify that there was no attempted activity update.
-		verify(mockAnalysisEngineCacheService, never()).fetchDayActivityForUser(eq(userAnonID), any());
-		verify(mockAnalysisEngineCacheService, never()).updateDayActivityForUser(any());
+		verify(mockAnalysisEngineCacheService, never()).fetchLastDayActivityForUser(eq(userAnonID), any());
+		verify(mockAnalysisEngineCacheService, never()).updateLastDayActivityForUser(any());
 
 		verifyNoMessagesCreated();
 	}
@@ -402,7 +402,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Verify that there is an activity update.
 		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
-		verify(mockAnalysisEngineCacheService).updateDayActivityForUser(dayActivity.capture());
+		verify(mockAnalysisEngineCacheService).updateLastDayActivityForUser(dayActivity.capture());
 		assertThat("Expect right goal set to activity", dayActivity.getValue().getGoal(), equalTo(forGoal));
 	}
 
@@ -430,7 +430,7 @@ public class AnalysisEngineServiceTests
 		ZonedDateTime earlierActivityTime = now.minusDays(1);
 		Activity earlierActivity = Activity.createInstance(earlierActivityTime, earlierActivityTime);
 		earlierDayActivity.addActivity(earlierActivity);
-		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
+		when(mockAnalysisEngineCacheService.fetchLastDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
 				.thenReturn(earlierDayActivity);
 
 		ZonedDateTime startTime = now.minusMinutes(10);
@@ -441,7 +441,7 @@ public class AnalysisEngineServiceTests
 		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
 		// Verify that a new day was cached.
 		ArgumentCaptor<DayActivity> newDayActivity = ArgumentCaptor.forClass(DayActivity.class);
-		verify(mockAnalysisEngineCacheService, times(1)).updateDayActivityForUser(newDayActivity.capture());
+		verify(mockAnalysisEngineCacheService, times(1)).updateLastDayActivityForUser(newDayActivity.capture());
 		assertThat("Expect new day", newDayActivity.getValue(), not(equalTo(earlierDayActivity)));
 		assertThat("Expect right date", newDayActivity.getValue().getStartTime(), equalTo(now.truncatedTo(ChronoUnit.DAYS)));
 		assertThat("Expect activity added", newDayActivity.getValue().getLastActivity(), notNullValue());
@@ -458,7 +458,7 @@ public class AnalysisEngineServiceTests
 		ZonedDateTime earlierActivityTime = now;
 		Activity earlierActivity = Activity.createInstance(earlierActivityTime, earlierActivityTime);
 		dayActivity.addActivity(earlierActivity);
-		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
+		when(mockAnalysisEngineCacheService.fetchLastDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
 				.thenReturn(dayActivity);
 
 		ZonedDateTime startTime = now.minusMinutes(10);
@@ -470,7 +470,7 @@ public class AnalysisEngineServiceTests
 		// Verify that no database lookup was done
 		verify(mockDayActivityRepository, never()).findOne(userAnonID, now.toLocalDate(), gamblingGoal.getID());
 		// Verify that the day was updated in the cache
-		verify(mockAnalysisEngineCacheService, times(1)).updateDayActivityForUser(dayActivity);
+		verify(mockAnalysisEngineCacheService, times(1)).updateLastDayActivityForUser(dayActivity);
 
 		assertThat("Expect a new activity added (merge is quite complicated so has not been implemented yet)",
 				dayActivity.getLastActivity().getID(), not(equalTo(earlierActivity.getID())));
@@ -487,7 +487,7 @@ public class AnalysisEngineServiceTests
 		ZonedDateTime earlierActivityTime = now;
 		Activity earlierActivity = Activity.createInstance(earlierActivityTime, earlierActivityTime);
 		dayActivity.addActivity(earlierActivity);
-		when(mockAnalysisEngineCacheService.fetchDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
+		when(mockAnalysisEngineCacheService.fetchLastDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
 				.thenReturn(dayActivity);
 
 		ZonedDateTime startTime = yesterdayTime.minusMinutes(10);
@@ -500,12 +500,12 @@ public class AnalysisEngineServiceTests
 		verify(mockDayActivityRepository, times(1)).findOne(userAnonID, yesterdayTime.toLocalDate(), gamblingGoal.getID());
 		// Verify that yesterday was inserted in the database
 		ArgumentCaptor<DayActivity> precedingDayActivity = ArgumentCaptor.forClass(DayActivity.class);
-		verify(mockDayActivityRepository, times(1)).save(precedingDayActivity.capture());
+		verify(mockDayActivityRepository, times(2)).save(precedingDayActivity.capture());
 		assertThat("Expect right date", precedingDayActivity.getValue().getStartTime(),
 				equalTo(yesterdayTime.truncatedTo(ChronoUnit.DAYS)));
 		assertThat("Expect activity added", precedingDayActivity.getValue().getLastActivity(), notNullValue());
 		// Verify that the day preceding the cached day was not cached!
-		verify(mockAnalysisEngineCacheService, never()).updateDayActivityForUser(any());
+		verify(mockAnalysisEngineCacheService, never()).updateLastDayActivityForUser(any());
 	}
 
 	@Test
@@ -516,7 +516,7 @@ public class AnalysisEngineServiceTests
 		service.analyze(userAnonID, createSingleAppActivity("Poker App", startTime, endTime));
 
 		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
-		verify(mockAnalysisEngineCacheService, times(2)).updateDayActivityForUser(dayActivity.capture());
+		verify(mockAnalysisEngineCacheService, times(2)).updateLastDayActivityForUser(dayActivity.capture());
 
 		DayActivity firstDay = dayActivity.getAllValues().get(0);
 		DayActivity nextDay = dayActivity.getAllValues().get(1);

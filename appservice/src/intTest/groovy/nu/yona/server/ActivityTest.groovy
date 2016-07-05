@@ -8,7 +8,12 @@ package nu.yona.server
 
 import groovy.json.*
 
+import java.time.DayOfWeek
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
+import java.time.format.SignStyle
+import java.time.temporal.IsoFields
 
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.Buddy
@@ -17,6 +22,37 @@ import nu.yona.server.test.User
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
+	def 'Fetch activity reports without activity'()
+	{
+		given:
+		def richard = addRichard()
+		Goal goal = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
+
+		when:
+		def responseDayOverviews = appService.getDayActivityOverviews(richard)
+		def responseWeekOverviews = appService.getWeekActivityOverviews(richard)
+
+		then:
+		assertDayOverviewBasics(responseDayOverviews, 1, 1)
+		assertWeekOverviewBasics(responseWeekOverviews, [2], 1)
+
+		def weekActivityForGoal = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == goal.url}
+		assert weekActivityForGoal?._links?."yona:weekDetails"?.href
+		def weekActivityDetailUrl = weekActivityForGoal?._links?."yona:weekDetails"?.href
+		def response = appService.getResourceWithPassword(weekActivityDetailUrl, richard.password)
+		assert response.status == 200
+
+		def dayActivityOverview = responseDayOverviews.responseData._embedded."yona:dayActivityOverviews"[0]
+		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
+		assert dayActivityForGoal?._links?."yona:dayDetails"?.href
+		def dayActivityDetailUrl =  dayActivityForGoal?._links?."yona:dayDetails"?.href
+		def responseDayDetail = appService.getResourceWithPassword(dayActivityDetailUrl, richard.password)
+		assert responseDayDetail.status == 200
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def 'Page through multiple weeks'()
 	{
 		given:
@@ -113,6 +149,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertWeekOverviewBasics(responseWeekOverviews, [3, 2], expectedTotalWeeks)
+		assertWeekDateForCurrentWeek(responseWeekOverviews)
+
 		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalNewsRichard, 6)
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichard, expectedValuesRichardLastWeek, "Mon")
@@ -561,7 +599,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	void assertCommentingWorks(User richard, User bob, boolean isWeek, Closure userOverviewRetriever, Closure buddyOverviewRetriever, Closure detailsRetriever)
+	private void assertCommentingWorks(User richard, User bob, boolean isWeek, Closure userOverviewRetriever, Closure buddyOverviewRetriever, Closure detailsRetriever)
 	{
 		Goal budgetGoalNewsBuddyBob = richard.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal budgetGoalNewsBob = bob.findActiveGoal(NEWS_ACT_CAT_URL)
@@ -643,6 +681,22 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertCommentMessageDetails(activityCommentMessagesBob[0], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "No budget for a new one?")
 		assertCommentMessageDetails(activityCommentMessagesBob[1], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "Too bad!")
 		assertCommentMessageDetails(activityCommentMessagesBob[2], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "You're quiet!")
+	}
+
+	private void assertWeekDateForCurrentWeek(responseWeekOverviews)
+	{
+		// Java treats Sunday as last day of the week while Yona treats it as first.
+		// For that reason, we ignore mismatches when they occur on a Sunday.
+		boolean isSunday = YonaServer.now.getDayOfWeek() == DayOfWeek.SUNDAY
+		DateTimeFormatter weekFormatter = new DateTimeFormatterBuilder()
+				.parseCaseInsensitive()
+				.appendValue(IsoFields.WEEK_BASED_YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
+				.appendLiteral("-W")
+				.appendValue(IsoFields.WEEK_OF_WEEK_BASED_YEAR, 2)
+				.toFormatter(YonaServer.EN_US_LOCALE)
+
+		String currentWeek = weekFormatter.format(YonaServer.now)
+		assert responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].date == currentWeek || isSunday
 	}
 
 	private void replyToMessage(messageToReply, User senderUser, messageToSend, boolean isWeek, responseGetActivityDetails) {
