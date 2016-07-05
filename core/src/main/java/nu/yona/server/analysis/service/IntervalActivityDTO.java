@@ -4,8 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -65,14 +65,16 @@ public abstract class IntervalActivityDTO
 	@JsonIgnore
 	public String getDate()
 	{
-		return getStartTime().toLocalDate().format(getDateFormatter());
+		return formatDateAsISO(getStartTime().toLocalDate());
 	}
 
-	/*
-	 * The ISO-8601 date formatter.
+	/**
+	 * Format the date in compliance with ISO-8601
+	 * 
+	 * @param localDate The date to be formatted
+	 * @return The formatted date
 	 */
-	@JsonIgnore
-	public abstract DateTimeFormatter getDateFormatter();
+	protected abstract String formatDateAsISO(LocalDate localDate);
 
 	/**
 	 * The time zone in which the interval was recorded, or {null} if the date should not be serialized.

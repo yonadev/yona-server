@@ -4,14 +4,12 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public abstract class IntervalActivityOverviewDTO
 {
-	private ZonedDateTime date;
+	private final ZonedDateTime date;
 
 	protected IntervalActivityOverviewDTO(ZonedDateTime date)
 	{
@@ -23,7 +21,7 @@ public abstract class IntervalActivityOverviewDTO
 	 */
 	public String getDate()
 	{
-		return date.format(getDateFormatter());
+		return formatDateAsISO(date.toLocalDate());
 	}
 
 	/**
@@ -34,9 +32,11 @@ public abstract class IntervalActivityOverviewDTO
 		return date.getZone().getId();
 	}
 
-	/*
-	 * The ISO-8601 date formatter.
+	/**
+	 * Format the date in compliance with ISO-8601
+	 * 
+	 * @param localDate The date to be formatted
+	 * @return The formatted date
 	 */
-	@JsonIgnore
-	protected abstract DateTimeFormatter getDateFormatter();
+	protected abstract String formatDateAsISO(LocalDate localDate);
 }

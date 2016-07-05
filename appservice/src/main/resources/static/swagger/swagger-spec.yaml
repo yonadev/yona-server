@@ -542,7 +542,7 @@ paths:
         description: The ID of the user
         required: true
         type: string
-      - name: week
+      - name: YYYY-'W'ww
         in: path
         description: The date of the week in ISO 8601 format (YYYY-'W'w)
         required: true
@@ -611,7 +611,7 @@ paths:
         type: string
       - name: week
         in: path
-        description: The date of the week in ISO 8601 format (YYYY-'W'w)
+        description: The date of the week in ISO 8601 format (YYYY-'W'ww)
         required: true
         type: string
       - name: goalID
@@ -1009,7 +1009,7 @@ paths:
         type: string
       - name: week
         in: path
-        description: The date of the week in ISO 8601 format (YYYY-'W'w)
+        description: The date of the week in ISO 8601 format (YYYY-'W'ww)
         required: true
         type: string
       - name: goalID
@@ -1046,7 +1046,7 @@ paths:
         type: string
       - name: week
         in: path
-        description: The date of the week in ISO 8601 format (YYYY-'W'w)
+        description: The date of the week in ISO 8601 format (YYYY-'W'ww)
         required: true
         type: string
       - name: goalID
@@ -2421,8 +2421,8 @@ definitions:
     properties:
       date:
         type: string
-        example: 2016-W2
-        description: The week date in ISO 8601 format (YYYY-'W'w)
+        example: 2016-W02
+        description: The week date in ISO 8601 format (2016-W02)
       timeZoneId:
         type: string
         description: The time zone identifier that the user had configured when this week started.
@@ -2480,8 +2480,8 @@ definitions:
     properties:
       date:
         type: string
-        example: 2016-W2
-        description: The week date in ISO 8601 format (YYYY-'W'w).
+        example: 2016-W02
+        description: The week date in ISO 8601 format (YYYY-'W'ww).
       timeZoneId:
         type: string
         description: The time zone identifier that the user had configured when this week started.
