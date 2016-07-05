@@ -12,7 +12,7 @@ public class WeekActivityTests
 	@Test
 	public void testParse()
 	{
-		assertThat(WeekActivityDTO.parseDate("2016-W2").getDayOfWeek(), equalTo(DayOfWeek.SUNDAY));
-		assertThat(WeekActivityDTO.parseDate("2016-W2").getYear(), equalTo(2016));
+		assertThat(WeekActivityDTO.parseDate("2016-W02").getDayOfWeek(), equalTo(DayOfWeek.SUNDAY));
+		assertThat(WeekActivityDTO.parseDate("2016-W02").getYear(), equalTo(2016));
 	}
 }
