@@ -6,6 +6,7 @@ package nu.yona.server.analysis.entities;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -109,12 +110,24 @@ public abstract class IntervalActivity extends EntityWithID
 		return startTime;
 	}
 
+	public abstract ZonedDateTime getEndTime();
+
+	public boolean hasPrevious()
+	{
+		return goal.wasActiveAtInterval(startTime.minus(1, getTimeUnit()), getTimeUnit());
+	}
+
+	public boolean hasNext()
+	{
+		return startTime.plus(1, getTimeUnit()).isBefore(ZonedDateTime.now());
+	}
+
+	protected abstract TemporalUnit getTimeUnit();
+
 	public boolean areAggregatesComputed()
 	{
 		return aggregatesComputed;
 	}
-
-	public abstract ZonedDateTime getEndTime();
 
 	public List<Integer> getSpread()
 	{

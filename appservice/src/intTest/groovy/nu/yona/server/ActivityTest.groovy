@@ -76,8 +76,23 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertWeekOverviewBasics(responseWeekOverviewsPage2, [1, 1], expectedTotalWeeks)
 		assertWeekOverviewBasics(responseWeekOverviewsPage3, [1], expectedTotalWeeks)
 
+		def week5ForGoal = responseWeekOverviewsPage3.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
+		def week4ForGoal = responseWeekOverviewsPage2.responseData._embedded."yona:weekActivityOverviews"[1].weekActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
+		def week3ForGoal = responseWeekOverviewsPage2.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
+		def week2ForGoal = responseWeekOverviewsPage1.responseData._embedded."yona:weekActivityOverviews"[1].weekActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
+		def week1ForGoal = responseWeekOverviewsPage1.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
+		assertWeekDetailPrevNextLinks(week5ForGoal, null, week4ForGoal)
+		assertWeekDetailPrevNextLinks(week4ForGoal, week5ForGoal, week3ForGoal)
+		assertWeekDetailPrevNextLinks(week1ForGoal, week2ForGoal, null)
+
 		assertDayOverviewBasics(responseDayOverviewsPage1, 3, expectedTotalDays)
 		assertDayOverviewBasics(responseDayOverviewsPage2, 3, expectedTotalDays)
+
+		def day1ForGoal = responseDayOverviewsPage1.responseData._embedded."yona:dayActivityOverviews"[0].dayActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
+		def day2ForGoal = responseDayOverviewsPage1.responseData._embedded."yona:dayActivityOverviews"[1].dayActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
+		def day3ForGoal = responseDayOverviewsPage1.responseData._embedded."yona:dayActivityOverviews"[2].dayActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
+		assertDayDetailPrevNextLinks(day1ForGoal, null, day2ForGoal)
+		assertDayDetailPrevNextLinks(day2ForGoal, day3ForGoal, day1ForGoal)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -641,6 +656,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 			assert message._links?."yona:user"?.href == sender.url
 			assert message._links?."yona:reply"?.href == null
 		}
+	}
+
+	private void assertWeekDetailPrevNextLinks(weekForGoal, expectedPrevWeekForGoal, expectedNextWeekForGoal)
+	{
+
 	}
 
 	private getDayDetails(responseDayOverviewsAll, User user, Goal goal, int weeksBack, String shortDay) {

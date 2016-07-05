@@ -6,6 +6,7 @@ package nu.yona.server.analysis.service;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,14 +30,33 @@ public abstract class IntervalActivityDTO
 	private final List<Integer> spread;
 	private final Optional<Integer> totalActivityDurationMinutes;
 
+	private final boolean hasPrevious, hasNext;
+
 	protected IntervalActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
-			Optional<Integer> totalActivityDurationMinutes)
+			Optional<Integer> totalActivityDurationMinutes, boolean hasPrevious, boolean hasNext)
 	{
 		this.goalID = goalID;
 		this.startTime = startTime;
 		this.shouldSerializeDate = shouldSerializeDate;
 		this.spread = spread;
 		this.totalActivityDurationMinutes = totalActivityDurationMinutes;
+		this.hasPrevious = hasPrevious;
+		this.hasNext = hasNext;
+	}
+
+	@JsonIgnore
+	protected abstract TemporalUnit getTimeUnit();
+
+	@JsonIgnore
+	public boolean hasPrevious()
+	{
+		return hasPrevious;
+	}
+
+	@JsonIgnore
+	public boolean hasNext()
+	{
+		return hasNext;
 	}
 
 	@JsonIgnore
@@ -66,6 +86,30 @@ public abstract class IntervalActivityDTO
 	public String getDate()
 	{
 		return getStartTime().toLocalDate().format(getDateFormatter());
+	}
+
+	@JsonIgnore
+	private String getDate(ZonedDateTime startTime)
+	{
+		return startTime.toLocalDate().format(getDateFormatter());
+	}
+
+	/*
+	 * The ISO-8601 week or day date of the preceding week or day.
+	 */
+	@JsonIgnore
+	public String getPreviousDate()
+	{
+		return getDate(getStartTime().minus(1, getTimeUnit()));
+	}
+
+	/*
+	 * The ISO-8601 week or day date of the preceding week or day.
+	 */
+	@JsonIgnore
+	public String getNextDate()
+	{
+		return getDate(getStartTime().plus(1, getTimeUnit()));
 	}
 
 	/*

@@ -70,6 +70,8 @@ abstract class ActivityControllerBase
 	protected static final int WEEKS_DEFAULT_PAGE_SIZE = 2;
 	protected static final int DAYS_DEFAULT_PAGE_SIZE = 3;
 	protected static final int MESSAGES_DEFAULT_PAGE_SIZE = 4;
+	protected static final String PREV_REL = "previous";
+	protected static final String NEXT_REL = "next";
 
 	protected HttpEntity<PagedResources<WeekActivityOverviewResource>> getWeekActivityOverviews(Optional<String> password,
 			UUID userID, Pageable pageable, PagedResourcesAssembler<WeekActivityOverviewDTO> pagedResourcesAssembler,
@@ -303,6 +305,7 @@ abstract class ActivityControllerBase
 			{
 				addMessagesLink(weekActivityResource);
 				addAddCommentLink(weekActivityResource);
+				addPrevNextLinks(weekActivityResource);
 			}
 			return weekActivityResource;
 		}
@@ -338,6 +341,18 @@ abstract class ActivityControllerBase
 					weekActivityResource.getContent().getDate(), weekActivityResource.getContent().getGoalID());
 			linkBuilder.ifPresent(lb -> weekActivityResource.add(lb.withRel("addComment")));
 		}
+
+		private void addPrevNextLinks(WeekActivityResource weekActivityResource)
+		{
+			if (weekActivityResource.getContent().hasPrevious())
+				weekActivityResource
+						.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getPreviousDate(),
+								weekActivityResource.getContent().getGoalID()).withRel(PREV_REL));
+			if (weekActivityResource.getContent().hasNext())
+				weekActivityResource
+						.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getNextDate(),
+								weekActivityResource.getContent().getGoalID()).withRel(NEXT_REL));
+		}
 	}
 
 	static class DayActivityResourceAssembler extends ResourceAssemblerSupport<DayActivityDTO, DayActivityResource>
@@ -367,6 +382,7 @@ abstract class ActivityControllerBase
 			{
 				addMessagesLink(dayActivityResource);
 				addAddCommentLink(dayActivityResource);
+				addPrevNextLinks(dayActivityResource);
 			}
 			return dayActivityResource;
 		}
@@ -401,6 +417,18 @@ abstract class ActivityControllerBase
 			Optional<ControllerLinkBuilder> linkBuilder = linkProvider.getDayActivityDetailAddCommentLinkBuilder(
 					dayActivityResource.getContent().getDate(), dayActivityResource.getContent().getGoalID());
 			linkBuilder.ifPresent(lb -> dayActivityResource.add(lb.withRel("addComment")));
+		}
+
+		private void addPrevNextLinks(DayActivityResource dayActivityResource)
+		{
+			if (dayActivityResource.getContent().hasPrevious())
+				dayActivityResource
+						.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getPreviousDate(),
+								dayActivityResource.getContent().getGoalID()).withRel(PREV_REL));
+			if (dayActivityResource.getContent().hasNext())
+				dayActivityResource
+						.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getNextDate(),
+								dayActivityResource.getContent().getGoalID()).withRel(NEXT_REL));
 		}
 	}
 

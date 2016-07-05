@@ -3,6 +3,8 @@ package nu.yona.server.analysis.service;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -27,12 +29,18 @@ public class DayActivityDTO extends IntervalActivityDTO
 
 	private DayActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
 			Optional<Integer> totalActivityDurationMinutes, boolean goalAccomplished, int totalMinutesBeyondGoal,
-			Set<MessageDTO> messages)
+			Set<MessageDTO> messages, boolean hasPrevious, boolean hasNext)
 	{
-		super(goalID, startTime, shouldSerializeDate, spread, totalActivityDurationMinutes);
+		super(goalID, startTime, shouldSerializeDate, spread, totalActivityDurationMinutes, hasPrevious, hasNext);
 		this.goalAccomplished = goalAccomplished;
 		this.totalMinutesBeyondGoal = totalMinutesBeyondGoal;
 		this.messages = messages;
+	}
+
+	@Override
+	protected TemporalUnit getTimeUnit()
+	{
+		return ChronoUnit.DAYS;
 	}
 
 	@Override
@@ -73,7 +81,8 @@ public class DayActivityDTO extends IntervalActivityDTO
 				levelOfDetail == LevelOfDetail.DayDetail, getSpread(dayActivity, levelOfDetail),
 				Optional.of(dayActivity.getTotalActivityDurationMinutes()), dayActivity.isGoalAccomplished(),
 				dayActivity.getTotalMinutesBeyondGoal(),
-				levelOfDetail == LevelOfDetail.DayDetail ? getMessages(dayActivity) : Collections.emptySet());
+				levelOfDetail == LevelOfDetail.DayDetail ? getMessages(dayActivity) : Collections.emptySet(),
+				dayActivity.hasPrevious(), dayActivity.hasNext());
 	}
 
 	private static List<Integer> getSpread(DayActivity dayActivity, LevelOfDetail levelOfDetail)

@@ -339,6 +339,35 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert response.responseData.date =~ /\d{4}\-\d{2}\-\d{2}/
 		assert response.responseData.timeZoneId == "Europe/Amsterdam"
 		assert response.responseData._links."yona:goal"
+
+		/*def testPrevious = dayOffset > 0
+		 if(testPrevious)
+		 {
+		 def previousDayActivityOverview = dayActivityOverviewResponse.responseData._embedded."yona:dayActivityOverviews"[dayOffset-1]
+		 def previousDayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
+		 if(previousDayActivityForGoal)
+		 {
+		 assert response.responseData._links."yona:previous"?.href == previousDayActivityForGoal._links?."yona:dayDetails"?.href
+		 }
+		 else
+		 {
+		 assert response.responseData._links."yona:previous"?.href == null
+		 }
+		 }
+		 def testNext = dayOffset < expectedValues.size() - 1
+		 if(testNext)
+		 {
+		 def previousDayActivityOverview = dayActivityOverviewResponse.responseData._embedded."yona:dayActivityOverviews"[dayOffset-1]
+		 def previousDayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
+		 if(previousDayActivityForGoal)
+		 {
+		 assert response.responseData._links."yona:next"?.href == previousDayActivityForGoal._links?."yona:dayDetails"?.href
+		 }
+		 else
+		 {
+		 assert response.responseData._links."yona:next"?.href == null
+		 }
+		 }*/
 	}
 
 	void assertDayOverviewWithBuddiesBasics(response, expectedSize, expectedTotalElements, expectedPageSize = 3)

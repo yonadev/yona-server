@@ -7,6 +7,7 @@ package nu.yona.server.analysis.entities;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -39,6 +40,12 @@ public class WeekActivity extends IntervalActivity
 			int totalActivityDurationMinutes, boolean aggregatesComputed)
 	{
 		super(id, userAnonymized, goal, startOfWeek, spread, totalActivityDurationMinutes, aggregatesComputed);
+	}
+
+	@Override
+	protected TemporalUnit getTimeUnit()
+	{
+		return ChronoUnit.WEEKS;
 	}
 
 	@Override
