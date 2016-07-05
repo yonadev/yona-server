@@ -20,10 +20,10 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 public class UserAnonymizedDTO
 {
-	private UUID id;
-	private Set<GoalDTO> goals;
-	private MessageDestinationDTO anonymousMessageDestination;
-	private Set<UUID> buddyAnonymizedIDs;
+	private final UUID id;
+	private final Set<GoalDTO> goals;
+	private final MessageDestinationDTO anonymousMessageDestination;
+	private final Set<UUID> buddyAnonymizedIDs;
 
 	public UserAnonymizedDTO(UUID id, Set<GoalDTO> goals, MessageDestinationDTO anonymousMessageDestination,
 			Set<UUID> buddyAnonymizedIDs)
@@ -69,10 +69,10 @@ public class UserAnonymizedDTO
 				.collect(Collectors.toSet());
 	}
 
-	public BuddyAnonymized getBuddyAnonymized(UUID fromUserAnonymizedID)
+	public Optional<BuddyAnonymized> getBuddyAnonymized(UUID fromUserAnonymizedID)
 	{
 		return buddyAnonymizedIDs.stream().map(id -> BuddyAnonymized.getRepository().findOne(id))
-				.filter(ba -> ba.getUserAnonymizedID().equals(fromUserAnonymizedID)).findAny().orElse(null);
+				.filter(ba -> ba.getUserAnonymizedID().filter(id -> id.equals(fromUserAnonymizedID)).isPresent()).findAny();
 	}
 
 	public Optional<ZonedDateTime> getOldestGoalCreationTime()

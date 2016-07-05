@@ -70,6 +70,22 @@ class AppService extends Service
 		}
 	}
 
+	def reloadUser(User user)
+	{
+		def response
+		if (user.hasPrivateData)
+		{
+			response = yonaServer.getResourceWithPassword(yonaServer.stripQueryString(user.url), user.password, yonaServer.getQueryParams(user.url) + ["includePrivateData": "true"])
+			assertUserGetResponseDetailsWithPrivateData(response)
+		}
+		else
+		{
+			response = yonaServer.getResourceWithPassword(user.url, user.password)
+			assertUserGetResponseDetailsWithoutPrivateData(response)
+		}
+		return (isSuccess(response)) ? new User(response.responseData, user.password, user.hasPrivateData) : null
+	}
+
 	def updateUser(Closure asserter, User user, url = null)
 	{
 		def response = updateUser((url) ?: user.url, user.convertToJSON(), user.password)
@@ -210,7 +226,7 @@ class AppService extends Service
 		response.status >= 200 && response.status < 300
 	}
 
-	void makeBuddies(requestingUser, respondingUser)
+	void makeBuddies(User requestingUser, User respondingUser)
 	{
 		sendBuddyConnectRequest(requestingUser, respondingUser)
 		def acceptURL = fetchBuddyConnectRequestMessage(respondingUser).acceptURL
@@ -342,7 +358,7 @@ class AppService extends Service
 		yonaServer.getResource(ACTIVITY_CATEGORIES_PATH)
 	}
 
-	def getBuddies(User user)
+	List<Buddy> getBuddies(User user)
 	{
 		def response = yonaServer.getResourceWithPassword(user.buddiesUrl, user.password)
 		assert response.status == 200

@@ -291,8 +291,11 @@ public class BuddyController
 			ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(buddy.getID());
 			addSelfLink(selfLinkBuilder, buddyResource);
 			addEditLink(selfLinkBuilder, buddyResource);
-			addDayActivityOverviewsLink(buddyResource);
-			addWeekActivityOverviewsLink(buddyResource);
+			if (buddy.getSendingStatus() == Status.ACCEPTED)
+			{
+				addDayActivityOverviewsLink(buddyResource);
+				addWeekActivityOverviewsLink(buddyResource);
+			}
 			return buddyResource;
 		}
 

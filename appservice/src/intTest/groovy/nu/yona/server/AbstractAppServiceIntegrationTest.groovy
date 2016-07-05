@@ -66,7 +66,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		richard = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, richard)
 		def response = appService.addGoal(richard, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assert response.status == 201
-		return appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, richard.url, true, richard.password)
+		return appService.reloadUser(richard)
 	}
 
 	User addBob()
@@ -76,7 +76,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		bob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bob)
 		def response = appService.addGoal(bob, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assert response.status == 201
-		return appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, bob.url, true, bob.password)
+		return appService.reloadUser(bob)
 	}
 
 	def addRichardAndBobAsBuddies()
