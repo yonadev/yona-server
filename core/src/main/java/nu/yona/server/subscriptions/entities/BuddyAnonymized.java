@@ -30,7 +30,16 @@ public class BuddyAnonymized extends EntityWithID
 
 	private UUID userAnonymizedID;
 
+	/*
+	 * When the sendingStatus is accepted, the buddy user ACCEPTED to send goal conflicts and activity information to the other
+	 * side.
+	 */
 	private Status sendingStatus = Status.NOT_REQUESTED;
+
+	/*
+	 * When the receivingStatus is accepted, the user ACCEPTED to receive goal conflicts and activity information from the other
+	 * side.
+	 */
 	private Status receivingStatus = Status.NOT_REQUESTED;
 
 	// Default constructor is required for JPA
