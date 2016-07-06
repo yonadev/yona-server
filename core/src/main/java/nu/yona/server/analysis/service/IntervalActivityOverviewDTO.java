@@ -7,6 +7,8 @@ package nu.yona.server.analysis.service;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public abstract class IntervalActivityOverviewDTO
 {
 	private final ZonedDateTime date;
@@ -19,6 +21,7 @@ public abstract class IntervalActivityOverviewDTO
 	/*
 	 * The ISO-8601 week or day date.
 	 */
+	@JsonProperty("date")
 	public String getDateStr()
 	{
 		return formatDateAsISO(date.toLocalDate());
