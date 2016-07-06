@@ -75,6 +75,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		//we can safely get two normal pages
 		def responseDayOverviewsPage1 = appService.getDayActivityOverviews(richard)
 		def responseDayOverviewsPage2 = appService.getDayActivityOverviews(richard, ["page": 1])
+		def responseDayOverviewsAllOnOnePage = appService.getDayActivityOverviews(richard, ["size": expectedTotalDays])
 
 		then:
 		assertWeekOverviewBasics(responseWeekOverviewsPage1, [2, 1], expectedTotalWeeks)
@@ -96,8 +97,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def day1ForGoal = responseDayOverviewsPage1.responseData._embedded."yona:dayActivityOverviews"[0].dayActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
 		def day2ForGoal = responseDayOverviewsPage1.responseData._embedded."yona:dayActivityOverviews"[1].dayActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
 		def day3ForGoal = responseDayOverviewsPage1.responseData._embedded."yona:dayActivityOverviews"[2].dayActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
-		assertDayDetailPrevNextLinks(richard, day1ForGoal, null, day2ForGoal)
+		def secondToLastDayForGoal = responseDayOverviewsAllOnOnePage.responseData._embedded."yona:dayActivityOverviews"[expectedTotalDays - 2].dayActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
+		def lastDayForGoal = responseDayOverviewsAllOnOnePage.responseData._embedded."yona:dayActivityOverviews"[expectedTotalDays - 1].dayActivities.find{ it._links."yona:goal".href == budgetGoalNews.url}
+		assertDayDetailPrevNextLinks(richard, lastDayForGoal, null, secondToLastDayForGoal)
 		assertDayDetailPrevNextLinks(richard, day2ForGoal, day3ForGoal, day1ForGoal)
+		assertDayDetailPrevNextLinks(richard, day1ForGoal, day2ForGoal, null)
 
 		cleanup:
 		appService.deleteUser(richard)
