@@ -6,7 +6,9 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.SignStyle;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.IsoFields;
+import java.time.temporal.TemporalUnit;
 import java.time.temporal.WeekFields;
 import java.util.Collections;
 import java.util.List;
@@ -32,10 +34,17 @@ public class WeekActivityDTO extends IntervalActivityDTO
 	private final Map<DayOfWeek, DayActivityDTO> dayActivities;
 
 	private WeekActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
-			Optional<Integer> totalActivityDurationMinutes, Map<DayOfWeek, DayActivityDTO> dayActivities)
+			Optional<Integer> totalActivityDurationMinutes, Map<DayOfWeek, DayActivityDTO> dayActivities, boolean hasPrevious,
+			boolean hasNext)
 	{
-		super(goalID, startTime, shouldSerializeDate, spread, totalActivityDurationMinutes);
+		super(goalID, startTime, shouldSerializeDate, spread, totalActivityDurationMinutes, hasPrevious, hasNext);
 		this.dayActivities = dayActivities;
+	}
+
+	@Override
+	protected TemporalUnit getTimeUnit()
+	{
+		return ChronoUnit.WEEKS;
 	}
 
 	@Override
@@ -72,6 +81,7 @@ public class WeekActivityDTO extends IntervalActivityDTO
 				includeDetail ? Optional.of(weekActivity.getTotalActivityDurationMinutes()) : Optional.empty(),
 				weekActivity.getDayActivities().stream()
 						.collect(Collectors.toMap(dayActivity -> dayActivity.getDate().getDayOfWeek(),
-								dayActivity -> DayActivityDTO.createInstance(dayActivity, levelOfDetail))));
+								dayActivity -> DayActivityDTO.createInstance(dayActivity, levelOfDetail))),
+				weekActivity.hasPrevious(), weekActivity.hasNext());
 	}
 }

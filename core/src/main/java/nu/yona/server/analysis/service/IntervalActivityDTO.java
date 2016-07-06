@@ -6,6 +6,7 @@ package nu.yona.server.analysis.service;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,14 +30,40 @@ public abstract class IntervalActivityDTO
 	private final List<Integer> spread;
 	private final Optional<Integer> totalActivityDurationMinutes;
 
+	private final boolean hasPrevious, hasNext;
+
 	protected IntervalActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
-			Optional<Integer> totalActivityDurationMinutes)
+			Optional<Integer> totalActivityDurationMinutes, boolean hasPrevious, boolean hasNext)
 	{
 		this.goalID = goalID;
 		this.startTime = startTime;
 		this.shouldSerializeDate = shouldSerializeDate;
 		this.spread = spread;
 		this.totalActivityDurationMinutes = totalActivityDurationMinutes;
+		this.hasPrevious = hasPrevious;
+		this.hasNext = hasNext;
+	}
+
+	@JsonIgnore
+	protected abstract TemporalUnit getTimeUnit();
+
+	/*
+	 * The ISO-8601 date formatter. /** Format the date in compliance with ISO-8601
+	 * @param localDate The date to be formatted
+	 * @return The formatted date
+	 */
+	protected abstract String formatDateAsISO(LocalDate localDate);
+
+	@JsonIgnore
+	public boolean hasPrevious()
+	{
+		return hasPrevious;
+	}
+
+	@JsonIgnore
+	public boolean hasNext()
+	{
+		return hasNext;
 	}
 
 	@JsonIgnore
@@ -50,31 +77,41 @@ public abstract class IntervalActivityDTO
 	 */
 	@JsonInclude(Include.NON_EMPTY)
 	@JsonProperty("date")
-	public String getDateIfRequired()
+	public String getDateStrIfRequired()
 	{
 		if (!shouldSerializeDate)
 		{
 			return null;
 		}
-		return getDate();
+		return getDateStr();
 	}
 
 	/*
 	 * The ISO-8601 week or day date.
 	 */
 	@JsonIgnore
-	public String getDate()
+	public String getDateStr()
 	{
 		return formatDateAsISO(getStartTime().toLocalDate());
 	}
 
-	/**
-	 * Format the date in compliance with ISO-8601
-	 * 
-	 * @param localDate The date to be formatted
-	 * @return The formatted date
+	/*
+	 * The ISO-8601 week or day date of the preceding week or day.
 	 */
-	protected abstract String formatDateAsISO(LocalDate localDate);
+	@JsonIgnore
+	public String getPreviousDateStr()
+	{
+		return formatDateAsISO(getStartTime().minus(1, getTimeUnit()).toLocalDate());
+	}
+
+	/*
+	 * The ISO-8601 week or day date of the preceding week or day.
+	 */
+	@JsonIgnore
+	public String getNextDateStr()
+	{
+		return formatDateAsISO(getStartTime().plus(1, getTimeUnit()).toLocalDate());
+	}
 
 	/**
 	 * The time zone in which the interval was recorded, or {null} if the date should not be serialized.

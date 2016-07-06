@@ -6,6 +6,7 @@ package nu.yona.server.analysis.entities;
 
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -50,6 +51,12 @@ public class DayActivity extends IntervalActivity
 		Objects.requireNonNull(activities);
 		this.activities = activities;
 		this.goalAccomplished = goalAccomplished;
+	}
+
+	@Override
+	protected TemporalUnit getTimeUnit()
+	{
+		return ChronoUnit.DAYS;
 	}
 
 	@Override

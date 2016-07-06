@@ -6,6 +6,7 @@ package nu.yona.server.analysis.entities;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -84,6 +85,12 @@ public abstract class IntervalActivity extends EntityWithID
 		this.aggregatesComputed = aggregatesComputed;
 	}
 
+	protected abstract TemporalUnit getTimeUnit();
+
+	protected abstract List<Integer> computeSpread();
+
+	protected abstract int computeTotalActivityDurationMinutes();
+
 	public UserAnonymized getUserAnonymized()
 	{
 		return userAnonymized;
@@ -109,12 +116,22 @@ public abstract class IntervalActivity extends EntityWithID
 		return startTime;
 	}
 
+	public abstract ZonedDateTime getEndTime();
+
+	public boolean hasPrevious()
+	{
+		return goal.wasActiveAtInterval(startTime.minus(1, getTimeUnit()), getTimeUnit());
+	}
+
+	public boolean hasNext()
+	{
+		return startTime.plus(1, getTimeUnit()).isBefore(ZonedDateTime.now());
+	}
+
 	public boolean areAggregatesComputed()
 	{
 		return aggregatesComputed;
 	}
-
-	public abstract ZonedDateTime getEndTime();
 
 	public List<Integer> getSpread()
 	{
@@ -126,8 +143,6 @@ public abstract class IntervalActivity extends EntityWithID
 		return computeSpread();
 	}
 
-	protected abstract List<Integer> computeSpread();
-
 	public int getTotalActivityDurationMinutes()
 	{
 		if (areAggregatesComputed())
@@ -137,8 +152,6 @@ public abstract class IntervalActivity extends EntityWithID
 
 		return computeTotalActivityDurationMinutes();
 	}
-
-	protected abstract int computeTotalActivityDurationMinutes();
 
 	protected static List<Integer> getEmptySpread()
 	{

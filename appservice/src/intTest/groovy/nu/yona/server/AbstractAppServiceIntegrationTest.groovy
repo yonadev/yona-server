@@ -339,6 +339,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert response.responseData.date =~ /\d{4}\-\d{2}\-\d{2}/
 		assert response.responseData.timeZoneId == "Europe/Amsterdam"
 		assert response.responseData._links."yona:goal"
+
 	}
 
 	void assertDayOverviewWithBuddiesBasics(response, expectedSize, expectedTotalElements, expectedPageSize = 3)
