@@ -250,7 +250,7 @@ public class UserActivityController extends ActivityControllerBase
 
 		public List<DayActivityWithBuddiesResource> getDayActivities()
 		{
-			return new DayActivityWithBuddiesResourceAssembler(goalIDMapping, getContent().getDate())
+			return new DayActivityWithBuddiesResourceAssembler(goalIDMapping, getContent().getDateStr())
 					.toResources(getContent().getDayActivities());
 		}
 	}

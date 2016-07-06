@@ -318,7 +318,7 @@ abstract class ActivityControllerBase
 
 		private void addWeekDetailsLink(WeekActivityResource weekActivityResource, String rel)
 		{
-			weekActivityResource.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getDate(),
+			weekActivityResource.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getDateStr(),
 					weekActivityResource.getContent().getGoalID()).withRel(rel));
 		}
 
@@ -331,27 +331,31 @@ abstract class ActivityControllerBase
 		private void addMessagesLink(WeekActivityResource weekActivityResource)
 		{
 			weekActivityResource
-					.add(linkProvider.getWeekActivityDetailMessagesLinkBuilder(weekActivityResource.getContent().getDate(),
+					.add(linkProvider.getWeekActivityDetailMessagesLinkBuilder(weekActivityResource.getContent().getDateStr(),
 							weekActivityResource.getContent().getGoalID()).withRel("messages"));
 		}
 
 		private void addAddCommentLink(WeekActivityResource weekActivityResource)
 		{
 			Optional<ControllerLinkBuilder> linkBuilder = linkProvider.getWeekActivityDetailAddCommentLinkBuilder(
-					weekActivityResource.getContent().getDate(), weekActivityResource.getContent().getGoalID());
+					weekActivityResource.getContent().getDateStr(), weekActivityResource.getContent().getGoalID());
 			linkBuilder.ifPresent(lb -> weekActivityResource.add(lb.withRel("addComment")));
 		}
 
 		private void addPrevNextLinks(WeekActivityResource weekActivityResource)
 		{
 			if (weekActivityResource.getContent().hasPrevious())
+			{
 				weekActivityResource
-						.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getPreviousDate(),
+						.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getPreviousDateStr(),
 								weekActivityResource.getContent().getGoalID()).withRel(PREV_REL));
+			}
 			if (weekActivityResource.getContent().hasNext())
+			{
 				weekActivityResource
-						.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getNextDate(),
+						.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getNextDateStr(),
 								weekActivityResource.getContent().getGoalID()).withRel(NEXT_REL));
+			}
 		}
 	}
 
@@ -401,34 +405,38 @@ abstract class ActivityControllerBase
 
 		private void addDayDetailsLink(DayActivityResource dayActivityResource, String rel)
 		{
-			dayActivityResource.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getDate(),
+			dayActivityResource.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getDateStr(),
 					dayActivityResource.getContent().getGoalID()).withRel(rel));
 		}
 
 		private void addMessagesLink(DayActivityResource dayActivityResource)
 		{
 			dayActivityResource
-					.add(linkProvider.getDayActivityDetailMessagesLinkBuilder(dayActivityResource.getContent().getDate(),
+					.add(linkProvider.getDayActivityDetailMessagesLinkBuilder(dayActivityResource.getContent().getDateStr(),
 							dayActivityResource.getContent().getGoalID()).withRel("messages"));
 		}
 
 		private void addAddCommentLink(DayActivityResource dayActivityResource)
 		{
 			Optional<ControllerLinkBuilder> linkBuilder = linkProvider.getDayActivityDetailAddCommentLinkBuilder(
-					dayActivityResource.getContent().getDate(), dayActivityResource.getContent().getGoalID());
+					dayActivityResource.getContent().getDateStr(), dayActivityResource.getContent().getGoalID());
 			linkBuilder.ifPresent(lb -> dayActivityResource.add(lb.withRel("addComment")));
 		}
 
 		private void addPrevNextLinks(DayActivityResource dayActivityResource)
 		{
 			if (dayActivityResource.getContent().hasPrevious())
+			{
 				dayActivityResource
-						.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getPreviousDate(),
+						.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getPreviousDateStr(),
 								dayActivityResource.getContent().getGoalID()).withRel(PREV_REL));
+			}
 			if (dayActivityResource.getContent().hasNext())
+			{
 				dayActivityResource
-						.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getNextDate(),
+						.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getNextDateStr(),
 								dayActivityResource.getContent().getGoalID()).withRel(NEXT_REL));
+			}
 		}
 	}
 
