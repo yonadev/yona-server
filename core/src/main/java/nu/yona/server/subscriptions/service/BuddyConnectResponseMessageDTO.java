@@ -33,8 +33,8 @@ import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 {
 	private static final String PROCESS = "process";
-	private Status status;
-	private boolean isProcessed;
+	private final Status status;
+	private final boolean isProcessed;
 
 	private BuddyConnectResponseMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO user, String nickname, String message,
 			Status status, boolean isProcessed)
@@ -86,7 +86,7 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	}
 
 	@Component
-	private static class Factory implements DTOManager
+	static class Factory implements DTOManager
 	{
 		private static final Logger logger = LoggerFactory.getLogger(Factory.class);
 
@@ -123,8 +123,8 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 			}
 		}
 
-		private MessageActionDTO handleAction_Process(UserDTO actingUser,
-				BuddyConnectResponseMessage connectResponseMessageEntity, MessageActionDTO payload)
+		MessageActionDTO handleAction_Process(UserDTO actingUser, BuddyConnectResponseMessage connectResponseMessageEntity,
+				MessageActionDTO payload)
 		{
 
 			if (connectResponseMessageEntity.getStatus() == Status.REJECTED)

@@ -82,7 +82,7 @@ public class ActivityService
 	@Transactional
 	public Page<WeekActivityOverviewDTO> getBuddyWeekActivityOverviews(UUID buddyID, Pageable pageable)
 	{
-		return getWeekActivityOverviews(buddyService.getBuddy(buddyID).getUserAnonymizedID(), pageable);
+		return getWeekActivityOverviews(getBuddyUserAnonymizedID(buddyID), pageable);
 	}
 
 	private Page<WeekActivityOverviewDTO> getWeekActivityOverviews(UUID userAnonymizedID, Pageable pageable)
@@ -167,8 +167,8 @@ public class ActivityService
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
 		Interval interval = getInterval(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
 
-		Set<BuddyDTO> buddies = buddyService.getBuddiesOfUser(userID);
-		Set<UUID> userAnonymizedIDs = buddies.stream().map(b -> b.getUserAnonymizedID()).collect(Collectors.toSet());
+		Set<BuddyDTO> buddies = buddyService.getBuddiesOfUserThatAcceptedSending(userID);
+		Set<UUID> userAnonymizedIDs = buddies.stream().map(b -> getBuddyUserAnonymizedID(b)).collect(Collectors.toSet());
 		userAnonymizedIDs.add(userAnonymizedID);
 		Map<ZonedDateTime, Set<DayActivity>> dayActivityEntitiesByZonedDate = userAnonymizedIDs.stream()
 				.map(id -> getDayActivities(userAnonymizedService.getUserAnonymized(id), interval)).map(Map::entrySet)
@@ -186,7 +186,18 @@ public class ActivityService
 	@Transactional
 	public Page<DayActivityOverviewDTO<DayActivityDTO>> getBuddyDayActivityOverviews(UUID buddyID, Pageable pageable)
 	{
-		return getDayActivityOverviews(buddyService.getBuddy(buddyID).getUserAnonymizedID(), pageable);
+		return getDayActivityOverviews(getBuddyUserAnonymizedID(buddyID), pageable);
+	}
+
+	private UUID getBuddyUserAnonymizedID(UUID buddyID)
+	{
+		return getBuddyUserAnonymizedID(buddyService.getBuddy(buddyID));
+	}
+
+	private UUID getBuddyUserAnonymizedID(BuddyDTO buddy)
+	{
+		return buddy.getUserAnonymizedID()
+				.orElseThrow(() -> new IllegalStateException("Should have user anonymized ID when fetching buddy activity"));
 	}
 
 	private Page<DayActivityOverviewDTO<DayActivityDTO>> getDayActivityOverviews(UUID userAnonymizedID, Pageable pageable)
@@ -337,7 +348,7 @@ public class ActivityService
 	public WeekActivityDTO getBuddyWeekActivityDetail(UUID buddyID, LocalDate date, UUID goalID)
 	{
 		BuddyDTO buddy = buddyService.getBuddy(buddyID);
-		return getWeekActivityDetail(buddy.getUser().getID(), buddy.getUserAnonymizedID(), date, goalID);
+		return getWeekActivityDetail(buddy.getUser().getID(), getBuddyUserAnonymizedID(buddy), date, goalID);
 	}
 
 	private WeekActivityDTO getWeekActivityDetail(UUID userID, UUID userAnonymizedID, LocalDate date, UUID goalID)
@@ -364,7 +375,7 @@ public class ActivityService
 			Pageable pageable)
 	{
 		BuddyDTO buddy = buddyService.getBuddy(buddyID);
-		Supplier<IntervalActivity> activitySupplier = () -> weekActivityRepository.findOne(buddy.getUserAnonymizedID(), date,
+		Supplier<IntervalActivity> activitySupplier = () -> weekActivityRepository.findOne(getBuddyUserAnonymizedID(buddy), date,
 				goalID);
 		return getActivityDetailMessages(userID, activitySupplier, pageable);
 	}
@@ -379,7 +390,7 @@ public class ActivityService
 	public DayActivityDTO getBuddyDayActivityDetail(UUID buddyID, LocalDate date, UUID goalID)
 	{
 		BuddyDTO buddy = buddyService.getBuddy(buddyID);
-		return getDayActivityDetail(buddy.getUser().getID(), buddy.getUserAnonymizedID(), date, goalID);
+		return getDayActivityDetail(buddy.getUser().getID(), getBuddyUserAnonymizedID(buddy), date, goalID);
 	}
 
 	private DayActivityDTO getDayActivityDetail(UUID userID, UUID userAnonymizedID, LocalDate date, UUID goalID)
@@ -406,7 +417,7 @@ public class ActivityService
 			Pageable pageable)
 	{
 		BuddyDTO buddy = buddyService.getBuddy(buddyID);
-		Supplier<IntervalActivity> activitySupplier = () -> dayActivityRepository.findOne(buddy.getUserAnonymizedID(), date,
+		Supplier<IntervalActivity> activitySupplier = () -> dayActivityRepository.findOne(getBuddyUserAnonymizedID(buddy), date,
 				goalID);
 		return getActivityDetailMessages(userID, activitySupplier, pageable);
 	}
@@ -432,7 +443,7 @@ public class ActivityService
 	public MessageDTO addMessageToDayActivity(UUID userID, UUID buddyID, LocalDate date, UUID goalID,
 			PostPutActivityCommentMessageDTO message)
 	{
-		ActivitySupplier activitySupplier = (b, d, g) -> dayActivityRepository.findOne(b.getUserAnonymizedID(), d, g);
+		ActivitySupplier activitySupplier = (b, d, g) -> dayActivityRepository.findOne(getBuddyUserAnonymizedID(b), d, g);
 		return addMessageToActivity(userID, buddyID, date, goalID, activitySupplier, message);
 	}
 
@@ -440,7 +451,7 @@ public class ActivityService
 	public MessageDTO addMessageToWeekActivity(UUID userID, UUID buddyID, LocalDate date, UUID goalID,
 			PostPutActivityCommentMessageDTO message)
 	{
-		ActivitySupplier activitySupplier = (b, d, g) -> weekActivityRepository.findOne(b.getUserAnonymizedID(), d, g);
+		ActivitySupplier activitySupplier = (b, d, g) -> weekActivityRepository.findOne(getBuddyUserAnonymizedID(b), d, g);
 		return addMessageToActivity(userID, buddyID, date, goalID, activitySupplier, message);
 	}
 
@@ -456,7 +467,7 @@ public class ActivityService
 			throw ActivityServiceException.buddyDayActivityNotFound(userID, buddyID, date, goalID);
 		}
 
-		return sendMessagePair(sendingUser, buddy.getUserAnonymizedID(), dayActivityEntity.getID(), Optional.empty(),
+		return sendMessagePair(sendingUser, getBuddyUserAnonymizedID(buddy), dayActivityEntity.getID(), Optional.empty(),
 				Optional.empty(), message.getMessage());
 	}
 
