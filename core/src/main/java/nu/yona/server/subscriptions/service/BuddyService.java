@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -12,6 +13,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.mail.internet.InternetAddress;
 
@@ -20,13 +22,17 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import nu.yona.server.Translator;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
+import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
@@ -67,6 +73,9 @@ public class BuddyService
 	@Autowired
 	private UserAnonymizedService userAnonymizedService;
 
+	@Autowired
+	private BuddyConnectResponseMessageDTO.Factory connectResponseMessageHandler;
+
 	public enum DropBuddyReason
 	{
 		USER_ACCOUNT_DELETED, USER_REMOVED_BUDDY
@@ -78,7 +87,8 @@ public class BuddyService
 		BuddyDTO result = BuddyDTO.createInstance(buddyEntity);
 		if (canIncludePrivateData(buddyEntity))
 		{
-			result.setGoals(userAnonymizedService.getUserAnonymized(buddyEntity.getUserAnonymizedID()).getGoals().stream()
+			UUID buddyUserAnonymizedID = getUserAnonymizedIDForBuddy(buddyEntity);
+			result.setGoals(userAnonymizedService.getUserAnonymized(buddyUserAnonymizedID).getGoals().stream()
 					.collect(Collectors.toSet()));
 		}
 		return result;
@@ -93,6 +103,12 @@ public class BuddyService
 	{
 		UserDTO user = userService.getPrivateUser(forUserID);
 		return getBuddies(user.getPrivateData().getBuddyIDs());
+	}
+
+	public Set<BuddyDTO> getBuddiesOfUserThatAcceptedSending(UUID forUserID)
+	{
+		return getBuddiesOfUser(forUserID).stream().filter(b -> b.getSendingStatus() == Status.ACCEPTED)
+				.collect(Collectors.toSet());
 	}
 
 	@Transactional
@@ -170,6 +186,12 @@ public class BuddyService
 		User user = userService.getValidatedUserbyID(idOfRequestingUser);
 		Buddy buddy = getEntityByID(buddyID);
 
+		if (buddy.getSendingStatus() == Status.REQUESTED || buddy.getReceivingStatus() == Status.REQUESTED)
+		{
+			// The buddy might already have responded while the response wasn't processed yet
+			processPossiblePendingBuddyResponseMessage(user, buddy);
+		}
+
 		removeMessagesSentByBuddy(user, buddy);
 		removeBuddyInfoForBuddy(user, buddy, message, DropBuddyReason.USER_REMOVED_BUDDY);
 
@@ -186,6 +208,42 @@ public class BuddyService
 			logger.info("User with mobile number '{}' and ID '{}' removed buddy with mobile number '{}' and ID '{}' as buddy",
 					user.getID(), user.getMobileNumber(), buddyUser.getMobileNumber(), buddyUser.getID());
 		}
+	}
+
+	private void processPossiblePendingBuddyResponseMessage(User userEntity, Buddy buddy)
+	{
+		int page = 0;
+		final int pageSize = 50;
+		Page<Message> messagePage;
+		boolean messageFound = false;
+		UserDTO user = UserDTO.createInstance(userEntity);
+		do
+		{
+			messagePage = messageService.getReceivedMessageEntities(user.getID(), new PageRequest(page++, pageSize));
+
+			messageFound = processPossiblePendingBuddyResponseMessage(user, buddy, messagePage);
+		}
+		while (!messageFound && messagePage.getNumberOfElements() == pageSize);
+	}
+
+	private boolean processPossiblePendingBuddyResponseMessage(UserDTO user, Buddy buddy, Page<Message> messagePage)
+	{
+
+		Stream<BuddyConnectResponseMessage> buddyConnectResponseMessages = messagePage.getContent().stream()
+				.filter(m -> m instanceof BuddyConnectResponseMessage).map(m -> (BuddyConnectResponseMessage) m);
+		Stream<BuddyConnectResponseMessage> messagesFromBuddy = buddyConnectResponseMessages
+				.filter(m -> buddy.getUserID().equals(getUserID(m)));
+		Optional<BuddyConnectResponseMessage> messageToBeProcessed = messagesFromBuddy.filter(m -> m.isProcessed() == false)
+				.findFirst();
+		messageToBeProcessed.ifPresent(
+				m -> connectResponseMessageHandler.handleAction_Process(user, m, new MessageActionDTO(Collections.emptyMap())));
+		return messageToBeProcessed.isPresent();
+	}
+
+	private UUID getUserID(BuddyConnectResponseMessage message)
+	{
+		User buddyUser = message.getSenderUser();
+		return (buddyUser == null) ? null : buddyUser.getID();
 	}
 
 	@Transactional
@@ -206,9 +264,10 @@ public class BuddyService
 		if (requestingUserBuddy.getSendingStatus() == Status.ACCEPTED
 				|| requestingUserBuddy.getReceivingStatus() == Status.ACCEPTED)
 		{
-			UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(requestingUserBuddy.getUserAnonymizedID());
-			disconnectBuddy(userAnonymized, requestingUser.getUserAnonymizedID());
-			removeAnonymousMessagesSentByUser(userAnonymized, requestingUser.getUserAnonymizedID());
+			UUID buddyUserAnonymizedID = getUserAnonymizedIDForBuddy(requestingUserBuddy);
+			UserAnonymizedDTO buddyUserAnonymized = userAnonymizedService.getUserAnonymized(buddyUserAnonymizedID);
+			disconnectBuddyIfConnected(buddyUserAnonymized, requestingUser.getUserAnonymizedID());
+			removeAnonymousMessagesSentByUser(buddyUserAnonymized, requestingUser.getUserAnonymizedID());
 			sendDropBuddyMessage(requestingUser, requestingUserBuddy, message, reason);
 		}
 	}
@@ -221,16 +280,27 @@ public class BuddyService
 			// Buddy request was accepted
 			removeMessagesSentByBuddy(user, buddy);
 
-			sendDropBuddyMessage(null, buddy.getUserAnonymizedID(), buddy.getNickname(), user.getUserAnonymizedID(),
-					Optional.empty(), DropBuddyReason.USER_ACCOUNT_DELETED);
+			// Send message to "self", to notify the user about the removed buddy user
+			UUID buddyUserAnonymizedID = getUserAnonymizedIDForBuddy(buddy);
+			sendDropBuddyMessage(null, buddyUserAnonymizedID, buddy.getNickname(), Optional.empty(),
+					DropBuddyReason.USER_ACCOUNT_DELETED, user.getNamedMessageDestination());
 		}
 		else if (buddy.getSendingStatus() != Status.REJECTED && buddy.getReceivingStatus() != Status.REJECTED)
 		{
 			// Buddy request was not accepted or rejected yet
-			sendBuddyConnectResponseMessage(null, buddy.getUserAnonymizedID(), buddy.getNickname(), user.getUserAnonymizedID(),
+			// Send message to "self", as if the requested user declined the buddy request
+			UUID buddyUserAnonymizedID = buddy.getUserAnonymizedID().orElse(null); //
+			sendBuddyConnectResponseMessage(null, buddyUserAnonymizedID, buddy.getNickname(), user.getUserAnonymizedID(),
 					buddy.getID(), Status.REJECTED, getDropBuddyMessage(DropBuddyReason.USER_ACCOUNT_DELETED, Optional.empty()));
 		}
 		removeBuddy(user, buddy);
+	}
+
+	private UUID getUserAnonymizedIDForBuddy(Buddy buddy)
+	{
+		UUID buddyUserAnonymizedID = buddy.getUserAnonymizedID().orElseThrow(
+				() -> new IllegalStateException("Should have user anonymized ID when buddy relationship is established"));
+		return buddyUserAnonymizedID;
 	}
 
 	@Transactional
@@ -269,25 +339,29 @@ public class BuddyService
 
 	private void removeMessagesSentByBuddy(User user, Buddy buddy)
 	{
-		removeNamedMessagesSentByUser(user, buddy.getUserAnonymizedID());
+		Optional<UUID> userAnonymizedID = buddy.getUserAnonymizedID();
+		if (!userAnonymizedID.isPresent())
+		{
+			return;
+		}
+		removeNamedMessagesSentByUser(user, userAnonymizedID.get());
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(user.getUserAnonymizedID());
-		removeAnonymousMessagesSentByUser(userAnonymized, buddy.getUserAnonymizedID());
+		removeAnonymousMessagesSentByUser(userAnonymized, userAnonymizedID.get());
 	}
 
 	private void sendDropBuddyMessage(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
 			DropBuddyReason reason)
 	{
-		sendDropBuddyMessage(requestingUser.getID(), requestingUser.getUserAnonymizedID(), requestingUser.getNickname(),
-				requestingUserBuddy.getUserAnonymizedID(), message, reason);
+		sendDropBuddyMessage(requestingUser.getID(), requestingUser.getUserAnonymizedID(), requestingUser.getNickname(), message,
+				reason, requestingUserBuddy.getUser().getNamedMessageDestination());
 	}
 
 	private void sendDropBuddyMessage(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname,
-			UUID receiverUserAnonymizedID, Optional<String> message, DropBuddyReason reason)
+			Optional<String> message, DropBuddyReason reason, MessageDestination messageDestination)
 	{
-		MessageDestinationDTO messageDestination = userAnonymizedService.getUserAnonymized(receiverUserAnonymizedID)
-				.getAnonymousDestination();
+		MessageDestinationDTO messageDestinationDTO = MessageDestinationDTO.createInstance(messageDestination);
 		messageService.sendMessage(BuddyDisconnectMessage.createInstance(senderUserID, senderUserAnonymizedID, senderNickname,
-				getDropBuddyMessage(reason, message), reason), messageDestination);
+				getDropBuddyMessage(reason, message), reason), messageDestinationDTO);
 	}
 
 	void sendBuddyConnectResponseMessage(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname,
@@ -300,11 +374,14 @@ public class BuddyService
 				senderNickname, responseMessage, buddyID, status), messageDestination);
 	}
 
-	private void disconnectBuddy(UserAnonymizedDTO userAnonymized, UUID userAnonymizedID)
+	private void disconnectBuddyIfConnected(UserAnonymizedDTO buddyUserAnonymized, UUID userAnonymizedID)
 	{
-		BuddyAnonymized buddyAnonymized = userAnonymized.getBuddyAnonymized(userAnonymizedID);
-		buddyAnonymized.setDisconnected();
-		BuddyAnonymized.getRepository().save(buddyAnonymized);
+		Optional<BuddyAnonymized> buddyAnonymized = buddyUserAnonymized.getBuddyAnonymized(userAnonymizedID);
+		buddyAnonymized.ifPresent(ba -> {
+			ba.setDisconnected();
+			BuddyAnonymized.getRepository().save(ba);
+		});
+		// Else: user who requested buddy relationship didn't process the accept message yet
 	}
 
 	private void removeNamedMessagesSentByUser(User user, UUID sentByUserAnonymizedID)

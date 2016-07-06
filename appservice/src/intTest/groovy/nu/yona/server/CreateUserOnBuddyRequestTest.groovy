@@ -189,7 +189,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 200
-		def bobWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, updatedBob.url, true, updatedBob.password)
+		def bobWithBuddy = appService.reloadUser(updatedBob)
 		bobWithBuddy.buddies != null
 		bobWithBuddy.buddies.size() == 1
 		bobWithBuddy.buddies[0].user.firstName == "Richard"
@@ -225,7 +225,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		response.status == 200
 		response.responseData.properties.status == "done"
 
-		def richardWithBuddy = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
+		def richardWithBuddy = appService.reloadUser(richard)
 		richardWithBuddy.buddies != null
 		richardWithBuddy.buddies.size() == 1
 		richardWithBuddy.buddies[0].user.firstName == "Bob"
@@ -422,7 +422,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def processBuddyConnectResponse = appService.postMessageActionWithPassword(processURL, [:], richard.password)
 		processBuddyConnectResponse.status == 200
 
-		User richardAfterBobOverwrite = appService.getUser(appService.&assertUserGetResponseDetailsPublicDataAndVpnProfile, richard.url, true, richard.password)
+		User richardAfterBobOverwrite = appService.reloadUser(richard)
 		richardAfterBobOverwrite.buddies.size() == 0
 
 		cleanup:

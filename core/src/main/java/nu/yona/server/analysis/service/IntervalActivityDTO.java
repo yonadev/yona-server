@@ -4,8 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +47,13 @@ public abstract class IntervalActivityDTO
 	@JsonIgnore
 	protected abstract TemporalUnit getTimeUnit();
 
+	/*
+	 * The ISO-8601 date formatter. /** Format the date in compliance with ISO-8601
+	 * @param localDate The date to be formatted
+	 * @return The formatted date
+	 */
+	protected abstract String formatDateAsISO(LocalDate localDate);
+
 	@JsonIgnore
 	public boolean hasPrevious()
 	{
@@ -85,13 +92,7 @@ public abstract class IntervalActivityDTO
 	@JsonIgnore
 	public String getDate()
 	{
-		return getStartTime().toLocalDate().format(getDateFormatter());
-	}
-
-	@JsonIgnore
-	private String getDate(ZonedDateTime startTime)
-	{
-		return startTime.toLocalDate().format(getDateFormatter());
+		return formatDateAsISO(getStartTime().toLocalDate());
 	}
 
 	/*
@@ -100,7 +101,7 @@ public abstract class IntervalActivityDTO
 	@JsonIgnore
 	public String getPreviousDate()
 	{
-		return getDate(getStartTime().minus(1, getTimeUnit()));
+		return formatDateAsISO(getStartTime().minus(1, getTimeUnit()).toLocalDate());
 	}
 
 	/*
@@ -109,14 +110,8 @@ public abstract class IntervalActivityDTO
 	@JsonIgnore
 	public String getNextDate()
 	{
-		return getDate(getStartTime().plus(1, getTimeUnit()));
+		return formatDateAsISO(getStartTime().plus(1, getTimeUnit()).toLocalDate());
 	}
-
-	/*
-	 * The ISO-8601 date formatter.
-	 */
-	@JsonIgnore
-	public abstract DateTimeFormatter getDateFormatter();
 
 	/**
 	 * The time zone in which the interval was recorded, or {null} if the date should not be serialized.

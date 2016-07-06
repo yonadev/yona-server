@@ -1,7 +1,7 @@
 package nu.yona.server.analysis.service;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,9 +26,9 @@ public class DayActivityOverviewDTO<T> extends IntervalActivityOverviewDTO
 	}
 
 	@Override
-	protected DateTimeFormatter getDateFormatter()
+	protected String formatDateAsISO(LocalDate date)
 	{
-		return DayActivityDTO.ISO8601_DAY_FORMATTER;
+		return DayActivityDTO.formatDate(date);
 	}
 
 	@JsonIgnore
