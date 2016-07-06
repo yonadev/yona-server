@@ -77,20 +77,20 @@ public abstract class IntervalActivityDTO
 	 */
 	@JsonInclude(Include.NON_EMPTY)
 	@JsonProperty("date")
-	public String getDateIfRequired()
+	public String getDateStrIfRequired()
 	{
 		if (!shouldSerializeDate)
 		{
 			return null;
 		}
-		return getDate();
+		return getDateStr();
 	}
 
 	/*
 	 * The ISO-8601 week or day date.
 	 */
 	@JsonIgnore
-	public String getDate()
+	public String getDateStr()
 	{
 		return formatDateAsISO(getStartTime().toLocalDate());
 	}
@@ -99,7 +99,7 @@ public abstract class IntervalActivityDTO
 	 * The ISO-8601 week or day date of the preceding week or day.
 	 */
 	@JsonIgnore
-	public String getPreviousDate()
+	public String getPreviousDateStr()
 	{
 		return formatDateAsISO(getStartTime().minus(1, getTimeUnit()).toLocalDate());
 	}
@@ -108,7 +108,7 @@ public abstract class IntervalActivityDTO
 	 * The ISO-8601 week or day date of the preceding week or day.
 	 */
 	@JsonIgnore
-	public String getNextDate()
+	public String getNextDateStr()
 	{
 		return formatDateAsISO(getStartTime().plus(1, getTimeUnit()).toLocalDate());
 	}

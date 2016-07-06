@@ -2463,15 +2463,7 @@ definitions:
       _links:
         allOf:
           - $ref: '#/definitions/GoalLink'
-        properties:
-          "yona:weekDetails":
-            type: object
-            properties:
-              href:
-                type: string
-            required:
-              - href
-            description: Link to the details for this goal in this week
+          - $ref: '#/definitions/WeekDetailsLink'
         required:
           - "yona:goal"
           - "yona:weekDetails"
@@ -2517,6 +2509,8 @@ definitions:
           - $ref: '#/definitions/GoalLink'
           - $ref: '#/definitions/AddCommentLink'
           - $ref: '#/definitions/MessagesLink'
+          - $ref: '#/definitions/PrevLink'
+          - $ref: '#/definitions/NextLink'
     required:
       - date
       - timeZoneId
@@ -2645,6 +2639,8 @@ definitions:
           - $ref: '#/definitions/GoalLink'
           - $ref: '#/definitions/AddCommentLink'
           - $ref: '#/definitions/MessagesLink'
+          - $ref: '#/definitions/PrevLink'
+          - $ref: '#/definitions/NextLink'
         required:
           - self
           - "yona:goal"

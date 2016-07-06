@@ -19,7 +19,7 @@ public abstract class IntervalActivityOverviewDTO
 	/*
 	 * The ISO-8601 week or day date.
 	 */
-	public String getDate()
+	public String getDateStr()
 	{
 		return formatDateAsISO(date.toLocalDate());
 	}

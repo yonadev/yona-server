@@ -85,6 +85,12 @@ public abstract class IntervalActivity extends EntityWithID
 		this.aggregatesComputed = aggregatesComputed;
 	}
 
+	protected abstract TemporalUnit getTimeUnit();
+
+	protected abstract List<Integer> computeSpread();
+
+	protected abstract int computeTotalActivityDurationMinutes();
+
 	public UserAnonymized getUserAnonymized()
 	{
 		return userAnonymized;
@@ -122,8 +128,6 @@ public abstract class IntervalActivity extends EntityWithID
 		return startTime.plus(1, getTimeUnit()).isBefore(ZonedDateTime.now());
 	}
 
-	protected abstract TemporalUnit getTimeUnit();
-
 	public boolean areAggregatesComputed()
 	{
 		return aggregatesComputed;
@@ -139,8 +143,6 @@ public abstract class IntervalActivity extends EntityWithID
 		return computeSpread();
 	}
 
-	protected abstract List<Integer> computeSpread();
-
 	public int getTotalActivityDurationMinutes()
 	{
 		if (areAggregatesComputed())
@@ -150,8 +152,6 @@ public abstract class IntervalActivity extends EntityWithID
 
 		return computeTotalActivityDurationMinutes();
 	}
-
-	protected abstract int computeTotalActivityDurationMinutes();
 
 	protected static List<Integer> getEmptySpread()
 	{
