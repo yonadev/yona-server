@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -22,7 +24,7 @@ public interface DayActivityRepository extends CrudRepository<DayActivity, UUID>
 {
 	@Query("select a from DayActivity a"
 			+ " where a.userAnonymized.id = :userAnonymizedID and a.goal.id = :goalID order by a.date desc")
-	DayActivity findLast(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("goalID") UUID goalID);
+	Page<DayActivity> findLast(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("goalID") UUID goalID, Pageable pageable);
 
 	@Query("select a from DayActivity a"
 			+ " where a.userAnonymized.id = :userAnonymizedID and a.date = :date and a.goal.id = :goalID")
