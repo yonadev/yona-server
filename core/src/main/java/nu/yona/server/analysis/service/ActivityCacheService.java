@@ -5,10 +5,12 @@
 package nu.yona.server.analysis.service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.DayActivity;
@@ -20,7 +22,9 @@ public class ActivityCacheService
 	@Cacheable(value = "dayActivities", key = "{#userAnonymizedID,#goalID}")
 	public DayActivity fetchLastDayActivityForUser(UUID userAnonymizedID, UUID goalID)
 	{
-		return DayActivity.getRepository().findLast(userAnonymizedID, goalID);
+		List<DayActivity> lastActivityList = DayActivity.getRepository().findLast(userAnonymizedID, goalID, new PageRequest(0, 1))
+				.getContent();
+		return lastActivityList.isEmpty() ? null : lastActivityList.get(0);
 	}
 
 	@CachePut(value = "dayActivities", key = "{#dayActivity.userAnonymized.getID(),#dayActivity.goal.getID()}")
