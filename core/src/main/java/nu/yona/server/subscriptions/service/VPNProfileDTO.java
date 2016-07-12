@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -24,18 +24,20 @@ public class VPNProfileDTO
 	private final UUID id;
 	private UUID vpnLoginID;
 	private String vpnPassword;
+	private final byte[] userCertificateByteArray;
 
-	public VPNProfileDTO(UUID id, UUID vpnLoginID, String vpnPassword)
+	public VPNProfileDTO(UUID id, UUID vpnLoginID, String vpnPassword, byte[] userCertificateByteArray)
 	{
 		this.id = id;
 		this.vpnLoginID = vpnLoginID;
 		this.vpnPassword = vpnPassword;
+		this.userCertificateByteArray = userCertificateByteArray;
 	}
 
 	@JsonCreator
 	public VPNProfileDTO(@JsonProperty("vpnLoginID") UUID vpnLoginID)
 	{
-		this(null, vpnLoginID, null);
+		this(null, vpnLoginID, null, null);
 	}
 
 	@JsonIgnore
@@ -75,6 +77,13 @@ public class VPNProfileDTO
 
 	public static VPNProfileDTO createInstance(User user)
 	{
-		return new VPNProfileDTO(user.getAnonymized().getID(), user.getVPNLoginID(), user.getVPNPassword());
+		return new VPNProfileDTO(user.getAnonymized().getID(), user.getVPNLoginID(), user.getVPNPassword(),
+				user.getUserCertificateByteArray());
+	}
+
+	@JsonIgnore
+	public byte[] getUserCertificateByteArray()
+	{
+		return userCertificateByteArray;
 	}
 }
