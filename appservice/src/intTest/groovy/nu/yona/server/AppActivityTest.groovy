@@ -12,6 +12,7 @@ import java.time.Duration
 import java.time.ZonedDateTime
 
 import nu.yona.server.test.AppActivity
+import spock.lang.IgnoreRest
 
 class AppActivityTest extends AbstractAppServiceIntegrationTest
 {
@@ -47,8 +48,8 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		ZonedDateTime testStartTime = YonaServer.now
-		ZonedDateTime startTime = testStartTime.minus(Duration.ofHours(1))
-		ZonedDateTime endTime = testStartTime
+		ZonedDateTime startTime = testStartTime
+		ZonedDateTime endTime = testStartTime.plusHours(1)
 
 		when:
 		def response = appService.postAppActivityToAnalysisEngine(richard, AppActivity.singleActivity("Poker App", startTime, endTime))
@@ -87,8 +88,8 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def bob = richardAndBob.bob
 		Duration offset = Duration.ofMinutes(45) // Off by 45 minutes
 		ZonedDateTime testStartTime = YonaServer.now
-		ZonedDateTime startTime = testStartTime.minus(Duration.ofHours(1))
-		ZonedDateTime endTime = testStartTime
+		ZonedDateTime startTime = testStartTime
+		ZonedDateTime endTime = testStartTime.plusHours(1)
 
 		when:
 		def testStartTimeWrong = testStartTime.plus(offset)
@@ -129,10 +130,10 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		ZonedDateTime testStartTime = YonaServer.now
-		ZonedDateTime startTime = testStartTime.minus(Duration.ofHours(1))
-		ZonedDateTime endTime = testStartTime
-		ZonedDateTime startTime1 = testStartTime.minus(Duration.ofSeconds(10))
-		ZonedDateTime endTime1 = testStartTime
+		ZonedDateTime startTime = testStartTime
+		ZonedDateTime endTime = testStartTime.plusHours(1)
+		ZonedDateTime startTime1 = testStartTime
+		ZonedDateTime endTime1 = testStartTime.plusSeconds(10)
 
 		when:
 		appService.postAppActivityToAnalysisEngine(richard, AppActivity.singleActivity("Poker App", startTime, endTime))
@@ -158,10 +159,10 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		ZonedDateTime testStartTime = YonaServer.now
-		ZonedDateTime startTime = testStartTime.minus(Duration.ofHours(1))
-		ZonedDateTime endTime = testStartTime.minus(Duration.ofSeconds(10))
+		ZonedDateTime startTime = testStartTime
+		ZonedDateTime endTime = testStartTime.plusHours(1)
 		ZonedDateTime startTime1 = endTime
-		ZonedDateTime endTime1 = testStartTime
+		ZonedDateTime endTime1 = endTime.plusSeconds(10)
 
 		when:
 		def response = appService.postAppActivityToAnalysisEngine(richard,
@@ -185,5 +186,25 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
 		assertEquals(goalConflictMessagesRichard[0].activityStartTime, startTime)
 		assertEquals(goalConflictMessagesRichard[0].activityEndTime, endTime1)
+	}
+
+	def 'Activity before goal creation is ignored'()
+	{
+		given:
+		def richard = addRichard()
+		ZonedDateTime testStartTime = YonaServer.now
+		ZonedDateTime startTime = testStartTime.minusDays(1)
+		ZonedDateTime endTime = startTime.plusMinutes(15)
+
+		when:
+		def response = appService.postAppActivityToAnalysisEngine(richard,
+				new AppActivity([new AppActivity.Activity("Poker App", startTime, endTime)].toArray()))
+
+		then:
+		response.status == 200
+		def getMessagesRichardResponse = appService.getMessages(richard)
+		getMessagesRichardResponse.status == 200
+		ZonedDateTime goalConflictTime = YonaServer.now
+		getMessagesRichardResponse.responseData._embedded?."yona:messages"?.findAll{ it."@type" == "GoalConflictMessage"} == null
 	}
 }
