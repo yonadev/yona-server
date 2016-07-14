@@ -12,7 +12,6 @@ import java.time.Duration
 import java.time.ZonedDateTime
 
 import nu.yona.server.test.AppActivity
-import spock.lang.IgnoreRest
 
 class AppActivityTest extends AbstractAppServiceIntegrationTest
 {
