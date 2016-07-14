@@ -4,6 +4,12 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -17,10 +23,12 @@ import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import nu.yona.server.crypto.ByteFieldEncrypter;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.crypto.UUIDFieldEncrypter;
 import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageSource;
 
@@ -54,6 +62,10 @@ public class UserPrivate extends EntityWithID
 
 	@Convert(converter = StringFieldEncrypter.class)
 	private String vpnPassword;
+
+	@Convert(converter = ByteFieldEncrypter.class)
+	@Column(length = 1024)
+	private byte[] userCertificateByteArray;
 
 	// Default constructor is required for JPA
 	public UserPrivate()
@@ -147,6 +159,39 @@ public class UserPrivate extends EntityWithID
 	public String getVPNPassword()
 	{
 		return vpnPassword;
+	}
+
+	public byte[] getUserCertificateByteArray()
+	{
+		return userCertificateByteArray;
+	}
+
+	private void setUserCertificate(Certificate userCertificate)
+	{
+		try
+		{
+			userCertificateByteArray = userCertificate.getEncoded();
+		}
+		catch (CertificateEncodingException e)
+		{
+			// TODO: Throw appropriate exception.
+			throw YonaException.unexpected(e);
+		}
+	}
+
+	private Certificate getUserCertificate()
+	{
+		try
+		{
+			InputStream certificateInputStream = new ByteArrayInputStream(userCertificateByteArray);
+			CertificateFactory cf = CertificateFactory.getInstance("X.509");
+			return cf.generateCertificate(certificateInputStream);
+		}
+		catch (CertificateException e)
+		{
+			// TODO: Throw appropriate exception.
+			throw YonaException.unexpected(e);
+		}
 	}
 
 	private boolean isDecrypted()
