@@ -12,8 +12,9 @@ public class MimeTypeConfigurer implements EmbeddedServletContainerCustomizer
 	public void customize(ConfigurableEmbeddedServletContainer container)
 	{
 		MimeMappings mappings = new MimeMappings(MimeMappings.DEFAULT);
-		mappings.add("ovpn", "application/x-openvpn-profile");
-		mappings.add("cer", "application/pkix-cert");
+		mappings.add("ovpn", "application/x-openvpn-profile"); // see vpn/profile.ovpn
+		mappings.add("mobileconfig", "application/x-apple-aspen-config"); // see vpn/profile.mobileconfig
+		mappings.add("cer", "application/pkix-cert"); // see ssl/rootcert.cer
 		container.setMimeMappings(mappings);
 	}
 }
