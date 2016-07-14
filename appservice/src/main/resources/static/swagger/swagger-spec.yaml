@@ -2073,14 +2073,9 @@ definitions:
         type: string
         description: The password to log in to the VPN
         example: UA1ksZCptapsDRdg1Qrn2bDvKdfl8sDd
-      openVPNProfile:
-        type: string
-        description: The OpenVPN profile to be installed on the device. Newlines are specified as \n.
-        example: "client \ndev tun \nresolv-retry infinite \nnobind \npersist-key \npersist-tun \n<ca> \n-----BEGIN CERTIFICATE-----..."
     required:
       - vpnLoginID
       - vpnPassword
-      - openVPNProfile
   BuddyStatus:
     type: string
     description: The status of this buddy or buddy connect request
