@@ -162,10 +162,10 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def bob = richardAndBob.bob
 		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, "W-1 Mon 02:18")
 		ZonedDateTime testStartTime = YonaServer.now
-		ZonedDateTime startTime = testStartTime.minusHuors(1)
-		ZonedDateTime endTime = testStartTime
-		ZonedDateTime startTime1 = endTime.minusSeconds(10)
-		ZonedDateTime endTime1 = endTime
+		ZonedDateTime startTime = testStartTime.minusHours(1)
+		ZonedDateTime endTime = testStartTime.minusSeconds(10)
+		ZonedDateTime startTime1 = endTime
+		ZonedDateTime endTime1 = testStartTime
 
 		when:
 		def response = appService.postAppActivityToAnalysisEngine(richard,
