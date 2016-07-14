@@ -67,12 +67,7 @@ public class AnalysisEngineService
 	private Duration determineDeviceTimeOffset(AppActivityDTO appActivities)
 	{
 		Duration offset = Duration.between(ZonedDateTime.now(), appActivities.getDeviceDateTime());
-		return (offset.abs().compareTo(Duration.ofSeconds(10)) > 0) ? offset : Duration.ZERO; // Ignore
-																								// if
-																								// less
-																								// than
-																								// 10
-																								// seconds
+		return (offset.abs().compareTo(Duration.ofSeconds(10)) > 0) ? offset : Duration.ZERO; // Ignore if less than 10 seconds
 	}
 
 	private ActivityPayload createActivityPayload(Duration deviceTimeOffset, AppActivityDTO.Activity appActivity,
@@ -134,8 +129,7 @@ public class AnalysisEngineService
 		{
 			if (isBeyondSkipWindowAfterLastRegisteredActivity(payload, lastRegisteredActivity))
 			{
-				// Update message only if it is within five seconds to avoid
-				// unnecessary cache flushes.
+				// Update message only if it is within five seconds to avoid unnecessary cache flushes.
 				updateActivityEndTime(payload, userAnonymized, matchingGoal, dayActivity, lastRegisteredActivity);
 			}
 		}
