@@ -94,7 +94,8 @@ public class AnalysisEngineService
 	private void analyze(ActivityPayload payload, UserAnonymizedDTO userAnonymized,
 			Set<ActivityCategoryDTO> matchingActivityCategories)
 	{
-		Set<GoalDTO> matchingGoalsOfUser = determineMatchingGoalsForUser(userAnonymized, matchingActivityCategories);
+		Set<GoalDTO> matchingGoalsOfUser = determineMatchingGoalsForUser(userAnonymized, matchingActivityCategories,
+				payload.startTime);
 		for (GoalDTO matchingGoalOfUser : matchingGoalsOfUser)
 		{
 			addOrUpdateActivity(payload, userAnonymized, matchingGoalOfUser);
@@ -337,13 +338,14 @@ public class AnalysisEngineService
 	}
 
 	private Set<GoalDTO> determineMatchingGoalsForUser(UserAnonymizedDTO userAnonymized,
-			Set<ActivityCategoryDTO> matchingActivityCategories)
+			Set<ActivityCategoryDTO> matchingActivityCategories, ZonedDateTime activityStartTime)
 	{
 		Set<UUID> matchingActivityCategoryIDs = matchingActivityCategories.stream().map(ac -> ac.getID())
 				.collect(Collectors.toSet());
 		Set<GoalDTO> goalsOfUser = userAnonymized.getGoals();
 		Set<GoalDTO> matchingGoalsOfUser = goalsOfUser.stream().filter(g -> !g.isHistoryItem())
-				.filter(g -> matchingActivityCategoryIDs.contains(g.getActivityCategoryID())).collect(Collectors.toSet());
+				.filter(g -> matchingActivityCategoryIDs.contains(g.getActivityCategoryID()))
+				.filter(g -> g.getCreationTime().get().isBefore(activityStartTime)).collect(Collectors.toSet());
 		return matchingGoalsOfUser;
 	}
 

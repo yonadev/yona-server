@@ -101,18 +101,19 @@ public class AnalysisEngineServiceTests
 	@Before
 	public void setUp()
 	{
-		gamblingGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(),
+		ZonedDateTime yesterday = ZonedDateTime.now().minusDays(1);
+		gamblingGoal = BudgetGoal.createNoGoInstance(yesterday,
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
 						new HashSet<String>(Arrays.asList("poker", "lotto")),
 						new HashSet<String>(Arrays.asList("Poker App", "Lotto App"))));
-		newsGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
+		newsGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(),
 				usString("news"), false, new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
-		gamingGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
+		gamingGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(),
 				usString("gaming"), false, new HashSet<String>(Arrays.asList("games")), Collections.emptySet()));
-		socialGoal = TimeZoneGoal.createInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
+		socialGoal = TimeZoneGoal.createInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(),
 				usString("social"), false, new HashSet<String>(Arrays.asList("social")), Collections.emptySet()),
 				Collections.emptyList());
-		shoppingGoal = BudgetGoal.createInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
+		shoppingGoal = BudgetGoal.createInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(),
 				usString("shopping"), false, new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet()), 1);
 
 		goalMap.put("gambling", gamblingGoal);
@@ -423,7 +424,7 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void activityOnNewDay()
 	{
-		ZonedDateTime now = ZonedDateTime.of(2016, 4, 29, 20, 29, 1, 0, userAnonZoneId);
+		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
 
 		DayActivity earlierDayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal,
 				now.minusDays(1).truncatedTo(ChronoUnit.DAYS));
@@ -452,7 +453,7 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void appActivityPrecedingLastCachedActivity()
 	{
-		ZonedDateTime now = ZonedDateTime.of(2016, 4, 29, 20, 29, 1, 0, userAnonZoneId);
+		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
 
 		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, now.truncatedTo(ChronoUnit.DAYS));
 		ZonedDateTime earlierActivityTime = now;
@@ -480,7 +481,7 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void appActivityPrecedingCachedDayActivity()
 	{
-		ZonedDateTime now = ZonedDateTime.of(2016, 4, 29, 20, 29, 1, 0, userAnonZoneId);
+		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
 		ZonedDateTime yesterdayTime = now.minusDays(1);
 
 		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, now.truncatedTo(ChronoUnit.DAYS));
@@ -490,8 +491,8 @@ public class AnalysisEngineServiceTests
 		when(mockAnalysisEngineCacheService.fetchLastDayActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
 				.thenReturn(dayActivity);
 
-		ZonedDateTime startTime = yesterdayTime.minusMinutes(10);
-		ZonedDateTime endTime = yesterdayTime;
+		ZonedDateTime startTime = yesterdayTime;
+		ZonedDateTime endTime = yesterdayTime.plusMinutes(10);
 		service.analyze(userAnonID, createSingleAppActivity("Poker App", startTime, endTime));
 
 		// Verify that there is a new conflict message sent.
@@ -511,8 +512,8 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void crossDayActivity()
 	{
-		ZonedDateTime startTime = ZonedDateTime.of(2016, 4, 5, 19, 39, 0, 0, userAnonZoneId);
-		ZonedDateTime endTime = ZonedDateTime.of(2016, 4, 6, 1, 00, 0, 0, userAnonZoneId);
+		ZonedDateTime startTime = ZonedDateTime.now(userAnonZoneId).minusDays(1);
+		ZonedDateTime endTime = ZonedDateTime.now(userAnonZoneId);
 		service.analyze(userAnonID, createSingleAppActivity("Poker App", startTime, endTime));
 
 		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
@@ -520,15 +521,16 @@ public class AnalysisEngineServiceTests
 
 		DayActivity firstDay = dayActivity.getAllValues().get(0);
 		DayActivity nextDay = dayActivity.getAllValues().get(1);
-		assertThat(firstDay.getDate(), equalTo(LocalDate.of(2016, 4, 5)));
-		assertThat(nextDay.getDate(), equalTo(LocalDate.of(2016, 4, 6)));
+		assertThat(firstDay.getDate(), equalTo(LocalDate.now().minusDays(1)));
+		assertThat(nextDay.getDate(), equalTo(LocalDate.now()));
 
 		Activity firstPart = firstDay.getLastActivity();
 		Activity nextPart = nextDay.getLastActivity();
 
 		assertThat(firstPart.getStartTime(), equalTo(startTime));
-		assertThat(firstPart.getEndTime(), equalTo(ZonedDateTime.of(2016, 4, 5, 23, 59, 59, 0, userAnonZoneId)));
-		assertThat(nextPart.getStartTime(), equalTo(ZonedDateTime.of(2016, 4, 6, 0, 0, 0, 0, userAnonZoneId)));
+		ZonedDateTime lastMidnight = ZonedDateTime.now(userAnonZoneId).truncatedTo(ChronoUnit.DAYS);
+		assertThat(firstPart.getEndTime(), equalTo(lastMidnight.minusSeconds(1)));
+		assertThat(nextPart.getStartTime(), equalTo(lastMidnight));
 		assertThat(nextPart.getEndTime(), equalTo(endTime));
 	}
 
