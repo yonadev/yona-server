@@ -46,7 +46,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.DOSProtectionService;
-import nu.yona.server.MimeTypeConfigurer;
 import nu.yona.server.analysis.rest.AppActivityController;
 import nu.yona.server.analysis.rest.UserActivityController;
 import nu.yona.server.crypto.CryptoSession;
@@ -119,7 +118,7 @@ public class UserController
 		return createOKResponse(userService.getPublicUser(id), false);
 	}
 
-	@RequestMapping(value = "/{id}/usercert.crt", produces = { MimeTypeConfigurer.CERT_MIME_TYPE })
+	@RequestMapping(value = "/{id}/usercert.crt", produces = { "application/x-x509-user-cert" })
 	public @ResponseBody byte[] getUserCertificate(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID id)
 	{
