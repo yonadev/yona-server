@@ -19,14 +19,14 @@ public class VPNProfileDTO
 	private final UUID id;
 	private UUID vpnLoginID;
 	private String vpnPassword;
-	private final byte[] userCertificateByteArray;
+	private final byte[] vpnAuthCertificateByteArray;
 
-	public VPNProfileDTO(UUID id, UUID vpnLoginID, String vpnPassword, byte[] userCertificateByteArray)
+	public VPNProfileDTO(UUID id, UUID vpnLoginID, String vpnPassword, byte[] vpnAuthCertificateByteArray)
 	{
 		this.id = id;
 		this.vpnLoginID = vpnLoginID;
 		this.vpnPassword = vpnPassword;
-		this.userCertificateByteArray = userCertificateByteArray;
+		this.vpnAuthCertificateByteArray = vpnAuthCertificateByteArray;
 	}
 
 	@JsonCreator
@@ -60,12 +60,15 @@ public class VPNProfileDTO
 	public static VPNProfileDTO createInstance(User user)
 	{
 		return new VPNProfileDTO(user.getAnonymized().getID(), user.getVPNLoginID(), user.getVPNPassword(),
-				user.getUserCertificateByteArray());
+				user.getVPNAuthCertificateByteArray());
 	}
 
+	/*
+	 * Gets the user certificate needed for authenticating the VPN connection in case of VoD.
+	 */
 	@JsonIgnore
-	public byte[] getUserCertificateByteArray()
+	public byte[] getVpnAuthCertificateByteArray()
 	{
-		return userCertificateByteArray;
+		return vpnAuthCertificateByteArray;
 	}
 }

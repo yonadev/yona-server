@@ -4,12 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,7 +22,6 @@ import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.crypto.UUIDFieldEncrypter;
 import nu.yona.server.entities.EntityWithID;
-import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageSource;
 
@@ -65,7 +58,7 @@ public class UserPrivate extends EntityWithID
 
 	@Convert(converter = ByteFieldEncrypter.class)
 	@Column(length = 1024)
-	private byte[] userCertificateByteArray;
+	private byte[] vpnAuthCertificateByteArray;
 
 	// Default constructor is required for JPA
 	public UserPrivate()
@@ -84,6 +77,13 @@ public class UserPrivate extends EntityWithID
 		this.buddies = new HashSet<>();
 		this.anonymousMessageSourceID = anonymousMessageSourceID;
 		this.namedMessageSourceID = namedMessageSourceID;
+		this.vpnAuthCertificateByteArray = generateVPNAuthCertificateByteArray();
+	}
+
+	private byte[] generateVPNAuthCertificateByteArray()
+	{
+		// TODO: generate, make sure Smoothwall accepts it
+		return new byte[0];
 	}
 
 	private static String buildDecryptionCheck()
@@ -161,37 +161,9 @@ public class UserPrivate extends EntityWithID
 		return vpnPassword;
 	}
 
-	public byte[] getUserCertificateByteArray()
+	public byte[] getVPNAuthCertificateByteArray()
 	{
-		return userCertificateByteArray;
-	}
-
-	private void setUserCertificate(Certificate userCertificate)
-	{
-		try
-		{
-			userCertificateByteArray = userCertificate.getEncoded();
-		}
-		catch (CertificateEncodingException e)
-		{
-			// TODO: Throw appropriate exception.
-			throw YonaException.unexpected(e);
-		}
-	}
-
-	private Certificate getUserCertificate()
-	{
-		try
-		{
-			InputStream certificateInputStream = new ByteArrayInputStream(userCertificateByteArray);
-			CertificateFactory cf = CertificateFactory.getInstance("X.509");
-			return cf.generateCertificate(certificateInputStream);
-		}
-		catch (CertificateException e)
-		{
-			// TODO: Throw appropriate exception.
-			throw YonaException.unexpected(e);
-		}
+		return vpnAuthCertificateByteArray;
 	}
 
 	private boolean isDecrypted()

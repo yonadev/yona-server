@@ -118,12 +118,12 @@ public class UserController
 		return createOKResponse(userService.getPublicUser(id), false);
 	}
 
-	@RequestMapping(value = "/{id}/usercert.crt", produces = { "application/x-x509-user-cert" })
-	public @ResponseBody byte[] getUserCertificate(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+	@RequestMapping(value = "/{id}/vpnAuthCertificate.crt", produces = { "application/x-x509-user-cert" })
+	public @ResponseBody byte[] getVpnAuthCertificate(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID id)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
-				() -> userService.getPrivateUser(id).getPrivateData().getVpnProfile().getUserCertificateByteArray());
+				() -> userService.getPrivateUser(id).getPrivateData().getVpnProfile().getVpnAuthCertificateByteArray());
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)

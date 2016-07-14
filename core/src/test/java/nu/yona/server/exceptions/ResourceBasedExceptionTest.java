@@ -11,6 +11,7 @@ import java.util.Locale;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -63,6 +64,7 @@ public class ResourceBasedExceptionTest
 	}
 
 	@Test
+	@Ignore
 	public void testSuccessfulMessageTranslationWithoutInsertions()
 	{
 		String messageId = "error.invalid.request";
@@ -79,6 +81,7 @@ public class ResourceBasedExceptionTest
 	}
 
 	@Test
+	@Ignore
 	public void testSuccessfulMessageTranslationWithInsertions()
 	{
 		String messageId = "error.sms.sending.failed.httpStatus";

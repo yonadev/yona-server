@@ -309,8 +309,8 @@ public class User extends EntityWithID
 		return userPrivate.getBuddiesRelatedToRemovedUsers();
 	}
 
-	public byte[] getUserCertificateByteArray()
+	public byte[] getVPNAuthCertificateByteArray()
 	{
-		return userPrivate.getUserCertificateByteArray();
+		return userPrivate.getVPNAuthCertificateByteArray();
 	}
 }
