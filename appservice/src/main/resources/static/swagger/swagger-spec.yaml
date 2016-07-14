@@ -215,6 +215,32 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  '/users/{userID}/apple.mobileconfig':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get the user Apple mobile config
+      description: Fetches the user-specific .mobileconfig file needed for iOS devices. Notice this contains VPN username and password.
+      tags:
+        - User
+      responses:
+        '200':
+          description: The config
+          schema:
+            type: file
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'           
   '/users/{userID}/goals/':
     parameters:
       - name: userID

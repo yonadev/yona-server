@@ -282,7 +282,6 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 			assert user.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 			assert user.vpnProfile.vpnPassword.length() == 32
-			assert user.vpnProfile.openVPNProfile.length() > 10
 
 			assert user.buddies != null
 			assert user.buddies.size() == 0
