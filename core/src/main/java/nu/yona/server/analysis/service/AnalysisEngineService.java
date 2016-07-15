@@ -21,6 +21,7 @@ import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.WeekActivity;
+import nu.yona.server.exceptions.AnalysisException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDTO;
 import nu.yona.server.goals.service.ActivityCategoryService;
@@ -35,6 +36,7 @@ import nu.yona.server.subscriptions.service.UserAnonymizedService;
 @Service
 public class AnalysisEngineService
 {
+	private static final Duration DEVICE_TIME_INACCURACY_MARGIN = Duration.ofSeconds(10);
 	private static final Duration ONE_MINUTE = Duration.ofMinutes(1);
 	@Autowired
 	private YonaProperties yonaProperties;
@@ -67,7 +69,7 @@ public class AnalysisEngineService
 	private Duration determineDeviceTimeOffset(AppActivityDTO appActivities)
 	{
 		Duration offset = Duration.between(ZonedDateTime.now(), appActivities.getDeviceDateTime());
-		return (offset.abs().compareTo(Duration.ofSeconds(10)) > 0) ? offset : Duration.ZERO; // Ignore if less than 10 seconds
+		return (offset.abs().compareTo(DEVICE_TIME_INACCURACY_MARGIN) > 0) ? offset : Duration.ZERO; // Ignore if less than 10 seconds
 	}
 
 	private ActivityPayload createActivityPayload(Duration deviceTimeOffset, AppActivityDTO.Activity appActivity,
@@ -75,7 +77,23 @@ public class AnalysisEngineService
 	{
 		ZonedDateTime correctedStartTime = correctTime(deviceTimeOffset, appActivity.getStartTime());
 		ZonedDateTime correctedEndTime = correctTime(deviceTimeOffset, appActivity.getEndTime());
-		return ActivityPayload.createInstance(userAnonymized, correctedStartTime, correctedEndTime, appActivity.getApplication());
+		String application = appActivity.getApplication();
+		validateTimes(userAnonymized, application, correctedStartTime, correctedEndTime);
+		return ActivityPayload.createInstance(userAnonymized, correctedStartTime, correctedEndTime, application);
+	}
+
+	private void validateTimes(UserAnonymizedDTO userAnonymized, String application, ZonedDateTime correctedStartTime,
+			ZonedDateTime correctedEndTime)
+	{
+		if (correctedEndTime.isBefore(correctedStartTime)) {
+			throw AnalysisException.appActivityStartAfterEnd(userAnonymized.getID(), application, correctedStartTime, correctedEndTime);
+		}
+		if (correctedStartTime.isAfter(ZonedDateTime.now().plus(DEVICE_TIME_INACCURACY_MARGIN))) {
+			throw AnalysisException.appActivityStartsInFuture(userAnonymized.getID(), application, correctedStartTime);
+		}
+		if (correctedEndTime.isAfter(ZonedDateTime.now().plus(DEVICE_TIME_INACCURACY_MARGIN))) {
+			throw AnalysisException.appActivityEndsInFuture(userAnonymized.getID(), application, correctedEndTime);
+		}
 	}
 
 	private ZonedDateTime correctTime(Duration deviceTimeOffset, ZonedDateTime time)
@@ -345,7 +363,7 @@ public class AnalysisEngineService
 		Set<GoalDTO> goalsOfUser = userAnonymized.getGoals();
 		Set<GoalDTO> matchingGoalsOfUser = goalsOfUser.stream().filter(g -> !g.isHistoryItem())
 				.filter(g -> matchingActivityCategoryIDs.contains(g.getActivityCategoryID()))
-				.filter(g -> g.getCreationTime().get().isBefore(activityStartTime)).collect(Collectors.toSet());
+				.filter(g -> g.getCreationTime().get().isBefore(activityStartTime.plus(DEVICE_TIME_INACCURACY_MARGIN))).collect(Collectors.toSet());
 		return matchingGoalsOfUser;
 	}
 
