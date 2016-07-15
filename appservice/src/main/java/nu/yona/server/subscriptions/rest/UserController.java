@@ -127,11 +127,11 @@ public class UserController
 	}
 
 	@RequestMapping(value = "/{id}/apple.mobileconfig", produces = { "application/x-apple-aspen-config" })
-	public @ResponseBody byte[] getVpnAppleMobileConfig(
+	public @ResponseBody String getVpnAppleMobileConfig(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
 	{
 		// TODO: use template, substitute VPN username and password
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> new byte[0]);
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> "");
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)

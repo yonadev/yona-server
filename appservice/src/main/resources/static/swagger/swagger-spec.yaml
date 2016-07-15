@@ -228,13 +228,13 @@ paths:
         required: true
         type: string
     get:
-      summary: Get the user Apple mobile config
+      summary: Get the Apple mobile config for this user
       description: Fetches the user-specific .mobileconfig file needed for iOS devices. Notice this contains VPN username and password.
       tags:
         - User
       responses:
         '200':
-          description: The config
+          description: The config file
           schema:
             type: file
         default:

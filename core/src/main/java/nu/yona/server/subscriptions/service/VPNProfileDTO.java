@@ -57,12 +57,6 @@ public class VPNProfileDTO
 		this.vpnPassword = vpnPassword;
 	}
 
-	public static VPNProfileDTO createInstance(User user)
-	{
-		return new VPNProfileDTO(user.getAnonymized().getID(), user.getVPNLoginID(), user.getVPNPassword(),
-				user.getVPNAuthCertificateByteArray());
-	}
-
 	/*
 	 * Gets the user certificate needed for authenticating the VPN connection in case of VoD.
 	 */
@@ -70,5 +64,11 @@ public class VPNProfileDTO
 	public byte[] getVpnAuthCertificateByteArray()
 	{
 		return vpnAuthCertificateByteArray;
+	}
+
+	public static VPNProfileDTO createInstance(User user)
+	{
+		return new VPNProfileDTO(user.getAnonymized().getID(), user.getVPNLoginID(), user.getVPNPassword(),
+				user.getVPNAuthCertificateByteArray());
 	}
 }
