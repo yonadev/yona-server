@@ -8,14 +8,11 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 
 /**
- * This exception is to be used in case data is wrong in DTOs. So whenever a field has a wrong value you should throw this
- * exception.
- * 
- * @author pgussow
+ * This exception is thrown for various issues that can occur during analysis of app or network activity.
  */
 public class AnalysisException extends YonaException
 {
-	private static final long serialVersionUID = -7917208280838423613L;
+	private static final long serialVersionUID = -366842642655183778L;
 
 	private AnalysisException(String messageId, Object... parameters)
 	{

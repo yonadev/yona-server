@@ -309,7 +309,6 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		getMessagesRichardResponse.status == 200
-		ZonedDateTime goalConflictTime = YonaServer.now
 		getMessagesRichardResponse.responseData._embedded?."yona:messages"?.findAll{ it."@type" == "GoalConflictMessage"}?.size()
 		// Don't poke into the messages. The app activity spans many days and we only support activities spanning at most two days
 
