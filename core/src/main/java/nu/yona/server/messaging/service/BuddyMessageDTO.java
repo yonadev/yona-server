@@ -19,18 +19,18 @@ public abstract class BuddyMessageDTO extends MessageDTO
 	private final String senderNickname;
 	private final String message;
 
-	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO senderUser, String senderNickname, String message)
+	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO senderUser, String senderNickname, String message)
 	{
-		super(id, creationTime);
+		super(id, creationTime, isRead);
 		this.senderUser = senderUser;
 		this.senderNickname = senderNickname;
 		this.message = message;
 	}
 
-	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, UUID relatedMessageID, UserDTO senderUser, String senderNickname,
+	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UUID relatedMessageID, UserDTO senderUser, String senderNickname,
 			String message)
 	{
-		super(id, creationTime, relatedMessageID);
+		super(id, creationTime, isRead, relatedMessageID);
 		this.senderUser = senderUser;
 		this.senderNickname = senderNickname;
 		this.message = message;

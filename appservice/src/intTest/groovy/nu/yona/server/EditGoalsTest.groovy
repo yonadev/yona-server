@@ -108,6 +108,8 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].message == "Going to monitor my social time!"
 		goalChangeMessages[0]._links.edit
 
+		assertMarkReadUnread(bob, goalChangeMessages[0])
+
 		def goal = findActiveGoal(responseGoalsAfterAdd, SOCIAL_ACT_CAT_URL)
 		goal.maxDurationMinutes == 60
 		goal.spreadCells == null

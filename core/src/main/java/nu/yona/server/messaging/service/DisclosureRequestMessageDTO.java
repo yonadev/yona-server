@@ -5,7 +5,6 @@
 package nu.yona.server.messaging.service;
 
 import java.time.ZonedDateTime;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -21,7 +20,6 @@ import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.messaging.entities.DisclosureRequestMessage;
 import nu.yona.server.messaging.entities.DisclosureResponseMessage;
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDTO;
@@ -34,10 +32,10 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 
 	private Status status;
 
-	private DisclosureRequestMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO user, String nickname, String message,
+	private DisclosureRequestMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, String nickname, String message,
 			Status status, UUID targetGoalConflictMessageID)
 	{
-		super(id, creationTime, targetGoalConflictMessageID, user, nickname, message);
+		super(id, creationTime, isRead, targetGoalConflictMessageID, user, nickname, message);
 		this.status = status;
 	}
 
@@ -50,7 +48,7 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 	@Override
 	public Set<String> getPossibleActions()
 	{
-		Set<String> possibleActions = new HashSet<>();
+		Set<String> possibleActions = super.getPossibleActions();
 		if (status == Status.DISCLOSURE_REQUESTED)
 		{
 			possibleActions.add(ACCEPT);
@@ -73,13 +71,13 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 	public static DisclosureRequestMessageDTO createInstance(UserDTO actingUser, DisclosureRequestMessage messageEntity)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
-		return new DisclosureRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
+		return new DisclosureRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getSenderNickname(), messageEntity.getMessage(),
 				messageEntity.getStatus(), targetGoalConflictMessage.getOriginGoalConflictMessageID());
 	}
 
 	@Component
-	private static class Factory implements DTOManager
+	private static class Factory extends MessageDTO.BaseManager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;
@@ -113,7 +111,7 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 				case REJECT:
 					return handleAction_Reject(actingUser, (DisclosureRequestMessage) messageEntity, requestPayload);
 				default:
-					throw MessageServiceException.actionNotSupported(action);
+					return super.handleAction(actingUser, messageEntity, action, requestPayload);
 			}
 		}
 

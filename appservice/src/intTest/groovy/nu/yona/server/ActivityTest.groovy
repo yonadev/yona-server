@@ -693,6 +693,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def addedMessage = responseAddMessage.responseData
 		assertCommentMessageDetails(addedMessage, richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "You're quiet!")
 
+		assertMarkReadUnread(richard, addedMessage)
+
 		def responseInitialGetCommentMessagesSeenByRichard = getActivityDetailMessages(responseDetailsBobAsBuddy, richard, 1)
 		def initialMessageSeenByRichard = responseInitialGetCommentMessagesSeenByRichard.responseData._embedded."yona:messages"[0]
 		assertCommentMessageDetails(addedMessage, richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "You're quiet!")
@@ -824,7 +826,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assert message.message == expectedText
 		assert message.nickname == sender.nickname
 
-		assert message._links?.self?.href?.startsWith(user.messagesUrl)
+		assert message._links?.self?.href?.startsWith(YonaServer.stripQueryString(user.messagesUrl))
 		assert message._links?.edit?.href == message._links.self.href
 		if (isWeek) {
 			assert message._links?."yona:weekDetails"?.href == expectedDetailsUrl

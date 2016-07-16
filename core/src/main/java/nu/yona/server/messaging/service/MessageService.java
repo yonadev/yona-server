@@ -38,10 +38,10 @@ public class MessageService
 	private TheDTOManager dtoManager;
 
 	@Transactional
-	public Page<MessageDTO> getReceivedMessages(UUID userID, Pageable pageable)
+	public Page<MessageDTO> getReceivedMessages(UUID userID, boolean onlyUnreadMessages, Pageable pageable)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
-		return wrapMessagesAsDTOs(user, getReceivedMessageEntities(user, pageable), pageable);
+		return wrapMessagesAsDTOs(user, getReceivedMessageEntities(user, onlyUnreadMessages, pageable), pageable);
 	}
 
 	@Transactional
@@ -49,15 +49,15 @@ public class MessageService
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
 
-		return getReceivedMessageEntities(user, pageable);
+		return getReceivedMessageEntities(user, false, pageable);
 	}
 
-	private Page<Message> getReceivedMessageEntities(UserDTO user, Pageable pageable)
+	private Page<Message> getReceivedMessageEntities(UserDTO user, boolean onlyUnreadMessages, Pageable pageable)
 	{
 		transferDirectMessagesToAnonymousDestination(user);
 
 		MessageSource messageSource = getAnonymousMessageSource(user);
-		return messageSource.getReceivedMessages(pageable);
+		return messageSource.getReceivedMessages(pageable, onlyUnreadMessages);
 	}
 
 	public MessageDTO getMessage(UUID userID, UUID messageID)

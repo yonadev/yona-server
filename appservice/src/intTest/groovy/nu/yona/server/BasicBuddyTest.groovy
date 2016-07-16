@@ -92,8 +92,10 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyConnectRequestMessages[0].status == "REQUESTED"
 		buddyConnectRequestMessages[0]._embedded."yona:user".firstName == "Richard"
 		buddyConnectRequestMessages[0]._links."yona:user" == null
-		buddyConnectRequestMessages[0]._links.self.href.startsWith(bob.messagesUrl)
+		buddyConnectRequestMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
 		buddyConnectRequestMessages[0]._links."yona:accept".href.startsWith(buddyConnectRequestMessages[0]._links.self.href)
+
+		assertMarkReadUnread(bob, buddyConnectRequestMessages[0])
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -162,8 +164,10 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyConnectResponseMessages[0].nickname == bob.nickname
 		assertEquals(buddyConnectResponseMessages[0].creationTime, YonaServer.now)
 		buddyConnectResponseMessages[0].status == "ACCEPTED"
-		buddyConnectResponseMessages[0]._links.self.href.startsWith(richard.messagesUrl)
+		buddyConnectResponseMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
 		buddyConnectResponseMessages[0]._links."yona:process".href.startsWith(buddyConnectResponseMessages[0]._links.self.href)
+		
+		assertMarkReadUnread(richard, buddyConnectResponseMessages[0])
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -265,6 +269,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertEquals(richardGoalConflictMessages[0].activityEndTime, now.plus(Duration.ofMinutes(1))) // Minimum duration 1 minute
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		richardGoalConflictMessages[0].url == "http://www.refdag.nl"
+
+		assertMarkReadUnread(richard, richardGoalConflictMessages[0])
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
@@ -399,8 +405,10 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages[0]._links."yona:user" == null
 		assertEquals(buddyDisconnectMessages[0].creationTime, YonaServer.now)
 		buddyDisconnectMessages[0].message == message
-		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.messagesUrl)
+		buddyDisconnectMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
 		buddyDisconnectMessages[0]._links."yona:process".href.startsWith(buddyDisconnectMessages[0]._links.self.href)
+
+		assertMarkReadUnread(bob, buddyDisconnectMessages[0])
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -462,7 +470,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages[0]._links."yona:user" == null
 		assertEquals(buddyDisconnectMessages[0].creationTime, YonaServer.now)
 		buddyDisconnectMessages[0].message == message
-		buddyDisconnectMessages[0]._links.self.href.startsWith(richard.messagesUrl)
+		buddyDisconnectMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
 		buddyDisconnectMessages[0]._links."yona:process".href.startsWith(buddyDisconnectMessages[0]._links.self.href)
 
 		cleanup:

@@ -76,8 +76,12 @@ public class MessageDestination extends EntityWithID
 		return Message.getRepository().findFromDestination(this.getID(), pageable);
 	}
 
-	public Page<Message> getReceivedMessages(Pageable pageable)
+	public Page<Message> getReceivedMessages(Pageable pageable, boolean onlyUnreadMessages)
 	{
+		if (onlyUnreadMessages) {
+			return Message.getRepository().findUnreadReceivedMessagesFromDestination(this.getID(), pageable);
+			
+		}
 		return Message.getRepository().findReceivedMessagesFromDestination(this.getID(), pageable);
 	}
 

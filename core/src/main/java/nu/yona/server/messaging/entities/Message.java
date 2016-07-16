@@ -24,6 +24,8 @@ public abstract class Message extends EntityWithID
 	private final ZonedDateTime creationTime;
 
 	private final boolean isSentItem;
+	
+	private boolean isRead;
 
 	public static MessageRepository getRepository()
 	{
@@ -69,6 +71,16 @@ public abstract class Message extends EntityWithID
 	public boolean isSentItem()
 	{
 		return isSentItem;
+	}
+
+	public boolean isRead()
+	{
+		return isRead;
+	}
+
+	public void setRead(boolean isRead)
+	{
+		this.isRead = isRead;
 	}
 
 	/**

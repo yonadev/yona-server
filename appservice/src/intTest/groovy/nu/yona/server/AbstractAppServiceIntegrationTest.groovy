@@ -111,6 +111,37 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		return true
 	}
 
+	void assertMarkReadUnread(User user, message)
+	{
+		assert message.isRead == false
+		def messageUrl = message._links.self.href
+		assert message._links?."yona:markRead"?.href?.startsWith(messageUrl)
+
+		def responseMarkRead = appService.postMessageActionWithPassword(message._links."yona:markRead".href, [ : ], user.password)
+		assert responseMarkRead.status == 200
+		assert responseMarkRead.responseData._embedded?."yona:affectedMessages"[0]?.isRead == true
+		assert responseMarkRead.responseData._embedded?."yona:affectedMessages"[0]?._links?.self?.href == messageUrl 
+		assert responseMarkRead.responseData._embedded?."yona:affectedMessages"[0]?._links?."yona:markUnread"?.href.startsWith(messageUrl)
+
+		def responseGetAfterMarkRead = appService.getResourceWithPassword(messageUrl, user.password)
+		assert responseGetAfterMarkRead.status == 200
+		assert responseGetAfterMarkRead.responseData.isRead == true
+		assert responseGetAfterMarkRead.responseData._links?.self?.href == messageUrl 
+		assert responseGetAfterMarkRead.responseData._links?."yona:markUnread"?.href.startsWith(messageUrl)
+
+		def responseMarkUnread = appService.postMessageActionWithPassword(responseGetAfterMarkRead.responseData._links?."yona:markUnread"?.href, [ : ], user.password)
+		assert responseMarkUnread.status == 200
+		assert responseMarkUnread.responseData._embedded?."yona:affectedMessages"[0]?.isRead == false
+		assert responseMarkUnread.responseData._embedded?."yona:affectedMessages"[0]?._links?.self?.href == messageUrl
+		assert responseMarkUnread.responseData._embedded?."yona:affectedMessages"[0]?._links?."yona:markRead"?.href.startsWith(messageUrl)
+
+		def responseGetAfterMarkUnread = appService.getResourceWithPassword(messageUrl, user.password)
+		assert responseGetAfterMarkUnread.status == 200
+		assert responseGetAfterMarkUnread.responseData.isRead == false
+		assert responseGetAfterMarkUnread.responseData._links?.self?.href == messageUrl
+		assert responseGetAfterMarkUnread.responseData._links?."yona:markRead"?.href.startsWith(messageUrl)
+	}
+
 	def findActiveGoal(def response, def activityCategoryUrl)
 	{
 		response.responseData._embedded."yona:goals".find{ it._links."yona:activityCategory".href == activityCategoryUrl && !it.historyItem }

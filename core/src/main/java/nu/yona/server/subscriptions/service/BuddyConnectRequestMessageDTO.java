@@ -5,7 +5,6 @@
 package nu.yona.server.subscriptions.service;
 
 import java.time.ZonedDateTime;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -22,9 +21,7 @@ import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
-import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
-import nu.yona.server.messaging.service.MessageServiceException;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
@@ -38,9 +35,9 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 	private Status status;
 
 	private BuddyConnectRequestMessageDTO(BuddyConnectRequestMessage buddyConnectRequestMessageEntity, UUID id,
-			ZonedDateTime creationTime, UserDTO user, UUID userAnonymizedID, String nickname, String message, Status status)
+			ZonedDateTime creationTime, boolean isRead, UserDTO user, UUID userAnonymizedID, String nickname, String message, Status status)
 	{
-		super(id, creationTime, user, nickname, message);
+		super(id, creationTime, isRead, user, nickname, message);
 
 		if (buddyConnectRequestMessageEntity == null)
 		{
@@ -64,7 +61,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 	@Override
 	public Set<String> getPossibleActions()
 	{
-		Set<String> possibleActions = new HashSet<>();
+		Set<String> possibleActions = super.getPossibleActions();
 		if (status == Status.REQUESTED)
 		{
 			possibleActions.add(ACCEPT);
@@ -87,12 +84,12 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 	public static BuddyConnectRequestMessageDTO createInstance(UserDTO actingUser, BuddyConnectRequestMessage messageEntity)
 	{
 		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(), messageEntity.getCreationTime(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getRelatedUserAnonymizedID(),
+				messageEntity.isRead(), UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getRelatedUserAnonymizedID(),
 				messageEntity.getSenderNickname(), messageEntity.getMessage(), messageEntity.getStatus());
 	}
 
 	@Component
-	private static class Factory implements DTOManager
+	private static class Factory extends MessageDTO.BaseManager
 	{
 		private static final Logger logger = LoggerFactory.getLogger(Factory.class);
 
@@ -127,7 +124,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 				case REJECT:
 					return handleAction_Reject(actingUser, (BuddyConnectRequestMessage) messageEntity, requestPayload);
 				default:
-					throw MessageServiceException.actionNotSupported(action);
+					return super.handleAction(actingUser, messageEntity, action, requestPayload);
 			}
 		}
 
