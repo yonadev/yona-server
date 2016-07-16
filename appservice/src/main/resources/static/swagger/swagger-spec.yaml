@@ -1969,6 +1969,22 @@ definitions:
               href:
                 type: string
                 description: Post new app activity data to this link
+          "yona:ovpnProfile":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: Link to OVPN profile (available after confirming mobile number)
+          "yona:sslRootCert":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: Link to SSL root certificate file (available after confirming mobile number)
     required:
       - _embedded
       - _links
