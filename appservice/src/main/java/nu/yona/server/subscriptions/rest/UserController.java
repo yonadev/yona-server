@@ -389,9 +389,21 @@ public class UserController
 					addNewDeviceRequestLink(userResource);
 					addAppActivityLink(userResource);
 					pinResetRequestController.addLinks(userResource);
+					addOvpnProfileLink(userResource);
+					addSslRootCertificateLink(userResource);
 				}
 			}
 			return userResource;
+		}
+
+		private void addSslRootCertificateLink(Resource<UserDTO> userResource)
+		{
+			userResource.add(new Link("/ssl/rootcert.cer", "sslRootCert"));
+		}
+
+		private void addOvpnProfileLink(Resource<UserDTO> userResource)
+		{
+			userResource.add(new Link("/vpn/profile.ovpn", "ovpnProfile"));
 		}
 
 		@Override

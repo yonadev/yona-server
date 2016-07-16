@@ -259,6 +259,27 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(john)
 	}
 
+	def 'Try to retrieve OVPN profile and SSL root certificate'()
+	{
+		given:
+		User richard = addRichard()
+
+		when:
+		assert richard.ovpnProfileUrl
+		assert richard.sslRootCertUrl
+		def responseOvpnProfile = appService.yonaServer.restClient.get(path: richard.ovpnProfileUrl)
+		def responseSslRootCert = appService.yonaServer.restClient.get(path: richard.sslRootCertUrl)
+
+		then:
+		responseOvpnProfile.status == 200
+		responseOvpnProfile.contentType == "application/x-openvpn-profile"
+		responseSslRootCert.status == 200
+		responseSslRootCert.contentType == "application/pkix-cert"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def confirmMobileNumber(User user, code)
 	{
 		appService.confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${code}" } """, user.password)
