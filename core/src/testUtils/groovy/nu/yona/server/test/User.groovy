@@ -35,6 +35,7 @@ class User
 	final String verifyPinResetUrl
 	final String resendPinResetConfirmationCodeUrl
 	final String clearPinResetUrl
+	final String sslRootCertUrl
 	final String password
 
 	User(def json, String password)
@@ -81,6 +82,7 @@ class User
 		this.verifyPinResetUrl = json._links?."yona:verifyPinReset"?.href
 		this.resendPinResetConfirmationCodeUrl = json._links?."yona:resendPinResetConfirmationCode"?.href
 		this.clearPinResetUrl = json._links?."yona:clearPinReset"?.href
+		this.sslRootCertUrl = json._links?."yona:sslRootCert"?.href
 	}
 
 	def convertToJSON()
@@ -118,12 +120,12 @@ class VPNProfile
 {
 	final String vpnLoginID
 	final String vpnPassword
-	final String openVPNProfile
+	final String ovpnProfileUrl
 
 	VPNProfile(def json)
 	{
 		this.vpnLoginID = json.vpnLoginID
 		this.vpnPassword = json.vpnPassword
-		this.openVPNProfile = json.openVPNProfile
+		this.ovpnProfileUrl = json._links."yona:ovpnProfile".href
 	}
 }

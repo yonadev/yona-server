@@ -259,6 +259,27 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(john)
 	}
 
+	def 'Retrieve OVPN profile and SSL root certificate'()
+	{
+		given:
+		User richard = addRichard()
+
+		when:
+		assert richard.vpnProfile.ovpnProfileUrl
+		assert richard.sslRootCertUrl
+		def responseOvpnProfile = appService.yonaServer.restClient.get(path: richard.vpnProfile.ovpnProfileUrl)
+		def responseSslRootCert = appService.yonaServer.restClient.get(path: richard.sslRootCertUrl)
+
+		then:
+		responseOvpnProfile.status == 200
+		responseOvpnProfile.contentType == "application/x-openvpn-profile"
+		responseSslRootCert.status == 200
+		responseSslRootCert.contentType == "application/pkix-cert"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def confirmMobileNumber(User user, code)
 	{
 		appService.confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${code}" } """, user.password)
@@ -280,15 +301,15 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			appService.assertUserWithPrivateData(user)
 			assert user.nickname == "JD"
 
-			assert user.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
-			assert user.vpnProfile.vpnPassword.length() == 32
-			assert user.vpnProfile.openVPNProfile.length() > 10
-
 			assert user.buddies != null
 			assert user.buddies.size() == 0
 			assert user.goals != null
 			if (mobileNumberConfirmed)
 			{
+				assert user.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+				assert user.vpnProfile.vpnPassword.length() == 32
+				assert user.vpnProfile.ovpnProfileUrl
+
 				assert user.goals.size() == 1 //mandatory goal added
 				assert user.goals[0].activityCategoryUrl == GAMBLING_ACT_CAT_URL
 			}

@@ -308,4 +308,9 @@ public class User extends EntityWithID
 	{
 		return userPrivate.getBuddiesRelatedToRemovedUsers();
 	}
+
+	public byte[] getVPNAuthCertificateByteArray()
+	{
+		return userPrivate.getVPNAuthCertificateByteArray();
+	}
 }

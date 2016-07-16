@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -63,6 +64,7 @@ import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.subscriptions.service.VPNProfileDTO;
 
 @Controller
 @ExposesResourceFor(UserResource.class)
@@ -116,6 +118,22 @@ public class UserController
 			@PathVariable UUID id)
 	{
 		return createOKResponse(userService.getPublicUser(id), false);
+	}
+
+	@RequestMapping(value = "/{id}/vpnAuthCertificate.crt", produces = { "application/x-x509-user-cert" })
+	public @ResponseBody byte[] getVpnAuthCertificate(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID id)
+	{
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+				() -> userService.getPrivateUser(id).getPrivateData().getVpnProfile().getVpnAuthCertificateByteArray());
+	}
+
+	@RequestMapping(value = "/{id}/apple.mobileconfig", produces = { "application/x-apple-aspen-config" })
+	public @ResponseBody String getVpnAppleMobileConfig(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
+	{
+		// TODO: use template, substitute VPN username and password
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> "");
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)
@@ -306,7 +324,7 @@ public class UserController
 		@JsonInclude(Include.NON_EMPTY)
 		public Map<String, Object> getEmbeddedResources()
 		{
-			if ((getContent().getPrivateData() == null) || !getContent().isMobileNumberConfirmed())
+			if (!includeLinksAndEmbeddedData())
 			{
 				return Collections.emptyMap();
 			}
@@ -321,6 +339,31 @@ public class UserController
 					GoalController.createAllGoalsCollectionResource(getContent().getID(), goals));
 
 			return result;
+		}
+
+		private boolean includeLinksAndEmbeddedData()
+		{
+			return (getContent().getPrivateData() != null) && getContent().isMobileNumberConfirmed();
+		}
+
+		@JsonInclude(Include.NON_EMPTY)
+		public Resource<VPNProfileDTO> getVpnProfile()
+		{
+			if (!includeLinksAndEmbeddedData())
+			{
+				return null;
+			}
+			Resource<VPNProfileDTO> vpnProfileResource = new Resource<VPNProfileDTO>(
+					getContent().getPrivateData().getVpnProfile());
+			addOvpnProfileLink(vpnProfileResource);
+			return vpnProfileResource;
+		}
+
+		private void addOvpnProfileLink(Resource<VPNProfileDTO> vpnProfileResource)
+		{
+			vpnProfileResource.add(
+					new Link(ServletUriComponentsBuilder.fromCurrentContextPath().path("/vpn/profile.ovpn").build().toUriString(),
+							"ovpnProfile"));
 		}
 
 		static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID)
@@ -373,9 +416,17 @@ public class UserController
 					addNewDeviceRequestLink(userResource);
 					addAppActivityLink(userResource);
 					pinResetRequestController.addLinks(userResource);
+					addSslRootCertificateLink(userResource);
 				}
 			}
 			return userResource;
+		}
+
+		private void addSslRootCertificateLink(Resource<UserDTO> userResource)
+		{
+			userResource.add(
+					new Link(ServletUriComponentsBuilder.fromCurrentContextPath().path("/ssl/rootcert.cer").build().toUriString(),
+							"sslRootCert"));
 		}
 
 		@Override

@@ -67,6 +67,7 @@ public class UserPrivateDTO
 		return Collections.unmodifiableSet(goals);
 	}
 
+	@JsonIgnore
 	public VPNProfileDTO getVpnProfile()
 	{
 		return vpnProfile;
