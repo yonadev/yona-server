@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -398,12 +399,16 @@ public class UserController
 
 		private void addSslRootCertificateLink(Resource<UserDTO> userResource)
 		{
-			userResource.add(new Link("/ssl/rootcert.cer", "sslRootCert"));
+			userResource.add(
+					new Link(ServletUriComponentsBuilder.fromCurrentContextPath().path("/ssl/rootcert.cer").build().toUriString(),
+							"sslRootCert"));
 		}
 
 		private void addOvpnProfileLink(Resource<UserDTO> userResource)
 		{
-			userResource.add(new Link("/vpn/profile.ovpn", "ovpnProfile"));
+			userResource.add(
+					new Link(ServletUriComponentsBuilder.fromCurrentContextPath().path("/vpn/profile.ovpn").build().toUriString(),
+							"ovpnProfile"));
 		}
 
 		@Override
