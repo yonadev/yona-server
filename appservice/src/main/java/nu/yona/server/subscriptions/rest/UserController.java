@@ -64,6 +64,7 @@ import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.subscriptions.service.VPNProfileDTO;
 
 @Controller
 @ExposesResourceFor(UserResource.class)
@@ -323,7 +324,7 @@ public class UserController
 		@JsonInclude(Include.NON_EMPTY)
 		public Map<String, Object> getEmbeddedResources()
 		{
-			if ((getContent().getPrivateData() == null) || !getContent().isMobileNumberConfirmed())
+			if (!includeLinksAndEmbeddedData())
 			{
 				return Collections.emptyMap();
 			}
@@ -338,6 +339,31 @@ public class UserController
 					GoalController.createAllGoalsCollectionResource(getContent().getID(), goals));
 
 			return result;
+		}
+
+		private boolean includeLinksAndEmbeddedData()
+		{
+			return (getContent().getPrivateData() != null) && getContent().isMobileNumberConfirmed();
+		}
+
+		@JsonInclude(Include.NON_EMPTY)
+		public Resource<VPNProfileDTO> getVpnProfile()
+		{
+			if (!includeLinksAndEmbeddedData())
+			{
+				return null;
+			}
+			Resource<VPNProfileDTO> vpnProfileResource = new Resource<VPNProfileDTO>(
+					getContent().getPrivateData().getVpnProfile());
+			addOvpnProfileLink(vpnProfileResource);
+			return vpnProfileResource;
+		}
+
+		private void addOvpnProfileLink(Resource<VPNProfileDTO> vpnProfileResource)
+		{
+			vpnProfileResource.add(
+					new Link(ServletUriComponentsBuilder.fromCurrentContextPath().path("/vpn/profile.ovpn").build().toUriString(),
+							"ovpnProfile"));
 		}
 
 		static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserID)
@@ -390,7 +416,6 @@ public class UserController
 					addNewDeviceRequestLink(userResource);
 					addAppActivityLink(userResource);
 					pinResetRequestController.addLinks(userResource);
-					addOvpnProfileLink(userResource);
 					addSslRootCertificateLink(userResource);
 				}
 			}
@@ -402,13 +427,6 @@ public class UserController
 			userResource.add(
 					new Link(ServletUriComponentsBuilder.fromCurrentContextPath().path("/ssl/rootcert.cer").build().toUriString(),
 							"sslRootCert"));
-		}
-
-		private void addOvpnProfileLink(Resource<UserDTO> userResource)
-		{
-			userResource.add(
-					new Link(ServletUriComponentsBuilder.fromCurrentContextPath().path("/vpn/profile.ovpn").build().toUriString(),
-							"ovpnProfile"));
 		}
 
 		@Override

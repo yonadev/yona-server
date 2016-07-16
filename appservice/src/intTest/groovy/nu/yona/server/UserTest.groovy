@@ -259,15 +259,15 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(john)
 	}
 
-	def 'Try to retrieve OVPN profile and SSL root certificate'()
+	def 'Retrieve OVPN profile and SSL root certificate'()
 	{
 		given:
 		User richard = addRichard()
 
 		when:
-		assert richard.ovpnProfileUrl
+		assert richard.vpnProfile.ovpnProfileUrl
 		assert richard.sslRootCertUrl
-		def responseOvpnProfile = appService.yonaServer.restClient.get(path: richard.ovpnProfileUrl)
+		def responseOvpnProfile = appService.yonaServer.restClient.get(path: richard.vpnProfile.ovpnProfileUrl)
 		def responseSslRootCert = appService.yonaServer.restClient.get(path: richard.sslRootCertUrl)
 
 		then:
@@ -301,14 +301,15 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			appService.assertUserWithPrivateData(user)
 			assert user.nickname == "JD"
 
-			assert user.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
-			assert user.vpnProfile.vpnPassword.length() == 32
-
 			assert user.buddies != null
 			assert user.buddies.size() == 0
 			assert user.goals != null
 			if (mobileNumberConfirmed)
 			{
+				assert user.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+				assert user.vpnProfile.vpnPassword.length() == 32
+				assert user.vpnProfile.ovpnProfileUrl
+
 				assert user.goals.size() == 1 //mandatory goal added
 				assert user.goals[0].activityCategoryUrl == GAMBLING_ACT_CAT_URL
 			}

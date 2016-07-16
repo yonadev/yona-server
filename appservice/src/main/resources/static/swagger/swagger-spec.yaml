@@ -1702,6 +1702,17 @@ definitions:
         required:
           - href
         description: The related goal
+  OvpnProfileLink:
+    type: object
+    properties:
+      "yona:ovpnProfile":
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Link to OVPN profile
   DayDetailsLink:
     type: object
     properties:
@@ -1851,8 +1862,6 @@ definitions:
     properties:
       vpnProfile:
         $ref: '#/definitions/VPNProfile'
-    required:
-    - vpnProfile
   PostPutUser:
     allOf:
       - $ref: '#/definitions/BaseUser'
@@ -1969,14 +1978,6 @@ definitions:
               href:
                 type: string
                 description: Post new app activity data to this link
-          "yona:ovpnProfile":
-            type: object
-            required:
-              - href
-            properties:
-              href:
-                type: string
-                description: Link to OVPN profile (available after confirming mobile number)
           "yona:sslRootCert":
             type: object
             required:
@@ -2079,7 +2080,7 @@ definitions:
       - creationTime
   VPNProfile:
     type: object
-    description: VPN profile. Private data.
+    description: VPN profile. Private data, only available after the mobile number is confirmed.
     properties:
       vpnLoginID:
         type: string
@@ -2089,6 +2090,9 @@ definitions:
         type: string
         description: The password to log in to the VPN
         example: UA1ksZCptapsDRdg1Qrn2bDvKdfl8sDd
+      _links:
+        allOf:
+          - $ref: '#/definitions/OvpnProfileLink'
     required:
       - vpnLoginID
       - vpnPassword
