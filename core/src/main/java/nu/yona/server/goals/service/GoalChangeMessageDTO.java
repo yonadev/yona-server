@@ -29,11 +29,11 @@ import nu.yona.server.subscriptions.service.UserDTO;
 public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 {
 	public static final String GOAL_REL_NAME = "goal";
-	private GoalDTO changedGoal;
-	private Change change;
+	private final GoalDTO changedGoal;
+	private final Change change;
 
-	private GoalChangeMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, String nickname, GoalDTO changedGoal,
-			Change change, String message)
+	private GoalChangeMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, String nickname,
+			GoalDTO changedGoal, Change change, String message)
 	{
 		super(id, creationTime, isRead, user, nickname, message);
 
@@ -79,7 +79,7 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 	}
 
 	@Component
-	private static class Factory extends MessageDTO.BaseManager
+	private static class Manager extends MessageDTO.Manager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;

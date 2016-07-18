@@ -35,8 +35,9 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	private final UUID activityID;
 	private final Optional<UUID> repliedMessageID;
 
-	private ActivityCommentMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO senderUser, UUID senderUserAnonymizedID,
-			String senderNickname, UUID activityID, Optional<UUID> repliedMessageID, String message, boolean canReplyTo)
+	private ActivityCommentMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO senderUser,
+			UUID senderUserAnonymizedID, String senderNickname, UUID activityID, Optional<UUID> repliedMessageID, String message,
+			boolean canReplyTo)
 	{
 		super(id, creationTime, isRead, senderUser, senderNickname, message);
 		this.activityID = activityID;
@@ -89,7 +90,7 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	}
 
 	@Component
-	private static class Factory extends MessageDTO.BaseManager
+	private static class Manager extends MessageDTO.Manager
 	{
 
 		@Autowired

@@ -80,15 +80,16 @@ public class MessageController
 	@Autowired
 	private BuddyActivityController buddyActivityController;
 
-	@RequestMapping(value = "/", params = { "onlyUnreadMessages" }, method = RequestMethod.GET)
+	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<PagedResources<MessageDTO>> getMessages(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@RequestParam(value = "onlyUnreadMessages", required=false, defaultValue = "false") String onlyUnreadMessagesStr,
+			@RequestParam(value = "onlyUnreadMessages", required = false, defaultValue = "false") String onlyUnreadMessagesStr,
 			@PathVariable UUID userID, Pageable pageable, PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
 	{
 		boolean onlyUnreadMessages = Boolean.TRUE.toString().equals(onlyUnreadMessagesStr);
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(pagedResourcesAssembler.toResource(messageService.getReceivedMessages(userID, onlyUnreadMessages, pageable),
+				() -> createOKResponse(pagedResourcesAssembler.toResource(
+						messageService.getReceivedMessages(userID, onlyUnreadMessages, pageable),
 						new MessageResourceAssembler(curieProvider, createGoalIDMapping(userID), this))));
 	}
 

@@ -127,7 +127,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 	}
 
 	@Component
-	private static class Manager extends MessageDTO.BaseManager
+	private static class Manager extends MessageDTO.Manager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;

@@ -28,11 +28,11 @@ import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 {
 	private static final String PROCESS = "process";
-	private DropBuddyReason reason;
-	private boolean isProcessed;
+	private final DropBuddyReason reason;
+	private final boolean isProcessed;
 
-	private BuddyDisconnectMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, UUID loginID, String nickname,
-			String message, DropBuddyReason reason, boolean isProcessed)
+	private BuddyDisconnectMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, UUID loginID,
+			String nickname, String message, DropBuddyReason reason, boolean isProcessed)
 	{
 		super(id, creationTime, isRead, user, nickname, message);
 		this.reason = reason;
@@ -77,11 +77,12 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 	{
 		return new BuddyDisconnectMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getRelatedUserAnonymizedID(),
-				messageEntity.getSenderNickname(), messageEntity.getMessage(), messageEntity.getReason(), messageEntity.isProcessed());
+				messageEntity.getSenderNickname(), messageEntity.getMessage(), messageEntity.getReason(),
+				messageEntity.isProcessed());
 	}
 
 	@Component
-	private static class Factory extends MessageDTO.BaseManager
+	private static class Manager extends MessageDTO.Manager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;

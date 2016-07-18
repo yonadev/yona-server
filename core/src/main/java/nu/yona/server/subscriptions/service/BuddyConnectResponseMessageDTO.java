@@ -33,8 +33,8 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	private final Status status;
 	private final boolean isProcessed;
 
-	private BuddyConnectResponseMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, String nickname, String message,
-			Status status, boolean isProcessed)
+	private BuddyConnectResponseMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, String nickname,
+			String message, Status status, boolean isProcessed)
 	{
 		super(id, creationTime, isRead, user, nickname, message);
 		this.status = status;
@@ -77,15 +77,15 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 
 	public static BuddyConnectResponseMessageDTO createInstance(UserDTO actingUser, BuddyConnectResponseMessage messageEntity)
 	{
-		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(), 
+		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getSenderNickname(),
 				messageEntity.getMessage(), messageEntity.getStatus(), messageEntity.isProcessed());
 	}
 
 	@Component
-	static class Factory extends MessageDTO.BaseManager
+	static class Manager extends MessageDTO.Manager
 	{
-		private static final Logger logger = LoggerFactory.getLogger(Factory.class);
+		private static final Logger logger = LoggerFactory.getLogger(Manager.class);
 
 		@Autowired
 		private TheDTOManager theDTOFactory;

@@ -30,10 +30,10 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 	private static final String ACCEPT = "accept";
 	private static final String REJECT = "reject";
 
-	private Status status;
+	private final Status status;
 
-	private DisclosureRequestMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, String nickname, String message,
-			Status status, UUID targetGoalConflictMessageID)
+	private DisclosureRequestMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, String nickname,
+			String message, Status status, UUID targetGoalConflictMessageID)
 	{
 		super(id, creationTime, isRead, targetGoalConflictMessageID, user, nickname, message);
 		this.status = status;
@@ -72,12 +72,13 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
 		return new DisclosureRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getSenderNickname(), messageEntity.getMessage(),
-				messageEntity.getStatus(), targetGoalConflictMessage.getOriginGoalConflictMessageID());
+				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getSenderNickname(),
+				messageEntity.getMessage(), messageEntity.getStatus(),
+				targetGoalConflictMessage.getOriginGoalConflictMessageID());
 	}
 
 	@Component
-	private static class Factory extends MessageDTO.BaseManager
+	private static class Manager extends MessageDTO.Manager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;

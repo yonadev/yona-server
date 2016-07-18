@@ -415,7 +415,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def buddyConnectResponseMessage = buddyConnectResponseMessages[0]
 		buddyConnectResponseMessage.message == "User account was deleted"
 		buddyConnectResponseMessage.nickname == "Bob Dunn"
-		buddyConnectResponseMessage._links.self.href.startsWith(richard.messagesUrl)
+		buddyConnectResponseMessage._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
 		buddyConnectResponseMessage._links?."yona:process"?.href?.startsWith(getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}[0]._links.self.href)
 
 		def processURL = buddyConnectResponseMessage._links."yona:process".href

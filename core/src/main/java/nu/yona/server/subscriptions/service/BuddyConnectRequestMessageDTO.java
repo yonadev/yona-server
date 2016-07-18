@@ -89,9 +89,9 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 	}
 
 	@Component
-	private static class Factory extends MessageDTO.BaseManager
+	private static class Manager extends MessageDTO.Manager
 	{
-		private static final Logger logger = LoggerFactory.getLogger(Factory.class);
+		private static final Logger logger = LoggerFactory.getLogger(Manager.class);
 
 		@Autowired
 		private TheDTOManager theDTOFactory;

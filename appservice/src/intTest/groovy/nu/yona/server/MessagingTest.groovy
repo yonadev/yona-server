@@ -7,6 +7,7 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.User
 
 class MessagingTest extends AbstractAppServiceIntegrationTest
 {
@@ -39,7 +40,9 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		allMessagesResponse.responseData._embedded."yona:messages".size() == 4
 
 		firstPageMessagesResponse.status == 200
-		firstPageMessagesResponse.responseData._links.self.href == richard.messagesUrl + "?page=0&size=2&sort=creationTime"
+		firstPageMessagesResponse.responseData._links.self.href.contains("page=0")
+		firstPageMessagesResponse.responseData._links.self.href.contains("size=2")
+		firstPageMessagesResponse.responseData._links.self.href.contains("sort=creationTime")
 		!firstPageMessagesResponse.responseData._links.prev
 		firstPageMessagesResponse.responseData._links.next
 		firstPageMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}.size() == 0
@@ -47,12 +50,70 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		firstPageMessagesResponse.responseData.page.totalElements == 4
 
 		secondPageMessagesResponse.status == 200
-		secondPageMessagesResponse.responseData._links.self.href == richard.messagesUrl + "?page=1&size=2&sort=creationTime"
+		secondPageMessagesResponse.responseData._links.self.href.contains("page=1")
+		secondPageMessagesResponse.responseData._links.self.href.contains("size=2")
+		secondPageMessagesResponse.responseData._links.self.href.contains("sort=creationTime")
 		secondPageMessagesResponse.responseData._links.prev
 		!secondPageMessagesResponse.responseData._links.next
 		secondPageMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}.size() == 1
 		secondPageMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}.size() == 1
 		secondPageMessagesResponse.responseData.page.totalElements == 4
+	}
+
+	def 'Richard retrieves only unread messages'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker'com")
+		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker'com")
+		analysisService.postToAnalysisEngine(bob, ["news/media"], "http://www.refdag.nl")
+
+		def initialGetMessagesResponse = appService.getMessages(richard)
+		assert initialGetMessagesResponse.status == 200
+		assert initialGetMessagesResponse.responseData.page.totalElements == 5
+
+		markRead(richard, initialGetMessagesResponse.responseData._embedded."yona:messages"[0])
+		markRead(richard, initialGetMessagesResponse.responseData._embedded."yona:messages"[2])
+		markRead(richard, initialGetMessagesResponse.responseData._embedded."yona:messages"[3])
+
+		when:
+		def getUnreadMessagesResponse = appService.getMessages(richard, [ "onlyUnreadMessages" : true])
+
+		then:
+		getUnreadMessagesResponse.status == 200
+		getUnreadMessagesResponse.responseData.page.totalElements == 2
+
+		getUnreadMessagesResponse.responseData._embedded."yona:messages"[0]._links.self.href == initialGetMessagesResponse.responseData._embedded."yona:messages"[1]._links.self.href
+		getUnreadMessagesResponse.responseData._embedded."yona:messages"[1]._links.self.href == initialGetMessagesResponse.responseData._embedded."yona:messages"[4]._links.self.href
+
+		def secondGetMessagesResponse = appService.getMessages(richard, [ "onlyUnreadMessages" : false])
+		secondGetMessagesResponse.responseData.page.totalElements == 5
+
+		markUnread(richard, secondGetMessagesResponse.responseData._embedded."yona:messages"[2])
+
+		def secondGetUnreadMessagesResponse = appService.getMessages(richard, [ "onlyUnreadMessages" : true])
+		secondGetUnreadMessagesResponse.status == 200
+		secondGetUnreadMessagesResponse.responseData.page.totalElements == 3
+
+		secondGetUnreadMessagesResponse.responseData._embedded."yona:messages"[0]._links.self.href == initialGetMessagesResponse.responseData._embedded."yona:messages"[1]._links.self.href
+		secondGetUnreadMessagesResponse.responseData._embedded."yona:messages"[1]._links.self.href == initialGetMessagesResponse.responseData._embedded."yona:messages"[2]._links.self.href
+		secondGetUnreadMessagesResponse.responseData._embedded."yona:messages"[2]._links.self.href == initialGetMessagesResponse.responseData._embedded."yona:messages"[4]._links.self.href
+	}
+
+	void markRead(User user, def message)
+	{
+		assert message._links?."yona:markRead"?.href
+		appService.postMessageActionWithPassword(message._links."yona:markRead".href, [ : ], user.password)
+	}
+
+	void markUnread(User user, def message)
+	{
+		assert message._links?."yona:markUnread"?.href
+		def response = appService.postMessageActionWithPassword(message._links."yona:markUnread".href, [ : ], user.password)
+		assert response.status == 200
 	}
 
 	def 'Bob tries to delete Richard\'s buddy request before it is processed'()

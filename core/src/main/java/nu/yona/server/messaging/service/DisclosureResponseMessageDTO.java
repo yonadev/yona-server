@@ -25,10 +25,10 @@ import nu.yona.server.subscriptions.service.UserDTO;
 @JsonRootName("disclosureResponseMessage")
 public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 {
-	private Status status;
+	private final Status status;
 
-	private DisclosureResponseMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, Status status, String nickname,
-			String message, UUID targetGoalConflictMessageID)
+	private DisclosureResponseMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, Status status,
+			String nickname, String message, UUID targetGoalConflictMessageID)
 	{
 		super(id, creationTime, isRead, targetGoalConflictMessageID, user, nickname, message);
 		this.status = status;
@@ -62,12 +62,12 @@ public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
 		return new DisclosureResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getStatus(), messageEntity.getSenderNickname(),
-				messageEntity.getMessage(), targetGoalConflictMessage.getID());
+				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getStatus(),
+				messageEntity.getSenderNickname(), messageEntity.getMessage(), targetGoalConflictMessage.getID());
 	}
 
 	@Component
-	private static class Factory extends MessageDTO.BaseManager
+	private static class Manager extends MessageDTO.Manager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;
