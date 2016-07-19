@@ -1,7 +1,7 @@
 package nu.yona.server.analysis.service;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -14,7 +14,7 @@ import nu.yona.server.analysis.service.IntervalActivityDTO.LevelOfDetail;
 @JsonRootName("weekActivityOverview")
 public class WeekActivityOverviewDTO extends IntervalActivityOverviewDTO
 {
-	private Set<WeekActivityDTO> weekActivities;
+	private final Set<WeekActivityDTO> weekActivities;
 
 	private WeekActivityOverviewDTO(ZonedDateTime date, Set<WeekActivityDTO> weekActivities)
 	{
@@ -23,9 +23,9 @@ public class WeekActivityOverviewDTO extends IntervalActivityOverviewDTO
 	}
 
 	@Override
-	protected DateTimeFormatter getDateFormatter()
+	protected String formatDateAsISO(LocalDate date)
 	{
-		return WeekActivityDTO.ISO8601_WEEK_FORMATTER;
+		return WeekActivityDTO.formatDate(date);
 	}
 
 	@JsonIgnore

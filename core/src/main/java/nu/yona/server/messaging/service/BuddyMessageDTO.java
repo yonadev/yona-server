@@ -15,36 +15,36 @@ import nu.yona.server.subscriptions.service.UserDTO;
 @JsonRootName("buddyMessage")
 public abstract class BuddyMessageDTO extends MessageDTO
 {
-	private UserDTO user;
-	private final String nickname;
+	private UserDTO senderUser;
+	private final String senderNickname;
 	private final String message;
 
-	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO user, String nickname, String message)
+	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO senderUser, String senderNickname, String message)
 	{
 		super(id, creationTime);
-		this.user = user;
-		this.nickname = nickname;
+		this.senderUser = senderUser;
+		this.senderNickname = senderNickname;
 		this.message = message;
 	}
 
-	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, UUID relatedMessageID, UserDTO user, String nickname,
+	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, UUID relatedMessageID, UserDTO senderUser, String senderNickname,
 			String message)
 	{
 		super(id, creationTime, relatedMessageID);
-		this.user = user;
-		this.nickname = nickname;
+		this.senderUser = senderUser;
+		this.senderNickname = senderNickname;
 		this.message = message;
 	}
 
 	@JsonIgnore
 	public UserDTO getUser()
 	{
-		return user;
+		return senderUser;
 	}
 
 	public String getNickname()
 	{
-		return nickname;
+		return senderNickname;
 	}
 
 	public String getMessage()

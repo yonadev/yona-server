@@ -35,4 +35,20 @@ class Buddy
 		this.weeklyActivityReportsUrl = json._links?."yona:weeklyActivityReports"?.href
 		this.editURL = json._links?.edit?.href
 	}
+
+	def findActiveGoal(def activityCategoryUrl)
+	{
+		goals.find{ it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
+	}
+
+	/**
+	 * Finds a goal in the buddy context given the goal from the user context
+	 */
+	Goal findGoal(Goal goal)
+	{
+		def goalID = goal.url.substring(goal.url.lastIndexOf('/') + 1)
+		Goal matchingGoal = goals.find{it.url.endsWith(goalID)}
+		assert matchingGoal
+		return matchingGoal
+	}
 }

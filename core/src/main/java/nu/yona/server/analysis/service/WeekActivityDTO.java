@@ -5,6 +5,10 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.SignStyle;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.IsoFields;
+import java.time.temporal.TemporalUnit;
 import java.time.temporal.WeekFields;
 import java.util.Collections;
 import java.util.List;
@@ -16,27 +20,37 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.Translator;
 import nu.yona.server.analysis.entities.WeekActivity;
 
 @JsonRootName("weekActivity")
 public class WeekActivityDTO extends IntervalActivityDTO
 {
-	static final DateTimeFormatter ISO8601_WEEK_FORMATTER = new DateTimeFormatterBuilder().appendPattern("YYYY-'W'w")
-			.parseDefaulting(WeekFields.ISO.dayOfWeek(), DayOfWeek.SUNDAY.getValue()).toFormatter();
+	private static final DateTimeFormatter ISO8601_WEEK_FORMATTER = new DateTimeFormatterBuilder().parseCaseInsensitive()
+			.appendValue(IsoFields.WEEK_BASED_YEAR, 4, 10, SignStyle.EXCEEDS_PAD).appendLiteral("-W")
+			.appendValue(IsoFields.WEEK_OF_WEEK_BASED_YEAR, 2)
+			.parseDefaulting(WeekFields.ISO.dayOfWeek(), DayOfWeek.MONDAY.getValue()).toFormatter(Translator.EN_US_LOCALE);
 
-	private Map<DayOfWeek, DayActivityDTO> dayActivities;
+	private final Map<DayOfWeek, DayActivityDTO> dayActivities;
 
 	private WeekActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
-			Optional<Integer> totalActivityDurationMinutes, Map<DayOfWeek, DayActivityDTO> dayActivities)
+			Optional<Integer> totalActivityDurationMinutes, Map<DayOfWeek, DayActivityDTO> dayActivities, boolean hasPrevious,
+			boolean hasNext)
 	{
-		super(goalID, startTime, shouldSerializeDate, spread, totalActivityDurationMinutes);
+		super(goalID, startTime, shouldSerializeDate, spread, totalActivityDurationMinutes, hasPrevious, hasNext);
 		this.dayActivities = dayActivities;
 	}
 
 	@Override
-	public DateTimeFormatter getDateFormatter()
+	protected TemporalUnit getTimeUnit()
 	{
-		return ISO8601_WEEK_FORMATTER;
+		return ChronoUnit.WEEKS;
+	}
+
+	@Override
+	protected String formatDateAsISO(LocalDate date)
+	{
+		return formatDate(date);
 	}
 
 	@JsonIgnore
@@ -47,7 +61,16 @@ public class WeekActivityDTO extends IntervalActivityDTO
 
 	public static LocalDate parseDate(String iso8601)
 	{
-		return LocalDate.parse(iso8601, ISO8601_WEEK_FORMATTER);
+		// ISO treats Monday as first day of the week, so our formatter defaults the day as Monday and here we subtract one day to
+		// return the preceding Sunday.
+		return LocalDate.parse(iso8601, ISO8601_WEEK_FORMATTER).minusDays(1);
+	}
+
+	public static String formatDate(LocalDate sundayDate)
+	{
+		// ISO treats Monday as first day of the week, so determine the week number based on the Monday rather than Sunday
+		LocalDate mondayDate = sundayDate.plusDays(1);
+		return ISO8601_WEEK_FORMATTER.format(mondayDate);
 	}
 
 	static WeekActivityDTO createInstance(WeekActivity weekActivity, LevelOfDetail levelOfDetail)
@@ -58,6 +81,7 @@ public class WeekActivityDTO extends IntervalActivityDTO
 				includeDetail ? Optional.of(weekActivity.getTotalActivityDurationMinutes()) : Optional.empty(),
 				weekActivity.getDayActivities().stream()
 						.collect(Collectors.toMap(dayActivity -> dayActivity.getDate().getDayOfWeek(),
-								dayActivity -> DayActivityDTO.createInstance(dayActivity, levelOfDetail))));
+								dayActivity -> DayActivityDTO.createInstance(dayActivity, levelOfDetail))),
+				weekActivity.hasPrevious(), weekActivity.hasNext());
 	}
 }

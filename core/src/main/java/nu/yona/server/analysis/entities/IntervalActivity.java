@@ -6,22 +6,40 @@ package nu.yona.server.analysis.entities;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
+import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.LocalDateAttributeConverter;
+import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 
-@MappedSuperclass
+@Entity
+@Table(name = "INTERVAL_ACTIVITIES", uniqueConstraints = {
+		@UniqueConstraint(columnNames = { "DTYPE", "USER_ANONYMIZED_ID", "DATE", "GOAL_ID" }) })
 public abstract class IntervalActivity extends EntityWithID
 {
+	public static IntervalActivityRepository getIntervalActivityRepository()
+	{
+		return (IntervalActivityRepository) RepositoryProvider.getRepository(IntervalActivity.class, UUID.class);
+	}
+
 	public static final int SPREAD_COUNT = 96;
+
+	@ManyToOne
+	private UserAnonymized userAnonymized;
 
 	@ManyToOne
 	private Goal goal;
@@ -29,6 +47,7 @@ public abstract class IntervalActivity extends EntityWithID
 	/*
 	 * The date. Stored for easier querying (if the time zone of the user changes, we cannot query for equal start time).
 	 */
+	@Convert(converter = LocalDateAttributeConverter.class)
 	private LocalDate date;
 
 	/*
@@ -49,16 +68,32 @@ public abstract class IntervalActivity extends EntityWithID
 		super(null);
 	}
 
-	protected IntervalActivity(UUID id, Goal goal, ZonedDateTime startTime, List<Integer> spread,
+	protected IntervalActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startTime, List<Integer> spread,
 			int totalActivityDurationMinutes, boolean aggregatesComputed)
 	{
 		super(id);
+		Objects.requireNonNull(userAnonymized);
+		Objects.requireNonNull(goal);
+		Objects.requireNonNull(startTime);
+		Objects.requireNonNull(spread);
+		this.userAnonymized = userAnonymized;
 		this.goal = goal;
 		this.date = startTime.toLocalDate();
 		this.startTime = startTime;
 		this.spread = spread;
 		this.totalActivityDurationMinutes = totalActivityDurationMinutes;
 		this.aggregatesComputed = aggregatesComputed;
+	}
+
+	protected abstract TemporalUnit getTimeUnit();
+
+	protected abstract List<Integer> computeSpread();
+
+	protected abstract int computeTotalActivityDurationMinutes();
+
+	public UserAnonymized getUserAnonymized()
+	{
+		return userAnonymized;
 	}
 
 	public Goal getGoal()
@@ -81,24 +116,32 @@ public abstract class IntervalActivity extends EntityWithID
 		return startTime;
 	}
 
+	public abstract ZonedDateTime getEndTime();
+
+	public boolean hasPrevious()
+	{
+		return goal.wasActiveAtInterval(startTime.minus(1, getTimeUnit()), getTimeUnit());
+	}
+
+	public boolean hasNext()
+	{
+		return startTime.plus(1, getTimeUnit()).isBefore(ZonedDateTime.now());
+	}
+
 	public boolean areAggregatesComputed()
 	{
 		return aggregatesComputed;
 	}
 
-	public abstract ZonedDateTime getEndTime();
-
 	public List<Integer> getSpread()
 	{
 		if (areAggregatesComputed())
 		{
-			return spread;
+			return Collections.unmodifiableList(spread);
 		}
 
 		return computeSpread();
 	}
-
-	protected abstract List<Integer> computeSpread();
 
 	public int getTotalActivityDurationMinutes()
 	{
@@ -109,8 +152,6 @@ public abstract class IntervalActivity extends EntityWithID
 
 		return computeTotalActivityDurationMinutes();
 	}
-
-	protected abstract int computeTotalActivityDurationMinutes();
 
 	protected static List<Integer> getEmptySpread()
 	{

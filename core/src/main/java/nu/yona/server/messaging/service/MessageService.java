@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
@@ -38,14 +38,26 @@ public class MessageService
 	private TheDTOManager dtoManager;
 
 	@Transactional
-	public Page<MessageDTO> getMessages(UUID userID, Pageable pageable)
+	public Page<MessageDTO> getReceivedMessages(UUID userID, Pageable pageable)
+	{
+		UserDTO user = userService.getPrivateValidatedUser(userID);
+		return wrapMessagesAsDTOs(user, getReceivedMessageEntities(user, pageable), pageable);
+	}
+
+	@Transactional
+	public Page<Message> getReceivedMessageEntities(UUID userID, Pageable pageable)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
 
+		return getReceivedMessageEntities(user, pageable);
+	}
+
+	private Page<Message> getReceivedMessageEntities(UserDTO user, Pageable pageable)
+	{
 		transferDirectMessagesToAnonymousDestination(user);
 
 		MessageSource messageSource = getAnonymousMessageSource(user);
-		return wrapAllMessagesAsDTOs(user, messageSource, pageable);
+		return messageSource.getReceivedMessages(pageable);
 	}
 
 	public MessageDTO getMessage(UUID userID, UUID messageID)
@@ -82,7 +94,7 @@ public class MessageService
 		MessageSource directMessageSource = getNamedMessageSource(user);
 		MessageDestination directMessageDestination = directMessageSource.getDestination();
 		Page<Message> directMessages = directMessageSource.getMessages(null);
-	
+
 		MessageSource anonymousMessageSource = getAnonymousMessageSource(user);
 		MessageDestination anonymousMessageDestination = anonymousMessageSource.getDestination();
 		for (Message directMessage : directMessages)
@@ -116,16 +128,20 @@ public class MessageService
 		return MessageSource.getRepository().findOne(user.getPrivateData().getAnonymousMessageSourceID());
 	}
 
-	private Page<MessageDTO> wrapAllMessagesAsDTOs(UserDTO user, MessageSource messageSource, Pageable pageable)
+	private Page<MessageDTO> wrapMessagesAsDTOs(UserDTO user, Page<? extends Message> messageEntities, Pageable pageable)
 	{
-		return wrapMessagesAsDTOs(user, messageSource.getMessages(pageable), pageable);
+		List<MessageDTO> allMessagePayloads = wrapMessagesAsDTOs(user, messageEntities.getContent());
+		return new PageImpl<MessageDTO>(allMessagePayloads, pageable, messageEntities.getTotalElements());
 	}
 
-	private Page<MessageDTO> wrapMessagesAsDTOs(UserDTO user, Page<Message> messageEntities, Pageable pageable)
+	private List<MessageDTO> wrapMessagesAsDTOs(UserDTO user, List<? extends Message> messageEntities)
 	{
-		List<MessageDTO> allMessagePayloads = messageEntities.getContent().stream().map(m -> dtoManager.createInstance(user, m))
-				.collect(Collectors.toList());
-		return new PageImpl<MessageDTO>(allMessagePayloads, pageable, messageEntities.getTotalElements());
+		return messageEntities.stream().map(m -> messageToDTO(user, m)).collect(Collectors.toList());
+	}
+
+	public MessageDTO messageToDTO(UserDTO user, Message message)
+	{
+		return dtoManager.createInstance(user, message);
 	}
 
 	public static interface DTOManager
@@ -138,7 +154,7 @@ public class MessageService
 	@Component
 	public static class TheDTOManager implements DTOManager
 	{
-		private Map<Class<? extends Message>, DTOManager> managers = new HashMap<>();
+		private final Map<Class<? extends Message>, DTOManager> managers = new HashMap<>();
 
 		@Override
 		public MessageDTO createInstance(UserDTO user, Message messageEntity)
@@ -199,5 +215,19 @@ public class MessageService
 	public void broadcastMessageToBuddies(UserAnonymizedDTO userAnonymized, Supplier<Message> messageSupplier)
 	{
 		userAnonymized.getBuddyDestinations().stream().forEach(destination -> sendMessage(messageSupplier.get(), destination));
+	}
+
+	@Transactional
+	public void sendMessageToUserAnonymized(UserAnonymizedDTO userAnonymized, Message message)
+	{
+		sendMessage(message, userAnonymized.getAnonymousDestination());
+	}
+
+	@Transactional
+	public Page<MessageDTO> getActivityRelatedMessages(UUID userID, UUID activityID, Pageable pageable)
+	{
+		UserDTO user = userService.getPrivateValidatedUser(userID);
+		MessageSource messageSource = getAnonymousMessageSource(user);
+		return wrapMessagesAsDTOs(user, messageSource.getActivityRelatedMessages(activityID, pageable), pageable);
 	}
 }

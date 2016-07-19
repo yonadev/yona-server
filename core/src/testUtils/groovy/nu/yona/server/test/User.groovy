@@ -28,6 +28,7 @@ class User
 	final String goalsUrl
 	final String messagesUrl
 	final String dailyActivityReportsUrl
+	final String dailyActivityReportsWithBuddiesUrl
 	final String weeklyActivityReportsUrl
 	final String newDeviceRequestUrl
 	final String appActivityUrl
@@ -35,6 +36,7 @@ class User
 	final String verifyPinResetUrl
 	final String resendPinResetConfirmationCodeUrl
 	final String clearPinResetUrl
+	final String sslRootCertUrl
 	final String password
 
 	User(def json, String password)
@@ -74,6 +76,7 @@ class User
 		this.goalsUrl = json._embedded?."yona:goals"?._links?.self?.href
 		this.messagesUrl = json._links?."yona:messages"?.href
 		this.dailyActivityReportsUrl = json._links?."yona:dailyActivityReports"?.href
+		this.dailyActivityReportsWithBuddiesUrl = json._links?."yona:dailyActivityReportsWithBuddies"?.href
 		this.weeklyActivityReportsUrl = json._links?."yona:weeklyActivityReports"?.href
 		this.newDeviceRequestUrl = json._links?."yona:newDeviceRequest"?.href
 		this.appActivityUrl = json._links?."yona:appActivity"?.href
@@ -81,6 +84,7 @@ class User
 		this.verifyPinResetUrl = json._links?."yona:verifyPinReset"?.href
 		this.resendPinResetConfirmationCodeUrl = json._links?."yona:resendPinResetConfirmationCode"?.href
 		this.clearPinResetUrl = json._links?."yona:clearPinReset"?.href
+		this.sslRootCertUrl = json._links?."yona:sslRootCert"?.href
 	}
 
 	def convertToJSON()
@@ -118,12 +122,12 @@ class VPNProfile
 {
 	final String vpnLoginID
 	final String vpnPassword
-	final String openVPNProfile
+	final String ovpnProfileUrl
 
 	VPNProfile(def json)
 	{
 		this.vpnLoginID = json.vpnLoginID
 		this.vpnPassword = json.vpnPassword
-		this.openVPNProfile = json.openVPNProfile
+		this.ovpnProfileUrl = json._links."yona:ovpnProfile".href
 	}
 }

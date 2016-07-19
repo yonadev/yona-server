@@ -43,7 +43,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private static final String REQUEST_DISCLOSURE = "requestDisclosure";
 	private final String nickname;
 	private final Optional<String> url;
-	private Status status;
+	private final Status status;
 	private final ZonedDateTime activityStartTime;
 	private final ZonedDateTime activityEndTime;
 	private final UUID activityCategoryID;
@@ -202,7 +202,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 			Set<BuddyDTO> buddies = buddyService.getBuddies(actingUser.getPrivateData().getBuddyIDs());
 			for (BuddyDTO buddy : buddies)
 			{
-				if (userAnonymizedID.equals(buddy.getUserAnonymizedID()))
+				if (buddy.getUserAnonymizedID().filter(id -> id.equals(userAnonymizedID)).isPresent())
 				{
 					return buddy.getNickname();
 				}

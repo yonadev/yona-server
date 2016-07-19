@@ -5,10 +5,10 @@
 package nu.yona.server.subscriptions.service;
 
 import java.time.ZonedDateTime;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import nu.yona.server.Constants;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
-import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.subscriptions.entities.User;
 
@@ -37,7 +36,7 @@ public class UserDTO
 	private final String lastName;
 	private final String emailAddress;
 	private final String mobileNumber;
-	private boolean isMobileNumberConfirmed;
+	private final boolean isMobileNumberConfirmed;
 	private final UserPrivateDTO privateData;
 	private final Optional<ZonedDateTime> creationTime;
 
@@ -46,12 +45,12 @@ public class UserDTO
 	 */
 	private UserDTO(UUID id, String firstName, String lastName, String nickname, String mobileNumber, ZonedDateTime creationTime,
 			boolean isConfirmed, UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
-			UUID anonymousMessageDestinationID, Set<GoalDTO> goals, Set<UUID> buddyIDs, UUID userAnonymizedID,
-			VPNProfileDTO vpnProfile)
+			UUID anonymousMessageDestinationID, Set<GoalDTO> goals, Set<UUID> buddyIDs,
+			Function<Set<UUID>, Set<BuddyDTO>> buddyIDToDTOMapper, UUID userAnonymizedID, VPNProfileDTO vpnProfile)
 	{
 		this(id, firstName, lastName, null, mobileNumber, Optional.of(creationTime), isConfirmed,
 				new UserPrivateDTO(nickname, namedMessageSourceID, namedMessageDestinationID, anonymousMessageSourceID,
-						anonymousMessageDestinationID, goals, buddyIDs, userAnonymizedID, vpnProfile));
+						anonymousMessageDestinationID, goals, buddyIDs, buddyIDToDTOMapper, userAnonymizedID, vpnProfile));
 	}
 
 	private UserDTO(UUID id, String firstName, String lastName, String mobileNumber, ZonedDateTime creationTime,
@@ -185,37 +184,14 @@ public class UserDTO
 				userEntity.getCreationTime(), userEntity.isMobileNumberConfirmed());
 	}
 
-	static UserDTO createInstanceWithPrivateData(User userEntity)
+	static UserDTO createInstanceWithPrivateData(User userEntity, Function<Set<UUID>, Set<BuddyDTO>> buddyIDToDTOMapper)
 	{
 		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickname(),
 				userEntity.getMobileNumber(), userEntity.getCreationTime(), userEntity.isMobileNumberConfirmed(),
 				userEntity.getNamedMessageSource().getID(), userEntity.getNamedMessageDestination().getID(),
 				userEntity.getAnonymousMessageSource().getID(), userEntity.getAnonymousMessageSource().getDestination().getID(),
-				getGetGoalsIncludingHistoryItems(userEntity), getBuddyIDs(userEntity), userEntity.getUserAnonymizedID(),
-				VPNProfileDTO.createInstance(userEntity));
-	}
-
-	private static Set<GoalDTO> getGetGoalsIncludingHistoryItems(User userEntity)
-	{
-		Set<Goal> activeGoals = userEntity.getGoals();
-		Set<Goal> historyItems = getGoalHistoryItems(activeGoals);
-		Set<Goal> allGoals = new HashSet<>(activeGoals);
-		allGoals.addAll(historyItems);
-		return allGoals.stream().map(g -> GoalDTO.createInstance(g)).collect(Collectors.toSet());
-	}
-
-	private static Set<Goal> getGoalHistoryItems(Set<Goal> activeGoals)
-	{
-		Set<Goal> historyItems = new HashSet<>();
-		activeGoals.stream().forEach(g -> {
-			Optional<Goal> historyItem = g.getPreviousVersionOfThisGoal();
-			while (historyItem.isPresent())
-			{
-				historyItems.add(historyItem.get());
-				historyItem = historyItem.get().getPreviousVersionOfThisGoal();
-			}
-		});
-		return historyItems;
+				UserAnonymizedDTO.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), getBuddyIDs(userEntity),
+				buddyIDToDTOMapper, userEntity.getUserAnonymizedID(), VPNProfileDTO.createInstance(userEntity));
 	}
 
 	private static Set<UUID> getBuddyIDs(User userEntity)

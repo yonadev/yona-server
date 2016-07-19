@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -24,15 +26,15 @@ public class BuddyDTO
 	public static final String GOALS_REL_NAME = "goals";
 
 	private final UUID id;
-	private UserDTO user;
-	private String message;
-	private String nickname;
-	private UUID userAnonymizedID;
-	private Status sendingStatus;
-	private Status receivingStatus;
-	private Set<GoalDTO> goals;
+	private final UserDTO user;
+	private final String message;
+	private final String nickname;
+	private final Optional<UUID> userAnonymizedID;
+	private final Status sendingStatus;
+	private final Status receivingStatus;
+	private Set<GoalDTO> goals = Collections.emptySet();
 
-	public BuddyDTO(UUID id, UserDTO user, String message, String nickname, UUID userAnonymizedID, Status sendingStatus,
+	public BuddyDTO(UUID id, UserDTO user, String message, String nickname, Optional<UUID> userAnonymizedID, Status sendingStatus,
 			Status receivingStatus)
 	{
 		this.id = id;
@@ -44,7 +46,8 @@ public class BuddyDTO
 		this.receivingStatus = receivingStatus;
 	}
 
-	public BuddyDTO(UUID id, UserDTO user, String nickname, UUID userAnonymizedID, Status sendingStatus, Status receivingStatus)
+	public BuddyDTO(UUID id, UserDTO user, String nickname, Optional<UUID> userAnonymizedID, Status sendingStatus,
+			Status receivingStatus)
 	{
 		this(id, user, null, nickname, userAnonymizedID, sendingStatus, receivingStatus);
 	}
@@ -90,9 +93,9 @@ public class BuddyDTO
 				buddyEntity.getReceivingStatus());
 	}
 
-	private static UUID getBuddyUserAnonymizedID(Buddy buddyEntity)
+	private static Optional<UUID> getBuddyUserAnonymizedID(Buddy buddyEntity)
 	{
-		return BuddyService.canIncludePrivateData(buddyEntity) ? buddyEntity.getUserAnonymizedID() : null;
+		return BuddyService.canIncludePrivateData(buddyEntity) ? buddyEntity.getUserAnonymizedID() : Optional.empty();
 	}
 
 	@JsonInclude(Include.NON_EMPTY)
@@ -112,7 +115,7 @@ public class BuddyDTO
 	}
 
 	@JsonIgnore
-	public UUID getUserAnonymizedID()
+	public Optional<UUID> getUserAnonymizedID()
 	{
 		return userAnonymizedID;
 	}

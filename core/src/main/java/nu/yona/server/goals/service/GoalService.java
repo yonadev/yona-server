@@ -45,18 +45,35 @@ public class GoalService
 		return user.getPrivateData().getGoals();
 	}
 
-	public GoalDTO getGoal(UUID userID, UUID goalID)
+	public GoalDTO getGoalForUserID(UUID userID, UUID goalID)
 	{
-		User userEntity = userService.getUserByID(userID);
+		User userEntity = userService.getUserEntityByID(userID);
 		return GoalDTO.createInstance(getGoalEntity(userEntity, goalID));
+	}
+
+	public GoalDTO getGoalForUserAnonymizedID(UUID userAnonymizedID, UUID goalID)
+	{
+		return userAnonymizedService.getUserAnonymized(userAnonymizedID).getGoals().stream().filter(g -> g.getID().equals(goalID))
+				.findFirst().orElseThrow(() -> GoalServiceException.goalNotFoundByIdForUserAnonymized(userAnonymizedID, goalID));
+	}
+
+	public Goal getGoalEntityForUserAnonymizedID(UUID userAnonymizedID, UUID goalID)
+	{
+		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedID);
+		return getGoalEntity(userAnonymizedEntity, goalID);
 	}
 
 	private Goal getGoalEntity(User userEntity, UUID goalID)
 	{
-		Optional<Goal> foundGoal = userEntity.getGoals().stream().filter(goal -> goal.getID().equals(goalID)).findFirst();
+		return getGoalEntity(userEntity.getAnonymized(), goalID);
+	}
+
+	private Goal getGoalEntity(UserAnonymized userAnonymized, UUID goalID)
+	{
+		Optional<Goal> foundGoal = userAnonymized.getGoals().stream().filter(goal -> goal.getID().equals(goalID)).findFirst();
 		if (!foundGoal.isPresent())
 		{
-			throw GoalServiceException.goalNotFoundById(userEntity.getID(), goalID);
+			throw GoalServiceException.goalNotFoundByIdForUserAnonymized(userAnonymized.getID(), goalID);
 		}
 		return foundGoal.get();
 	}
@@ -65,7 +82,7 @@ public class GoalService
 	public GoalDTO addGoal(UUID userID, GoalDTO goal, Optional<String> message)
 	{
 		goal.validate();
-		User userEntity = userService.getUserByID(userID);
+		User userEntity = userService.getUserEntityByID(userID);
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		Optional<Goal> conflictingExistingGoal = userAnonymizedEntity.getGoals().stream()
 				.filter(existingGoal -> existingGoal.getActivityCategory().getID().equals(goal.getActivityCategoryID()))
@@ -88,7 +105,7 @@ public class GoalService
 	@Transactional
 	public GoalDTO updateGoal(UUID userID, UUID goalID, GoalDTO newGoalDTO, Optional<String> message)
 	{
-		User userEntity = userService.getUserByID(userID);
+		User userEntity = userService.getUserEntityByID(userID);
 		Goal existingGoal = getGoalEntity(userEntity, goalID);
 
 		if (newGoalDTO.getCreationTime().isPresent())
@@ -164,22 +181,29 @@ public class GoalService
 	@Transactional
 	public void removeGoal(UUID userID, UUID goalID, Optional<String> message)
 	{
-		User userEntity = userService.getUserByID(userID);
+		User userEntity = userService.getUserEntityByID(userID);
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
-		Optional<Goal> goalEntity = userAnonymizedEntity.getGoals().stream().filter(goal -> goal.getID().equals(goalID))
-				.findFirst();
-		if (!goalEntity.isPresent())
-		{
-			throw GoalServiceException.goalNotFoundById(userID, goalID);
-		}
-		if (goalEntity.get().isMandatory())
+		Goal goalEntity = userAnonymizedEntity.getGoals().stream().filter(goal -> goal.getID().equals(goalID)).findFirst()
+				.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForUser(userID, goalID));
+		if (goalEntity.isMandatory())
 		{
 			throw GoalServiceException.cannotRemoveMandatoryGoal(userID, goalID);
 		}
-		userAnonymizedEntity.removeGoal(goalEntity.get());
+
+		deleteActivitiesForGoal(goalEntity);
+		userAnonymizedEntity.removeGoal(goalEntity);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getID(), userAnonymizedEntity);
 
-		broadcastGoalChangeMessage(userEntity, goalEntity.get(), GoalChangeMessage.Change.GOAL_DELETED, message);
+		broadcastGoalChangeMessage(userEntity, goalEntity, GoalChangeMessage.Change.GOAL_DELETED, message);
+	}
+
+	private void deleteActivitiesForGoal(Goal goalEntity)
+	{
+		goalEntity.getPreviousVersionOfThisGoal().ifPresent(g -> deleteActivitiesForGoal(g));
+
+		UUID goalID = goalEntity.getID();
+		WeekActivity.getRepository().deleteAllForGoal(goalID);
+		DayActivity.getRepository().deleteAllForGoal(goalID);
 	}
 
 	private void broadcastGoalChangeMessage(User userEntity, Goal changedGoal, GoalChangeMessage.Change change,

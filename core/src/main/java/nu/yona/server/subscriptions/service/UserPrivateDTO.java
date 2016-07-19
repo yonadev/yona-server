@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -20,25 +21,26 @@ import nu.yona.server.goals.service.GoalDTO;
 public class UserPrivateDTO
 {
 	private final String nickname;
-	private Set<GoalDTO> goals;
-	private VPNProfileDTO vpnProfile;
-	private UUID userAnonymizedID;
-	private UUID namedMessageSourceID;
-	private UUID namedMessageDestinationID;
-	private UUID anonymousMessageSourceID;
-	private UUID anonymousMessageDestinationID;
-	private Set<UUID> buddyIDs;
-	private Set<BuddyDTO> buddies;
+	private final Set<GoalDTO> goals;
+	private final VPNProfileDTO vpnProfile;
+	private final UUID userAnonymizedID;
+	private final UUID namedMessageSourceID;
+	private final UUID namedMessageDestinationID;
+	private final UUID anonymousMessageSourceID;
+	private final UUID anonymousMessageDestinationID;
+	private final Set<UUID> buddyIDs;
+	private final Function<Set<UUID>, Set<BuddyDTO>> buddyIDToDTOMapper;
 
 	@JsonCreator
 	public UserPrivateDTO(@JsonProperty("nickname") String nickname)
 	{
-		this(nickname, null, null, null, null, Collections.emptySet(), Collections.emptySet(), null, new VPNProfileDTO(null));
+		this(nickname, null, null, null, null, Collections.emptySet(), Collections.emptySet(), null, null,
+				new VPNProfileDTO(null));
 	}
 
 	UserPrivateDTO(String nickname, UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
-			UUID anonymousMessageDestinationID, Set<GoalDTO> goals, Set<UUID> buddyIDs, UUID userAnonymizedID,
-			VPNProfileDTO vpnProfile)
+			UUID anonymousMessageDestinationID, Set<GoalDTO> goals, Set<UUID> buddyIDs,
+			Function<Set<UUID>, Set<BuddyDTO>> buddyIDToDTOMapper, UUID userAnonymizedID, VPNProfileDTO vpnProfile)
 	{
 		Objects.requireNonNull(goals);
 		Objects.requireNonNull(buddyIDs);
@@ -49,10 +51,9 @@ public class UserPrivateDTO
 		this.anonymousMessageDestinationID = anonymousMessageDestinationID;
 		this.goals = goals;
 		this.buddyIDs = buddyIDs;
+		this.buddyIDToDTOMapper = buddyIDToDTOMapper;
 		this.userAnonymizedID = userAnonymizedID;
 		this.vpnProfile = vpnProfile;
-
-		this.buddies = Collections.emptySet();
 	}
 
 	public String getNickname()
@@ -66,6 +67,7 @@ public class UserPrivateDTO
 		return Collections.unmodifiableSet(goals);
 	}
 
+	@JsonIgnore
 	public VPNProfileDTO getVpnProfile()
 	{
 		return vpnProfile;
@@ -101,15 +103,10 @@ public class UserPrivateDTO
 		return Collections.unmodifiableSet(buddyIDs);
 	}
 
-	public void setBuddies(Set<BuddyDTO> buddies)
-	{
-		this.buddies = buddies;
-	}
-
 	@JsonIgnore
 	public Set<BuddyDTO> getBuddies()
 	{
-		return Collections.unmodifiableSet(buddies);
+		return buddyIDToDTOMapper.apply(buddyIDs);
 	}
 
 	@JsonIgnore

@@ -30,4 +30,9 @@ public class MessageServiceException extends YonaException
 	{
 		return new MessageServiceException("error.message.action.not.supported", action);
 	}
+
+	public static MessageServiceException missingMandatoryActionProperty(String action, String propertyName)
+	{
+		return new MessageServiceException("error.message.action.missing.property", action, propertyName);
+	}
 }

@@ -76,6 +76,11 @@ public class MessageDestination extends EntityWithID
 		return Message.getRepository().findFromDestination(this.getID(), pageable);
 	}
 
+	public Page<Message> getReceivedMessages(Pageable pageable)
+	{
+		return Message.getRepository().findReceivedMessagesFromDestination(this.getID(), pageable);
+	}
+
 	private PublicKey loadPublicKey()
 	{
 		if (publicKey == null)
@@ -88,5 +93,10 @@ public class MessageDestination extends EntityWithID
 	public void removeMessagesFromUser(UUID sentByUserAnonymizedID)
 	{
 		messages.removeIf(message -> sentByUserAnonymizedID.equals(message.getRelatedUserAnonymizedID()));
+	}
+
+	public Page<Message> getActivityRelatedMessages(UUID activityID, Pageable pageable)
+	{
+		return Message.getRepository().findByActivityID(getID(), activityID, pageable);
 	}
 }

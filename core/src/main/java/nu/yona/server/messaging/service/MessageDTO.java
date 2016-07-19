@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
 import nu.yona.server.Constants;
+import nu.yona.server.analysis.service.ActivityCommentMessageDTO;
 import nu.yona.server.analysis.service.GoalConflictMessageDTO;
 import nu.yona.server.goals.service.GoalChangeMessageDTO;
 import nu.yona.server.rest.PolymorphicDTO;
@@ -29,7 +30,8 @@ import nu.yona.server.subscriptions.service.BuddyDisconnectMessageDTO;
 		@Type(value = DisclosureRequestMessageDTO.class, name = "DisclosureRequestMessage"),
 		@Type(value = DisclosureResponseMessageDTO.class, name = "DisclosureResponseMessage"),
 		@Type(value = GoalConflictMessageDTO.class, name = "GoalConflictMessage"),
-		@Type(value = GoalChangeMessageDTO.class, name = "GoalChangeMessage"), })
+		@Type(value = GoalChangeMessageDTO.class, name = "GoalChangeMessage"),
+		@Type(value = ActivityCommentMessageDTO.class, name = "ActivityCommentMessage"), })
 public abstract class MessageDTO extends PolymorphicDTO
 {
 	private final UUID id;

@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -28,7 +30,16 @@ public class BuddyAnonymized extends EntityWithID
 
 	private UUID userAnonymizedID;
 
+	/*
+	 * When the sendingStatus is ACCEPTED, the buddy user accepted to send goal conflicts and activity information to the other
+	 * side.
+	 */
 	private Status sendingStatus = Status.NOT_REQUESTED;
+
+	/*
+	 * When the receivingStatus is ACCEPTED, the buddy user accepted to receive goal conflicts and activity information from the
+	 * other side.
+	 */
 	private Status receivingStatus = Status.NOT_REQUESTED;
 
 	// Default constructor is required for JPA
@@ -78,13 +89,14 @@ public class BuddyAnonymized extends EntityWithID
 		this.receivingStatus = receivingStatus;
 	}
 
-	public UUID getUserAnonymizedID()
+	public Optional<UUID> getUserAnonymizedID()
 	{
-		return userAnonymizedID;
+		return Optional.ofNullable(userAnonymizedID);
 	}
 
 	public void setUserAnonymizedID(UUID userAnonymizedID)
 	{
+		Objects.requireNonNull(userAnonymizedID);
 		this.userAnonymizedID = userAnonymizedID;
 	}
 
