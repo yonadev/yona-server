@@ -527,6 +527,44 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
+	def 'Fetch activities before and after update of time zone goal'()
+	{
+		given:
+		User richard = addRichard()
+		Goal timeZoneGoalMultimediaRichard = addTimeZoneGoal(richard, MULTIMEDIA_ACT_CAT_URL, ["11:00-12:00"])
+		assert appService.getDayActivityOverviews(richard).status == 200
+		assert appService.getWeekActivityOverviews(richard).status == 200
+
+		when:
+		updateTimeZoneGoal(richard, timeZoneGoalMultimediaRichard, ["13:00-14:00"])
+
+		then:
+		appService.getDayActivityOverviews(richard).status == 200
+		appService.getWeekActivityOverviews(richard).status == 200
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Fetch activities before and after update of budget goal'()
+	{
+		given:
+		User richard = addRichard()
+		Goal budgetGoalMultimediaRichard = addBudgetGoal(richard, MULTIMEDIA_ACT_CAT_URL, 60)
+		assert appService.getDayActivityOverviews(richard).status == 200
+		assert appService.getWeekActivityOverviews(richard).status == 200
+
+		when:
+		updateBudgetGoal(richard, budgetGoalMultimediaRichard, 81)
+
+		then:
+		appService.getDayActivityOverviews(richard).status == 200
+		appService.getWeekActivityOverviews(richard).status == 200
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def 'Comment on buddy day activity'()
 	{
 		given:

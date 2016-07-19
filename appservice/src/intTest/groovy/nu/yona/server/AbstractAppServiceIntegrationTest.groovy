@@ -137,26 +137,36 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert response.status == 200
 	}
 
-	void addTimeZoneGoal(User user, activityCategoryURL, zones, relativeCreationDateTimeString)
+	TimeZoneGoal addTimeZoneGoal(User user, activityCategoryURL, zones, relativeCreationDateTimeString)
 	{
 		ZonedDateTime creationTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
 		addTimeZoneGoal(user, activityCategoryURL, zones, creationTime)
 	}
 
-	void addTimeZoneGoal(User user, activityCategoryURL, zones, ZonedDateTime creationTime = YonaServer.now)
+	TimeZoneGoal addTimeZoneGoal(User user, activityCategoryURL, zones, ZonedDateTime creationTime = YonaServer.now)
 	{
 		appService.addGoal(appService.&assertResponseStatusCreated, user, TimeZoneGoal.createInstance(creationTime, activityCategoryURL, zones.toArray()))
 	}
 
-	void addBudgetGoal(User user, activityCategoryURL, int maxDurationMinutes, relativeCreationDateTimeString)
+	void updateTimeZoneGoal(User user, TimeZoneGoal originalGoal, zones)
+	{
+		appService.updateGoal(appService.&assertResponseStatusSuccess, user, originalGoal.editURL, TimeZoneGoal.createInstance(originalGoal, zones.toArray()))
+	}
+
+	BudgetGoal addBudgetGoal(User user, activityCategoryURL, int maxDurationMinutes, relativeCreationDateTimeString)
 	{
 		ZonedDateTime creationTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
 		addBudgetGoal(user, activityCategoryURL, maxDurationMinutes, creationTime)
 	}
 
-	void addBudgetGoal(User user, activityCategoryURL, int maxDurationMinutes, ZonedDateTime creationTime = YonaServer.now)
+	BudgetGoal addBudgetGoal(User user, activityCategoryURL, int maxDurationMinutes, ZonedDateTime creationTime = YonaServer.now)
 	{
 		appService.addGoal(appService.&assertResponseStatusCreated, user, BudgetGoal.createInstance(creationTime, activityCategoryURL, maxDurationMinutes))
+	}
+
+	void updateBudgetGoal(User user, BudgetGoal originalGoal, int maxDurationMinutes)
+	{
+		appService.updateGoal(appService.&assertResponseStatusSuccess, user, originalGoal.editURL, BudgetGoal.createInstance(originalGoal, maxDurationMinutes))
 	}
 
 	void reportAppActivity(User user, def appName, def relativeStartDateTimeString, relativeEndDateTimeString)
