@@ -43,7 +43,7 @@ public class UserDTO
 	/*
 	 * Only intended for test purposes.
 	 */
-	private UserDTO(UUID id, String firstName, String lastName, String nickname, String mobileNumber, ZonedDateTime creationTime,
+	private UserDTO(UUID id, ZonedDateTime creationTime, String firstName, String lastName, String nickname, String mobileNumber,
 			boolean isConfirmed, UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
 			UUID anonymousMessageDestinationID, Set<GoalDTO> goals, Set<UUID> buddyIDs,
 			Function<Set<UUID>, Set<BuddyDTO>> buddyIDToDTOMapper, UUID userAnonymizedID, VPNProfileDTO vpnProfile)
@@ -186,8 +186,8 @@ public class UserDTO
 
 	static UserDTO createInstanceWithPrivateData(User userEntity, Function<Set<UUID>, Set<BuddyDTO>> buddyIDToDTOMapper)
 	{
-		return new UserDTO(userEntity.getID(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getNickname(),
-				userEntity.getMobileNumber(), userEntity.getCreationTime(), userEntity.isMobileNumberConfirmed(),
+		return new UserDTO(userEntity.getID(), userEntity.getCreationTime(), userEntity.getFirstName(), userEntity.getLastName(),
+				userEntity.getNickname(), userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(),
 				userEntity.getNamedMessageSource().getID(), userEntity.getNamedMessageDestination().getID(),
 				userEntity.getAnonymousMessageSource().getID(), userEntity.getAnonymousMessageSource().getDestination().getID(),
 				UserAnonymizedDTO.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), getBuddyIDs(userEntity),

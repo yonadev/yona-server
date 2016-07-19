@@ -94,6 +94,11 @@ public class User extends EntityWithID
 				namedMessageSource.getDestination());
 	}
 
+	public ZonedDateTime getCreationTime()
+	{
+		return this.creationTime;
+	}
+
 	public boolean isCreatedOnBuddyRequest()
 	{
 		return isCreatedOnBuddyRequest;
@@ -142,11 +147,6 @@ public class User extends EntityWithID
 	public void setMobileNumber(String mobileNumber)
 	{
 		this.mobileNumber = mobileNumber;
-	}
-
-	public ZonedDateTime getCreationTime()
-	{
-		return this.creationTime;
 	}
 
 	public NewDeviceRequest getNewDeviceRequest()
