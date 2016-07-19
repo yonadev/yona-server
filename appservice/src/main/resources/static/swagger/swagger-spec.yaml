@@ -1871,6 +1871,11 @@ definitions:
       - $ref: '#/definitions/BaseUser'
       - $ref: '#/definitions/PrivateUserData'
     properties:
+      creationTime:
+        type: string
+        format: dateTime
+        description: The creation time of this user
+        example: 2016-04-26T20:08:55.365+0200
       _embedded:
         type: object
         properties:
@@ -1993,6 +1998,11 @@ definitions:
     allOf:
       - $ref: '#/definitions/BaseUser'
     properties:
+      creationTime:
+        type: string
+        format: dateTime
+        description: The creation time of this user
+        example: 2016-04-26T20:08:55.365+0200
       _links:
         allOf:
           - $ref: '#/definitions/SelfLink'

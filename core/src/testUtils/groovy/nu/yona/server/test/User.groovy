@@ -7,10 +7,14 @@
 package nu.yona.server.test
 
 import groovy.json.*
+
+import java.time.ZonedDateTime
+
 import nu.yona.server.YonaServer
 
 class User
 {
+	final ZonedDateTime creationTime
 	final String firstName
 	final String lastName
 	final String mobileNumber
@@ -54,6 +58,7 @@ class User
 	}
 	private User(def json, boolean hasPrivateData)
 	{
+		this.creationTime = (json.creationTime) ? YonaServer.parseIsoDateString(json.creationTime) : null
 		this.firstName = json.firstName
 		this.lastName = json.lastName
 		this.mobileNumber = json.mobileNumber

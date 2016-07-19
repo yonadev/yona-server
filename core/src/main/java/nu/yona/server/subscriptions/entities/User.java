@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.time.ZonedDateTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -37,6 +38,8 @@ public class User extends EntityWithID
 
 	@Column(unique = true)
 	private String mobileNumber;
+
+	private ZonedDateTime creationTime;
 
 	private byte[] initializationVector;
 
@@ -76,6 +79,7 @@ public class User extends EntityWithID
 		this.mobileNumber = mobileNumber;
 		this.setUserPrivate(userPrivate);
 		this.messageDestination = messageDestination;
+		this.creationTime = ZonedDateTime.now();
 	}
 
 	public static User createInstance(String firstName, String lastName, String nickname, String mobileNumber, String vpnPassword,
@@ -88,6 +92,11 @@ public class User extends EntityWithID
 				namedMessageSource);
 		return new User(UUID.randomUUID(), initializationVector, firstName, lastName, mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
+	}
+
+	public ZonedDateTime getCreationTime()
+	{
+		return this.creationTime;
 	}
 
 	public boolean isCreatedOnBuddyRequest()

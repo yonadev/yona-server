@@ -211,6 +211,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		userUpdateResponse.status == 200
 		userUpdateResponse.responseData._links?."yona:confirmMobileNumber"?.href == null
 		userUpdateResponse.responseData.nickname == newNickname
+		assertDateTimeFormat(userUpdateResponse.responseData.creationTime)
 
 		cleanup:
 		appService.deleteUser(john)
@@ -233,6 +234,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		userUpdateResponse.status == 200
 		userUpdateResponse.responseData._links?."yona:confirmMobileNumber"?.href != null
 		userUpdateResponse.responseData.mobileNumber == newMobileNumber
+		assertDateTimeFormat(userUpdateResponse.responseData.creationTime)
 
 		cleanup:
 		appService.deleteUser(john)
@@ -296,6 +298,8 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		assert user.firstName == "John"
 		assert user.lastName == "Doe"
 		assert user.mobileNumber == "+${timestamp}"
+		assertEquals(user.creationTime, YonaServer.now)
+
 		if (includePrivateData)
 		{
 			appService.assertUserWithPrivateData(user)
