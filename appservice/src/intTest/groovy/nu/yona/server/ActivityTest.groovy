@@ -695,7 +695,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		def responseInitialGetCommentMessagesSeenByRichard = getActivityDetailMessages(responseDetailsBobAsBuddy, richard, 1)
 		def initialMessageSeenByRichard = responseInitialGetCommentMessagesSeenByRichard.responseData._embedded."yona:messages"[0]
-		assertCommentMessageDetails(addedMessage, richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "You're quiet!")
+		assertCommentMessageDetails(initialMessageSeenByRichard, richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "You're quiet!")
 
 		def responseOverviewsBobAll = userOverviewRetriever(bob)
 		assert responseOverviewsBobAll.status == 200
@@ -712,7 +712,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		def responseSecondGetCommentMessagesSeenByRichard = getActivityDetailMessages(responseDetailsBobAsBuddy, richard, 2)
 		def replyMessageSeenByRichard = responseSecondGetCommentMessagesSeenByRichard.responseData._embedded."yona:messages"[0]
-		assertCommentMessageDetails(replyMessageSeenByRichard, richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "My battery died :)")
+		assertCommentMessageDetails(replyMessageSeenByRichard, richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "My battery died :)",
+				responseSecondGetCommentMessagesSeenByRichard.responseData._embedded."yona:messages"[1])
 
 		replyToMessage(replyMessageSeenByRichard, richard, "Too bad!", isWeek, responseDetailsBobAsBuddy)
 
@@ -730,17 +731,17 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		def responseFinalGetCommentMessagesSeenByRichard = getActivityDetailMessages(responseDetailsBobAsBuddy, richard, 5)
 		def messagesRichard = responseFinalGetCommentMessagesSeenByRichard.responseData._embedded."yona:messages"
-		assertCommentMessageDetails(messagesRichard[0], richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "No budget for a new one?")
-		assertCommentMessageDetails(messagesRichard[1], richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "Yes, it is...")
-		assertCommentMessageDetails(messagesRichard[2], richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "Too bad!")
+		assertCommentMessageDetails(messagesRichard[0], richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "No budget for a new one?", messagesRichard[1])
+		assertCommentMessageDetails(messagesRichard[1], richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "Yes, it is...", messagesRichard[2])
+		assertCommentMessageDetails(messagesRichard[2], richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "Too bad!", messagesRichard[3])
 		assertCommentMessageDetails(messagesRichard[3], richard, isWeek, richard.buddies[0], responseDetailsBobAsBuddy.responseData._links.self.href, "My battery died :)")
 		assertNextPage(responseFinalGetCommentMessagesSeenByRichard, richard)
 
 		def responseFinalGetCommentMessagesSeenByBob = getActivityDetailMessages(responseDetailsBob, bob, 5)
 		def messagesBob = responseFinalGetCommentMessagesSeenByBob.responseData._embedded."yona:messages"
-		assertCommentMessageDetails(messagesBob[0], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "No budget for a new one?")
-		assertCommentMessageDetails(messagesBob[1], bob, isWeek, bob, responseDetailsBob.responseData._links.self.href, "Yes, it is...")
-		assertCommentMessageDetails(messagesBob[2], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "Too bad!")
+		assertCommentMessageDetails(messagesBob[0], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "No budget for a new one?", messagesBob[1])
+		assertCommentMessageDetails(messagesBob[1], bob, isWeek, bob, responseDetailsBob.responseData._links.self.href, "Yes, it is...", messagesBob[2])
+		assertCommentMessageDetails(messagesBob[2], bob, isWeek, bob.buddies[0], responseDetailsBob.responseData._links.self.href, "Too bad!", messagesBob[3])
 		assertCommentMessageDetails(messagesBob[3], bob, isWeek, bob, responseDetailsBob.responseData._links.self.href, "My battery died :)")
 		assertNextPage(responseFinalGetCommentMessagesSeenByBob, bob)
 
@@ -780,7 +781,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assert responseReplyFromBob.responseData.properties["status"] == "done"
 		assert responseReplyFromBob.responseData._embedded?."yona:affectedMessages"?.size() == 1
 		def replyMessage = responseReplyFromBob.responseData._embedded."yona:affectedMessages"[0]
-		assertCommentMessageDetails(replyMessage, senderUser, isWeek, senderUser, responseGetActivityDetails.responseData._links.self.href, messageToSend)
+		assertCommentMessageDetails(replyMessage, senderUser, isWeek, senderUser, responseGetActivityDetails.responseData._links.self.href, messageToSend, messageToReply)
 	}
 
 	private getActivityDetailMessages(responseGetActivityDetails, User user, int expectedNumMessages) {
@@ -819,13 +820,18 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assert response.responseData._links?.next?.href == null
 	}
 
-	private void assertCommentMessageDetails(message, User user, boolean isWeek, sender, expectedDetailsUrl, expectedText) {
+	private void assertCommentMessageDetails(message, User user, boolean isWeek, sender, expectedDetailsUrl, expectedText, repliedMessage = null) {
 		assert message."@type" == "ActivityCommentMessage"
 		assert message.message == expectedText
 		assert message.nickname == sender.nickname
 
 		assert message._links?.self?.href?.startsWith(user.messagesUrl)
 		assert message._links?.edit?.href == message._links.self.href
+
+		if (repliedMessage) {
+			assert repliedMessage._links.self.href == message._links?."yona:repliedMessage"?.href
+		}
+
 		if (isWeek) {
 			assert message._links?."yona:weekDetails"?.href == expectedDetailsUrl
 			assert message._links?."yona:dayDetails"?.href == null
