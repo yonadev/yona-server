@@ -126,6 +126,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	def findGoalsIncludingHistoryItems(def response, def activityCategoryUrl)
 	{
+		assert response.status == 200
 		response.responseData._embedded."yona:goals".findAll{ it._links."yona:activityCategory".href == activityCategoryUrl }
 	}
 

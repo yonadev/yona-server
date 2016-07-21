@@ -585,6 +585,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		// Wednesday
 		reportAppActivity(richard, "NU.nl", "W-1 Wed 09:13", "W-1 Wed 10:07")
 		updateBudgetGoal(richard, budgetGoalNewsBeforeUpdate, 60, "W-1 Wed 20:51")
+		richard = appService.reloadUser(richard)
+		budgetGoalNewsBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == NEWS_ACT_CAT_URL }
 		reportAppActivity(richard, "NU.nl", "W-1 Wed 21:43", "W-1 Wed 22:01")
 
 		addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["11:00-12:00"], "W-1 Thu 13:55")
@@ -630,15 +632,15 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewWeekBeforeLastWeek, budgetGoalNewsBeforeUpdate, 6)
 		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardLastWeek, "Mon")
 		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardLastWeek, "Tue")
-		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, "Wed")
-		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, "Thu")
-		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, "Fri")
-		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, "Sat")
+		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardLastWeek, "Wed")
+		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardLastWeek, "Thu")
+		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardLastWeek, "Sat")
 
 		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
-		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalNewsBeforeUpdate, 6)
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardLastWeek, "Mon")
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardLastWeek, "Tue")
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalNewsAfterUpdate, 6)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, "Mon")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, "Tue")
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, "Wed")
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, "Thu")
 		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, "Fri")
