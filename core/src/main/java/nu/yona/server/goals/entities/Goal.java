@@ -127,6 +127,13 @@ public abstract class Goal extends EntityWithID
 
 	public boolean wasActiveAtInterval(ZonedDateTime dateAtStartOfInterval, TemporalUnit timeUnit)
 	{
-		return creationTime.isBefore(dateAtStartOfInterval.plus(1, timeUnit));
+		return wasActiveAtInterval(creationTime, Optional.ofNullable(endTime), dateAtStartOfInterval, timeUnit);
+	}
+
+	public static boolean wasActiveAtInterval(ZonedDateTime creationTime, Optional<ZonedDateTime> endTime,
+			ZonedDateTime dateAtStartOfInterval, TemporalUnit timeUnit)
+	{
+		ZonedDateTime startNextInterval = dateAtStartOfInterval.plus(1, timeUnit);
+		return creationTime.isBefore(startNextInterval) && endTime.map(end -> end.isAfter(startNextInterval)).orElse(true);
 	}
 }

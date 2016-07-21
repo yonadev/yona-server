@@ -5,6 +5,7 @@
 package nu.yona.server.goals.service;
 
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -16,6 +17,8 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.DayActivity;
+import nu.yona.server.analysis.entities.IntervalActivity;
+import nu.yona.server.analysis.entities.IntervalActivityRepository;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.GoalChangeMessage;
@@ -38,6 +41,9 @@ public class GoalService
 
 	@Autowired
 	private MessageService messageService;
+
+	@Autowired
+	private IntervalActivityRepository intervalActivityRepository;
 
 	public Set<GoalDTO> getGoalsOfUser(UUID forUserID)
 	{
@@ -112,19 +118,15 @@ public class GoalService
 		User userEntity = userService.getUserEntityByID(userID);
 		Goal existingGoal = getGoalEntity(userEntity, goalID);
 
-		if (newGoalDTO.getCreationTime().isPresent())
+		verifyGoalUpdate(existingGoal, newGoalDTO);
+		if (newGoalDTO.getCreationTime().isPresent() && !newGoalDTO.isGoalChanged(existingGoal))
 		{
 			// Tests update the creation time. Handle that as a special case.
 			updateGoalCreationTime(userEntity, existingGoal, newGoalDTO);
 		}
-		else
+		else if (newGoalDTO.isGoalChanged(existingGoal))
 		{
-			verifyGoalUpdate(existingGoal, newGoalDTO);
-
-			if (newGoalDTO.isGoalChanged(existingGoal))
-			{
-				updateGoal(userEntity, existingGoal, newGoalDTO, message);
-			}
+			updateGoal(userEntity, existingGoal, newGoalDTO, message);
 		}
 
 		return GoalDTO.createInstance(existingGoal);
@@ -150,6 +152,7 @@ public class GoalService
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		cloneExistingGoalAsHistoryItem(userAnonymizedEntity, existingGoal,
 				newGoalDTO.getCreationTime().orElse(ZonedDateTime.now()));
+		newGoalDTO.getCreationTime().ifPresent(ct -> existingGoal.setCreationTime(ct));
 		newGoalDTO.updateGoalEntity(existingGoal);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getID(), userAnonymizedEntity);
 
@@ -160,8 +163,18 @@ public class GoalService
 	{
 		Goal historyGoal = existingGoal.cloneAsHistoryItem(endTime);
 		existingGoal.setPreviousVersionOfThisGoal(historyGoal);
-		WeekActivity.getRepository().findByGoal(existingGoal).stream().forEach(a -> a.setGoal(historyGoal));
-		DayActivity.getRepository().findByGoal(existingGoal).stream().forEach(a -> a.setGoal(historyGoal));
+		WeekActivity.getRepository().findByGoal(existingGoal).stream()
+				.filter(a -> historyGoal.wasActiveAtInterval(a.getStartTime(), ChronoUnit.WEEKS))
+				.forEach(a -> setGoalAndSave(a, historyGoal));
+		DayActivity.getRepository().findByGoal(existingGoal).stream()
+				.filter(a -> historyGoal.wasActiveAtInterval(a.getStartTime(), ChronoUnit.DAYS))
+				.forEach(a -> setGoalAndSave(a, historyGoal));
+	}
+
+	private void setGoalAndSave(IntervalActivity activity, Goal goal)
+	{
+		activity.setGoal(goal);
+		intervalActivityRepository.save(activity);
 	}
 
 	private void assertNoActivityCategoryChange(GoalDTO newGoalDTO, GoalDTO existingGoalDTO)

@@ -148,9 +148,10 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		appService.addGoal(appService.&assertResponseStatusCreated, user, TimeZoneGoal.createInstance(creationTime, activityCategoryURL, zones.toArray()))
 	}
 
-	void updateTimeZoneGoal(User user, TimeZoneGoal originalGoal, zones)
+	void updateTimeZoneGoal(User user, TimeZoneGoal originalGoal, zones, relativeCreationDateTimeString)
 	{
-		appService.updateGoal(appService.&assertResponseStatusSuccess, user, originalGoal.editURL, TimeZoneGoal.createInstance(originalGoal, zones.toArray()))
+		ZonedDateTime updateTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
+		appService.updateGoal(appService.&assertResponseStatusSuccess, user, originalGoal.editURL, TimeZoneGoal.createInstance(originalGoal, updateTime, zones.toArray()))
 	}
 
 	BudgetGoal addBudgetGoal(User user, activityCategoryURL, int maxDurationMinutes, relativeCreationDateTimeString)
@@ -164,9 +165,10 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		appService.addGoal(appService.&assertResponseStatusCreated, user, BudgetGoal.createInstance(creationTime, activityCategoryURL, maxDurationMinutes))
 	}
 
-	void updateBudgetGoal(User user, BudgetGoal originalGoal, int maxDurationMinutes)
+	void updateBudgetGoal(User user, BudgetGoal originalGoal, int maxDurationMinutes, relativeCreationDateTimeString)
 	{
-		appService.updateGoal(appService.&assertResponseStatusSuccess, user, originalGoal.editURL, BudgetGoal.createInstance(originalGoal, maxDurationMinutes))
+		ZonedDateTime updateTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
+		appService.updateGoal(appService.&assertResponseStatusSuccess, user, originalGoal.editURL, BudgetGoal.createInstance(originalGoal, updateTime, maxDurationMinutes))
 	}
 
 	void reportAppActivity(User user, def appName, def relativeStartDateTimeString, relativeEndDateTimeString)

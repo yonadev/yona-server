@@ -76,7 +76,7 @@ public abstract class GoalDTO extends PolymorphicDTO
 		{
 			return false;
 		}
-		return creationTime.get().isBefore(dateAtStartOfInterval.plus(1, timeUnit));
+		return Goal.wasActiveAtInterval(creationTime.get(), endTime, dateAtStartOfInterval, timeUnit);
 	}
 
 	@JsonIgnore

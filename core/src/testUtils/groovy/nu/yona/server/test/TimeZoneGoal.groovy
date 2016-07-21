@@ -56,8 +56,8 @@ class TimeZoneGoal extends Goal
 		new TimeZoneGoal([creationTime:creationTime, activityCategoryUrl: activityCategoryUrl, zones: zones])
 	}
 
-	public static TimeZoneGoal createInstance(TimeZoneGoal originalGoal, zones)
+	public static TimeZoneGoal createInstance(TimeZoneGoal originalGoal, ZonedDateTime creationTime, zones)
 	{
-		new TimeZoneGoal([activityCategoryUrl: originalGoal.activityCategoryUrl, zones: zones])
+		new TimeZoneGoal([creationTime: creationTime, activityCategoryUrl: originalGoal.activityCategoryUrl, zones: zones])
 	}
 }
