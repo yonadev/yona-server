@@ -155,6 +155,11 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		appService.updateGoal(appService.&assertResponseStatusSuccess, user, originalGoal.editURL, TimeZoneGoal.createInstance(originalGoal, updateTime, zones.toArray()))
 	}
 
+	void updateTimeZoneGoal(User user, TimeZoneGoal originalGoal, zones)
+	{
+		appService.updateGoal(appService.&assertResponseStatusSuccess, user, originalGoal.editURL, TimeZoneGoal.createInstance(originalGoal, YonaServer.now, zones.toArray()))
+	}
+
 	BudgetGoal addBudgetGoal(User user, activityCategoryURL, int maxDurationMinutes, relativeCreationDateTimeString)
 	{
 		ZonedDateTime creationTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
@@ -170,6 +175,11 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		ZonedDateTime updateTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
 		appService.updateGoal(appService.&assertResponseStatusSuccess, user, originalGoal.editURL, BudgetGoal.createInstance(originalGoal, updateTime, maxDurationMinutes))
+	}
+
+	void updateBudgetGoal(User user, BudgetGoal originalGoal, int maxDurationMinutes)
+	{
+		appService.updateGoal(appService.&assertResponseStatusSuccess, user, originalGoal.editURL, BudgetGoal.createInstance(originalGoal, YonaServer.now, maxDurationMinutes))
 	}
 
 	void reportAppActivity(User user, def appName, def relativeStartDateTimeString, relativeEndDateTimeString)
@@ -202,7 +212,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert response.status == 200
 	}
 
-	def getCurrentShortDay(ZonedDateTime dateTime)
+	def getCurrentShortDay(ZonedDateTime dateTime = YonaServer.now)
 	{
 		dateTime.dayOfWeek.getDisplayName(TextStyle.SHORT, YonaServer.EN_US_LOCALE)
 	}
@@ -232,6 +242,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	void assertNumberOfReportedDaysForGoalInWeekOverview(weekActivityOverview, Goal goal, numberOfReportedDays)
 	{
+		assert weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goal.url}
 		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goal.url}
 		assert weekActivityForGoal.spread == null // Only in detail
 		assert weekActivityForGoal.totalActivityDurationMinutes == null // Only in detail
@@ -244,10 +255,12 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert weekActivityForGoal?.dayActivities.size() == numberOfReportedDays
 	}
 
-	void assertDayInWeekOverviewForGoal(weekActivityOverview, Goal goal, expectedValues, shortDay)
+	void assertDayInWeekOverviewForGoal(weekActivityOverview, Goal dayGoal, expectedValues, shortDay)
 	{
-		def expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, goal)
-		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goal.url}
+		Goal weekGoal = findWeekGoal(expectedValues, dayGoal.activityCategoryUrl)
+		def expectedDataForDayAndGoal = getExpectedDataForDayAndGoal(expectedValues, shortDay, dayGoal)
+		assert weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == weekGoal.url}
+		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == weekGoal.url}
 		assert weekActivityForGoal.dayActivities[fullDay[shortDay]]
 		def dayActivityForGoal = weekActivityForGoal.dayActivities[fullDay[shortDay]]
 		assert dayActivityForGoal.spread == null // Only in detail
@@ -259,6 +272,12 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert dayActivityForGoal._links."yona:goal" == null //already present on week
 		assert dayActivityForGoal._links."yona:dayDetails"
 		assert dayActivityForGoal._links.self == null  // This is not a top level or embedded resource
+	}
+
+	private Goal findWeekGoal(expectedValues, activityCategoryUrl)
+	{
+		def expectedValuesEndOfWeek = (expectedValues.size() == 1) ? expectedValues[getCurrentShortDay()] : expectedValues["Sat"]
+		expectedValuesEndOfWeek.find{it.goal.activityCategoryUrl == activityCategoryUrl}.goal
 	}
 
 	private def assertDayOverviewForGoal(response, Goal goal, expectedValues, weeksBack, shortDay)
@@ -323,11 +342,11 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert response.responseData.timeZoneId == "Europe/Amsterdam"
 		assert response.responseData._links?."yona:goal"
 		def activeDays = 0
-		expectedValues.each { activeDays += it.value.findAll{it.goal.url == goal.url}.size()}
+		expectedValues.each { activeDays += it.value.findAll{it.goal.activityCategoryUrl == goal.activityCategoryUrl}.size()}
 		assert response.responseData.dayActivities?.size() == activeDays
 		expectedValues.each {
 			def day = it.key
-			it.value.findAll{it.goal.url == goal.url}.each
+			it.value.findAll{it.goal.activityCategoryUrl == goal.activityCategoryUrl}.each
 			{
 				def expectedDataForGoalOnDay = it.data
 				assert response.responseData.dayActivities[fullDay[day]]
@@ -456,6 +475,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	def getExpectedDataForDayAndGoal(expectedValues, shortDay, Goal goal)
 	{
+		assert expectedValues[shortDay].find{it.goal.url == goal.url}
 		expectedValues[shortDay].find{it.goal.url == goal.url}.data
 	}
 

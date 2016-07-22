@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.IntervalActivity;
-import nu.yona.server.analysis.entities.IntervalActivityRepository;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.GoalChangeMessage;
@@ -41,9 +40,6 @@ public class GoalService
 
 	@Autowired
 	private MessageService messageService;
-
-	@Autowired
-	private IntervalActivityRepository intervalActivityRepository;
 
 	public Set<GoalDTO> getGoalsOfUser(UUID forUserID)
 	{
@@ -174,7 +170,7 @@ public class GoalService
 	private void setGoalAndSave(IntervalActivity activity, Goal goal)
 	{
 		activity.setGoal(goal);
-		intervalActivityRepository.save(activity);
+		IntervalActivity.getIntervalActivityRepository().save(activity);
 	}
 
 	private void assertNoActivityCategoryChange(GoalDTO newGoalDTO, GoalDTO existingGoalDTO)

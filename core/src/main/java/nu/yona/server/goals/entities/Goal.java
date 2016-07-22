@@ -6,7 +6,9 @@ package nu.yona.server.goals.entities;
 
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalUnit;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.persistence.CascadeType;
@@ -135,5 +137,18 @@ public abstract class Goal extends EntityWithID
 	{
 		ZonedDateTime startNextInterval = dateAtStartOfInterval.plus(1, timeUnit);
 		return creationTime.isBefore(startNextInterval) && endTime.map(end -> end.isAfter(startNextInterval)).orElse(true);
+	}
+
+	public Set<UUID> getIDsIncludingHistoryItems()
+	{
+		Set<UUID> ids = new HashSet<>();
+		Optional<Goal> previous = Optional.of(this);
+		while (previous.isPresent())
+		{
+			ids.add(previous.get().getID());
+			previous = previous.get().getPreviousVersionOfThisGoal();
+		}
+
+		return ids;
 	}
 }

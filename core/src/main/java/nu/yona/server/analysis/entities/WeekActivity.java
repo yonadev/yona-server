@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -56,8 +57,9 @@ public class WeekActivity extends IntervalActivity
 
 	public List<DayActivity> getDayActivities()
 	{
-		List<DayActivity> dayActivities = DayActivity.getRepository().findActivitiesForUserAndGoalInIntervalEndExcluded(
-				getUserAnonymized().getID(), getGoal().getID(), getStartTime().toLocalDate(), getEndTime().toLocalDate());
+		List<DayActivity> dayActivities = DayActivity.getRepository().findActivitiesForUserAndGoalsInIntervalEndExcluded(
+				getUserAnonymized().getID(), getGoal().getIDsIncludingHistoryItems(), getStartTime().toLocalDate(),
+				getEndTime().toLocalDate());
 
 		if (dayActivities.size() > 7)
 		{
@@ -116,16 +118,35 @@ public class WeekActivity extends IntervalActivity
 			{
 				break;
 			}
-			if (getGoal().wasActiveAtInterval(startOfDay, ChronoUnit.DAYS))
-			{
-				if (!existingActivities.stream()
-						.anyMatch(dayActivity -> dayActivity.getDate().getDayOfWeek().equals(startOfDay.getDayOfWeek())))
-				{
-					newDayActivities.add(DayActivity.createInstanceInactivity(getUserAnonymized(), getGoal(), startOfDay));
-				}
-			}
+			determineApplicableGoalForDay(getGoal(), startOfDay)
+					.ifPresent(g -> addInactiveDayIfNoActivity(newDayActivities, startOfDay, g, existingActivities));
 		}
 		return newDayActivities;
+	}
+
+	private void addInactiveDayIfNoActivity(Collection<DayActivity> newDayActivities, ZonedDateTime startOfDay, Goal goal,
+			List<DayActivity> existingActivities)
+	{
+		if (!existingActivities.stream()
+				.anyMatch(dayActivity -> dayActivity.getDate().getDayOfWeek().equals(startOfDay.getDayOfWeek())))
+		{
+			newDayActivities.add(DayActivity.createInstanceInactivity(getUserAnonymized(), goal, startOfDay));
+		}
+	}
+
+	private Optional<Goal> determineApplicableGoalForDay(Goal goal, ZonedDateTime startOfDay)
+	{
+		if (goal.wasActiveAtInterval(startOfDay, ChronoUnit.DAYS))
+		{
+			return Optional.of(goal);
+		}
+		Optional<Goal> previousVersionOfThisGoal = goal.getPreviousVersionOfThisGoal();
+		if (previousVersionOfThisGoal.isPresent())
+		{
+			return determineApplicableGoalForDay(previousVersionOfThisGoal.get(), startOfDay);
+		}
+
+		return Optional.empty();
 	}
 
 	private static boolean isInFuture(ZonedDateTime startOfDay, ZoneId zone)
