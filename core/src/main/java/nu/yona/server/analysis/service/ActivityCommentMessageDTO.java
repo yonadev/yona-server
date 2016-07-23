@@ -34,13 +34,15 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	private final boolean canReplyTo;
 	private final UUID activityID;
 	private final Optional<UUID> repliedMessageID;
+	private final UUID threadHeadMessageID;
 
-	private ActivityCommentMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO senderUser,
-			UUID senderUserAnonymizedID, String senderNickname, UUID activityID, Optional<UUID> repliedMessageID, String message,
+	private ActivityCommentMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO senderUser, UUID senderUserAnonymizedID,
+			String senderNickname, UUID activityID, UUID threadHeadMessageID, Optional<UUID> repliedMessageID, String message,
 			boolean canReplyTo)
 	{
 		super(id, creationTime, isRead, senderUser, senderNickname, message);
 		this.activityID = activityID;
+		this.threadHeadMessageID = threadHeadMessageID;
 		this.repliedMessageID = repliedMessageID;
 		this.canReplyTo = canReplyTo;
 	}
@@ -74,6 +76,11 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 		return activityID;
 	}
 
+	public UUID getThreadHeadMessageID()
+	{
+		return threadHeadMessageID;
+	}
+
 	@JsonIgnore
 	public Optional<UUID> getRepliedMessageID()
 	{
@@ -85,8 +92,8 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 		boolean canReplyTo = !actingUser.getID().equals(messageEntity.getSenderUserID());
 		return new ActivityCommentMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getRelatedUserAnonymizedID(),
-				messageEntity.getSenderNickname(), messageEntity.getActivityID(), messageEntity.getRepliedMessageID(),
-				messageEntity.getMessage(), canReplyTo);
+				messageEntity.getSenderNickname(), messageEntity.getActivityID(), messageEntity.getThreadHeadMessageID(),
+				messageEntity.getRepliedMessageID(), messageEntity.getMessage(), canReplyTo);
 	}
 
 	@Component

@@ -101,7 +101,9 @@ public class TimeZoneGoal extends Goal
 	public int computeTotalMinutesBeyondGoal(DayActivity dayActivity)
 	{
 		int[] spread = determineSpreadOutsideGoal(dayActivity);
-		return Arrays.stream(spread).sum();
+		int sumOfSpreadOutsideGoal = Arrays.stream(spread).sum();
+		// Due to rounding, the sum of the spread might be more than the total duration, so take the lowest of the two
+		return Math.min(dayActivity.getTotalActivityDurationMinutes(), sumOfSpreadOutsideGoal);
 	}
 
 	public static TimeZoneGoal createInstance(ZonedDateTime creationTime, ActivityCategory activityCategory, List<String> zones)

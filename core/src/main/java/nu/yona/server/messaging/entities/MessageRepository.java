@@ -25,7 +25,7 @@ public interface MessageRepository extends CrudRepository<Message, UUID>
 	@Query("select m from Message m, MessageDestination d where d.id = :destinationID and m.isRead = false and m.isSentItem = false and m member of d.messages order by m.creationTime desc")
 	Page<Message> findUnreadReceivedMessagesFromDestination(@Param("destinationID") UUID destinationID, Pageable pageable);
 
-	@Query("select m from Message m, MessageDestination d where d.id = :destinationID and m member of d.messages and m.activityID = :activityID order by m.creationTime desc")
+	@Query("select m from Message m, MessageDestination d where d.id = :destinationID and m member of d.messages and m.activityID = :activityID order by m.creationTime asc")
 	Page<Message> findByActivityID(@Param("destinationID") UUID destinationID, @Param("activityID") UUID activityID,
 			Pageable pageable);
 }

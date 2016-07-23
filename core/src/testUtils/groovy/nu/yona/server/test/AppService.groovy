@@ -126,16 +126,16 @@ class AppService extends Service
 		assertUserWithPrivateData(response.responseData)
 	}
 
-	def assertUserGetResponseDetailsPublicDataAndVpnProfile(def response)
-	{
-		assertResponseStatusSuccess(response)
-		assertUserWithPublicDataAndVpnProfile(response.responseData)
-	}
-
 	def assertUserGetResponseDetailsWithPrivateData(def response)
 	{
 		assertResponseStatusSuccess(response)
 		assertUserWithPrivateData(response.responseData)
+	}
+
+	def assertUserGetResponseDetailsWithPrivateDataIgnoreNickname(def response)
+	{
+		assertResponseStatusSuccess(response)
+		assertUserWithPrivateData(response.responseData, true)
 	}
 
 	def assertUserGetResponseDetailsWithoutPrivateData(def response)
@@ -150,10 +150,10 @@ class AppService extends Service
 		assertVpnProfile(user)
 	}
 
-	def assertUserWithPrivateData(user)
+	def assertUserWithPrivateData(user, boolean ignoreNickname = false)
 	{
 		assertPublicUserData(user)
-		assertPrivateUserData(user)
+		assertPrivateUserData(user, ignoreNickname)
 	}
 
 	def assertPublicUserData(def user)
@@ -171,10 +171,10 @@ class AppService extends Service
 		assert user.mobileNumber ==~/^\+[0-9]+$/
 	}
 
-	def assertPrivateUserData(def user)
+	def assertPrivateUserData(def user, boolean ignoreNickname)
 	{
-		assertVpnProfile(user)
-		assert user.nickname != null
+		assert ignoreNickname || user.nickname != null
+		boolean mobileNumberToBeConfirmed
 
 		/*
 		 * The below asserts use exclusive or operators. Either there should be a mobile number confirmation URL, or the other URL.
@@ -182,17 +182,24 @@ class AppService extends Service
 		 */
 		if (user instanceof User)
 		{
-			assert ((boolean) user.mobileNumberConfirmationUrl) ^ ((boolean) user.buddiesUrl)
-			assert ((boolean) user.mobileNumberConfirmationUrl) ^ ((boolean) user.messagesUrl)
-			assert ((boolean) user.mobileNumberConfirmationUrl) ^ ((boolean) user.newDeviceRequestUrl)
-			assert ((boolean) user.mobileNumberConfirmationUrl) ^ ((boolean) user.appActivityUrl)
+			mobileNumberToBeConfirmed = ((boolean) user.mobileNumberConfirmationUrl)
+			assert mobileNumberToBeConfirmed ^ ((boolean) user.buddiesUrl)
+			assert mobileNumberToBeConfirmed ^ ((boolean) user.messagesUrl)
+			assert mobileNumberToBeConfirmed ^ ((boolean) user.newDeviceRequestUrl)
+			assert mobileNumberToBeConfirmed ^ ((boolean) user.appActivityUrl)
 		}
 		else
 		{
-			assert ((boolean) user._links?."yona:confirmMobileNumber"?.href) ^ ((boolean) user._embedded?."yona:buddies"?._links?.self?.href)
-			assert ((boolean) user._links?."yona:confirmMobileNumber"?.href) ^ ((boolean) user._links?."yona:messages")
-			assert ((boolean) user._links?."yona:confirmMobileNumber"?.href) ^ ((boolean) user._links?."yona:newDeviceRequest")
-			assert ((boolean) user._links?."yona:confirmMobileNumber"?.href) ^ ((boolean) user._links?."yona:appActivity")
+			mobileNumberToBeConfirmed = ((boolean) user._links?."yona:confirmMobileNumber"?.href)
+			assert mobileNumberToBeConfirmed ^ ((boolean) user._embedded?."yona:buddies"?._links?.self?.href)
+			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:messages")
+			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:newDeviceRequest")
+			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:appActivity")
+		}
+
+		if (!mobileNumberToBeConfirmed)
+		{
+			assertVpnProfile(user)
 		}
 	}
 
@@ -200,7 +207,14 @@ class AppService extends Service
 	{
 		assert user.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 		assert user.vpnProfile.vpnPassword.length() == 32
-		assert user.vpnProfile.openVPNProfile.length() > 10
+		if (user instanceof User)
+		{
+			assert user.vpnProfile.ovpnProfileUrl
+		}
+		else
+		{
+			assert user.vpnProfile._links."yona:ovpnProfile".href
+		}
 	}
 
 	def assertUserWithoutPrivateData(def user)

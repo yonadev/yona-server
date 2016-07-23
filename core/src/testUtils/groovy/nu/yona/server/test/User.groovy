@@ -7,10 +7,14 @@
 package nu.yona.server.test
 
 import groovy.json.*
+
+import java.time.ZonedDateTime
+
 import nu.yona.server.YonaServer
 
 class User
 {
+	final ZonedDateTime creationTime
 	final String firstName
 	final String lastName
 	final String mobileNumber
@@ -35,6 +39,7 @@ class User
 	final String verifyPinResetUrl
 	final String resendPinResetConfirmationCodeUrl
 	final String clearPinResetUrl
+	final String sslRootCertUrl
 	final String password
 
 	User(def json, String password)
@@ -53,6 +58,7 @@ class User
 	}
 	private User(def json, boolean hasPrivateData)
 	{
+		this.creationTime = (json.creationTime) ? YonaServer.parseIsoDateString(json.creationTime) : null
 		this.firstName = json.firstName
 		this.lastName = json.lastName
 		this.mobileNumber = json.mobileNumber
@@ -81,6 +87,7 @@ class User
 		this.verifyPinResetUrl = json._links?."yona:verifyPinReset"?.href
 		this.resendPinResetConfirmationCodeUrl = json._links?."yona:resendPinResetConfirmationCode"?.href
 		this.clearPinResetUrl = json._links?."yona:clearPinReset"?.href
+		this.sslRootCertUrl = json._links?."yona:sslRootCert"?.href
 	}
 
 	def convertToJSON()
@@ -118,12 +125,12 @@ class VPNProfile
 {
 	final String vpnLoginID
 	final String vpnPassword
-	final String openVPNProfile
+	final String ovpnProfileUrl
 
 	VPNProfile(def json)
 	{
 		this.vpnLoginID = json.vpnLoginID
 		this.vpnPassword = json.vpnPassword
-		this.openVPNProfile = json.openVPNProfile
+		this.ovpnProfileUrl = json._links."yona:ovpnProfile".href
 	}
 }

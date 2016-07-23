@@ -189,6 +189,58 @@ paths:
           description: Confirmation failed
           schema:
             $ref: '#/definitions/Error'
+  '/users/{userID}/vpnAuthCertificate.crt':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get the user VPN authentication certificate
+      description: Fetches the user-specific VPN authentication certificate to use with VoD. Not needed for OVPN.
+      tags:
+        - User
+      responses:
+        '200':
+          description: The certificate
+          schema:
+            type: file
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/apple.mobileconfig':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    get:
+      summary: Get the Apple mobile config for this user
+      description: Fetches the user-specific .mobileconfig file needed for iOS devices. Notice this contains VPN username and password.
+      tags:
+        - User
+      responses:
+        '200':
+          description: The config file
+          schema:
+            type: file
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'           
   '/users/{userID}/goals/':
     parameters:
       - name: userID
@@ -548,7 +600,7 @@ paths:
         description: The ID of the user
         required: true
         type: string
-      - name: YYYY-'W'ww
+      - name: week
         in: path
         description: The date of the week in ISO 8601 format (YYYY-'W'w)
         required: true
@@ -1678,6 +1730,17 @@ definitions:
         required:
           - href
         description: The related goal
+  OvpnProfileLink:
+    type: object
+    properties:
+      "yona:ovpnProfile":
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Link to OVPN profile
   DayDetailsLink:
     type: object
     properties:
@@ -1766,6 +1829,17 @@ definitions:
         required:
           - href
         description: Link to earlier message to which the current one is a reply to
+  ThreadHeadLink:
+    type: object
+    properties:
+      "yona:threadHead":
+        type: object
+        properties:
+          href:
+            type: string
+        required:
+          - href
+        description: Link to the first message of this thread
   Page:
     type: object
     properties:
@@ -1827,8 +1901,6 @@ definitions:
     properties:
       vpnProfile:
         $ref: '#/definitions/VPNProfile'
-    required:
-    - vpnProfile
   PostPutUser:
     allOf:
       - $ref: '#/definitions/BaseUser'
@@ -1838,6 +1910,11 @@ definitions:
       - $ref: '#/definitions/BaseUser'
       - $ref: '#/definitions/PrivateUserData'
     properties:
+      creationTime:
+        type: string
+        format: dateTime
+        description: The creation time of this user
+        example: 2016-04-26T20:08:55.365+0200
       _embedded:
         type: object
         properties:
@@ -1945,6 +2022,14 @@ definitions:
               href:
                 type: string
                 description: Post new app activity data to this link
+          "yona:sslRootCert":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: Link to SSL root certificate file (available after confirming mobile number)
     required:
       - _embedded
       - _links
@@ -1952,6 +2037,11 @@ definitions:
     allOf:
       - $ref: '#/definitions/BaseUser'
     properties:
+      creationTime:
+        type: string
+        format: dateTime
+        description: The creation time of this user
+        example: 2016-04-26T20:08:55.365+0200
       _links:
         allOf:
           - $ref: '#/definitions/SelfLink'
@@ -2039,7 +2129,7 @@ definitions:
       - creationTime
   VPNProfile:
     type: object
-    description: VPN profile. Private data.
+    description: VPN profile. Private data, only available after the mobile number is confirmed.
     properties:
       vpnLoginID:
         type: string
@@ -2049,14 +2139,12 @@ definitions:
         type: string
         description: The password to log in to the VPN
         example: UA1ksZCptapsDRdg1Qrn2bDvKdfl8sDd
-      openVPNProfile:
-        type: string
-        description: The OpenVPN profile to be installed on the device. Newlines are specified as \n.
-        example: "client \ndev tun \nresolv-retry infinite \nnobind \npersist-key \npersist-tun \n<ca> \n-----BEGIN CERTIFICATE-----..."
+      _links:
+        allOf:
+          - $ref: '#/definitions/OvpnProfileLink'
     required:
       - vpnLoginID
       - vpnPassword
-      - openVPNProfile
   BuddyStatus:
     type: string
     description: The status of this buddy or buddy connect request
@@ -2428,6 +2516,7 @@ definitions:
           - $ref: '#/definitions/WeekDetailsLink'
           - $ref: '#/definitions/ReplyLink'
           - $ref: '#/definitions/RepliedMessageLink'
+          - $ref: '#/definitions/ThreadHeadLink'
     required:
       - _links
   PostPutActivityCommentMessage:

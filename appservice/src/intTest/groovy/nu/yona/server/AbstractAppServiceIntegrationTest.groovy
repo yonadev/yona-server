@@ -98,17 +98,25 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		return "$baseTimestamp$num"
 	}
 
-	def assertEquals(dateTimeString, ZonedDateTime comparisonDateTime, int epsilonSeconds = 10)
+	void assertEquals(String dateTimeString, ZonedDateTime comparisonDateTime, int epsilonSeconds = 10)
 	{
 		// Example date string: 2016-02-23T21:28:58.556+0000
-		assert dateTimeString ==~ /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}\+\d{4}/
+		assertDateTimeFormat(dateTimeString)
 		ZonedDateTime dateTime = YonaServer.parseIsoDateString(dateTimeString)
+		assertEquals(dateTime, comparisonDateTime, epsilonSeconds)
+	}
+
+	void assertEquals(ZonedDateTime dateTime, ZonedDateTime comparisonDateTime, int epsilonSeconds = 10)
+	{
 		int epsilonMilliseconds = epsilonSeconds * 1000
 
 		assert dateTime.isAfter(comparisonDateTime.minus(Duration.ofMillis(epsilonMilliseconds)))
 		assert dateTime.isBefore(comparisonDateTime.plus(Duration.ofMillis(epsilonMilliseconds)))
+	}
 
-		return true
+	void assertDateTimeFormat(dateTimeString)
+	{
+		assert dateTimeString ==~ /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}\+\d{4}/
 	}
 
 	void assertMarkReadUnread(User user, message)

@@ -146,7 +146,8 @@ abstract class ActivityControllerBase
 			UUID buddyID = determineBuddyID(goalIDMapping, message);
 			addBuddyLink(goalIDMapping.getUserID(), buddyID, message);
 		}
-		message.getRepliedMessageID().ifPresent(rmid -> addRepliedMessageLink(goalIDMapping.getUserID(), rmid, message));
+		addThreadHeadMessageLink(goalIDMapping.getUserID(), message);
+		message.getRepliedMessageID().ifPresent(rmid -> addRepliedMessageLink(goalIDMapping.getUserID(), message));
 	}
 
 	private UUID determineBuddyID(GoalIDMapping goalIDMapping, ActivityCommentMessageDTO message)
@@ -170,9 +171,16 @@ abstract class ActivityControllerBase
 				.withRel("dayDetails"));
 	}
 
-	private void addRepliedMessageLink(UUID userID, UUID repliedMessageID, ActivityCommentMessageDTO message)
+	private void addThreadHeadMessageLink(UUID userID, ActivityCommentMessageDTO message)
 	{
-		message.add(MessageController.getAnonymousMessageLinkBuilder(userID, repliedMessageID).withRel("repliedMessage"));
+		message.add(
+				MessageController.getAnonymousMessageLinkBuilder(userID, message.getThreadHeadMessageID()).withRel("threadHead"));
+	}
+
+	private void addRepliedMessageLink(UUID userID, ActivityCommentMessageDTO message)
+	{
+		message.add(MessageController.getAnonymousMessageLinkBuilder(userID, message.getRepliedMessageID().get())
+				.withRel("repliedMessage"));
 	}
 
 	private void addBuddyLink(UUID userID, UUID buddyID, ActivityCommentMessageDTO message)
