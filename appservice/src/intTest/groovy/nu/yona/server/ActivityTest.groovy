@@ -584,7 +584,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		reportAppActivity(richard, "NU.nl", "W-1 Wed 09:13", "W-1 Wed 10:07")
 		updateBudgetGoal(richard, budgetGoalNewsBeforeUpdate, 60, "W-1 Wed 20:51")
 		richard = appService.reloadUser(richard)
-		budgetGoalNewsBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == NEWS_ACT_CAT_URL }
+		budgetGoalNewsBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == NEWS_ACT_CAT_URL && it.historyItem }
 		reportAppActivity(richard, "NU.nl", "W-1 Wed 21:43", "W-1 Wed 22:01")
 
 		addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["11:00-12:00"], "W-1 Thu 13:55")
