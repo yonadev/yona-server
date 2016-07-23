@@ -20,6 +20,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import nu.yona.server.entities.EntityUtil;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.LocalDateAttributeConverter;
 import nu.yona.server.entities.RepositoryProvider;
@@ -98,7 +99,7 @@ public abstract class IntervalActivity extends EntityWithID
 
 	public Goal getGoal()
 	{
-		return goal;
+		return EntityUtil.enforceLoading(goal);
 	}
 
 	public void setGoal(Goal goal)

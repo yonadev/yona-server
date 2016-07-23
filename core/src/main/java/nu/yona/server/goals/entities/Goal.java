@@ -18,9 +18,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-import org.hibernate.proxy.HibernateProxy;
-
 import nu.yona.server.analysis.entities.DayActivity;
+import nu.yona.server.entities.EntityUtil;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
 
@@ -102,14 +101,7 @@ public abstract class Goal extends EntityWithID
 		{
 			return Optional.empty();
 		}
-		if (previousInstanceOfThisGoal instanceof HibernateProxy)
-		{
-			// See http://stackoverflow.com/a/2216603/4353482
-			// Simply returning the value causes a failure in instanceof and cast
-			return Optional
-					.of((Goal) ((HibernateProxy) previousInstanceOfThisGoal).getHibernateLazyInitializer().getImplementation());
-		}
-		return Optional.of(previousInstanceOfThisGoal);
+		return Optional.of(EntityUtil.enforceLoading(previousInstanceOfThisGoal));
 	}
 
 	public void setPreviousVersionOfThisGoal(Goal previousGoal)
