@@ -1801,6 +1801,17 @@ definitions:
         required:
           - href
         description: Link to earlier message to which the current one is a reply to
+  ThreadHeadLink:
+    type: object
+    properties:
+      "yona:threadHead":
+        type: object
+        properties:
+          href:
+            type: string
+        required:
+          - href
+        description: Link to the first message of this thread
   Page:
     type: object
     properties:
@@ -2458,6 +2469,7 @@ definitions:
           - $ref: '#/definitions/WeekDetailsLink'
           - $ref: '#/definitions/ReplyLink'
           - $ref: '#/definitions/RepliedMessageLink'
+          - $ref: '#/definitions/ThreadHeadLink'
     required:
       - _links
   PostPutActivityCommentMessage:
