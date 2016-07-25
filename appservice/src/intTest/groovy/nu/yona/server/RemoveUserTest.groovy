@@ -64,7 +64,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		disconnectMessage.reason == "USER_ACCOUNT_DELETED"
 		disconnectMessage.message == message
 		disconnectMessage.nickname == richard.nickname
-		disconnectMessage._links.self.href.startsWith(bob.messagesUrl)
+		disconnectMessage._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
 		disconnectMessage._links?."yona:process"?.href?.startsWith(getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links.self.href)
 
 		def goalConflictMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
@@ -109,7 +109,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def buddyConnectResponseMessage = buddyConnectResponseMessages[0]
 		buddyConnectResponseMessage.message == "User account was deleted"
 		buddyConnectResponseMessage.nickname == "$richard.firstName $richard.lastName"
-		buddyConnectResponseMessage._links.self.href.startsWith(bob.messagesUrl)
+		buddyConnectResponseMessage._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
 		buddyConnectResponseMessage._links?."yona:process"?.href?.startsWith(getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}[0]._links.self.href)
 
 		def response = appService.postMessageActionWithPassword(buddyConnectResponseMessages[0]._links."yona:process".href, [:], bob.password)
@@ -176,8 +176,8 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		disconnectMessage.reason == "USER_ACCOUNT_DELETED"
 		disconnectMessage.message == message
 		disconnectMessage.nickname == richard.nickname
-		disconnectMessage._links.self.href.startsWith(bob.messagesUrl)
-		disconnectMessage._links?."yona:process"?.href?.startsWith(getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links.self.href)
+		disconnectMessage._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
+		disconnectMessage._links?."yona:process"?.href?.startsWith(YonaServer.stripQueryString(getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links.self.href))
 
 		def goalConflictMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessages.size == 1
@@ -223,7 +223,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		buddyDisconnectMessages[0].reason == "USER_ACCOUNT_DELETED"
 		buddyDisconnectMessages[0].message == message
 		buddyDisconnectMessages[0].nickname == richard.nickname
-		buddyDisconnectMessages[0]._links.self.href.startsWith(bob.messagesUrl)
+		buddyDisconnectMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
 		!buddyDisconnectMessages[0]._links."yona:process"
 
 		cleanup:

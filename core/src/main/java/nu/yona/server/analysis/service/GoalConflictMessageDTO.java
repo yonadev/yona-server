@@ -5,7 +5,6 @@
 package nu.yona.server.analysis.service;
 
 import java.time.ZonedDateTime;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -28,9 +27,7 @@ import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.messaging.service.MessageService;
-import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
-import nu.yona.server.messaging.service.MessageServiceException;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
@@ -48,10 +45,10 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private final ZonedDateTime activityEndTime;
 	private final UUID activityCategoryID;
 
-	private GoalConflictMessageDTO(UUID id, ZonedDateTime creationTime, String nickname, UUID activityCategoryID,
+	private GoalConflictMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, String nickname, UUID activityCategoryID,
 			Optional<String> url, Status status, ZonedDateTime activityStartTime, ZonedDateTime activityEndTime)
 	{
-		super(id, creationTime);
+		super(id, creationTime, isRead);
 		this.nickname = nickname;
 		this.activityCategoryID = activityCategoryID;
 		this.url = url;
@@ -69,7 +66,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 	@Override
 	public Set<String> getPossibleActions()
 	{
-		Set<String> possibleActions = new HashSet<>();
+		Set<String> possibleActions = super.getPossibleActions();
 		if (this.isFromBuddy() && this.status == Status.ANNOUNCED)
 		{
 			possibleActions.add(REQUEST_DISCLOSURE);
@@ -123,14 +120,14 @@ public class GoalConflictMessageDTO extends MessageDTO
 
 	public static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, String nickname)
 	{
-		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), nickname,
-				messageEntity.getActivity().getActivityCategory().getID(),
+		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				nickname, messageEntity.getActivity().getActivityCategory().getID(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : Optional.empty(), messageEntity.getStatus(),
 				messageEntity.getActivity().getStartTime(), messageEntity.getActivity().getEndTime());
 	}
 
 	@Component
-	private static class Manager implements DTOManager
+	private static class Manager extends MessageDTO.Manager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;
@@ -166,7 +163,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 				case REQUEST_DISCLOSURE:
 					return handleAction_RequestDisclosure(actingUser, (GoalConflictMessage) messageEntity, requestPayload);
 				default:
-					throw MessageServiceException.actionNotSupported(action);
+					return super.handleAction(actingUser, messageEntity, action, requestPayload);
 			}
 		}
 

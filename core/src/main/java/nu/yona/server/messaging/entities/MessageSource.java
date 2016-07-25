@@ -79,9 +79,9 @@ public class MessageSource extends EntityWithID
 		return messages;
 	}
 
-	public Page<Message> getReceivedMessages(Pageable pageable)
+	public Page<Message> getReceivedMessages(Pageable pageable, boolean onlyUnreadMessages)
 	{
-		Page<Message> messages = messageDestination.getReceivedMessages(pageable);
+		Page<Message> messages = messageDestination.getReceivedMessages(pageable, onlyUnreadMessages);
 		decryptMessagePage(messages);
 		return messages;
 	}

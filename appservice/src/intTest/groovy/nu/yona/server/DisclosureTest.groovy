@@ -80,6 +80,8 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureRequestMessages[0]._links."yona:accept"?.href
 		disclosureRequestMessages[0]._links."yona:reject"?.href
 
+		assertMarkReadUnread(richard, disclosureRequestMessages[0])
+
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
@@ -133,6 +135,8 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureResponseMessage._links?.related?.href == goalConflictMessages[0]._links.self.href
 		disclosureResponseMessage._links?."yona:user"?.href == richard.url
 		disclosureResponseMessage._embedded?."yona:user" == null
+
+		assertMarkReadUnread(bob, disclosureResponseMessage)
 
 		//check delete
 		disclosureResponseMessage._links.edit

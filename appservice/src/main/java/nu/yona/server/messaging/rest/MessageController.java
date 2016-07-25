@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -82,11 +83,13 @@ public class MessageController
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<PagedResources<MessageDTO>> getMessages(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@RequestParam(value = "onlyUnreadMessages", required = false, defaultValue = "false") String onlyUnreadMessagesStr,
 			@PathVariable UUID userID, Pageable pageable, PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
 	{
-
+		boolean onlyUnreadMessages = Boolean.TRUE.toString().equals(onlyUnreadMessagesStr);
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(pagedResourcesAssembler.toResource(messageService.getReceivedMessages(userID, pageable),
+				() -> createOKResponse(pagedResourcesAssembler.toResource(
+						messageService.getReceivedMessages(userID, onlyUnreadMessages, pageable),
 						new MessageResourceAssembler(curieProvider, createGoalIDMapping(userID), this))));
 	}
 
@@ -160,7 +163,7 @@ public class MessageController
 	public static Link getMessagesLink(UUID userID)
 	{
 		ControllerLinkBuilder linkBuilder = linkTo(
-				methodOn(MessageController.class).getMessages(Optional.empty(), userID, null, null));
+				methodOn(MessageController.class).getMessages(Optional.empty(), Boolean.FALSE.toString(), userID, null, null));
 		return linkBuilder.withRel("messages");
 	}
 

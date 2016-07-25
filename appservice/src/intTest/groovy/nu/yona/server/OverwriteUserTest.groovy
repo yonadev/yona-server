@@ -80,7 +80,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		disconnectMessage.reason == "USER_ACCOUNT_DELETED"
 		disconnectMessage.message == "User account was deleted"
 		disconnectMessage.nickname == richard.nickname
-		disconnectMessage._links.self.href.startsWith(bob.messagesUrl)
+		disconnectMessage._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
 		disconnectMessage._links?."yona:process"?.href?.startsWith(getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links.self.href)
 
 		def buddies = appService.getBuddies(bob)
@@ -170,7 +170,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def buddyConnectResponseMessage = buddyConnectResponseMessages[0]
 		buddyConnectResponseMessage.message == "User account was deleted"
 		buddyConnectResponseMessage.nickname == "$richard.firstName $richard.lastName"
-		buddyConnectResponseMessage._links.self.href.startsWith(bob.messagesUrl)
+		buddyConnectResponseMessage._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
 		buddyConnectResponseMessage._links?."yona:process"?.href?.startsWith(getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}[0]._links.self.href)
 
 		def response = appService.postMessageActionWithPassword(buddyConnectResponseMessages[0]._links."yona:process".href, [:], bob.password)
@@ -224,7 +224,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		disconnectMessage.reason == "USER_ACCOUNT_DELETED"
 		disconnectMessage.message == "User account was deleted"
 		disconnectMessage.nickname == richard.nickname
-		disconnectMessage._links.self.href.startsWith(bob.messagesUrl)
+		disconnectMessage._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
 		disconnectMessage._links?."yona:process"?.href?.startsWith(getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links.self.href)
 
 		def buddies = appService.getBuddies(bob)

@@ -74,7 +74,7 @@ public class BuddyService
 	private UserAnonymizedService userAnonymizedService;
 
 	@Autowired
-	private BuddyConnectResponseMessageDTO.Factory connectResponseMessageHandler;
+	private BuddyConnectResponseMessageDTO.Manager connectResponseMessageHandler;
 
 	public enum DropBuddyReason
 	{

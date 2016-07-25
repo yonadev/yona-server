@@ -5,7 +5,6 @@
 package nu.yona.server.subscriptions.service;
 
 import java.time.ZonedDateTime;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -21,9 +20,7 @@ import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
-import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
-import nu.yona.server.messaging.service.MessageServiceException;
 import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 
@@ -31,13 +28,13 @@ import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 {
 	private static final String PROCESS = "process";
-	private DropBuddyReason reason;
-	private boolean isProcessed;
+	private final DropBuddyReason reason;
+	private final boolean isProcessed;
 
-	private BuddyDisconnectMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO user, UUID loginID, String nickname,
-			String message, DropBuddyReason reason, boolean isProcessed)
+	private BuddyDisconnectMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, UUID loginID,
+			String nickname, String message, DropBuddyReason reason, boolean isProcessed)
 	{
-		super(id, creationTime, user, nickname, message);
+		super(id, creationTime, isRead, user, nickname, message);
 		this.reason = reason;
 		this.isProcessed = isProcessed;
 	}
@@ -62,7 +59,7 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 	@Override
 	public Set<String> getPossibleActions()
 	{
-		Set<String> possibleActions = new HashSet<>();
+		Set<String> possibleActions = super.getPossibleActions();
 		if (!isProcessed)
 		{
 			possibleActions.add(PROCESS);
@@ -78,13 +75,14 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 
 	public static BuddyDisconnectMessageDTO createInstance(UserDTO actingUser, BuddyDisconnectMessage messageEntity)
 	{
-		return new BuddyDisconnectMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
+		return new BuddyDisconnectMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getRelatedUserAnonymizedID(),
-				messageEntity.getSenderNickname(), messageEntity.getMessage(), messageEntity.getReason(), messageEntity.isProcessed());
+				messageEntity.getSenderNickname(), messageEntity.getMessage(), messageEntity.getReason(),
+				messageEntity.isProcessed());
 	}
 
 	@Component
-	private static class Factory implements DTOManager
+	private static class Manager extends MessageDTO.Manager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;
@@ -113,7 +111,7 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 				case PROCESS:
 					return handleAction_Process(actingUser, (BuddyDisconnectMessage) messageEntity, requestPayload);
 				default:
-					throw MessageServiceException.actionNotSupported(action);
+					return super.handleAction(actingUser, messageEntity, action, requestPayload);
 			}
 		}
 

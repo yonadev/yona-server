@@ -5,7 +5,6 @@
 package nu.yona.server.analysis.service;
 
 import java.time.ZonedDateTime;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -23,7 +22,6 @@ import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
-import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.messaging.service.MessageServiceException;
 import nu.yona.server.subscriptions.service.UserDTO;
@@ -38,11 +36,11 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	private final Optional<UUID> repliedMessageID;
 	private final UUID threadHeadMessageID;
 
-	private ActivityCommentMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO senderUser, UUID senderUserAnonymizedID,
+	private ActivityCommentMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO senderUser, UUID senderUserAnonymizedID,
 			String senderNickname, UUID activityID, UUID threadHeadMessageID, Optional<UUID> repliedMessageID, String message,
 			boolean canReplyTo)
 	{
-		super(id, creationTime, senderUser, senderNickname, message);
+		super(id, creationTime, isRead, senderUser, senderNickname, message);
 		this.activityID = activityID;
 		this.threadHeadMessageID = threadHeadMessageID;
 		this.repliedMessageID = repliedMessageID;
@@ -58,7 +56,7 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	@Override
 	public Set<String> getPossibleActions()
 	{
-		Set<String> possibleActions = new HashSet<>();
+		Set<String> possibleActions = super.getPossibleActions();
 		if (canReplyTo)
 		{
 			possibleActions.add(REPLY);
@@ -92,14 +90,14 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	public static ActivityCommentMessageDTO createInstance(UserDTO actingUser, ActivityCommentMessage messageEntity)
 	{
 		boolean canReplyTo = !actingUser.getID().equals(messageEntity.getSenderUserID());
-		return new ActivityCommentMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
+		return new ActivityCommentMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getRelatedUserAnonymizedID(),
 				messageEntity.getSenderNickname(), messageEntity.getActivityID(), messageEntity.getThreadHeadMessageID(),
 				messageEntity.getRepliedMessageID(), messageEntity.getMessage(), canReplyTo);
 	}
 
 	@Component
-	private static class Factory implements DTOManager
+	private static class Manager extends MessageDTO.Manager
 	{
 
 		@Autowired
@@ -129,7 +127,7 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 				case REPLY:
 					return handleAction_Reply(actingUser, (ActivityCommentMessage) messageEntity, requestPayload);
 				default:
-					throw MessageServiceException.actionNotSupported(action);
+					return super.handleAction(actingUser, messageEntity, action, requestPayload);
 			}
 		}
 

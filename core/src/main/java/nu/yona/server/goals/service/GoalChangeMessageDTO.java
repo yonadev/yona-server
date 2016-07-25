@@ -5,7 +5,6 @@
 package nu.yona.server.goals.service;
 
 import java.time.ZonedDateTime;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -23,22 +22,20 @@ import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
-import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
-import nu.yona.server.messaging.service.MessageServiceException;
 import nu.yona.server.subscriptions.service.UserDTO;
 
 @JsonRootName("goalChangeMessage")
 public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 {
 	public static final String GOAL_REL_NAME = "goal";
-	private GoalDTO changedGoal;
-	private Change change;
+	private final GoalDTO changedGoal;
+	private final Change change;
 
-	private GoalChangeMessageDTO(UUID id, ZonedDateTime creationTime, UserDTO user, String nickname, GoalDTO changedGoal,
-			Change change, String message)
+	private GoalChangeMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, String nickname,
+			GoalDTO changedGoal, Change change, String message)
 	{
-		super(id, creationTime, user, nickname, message);
+		super(id, creationTime, isRead, user, nickname, message);
 
 		this.changedGoal = changedGoal;
 		this.change = change;
@@ -64,7 +61,7 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 	@Override
 	public Set<String> getPossibleActions()
 	{
-		Set<String> possibleActions = new HashSet<>();
+		Set<String> possibleActions = super.getPossibleActions();
 		return possibleActions;
 	}
 
@@ -76,13 +73,13 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 
 	public static GoalChangeMessageDTO createInstance(UserDTO actingUser, GoalChangeMessage messageEntity)
 	{
-		return new GoalChangeMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(),
+		return new GoalChangeMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getSenderNickname(),
 				GoalDTO.createInstance(messageEntity.getChangedGoal()), messageEntity.getChange(), messageEntity.getMessage());
 	}
 
 	@Component
-	private static class Factory implements DTOManager
+	private static class Manager extends MessageDTO.Manager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;
@@ -108,7 +105,7 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 			switch (action)
 			{
 				default:
-					throw MessageServiceException.actionNotSupported(action);
+					return super.handleAction(actingUser, messageEntity, action, requestPayload);
 			}
 		}
 	}

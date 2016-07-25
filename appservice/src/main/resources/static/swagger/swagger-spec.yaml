@@ -532,6 +532,12 @@ paths:
       summary: Get messages
       description: Fetches all messages related to this activity
       parameters:
+        - name: onlyUnreadMessages
+          in: query
+          description: Pass true to only fetch messages with isRead == false
+          required: false
+          default: false
+          type: boolean
         - name: size
           in: query
           description: The number of elements to be fetched
@@ -1647,6 +1653,28 @@ definitions:
           href:
             type: string
             description: The related buddy
+  MarkReadLink:
+    type: object
+    properties:
+      "yona:markRead":
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Post an empty MessageAction on this link to mark the message as read
+  MarkUnreadLink:
+    type: object
+    properties:
+      "yona:markUnread":
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Post an empty MessageAction on this link to mark the message as unread
   AcceptLink:
     type: object
     properties:
@@ -2263,6 +2291,11 @@ definitions:
         format: dateTime
         description: The creation time of this message
         example: 2016-02-23T21:28:58.556+0000
+      isRead:
+        type: boolean
+        format: dateTime
+        description: When true, the app has marked this message as read.
+        example: false
     required:
       - "@type"
       - creationTime
@@ -2303,6 +2336,8 @@ definitions:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/MarkReadLink'
+          - $ref: '#/definitions/MarkUnreadLink'
           - $ref: '#/definitions/AcceptLink'
           - $ref: '#/definitions/RejectLink'
     required:
@@ -2321,6 +2356,8 @@ definitions:
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/UserLink'
           - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/MarkReadLink'
+          - $ref: '#/definitions/MarkUnreadLink'
           - $ref: '#/definitions/ProcessLink'
     required:
       - status
@@ -2341,6 +2378,8 @@ definitions:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/MarkReadLink'
+          - $ref: '#/definitions/MarkUnreadLink'
           - $ref: '#/definitions/ProcessLink'
     required:
       - dropBuddyReason
@@ -2389,6 +2428,8 @@ definitions:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/MarkReadLink'
+          - $ref: '#/definitions/MarkUnreadLink'
           - $ref: '#/definitions/ActivityCategoryLink'
         properties:
           "yona:requestDisclosure":
@@ -2432,6 +2473,8 @@ definitions:
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/UserLink'
           - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/MarkReadLink'
+          - $ref: '#/definitions/MarkUnreadLink'
           - $ref: '#/definitions/RelatedLink'
           - $ref: '#/definitions/AcceptLink'
           - $ref: '#/definitions/RejectLink'
@@ -2450,6 +2493,8 @@ definitions:
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/UserLink'
           - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/MarkReadLink'
+          - $ref: '#/definitions/MarkUnreadLink'
           - $ref: '#/definitions/RelatedLink'
     required:
       - status
@@ -2465,6 +2510,8 @@ definitions:
           - $ref: '#/definitions/UserLink'
           - $ref: '#/definitions/BuddyLink'
           - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/MarkReadLink'
+          - $ref: '#/definitions/MarkUnreadLink'
           - $ref: '#/definitions/DayDetailsLink'
           - $ref: '#/definitions/WeekDetailsLink'
           - $ref: '#/definitions/ReplyLink'
