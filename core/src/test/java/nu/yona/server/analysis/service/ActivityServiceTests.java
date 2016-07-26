@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -25,7 +26,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -354,6 +357,65 @@ public class ActivityServiceTests
 		assertThat(inactivityWeek.getStartTime(), equalTo(getWeekStartTime(ZonedDateTime.now(userAnonZone))));
 		assertThat(inactivityWeek.getTimeZoneId(), equalTo(userAnonZone.getId()));
 		assertThat(inactivityWeek.getTotalActivityDurationMinutes(), equalTo(0));
+	}
+
+	@Test
+	@Ignore
+	public void spreadShortDurationInMiddleOfCell()
+	{
+		int hour = 20;
+		Duration activityStartTime = Duration.ofHours(hour).plusMinutes(5).plusSeconds(8);
+		Duration activityDuration = Duration.ofSeconds(3);
+		int[] expectedSpread = new int[96];
+		Arrays.fill(expectedSpread, 0);
+		expectedSpread[hour * 4] = 1;
+		assertSpread(activityStartTime, activityDuration, expectedSpread);
+	}
+
+	@Test
+	@Ignore
+	public void spreadShortDurationInNextCell()
+	{
+		int hour = 20;
+		Duration activityStartTime = Duration.ofHours(hour).plusMinutes(5).plusSeconds(8);
+		Duration activityDuration = Duration.ofSeconds(55).plusMinutes(9);
+		int[] expectedSpread = new int[96];
+		Arrays.fill(expectedSpread, 0);
+		expectedSpread[hour * 4] = 10;
+		expectedSpread[hour * 4 + 1] = 1;
+		assertSpread(activityStartTime, activityDuration, expectedSpread);
+	}
+
+	@Test
+	public void spreadShortDurationInPreviousCell()
+	{
+		int hour = 20;
+		Duration activityStartTime = Duration.ofHours(hour).plusMinutes(14).plusSeconds(57);
+		Duration activityDuration = Duration.ofSeconds(3).plusMinutes(6);
+		int[] expectedSpread = new int[96];
+		Arrays.fill(expectedSpread, 0);
+		expectedSpread[hour * 4] = 1;
+		expectedSpread[hour * 4 + 1] = 6;
+		assertSpread(activityStartTime, activityDuration, expectedSpread);
+	}
+
+	private void assertSpread(Duration activityStartTime, Duration activityDuration, int[] expectedSpread)
+	{
+		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
+		ZonedDateTime yesterday = today.minusDays(1);
+
+		// gambling goal was created 2 weeks ago, see above
+		// mock some activity on yesterday 20:58-21:00
+		DayActivity yesterdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, yesterday);
+		Activity recordedActivity = Activity.createInstance(yesterday.plus(activityStartTime),
+				yesterday.plus(activityStartTime).plus(activityDuration));
+		yesterdayRecordedActivity.addActivity(recordedActivity);
+		when(mockDayActivityRepository.findOne(userAnonID, yesterday.toLocalDate(), gamblingGoal.getID()))
+				.thenReturn(yesterdayRecordedActivity);
+
+		DayActivityDTO inactivityDay = service.getUserDayActivityDetail(userID, yesterday.toLocalDate(), gamblingGoal.getID());
+		verify(mockDayActivityRepository, times(1)).findOne(userAnonID, yesterday.toLocalDate(), gamblingGoal.getID());
+		assertThat(inactivityDay.getSpread(), equalTo(Arrays.asList(ArrayUtils.toObject((expectedSpread)))));
 	}
 
 	private ZonedDateTime getWeekStartTime(ZonedDateTime dateTime)
