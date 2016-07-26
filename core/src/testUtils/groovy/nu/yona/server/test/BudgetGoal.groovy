@@ -54,4 +54,9 @@ class BudgetGoal extends Goal
 		assert activityCategoryUrl
 		new BudgetGoal([creationTime: creationTime, activityCategoryUrl: activityCategoryUrl, maxDurationMinutes: maxDurationMinutes])
 	}
+
+	public static BudgetGoal createInstance(BudgetGoal originalGoal, ZonedDateTime creationTime, int maxDurationMinutes)
+	{
+		new BudgetGoal([creationTime: creationTime, activityCategoryUrl: originalGoal.activityCategoryUrl, maxDurationMinutes: maxDurationMinutes])
+	}
 }

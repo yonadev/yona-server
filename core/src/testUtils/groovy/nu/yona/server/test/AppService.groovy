@@ -465,6 +465,13 @@ class AppService extends Service
 		yonaServer.postJson(user.goalsUrl, goal.convertToJsonString(), ["Yona-Password": user.password], ["message": message])
 	}
 
+	Goal updateGoal(Closure asserter, User user, String url, Goal goal, message = "")
+	{
+		def response = updateGoal(user, url, goal, message)
+		asserter(response)
+		return (isSuccess(response)) ? Goal.fromJSON(response.responseData) : null
+	}
+
 	def updateGoal(User user, String url, Goal goal, message = "")
 	{
 		yonaServer.putJson(url, goal.convertToJsonString(), ["Yona-Password": user.password], ["message": message])
