@@ -7,6 +7,7 @@ package nu.yona.server.analysis.service;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,14 +27,16 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.repository.support.Repositories;
 
 import nu.yona.server.Translator;
 import nu.yona.server.analysis.entities.Activity;
@@ -42,6 +45,7 @@ import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
 import nu.yona.server.crypto.PublicKeyUtil;
+import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
@@ -56,7 +60,6 @@ import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserService;
 
 @RunWith(MockitoJUnitRunner.class)
-@Ignore // TODO See YD-287
 public class ActivityServiceTests
 {
 	private final Map<String, Goal> goalMap = new HashMap<String, Goal>();
@@ -73,8 +76,11 @@ public class ActivityServiceTests
 	private WeekActivityRepository mockWeekActivityRepository;
 	@Mock
 	private DayActivityRepository mockDayActivityRepository;
+	@Mock
+	private Repositories mockRepositories;
+
 	@InjectMocks
-	private final ActivityService service = new ActivityService();
+	private ActivityService service = new ActivityService();
 
 	private Goal gamblingGoal;
 	private Goal newsGoal;
@@ -89,6 +95,9 @@ public class ActivityServiceTests
 	@Before
 	public void setUp()
 	{
+		RepositoryProvider.setRepositories(mockRepositories);
+		when(mockRepositories.getRepositoryFor(DayActivity.class)).thenReturn(mockDayActivityRepository);
+
 		// created 2 weeks ago
 		gamblingGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now().minusWeeks(2),
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
@@ -135,6 +144,23 @@ public class ActivityServiceTests
 		when(mockGoalService.getGoalEntityForUserAnonymizedID(userAnonID, gamingGoal.getID())).thenReturn(gamingGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedID(userAnonID, socialGoal.getID())).thenReturn(socialGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedID(userAnonID, shoppingGoal.getID())).thenReturn(shoppingGoal);
+
+		when(mockDayActivityRepository.save(any(DayActivity.class))).thenAnswer(new Answer<DayActivity>() {
+			@Override
+			public DayActivity answer(InvocationOnMock invocation) throws Throwable
+			{
+				Object[] args = invocation.getArguments();
+				return (DayActivity) args[0];
+			}
+		});
+		when(mockWeekActivityRepository.save(any(WeekActivity.class))).thenAnswer(new Answer<WeekActivity>() {
+			@Override
+			public WeekActivity answer(InvocationOnMock invocation) throws Throwable
+			{
+				Object[] args = invocation.getArguments();
+				return (WeekActivity) args[0];
+			}
+		});
 	}
 
 	private Map<Locale, String> usString(String string)
