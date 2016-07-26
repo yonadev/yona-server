@@ -144,6 +144,7 @@ public class ActivityServiceTests
 		when(mockGoalService.getGoalEntityForUserAnonymizedID(userAnonID, socialGoal.getID())).thenReturn(socialGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedID(userAnonID, shoppingGoal.getID())).thenReturn(shoppingGoal);
 
+		// save should not return null but the saved entity
 		when(mockDayActivityRepository.save(any(DayActivity.class))).thenAnswer(new Answer<DayActivity>() {
 			@Override
 			public DayActivity answer(InvocationOnMock invocation) throws Throwable
@@ -152,6 +153,7 @@ public class ActivityServiceTests
 				return (DayActivity) args[0];
 			}
 		});
+		// save should not return null but the saved entity
 		when(mockWeekActivityRepository.save(any(WeekActivity.class))).thenAnswer(new Answer<WeekActivity>() {
 			@Override
 			public WeekActivity answer(InvocationOnMock invocation) throws Throwable

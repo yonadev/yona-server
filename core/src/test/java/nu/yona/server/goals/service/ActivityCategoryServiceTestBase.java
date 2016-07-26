@@ -44,6 +44,7 @@ public abstract class ActivityCategoryServiceTestBase
 		when(mockRepository.findAll()).thenReturn(Collections.unmodifiableSet(activityCategories));
 		when(mockRepository.findOne(gambling.getID())).thenReturn(gambling);
 		when(mockRepository.findOne(news.getID())).thenReturn(news);
+		// save should not return null but the saved entity
 		when(mockRepository.save(any(ActivityCategory.class))).thenAnswer(new Answer<ActivityCategory>() {
 			@Override
 			public ActivityCategory answer(InvocationOnMock invocation) throws Throwable
