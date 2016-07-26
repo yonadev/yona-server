@@ -216,7 +216,7 @@ public class ActivityServiceTests
 	public void weekActivityOverview()
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
-		int thisWeekNumberOfWeekDaysPast = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
+		// int thisWeekNumberOfWeekDaysPast = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
 
 		// gambling goal was created 2 weeks ago, see above
 		// mock some activity in previous week on Saturday 19:10-19:55
@@ -228,8 +228,8 @@ public class ActivityServiceTests
 		Activity recordedActivity = Activity.createInstance(saturdayStartOfDay.plusHours(19).plusMinutes(10),
 				saturdayStartOfDay.plusHours(19).plusMinutes(55));
 		previousWeekSaturdayRecordedActivity.addActivity(recordedActivity);
-		when(mockDayActivityRepository.findActivitiesForUserAndGoalInIntervalEndExcluded(userAnonID, gamblingGoal.getID(),
-				getWeekStartTime(today.minusWeeks(1)).toLocalDate(),
+		when(mockDayActivityRepository.findActivitiesForUserAndGoalsInIntervalEndExcluded(userAnonID,
+				new HashSet<UUID>(Arrays.asList(gamblingGoal.getID())), getWeekStartTime(today.minusWeeks(1)).toLocalDate(),
 				getWeekEndDate(getWeekStartTime(today.minusWeeks(1)).toLocalDate())))
 						.thenReturn(Arrays.asList(
 								DayActivity.createInstance(userAnonEntity, gamblingGoal, getWeekStartTime(today).minusDays(7)),
@@ -313,7 +313,7 @@ public class ActivityServiceTests
 	public void weekActivityOverviewInactivity()
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
-		int thisWeekNumberOfWeekDaysPast = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
+		// int thisWeekNumberOfWeekDaysPast = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
 
 		Page<WeekActivityOverviewDTO> inactivityWeekOverviews = service.getUserWeekActivityOverviews(userID,
 				new PageRequest(0, 5));
