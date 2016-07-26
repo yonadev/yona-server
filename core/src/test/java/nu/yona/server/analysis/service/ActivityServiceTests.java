@@ -221,7 +221,7 @@ public class ActivityServiceTests
 	public void weekActivityOverview()
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
-		// int thisWeekNumberOfWeekDaysPast = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
+		int thisWeekNumberOfWeekDaysPast = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
 
 		// gambling goal was created 2 weeks ago, see above
 		// mock some activity in previous week on Saturday 19:10-19:55
@@ -287,8 +287,8 @@ public class ActivityServiceTests
 		weekActivityForGambling = weekOverview.getWeekActivities().stream()
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
 		assertThat(weekActivityForGambling.getStartTime(), equalTo(getWeekStartTime(today.minusWeeks(2))));
-		// int expectedNumberOfWeekDaysRecorded = gamblingGoal.getCreationTime().getDayOfWeek() == DayOfWeek.SUNDAY ? 7
-		// : 7 - gamblingGoal.getCreationTime().getDayOfWeek().getValue();
+		int expectedNumberOfWeekDaysRecorded = gamblingGoal.getCreationTime().getDayOfWeek() == DayOfWeek.SUNDAY ? 7
+				: 7 - gamblingGoal.getCreationTime().getDayOfWeek().getValue();
 		// TODO: mock day activity in this week?
 		// assertThat(weekActivityForGambling.getDayActivities().size(), equalTo(expectedNumberOfWeekDaysRecorded));
 		//// always contains Saturday because it is the last day of the week
@@ -317,8 +317,8 @@ public class ActivityServiceTests
 	@Test
 	public void weekActivityOverviewInactivity()
 	{
-		// ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
-		// int thisWeekNumberOfWeekDaysPast = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
+		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
+		int thisWeekNumberOfWeekDaysPast = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
 
 		Page<WeekActivityOverviewDTO> inactivityWeekOverviews = service.getUserWeekActivityOverviews(userID,
 				new PageRequest(0, 5));
