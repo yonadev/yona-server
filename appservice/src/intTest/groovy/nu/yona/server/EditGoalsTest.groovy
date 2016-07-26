@@ -9,6 +9,7 @@ package nu.yona.server
 import groovy.json.*
 
 import java.time.Duration
+import java.time.ZonedDateTime
 
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.BudgetGoal
@@ -97,7 +98,8 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		responseGoalsAfterAdd.responseData._embedded."yona:goals".size() == 3
 
 		def bobMessagesResponse = appService.getMessages(bob)
-		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}
+		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "GoalChangeMessage" }
 		goalChangeMessages.size() == 1
 		goalChangeMessages[0].change == 'GOAL_ADDED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
@@ -116,7 +118,8 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goal.historyItem == false
 
 		def richardMessagesResponse = appService.getMessages(richard)
-		richardMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}.size() == 0
+		richardMessagesResponse.responseData._embedded."yona:messages".findAll
+				{ it."@type" == "GoalChangeMessage" }.size() == 0
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -143,7 +146,8 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		responseGoalsAfterAdd.responseData._embedded."yona:goals".size() == 3
 
 		def bobMessagesResponse = appService.getMessages(bob)
-		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}
+		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "GoalChangeMessage" }
 		goalChangeMessages.size() == 1
 		goalChangeMessages[0].change == 'GOAL_ADDED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
@@ -160,7 +164,8 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goal.historyItem == false
 
 		def richardMessagesResponse = appService.getMessages(richard)
-		richardMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}.size() == 0
+		richardMessagesResponse.responseData._embedded."yona:messages".findAll
+				{ it."@type" == "GoalChangeMessage" }.size() == 0
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -242,11 +247,13 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 
 		def allSocialGoals = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL)
 		allSocialGoals.size() == 2
-		def historyItem = allSocialGoals.find{ it.historyItem }
+		def historyItem = allSocialGoals.find
+		{ it.historyItem }
 		historyItem.maxDurationMinutes == 60
 
 		def bobMessagesResponse = appService.getMessages(bob)
-		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}
+		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "GoalChangeMessage" }
 		goalChangeMessages.size() == 2
 		goalChangeMessages[0].change == 'GOAL_CHANGED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
@@ -259,7 +266,8 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[1].change == 'GOAL_ADDED'
 
 		def richardMessagesResponse = appService.getMessages(richard)
-		richardMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}.size() == 0
+		richardMessagesResponse.responseData._embedded."yona:messages".findAll
+				{ it."@type" == "GoalChangeMessage" }.size() == 0
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -292,12 +300,14 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 
 		def allSocialGoals = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL)
 		allSocialGoals.size() == 2
-		def historyItem = allSocialGoals.find{ it.historyItem }
+		def historyItem = allSocialGoals.find
+		{ it.historyItem }
 		historyItem.zones.size() == 1
 		historyItem.spreadCells == [40, 41, 42, 43]
 
 		def bobMessagesResponse = appService.getMessages(bob)
-		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}
+		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "GoalChangeMessage" }
 		goalChangeMessages.size() == 2
 		goalChangeMessages[0].change == 'GOAL_CHANGED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
@@ -310,7 +320,8 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[1].change == 'GOAL_ADDED'
 
 		def richardMessagesResponse = appService.getMessages(richard)
-		richardMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}.size() == 0
+		richardMessagesResponse.responseData._embedded."yona:messages".findAll
+				{ it."@type" == "GoalChangeMessage" }.size() == 0
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -406,6 +417,25 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		toBeyond24Response.status == 400
 		toBeyond24Response.responseData.code == "error.goal.time.zone.beyond.twenty.four"
 		fullDayResponse.status == 201
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Try setting update time before creation time'()
+	{
+		given:
+		def richard = addRichard()
+		BudgetGoal goal = addBudgetGoal(richard, SOCIAL_ACT_CAT_URL, 180, "W-1 Thu 18:00")
+
+		when:
+		ZonedDateTime updateTime = YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Thu 17:59")
+		BudgetGoal updatedGoal = BudgetGoal.createInstance(goal, updateTime, 10)
+		def response = appService.updateGoal(richard, goal.url, updatedGoal)
+
+		then:
+		response.status == 400
+		response.responseData.code == "error.goal.update.time.before.original"
 
 		cleanup:
 		appService.deleteUser(richard)

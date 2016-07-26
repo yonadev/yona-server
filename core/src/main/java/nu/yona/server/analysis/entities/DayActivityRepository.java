@@ -35,9 +35,9 @@ public interface DayActivityRepository extends CrudRepository<DayActivity, UUID>
 	List<DayActivity> findAllActivitiesForUserInIntervalEndIncluded(@Param("userAnonymizedID") UUID userAnonymizedID,
 			@Param("dateFrom") LocalDate dateFrom, @Param("dateUntil") LocalDate dateUntil);
 
-	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedID and a.goal.id = :goalID and a.date >= :dateFrom and a.date < :dateUntil order by a.date desc")
-	List<DayActivity> findActivitiesForUserAndGoalInIntervalEndExcluded(@Param("userAnonymizedID") UUID userAnonymizedID,
-			@Param("goalID") UUID goalID, @Param("dateFrom") LocalDate dateFrom, @Param("dateUntil") LocalDate dateUntil);
+	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedID and a.goal.id in :goalIDs and a.date >= :dateFrom and a.date < :dateUntil order by a.date desc")
+	List<DayActivity> findActivitiesForUserAndGoalsInIntervalEndExcluded(@Param("userAnonymizedID") UUID userAnonymizedID,
+			@Param("goalIDs") Set<UUID> goalIDs, @Param("dateFrom") LocalDate dateFrom, @Param("dateUntil") LocalDate dateUntil);
 
 	@Modifying
 	@Query("delete from DayActivity a where a.userAnonymized.id = :userAnonymizedID")

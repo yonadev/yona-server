@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import nu.yona.server.exceptions.YonaException;
@@ -85,5 +86,11 @@ public class GoalServiceException extends YonaException
 	public static GoalServiceException timeZoneGoalBeyondTwentyFour(String zone, int minute)
 	{
 		return new GoalServiceException("error.goal.time.zone.beyond.twenty.four", zone, minute);
+	}
+
+	public static GoalServiceException goalUpdateCannotBeMadeOlderThanOriginal(ZonedDateTime newCreationTime,
+			ZonedDateTime originalCreationTime)
+	{
+		return new GoalServiceException("error.goal.update.time.before.original", newCreationTime, originalCreationTime);
 	}
 }
