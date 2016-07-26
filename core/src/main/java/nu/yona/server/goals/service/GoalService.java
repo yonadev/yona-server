@@ -122,6 +122,7 @@ public class GoalService
 		}
 		else if (newGoalDTO.isGoalChanged(existingGoal))
 		{
+			assertNoUpdateToThePast(newGoalDTO, existingGoal);
 			updateGoal(userEntity, existingGoal, newGoalDTO, message);
 		}
 
@@ -188,6 +189,16 @@ public class GoalService
 		{
 			throw GoalServiceException.cannotChangeTypeOfGoal(existingGoalDTO.getClass().getSimpleName(),
 					newGoalDTO.getClass().getSimpleName());
+		}
+	}
+
+	private void assertNoUpdateToThePast(GoalDTO newGoalDTO, Goal existingGoal)
+	{
+		if (newGoalDTO.getCreationTime().isPresent()
+				&& newGoalDTO.getCreationTime().get().isBefore(existingGoal.getCreationTime()))
+		{
+			throw GoalServiceException.goalUpdateCannotBeMadeOlderThanOriginal(newGoalDTO.getCreationTime().get(),
+					existingGoal.getCreationTime());
 		}
 	}
 
