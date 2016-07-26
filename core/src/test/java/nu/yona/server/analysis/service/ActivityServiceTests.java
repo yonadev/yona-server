@@ -282,8 +282,8 @@ public class ActivityServiceTests
 		weekActivityForGambling = weekOverview.getWeekActivities().stream()
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
 		assertThat(weekActivityForGambling.getStartTime(), equalTo(getWeekStartTime(today.minusWeeks(2))));
-		int expectedNumberOfWeekDaysRecorded = gamblingGoal.getCreationTime().getDayOfWeek() == DayOfWeek.SUNDAY ? 7
-				: 7 - gamblingGoal.getCreationTime().getDayOfWeek().getValue();
+		// int expectedNumberOfWeekDaysRecorded = gamblingGoal.getCreationTime().getDayOfWeek() == DayOfWeek.SUNDAY ? 7
+		// : 7 - gamblingGoal.getCreationTime().getDayOfWeek().getValue();
 		// TODO: mock day activity in this week?
 		// assertThat(weekActivityForGambling.getDayActivities().size(), equalTo(expectedNumberOfWeekDaysRecorded));
 		//// always contains Saturday because it is the last day of the week
@@ -312,7 +312,7 @@ public class ActivityServiceTests
 	@Test
 	public void weekActivityOverviewInactivity()
 	{
-		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
+		// ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 		// int thisWeekNumberOfWeekDaysPast = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
 
 		Page<WeekActivityOverviewDTO> inactivityWeekOverviews = service.getUserWeekActivityOverviews(userID,
