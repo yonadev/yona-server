@@ -128,13 +128,13 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		def responseMarkRead = appService.postMessageActionWithPassword(message._links."yona:markRead".href, [ : ], user.password)
 		assert responseMarkRead.status == 200
 		assert responseMarkRead.responseData._embedded?."yona:affectedMessages"[0]?.isRead == true
-		assert responseMarkRead.responseData._embedded?."yona:affectedMessages"[0]?._links?.self?.href == messageUrl 
+		assert responseMarkRead.responseData._embedded?."yona:affectedMessages"[0]?._links?.self?.href == messageUrl
 		assert responseMarkRead.responseData._embedded?."yona:affectedMessages"[0]?._links?."yona:markUnread"?.href.startsWith(messageUrl)
 
 		def responseGetAfterMarkRead = appService.getResourceWithPassword(messageUrl, user.password)
 		assert responseGetAfterMarkRead.status == 200
 		assert responseGetAfterMarkRead.responseData.isRead == true
-		assert responseGetAfterMarkRead.responseData._links?.self?.href == messageUrl 
+		assert responseGetAfterMarkRead.responseData._links?.self?.href == messageUrl
 		assert responseGetAfterMarkRead.responseData._links?."yona:markUnread"?.href.startsWith(messageUrl)
 
 		def responseMarkUnread = appService.postMessageActionWithPassword(responseGetAfterMarkRead.responseData._links?."yona:markUnread"?.href, [ : ], user.password)
@@ -458,22 +458,21 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def dayActivityOverviewForUser
 		def dayDetailsUrlPrefix
-		Goal goal
+		Goal goal = expectedValuesForDayAndActivityCategory.goal
 		if (userToAssert == actingUser) {
 			dayActivityOverviewForUser = dayActivitiesForCategory.dayActivitiesForUsers.find{it._links."yona:user"?.href?.startsWith(userToAssert.url)}
 			dayDetailsUrlPrefix = userToAssert.url
-			goal = expectedValuesForDayAndActivityCategory.goal
 			assert dayActivityOverviewForUser._links."yona:buddy" == null
+			assert userToAssert.goals.find{it.url == expectedValuesForDayAndActivityCategory.goal.url} // Test the test data
 		}
 		else
 		{
 			Buddy buddyToAssert = actingUser.buddies.find{it.user.url == userToAssert.url}
 			dayActivityOverviewForUser = dayActivitiesForCategory.dayActivitiesForUsers.find{it._links."yona:buddy"?.href == buddyToAssert.url}
 			dayDetailsUrlPrefix = buddyToAssert.url
-			goal = buddyToAssert.findGoal(expectedValuesForDayAndActivityCategory.goal)
 			assert dayActivityOverviewForUser._links."yona:user" == null
+			assert buddyToAssert.goals.find{it.url == expectedValuesForDayAndActivityCategory.goal.url} // Test the test data
 		}
-		assert userToAssert.goals.find{it.url == expectedValuesForDayAndActivityCategory.goal.url} // Test the test data
 		assert dayActivityOverviewForUser.totalActivityDurationMinutes == calculateExpectedDurationFromSpread(calculateExpectedDurationFromSpread(expectedValuesForDayAndActivityCategory.data.spread))
 		assert dayActivityOverviewForUser.goalAccomplished == expectedValuesForDayAndActivityCategory.data.goalAccomplished
 		assert dayActivityOverviewForUser.totalMinutesBeyondGoal == expectedValuesForDayAndActivityCategory.data.minutesBeyondGoal
