@@ -273,38 +273,27 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def responseDayOverviews = appService.getDayActivityOverviews(richard, richard.buddies[0], ["size": 14])
 
 		then:
-		// TODO: extend the below test to make it full fledged like the above one, preferably based on the same APIs
-		responseWeekOverviews.status == 200
-		responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews".size() == 2
-		def weekActivityOverview = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
-		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == budgetGoalSocialBob.url}
-		weekActivityForGoal.dayActivities["THURSDAY"]
-		def dayActivityInWeekForGoal = weekActivityForGoal.dayActivities["THURSDAY"]
-		dayActivityInWeekForGoal.spread == null // Only in detail
-		dayActivityInWeekForGoal.totalActivityDurationMinutes == 35
-		dayActivityInWeekForGoal.goalAccomplished
-		dayActivityInWeekForGoal.totalMinutesBeyondGoal == 0
-		dayActivityInWeekForGoal.date == null // Only on week overview level
-		dayActivityInWeekForGoal.timeZoneId == null // Only on week overview level
-		dayActivityInWeekForGoal._links."yona:goal" == null //already present on week
-		dayActivityInWeekForGoal._links."yona:dayDetails"
-		dayActivityInWeekForGoal._links.self == null  // This is not a top level or embedded resource
+		assertWeekOverviewBasics(responseWeekOverviews, [4, 2], expectedTotalWeeks)
+		assertWeekDateForCurrentWeek(responseWeekOverviews)
 
-		responseDayOverviews.status == 200
-		def dayOffset = YonaServer.relativeDateStringToDaysOffset(1, "Thu")
-		def dayActivityOverview = responseDayOverviews.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
-		assert dayActivityOverview?.date =~ /\d{4}\-\d{2}\-\d{2}/
-		assert dayActivityOverview.timeZoneId == "Europe/Amsterdam"
-		assert dayActivityOverview.dayActivities?.size() == 1
-		// YD-203 assert dayActivityOverview._links?.self?.href
-		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == budgetGoalSocialBob.url}
-		assert dayActivityForGoal.totalActivityDurationMinutes == 35
-		assert dayActivityForGoal.goalAccomplished
-		assert dayActivityForGoal.totalMinutesBeyondGoal == 0
-		assert dayActivityForGoal.date == null // Only on day overview level
-		assert dayActivityForGoal.timeZoneId == null // Only on day overview level
-		assert dayActivityForGoal._links."yona:dayDetails"
-		assert dayActivityForGoal._links.self == null  // This is not a top level or embedded resource
+		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalSocialBob, 3)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalSocialBob, expectedValuesBobLastWeek, "Thu")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalSocialBob, expectedValuesBobLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalSocialBob, expectedValuesBobLastWeek, "Sat")
+
+		assertWeekDetailForGoal(richard, weekOverviewLastWeek, budgetGoalSocialBob, expectedValuesBobLastWeek)
+
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, timeZoneGoalMultimediaBob, 2)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalMultimediaBob, expectedValuesBobLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalMultimediaBob, expectedValuesBobLastWeek, "Sat")
+
+		assertDayDetail(richard, responseDayOverviews, budgetGoalSocialBob, expectedValuesBobLastWeek, 1, "Thu")
+		assertDayDetail(richard, responseDayOverviews, budgetGoalSocialBob, expectedValuesBobLastWeek, 1, "Fri")
+		assertDayDetail(richard, responseDayOverviews, budgetGoalSocialBob, expectedValuesBobLastWeek, 1, "Sat")
+
+		assertDayDetail(richard, responseDayOverviews, timeZoneGoalMultimediaBob, expectedValuesBobLastWeek, 1, "Fri")
+		assertDayDetail(richard, responseDayOverviews, timeZoneGoalMultimediaBob, expectedValuesBobLastWeek, 1, "Sat")
 
 		cleanup:
 		appService.deleteUser(richard)
