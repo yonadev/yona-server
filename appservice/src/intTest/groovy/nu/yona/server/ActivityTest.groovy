@@ -360,8 +360,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def initialCurrentWeekOverviewLastWeek = initialResponseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
 		assertDayInWeekOverviewForGoal(initialCurrentWeekOverviewLastWeek, budgetGoalNews, initialExpectedValuesLastWeek, "Wed")
 		assertWeekDetailForGoal(richard, initialCurrentWeekOverviewLastWeek, budgetGoalNews, initialExpectedValuesLastWeek)
-		assertDayOverviewForBudgetGoal(initialResponseDayOverviews, budgetGoalNews, initialExpectedValuesLastWeek, 0, "Wed")
-		assertDayDetail(richard, initialResponseDayOverviews, budgetGoalNews, initialExpectedValuesLastWeek, 0, "Wed")
+		assertDayOverviewForBudgetGoal(initialResponseDayOverviews, budgetGoalNews, initialExpectedValuesLastWeek, 1, "Wed")
+		assertDayDetail(richard, initialResponseDayOverviews, budgetGoalNews, initialExpectedValuesLastWeek, 1, "Wed")
 
 		when:
 		reportAppActivity(richard, "NU.nl", "W-1 Wed 03:15", "W-1 Wed 03:35")
