@@ -52,7 +52,12 @@ sub filter_relevant_url_categories {
 
 sub transform_log_record ($) {
 	my ($log_record) = @_;
-	my $log_message = decode_json $log_record;
+	my $log_message = eval { decode_json($log_record) };
+	if ($@)
+	{
+		log_warning "decode_json failed, invalid json in log record. error:$@. Log record: $log_record";
+		return undef;
+	}
 	my $url = $log_message->{'url'};
 	if (!$log_message->{'tagset'}->{'username'}) {
 		log_warning "No user name";
