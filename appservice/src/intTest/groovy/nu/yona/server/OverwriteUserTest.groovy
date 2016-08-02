@@ -262,6 +262,32 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Overwrite Richard after requesting a confirmation code for the second time'()
+	{
+		given:
+		def richard = addRichard()
+		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		assert appService.requestOverwriteUser(richard.mobileNumber).status == 200
+		assert appService.requestOverwriteUser(richard.mobileNumber).status == 200
+
+		when:
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
+				["overwriteUserConfirmationCode": "1234"])
+
+		then:
+		richardChanged
+		richardChanged.firstName == "${richard.firstName}Changed"
+		richardChanged.lastName == "${richard.lastName}Changed"
+		richardChanged.nickname == "${richard.nickname}Changed"
+		richardChanged.mobileNumber == richard.mobileNumber
+		richardChanged.goals.size() == 1 //mandatory goal
+		richardChanged.goals[0].activityCategoryUrl == GAMBLING_ACT_CAT_URL
+
+		cleanup:
+		appService.deleteUser(richardChanged)
+	}
+
 	def 'Hacking attempt: Brute force overwrite user overwrite confirmation'()
 	{
 		given:
