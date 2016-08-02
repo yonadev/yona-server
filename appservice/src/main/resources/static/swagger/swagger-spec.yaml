@@ -189,32 +189,6 @@ paths:
           description: Confirmation failed
           schema:
             $ref: '#/definitions/Error'
-  '/users/{userID}/vpnAuthCertificate.crt':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
-    get:
-      summary: Get the user VPN authentication certificate
-      description: Fetches the user-specific VPN authentication certificate to use with VoD. Not needed for OVPN.
-      tags:
-        - User
-      responses:
-        '200':
-          description: The certificate
-          schema:
-            type: file
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
   '/users/{userID}/apple.mobileconfig':
     parameters:
       - name: userID
