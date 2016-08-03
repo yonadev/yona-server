@@ -257,6 +257,47 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Activity before goal creation should be ignored'()
+	{
+		given:
+		def richard = addRichard()
+
+		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-2 Fri 09:00") // Should be ignored, as there was no goal yet
+		TimeZoneGoal timeZoneGoalMultimediaBobBeforeUpdate = addTimeZoneGoal(richard, MULTIMEDIA_ACT_CAT_URL, ["20:00-22:00"], "W-1 Fri 14:00")
+		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-1 Fri 15:00")
+		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-1 Fri 21:00")
+
+		richard = appService.reloadUser(richard)
+		TimeZoneGoal timeZoneGoalMultimediaRichard = richard.findActiveGoal(MULTIMEDIA_ACT_CAT_URL)
+		def expectedValuesRichardLastWeek = [
+			"Fri" : [[goal:timeZoneGoalMultimediaRichard, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60 : 1, 84 : 1]]]],
+			"Sat" : [[goal:timeZoneGoalMultimediaRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+
+		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
+		def expectedTotalDays = 2 + currentDayOfWeek + 1
+		def expectedTotalWeeks = 2
+
+		when:
+		def responseWeekOverviews = appService.getWeekActivityOverviews(richard, ["size": expectedTotalWeeks])
+		def responseDayOverviewsAll = appService.getDayActivityOverviews(richard, ["size": 14])
+
+		then:
+		assertWeekOverviewBasics(responseWeekOverviews, [3, 1], expectedTotalWeeks, expectedTotalWeeks)
+		assertWeekDateForCurrentWeek(responseWeekOverviews)
+
+		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, timeZoneGoalMultimediaRichard, 2)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalMultimediaRichard, expectedValuesRichardLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalMultimediaRichard, expectedValuesRichardLastWeek, "Sat")
+
+		assertDayOverviewBasics(responseDayOverviewsAll, expectedTotalDays, expectedTotalDays, 14)
+		assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, timeZoneGoalMultimediaRichard, expectedValuesRichardLastWeek, 1, "Fri")
+		assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, timeZoneGoalMultimediaRichard, expectedValuesRichardLastWeek, 1, "Sat")
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def 'Add activity after retrieving the report'()
 	{
 		given:
