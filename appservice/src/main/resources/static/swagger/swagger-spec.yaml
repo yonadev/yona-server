@@ -531,6 +531,7 @@ paths:
     get:
       summary: Get messages
       description: Fetches all messages related to this activity
+      parameters:
         - name: size
           in: query
           description: The number of elements to be fetched
@@ -1167,7 +1168,6 @@ paths:
     get:
       summary: Get messages
       description: Fetches all messages of the user with the given ID
-      parameters:
       parameters:
         - name: onlyUnreadMessages
           in: query
