@@ -2004,6 +2004,14 @@ definitions:
               href:
                 type: string
                 description: Link to SSL root certificate file (available after confirming mobile number)
+          "yona:appleMobileConfig":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: Link to user-specific Apple .mobileconfig file (available after confirming mobile number)
     required:
       - _embedded
       - _links

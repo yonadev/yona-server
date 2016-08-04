@@ -282,6 +282,23 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
+	def 'Retrieve mobileconfig'()
+	{
+		given:
+		User richard = addRichard()
+
+		when:
+		assert richard.appleMobileConfig
+		def responseAppleMobileConfig = appService.yonaServer.restClient.get(path: richard.appleMobileConfig, headers: ["Yona-Password":richard.password])
+
+		then:
+		responseAppleMobileConfig.status == 200
+		responseAppleMobileConfig.contentType == "application/x-apple-aspen-config"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def confirmMobileNumber(User user, code)
 	{
 		appService.confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${code}" } """, user.password)

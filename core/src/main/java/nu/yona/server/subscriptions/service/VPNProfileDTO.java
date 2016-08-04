@@ -30,7 +30,7 @@ public class VPNProfileDTO
 	@JsonCreator
 	public VPNProfileDTO(@JsonProperty("vpnLoginID") UUID vpnLoginID)
 	{
-		this(null, vpnLoginID, null, null);
+		this(null, vpnLoginID, null);
 	}
 
 	@JsonIgnore

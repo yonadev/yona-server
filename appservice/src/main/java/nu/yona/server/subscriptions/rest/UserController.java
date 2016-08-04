@@ -8,6 +8,7 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +29,12 @@ import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.velocity.VelocityEngineUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -91,6 +95,9 @@ public class UserController
 	@Autowired
 	private PinResetRequestController pinResetRequestController;
 
+	@Autowired
+	private VelocityEngine velocityEngine;
+
 	@RequestMapping(value = "/{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
@@ -120,12 +127,25 @@ public class UserController
 		return createOKResponse(userService.getPublicUser(id), false);
 	}
 
-	@RequestMapping(value = "/{id}/apple.mobileconfig", produces = { "application/x-apple-aspen-config" })
-	public @ResponseBody String getVpnAppleMobileConfig(
+	@RequestMapping(value = "/{id}/apple.mobileconfig", method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<byte[]> getAppleMobileConfig(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
 	{
-		// TODO: use template, substitute VPN username and password
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> "");
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(new MediaType("application", "x-apple-aspen-config"));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+				() -> new ResponseEntity<byte[]>(getUserSpecificAppleMobileConfig(userService.getPrivateUser(id)), headers,
+						HttpStatus.OK));
+	}
+
+	private byte[] getUserSpecificAppleMobileConfig(UserDTO privateUser)
+	{
+		Map<String, Object> templateParameters = new HashMap<String, Object>();
+		templateParameters.put("ldapUsername", privateUser.getPrivateData().getVpnProfile().getVpnLoginID().toString());
+		templateParameters.put("ldapPassword", privateUser.getPrivateData().getVpnProfile().getVpnPassword());
+		return VelocityEngineUtils.mergeTemplateIntoString(velocityEngine, "apple.mobileconfig.vm", "UTF-8", templateParameters)
+				.getBytes(StandardCharsets.UTF_8);
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)
@@ -409,9 +429,17 @@ public class UserController
 					addAppActivityLink(userResource);
 					pinResetRequestController.addLinks(userResource);
 					addSslRootCertificateLink(userResource);
+					addAppleMobileConfigLink(userResource);
 				}
 			}
 			return userResource;
+		}
+
+		private void addAppleMobileConfigLink(UserResource userResource)
+		{
+			userResource.add(linkTo(
+					methodOn(UserController.class).getAppleMobileConfig(Optional.empty(), userResource.getContent().getID()))
+							.withRel("appleMobileConfig"));
 		}
 
 		private void addSslRootCertificateLink(Resource<UserDTO> userResource)
