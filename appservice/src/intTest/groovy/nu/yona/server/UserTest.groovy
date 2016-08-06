@@ -55,7 +55,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
 		john.buddiesUrl == john.url + "/buddies/"
 		john.goalsUrl == john.url + "/goals/"
-		john.messagesUrl.startsWith(john.url + "/messages/")
+		john.messagesUrl == john.url + "/messages/"
 		john.newDeviceRequestUrl == appService.url + "/newDeviceRequests/" + john.mobileNumber
 		john.appActivityUrl == john.url + "/appActivity/"
 		john.pinResetRequestUrl == john.url + "/pinResetRequest/request"
