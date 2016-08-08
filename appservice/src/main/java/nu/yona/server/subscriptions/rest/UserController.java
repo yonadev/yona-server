@@ -10,6 +10,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -340,7 +341,8 @@ public class UserController
 				return null;
 			}
 
-			try (InputStream certInputStream = new ClassPathResource("/static/ssl/rootcert.cer").getInputStream())
+			try (InputStream certInputStream = new ClassPathResource(Paths.get("static", SSL_ROOT_CERTIFICATE_PATH).toString())
+					.getInputStream())
 			{
 				X509Certificate cert = (X509Certificate) CertificateFactory.getInstance("X.509")
 						.generateCertificate(certInputStream);
