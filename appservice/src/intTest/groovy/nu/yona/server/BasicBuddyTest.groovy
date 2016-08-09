@@ -12,7 +12,9 @@ import java.time.Duration
 import java.time.ZonedDateTime
 
 import nu.yona.server.test.Buddy
+import nu.yona.server.test.Goal
 import nu.yona.server.test.User
+import spock.lang.IgnoreRest
 
 class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 {
@@ -166,7 +168,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddyConnectResponseMessages[0].status == "ACCEPTED"
 		buddyConnectResponseMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
 		buddyConnectResponseMessages[0]._links."yona:process".href.startsWith(buddyConnectResponseMessages[0]._links.self.href)
-		
+
 		assertMarkReadUnread(richard, buddyConnectResponseMessages[0])
 
 		cleanup:
@@ -309,12 +311,18 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}.size() == 1
 	}
 
+	@IgnoreRest
 	def 'Goal conflict of Bob is reported to Richard and Bob'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
+		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
+		Goal goalBob = bob.findActiveGoal(GAMBLING_ACT_CAT_URL)
+		Goal goalBuddyBob = richard.buddies[0].findActiveGoal(GAMBLING_ACT_CAT_URL)
+		ZonedDateTime goalConflictTime = YonaServer.now
 
 		when:
 		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
@@ -327,6 +335,12 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		richardGoalConflictMessages[0].nickname == bob.nickname
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 		richardGoalConflictMessages[0].url == null
+		def dayActivityDetailUrlRichard = richardGoalConflictMessages[0]._links."yona:dayActivityDetail".href
+		dayActivityDetailUrlRichard
+		def dayActivityDetailRichard = appService.getResourceWithPassword(dayActivityDetailUrlRichard, richard.password)
+		dayActivityDetailRichard.status == 200
+		dayActivityDetailRichard.responseData.date == YonaServer.toIsoDayString(goalConflictTime)
+		dayActivityDetailRichard.responseData._links."yona:goal".href == goalBuddyBob.url
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
@@ -335,6 +349,12 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		bobGoalConflictMessages[0].nickname == "<self>"
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 		bobGoalConflictMessages[0].url == "http://www.poker.com"
+		def dayActivityDetailUrlBob = bobGoalConflictMessages[0]._links."yona:dayActivityDetail".href
+		dayActivityDetailUrlBob
+		def dayActivityDetailBob = appService.getResourceWithPassword(dayActivityDetailUrlBob, bob.password)
+		dayActivityDetailBob.status == 200
+		dayActivityDetailBob.responseData.date == YonaServer.toIsoDayString(goalConflictTime)
+		dayActivityDetailBob.responseData._links."yona:goal".href == goalBob.url
 
 		cleanup:
 		appService.deleteUser(richard)
