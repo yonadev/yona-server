@@ -293,8 +293,18 @@ public class MessageController
 
 		private void addGoalConflictMessageLinks(GoalConflictMessageDTO message)
 		{
+			addActivityCategoryLink(message);
+			addDayActivityDetailLink(message);
+		}
+
+		private void addActivityCategoryLink(GoalConflictMessageDTO message)
+		{
 			message.add(ActivityCategoryController.getActivityCategoryLinkBuilder(message.getActivityCategoryID())
 					.withRel("activityCategory"));
+		}
+
+		private void addDayActivityDetailLink(GoalConflictMessageDTO message)
+		{
 			String dateStr = DayActivityDTO.formatDate(message.getActivityStartTime().toLocalDate());
 			if (message.isFromBuddy())
 			{
