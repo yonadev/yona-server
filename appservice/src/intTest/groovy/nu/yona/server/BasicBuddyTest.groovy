@@ -14,7 +14,6 @@ import java.time.ZonedDateTime
 import nu.yona.server.test.Buddy
 import nu.yona.server.test.Goal
 import nu.yona.server.test.User
-import spock.lang.IgnoreRest
 
 class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 {
@@ -311,7 +310,6 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}.size() == 1
 	}
 
-	@IgnoreRest
 	def 'Goal conflict of Bob is reported to Richard and Bob'()
 	{
 		given:
