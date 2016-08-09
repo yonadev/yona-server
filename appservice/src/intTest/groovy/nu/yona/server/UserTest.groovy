@@ -277,6 +277,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		responseOvpnProfile.contentType == "application/x-openvpn-profile"
 		responseSslRootCert.status == 200
 		responseSslRootCert.contentType == "application/pkix-cert"
+		richard.sslRootCertCN == "smoothwall003.yona"
 
 		cleanup:
 		appService.deleteUser(richard)

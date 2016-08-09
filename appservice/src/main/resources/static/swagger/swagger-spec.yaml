@@ -1910,6 +1910,10 @@ definitions:
       - $ref: '#/definitions/BaseUser'
       - $ref: '#/definitions/PrivateUserData'
     properties:
+      sslRootCertCN:
+        type: string
+        description: The CN of the SSL root certificate
+        example: "smoothwall003.yona"
       creationTime:
         type: string
         format: dateTime
