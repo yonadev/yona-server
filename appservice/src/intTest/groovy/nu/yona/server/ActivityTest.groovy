@@ -24,7 +24,7 @@ import nu.yona.server.test.User
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
-	def 'Fetch activity reports without activity'()
+	def 'Retrieve activity reports without activity'()
 	{
 		given:
 		def richard = addRichard()
@@ -133,10 +133,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		richard = appService.reloadUser(richard)
 		Goal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal timeZoneGoalSocialRichard = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
-
-		bob = appService.reloadUser(bob)
-		Goal budgetGoalSocialBob = bob.findActiveGoal(SOCIAL_ACT_CAT_URL)
-		Goal timeZoneGoalMultimediaBob = bob.findActiveGoal(MULTIMEDIA_ACT_CAT_URL)
+		Goal budgetGoalSocialBob = richard.buddies[0].findActiveGoal(SOCIAL_ACT_CAT_URL)
+		Goal timeZoneGoalMultimediaBob = richard.buddies[0].findActiveGoal(MULTIMEDIA_ACT_CAT_URL)
 
 		def expectedValuesRichardLastWeek = [
 			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
@@ -152,7 +150,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 			"Thu" : [[goal:budgetGoalSocialBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [80 : 15, 81 : 15, 82: 5]]]],
 			"Fri" : [[goal:budgetGoalSocialBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60 : 1]]]],
 			"Sat" : [[goal:budgetGoalSocialBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [84 : 1]]]]]
-		def expectedValuesLastWeek = [[ user : richard, expectedValues: expectedValuesRichardLastWeek], [ user : bob, expectedValues: expectedValuesBobLastWeek]]
+		def expectedValuesWithBuddiesLastWeek = [[ user : richard, expectedValues: expectedValuesRichardLastWeek], [ user : richard.buddies[0].user, expectedValues: expectedValuesBobLastWeek]]
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
 		def expectedTotalDays = 6 + currentDayOfWeek + 1
@@ -167,6 +165,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def responseDayOverviewsPage2 = appService.getDayActivityOverviews(richard, ["page": 1])
 		//get all days at once (max 2 weeks) to make assertion easy
 		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(richard, ["size": 14])
+		def responseBuddyWeekOverviews = appService.getWeekActivityOverviews(richard, richard.buddies[0])
+		def responseBuddyDayOverviews = appService.getDayActivityOverviews(richard, richard.buddies[0], ["size": 14])
 
 		then:
 		assertWeekOverviewBasics(responseWeekOverviews, [3, 2], expectedTotalWeeks)
@@ -217,94 +217,40 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertDayDetail(richard, responseDayOverviewsAll, timeZoneGoalSocialRichard, expectedValuesRichardLastWeek, 1, "Sat")
 
 		assertDayOverviewWithBuddiesBasics(responseDayOverviewsWithBuddies, expectedTotalDays, expectedTotalDays, 14)
-		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesLastWeek, 1, "Mon")
-		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesLastWeek, 1, "Tue")
-		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesLastWeek, 1, "Wed")
-		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesLastWeek, 1, "Thu")
-		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesLastWeek, 1, "Fri")
-		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesLastWeek, 1, "Sat")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Mon")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Tue")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Wed")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sat")
 
-		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesLastWeek, 1, "Wed")
-		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesLastWeek, 1, "Thu")
-		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesLastWeek, 1, "Fri")
-		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesLastWeek, 1, "Sat")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Wed")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sat")
 
-		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesLastWeek, 1, "Thu")
-		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesLastWeek, 1, "Fri")
-		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesLastWeek, 1, "Sat")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sat")
 
-		cleanup:
-		appService.deleteUser(richard)
-		appService.deleteUser(bob)
-	}
+		def weekOverviewBuddyLastWeek = responseBuddyWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewBuddyLastWeek, budgetGoalSocialBob, 3)
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, budgetGoalSocialBob, expectedValuesBobLastWeek, "Thu")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, budgetGoalSocialBob, expectedValuesBobLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, budgetGoalSocialBob, expectedValuesBobLastWeek, "Sat")
 
-	def 'Retrieve buddy activity report of previous week'()
-	{
-		given:
-		def richardAndBob = addRichardAndBobAsBuddies()
-		User richard = richardAndBob.richard
-		User bob = richardAndBob.bob
+		assertWeekDetailForGoal(richard, weekOverviewBuddyLastWeek, budgetGoalSocialBob, expectedValuesBobLastWeek)
 
-		addBudgetGoal(bob, SOCIAL_ACT_CAT_URL, 180, "W-1 Thu 18:00")
-		reportAppActivity(bob, "Facebook", "W-1 Thu 20:00", "W-1 Thu 20:35")
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewBuddyLastWeek, timeZoneGoalMultimediaBob, 2)
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, timeZoneGoalMultimediaBob, expectedValuesBobLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, timeZoneGoalMultimediaBob, expectedValuesBobLastWeek, "Sat")
 
-		addTimeZoneGoal(bob, MULTIMEDIA_ACT_CAT_URL, ["20:00-22:00"], "W-1 Fri 14:00")
-		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-1 Fri 15:00")
-		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-1 Sat 21:00")
+		assertDayDetail(richard, responseBuddyDayOverviews, budgetGoalSocialBob, expectedValuesBobLastWeek, 1, "Thu")
+		assertDayDetail(richard, responseBuddyDayOverviews, budgetGoalSocialBob, expectedValuesBobLastWeek, 1, "Fri")
+		assertDayDetail(richard, responseBuddyDayOverviews, budgetGoalSocialBob, expectedValuesBobLastWeek, 1, "Sat")
 
-		richard = appService.reloadUser(richard)
-		Goal budgetGoalSocialBob = richard.buddies[0].findActiveGoal(SOCIAL_ACT_CAT_URL)
-		Goal timeZoneGoalMultimediaBob = richard.buddies[0].findActiveGoal(MULTIMEDIA_ACT_CAT_URL)
-
-		def expectedValuesBobLastWeek = [
-			"Mon" : [],
-			"Tue" : [],
-			"Wed" : [],
-			"Thu" : [[goal:budgetGoalSocialBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [80 : 15, 81 : 15, 82: 5]]]],
-			"Fri" : [[goal:budgetGoalSocialBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60 : 1]]]],
-			"Sat" : [[goal:budgetGoalSocialBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [84 : 1]]]]]
-
-		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
-		def expectedTotalDays = 6 + currentDayOfWeek + 1
-		def expectedTotalWeeks = 2
-
-		when:
-		def responseWeekOverviews = appService.getWeekActivityOverviews(richard, richard.buddies[0])
-		def responseDayOverviews = appService.getDayActivityOverviews(richard, richard.buddies[0], ["size": 14])
-
-		then:
-		// TODO: extend the below test to make it full fledged like the above one, preferably based on the same APIs
-		responseWeekOverviews.status == 200
-		responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews".size() == 2
-		def weekActivityOverview = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
-		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == budgetGoalSocialBob.url}
-		weekActivityForGoal.dayActivities["THURSDAY"]
-		def dayActivityInWeekForGoal = weekActivityForGoal.dayActivities["THURSDAY"]
-		dayActivityInWeekForGoal.spread == null // Only in detail
-		dayActivityInWeekForGoal.totalActivityDurationMinutes == 35
-		dayActivityInWeekForGoal.goalAccomplished
-		dayActivityInWeekForGoal.totalMinutesBeyondGoal == 0
-		dayActivityInWeekForGoal.date == null // Only on week overview level
-		dayActivityInWeekForGoal.timeZoneId == null // Only on week overview level
-		dayActivityInWeekForGoal._links."yona:goal" == null //already present on week
-		dayActivityInWeekForGoal._links."yona:dayDetails"
-		dayActivityInWeekForGoal._links.self == null  // This is not a top level or embedded resource
-
-		responseDayOverviews.status == 200
-		def dayOffset = YonaServer.relativeDateStringToDaysOffset(1, "Thu")
-		def dayActivityOverview = responseDayOverviews.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
-		assert dayActivityOverview?.date =~ /\d{4}\-\d{2}\-\d{2}/
-		assert dayActivityOverview.timeZoneId == "Europe/Amsterdam"
-		assert dayActivityOverview.dayActivities?.size() == 1
-		// YD-203 assert dayActivityOverview._links?.self?.href
-		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == budgetGoalSocialBob.url}
-		assert dayActivityForGoal.totalActivityDurationMinutes == 35
-		assert dayActivityForGoal.goalAccomplished
-		assert dayActivityForGoal.totalMinutesBeyondGoal == 0
-		assert dayActivityForGoal.date == null // Only on day overview level
-		assert dayActivityForGoal.timeZoneId == null // Only on day overview level
-		assert dayActivityForGoal._links."yona:dayDetails"
-		assert dayActivityForGoal._links.self == null  // This is not a top level or embedded resource
+		assertDayDetail(richard, responseBuddyDayOverviews, timeZoneGoalMultimediaBob, expectedValuesBobLastWeek, 1, "Fri")
+		assertDayDetail(richard, responseBuddyDayOverviews, timeZoneGoalMultimediaBob, expectedValuesBobLastWeek, 1, "Sat")
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -357,7 +303,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		Goal budgetGoalGambling = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
 		Goal budgetGoalNews = richard.findActiveGoal(NEWS_ACT_CAT_URL)
-		def initialExpectedValuesLastWeek = [
+		def initialExpectedValuesRichardLastWeek = [
 			"Mon" : [[goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Tue" : [[goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Wed" : [[goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
@@ -369,16 +315,16 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def initialResponseDayOverviews = appService.getDayActivityOverviews(richard, ["size": 14])
 		assert initialResponseWeekOverviews.status == 200
 		def initialCurrentWeekOverviewLastWeek = initialResponseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
-		assertDayInWeekOverviewForGoal(initialCurrentWeekOverviewLastWeek, budgetGoalNews, initialExpectedValuesLastWeek, "Wed")
-		assertWeekDetailForGoal(richard, initialCurrentWeekOverviewLastWeek, budgetGoalNews, initialExpectedValuesLastWeek)
-		assertDayOverviewForBudgetGoal(initialResponseDayOverviews, budgetGoalNews, initialExpectedValuesLastWeek, 0, "Wed")
-		assertDayDetail(richard, initialResponseDayOverviews, budgetGoalNews, initialExpectedValuesLastWeek, 0, "Wed")
+		assertDayInWeekOverviewForGoal(initialCurrentWeekOverviewLastWeek, budgetGoalNews, initialExpectedValuesRichardLastWeek, "Wed")
+		assertWeekDetailForGoal(richard, initialCurrentWeekOverviewLastWeek, budgetGoalNews, initialExpectedValuesRichardLastWeek)
+		assertDayOverviewForBudgetGoal(initialResponseDayOverviews, budgetGoalNews, initialExpectedValuesRichardLastWeek, 1, "Wed")
+		assertDayDetail(richard, initialResponseDayOverviews, budgetGoalNews, initialExpectedValuesRichardLastWeek, 1, "Wed")
 
 		when:
 		reportAppActivity(richard, "NU.nl", "W-1 Wed 03:15", "W-1 Wed 03:35")
 
 		then:
-		def expectedValuesLastWeekAfterActivity = [
+		def expectedValuesRichardLastWeekAfterActivity = [
 			"Mon" : [[goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Tue" : [[goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Wed" : [[goal:budgetGoalNews, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
@@ -388,18 +334,18 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		]
 		def responseWeekOverviewsAfterActivity = appService.getWeekActivityOverviews(richard)
 		def currentWeekOverviewAfterActivity = responseWeekOverviewsAfterActivity.responseData._embedded."yona:weekActivityOverviews"[1]
-		assertDayInWeekOverviewForGoal(currentWeekOverviewAfterActivity, budgetGoalNews, expectedValuesLastWeekAfterActivity, "Tue")
-		assertDayInWeekOverviewForGoal(currentWeekOverviewAfterActivity, budgetGoalNews, expectedValuesLastWeekAfterActivity, "Wed")
-		assertDayInWeekOverviewForGoal(currentWeekOverviewAfterActivity, budgetGoalNews, expectedValuesLastWeekAfterActivity, "Thu")
-		assertWeekDetailForGoal(richard, currentWeekOverviewAfterActivity, budgetGoalNews, expectedValuesLastWeekAfterActivity)
+		assertDayInWeekOverviewForGoal(currentWeekOverviewAfterActivity, budgetGoalNews, expectedValuesRichardLastWeekAfterActivity, "Tue")
+		assertDayInWeekOverviewForGoal(currentWeekOverviewAfterActivity, budgetGoalNews, expectedValuesRichardLastWeekAfterActivity, "Wed")
+		assertDayInWeekOverviewForGoal(currentWeekOverviewAfterActivity, budgetGoalNews, expectedValuesRichardLastWeekAfterActivity, "Thu")
+		assertWeekDetailForGoal(richard, currentWeekOverviewAfterActivity, budgetGoalNews, expectedValuesRichardLastWeekAfterActivity)
 
 		def responseDayOverviewsAfterActivity = appService.getDayActivityOverviews(richard, ["size": 14])
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAfterActivity, budgetGoalNews, expectedValuesLastWeekAfterActivity, 1, "Tue")
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAfterActivity, budgetGoalNews, expectedValuesLastWeekAfterActivity, 1, "Wed")
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAfterActivity, budgetGoalNews, expectedValuesLastWeekAfterActivity, 1, "Thu")
-		assertDayDetail(richard, responseDayOverviewsAfterActivity, budgetGoalNews, expectedValuesLastWeekAfterActivity, 1, "Tue")
-		assertDayDetail(richard, responseDayOverviewsAfterActivity, budgetGoalNews, expectedValuesLastWeekAfterActivity, 1, "Wed")
-		assertDayDetail(richard, responseDayOverviewsAfterActivity, budgetGoalNews, expectedValuesLastWeekAfterActivity, 1, "Thu")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAfterActivity, budgetGoalNews, expectedValuesRichardLastWeekAfterActivity, 1, "Tue")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAfterActivity, budgetGoalNews, expectedValuesRichardLastWeekAfterActivity, 1, "Wed")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAfterActivity, budgetGoalNews, expectedValuesRichardLastWeekAfterActivity, 1, "Thu")
+		assertDayDetail(richard, responseDayOverviewsAfterActivity, budgetGoalNews, expectedValuesRichardLastWeekAfterActivity, 1, "Tue")
+		assertDayDetail(richard, responseDayOverviewsAfterActivity, budgetGoalNews, expectedValuesRichardLastWeekAfterActivity, 1, "Wed")
+		assertDayDetail(richard, responseDayOverviewsAfterActivity, budgetGoalNews, expectedValuesRichardLastWeekAfterActivity, 1, "Thu")
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -420,7 +366,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal budgetGoalNews = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal timeZoneGoalSocial = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
 
-		def expectedValuesLastWeekBeforeDelete = [
+		def expectedValuesRichardLastWeekBeforeDelete = [
 			"Mon" : [[goal:budgetGoalNews, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
 			"Tue" : [[goal:budgetGoalNews, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35 : 15, 36 : 10]]]],
 			"Wed" : [[goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocial, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]],
@@ -439,29 +385,29 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertWeekOverviewBasics(responseWeekOverviewsBeforeDelete, expectedGoalsPerWeekBeforeDelete, expectedTotalWeeksBeforeDelete)
 		def weekOverviewLastWeekBeforeDelete = responseWeekOverviewsBeforeDelete.responseData._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeekBeforeDelete, budgetGoalNews, 6)
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, budgetGoalNews, expectedValuesLastWeekBeforeDelete, "Mon")
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, budgetGoalNews, expectedValuesLastWeekBeforeDelete, "Tue")
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, budgetGoalNews, expectedValuesLastWeekBeforeDelete, "Wed")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, budgetGoalNews, expectedValuesRichardLastWeekBeforeDelete, "Mon")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, budgetGoalNews, expectedValuesRichardLastWeekBeforeDelete, "Tue")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, budgetGoalNews, expectedValuesRichardLastWeekBeforeDelete, "Wed")
 
-		assertWeekDetailForGoal(richard, weekOverviewLastWeekBeforeDelete, budgetGoalNews, expectedValuesLastWeekBeforeDelete)
+		assertWeekDetailForGoal(richard, weekOverviewLastWeekBeforeDelete, budgetGoalNews, expectedValuesRichardLastWeekBeforeDelete)
 
 		assertDayOverviewBasics(responseDayOverviewsAllBeforeDelete, expectedTotalDaysBeforeDelete, expectedTotalDaysBeforeDelete, 14)
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAllBeforeDelete, budgetGoalNews, expectedValuesLastWeekBeforeDelete, 1, "Mon")
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAllBeforeDelete, budgetGoalNews, expectedValuesLastWeekBeforeDelete, 1, "Tue")
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAllBeforeDelete, budgetGoalNews, expectedValuesLastWeekBeforeDelete, 1, "Wed")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAllBeforeDelete, budgetGoalNews, expectedValuesRichardLastWeekBeforeDelete, 1, "Mon")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAllBeforeDelete, budgetGoalNews, expectedValuesRichardLastWeekBeforeDelete, 1, "Tue")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAllBeforeDelete, budgetGoalNews, expectedValuesRichardLastWeekBeforeDelete, 1, "Wed")
 
-		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, budgetGoalNews, expectedValuesLastWeekBeforeDelete, 1, "Mon")
-		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, budgetGoalNews, expectedValuesLastWeekBeforeDelete, 1, "Tue")
-		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, budgetGoalNews, expectedValuesLastWeekBeforeDelete, 1, "Wed")
+		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, budgetGoalNews, expectedValuesRichardLastWeekBeforeDelete, 1, "Mon")
+		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, budgetGoalNews, expectedValuesRichardLastWeekBeforeDelete, 1, "Tue")
+		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, budgetGoalNews, expectedValuesRichardLastWeekBeforeDelete, 1, "Wed")
 
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeekBeforeDelete, timeZoneGoalSocial, 4)
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, timeZoneGoalSocial, expectedValuesLastWeekBeforeDelete, "Wed")
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, timeZoneGoalSocial, expectedValuesLastWeekBeforeDelete, "Thu")
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, timeZoneGoalSocial, expectedValuesLastWeekBeforeDelete, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, timeZoneGoalSocial, expectedValuesRichardLastWeekBeforeDelete, "Wed")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, timeZoneGoalSocial, expectedValuesRichardLastWeekBeforeDelete, "Thu")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekBeforeDelete, timeZoneGoalSocial, expectedValuesRichardLastWeekBeforeDelete, "Fri")
 
-		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, timeZoneGoalSocial, expectedValuesLastWeekBeforeDelete, 1, "Wed")
-		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, timeZoneGoalSocial, expectedValuesLastWeekBeforeDelete, 1, "Thu")
-		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, timeZoneGoalSocial, expectedValuesLastWeekBeforeDelete, 1, "Fri")
+		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, timeZoneGoalSocial, expectedValuesRichardLastWeekBeforeDelete, 1, "Wed")
+		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, timeZoneGoalSocial, expectedValuesRichardLastWeekBeforeDelete, 1, "Thu")
+		assertDayDetail(richard, responseDayOverviewsAllBeforeDelete, timeZoneGoalSocial, expectedValuesRichardLastWeekBeforeDelete, 1, "Fri")
 
 		when:
 		def response = appService.removeGoal(richard, budgetGoalNews)
@@ -469,7 +415,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		def expectedTotalDaysAfterDelete = expectedTotalDaysBeforeDelete - 2
 		def expectedTotalWeeksAfterDelete = expectedTotalWeeksBeforeDelete
-		def expectedValuesLastWeekAfterDelete = [
+		def expectedValuesRichardLastWeekAfterDelete = [
 			"Mon" : [[goal:budgetGoalNews, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
 			"Tue" : [[goal:budgetGoalNews, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35 : 15, 36 : 10]]]],
 			"Wed" : [[goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocial, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]],
@@ -484,15 +430,15 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		def weekOverviewLastWeekAfterDelete = responseWeekOverviewsAfterDelete.responseData._embedded."yona:weekActivityOverviews"[1]
 		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeekAfterDelete, timeZoneGoalSocial, 4)
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeekAfterDelete, timeZoneGoalSocial, expectedValuesLastWeekAfterDelete, "Wed")
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeekAfterDelete, timeZoneGoalSocial, expectedValuesLastWeekAfterDelete, "Thu")
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeekAfterDelete, timeZoneGoalSocial, expectedValuesLastWeekAfterDelete, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekAfterDelete, timeZoneGoalSocial, expectedValuesRichardLastWeekAfterDelete, "Wed")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekAfterDelete, timeZoneGoalSocial, expectedValuesRichardLastWeekAfterDelete, "Thu")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeekAfterDelete, timeZoneGoalSocial, expectedValuesRichardLastWeekAfterDelete, "Fri")
 
 		def responseDayOverviewsAllAfterDelete = appService.getDayActivityOverviews(richard, ["size": 14])
 		assertDayOverviewBasics(responseDayOverviewsAllAfterDelete, expectedTotalDaysAfterDelete, expectedTotalDaysAfterDelete, 14)
-		assertDayDetail(richard, responseDayOverviewsAllAfterDelete, timeZoneGoalSocial, expectedValuesLastWeekAfterDelete, 1, "Wed")
-		assertDayDetail(richard, responseDayOverviewsAllAfterDelete, timeZoneGoalSocial, expectedValuesLastWeekAfterDelete, 1, "Thu")
-		assertDayDetail(richard, responseDayOverviewsAllAfterDelete, timeZoneGoalSocial, expectedValuesLastWeekAfterDelete, 1, "Fri")
+		assertDayDetail(richard, responseDayOverviewsAllAfterDelete, timeZoneGoalSocial, expectedValuesRichardLastWeekAfterDelete, 1, "Wed")
+		assertDayDetail(richard, responseDayOverviewsAllAfterDelete, timeZoneGoalSocial, expectedValuesRichardLastWeekAfterDelete, 1, "Thu")
+		assertDayDetail(richard, responseDayOverviewsAllAfterDelete, timeZoneGoalSocial, expectedValuesRichardLastWeekAfterDelete, 1, "Fri")
 
 		// See whether we can still report activities the activity category of the deleted goal
 		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
@@ -529,16 +475,16 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Retrieve inactive activity report before and after update of time zone goal'()
+	def 'Retrieve inactive activity report current day/week before and after update of time zone goal'()
 	{
 		given:
 		User richard = addRichard()
-		Goal timeZoneGoalMultimediaRichard = addTimeZoneGoal(richard, MULTIMEDIA_ACT_CAT_URL, ["11:00-12:00"])
+		Goal timeZoneGoalMultimedia = addTimeZoneGoal(richard, MULTIMEDIA_ACT_CAT_URL, ["11:00-12:00"])
 		assert appService.getDayActivityOverviews(richard).status == 200
 		assert appService.getWeekActivityOverviews(richard).status == 200
 
 		when:
-		updateTimeZoneGoal(richard, timeZoneGoalMultimediaRichard, ["13:00-14:00"])
+		updateTimeZoneGoal(richard, timeZoneGoalMultimedia, ["13:00-14:00"])
 
 		then:
 		appService.getDayActivityOverviews(richard).status == 200
@@ -548,20 +494,109 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Retrieve inactive activity report before and after update of budget goal'()
+	def 'Retrieve inactive activity report current day/week before and after update of budget goal'()
 	{
 		given:
 		User richard = addRichard()
-		Goal budgetGoalMultimediaRichard = addBudgetGoal(richard, MULTIMEDIA_ACT_CAT_URL, 60)
+		Goal budgetGoalMultimedia = addBudgetGoal(richard, MULTIMEDIA_ACT_CAT_URL, 60)
 		assert appService.getDayActivityOverviews(richard).status == 200
 		assert appService.getWeekActivityOverviews(richard).status == 200
 
 		when:
-		updateBudgetGoal(richard, budgetGoalMultimediaRichard, 81)
+		updateBudgetGoal(richard, budgetGoalMultimedia, 81)
 
 		then:
 		appService.getDayActivityOverviews(richard).status == 200
 		appService.getWeekActivityOverviews(richard).status == 200
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Retrieve inactive activity report past week, after goal update in earlier week'()
+	{
+		given:
+		User richard = addRichard()
+		Goal budgetGoalMultimediaBeforeUpdate = addBudgetGoal(richard, MULTIMEDIA_ACT_CAT_URL, 60, "W-2 Tue 13:30")
+		updateBudgetGoal(richard, budgetGoalMultimediaBeforeUpdate, 81, "W-1 Mon 18:30")
+		richard = appService.reloadUser(richard)
+		budgetGoalMultimediaBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && it.historyItem }
+		BudgetGoal budgetGoalMultimediaAfterUpdate = richard.findActiveGoal(MULTIMEDIA_ACT_CAT_URL)
+
+		def expectedValuesRichardWeekBeforeLastWeek = [
+			"Tue" : [[goal:budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesRichardLastWeek = [
+			"Sun" : [[goal:budgetGoalMultimediaBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Mon" : [[goal:budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Tue" : [[goal:budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:budgetGoalMultimediaAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+
+		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
+		def expectedTotalDays = 5 + 7 + currentDayOfWeek + 1
+		def expectedTotalWeeks = 3
+
+		when:
+		def responseWeekOverviews = appService.getWeekActivityOverviews(richard, ["size": expectedTotalWeeks])
+		def responseDayOverviewsAll = appService.getDayActivityOverviews(richard, ["size": 21])
+
+		then:
+		assertWeekOverviewBasics(responseWeekOverviews, [3, 1, 1], expectedTotalWeeks, expectedTotalWeeks)
+		assertWeekDateForCurrentWeek(responseWeekOverviews)
+
+		def weekOverviewWeekBeforeLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[2]
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewWeekBeforeLastWeek, budgetGoalMultimediaBeforeUpdate, 5)
+		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Tue")
+		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Wed")
+		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Thu")
+		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Sat")
+
+		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalMultimediaAfterUpdate, 7)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardLastWeek, "Sun")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, "Mon")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, "Tue")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, "Wed")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, "Thu")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, "Sat")
+
+		assertWeekDetailForGoal(richard, weekOverviewLastWeek, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek)
+
+		assertDayOverviewBasics(responseDayOverviewsAll, expectedTotalDays, expectedTotalDays, 21)
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Tue")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Wed")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Thu")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Fri")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Sat")
+
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardLastWeek, 1, "Sun")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, 1, "Mon")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, 1, "Tue")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, 1, "Wed")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, 1, "Thu")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, 1, "Fri")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, 1, "Sat")
+
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Tue")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Wed")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Thu")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Fri")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalMultimediaBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Sat")
+
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, 1, "Mon")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, 1, "Tue")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, 1, "Wed")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, 1, "Thu")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, 1, "Fri")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalMultimediaAfterUpdate, expectedValuesRichardLastWeek, 1, "Sat")
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -570,54 +605,93 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	def 'Retrieve activity report after goal update'()
 	{
 		given:
-		User richard = addRichard()
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
 
 		// Week -2
 		// Monday
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-2 Mon 02:18")
-		BudgetGoal budgetGoalNewsBeforeUpdate = richard.findActiveGoal(NEWS_ACT_CAT_URL)
+		BudgetGoal budgetGoalNewsRichardBeforeUpdate = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 		reportAppActivity(richard, "NU.nl", "W-2 Mon 03:15", "W-2 Mon 03:35")
 
 		// Tuesday
 		reportAppActivities(richard, [createAppActivity("NU.nl", "W-2 Tue 08:45", "W-2 Tue 09:10"), createAppActivity("Facebook", "W-2 Tue 09:35", "W-2 Tue 10:10")])
 
+		// Thursday
+		BudgetGoal budgetGoalSocialBobBeforeUpdate = addBudgetGoal(bob, SOCIAL_ACT_CAT_URL, 180, "W-2 Thu 18:00")
+		reportAppActivity(bob, "Facebook", "W-2 Thu 20:00", "W-2 Thu 20:35")
+
+		// Friday
+		// TODO This should work! reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 09:00") // Should be ignored, as there was no goal yet
+		TimeZoneGoal timeZoneGoalMultimediaBobBeforeUpdate = addTimeZoneGoal(bob, MULTIMEDIA_ACT_CAT_URL, ["20:00-22:00"], "W-2 Fri 14:00")
+		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 15:00")
+		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 21:00")
+
 		// Week -1
 		// Wednesday
 		reportAppActivity(richard, "NU.nl", "W-1 Wed 09:13", "W-1 Wed 10:07")
-		updateBudgetGoal(richard, budgetGoalNewsBeforeUpdate, 60, "W-1 Wed 20:51")
+		updateBudgetGoal(richard, budgetGoalNewsRichardBeforeUpdate, 60, "W-1 Wed 20:51")
 		reportAppActivity(richard, "NU.nl", "W-1 Wed 21:43", "W-1 Wed 22:01")
 
 		// Thursday
-		TimeZoneGoal timeZoneGoalSocialBeforeUpdate = addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["11:00-12:00"], "W-1 Thu 13:55")
+		TimeZoneGoal timeZoneGoalSocialRichardBeforeUpdate = addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["11:00-12:00"], "W-1 Thu 13:55")
 		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Thu 15:00")
 
 		// Friday
-		updateTimeZoneGoal(richard, timeZoneGoalSocialBeforeUpdate, ["11:00-12:00", "17:30-21:30"], , "W-1 Fri 12:03")
+		updateTimeZoneGoal(richard, timeZoneGoalSocialRichardBeforeUpdate, ["11:00-12:00", "17:30-21:30"], , "W-1 Fri 12:03")
+
+		reportAppActivity(bob, "com.google.android.youtube", "W-1 Fri 10:13", "W-1 Fri 10:35")
+		updateTimeZoneGoal(bob, timeZoneGoalMultimediaBobBeforeUpdate, ["10:00-11:00", "20:00-22:00"], , "W-1 Fri 12:03")
+		reportAppActivity(bob, "com.google.android.youtube", "W-1 Fri 21:43", "W-1 Fri 21:59")
 
 		// Saturday
 		reportAppActivity(richard, "Facebook", "W-1 Sat 20:43", "W-1 Sat 21:01")
 
+		updateBudgetGoal(bob, budgetGoalSocialBobBeforeUpdate, 120, "W-1 Sat 20:51")
+		reportAppActivity(bob, "Facebook", "W-1 Sat 20:55", "W-1 Sat 22:00")
+
 		richard = appService.reloadUser(richard)
-		budgetGoalNewsBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == NEWS_ACT_CAT_URL && it.historyItem }
-		BudgetGoal budgetGoalNewsAfterUpdate = richard.findActiveGoal(NEWS_ACT_CAT_URL)
-		timeZoneGoalSocialBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
-		TimeZoneGoal timeZoneGoalSocialAfterUpdate = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
+		budgetGoalNewsRichardBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == NEWS_ACT_CAT_URL && it.historyItem }
+		BudgetGoal budgetGoalNewsRichardAfterUpdate = richard.findActiveGoal(NEWS_ACT_CAT_URL)
+		timeZoneGoalSocialRichardBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
+		TimeZoneGoal timeZoneGoalSocialRichardAfterUpdate = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
+
+		budgetGoalSocialBobBeforeUpdate = richard.buddies[0].goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
+		BudgetGoal budgetGoalSocialBobAfterUpdate = richard.buddies[0].goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && !it.historyItem}
+		timeZoneGoalMultimediaBobBeforeUpdate = richard.buddies[0].goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && it.historyItem }
+		TimeZoneGoal timeZoneGoalMultimediaBobAfterUpdate = richard.buddies[0].goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL && !it.historyItem}
 
 		def expectedValuesRichardWeekBeforeLastWeek = [
-			"Mon" : [[goal:budgetGoalNewsBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
-			"Tue" : [[goal:budgetGoalNewsBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35 : 15, 36 : 10]]]],
-			"Wed" : [[goal:budgetGoalNewsBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Thu" : [[goal:budgetGoalNewsBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Fri" : [[goal:budgetGoalNewsBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:budgetGoalNewsBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+			"Mon" : [[goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
+			"Tue" : [[goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35 : 15, 36 : 10]]]],
+			"Wed" : [[goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesBobWeekBeforeLastWeek = [
+			"Thu" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [80 : 15, 81 : 15, 82 : 5]]]],
+			"Fri" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60 : 1, 84 : 1]]]],
+			"Sat" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesWithBuddiesWeekBeforeLastWeek = [[ user : richard, expectedValues: expectedValuesRichardWeekBeforeLastWeek], [ user : richard.buddies[0].user, expectedValues: expectedValuesBobWeekBeforeLastWeek]]
+
 		def expectedValuesRichardLastWeek = [
-			"Sun" : [[goal:budgetGoalNewsBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Mon" : [[goal:budgetGoalNewsBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Tue" : [[goal:budgetGoalNewsBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Wed" : [[goal:budgetGoalNewsAfterUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 12, spread: [36 : 2, 37 : 15, 38 : 15, 39 : 15, 40: 7, 86 : 2, 87 : 15, 88 : 1]]]],
-			"Thu" : [[goal:budgetGoalNewsAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]],
-			"Fri" : [[goal:budgetGoalNewsAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
-			"Sat" : [[goal:budgetGoalNewsAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ 82 : 2, 83 : 15, 84 : 1]]]]]
+			"Sun" : [[goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Mon" : [[goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Tue" : [[goal:budgetGoalNewsRichardBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:budgetGoalNewsRichardAfterUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 12, spread: [36 : 2, 37 : 15, 38 : 15, 39 : 15, 40: 7, 86 : 2, 87 : 15, 88 : 1]]]],
+			"Thu" : [[goal:budgetGoalNewsRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichardBeforeUpdate, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]],
+			"Fri" : [[goal:budgetGoalNewsRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:budgetGoalNewsRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichardAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ 82 : 2, 83 : 15, 84 : 1]]]]]
+		def expectedValuesBobLastWeek = [
+			"Sun" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Mon" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Tue" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:budgetGoalSocialBobBeforeUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ 40 : 2, 41 :15, 42 : 5, 86 : 2, 87 : 14]]]],
+			"Sat" : [[goal:budgetGoalSocialBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [83 : 5, 84: 15, 85: 15, 86: 15, 87: 15]]], [goal:timeZoneGoalMultimediaBobAfterUpdate, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesWithBuddiesLastWeek = [[ user : richard, expectedValues: expectedValuesRichardLastWeek], [ user : richard.buddies[0].user, expectedValues: expectedValuesBobLastWeek]]
 
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
 		def expectedTotalDays = 6 + 7 + currentDayOfWeek + 1
@@ -625,79 +699,177 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def responseWeekOverviews = appService.getWeekActivityOverviews(richard, ["size": expectedTotalWeeks])
-		//get all days at once (max 2 weeks) to make assertion easy
 		def responseDayOverviewsAll = appService.getDayActivityOverviews(richard, ["size": 21])
+		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(richard, ["size": 21])
+		def responseBuddyWeekOverviews = appService.getWeekActivityOverviews(richard, richard.buddies[0], ["size": expectedTotalWeeks])
+		def responseBuddyDayOverviews = appService.getDayActivityOverviews(richard, richard.buddies[0], ["size": 21])
 
 		then:
 		assertWeekOverviewBasics(responseWeekOverviews, [3, 2, 1], expectedTotalWeeks, expectedTotalWeeks)
 		assertWeekDateForCurrentWeek(responseWeekOverviews)
 
 		def weekOverviewWeekBeforeLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[2]
-		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewWeekBeforeLastWeek, budgetGoalNewsBeforeUpdate, 6)
-		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Mon")
-		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Tue")
-		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Wed")
-		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Thu")
-		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Fri")
-		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Sat")
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewWeekBeforeLastWeek, budgetGoalNewsRichardBeforeUpdate, 6)
+		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Mon")
+		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Tue")
+		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Wed")
+		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Thu")
+		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewWeekBeforeLastWeek, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, "Sat")
 
 		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
-		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalNewsAfterUpdate, 7)
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardLastWeek, "Sun")
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardLastWeek, "Mon")
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsBeforeUpdate, expectedValuesRichardLastWeek, "Tue")
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, "Wed")
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, "Thu")
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, "Fri")
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, "Sat")
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalNewsRichardAfterUpdate, 7)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardLastWeek, "Sun")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardLastWeek, "Mon")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardLastWeek, "Tue")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichardAfterUpdate, expectedValuesRichardLastWeek, "Wed")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichardAfterUpdate, expectedValuesRichardLastWeek, "Thu")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichardAfterUpdate, expectedValuesRichardLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichardAfterUpdate, expectedValuesRichardLastWeek, "Sat")
 
-		assertWeekDetailForGoal(richard, weekOverviewLastWeek, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek)
+		assertWeekDetailForGoal(richard, weekOverviewLastWeek, budgetGoalNewsRichardAfterUpdate, expectedValuesRichardLastWeek)
 
-		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, timeZoneGoalSocialAfterUpdate, 3)
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialBeforeUpdate, expectedValuesRichardLastWeek, "Thu")
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialAfterUpdate, expectedValuesRichardLastWeek, "Fri")
-		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialAfterUpdate, expectedValuesRichardLastWeek, "Sat")
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, timeZoneGoalSocialRichardAfterUpdate, 3)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialRichardBeforeUpdate, expectedValuesRichardLastWeek, "Thu")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialRichardAfterUpdate, expectedValuesRichardLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialRichardAfterUpdate, expectedValuesRichardLastWeek, "Sat")
 
 		assertDayOverviewBasics(responseDayOverviewsAll, expectedTotalDays, expectedTotalDays, 21)
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Mon")
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Tue")
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Wed")
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Thu")
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Fri")
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Sat")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Mon")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Tue")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Wed")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Thu")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Fri")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Sat")
 
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardLastWeek, 1, "Sun")
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardLastWeek, 1, "Mon")
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardLastWeek, 1, "Tue")
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, 1, "Wed")
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, 1, "Thu")
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, 1, "Fri")
-		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, 1, "Sat")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardLastWeek, 1, "Sun")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardLastWeek, 1, "Mon")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardLastWeek, 1, "Tue")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsRichardAfterUpdate, expectedValuesRichardLastWeek, 1, "Wed")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsRichardAfterUpdate, expectedValuesRichardLastWeek, 1, "Thu")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsRichardAfterUpdate, expectedValuesRichardLastWeek, 1, "Fri")
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsRichardAfterUpdate, expectedValuesRichardLastWeek, 1, "Sat")
 
-		assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, timeZoneGoalSocialBeforeUpdate, expectedValuesRichardLastWeek, 1, "Thu")
-		assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, timeZoneGoalSocialAfterUpdate, expectedValuesRichardLastWeek, 1, "Fri")
-		assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, timeZoneGoalSocialAfterUpdate, expectedValuesRichardLastWeek, 1, "Sat")
+		assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, timeZoneGoalSocialRichardBeforeUpdate, expectedValuesRichardLastWeek, 1, "Thu")
+		assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, timeZoneGoalSocialRichardAfterUpdate, expectedValuesRichardLastWeek, 1, "Fri")
+		assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, timeZoneGoalSocialRichardAfterUpdate, expectedValuesRichardLastWeek, 1, "Sat")
 
-		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardLastWeek, 1, "Mon")
-		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardLastWeek, 1, "Tue")
-		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, 1, "Wed")
-		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, 1, "Thu")
-		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, 1, "Fri")
-		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsAfterUpdate, expectedValuesRichardLastWeek, 1, "Sat")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Mon")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Tue")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Wed")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Thu")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Fri")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Sat")
 
-		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Mon")
-		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Tue")
-		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Wed")
-		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Thu")
-		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Fri")
-		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsBeforeUpdate, expectedValuesRichardWeekBeforeLastWeek, 2, "Sat")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardLastWeek, 1, "Mon")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsRichardBeforeUpdate, expectedValuesRichardLastWeek, 1, "Tue")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsRichardAfterUpdate, expectedValuesRichardLastWeek, 1, "Wed")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsRichardAfterUpdate, expectedValuesRichardLastWeek, 1, "Thu")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsRichardAfterUpdate, expectedValuesRichardLastWeek, 1, "Fri")
+		assertDayDetail(richard, responseDayOverviewsAll, budgetGoalNewsRichardAfterUpdate, expectedValuesRichardLastWeek, 1, "Sat")
 
-		assertDayDetail(richard, responseDayOverviewsAll, timeZoneGoalSocialBeforeUpdate, expectedValuesRichardLastWeek, 1, "Thu")
-		assertDayDetail(richard, responseDayOverviewsAll, timeZoneGoalSocialAfterUpdate, expectedValuesRichardLastWeek, 1, "Fri")
-		assertDayDetail(richard, responseDayOverviewsAll, timeZoneGoalSocialAfterUpdate, expectedValuesRichardLastWeek, 1, "Sat")
+		assertDayDetail(richard, responseDayOverviewsAll, timeZoneGoalSocialRichardBeforeUpdate, expectedValuesRichardLastWeek, 1, "Thu")
+		assertDayDetail(richard, responseDayOverviewsAll, timeZoneGoalSocialRichardAfterUpdate, expectedValuesRichardLastWeek, 1, "Fri")
+		assertDayDetail(richard, responseDayOverviewsAll, timeZoneGoalSocialRichardAfterUpdate, expectedValuesRichardLastWeek, 1, "Sat")
 
+		assertDayOverviewWithBuddiesBasics(responseDayOverviewsWithBuddies, expectedTotalDays, expectedTotalDays, 21)
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Mon")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Tue")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Wed")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Sat")
+
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Sat")
+
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Sat")
+
+		def weekOverviewBuddyWeekBeforeLastWeek = responseBuddyWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[2]
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewBuddyWeekBeforeLastWeek, budgetGoalSocialBobBeforeUpdate, 3)
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyWeekBeforeLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobWeekBeforeLastWeek, "Thu")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyWeekBeforeLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobWeekBeforeLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyWeekBeforeLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobWeekBeforeLastWeek, "Sat")
+
+		assertWeekDetailForGoal(richard, weekOverviewBuddyWeekBeforeLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobWeekBeforeLastWeek)
+
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewBuddyWeekBeforeLastWeek, timeZoneGoalMultimediaBobBeforeUpdate, 2)
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyWeekBeforeLastWeek, timeZoneGoalMultimediaBobBeforeUpdate, expectedValuesBobWeekBeforeLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyWeekBeforeLastWeek, timeZoneGoalMultimediaBobBeforeUpdate, expectedValuesBobWeekBeforeLastWeek, "Sat")
+
+		assertDayDetail(richard, responseBuddyDayOverviews, budgetGoalSocialBobBeforeUpdate, expectedValuesBobWeekBeforeLastWeek, 2, "Thu")
+		assertDayDetail(richard, responseBuddyDayOverviews, budgetGoalSocialBobBeforeUpdate, expectedValuesBobWeekBeforeLastWeek, 2, "Fri")
+		assertDayDetail(richard, responseBuddyDayOverviews, budgetGoalSocialBobBeforeUpdate, expectedValuesBobWeekBeforeLastWeek, 2, "Sat")
+
+		assertDayDetail(richard, responseBuddyDayOverviews, timeZoneGoalMultimediaBobBeforeUpdate, expectedValuesBobWeekBeforeLastWeek, 2, "Fri")
+		assertDayDetail(richard, responseBuddyDayOverviews, timeZoneGoalMultimediaBobBeforeUpdate, expectedValuesBobWeekBeforeLastWeek, 2, "Sat")
+
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sun")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Mon")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Tue")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Wed")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sat")
+
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sun")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Mon")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Tue")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Wed")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, SOCIAL_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sat")
+
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sun")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Mon")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Tue")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Wed")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sat")
+
+		def weekOverviewBuddyLastWeek = responseBuddyWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewBuddyLastWeek, budgetGoalSocialBobAfterUpdate, 7)
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobLastWeek, "Sun")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobLastWeek, "Mon")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobLastWeek, "Tue")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobLastWeek, "Wed")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobLastWeek, "Thu")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, budgetGoalSocialBobBeforeUpdate, expectedValuesBobLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, budgetGoalSocialBobAfterUpdate, expectedValuesBobLastWeek, "Sat")
+
+		assertWeekDetailForGoal(richard, weekOverviewBuddyLastWeek, budgetGoalSocialBobAfterUpdate, expectedValuesBobLastWeek)
+
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewBuddyLastWeek, timeZoneGoalMultimediaBobAfterUpdate, 7)
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, timeZoneGoalMultimediaBobBeforeUpdate, expectedValuesBobLastWeek, "Sun")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, timeZoneGoalMultimediaBobBeforeUpdate, expectedValuesBobLastWeek, "Mon")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, timeZoneGoalMultimediaBobBeforeUpdate, expectedValuesBobLastWeek, "Tue")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, timeZoneGoalMultimediaBobBeforeUpdate, expectedValuesBobLastWeek, "Wed")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, timeZoneGoalMultimediaBobBeforeUpdate, expectedValuesBobLastWeek, "Thu")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, timeZoneGoalMultimediaBobAfterUpdate, expectedValuesBobLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewBuddyLastWeek, timeZoneGoalMultimediaBobAfterUpdate, expectedValuesBobLastWeek, "Sat")
+
+		assertDayDetail(richard, responseBuddyDayOverviews, budgetGoalSocialBobBeforeUpdate, expectedValuesBobLastWeek, 1, "Sun")
+		assertDayDetail(richard, responseBuddyDayOverviews, budgetGoalSocialBobBeforeUpdate, expectedValuesBobLastWeek, 1, "Mon")
+		assertDayDetail(richard, responseBuddyDayOverviews, budgetGoalSocialBobBeforeUpdate, expectedValuesBobLastWeek, 1, "Tue")
+		assertDayDetail(richard, responseBuddyDayOverviews, budgetGoalSocialBobBeforeUpdate, expectedValuesBobLastWeek, 1, "Wed")
+		assertDayDetail(richard, responseBuddyDayOverviews, budgetGoalSocialBobBeforeUpdate, expectedValuesBobLastWeek, 1, "Thu")
+		assertDayDetail(richard, responseBuddyDayOverviews, budgetGoalSocialBobBeforeUpdate, expectedValuesBobLastWeek, 1, "Fri")
+		assertDayDetail(richard, responseBuddyDayOverviews, budgetGoalSocialBobAfterUpdate, expectedValuesBobLastWeek, 1, "Sat")
+
+		assertDayDetail(richard, responseBuddyDayOverviews, timeZoneGoalMultimediaBobBeforeUpdate, expectedValuesBobLastWeek, 1, "Sun")
+		assertDayDetail(richard, responseBuddyDayOverviews, timeZoneGoalMultimediaBobBeforeUpdate, expectedValuesBobLastWeek, 1, "Mon")
+		assertDayDetail(richard, responseBuddyDayOverviews, timeZoneGoalMultimediaBobBeforeUpdate, expectedValuesBobLastWeek, 1, "Tue")
+		assertDayDetail(richard, responseBuddyDayOverviews, timeZoneGoalMultimediaBobBeforeUpdate, expectedValuesBobLastWeek, 1, "Wed")
+		assertDayDetail(richard, responseBuddyDayOverviews, timeZoneGoalMultimediaBobBeforeUpdate, expectedValuesBobLastWeek, 1, "Thu")
+		assertDayDetail(richard, responseBuddyDayOverviews, timeZoneGoalMultimediaBobAfterUpdate, expectedValuesBobLastWeek, 1, "Fri")
+		assertDayDetail(richard, responseBuddyDayOverviews, timeZoneGoalMultimediaBobAfterUpdate, expectedValuesBobLastWeek, 1, "Sat")
 		cleanup:
 		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
 	def 'Comment on buddy day activity'()

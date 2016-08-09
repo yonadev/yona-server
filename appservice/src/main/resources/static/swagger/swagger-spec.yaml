@@ -506,12 +506,6 @@ paths:
       summary: Get messages
       description: Fetches all messages related to this activity
       parameters:
-        - name: onlyUnreadMessages
-          in: query
-          description: Pass true to only fetch messages with isRead == false
-          required: false
-          default: false
-          type: boolean
         - name: size
           in: query
           description: The number of elements to be fetched
@@ -1149,6 +1143,12 @@ paths:
       summary: Get messages
       description: Fetches all messages of the user with the given ID
       parameters:
+        - name: onlyUnreadMessages
+          in: query
+          description: Pass true to only fetch messages with isRead == false
+          required: false
+          default: false
+          type: boolean
         - name: size
           in: query
           description: The number of elements to be fetched
