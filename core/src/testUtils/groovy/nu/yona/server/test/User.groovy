@@ -42,6 +42,7 @@ class User
 	final String clearPinResetUrl
 	final String sslRootCertUrl
 	final String appleMobileConfig
+	final String sslRootCertCN
 	final String password
 
 	User(def json, String password)
@@ -91,6 +92,7 @@ class User
 		this.clearPinResetUrl = json._links?."yona:clearPinReset"?.href
 		this.sslRootCertUrl = json._links?."yona:sslRootCert"?.href
 		this.appleMobileConfig = json._links?."yona:appleMobileConfig"?.href
+		this.sslRootCertCN = json.sslRootCertCN
 	}
 
 	def convertToJSON()

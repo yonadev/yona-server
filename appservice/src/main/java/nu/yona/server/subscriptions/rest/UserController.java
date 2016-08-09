@@ -9,6 +9,12 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Paths;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,12 +22,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
@@ -55,6 +64,7 @@ import nu.yona.server.analysis.rest.AppActivityController;
 import nu.yona.server.analysis.rest.UserActivityController;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.ConfirmationException;
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.messaging.rest.MessageController;
@@ -75,6 +85,8 @@ import nu.yona.server.subscriptions.service.VPNProfileDTO;
 @RequestMapping(value = "/users", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class UserController
 {
+	private static final String SSL_ROOT_CERTIFICATE_PATH = "/ssl/rootcert.cer";
+
 	private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
 	@Autowired
@@ -332,6 +344,39 @@ public class UserController
 			this.curieProvider = curieProvider;
 		}
 
+		@JsonProperty("sslRootCertCN")
+		@JsonInclude(Include.NON_EMPTY)
+		public String getSslRootCertCN()
+		{
+			if (!includeLinksAndEmbeddedData())
+			{
+				return null;
+			}
+
+			try (InputStream certInputStream = new ClassPathResource(Paths.get("static", SSL_ROOT_CERTIFICATE_PATH).toString())
+					.getInputStream())
+			{
+				X509Certificate cert = (X509Certificate) CertificateFactory.getInstance("X.509")
+						.generateCertificate(certInputStream);
+				String dn = cert.getIssuerX500Principal().getName();
+				LdapName ln = new LdapName(dn);
+				return ln.getRdns().stream().filter(rdn -> rdn.getType().equalsIgnoreCase("CN")).findFirst().get().getValue()
+						.toString();
+			}
+			catch (IOException e)
+			{
+				throw YonaException.unexpected(e);
+			}
+			catch (CertificateException e)
+			{
+				throw YonaException.unexpected(e);
+			}
+			catch (InvalidNameException e)
+			{
+				throw YonaException.unexpected(e);
+			}
+		}
+
 		@JsonProperty("_embedded")
 		@JsonInclude(Include.NON_EMPTY)
 		public Map<String, Object> getEmbeddedResources()
@@ -444,8 +489,8 @@ public class UserController
 
 		private void addSslRootCertificateLink(Resource<UserDTO> userResource)
 		{
-			userResource.add(
-					new Link(ServletUriComponentsBuilder.fromCurrentContextPath().path("/ssl/rootcert.cer").build().toUriString(),
+			userResource.add(new Link(
+					ServletUriComponentsBuilder.fromCurrentContextPath().path(SSL_ROOT_CERTIFICATE_PATH).build().toUriString(),
 							"sslRootCert"));
 		}
 
