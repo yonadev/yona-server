@@ -10,6 +10,7 @@ import groovy.json.*
 
 import java.time.ZonedDateTime
 
+import net.sf.json.groovy.JsonSlurper
 import nu.yona.server.YonaServer
 
 class User
@@ -40,6 +41,8 @@ class User
 	final String resendPinResetConfirmationCodeUrl
 	final String clearPinResetUrl
 	final String sslRootCertUrl
+	final String appleMobileConfig
+	final String sslRootCertCN
 	final String password
 
 	User(def json, String password)
@@ -88,6 +91,8 @@ class User
 		this.resendPinResetConfirmationCodeUrl = json._links?."yona:resendPinResetConfirmationCode"?.href
 		this.clearPinResetUrl = json._links?."yona:clearPinReset"?.href
 		this.sslRootCertUrl = json._links?."yona:sslRootCert"?.href
+		this.appleMobileConfig = json._links?."yona:appleMobileConfig"?.href
+		this.sslRootCertCN = json.sslRootCertCN
 	}
 
 	def convertToJSON()

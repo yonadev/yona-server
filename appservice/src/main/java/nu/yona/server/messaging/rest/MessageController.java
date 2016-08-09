@@ -162,7 +162,7 @@ public class MessageController
 	public static Link getMessagesLink(UUID userID)
 	{
 		ControllerLinkBuilder linkBuilder = linkTo(
-				methodOn(MessageController.class).getMessages(Optional.empty(), Boolean.FALSE.toString(), userID, null, null));
+				methodOn(MessageController.class).getMessages(Optional.empty(), null, userID, null, null));
 		return linkBuilder.withRel("messages");
 	}
 

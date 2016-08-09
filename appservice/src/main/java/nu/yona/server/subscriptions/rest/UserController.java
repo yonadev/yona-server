@@ -8,6 +8,13 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
+import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Paths;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,11 +22,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
@@ -27,10 +38,12 @@ import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.velocity.VelocityEngineUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,6 +64,7 @@ import nu.yona.server.analysis.rest.AppActivityController;
 import nu.yona.server.analysis.rest.UserActivityController;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.ConfirmationException;
+import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.messaging.rest.MessageController;
@@ -71,6 +85,8 @@ import nu.yona.server.subscriptions.service.VPNProfileDTO;
 @RequestMapping(value = "/users", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class UserController
 {
+	private static final String SSL_ROOT_CERTIFICATE_PATH = "/ssl/rootcert.cer";
+
 	private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
 	@Autowired
@@ -90,6 +106,9 @@ public class UserController
 
 	@Autowired
 	private PinResetRequestController pinResetRequestController;
+
+	@Autowired
+	private VelocityEngine velocityEngine;
 
 	@RequestMapping(value = "/{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
@@ -120,20 +139,25 @@ public class UserController
 		return createOKResponse(userService.getPublicUser(id), false);
 	}
 
-	@RequestMapping(value = "/{id}/vpnAuthCertificate.crt", produces = { "application/x-x509-user-cert" })
-	public @ResponseBody byte[] getVpnAuthCertificate(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID id)
-	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
-				() -> userService.getPrivateUser(id).getPrivateData().getVpnProfile().getVpnAuthCertificateByteArray());
-	}
-
-	@RequestMapping(value = "/{id}/apple.mobileconfig", produces = { "application/x-apple-aspen-config" })
-	public @ResponseBody String getVpnAppleMobileConfig(
+	@RequestMapping(value = "/{id}/apple.mobileconfig", method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<byte[]> getAppleMobileConfig(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
 	{
-		// TODO: use template, substitute VPN username and password
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> "");
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(new MediaType("application", "x-apple-aspen-config"));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
+				() -> new ResponseEntity<byte[]>(getUserSpecificAppleMobileConfig(userService.getPrivateUser(id)), headers,
+						HttpStatus.OK));
+	}
+
+	private byte[] getUserSpecificAppleMobileConfig(UserDTO privateUser)
+	{
+		Map<String, Object> templateParameters = new HashMap<String, Object>();
+		templateParameters.put("ldapUsername", privateUser.getPrivateData().getVpnProfile().getVpnLoginID().toString());
+		templateParameters.put("ldapPassword", privateUser.getPrivateData().getVpnProfile().getVpnPassword());
+		return VelocityEngineUtils.mergeTemplateIntoString(velocityEngine, "apple.mobileconfig.vm", "UTF-8", templateParameters)
+				.getBytes(StandardCharsets.UTF_8);
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)
@@ -320,6 +344,39 @@ public class UserController
 			this.curieProvider = curieProvider;
 		}
 
+		@JsonProperty("sslRootCertCN")
+		@JsonInclude(Include.NON_EMPTY)
+		public String getSslRootCertCN()
+		{
+			if (!includeLinksAndEmbeddedData())
+			{
+				return null;
+			}
+
+			try (InputStream certInputStream = new ClassPathResource(Paths.get("static", SSL_ROOT_CERTIFICATE_PATH).toString())
+					.getInputStream())
+			{
+				X509Certificate cert = (X509Certificate) CertificateFactory.getInstance("X.509")
+						.generateCertificate(certInputStream);
+				String dn = cert.getIssuerX500Principal().getName();
+				LdapName ln = new LdapName(dn);
+				return ln.getRdns().stream().filter(rdn -> rdn.getType().equalsIgnoreCase("CN")).findFirst().get().getValue()
+						.toString();
+			}
+			catch (IOException e)
+			{
+				throw YonaException.unexpected(e);
+			}
+			catch (CertificateException e)
+			{
+				throw YonaException.unexpected(e);
+			}
+			catch (InvalidNameException e)
+			{
+				throw YonaException.unexpected(e);
+			}
+		}
+
 		@JsonProperty("_embedded")
 		@JsonInclude(Include.NON_EMPTY)
 		public Map<String, Object> getEmbeddedResources()
@@ -417,15 +474,23 @@ public class UserController
 					addAppActivityLink(userResource);
 					pinResetRequestController.addLinks(userResource);
 					addSslRootCertificateLink(userResource);
+					addAppleMobileConfigLink(userResource);
 				}
 			}
 			return userResource;
 		}
 
+		private void addAppleMobileConfigLink(UserResource userResource)
+		{
+			userResource.add(linkTo(
+					methodOn(UserController.class).getAppleMobileConfig(Optional.empty(), userResource.getContent().getID()))
+							.withRel("appleMobileConfig"));
+		}
+
 		private void addSslRootCertificateLink(Resource<UserDTO> userResource)
 		{
-			userResource.add(
-					new Link(ServletUriComponentsBuilder.fromCurrentContextPath().path("/ssl/rootcert.cer").build().toUriString(),
+			userResource.add(new Link(
+					ServletUriComponentsBuilder.fromCurrentContextPath().path(SSL_ROOT_CERTIFICATE_PATH).build().toUriString(),
 							"sslRootCert"));
 		}
 
