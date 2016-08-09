@@ -298,14 +298,13 @@ public class MessageController
 			String dateStr = DayActivityDTO.formatDate(message.getActivityStartTime().toLocalDate());
 			if (message.isFromBuddy())
 			{
-				UUID goalID = null; // TODO
 				message.add(BuddyActivityController.getBuddyDayActivityDetailLinkBuilder(goalIDMapping.getUserID(),
-						message.getBuddyID().get(), dateStr, goalID).withRel("dayActivityDetail"));
+						message.getBuddyID().get(), dateStr, message.getGoalID()).withRel("dayActivityDetail"));
 			}
 			else
 			{
-				UUID goalID = null; // TODO
-				message.add(UserActivityController.getUserDayActivityDetailLinkBuilder(goalIDMapping.getUserID(), dateStr, goalID)
+				message.add(UserActivityController
+						.getUserDayActivityDetailLinkBuilder(goalIDMapping.getUserID(), dateStr, message.getGoalID())
 						.withRel("dayActivityDetail"));
 			}
 		}

@@ -44,15 +44,17 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private final Status status;
 	private final ZonedDateTime activityStartTime;
 	private final ZonedDateTime activityEndTime;
+	private final UUID goalID;
 	private final UUID activityCategoryID;
 
 	private GoalConflictMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, String nickname, Optional<UUID> buddyID,
-			UUID activityCategoryID, Optional<String> url, Status status, ZonedDateTime activityStartTime,
+			UUID goalID, UUID activityCategoryID, Optional<String> url, Status status, ZonedDateTime activityStartTime,
 			ZonedDateTime activityEndTime)
 	{
 		super(id, creationTime, isRead);
 		this.nickname = nickname;
 		this.buddyID = buddyID;
+		this.goalID = goalID;
 		this.activityCategoryID = activityCategoryID;
 		this.url = url;
 		this.status = status;
@@ -92,6 +94,12 @@ public class GoalConflictMessageDTO extends MessageDTO
 	public Optional<UUID> getBuddyID()
 	{
 		return buddyID;
+	}
+
+	@JsonIgnore
+	public UUID getGoalID()
+	{
+		return goalID;
 	}
 
 	@JsonIgnore
@@ -144,7 +152,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 		}
 
 		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				nickname, buddyID, messageEntity.getActivity().getActivityCategory().getID(),
+				nickname, buddyID, messageEntity.getGoal().getID(), messageEntity.getActivity().getActivityCategory().getID(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : Optional.empty(), messageEntity.getStatus(),
 				messageEntity.getActivity().getStartTime(), messageEntity.getActivity().getEndTime());
 	}

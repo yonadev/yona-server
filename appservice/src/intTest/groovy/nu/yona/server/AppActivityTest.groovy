@@ -12,6 +12,7 @@ import java.time.Duration
 import java.time.ZonedDateTime
 
 import nu.yona.server.test.AppActivity
+import nu.yona.server.test.Goal
 
 class AppActivityTest extends AbstractAppServiceIntegrationTest
 {
@@ -50,6 +51,10 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, "W-1 Mon 02:18")
+		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
+		Goal goalRichard = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
+		Goal goalBuddyRichard = bob.buddies[0].findActiveGoal(GAMBLING_ACT_CAT_URL)
 		ZonedDateTime testStartTime = YonaServer.now
 		ZonedDateTime startTime = testStartTime.minusHours(1)
 		ZonedDateTime endTime = testStartTime
@@ -67,6 +72,12 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		goalConflictMessagesRichard[0].nickname == "<self>"
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
 		goalConflictMessagesRichard[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
+		def dayActivityDetailUrlRichard = goalConflictMessagesRichard[0]._links."yona:dayActivityDetail".href
+		dayActivityDetailUrlRichard
+		def dayActivityDetailRichard = appService.getResourceWithPassword(dayActivityDetailUrlRichard, richard.password)
+		dayActivityDetailRichard.status == 200
+		dayActivityDetailRichard.responseData.date == YonaServer.toIsoDayString(goalConflictTime)
+		dayActivityDetailRichard.responseData._links."yona:goal".href == goalRichard.url
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
@@ -77,6 +88,12 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		assertEquals(goalConflictMessagesBob[0].activityStartTime, startTime)
 		assertEquals(goalConflictMessagesBob[0].activityEndTime, endTime)
 		goalConflictMessagesBob[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
+		def dayActivityDetailUrlBob = goalConflictMessagesBob[0]._links."yona:dayActivityDetail".href
+		dayActivityDetailUrlBob
+		def dayActivityDetailBob = appService.getResourceWithPassword(dayActivityDetailUrlBob, bob.password)
+		dayActivityDetailBob.status == 200
+		dayActivityDetailBob.responseData.date == YonaServer.toIsoDayString(goalConflictTime)
+		dayActivityDetailBob.responseData._links."yona:goal".href == goalBuddyRichard.url
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -299,7 +316,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		// Try posting an event that starts 5 seconds before the goal creation time and ends 5 seconds in the future
 		ZonedDateTime startTime = YonaServer.relativeDateTimeStringToZonedDateTime(goalCreationTimeStr).minusSeconds(5)
 		ZonedDateTime endTime = testStartTime.plusSeconds(5)
-		
+
 		when:
 		def response = appService.postAppActivityToAnalysisEngine(richard,
 				new AppActivity([new AppActivity.Activity("Poker App", startTime, endTime)].toArray()))
