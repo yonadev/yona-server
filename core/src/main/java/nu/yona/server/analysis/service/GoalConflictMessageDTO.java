@@ -39,17 +39,20 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private static final String SELF_NICKNAME = "<self>";
 	private static final String REQUEST_DISCLOSURE = "requestDisclosure";
 	private final String nickname;
+	private final Optional<UUID> buddyID;
 	private final Optional<String> url;
 	private final Status status;
 	private final ZonedDateTime activityStartTime;
 	private final ZonedDateTime activityEndTime;
 	private final UUID activityCategoryID;
 
-	private GoalConflictMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, String nickname, UUID activityCategoryID,
-			Optional<String> url, Status status, ZonedDateTime activityStartTime, ZonedDateTime activityEndTime)
+	private GoalConflictMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, String nickname, Optional<UUID> buddyID,
+			UUID activityCategoryID, Optional<String> url, Status status, ZonedDateTime activityStartTime,
+			ZonedDateTime activityEndTime)
 	{
 		super(id, creationTime, isRead);
 		this.nickname = nickname;
+		this.buddyID = buddyID;
 		this.activityCategoryID = activityCategoryID;
 		this.url = url;
 		this.status = status;
@@ -74,14 +77,21 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return possibleActions;
 	}
 
-	private boolean isFromBuddy()
+	@JsonIgnore
+	public boolean isFromBuddy()
 	{
-		return nickname != null && !nickname.equals(SELF_NICKNAME);
+		return buddyID.isPresent();
 	}
 
 	public String getNickname()
 	{
 		return nickname;
+	}
+
+	@JsonIgnore
+	public Optional<UUID> getBuddyID()
+	{
+		return buddyID;
 	}
 
 	@JsonIgnore
@@ -118,10 +128,23 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return true;
 	}
 
-	public static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, String nickname)
+	public static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, Optional<BuddyDTO> buddy)
 	{
+		String nickname;
+		Optional<UUID> buddyID;
+		if (buddy.isPresent())
+		{
+			nickname = buddy.get().getNickname();
+			buddyID = Optional.of(buddy.get().getID());
+		}
+		else
+		{
+			nickname = SELF_NICKNAME;
+			buddyID = Optional.empty();
+		}
+
 		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				nickname, messageEntity.getActivity().getActivityCategory().getID(),
+				nickname, buddyID, messageEntity.getActivity().getActivityCategory().getID(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : Optional.empty(), messageEntity.getStatus(),
 				messageEntity.getActivity().getStartTime(), messageEntity.getActivity().getEndTime());
 	}
@@ -150,8 +173,8 @@ public class GoalConflictMessageDTO extends MessageDTO
 		@Override
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return GoalConflictMessageDTO.createInstance((GoalConflictMessage) messageEntity,
-					getNickname(actingUser, (GoalConflictMessage) messageEntity));
+			Optional<BuddyDTO> buddy = getBuddy(actingUser, (GoalConflictMessage) messageEntity);
+			return GoalConflictMessageDTO.createInstance((GoalConflictMessage) messageEntity, buddy);
 		}
 
 		@Override
@@ -188,12 +211,12 @@ public class GoalConflictMessageDTO extends MessageDTO
 			return GoalConflictMessage.getRepository().save(messageEntity);
 		}
 
-		private String getNickname(UserDTO actingUser, GoalConflictMessage messageEntity)
+		private Optional<BuddyDTO> getBuddy(UserDTO actingUser, GoalConflictMessage messageEntity)
 		{
 			UUID userAnonymizedID = messageEntity.getRelatedUserAnonymizedID();
 			if (actingUser.getPrivateData().getUserAnonymizedID().equals(userAnonymizedID))
 			{
-				return SELF_NICKNAME;
+				return Optional.empty();
 			}
 
 			Set<BuddyDTO> buddies = buddyService.getBuddies(actingUser.getPrivateData().getBuddyIDs());
@@ -201,7 +224,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 			{
 				if (buddy.getUserAnonymizedID().filter(id -> id.equals(userAnonymizedID)).isPresent())
 				{
-					return buddy.getNickname();
+					return Optional.of(buddy);
 				}
 			}
 			throw new IllegalStateException("Cannot find buddy for user anonymized ID '" + userAnonymizedID + "'");

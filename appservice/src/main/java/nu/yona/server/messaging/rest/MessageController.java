@@ -44,6 +44,7 @@ import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.analysis.rest.BuddyActivityController;
 import nu.yona.server.analysis.rest.UserActivityController;
 import nu.yona.server.analysis.service.ActivityCommentMessageDTO;
+import nu.yona.server.analysis.service.DayActivityDTO;
 import nu.yona.server.analysis.service.GoalConflictMessageDTO;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.ActivityCategoryController;
@@ -98,10 +99,8 @@ public class MessageController
 	public HttpEntity<MessageDTO> getMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userID, @PathVariable UUID messageID)
 	{
-
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
 				toMessageResource(createGoalIDMapping(userID), messageService.getMessage(userID, messageID))));
-
 	}
 
 	private GoalIDMapping createGoalIDMapping(UUID userID)
@@ -274,7 +273,7 @@ public class MessageController
 			}
 			if (message instanceof GoalConflictMessageDTO)
 			{
-				addActivityCategoryLink((GoalConflictMessageDTO) message);
+				addGoalConflictMessageLinks((GoalConflictMessageDTO) message);
 			}
 			if (message instanceof GoalChangeMessageDTO)
 			{
@@ -292,10 +291,23 @@ public class MessageController
 					.getActivityCategoryLinkBuilder(message.getChangedGoal().getActivityCategoryID()).withRel("related"));
 		}
 
-		private void addActivityCategoryLink(GoalConflictMessageDTO message)
+		private void addGoalConflictMessageLinks(GoalConflictMessageDTO message)
 		{
 			message.add(ActivityCategoryController.getActivityCategoryLinkBuilder(message.getActivityCategoryID())
 					.withRel("activityCategory"));
+			String dateStr = DayActivityDTO.formatDate(message.getActivityStartTime().toLocalDate());
+			if (message.isFromBuddy())
+			{
+				UUID goalID = null; // TODO
+				message.add(BuddyActivityController.getBuddyDayActivityDetailLinkBuilder(goalIDMapping.getUserID(),
+						message.getBuddyID().get(), dateStr, goalID).withRel("dayActivityDetail"));
+			}
+			else
+			{
+				UUID goalID = null; // TODO
+				message.add(UserActivityController.getUserDayActivityDetailLinkBuilder(goalIDMapping.getUserID(), dateStr, goalID)
+						.withRel("dayActivityDetail"));
+			}
 		}
 
 		private void embedBuddyUserIfAvailable(BuddyMessageEmbeddedUserDTO buddyMessage)
