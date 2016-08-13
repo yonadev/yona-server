@@ -299,7 +299,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		// Try posting an event that starts 5 seconds before the goal creation time and ends 5 seconds in the future
 		ZonedDateTime startTime = YonaServer.relativeDateTimeStringToZonedDateTime(goalCreationTimeStr).minusSeconds(5)
 		ZonedDateTime endTime = testStartTime.plusSeconds(5)
-		
+
 		when:
 		def response = appService.postAppActivityToAnalysisEngine(richard,
 				new AppActivity([new AppActivity.Activity("Poker App", startTime, endTime)].toArray()))

@@ -2417,6 +2417,7 @@ definitions:
           - $ref: '#/definitions/MarkReadLink'
           - $ref: '#/definitions/MarkUnreadLink'
           - $ref: '#/definitions/ActivityCategoryLink'
+          - $ref: '#/definitions/DayDetailsLink'
         properties:
           "yona:requestDisclosure":
             properties:
