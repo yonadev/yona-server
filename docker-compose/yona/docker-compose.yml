@@ -17,6 +17,27 @@ hsqldb:
     - "9001"
 
 ###########################################
+# Cache
+###########################################
+
+hazelcast:
+  image: hazelcast/hazelcast
+  restart: unless-stopped
+  environment:
+    - JAVA_OPTS="-Dhazelcast.config=./config/hazelcast.xml"
+  expose:
+    - "9002"
+	
+hazelcast-management-center:
+  image: hazelcast/management-center
+  environment:
+    - HAZELCAST_IP={{hazelcast || container_private_ip}}
+  ports:
+    - 8090:8080
+  links:
+    - hazelcast
+	
+###########################################
 # Services
 ###########################################
 
