@@ -623,7 +623,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		reportAppActivity(bob, "Facebook", "W-2 Thu 20:00", "W-2 Thu 20:35")
 
 		// Friday
-		// TODO This should work! reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 09:00") // Should be ignored, as there was no goal yet
+		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 09:00") // Should be ignored, as there was no goal yet
 		TimeZoneGoal timeZoneGoalMultimediaBobBeforeUpdate = addTimeZoneGoal(bob, MULTIMEDIA_ACT_CAT_URL, ["20:00-22:00"], "W-2 Fri 14:00")
 		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 15:00")
 		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 21:00")
