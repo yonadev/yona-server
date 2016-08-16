@@ -333,7 +333,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		richardGoalConflictMessages[0].nickname == bob.nickname
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 		richardGoalConflictMessages[0].url == null
-		def dayActivityDetailUrlRichard = richardGoalConflictMessages[0]._links."yona:dayActivityDetail".href
+		def dayActivityDetailUrlRichard = richardGoalConflictMessages[0]._links."yona:dayDetails".href
 		dayActivityDetailUrlRichard
 		def dayActivityDetailRichard = appService.getResourceWithPassword(dayActivityDetailUrlRichard, richard.password)
 		dayActivityDetailRichard.status == 200
@@ -347,7 +347,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		bobGoalConflictMessages[0].nickname == "<self>"
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 		bobGoalConflictMessages[0].url == "http://www.poker.com"
-		def dayActivityDetailUrlBob = bobGoalConflictMessages[0]._links."yona:dayActivityDetail".href
+		def dayActivityDetailUrlBob = bobGoalConflictMessages[0]._links."yona:dayDetails".href
 		dayActivityDetailUrlBob
 		def dayActivityDetailBob = appService.getResourceWithPassword(dayActivityDetailUrlBob, bob.password)
 		dayActivityDetailBob.status == 200
