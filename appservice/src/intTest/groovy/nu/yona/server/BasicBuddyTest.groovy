@@ -195,6 +195,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded."yona:affectedMessages".size() == 1
 		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == connectResponseMessage.selfURL
 		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
+		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:buddy" != null
 
 		def buddies = appService.getBuddies(richard)
 		buddies.size() == 1
@@ -202,6 +203,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddies[0].nickname == bob.nickname
 		buddies[0].sendingStatus == "ACCEPTED"
 		buddies[0].receivingStatus == "ACCEPTED"
+		buddies[0].url == connectResponseMessage.buddyURL
 
 		def richardWithBuddy = appService.reloadUser(richard)
 		richardWithBuddy.buddies != null

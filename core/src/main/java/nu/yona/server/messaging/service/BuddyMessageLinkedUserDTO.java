@@ -12,14 +12,15 @@ import nu.yona.server.subscriptions.service.UserDTO;
 public abstract class BuddyMessageLinkedUserDTO extends BuddyMessageDTO
 {
 
-	protected BuddyMessageLinkedUserDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, String nickname, String message)
-	{
-		super(id, creationTime, isRead, user, nickname, message);
-	}
-
-	protected BuddyMessageLinkedUserDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UUID relatedMessageID, UserDTO user, String nickname,
+	protected BuddyMessageLinkedUserDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UserDTO user,
 			String message)
 	{
-		super(id, creationTime, isRead, relatedMessageID, user, nickname, message);
+		super(id, sender, creationTime, isRead, user, message);
+	}
+
+	protected BuddyMessageLinkedUserDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead,
+			UUID relatedMessageID, UserDTO senderUser, String message)
+	{
+		super(id, sender, creationTime, isRead, relatedMessageID, senderUser, message);
 	}
 }

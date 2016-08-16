@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
@@ -28,8 +25,8 @@ public class DisclosureResponseMessage extends BuddyMessage
 
 	}
 
-	private DisclosureResponseMessage(UUID id, UUID senderUserID, UUID senderUserAnonymizedID,
-			UUID targetGoalConflictMessageID, Status status, String senderNickname, String message)
+	private DisclosureResponseMessage(UUID id, UUID senderUserID, UUID senderUserAnonymizedID, UUID targetGoalConflictMessageID,
+			Status status, String senderNickname, String message)
 	{
 		super(id, senderUserID, senderUserAnonymizedID, senderNickname, message);
 		this.targetGoalConflictMessageID = targetGoalConflictMessageID;
@@ -61,7 +58,7 @@ public class DisclosureResponseMessage extends BuddyMessage
 	public static DisclosureResponseMessage createInstance(UUID senderUserID, UUID senderUserAnonymizedID,
 			UUID targetGoalConflictMessageID, Status status, String senderNickname, String message)
 	{
-		return new DisclosureResponseMessage(UUID.randomUUID(), senderUserID, senderUserAnonymizedID,
-				targetGoalConflictMessageID, status, senderNickname, message);
+		return new DisclosureResponseMessage(UUID.randomUUID(), senderUserID, senderUserAnonymizedID, targetGoalConflictMessageID,
+				status, senderNickname, message);
 	}
 }

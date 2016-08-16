@@ -8,8 +8,6 @@ package nu.yona.server
 
 import groovy.json.*
 
-import java.time.ZonedDateTime
-
 class DisclosureTest extends AbstractAppServiceIntegrationTest
 {
 	def 'Disclosure link is available to buddy, not to <self>'()
@@ -79,6 +77,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureRequestMessages[0]._links?.related?.href == getRichardMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links.self.href
 		disclosureRequestMessages[0]._links."yona:accept"?.href
 		disclosureRequestMessages[0]._links."yona:reject"?.href
+		disclosureRequestMessages[0]._links."yona:dayDetails"?.href
 
 		assertMarkReadUnread(richard, disclosureRequestMessages[0])
 
@@ -118,6 +117,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureRequestMessages[0].status == "DISCLOSURE_ACCEPTED"
 		disclosureRequestMessages[0]._links."yona:accept" == null
 		disclosureRequestMessages[0]._links."yona:reject" == null
+		disclosureRequestMessages[0]._links."yona:dayDetails"?.href
 
 		def getBobMessagesResponse = appService.getMessages(bob)
 		getBobMessagesResponse.status == 200
@@ -135,6 +135,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureResponseMessage._links?.related?.href == goalConflictMessages[0]._links.self.href
 		disclosureResponseMessage._links?."yona:user"?.href == richard.url
 		disclosureResponseMessage._embedded?."yona:user" == null
+		disclosureResponseMessage._links."yona:dayDetails"?.href
 
 		assertMarkReadUnread(bob, disclosureResponseMessage)
 
@@ -181,6 +182,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureRequestMessages[0].status == "DISCLOSURE_REJECTED"
 		disclosureRequestMessages[0]._links."yona:accept" == null
 		disclosureRequestMessages[0]._links."yona:reject" == null
+		disclosureRequestMessages[0]._links."yona:dayDetails"?.href
 
 		def getBobMessagesResponse = appService.getMessages(bob)
 		getBobMessagesResponse.status == 200
@@ -197,6 +199,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureResponseMessage._links?.related?.href == goalConflictMessages[0]._links.self.href
 		disclosureResponseMessage._links?."yona:user"?.href == richard.url
 		disclosureResponseMessage._embedded?."yona:user" == null
+		disclosureResponseMessage._links."yona:dayDetails"?.href
 
 		//check delete
 		disclosureResponseMessage._links.edit
