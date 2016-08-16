@@ -309,13 +309,14 @@ public class MessageController
 			if (message.isFromBuddy())
 			{
 				message.add(BuddyActivityController.getBuddyDayActivityDetailLinkBuilder(goalIDMapping.getUserID(),
-						message.getBuddyID().get(), dateStr, message.getGoalID()).withRel("dayActivityDetail"));
+						message.getBuddyID().get(), dateStr, message.getGoalID())
+						.withRel(BuddyActivityController.DAY_DETAIL_LINK));
 			}
 			else
 			{
 				message.add(UserActivityController
 						.getUserDayActivityDetailLinkBuilder(goalIDMapping.getUserID(), dateStr, message.getGoalID())
-						.withRel("dayActivityDetail"));
+						.withRel(UserActivityController.DAY_DETAIL_LINK));
 			}
 		}
 
