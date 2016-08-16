@@ -455,6 +455,7 @@ public class UserService
 	 * @param id the ID of the user
 	 * @return The user entity (never null)
 	 */
+	@Transactional
 	public User getUserEntityByID(UUID id)
 	{
 		if (id == null)

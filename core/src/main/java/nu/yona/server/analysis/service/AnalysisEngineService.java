@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,6 +55,7 @@ public class AnalysisEngineService
 	@Autowired(required = false)
 	private DayActivityRepository dayActivityRepository;
 
+	@Transactional
 	public void analyze(UUID userAnonymizedID, AppActivityDTO appActivities)
 	{
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
@@ -69,7 +72,8 @@ public class AnalysisEngineService
 	private Duration determineDeviceTimeOffset(AppActivityDTO appActivities)
 	{
 		Duration offset = Duration.between(ZonedDateTime.now(), appActivities.getDeviceDateTime());
-		return (offset.abs().compareTo(DEVICE_TIME_INACCURACY_MARGIN) > 0) ? offset : Duration.ZERO; // Ignore if less than 10 seconds
+		return (offset.abs().compareTo(DEVICE_TIME_INACCURACY_MARGIN) > 0) ? offset : Duration.ZERO; // Ignore if less than 10
+																										// seconds
 	}
 
 	private ActivityPayload createActivityPayload(Duration deviceTimeOffset, AppActivityDTO.Activity appActivity,
@@ -85,13 +89,17 @@ public class AnalysisEngineService
 	private void validateTimes(UserAnonymizedDTO userAnonymized, String application, ZonedDateTime correctedStartTime,
 			ZonedDateTime correctedEndTime)
 	{
-		if (correctedEndTime.isBefore(correctedStartTime)) {
-			throw AnalysisException.appActivityStartAfterEnd(userAnonymized.getID(), application, correctedStartTime, correctedEndTime);
+		if (correctedEndTime.isBefore(correctedStartTime))
+		{
+			throw AnalysisException.appActivityStartAfterEnd(userAnonymized.getID(), application, correctedStartTime,
+					correctedEndTime);
 		}
-		if (correctedStartTime.isAfter(ZonedDateTime.now().plus(DEVICE_TIME_INACCURACY_MARGIN))) {
+		if (correctedStartTime.isAfter(ZonedDateTime.now().plus(DEVICE_TIME_INACCURACY_MARGIN)))
+		{
 			throw AnalysisException.appActivityStartsInFuture(userAnonymized.getID(), application, correctedStartTime);
 		}
-		if (correctedEndTime.isAfter(ZonedDateTime.now().plus(DEVICE_TIME_INACCURACY_MARGIN))) {
+		if (correctedEndTime.isAfter(ZonedDateTime.now().plus(DEVICE_TIME_INACCURACY_MARGIN)))
+		{
 			throw AnalysisException.appActivityEndsInFuture(userAnonymized.getID(), application, correctedEndTime);
 		}
 	}
@@ -101,6 +109,7 @@ public class AnalysisEngineService
 		return time.minus(deviceTimeOffset);
 	}
 
+	@Transactional
 	public void analyze(NetworkActivityDTO networkActivity)
 	{
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(networkActivity.getVPNLoginID());
@@ -338,6 +347,7 @@ public class AnalysisEngineService
 		return dayActivity;
 	}
 
+	@Transactional
 	public Set<String> getRelevantSmoothwallCategories()
 	{
 		return activityCategoryService.getAllActivityCategories().stream().flatMap(g -> g.getSmoothwallCategories().stream())
@@ -363,7 +373,8 @@ public class AnalysisEngineService
 		Set<GoalDTO> goalsOfUser = userAnonymized.getGoals();
 		Set<GoalDTO> matchingGoalsOfUser = goalsOfUser.stream().filter(g -> !g.isHistoryItem())
 				.filter(g -> matchingActivityCategoryIDs.contains(g.getActivityCategoryID()))
-				.filter(g -> g.getCreationTime().get().isBefore(activityStartTime.plus(DEVICE_TIME_INACCURACY_MARGIN))).collect(Collectors.toSet());
+				.filter(g -> g.getCreationTime().get().isBefore(activityStartTime.plus(DEVICE_TIME_INACCURACY_MARGIN)))
+				.collect(Collectors.toSet());
 		return matchingGoalsOfUser;
 	}
 
