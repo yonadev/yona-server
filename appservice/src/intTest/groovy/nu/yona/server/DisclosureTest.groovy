@@ -7,6 +7,7 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.Goal
 
 class DisclosureTest extends AbstractAppServiceIntegrationTest
 {
@@ -53,6 +54,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
 		def goalConflictMessage = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]
 		def disclosureRequestURL = goalConflictMessage._links."yona:requestDisclosure".href
+		Goal goalRichard = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
 
 		when:
 		def requestMessageText = "Can I have a look?"
@@ -77,7 +79,13 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureRequestMessages[0]._links?.related?.href == getRichardMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links.self.href
 		disclosureRequestMessages[0]._links."yona:accept"?.href
 		disclosureRequestMessages[0]._links."yona:reject"?.href
-		disclosureRequestMessages[0]._links."yona:dayDetails"?.href
+		// link to own activity present
+		def dayDetailsUrlRichard = disclosureRequestMessages[0]._links."yona:dayDetails"?.href
+		dayDetailsUrlRichard
+		def dayActivityDetailRichard = appService.getResourceWithPassword(dayDetailsUrlRichard, richard.password)
+		dayActivityDetailRichard.status == 200
+		dayActivityDetailRichard.responseData.date == YonaServer.toIsoDayString(YonaServer.now)
+		dayActivityDetailRichard.responseData._links."yona:goal".href == goalRichard.url
 
 		assertMarkReadUnread(richard, disclosureRequestMessages[0])
 
@@ -97,6 +105,8 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		appService.postMessageActionWithPassword(disclosureRequestURL, [ : ], bob.password)
 		def disclosureRequestMessage = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "DisclosureRequestMessage"}[0]
 		def disclosureRequestAcceptURL = disclosureRequestMessage._links."yona:accept".href
+		bob = appService.reloadUser(bob)
+		Goal goalBuddyRichard = bob.buddies[0].findActiveGoal(GAMBLING_ACT_CAT_URL)
 
 		when:
 		def responseMessageText = "Sure!"
@@ -135,7 +145,13 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureResponseMessage._links?.related?.href == goalConflictMessages[0]._links.self.href
 		disclosureResponseMessage._links?."yona:user"?.href == richard.url
 		disclosureResponseMessage._embedded?."yona:user" == null
-		disclosureResponseMessage._links."yona:dayDetails"?.href
+		// link to Richard's activity present
+		def dayDetailsUrl = disclosureResponseMessage._links."yona:dayDetails"?.href
+		dayDetailsUrl
+		def dayActivityDetail = appService.getResourceWithPassword(dayDetailsUrl, bob.password)
+		dayActivityDetail.status == 200
+		dayActivityDetail.responseData.date == YonaServer.toIsoDayString(YonaServer.now)
+		dayActivityDetail.responseData._links."yona:goal".href == goalBuddyRichard.url
 
 		assertMarkReadUnread(bob, disclosureResponseMessage)
 
@@ -199,7 +215,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureResponseMessage._links?.related?.href == goalConflictMessages[0]._links.self.href
 		disclosureResponseMessage._links?."yona:user"?.href == richard.url
 		disclosureResponseMessage._embedded?."yona:user" == null
-		disclosureResponseMessage._links."yona:dayDetails"?.href
+		disclosureResponseMessage._links."yona:dayDetails" == null
 
 		//check delete
 		disclosureResponseMessage._links.edit

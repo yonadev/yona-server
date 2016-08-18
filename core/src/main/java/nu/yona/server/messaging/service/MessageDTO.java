@@ -24,6 +24,7 @@ import nu.yona.server.Constants;
 import nu.yona.server.analysis.service.ActivityCommentMessageDTO;
 import nu.yona.server.analysis.service.GoalConflictMessageDTO;
 import nu.yona.server.goals.service.GoalChangeMessageDTO;
+import nu.yona.server.messaging.entities.BuddyMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
@@ -170,6 +171,15 @@ public abstract class MessageDTO extends PolymorphicDTO
 					return SenderInfo.createInstanceBuddy(buddy.getUser().getID(), buddy.getNickname(), buddy.getID());
 				}
 			}
+
+			if (messageEntity instanceof BuddyMessage)
+			{
+				BuddyMessage buddyMessageEntity = (BuddyMessage) messageEntity;
+				// this buddy may be not yet connected or no longer connected
+				return SenderInfo.createInstanceBuddyNotPresent(buddyMessageEntity.getSenderUserID(),
+						buddyMessageEntity.getSenderNickname());
+			}
+
 			throw new IllegalStateException("Cannot find buddy for user anonymized ID '" + userAnonymizedID + "'");
 		}
 	}
@@ -198,6 +208,11 @@ public abstract class MessageDTO extends PolymorphicDTO
 			return new SenderInfo(userID, nickname, true, Optional.of(buddyID));
 		}
 
+		public static SenderInfo createInstanceBuddyNotPresent(UUID userID, String nickname)
+		{
+			return new SenderInfo(userID, nickname, true, Optional.empty());
+		}
+
 		public static SenderInfo createInstanceBuddyDetached(UserDTO user, String nickname)
 		{
 			// user may be null if removed
@@ -206,7 +221,8 @@ public abstract class MessageDTO extends PolymorphicDTO
 
 		public static SenderInfo createInstanceSelf(UUID userID, String nickname)
 		{
-			return new SenderInfo(userID, nickname, false, Optional.empty());
+			// TODO: return real nickname?
+			return new SenderInfo(userID, "<self>", false, Optional.empty());
 		}
 	}
 }

@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.analysis.rest.BuddyActivityController;
 import nu.yona.server.analysis.rest.UserActivityController;
@@ -289,15 +290,34 @@ public class MessageController
 			}
 			if (message instanceof DisclosureResponseMessageDTO)
 			{
-				addDayActivityDetailLink((DisclosureResponseMessageDTO) message);
+				addDayActivityDetailLinkIfDisclosureAccepted((DisclosureResponseMessageDTO) message);
 			}
 			if (message instanceof GoalChangeMessageDTO)
 			{
-				addRelatedActivityCategoryLink((GoalChangeMessageDTO) message);
+				addGoalChangeMessageLinks((GoalChangeMessageDTO) message);
 			}
 			if (message instanceof ActivityCommentMessageDTO)
 			{
 				addActivityCommentMessageLinks((ActivityCommentMessageDTO) message);
+			}
+		}
+
+		private void addGoalChangeMessageLinks(GoalChangeMessageDTO message)
+		{
+			addRelatedActivityCategoryLink(message);
+			addDayActivityOverviewLink(message);
+		}
+
+		private void addDayActivityOverviewLink(GoalChangeMessageDTO message)
+		{
+
+		}
+
+		private void addDayActivityDetailLinkIfDisclosureAccepted(DisclosureResponseMessageDTO message)
+		{
+			if (message.getStatus() == GoalConflictMessage.Status.DISCLOSURE_ACCEPTED)
+			{
+				addDayActivityDetailLink(message);
 			}
 		}
 

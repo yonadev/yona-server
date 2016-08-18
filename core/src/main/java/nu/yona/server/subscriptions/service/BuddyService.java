@@ -216,7 +216,7 @@ public class BuddyService
 		final int pageSize = 50;
 		Page<Message> messagePage;
 		boolean messageFound = false;
-		UserDTO user = UserDTO.createInstance(userEntity);
+		UserDTO user = userService.createUserDTOWithPrivateData(userEntity);
 		do
 		{
 			messagePage = messageService.getReceivedMessageEntities(user.getID(), new PageRequest(page++, pageSize));
