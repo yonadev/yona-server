@@ -47,8 +47,8 @@ import nu.yona.server.subscriptions.service.UserService;
  */
 abstract class ActivityControllerBase
 {
-	public static final String WEEK_DETAIL_LINK = "weekDetails";
 	public static final String DAY_DETAIL_LINK = "dayDetails";
+	public static final String WEEK_DETAIL_LINK = "weekDetails";
 
 	@Autowired
 	protected ActivityService activityService;
