@@ -163,7 +163,9 @@ public abstract class MessageDTO extends PolymorphicDTO
 				return SenderInfo.createInstanceSelf(actingUser.getID(), actingUser.getPrivateData().getNickname());
 			}
 
-			Set<BuddyDTO> buddies = buddyService.getBuddies(actingUser.getPrivateData().getBuddyIDs());
+			// Note: actingUser may be out of sync here, because the message action may have changed its state
+			// so retrieve anew from buddy service
+			Set<BuddyDTO> buddies = buddyService.getBuddiesOfUser(actingUser.getID());
 			for (BuddyDTO buddy : buddies)
 			{
 				if (buddy.getUserAnonymizedID().filter(id -> id.equals(userAnonymizedID)).isPresent())
@@ -174,13 +176,18 @@ public abstract class MessageDTO extends PolymorphicDTO
 
 			if (messageEntity instanceof BuddyMessage)
 			{
-				BuddyMessage buddyMessageEntity = (BuddyMessage) messageEntity;
-				// this buddy may be not yet connected or no longer connected
-				return SenderInfo.createInstanceBuddyNotPresent(buddyMessageEntity.getSenderUserID(),
-						buddyMessageEntity.getSenderNickname());
+				return getSenderBuddyNotPresent(messageEntity);
 			}
 
 			throw new IllegalStateException("Cannot find buddy for user anonymized ID '" + userAnonymizedID + "'");
+		}
+
+		private SenderInfo getSenderBuddyNotPresent(Message messageEntity)
+		{
+			BuddyMessage buddyMessageEntity = (BuddyMessage) messageEntity;
+			// this buddy may be not yet connected or no longer connected
+			return SenderInfo.createInstanceBuddyNotPresent(buddyMessageEntity.getSenderUserID(),
+					buddyMessageEntity.getSenderNickname());
 		}
 	}
 
