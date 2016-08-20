@@ -24,6 +24,24 @@ import nu.yona.server.test.User
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
+	def 'Retrieve activity with buddies when no buddies gives empty'()
+	{
+		given:
+		def richard = addRichard()
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
+
+		when:
+		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(richard)
+
+		then:
+		//zero results if user has no buddies
+		assertDayOverviewWithBuddiesBasics(responseDayOverviewsWithBuddies, 0, 0)
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def 'Retrieve activity reports without activity'()
 	{
 		given:

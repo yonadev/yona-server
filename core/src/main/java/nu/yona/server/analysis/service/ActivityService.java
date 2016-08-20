@@ -165,6 +165,12 @@ public class ActivityService
 	{
 		UUID userAnonymizedID = userService.getUserAnonymizedID(userID);
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
+
+		if (!userAnonymized.hasAnyBuddies())
+		{
+			return new PageImpl<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>>(Collections.emptyList(), pageable, 0);
+		}
+
 		Interval interval = getInterval(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
 
 		Set<BuddyDTO> buddies = buddyService.getBuddiesOfUserThatAcceptedSending(userID);
