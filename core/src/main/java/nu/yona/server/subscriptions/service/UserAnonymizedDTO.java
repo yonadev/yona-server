@@ -108,4 +108,9 @@ public class UserAnonymizedDTO
 		});
 		return historyItems;
 	}
+
+	public boolean hasAnyBuddies()
+	{
+		return !buddyAnonymizedIDs.isEmpty();
+	}
 }
