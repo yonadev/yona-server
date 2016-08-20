@@ -173,7 +173,8 @@ public abstract class MessageDTO extends PolymorphicDTO
 
 			if (messageEntity instanceof BuddyMessage)
 			{
-				return getSenderBuddyNotPresent(messageEntity);
+				// this buddy may be not yet connected or no longer connected
+				return getSenderBuddyNotPresent((BuddyMessage) messageEntity);
 			}
 
 			throw new IllegalStateException("Cannot find buddy for user anonymized ID '" + senderUserAnonymizedID + "'");
@@ -189,12 +190,9 @@ public abstract class MessageDTO extends PolymorphicDTO
 			return SenderInfo.createInstanceBuddy(buddy.getUser().getID(), buddy.getNickname(), buddy.getID());
 		}
 
-		private SenderInfo getSenderBuddyNotPresent(Message messageEntity)
+		private SenderInfo getSenderBuddyNotPresent(BuddyMessage messageEntity)
 		{
-			BuddyMessage buddyMessageEntity = (BuddyMessage) messageEntity;
-			// this buddy may be not yet connected or no longer connected
-			return SenderInfo.createInstanceBuddyNotPresent(buddyMessageEntity.getSenderUserID(),
-					buddyMessageEntity.getSenderNickname());
+			return SenderInfo.createInstanceBuddyNotPresent(messageEntity.getSenderUserID(), messageEntity.getSenderNickname());
 		}
 	}
 }
