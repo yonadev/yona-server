@@ -49,7 +49,7 @@ public final class SenderInfo
 		return new SenderInfo(userID, nickname, true, Optional.of(buddyID));
 	}
 
-	public static SenderInfo createInstanceBuddyNotPresent(UUID userID, String nickname)
+	public static SenderInfo createInstanceBuddyDetached(UUID userID, String nickname)
 	{
 		return new SenderInfo(userID, nickname, true, Optional.empty());
 	}
@@ -57,7 +57,7 @@ public final class SenderInfo
 	public static SenderInfo createInstanceBuddyDetached(UserDTO user, String nickname)
 	{
 		// user may be null if removed
-		return new SenderInfo(user != null ? user.getID() : null, nickname, true, Optional.empty());
+		return createInstanceBuddyDetached(user != null ? user.getID() : null, nickname);
 	}
 
 	public static SenderInfo createInstanceSelf(UUID userID, String nickname)
