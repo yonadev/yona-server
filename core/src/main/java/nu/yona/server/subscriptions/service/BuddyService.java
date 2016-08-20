@@ -513,4 +513,17 @@ public class BuddyService
 			return null;
 		}
 	}
+
+	public Optional<BuddyDTO> getBuddyOfUserByUserAnonymizedID(UUID forUserID, UUID userAnonymizedID)
+	{
+		Set<BuddyDTO> buddies = getBuddiesOfUser(forUserID);
+		for (BuddyDTO buddy : buddies)
+		{
+			if (buddy.getUserAnonymizedID().filter(id -> id.equals(userAnonymizedID)).isPresent())
+			{
+				return Optional.of(buddy);
+			}
+		}
+		return Optional.empty();
+	}
 }

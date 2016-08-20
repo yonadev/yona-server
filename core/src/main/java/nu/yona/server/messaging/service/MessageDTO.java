@@ -78,19 +78,19 @@ public abstract class MessageDTO extends PolymorphicDTO
 	@JsonIgnore
 	public boolean isSentFromBuddy()
 	{
-		return sender.isBuddy;
+		return sender.isBuddy();
 	}
 
 	@JsonProperty("nickname")
 	public String getSenderNickname()
 	{
-		return sender.nickname;
+		return sender.getNickname();
 	}
 
 	@JsonIgnore
 	public Optional<UUID> getSenderBuddyID()
 	{
-		return sender.buddyID;
+		return sender.getBuddyID();
 	}
 
 	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
@@ -157,21 +157,18 @@ public abstract class MessageDTO extends PolymorphicDTO
 
 		protected SenderInfo getSender(UserDTO actingUser, Message messageEntity)
 		{
-			UUID userAnonymizedID = messageEntity.getRelatedUserAnonymizedID();
-			if (actingUser.getPrivateData().getUserAnonymizedID().equals(userAnonymizedID))
+			UUID senderUserAnonymizedID = messageEntity.getRelatedUserAnonymizedID();
+			if (actingUser.getPrivateData().getUserAnonymizedID().equals(senderUserAnonymizedID))
 			{
-				return SenderInfo.createInstanceSelf(actingUser.getID(), actingUser.getPrivateData().getNickname());
+				return getSenderSelf(actingUser);
 			}
 
 			// Note: actingUser may be out of sync here, because the message action may have changed its state
 			// so retrieve anew from buddy service
-			Set<BuddyDTO> buddies = buddyService.getBuddiesOfUser(actingUser.getID());
-			for (BuddyDTO buddy : buddies)
+			Optional<BuddyDTO> buddy = buddyService.getBuddyOfUserByUserAnonymizedID(actingUser.getID(), senderUserAnonymizedID);
+			if (buddy.isPresent())
 			{
-				if (buddy.getUserAnonymizedID().filter(id -> id.equals(userAnonymizedID)).isPresent())
-				{
-					return SenderInfo.createInstanceBuddy(buddy.getUser().getID(), buddy.getNickname(), buddy.getID());
-				}
+				return getSenderBuddy(buddy.get());
 			}
 
 			if (messageEntity instanceof BuddyMessage)
@@ -179,7 +176,17 @@ public abstract class MessageDTO extends PolymorphicDTO
 				return getSenderBuddyNotPresent(messageEntity);
 			}
 
-			throw new IllegalStateException("Cannot find buddy for user anonymized ID '" + userAnonymizedID + "'");
+			throw new IllegalStateException("Cannot find buddy for user anonymized ID '" + senderUserAnonymizedID + "'");
+		}
+
+		private SenderInfo getSenderSelf(UserDTO actingUser)
+		{
+			return SenderInfo.createInstanceSelf(actingUser.getID(), actingUser.getPrivateData().getNickname());
+		}
+
+		private SenderInfo getSenderBuddy(BuddyDTO buddy)
+		{
+			return SenderInfo.createInstanceBuddy(buddy.getUser().getID(), buddy.getNickname(), buddy.getID());
 		}
 
 		private SenderInfo getSenderBuddyNotPresent(Message messageEntity)
@@ -188,48 +195,6 @@ public abstract class MessageDTO extends PolymorphicDTO
 			// this buddy may be not yet connected or no longer connected
 			return SenderInfo.createInstanceBuddyNotPresent(buddyMessageEntity.getSenderUserID(),
 					buddyMessageEntity.getSenderNickname());
-		}
-	}
-
-	/*
-	 * Sender info of the message. The class contents can only be determined when the user reads incoming messages, because buddy
-	 * IDs are only known to the user, and for the analysis service sending goal conflicts the user ID and nickname are not known.
-	 */
-	public final static class SenderInfo
-	{
-		public final UUID userID;
-		public final String nickname;
-		public final boolean isBuddy;
-		public final Optional<UUID> buddyID;
-
-		private SenderInfo(UUID userID, String nickname, boolean isBuddy, Optional<UUID> buddyID)
-		{
-			this.userID = userID;
-			this.nickname = nickname;
-			this.isBuddy = isBuddy;
-			this.buddyID = buddyID;
-		}
-
-		public static SenderInfo createInstanceBuddy(UUID userID, String nickname, UUID buddyID)
-		{
-			return new SenderInfo(userID, nickname, true, Optional.of(buddyID));
-		}
-
-		public static SenderInfo createInstanceBuddyNotPresent(UUID userID, String nickname)
-		{
-			return new SenderInfo(userID, nickname, true, Optional.empty());
-		}
-
-		public static SenderInfo createInstanceBuddyDetached(UserDTO user, String nickname)
-		{
-			// user may be null if removed
-			return new SenderInfo(user != null ? user.getID() : null, nickname, true, Optional.empty());
-		}
-
-		public static SenderInfo createInstanceSelf(UUID userID, String nickname)
-		{
-			// TODO: return real nickname?
-			return new SenderInfo(userID, "<self>", false, Optional.empty());
 		}
 	}
 }
