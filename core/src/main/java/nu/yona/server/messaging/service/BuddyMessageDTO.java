@@ -16,23 +16,21 @@ import nu.yona.server.subscriptions.service.UserDTO;
 public abstract class BuddyMessageDTO extends MessageDTO
 {
 	private UserDTO senderUser;
-	private final String senderNickname;
 	private final String message;
 
-	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO senderUser, String senderNickname, String message)
+	protected BuddyMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UserDTO senderUser,
+			String message)
 	{
-		super(id, creationTime, isRead);
+		super(id, sender, creationTime, isRead);
 		this.senderUser = senderUser;
-		this.senderNickname = senderNickname;
 		this.message = message;
 	}
 
-	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UUID relatedMessageID, UserDTO senderUser, String senderNickname,
-			String message)
+	protected BuddyMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UUID relatedMessageID,
+			UserDTO senderUser, String message)
 	{
-		super(id, creationTime, isRead, relatedMessageID);
+		super(id, sender, creationTime, isRead, relatedMessageID);
 		this.senderUser = senderUser;
-		this.senderNickname = senderNickname;
 		this.message = message;
 	}
 
@@ -40,11 +38,6 @@ public abstract class BuddyMessageDTO extends MessageDTO
 	public UserDTO getUser()
 	{
 		return senderUser;
-	}
-
-	public String getNickname()
-	{
-		return senderNickname;
 	}
 
 	public String getMessage()

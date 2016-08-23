@@ -35,7 +35,8 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 	private Status status;
 
 	private BuddyConnectRequestMessageDTO(BuddyConnectRequestMessage buddyConnectRequestMessageEntity, UUID id,
-			ZonedDateTime creationTime, boolean isRead, UserDTO user, UUID userAnonymizedID, String nickname, String message, Status status)
+			ZonedDateTime creationTime, boolean isRead, UserDTO user, UUID userAnonymizedID, String nickname, String message,
+			Status status)
 	{
 		super(id, creationTime, isRead, user, nickname, message);
 
@@ -84,8 +85,9 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 	public static BuddyConnectRequestMessageDTO createInstance(UserDTO actingUser, BuddyConnectRequestMessage messageEntity)
 	{
 		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(), messageEntity.getCreationTime(),
-				messageEntity.isRead(), UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getRelatedUserAnonymizedID(),
-				messageEntity.getSenderNickname(), messageEntity.getMessage(), messageEntity.getStatus());
+				messageEntity.isRead(), UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()),
+				messageEntity.getRelatedUserAnonymizedID(), messageEntity.getSenderNickname(), messageEntity.getMessage(),
+				messageEntity.getStatus());
 	}
 
 	@Component

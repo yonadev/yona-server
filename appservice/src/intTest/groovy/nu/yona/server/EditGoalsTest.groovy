@@ -232,6 +232,8 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		BudgetGoal addedGoal = appService.addGoal(appService.&assertResponseStatusCreated, richard, BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 60), "Going to monitor my social time!")
 		postFacebookActivityPastHour(richard)
 		BudgetGoal updatedGoal = BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 120)
+		bob = appService.reloadUser(bob)
+		def buddyRichardUrl = bob.buddies[0].url
 
 		when:
 		def response = appService.updateGoal(richard, addedGoal.url, updatedGoal, "Want to become a bit more social :)")
@@ -263,7 +265,9 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Want to become a bit more social :)"
 		goalChangeMessages[0]._links.edit
+		goalChangeMessages[0]._links."yona:dailyActivityReports"?.href == buddyRichardUrl + "/activity/days/"
 		goalChangeMessages[1].change == 'GOAL_ADDED'
+		goalChangeMessages[1]._links."yona:dailyActivityReports"?.href == buddyRichardUrl + "/activity/days/"
 
 		def richardMessagesResponse = appService.getMessages(richard)
 		richardMessagesResponse.responseData._embedded."yona:messages".findAll

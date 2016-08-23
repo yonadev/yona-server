@@ -415,7 +415,7 @@ public class UserActivityController extends ActivityControllerBase
 
 		private void addBuddyLink(UUID userID, UUID buddyID, ActivityForOneUserResource dayActivityResource)
 		{
-			dayActivityResource.add(BuddyController.getBuddyLinkBuilder(userID, buddyID).withRel("buddy"));
+			dayActivityResource.add(BuddyController.getBuddyLinkBuilder(userID, buddyID).withRel(BuddyController.BUDDY_LINK));
 		}
 	}
 }

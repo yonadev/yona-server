@@ -1188,7 +1188,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	private void assertCommentMessageDetails(message, User user, boolean isWeek, sender, expectedDetailsUrl, expectedText, threadHeadMessage, repliedMessage = null) {
 		assert message."@type" == "ActivityCommentMessage"
 		assert message.message == expectedText
-		assert message.nickname == sender.nickname
+		assert message.nickname == ((user.url == sender.url) ? "<self>" : sender.nickname)
 
 		assert message._links?.self?.href?.startsWith(YonaServer.stripQueryString(user.messagesUrl))
 		assert message._links?.edit?.href == message._links.self.href
