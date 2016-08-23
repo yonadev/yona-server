@@ -265,9 +265,9 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Want to become a bit more social :)"
 		goalChangeMessages[0]._links.edit
-		goalChangeMessages[0]._links."yona:dayOverview"?.href == buddyRichardUrl + "/activity/days/"
+		goalChangeMessages[0]._links."yona:dailyActivityReports"?.href == buddyRichardUrl + "/activity/days/"
 		goalChangeMessages[1].change == 'GOAL_ADDED'
-		goalChangeMessages[1]._links."yona:dayOverview"?.href == buddyRichardUrl + "/activity/days/"
+		goalChangeMessages[1]._links."yona:dailyActivityReports"?.href == buddyRichardUrl + "/activity/days/"
 
 		def richardMessagesResponse = appService.getMessages(richard)
 		richardMessagesResponse.responseData._embedded."yona:messages".findAll
