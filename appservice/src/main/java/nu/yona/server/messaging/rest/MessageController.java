@@ -312,7 +312,7 @@ public class MessageController
 		{
 			message.add(BuddyActivityController
 					.getBuddyDayActivityOverviewsLinkBuilder(goalIDMapping.getUserID(), message.getSenderBuddyID().get())
-					.withRel("dayOverview"));
+					.withRel(BuddyActivityController.DAY_OVERVIEW_LINK));
 		}
 
 		private void addDayActivityDetailLinkIfDisclosureAccepted(DisclosureResponseMessageDTO message)
@@ -328,7 +328,7 @@ public class MessageController
 			if (message.getSenderBuddyID().isPresent())
 			{
 				message.add(BuddyController.getBuddyLinkBuilder(goalIDMapping.getUserID(), message.getSenderBuddyID().get())
-						.withRel("buddy"));
+						.withRel(BuddyController.BUDDY_LINK));
 			}
 		}
 

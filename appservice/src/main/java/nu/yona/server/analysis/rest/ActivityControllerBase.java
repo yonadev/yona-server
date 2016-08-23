@@ -49,6 +49,8 @@ abstract class ActivityControllerBase
 {
 	public static final String DAY_DETAIL_LINK = "dayDetails";
 	public static final String WEEK_DETAIL_LINK = "weekDetails";
+	public static final String DAY_OVERVIEW_LINK = "dailyActivityReports";
+	public static final String WEEK_OVERVIEW_LINK = "weeklyActivityReports";
 
 	@Autowired
 	protected ActivityService activityService;
@@ -188,7 +190,7 @@ abstract class ActivityControllerBase
 
 	private void addBuddyLink(UUID userID, UUID buddyID, ActivityCommentMessageDTO message)
 	{
-		message.add(BuddyController.getBuddyLinkBuilder(userID, buddyID).withRel("buddy"));
+		message.add(BuddyController.getBuddyLinkBuilder(userID, buddyID).withRel(BuddyController.BUDDY_LINK));
 	}
 
 	interface LinkProvider
