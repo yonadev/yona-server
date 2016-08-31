@@ -363,8 +363,7 @@ public class UserController
 				X509Certificate cert = (X509Certificate) CertificateFactory.getInstance("X.509")
 						.generateCertificate(certInputStream);
 				LdapName name = new LdapName(cert.getIssuerX500Principal().getName());
-				return name.getRdns().stream().filter(rdn -> rdn.getType().equalsIgnoreCase("CN")).findFirst().get().getValue()
-						.toString();
+				return name.getRdn(0).getValue().toString();
 			}
 			catch (IOException | CertificateException | InvalidNameException e)
 			{
