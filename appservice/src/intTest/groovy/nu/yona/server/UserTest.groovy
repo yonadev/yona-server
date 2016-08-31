@@ -55,7 +55,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
 		john.buddiesUrl == john.url + "/buddies/"
 		john.goalsUrl == john.url + "/goals/"
-		john.messagesUrl.startsWith(john.url + "/messages/")
+		john.messagesUrl == john.url + "/messages/"
 		john.newDeviceRequestUrl == appService.url + "/newDeviceRequests/" + john.mobileNumber
 		john.appActivityUrl == john.url + "/appActivity/"
 		john.pinResetRequestUrl == john.url + "/pinResetRequest/request"
@@ -277,6 +277,24 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		responseOvpnProfile.contentType == "application/x-openvpn-profile"
 		responseSslRootCert.status == 200
 		responseSslRootCert.contentType == "application/pkix-cert"
+		richard.sslRootCertCN == "smoothwall003.yona"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Retrieve mobileconfig'()
+	{
+		given:
+		User richard = addRichard()
+
+		when:
+		assert richard.appleMobileConfig
+		def responseAppleMobileConfig = appService.yonaServer.restClient.get(path: richard.appleMobileConfig, headers: ["Yona-Password":richard.password])
+
+		then:
+		responseAppleMobileConfig.status == 200
+		responseAppleMobileConfig.contentType == "application/x-apple-aspen-config"
 
 		cleanup:
 		appService.deleteUser(richard)

@@ -189,32 +189,6 @@ paths:
           description: Confirmation failed
           schema:
             $ref: '#/definitions/Error'
-  '/users/{userID}/vpnAuthCertificate.crt':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
-    get:
-      summary: Get the user VPN authentication certificate
-      description: Fetches the user-specific VPN authentication certificate to use with VoD. Not needed for OVPN.
-      tags:
-        - User
-      responses:
-        '200':
-          description: The certificate
-          schema:
-            type: file
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
   '/users/{userID}/apple.mobileconfig':
     parameters:
       - name: userID
@@ -532,12 +506,6 @@ paths:
       summary: Get messages
       description: Fetches all messages related to this activity
       parameters:
-        - name: onlyUnreadMessages
-          in: query
-          description: Pass true to only fetch messages with isRead == false
-          required: false
-          default: false
-          type: boolean
         - name: size
           in: query
           description: The number of elements to be fetched
@@ -1175,6 +1143,12 @@ paths:
       summary: Get messages
       description: Fetches all messages of the user with the given ID
       parameters:
+        - name: onlyUnreadMessages
+          in: query
+          description: Pass true to only fetch messages with isRead == false
+          required: false
+          default: false
+          type: boolean
         - name: size
           in: query
           description: The number of elements to be fetched
@@ -1910,6 +1884,10 @@ definitions:
       - $ref: '#/definitions/BaseUser'
       - $ref: '#/definitions/PrivateUserData'
     properties:
+      sslRootCertCN:
+        type: string
+        description: The CN of the SSL root certificate
+        example: "smoothwall003.yona"
       creationTime:
         type: string
         format: dateTime
@@ -2030,6 +2008,14 @@ definitions:
               href:
                 type: string
                 description: Link to SSL root certificate file (available after confirming mobile number)
+          "yona:appleMobileConfig":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: Link to user-specific Apple .mobileconfig file (available after confirming mobile number)
     required:
       - _embedded
       - _links
@@ -2355,6 +2341,7 @@ definitions:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/UserLink'
+          - $ref: '#/definitions/BuddyLink'
           - $ref: '#/definitions/EditLink'
           - $ref: '#/definitions/MarkReadLink'
           - $ref: '#/definitions/MarkUnreadLink'
@@ -2431,6 +2418,7 @@ definitions:
           - $ref: '#/definitions/MarkReadLink'
           - $ref: '#/definitions/MarkUnreadLink'
           - $ref: '#/definitions/ActivityCategoryLink'
+          - $ref: '#/definitions/DayDetailsLink'
         properties:
           "yona:requestDisclosure":
             properties:
@@ -2457,6 +2445,7 @@ definitions:
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
           - $ref: '#/definitions/ActivityCategoryLink'
+          - $ref: '#/definitions/DailyActivityReportsLink'
     required:
       - change
       - _links
@@ -2478,6 +2467,7 @@ definitions:
           - $ref: '#/definitions/RelatedLink'
           - $ref: '#/definitions/AcceptLink'
           - $ref: '#/definitions/RejectLink'
+          - $ref: '#/definitions/DayDetailsLink'
     required:
       - status
       - _links
@@ -2496,6 +2486,7 @@ definitions:
           - $ref: '#/definitions/MarkReadLink'
           - $ref: '#/definitions/MarkUnreadLink'
           - $ref: '#/definitions/RelatedLink'
+          - $ref: '#/definitions/DayDetailsLink'
     required:
       - status
       - _links

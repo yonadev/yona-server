@@ -47,6 +47,11 @@ import nu.yona.server.subscriptions.service.UserService;
  */
 abstract class ActivityControllerBase
 {
+	public static final String DAY_DETAIL_LINK = "dayDetails";
+	public static final String WEEK_DETAIL_LINK = "weekDetails";
+	public static final String DAY_OVERVIEW_LINK = "dailyActivityReports";
+	public static final String WEEK_OVERVIEW_LINK = "weeklyActivityReports";
+
 	@Autowired
 	protected ActivityService activityService;
 
@@ -161,14 +166,14 @@ abstract class ActivityControllerBase
 	{
 		message.add(linkProvider
 				.getWeekActivityDetailLinkBuilder(WeekActivityDTO.formatDate(activity.getDate()), activity.getGoal().getID())
-				.withRel("weekDetails"));
+				.withRel(WEEK_DETAIL_LINK));
 	}
 
 	private void addDayDetailsLink(LinkProvider linkProvider, IntervalActivity activity, ActivityCommentMessageDTO message)
 	{
 		message.add(linkProvider
 				.getDayActivityDetailLinkBuilder(DayActivityDTO.formatDate(activity.getDate()), activity.getGoal().getID())
-				.withRel("dayDetails"));
+				.withRel(DAY_DETAIL_LINK));
 	}
 
 	private void addThreadHeadMessageLink(UUID userID, ActivityCommentMessageDTO message)
@@ -185,7 +190,7 @@ abstract class ActivityControllerBase
 
 	private void addBuddyLink(UUID userID, UUID buddyID, ActivityCommentMessageDTO message)
 	{
-		message.add(BuddyController.getBuddyLinkBuilder(userID, buddyID).withRel("buddy"));
+		message.add(BuddyController.getBuddyLinkBuilder(userID, buddyID).withRel(BuddyController.BUDDY_LINK));
 	}
 
 	interface LinkProvider

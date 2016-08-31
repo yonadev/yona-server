@@ -216,7 +216,7 @@ public class BuddyService
 		final int pageSize = 50;
 		Page<Message> messagePage;
 		boolean messageFound = false;
-		UserDTO user = UserDTO.createInstance(userEntity);
+		UserDTO user = userService.createUserDTOWithPrivateData(userEntity);
 		do
 		{
 			messagePage = messageService.getReceivedMessageEntities(user.getID(), new PageRequest(page++, pageSize));
@@ -512,5 +512,18 @@ public class BuddyService
 		{
 			return null;
 		}
+	}
+
+	public Optional<BuddyDTO> getBuddyOfUserByUserAnonymizedID(UUID forUserID, UUID userAnonymizedID)
+	{
+		Set<BuddyDTO> buddies = getBuddiesOfUser(forUserID);
+		for (BuddyDTO buddy : buddies)
+		{
+			if (buddy.getUserAnonymizedID().filter(id -> id.equals(userAnonymizedID)).isPresent())
+			{
+				return Optional.of(buddy);
+			}
+		}
+		return Optional.empty();
 	}
 }

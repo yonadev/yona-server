@@ -8,6 +8,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import javax.transaction.Transactional;
+
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +22,7 @@ import nu.yona.server.analysis.entities.WeekActivity;
 public class ActivityCacheService
 {
 	@Cacheable(value = "dayActivities", key = "{#userAnonymizedID,#goalID}")
+	@Transactional
 	public DayActivity fetchLastDayActivityForUser(UUID userAnonymizedID, UUID goalID)
 	{
 		List<DayActivity> lastActivityList = DayActivity.getRepository().findLast(userAnonymizedID, goalID, new PageRequest(0, 1))
@@ -34,11 +37,13 @@ public class ActivityCacheService
 		return dayActivity;
 	}
 
+	@Transactional
 	public WeekActivity fetchWeekActivityForUser(UUID userAnonymizedID, UUID goalID, LocalDate date)
 	{
 		return WeekActivity.getRepository().findOne(userAnonymizedID, goalID, date);
 	}
 
+	@Transactional
 	public WeekActivity updateWeekActivityForUser(WeekActivity weekActivity)
 	{
 		return WeekActivity.getRepository().save(weekActivity);

@@ -17,7 +17,6 @@ import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import nu.yona.server.crypto.ByteFieldEncrypter;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.crypto.UUIDFieldEncrypter;
@@ -56,10 +55,6 @@ public class UserPrivate extends EntityWithID
 	@Convert(converter = StringFieldEncrypter.class)
 	private String vpnPassword;
 
-	@Convert(converter = ByteFieldEncrypter.class)
-	@Column(length = 1024)
-	private byte[] vpnAuthCertificateByteArray;
-
 	// Default constructor is required for JPA
 	public UserPrivate()
 	{
@@ -77,13 +72,6 @@ public class UserPrivate extends EntityWithID
 		this.buddies = new HashSet<>();
 		this.anonymousMessageSourceID = anonymousMessageSourceID;
 		this.namedMessageSourceID = namedMessageSourceID;
-		this.vpnAuthCertificateByteArray = generateVPNAuthCertificateByteArray();
-	}
-
-	private byte[] generateVPNAuthCertificateByteArray()
-	{
-		// TODO: generate, make sure Smoothwall accepts it
-		return new byte[0];
 	}
 
 	private static String buildDecryptionCheck()
@@ -159,11 +147,6 @@ public class UserPrivate extends EntityWithID
 	public String getVPNPassword()
 	{
 		return vpnPassword;
-	}
-
-	public byte[] getVPNAuthCertificateByteArray()
-	{
-		return vpnAuthCertificateByteArray;
 	}
 
 	private boolean isDecrypted()

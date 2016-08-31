@@ -321,6 +321,7 @@ class AppService extends Service
 		def message = buddyConnectResponseMessages[0]?.message ?: null
 		def status = buddyConnectResponseMessages[0]?.status ?: null
 		def processURL = buddyConnectResponseMessages[0]?._links?."yona:process"?.href
+		def buddyURL = buddyConnectResponseMessages[0]?._links?."yona:buddy"?.href
 		def result = [ : ]
 		if (selfURL)
 		{
@@ -337,6 +338,10 @@ class AppService extends Service
 		if (processURL)
 		{
 			result.processURL = processURL
+		}
+		if (buddyURL)
+		{
+			result.buddyURL = buddyURL
 		}
 
 		return result

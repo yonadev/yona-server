@@ -28,28 +28,27 @@ import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
-import nu.yona.server.subscriptions.service.BuddyDTO;
-import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.messaging.service.SenderInfo;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDTO;
 
 @JsonRootName("goalConflictMessage")
 public class GoalConflictMessageDTO extends MessageDTO
 {
-	private static final String SELF_NICKNAME = "<self>";
 	private static final String REQUEST_DISCLOSURE = "requestDisclosure";
-	private final String nickname;
 	private final Optional<String> url;
 	private final Status status;
 	private final ZonedDateTime activityStartTime;
 	private final ZonedDateTime activityEndTime;
+	private final UUID goalID;
 	private final UUID activityCategoryID;
 
-	private GoalConflictMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, String nickname, UUID activityCategoryID,
-			Optional<String> url, Status status, ZonedDateTime activityStartTime, ZonedDateTime activityEndTime)
+	private GoalConflictMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UUID goalID,
+			UUID activityCategoryID, Optional<String> url, Status status, ZonedDateTime activityStartTime,
+			ZonedDateTime activityEndTime)
 	{
-		super(id, creationTime, isRead);
-		this.nickname = nickname;
+		super(id, sender, creationTime, isRead);
+		this.goalID = goalID;
 		this.activityCategoryID = activityCategoryID;
 		this.url = url;
 		this.status = status;
@@ -67,21 +66,17 @@ public class GoalConflictMessageDTO extends MessageDTO
 	public Set<String> getPossibleActions()
 	{
 		Set<String> possibleActions = super.getPossibleActions();
-		if (this.isFromBuddy() && this.status == Status.ANNOUNCED)
+		if (this.isSentFromBuddy() && this.status == Status.ANNOUNCED)
 		{
 			possibleActions.add(REQUEST_DISCLOSURE);
 		}
 		return possibleActions;
 	}
 
-	private boolean isFromBuddy()
+	@JsonIgnore
+	public UUID getGoalID()
 	{
-		return nickname != null && !nickname.equals(SELF_NICKNAME);
-	}
-
-	public String getNickname()
-	{
-		return nickname;
+		return goalID;
 	}
 
 	@JsonIgnore
@@ -118,10 +113,10 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return true;
 	}
 
-	public static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, String nickname)
+	private static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, SenderInfo sender)
 	{
-		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				nickname, messageEntity.getActivity().getActivityCategory().getID(),
+		return new GoalConflictMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(), messageEntity.isRead(),
+				messageEntity.getGoal().getID(), messageEntity.getActivity().getActivityCategory().getID(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : Optional.empty(), messageEntity.getStatus(),
 				messageEntity.getActivity().getStartTime(), messageEntity.getActivity().getEndTime());
 	}
@@ -131,9 +126,6 @@ public class GoalConflictMessageDTO extends MessageDTO
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;
-
-		@Autowired
-		private BuddyService buddyService;
 
 		@Autowired
 		private UserAnonymizedService userAnonymizedService;
@@ -151,7 +143,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
 			return GoalConflictMessageDTO.createInstance((GoalConflictMessage) messageEntity,
-					getNickname(actingUser, (GoalConflictMessage) messageEntity));
+					getSender(actingUser, messageEntity));
 		}
 
 		@Override
@@ -186,25 +178,6 @@ public class GoalConflictMessageDTO extends MessageDTO
 		{
 			messageEntity.setStatus(Status.DISCLOSURE_REQUESTED);
 			return GoalConflictMessage.getRepository().save(messageEntity);
-		}
-
-		private String getNickname(UserDTO actingUser, GoalConflictMessage messageEntity)
-		{
-			UUID userAnonymizedID = messageEntity.getRelatedUserAnonymizedID();
-			if (actingUser.getPrivateData().getUserAnonymizedID().equals(userAnonymizedID))
-			{
-				return SELF_NICKNAME;
-			}
-
-			Set<BuddyDTO> buddies = buddyService.getBuddies(actingUser.getPrivateData().getBuddyIDs());
-			for (BuddyDTO buddy : buddies)
-			{
-				if (buddy.getUserAnonymizedID().filter(id -> id.equals(userAnonymizedID)).isPresent())
-				{
-					return buddy.getNickname();
-				}
-			}
-			throw new IllegalStateException("Cannot find buddy for user anonymized ID '" + userAnonymizedID + "'");
 		}
 	}
 }

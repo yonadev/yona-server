@@ -24,6 +24,24 @@ import nu.yona.server.test.User
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
+	def 'Retrieve activity with buddies when no buddies gives empty'()
+	{
+		given:
+		def richard = addRichard()
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
+
+		when:
+		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(richard)
+
+		then:
+		//zero results if user has no buddies
+		assertDayOverviewWithBuddiesBasics(responseDayOverviewsWithBuddies, 0, 0)
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def 'Retrieve activity reports without activity'()
 	{
 		given:
@@ -664,7 +682,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		reportAppActivity(bob, "Facebook", "W-2 Thu 20:00", "W-2 Thu 20:35")
 
 		// Friday
-		// TODO This should work! reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 09:00") // Should be ignored, as there was no goal yet
+		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 09:00") // Should be ignored, as there was no goal yet
 		TimeZoneGoal timeZoneGoalMultimediaBobBeforeUpdate = addTimeZoneGoal(bob, MULTIMEDIA_ACT_CAT_URL, ["20:00-22:00"], "W-2 Fri 14:00")
 		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 15:00")
 		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-2 Fri 21:00")
@@ -1211,7 +1229,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	private void assertCommentMessageDetails(message, User user, boolean isWeek, sender, expectedDetailsUrl, expectedText, threadHeadMessage, repliedMessage = null) {
 		assert message."@type" == "ActivityCommentMessage"
 		assert message.message == expectedText
-		assert message.nickname == sender.nickname
+		assert message.nickname == ((user.url == sender.url) ? "<self>" : sender.nickname)
 
 		assert message._links?.self?.href?.startsWith(YonaServer.stripQueryString(user.messagesUrl))
 		assert message._links?.edit?.href == message._links.self.href

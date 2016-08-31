@@ -184,6 +184,11 @@ class YonaServer
 		ZonedDateTime.parse(dateTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"))
 	}
 
+	static String toIsoDayString(ZonedDateTime dateTime)
+	{
+		DateTimeFormatter.ofPattern("yyyy-MM-dd").format(dateTime)
+	}
+	
 	static String toIsoDateString(ZonedDateTime dateTime)
 	{
 		DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(dateTime)
