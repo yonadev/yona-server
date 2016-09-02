@@ -134,7 +134,7 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 			else
 			{
 				buddyService.setBuddyAcceptedWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
-						connectResponseMessageEntity.getRelatedUserAnonymizedID(),
+						connectResponseMessageEntity.getRelatedUserAnonymizedID().get(),
 						connectResponseMessageEntity.getSenderNickname());
 			}
 

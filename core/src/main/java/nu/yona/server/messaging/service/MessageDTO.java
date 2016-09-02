@@ -157,7 +157,7 @@ public abstract class MessageDTO extends PolymorphicDTO
 
 		protected SenderInfo getSender(UserDTO actingUser, Message messageEntity)
 		{
-			UUID senderUserAnonymizedID = messageEntity.getRelatedUserAnonymizedID();
+			UUID senderUserAnonymizedID = messageEntity.getRelatedUserAnonymizedID().orElse(null);
 			if (actingUser.getPrivateData().getUserAnonymizedID().equals(senderUserAnonymizedID))
 			{
 				return getSenderSelf(actingUser);

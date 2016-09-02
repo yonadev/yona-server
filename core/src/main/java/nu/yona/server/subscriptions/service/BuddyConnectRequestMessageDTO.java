@@ -32,7 +32,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 	private static final String ACCEPT = "accept";
 	private static final String REJECT = "reject";
 
-	private Status status;
+	private final Status status;
 
 	private BuddyConnectRequestMessageDTO(BuddyConnectRequestMessage buddyConnectRequestMessageEntity, UUID id,
 			ZonedDateTime creationTime, boolean isRead, UserDTO user, UUID userAnonymizedID, String nickname, String message,
@@ -45,7 +45,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 			throw BuddyServiceException.messageEntityCannotBeNull();
 		}
 
-		if (buddyConnectRequestMessageEntity.getRelatedUserAnonymizedID() == null)
+		if (!buddyConnectRequestMessageEntity.getRelatedUserAnonymizedID().isPresent())
 		{
 			throw BuddyServiceException.userAnonymizedIdCannotBeNull();
 		}
@@ -86,7 +86,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 	{
 		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(), messageEntity.getCreationTime(),
 				messageEntity.isRead(), UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()),
-				messageEntity.getRelatedUserAnonymizedID(), messageEntity.getSenderNickname(), messageEntity.getMessage(),
+				messageEntity.getRelatedUserAnonymizedID().get(), messageEntity.getSenderNickname(), messageEntity.getMessage(),
 				messageEntity.getStatus());
 	}
 
@@ -138,7 +138,8 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 				throw UserServiceException.notFoundByID(connectRequestMessageEntity.getSenderUserID());
 			}
 			buddyService.addBuddyToAcceptingUser(actingUser, connectRequestMessageEntity.getSenderUser().getID(),
-					connectRequestMessageEntity.getSenderNickname(), connectRequestMessageEntity.getRelatedUserAnonymizedID(),
+					connectRequestMessageEntity.getSenderNickname(),
+					connectRequestMessageEntity.getRelatedUserAnonymizedID().get(),
 					connectRequestMessageEntity.requestingSending(), connectRequestMessageEntity.requestingReceiving());
 
 			connectRequestMessageEntity = updateMessageStatusAsAccepted(connectRequestMessageEntity);
@@ -191,7 +192,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 		{
 			buddyService.sendBuddyConnectResponseMessage(respondingUser.getID(),
 					respondingUser.getPrivateData().getUserAnonymizedID(), respondingUser.getPrivateData().getNickname(),
-					connectRequestMessageEntity.getRelatedUserAnonymizedID(), connectRequestMessageEntity.getBuddyID(),
+					connectRequestMessageEntity.getRelatedUserAnonymizedID().get(), connectRequestMessageEntity.getBuddyID(),
 					connectRequestMessageEntity.getStatus(), responseMessage);
 		}
 	}
