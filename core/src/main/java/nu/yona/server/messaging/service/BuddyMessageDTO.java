@@ -5,6 +5,7 @@
 package nu.yona.server.messaging.service;
 
 import java.time.ZonedDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -15,11 +16,11 @@ import nu.yona.server.subscriptions.service.UserDTO;
 @JsonRootName("buddyMessage")
 public abstract class BuddyMessageDTO extends MessageDTO
 {
-	private UserDTO senderUser;
+	private final Optional<UserDTO> senderUser;
 	private final String message;
 
-	protected BuddyMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UserDTO senderUser,
-			String message)
+	protected BuddyMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead,
+			Optional<UserDTO> senderUser, String message)
 	{
 		super(id, sender, creationTime, isRead);
 		this.senderUser = senderUser;
@@ -27,7 +28,7 @@ public abstract class BuddyMessageDTO extends MessageDTO
 	}
 
 	protected BuddyMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UUID relatedMessageID,
-			UserDTO senderUser, String message)
+			Optional<UserDTO> senderUser, String message)
 	{
 		super(id, sender, creationTime, isRead, relatedMessageID);
 		this.senderUser = senderUser;
@@ -35,7 +36,7 @@ public abstract class BuddyMessageDTO extends MessageDTO
 	}
 
 	@JsonIgnore
-	public UserDTO getUser()
+	public Optional<UserDTO> getUser()
 	{
 		return senderUser;
 	}

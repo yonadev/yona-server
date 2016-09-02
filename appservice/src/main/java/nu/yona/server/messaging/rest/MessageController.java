@@ -63,7 +63,6 @@ import nu.yona.server.subscriptions.rest.UserController;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDTO;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.GoalIDMapping;
-import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
@@ -278,7 +277,7 @@ public class MessageController
 			}
 			if (message instanceof BuddyConnectResponseMessageDTO)
 			{
-				addSenderBuddyLinkIfAvailable((BuddyConnectResponseMessageDTO) message);
+				addSenderBuddyLinkIfAvailable(message);
 			}
 			if (message instanceof GoalConflictMessageDTO)
 			{
@@ -386,21 +385,17 @@ public class MessageController
 
 		private void embedBuddyUserIfAvailable(BuddyMessageEmbeddedUserDTO buddyMessage)
 		{
-			UserDTO user = buddyMessage.getUser();
-			if (user != null)
-			{
+			buddyMessage.getUser().ifPresent(user -> {
 				buddyMessage.setEmbeddedUser(curieProvider.getNamespacedRelFor(BuddyDTO.USER_REL_NAME),
 						new UserController.UserResourceAssembler(curieProvider, false).toResource(user));
-			}
+			});
 		}
 
 		private void addUserLinkIfAvailable(BuddyMessageLinkedUserDTO buddyMessage)
 		{
-			UserDTO user = buddyMessage.getUser();
-			if (user != null)
-			{
+			buddyMessage.getUser().ifPresent(user -> {
 				buddyMessage.add(UserController.getPublicUserLink(BuddyDTO.USER_REL_NAME, user.getID()));
-			}
+			});
 		}
 
 		private void addActivityCommentMessageLinks(ActivityCommentMessageDTO message)

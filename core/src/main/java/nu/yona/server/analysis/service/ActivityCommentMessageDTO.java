@@ -36,8 +36,9 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	private final Optional<UUID> repliedMessageID;
 	private final UUID threadHeadMessageID;
 
-	private ActivityCommentMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UserDTO senderUser,
-			UUID activityID, UUID threadHeadMessageID, Optional<UUID> repliedMessageID, String message)
+	private ActivityCommentMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead,
+			Optional<UserDTO> senderUser, UUID activityID, UUID threadHeadMessageID, Optional<UUID> repliedMessageID,
+			String message)
 	{
 		super(id, sender, creationTime, isRead, senderUser, message);
 		this.activityID = activityID;
@@ -89,7 +90,7 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 			SenderInfo sender)
 	{
 		return new ActivityCommentMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(),
-				messageEntity.isRead(), UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()),
+				messageEntity.isRead(), UserDTO.createInstance(messageEntity.getSenderUser()),
 				messageEntity.getActivityID(), messageEntity.getThreadHeadMessageID(), messageEntity.getRepliedMessageID(),
 				messageEntity.getMessage());
 	}

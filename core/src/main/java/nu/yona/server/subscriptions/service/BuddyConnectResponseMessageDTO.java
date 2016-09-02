@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.time.ZonedDateTime;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -34,8 +35,8 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	private final Status status;
 	private final boolean isProcessed;
 
-	private BuddyConnectResponseMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UserDTO user,
-			String message, Status status, boolean isProcessed)
+	private BuddyConnectResponseMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead,
+			Optional<UserDTO> user, String message, Status status, boolean isProcessed)
 	{
 		super(id, sender, creationTime, isRead, user, message);
 		this.status = status;
@@ -80,8 +81,8 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 			SenderInfo sender)
 	{
 		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(),
-				messageEntity.isRead(), UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()),
-				messageEntity.getMessage(), messageEntity.getStatus(), messageEntity.isProcessed());
+				messageEntity.isRead(), UserDTO.createInstance(messageEntity.getSenderUser()), messageEntity.getMessage(),
+				messageEntity.getStatus(), messageEntity.isProcessed());
 	}
 
 	@Component
@@ -140,10 +141,9 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 
 			connectResponseMessageEntity = updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
-			String mobileNumber = (connectResponseMessageEntity.getSenderUser() == null) ? "already deleted"
-					: connectResponseMessageEntity.getSenderUser().getMobileNumber();
-			String id = (connectResponseMessageEntity.getSenderUser() == null) ? "already deleted"
-					: connectResponseMessageEntity.getSenderUser().getID().toString();
+			String mobileNumber = connectResponseMessageEntity.getSenderUser().map(u -> u.getMobileNumber())
+					.orElse("already deleted");
+			String id = connectResponseMessageEntity.getSenderUser().map(u -> u.getID().toString()).orElse("already deleted");
 			logger.info(
 					"User with mobile number '{}' and ID '{}' processed buddy connect response from user with mobile number '{}' and ID '{}'",
 					actingUser.getMobileNumber(), actingUser.getID(), mobileNumber, id);

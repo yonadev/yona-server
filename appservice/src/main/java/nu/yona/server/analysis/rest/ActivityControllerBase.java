@@ -146,7 +146,7 @@ abstract class ActivityControllerBase
 		{
 			addDayDetailsLink(linkProvider, activity, message);
 		}
-		if (!message.getUser().getID().equals(goalIDMapping.getUserID()))
+		if (!message.getUser().get().getID().equals(goalIDMapping.getUserID()))
 		{
 			UUID buddyID = determineBuddyID(goalIDMapping, message);
 			addBuddyLink(goalIDMapping.getUserID(), buddyID, message);
@@ -158,8 +158,9 @@ abstract class ActivityControllerBase
 	private UUID determineBuddyID(GoalIDMapping goalIDMapping, ActivityCommentMessageDTO message)
 	{
 		return goalIDMapping.getUser().getPrivateData().getBuddies().stream()
-				.filter(b -> b.getUser().getID().equals(message.getUser().getID())).map(b -> b.getID()).findAny()
-				.orElseThrow(() -> new IllegalArgumentException("User with ID " + message.getUser().getID() + "is not a buddy"));
+				.filter(b -> b.getUser().getID().equals(message.getUser().get().getID())).map(b -> b.getID()).findAny()
+				.orElseThrow(
+						() -> new IllegalArgumentException("User with ID " + message.getUser().get().getID() + "is not a buddy"));
 	}
 
 	private void addWeekDetailsLink(LinkProvider linkProvider, IntervalActivity activity, ActivityCommentMessageDTO message)

@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.time.ZonedDateTime;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,8 +32,8 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 	private final DropBuddyReason reason;
 	private final boolean isProcessed;
 
-	private BuddyDisconnectMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, String nickname,
-			String message, DropBuddyReason reason, boolean isProcessed)
+	private BuddyDisconnectMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, Optional<UserDTO> user,
+			String nickname, String message, DropBuddyReason reason, boolean isProcessed)
 	{
 		super(id, creationTime, isRead, user, nickname, message);
 		this.reason = reason;
@@ -76,7 +77,7 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 	public static BuddyDisconnectMessageDTO createInstance(UserDTO actingUser, BuddyDisconnectMessage messageEntity)
 	{
 		return new BuddyDisconnectMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getSenderNickname(),
+				UserDTO.createInstance(messageEntity.getSenderUser()), messageEntity.getSenderNickname(),
 				messageEntity.getMessage(), messageEntity.getReason(), messageEntity.isProcessed());
 	}
 

@@ -55,10 +55,10 @@ public final class SenderInfo
 																								// parameter optional
 	}
 
-	public static SenderInfo createInstanceBuddyDetached(UserDTO user, String nickname)
+	public static SenderInfo createInstanceBuddyDetached(Optional<UserDTO> user, String nickname)
 	{
 		// user may be null if removed
-		return new SenderInfo(user == null ? Optional.empty() : Optional.of(user.getID()), nickname, true, Optional.empty());
+		return new SenderInfo(user.map(u -> u.getID()), nickname, true, Optional.empty());
 	}
 
 	public static SenderInfo createInstanceSelf(UUID userID, String nickname)

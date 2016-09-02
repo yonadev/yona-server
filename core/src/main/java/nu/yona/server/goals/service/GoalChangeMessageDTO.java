@@ -5,6 +5,7 @@
 package nu.yona.server.goals.service;
 
 import java.time.ZonedDateTime;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -33,7 +34,7 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 	private final GoalDTO changedGoal;
 	private final Change change;
 
-	private GoalChangeMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UserDTO user,
+	private GoalChangeMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, Optional<UserDTO> user,
 			GoalDTO changedGoal, Change change, String message)
 	{
 		super(id, sender, creationTime, isRead, user, message);
@@ -75,7 +76,7 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 	public static GoalChangeMessageDTO createInstance(UserDTO actingUser, GoalChangeMessage messageEntity, SenderInfo sender)
 	{
 		return new GoalChangeMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(), messageEntity.isRead(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()),
+				UserDTO.createInstance(messageEntity.getSenderUser()),
 				GoalDTO.createInstance(messageEntity.getChangedGoal()), messageEntity.getChange(), messageEntity.getMessage());
 	}
 
