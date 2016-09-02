@@ -346,32 +346,26 @@ public class UserController
 
 		@JsonProperty("sslRootCertCN")
 		@JsonInclude(Include.NON_EMPTY)
-		public String getSslRootCertCN()
+		public Optional<String> getSslRootCertCN()
 		{
 			if (!includeLinksAndEmbeddedData())
 			{
-				return null;
+				return Optional.empty();
 			}
 
-			try (InputStream certInputStream = new ClassPathResource(Paths.get("static", SSL_ROOT_CERTIFICATE_PATH).toString())
-					.getInputStream())
+			return Optional.of(readCNFromCertificate(Paths.get("static", SSL_ROOT_CERTIFICATE_PATH).toString()));
+		}
+
+		private static String readCNFromCertificate(String certificateResourcePath)
+		{
+			try (InputStream certInputStream = new ClassPathResource(certificateResourcePath).getInputStream())
 			{
 				X509Certificate cert = (X509Certificate) CertificateFactory.getInstance("X.509")
 						.generateCertificate(certInputStream);
-				String dn = cert.getIssuerX500Principal().getName();
-				LdapName ln = new LdapName(dn);
-				return ln.getRdns().stream().filter(rdn -> rdn.getType().equalsIgnoreCase("CN")).findFirst().get().getValue()
-						.toString();
+				LdapName name = new LdapName(cert.getIssuerX500Principal().getName());
+				return name.getRdn(0).getValue().toString();
 			}
-			catch (IOException e)
-			{
-				throw YonaException.unexpected(e);
-			}
-			catch (CertificateException e)
-			{
-				throw YonaException.unexpected(e);
-			}
-			catch (InvalidNameException e)
+			catch (IOException | CertificateException | InvalidNameException e)
 			{
 				throw YonaException.unexpected(e);
 			}
