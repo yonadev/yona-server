@@ -19,10 +19,12 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.service.BuddyMessageDTO;
 import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
+import nu.yona.server.messaging.service.SenderInfo;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
@@ -36,21 +38,10 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 
 	private final Status status;
 
-	private BuddyConnectRequestMessageDTO(BuddyConnectRequestMessage buddyConnectRequestMessageEntity, UUID id,
-			ZonedDateTime creationTime, boolean isRead, Optional<UserDTO> user, UUID userAnonymizedID, String nickname,
-			String message, Status status)
+	private BuddyConnectRequestMessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead,
+			Optional<UserDTO> user, String message, Status status)
 	{
-		super(id, creationTime, isRead, user, nickname, message);
-
-		if (buddyConnectRequestMessageEntity == null)
-		{
-			throw BuddyServiceException.messageEntityCannotBeNull();
-		}
-
-		if (!buddyConnectRequestMessageEntity.getRelatedUserAnonymizedID().isPresent())
-		{
-			throw BuddyServiceException.userAnonymizedIdCannotBeNull();
-		}
+		super(id, senderInfo, creationTime, isRead, user, message);
 
 		this.status = status;
 	}
@@ -84,16 +75,27 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 		return this.status == Status.ACCEPTED || this.status == Status.REJECTED;
 	}
 
-	public static BuddyConnectRequestMessageDTO createInstance(UserDTO actingUser, BuddyConnectRequestMessage messageEntity)
+	public static BuddyConnectRequestMessageDTO createInstance(UserDTO actingUser, BuddyConnectRequestMessage messageEntity,
+			SenderInfo senderInfo)
 	{
-		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(), messageEntity.getCreationTime(),
-				messageEntity.isRead(), UserDTO.createInstance(messageEntity.getSenderUser()),
-				messageEntity.getRelatedUserAnonymizedID().get(), messageEntity.getSenderNickname(), messageEntity.getMessage(),
+
+		if (messageEntity == null)
+		{
+			throw BuddyServiceException.messageEntityCannotBeNull();
+		}
+
+		if (!messageEntity.getRelatedUserAnonymizedID().isPresent())
+		{
+			throw BuddyServiceException.userAnonymizedIdCannotBeNull();
+		}
+
+		return new BuddyConnectRequestMessageDTO(messageEntity.getID(), senderInfo, messageEntity.getCreationTime(),
+				messageEntity.isRead(), UserDTO.createInstance(messageEntity.getSenderUser()), messageEntity.getMessage(),
 				messageEntity.getStatus());
 	}
 
 	@Component
-	private static class Manager extends MessageDTO.Manager
+	private static class Manager extends BuddyMessageDTO.Manager
 	{
 		private static final Logger logger = LoggerFactory.getLogger(Manager.class);
 
@@ -112,7 +114,8 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 		@Override
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return BuddyConnectRequestMessageDTO.createInstance(actingUser, (BuddyConnectRequestMessage) messageEntity);
+			return BuddyConnectRequestMessageDTO.createInstance(actingUser, (BuddyConnectRequestMessage) messageEntity,
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override

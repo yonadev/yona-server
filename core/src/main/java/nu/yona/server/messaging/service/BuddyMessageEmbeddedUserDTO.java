@@ -20,10 +20,10 @@ public abstract class BuddyMessageEmbeddedUserDTO extends BuddyMessageDTO
 {
 	private Map<String, Object> embeddedResources = Collections.emptyMap();
 
-	protected BuddyMessageEmbeddedUserDTO(UUID id, ZonedDateTime creationTime, boolean isRead, Optional<UserDTO> senderUser,
-			String senderNickname, String message)
+	protected BuddyMessageEmbeddedUserDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead,
+			Optional<UserDTO> senderUser, String message)
 	{
-		super(id, SenderInfo.createInstanceBuddyDetached(senderUser, senderNickname), creationTime, isRead, senderUser, message);
+		super(id, senderInfo, creationTime, isRead, senderUser, message);
 	}
 
 	@JsonProperty("_embedded")

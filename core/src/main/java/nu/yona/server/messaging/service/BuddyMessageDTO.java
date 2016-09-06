@@ -8,9 +8,13 @@ import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.messaging.entities.BuddyMessage;
+import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.subscriptions.service.UserDTO;
 
 @JsonRootName("buddyMessage")
@@ -44,5 +48,18 @@ public abstract class BuddyMessageDTO extends MessageDTO
 	public String getMessage()
 	{
 		return message;
+	}
+
+	@Component
+	public static abstract class Manager extends MessageDTO.Manager
+	{
+		@Override
+		protected SenderInfo getSenderInfoExtensionPoint(Message messageEntity)
+		{
+			// The buddy entity does not contain the user anonymized ID yet
+			BuddyMessage responseMmessageEntity = (BuddyMessage) messageEntity;
+			return SenderInfo.createInstanceBuddyDetached(responseMmessageEntity.getSenderUserID(),
+					responseMmessageEntity.getSenderNickname());
+		}
 	}
 }

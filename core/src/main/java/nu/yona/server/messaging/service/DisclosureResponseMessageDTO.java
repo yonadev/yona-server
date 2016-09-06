@@ -89,7 +89,7 @@ public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	}
 
 	@Component
-	private static class Manager extends MessageDTO.Manager
+	private static class Manager extends BuddyMessageDTO.Manager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;

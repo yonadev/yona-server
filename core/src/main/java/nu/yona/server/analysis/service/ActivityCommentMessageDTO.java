@@ -90,13 +90,12 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 			SenderInfo senderInfo)
 	{
 		return new ActivityCommentMessageDTO(messageEntity.getID(), senderInfo, messageEntity.getCreationTime(),
-				messageEntity.isRead(), UserDTO.createInstance(messageEntity.getSenderUser()),
-				messageEntity.getActivityID(), messageEntity.getThreadHeadMessageID(), messageEntity.getRepliedMessageID(),
-				messageEntity.getMessage());
+				messageEntity.isRead(), UserDTO.createInstance(messageEntity.getSenderUser()), messageEntity.getActivityID(),
+				messageEntity.getThreadHeadMessageID(), messageEntity.getRepliedMessageID(), messageEntity.getMessage());
 	}
 
 	@Component
-	private static class Manager extends MessageDTO.Manager
+	private static class Manager extends BuddyMessageDTO.Manager
 	{
 
 		@Autowired

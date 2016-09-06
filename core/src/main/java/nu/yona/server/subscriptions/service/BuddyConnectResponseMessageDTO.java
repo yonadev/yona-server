@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.service.BuddyMessageDTO;
 import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
@@ -86,7 +87,7 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	}
 
 	@Component
-	static class Manager extends MessageDTO.Manager
+	static class Manager extends BuddyMessageDTO.Manager
 	{
 		private static final Logger logger = LoggerFactory.getLogger(Manager.class);
 
@@ -122,15 +123,6 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 				default:
 					return super.handleAction(actingUser, messageEntity, action, requestPayload);
 			}
-		}
-
-		@Override
-		protected SenderInfo getSenderInfoExtensionPoint(Message messageEntity)
-		{
-			// The buddy entity does not contain the user anonymized ID yet
-			BuddyConnectResponseMessage responseMmessageEntity = (BuddyConnectResponseMessage) messageEntity;
-			return SenderInfo.createInstanceBuddyDetached(responseMmessageEntity.getSenderUserID(),
-					responseMmessageEntity.getSenderNickname());
 		}
 
 		MessageActionDTO handleAction_Process(UserDTO actingUser, BuddyConnectResponseMessage connectResponseMessageEntity,

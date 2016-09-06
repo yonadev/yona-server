@@ -18,10 +18,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.service.BuddyMessageDTO;
 import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
+import nu.yona.server.messaging.service.SenderInfo;
 import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 
@@ -32,10 +34,10 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 	private final DropBuddyReason reason;
 	private final boolean isProcessed;
 
-	private BuddyDisconnectMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, Optional<UserDTO> user,
-			String nickname, String message, DropBuddyReason reason, boolean isProcessed)
+	private BuddyDisconnectMessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead,
+			Optional<UserDTO> user, String message, DropBuddyReason reason, boolean isProcessed)
 	{
-		super(id, creationTime, isRead, user, nickname, message);
+		super(id, senderInfo, creationTime, isRead, user, message);
 		this.reason = reason;
 		this.isProcessed = isProcessed;
 	}
@@ -74,15 +76,16 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 		return this.isProcessed;
 	}
 
-	public static BuddyDisconnectMessageDTO createInstance(UserDTO actingUser, BuddyDisconnectMessage messageEntity)
+	public static BuddyDisconnectMessageDTO createInstance(UserDTO actingUser, BuddyDisconnectMessage messageEntity,
+			SenderInfo senderInfo)
 	{
-		return new BuddyDisconnectMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				UserDTO.createInstance(messageEntity.getSenderUser()), messageEntity.getSenderNickname(),
-				messageEntity.getMessage(), messageEntity.getReason(), messageEntity.isProcessed());
+		return new BuddyDisconnectMessageDTO(messageEntity.getID(), senderInfo, messageEntity.getCreationTime(),
+				messageEntity.isRead(), UserDTO.createInstance(messageEntity.getSenderUser()), messageEntity.getMessage(),
+				messageEntity.getReason(), messageEntity.isProcessed());
 	}
 
 	@Component
-	private static class Manager extends MessageDTO.Manager
+	private static class Manager extends BuddyMessageDTO.Manager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;
@@ -99,7 +102,8 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 		@Override
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return BuddyDisconnectMessageDTO.createInstance(actingUser, (BuddyDisconnectMessage) messageEntity);
+			return BuddyDisconnectMessageDTO.createInstance(actingUser, (BuddyDisconnectMessage) messageEntity,
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override

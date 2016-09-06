@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import nu.yona.server.goals.entities.GoalChangeMessage;
 import nu.yona.server.goals.entities.GoalChangeMessage.Change;
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.service.BuddyMessageDTO;
 import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
@@ -34,8 +35,8 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 	private final GoalDTO changedGoal;
 	private final Change change;
 
-	private GoalChangeMessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead, Optional<UserDTO> user,
-			GoalDTO changedGoal, Change change, String message)
+	private GoalChangeMessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead,
+			Optional<UserDTO> user, GoalDTO changedGoal, Change change, String message)
 	{
 		super(id, senderInfo, creationTime, isRead, user, message);
 
@@ -75,13 +76,13 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 
 	public static GoalChangeMessageDTO createInstance(UserDTO actingUser, GoalChangeMessage messageEntity, SenderInfo senderInfo)
 	{
-		return new GoalChangeMessageDTO(messageEntity.getID(), senderInfo, messageEntity.getCreationTime(), messageEntity.isRead(),
-				UserDTO.createInstance(messageEntity.getSenderUser()),
+		return new GoalChangeMessageDTO(messageEntity.getID(), senderInfo, messageEntity.getCreationTime(),
+				messageEntity.isRead(), UserDTO.createInstance(messageEntity.getSenderUser()),
 				GoalDTO.createInstance(messageEntity.getChangedGoal()), messageEntity.getChange(), messageEntity.getMessage());
 	}
 
 	@Component
-	private static class Manager extends MessageDTO.Manager
+	private static class Manager extends BuddyMessageDTO.Manager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;
