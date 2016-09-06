@@ -124,6 +124,15 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 			}
 		}
 
+		@Override
+		protected SenderInfo getSenderExtensionPoint(Message messageEntity)
+		{
+			// The buddy entity does not contain the user anonymized ID yet
+			BuddyConnectResponseMessage responseMmessageEntity = (BuddyConnectResponseMessage) messageEntity;
+			return SenderInfo.createInstanceBuddyDetached(responseMmessageEntity.getSenderUserID(),
+					responseMmessageEntity.getSenderNickname());
+		}
+
 		MessageActionDTO handleAction_Process(UserDTO actingUser, BuddyConnectResponseMessage connectResponseMessageEntity,
 				MessageActionDTO payload)
 		{

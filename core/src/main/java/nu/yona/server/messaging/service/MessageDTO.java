@@ -24,7 +24,6 @@ import nu.yona.server.Constants;
 import nu.yona.server.analysis.service.ActivityCommentMessageDTO;
 import nu.yona.server.analysis.service.GoalConflictMessageDTO;
 import nu.yona.server.goals.service.GoalChangeMessageDTO;
-import nu.yona.server.messaging.entities.BuddyMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
@@ -155,29 +154,33 @@ public abstract class MessageDTO extends PolymorphicDTO
 			return MessageActionDTO.createInstanceActionDone(theDTOFactory.createInstance(actingUser, savedMessageEntity));
 		}
 
-		protected SenderInfo getSender(UserDTO actingUser, Message messageEntity)
+		protected final SenderInfo getSender(UserDTO actingUser, Message messageEntity)
 		{
-			UUID senderUserAnonymizedID = messageEntity.getRelatedUserAnonymizedID().orElse(null);
-			if (actingUser.getPrivateData().getUserAnonymizedID().equals(senderUserAnonymizedID))
+			Optional<UUID> senderUserAnonymizedID = messageEntity.getRelatedUserAnonymizedID();
+			if (senderUserAnonymizedID.isPresent())
 			{
-				return getSenderSelf(actingUser);
+				if (actingUser.getPrivateData().getUserAnonymizedID().equals(senderUserAnonymizedID.get()))
+				{
+					return getSenderSelf(actingUser);
+				}
+
+				// Note: actingUser may be out of sync here, because the message action may have changed its state
+				// so retrieve anew from buddy service
+				Optional<BuddyDTO> buddy = buddyService.getBuddyOfUserByUserAnonymizedID(actingUser.getID(),
+						senderUserAnonymizedID.get());
+				if (buddy.isPresent())
+				{
+					return getSenderBuddy(buddy.get());
+				}
 			}
 
-			// Note: actingUser may be out of sync here, because the message action may have changed its state
-			// so retrieve anew from buddy service
-			Optional<BuddyDTO> buddy = buddyService.getBuddyOfUserByUserAnonymizedID(actingUser.getID(), senderUserAnonymizedID);
-			if (buddy.isPresent())
-			{
-				return getSenderBuddy(buddy.get());
-			}
+			return getSenderExtensionPoint(messageEntity);
+		}
 
-			if (messageEntity instanceof BuddyMessage)
-			{
-				// this buddy may be not yet connected or no longer connected
-				return getSenderBuddyDetached((BuddyMessage) messageEntity);
-			}
-
-			throw new IllegalStateException("Cannot find buddy for user anonymized ID '" + senderUserAnonymizedID + "'");
+		protected SenderInfo getSenderExtensionPoint(Message messageEntity)
+		{
+			throw new IllegalStateException("Cannot find buddy for message of type '" + messageEntity.getClass().getName()
+					+ "' with user anonymized ID '" + messageEntity.getRelatedUserAnonymizedID() + "'");
 		}
 
 		private SenderInfo getSenderSelf(UserDTO actingUser)
@@ -188,11 +191,6 @@ public abstract class MessageDTO extends PolymorphicDTO
 		private SenderInfo getSenderBuddy(BuddyDTO buddy)
 		{
 			return SenderInfo.createInstanceBuddy(buddy.getUser().getID(), buddy.getNickname(), buddy.getID());
-		}
-
-		private SenderInfo getSenderBuddyDetached(BuddyMessage messageEntity)
-		{
-			return SenderInfo.createInstanceBuddyDetached(messageEntity.getSenderUserID(), messageEntity.getSenderNickname());
 		}
 	}
 }
