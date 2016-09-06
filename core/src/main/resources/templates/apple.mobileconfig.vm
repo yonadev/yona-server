@@ -207,7 +207,7 @@
 				<key>auth</key>
 				<string>SHA1</string>
 				<key>auth-user-pass</key>
-				<string>${ldapUsername}\\n${ldapPassword}</string>
+				<string>${ldapUsername}\n${ldapPassword}</string>
 				<key>ca</key>
 				<string>-----BEGIN CERTIFICATE-----
 \nMIICdDCCAd2gAwIBAgIJAKHlBds0knLfMA0GCSqGSIb3DQEBCwUAMDExEzARBgNV
