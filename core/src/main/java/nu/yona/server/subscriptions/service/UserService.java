@@ -164,7 +164,7 @@ public class UserService
 		return userDTO;
 	}
 
-	private UserDTO createUserDTOWithPrivateData(User user)
+	UserDTO createUserDTOWithPrivateData(User user)
 	{
 		return UserDTO.createInstanceWithPrivateData(user,
 				(buddyIDs) -> buddyIDs.stream().map((bid) -> buddyService.getBuddy(bid)).collect(Collectors.toSet()));

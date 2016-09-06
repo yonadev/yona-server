@@ -8,9 +8,9 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
-import java.nio.charset.StandardCharsets;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -491,7 +491,7 @@ public class UserController
 		{
 			userResource.add(new Link(
 					ServletUriComponentsBuilder.fromCurrentContextPath().path(SSL_ROOT_CERTIFICATE_PATH).build().toUriString(),
-							"sslRootCert"));
+					"sslRootCert"));
 		}
 
 		@Override
@@ -531,13 +531,13 @@ public class UserController
 		private void addWeekActivityOverviewsLink(UserResource userResource)
 		{
 			userResource.add(UserActivityController.getUserWeekActivityOverviewsLinkBuilder(userResource.getContent().getID())
-					.withRel("weeklyActivityReports"));
+					.withRel(UserActivityController.WEEK_OVERVIEW_LINK));
 		}
 
 		private void addDayActivityOverviewsLink(UserResource userResource)
 		{
 			userResource.add(UserActivityController.getUserDayActivityOverviewsLinkBuilder(userResource.getContent().getID())
-					.withRel("dailyActivityReports"));
+					.withRel(UserActivityController.DAY_OVERVIEW_LINK));
 		}
 
 		private void addDayActivityOverviewsWithBuddiesLink(UserResource userResource)

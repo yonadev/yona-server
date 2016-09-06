@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.analysis.rest.BuddyActivityController;
 import nu.yona.server.analysis.rest.UserActivityController;
@@ -51,11 +52,15 @@ import nu.yona.server.goals.rest.ActivityCategoryController;
 import nu.yona.server.goals.service.GoalChangeMessageDTO;
 import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDTO;
 import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
+import nu.yona.server.messaging.service.DisclosureRequestMessageDTO;
+import nu.yona.server.messaging.service.DisclosureResponseMessageDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.rest.UserController;
+import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDTO;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.GoalIDMapping;
 import nu.yona.server.subscriptions.service.UserDTO;
@@ -271,17 +276,59 @@ public class MessageController
 			{
 				addUserLinkIfAvailable((BuddyMessageLinkedUserDTO) message);
 			}
+			if (message instanceof BuddyConnectResponseMessageDTO)
+			{
+				addSenderBuddyLinkIfAvailable((BuddyConnectResponseMessageDTO) message);
+			}
 			if (message instanceof GoalConflictMessageDTO)
 			{
 				addGoalConflictMessageLinks((GoalConflictMessageDTO) message);
 			}
+			if (message instanceof DisclosureRequestMessageDTO)
+			{
+				addDayActivityDetailLink((DisclosureRequestMessageDTO) message);
+			}
+			if (message instanceof DisclosureResponseMessageDTO)
+			{
+				addDayActivityDetailLinkIfDisclosureAccepted((DisclosureResponseMessageDTO) message);
+			}
 			if (message instanceof GoalChangeMessageDTO)
 			{
-				addRelatedActivityCategoryLink((GoalChangeMessageDTO) message);
+				addGoalChangeMessageLinks((GoalChangeMessageDTO) message);
 			}
 			if (message instanceof ActivityCommentMessageDTO)
 			{
 				addActivityCommentMessageLinks((ActivityCommentMessageDTO) message);
+			}
+		}
+
+		private void addGoalChangeMessageLinks(GoalChangeMessageDTO message)
+		{
+			addRelatedActivityCategoryLink(message);
+			addDayActivityOverviewLink(message);
+		}
+
+		private void addDayActivityOverviewLink(GoalChangeMessageDTO message)
+		{
+			message.add(BuddyActivityController
+					.getBuddyDayActivityOverviewsLinkBuilder(goalIDMapping.getUserID(), message.getSenderBuddyID().get())
+					.withRel(BuddyActivityController.DAY_OVERVIEW_LINK));
+		}
+
+		private void addDayActivityDetailLinkIfDisclosureAccepted(DisclosureResponseMessageDTO message)
+		{
+			if (message.getStatus() == GoalConflictMessage.Status.DISCLOSURE_ACCEPTED)
+			{
+				addDayActivityDetailLink(message);
+			}
+		}
+
+		private void addSenderBuddyLinkIfAvailable(MessageDTO message)
+		{
+			if (message.getSenderBuddyID().isPresent())
+			{
+				message.add(BuddyController.getBuddyLinkBuilder(goalIDMapping.getUserID(), message.getSenderBuddyID().get())
+						.withRel(BuddyController.BUDDY_LINK));
 			}
 		}
 
@@ -303,13 +350,30 @@ public class MessageController
 					.withRel("activityCategory"));
 		}
 
+		private void addDayActivityDetailLink(DisclosureRequestMessageDTO message)
+		{
+			String dateStr = DayActivityDTO.formatDate(message.getTargetGoalConflictDate());
+			message.add(UserActivityController.getUserDayActivityDetailLinkBuilder(goalIDMapping.getUserID(), dateStr,
+					message.getTargetGoalConflictGoalID()).withRel(UserActivityController.DAY_DETAIL_LINK));
+		}
+
+		private void addDayActivityDetailLink(DisclosureResponseMessageDTO message)
+		{
+			String dateStr = DayActivityDTO.formatDate(message.getTargetGoalConflictDate());
+			message.add(
+					BuddyActivityController
+							.getBuddyDayActivityDetailLinkBuilder(goalIDMapping.getUserID(), message.getSenderBuddyID().get(),
+									dateStr, message.getTargetGoalConflictGoalID())
+							.withRel(BuddyActivityController.DAY_DETAIL_LINK));
+		}
+
 		private void addDayActivityDetailLink(GoalConflictMessageDTO message)
 		{
 			String dateStr = DayActivityDTO.formatDate(message.getActivityStartTime().toLocalDate());
-			if (message.isFromBuddy())
+			if (message.isSentFromBuddy())
 			{
 				message.add(BuddyActivityController.getBuddyDayActivityDetailLinkBuilder(goalIDMapping.getUserID(),
-						message.getBuddyID().get(), dateStr, message.getGoalID())
+						message.getSenderBuddyID().get(), dateStr, message.getGoalID())
 						.withRel(BuddyActivityController.DAY_DETAIL_LINK));
 			}
 			else

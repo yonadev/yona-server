@@ -19,15 +19,17 @@ public abstract class BuddyMessageEmbeddedUserDTO extends BuddyMessageDTO
 {
 	private Map<String, Object> embeddedResources = Collections.emptyMap();
 
-	protected BuddyMessageEmbeddedUserDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO senderUser, String senderNickname, String message)
+	protected BuddyMessageEmbeddedUserDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO senderUser,
+			String senderNickname, String message)
 	{
-		super(id, creationTime, isRead, senderUser, senderNickname, message);
+		super(id, SenderInfo.createInstanceBuddyDetached(senderUser, senderNickname), creationTime, isRead, senderUser, message);
 	}
 
-	protected BuddyMessageEmbeddedUserDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UUID targetGoalConflictMessageOriginID,
-			UserDTO user, String nickname, String message)
+	protected BuddyMessageEmbeddedUserDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UUID relatedMessageID,
+			UserDTO senderUser, String senderNickname, String message)
 	{
-		super(id, creationTime, isRead, user, nickname, message);
+		super(id, SenderInfo.createInstanceBuddyDetached(senderUser, senderNickname), creationTime, isRead, relatedMessageID,
+				senderUser, message);
 	}
 
 	@JsonProperty("_embedded")

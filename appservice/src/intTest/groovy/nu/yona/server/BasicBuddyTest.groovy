@@ -195,6 +195,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded."yona:affectedMessages".size() == 1
 		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == connectResponseMessage.selfURL
 		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
+		def buddyURL = response.responseData._embedded."yona:affectedMessages"[0]._links."yona:buddy"?.href
+		buddyURL != null
 
 		def buddies = appService.getBuddies(richard)
 		buddies.size() == 1
@@ -202,6 +204,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddies[0].nickname == bob.nickname
 		buddies[0].sendingStatus == "ACCEPTED"
 		buddies[0].receivingStatus == "ACCEPTED"
+		buddies[0].url == buddyURL
 
 		def richardWithBuddy = appService.reloadUser(richard)
 		richardWithBuddy.buddies != null
@@ -333,6 +336,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		richardGoalConflictMessages[0].nickname == bob.nickname
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 		richardGoalConflictMessages[0].url == null
+		// link to Bob's activity present
 		def dayActivityDetailUrlRichard = richardGoalConflictMessages[0]._links."yona:dayDetails".href
 		dayActivityDetailUrlRichard
 		def dayActivityDetailRichard = appService.getResourceWithPassword(dayActivityDetailUrlRichard, richard.password)
@@ -347,6 +351,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		bobGoalConflictMessages[0].nickname == "<self>"
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 		bobGoalConflictMessages[0].url == "http://www.poker.com"
+		// link to own activity present
 		def dayActivityDetailUrlBob = bobGoalConflictMessages[0]._links."yona:dayDetails".href
 		dayActivityDetailUrlBob
 		def dayActivityDetailBob = appService.getResourceWithPassword(dayActivityDetailUrlBob, bob.password)

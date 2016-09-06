@@ -23,6 +23,7 @@ import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
+import nu.yona.server.messaging.service.SenderInfo;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 
@@ -33,10 +34,10 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	private final Status status;
 	private final boolean isProcessed;
 
-	private BuddyConnectResponseMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, String nickname,
+	private BuddyConnectResponseMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UserDTO user,
 			String message, Status status, boolean isProcessed)
 	{
-		super(id, creationTime, isRead, user, nickname, message);
+		super(id, sender, creationTime, isRead, user, message);
 		this.status = status;
 		this.isProcessed = isProcessed;
 	}
@@ -75,10 +76,11 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 		return this.isProcessed;
 	}
 
-	public static BuddyConnectResponseMessageDTO createInstance(UserDTO actingUser, BuddyConnectResponseMessage messageEntity)
+	public static BuddyConnectResponseMessageDTO createInstance(UserDTO actingUser, BuddyConnectResponseMessage messageEntity,
+			SenderInfo sender)
 	{
-		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getSenderNickname(),
+		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(),
+				messageEntity.isRead(), UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()),
 				messageEntity.getMessage(), messageEntity.getStatus(), messageEntity.isProcessed());
 	}
 
@@ -102,7 +104,8 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 		@Override
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return BuddyConnectResponseMessageDTO.createInstance(actingUser, (BuddyConnectResponseMessage) messageEntity);
+			return BuddyConnectResponseMessageDTO.createInstance(actingUser, (BuddyConnectResponseMessage) messageEntity,
+					getSender(actingUser, messageEntity));
 		}
 
 		@Override

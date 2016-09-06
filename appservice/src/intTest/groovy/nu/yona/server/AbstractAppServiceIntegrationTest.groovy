@@ -434,7 +434,14 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	void assertDayOverviewWithBuddiesBasics(response, expectedSize, expectedTotalElements, expectedPageSize = 3)
 	{
 		assert response.status == 200
-		assert response.responseData._embedded?."yona:dayActivityOverviews"?.size() == expectedSize
+		if(expectedSize == 0)
+		{
+			assert response.responseData._embedded?."yona:dayActivityOverviews" == null
+		}
+		else
+		{
+			assert response.responseData._embedded?."yona:dayActivityOverviews"?.size() == expectedSize
+		}
 		assert response.responseData.page
 		assert response.responseData.page.size == expectedPageSize
 		assert response.responseData.page.totalElements == expectedTotalElements

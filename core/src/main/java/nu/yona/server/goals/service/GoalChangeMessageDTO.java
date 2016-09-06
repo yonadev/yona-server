@@ -23,6 +23,7 @@ import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
+import nu.yona.server.messaging.service.SenderInfo;
 import nu.yona.server.subscriptions.service.UserDTO;
 
 @JsonRootName("goalChangeMessage")
@@ -32,10 +33,10 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 	private final GoalDTO changedGoal;
 	private final Change change;
 
-	private GoalChangeMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, String nickname,
+	private GoalChangeMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UserDTO user,
 			GoalDTO changedGoal, Change change, String message)
 	{
-		super(id, creationTime, isRead, user, nickname, message);
+		super(id, sender, creationTime, isRead, user, message);
 
 		this.changedGoal = changedGoal;
 		this.change = change;
@@ -71,10 +72,10 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 		return true;
 	}
 
-	public static GoalChangeMessageDTO createInstance(UserDTO actingUser, GoalChangeMessage messageEntity)
+	public static GoalChangeMessageDTO createInstance(UserDTO actingUser, GoalChangeMessage messageEntity, SenderInfo sender)
 	{
-		return new GoalChangeMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getSenderNickname(),
+		return new GoalChangeMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(), messageEntity.isRead(),
+				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()),
 				GoalDTO.createInstance(messageEntity.getChangedGoal()), messageEntity.getChange(), messageEntity.getMessage());
 	}
 
@@ -93,7 +94,8 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 		@Override
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return GoalChangeMessageDTO.createInstance(actingUser, (GoalChangeMessage) messageEntity);
+			return GoalChangeMessageDTO.createInstance(actingUser, (GoalChangeMessage) messageEntity,
+					getSender(actingUser, messageEntity));
 		}
 
 		@Override
