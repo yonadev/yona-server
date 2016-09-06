@@ -37,11 +37,11 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 	private final LocalDate targetGoalConflictDate;
 	private final Status status;
 
-	private DisclosureRequestMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead,
+	private DisclosureRequestMessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead,
 			Optional<UserDTO> user, String message, Status status, UUID targetGoalConflictMessageID,
 			UUID targetGoalConflictGoalID, LocalDate targetGoalConflictDate)
 	{
-		super(id, sender, creationTime, isRead, targetGoalConflictMessageID, user, message);
+		super(id, senderInfo, creationTime, isRead, targetGoalConflictMessageID, user, message);
 		this.targetGoalConflictGoalID = targetGoalConflictGoalID;
 		this.targetGoalConflictDate = targetGoalConflictDate;
 		this.status = status;
@@ -89,10 +89,10 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 	}
 
 	public static DisclosureRequestMessageDTO createInstance(UserDTO actingUser, DisclosureRequestMessage messageEntity,
-			SenderInfo sender)
+			SenderInfo senderInfo)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
-		return new DisclosureRequestMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(),
+		return new DisclosureRequestMessageDTO(messageEntity.getID(), senderInfo, messageEntity.getCreationTime(),
 				messageEntity.isRead(), UserDTO.createInstance(messageEntity.getSenderUser()),
 				messageEntity.getMessage(), messageEntity.getStatus(), targetGoalConflictMessage.getOriginGoalConflictMessageID(),
 				targetGoalConflictMessage.getGoal().getID(),
@@ -121,7 +121,7 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
 			return DisclosureRequestMessageDTO.createInstance(actingUser, (DisclosureRequestMessage) messageEntity,
-					getSender(actingUser, messageEntity));
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override

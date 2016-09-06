@@ -43,11 +43,11 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private final UUID goalID;
 	private final UUID activityCategoryID;
 
-	private GoalConflictMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UUID goalID,
+	private GoalConflictMessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead, UUID goalID,
 			UUID activityCategoryID, Optional<String> url, Status status, ZonedDateTime activityStartTime,
 			ZonedDateTime activityEndTime)
 	{
-		super(id, sender, creationTime, isRead);
+		super(id, senderInfo, creationTime, isRead);
 		this.goalID = goalID;
 		this.activityCategoryID = activityCategoryID;
 		this.url = url;
@@ -113,9 +113,9 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return true;
 	}
 
-	private static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, SenderInfo sender)
+	private static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, SenderInfo senderInfo)
 	{
-		return new GoalConflictMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(), messageEntity.isRead(),
+		return new GoalConflictMessageDTO(messageEntity.getID(), senderInfo, messageEntity.getCreationTime(), messageEntity.isRead(),
 				messageEntity.getGoal().getID(), messageEntity.getActivity().getActivityCategory().getID(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : Optional.empty(), messageEntity.getStatus(),
 				messageEntity.getActivity().getStartTime(), messageEntity.getActivity().getEndTime());
@@ -143,7 +143,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
 			return GoalConflictMessageDTO.createInstance((GoalConflictMessage) messageEntity,
-					getSender(actingUser, messageEntity));
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override

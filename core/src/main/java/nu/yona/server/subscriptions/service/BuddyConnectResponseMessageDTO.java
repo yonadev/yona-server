@@ -35,10 +35,10 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	private final Status status;
 	private final boolean isProcessed;
 
-	private BuddyConnectResponseMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead,
+	private BuddyConnectResponseMessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead,
 			Optional<UserDTO> user, String message, Status status, boolean isProcessed)
 	{
-		super(id, sender, creationTime, isRead, user, message);
+		super(id, senderInfo, creationTime, isRead, user, message);
 		this.status = status;
 		this.isProcessed = isProcessed;
 	}
@@ -78,9 +78,9 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	}
 
 	public static BuddyConnectResponseMessageDTO createInstance(UserDTO actingUser, BuddyConnectResponseMessage messageEntity,
-			SenderInfo sender)
+			SenderInfo senderInfo)
 	{
-		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(),
+		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), senderInfo, messageEntity.getCreationTime(),
 				messageEntity.isRead(), UserDTO.createInstance(messageEntity.getSenderUser()), messageEntity.getMessage(),
 				messageEntity.getStatus(), messageEntity.isProcessed());
 	}
@@ -106,7 +106,7 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
 			return BuddyConnectResponseMessageDTO.createInstance(actingUser, (BuddyConnectResponseMessage) messageEntity,
-					getSender(actingUser, messageEntity));
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
@@ -125,7 +125,7 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 		}
 
 		@Override
-		protected SenderInfo getSenderExtensionPoint(Message messageEntity)
+		protected SenderInfo getSenderInfoExtensionPoint(Message messageEntity)
 		{
 			// The buddy entity does not contain the user anonymized ID yet
 			BuddyConnectResponseMessage responseMmessageEntity = (BuddyConnectResponseMessage) messageEntity;

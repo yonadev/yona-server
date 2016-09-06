@@ -32,11 +32,11 @@ public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	private final LocalDate targetGoalConflictDate;
 	private final Status status;
 
-	private DisclosureResponseMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead,
+	private DisclosureResponseMessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead,
 			Optional<UserDTO> user, Status status, String message, UUID targetGoalConflictMessageID,
 			UUID targetGoalConflictGoalID, LocalDate targetGoalConflictDate)
 	{
-		super(id, sender, creationTime, isRead, targetGoalConflictMessageID, user, message);
+		super(id, senderInfo, creationTime, isRead, targetGoalConflictMessageID, user, message);
 		this.status = status;
 		this.targetGoalConflictGoalID = targetGoalConflictGoalID;
 		this.targetGoalConflictDate = targetGoalConflictDate;
@@ -79,10 +79,10 @@ public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	}
 
 	public static DisclosureResponseMessageDTO createInstance(UserDTO actingUser, DisclosureResponseMessage messageEntity,
-			SenderInfo sender)
+			SenderInfo senderInfo)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
-		return new DisclosureResponseMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(),
+		return new DisclosureResponseMessageDTO(messageEntity.getID(), senderInfo, messageEntity.getCreationTime(),
 				messageEntity.isRead(), UserDTO.createInstance(messageEntity.getSenderUser()), messageEntity.getStatus(),
 				messageEntity.getMessage(), targetGoalConflictMessage.getID(), targetGoalConflictMessage.getGoal().getID(),
 				targetGoalConflictMessage.getActivity().getStartTime().toLocalDate());
@@ -104,7 +104,7 @@ public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
 			return DisclosureResponseMessageDTO.createInstance(actingUser, (DisclosureResponseMessage) messageEntity,
-					getSender(actingUser, messageEntity));
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override

@@ -34,10 +34,10 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 	private final GoalDTO changedGoal;
 	private final Change change;
 
-	private GoalChangeMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, Optional<UserDTO> user,
+	private GoalChangeMessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead, Optional<UserDTO> user,
 			GoalDTO changedGoal, Change change, String message)
 	{
-		super(id, sender, creationTime, isRead, user, message);
+		super(id, senderInfo, creationTime, isRead, user, message);
 
 		this.changedGoal = changedGoal;
 		this.change = change;
@@ -73,9 +73,9 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 		return true;
 	}
 
-	public static GoalChangeMessageDTO createInstance(UserDTO actingUser, GoalChangeMessage messageEntity, SenderInfo sender)
+	public static GoalChangeMessageDTO createInstance(UserDTO actingUser, GoalChangeMessage messageEntity, SenderInfo senderInfo)
 	{
-		return new GoalChangeMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(), messageEntity.isRead(),
+		return new GoalChangeMessageDTO(messageEntity.getID(), senderInfo, messageEntity.getCreationTime(), messageEntity.isRead(),
 				UserDTO.createInstance(messageEntity.getSenderUser()),
 				GoalDTO.createInstance(messageEntity.getChangedGoal()), messageEntity.getChange(), messageEntity.getMessage());
 	}
@@ -96,7 +96,7 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
 			return GoalChangeMessageDTO.createInstance(actingUser, (GoalChangeMessage) messageEntity,
-					getSender(actingUser, messageEntity));
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
