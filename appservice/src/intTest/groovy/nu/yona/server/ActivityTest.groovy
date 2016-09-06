@@ -972,10 +972,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def beaMessagesRichard = getActivityDetailMessages(beaResponseDetailsRichardAsBuddy, bea, 1).responseData._embedded."yona:messages"
 
 		then:
-		bobMessagesRichard[0].nickname == "BD"
+		bobMessagesRichard[0].nickname == "<self>"
 		bobMessagesRichard[1].nickname == "RQ"
 
-		beaMessagesRichard[0].nickname == "BDD"
+		beaMessagesRichard[0].nickname == "<self>"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -1024,10 +1024,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		richardMessagesRevisited[0].nickname == "BD"
-		richardMessagesRevisited[1].nickname == "RQ"
+		richardMessagesRevisited[1].nickname == "<self>"
 		richardMessagesRevisited[2].nickname == "BD"
 		richardMessagesRevisited[3].nickname == "BDD"
-		richardMessagesRevisited[4].nickname == "RQ"
+		richardMessagesRevisited[4].nickname == "<self>"
 
 		cleanup:
 		appService.deleteUser(richard)
