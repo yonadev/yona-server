@@ -1,0 +1,1 @@
+start "HSQL database manager" java -cp "%HSQLDB_HOME%/lib/hsqldb.jar" org.hsqldb.util.DatabaseManagerSwing -url jdbc:hsqldb:hsql://yonadbserver/xdb;shutdown=true

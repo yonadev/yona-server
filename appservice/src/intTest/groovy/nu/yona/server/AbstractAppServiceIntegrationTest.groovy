@@ -79,12 +79,30 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		return appService.reloadUser(bob)
 	}
 
+	User addBea()
+	{
+		def bea = appService.addUser(appService.&assertUserCreationResponseDetails, "B e a", "Bea", "Dundee", "BDD",
+				"+$timestamp")
+		bea = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bea)
+		return bea
+	}
+
 	def addRichardAndBobAsBuddies()
 	{
 		def richard = addRichard()
 		def bob = addBob()
 		appService.makeBuddies(richard, bob)
 		return ["richard" : richard, "bob" : bob]
+	}
+
+	def addRichardWithBobAndBeaAsBuddies()
+	{
+		def richard = addRichard()
+		def bob = addBob()
+		def bea = addBea()
+		appService.makeBuddies(richard, bob)
+		appService.makeBuddies(richard, bea)
+		return ["richard" : richard, "bob" : bob, "bea" : bea]
 	}
 
 	private static String createBaseTimestamp()
