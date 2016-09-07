@@ -5,6 +5,7 @@ info:
   version: 1.0.0
 schemes:
   - http
+  - https
 basePath: /
 produces:
   - application/json
