@@ -275,7 +275,7 @@ public class MessageController
 			{
 				addUserLinkIfAvailable((BuddyMessageLinkedUserDTO) message);
 			}
-			if (message instanceof BuddyConnectResponseMessageDTO)
+			if (message instanceof BuddyConnectResponseMessageDTO || message instanceof GoalConflictMessageDTO)
 			{
 				addSenderBuddyLinkIfAvailable(message);
 			}
