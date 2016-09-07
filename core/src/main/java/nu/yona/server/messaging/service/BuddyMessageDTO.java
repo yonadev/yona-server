@@ -5,44 +5,31 @@
 package nu.yona.server.messaging.service;
 
 import java.time.ZonedDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.BuddyMessage;
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.subscriptions.service.UserDTO;
 
 @JsonRootName("buddyMessage")
 public abstract class BuddyMessageDTO extends MessageDTO
 {
-	private final Optional<UserDTO> senderUser;
 	private final String message;
 
-	protected BuddyMessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead,
-			Optional<UserDTO> senderUser, String message)
+	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo, String message)
 	{
-		super(id, senderInfo, creationTime, isRead);
-		this.senderUser = senderUser;
+		super(id, creationTime, isRead, senderInfo);
 		this.message = message;
 	}
 
-	protected BuddyMessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead, UUID relatedMessageID,
-			Optional<UserDTO> senderUser, String message)
+	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID relatedMessageID,
+			String message)
 	{
 		super(id, senderInfo, creationTime, isRead, relatedMessageID);
-		this.senderUser = senderUser;
 		this.message = message;
-	}
-
-	@JsonIgnore
-	public Optional<UserDTO> getUser()
-	{
-		return senderUser;
 	}
 
 	public String getMessage()
@@ -58,7 +45,7 @@ public abstract class BuddyMessageDTO extends MessageDTO
 		{
 			// The buddy entity does not contain the user anonymized ID yet
 			BuddyMessage responseMmessageEntity = (BuddyMessage) messageEntity;
-			return SenderInfo.createInstanceBuddyDetached(responseMmessageEntity.getSenderUserID(),
+			return createSenderInfoForDetachedBuddy(responseMmessageEntity.getSenderUser(),
 					responseMmessageEntity.getSenderNickname());
 		}
 	}

@@ -7,23 +7,20 @@ package nu.yona.server.messaging.service;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import nu.yona.server.subscriptions.service.UserDTO;
-
 public abstract class BuddyMessageEmbeddedUserDTO extends BuddyMessageDTO
 {
 	private Map<String, Object> embeddedResources = Collections.emptyMap();
 
-	protected BuddyMessageEmbeddedUserDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead,
-			Optional<UserDTO> senderUser, String message)
+	protected BuddyMessageEmbeddedUserDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+			String message)
 	{
-		super(id, senderInfo, creationTime, isRead, senderUser, message);
+		super(id, creationTime, isRead, senderInfo, message);
 	}
 
 	@JsonProperty("_embedded")

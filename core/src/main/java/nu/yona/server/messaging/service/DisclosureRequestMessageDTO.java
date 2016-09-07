@@ -6,7 +6,6 @@ package nu.yona.server.messaging.service;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -37,11 +36,11 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 	private final LocalDate targetGoalConflictDate;
 	private final Status status;
 
-	private DisclosureRequestMessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead,
-			Optional<UserDTO> user, String message, Status status, UUID targetGoalConflictMessageID,
-			UUID targetGoalConflictGoalID, LocalDate targetGoalConflictDate)
+	private DisclosureRequestMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+			String message, Status status, UUID targetGoalConflictMessageID, UUID targetGoalConflictGoalID,
+			LocalDate targetGoalConflictDate)
 	{
-		super(id, senderInfo, creationTime, isRead, targetGoalConflictMessageID, user, message);
+		super(id, creationTime, isRead, targetGoalConflictMessageID, senderInfo, message);
 		this.targetGoalConflictGoalID = targetGoalConflictGoalID;
 		this.targetGoalConflictDate = targetGoalConflictDate;
 		this.status = status;
@@ -92,10 +91,9 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 			SenderInfo senderInfo)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
-		return new DisclosureRequestMessageDTO(messageEntity.getID(), senderInfo, messageEntity.getCreationTime(),
-				messageEntity.isRead(), UserDTO.createInstance(messageEntity.getSenderUser()), messageEntity.getMessage(),
-				messageEntity.getStatus(), targetGoalConflictMessage.getOriginGoalConflictMessageID(),
-				targetGoalConflictMessage.getGoal().getID(),
+		return new DisclosureRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getMessage(), messageEntity.getStatus(),
+				targetGoalConflictMessage.getOriginGoalConflictMessageID(), targetGoalConflictMessage.getGoal().getID(),
 				targetGoalConflictMessage.getActivity().getStartTime().toLocalDate());
 	}
 

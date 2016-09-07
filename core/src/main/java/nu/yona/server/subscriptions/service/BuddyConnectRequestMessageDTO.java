@@ -5,7 +5,6 @@
 package nu.yona.server.subscriptions.service;
 
 import java.time.ZonedDateTime;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -38,10 +37,10 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 
 	private final Status status;
 
-	private BuddyConnectRequestMessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead,
-			Optional<UserDTO> user, String message, Status status)
+	private BuddyConnectRequestMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+			String message, Status status)
 	{
-		super(id, senderInfo, creationTime, isRead, user, message);
+		super(id, creationTime, isRead, senderInfo, message);
 
 		this.status = status;
 	}
@@ -89,9 +88,8 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 			throw BuddyServiceException.userAnonymizedIdCannotBeNull();
 		}
 
-		return new BuddyConnectRequestMessageDTO(messageEntity.getID(), senderInfo, messageEntity.getCreationTime(),
-				messageEntity.isRead(), UserDTO.createInstance(messageEntity.getSenderUser()), messageEntity.getMessage(),
-				messageEntity.getStatus());
+		return new BuddyConnectRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getMessage(), messageEntity.getStatus());
 	}
 
 	@Component

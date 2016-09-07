@@ -37,11 +37,10 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	private final Optional<UUID> repliedMessageID;
 	private final UUID threadHeadMessageID;
 
-	private ActivityCommentMessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead,
-			Optional<UserDTO> senderUser, UUID activityID, UUID threadHeadMessageID, Optional<UUID> repliedMessageID,
-			String message)
+	private ActivityCommentMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+			UUID activityID, UUID threadHeadMessageID, Optional<UUID> repliedMessageID, String message)
 	{
-		super(id, senderInfo, creationTime, isRead, senderUser, message);
+		super(id, creationTime, isRead, senderInfo, message);
 		this.activityID = activityID;
 		this.threadHeadMessageID = threadHeadMessageID;
 		this.repliedMessageID = repliedMessageID;
@@ -90,9 +89,9 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	public static ActivityCommentMessageDTO createInstance(UserDTO actingUser, ActivityCommentMessage messageEntity,
 			SenderInfo senderInfo)
 	{
-		return new ActivityCommentMessageDTO(messageEntity.getID(), senderInfo, messageEntity.getCreationTime(),
-				messageEntity.isRead(), UserDTO.createInstance(messageEntity.getSenderUser()), messageEntity.getActivityID(),
-				messageEntity.getThreadHeadMessageID(), messageEntity.getRepliedMessageID(), messageEntity.getMessage());
+		return new ActivityCommentMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getActivityID(), messageEntity.getThreadHeadMessageID(),
+				messageEntity.getRepliedMessageID(), messageEntity.getMessage());
 	}
 
 	@Component

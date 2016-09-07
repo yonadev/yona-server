@@ -5,7 +5,6 @@
 package nu.yona.server.subscriptions.service;
 
 import java.time.ZonedDateTime;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -36,10 +35,10 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	private final Status status;
 	private final boolean isProcessed;
 
-	private BuddyConnectResponseMessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead,
-			Optional<UserDTO> user, String message, Status status, boolean isProcessed)
+	private BuddyConnectResponseMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+			String message, Status status, boolean isProcessed)
 	{
-		super(id, senderInfo, creationTime, isRead, user, message);
+		super(id, creationTime, isRead, senderInfo, message);
 		this.status = status;
 		this.isProcessed = isProcessed;
 	}
@@ -81,9 +80,9 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	public static BuddyConnectResponseMessageDTO createInstance(UserDTO actingUser, BuddyConnectResponseMessage messageEntity,
 			SenderInfo senderInfo)
 	{
-		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), senderInfo, messageEntity.getCreationTime(),
-				messageEntity.isRead(), UserDTO.createInstance(messageEntity.getSenderUser()), messageEntity.getMessage(),
-				messageEntity.getStatus(), messageEntity.isProcessed());
+		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getMessage(), messageEntity.getStatus(),
+				messageEntity.isProcessed());
 	}
 
 	@Component

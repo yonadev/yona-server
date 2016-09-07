@@ -5,7 +5,6 @@
 package nu.yona.server.subscriptions.service;
 
 import java.time.ZonedDateTime;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -34,10 +33,10 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 	private final DropBuddyReason reason;
 	private final boolean isProcessed;
 
-	private BuddyDisconnectMessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead,
-			Optional<UserDTO> user, String message, DropBuddyReason reason, boolean isProcessed)
+	private BuddyDisconnectMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+			String message, DropBuddyReason reason, boolean isProcessed)
 	{
-		super(id, senderInfo, creationTime, isRead, user, message);
+		super(id, creationTime, isRead, senderInfo, message);
 		this.reason = reason;
 		this.isProcessed = isProcessed;
 	}
@@ -79,9 +78,9 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 	public static BuddyDisconnectMessageDTO createInstance(UserDTO actingUser, BuddyDisconnectMessage messageEntity,
 			SenderInfo senderInfo)
 	{
-		return new BuddyDisconnectMessageDTO(messageEntity.getID(), senderInfo, messageEntity.getCreationTime(),
-				messageEntity.isRead(), UserDTO.createInstance(messageEntity.getSenderUser()), messageEntity.getMessage(),
-				messageEntity.getReason(), messageEntity.isProcessed());
+		return new BuddyDisconnectMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getMessage(), messageEntity.getReason(),
+				messageEntity.isProcessed());
 	}
 
 	@Component

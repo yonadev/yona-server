@@ -385,7 +385,7 @@ public class MessageController
 
 		private void embedBuddyUserIfAvailable(BuddyMessageEmbeddedUserDTO buddyMessage)
 		{
-			buddyMessage.getUser().ifPresent(user -> {
+			buddyMessage.getSenderUser().ifPresent(user -> {
 				buddyMessage.setEmbeddedUser(curieProvider.getNamespacedRelFor(BuddyDTO.USER_REL_NAME),
 						new UserController.UserResourceAssembler(curieProvider, false).toResource(user));
 			});
@@ -393,7 +393,7 @@ public class MessageController
 
 		private void addUserLinkIfAvailable(BuddyMessageLinkedUserDTO buddyMessage)
 		{
-			buddyMessage.getUser().ifPresent(user -> {
+			buddyMessage.getSenderUser().ifPresent(user -> {
 				buddyMessage.add(UserController.getPublicUserLink(BuddyDTO.USER_REL_NAME, user.getID()));
 			});
 		}
