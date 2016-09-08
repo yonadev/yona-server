@@ -44,9 +44,9 @@ public abstract class BuddyMessageDTO extends MessageDTO
 		protected SenderInfo getSenderInfoExtensionPoint(Message messageEntity)
 		{
 			// The buddy entity does not contain the user anonymized ID yet
-			BuddyMessage responseMmessageEntity = (BuddyMessage) messageEntity;
-			return createSenderInfoForDetachedBuddy(responseMmessageEntity.getSenderUser(),
-					responseMmessageEntity.getSenderNickname());
+			BuddyMessage buddyMessageEntity = (BuddyMessage) messageEntity;
+			return createSenderInfoForDetachedBuddy(buddyMessageEntity.getSenderUser(),
+					buddyMessageEntity.getSenderNickname());
 		}
 	}
 }
