@@ -31,11 +31,11 @@ public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	private final LocalDate targetGoalConflictDate;
 	private final Status status;
 
-	private DisclosureResponseMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UserDTO user,
+	private DisclosureResponseMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
 			Status status, String message, UUID targetGoalConflictMessageID, UUID targetGoalConflictGoalID,
 			LocalDate targetGoalConflictDate)
 	{
-		super(id, sender, creationTime, isRead, targetGoalConflictMessageID, user, message);
+		super(id, creationTime, isRead, targetGoalConflictMessageID, senderInfo, message);
 		this.status = status;
 		this.targetGoalConflictGoalID = targetGoalConflictGoalID;
 		this.targetGoalConflictDate = targetGoalConflictDate;
@@ -78,17 +78,16 @@ public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	}
 
 	public static DisclosureResponseMessageDTO createInstance(UserDTO actingUser, DisclosureResponseMessage messageEntity,
-			SenderInfo sender)
+			SenderInfo senderInfo)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
-		return new DisclosureResponseMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(),
-				messageEntity.isRead(), UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getStatus(),
-				messageEntity.getMessage(), targetGoalConflictMessage.getID(), targetGoalConflictMessage.getGoal().getID(),
-				targetGoalConflictMessage.getActivity().getStartTime().toLocalDate());
+		return new DisclosureResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getStatus(), messageEntity.getMessage(),
+				targetGoalConflictMessage.getID(), targetGoalConflictMessage.getGoal().getID(), targetGoalConflictMessage.getActivity().getStartTime().toLocalDate());
 	}
 
 	@Component
-	private static class Manager extends MessageDTO.Manager
+	private static class Manager extends BuddyMessageDTO.Manager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;
@@ -103,7 +102,7 @@ public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
 			return DisclosureResponseMessageDTO.createInstance(actingUser, (DisclosureResponseMessage) messageEntity,
-					getSender(actingUser, messageEntity));
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override

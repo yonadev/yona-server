@@ -3,7 +3,13 @@ package nu.yona.server.messaging.service;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import nu.yona.server.subscriptions.service.BuddyDTO;
+import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.subscriptions.service.UserService;
 
 /*
  * Sender info of the message. The class contents can only be determined when the user reads incoming messages, because buddy IDs
@@ -11,22 +17,17 @@ import nu.yona.server.subscriptions.service.UserDTO;
  */
 public final class SenderInfo
 {
-	private final UUID userID;
+	private final Optional<UserDTO> user;
 	private final String nickname;
 	private final boolean isBuddy;
-	private final Optional<UUID> buddyID;
+	private final Optional<BuddyDTO> buddy;
 
-	private SenderInfo(UUID userID, String nickname, boolean isBuddy, Optional<UUID> buddyID)
+	private SenderInfo(Optional<UserDTO> user, String nickname, boolean isBuddy, Optional<BuddyDTO> buddy)
 	{
-		this.userID = userID;
+		this.user = user;
 		this.nickname = nickname;
 		this.isBuddy = isBuddy;
-		this.buddyID = buddyID;
-	}
-
-	public UUID getUserID()
-	{
-		return userID;
+		this.buddy = buddy;
 	}
 
 	public String getNickname()
@@ -39,29 +40,39 @@ public final class SenderInfo
 		return isBuddy;
 	}
 
-	public Optional<UUID> getBuddyID()
+	public Optional<UserDTO> getUser()
 	{
-		return buddyID;
+		return user;
 	}
 
-	public static SenderInfo createInstanceBuddy(UUID userID, String nickname, UUID buddyID)
+	public Optional<BuddyDTO> getBuddy()
 	{
-		return new SenderInfo(userID, nickname, true, Optional.of(buddyID));
+		return buddy;
 	}
 
-	public static SenderInfo createInstanceBuddyDetached(UUID userID, String nickname)
+	@Component
+	public static class Factory
 	{
-		return new SenderInfo(userID, nickname, true, Optional.empty());
-	}
+		@Autowired
+		private BuddyService buddyService;
 
-	public static SenderInfo createInstanceBuddyDetached(UserDTO user, String nickname)
-	{
-		// user may be null if removed
-		return createInstanceBuddyDetached(user != null ? user.getID() : null, nickname);
-	}
+		@Autowired
+		private UserService userService;
 
-	public static SenderInfo createInstanceSelf(UUID userID, String nickname)
-	{
-		return new SenderInfo(userID, "<self>", false, Optional.empty());
+		public SenderInfo createInstanceForBuddy(UUID userID, String nickname, UUID buddyID)
+		{
+			return new SenderInfo(Optional.of(userService.getPublicUser(userID)), nickname, true,
+					Optional.of(buddyService.getBuddy(buddyID)));
+		}
+
+		public SenderInfo createInstanceForDetachedBuddy(Optional<UserDTO> user, String nickname)
+		{
+			return new SenderInfo(user, nickname, true, Optional.empty());
+		}
+
+		public SenderInfo createInstanceForSelf(UUID userID, String nickname)
+		{
+			return new SenderInfo(Optional.of(userService.getPrivateUser(userID)), "<self>", false, Optional.empty());
+		}
 	}
 }

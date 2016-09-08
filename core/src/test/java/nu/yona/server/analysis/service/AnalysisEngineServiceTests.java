@@ -106,13 +106,12 @@ public class AnalysisEngineServiceTests
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
 						new HashSet<String>(Arrays.asList("poker", "lotto")),
 						new HashSet<String>(Arrays.asList("Poker App", "Lotto App"))));
-		newsGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(),
-				usString("news"), false, new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
+		newsGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(), usString("news"),
+				false, new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
 		gamingGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(),
 				usString("gaming"), false, new HashSet<String>(Arrays.asList("games")), Collections.emptySet()));
-		socialGoal = TimeZoneGoal.createInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(),
-				usString("social"), false, new HashSet<String>(Arrays.asList("social")), Collections.emptySet()),
-				Collections.emptyList());
+		socialGoal = TimeZoneGoal.createInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(), usString("social"),
+				false, new HashSet<String>(Arrays.asList("social")), Collections.emptySet()), Collections.emptyList());
 		shoppingGoal = BudgetGoal.createInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(),
 				usString("shopping"), false, new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet()), 1);
 
@@ -263,8 +262,8 @@ public class AnalysisEngineServiceTests
 		verify(mockMessageService).sendMessage(message.capture(), messageDestination.capture());
 		assertThat("Expect right message destination", messageDestination.getValue().getID(),
 				equalTo(anonMessageDestination.getID()));
-		assertThat("Expected right related user set to goal conflict message", message.getValue().getRelatedUserAnonymizedID(),
-				equalTo(userAnonID));
+		assertThat("Expected right related user set to goal conflict message",
+				message.getValue().getRelatedUserAnonymizedID().get(), equalTo(userAnonID));
 		assertThat("Expected right goal set to goal conflict message", message.getValue().getGoal().getID(),
 				equalTo(gamblingGoal.getID()));
 	}

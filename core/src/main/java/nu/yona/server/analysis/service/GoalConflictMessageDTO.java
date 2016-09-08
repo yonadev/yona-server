@@ -43,11 +43,11 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private final UUID goalID;
 	private final UUID activityCategoryID;
 
-	private GoalConflictMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UUID goalID,
+	private GoalConflictMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID goalID,
 			UUID activityCategoryID, Optional<String> url, Status status, ZonedDateTime activityStartTime,
 			ZonedDateTime activityEndTime)
 	{
-		super(id, sender, creationTime, isRead);
+		super(id, creationTime, isRead, senderInfo);
 		this.goalID = goalID;
 		this.activityCategoryID = activityCategoryID;
 		this.url = url;
@@ -113,9 +113,9 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return true;
 	}
 
-	private static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, SenderInfo sender)
+	private static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, SenderInfo senderInfo)
 	{
-		return new GoalConflictMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(), messageEntity.isRead(),
+		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(), senderInfo,
 				messageEntity.getGoal().getID(), messageEntity.getActivity().getActivityCategory().getID(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : Optional.empty(), messageEntity.getStatus(),
 				messageEntity.getActivity().getStartTime(), messageEntity.getActivity().getEndTime());
@@ -143,7 +143,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
 			return GoalConflictMessageDTO.createInstance((GoalConflictMessage) messageEntity,
-					getSender(actingUser, messageEntity));
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
@@ -165,7 +165,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 			messageEntity = updateMessageStatusAsDisclosureRequested(messageEntity);
 
 			MessageDestinationDTO messageDestination = userAnonymizedService
-					.getUserAnonymized(messageEntity.getRelatedUserAnonymizedID()).getAnonymousDestination();
+					.getUserAnonymized(messageEntity.getRelatedUserAnonymizedID().get()).getAnonymousDestination();
 			messageService.sendMessage(
 					DisclosureRequestMessage.createInstance(actingUser.getID(), actingUser.getPrivateData().getUserAnonymizedID(),
 							actingUser.getPrivateData().getNickname(), requestPayload.getProperty("message"), messageEntity),

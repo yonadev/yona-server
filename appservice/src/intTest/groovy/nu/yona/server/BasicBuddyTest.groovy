@@ -272,6 +272,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertEquals(richardGoalConflictMessages[0].activityStartTime, now)
 		assertEquals(richardGoalConflictMessages[0].activityEndTime, now.plus(Duration.ofMinutes(1))) // Minimum duration 1 minute
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
+		richardGoalConflictMessages[0]._links."yona:buddy"?.href == null
 		richardGoalConflictMessages[0].url == "http://www.refdag.nl"
 
 		assertMarkReadUnread(richard, richardGoalConflictMessages[0])
@@ -285,6 +286,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertEquals(bobGoalConflictMessages[0].activityStartTime, now)
 		assertEquals(bobGoalConflictMessages[0].activityEndTime, now.plus(Duration.ofMinutes(1))) // Minimum duration 1 minute
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
+		bobGoalConflictMessages[0]._links."yona:buddy"?.href == bob.buddies[0].url
 		bobGoalConflictMessages[0].url == null
 
 		cleanup:

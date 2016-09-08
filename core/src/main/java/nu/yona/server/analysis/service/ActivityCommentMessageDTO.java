@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.ActivityCommentMessage;
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.service.BuddyMessageDTO;
 import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
@@ -36,10 +37,10 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	private final Optional<UUID> repliedMessageID;
 	private final UUID threadHeadMessageID;
 
-	private ActivityCommentMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UserDTO senderUser,
+	private ActivityCommentMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
 			UUID activityID, UUID threadHeadMessageID, Optional<UUID> repliedMessageID, String message)
 	{
-		super(id, sender, creationTime, isRead, senderUser, message);
+		super(id, creationTime, isRead, senderInfo, message);
 		this.activityID = activityID;
 		this.threadHeadMessageID = threadHeadMessageID;
 		this.repliedMessageID = repliedMessageID;
@@ -86,16 +87,15 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	}
 
 	public static ActivityCommentMessageDTO createInstance(UserDTO actingUser, ActivityCommentMessage messageEntity,
-			SenderInfo sender)
+			SenderInfo senderInfo)
 	{
-		return new ActivityCommentMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(),
-				messageEntity.isRead(), UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()),
-				messageEntity.getActivityID(), messageEntity.getThreadHeadMessageID(), messageEntity.getRepliedMessageID(),
-				messageEntity.getMessage());
+		return new ActivityCommentMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getActivityID(), messageEntity.getThreadHeadMessageID(),
+				messageEntity.getRepliedMessageID(), messageEntity.getMessage());
 	}
 
 	@Component
-	private static class Manager extends MessageDTO.Manager
+	private static class Manager extends BuddyMessageDTO.Manager
 	{
 
 		@Autowired
@@ -114,7 +114,7 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
 			return ActivityCommentMessageDTO.createInstance(actingUser, (ActivityCommentMessage) messageEntity,
-					getSender(actingUser, messageEntity));
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
