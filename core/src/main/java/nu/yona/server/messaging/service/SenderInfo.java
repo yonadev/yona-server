@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import nu.yona.server.Translator;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserDTO;
@@ -59,6 +60,9 @@ public final class SenderInfo
 		@Autowired
 		private UserService userService;
 
+		@Autowired
+		private Translator translator;
+
 		public SenderInfo createInstanceForBuddy(UUID userID, String nickname, UUID buddyID)
 		{
 			return new SenderInfo(Optional.of(userService.getPublicUser(userID)), nickname, true,
@@ -72,7 +76,8 @@ public final class SenderInfo
 
 		public SenderInfo createInstanceForSelf(UUID userID, String nickname)
 		{
-			return new SenderInfo(Optional.of(userService.getPrivateUser(userID)), "<self>", false, Optional.empty());
+			String selfNickname = translator.getLocalizedMessage("message.self.nickname", nickname);
+			return new SenderInfo(Optional.of(userService.getPrivateUser(userID)), selfNickname, false, Optional.empty());
 		}
 	}
 }
