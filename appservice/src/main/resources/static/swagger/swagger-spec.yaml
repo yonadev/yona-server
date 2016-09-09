@@ -5,6 +5,7 @@ info:
   version: 1.0.0
 schemes:
   - http
+  - https
 basePath: /
 produces:
   - application/json
@@ -2417,6 +2418,7 @@ definitions:
           - $ref: '#/definitions/EditLink'
           - $ref: '#/definitions/MarkReadLink'
           - $ref: '#/definitions/MarkUnreadLink'
+          - $ref: '#/definitions/BuddyLink'
           - $ref: '#/definitions/ActivityCategoryLink'
           - $ref: '#/definitions/DayDetailsLink'
         properties:

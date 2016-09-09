@@ -24,11 +24,11 @@ import nu.yona.server.Constants;
 import nu.yona.server.analysis.service.ActivityCommentMessageDTO;
 import nu.yona.server.analysis.service.GoalConflictMessageDTO;
 import nu.yona.server.goals.service.GoalChangeMessageDTO;
-import nu.yona.server.messaging.entities.BuddyMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService.DTOManager;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.rest.PolymorphicDTO;
+import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyConnectRequestMessageDTO;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDTO;
 import nu.yona.server.subscriptions.service.BuddyDTO;
@@ -50,20 +50,20 @@ public abstract class MessageDTO extends PolymorphicDTO
 	private static final String MARK_UNREAD = "markUnread";
 	private static final String MARK_READ = "markRead";
 	private final UUID id;
-	private final SenderInfo sender;
 	private final ZonedDateTime creationTime;
 	private final UUID relatedMessageID;
 	private final boolean isRead;
+	private final SenderInfo senderInfo;
 
-	protected MessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead)
+	protected MessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo)
 	{
-		this(id, sender, creationTime, isRead, null);
+		this(id, senderInfo, creationTime, isRead, null);
 	}
 
-	protected MessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UUID relatedMessageID)
+	protected MessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead, UUID relatedMessageID)
 	{
 		this.id = id;
-		this.sender = sender;
+		this.senderInfo = senderInfo;
 		this.creationTime = creationTime;
 		this.isRead = isRead;
 		this.relatedMessageID = relatedMessageID;
@@ -78,19 +78,25 @@ public abstract class MessageDTO extends PolymorphicDTO
 	@JsonIgnore
 	public boolean isSentFromBuddy()
 	{
-		return sender.isBuddy();
+		return senderInfo.isBuddy();
+	}
+
+	@JsonIgnore
+	public Optional<UserDTO> getSenderUser()
+	{
+		return senderInfo.getUser();
 	}
 
 	@JsonProperty("nickname")
 	public String getSenderNickname()
 	{
-		return sender.getNickname();
+		return senderInfo.getNickname();
 	}
 
 	@JsonIgnore
 	public Optional<UUID> getSenderBuddyID()
 	{
-		return sender.getBuddyID();
+		return senderInfo.getBuddy().map(b -> b.getID());
 	}
 
 	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
@@ -131,6 +137,9 @@ public abstract class MessageDTO extends PolymorphicDTO
 		@Autowired
 		private BuddyService buddyService;
 
+		@Autowired
+		private SenderInfo.Factory senderInfoFactory;
+
 		@Override
 		public MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action,
 				MessageActionDTO requestPayload)
@@ -155,44 +164,48 @@ public abstract class MessageDTO extends PolymorphicDTO
 			return MessageActionDTO.createInstanceActionDone(theDTOFactory.createInstance(actingUser, savedMessageEntity));
 		}
 
-		protected SenderInfo getSender(UserDTO actingUser, Message messageEntity)
+		protected final SenderInfo getSenderInfo(UserDTO actingUser, Message messageEntity)
 		{
-			UUID senderUserAnonymizedID = messageEntity.getRelatedUserAnonymizedID();
-			if (actingUser.getPrivateData().getUserAnonymizedID().equals(senderUserAnonymizedID))
+			Optional<UUID> senderUserAnonymizedID = messageEntity.getRelatedUserAnonymizedID();
+			if (senderUserAnonymizedID.isPresent())
 			{
-				return getSenderSelf(actingUser);
+				if (actingUser.getPrivateData().getUserAnonymizedID().equals(senderUserAnonymizedID.get()))
+				{
+					return createSenderInfoForSelf(actingUser);
+				}
+
+				// Note: actingUser may be out of sync here, because the message action may have changed its state
+				// so retrieve afresh from buddy service
+				Optional<BuddyDTO> buddy = buddyService.getBuddyOfUserByUserAnonymizedID(actingUser.getID(),
+						senderUserAnonymizedID.get());
+				if (buddy.isPresent())
+				{
+					return createSenderInfoForBuddy(buddy.get());
+				}
 			}
 
-			// Note: actingUser may be out of sync here, because the message action may have changed its state
-			// so retrieve anew from buddy service
-			Optional<BuddyDTO> buddy = buddyService.getBuddyOfUserByUserAnonymizedID(actingUser.getID(), senderUserAnonymizedID);
-			if (buddy.isPresent())
-			{
-				return getSenderBuddy(buddy.get());
-			}
-
-			if (messageEntity instanceof BuddyMessage)
-			{
-				// this buddy may be not yet connected or no longer connected
-				return getSenderBuddyDetached((BuddyMessage) messageEntity);
-			}
-
-			throw new IllegalStateException("Cannot find buddy for user anonymized ID '" + senderUserAnonymizedID + "'");
+			return getSenderInfoExtensionPoint(messageEntity);
 		}
 
-		private SenderInfo getSenderSelf(UserDTO actingUser)
+		protected SenderInfo getSenderInfoExtensionPoint(Message messageEntity)
 		{
-			return SenderInfo.createInstanceSelf(actingUser.getID(), actingUser.getPrivateData().getNickname());
+			throw new IllegalStateException("Cannot find buddy for message of type '" + messageEntity.getClass().getName()
+					+ "' with user anonymized ID '" + messageEntity.getRelatedUserAnonymizedID() + "'");
 		}
 
-		private SenderInfo getSenderBuddy(BuddyDTO buddy)
+		private SenderInfo createSenderInfoForSelf(UserDTO actingUser)
 		{
-			return SenderInfo.createInstanceBuddy(buddy.getUser().getID(), buddy.getNickname(), buddy.getID());
+			return senderInfoFactory.createInstanceForSelf(actingUser.getID(), actingUser.getPrivateData().getNickname());
 		}
 
-		private SenderInfo getSenderBuddyDetached(BuddyMessage messageEntity)
+		private SenderInfo createSenderInfoForBuddy(BuddyDTO buddy)
 		{
-			return SenderInfo.createInstanceBuddyDetached(messageEntity.getSenderUserID(), messageEntity.getSenderNickname());
+			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getID(), buddy.getNickname(), buddy.getID());
+		}
+
+		protected SenderInfo createSenderInfoForDetachedBuddy(Optional<User> userEntity, String nickname)
+		{
+			return senderInfoFactory.createInstanceForDetachedBuddy(UserDTO.createInstance(userEntity), nickname);
 		}
 	}
 }

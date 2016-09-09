@@ -2,6 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>ConsentText</key>
+	<dict>
+		<key>default</key>
+		<string>Please Allow me</string>
+	</dict>
 	<key>PayloadContent</key>
 	<array>
 		<dict>
@@ -149,11 +154,11 @@
 			<key>PayloadDisplayName</key>
 			<string>VPN</string>
 			<key>PayloadIdentifier</key>
-			<string>com.apple.vpn.managed.28833520-3BC6-49E6-91A9-7A074F96E73D</string>
+			<string>com.apple.vpn.managed.2EE0702C-5E6B-4C9D-818B-32E40E86D9A1</string>
 			<key>PayloadType</key>
 			<string>com.apple.vpn.managed</string>
 			<key>PayloadUUID</key>
-			<string>6B5784AA-D83F-4BE1-A48D-D578C217AF31</string>
+			<string>38780483-114E-4685-87C1-344D394EA493</string>
 			<key>PayloadVersion</key>
 			<real>1</real>
 			<key>Proxies</key>
@@ -162,20 +167,31 @@
 				<integer>0</integer>
 				<key>HTTPSEnable</key>
 				<integer>0</integer>
+				<key>ProxyAutoConfigEnable</key>
+				<true/>
+				<key>ProxyAutoDiscoveryEnable</key>
+				<integer>1</integer>
 			</dict>
 			<key>UserDefinedName</key>
-			<string>YONA-VPN-PROFILE-20160517-1044</string>
+			<string>YONA-VPN-PROFILE-20150419-2109</string>
 			<key>VPN</key>
 			<dict>
 				<key>AuthName</key>
 				<string>${ldapUsername}</string>
 				<key>AuthenticationMethod</key>
 				<string>Certificate</string>
+				<key>DisconnectOnIdle</key>
+				<integer>0</integer>
 				<key>OnDemandEnabled</key>
 				<integer>1</integer>
-				<key>OnDemandMatchDomainsAlways</key>
+				<key>OnDemandRules</key>
 				<array>
-					<string></string>
+					<dict>
+						<key>Action</key>
+						<string>Connect</string>
+						<key>URLStringProbe</key>
+						<string>http://www.yona.nl</string>
+					</dict>
 				</array>
 				<key>PayloadCertificateUUID</key>
 				<string>768377CF-8C95-44DA-8C9F-45DAA86997C2</string>
@@ -191,7 +207,7 @@
 				<key>auth</key>
 				<string>SHA1</string>
 				<key>auth-user-pass</key>
-				<string>${ldapUsername}\\${ldapPassword}</string>
+				<string>${ldapUsername}\n${ldapPassword}</string>
 				<key>ca</key>
 				<string>-----BEGIN CERTIFICATE-----
 \nMIICdDCCAd2gAwIBAgIJAKHlBds0knLfMA0GCSqGSIb3DQEBCwUAMDExEzARBgNV
@@ -227,9 +243,7 @@
 				<string>NOARGS</string>
 				<key>proto</key>
 				<string>tcp-client</string>
-				<key>remote-random</key>
-				<string>NOARGS</string>
-				<key>remote.1</key>
+				<key>remote</key>
 				<string>185.3.210.43 443</string>
 				<key>resolv-retry</key>
 				<string>infinite</string>
@@ -262,7 +276,7 @@
 		</dict>
 	</array>
 	<key>PayloadDisplayName</key>
-	<string>YONA-VPN-20160517-1044</string>
+	<string>YONA-VPN-20150415-2108</string>
 	<key>PayloadIdentifier</key>
 	<string>uk4-craggda.yona.nu.0BAC1CEF-D206-4526-998D-0BA8D7608E37</string>
 	<key>PayloadOrganization</key>
@@ -272,7 +286,7 @@
 	<key>PayloadType</key>
 	<string>Configuration</string>
 	<key>PayloadUUID</key>
-	<string>AEDDBD18-A9AA-4EAC-890D-2A95416F7CC4</string>
+	<string>D9233B7A-F711-46BB-AA17-347EE365EDBF</string>
 	<key>PayloadVersion</key>
 	<integer>1</integer>
 </dict>

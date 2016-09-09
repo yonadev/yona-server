@@ -88,7 +88,7 @@ public class BuddyDTO
 
 	public static BuddyDTO createInstance(Buddy buddyEntity)
 	{
-		return new BuddyDTO(buddyEntity.getID(), UserDTO.createInstanceIfNotNull(buddyEntity.getUser()),
+		return new BuddyDTO(buddyEntity.getID(), UserDTO.createInstance(buddyEntity.getUser()),
 				buddyEntity.getNickname(), getBuddyUserAnonymizedID(buddyEntity), buddyEntity.getSendingStatus(),
 				buddyEntity.getReceivingStatus());
 	}

@@ -36,11 +36,11 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 	private final LocalDate targetGoalConflictDate;
 	private final Status status;
 
-	private DisclosureRequestMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UserDTO user,
+	private DisclosureRequestMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
 			String message, Status status, UUID targetGoalConflictMessageID, UUID targetGoalConflictGoalID,
 			LocalDate targetGoalConflictDate)
 	{
-		super(id, sender, creationTime, isRead, targetGoalConflictMessageID, user, message);
+		super(id, creationTime, isRead, targetGoalConflictMessageID, senderInfo, message);
 		this.targetGoalConflictGoalID = targetGoalConflictGoalID;
 		this.targetGoalConflictDate = targetGoalConflictDate;
 		this.status = status;
@@ -88,18 +88,17 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 	}
 
 	public static DisclosureRequestMessageDTO createInstance(UserDTO actingUser, DisclosureRequestMessage messageEntity,
-			SenderInfo sender)
+			SenderInfo senderInfo)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
-		return new DisclosureRequestMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(),
-				messageEntity.isRead(), UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()),
-				messageEntity.getMessage(), messageEntity.getStatus(), targetGoalConflictMessage.getOriginGoalConflictMessageID(),
-				targetGoalConflictMessage.getGoal().getID(),
+		return new DisclosureRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getMessage(), messageEntity.getStatus(),
+				targetGoalConflictMessage.getOriginGoalConflictMessageID(), targetGoalConflictMessage.getGoal().getID(),
 				targetGoalConflictMessage.getActivity().getStartTime().toLocalDate());
 	}
 
 	@Component
-	private static class Manager extends MessageDTO.Manager
+	private static class Manager extends BuddyMessageDTO.Manager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;
@@ -120,7 +119,7 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
 			return DisclosureRequestMessageDTO.createInstance(actingUser, (DisclosureRequestMessage) messageEntity,
-					getSender(actingUser, messageEntity));
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
@@ -178,7 +177,7 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 				String message)
 		{
 			MessageDestinationDTO messageDestination = userAnonymizedService
-					.getUserAnonymized(requestMessageEntity.getRelatedUserAnonymizedID()).getAnonymousDestination();
+					.getUserAnonymized(requestMessageEntity.getRelatedUserAnonymizedID().get()).getAnonymousDestination();
 			assert messageDestination != null;
 			messageService.sendMessage(DisclosureResponseMessage.createInstance(respondingUser.getID(),
 					respondingUser.getPrivateData().getUserAnonymizedID(), requestMessageEntity.getTargetGoalConflictMessageID(),

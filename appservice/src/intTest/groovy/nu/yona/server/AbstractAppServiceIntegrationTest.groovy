@@ -59,7 +59,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	@Shared
 	private def fullDay = [ Sun: "SUNDAY", Mon : "MONDAY", Tue : "TUESDAY", Wed : "WEDNESDAY", Thu : "THURSDAY", Fri: "FRIDAY", Sat: "SATURDAY" ]
 
-	User addRichard()
+	User addRichard(boolean reload = true)
 	{
 		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
 				"+$timestamp")
@@ -69,7 +69,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		return appService.reloadUser(richard)
 	}
 
-	User addBob()
+	User addBob(boolean reload = true)
 	{
 		def bob = appService.addUser(appService.&assertUserCreationResponseDetails, "B o b", "Bob", "Dunn", "BD",
 				"+$timestamp")
@@ -89,10 +89,10 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	def addRichardAndBobAsBuddies()
 	{
-		def richard = addRichard()
-		def bob = addBob()
+		def richard = addRichard(false)
+		def bob = addBob(false)
 		appService.makeBuddies(richard, bob)
-		return ["richard" : richard, "bob" : bob]
+		return ["richard" : appService.reloadUser(richard), "bob" : appService.reloadUser(bob)]
 	}
 
 	def addRichardWithBobAndBeaAsBuddies()

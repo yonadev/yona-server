@@ -232,7 +232,7 @@ public class BuddyService
 		Stream<BuddyConnectResponseMessage> buddyConnectResponseMessages = messagePage.getContent().stream()
 				.filter(m -> m instanceof BuddyConnectResponseMessage).map(m -> (BuddyConnectResponseMessage) m);
 		Stream<BuddyConnectResponseMessage> messagesFromBuddy = buddyConnectResponseMessages
-				.filter(m -> buddy.getUserID().equals(getUserID(m)));
+				.filter(m -> buddy.getUserID().equals(getUserID(m).orElse(null)));
 		Optional<BuddyConnectResponseMessage> messageToBeProcessed = messagesFromBuddy.filter(m -> m.isProcessed() == false)
 				.findFirst();
 		messageToBeProcessed.ifPresent(
@@ -240,10 +240,9 @@ public class BuddyService
 		return messageToBeProcessed.isPresent();
 	}
 
-	private UUID getUserID(BuddyConnectResponseMessage message)
+	private Optional<UUID> getUserID(BuddyConnectResponseMessage message)
 	{
-		User buddyUser = message.getSenderUser();
-		return (buddyUser == null) ? null : buddyUser.getID();
+		return message.getSenderUser().map(u -> u.getID());
 	}
 
 	@Transactional

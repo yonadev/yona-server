@@ -275,6 +275,47 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Activity before goal creation should be ignored'()
+	{
+		given:
+		def richard = addRichard()
+
+		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-2 Fri 09:00") // Should be ignored, as there was no goal yet
+		TimeZoneGoal timeZoneGoalMultimediaBobBeforeUpdate = addTimeZoneGoal(richard, MULTIMEDIA_ACT_CAT_URL, ["20:00-22:00"], "W-1 Fri 14:00")
+		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-1 Fri 15:00")
+		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-1 Fri 21:00")
+
+		richard = appService.reloadUser(richard)
+		TimeZoneGoal timeZoneGoalMultimediaRichard = richard.findActiveGoal(MULTIMEDIA_ACT_CAT_URL)
+		def expectedValuesRichardLastWeek = [
+			"Fri" : [[goal:timeZoneGoalMultimediaRichard, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60 : 1, 84 : 1]]]],
+			"Sat" : [[goal:timeZoneGoalMultimediaRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+
+		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
+		def expectedTotalDays = 2 + currentDayOfWeek + 1
+		def expectedTotalWeeks = 2
+
+		when:
+		def responseWeekOverviews = appService.getWeekActivityOverviews(richard, ["size": expectedTotalWeeks])
+		def responseDayOverviewsAll = appService.getDayActivityOverviews(richard, ["size": 14])
+
+		then:
+		assertWeekOverviewBasics(responseWeekOverviews, [3, 1], expectedTotalWeeks, expectedTotalWeeks)
+		assertWeekDateForCurrentWeek(responseWeekOverviews)
+
+		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, timeZoneGoalMultimediaRichard, 2)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalMultimediaRichard, expectedValuesRichardLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalMultimediaRichard, expectedValuesRichardLastWeek, "Sat")
+
+		assertDayOverviewBasics(responseDayOverviewsAll, expectedTotalDays, expectedTotalDays, 14)
+		assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, timeZoneGoalMultimediaRichard, expectedValuesRichardLastWeek, 1, "Fri")
+		assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, timeZoneGoalMultimediaRichard, expectedValuesRichardLastWeek, 1, "Sat")
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def 'Add activity after retrieving the report'()
 	{
 		given:
@@ -906,7 +947,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertCommentingWorks(richard, bob, false, {user -> appService.getDayActivityOverviews(user, ["size": 14])},
 		{user -> appService.getDayActivityOverviews(user, user.buddies[0], ["size": 14])},
-		{responseOverviews, user, goal -> getDayDetails(responseOverviews, user, goal, 1, "Tue")})
+		{responseOverviews, user, goal -> appService.getDayDetailsFromOverview(responseOverviews, user, goal, 1, "Tue")})
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -929,7 +970,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertCommentingWorks(richard, bob, true, {user -> appService.getWeekActivityOverviews(user, ["size": 14])},
 		{user -> appService.getWeekActivityOverviews(user, user.buddies[0], ["size": 14])},
-		{responseOverviews, user, goal -> getWeekDetails(responseOverviews, user, goal, 1)})
+		{responseOverviews, user, goal -> appService.getWeekDetailsFromOverview(responseOverviews, user, goal, 1)})
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -1286,7 +1327,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	private void assertCommentMessageDetails(message, User user, boolean isWeek, sender, expectedDetailsUrl, expectedText, threadHeadMessage, repliedMessage = null) {
 		assert message."@type" == "ActivityCommentMessage"
 		assert message.message == expectedText
-		assert message.nickname == ((user.url == sender.url) ? "<self>" : sender.nickname)
+		assert message.nickname == ((user.url == sender.url) ? (sender.nickname + " (me)") : sender.nickname)
 
 		assert message._links?.self?.href?.startsWith(YonaServer.stripQueryString(user.messagesUrl))
 		assert message._links?.edit?.href == message._links.self.href
@@ -1314,44 +1355,15 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 	private void assertWeekDetailPrevNextLinks(User user, weekActivityForGoal, expectedPrevWeekForGoal, expectedNextWeekForGoal)
 	{
-		def weekDetails = getWeekDetailsForWeek(user, weekActivityForGoal)
+		def weekDetails = appService.getWeekDetailsForWeekFromOverviewItem(user, weekActivityForGoal)
 		assert weekDetails?.responseData?._links?."prev"?.href == expectedPrevWeekForGoal?._links?."yona:weekDetails"?.href
 		assert weekDetails?.responseData?._links?."next"?.href == expectedNextWeekForGoal?._links?."yona:weekDetails"?.href
 	}
 
 	private void assertDayDetailPrevNextLinks(User user, dayActivityForGoal, expectedPrevDayForGoal, expectedNextDayForGoal)
 	{
-		def dayDetails = getDayDetailsForDay(user, dayActivityForGoal)
+		def dayDetails = appService.getDayDetailsForDayFromOverviewItem(user, dayActivityForGoal)
 		assert dayDetails?.responseData?._links?."prev"?.href == expectedPrevDayForGoal?._links?."yona:dayDetails"?.href
 		assert dayDetails?.responseData?._links?."next"?.href == expectedNextDayForGoal?._links?."yona:dayDetails"?.href
-	}
-
-	private getDayDetails(responseDayOverviewsAll, User user, Goal goal, int weeksBack, String shortDay) {
-		def dayOffset = YonaServer.relativeDateStringToDaysOffset(weeksBack, shortDay)
-		def dayActivityOverview = responseDayOverviewsAll.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
-		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
-		return getDayDetailsForDay(user, dayActivityForGoal)
-	}
-
-	private getDayDetailsForDay(User user, dayActivityForGoal) {
-		assert dayActivityForGoal?._links?."yona:dayDetails"?.href
-		def dayActivityDetailUrl =  dayActivityForGoal?._links?."yona:dayDetails"?.href
-		def response = appService.getResourceWithPassword(dayActivityDetailUrl, user.password)
-		assert response.status == 200
-		return response
-	}
-
-	private getWeekDetails(responseWeekOverviewsAll, User user, Goal goal, int weeksBack) {
-		def weekActivityOverview = responseWeekOverviewsAll.responseData._embedded."yona:weekActivityOverviews"[weeksBack]
-		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goal.url}
-		return getWeekDetailsForWeek(user, weekActivityForGoal)
-	}
-
-	private getWeekDetailsForWeek(User user, weekActivityForGoal) {
-		assert weekActivityForGoal?._links?."yona:weekDetails"?.href
-		def weekActivityDetailUrl =  weekActivityForGoal?._links?."yona:weekDetails"?.href
-		def response = appService.getResourceWithPassword(weekActivityDetailUrl, user.password)
-		assert response.status == 200
-		return response
 	}
 }

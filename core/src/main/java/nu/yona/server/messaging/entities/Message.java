@@ -118,9 +118,9 @@ public abstract class Message extends EntityWithID
 	 * @return The ID of the related anonymized user. Might be null if that user was already deleted at the time this message was
 	 *         sent on behalf of that user.
 	 */
-	public UUID getRelatedUserAnonymizedID()
+	public Optional<UUID> getRelatedUserAnonymizedID()
 	{
-		return relatedUserAnonymizedID;
+		return Optional.ofNullable(relatedUserAnonymizedID);
 	}
 
 	protected abstract void encrypt(Encryptor encryptor);

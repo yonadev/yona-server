@@ -530,7 +530,7 @@ public class ActivityService
 	@Transactional
 	public MessageDTO replyToMessage(UserDTO sendingUser, ActivityCommentMessage repliedMessage, String message)
 	{
-		UUID targetUserAnonymizedID = repliedMessage.getRelatedUserAnonymizedID();
+		UUID targetUserAnonymizedID = repliedMessage.getRelatedUserAnonymizedID().get();
 		return sendMessagePair(sendingUser, targetUserAnonymizedID, repliedMessage.getActivityID(), Optional.of(repliedMessage),
 				Optional.of(repliedMessage.getSenderCopyMessage()), message);
 	}

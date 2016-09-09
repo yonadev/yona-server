@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import nu.yona.server.goals.entities.GoalChangeMessage;
 import nu.yona.server.goals.entities.GoalChangeMessage.Change;
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.service.BuddyMessageDTO;
 import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
@@ -33,10 +34,10 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 	private final GoalDTO changedGoal;
 	private final Change change;
 
-	private GoalChangeMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UserDTO user,
+	private GoalChangeMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
 			GoalDTO changedGoal, Change change, String message)
 	{
-		super(id, sender, creationTime, isRead, user, message);
+		super(id, creationTime, isRead, senderInfo, message);
 
 		this.changedGoal = changedGoal;
 		this.change = change;
@@ -72,15 +73,15 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 		return true;
 	}
 
-	public static GoalChangeMessageDTO createInstance(UserDTO actingUser, GoalChangeMessage messageEntity, SenderInfo sender)
+	public static GoalChangeMessageDTO createInstance(UserDTO actingUser, GoalChangeMessage messageEntity, SenderInfo senderInfo)
 	{
-		return new GoalChangeMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(), messageEntity.isRead(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()),
-				GoalDTO.createInstance(messageEntity.getChangedGoal()), messageEntity.getChange(), messageEntity.getMessage());
+		return new GoalChangeMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, GoalDTO.createInstance(messageEntity.getChangedGoal()),
+				messageEntity.getChange(), messageEntity.getMessage());
 	}
 
 	@Component
-	private static class Manager extends MessageDTO.Manager
+	private static class Manager extends BuddyMessageDTO.Manager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;
@@ -95,7 +96,7 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
 			return GoalChangeMessageDTO.createInstance(actingUser, (GoalChangeMessage) messageEntity,
-					getSender(actingUser, messageEntity));
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override

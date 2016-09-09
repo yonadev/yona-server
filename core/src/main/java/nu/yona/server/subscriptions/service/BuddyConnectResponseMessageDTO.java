@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.service.BuddyMessageDTO;
 import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
@@ -34,10 +35,10 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	private final Status status;
 	private final boolean isProcessed;
 
-	private BuddyConnectResponseMessageDTO(UUID id, SenderInfo sender, ZonedDateTime creationTime, boolean isRead, UserDTO user,
+	private BuddyConnectResponseMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
 			String message, Status status, boolean isProcessed)
 	{
-		super(id, sender, creationTime, isRead, user, message);
+		super(id, creationTime, isRead, senderInfo, message);
 		this.status = status;
 		this.isProcessed = isProcessed;
 	}
@@ -77,15 +78,15 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	}
 
 	public static BuddyConnectResponseMessageDTO createInstance(UserDTO actingUser, BuddyConnectResponseMessage messageEntity,
-			SenderInfo sender)
+			SenderInfo senderInfo)
 	{
-		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), sender, messageEntity.getCreationTime(),
-				messageEntity.isRead(), UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()),
-				messageEntity.getMessage(), messageEntity.getStatus(), messageEntity.isProcessed());
+		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getMessage(), messageEntity.getStatus(),
+				messageEntity.isProcessed());
 	}
 
 	@Component
-	static class Manager extends MessageDTO.Manager
+	static class Manager extends BuddyMessageDTO.Manager
 	{
 		private static final Logger logger = LoggerFactory.getLogger(Manager.class);
 
@@ -105,7 +106,7 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
 			return BuddyConnectResponseMessageDTO.createInstance(actingUser, (BuddyConnectResponseMessage) messageEntity,
-					getSender(actingUser, messageEntity));
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
@@ -134,16 +135,15 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 			else
 			{
 				buddyService.setBuddyAcceptedWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
-						connectResponseMessageEntity.getRelatedUserAnonymizedID(),
+						connectResponseMessageEntity.getRelatedUserAnonymizedID().get(),
 						connectResponseMessageEntity.getSenderNickname());
 			}
 
 			connectResponseMessageEntity = updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
-			String mobileNumber = (connectResponseMessageEntity.getSenderUser() == null) ? "already deleted"
-					: connectResponseMessageEntity.getSenderUser().getMobileNumber();
-			String id = (connectResponseMessageEntity.getSenderUser() == null) ? "already deleted"
-					: connectResponseMessageEntity.getSenderUser().getID().toString();
+			String mobileNumber = connectResponseMessageEntity.getSenderUser().map(u -> u.getMobileNumber())
+					.orElse("already deleted");
+			String id = connectResponseMessageEntity.getSenderUser().map(u -> u.getID().toString()).orElse("already deleted");
 			logger.info(
 					"User with mobile number '{}' and ID '{}' processed buddy connect response from user with mobile number '{}' and ID '{}'",
 					actingUser.getMobileNumber(), actingUser.getID(), mobileNumber, id);

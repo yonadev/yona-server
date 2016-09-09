@@ -63,7 +63,6 @@ import nu.yona.server.subscriptions.rest.UserController;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDTO;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.GoalIDMapping;
-import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
@@ -276,9 +275,9 @@ public class MessageController
 			{
 				addUserLinkIfAvailable((BuddyMessageLinkedUserDTO) message);
 			}
-			if (message instanceof BuddyConnectResponseMessageDTO)
+			if (message instanceof BuddyConnectResponseMessageDTO || message instanceof GoalConflictMessageDTO)
 			{
-				addSenderBuddyLinkIfAvailable((BuddyConnectResponseMessageDTO) message);
+				addSenderBuddyLinkIfAvailable(message);
 			}
 			if (message instanceof GoalConflictMessageDTO)
 			{
@@ -310,9 +309,12 @@ public class MessageController
 
 		private void addDayActivityOverviewLink(GoalChangeMessageDTO message)
 		{
-			message.add(BuddyActivityController
-					.getBuddyDayActivityOverviewsLinkBuilder(goalIDMapping.getUserID(), message.getSenderBuddyID().get())
-					.withRel(BuddyActivityController.DAY_OVERVIEW_LINK));
+			if (message.getSenderBuddyID().isPresent())
+			{
+				message.add(BuddyActivityController
+						.getBuddyDayActivityOverviewsLinkBuilder(goalIDMapping.getUserID(), message.getSenderBuddyID().get())
+						.withRel(BuddyActivityController.DAY_OVERVIEW_LINK));
+			}
 		}
 
 		private void addDayActivityDetailLinkIfDisclosureAccepted(DisclosureResponseMessageDTO message)
@@ -386,21 +388,17 @@ public class MessageController
 
 		private void embedBuddyUserIfAvailable(BuddyMessageEmbeddedUserDTO buddyMessage)
 		{
-			UserDTO user = buddyMessage.getUser();
-			if (user != null)
-			{
+			buddyMessage.getSenderUser().ifPresent(user -> {
 				buddyMessage.setEmbeddedUser(curieProvider.getNamespacedRelFor(BuddyDTO.USER_REL_NAME),
 						new UserController.UserResourceAssembler(curieProvider, false).toResource(user));
-			}
+			});
 		}
 
 		private void addUserLinkIfAvailable(BuddyMessageLinkedUserDTO buddyMessage)
 		{
-			UserDTO user = buddyMessage.getUser();
-			if (user != null)
-			{
+			buddyMessage.getSenderUser().ifPresent(user -> {
 				buddyMessage.add(UserController.getPublicUserLink(BuddyDTO.USER_REL_NAME, user.getID()));
-			}
+			});
 		}
 
 		private void addActivityCommentMessageLinks(ActivityCommentMessageDTO message)
