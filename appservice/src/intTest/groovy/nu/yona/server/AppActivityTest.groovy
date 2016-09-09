@@ -64,7 +64,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		ZonedDateTime goalConflictTime = YonaServer.now
 		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessagesRichard.size() == 1
-		goalConflictMessagesRichard[0].nickname == "<self>"
+		goalConflictMessagesRichard[0].nickname == "RQ (me)"
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
 		goalConflictMessagesRichard[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 
@@ -108,7 +108,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		ZonedDateTime goalConflictTime = YonaServer.now
 		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessagesRichard.size() == 1
-		goalConflictMessagesRichard[0].nickname == "<self>"
+		goalConflictMessagesRichard[0].nickname == "RQ (me)"
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
 		goalConflictMessagesRichard[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 

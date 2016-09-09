@@ -267,7 +267,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll
 		{ it."@type" == "GoalConflictMessage" }
 		richardGoalConflictMessages.size() == 1
-		richardGoalConflictMessages[0].nickname == "<self>"
+		richardGoalConflictMessages[0].nickname == "RQ (me)"
 		assertEquals(richardGoalConflictMessages[0].creationTime, now)
 		assertEquals(richardGoalConflictMessages[0].activityStartTime, now)
 		assertEquals(richardGoalConflictMessages[0].activityEndTime, now.plus(Duration.ofMinutes(1))) // Minimum duration 1 minute
@@ -350,7 +350,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		getMessagesBobResponse.status == 200
 		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		bobGoalConflictMessages.size() == 1
-		bobGoalConflictMessages[0].nickname == "<self>"
+		bobGoalConflictMessages[0].nickname == "BD (me)"
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 		bobGoalConflictMessages[0].url == "http://www.poker.com"
 		// link to own activity present
@@ -389,7 +389,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessages"}.size() == 0
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		richardGoalConflictMessages.size() == 1
-		richardGoalConflictMessages[0].nickname == "<self>"
+		richardGoalConflictMessages[0].nickname == "RQ (me)"
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 
 		def getMessagesBobResponse = appService.getMessages(bob)
@@ -397,7 +397,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessages"}.size() == 0
 		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		bobGoalConflictMessages.size() == 1
-		bobGoalConflictMessages[0].nickname == "<self>"
+		bobGoalConflictMessages[0].nickname == "BD (me)"
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 
 		cleanup:

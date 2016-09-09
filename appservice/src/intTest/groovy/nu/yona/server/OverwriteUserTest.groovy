@@ -214,7 +214,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 
 		def goalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessages.size == 1
-		goalConflictMessages[0].nickname == "<self>"
+		goalConflictMessages[0].nickname == "BD (me)"
 		goalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 		goalConflictMessages[0].url =~ /poker/
 
