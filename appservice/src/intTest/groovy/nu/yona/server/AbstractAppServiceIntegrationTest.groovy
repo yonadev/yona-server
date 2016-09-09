@@ -66,7 +66,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		richard = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, richard)
 		def response = appService.addGoal(richard, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assert response.status == 201
-		return appService.reloadUser(richard)
+		return reload ? appService.reloadUser(richard) : richard
 	}
 
 	User addBob(boolean reload = true)
@@ -76,15 +76,15 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		bob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bob)
 		def response = appService.addGoal(bob, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assert response.status == 201
-		return appService.reloadUser(bob)
+		return reload? appService.reloadUser(bob) : bob
 	}
 
-	User addBea()
+	User addBea(boolean reload = true)
 	{
 		def bea = appService.addUser(appService.&assertUserCreationResponseDetails, "B e a", "Bea", "Dundee", "BDD",
 				"+$timestamp")
 		bea = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bea)
-		return bea
+		return reload? appService.reloadUser(bea) : bea
 	}
 
 	def addRichardAndBobAsBuddies()
@@ -97,12 +97,12 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	def addRichardWithBobAndBeaAsBuddies()
 	{
-		def richard = addRichard()
-		def bob = addBob()
-		def bea = addBea()
+		def richard = addRichard(false)
+		def bob = addBob(false)
+		def bea = addBea(false)
 		appService.makeBuddies(richard, bob)
 		appService.makeBuddies(richard, bea)
-		return ["richard" : richard, "bob" : bob, "bea" : bea]
+		return ["richard" : appService.reloadUser(richard), "bob" : appService.reloadUser(bob), "bea" : appService.reloadUser(bea)]
 	}
 
 	private static String createBaseTimestamp()

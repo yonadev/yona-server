@@ -992,11 +992,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal bobGoalBuddyRichard = bob.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal beaGoalBuddyRichard = bea.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
 		def bobResponseOverviewsRichardAsBuddyAll = appService.getDayActivityOverviews(bob, bob.buddies[0], ["size": 14])
-		def bobResponseDetailsRichardAsBuddy = getDayDetails(bobResponseOverviewsRichardAsBuddyAll, bob, bobGoalBuddyRichard, 1, "Tue")
+		def bobResponseDetailsRichardAsBuddy = appService.getDayDetailsFromOverview(bobResponseOverviewsRichardAsBuddyAll, bob, bobGoalBuddyRichard, 1, "Tue")
 		def beaResponseOverviewsRichardAsBuddyAll = appService.getDayActivityOverviews(bea, bea.buddies[0], ["size": 14])
-		def beaResponseDetailsRichardAsBuddy = getDayDetails(beaResponseOverviewsRichardAsBuddyAll, bea, beaGoalBuddyRichard, 1, "Tue")
+		def beaResponseDetailsRichardAsBuddy = appService.getDayDetailsFromOverview(beaResponseOverviewsRichardAsBuddyAll, bea, beaGoalBuddyRichard, 1, "Tue")
 		def richardResponseOverviewsAll = appService.getDayActivityOverviews(richard, ["size": 14])
-		def richardResponseDetails = getDayDetails(richardResponseOverviewsAll, richard, richardGoal, 1, "Tue")
+		def richardResponseDetails = appService.getDayDetailsFromOverview(richardResponseOverviewsAll, richard, richardGoal, 1, "Tue")
 
 		when:
 		def messageBob1 = appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
@@ -1013,10 +1013,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def beaMessagesRichard = getActivityDetailMessages(beaResponseDetailsRichardAsBuddy, bea, 1).responseData._embedded."yona:messages"
 
 		then:
-		bobMessagesRichard[0].nickname == "<self>"
+		bobMessagesRichard[0].nickname == "BD (me)"
 		bobMessagesRichard[1].nickname == "RQ"
 
-		beaMessagesRichard[0].nickname == "<self>"
+		beaMessagesRichard[0].nickname == "BDD (me)"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -1039,11 +1039,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal bobGoalBuddyRichard = bob.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal beaGoalBuddyRichard = bea.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
 		def bobResponseOverviewsRichardAsBuddyAll = appService.getDayActivityOverviews(bob, bob.buddies[0], ["size": 14])
-		def bobResponseDetailsRichardAsBuddy = getDayDetails(bobResponseOverviewsRichardAsBuddyAll, bob, bobGoalBuddyRichard, 1, "Tue")
+		def bobResponseDetailsRichardAsBuddy = appService.getDayDetailsFromOverview(bobResponseOverviewsRichardAsBuddyAll, bob, bobGoalBuddyRichard, 1, "Tue")
 		def beaResponseOverviewsRichardAsBuddyAll = appService.getDayActivityOverviews(bea, bea.buddies[0], ["size": 14])
-		def beaResponseDetailsRichardAsBuddy = getDayDetails(beaResponseOverviewsRichardAsBuddyAll, bea, beaGoalBuddyRichard, 1, "Tue")
+		def beaResponseDetailsRichardAsBuddy = appService.getDayDetailsFromOverview(beaResponseOverviewsRichardAsBuddyAll, bea, beaGoalBuddyRichard, 1, "Tue")
 		def richardResponseOverviewsAll = appService.getDayActivityOverviews(richard, ["size": 14])
-		def richardResponseDetails = getDayDetails(richardResponseOverviewsAll, richard, richardGoal, 1, "Tue")
+		def richardResponseDetails = appService.getDayDetailsFromOverview(richardResponseOverviewsAll, richard, richardGoal, 1, "Tue")
 
 		when:
 		def messageBob1 = appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
@@ -1065,10 +1065,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		richardMessagesRevisited[0].nickname == "BD"
-		richardMessagesRevisited[1].nickname == "<self>"
+		richardMessagesRevisited[1].nickname == "RQ (me)"
 		richardMessagesRevisited[2].nickname == "BD"
 		richardMessagesRevisited[3].nickname == "BDD"
-		richardMessagesRevisited[4].nickname == "<self>"
+		richardMessagesRevisited[4].nickname == "RQ (me)"
 
 		cleanup:
 		appService.deleteUser(richard)
