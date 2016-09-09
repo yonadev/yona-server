@@ -7,6 +7,8 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.Goal
+import nu.yona.server.test.TimeZoneGoal
 
 class RemoveUserTest extends AbstractAppServiceIntegrationTest
 {
@@ -156,6 +158,19 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
+		Goal budgetGoalNewsBuddyRichard = bob.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
+		//insert some messages
+		//goal conflict
+		analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl")
+		//goal change
+		appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
+		//activity comment
+		def bobResponseDetailsRichard = appService.getDayActivityDetails(bob, bob.buddies[0], budgetGoalNewsBuddyRichard, 1, "Tue")
+		appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichard.responseData._links."yona:addComment".href, """{"message": "Hi buddy, everything OK?"}""", bob.password)
+
 		when:
 		def message = "Goodbye friends! I deinstalled the Internet"
 		appService.deleteUser(richard, message)
@@ -185,6 +200,12 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		goalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 		goalConflictMessages[0].url =~ /poker/
 		getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}.size() == 0
+
+		def goalChangeMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalChangeMessage"}
+		goalChangeMessages.size == 0
+
+		def activityCommentMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "ActivityCommentMessage"}
+		activityCommentMessages.size == 0
 
 		def response = appService.postMessageActionWithPassword(buddyDisconnectMessages[0]._links."yona:process".href, [:], bob.password)
 		response.status == 200
