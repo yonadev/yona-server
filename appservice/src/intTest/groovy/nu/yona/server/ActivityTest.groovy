@@ -991,12 +991,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal richardGoal = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal bobGoalBuddyRichard = bob.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal beaGoalBuddyRichard = bea.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
-		def bobResponseOverviewsRichardAsBuddyAll = appService.getDayActivityOverviews(bob, bob.buddies[0], ["size": 14])
-		def bobResponseDetailsRichardAsBuddy = appService.getDayDetailsFromOverview(bobResponseOverviewsRichardAsBuddyAll, bob, bobGoalBuddyRichard, 1, "Tue")
-		def beaResponseOverviewsRichardAsBuddyAll = appService.getDayActivityOverviews(bea, bea.buddies[0], ["size": 14])
-		def beaResponseDetailsRichardAsBuddy = appService.getDayDetailsFromOverview(beaResponseOverviewsRichardAsBuddyAll, bea, beaGoalBuddyRichard, 1, "Tue")
-		def richardResponseOverviewsAll = appService.getDayActivityOverviews(richard, ["size": 14])
-		def richardResponseDetails = appService.getDayDetailsFromOverview(richardResponseOverviewsAll, richard, richardGoal, 1, "Tue")
+		def bobResponseDetailsRichardAsBuddy = appService.getDayActivityDetails(bob, bob.buddies[0], bobGoalBuddyRichard, 1, "Tue")
+		def beaResponseDetailsRichardAsBuddy = appService.getDayActivityDetails(bea, bea.buddies[0], beaGoalBuddyRichard, 1, "Tue")
+		def richardResponseDetails = appService.getDayActivityDetails(richard, richardGoal, 1, "Tue")
 
 		when:
 		def messageBob1 = appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
@@ -1038,12 +1035,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal richardGoal = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal bobGoalBuddyRichard = bob.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal beaGoalBuddyRichard = bea.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
-		def bobResponseOverviewsRichardAsBuddyAll = appService.getDayActivityOverviews(bob, bob.buddies[0], ["size": 14])
-		def bobResponseDetailsRichardAsBuddy = appService.getDayDetailsFromOverview(bobResponseOverviewsRichardAsBuddyAll, bob, bobGoalBuddyRichard, 1, "Tue")
-		def beaResponseOverviewsRichardAsBuddyAll = appService.getDayActivityOverviews(bea, bea.buddies[0], ["size": 14])
-		def beaResponseDetailsRichardAsBuddy = appService.getDayDetailsFromOverview(beaResponseOverviewsRichardAsBuddyAll, bea, beaGoalBuddyRichard, 1, "Tue")
-		def richardResponseOverviewsAll = appService.getDayActivityOverviews(richard, ["size": 14])
-		def richardResponseDetails = appService.getDayDetailsFromOverview(richardResponseOverviewsAll, richard, richardGoal, 1, "Tue")
+		def bobResponseDetailsRichardAsBuddy = appService.getDayActivityDetails(bob, bob.buddies[0], bobGoalBuddyRichard, 1, "Tue")
+		def beaResponseDetailsRichardAsBuddy = appService.getDayActivityDetails(bea, bea.buddies[0], beaGoalBuddyRichard, 1, "Tue")
+		def richardResponseDetails = appService.getDayActivityDetails(richard, richardGoal, 1, "Tue")
 
 		when:
 		def messageBob1 = appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
