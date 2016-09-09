@@ -179,7 +179,7 @@ public class BuddyController
 
 	public String getInviteURL(UUID newUserID, String tempPassword)
 	{
-		return UserController.getUserSelfLinkWithTempPassword(newUserID, tempPassword).getHref();
+		return UserController.getBuddyInvitationDeepLinkLandingPageLink(newUserID, tempPassword).toUri().toString();
 	}
 
 	private HttpEntity<BuddyResource> createOKResponse(UUID requestingUserID, BuddyDTO buddy)

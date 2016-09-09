@@ -47,6 +47,25 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		// TODO: How to delete the invited user?
 	}
 
+	def 'Bob opens the link and goes to the buddy invitation deep link landing page'()
+	{
+		given:
+		def richard = addRichard()
+		def mobileNumberBob = "+$timestamp"
+		def deepLinkLandingPageURL = buildInviteDeepLinkLandingPageUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
+
+		when:
+		def response = appService.yonaServer.getNonJsonResource(deepLinkLandingPageURL)
+
+		then:
+		response.status == 200
+		response.contentType == "text/html"
+
+		cleanup:
+		appService.deleteUser(richard)
+		// Cannot delete Bob, as he did not set up a Yona password yet.
+	}
+
 	def 'Bob downloads the app and uses it to open the link sent in the e-mail and load the prefilled data provided by Richard'()
 	{
 		given:
@@ -507,5 +526,10 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	String buildInviteUrl(def response)
 	{
 		response.responseData._embedded."yona:user"._links.self.href + "?tempPassword=abcd"
+	}
+
+	String buildInviteDeepLinkLandingPageUrl(def response)
+	{
+		response.responseData._embedded."yona:user"._links.self.href + "/buddy-invitation-deep-link-landing-page.html?tempPassword=abcd"
 	}
 }

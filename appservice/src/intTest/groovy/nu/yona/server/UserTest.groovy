@@ -269,8 +269,8 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		when:
 		assert richard.vpnProfile.ovpnProfileUrl
 		assert richard.sslRootCertUrl
-		def responseOvpnProfile = appService.yonaServer.restClient.get(path: richard.vpnProfile.ovpnProfileUrl)
-		def responseSslRootCert = appService.yonaServer.restClient.get(path: richard.sslRootCertUrl)
+		def responseOvpnProfile = appService.yonaServer.getNonJsonResource(richard.vpnProfile.ovpnProfileUrl)
+		def responseSslRootCert = appService.yonaServer.getNonJsonResource(richard.sslRootCertUrl)
 
 		then:
 		responseOvpnProfile.status == 200
@@ -290,7 +290,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		assert richard.appleMobileConfig
-		def responseAppleMobileConfig = appService.yonaServer.restClient.get(path: richard.appleMobileConfig, headers: ["Yona-Password":richard.password])
+		def responseAppleMobileConfig = appService.yonaServer.getNonJsonResource(richard.appleMobileConfig, ["Yona-Password":richard.password])
 
 		then:
 		responseAppleMobileConfig.status == 200
