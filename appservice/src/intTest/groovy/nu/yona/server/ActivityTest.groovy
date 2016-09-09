@@ -977,6 +977,105 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Comments of buddies of buddy are not visible'()
+	{
+		given:
+		def richardBobAndBea = addRichardWithBobAndBeaAsBuddies()
+		User richard = richardBobAndBea.richard
+		User bob = richardBobAndBea.bob
+		User bea = richardBobAndBea.bea
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
+		bea = appService.reloadUser(bea)
+		Goal richardGoal = richard.findActiveGoal(NEWS_ACT_CAT_URL)
+		Goal bobGoalBuddyRichard = bob.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
+		Goal beaGoalBuddyRichard = bea.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
+		def bobResponseOverviewsRichardAsBuddyAll = appService.getDayActivityOverviews(bob, bob.buddies[0], ["size": 14])
+		def bobResponseDetailsRichardAsBuddy = appService.getDayDetailsFromOverview(bobResponseOverviewsRichardAsBuddyAll, bob, bobGoalBuddyRichard, 1, "Tue")
+		def beaResponseOverviewsRichardAsBuddyAll = appService.getDayActivityOverviews(bea, bea.buddies[0], ["size": 14])
+		def beaResponseDetailsRichardAsBuddy = appService.getDayDetailsFromOverview(beaResponseOverviewsRichardAsBuddyAll, bea, beaGoalBuddyRichard, 1, "Tue")
+		def richardResponseOverviewsAll = appService.getDayActivityOverviews(richard, ["size": 14])
+		def richardResponseDetails = appService.getDayDetailsFromOverview(richardResponseOverviewsAll, richard, richardGoal, 1, "Tue")
+
+		when:
+		def messageBob1 = appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
+		def messageBea1 = appService.yonaServer.createResourceWithPassword(beaResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi Richard! Everything alright?"}""", bea.password)
+
+		def richardMessages = getActivityDetailMessages(richardResponseDetails, richard, 2).responseData._embedded."yona:messages"
+		def messageBob1AsSeenByRichard = richardMessages[0]
+		assert messageBob1AsSeenByRichard.nickname == "BD"
+		def messageBea1AsSeenByRichard = richardMessages[1]
+		assert messageBea1AsSeenByRichard.nickname == "BDD"
+		def messageRichardReplyToBob = appService.postMessageActionWithPassword(messageBob1AsSeenByRichard._links."yona:reply".href, ["message" : "Hi Bob! Doing fine!"], richard.password)
+
+		def bobMessagesRichard = getActivityDetailMessages(bobResponseDetailsRichardAsBuddy, bob, 2).responseData._embedded."yona:messages"
+		def beaMessagesRichard = getActivityDetailMessages(beaResponseDetailsRichardAsBuddy, bea, 1).responseData._embedded."yona:messages"
+
+		then:
+		bobMessagesRichard[0].nickname == "BD (me)"
+		bobMessagesRichard[1].nickname == "RQ"
+
+		beaMessagesRichard[0].nickname == "BDD (me)"
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+		appService.deleteUser(bea)
+	}
+
+	def 'Comments are returned in thread order'()
+	{
+		given:
+		def richardBobAndBea = addRichardWithBobAndBeaAsBuddies()
+		User richard = richardBobAndBea.richard
+		User bob = richardBobAndBea.bob
+		User bea = richardBobAndBea.bea
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
+		bea = appService.reloadUser(bea)
+		Goal richardGoal = richard.findActiveGoal(NEWS_ACT_CAT_URL)
+		Goal bobGoalBuddyRichard = bob.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
+		Goal beaGoalBuddyRichard = bea.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
+		def bobResponseOverviewsRichardAsBuddyAll = appService.getDayActivityOverviews(bob, bob.buddies[0], ["size": 14])
+		def bobResponseDetailsRichardAsBuddy = appService.getDayDetailsFromOverview(bobResponseOverviewsRichardAsBuddyAll, bob, bobGoalBuddyRichard, 1, "Tue")
+		def beaResponseOverviewsRichardAsBuddyAll = appService.getDayActivityOverviews(bea, bea.buddies[0], ["size": 14])
+		def beaResponseDetailsRichardAsBuddy = appService.getDayDetailsFromOverview(beaResponseOverviewsRichardAsBuddyAll, bea, beaGoalBuddyRichard, 1, "Tue")
+		def richardResponseOverviewsAll = appService.getDayActivityOverviews(richard, ["size": 14])
+		def richardResponseDetails = appService.getDayDetailsFromOverview(richardResponseOverviewsAll, richard, richardGoal, 1, "Tue")
+
+		when:
+		def messageBob1 = appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
+		def messageBea1 = appService.yonaServer.createResourceWithPassword(beaResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi Richard! Everything alright?"}""", bea.password)
+
+		def richardMessages = getActivityDetailMessages(richardResponseDetails, richard, 2).responseData._embedded."yona:messages"
+		def messageBob1AsSeenByRichard = richardMessages[0]
+		assert messageBob1AsSeenByRichard.nickname == "BD"
+		def messageBea1AsSeenByRichard = richardMessages[1]
+		assert messageBea1AsSeenByRichard.nickname == "BDD"
+		def messageRichardReplyToBea = appService.postMessageActionWithPassword(messageBea1AsSeenByRichard._links."yona:reply".href, ["message" : "Hi Bea! I'm alright!"], richard.password)
+		def messageRichardReplyToBob = appService.postMessageActionWithPassword(messageBob1AsSeenByRichard._links."yona:reply".href, ["message" : "Hi Bob! Doing fine!"], richard.password)
+
+		def bobMessagesRichard = getActivityDetailMessages(bobResponseDetailsRichardAsBuddy, bob, 2).responseData._embedded."yona:messages"
+		def beaMessagesRichard = getActivityDetailMessages(beaResponseDetailsRichardAsBuddy, bea, 2).responseData._embedded."yona:messages"
+		def messageBobReplyToRichardAgain = appService.postMessageActionWithPassword(bobMessagesRichard[1]._links."yona:reply".href, ["message" : "Great buddy!"], bob.password)
+
+		def richardMessagesRevisited = getActivityDetailMessages(richardResponseDetails, richard, 5, 10).responseData._embedded."yona:messages"
+
+		then:
+		richardMessagesRevisited[0].nickname == "BD"
+		richardMessagesRevisited[1].nickname == "RQ (me)"
+		richardMessagesRevisited[2].nickname == "BD"
+		richardMessagesRevisited[3].nickname == "BDD"
+		richardMessagesRevisited[4].nickname == "RQ (me)"
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+		appService.deleteUser(bea)
+	}
+
 	def 'Richard retrieves buddy activity info before Bob accepted Richard\'s buddy request'()
 	{
 		given:
@@ -1190,20 +1289,19 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertCommentMessageDetails(replyMessage, senderUser, isWeek, senderUser, responseGetActivityDetails.responseData._links.self.href, messageToSend, threadHeadMessage, messageToReply)
 	}
 
-	private getActivityDetailMessages(responseGetActivityDetails, User user, int expectedNumMessages) {
-		int defaultPageSize = 4
-		int expectedNumMessagesInPage = Math.min(expectedNumMessages, defaultPageSize)
-		def response = appService.yonaServer.getResourceWithPassword(responseGetActivityDetails.responseData._links."yona:messages".href, user.password)
+	private getActivityDetailMessages(responseGetActivityDetails, User user, int expectedNumMessages, int pageSize = 4) {
+		int expectedNumMessagesInPage = Math.min(expectedNumMessages, pageSize)
+		def response = appService.yonaServer.getResourceWithPassword(responseGetActivityDetails.responseData._links."yona:messages".href, user.password, ["size":pageSize])
 
 		assert response.status == 200
 		assert response.responseData?._embedded?."yona:messages"?.size() == expectedNumMessagesInPage
-		assert response.responseData.page.size == defaultPageSize
+		assert response.responseData.page.size == pageSize
 		assert response.responseData.page.totalElements == expectedNumMessages
-		assert response.responseData.page.totalPages == Math.ceil(expectedNumMessages / defaultPageSize)
+		assert response.responseData.page.totalPages == Math.ceil(expectedNumMessages / pageSize)
 		assert response.responseData.page.number == 0
 
 		assert response.responseData._links?.prev?.href == null
-		if (expectedNumMessages > defaultPageSize)
+		if (expectedNumMessages > pageSize)
 		{
 			assert response.responseData._links?.next?.href
 		}

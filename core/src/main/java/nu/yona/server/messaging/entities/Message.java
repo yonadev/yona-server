@@ -11,6 +11,8 @@ import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Type;
+
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.entities.EntityWithID;
@@ -21,6 +23,11 @@ import nu.yona.server.entities.RepositoryProvider;
 public abstract class Message extends EntityWithID
 {
 	private final UUID relatedUserAnonymizedID;
+
+	@Type(type = "uuid-char")
+	private UUID threadHeadMessageID;
+	@Type(type = "uuid-char")
+	private UUID repliedMessageID;
 
 	private final ZonedDateTime creationTime;
 
@@ -62,6 +69,26 @@ public abstract class Message extends EntityWithID
 	public void decryptMessage(Decryptor decryptor)
 	{
 		decrypt(decryptor);
+	}
+
+	protected void setRepliedMessageID(Optional<UUID> repliedMessageID)
+	{
+		this.repliedMessageID = repliedMessageID.orElse(null);
+	}
+
+	protected void setThreadHeadMessageID(UUID threadHeadMessageID)
+	{
+		this.threadHeadMessageID = threadHeadMessageID;
+	}
+
+	public UUID getThreadHeadMessageID()
+	{
+		return threadHeadMessageID;
+	}
+
+	public Optional<UUID> getRepliedMessageID()
+	{
+		return Optional.ofNullable(repliedMessageID);
 	}
 
 	public ZonedDateTime getCreationTime()

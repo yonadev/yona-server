@@ -17,10 +17,6 @@ public class ActivityCommentMessage extends BuddyMessage
 {
 	private UUID activityID;
 
-	private UUID threadHeadMessageID;
-
-	private UUID repliedMessageID;
-
 	/**
 	 * Buddy comment messages are always sent in pairs: a message to the buddy and a copy for the user. This property maintains
 	 * the relationship between the two.
@@ -33,8 +29,9 @@ public class ActivityCommentMessage extends BuddyMessage
 	{
 		super(id, senderUserID, senderUserAnonymizedID, senderNickname, isSentItem, message);
 		this.activityID = activityID;
-		this.threadHeadMessageID = threadHeadMessageID;
-		this.repliedMessageID = repliedMessageID.orElse(null);
+
+		setThreadHeadMessageID(threadHeadMessageID);
+		setRepliedMessageID(repliedMessageID);
 	}
 
 	// Default constructor is required for JPA
@@ -56,16 +53,6 @@ public class ActivityCommentMessage extends BuddyMessage
 	public UUID getActivityID()
 	{
 		return activityID;
-	}
-
-	public UUID getThreadHeadMessageID()
-	{
-		return threadHeadMessageID;
-	}
-
-	public Optional<UUID> getRepliedMessageID()
-	{
-		return Optional.ofNullable(repliedMessageID);
 	}
 
 	public static ActivityCommentMessage createThreadHeadInstance(UUID senderUserID, UUID senderUserAnonymizedID,
