@@ -309,9 +309,12 @@ public class MessageController
 
 		private void addDayActivityOverviewLink(GoalChangeMessageDTO message)
 		{
-			message.add(BuddyActivityController
-					.getBuddyDayActivityOverviewsLinkBuilder(goalIDMapping.getUserID(), message.getSenderBuddyID().get())
-					.withRel(BuddyActivityController.DAY_OVERVIEW_LINK));
+			if (message.getSenderBuddyID().isPresent())
+			{
+				message.add(BuddyActivityController
+						.getBuddyDayActivityOverviewsLinkBuilder(goalIDMapping.getUserID(), message.getSenderBuddyID().get())
+						.withRel(BuddyActivityController.DAY_OVERVIEW_LINK));
+			}
 		}
 
 		private void addDayActivityDetailLinkIfDisclosureAccepted(DisclosureResponseMessageDTO message)
