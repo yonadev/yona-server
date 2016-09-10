@@ -386,7 +386,7 @@ public class AnalysisEngineService
 	private static class DayActivityCacheResult
 	{
 		public final DayActivityCacheResultStatus status;
-		public DayActivity content;
+		public final DayActivity content;
 
 		public DayActivityCacheResult(DayActivity content, DayActivityCacheResultStatus status)
 		{
