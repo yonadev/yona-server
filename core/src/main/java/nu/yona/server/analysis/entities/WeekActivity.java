@@ -18,6 +18,9 @@ import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
@@ -30,6 +33,8 @@ public class WeekActivity extends IntervalActivity
 	{
 		return (WeekActivityRepository) RepositoryProvider.getRepository(WeekActivity.class, UUID.class);
 	}
+
+	private static final Logger logger = LoggerFactory.getLogger(WeekActivity.class);
 
 	// Default constructor is required for JPA
 	public WeekActivity()
@@ -96,8 +101,13 @@ public class WeekActivity extends IntervalActivity
 
 	public static WeekActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek)
 	{
-		return new WeekActivity(UUID.randomUUID(), userAnonymized, goal, startOfWeek,
-				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, false);
+		UUID id = UUID.randomUUID();
+		logger.info(
+				"YD-295 - WeekActivity.createInstance(" + userAnonymized.getID() + ", goal with ID " + goal.getID()
+						+ " for activity category " + goal.getActivityCategory().getID() + ", " + startOfWeek + ") with ID " + id,
+				new Throwable().fillInStackTrace());
+		return new WeekActivity(id, userAnonymized, goal, startOfWeek, new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0,
+				false);
 	}
 
 	public Collection<DayActivity> createRequiredInactivityDays()
