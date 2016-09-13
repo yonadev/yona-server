@@ -301,13 +301,13 @@ public class UserService
 	@Transactional
 	public UserDTO updateUser(UUID id, UserDTO user)
 	{
-		User originalUserEntity = getUserEntityByID(id);
-		validateUpdateRequest(user, originalUserEntity);
+		User userEntity = getUserEntityByID(id);
+		UserDTO originalUser = createUserDTOWithPrivateData(userEntity);
+		validateUpdateRequest(user, originalUser, userEntity);
 
-		boolean isMobileNumberDifferent = isMobileNumberDifferent(user, originalUserEntity);
-		User updatedUserEntity = user.updateUser(originalUserEntity);
+		User updatedUserEntity = user.updateUser(userEntity);
 		Optional<ConfirmationCode> confirmationCode = Optional.empty();
-		if (isMobileNumberDifferent)
+		if (isMobileNumberDifferent(user, originalUser))
 		{
 			confirmationCode = Optional.of(createConfirmationCode());
 			updatedUserEntity.setMobileNumberConfirmationCode(confirmationCode.get());
@@ -320,25 +320,26 @@ public class UserService
 					SmsService.TemplateName_ChangedUserNumberConfirmation);
 		}
 		logger.info("Updated user with mobile number '{}' and ID '{}'", userDTO.getMobileNumber(), userDTO.getID());
+		buddyService.broadcastBuddyInfoChangedMessageIfNeeded(savedUserEntity, originalUser);
 		return userDTO;
 	}
 
-	private void validateUpdateRequest(UserDTO user, User originalUserEntity)
+	private void validateUpdateRequest(UserDTO user, UserDTO originalUser, User userEntity)
 	{
-		if (originalUserEntity.isCreatedOnBuddyRequest())
+		if (userEntity.isCreatedOnBuddyRequest())
 		{
 			// security check: should not be able to update a user created on buddy request with its temp password
 			throw UserServiceException.cannotUpdateBecauseCreatedOnBuddyRequest(user.getID());
 		}
-		if (isMobileNumberDifferent(user, originalUserEntity))
+		if (isMobileNumberDifferent(user, originalUser))
 		{
 			verifyUserDoesNotExist(user.getMobileNumber());
 		}
 	}
 
-	private boolean isMobileNumberDifferent(UserDTO user, User originalUserEntity)
+	private boolean isMobileNumberDifferent(UserDTO user, UserDTO originalUser)
 	{
-		return !user.getMobileNumber().equals(originalUserEntity.getMobileNumber());
+		return !user.getMobileNumber().equals(originalUser.getMobileNumber());
 	}
 
 	@Transactional

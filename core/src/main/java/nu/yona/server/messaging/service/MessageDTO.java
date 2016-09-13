@@ -33,6 +33,7 @@ import nu.yona.server.subscriptions.service.BuddyConnectRequestMessageDTO;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDTO;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyDisconnectMessageDTO;
+import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserDTO;
 
@@ -40,6 +41,7 @@ import nu.yona.server.subscriptions.service.UserDTO;
 @JsonSubTypes({ @Type(value = BuddyConnectRequestMessageDTO.class, name = "BuddyConnectRequestMessage"),
 		@Type(value = BuddyConnectResponseMessageDTO.class, name = "BuddyConnectResponseMessage"),
 		@Type(value = BuddyDisconnectMessageDTO.class, name = "BuddyDisconnectMessage"),
+		@Type(value = BuddyInfoChangeMessageDTO.class, name = "BuddyInfoChangeMessage"),
 		@Type(value = DisclosureRequestMessageDTO.class, name = "DisclosureRequestMessage"),
 		@Type(value = DisclosureResponseMessageDTO.class, name = "DisclosureResponseMessage"),
 		@Type(value = GoalConflictMessageDTO.class, name = "GoalConflictMessage"),
