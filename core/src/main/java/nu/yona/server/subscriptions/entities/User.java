@@ -5,7 +5,6 @@
 package nu.yona.server.subscriptions.entities;
 
 import java.time.ZonedDateTime;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -318,10 +317,5 @@ public class User extends EntityWithID
 	public Set<Buddy> getBuddiesRelatedToRemovedUsers()
 	{
 		return userPrivate.getBuddiesRelatedToRemovedUsers();
-	}
-
-	public Optional<Buddy> getBuddyForUser(UUID forUserID)
-	{
-		return userPrivate.getBuddyForUser(forUserID);
 	}
 }

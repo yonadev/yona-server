@@ -6,7 +6,6 @@ package nu.yona.server.subscriptions.entities;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -168,10 +167,5 @@ public class UserPrivate extends EntityWithID
 	public Set<Buddy> getBuddiesRelatedToRemovedUsers()
 	{
 		return buddies.stream().filter(b -> b.getUser() == null).collect(Collectors.toSet());
-	}
-
-	public Optional<Buddy> getBuddyForUser(UUID forUserID)
-	{
-		return buddies.stream().filter(buddy -> buddy.getUserID().equals(forUserID)).findAny();
 	}
 }
