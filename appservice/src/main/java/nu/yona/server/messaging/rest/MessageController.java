@@ -275,7 +275,8 @@ public class MessageController
 			{
 				addUserLinkIfAvailable((BuddyMessageLinkedUserDTO) message);
 			}
-			if (message instanceof BuddyConnectResponseMessageDTO || message instanceof GoalConflictMessageDTO)
+			if (message instanceof BuddyConnectResponseMessageDTO || message instanceof GoalConflictMessageDTO
+					|| message instanceof GoalChangeMessageDTO)
 			{
 				addSenderBuddyLinkIfAvailable(message);
 			}
@@ -293,27 +294,11 @@ public class MessageController
 			}
 			if (message instanceof GoalChangeMessageDTO)
 			{
-				addGoalChangeMessageLinks((GoalChangeMessageDTO) message);
+				addRelatedActivityCategoryLink((GoalChangeMessageDTO) message);
 			}
 			if (message instanceof ActivityCommentMessageDTO)
 			{
 				addActivityCommentMessageLinks((ActivityCommentMessageDTO) message);
-			}
-		}
-
-		private void addGoalChangeMessageLinks(GoalChangeMessageDTO message)
-		{
-			addRelatedActivityCategoryLink(message);
-			addDayActivityOverviewLink(message);
-		}
-
-		private void addDayActivityOverviewLink(GoalChangeMessageDTO message)
-		{
-			if (message.getSenderBuddyID().isPresent())
-			{
-				message.add(BuddyActivityController
-						.getBuddyDayActivityOverviewsLinkBuilder(goalIDMapping.getUserID(), message.getSenderBuddyID().get())
-						.withRel(BuddyActivityController.DAY_OVERVIEW_LINK));
 			}
 		}
 

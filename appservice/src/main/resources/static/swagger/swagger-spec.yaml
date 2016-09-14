@@ -2447,7 +2447,7 @@ definitions:
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
           - $ref: '#/definitions/ActivityCategoryLink'
-          - $ref: '#/definitions/DailyActivityReportsLink'
+          - $ref: '#/definitions/BuddyLink'
     required:
       - change
       - _links
