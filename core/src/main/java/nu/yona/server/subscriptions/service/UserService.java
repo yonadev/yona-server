@@ -301,11 +301,11 @@ public class UserService
 	@Transactional
 	public UserDTO updateUser(UUID id, UserDTO user)
 	{
-		User userEntity = getUserEntityByID(id);
-		UserDTO originalUser = createUserDTOWithPrivateData(userEntity);
-		validateUpdateRequest(user, originalUser, userEntity);
+		User originalUserEntity = getUserEntityByID(id);
+		UserDTO originalUser = createUserDTOWithPrivateData(originalUserEntity);
+		validateUpdateRequest(user, originalUser, originalUserEntity);
 
-		User updatedUserEntity = user.updateUser(userEntity);
+		User updatedUserEntity = user.updateUser(originalUserEntity);
 		Optional<ConfirmationCode> confirmationCode = Optional.empty();
 		if (isMobileNumberDifferent(user, originalUser))
 		{
@@ -324,9 +324,9 @@ public class UserService
 		return userDTO;
 	}
 
-	private void validateUpdateRequest(UserDTO user, UserDTO originalUser, User userEntity)
+	private void validateUpdateRequest(UserDTO user, UserDTO originalUser, User originalUserEntity)
 	{
-		if (userEntity.isCreatedOnBuddyRequest())
+		if (originalUserEntity.isCreatedOnBuddyRequest())
 		{
 			// security check: should not be able to update a user created on buddy request with its temp password
 			throw UserServiceException.cannotUpdateBecauseCreatedOnBuddyRequest(user.getID());
