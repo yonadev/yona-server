@@ -2377,21 +2377,17 @@ definitions:
     allOf:
       - $ref: '#/definitions/BuddyMessage'
     properties:
-      newNickname:
-        type: string
-        description: The new nickname of the buddy
-        example: RQ
       _links:
         allOf:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
           - $ref: '#/definitions/UserLink'
+          - $ref: '#/definitions/BuddyLink'
           - $ref: '#/definitions/MarkReadLink'
           - $ref: '#/definitions/MarkUnreadLink'
           - $ref: '#/definitions/ProcessLink'
     required:
-      - newNickname
       - _links
   GoalConflictStatus:
     type: string

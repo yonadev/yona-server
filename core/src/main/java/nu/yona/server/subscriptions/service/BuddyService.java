@@ -528,38 +528,21 @@ public class BuddyService
 	}
 
 	@Transactional
-	void broadcastBuddyInfoChangedMessageIfNeeded(User updatedUserEntity, UserDTO originalUser)
-	{
-		if (isBuddyInfoChanged(updatedUserEntity, originalUser))
-		{
-			broadcastBuddyInfoChangeMessage(updatedUserEntity, originalUser);
-		}
-	}
-
-	private String getBuddyInfoChangeMessage(User updatedUserEntity, UserDTO originalUser)
-	{
-		if (!updatedUserEntity.getNickname().equals(originalUser.getPrivateData().getNickname()))
-		{
-			return translator.getLocalizedMessage("message.buddy.changed.nickname");
-		}
-		throw new NotImplementedException();
-	}
-
-	private boolean isBuddyInfoChanged(User updatedUserEntity, UserDTO originalUser)
-	{
-		return !updatedUserEntity.getNickname().equals(originalUser.getPrivateData().getNickname());
-	}
-
-	private void broadcastBuddyInfoChangeMessage(User updatedUserEntity, UserDTO originalUser)
+	void broadcastUserInfoChangeToBuddies(User updatedUserEntity, UserDTO originalUser)
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDTO.createInstance(updatedUserEntity.getAnonymized()),
 				() -> BuddyInfoChangeMessage.createInstance(updatedUserEntity.getID(), updatedUserEntity.getUserAnonymizedID(),
-						originalUser.getPrivateData().getNickname(), getBuddyInfoChangeMessage(updatedUserEntity, originalUser),
+						originalUser.getPrivateData().getNickname(), getUserInfoChangeMessage(updatedUserEntity, originalUser),
 						updatedUserEntity.getNickname()));
 	}
 
+	private String getUserInfoChangeMessage(User updatedUserEntity, UserDTO originalUser)
+	{
+		return translator.getLocalizedMessage("message.buddy.user.info.changed");
+	}
+
 	@Transactional
-	public void updateBuddyInfo(UUID idOfRequestingUser, UUID relatedUserAnonymizedID, String buddyNickname)
+	public void updateBuddyUserInfo(UUID idOfRequestingUser, UUID relatedUserAnonymizedID, String buddyNickname)
 	{
 		User user = userService.getValidatedUserbyID(idOfRequestingUser);
 

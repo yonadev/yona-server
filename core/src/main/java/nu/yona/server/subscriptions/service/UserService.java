@@ -320,7 +320,7 @@ public class UserService
 					SmsService.TemplateName_ChangedUserNumberConfirmation);
 		}
 		logger.info("Updated user with mobile number '{}' and ID '{}'", userDTO.getMobileNumber(), userDTO.getID());
-		buddyService.broadcastBuddyInfoChangedMessageIfNeeded(savedUserEntity, originalUser);
+		buddyService.broadcastUserInfoChangeToBuddies(savedUserEntity, originalUser);
 		return userDTO;
 	}
 
