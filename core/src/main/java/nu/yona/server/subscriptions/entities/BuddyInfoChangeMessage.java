@@ -7,13 +7,18 @@ package nu.yona.server.subscriptions.entities;
 import java.util.UUID;
 
 import javax.persistence.Entity;
+import javax.persistence.Transient;
 
+import nu.yona.server.crypto.Decryptor;
+import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.messaging.entities.BuddyMessage;
 
 @Entity
 public class BuddyInfoChangeMessage extends BuddyMessage
 {
+	@Transient
 	private String newNickname;
+	private byte[] newNicknameCiphertext;
 	private boolean isProcessed;
 
 	public BuddyInfoChangeMessage(UUID id, UUID senderUserID, UUID senderAnonymizedUserID, String senderNickname, String message,
@@ -42,6 +47,20 @@ public class BuddyInfoChangeMessage extends BuddyMessage
 	public void setProcessed()
 	{
 		this.isProcessed = true;
+	}
+
+	@Override
+	public void encrypt(Encryptor encryptor)
+	{
+		super.encrypt(encryptor);
+		newNicknameCiphertext = encryptor.encrypt(newNickname);
+	}
+
+	@Override
+	public void decrypt(Decryptor decryptor)
+	{
+		super.decrypt(decryptor);
+		newNickname = decryptor.decryptString(newNicknameCiphertext);
 	}
 
 	public static BuddyInfoChangeMessage createInstance(UUID senderUserID, UUID senderAnonymizedUserID, String senderNickname,

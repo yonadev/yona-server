@@ -29,14 +29,12 @@ import nu.yona.server.subscriptions.entities.BuddyInfoChangeMessage;
 public class BuddyInfoChangeMessageDTO extends BuddyMessageLinkedUserDTO
 {
 	private static final String PROCESS = "process";
-	private final String newNickname;
 	private final boolean isProcessed;
 
 	private BuddyInfoChangeMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo, String message,
-			String newNickname, boolean isProcessed)
+			boolean isProcessed)
 	{
 		super(id, creationTime, isRead, senderInfo, message);
-		this.newNickname = newNickname;
 		this.isProcessed = isProcessed;
 	}
 
@@ -44,11 +42,6 @@ public class BuddyInfoChangeMessageDTO extends BuddyMessageLinkedUserDTO
 	public String getType()
 	{
 		return "BuddyInfoChangeMessage";
-	}
-
-	public String getNewNickname()
-	{
-		return newNickname;
 	}
 
 	@JsonIgnore
@@ -78,7 +71,7 @@ public class BuddyInfoChangeMessageDTO extends BuddyMessageLinkedUserDTO
 			SenderInfo senderInfo)
 	{
 		return new BuddyInfoChangeMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				senderInfo, messageEntity.getMessage(), messageEntity.getNewNickname(), messageEntity.isProcessed());
+				senderInfo, messageEntity.getMessage(), messageEntity.isProcessed());
 	}
 
 	@Component
@@ -121,7 +114,7 @@ public class BuddyInfoChangeMessageDTO extends BuddyMessageLinkedUserDTO
 		{
 			if (messageEntity.getRelatedUserAnonymizedID().isPresent())
 			{
-				buddyService.updateBuddyInfo(actingUser.getID(), messageEntity.getRelatedUserAnonymizedID().get(),
+				buddyService.updateBuddyUserInfo(actingUser.getID(), messageEntity.getRelatedUserAnonymizedID().get(),
 						messageEntity.getNewNickname());
 			}
 
