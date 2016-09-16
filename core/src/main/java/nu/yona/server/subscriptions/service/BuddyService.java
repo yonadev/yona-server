@@ -43,6 +43,7 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
+import nu.yona.server.subscriptions.entities.BuddyInfoChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
@@ -524,5 +525,29 @@ public class BuddyService
 			}
 		}
 		return Optional.empty();
+	}
+
+	@Transactional
+	void broadcastUserInfoChangeToBuddies(User updatedUserEntity, UserDTO originalUser)
+	{
+		messageService.broadcastMessageToBuddies(UserAnonymizedDTO.createInstance(updatedUserEntity.getAnonymized()),
+				() -> BuddyInfoChangeMessage.createInstance(updatedUserEntity.getID(), updatedUserEntity.getUserAnonymizedID(),
+						originalUser.getPrivateData().getNickname(), getUserInfoChangeMessage(updatedUserEntity, originalUser),
+						updatedUserEntity.getNickname()));
+	}
+
+	private String getUserInfoChangeMessage(User updatedUserEntity, UserDTO originalUser)
+	{
+		return translator.getLocalizedMessage("message.buddy.user.info.changed");
+	}
+
+	@Transactional
+	public void updateBuddyUserInfo(UUID idOfRequestingUser, UUID relatedUserAnonymizedID, String buddyNickname)
+	{
+		User user = userService.getValidatedUserbyID(idOfRequestingUser);
+
+		Buddy buddy = user.getBuddyByUserAnonymizedID(relatedUserAnonymizedID);
+		buddy.setNickName(buddyNickname);
+		Buddy.getRepository().save(buddy);
 	}
 }
