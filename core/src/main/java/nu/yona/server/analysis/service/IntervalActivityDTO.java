@@ -142,9 +142,9 @@ public abstract class IntervalActivityDTO
 		return spread;
 	}
 
-	@JsonInclude(Include.NON_NULL)
-	public Integer getTotalActivityDurationMinutes()
+	@JsonInclude(Include.NON_EMPTY)
+	public Optional<Integer> getTotalActivityDurationMinutes()
 	{
-		return totalActivityDurationMinutes.orElse(null);
+		return totalActivityDurationMinutes;
 	}
 }
