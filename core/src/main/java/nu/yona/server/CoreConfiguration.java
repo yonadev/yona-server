@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
@@ -29,10 +28,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hazelcast.client.HazelcastClient;
-import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.spring.cache.HazelcastCacheManager;
+import com.hazelcast.config.Config;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.properties.YonaProperties;
@@ -145,10 +141,8 @@ public class CoreConfiguration
 	}
 
 	@Bean
-	public CacheManager cacheManager()
+	public com.hazelcast.config.Config hazelcastConfig()
 	{
-		ClientConfig config = new ClientConfig();
-		HazelcastInstance client = HazelcastClient.newHazelcastClient(config);
-		return new HazelcastCacheManager(client);
+		return new Config();
 	}
 }

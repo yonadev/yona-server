@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
@@ -27,13 +28,15 @@ import nu.yona.server.rest.PolymorphicDTO;
 @JsonRootName("goal")
 @JsonSubTypes({ @Type(value = BudgetGoalDTO.class, name = "BudgetGoal"),
 		@Type(value = TimeZoneGoalDTO.class, name = "TimeZoneGoal") })
-public abstract class GoalDTO extends PolymorphicDTO
+public abstract class GoalDTO extends PolymorphicDTO implements Serializable
 {
+	private static final long serialVersionUID = 2825849099414812967L;
+
 	private final UUID id;
 	private UUID activityCategoryID;
-	private final Optional<ZonedDateTime> creationTime;
+	private final ZonedDateTime creationTime;
 	private final boolean mandatory;
-	private final Optional<ZonedDateTime> endTime;
+	private final ZonedDateTime endTime;
 
 	protected GoalDTO(UUID id, Optional<ZonedDateTime> creationTime, Optional<ZonedDateTime> endTime, UUID activityCategoryID,
 			boolean mandatory)
@@ -41,9 +44,13 @@ public abstract class GoalDTO extends PolymorphicDTO
 		Objects.requireNonNull(creationTime);
 		this.id = id;
 		this.setActivityCategoryID(activityCategoryID);
-		this.creationTime = creationTime;
-		this.endTime = endTime;
 		this.mandatory = mandatory;
+
+		// not using Optional as field here because of implementing Serializable
+		// see
+		// http://stackoverflow.com/questions/24547673/why-java-util-optional-is-not-serializable-how-to-serialize-the-object-with-suc
+		this.creationTime = creationTime.orElse(null);
+		this.endTime = endTime.orElse(null);
 	}
 
 	protected GoalDTO(Optional<ZonedDateTime> creationTime)
@@ -62,21 +69,21 @@ public abstract class GoalDTO extends PolymorphicDTO
 	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
 	public Optional<ZonedDateTime> getCreationTime()
 	{
-		return creationTime;
+		return Optional.ofNullable(creationTime);
 	}
 
 	public boolean isHistoryItem()
 	{
-		return endTime.isPresent();
+		return endTime != null;
 	}
 
 	public boolean wasActiveAtInterval(ZonedDateTime dateAtStartOfInterval, ChronoUnit timeUnit)
 	{
-		if (!creationTime.isPresent())
+		if (creationTime == null)
 		{
 			return false;
 		}
-		return Goal.wasActiveAtInterval(creationTime.get(), endTime, dateAtStartOfInterval, timeUnit);
+		return Goal.wasActiveAtInterval(creationTime, Optional.ofNullable(endTime), dateAtStartOfInterval, timeUnit);
 	}
 
 	@JsonIgnore
