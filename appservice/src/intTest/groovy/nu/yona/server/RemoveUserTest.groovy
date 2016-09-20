@@ -9,6 +9,7 @@ package nu.yona.server
 import groovy.json.*
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
+import nu.yona.server.test.User
 
 class RemoveUserTest extends AbstractAppServiceIntegrationTest
 {
@@ -159,17 +160,26 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
 		Goal budgetGoalNewsBuddyRichard = bob.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
+		Goal budgetGoalNewsBuddyBob = richard.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
 		//insert some messages
 		//goal conflict
 		analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl")
 		//goal change
 		appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
-		//activity comment
+		//activity comment at activity of Richard
 		def bobResponseDetailsRichard = appService.getDayActivityDetails(bob, bob.buddies[0], budgetGoalNewsBuddyRichard, 1, "Tue")
-		appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichard.responseData._links."yona:addComment".href, """{"message": "Hi buddy, everything OK?"}""", bob.password)
+		appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichard.responseData._links."yona:addComment".href, """{"message": "Hi Richard, everything OK?"}""", bob.password)
+		//activity comment from Richard
+		def richardResponseDetailsBob = appService.getDayActivityDetails(richard, richard.buddies[0], budgetGoalNewsBuddyBob, 1, "Tue")
+		appService.yonaServer.createResourceWithPassword(richardResponseDetailsBob.responseData._links."yona:addComment".href, """{"message": "Hi Bob, nice activity!"}""", richard.password)
+		//buddy info change
+		def updatedRichardJson = richard.convertToJSON()
+		updatedRichardJson.nickname = "Richardo"
+		richard = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedRichardJson, richard.password))
 
 		when:
 		def message = "Goodbye friends! I deinstalled the Internet"
@@ -206,6 +216,9 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 
 		def activityCommentMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "ActivityCommentMessage"}
 		activityCommentMessages.size == 0
+
+		def buddyInfoChangeMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
+		buddyInfoChangeMessages.size == 0
 
 		def response = appService.postMessageActionWithPassword(buddyDisconnectMessages[0]._links."yona:process".href, [:], bob.password)
 		response.status == 200

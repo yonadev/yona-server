@@ -62,6 +62,7 @@ import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.rest.UserController;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDTO;
 import nu.yona.server.subscriptions.service.BuddyDTO;
+import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDTO;
 import nu.yona.server.subscriptions.service.GoalIDMapping;
 import nu.yona.server.subscriptions.service.UserService;
 
