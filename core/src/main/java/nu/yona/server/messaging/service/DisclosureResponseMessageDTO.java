@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Set;
 import java.util.UUID;
@@ -13,6 +14,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
@@ -25,13 +27,18 @@ import nu.yona.server.subscriptions.service.UserDTO;
 @JsonRootName("disclosureResponseMessage")
 public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 {
+	private final UUID targetGoalConflictGoalID;
+	private final LocalDate targetGoalConflictDate;
 	private final Status status;
 
-	private DisclosureResponseMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, Status status,
-			String nickname, String message, UUID targetGoalConflictMessageID)
+	private DisclosureResponseMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+			Status status, String message, UUID targetGoalConflictMessageID, UUID targetGoalConflictGoalID,
+			LocalDate targetGoalConflictDate)
 	{
-		super(id, creationTime, isRead, targetGoalConflictMessageID, user, nickname, message);
+		super(id, creationTime, isRead, targetGoalConflictMessageID, senderInfo, message);
 		this.status = status;
+		this.targetGoalConflictGoalID = targetGoalConflictGoalID;
+		this.targetGoalConflictDate = targetGoalConflictDate;
 	}
 
 	@Override
@@ -47,6 +54,18 @@ public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 		return possibleActions;
 	}
 
+	@JsonIgnore
+	public UUID getTargetGoalConflictGoalID()
+	{
+		return targetGoalConflictGoalID;
+	}
+
+	@JsonIgnore
+	public LocalDate getTargetGoalConflictDate()
+	{
+		return targetGoalConflictDate;
+	}
+
 	public Status getStatus()
 	{
 		return status;
@@ -58,16 +77,17 @@ public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 		return true;
 	}
 
-	public static DisclosureResponseMessageDTO createInstance(UserDTO actingUser, DisclosureResponseMessage messageEntity)
+	public static DisclosureResponseMessageDTO createInstance(UserDTO actingUser, DisclosureResponseMessage messageEntity,
+			SenderInfo senderInfo)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
 		return new DisclosureResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getStatus(),
-				messageEntity.getSenderNickname(), messageEntity.getMessage(), targetGoalConflictMessage.getID());
+				senderInfo, messageEntity.getStatus(), messageEntity.getMessage(),
+				targetGoalConflictMessage.getID(), targetGoalConflictMessage.getGoal().getID(), targetGoalConflictMessage.getActivity().getStartTime().toLocalDate());
 	}
 
 	@Component
-	private static class Manager extends MessageDTO.Manager
+	private static class Manager extends BuddyMessageDTO.Manager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;
@@ -81,7 +101,8 @@ public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 		@Override
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return DisclosureResponseMessageDTO.createInstance(actingUser, (DisclosureResponseMessage) messageEntity);
+			return DisclosureResponseMessageDTO.createInstance(actingUser, (DisclosureResponseMessage) messageEntity,
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override

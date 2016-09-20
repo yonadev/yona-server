@@ -19,11 +19,13 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.ActivityCommentMessage;
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.service.BuddyMessageDTO;
 import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.messaging.service.MessageServiceException;
+import nu.yona.server.messaging.service.SenderInfo;
 import nu.yona.server.subscriptions.service.UserDTO;
 
 @JsonRootName("activityCommentMessage")
@@ -31,20 +33,17 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 {
 	private static final String MESSAGE_PROPERTY = "message";
 	private static final String REPLY = "reply";
-	private final boolean canReplyTo;
 	private final UUID activityID;
 	private final Optional<UUID> repliedMessageID;
 	private final UUID threadHeadMessageID;
 
-	private ActivityCommentMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO senderUser, UUID senderUserAnonymizedID,
-			String senderNickname, UUID activityID, UUID threadHeadMessageID, Optional<UUID> repliedMessageID, String message,
-			boolean canReplyTo)
+	private ActivityCommentMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+			UUID activityID, UUID threadHeadMessageID, Optional<UUID> repliedMessageID, String message)
 	{
-		super(id, creationTime, isRead, senderUser, senderNickname, message);
+		super(id, creationTime, isRead, senderInfo, message);
 		this.activityID = activityID;
 		this.threadHeadMessageID = threadHeadMessageID;
 		this.repliedMessageID = repliedMessageID;
-		this.canReplyTo = canReplyTo;
 	}
 
 	@Override
@@ -57,7 +56,7 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	public Set<String> getPossibleActions()
 	{
 		Set<String> possibleActions = super.getPossibleActions();
-		if (canReplyTo)
+		if (this.isSentFromBuddy())
 		{
 			possibleActions.add(REPLY);
 		}
@@ -87,17 +86,16 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 		return repliedMessageID;
 	}
 
-	public static ActivityCommentMessageDTO createInstance(UserDTO actingUser, ActivityCommentMessage messageEntity)
+	public static ActivityCommentMessageDTO createInstance(UserDTO actingUser, ActivityCommentMessage messageEntity,
+			SenderInfo senderInfo)
 	{
-		boolean canReplyTo = !actingUser.getID().equals(messageEntity.getSenderUserID());
 		return new ActivityCommentMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getRelatedUserAnonymizedID(),
-				messageEntity.getSenderNickname(), messageEntity.getActivityID(), messageEntity.getThreadHeadMessageID(),
-				messageEntity.getRepliedMessageID(), messageEntity.getMessage(), canReplyTo);
+				senderInfo, messageEntity.getActivityID(), messageEntity.getThreadHeadMessageID(),
+				messageEntity.getRepliedMessageID(), messageEntity.getMessage());
 	}
 
 	@Component
-	private static class Manager extends MessageDTO.Manager
+	private static class Manager extends BuddyMessageDTO.Manager
 	{
 
 		@Autowired
@@ -115,7 +113,8 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 		@Override
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return ActivityCommentMessageDTO.createInstance(actingUser, (ActivityCommentMessage) messageEntity);
+			return ActivityCommentMessageDTO.createInstance(actingUser, (ActivityCommentMessage) messageEntity,
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override

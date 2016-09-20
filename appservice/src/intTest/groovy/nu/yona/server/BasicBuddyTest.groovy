@@ -195,6 +195,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		response.responseData._embedded."yona:affectedMessages".size() == 1
 		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == connectResponseMessage.selfURL
 		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
+		def buddyURL = response.responseData._embedded."yona:affectedMessages"[0]._links."yona:buddy"?.href
+		buddyURL != null
 
 		def buddies = appService.getBuddies(richard)
 		buddies.size() == 1
@@ -202,6 +204,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddies[0].nickname == bob.nickname
 		buddies[0].sendingStatus == "ACCEPTED"
 		buddies[0].receivingStatus == "ACCEPTED"
+		buddies[0].url == buddyURL
 
 		def richardWithBuddy = appService.reloadUser(richard)
 		richardWithBuddy.buddies != null
@@ -264,11 +267,12 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll
 		{ it."@type" == "GoalConflictMessage" }
 		richardGoalConflictMessages.size() == 1
-		richardGoalConflictMessages[0].nickname == "<self>"
+		richardGoalConflictMessages[0].nickname == "RQ (me)"
 		assertEquals(richardGoalConflictMessages[0].creationTime, now)
 		assertEquals(richardGoalConflictMessages[0].activityStartTime, now)
 		assertEquals(richardGoalConflictMessages[0].activityEndTime, now.plus(Duration.ofMinutes(1))) // Minimum duration 1 minute
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
+		richardGoalConflictMessages[0]._links."yona:buddy"?.href == null
 		richardGoalConflictMessages[0].url == "http://www.refdag.nl"
 
 		assertMarkReadUnread(richard, richardGoalConflictMessages[0])
@@ -282,6 +286,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertEquals(bobGoalConflictMessages[0].activityStartTime, now)
 		assertEquals(bobGoalConflictMessages[0].activityEndTime, now.plus(Duration.ofMinutes(1))) // Minimum duration 1 minute
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
+		bobGoalConflictMessages[0]._links."yona:buddy"?.href == bob.buddies[0].url
 		bobGoalConflictMessages[0].url == null
 
 		cleanup:
@@ -333,7 +338,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		richardGoalConflictMessages[0].nickname == bob.nickname
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 		richardGoalConflictMessages[0].url == null
-		def dayActivityDetailUrlRichard = richardGoalConflictMessages[0]._links."yona:dayActivityDetail".href
+		// link to Bob's activity present
+		def dayActivityDetailUrlRichard = richardGoalConflictMessages[0]._links."yona:dayDetails".href
 		dayActivityDetailUrlRichard
 		def dayActivityDetailRichard = appService.getResourceWithPassword(dayActivityDetailUrlRichard, richard.password)
 		dayActivityDetailRichard.status == 200
@@ -344,10 +350,11 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		getMessagesBobResponse.status == 200
 		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		bobGoalConflictMessages.size() == 1
-		bobGoalConflictMessages[0].nickname == "<self>"
+		bobGoalConflictMessages[0].nickname == "BD (me)"
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 		bobGoalConflictMessages[0].url == "http://www.poker.com"
-		def dayActivityDetailUrlBob = bobGoalConflictMessages[0]._links."yona:dayActivityDetail".href
+		// link to own activity present
+		def dayActivityDetailUrlBob = bobGoalConflictMessages[0]._links."yona:dayDetails".href
 		dayActivityDetailUrlBob
 		def dayActivityDetailBob = appService.getResourceWithPassword(dayActivityDetailUrlBob, bob.password)
 		dayActivityDetailBob.status == 200
@@ -382,7 +389,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessages"}.size() == 0
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		richardGoalConflictMessages.size() == 1
-		richardGoalConflictMessages[0].nickname == "<self>"
+		richardGoalConflictMessages[0].nickname == "RQ (me)"
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 
 		def getMessagesBobResponse = appService.getMessages(bob)
@@ -390,7 +397,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessages"}.size() == 0
 		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		bobGoalConflictMessages.size() == 1
-		bobGoalConflictMessages[0].nickname == "<self>"
+		bobGoalConflictMessages[0].nickname == "BD (me)"
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 
 		cleanup:

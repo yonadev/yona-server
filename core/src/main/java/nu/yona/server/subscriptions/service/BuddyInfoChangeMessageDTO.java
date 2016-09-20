@@ -18,38 +18,30 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.BuddyMessageDTO;
-import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDTO;
+import nu.yona.server.messaging.service.BuddyMessageLinkedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.messaging.service.SenderInfo;
-import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
-import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
+import nu.yona.server.subscriptions.entities.BuddyInfoChangeMessage;
 
-@JsonRootName("buddyDisconnectMessage")
-public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
+@JsonRootName("buddyInfoChangeMessage")
+public class BuddyInfoChangeMessageDTO extends BuddyMessageLinkedUserDTO
 {
 	private static final String PROCESS = "process";
-	private final DropBuddyReason reason;
 	private final boolean isProcessed;
 
-	private BuddyDisconnectMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
-			String message, DropBuddyReason reason, boolean isProcessed)
+	private BuddyInfoChangeMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo, String message,
+			boolean isProcessed)
 	{
 		super(id, creationTime, isRead, senderInfo, message);
-		this.reason = reason;
 		this.isProcessed = isProcessed;
 	}
 
 	@Override
 	public String getType()
 	{
-		return "BuddyDisconnectMessage";
-	}
-
-	public DropBuddyReason getReason()
-	{
-		return reason;
+		return "BuddyInfoChangeMessage";
 	}
 
 	@JsonIgnore
@@ -75,12 +67,11 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 		return this.isProcessed;
 	}
 
-	public static BuddyDisconnectMessageDTO createInstance(UserDTO actingUser, BuddyDisconnectMessage messageEntity,
+	public static BuddyInfoChangeMessageDTO createInstance(UserDTO actingUser, BuddyInfoChangeMessage messageEntity,
 			SenderInfo senderInfo)
 	{
-		return new BuddyDisconnectMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				senderInfo, messageEntity.getMessage(), messageEntity.getReason(),
-				messageEntity.isProcessed());
+		return new BuddyInfoChangeMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getMessage(), messageEntity.isProcessed());
 	}
 
 	@Component
@@ -95,13 +86,13 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 		@PostConstruct
 		private void init()
 		{
-			theDTOFactory.addManager(BuddyDisconnectMessage.class, this);
+			theDTOFactory.addManager(BuddyInfoChangeMessage.class, this);
 		}
 
 		@Override
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return BuddyDisconnectMessageDTO.createInstance(actingUser, (BuddyDisconnectMessage) messageEntity,
+			return BuddyInfoChangeMessageDTO.createInstance(actingUser, (BuddyInfoChangeMessage) messageEntity,
 					getSenderInfo(actingUser, messageEntity));
 		}
 
@@ -112,23 +103,27 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 			switch (action)
 			{
 				case PROCESS:
-					return handleAction_Process(actingUser, (BuddyDisconnectMessage) messageEntity, requestPayload);
+					return handleAction_Process(actingUser, (BuddyInfoChangeMessage) messageEntity, requestPayload);
 				default:
 					return super.handleAction(actingUser, messageEntity, action, requestPayload);
 			}
 		}
 
-		private MessageActionDTO handleAction_Process(UserDTO actingUser, BuddyDisconnectMessage messageEntity,
+		private MessageActionDTO handleAction_Process(UserDTO actingUser, BuddyInfoChangeMessage messageEntity,
 				MessageActionDTO requestPayload)
 		{
-			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getID(), messageEntity.getSenderUserID());
+			if (messageEntity.getRelatedUserAnonymizedID().isPresent())
+			{
+				buddyService.updateBuddyUserInfo(actingUser.getID(), messageEntity.getRelatedUserAnonymizedID().get(),
+						messageEntity.getNewNickname());
+			}
 
 			messageEntity = updateMessageStatusAsProcessed(messageEntity);
 
 			return MessageActionDTO.createInstanceActionDone(theDTOFactory.createInstance(actingUser, messageEntity));
 		}
 
-		private BuddyDisconnectMessage updateMessageStatusAsProcessed(BuddyDisconnectMessage messageEntity)
+		private BuddyInfoChangeMessage updateMessageStatusAsProcessed(BuddyInfoChangeMessage messageEntity)
 		{
 			messageEntity.setProcessed();
 			return Message.getRepository().save(messageEntity);

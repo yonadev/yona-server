@@ -43,6 +43,7 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
+import nu.yona.server.subscriptions.entities.BuddyInfoChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
@@ -216,7 +217,7 @@ public class BuddyService
 		final int pageSize = 50;
 		Page<Message> messagePage;
 		boolean messageFound = false;
-		UserDTO user = UserDTO.createInstance(userEntity);
+		UserDTO user = userService.createUserDTOWithPrivateData(userEntity);
 		do
 		{
 			messagePage = messageService.getReceivedMessageEntities(user.getID(), new PageRequest(page++, pageSize));
@@ -232,7 +233,7 @@ public class BuddyService
 		Stream<BuddyConnectResponseMessage> buddyConnectResponseMessages = messagePage.getContent().stream()
 				.filter(m -> m instanceof BuddyConnectResponseMessage).map(m -> (BuddyConnectResponseMessage) m);
 		Stream<BuddyConnectResponseMessage> messagesFromBuddy = buddyConnectResponseMessages
-				.filter(m -> buddy.getUserID().equals(getUserID(m)));
+				.filter(m -> buddy.getUserID().equals(getUserID(m).orElse(null)));
 		Optional<BuddyConnectResponseMessage> messageToBeProcessed = messagesFromBuddy.filter(m -> m.isProcessed() == false)
 				.findFirst();
 		messageToBeProcessed.ifPresent(
@@ -240,10 +241,9 @@ public class BuddyService
 		return messageToBeProcessed.isPresent();
 	}
 
-	private UUID getUserID(BuddyConnectResponseMessage message)
+	private Optional<UUID> getUserID(BuddyConnectResponseMessage message)
 	{
-		User buddyUser = message.getSenderUser();
-		return (buddyUser == null) ? null : buddyUser.getID();
+		return message.getSenderUser().map(u -> u.getID());
 	}
 
 	@Transactional
@@ -512,5 +512,42 @@ public class BuddyService
 		{
 			return null;
 		}
+	}
+
+	public Optional<BuddyDTO> getBuddyOfUserByUserAnonymizedID(UUID forUserID, UUID userAnonymizedID)
+	{
+		Set<BuddyDTO> buddies = getBuddiesOfUser(forUserID);
+		for (BuddyDTO buddy : buddies)
+		{
+			if (buddy.getUserAnonymizedID().filter(id -> id.equals(userAnonymizedID)).isPresent())
+			{
+				return Optional.of(buddy);
+			}
+		}
+		return Optional.empty();
+	}
+
+	@Transactional
+	void broadcastUserInfoChangeToBuddies(User updatedUserEntity, UserDTO originalUser)
+	{
+		messageService.broadcastMessageToBuddies(UserAnonymizedDTO.createInstance(updatedUserEntity.getAnonymized()),
+				() -> BuddyInfoChangeMessage.createInstance(updatedUserEntity.getID(), updatedUserEntity.getUserAnonymizedID(),
+						originalUser.getPrivateData().getNickname(), getUserInfoChangeMessage(updatedUserEntity, originalUser),
+						updatedUserEntity.getNickname()));
+	}
+
+	private String getUserInfoChangeMessage(User updatedUserEntity, UserDTO originalUser)
+	{
+		return translator.getLocalizedMessage("message.buddy.user.info.changed");
+	}
+
+	@Transactional
+	public void updateBuddyUserInfo(UUID idOfRequestingUser, UUID relatedUserAnonymizedID, String buddyNickname)
+	{
+		User user = userService.getValidatedUserbyID(idOfRequestingUser);
+
+		Buddy buddy = user.getBuddyByUserAnonymizedID(relatedUserAnonymizedID);
+		buddy.setNickName(buddyNickname);
+		Buddy.getRepository().save(buddy);
 	}
 }

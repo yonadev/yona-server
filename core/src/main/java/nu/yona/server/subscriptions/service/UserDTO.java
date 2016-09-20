@@ -157,17 +157,13 @@ public class UserDTO
 	 * @param userEntity
 	 * @return
 	 */
-	public static UserDTO createInstanceIfNotNull(User userEntity)
+	public static Optional<UserDTO> createInstance(Optional<User> userEntity)
 	{
-		if (userEntity == null)
-		{
-			return null;
-		}
-		return createInstance(userEntity);
+		return userEntity.map(ue -> createInstance(ue));
 	}
 
 	/**
-	 * Creates a {@link UserDTO} with the public data of the user. Please use {@link #createInstanceIfNotNull(User)} if
+	 * Creates a {@link UserDTO} with the public data of the user. Please use {@link #createInstance(User)} if
 	 * {@code userEntity} may be {@code null}. Use {@link #createInstanceWithPrivateData(User)} to include private data of the
 	 * user.
 	 * 

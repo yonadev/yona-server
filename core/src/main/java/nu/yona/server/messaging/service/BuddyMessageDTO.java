@@ -7,48 +7,46 @@ package nu.yona.server.messaging.service;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.annotation.JsonRootName;
 
-import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.messaging.entities.BuddyMessage;
+import nu.yona.server.messaging.entities.Message;
 
 @JsonRootName("buddyMessage")
 public abstract class BuddyMessageDTO extends MessageDTO
 {
-	private UserDTO senderUser;
-	private final String senderNickname;
 	private final String message;
 
-	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO senderUser, String senderNickname, String message)
+	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo, String message)
 	{
-		super(id, creationTime, isRead);
-		this.senderUser = senderUser;
-		this.senderNickname = senderNickname;
+		super(id, creationTime, isRead, senderInfo);
 		this.message = message;
 	}
 
-	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UUID relatedMessageID, UserDTO senderUser, String senderNickname,
+	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID relatedMessageID,
 			String message)
 	{
-		super(id, creationTime, isRead, relatedMessageID);
-		this.senderUser = senderUser;
-		this.senderNickname = senderNickname;
+		super(id, senderInfo, creationTime, isRead, relatedMessageID);
 		this.message = message;
-	}
-
-	@JsonIgnore
-	public UserDTO getUser()
-	{
-		return senderUser;
-	}
-
-	public String getNickname()
-	{
-		return senderNickname;
 	}
 
 	public String getMessage()
 	{
 		return message;
+	}
+
+	@Component
+	public static abstract class Manager extends MessageDTO.Manager
+	{
+		@Override
+		protected SenderInfo getSenderInfoExtensionPoint(Message messageEntity)
+		{
+			// The buddy entity does not contain the user anonymized ID yet
+			BuddyMessage buddyMessageEntity = (BuddyMessage) messageEntity;
+			return createSenderInfoForDetachedBuddy(buddyMessageEntity.getSenderUser(),
+					buddyMessageEntity.getSenderNickname());
+		}
 	}
 }

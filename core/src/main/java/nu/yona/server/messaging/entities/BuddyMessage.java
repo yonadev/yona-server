@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -53,9 +54,9 @@ public abstract class BuddyMessage extends Message
 	 * 
 	 * @return The user sending this message. Might be null if that user is already deleted.
 	 */
-	public User getSenderUser()
+	public Optional<User> getSenderUser()
 	{
-		return (senderUserID == null) ? null : User.getRepository().findOne(senderUserID);
+		return (senderUserID == null) ? Optional.empty() : Optional.ofNullable(User.getRepository().findOne(senderUserID));
 	}
 
 	/**

@@ -5,6 +5,7 @@ info:
   version: 1.0.0
 schemes:
   - http
+  - https
 basePath: /
 produces:
   - application/json
@@ -2267,6 +2268,7 @@ definitions:
         - BuddyConnectRequestMessage
         - BuddyConnectResponseMessage
         - BuddyDisconnectMessage
+        - BuddyInfoChangeMessage
         - GoalConflictMessage
         - GoalChangeMessage
         - DisclosureRequestMessage
@@ -2341,6 +2343,7 @@ definitions:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/UserLink'
+          - $ref: '#/definitions/BuddyLink'
           - $ref: '#/definitions/EditLink'
           - $ref: '#/definitions/MarkReadLink'
           - $ref: '#/definitions/MarkUnreadLink'
@@ -2369,6 +2372,22 @@ definitions:
           - $ref: '#/definitions/ProcessLink'
     required:
       - dropBuddyReason
+      - _links
+  BuddyInfoChangeMessage:
+    allOf:
+      - $ref: '#/definitions/BuddyMessage'
+    properties:
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+          - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/UserLink'
+          - $ref: '#/definitions/BuddyLink'
+          - $ref: '#/definitions/MarkReadLink'
+          - $ref: '#/definitions/MarkUnreadLink'
+          - $ref: '#/definitions/ProcessLink'
+    required:
       - _links
   GoalConflictStatus:
     type: string
@@ -2416,6 +2435,7 @@ definitions:
           - $ref: '#/definitions/EditLink'
           - $ref: '#/definitions/MarkReadLink'
           - $ref: '#/definitions/MarkUnreadLink'
+          - $ref: '#/definitions/BuddyLink'
           - $ref: '#/definitions/ActivityCategoryLink'
           - $ref: '#/definitions/DayDetailsLink'
         properties:
@@ -2444,6 +2464,7 @@ definitions:
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
           - $ref: '#/definitions/ActivityCategoryLink'
+          - $ref: '#/definitions/DailyActivityReportsLink'
     required:
       - change
       - _links
@@ -2465,6 +2486,7 @@ definitions:
           - $ref: '#/definitions/RelatedLink'
           - $ref: '#/definitions/AcceptLink'
           - $ref: '#/definitions/RejectLink'
+          - $ref: '#/definitions/DayDetailsLink'
     required:
       - status
       - _links
@@ -2483,6 +2505,7 @@ definitions:
           - $ref: '#/definitions/MarkReadLink'
           - $ref: '#/definitions/MarkUnreadLink'
           - $ref: '#/definitions/RelatedLink'
+          - $ref: '#/definitions/DayDetailsLink'
     required:
       - status
       - _links

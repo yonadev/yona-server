@@ -18,13 +18,16 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.service.BuddyMessageDTO;
 import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDTO;
 import nu.yona.server.messaging.service.MessageActionDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService.TheDTOManager;
+import nu.yona.server.messaging.service.SenderInfo;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
+import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("buddyConnectRequestMessage")
 public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
@@ -32,22 +35,12 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 	private static final String ACCEPT = "accept";
 	private static final String REJECT = "reject";
 
-	private Status status;
+	private final Status status;
 
-	private BuddyConnectRequestMessageDTO(BuddyConnectRequestMessage buddyConnectRequestMessageEntity, UUID id,
-			ZonedDateTime creationTime, boolean isRead, UserDTO user, UUID userAnonymizedID, String nickname, String message, Status status)
+	private BuddyConnectRequestMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+			String message, Status status)
 	{
-		super(id, creationTime, isRead, user, nickname, message);
-
-		if (buddyConnectRequestMessageEntity == null)
-		{
-			throw BuddyServiceException.messageEntityCannotBeNull();
-		}
-
-		if (buddyConnectRequestMessageEntity.getRelatedUserAnonymizedID() == null)
-		{
-			throw BuddyServiceException.userAnonymizedIdCannotBeNull();
-		}
+		super(id, creationTime, isRead, senderInfo, message);
 
 		this.status = status;
 	}
@@ -81,15 +74,26 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 		return this.status == Status.ACCEPTED || this.status == Status.REJECTED;
 	}
 
-	public static BuddyConnectRequestMessageDTO createInstance(UserDTO actingUser, BuddyConnectRequestMessage messageEntity)
+	public static BuddyConnectRequestMessageDTO createInstance(UserDTO actingUser, BuddyConnectRequestMessage messageEntity,
+			SenderInfo senderInfo)
 	{
-		return new BuddyConnectRequestMessageDTO(messageEntity, messageEntity.getID(), messageEntity.getCreationTime(),
-				messageEntity.isRead(), UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getRelatedUserAnonymizedID(),
-				messageEntity.getSenderNickname(), messageEntity.getMessage(), messageEntity.getStatus());
+
+		if (messageEntity == null)
+		{
+			throw BuddyServiceException.messageEntityCannotBeNull();
+		}
+
+		if (!messageEntity.getRelatedUserAnonymizedID().isPresent())
+		{
+			throw BuddyServiceException.userAnonymizedIdCannotBeNull();
+		}
+
+		return new BuddyConnectRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getMessage(), messageEntity.getStatus());
 	}
 
 	@Component
-	private static class Manager extends MessageDTO.Manager
+	private static class Manager extends BuddyMessageDTO.Manager
 	{
 		private static final Logger logger = LoggerFactory.getLogger(Manager.class);
 
@@ -108,7 +112,8 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 		@Override
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return BuddyConnectRequestMessageDTO.createInstance(actingUser, (BuddyConnectRequestMessage) messageEntity);
+			return BuddyConnectRequestMessageDTO.createInstance(actingUser, (BuddyConnectRequestMessage) messageEntity,
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
@@ -131,12 +136,13 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 		private MessageActionDTO handleAction_Accept(UserDTO actingUser, BuddyConnectRequestMessage connectRequestMessageEntity,
 				MessageActionDTO payload)
 		{
-			if (connectRequestMessageEntity.getSenderUser() == null)
+			if (!connectRequestMessageEntity.getSenderUser().isPresent())
 			{
 				throw UserServiceException.notFoundByID(connectRequestMessageEntity.getSenderUserID());
 			}
-			buddyService.addBuddyToAcceptingUser(actingUser, connectRequestMessageEntity.getSenderUser().getID(),
-					connectRequestMessageEntity.getSenderNickname(), connectRequestMessageEntity.getRelatedUserAnonymizedID(),
+			User senderUser = connectRequestMessageEntity.getSenderUser().get();
+			buddyService.addBuddyToAcceptingUser(actingUser, senderUser.getID(), connectRequestMessageEntity.getSenderNickname(),
+					connectRequestMessageEntity.getRelatedUserAnonymizedID().get(),
 					connectRequestMessageEntity.requestingSending(), connectRequestMessageEntity.requestingReceiving());
 
 			connectRequestMessageEntity = updateMessageStatusAsAccepted(connectRequestMessageEntity);
@@ -145,9 +151,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 
 			logger.info(
 					"User with mobile number '{}' and ID '{}' accepted buddy connect request from user with mobile number '{}' and ID '{}'",
-					actingUser.getMobileNumber(), actingUser.getID(),
-					connectRequestMessageEntity.getSenderUser().getMobileNumber(),
-					connectRequestMessageEntity.getSenderUser().getID());
+					actingUser.getMobileNumber(), actingUser.getID(), senderUser.getMobileNumber(), senderUser.getID());
 
 			return MessageActionDTO
 					.createInstanceActionDone(theDTOFactory.createInstance(actingUser, connectRequestMessageEntity));
@@ -160,10 +164,9 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 
 			sendResponseMessageToRequestingUser(actingUser, connectRequestMessageEntity, payload.getProperty("message"));
 
-			String mobileNumber = (connectRequestMessageEntity.getSenderUser() == null) ? "already deleted"
-					: connectRequestMessageEntity.getSenderUser().getMobileNumber();
-			String id = (connectRequestMessageEntity.getSenderUser() == null) ? "already deleted"
-					: connectRequestMessageEntity.getSenderUser().getID().toString();
+			String mobileNumber = connectRequestMessageEntity.getSenderUser().map(u -> u.getMobileNumber())
+					.orElse("already deleted");
+			String id = connectRequestMessageEntity.getSenderUser().map(u -> u.getID().toString()).orElse("already deleted");
 			logger.info(
 					"User with mobile number '{}' and ID '{}' rejected buddy connect request from user with mobile number '{}' and ID '{}'",
 					actingUser.getMobileNumber(), actingUser.getID(), mobileNumber, id);
@@ -189,7 +192,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 		{
 			buddyService.sendBuddyConnectResponseMessage(respondingUser.getID(),
 					respondingUser.getPrivateData().getUserAnonymizedID(), respondingUser.getPrivateData().getNickname(),
-					connectRequestMessageEntity.getRelatedUserAnonymizedID(), connectRequestMessageEntity.getBuddyID(),
+					connectRequestMessageEntity.getRelatedUserAnonymizedID().get(), connectRequestMessageEntity.getBuddyID(),
 					connectRequestMessageEntity.getStatus(), responseMessage);
 		}
 	}

@@ -165,6 +165,12 @@ public class ActivityService
 	{
 		UUID userAnonymizedID = userService.getUserAnonymizedID(userID);
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
+
+		if (!userAnonymized.hasAnyBuddies())
+		{
+			return new PageImpl<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>>(Collections.emptyList(), pageable, 0);
+		}
+
 		Interval interval = getInterval(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
 
 		Set<BuddyDTO> buddies = buddyService.getBuddiesOfUserThatAcceptedSending(userID);
@@ -524,7 +530,7 @@ public class ActivityService
 	@Transactional
 	public MessageDTO replyToMessage(UserDTO sendingUser, ActivityCommentMessage repliedMessage, String message)
 	{
-		UUID targetUserAnonymizedID = repliedMessage.getRelatedUserAnonymizedID();
+		UUID targetUserAnonymizedID = repliedMessage.getRelatedUserAnonymizedID().get();
 		return sendMessagePair(sendingUser, targetUserAnonymizedID, repliedMessage.getActivityID(), Optional.of(repliedMessage),
 				Optional.of(repliedMessage.getSenderCopyMessage()), message);
 	}

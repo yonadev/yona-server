@@ -13,21 +13,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import nu.yona.server.subscriptions.service.UserDTO;
-
 public abstract class BuddyMessageEmbeddedUserDTO extends BuddyMessageDTO
 {
 	private Map<String, Object> embeddedResources = Collections.emptyMap();
 
-	protected BuddyMessageEmbeddedUserDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO senderUser, String senderNickname, String message)
+	protected BuddyMessageEmbeddedUserDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+			String message)
 	{
-		super(id, creationTime, isRead, senderUser, senderNickname, message);
-	}
-
-	protected BuddyMessageEmbeddedUserDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UUID targetGoalConflictMessageOriginID,
-			UserDTO user, String nickname, String message)
-	{
-		super(id, creationTime, isRead, user, nickname, message);
+		super(id, creationTime, isRead, senderInfo, message);
 	}
 
 	@JsonProperty("_embedded")

@@ -321,6 +321,7 @@ class AppService extends Service
 		def message = buddyConnectResponseMessages[0]?.message ?: null
 		def status = buddyConnectResponseMessages[0]?.status ?: null
 		def processURL = buddyConnectResponseMessages[0]?._links?."yona:process"?.href
+		def buddyURL = buddyConnectResponseMessages[0]?._links?."yona:buddy"?.href
 		def result = [ : ]
 		if (selfURL)
 		{
@@ -337,6 +338,10 @@ class AppService extends Service
 		if (processURL)
 		{
 			result.processURL = processURL
+		}
+		if (buddyURL)
+		{
+			result.buddyURL = buddyURL
 		}
 
 		return result
@@ -408,6 +413,49 @@ class AppService extends Service
 	def getDayActivityOverviews(User user, Buddy buddy, parameters = [:])
 	{
 		yonaServer.getResourceWithPassword(buddy.dailyActivityReportsUrl, user.password, parameters)
+	}
+
+	def getDayActivityDetails(User user, Goal goal, int weeksBack, String shortDay)
+	{
+		def responseDayOverviewsAll = getDayActivityOverviews(user, ["size": (weeksBack+1)*7])
+		assert responseDayOverviewsAll.status == 200
+		getDayDetailsFromOverview(responseDayOverviewsAll, user, goal, weeksBack, shortDay)
+	}
+
+	def getDayActivityDetails(User user, Buddy buddy, Goal goal, int weeksBack, String shortDay)
+	{
+		def responseDayOverviewsAll = getDayActivityOverviews(user, buddy, ["size": (weeksBack+1)*7])
+		assert responseDayOverviewsAll.status == 200
+		getDayDetailsFromOverview(responseDayOverviewsAll, user, goal, weeksBack, shortDay)
+	}
+
+	def getDayDetailsFromOverview(responseDayOverviewsAll, User user, Goal goal, int weeksBack, String shortDay) {
+		def dayOffset = YonaServer.relativeDateStringToDaysOffset(weeksBack, shortDay)
+		def dayActivityOverview = responseDayOverviewsAll.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
+		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
+		return getDayDetailsForDayFromOverviewItem(user, dayActivityForGoal)
+	}
+
+	def getWeekDetailsFromOverview(responseWeekOverviewsAll, User user, Goal goal, int weeksBack) {
+		def weekActivityOverview = responseWeekOverviewsAll.responseData._embedded."yona:weekActivityOverviews"[weeksBack]
+		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goal.url}
+		return getWeekDetailsForWeekFromOverviewItem(user, weekActivityForGoal)
+	}
+
+	def getDayDetailsForDayFromOverviewItem(User user, dayActivityForGoal) {
+		assert dayActivityForGoal?._links?."yona:dayDetails"?.href
+		def dayActivityDetailUrl =  dayActivityForGoal?._links?."yona:dayDetails"?.href
+		def response = getResourceWithPassword(dayActivityDetailUrl, user.password)
+		assert response.status == 200
+		return response
+	}
+
+	def getWeekDetailsForWeekFromOverviewItem(User user, weekActivityForGoal) {
+		assert weekActivityForGoal?._links?."yona:weekDetails"?.href
+		def weekActivityDetailUrl =  weekActivityForGoal?._links?."yona:weekDetails"?.href
+		def response = getResourceWithPassword(weekActivityDetailUrl, user.password)
+		assert response.status == 200
+		return response
 	}
 
 	def getDayActivityOverviewsWithBuddies(User user, parameters = [:])

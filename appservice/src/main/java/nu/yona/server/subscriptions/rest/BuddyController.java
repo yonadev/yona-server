@@ -58,6 +58,8 @@ import nu.yona.server.subscriptions.service.UserService;
 @RequestMapping(value = "/users/{requestingUserID}/buddies", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class BuddyController
 {
+	public static final String BUDDY_LINK = "buddy";
+
 	@Autowired
 	private BuddyService buddyService;
 
@@ -324,14 +326,14 @@ public class BuddyController
 		{
 			buddyResource.add(BuddyActivityController
 					.getBuddyWeekActivityOverviewsLinkBuilder(requestingUserID, buddyResource.getContent().getID())
-					.withRel("weeklyActivityReports"));
+					.withRel(BuddyActivityController.WEEK_OVERVIEW_LINK));
 		}
 
 		private void addDayActivityOverviewsLink(BuddyResource buddyResource)
 		{
 			buddyResource.add(BuddyActivityController
 					.getBuddyDayActivityOverviewsLinkBuilder(requestingUserID, buddyResource.getContent().getID())
-					.withRel("dailyActivityReports"));
+					.withRel(BuddyActivityController.DAY_OVERVIEW_LINK));
 		}
 	}
 }

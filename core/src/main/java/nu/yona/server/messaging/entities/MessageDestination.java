@@ -7,6 +7,7 @@ package nu.yona.server.messaging.entities;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.persistence.CascadeType;
@@ -78,9 +79,10 @@ public class MessageDestination extends EntityWithID
 
 	public Page<Message> getReceivedMessages(Pageable pageable, boolean onlyUnreadMessages)
 	{
-		if (onlyUnreadMessages) {
+		if (onlyUnreadMessages)
+		{
 			return Message.getRepository().findUnreadReceivedMessagesFromDestination(this.getID(), pageable);
-			
+
 		}
 		return Message.getRepository().findReceivedMessagesFromDestination(this.getID(), pageable);
 	}
@@ -96,7 +98,8 @@ public class MessageDestination extends EntityWithID
 
 	public void removeMessagesFromUser(UUID sentByUserAnonymizedID)
 	{
-		messages.removeIf(message -> sentByUserAnonymizedID.equals(message.getRelatedUserAnonymizedID()));
+		Optional<UUID> sentByUserAnonymizedIDInOptional = Optional.of(sentByUserAnonymizedID);
+		messages.removeIf(message -> sentByUserAnonymizedIDInOptional.equals(message.getRelatedUserAnonymizedID()));
 	}
 
 	public Page<Message> getActivityRelatedMessages(UUID activityID, Pageable pageable)

@@ -47,6 +47,11 @@ import nu.yona.server.subscriptions.service.UserService;
  */
 abstract class ActivityControllerBase
 {
+	public static final String DAY_DETAIL_LINK = "dayDetails";
+	public static final String WEEK_DETAIL_LINK = "weekDetails";
+	public static final String DAY_OVERVIEW_LINK = "dailyActivityReports";
+	public static final String WEEK_OVERVIEW_LINK = "weeklyActivityReports";
+
 	@Autowired
 	protected ActivityService activityService;
 
@@ -141,7 +146,7 @@ abstract class ActivityControllerBase
 		{
 			addDayDetailsLink(linkProvider, activity, message);
 		}
-		if (!message.getUser().getID().equals(goalIDMapping.getUserID()))
+		if (!message.getSenderUser().get().getID().equals(goalIDMapping.getUserID()))
 		{
 			UUID buddyID = determineBuddyID(goalIDMapping, message);
 			addBuddyLink(goalIDMapping.getUserID(), buddyID, message);
@@ -153,22 +158,23 @@ abstract class ActivityControllerBase
 	private UUID determineBuddyID(GoalIDMapping goalIDMapping, ActivityCommentMessageDTO message)
 	{
 		return goalIDMapping.getUser().getPrivateData().getBuddies().stream()
-				.filter(b -> b.getUser().getID().equals(message.getUser().getID())).map(b -> b.getID()).findAny()
-				.orElseThrow(() -> new IllegalArgumentException("User with ID " + message.getUser().getID() + "is not a buddy"));
+				.filter(b -> b.getUser().getID().equals(message.getSenderUser().get().getID())).map(b -> b.getID()).findAny()
+				.orElseThrow(
+						() -> new IllegalArgumentException("User with ID " + message.getSenderUser().get().getID() + "is not a buddy"));
 	}
 
 	private void addWeekDetailsLink(LinkProvider linkProvider, IntervalActivity activity, ActivityCommentMessageDTO message)
 	{
 		message.add(linkProvider
 				.getWeekActivityDetailLinkBuilder(WeekActivityDTO.formatDate(activity.getDate()), activity.getGoal().getID())
-				.withRel("weekDetails"));
+				.withRel(WEEK_DETAIL_LINK));
 	}
 
 	private void addDayDetailsLink(LinkProvider linkProvider, IntervalActivity activity, ActivityCommentMessageDTO message)
 	{
 		message.add(linkProvider
 				.getDayActivityDetailLinkBuilder(DayActivityDTO.formatDate(activity.getDate()), activity.getGoal().getID())
-				.withRel("dayDetails"));
+				.withRel(DAY_DETAIL_LINK));
 	}
 
 	private void addThreadHeadMessageLink(UUID userID, ActivityCommentMessageDTO message)
@@ -185,7 +191,7 @@ abstract class ActivityControllerBase
 
 	private void addBuddyLink(UUID userID, UUID buddyID, ActivityCommentMessageDTO message)
 	{
-		message.add(BuddyController.getBuddyLinkBuilder(userID, buddyID).withRel("buddy"));
+		message.add(BuddyController.getBuddyLinkBuilder(userID, buddyID).withRel(BuddyController.BUDDY_LINK));
 	}
 
 	interface LinkProvider

@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Set;
 import java.util.UUID;
@@ -13,6 +14,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
@@ -30,12 +32,17 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 	private static final String ACCEPT = "accept";
 	private static final String REJECT = "reject";
 
+	private final UUID targetGoalConflictGoalID;
+	private final LocalDate targetGoalConflictDate;
 	private final Status status;
 
-	private DisclosureRequestMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UserDTO user, String nickname,
-			String message, Status status, UUID targetGoalConflictMessageID)
+	private DisclosureRequestMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+			String message, Status status, UUID targetGoalConflictMessageID, UUID targetGoalConflictGoalID,
+			LocalDate targetGoalConflictDate)
 	{
-		super(id, creationTime, isRead, targetGoalConflictMessageID, user, nickname, message);
+		super(id, creationTime, isRead, targetGoalConflictMessageID, senderInfo, message);
+		this.targetGoalConflictGoalID = targetGoalConflictGoalID;
+		this.targetGoalConflictDate = targetGoalConflictDate;
 		this.status = status;
 	}
 
@@ -57,6 +64,18 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 		return possibleActions;
 	}
 
+	@JsonIgnore
+	public UUID getTargetGoalConflictGoalID()
+	{
+		return targetGoalConflictGoalID;
+	}
+
+	@JsonIgnore
+	public LocalDate getTargetGoalConflictDate()
+	{
+		return targetGoalConflictDate;
+	}
+
 	public Status getStatus()
 	{
 		return status;
@@ -68,17 +87,18 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 		return this.status == Status.DISCLOSURE_ACCEPTED || this.status == Status.DISCLOSURE_REJECTED;
 	}
 
-	public static DisclosureRequestMessageDTO createInstance(UserDTO actingUser, DisclosureRequestMessage messageEntity)
+	public static DisclosureRequestMessageDTO createInstance(UserDTO actingUser, DisclosureRequestMessage messageEntity,
+			SenderInfo senderInfo)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
 		return new DisclosureRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				UserDTO.createInstanceIfNotNull(messageEntity.getSenderUser()), messageEntity.getSenderNickname(),
-				messageEntity.getMessage(), messageEntity.getStatus(),
-				targetGoalConflictMessage.getOriginGoalConflictMessageID());
+				senderInfo, messageEntity.getMessage(), messageEntity.getStatus(),
+				targetGoalConflictMessage.getOriginGoalConflictMessageID(), targetGoalConflictMessage.getGoal().getID(),
+				targetGoalConflictMessage.getActivity().getStartTime().toLocalDate());
 	}
 
 	@Component
-	private static class Manager extends MessageDTO.Manager
+	private static class Manager extends BuddyMessageDTO.Manager
 	{
 		@Autowired
 		private TheDTOManager theDTOFactory;
@@ -98,7 +118,8 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 		@Override
 		public MessageDTO createInstance(UserDTO actingUser, Message messageEntity)
 		{
-			return DisclosureRequestMessageDTO.createInstance(actingUser, (DisclosureRequestMessage) messageEntity);
+			return DisclosureRequestMessageDTO.createInstance(actingUser, (DisclosureRequestMessage) messageEntity,
+					getSenderInfo(actingUser, messageEntity));
 		}
 
 		@Override
@@ -156,7 +177,7 @@ public class DisclosureRequestMessageDTO extends BuddyMessageLinkedUserDTO
 				String message)
 		{
 			MessageDestinationDTO messageDestination = userAnonymizedService
-					.getUserAnonymized(requestMessageEntity.getRelatedUserAnonymizedID()).getAnonymousDestination();
+					.getUserAnonymized(requestMessageEntity.getRelatedUserAnonymizedID().get()).getAnonymousDestination();
 			assert messageDestination != null;
 			messageService.sendMessage(DisclosureResponseMessage.createInstance(respondingUser.getID(),
 					respondingUser.getPrivateData().getUserAnonymizedID(), requestMessageEntity.getTargetGoalConflictMessageID(),

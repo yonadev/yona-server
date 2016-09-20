@@ -59,32 +59,50 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	@Shared
 	private def fullDay = [ Sun: "SUNDAY", Mon : "MONDAY", Tue : "TUESDAY", Wed : "WEDNESDAY", Thu : "THURSDAY", Fri: "FRIDAY", Sat: "SATURDAY" ]
 
-	User addRichard()
+	User addRichard(boolean reload = true)
 	{
 		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
 				"+$timestamp")
 		richard = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, richard)
 		def response = appService.addGoal(richard, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assert response.status == 201
-		return appService.reloadUser(richard)
+		return reload ? appService.reloadUser(richard) : richard
 	}
 
-	User addBob()
+	User addBob(boolean reload = true)
 	{
 		def bob = appService.addUser(appService.&assertUserCreationResponseDetails, "B o b", "Bob", "Dunn", "BD",
 				"+$timestamp")
 		bob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bob)
 		def response = appService.addGoal(bob, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assert response.status == 201
-		return appService.reloadUser(bob)
+		return reload? appService.reloadUser(bob) : bob
+	}
+
+	User addBea(boolean reload = true)
+	{
+		def bea = appService.addUser(appService.&assertUserCreationResponseDetails, "B e a", "Bea", "Dundee", "BDD",
+				"+$timestamp")
+		bea = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bea)
+		return reload? appService.reloadUser(bea) : bea
 	}
 
 	def addRichardAndBobAsBuddies()
 	{
-		def richard = addRichard()
-		def bob = addBob()
+		def richard = addRichard(false)
+		def bob = addBob(false)
 		appService.makeBuddies(richard, bob)
-		return ["richard" : richard, "bob" : bob]
+		return ["richard" : appService.reloadUser(richard), "bob" : appService.reloadUser(bob)]
+	}
+
+	def addRichardWithBobAndBeaAsBuddies()
+	{
+		def richard = addRichard(false)
+		def bob = addBob(false)
+		def bea = addBea(false)
+		appService.makeBuddies(richard, bob)
+		appService.makeBuddies(richard, bea)
+		return ["richard" : appService.reloadUser(richard), "bob" : appService.reloadUser(bob), "bea" : appService.reloadUser(bea)]
 	}
 
 	private static String createBaseTimestamp()
@@ -416,7 +434,14 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	void assertDayOverviewWithBuddiesBasics(response, expectedSize, expectedTotalElements, expectedPageSize = 3)
 	{
 		assert response.status == 200
-		assert response.responseData._embedded?."yona:dayActivityOverviews"?.size() == expectedSize
+		if(expectedSize == 0)
+		{
+			assert response.responseData._embedded?."yona:dayActivityOverviews" == null
+		}
+		else
+		{
+			assert response.responseData._embedded?."yona:dayActivityOverviews"?.size() == expectedSize
+		}
 		assert response.responseData.page
 		assert response.responseData.page.size == expectedPageSize
 		assert response.responseData.page.totalElements == expectedTotalElements

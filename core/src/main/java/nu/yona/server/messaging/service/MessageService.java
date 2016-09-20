@@ -60,6 +60,7 @@ public class MessageService
 		return messageSource.getReceivedMessages(pageable, onlyUnreadMessages);
 	}
 
+	@Transactional
 	public MessageDTO getMessage(UUID userID, UUID messageID)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
@@ -68,6 +69,7 @@ public class MessageService
 		return dtoManager.createInstance(user, messageSource.getMessage(messageID));
 	}
 
+	@Transactional
 	public MessageActionDTO handleMessageAction(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);

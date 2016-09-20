@@ -24,6 +24,24 @@ import nu.yona.server.test.User
 
 class ActivityTest extends AbstractAppServiceIntegrationTest
 {
+	def 'Retrieve activity with buddies when no buddies gives empty'()
+	{
+		given:
+		def richard = addRichard()
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
+
+		when:
+		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(richard)
+
+		then:
+		//zero results if user has no buddies
+		assertDayOverviewWithBuddiesBasics(responseDayOverviewsWithBuddies, 0, 0)
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def 'Retrieve activity reports without activity'()
 	{
 		given:
@@ -255,6 +273,47 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
+	}
+
+	def 'Activity before goal creation should be ignored'()
+	{
+		given:
+		def richard = addRichard()
+
+		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-2 Fri 09:00") // Should be ignored, as there was no goal yet
+		TimeZoneGoal timeZoneGoalMultimediaBobBeforeUpdate = addTimeZoneGoal(richard, MULTIMEDIA_ACT_CAT_URL, ["20:00-22:00"], "W-1 Fri 14:00")
+		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-1 Fri 15:00")
+		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-1 Fri 21:00")
+
+		richard = appService.reloadUser(richard)
+		TimeZoneGoal timeZoneGoalMultimediaRichard = richard.findActiveGoal(MULTIMEDIA_ACT_CAT_URL)
+		def expectedValuesRichardLastWeek = [
+			"Fri" : [[goal:timeZoneGoalMultimediaRichard, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60 : 1, 84 : 1]]]],
+			"Sat" : [[goal:timeZoneGoalMultimediaRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+
+		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
+		def expectedTotalDays = 2 + currentDayOfWeek + 1
+		def expectedTotalWeeks = 2
+
+		when:
+		def responseWeekOverviews = appService.getWeekActivityOverviews(richard, ["size": expectedTotalWeeks])
+		def responseDayOverviewsAll = appService.getDayActivityOverviews(richard, ["size": 14])
+
+		then:
+		assertWeekOverviewBasics(responseWeekOverviews, [3, 1], expectedTotalWeeks, expectedTotalWeeks)
+		assertWeekDateForCurrentWeek(responseWeekOverviews)
+
+		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, timeZoneGoalMultimediaRichard, 2)
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalMultimediaRichard, expectedValuesRichardLastWeek, "Fri")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalMultimediaRichard, expectedValuesRichardLastWeek, "Sat")
+
+		assertDayOverviewBasics(responseDayOverviewsAll, expectedTotalDays, expectedTotalDays, 14)
+		assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, timeZoneGoalMultimediaRichard, expectedValuesRichardLastWeek, 1, "Fri")
+		assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, timeZoneGoalMultimediaRichard, expectedValuesRichardLastWeek, 1, "Sat")
+
+		cleanup:
+		appService.deleteUser(richard)
 	}
 
 	def 'Add activity after retrieving the report'()
@@ -888,7 +947,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertCommentingWorks(richard, bob, false, {user -> appService.getDayActivityOverviews(user, ["size": 14])},
 		{user -> appService.getDayActivityOverviews(user, user.buddies[0], ["size": 14])},
-		{responseOverviews, user, goal -> getDayDetails(responseOverviews, user, goal, 1, "Tue")})
+		{responseOverviews, user, goal -> appService.getDayDetailsFromOverview(responseOverviews, user, goal, 1, "Tue")})
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -911,11 +970,104 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertCommentingWorks(richard, bob, true, {user -> appService.getWeekActivityOverviews(user, ["size": 14])},
 		{user -> appService.getWeekActivityOverviews(user, user.buddies[0], ["size": 14])},
-		{responseOverviews, user, goal -> getWeekDetails(responseOverviews, user, goal, 1)})
+		{responseOverviews, user, goal -> appService.getWeekDetailsFromOverview(responseOverviews, user, goal, 1)})
 
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
+	}
+
+	def 'Comments of buddies of buddy are not visible'()
+	{
+		given:
+		def richardBobAndBea = addRichardWithBobAndBeaAsBuddies()
+		User richard = richardBobAndBea.richard
+		User bob = richardBobAndBea.bob
+		User bea = richardBobAndBea.bea
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
+		bea = appService.reloadUser(bea)
+		Goal richardGoal = richard.findActiveGoal(NEWS_ACT_CAT_URL)
+		Goal bobGoalBuddyRichard = bob.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
+		Goal beaGoalBuddyRichard = bea.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
+		def bobResponseDetailsRichardAsBuddy = appService.getDayActivityDetails(bob, bob.buddies[0], bobGoalBuddyRichard, 1, "Tue")
+		def beaResponseDetailsRichardAsBuddy = appService.getDayActivityDetails(bea, bea.buddies[0], beaGoalBuddyRichard, 1, "Tue")
+		def richardResponseDetails = appService.getDayActivityDetails(richard, richardGoal, 1, "Tue")
+
+		when:
+		def messageBob1 = appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
+		def messageBea1 = appService.yonaServer.createResourceWithPassword(beaResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi Richard! Everything alright?"}""", bea.password)
+
+		def richardMessages = getActivityDetailMessages(richardResponseDetails, richard, 2).responseData._embedded."yona:messages"
+		def messageBob1AsSeenByRichard = richardMessages[0]
+		assert messageBob1AsSeenByRichard.nickname == "BD"
+		def messageBea1AsSeenByRichard = richardMessages[1]
+		assert messageBea1AsSeenByRichard.nickname == "BDD"
+		def messageRichardReplyToBob = appService.postMessageActionWithPassword(messageBob1AsSeenByRichard._links."yona:reply".href, ["message" : "Hi Bob! Doing fine!"], richard.password)
+
+		def bobMessagesRichard = getActivityDetailMessages(bobResponseDetailsRichardAsBuddy, bob, 2).responseData._embedded."yona:messages"
+		def beaMessagesRichard = getActivityDetailMessages(beaResponseDetailsRichardAsBuddy, bea, 1).responseData._embedded."yona:messages"
+
+		then:
+		bobMessagesRichard[0].nickname == "BD (me)"
+		bobMessagesRichard[1].nickname == "RQ"
+
+		beaMessagesRichard[0].nickname == "BDD (me)"
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+		appService.deleteUser(bea)
+	}
+
+	def 'Comments are returned in thread order'()
+	{
+		given:
+		def richardBobAndBea = addRichardWithBobAndBeaAsBuddies()
+		User richard = richardBobAndBea.richard
+		User bob = richardBobAndBea.bob
+		User bea = richardBobAndBea.bea
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
+		bea = appService.reloadUser(bea)
+		Goal richardGoal = richard.findActiveGoal(NEWS_ACT_CAT_URL)
+		Goal bobGoalBuddyRichard = bob.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
+		Goal beaGoalBuddyRichard = bea.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
+		def bobResponseDetailsRichardAsBuddy = appService.getDayActivityDetails(bob, bob.buddies[0], bobGoalBuddyRichard, 1, "Tue")
+		def beaResponseDetailsRichardAsBuddy = appService.getDayActivityDetails(bea, bea.buddies[0], beaGoalBuddyRichard, 1, "Tue")
+		def richardResponseDetails = appService.getDayActivityDetails(richard, richardGoal, 1, "Tue")
+
+		when:
+		def messageBob1 = appService.yonaServer.createResourceWithPassword(bobResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi buddy! How ya doing?"}""", bob.password)
+		def messageBea1 = appService.yonaServer.createResourceWithPassword(beaResponseDetailsRichardAsBuddy.responseData._links."yona:addComment".href, """{"message": "Hi Richard! Everything alright?"}""", bea.password)
+
+		def richardMessages = getActivityDetailMessages(richardResponseDetails, richard, 2).responseData._embedded."yona:messages"
+		def messageBob1AsSeenByRichard = richardMessages[0]
+		assert messageBob1AsSeenByRichard.nickname == "BD"
+		def messageBea1AsSeenByRichard = richardMessages[1]
+		assert messageBea1AsSeenByRichard.nickname == "BDD"
+		def messageRichardReplyToBea = appService.postMessageActionWithPassword(messageBea1AsSeenByRichard._links."yona:reply".href, ["message" : "Hi Bea! I'm alright!"], richard.password)
+		def messageRichardReplyToBob = appService.postMessageActionWithPassword(messageBob1AsSeenByRichard._links."yona:reply".href, ["message" : "Hi Bob! Doing fine!"], richard.password)
+
+		def bobMessagesRichard = getActivityDetailMessages(bobResponseDetailsRichardAsBuddy, bob, 2).responseData._embedded."yona:messages"
+		def beaMessagesRichard = getActivityDetailMessages(beaResponseDetailsRichardAsBuddy, bea, 2).responseData._embedded."yona:messages"
+		def messageBobReplyToRichardAgain = appService.postMessageActionWithPassword(bobMessagesRichard[1]._links."yona:reply".href, ["message" : "Great buddy!"], bob.password)
+
+		def richardMessagesRevisited = getActivityDetailMessages(richardResponseDetails, richard, 5, 10).responseData._embedded."yona:messages"
+
+		then:
+		richardMessagesRevisited[0].nickname == "BD"
+		richardMessagesRevisited[1].nickname == "RQ (me)"
+		richardMessagesRevisited[2].nickname == "BD"
+		richardMessagesRevisited[3].nickname == "BDD"
+		richardMessagesRevisited[4].nickname == "RQ (me)"
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+		appService.deleteUser(bea)
 	}
 
 	def 'Richard retrieves buddy activity info before Bob accepted Richard\'s buddy request'()
@@ -1131,20 +1283,19 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assertCommentMessageDetails(replyMessage, senderUser, isWeek, senderUser, responseGetActivityDetails.responseData._links.self.href, messageToSend, threadHeadMessage, messageToReply)
 	}
 
-	private getActivityDetailMessages(responseGetActivityDetails, User user, int expectedNumMessages) {
-		int defaultPageSize = 4
-		int expectedNumMessagesInPage = Math.min(expectedNumMessages, defaultPageSize)
-		def response = appService.yonaServer.getResourceWithPassword(responseGetActivityDetails.responseData._links."yona:messages".href, user.password)
+	private getActivityDetailMessages(responseGetActivityDetails, User user, int expectedNumMessages, int pageSize = 4) {
+		int expectedNumMessagesInPage = Math.min(expectedNumMessages, pageSize)
+		def response = appService.yonaServer.getResourceWithPassword(responseGetActivityDetails.responseData._links."yona:messages".href, user.password, ["size":pageSize])
 
 		assert response.status == 200
 		assert response.responseData?._embedded?."yona:messages"?.size() == expectedNumMessagesInPage
-		assert response.responseData.page.size == defaultPageSize
+		assert response.responseData.page.size == pageSize
 		assert response.responseData.page.totalElements == expectedNumMessages
-		assert response.responseData.page.totalPages == Math.ceil(expectedNumMessages / defaultPageSize)
+		assert response.responseData.page.totalPages == Math.ceil(expectedNumMessages / pageSize)
 		assert response.responseData.page.number == 0
 
 		assert response.responseData._links?.prev?.href == null
-		if (expectedNumMessages > defaultPageSize)
+		if (expectedNumMessages > pageSize)
 		{
 			assert response.responseData._links?.next?.href
 		}
@@ -1170,7 +1321,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	private void assertCommentMessageDetails(message, User user, boolean isWeek, sender, expectedDetailsUrl, expectedText, threadHeadMessage, repliedMessage = null) {
 		assert message."@type" == "ActivityCommentMessage"
 		assert message.message == expectedText
-		assert message.nickname == sender.nickname
+		assert message.nickname == ((user.url == sender.url) ? (sender.nickname + " (me)") : sender.nickname)
 
 		assert message._links?.self?.href?.startsWith(YonaServer.stripQueryString(user.messagesUrl))
 		assert message._links?.edit?.href == message._links.self.href
@@ -1198,44 +1349,15 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 	private void assertWeekDetailPrevNextLinks(User user, weekActivityForGoal, expectedPrevWeekForGoal, expectedNextWeekForGoal)
 	{
-		def weekDetails = getWeekDetailsForWeek(user, weekActivityForGoal)
+		def weekDetails = appService.getWeekDetailsForWeekFromOverviewItem(user, weekActivityForGoal)
 		assert weekDetails?.responseData?._links?."prev"?.href == expectedPrevWeekForGoal?._links?."yona:weekDetails"?.href
 		assert weekDetails?.responseData?._links?."next"?.href == expectedNextWeekForGoal?._links?."yona:weekDetails"?.href
 	}
 
 	private void assertDayDetailPrevNextLinks(User user, dayActivityForGoal, expectedPrevDayForGoal, expectedNextDayForGoal)
 	{
-		def dayDetails = getDayDetailsForDay(user, dayActivityForGoal)
+		def dayDetails = appService.getDayDetailsForDayFromOverviewItem(user, dayActivityForGoal)
 		assert dayDetails?.responseData?._links?."prev"?.href == expectedPrevDayForGoal?._links?."yona:dayDetails"?.href
 		assert dayDetails?.responseData?._links?."next"?.href == expectedNextDayForGoal?._links?."yona:dayDetails"?.href
-	}
-
-	private getDayDetails(responseDayOverviewsAll, User user, Goal goal, int weeksBack, String shortDay) {
-		def dayOffset = YonaServer.relativeDateStringToDaysOffset(weeksBack, shortDay)
-		def dayActivityOverview = responseDayOverviewsAll.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
-		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
-		return getDayDetailsForDay(user, dayActivityForGoal)
-	}
-
-	private getDayDetailsForDay(User user, dayActivityForGoal) {
-		assert dayActivityForGoal?._links?."yona:dayDetails"?.href
-		def dayActivityDetailUrl =  dayActivityForGoal?._links?."yona:dayDetails"?.href
-		def response = appService.getResourceWithPassword(dayActivityDetailUrl, user.password)
-		assert response.status == 200
-		return response
-	}
-
-	private getWeekDetails(responseWeekOverviewsAll, User user, Goal goal, int weeksBack) {
-		def weekActivityOverview = responseWeekOverviewsAll.responseData._embedded."yona:weekActivityOverviews"[weeksBack]
-		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goal.url}
-		return getWeekDetailsForWeek(user, weekActivityForGoal)
-	}
-
-	private getWeekDetailsForWeek(User user, weekActivityForGoal) {
-		assert weekActivityForGoal?._links?."yona:weekDetails"?.href
-		def weekActivityDetailUrl =  weekActivityForGoal?._links?."yona:weekDetails"?.href
-		def response = appService.getResourceWithPassword(weekActivityDetailUrl, user.password)
-		assert response.status == 200
-		return response
 	}
 }

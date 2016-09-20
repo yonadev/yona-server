@@ -263,7 +263,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		getMessagesRichardResponse.status == 200
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		richardGoalConflictMessages.size() == 1
-		richardGoalConflictMessages[0].nickname == "<self>"
+		richardGoalConflictMessages[0].nickname == "RQ (me)"
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		richardGoalConflictMessages[0].url == "http://www.refdag.nl"
 
@@ -458,7 +458,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		getMessagesRichardResponse.status == 200
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		richardGoalConflictMessages.size() == 1
-		richardGoalConflictMessages[0].nickname == "<self>"
+		richardGoalConflictMessages[0].nickname == "RQ (me)"
 		richardGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		richardGoalConflictMessages[0].url == "http://www.refdag.nl"
 
