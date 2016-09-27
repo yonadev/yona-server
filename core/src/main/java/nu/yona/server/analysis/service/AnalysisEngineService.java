@@ -411,7 +411,7 @@ public class AnalysisEngineService
 
 		public static DayActivityCacheResult following()
 		{
-			return new DayActivityCacheResult(null, DayActivityCacheResultStatus.FROM_CACHE);
+			return new DayActivityCacheResult(null, DayActivityCacheResultStatus.FOLLOWING_LAST_CACHED);
 		}
 
 		public static DayActivityCacheResult preceding(DayActivity resultFromDatabase)
