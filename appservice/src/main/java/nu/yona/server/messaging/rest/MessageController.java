@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -71,6 +73,8 @@ import nu.yona.server.subscriptions.service.UserService;
 @RequestMapping(value = "/users/{userID}/messages", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class MessageController
 {
+	private static final Logger logger = LoggerFactory.getLogger(MessageController.class);
+
 	@Autowired
 	private MessageService messageService;
 
@@ -390,6 +394,19 @@ public class MessageController
 		private void addActivityCommentMessageLinks(ActivityCommentMessageDTO message)
 		{
 			IntervalActivity activity = IntervalActivity.getIntervalActivityRepository().findOne(message.getActivityID());
+			if (activity == null)
+			{
+				logger.error(
+						"Linked interval activity to message not found for activity comment message from sender {} and activity id {}",
+						message.getSenderNickname(), message.getActivityID());
+				return;
+			}
+			if (activity.getGoal() == null)
+			{
+				logger.error("Activity getGoal() returns null for {} instance with id {} and start time {}",
+						activity.getClass().getSimpleName(), activity.getID(), activity.getStartTime());
+				return;
+			}
 			if (goalIDMapping.isUserGoal(activity.getGoal().getID()))
 			{
 				messageController.getUserActivityController().addLinks(goalIDMapping, activity, message);
