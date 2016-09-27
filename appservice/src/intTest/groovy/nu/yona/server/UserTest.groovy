@@ -303,7 +303,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	def 'Retrieve Apple App site association'()
 	{
 		when:
-		def responseAppleAppSiteAssociation = appService.yonaServer.restClient.get(path: "/apple-app-site-association")
+		def responseAppleAppSiteAssociation = appService.yonaServer.restClient.get(path: "/.well-known/apple-app-site-association")
 
 		then:
 		responseAppleAppSiteAssociation.status == 200
