@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -34,7 +35,11 @@ public class DayActivity extends IntervalActivity
 		return (DayActivityRepository) RepositoryProvider.getRepository(DayActivity.class, UUID.class);
 	}
 
-	@OneToMany(cascade = CascadeType.ALL)
+	// because we are caching DayActivity instances and using this list, the fetch type has to be eager
+	// (or we should re-initialize a Hibernate session after returning from the cache)
+	// see http://jira.yona.nu/browse/YD-352 and
+	// http://stackoverflow.com/questions/26507446/how-to-resolve-lazyinitializationexception-in-spring-data-jpa
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private List<Activity> activities;
 
 	private boolean goalAccomplished;
