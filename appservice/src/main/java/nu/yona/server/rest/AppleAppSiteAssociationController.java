@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import nu.yona.server.properties.YonaProperties;
 
 @Controller
-@RequestMapping(value = "/apple-app-site-association", produces = { MediaType.APPLICATION_JSON_VALUE })
+@RequestMapping(value = "/.well-known/apple-app-site-association", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class AppleAppSiteAssociationController
 {
 	@Autowired
