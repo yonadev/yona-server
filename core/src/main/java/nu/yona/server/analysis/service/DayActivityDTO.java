@@ -5,6 +5,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -15,7 +16,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.DayActivity;
+import nu.yona.server.analysis.entities.IntervalActivity;
+import nu.yona.server.entities.EntityUtil;
+import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.TimeZoneGoal;
+import nu.yona.server.goals.service.GoalDTO;
+import nu.yona.server.goals.service.TimeZoneGoalDTO;
 import nu.yona.server.messaging.service.MessageDTO;
 
 @JsonRootName("dayActivity")
@@ -27,11 +33,14 @@ public class DayActivityDTO extends IntervalActivityDTO
 	private final int totalMinutesBeyondGoal;
 	private final Set<MessageDTO> messages;
 
-	private DayActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
-			int totalActivityDurationMinutes, boolean goalAccomplished, int totalMinutesBeyondGoal, Set<MessageDTO> messages,
-			boolean hasPrevious, boolean hasNext)
+	private final UUID activityCategoryID;
+
+	private DayActivityDTO(UUID goalID, UUID activityCategoryID, ZonedDateTime startTime, boolean shouldSerializeDate,
+			List<Integer> spread, int totalActivityDurationMinutes, boolean goalAccomplished, int totalMinutesBeyondGoal,
+			Set<MessageDTO> messages, boolean hasPrevious, boolean hasNext)
 	{
 		super(goalID, startTime, shouldSerializeDate, spread, Optional.of(totalActivityDurationMinutes), hasPrevious, hasNext);
+		this.activityCategoryID = activityCategoryID;
 		this.goalAccomplished = goalAccomplished;
 		this.totalMinutesBeyondGoal = totalMinutesBeyondGoal;
 		this.messages = messages;
@@ -47,6 +56,12 @@ public class DayActivityDTO extends IntervalActivityDTO
 	protected String formatDateAsISO(LocalDate date)
 	{
 		return formatDate(date);
+	}
+
+	@JsonIgnore
+	public UUID getActivityCategoryID()
+	{
+		return activityCategoryID;
 	}
 
 	public boolean isGoalAccomplished()
@@ -77,17 +92,30 @@ public class DayActivityDTO extends IntervalActivityDTO
 
 	static DayActivityDTO createInstance(DayActivity dayActivity, LevelOfDetail levelOfDetail)
 	{
-		return new DayActivityDTO(dayActivity.getGoal().getID(), dayActivity.getStartTime(),
-				levelOfDetail == LevelOfDetail.DayDetail, getSpread(dayActivity, levelOfDetail),
+		return new DayActivityDTO(dayActivity.getGoal().getID(), dayActivity.getGoal().getActivityCategory().getID(),
+				dayActivity.getStartTime(), levelOfDetail == LevelOfDetail.DayDetail, getSpread(dayActivity, levelOfDetail),
 				dayActivity.getTotalActivityDurationMinutes(), dayActivity.isGoalAccomplished(),
 				dayActivity.getTotalMinutesBeyondGoal(),
 				levelOfDetail == LevelOfDetail.DayDetail ? getMessages(dayActivity) : Collections.emptySet(),
 				dayActivity.hasPrevious(), dayActivity.hasNext());
 	}
 
+	static DayActivityDTO createInstanceInactivity(GoalDTO goal, ZonedDateTime startTime, LevelOfDetail levelOfDetail)
+	{
+		return new DayActivityDTO(goal.getID(), goal.getActivityCategoryID(), startTime, levelOfDetail == LevelOfDetail.DayDetail,
+				includeSpread(goal, levelOfDetail) ? createInactiveSpread() : Collections.emptyList(), 0, true, 0,
+				Collections.emptySet(), IntervalActivityDTO.hasPrevious(goal, startTime, ChronoUnit.DAYS),
+				IntervalActivity.hasNext(startTime, ChronoUnit.DAYS));
+	}
+
+	static ArrayList<Integer> createInactiveSpread()
+	{
+		return new ArrayList<Integer>(Collections.nCopies(96, 0));
+	}
+
 	private static List<Integer> getSpread(DayActivity dayActivity, LevelOfDetail levelOfDetail)
 	{
-		return includeSpread(dayActivity, levelOfDetail) ? dayActivity.getSpread() : Collections.emptyList();
+		return includeSpread(dayActivity.getGoal(), levelOfDetail) ? dayActivity.getSpread() : Collections.emptyList();
 	}
 
 	private static Set<MessageDTO> getMessages(DayActivity dayActivity)
@@ -96,9 +124,28 @@ public class DayActivityDTO extends IntervalActivityDTO
 		return Collections.emptySet();
 	}
 
-	private static boolean includeSpread(DayActivity dayActivity, LevelOfDetail levelOfDetail)
+	private static boolean includeSpread(Goal goal, LevelOfDetail levelOfDetail)
 	{
-		return levelOfDetail == LevelOfDetail.DayDetail
-				|| levelOfDetail == LevelOfDetail.DayOverview && dayActivity.getGoal() instanceof TimeZoneGoal;
+		return includeSpread(isTimeZoneGoal(goal), levelOfDetail);
+	}
+
+	private static boolean includeSpread(GoalDTO goal, LevelOfDetail levelOfDetail)
+	{
+		return includeSpread(isTimeZoneGoal(goal), levelOfDetail);
+	}
+
+	private static boolean includeSpread(boolean isTimeZoneGoal, LevelOfDetail levelOfDetail)
+	{
+		return levelOfDetail == LevelOfDetail.DayDetail || levelOfDetail == LevelOfDetail.DayOverview && isTimeZoneGoal;
+	}
+
+	private static boolean isTimeZoneGoal(Goal goal)
+	{
+		return EntityUtil.enforceLoading(goal) instanceof TimeZoneGoal;
+	}
+
+	private static boolean isTimeZoneGoal(GoalDTO goal)
+	{
+		return goal instanceof TimeZoneGoalDTO;
 	}
 }

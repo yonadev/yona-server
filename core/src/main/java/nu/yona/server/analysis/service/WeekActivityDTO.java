@@ -2,6 +2,7 @@ package nu.yona.server.analysis.service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -11,9 +12,11 @@ import java.time.temporal.IsoFields;
 import java.time.temporal.TemporalUnit;
 import java.time.temporal.WeekFields;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -21,7 +24,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.Translator;
+import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.analysis.entities.WeekActivity;
+import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.goals.service.GoalDTO;
+import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 
 @JsonRootName("weekActivity")
 public class WeekActivityDTO extends IntervalActivityDTO
@@ -83,5 +90,60 @@ public class WeekActivityDTO extends IntervalActivityDTO
 						.collect(Collectors.toMap(dayActivity -> dayActivity.getDate().getDayOfWeek(),
 								dayActivity -> DayActivityDTO.createInstance(dayActivity, levelOfDetail))),
 				weekActivity.hasPrevious(), weekActivity.hasNext());
+	}
+
+	public static WeekActivityDTO createInstanceInactivity(UserAnonymizedDTO userAnonymized, Goal goal, ZonedDateTime startOfWeek,
+			LevelOfDetail levelOfDetail)
+	{
+		boolean includeDetail = levelOfDetail == LevelOfDetail.WeekDetail;
+		WeekActivityDTO weekActivity = new WeekActivityDTO(goal.getID(), startOfWeek, includeDetail,
+				includeDetail ? DayActivityDTO.createInactiveSpread() : Collections.emptyList(),
+				includeDetail ? Optional.of(0) : Optional.empty(), new HashMap<>(),
+				IntervalActivity.hasPrevious(goal, startOfWeek, ChronoUnit.WEEKS),
+				IntervalActivity.hasNext(startOfWeek, ChronoUnit.WEEKS));
+		weekActivity.createRequiredInactivityDays(userAnonymized.getGoalsForActivityCategory(goal.getActivityCategory()),
+				levelOfDetail);
+		return weekActivity;
+	}
+
+	public void createRequiredInactivityDays(Set<GoalDTO> goals, LevelOfDetail levelOfDetail)
+	{
+		// if the batch job has already run, skip
+		if (dayActivities.size() == 7)
+		{
+			return;
+		}
+		// notice this doesn't take care of user time zone changes during the week
+		// so for consistency it is important that the batch script adding inactivity does so
+		for (int i = 0; i < 7; i++)
+		{
+			ZonedDateTime startOfDay = getStartTime().plusDays(i);
+			if (isInFuture(startOfDay, getStartTime().getZone()))
+			{
+				break;
+			}
+			determineApplicableGoalForDay(goals, startOfDay)
+					.ifPresent(g -> addInactiveDayIfNoActivity(g, startOfDay, levelOfDetail));
+		}
+	}
+
+	private static boolean isInFuture(ZonedDateTime startOfDay, ZoneId zone)
+	{
+		return startOfDay.isAfter(ZonedDateTime.now(zone));
+	}
+
+	private Optional<GoalDTO> determineApplicableGoalForDay(Set<GoalDTO> goals, ZonedDateTime startOfDay)
+	{
+		return goals.stream().filter(g -> g.wasActiveAtInterval(startOfDay, ChronoUnit.DAYS)).findAny();
+	}
+
+	private void addInactiveDayIfNoActivity(GoalDTO goal, ZonedDateTime startOfDay, LevelOfDetail levelOfDetail)
+	{
+		DayOfWeek dayOfWeek = startOfDay.getDayOfWeek();
+		if (dayActivities.containsKey(dayOfWeek))
+		{
+			return;
+		}
+		dayActivities.put(dayOfWeek, DayActivityDTO.createInstanceInactivity(goal, startOfDay, levelOfDetail));
 	}
 }

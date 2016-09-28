@@ -121,12 +121,22 @@ public abstract class IntervalActivity extends EntityWithID
 
 	public boolean hasPrevious()
 	{
-		return goal.wasActiveAtInterval(startTime.minus(1, getTimeUnit()), getTimeUnit());
+		return hasPrevious(goal, startTime, getTimeUnit());
 	}
 
 	public boolean hasNext()
 	{
-		return startTime.plus(1, getTimeUnit()).isBefore(ZonedDateTime.now());
+		return hasNext(startTime, getTimeUnit());
+	}
+
+	public static boolean hasPrevious(Goal goal, ZonedDateTime startTime, TemporalUnit timeUnit)
+	{
+		return goal.wasActiveAtInterval(startTime.minus(1, timeUnit), timeUnit);
+	}
+
+	public static boolean hasNext(ZonedDateTime startTime, TemporalUnit timeUnit)
+	{
+		return startTime.plus(1, timeUnit).isBefore(ZonedDateTime.now());
 	}
 
 	public boolean areAggregatesComputed()

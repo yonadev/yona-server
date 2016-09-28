@@ -512,7 +512,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	void assertDayOverviewWithBuddiesForTimeZoneGoal(dayActivitiesForCategory, User actingUser, User userToAssert, expectedValuesForDayAndActivityCategory)
 	{
 		def dayActivityOverviewForUser = assertDayOverviewWithBuddiesForGoal(dayActivitiesForCategory, actingUser, userToAssert, expectedValuesForDayAndActivityCategory)
-		assert dayActivityOverviewForUser?.spread.size() == 96
+		assert dayActivityOverviewForUser?.spread?.size() == 96
 	}
 
 	void assertDayOverviewWithBuddiesForBudgetGoal(dayActivitiesForCategory, User actingUser, User userToAssert, expectedValuesForDayAndActivityCategory)
