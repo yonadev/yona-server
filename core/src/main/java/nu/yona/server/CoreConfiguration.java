@@ -31,7 +31,6 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import nu.yona.server.analysis.service.UserAnonymizedSynchronizer;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.JsonRootRelProvider;
@@ -150,11 +149,5 @@ public class CoreConfiguration
 		RestTemplate restTemplate = new RestTemplate();
 		restTemplate.setErrorHandler(new RestClientErrorHandler());
 		return restTemplate;
-	}
-
-	@Bean
-	public UserAnonymizedSynchronizer userAnonymizedSynchronizer()
-	{
-		return new UserAnonymizedSynchronizer();
 	}
 }
