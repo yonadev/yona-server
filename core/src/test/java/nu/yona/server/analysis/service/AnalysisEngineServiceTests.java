@@ -84,6 +84,8 @@ public class AnalysisEngineServiceTests
 	private ActivityCacheService mockAnalysisEngineCacheService;
 	@Mock
 	private DayActivityRepository mockDayActivityRepository;
+	@Mock
+	private UserAnonymizedSynchronizer userAnonymizedSynchronizer;
 	@InjectMocks
 	private final AnalysisEngineService service = new AnalysisEngineService();
 
@@ -496,8 +498,8 @@ public class AnalysisEngineServiceTests
 
 		// Verify that there is a new conflict message sent.
 		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
-		// Verify that a database lookup was done for yesterday
-		verify(mockDayActivityRepository, times(1)).findOne(userAnonID, yesterdayTime.toLocalDate(), gamblingGoal.getID());
+		// Verify that a database lookup was done for yesterday, including an extra call for the double check
+		verify(mockDayActivityRepository, times(2)).findOne(userAnonID, yesterdayTime.toLocalDate(), gamblingGoal.getID());
 		// Verify that yesterday was inserted in the database
 		ArgumentCaptor<DayActivity> precedingDayActivity = ArgumentCaptor.forClass(DayActivity.class);
 		verify(mockDayActivityRepository, times(2)).save(precedingDayActivity.capture());

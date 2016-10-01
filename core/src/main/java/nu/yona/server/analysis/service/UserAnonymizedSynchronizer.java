@@ -1,0 +1,88 @@
+package nu.yona.server.analysis.service;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import nu.yona.server.exceptions.YonaException;
+
+public class UserAnonymizedSynchronizer
+{
+	private enum LockStatus
+	{
+		FREE, LOCKED, LOCKED_BY_ME
+	}
+
+	private final Map<UUID, Thread> lockedUsers = new HashMap<>();
+
+	public Lock lock(UUID userAnonymizedID)
+	{
+		try
+		{
+			synchronized (lockedUsers)
+			{
+				LockStatus lockStatus;
+				while ((lockStatus = getLockStatus(userAnonymizedID)) == LockStatus.LOCKED)
+				{
+					lockedUsers.wait();
+				}
+				if (lockStatus == LockStatus.FREE)
+				{
+					storeLock(userAnonymizedID);
+				}
+			}
+			return new Lock(userAnonymizedID);
+		}
+		catch (InterruptedException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
+
+	private LockStatus getLockStatus(UUID userAnonymizedID)
+	{
+		Thread thread = lockedUsers.get(userAnonymizedID);
+		if (thread == null)
+		{
+			return LockStatus.FREE;
+		}
+		if (thread == Thread.currentThread())
+		{
+			return LockStatus.LOCKED_BY_ME;
+		}
+		return LockStatus.LOCKED;
+	}
+
+	private void storeLock(UUID userAnonymizedID)
+	{
+		if (lockedUsers.put(userAnonymizedID, Thread.currentThread()) != null)
+		{
+			throw new IllegalStateException("Map already contains a locking thread for user anonymized ID " + userAnonymizedID);
+		}
+	}
+
+	private void unlock(UUID userAnonymizedID)
+	{
+		synchronized (lockedUsers)
+		{
+			lockedUsers.remove(userAnonymizedID);
+			lockedUsers.notifyAll();
+		}
+	}
+
+	public class Lock implements AutoCloseable
+	{
+		private final UUID userAnonymizedID;
+
+		private Lock(UUID userAnonymizedID)
+		{
+			this.userAnonymizedID = userAnonymizedID;
+		}
+
+		@Override
+		public void close()
+		{
+			unlock(userAnonymizedID);
+		}
+	}
+}

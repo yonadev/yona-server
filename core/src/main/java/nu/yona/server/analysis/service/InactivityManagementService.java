@@ -21,6 +21,7 @@ import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
+import nu.yona.server.analysis.service.UserAnonymizedSynchronizer.Lock;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
@@ -41,13 +42,19 @@ public class InactivityManagementService
 	@Autowired
 	private GoalService goalService;
 
+	@Autowired
+	private UserAnonymizedSynchronizer userAnonymizedSynchronizer;
+
 	@Transactional
 	public void createInactivityEntities(UUID userAnonymizedID, Set<IntervalInactivity> intervalInactivities)
 	{
-		createWeekInactivityEntities(userAnonymizedID,
-				intervalInactivities.stream().filter(ia -> ia.getTimeUnit() == ChronoUnit.WEEKS).collect(Collectors.toSet()));
-		createDayInactivityEntities(userAnonymizedID,
-				intervalInactivities.stream().filter(ia -> ia.getTimeUnit() == ChronoUnit.DAYS).collect(Collectors.toSet()));
+		try (Lock lock = userAnonymizedSynchronizer.lock(userAnonymizedID))
+		{
+			createWeekInactivityEntities(userAnonymizedID,
+					intervalInactivities.stream().filter(ia -> ia.getTimeUnit() == ChronoUnit.WEEKS).collect(Collectors.toSet()));
+			createDayInactivityEntities(userAnonymizedID,
+					intervalInactivities.stream().filter(ia -> ia.getTimeUnit() == ChronoUnit.DAYS).collect(Collectors.toSet()));
+		}
 	}
 
 	private void createWeekInactivityEntities(UUID userAnonymizedID, Set<IntervalInactivity> weekInactivities)
