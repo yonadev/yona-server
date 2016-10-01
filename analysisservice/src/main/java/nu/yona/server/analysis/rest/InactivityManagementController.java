@@ -21,13 +21,13 @@ import nu.yona.server.analysis.service.InactivityManagementService;
 import nu.yona.server.analysis.service.IntervalInactivity;
 
 @Controller
-@RequestMapping(value = "/inactivity", produces = { MediaType.APPLICATION_JSON_VALUE })
+@RequestMapping(value = "/userAnonymized", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class InactivityManagementController
 {
 	@Autowired
 	private InactivityManagementService inactivityManagementService;
 
-	@RequestMapping(value = "/{userAnonymizedID}", method = RequestMethod.POST)
+	@RequestMapping(value = "/{userAnonymizedID}/inactivity/", method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
 	public void createInactivityEntities(@PathVariable UUID userAnonymizedID,
 			@RequestBody Set<IntervalInactivity> intervalInactivities)

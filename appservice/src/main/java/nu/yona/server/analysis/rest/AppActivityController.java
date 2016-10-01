@@ -58,7 +58,7 @@ public class AppActivityController
 	{
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> {
 			UUID userAnonymizedID = userService.getPrivateUser(userID).getPrivateData().getUserAnonymizedID();
-			analysisEngineProxyService.addAppActivity(userAnonymizedID, appActivities);
+			analysisEngineProxyService.analyzeAppActivity(userAnonymizedID, appActivities);
 			return null;
 		});
 		return new ResponseEntity<Void>(HttpStatus.OK);

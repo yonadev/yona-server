@@ -227,7 +227,7 @@ public class AnalysisEngineServiceTests
 		}
 
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test1", Optional.empty()));
+		service.analyze(userAnonID, new NetworkActivityDTO(conflictCategories, "http://localhost/test1", Optional.empty()));
 
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<MessageDestinationDTO> messageDestination = ArgumentCaptor.forClass(MessageDestinationDTO.class);
@@ -248,7 +248,7 @@ public class AnalysisEngineServiceTests
 		ZonedDateTime t = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Amsterdam"));
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonID, new NetworkActivityDTO(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify that there is an activity update.
 		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
@@ -278,7 +278,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag", "lotto"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonID, new NetworkActivityDTO(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		verifyActivityUpdate(gamblingGoal);
 		// Verify that there is a new conflict message sent.
@@ -299,7 +299,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto", "games"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonID, new NetworkActivityDTO(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify that there are 2 activities updated, for both goals.
 		ArgumentCaptor<DayActivity> dayActivity = ArgumentCaptor.forClass(DayActivity.class);
@@ -342,14 +342,14 @@ public class AnalysisEngineServiceTests
 		Set<String> conflictCategories1 = new HashSet<String>(Arrays.asList("lotto"));
 		Set<String> conflictCategories2 = new HashSet<String>(Arrays.asList("poker"));
 		Set<String> conflictCategoriesNotMatching1 = new HashSet<String>(Arrays.asList("refdag"));
-		service.analyze(
-				new NetworkActivityDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test", Optional.empty()));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories1, "http://localhost/test1", Optional.empty()));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories2, "http://localhost/test2", Optional.empty()));
-		service.analyze(
-				new NetworkActivityDTO(userAnonID, conflictCategoriesNotMatching1, "http://localhost/test3", Optional.empty()));
+		service.analyze(userAnonID,
+				new NetworkActivityDTO(conflictCategoriesNotMatching1, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonID, new NetworkActivityDTO(conflictCategories1, "http://localhost/test1", Optional.empty()));
+		service.analyze(userAnonID, new NetworkActivityDTO(conflictCategories2, "http://localhost/test2", Optional.empty()));
+		service.analyze(userAnonID,
+				new NetworkActivityDTO(conflictCategoriesNotMatching1, "http://localhost/test3", Optional.empty()));
 		ZonedDateTime t2 = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Amsterdam"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories2, "http://localhost/test4", Optional.empty()));
+		service.analyze(userAnonID, new NetworkActivityDTO(conflictCategories2, "http://localhost/test4", Optional.empty()));
 
 		// Verify that there is no new conflict message sent.
 		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
@@ -371,7 +371,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonID, new NetworkActivityDTO(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify that there was no attempted activity update.
 		verify(mockAnalysisEngineCacheService, never()).fetchLastDayActivityForUser(eq(userAnonID), any());
@@ -394,7 +394,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("webshop"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonID, new NetworkActivityDTO(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		verifyActivityUpdate(shoppingGoal);
 		verifyNoMessagesCreated();
@@ -416,7 +416,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("social"));
-		service.analyze(new NetworkActivityDTO(userAnonID, conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonID, new NetworkActivityDTO(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		verifyActivityUpdate(socialGoal);
 		verifyNoMessagesCreated();

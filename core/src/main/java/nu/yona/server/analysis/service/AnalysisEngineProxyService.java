@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
@@ -49,7 +46,7 @@ public class AnalysisEngineProxyService
 
 	public void createInactivityEntities(UUID userAnonymizedID, Set<IntervalInactivity> intervalInactivities)
 	{
-		ResponseEntity<String> response = restTemplate.postForEntity(analysisEngineURL + "/inactivity/" + userAnonymizedID,
+		ResponseEntity<String> response = restTemplate.postForEntity(buildBaseURL(userAnonymizedID) + "/inactivity/",
 				intervalInactivities, String.class);
 		if (RestUtil.isError(response.getStatusCode()))
 		{
@@ -57,14 +54,19 @@ public class AnalysisEngineProxyService
 		}
 	}
 
-	public void addAppActivity(UUID userAnonymizedID, AppActivityDTO appActivities)
+	public void analyzeAppActivity(UUID userAnonymizedID, AppActivityDTO appActivities)
 	{
-		ResponseEntity<String> response = restTemplate
-				.postForEntity(analysisEngineURL + "/analysisEngine/" + userAnonymizedID + "/", appActivities, String.class);
+		ResponseEntity<String> response = restTemplate.postForEntity(buildBaseURL(userAnonymizedID) + "/appActivity/",
+				appActivities, String.class);
 		if (RestUtil.isError(response.getStatusCode()))
 		{
 			handleError(response);
 		}
+	}
+
+	private String buildBaseURL(UUID userAnonymizedID)
+	{
+		return analysisEngineURL + "/userAnonymized/" + userAnonymizedID;
 	}
 
 	private void handleError(ResponseEntity<String> response)

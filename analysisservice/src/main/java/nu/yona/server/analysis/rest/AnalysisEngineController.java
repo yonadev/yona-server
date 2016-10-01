@@ -25,17 +25,29 @@ import nu.yona.server.analysis.service.AppActivityDTO;
 import nu.yona.server.analysis.service.NetworkActivityDTO;
 
 @Controller
-@RequestMapping(value = "/analysisEngine", produces = { MediaType.APPLICATION_JSON_VALUE })
+@RequestMapping(value = "", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class AnalysisEngineController
 {
 	@Autowired
 	private AnalysisEngineService analysisEngineService;
 
-	@RequestMapping(value = "/", method = RequestMethod.POST)
+	@RequestMapping(value = "userAnonymized/{userAnonymizedID}/networkActivity/", method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
-	public void analyze(@RequestBody NetworkActivityDTO potentialConflictPayload)
+	public void analyzeNetworkActivity(@PathVariable UUID userAnonymizedID,
+			@RequestBody NetworkActivityDTO potentialConflictPayload)
 	{
-		analysisEngineService.analyze(potentialConflictPayload);
+		analysisEngineService.analyze(userAnonymizedID, potentialConflictPayload);
+	}
+
+	/**
+	 * The app service receives the app activity monitored by the Yona app and sends that to the analysis engine through this
+	 * method.
+	 */
+	@RequestMapping(value = "/userAnonymized/{userAnonymizedID}/appActivity/", method = RequestMethod.POST)
+	@ResponseStatus(value = HttpStatus.OK)
+	public void analyzeAppActivity(@PathVariable UUID userAnonymizedID, @RequestBody AppActivityDTO appActivities)
+	{
+		analysisEngineService.analyze(userAnonymizedID, appActivities);
 	}
 
 	@RequestMapping(value = "/relevantSmoothwallCategories/", method = RequestMethod.GET)
@@ -44,17 +56,6 @@ public class AnalysisEngineController
 	{
 		CategoriesDTO categories = new CategoriesDTO(analysisEngineService.getRelevantSmoothwallCategories());
 		return new ResponseEntity<CategoriesResource>(new CategoriesResource(categories), HttpStatus.OK);
-	}
-
-	/**
-	 * The app service receives the app activity monitored by the Yona app and sends that to the analysis engine through this
-	 * method.
-	 */
-	@RequestMapping(value = "/{userAnonymizedID}/", method = RequestMethod.POST)
-	@ResponseStatus(value = HttpStatus.OK)
-	public void addAppActivity(@PathVariable UUID userAnonymizedID, @RequestBody AppActivityDTO appActivities)
-	{
-		analysisEngineService.analyze(userAnonymizedID, appActivities);
 	}
 
 	public static class CategoriesResource extends Resource<CategoriesDTO>

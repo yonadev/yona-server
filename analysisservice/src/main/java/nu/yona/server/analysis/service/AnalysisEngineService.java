@@ -72,6 +72,15 @@ public class AnalysisEngineService
 		}
 	}
 
+	@Transactional
+	public void analyze(UUID userAnonymizedID, NetworkActivityDTO networkActivity)
+	{
+		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
+		Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryService
+				.getMatchingCategoriesForSmoothwallCategories(networkActivity.getCategories());
+		analyze(ActivityPayload.createInstance(userAnonymized, networkActivity), userAnonymized, matchingActivityCategories);
+	}
+
 	private Duration determineDeviceTimeOffset(AppActivityDTO appActivities)
 	{
 		Duration offset = Duration.between(ZonedDateTime.now(), appActivities.getDeviceDateTime());
@@ -110,15 +119,6 @@ public class AnalysisEngineService
 	private ZonedDateTime correctTime(Duration deviceTimeOffset, ZonedDateTime time)
 	{
 		return time.minus(deviceTimeOffset);
-	}
-
-	@Transactional
-	public void analyze(NetworkActivityDTO networkActivity)
-	{
-		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(networkActivity.getVPNLoginID());
-		Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryService
-				.getMatchingCategoriesForSmoothwallCategories(networkActivity.getCategories());
-		analyze(ActivityPayload.createInstance(userAnonymized, networkActivity), userAnonymized, matchingActivityCategories);
 	}
 
 	private void analyze(ActivityPayload payload, UserAnonymizedDTO userAnonymized,
