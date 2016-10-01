@@ -26,7 +26,9 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import nu.yona.server.entities.RepositoryProvider;
@@ -122,6 +124,7 @@ public class CoreConfiguration
 		ObjectMapper springHateoasObjectMapper = beanFactory.getBean(SPRING_HATEOAS_OBJECT_MAPPER, ObjectMapper.class);
 		Jackson2ObjectMapperBuilder builder = beanFactory.getBean(Jackson2ObjectMapperBuilder.class);
 		builder.configure(springHateoasObjectMapper);
+		springHateoasObjectMapper.disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
 		return springHateoasObjectMapper;
 	}
 
@@ -139,4 +142,9 @@ public class CoreConfiguration
 		return e;
 	}
 
+	@Bean
+	public RestTemplate restTemplate()
+	{
+		return new RestTemplate();
+	}
 }

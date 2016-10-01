@@ -4,15 +4,11 @@
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -98,59 +94,5 @@ public class WeekActivity extends IntervalActivity
 	{
 		return new WeekActivity(UUID.randomUUID(), userAnonymized, goal, startOfWeek,
 				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, false);
-	}
-
-	public Collection<DayActivity> createRequiredInactivityDays()
-	{
-		List<DayActivity> existingActivities = getDayActivities();
-		Collection<DayActivity> newDayActivities = new ArrayList<>();
-		// if the batch job has already run, skip
-		if (existingActivities.size() == 7)
-		{
-			return Collections.emptyList();
-		}
-		// notice this doesn't take care of user time zone changes during the week
-		// so for consistency it is important that the batch script adding inactivity does so
-		for (int i = 0; i < 7; i++)
-		{
-			ZonedDateTime startOfDay = getStartTime().plusDays(i);
-			if (isInFuture(startOfDay, getStartTime().getZone()))
-			{
-				break;
-			}
-			determineApplicableGoalForDay(getGoal(), startOfDay)
-					.ifPresent(g -> addInactiveDayIfNoActivity(newDayActivities, startOfDay, g, existingActivities));
-		}
-		return newDayActivities;
-	}
-
-	private void addInactiveDayIfNoActivity(Collection<DayActivity> newDayActivities, ZonedDateTime startOfDay, Goal goal,
-			List<DayActivity> existingActivities)
-	{
-		if (!existingActivities.stream()
-				.anyMatch(dayActivity -> dayActivity.getDate().getDayOfWeek().equals(startOfDay.getDayOfWeek())))
-		{
-			newDayActivities.add(DayActivity.createInstanceInactivity(getUserAnonymized(), goal, startOfDay));
-		}
-	}
-
-	private Optional<Goal> determineApplicableGoalForDay(Goal goal, ZonedDateTime startOfDay)
-	{
-		if (goal.wasActiveAtInterval(startOfDay, ChronoUnit.DAYS))
-		{
-			return Optional.of(goal);
-		}
-		Optional<Goal> previousVersionOfThisGoal = goal.getPreviousVersionOfThisGoal();
-		if (previousVersionOfThisGoal.isPresent())
-		{
-			return determineApplicableGoalForDay(previousVersionOfThisGoal.get(), startOfDay);
-		}
-
-		return Optional.empty();
-	}
-
-	private static boolean isInFuture(ZonedDateTime startOfDay, ZoneId zone)
-	{
-		return startOfDay.isAfter(ZonedDateTime.now(zone));
 	}
 }

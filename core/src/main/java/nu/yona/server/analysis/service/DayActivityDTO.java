@@ -23,6 +23,7 @@ import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.goals.service.TimeZoneGoalDTO;
 import nu.yona.server.messaging.service.MessageDTO;
+import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 
 @JsonRootName("dayActivity")
 public class DayActivityDTO extends IntervalActivityDTO
@@ -100,8 +101,10 @@ public class DayActivityDTO extends IntervalActivityDTO
 				dayActivity.hasPrevious(), dayActivity.hasNext());
 	}
 
-	static DayActivityDTO createInstanceInactivity(GoalDTO goal, ZonedDateTime startTime, LevelOfDetail levelOfDetail)
+	static DayActivityDTO createInstanceInactivity(UserAnonymizedDTO userAnonymized, GoalDTO goal, ZonedDateTime startTime,
+			LevelOfDetail levelOfDetail, Set<IntervalInactivity> missingInactivities)
 	{
+		missingInactivities.add(IntervalInactivity.createDayInstance(userAnonymized.getID(), goal.getID(), startTime));
 		return new DayActivityDTO(goal.getID(), goal.getActivityCategoryID(), startTime, levelOfDetail == LevelOfDetail.DayDetail,
 				includeSpread(goal, levelOfDetail) ? createInactiveSpread() : Collections.emptyList(), 0, true, 0,
 				Collections.emptySet(), IntervalActivityDTO.hasPrevious(goal, startTime, ChronoUnit.DAYS),

@@ -39,6 +39,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.support.Repositories;
+import org.springframework.web.client.RestTemplate;
 
 import nu.yona.server.Translator;
 import nu.yona.server.analysis.entities.Activity;
@@ -80,6 +81,8 @@ public class ActivityServiceTests
 	private DayActivityRepository mockDayActivityRepository;
 	@Mock
 	private Repositories mockRepositories;
+	@Mock
+	private RestTemplate restTemplate;
 
 	@InjectMocks
 	private final ActivityService service = new ActivityService();

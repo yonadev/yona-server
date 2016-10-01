@@ -204,9 +204,4 @@ public class DayActivity extends IntervalActivity
 		return new DayActivity(UUID.randomUUID(), userAnonymized, goal, startOfDay, new ArrayList<Activity>(),
 				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, true, false);
 	}
-
-	public static DayActivity createInstanceInactivity(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay)
-	{
-		return createInstance(userAnonymized, goal, startOfDay);
-	}
 }

@@ -93,20 +93,22 @@ public class WeekActivityDTO extends IntervalActivityDTO
 	}
 
 	public static WeekActivityDTO createInstanceInactivity(UserAnonymizedDTO userAnonymized, Goal goal, ZonedDateTime startOfWeek,
-			LevelOfDetail levelOfDetail)
+			LevelOfDetail levelOfDetail, Set<IntervalInactivity> missingInactivities)
 	{
+		missingInactivities.add(IntervalInactivity.createWeekInstance(userAnonymized.getID(), goal.getID(), startOfWeek));
 		boolean includeDetail = levelOfDetail == LevelOfDetail.WeekDetail;
 		WeekActivityDTO weekActivity = new WeekActivityDTO(goal.getID(), startOfWeek, includeDetail,
 				includeDetail ? DayActivityDTO.createInactiveSpread() : Collections.emptyList(),
 				includeDetail ? Optional.of(0) : Optional.empty(), new HashMap<>(),
 				IntervalActivity.hasPrevious(goal, startOfWeek, ChronoUnit.WEEKS),
 				IntervalActivity.hasNext(startOfWeek, ChronoUnit.WEEKS));
-		weekActivity.createRequiredInactivityDays(userAnonymized.getGoalsForActivityCategory(goal.getActivityCategory()),
-				levelOfDetail);
+		weekActivity.createRequiredInactivityDays(userAnonymized,
+				userAnonymized.getGoalsForActivityCategory(goal.getActivityCategory()), levelOfDetail, missingInactivities);
 		return weekActivity;
 	}
 
-	public void createRequiredInactivityDays(Set<GoalDTO> goals, LevelOfDetail levelOfDetail)
+	public void createRequiredInactivityDays(UserAnonymizedDTO userAnonymized, Set<GoalDTO> goals, LevelOfDetail levelOfDetail,
+			Set<IntervalInactivity> missingInactivities)
 	{
 		// if the batch job has already run, skip
 		if (dayActivities.size() == 7)
@@ -122,8 +124,8 @@ public class WeekActivityDTO extends IntervalActivityDTO
 			{
 				break;
 			}
-			determineApplicableGoalForDay(goals, startOfDay)
-					.ifPresent(g -> addInactiveDayIfNoActivity(g, startOfDay, levelOfDetail));
+			determineApplicableGoalForDay(goals, startOfDay).ifPresent(
+					g -> addInactiveDayIfNoActivity(userAnonymized, g, startOfDay, levelOfDetail, missingInactivities));
 		}
 	}
 
@@ -137,13 +139,15 @@ public class WeekActivityDTO extends IntervalActivityDTO
 		return goals.stream().filter(g -> g.wasActiveAtInterval(startOfDay, ChronoUnit.DAYS)).findAny();
 	}
 
-	private void addInactiveDayIfNoActivity(GoalDTO goal, ZonedDateTime startOfDay, LevelOfDetail levelOfDetail)
+	private void addInactiveDayIfNoActivity(UserAnonymizedDTO userAnonymized, GoalDTO goal, ZonedDateTime startOfDay,
+			LevelOfDetail levelOfDetail, Set<IntervalInactivity> missingInactivities)
 	{
 		DayOfWeek dayOfWeek = startOfDay.getDayOfWeek();
 		if (dayActivities.containsKey(dayOfWeek))
 		{
 			return;
 		}
-		dayActivities.put(dayOfWeek, DayActivityDTO.createInstanceInactivity(goal, startOfDay, levelOfDetail));
+		dayActivities.put(dayOfWeek,
+				DayActivityDTO.createInstanceInactivity(userAnonymized, goal, startOfDay, levelOfDetail, missingInactivities));
 	}
 }
