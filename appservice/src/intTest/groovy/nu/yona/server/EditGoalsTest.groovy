@@ -103,6 +103,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages.size() == 1
 		goalChangeMessages[0].change == 'GOAL_ADDED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
+		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
 		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
@@ -151,6 +152,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages.size() == 1
 		goalChangeMessages[0].change == 'GOAL_ADDED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
+		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
 		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
@@ -259,15 +261,15 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages.size() == 2
 		goalChangeMessages[0].change == 'GOAL_CHANGED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
+		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
 		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
 		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Want to become a bit more social :)"
 		goalChangeMessages[0]._links.edit
-		goalChangeMessages[0]._links."yona:dailyActivityReports"?.href == buddyRichardUrl + "/activity/days/"
 		goalChangeMessages[1].change == 'GOAL_ADDED'
-		goalChangeMessages[1]._links."yona:dailyActivityReports"?.href == buddyRichardUrl + "/activity/days/"
+		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
 
 		def richardMessagesResponse = appService.getMessages(richard)
 		richardMessagesResponse.responseData._embedded."yona:messages".findAll
@@ -315,6 +317,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages.size() == 2
 		goalChangeMessages[0].change == 'GOAL_CHANGED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
+		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
 		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
@@ -468,6 +471,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages.size() == 2
 		goalChangeMessages[0].change == 'GOAL_DELETED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
+		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
 		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'

@@ -41,6 +41,8 @@ public class YonaProperties
 
 	private Locale defaultLocale;
 
+	private String appleAppID;
+
 	public AnalysisServiceProperties getAnalysisService()
 	{
 		return analysisService;
@@ -91,4 +93,15 @@ public class YonaProperties
 	{
 		return Collections.unmodifiableSet(supportedLocales);
 	}
+
+	public void setAppleAppID(String appleAppID)
+	{
+		this.appleAppID = appleAppID;
+	}
+
+	public String getAppleAppID()
+	{
+		return appleAppID;
+	}
+
 }
