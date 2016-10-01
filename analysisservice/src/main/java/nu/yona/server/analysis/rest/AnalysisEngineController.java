@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.analysis.rest;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resource;
 import org.springframework.http.HttpEntity;
@@ -11,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.analysis.service.AnalysisEngineService;
+import nu.yona.server.analysis.service.AppActivityDTO;
 import nu.yona.server.analysis.service.NetworkActivityDTO;
 
 @Controller
@@ -40,6 +44,17 @@ public class AnalysisEngineController
 	{
 		CategoriesDTO categories = new CategoriesDTO(analysisEngineService.getRelevantSmoothwallCategories());
 		return new ResponseEntity<CategoriesResource>(new CategoriesResource(categories), HttpStatus.OK);
+	}
+
+	/**
+	 * The app service receives the app activity monitored by the Yona app and sends that to the analysis engine through this
+	 * method.
+	 */
+	@RequestMapping(value = "/{userAnonymizedID}/", method = RequestMethod.POST)
+	@ResponseStatus(value = HttpStatus.OK)
+	public void addAppActivity(@PathVariable UUID userAnonymizedID, @RequestBody AppActivityDTO appActivities)
+	{
+		analysisEngineService.analyze(userAnonymizedID, appActivities);
 	}
 
 	public static class CategoriesResource extends Resource<CategoriesDTO>

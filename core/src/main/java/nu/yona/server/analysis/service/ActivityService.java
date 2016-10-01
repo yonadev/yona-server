@@ -25,7 +25,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import nu.yona.server.analysis.entities.ActivityCommentMessage;
 import nu.yona.server.analysis.entities.DayActivity;
@@ -75,7 +74,7 @@ public class ActivityService
 	private YonaProperties yonaProperties;
 
 	@Autowired
-	private RestTemplate restTemplate;
+	private AnalysisEngineProxyService analysisEngineProxyService;
 
 	@Transactional
 	public Page<WeekActivityOverviewDTO> getUserWeekActivityOverviews(UUID userID, Pageable pageable)
@@ -104,12 +103,10 @@ public class ActivityService
 
 	private void createInactivityEntities(Set<IntervalInactivity> missingInactivities)
 	{
-		Map<UUID, List<IntervalInactivity>> activitiesByUserAnonymizedID = missingInactivities.stream()
-				.collect(Collectors.groupingBy(mia -> mia.getUserAnonymizedID().get()));
-		String analysisEngineURL = yonaProperties.getAnalysisService().getServiceURL();
+		Map<UUID, Set<IntervalInactivity>> activitiesByUserAnonymizedID = missingInactivities.stream()
+				.collect(Collectors.groupingBy(mia -> mia.getUserAnonymizedID().get(), Collectors.toSet()));
 
-		activitiesByUserAnonymizedID
-				.forEach((u, mias) -> restTemplate.postForEntity(analysisEngineURL + "/inactivity/" + u, mias, Void.class));
+		activitiesByUserAnonymizedID.forEach((u, mias) -> analysisEngineProxyService.createInactivityEntities(u, mias));
 	}
 
 	private Page<WeekActivityOverviewDTO> getWeekActivityOverviews(UUID userAnonymizedID, Pageable pageable,

@@ -35,6 +35,7 @@ import nu.yona.server.analysis.service.UserAnonymizedSynchronizer;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.rest.RestClientErrorHandler;
 
 @EnableHypermediaSupport(type = HypermediaType.HAL)
 @EnableSpringDataWebSupport
@@ -146,7 +147,9 @@ public class CoreConfiguration
 	@Bean
 	public RestTemplate restTemplate()
 	{
-		return new RestTemplate();
+		RestTemplate restTemplate = new RestTemplate();
+		restTemplate.setErrorHandler(new RestClientErrorHandler());
+		return restTemplate;
 	}
 
 	@Bean
