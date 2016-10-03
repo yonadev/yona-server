@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
@@ -37,8 +34,8 @@ public class UserAnonymizedSynchronizer
 				{
 					storeLock(userAnonymizedID);
 				}
+				return new Lock(userAnonymizedID, lockStatus == LockStatus.FREE);
 			}
-			return new Lock(userAnonymizedID);
 		}
 		catch (InterruptedException e)
 		{
@@ -80,16 +77,21 @@ public class UserAnonymizedSynchronizer
 	public class Lock implements AutoCloseable
 	{
 		private final UUID userAnonymizedID;
+		private final boolean mustUnlock;
 
-		private Lock(UUID userAnonymizedID)
+		private Lock(UUID userAnonymizedID, boolean mustUnlock)
 		{
 			this.userAnonymizedID = userAnonymizedID;
+			this.mustUnlock = mustUnlock;
 		}
 
 		@Override
 		public void close()
 		{
-			unlock(userAnonymizedID);
+			if (mustUnlock)
+			{
+				unlock(userAnonymizedID);
+			}
 		}
 	}
 }
