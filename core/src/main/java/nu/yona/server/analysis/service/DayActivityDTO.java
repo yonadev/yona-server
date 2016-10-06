@@ -109,9 +109,9 @@ public class DayActivityDTO extends IntervalActivityDTO
 	}
 
 	static DayActivityDTO createInstanceInactivity(UserAnonymizedDTO userAnonymized, GoalDTO goal, ZonedDateTime startTime,
-			LevelOfDetail levelOfDetail, Set<IntervalInactivity> missingInactivities)
+			LevelOfDetail levelOfDetail, Set<IntervalInactivityDTO> missingInactivities)
 	{
-		missingInactivities.add(IntervalInactivity.createDayInstance(userAnonymized.getID(), goal.getID(), startTime));
+		missingInactivities.add(IntervalInactivityDTO.createDayInstance(userAnonymized.getID(), goal.getID(), startTime));
 		return new DayActivityDTO(goal.getID(), goal.getActivityCategoryID(), startTime, levelOfDetail == LevelOfDetail.DayDetail,
 				includeSpread(goal, levelOfDetail) ? createInactiveSpread() : Collections.emptyList(), 0, true, 0,
 				Collections.emptySet(), IntervalActivityDTO.hasPrevious(goal, startTime, ChronoUnit.DAYS),

@@ -100,9 +100,9 @@ public class WeekActivityDTO extends IntervalActivityDTO
 	}
 
 	public static WeekActivityDTO createInstanceInactivity(UserAnonymizedDTO userAnonymized, Goal goal, ZonedDateTime startOfWeek,
-			LevelOfDetail levelOfDetail, Set<IntervalInactivity> missingInactivities)
+			LevelOfDetail levelOfDetail, Set<IntervalInactivityDTO> missingInactivities)
 	{
-		missingInactivities.add(IntervalInactivity.createWeekInstance(userAnonymized.getID(), goal.getID(), startOfWeek));
+		missingInactivities.add(IntervalInactivityDTO.createWeekInstance(userAnonymized.getID(), goal.getID(), startOfWeek));
 		boolean includeDetail = levelOfDetail == LevelOfDetail.WeekDetail;
 		WeekActivityDTO weekActivity = new WeekActivityDTO(goal.getID(), startOfWeek, includeDetail,
 				includeDetail ? DayActivityDTO.createInactiveSpread() : Collections.emptyList(),
@@ -115,7 +115,7 @@ public class WeekActivityDTO extends IntervalActivityDTO
 	}
 
 	public void createRequiredInactivityDays(UserAnonymizedDTO userAnonymized, Set<GoalDTO> goals, LevelOfDetail levelOfDetail,
-			Set<IntervalInactivity> missingInactivities)
+			Set<IntervalInactivityDTO> missingInactivities)
 	{
 		// if the batch job has already run, skip
 		if (dayActivities.size() == 7)
@@ -147,7 +147,7 @@ public class WeekActivityDTO extends IntervalActivityDTO
 	}
 
 	private void addInactiveDayIfNoActivity(UserAnonymizedDTO userAnonymized, GoalDTO goal, ZonedDateTime startOfDay,
-			LevelOfDetail levelOfDetail, Set<IntervalInactivity> missingInactivities)
+			LevelOfDetail levelOfDetail, Set<IntervalInactivityDTO> missingInactivities)
 	{
 		DayOfWeek dayOfWeek = startOfDay.getDayOfWeek();
 		if (dayActivities.containsKey(dayOfWeek))

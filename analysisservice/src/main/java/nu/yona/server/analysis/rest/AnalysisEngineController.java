@@ -31,7 +31,7 @@ public class AnalysisEngineController
 	@Autowired
 	private AnalysisEngineService analysisEngineService;
 
-	@RequestMapping(value = "userAnonymized/{userAnonymizedID}/networkActivity/", method = RequestMethod.POST)
+	@RequestMapping(value = "/userAnonymized/{userAnonymizedID}/networkActivity/", method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
 	public void analyzeNetworkActivity(@PathVariable UUID userAnonymizedID,
 			@RequestBody NetworkActivityDTO potentialConflictPayload)

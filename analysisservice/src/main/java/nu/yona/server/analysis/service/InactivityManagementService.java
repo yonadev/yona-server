@@ -46,7 +46,7 @@ public class InactivityManagementService
 	private UserAnonymizedSynchronizer userAnonymizedSynchronizer;
 
 	@Transactional
-	public void createInactivityEntities(UUID userAnonymizedID, Set<IntervalInactivity> intervalInactivities)
+	public void createInactivityEntities(UUID userAnonymizedID, Set<IntervalInactivityDTO> intervalInactivities)
 	{
 		try (Lock lock = userAnonymizedSynchronizer.lock(userAnonymizedID))
 		{
@@ -57,17 +57,17 @@ public class InactivityManagementService
 		}
 	}
 
-	private void createWeekInactivityEntities(UUID userAnonymizedID, Set<IntervalInactivity> weekInactivities)
+	private void createWeekInactivityEntities(UUID userAnonymizedID, Set<IntervalInactivityDTO> weekInactivities)
 	{
 		weekInactivities.stream().forEach(wi -> createWeekInactivity(userAnonymizedID, wi));
 	}
 
-	private void createDayInactivityEntities(UUID userAnonymizedID, Set<IntervalInactivity> weekInactivities)
+	private void createDayInactivityEntities(UUID userAnonymizedID, Set<IntervalInactivityDTO> weekInactivities)
 	{
 		weekInactivities.stream().forEach(wi -> createDayInactivity(userAnonymizedID, wi));
 	}
 
-	private void createWeekInactivity(UUID userAnonymizedID, IntervalInactivity weekInactivity)
+	private void createWeekInactivity(UUID userAnonymizedID, IntervalInactivityDTO weekInactivity)
 	{
 		createInactivity(userAnonymizedID, weekInactivity,
 				() -> weekActivityRepository.findOne(userAnonymizedID, weekInactivity.getStartTime().toLocalDate(),
@@ -75,7 +75,7 @@ public class InactivityManagementService
 				(ua, g) -> WeekActivity.createInstance(ua, g, weekInactivity.getStartTime()), weekActivityRepository);
 	}
 
-	private void createDayInactivity(UUID userAnonymizedID, IntervalInactivity dayInactivity)
+	private void createDayInactivity(UUID userAnonymizedID, IntervalInactivityDTO dayInactivity)
 	{
 		createInactivity(userAnonymizedID, dayInactivity,
 				() -> dayActivityRepository.findOne(userAnonymizedID, dayInactivity.getStartTime().toLocalDate(),
@@ -83,7 +83,7 @@ public class InactivityManagementService
 				(ua, g) -> DayActivity.createInstance(ua, g, dayInactivity.getStartTime()), dayActivityRepository);
 	}
 
-	private <T, R> void createInactivity(UUID userAnonymizedID, IntervalInactivity intervalInactivity,
+	private <T, R> void createInactivity(UUID userAnonymizedID, IntervalInactivityDTO intervalInactivity,
 			Supplier<T> existingActivityFinder, BiFunction<UserAnonymized, Goal, T> creator, CrudRepository<T, UUID> repository)
 	{
 		T existingActivity = existingActivityFinder.get();

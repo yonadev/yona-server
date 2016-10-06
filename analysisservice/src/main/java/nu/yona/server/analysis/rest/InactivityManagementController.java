@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.analysis.service.InactivityManagementService;
-import nu.yona.server.analysis.service.IntervalInactivity;
+import nu.yona.server.analysis.service.IntervalInactivityDTO;
 
 @Controller
 @RequestMapping(value = "/userAnonymized", produces = { MediaType.APPLICATION_JSON_VALUE })
@@ -30,7 +30,7 @@ public class InactivityManagementController
 	@RequestMapping(value = "/{userAnonymizedID}/inactivity/", method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
 	public void createInactivityEntities(@PathVariable UUID userAnonymizedID,
-			@RequestBody Set<IntervalInactivity> intervalInactivities)
+			@RequestBody Set<IntervalInactivityDTO> intervalInactivities)
 	{
 		inactivityManagementService.createInactivityEntities(userAnonymizedID, intervalInactivities);
 	}
