@@ -5,23 +5,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
-package nu.yona.server.subscriptions.service;
+package nu.yona.server.rest;
 
-import nu.yona.server.rest.ErrorResponseDTO;
+import org.springframework.http.HttpStatus;
 
-public class ConfirmationFailedResponseDTO extends ErrorResponseDTO
+public class RestUtil
 {
-	private final int remainingAttempts;
-
-	public ConfirmationFailedResponseDTO(String code, String message, int remainingAttempts)
+	public static boolean isError(HttpStatus status)
 	{
-		super(code, message);
-		this.remainingAttempts = remainingAttempts;
+		HttpStatus.Series series = status.series();
+		return (series == HttpStatus.Series.CLIENT_ERROR || series == HttpStatus.Series.SERVER_ERROR);
 	}
-
-	public int getRemainingAttempts()
-	{
-		return remainingAttempts;
-	}
-
 }

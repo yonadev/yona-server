@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2016 Stichting Yona Foundation
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server.analysis.service;
 
 import java.util.Collection;
@@ -10,9 +17,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonRootName;
-
-import nu.yona.server.analysis.entities.DayActivity;
-import nu.yona.server.goals.entities.TimeZoneGoal;
 
 @JsonRootName("dayActivityWithBuddies")
 public class DayActivityWithBuddiesDTO
@@ -38,7 +42,7 @@ public class DayActivityWithBuddiesDTO
 		return Collections.unmodifiableCollection(activitiesByUser);
 	}
 
-	static DayActivityWithBuddiesDTO createInstance(UUID activityCategoryID, Collection<DayActivity> dayActivities)
+	static DayActivityWithBuddiesDTO createInstance(UUID activityCategoryID, Collection<DayActivityDTO> dayActivities)
 	{
 		Collection<ActivityForOneUser> activitiesByUser = dayActivities.stream().map(da -> ActivityForOneUser.createInstance(da))
 				.collect(Collectors.toList());
@@ -63,13 +67,10 @@ public class DayActivityWithBuddiesDTO
 			this.totalMinutesBeyondGoal = totalMinutesBeyondGoal;
 		}
 
-		public static ActivityForOneUser createInstance(DayActivity dayActivity)
+		public static ActivityForOneUser createInstance(DayActivityDTO da)
 		{
-			List<Integer> spread = (dayActivity.getGoal() instanceof TimeZoneGoal) ? dayActivity.getSpread()
-					: Collections.emptyList();
-
-			return new ActivityForOneUser(dayActivity.getGoal().getID(), spread, dayActivity.getTotalActivityDurationMinutes(),
-					dayActivity.isGoalAccomplished(), dayActivity.getTotalMinutesBeyondGoal());
+			return new ActivityForOneUser(da.getGoalID(), da.getSpread(), da.getTotalActivityDurationMinutes().get(),
+					da.isGoalAccomplished(), da.getTotalMinutesBeyondGoal());
 		}
 
 		@JsonIgnore
