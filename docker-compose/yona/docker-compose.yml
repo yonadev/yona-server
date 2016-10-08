@@ -50,7 +50,7 @@ appservice:
   image: yonadev/appservice:$yonatag
   restart: unless-stopped
   environment:
-    - YONA_ANALYSIS_SERVICE_SERVICE_URL=http://analysisservice:8081
+    - YONA_ANALYSIS_SERVICE_SERVICE_URL=http://analysisservice:8080
   links:
     - hsqldb:yonadbserver
     - analysisservice:analysisservice
