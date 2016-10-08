@@ -23,7 +23,6 @@ import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.WeekActivity;
-import nu.yona.server.analysis.service.UserAnonymizedSynchronizer.Lock;
 import nu.yona.server.exceptions.AnalysisException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDTO;
@@ -35,6 +34,7 @@ import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
+import nu.yona.server.util.LockPool;
 
 @Service
 public class AnalysisEngineService
@@ -56,7 +56,7 @@ public class AnalysisEngineService
 	@Autowired(required = false)
 	private DayActivityRepository dayActivityRepository;
 	@Autowired
-	private UserAnonymizedSynchronizer userAnonymizedSynchronizer;
+	private LockPool<UUID> userAnonymizedSynchronizer;
 
 	@Transactional
 	public void analyze(UUID userAnonymizedID, AppActivityDTO appActivities)
@@ -332,7 +332,7 @@ public class AnalysisEngineService
 
 	private DayActivity createNewDayActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
 	{
-		try (Lock lock = userAnonymizedSynchronizer.lock(userAnonymized.getID()))
+		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(userAnonymized.getID()))
 		{
 			ZonedDateTime startOfDay = getStartOfDay(payload.startTime, userAnonymized);
 

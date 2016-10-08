@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server;
 
+import java.util.UUID;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -11,7 +13,7 @@ import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 
-import nu.yona.server.analysis.service.UserAnonymizedSynchronizer;
+import nu.yona.server.util.LockPool;
 
 @SpringBootApplication
 @EnableCaching
@@ -29,8 +31,8 @@ public class AnalysisServiceApplication extends SpringBootServletInitializer
 	}
 
 	@Bean
-	public UserAnonymizedSynchronizer userAnonymizedSynchronizer()
+	public LockPool<UUID> userAnonymizedSynchronizer()
 	{
-		return new UserAnonymizedSynchronizer();
+		return new LockPool<>();
 	}
 }

@@ -2,39 +2,38 @@
  * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
-package nu.yona.server.analysis.service;
+package nu.yona.server.util;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import nu.yona.server.exceptions.YonaException;
 
-public class UserAnonymizedSynchronizer
+public class LockPool<T>
 {
 	private enum LockStatus
 	{
 		FREE, LOCKED, LOCKED_BY_ME
 	}
 
-	private final Map<UUID, Thread> lockedUsers = new HashMap<>();
+	private final Map<T, Thread> pool = new HashMap<>();
 
-	public Lock lock(UUID userAnonymizedID)
+	public Lock lock(T id)
 	{
 		try
 		{
-			synchronized (lockedUsers)
+			synchronized (pool)
 			{
 				LockStatus lockStatus;
-				while ((lockStatus = getLockStatus(userAnonymizedID)) == LockStatus.LOCKED)
+				while ((lockStatus = getLockStatus(id)) == LockStatus.LOCKED)
 				{
-					lockedUsers.wait();
+					pool.wait();
 				}
 				if (lockStatus == LockStatus.FREE)
 				{
-					storeLock(userAnonymizedID);
+					storeLock(id);
 				}
-				return new Lock(userAnonymizedID, lockStatus == LockStatus.FREE);
+				return new Lock(id, lockStatus == LockStatus.FREE);
 			}
 		}
 		catch (InterruptedException e)
@@ -43,9 +42,9 @@ public class UserAnonymizedSynchronizer
 		}
 	}
 
-	private LockStatus getLockStatus(UUID userAnonymizedID)
+	private LockStatus getLockStatus(T id)
 	{
-		Thread thread = lockedUsers.get(userAnonymizedID);
+		Thread thread = pool.get(id);
 		if (thread == null)
 		{
 			return LockStatus.FREE;
@@ -57,31 +56,31 @@ public class UserAnonymizedSynchronizer
 		return LockStatus.LOCKED;
 	}
 
-	private void storeLock(UUID userAnonymizedID)
+	private void storeLock(T id)
 	{
-		if (lockedUsers.put(userAnonymizedID, Thread.currentThread()) != null)
+		if (pool.put(id, Thread.currentThread()) != null)
 		{
-			throw new IllegalStateException("Map already contains a locking thread for user anonymized ID " + userAnonymizedID);
+			throw new IllegalStateException("Map already contains a locking thread for ID " + id);
 		}
 	}
 
-	private void unlock(UUID userAnonymizedID)
+	private void unlock(T id)
 	{
-		synchronized (lockedUsers)
+		synchronized (pool)
 		{
-			lockedUsers.remove(userAnonymizedID);
-			lockedUsers.notifyAll();
+			pool.remove(id);
+			pool.notifyAll();
 		}
 	}
 
 	public class Lock implements AutoCloseable
 	{
-		private final UUID userAnonymizedID;
+		private final T id;
 		private final boolean mustUnlock;
 
-		private Lock(UUID userAnonymizedID, boolean mustUnlock)
+		private Lock(T id, boolean mustUnlock)
 		{
-			this.userAnonymizedID = userAnonymizedID;
+			this.id = id;
 			this.mustUnlock = mustUnlock;
 		}
 
@@ -90,7 +89,7 @@ public class UserAnonymizedSynchronizer
 		{
 			if (mustUnlock)
 			{
-				unlock(userAnonymizedID);
+				unlock(id);
 			}
 		}
 	}
