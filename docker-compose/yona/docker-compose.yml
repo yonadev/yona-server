@@ -49,8 +49,11 @@ analysisservice:
 appservice:
   image: yonadev/appservice:$yonatag
   restart: unless-stopped
+  environment:
+    - YONA_ANALYSIS_SERVICE_SERVICE_URL=http://analysisservice:8081
   links:
     - hsqldb:yonadbserver
+    - analysisservice:analysisservice
   ports:
     - 80:8080
   log_driver: "gelf"
