@@ -64,6 +64,7 @@ import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
+import nu.yona.server.util.LockPool;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AnalysisEngineServiceTests
@@ -85,7 +86,7 @@ public class AnalysisEngineServiceTests
 	@Mock
 	private DayActivityRepository mockDayActivityRepository;
 	@Mock
-	private UserAnonymizedSynchronizer userAnonymizedSynchronizer;
+	private LockPool<UUID> userAnonymizedSynchronizer;
 	@InjectMocks
 	private final AnalysisEngineService service = new AnalysisEngineService();
 
