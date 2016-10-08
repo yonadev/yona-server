@@ -29,7 +29,7 @@ public class AnalysisEngineProxyService
 	@PostConstruct
 	private void init()
 	{
-		analysisEngineURL = yonaProperties.getAnalysisService().getServiceURL();
+		analysisEngineURL = yonaProperties.getAnalysisService().getServiceUrl();
 	}
 
 	public void createInactivityEntities(UUID userAnonymizedID, Set<IntervalInactivityDTO> intervalInactivities)
