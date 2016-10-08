@@ -51,13 +51,7 @@ sub filter_relevant_url_categories {
 }
 
 sub transform_log_record ($) {
-	my ($log_record) = @_;
-	my $log_message = eval { decode_json($log_record) };
-	if ($@)
-	{
-		log_warning "decode_json failed, invalid json in log record. error:$@. Log record: $log_record";
-		return undef;
-	}
+	my ($log_message) = @_;
 	my $url = $log_message->{'url'};
 	if (!$log_message->{'tagset'}->{'username'}) {
 		log_warning "No user name";
@@ -115,16 +109,24 @@ sub handle_records_from_stream {
 	while (<$fh>) {
 		fetch_relevant_url_categories
 		my $log_record = $_;
-		my $analysis_event_json = transform_log_record $log_record;
+		my $log_message = eval { decode_json($log_record) };
+		if ($@)
+		{
+			log_warning "decode_json failed, invalid json in log record. error:$@. Log record: $log_record";
+		}
+		else
+		{
+			my $analysis_event_json = transform_log_record $log_message;
 
-		if ($analysis_event_json) {
-			my $user_dn = (keys $log_record->{'tagset'}->{'username'}) [0];
-			my $vpn_login_id = substr $user_dn, 3, 36;
-			my $user_anonymized_url = "${analysis_engine_url}userAnonymized/${vpn_login_id}/networkActivity/";
-			my $post_result = $ua->request(POST $user_anonymized_url, Content_Type => 'application/json', Content => $analysis_event_json);
-			my $status_code = $post_result->{'_rc'};
-			if ($status_code != 200) {
-				log_error "POST to '$analysis_engine_url' returned status $status_code";
+			if ($analysis_event_json) {
+				my $user_dn = (keys $log_message->{'tagset'}->{'username'}) [0];
+				my $vpn_login_id = substr $user_dn, 3, 36;
+				my $user_anonymized_url = "${analysis_engine_url}userAnonymized/${vpn_login_id}/networkActivity/";
+				my $post_result = $ua->request(POST $user_anonymized_url, Content_Type => 'application/json', Content => $analysis_event_json);
+				my $status_code = $post_result->{'_rc'};
+				if ($status_code != 200) {
+					log_error "POST to '$user_anonymized_url' returned status $status_code";
+				}
 			}
 		}
 	}
