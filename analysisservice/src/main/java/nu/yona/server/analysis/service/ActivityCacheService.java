@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +20,8 @@ import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.WeekActivity;
 
 @Service
+// DayActivity entities are cached which should not be serialized, hence the local cache
+@CacheConfig(cacheManager = "localCache")
 public class ActivityCacheService
 {
 	@Cacheable(value = "dayActivities", key = "{#userAnonymizedID,#goalID}")
