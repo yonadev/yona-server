@@ -34,6 +34,7 @@ import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
+import nu.yona.server.util.LockPool;
 
 @Service
 public class AnalysisEngineService
@@ -54,6 +55,8 @@ public class AnalysisEngineService
 	private MessageService messageService;
 	@Autowired(required = false)
 	private DayActivityRepository dayActivityRepository;
+	@Autowired
+	private LockPool<UUID> userAnonymizedSynchronizer;
 
 	@Transactional
 	public void analyze(UUID userAnonymizedID, AppActivityDTO appActivities)
@@ -67,6 +70,15 @@ public class AnalysisEngineService
 			analyze(createActivityPayload(deviceTimeOffset, appActivity, userAnonymized), userAnonymized,
 					matchingActivityCategories);
 		}
+	}
+
+	@Transactional
+	public void analyze(UUID userAnonymizedID, NetworkActivityDTO networkActivity)
+	{
+		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
+		Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryService
+				.getMatchingCategoriesForSmoothwallCategories(networkActivity.getCategories());
+		analyze(ActivityPayload.createInstance(userAnonymized, networkActivity), userAnonymized, matchingActivityCategories);
 	}
 
 	private Duration determineDeviceTimeOffset(AppActivityDTO appActivities)
@@ -107,15 +119,6 @@ public class AnalysisEngineService
 	private ZonedDateTime correctTime(Duration deviceTimeOffset, ZonedDateTime time)
 	{
 		return time.minus(deviceTimeOffset);
-	}
-
-	@Transactional
-	public void analyze(NetworkActivityDTO networkActivity)
-	{
-		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(networkActivity.getVPNLoginID());
-		Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryService
-				.getMatchingCategoriesForSmoothwallCategories(networkActivity.getCategories());
-		analyze(ActivityPayload.createInstance(userAnonymized, networkActivity), userAnonymized, matchingActivityCategories);
 	}
 
 	private void analyze(ActivityPayload payload, UserAnonymizedDTO userAnonymized,
@@ -329,10 +332,27 @@ public class AnalysisEngineService
 
 	private DayActivity createNewDayActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, Goal matchingGoal)
 	{
+		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(userAnonymized.getID()))
+		{
+			ZonedDateTime startOfDay = getStartOfDay(payload.startTime, userAnonymized);
+
+			// Within the lock, check that no other thread in the meanwhile created this day activity
+			DayActivity existingDayActivity = dayActivityRepository.findOne(userAnonymized.getID(), startOfDay.toLocalDate(),
+					matchingGoal.getID());
+			if (existingDayActivity != null)
+			{
+				return existingDayActivity;
+			}
+			return createNewDayActivityInsideLock(payload, userAnonymized, matchingGoal, startOfDay);
+		}
+	}
+
+	private DayActivity createNewDayActivityInsideLock(ActivityPayload payload, UserAnonymizedDTO userAnonymized,
+			Goal matchingGoal, ZonedDateTime startOfDay)
+	{
 		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymized.getID());
 
-		DayActivity dayActivity = DayActivity.createInstance(userAnonymizedEntity, matchingGoal,
-				getStartOfDay(payload.startTime, userAnonymized));
+		DayActivity dayActivity = DayActivity.createInstance(userAnonymizedEntity, matchingGoal, startOfDay);
 
 		ZonedDateTime startOfWeek = getStartOfWeek(payload.startTime, userAnonymized);
 		WeekActivity weekActivity = cacheService.fetchWeekActivityForUser(userAnonymized.getID(), matchingGoal.getID(),

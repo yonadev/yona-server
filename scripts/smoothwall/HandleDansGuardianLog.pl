@@ -12,7 +12,7 @@ use LWP::UserAgent;
 use HTTP::Request::Common;
 use Getopt::Long;
 
-my $analysis_engine_url = 'http://localhost:8081/analysisEngine/';
+my $analysis_engine_url = 'http://localhost:8081/';
 my $categories_refresh_interval = 300;
 my $relevant_url_categories_load_time = 0;
 my %relevant_url_categories;
@@ -51,13 +51,7 @@ sub filter_relevant_url_categories {
 }
 
 sub transform_log_record ($) {
-	my ($log_record) = @_;
-	my $log_message = eval { decode_json($log_record) };
-	if ($@)
-	{
-		log_warning "decode_json failed, invalid json in log record. error:$@. Log record: $log_record";
-		return undef;
-	}
+	my ($log_message) = @_;
 	my $url = $log_message->{'url'};
 	if (!$log_message->{'tagset'}->{'username'}) {
 		log_warning "No user name";
@@ -75,11 +69,7 @@ sub transform_log_record ($) {
 		return undef;
 	}
 
-	my $userDN = (keys $log_message->{'tagset'}->{'username'}) [0];
-	my $vpnLoginID = substr $userDN, 3, 36;
-
 	my $analysis_event = {
-		'vpnLoginID' => $vpnLoginID,
 		'categories' => [@relevant_url_categories_logged],
 		'url' => $url
 	};
@@ -118,13 +108,25 @@ sub handle_records_from_stream {
 	fetch_relevant_url_categories; # To check the connection, before receiving the first event
 	while (<$fh>) {
 		fetch_relevant_url_categories
-		my $analysis_event_json = transform_log_record $_;
+		my $log_record = $_;
+		my $log_message = eval { decode_json($log_record) };
+		if ($@)
+		{
+			log_warning "decode_json failed, invalid json in log record. error:$@. Log record: $log_record";
+		}
+		else
+		{
+			my $analysis_event_json = transform_log_record $log_message;
 
-		if ($analysis_event_json) {
-			my $post_result = $ua->request(POST $analysis_engine_url, Content_Type => 'application/json', Content => $analysis_event_json);
-			my $status_code = $post_result->{'_rc'};
-			if ($status_code != 200) {
-				log_error "POST to '$analysis_engine_url' returned status $status_code";
+			if ($analysis_event_json) {
+				my $user_dn = (keys $log_message->{'tagset'}->{'username'}) [0];
+				my $vpn_login_id = substr $user_dn, 3, 36;
+				my $user_anonymized_url = "${analysis_engine_url}userAnonymized/${vpn_login_id}/networkActivity/";
+				my $post_result = $ua->request(POST $user_anonymized_url, Content_Type => 'application/json', Content => $analysis_event_json);
+				my $status_code = $post_result->{'_rc'};
+				if ($status_code != 200) {
+					log_error "POST to '$user_anonymized_url' returned status $status_code";
+				}
 			}
 		}
 	}

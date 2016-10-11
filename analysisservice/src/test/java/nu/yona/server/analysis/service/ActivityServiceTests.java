@@ -80,9 +80,11 @@ public class ActivityServiceTests
 	private DayActivityRepository mockDayActivityRepository;
 	@Mock
 	private Repositories mockRepositories;
+	@Mock
+	private AnalysisEngineProxyService analysisEngineProxyService;
 
 	@InjectMocks
-	private ActivityService service = new ActivityService();
+	private final ActivityService service = new ActivityService();
 
 	private Goal gamblingGoal;
 	private Goal newsGoal;
@@ -204,7 +206,7 @@ public class ActivityServiceTests
 		DayActivityDTO dayActivityForGambling = dayOverview.getDayActivities().stream()
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
 		assertThat(dayActivityForGambling.getStartTime(), equalTo(today));
-		assertThat(dayActivityForGambling.getTotalActivityDurationMinutes(), equalTo(0));
+		assertThat(dayActivityForGambling.getTotalActivityDurationMinutes().get(), equalTo(0));
 		assertThat(dayActivityForGambling.getTotalMinutesBeyondGoal(), equalTo(0));
 
 		// get yesterday, with recorded activity
@@ -213,7 +215,7 @@ public class ActivityServiceTests
 		dayActivityForGambling = dayOverview.getDayActivities().stream().filter(a -> a.getGoalID().equals(gamblingGoal.getID()))
 				.findAny().get();
 		assertThat(dayActivityForGambling.getStartTime(), equalTo(yesterday));
-		assertThat(dayActivityForGambling.getTotalActivityDurationMinutes(), equalTo(2));
+		assertThat(dayActivityForGambling.getTotalActivityDurationMinutes().get(), equalTo(2));
 		assertThat(dayActivityForGambling.getTotalMinutesBeyondGoal(), equalTo(2));
 	}
 
@@ -221,7 +223,6 @@ public class ActivityServiceTests
 	public void weekActivityOverview()
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
-		int thisWeekNumberOfWeekDaysPast = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
 
 		// gambling goal was created 2 weeks ago, see above
 		// mock some activity in previous week on Saturday 19:10-19:55
@@ -264,6 +265,7 @@ public class ActivityServiceTests
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
 		assertThat(weekActivityForGambling.getStartTime(), equalTo(getWeekStartTime(today)));
 		// TODO: mock day activity in this week?
+		// int thisWeekNumberOfWeekDaysPast = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
 		// assertThat(weekActivityForGambling.getDayActivities().size(), equalTo(1 + thisWeekNumberOfWeekDaysPast));
 		//// always contains Sunday because it is the first day of the week
 		// assertThat(weekActivityForGambling.getDayActivities(), hasKey(DayOfWeek.SUNDAY));
@@ -276,10 +278,10 @@ public class ActivityServiceTests
 		assertThat(weekActivityForGambling.getStartTime(), equalTo(getWeekStartTime(today.minusWeeks(1))));
 		assertThat(weekActivityForGambling.getDayActivities().size(), equalTo(7));
 		DayActivityDTO previousWeekSaturdayActivity = weekActivityForGambling.getDayActivities().get(DayOfWeek.SATURDAY);
-		assertThat(previousWeekSaturdayActivity.getTotalActivityDurationMinutes(), equalTo(45));
+		assertThat(previousWeekSaturdayActivity.getTotalActivityDurationMinutes().get(), equalTo(45));
 		assertThat(previousWeekSaturdayActivity.getTotalMinutesBeyondGoal(), equalTo(45));
 		DayActivityDTO previousWeekFridayActivity = weekActivityForGambling.getDayActivities().get(DayOfWeek.FRIDAY);
-		assertThat(previousWeekFridayActivity.getTotalActivityDurationMinutes(), equalTo(0));
+		assertThat(previousWeekFridayActivity.getTotalActivityDurationMinutes().get(), equalTo(0));
 
 		// get the week the gambling goal was created
 		weekOverview = weekOverviews.getContent().get(2);
@@ -287,9 +289,9 @@ public class ActivityServiceTests
 		weekActivityForGambling = weekOverview.getWeekActivities().stream()
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
 		assertThat(weekActivityForGambling.getStartTime(), equalTo(getWeekStartTime(today.minusWeeks(2))));
-		int expectedNumberOfWeekDaysRecorded = gamblingGoal.getCreationTime().getDayOfWeek() == DayOfWeek.SUNDAY ? 7
-				: 7 - gamblingGoal.getCreationTime().getDayOfWeek().getValue();
 		// TODO: mock day activity in this week?
+		// int expectedNumberOfWeekDaysRecorded = gamblingGoal.getCreationTime().getDayOfWeek() == DayOfWeek.SUNDAY ? 7
+		// : 7 - gamblingGoal.getCreationTime().getDayOfWeek().getValue();
 		// assertThat(weekActivityForGambling.getDayActivities().size(), equalTo(expectedNumberOfWeekDaysRecorded));
 		//// always contains Saturday because it is the last day of the week
 		// assertThat(weekActivityForGambling.getDayActivities(), hasKey(DayOfWeek.SATURDAY));
@@ -310,16 +312,13 @@ public class ActivityServiceTests
 		DayActivityDTO inactivityDayForGambling = inactivityDayOverview.getDayActivities().stream()
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
 		assertThat(inactivityDayForGambling.getStartTime(), equalTo(today));
-		assertThat(inactivityDayForGambling.getTotalActivityDurationMinutes(), equalTo(0));
+		assertThat(inactivityDayForGambling.getTotalActivityDurationMinutes().get(), equalTo(0));
 		assertThat(inactivityDayForGambling.getTotalMinutesBeyondGoal(), equalTo(0));
 	}
 
 	@Test
 	public void weekActivityOverviewInactivity()
 	{
-		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
-		int thisWeekNumberOfWeekDaysPast = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
-
 		Page<WeekActivityOverviewDTO> inactivityWeekOverviews = service.getUserWeekActivityOverviews(userID,
 				new PageRequest(0, 5));
 		// because the gambling goal was added with creation date two weeks ago, there are multiple weeks
@@ -331,6 +330,8 @@ public class ActivityServiceTests
 				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
 		assertThat(inactivityWeekForGambling.getStartTime(), equalTo(getWeekStartTime(ZonedDateTime.now(userAnonZone))));
 		// TODO: mock day activity in this week?
+		// ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
+		// int thisWeekNumberOfWeekDaysPast = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
 		// assertThat(inactivityWeekForGambling.getDayActivities().size(), equalTo(1 + thisWeekNumberOfWeekDaysPast));
 	}
 
@@ -344,7 +345,7 @@ public class ActivityServiceTests
 		assertThat(inactivityDay.getSpread().size(), equalTo(96));
 		assertThat(inactivityDay.getStartTime(), equalTo(today));
 		assertThat(inactivityDay.getTimeZoneId(), equalTo(userAnonZone.getId()));
-		assertThat(inactivityDay.getTotalActivityDurationMinutes(), equalTo(0));
+		assertThat(inactivityDay.getTotalActivityDurationMinutes().get(), equalTo(0));
 		assertThat(inactivityDay.getTotalMinutesBeyondGoal(), equalTo(0));
 	}
 
@@ -356,7 +357,7 @@ public class ActivityServiceTests
 		assertThat(inactivityWeek.getSpread().size(), equalTo(96));
 		assertThat(inactivityWeek.getStartTime(), equalTo(getWeekStartTime(ZonedDateTime.now(userAnonZone))));
 		assertThat(inactivityWeek.getTimeZoneId(), equalTo(userAnonZone.getId()));
-		assertThat(inactivityWeek.getTotalActivityDurationMinutes(), equalTo(0));
+		assertThat(inactivityWeek.getTotalActivityDurationMinutes().get(), equalTo(0));
 	}
 
 	@Test

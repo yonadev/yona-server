@@ -11,6 +11,7 @@ public class AnalysisServiceProperties
 	private Duration conflictInterval = Duration.ofMinutes(15);
 	private Duration updateSkipWindow = Duration.ofSeconds(5);
 	private Duration activityMemory = Duration.ofDays(490);
+	private String serviceUrl = "http://localhost:8081";
 
 	public Duration getActivityMemory()
 	{
@@ -40,5 +41,15 @@ public class AnalysisServiceProperties
 	public void setUpdateSkipWindow(String updateSkipWindow)
 	{
 		this.updateSkipWindow = Duration.parse(updateSkipWindow);
+	}
+
+	public String getServiceUrl()
+	{
+		return serviceUrl;
+	}
+
+	public void setServiceUrl(String serviceUrl)
+	{
+		this.serviceUrl = serviceUrl;
 	}
 }

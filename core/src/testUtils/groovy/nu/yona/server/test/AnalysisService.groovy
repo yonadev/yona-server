@@ -14,7 +14,7 @@ import nu.yona.server.YonaServer
 
 class AnalysisService extends Service
 {
-	final ANALYSIS_ENGINE_PATH = "/analysisEngine/"
+	final USER_ANONYMIZED_PATH = "/userAnonymized/"
 	final RELEVANT_SMOOTHWALL_CATEGORIES_PATH_FRAGMENT = "/relevantSmoothwallCategories/"
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
@@ -26,7 +26,7 @@ class AnalysisService extends Service
 
 	def getRelevantSmoothwallCategories()
 	{
-		yonaServer.getResource(ANALYSIS_ENGINE_PATH + RELEVANT_SMOOTHWALL_CATEGORIES_PATH_FRAGMENT)
+		yonaServer.getResource(RELEVANT_SMOOTHWALL_CATEGORIES_PATH_FRAGMENT)
 	}
 
 	def postToAnalysisEngine(user, categories, url, ZonedDateTime eventTime = null)
@@ -34,15 +34,14 @@ class AnalysisService extends Service
 		def categoriesString = YonaServer.makeStringList(categories)
 		def eventTimeString = (eventTime) ? YonaServer.toIsoDateString(eventTime) : null
 		def eventTimeProperty = (eventTimeString) ? """"eventTime" : "$eventTimeString",""" : ""
-		postToAnalysisEngine("""{
+		postToAnalysisEngine(user.vpnProfile.vpnLoginID, """{
 					$eventTimeProperty
-					"vpnLoginID":"$user.vpnProfile.vpnLoginID",
 					"categories": [$categoriesString],
 					"url":"$url"
 				}""")
 	}
-	def postToAnalysisEngine(jsonString)
+	def postToAnalysisEngine(String vpnLoginID, jsonString)
 	{
-		yonaServer.postJson(ANALYSIS_ENGINE_PATH, jsonString)
+		yonaServer.postJson(USER_ANONYMIZED_PATH + vpnLoginID + "/networkActivity/", jsonString)
 	}
 }

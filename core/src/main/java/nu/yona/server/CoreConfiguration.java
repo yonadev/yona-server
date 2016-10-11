@@ -26,13 +26,16 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.config.Config;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.rest.RestClientErrorHandler;
 
 @EnableHypermediaSupport(type = HypermediaType.HAL)
 @EnableSpringDataWebSupport
@@ -123,6 +126,11 @@ public class CoreConfiguration
 		ObjectMapper springHateoasObjectMapper = beanFactory.getBean(SPRING_HATEOAS_OBJECT_MAPPER, ObjectMapper.class);
 		Jackson2ObjectMapperBuilder builder = beanFactory.getBean(Jackson2ObjectMapperBuilder.class);
 		builder.configure(springHateoasObjectMapper);
+
+		// By default, Jackson converts dates to UTC. This causes issues when passing inactivity creation requests from the app
+		// service to the analysis engine service.
+		springHateoasObjectMapper.disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
+
 		return springHateoasObjectMapper;
 	}
 
@@ -141,8 +149,15 @@ public class CoreConfiguration
 	}
 
 	@Bean
+	public RestTemplate restTemplate(ObjectMapper objectMapper)
+	{
+		RestTemplate restTemplate = new RestTemplate();
+		restTemplate.setErrorHandler(new RestClientErrorHandler(objectMapper));
+		return restTemplate;
+	}
+
+	@Bean
 	public com.hazelcast.config.Config hazelcastConfig()
 	{
-		return new Config();
-	}
+		return new Config();	}
 }

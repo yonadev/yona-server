@@ -6,7 +6,7 @@ package nu.yona.server.goals.service;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
 import nu.yona.server.Constants;
+import nu.yona.server.entities.EntityUtil;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.TimeZoneGoal;
@@ -77,7 +78,7 @@ public abstract class GoalDTO extends PolymorphicDTO implements Serializable
 		return endTime != null;
 	}
 
-	public boolean wasActiveAtInterval(ZonedDateTime dateAtStartOfInterval, ChronoUnit timeUnit)
+	public boolean wasActiveAtInterval(ZonedDateTime dateAtStartOfInterval, TemporalUnit timeUnit)
 	{
 		if (creationTime == null)
 		{
@@ -115,6 +116,7 @@ public abstract class GoalDTO extends PolymorphicDTO implements Serializable
 
 	public static GoalDTO createInstance(Goal goal)
 	{
+		goal = EntityUtil.enforceLoading(goal);
 		if (goal instanceof BudgetGoal)
 		{
 			return BudgetGoalDTO.createInstance((BudgetGoal) goal);

@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.messaging.service.MessageDestinationDTO;
@@ -52,6 +53,12 @@ public class UserAnonymizedDTO implements Serializable
 	public Set<GoalDTO> getGoals()
 	{
 		return goals;
+	}
+
+	public Set<GoalDTO> getGoalsForActivityCategory(ActivityCategory activityCategory)
+	{
+		return getGoals().stream().filter(g -> g.getActivityCategoryID().equals(activityCategory.getID()))
+				.collect(Collectors.toSet());
 	}
 
 	public String getTimeZoneId()

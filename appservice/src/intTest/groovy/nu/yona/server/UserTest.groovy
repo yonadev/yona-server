@@ -300,6 +300,17 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
+	def 'Retrieve Apple App site association'()
+	{
+		when:
+		def responseAppleAppSiteAssociation = appService.yonaServer.restClient.get(path: "/.well-known/apple-app-site-association")
+
+		then:
+		responseAppleAppSiteAssociation.status == 200
+		responseAppleAppSiteAssociation.contentType == "application/json"
+		responseAppleAppSiteAssociation.responseData.applinks.details[0].appID ==~ /.*\.yona/
+	}
+
 	def confirmMobileNumber(User user, code)
 	{
 		appService.confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${code}" } """, user.password)
