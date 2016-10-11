@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,36 +15,23 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.DayActivity;
-import nu.yona.server.analysis.entities.WeekActivity;
 
 @Service
 public class ActivityCacheService
 {
-	@Cacheable(value = "dayActivities", key = "{#userAnonymizedID,#goalID}")
+	@Cacheable(value = "activities", key = "{#userAnonymizedID,#goalID}")
 	@Transactional
-	public DayActivity fetchLastDayActivityForUser(UUID userAnonymizedID, UUID goalID)
+	public ActivityDTO fetchLastActivityForUser(UUID userAnonymizedID, UUID goalID)
 	{
 		List<DayActivity> lastActivityList = DayActivity.getRepository().findLast(userAnonymizedID, goalID, new PageRequest(0, 1))
 				.getContent();
-		return lastActivityList.isEmpty() ? null : lastActivityList.get(0);
+		return lastActivityList.isEmpty() ? null : ActivityDTO.createInstance(lastActivityList.get(0).getLastActivity());
 	}
 
-	@CachePut(value = "dayActivities", key = "{#dayActivity.userAnonymized.getID(),#dayActivity.goal.getID()}")
-	public DayActivity updateLastDayActivityForUser(DayActivity dayActivity)
+	@CachePut(value = "activities", key = "{#userAnonymizedID,#goalID}")
+	public ActivityDTO updateLastActivityForUser(UUID userAnonymizedID, UUID goalID, ActivityDTO activity)
 	{
 		// Nothing else to do. Just let Spring cache this new value.
-		return dayActivity;
-	}
-
-	@Transactional
-	public WeekActivity fetchWeekActivityForUser(UUID userAnonymizedID, UUID goalID, LocalDate date)
-	{
-		return WeekActivity.getRepository().findOne(userAnonymizedID, goalID, date);
-	}
-
-	@Transactional
-	public WeekActivity updateWeekActivityForUser(WeekActivity weekActivity)
-	{
-		return WeekActivity.getRepository().save(weekActivity);
+		return activity;
 	}
 }
