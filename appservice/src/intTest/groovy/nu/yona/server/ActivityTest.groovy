@@ -940,6 +940,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		reportAppActivity(bob, "NU.nl", "W-1 Tue 03:15", "W-1 Tue 03:35")
 
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
@@ -963,6 +964,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		reportAppActivity(bob, "NU.nl", "W-1 Tue 03:15", "W-1 Tue 03:35")
 
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
@@ -1068,6 +1070,62 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
 		appService.deleteUser(bea)
+	}
+
+	def 'Comment on inactive day'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+
+		Goal budgetGoalNewsBuddyBob = richard.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
+
+		def responseDayOverviewsBobAsBuddyAll = appService.getDayActivityOverviews(richard, richard.buddies[0])
+		assert responseDayOverviewsBobAsBuddyAll.status == 200
+
+		def responseDetailsBobAsBuddy = appService.getDayDetailsFromOverview(responseDayOverviewsBobAsBuddyAll, richard, budgetGoalNewsBuddyBob, 0, getCurrentShortDay(YonaServer.now))
+		assert responseDetailsBobAsBuddy.responseData._links."yona:addComment".href
+		assert responseDetailsBobAsBuddy.responseData._links."yona:messages".href
+
+		when:
+		def message = """{"message": "You're quiet!"}"""
+		def responseAddMessage = appService.yonaServer.createResourceWithPassword(responseDetailsBobAsBuddy.responseData._links."yona:addComment".href, message, richard.password)
+
+		then:
+		responseAddMessage.status == 200
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Comment on inactive week'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+
+		Goal budgetGoalNewsBuddyBob = richard.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
+
+		def responseWeekOverviewsBobAsBuddyAll = appService.getWeekActivityOverviews(richard, richard.buddies[0])
+		assert responseWeekOverviewsBobAsBuddyAll.status == 200
+
+		def responseDetailsBobAsBuddy = appService.getWeekDetailsFromOverview(responseWeekOverviewsBobAsBuddyAll, richard, budgetGoalNewsBuddyBob, 0)
+		assert responseDetailsBobAsBuddy.responseData._links."yona:addComment".href
+		assert responseDetailsBobAsBuddy.responseData._links."yona:messages".href
+
+		when:
+		def message = """{"message": "You're quiet!"}"""
+		def responseAddMessage = appService.yonaServer.createResourceWithPassword(responseDetailsBobAsBuddy.responseData._links."yona:addComment".href, message, richard.password)
+
+		then:
+		responseAddMessage.status == 200
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
 	def 'Richard retrieves buddy activity info before Bob accepted Richard\'s buddy request'()

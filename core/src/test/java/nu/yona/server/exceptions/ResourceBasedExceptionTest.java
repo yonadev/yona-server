@@ -35,7 +35,6 @@ class MainContext
 @ContextConfiguration(classes = { MainContext.class })
 public class ResourceBasedExceptionTest
 {
-
 	private static Locale originalLocale;
 
 	private static class TestException extends ResourceBasedException
