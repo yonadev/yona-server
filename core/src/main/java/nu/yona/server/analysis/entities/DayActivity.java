@@ -19,9 +19,6 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
@@ -44,8 +41,6 @@ public class DayActivity extends IntervalActivity
 
 	private boolean goalAccomplished;
 	private int totalMinutesBeyondGoal;
-
-	private static final Logger logger = LoggerFactory.getLogger(DayActivity.class);
 
 	// Default constructor is required for JPA
 	public DayActivity()
@@ -211,17 +206,7 @@ public class DayActivity extends IntervalActivity
 
 	public static DayActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay)
 	{
-		UUID id = UUID.randomUUID();
-		logger.info(
-				"YD-295 - DayActivity.createInstance(" + userAnonymized.getID() + ", goal with ID " + goal.getID()
-						+ " for activity category " + goal.getActivityCategory().getID() + ", " + startOfDay + ") with ID " + id,
-				new Throwable().fillInStackTrace());
-		return new DayActivity(id, userAnonymized, goal, startOfDay, new ArrayList<Activity>(),
+		return new DayActivity(UUID.randomUUID(), userAnonymized, goal, startOfDay, new ArrayList<Activity>(),
 				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, true, false);
-	}
-
-	public static DayActivity createInstanceInactivity(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay)
-	{
-		return createInstance(userAnonymized, goal, startOfDay);
 	}
 }

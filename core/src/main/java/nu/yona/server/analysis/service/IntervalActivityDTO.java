@@ -16,6 +16,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import nu.yona.server.analysis.entities.IntervalActivity;
+import nu.yona.server.goals.service.GoalDTO;
+
 public abstract class IntervalActivityDTO
 {
 	public enum LevelOfDetail
@@ -142,9 +145,19 @@ public abstract class IntervalActivityDTO
 		return spread;
 	}
 
-	@JsonInclude(Include.NON_NULL)
-	public Integer getTotalActivityDurationMinutes()
+	@JsonInclude(Include.NON_EMPTY)
+	public Optional<Integer> getTotalActivityDurationMinutes()
 	{
-		return totalActivityDurationMinutes.orElse(null);
+		return totalActivityDurationMinutes;
+	}
+
+	public static boolean hasPrevious(GoalDTO goal, ZonedDateTime startTime, TemporalUnit timeUnit)
+	{
+		return goal.wasActiveAtInterval(startTime.minus(1, timeUnit), timeUnit);
+	}
+
+	public static boolean hasNext(ZonedDateTime startTime, TemporalUnit timeUnit)
+	{
+		return IntervalActivity.hasNext(startTime, timeUnit);
 	}
 }
