@@ -62,14 +62,19 @@ public class ActivityCategoryServiceIntegrationTest extends ActivityCategoryServ
 	{
 		assertGetAllActivityCategoriesResult("Initial", "gambling", "news");
 
+		ActivityCategory dummy = ActivityCategory.createInstance(UUID.randomUUID(), usString("dummy"), false,
+				new HashSet<String>(Arrays.asList("games")), Collections.emptySet());
 		ActivityCategory gaming = ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
 				new HashSet<String>(Arrays.asList("games")), Collections.emptySet());
+		// Add to collection, so it appears as if it is in the database
+		// It hasn't been loaded, so should not be in the cache
 		activityCategories.add(gaming);
 		when(mockRepository.findOne(gaming.getID())).thenReturn(gaming);
 
 		assertGetAllActivityCategoriesResult("Set expected to be cached", "gambling", "news");
 
-		service.addActivityCategory(ActivityCategoryDTO.createInstance(gaming));
+		// Add dummy activity category to trigger cache eviction
+		service.addActivityCategory(ActivityCategoryDTO.createInstance(dummy));
 
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after add", "gambling", "news", "gaming");
 

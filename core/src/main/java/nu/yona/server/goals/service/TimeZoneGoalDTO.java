@@ -160,7 +160,7 @@ public class TimeZoneGoalDTO extends GoalDTO
 		ActivityCategory activityCategory = ActivityCategory.getRepository().findOne(this.getActivityCategoryID());
 		if (activityCategory == null)
 		{
-			throw ActivityCategoryNotFoundException.notFound(this.getActivityCategoryID());
+			throw ActivityCategoryException.notFound(this.getActivityCategoryID());
 		}
 		return TimeZoneGoal.createInstance(getCreationTime().orElse(ZonedDateTime.now()), activityCategory, this.zones);
 	}
