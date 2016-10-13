@@ -217,20 +217,15 @@ public class AnalysisEngineService
 		ActivityDTO lastRegisteredActivity = cacheService.fetchLastActivityForUser(userAnonymized.getID(), matchingGoal.getID());
 		if (lastRegisteredActivity == null)
 		{
-			return ActivityCacheResult.none();
+			return ActivityCacheResult.cacheEmpty();
 		}
-		else if (isOnPrecedingDay(payload, lastRegisteredActivity))
+		else if (hasLaterDay(lastRegisteredActivity, payload))
 		{
-			// Fetch from the database because it is no longer in the cache
-			DayActivity precedingDayActivity = findExistingDayActivity(payload, userAnonymized, matchingGoal.getID());
-			Activity precedingDayLastActivityEntity = precedingDayActivity == null ? null
-					: precedingDayActivity.getLastActivity();
-			return ActivityCacheResult.preceding(
-					precedingDayLastActivityEntity == null ? null : ActivityDTO.createInstance(precedingDayLastActivityEntity));
+			return ActivityCacheResult.cachedHasLaterDay();
 		}
-		else if (isOnFollowingDay(payload, lastRegisteredActivity))
+		else if (hasEarlierDay(lastRegisteredActivity, payload))
 		{
-			return ActivityCacheResult.following();
+			return ActivityCacheResult.cachedHasEarlierDay();
 		}
 		else
 		{
@@ -244,19 +239,19 @@ public class AnalysisEngineService
 				getStartOfDay(payload.startTime, userAnonymized).toLocalDate(), matchingGoalID);
 	}
 
-	private boolean isOnFollowingDay(ActivityPayload payload, ActivityDTO lastRegisteredActivity)
+	private boolean hasEarlierDay(ActivityDTO lastRegisteredActivity, ActivityPayload payload)
 	{
-		return payload.startTime.isAfter(lastRegisteredActivity.getEndTime());
+		return lastRegisteredActivity.getEndTime().isBefore(getStartOfDay(payload.startTime, payload.userAnonymized));
 	}
 
-	private boolean isOnPrecedingDay(ActivityPayload payload, ActivityDTO lastRegisteredActivity)
+	private boolean hasLaterDay(ActivityDTO lastRegisteredActivity, ActivityPayload payload)
 	{
-		return payload.startTime.isBefore(lastRegisteredActivity.getStartTime());
+		return getStartOfDay(lastRegisteredActivity.getStartTime(), payload.userAnonymized).isAfter(payload.startTime);
 	}
 
 	private boolean isCrossDayActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized)
 	{
-		return getStartOfDay(payload.startTime, userAnonymized).isBefore(getStartOfDay(payload.endTime, userAnonymized));
+		return getStartOfDay(payload.endTime, userAnonymized).isAfter(payload.startTime);
 	}
 
 	private void addActivity(ActivityPayload payload, UserAnonymizedDTO userAnonymized, GoalDTO matchingGoal,
@@ -264,7 +259,7 @@ public class AnalysisEngineService
 	{
 		Goal matchingGoalEntity = goalService.getGoalEntityForUserAnonymizedID(userAnonymized.getID(), matchingGoal.getID());
 		Activity addedActivity = createNewActivity(payload, userAnonymized, matchingGoalEntity);
-		if (activityCacheResult.shouldUpdateCache())
+		if (shouldUpdateCache(activityCacheResult, addedActivity))
 		{
 			cacheService.updateLastActivityForUser(userAnonymized.getID(), matchingGoal.getID(),
 					ActivityDTO.createInstance(addedActivity));
@@ -286,11 +281,20 @@ public class AnalysisEngineService
 		DayActivity updatedDayActivity = dayActivityRepository.save(dayActivity);
 		// TODO: are we sure that getLastActivity() gives the same activity? no concurrency issues?
 		Activity updatedActivity = updatedDayActivity.getLastActivity();
-		if (activityCacheResult.shouldUpdateCache())
+		if (shouldUpdateCache(activityCacheResult, updatedActivity))
 		{
 			cacheService.updateLastActivityForUser(userAnonymized.getID(), matchingGoal.getID(),
 					ActivityDTO.createInstance(updatedActivity));
 		}
+	}
+
+	private boolean shouldUpdateCache(ActivityCacheResult activityCacheResult, Activity newOrUpdatedActivity)
+	{
+		if (activityCacheResult.content == null)
+		{
+			return activityCacheResult.status != ActivityCacheResultStatus.CACHED_HAS_LATER_DAY;
+		}
+		return activityCacheResult.content.getEndTime().isBefore(newOrUpdatedActivity.getEndTime());
 	}
 
 	private ZonedDateTime getStartOfDay(ZonedDateTime time, UserAnonymizedDTO userAnonymized)
@@ -411,7 +415,7 @@ public class AnalysisEngineService
 
 	private enum ActivityCacheResultStatus
 	{
-		CACHE_EMPTY, FROM_CACHE, FOLLOWING_LAST_CACHED, PRECEDING_LAST_CACHED
+		CACHE_EMPTY, FROM_CACHE, CACHED_HAS_EARLIER_DAY, CACHED_HAS_LATER_DAY
 	}
 
 	private static class ActivityCacheResult
@@ -425,12 +429,7 @@ public class AnalysisEngineService
 			this.content = content;
 		}
 
-		public boolean shouldUpdateCache()
-		{
-			return this.status != ActivityCacheResultStatus.PRECEDING_LAST_CACHED;
-		}
-
-		public static ActivityCacheResult none()
+		public static ActivityCacheResult cacheEmpty()
 		{
 			return new ActivityCacheResult(null, ActivityCacheResultStatus.CACHE_EMPTY);
 		}
@@ -440,27 +439,29 @@ public class AnalysisEngineService
 			return new ActivityCacheResult(lastRegisteredActivity, ActivityCacheResultStatus.FROM_CACHE);
 		}
 
-		public static ActivityCacheResult following()
+		public static ActivityCacheResult cachedHasEarlierDay()
 		{
-			return new ActivityCacheResult(null, ActivityCacheResultStatus.FOLLOWING_LAST_CACHED);
+			return new ActivityCacheResult(null, ActivityCacheResultStatus.CACHED_HAS_EARLIER_DAY);
 		}
 
-		public static ActivityCacheResult preceding(ActivityDTO resultFromDatabase)
+		public static ActivityCacheResult cachedHasLaterDay()
 		{
-			return new ActivityCacheResult(resultFromDatabase, ActivityCacheResultStatus.PRECEDING_LAST_CACHED);
+			return new ActivityCacheResult(null, ActivityCacheResultStatus.CACHED_HAS_LATER_DAY);
 		}
 	}
 
 	private static class ActivityPayload
 	{
+		public final UserAnonymizedDTO userAnonymized;
 		public final Optional<String> url;
 		public final ZonedDateTime startTime;
 		public final ZonedDateTime endTime;
 		public final Optional<String> application;
 
-		private ActivityPayload(Optional<String> url, ZonedDateTime startTime, ZonedDateTime endTime,
-				Optional<String> application)
+		private ActivityPayload(UserAnonymizedDTO userAnonymized, Optional<String> url, ZonedDateTime startTime,
+				ZonedDateTime endTime, Optional<String> application)
 		{
+			this.userAnonymized = userAnonymized;
 			this.url = url;
 			this.startTime = startTime;
 			this.endTime = endTime;
@@ -469,26 +470,27 @@ public class AnalysisEngineService
 
 		static ActivityPayload copyTillEndTime(ActivityPayload payload, ZonedDateTime endTime)
 		{
-			return new ActivityPayload(payload.url, payload.startTime, endTime, payload.application);
+			return new ActivityPayload(payload.userAnonymized, payload.url, payload.startTime, endTime, payload.application);
 		}
 
 		static ActivityPayload copyFromStartTime(ActivityPayload payload, ZonedDateTime startTime)
 		{
-			return new ActivityPayload(payload.url, startTime, payload.endTime, payload.application);
+			return new ActivityPayload(payload.userAnonymized, payload.url, startTime, payload.endTime, payload.application);
 		}
 
 		static ActivityPayload createInstance(UserAnonymizedDTO userAnonymized, NetworkActivityDTO networkActivity)
 		{
 			ZonedDateTime startTime = networkActivity.getEventTime().orElse(ZonedDateTime.now())
 					.withZoneSameInstant(ZoneId.of(userAnonymized.getTimeZoneId()));
-			return new ActivityPayload(Optional.of(networkActivity.getURL()), startTime, startTime, Optional.empty());
+			return new ActivityPayload(userAnonymized, Optional.of(networkActivity.getURL()), startTime, startTime,
+					Optional.empty());
 		}
 
 		static ActivityPayload createInstance(UserAnonymizedDTO userAnonymized, ZonedDateTime startTime, ZonedDateTime endTime,
 				String application)
 		{
 			ZoneId userTimeZone = ZoneId.of(userAnonymized.getTimeZoneId());
-			return new ActivityPayload(Optional.empty(), startTime.withZoneSameInstant(userTimeZone),
+			return new ActivityPayload(userAnonymized, Optional.empty(), startTime.withZoneSameInstant(userTimeZone),
 					endTime.withZoneSameInstant(userTimeZone), Optional.of(application));
 		}
 	}
