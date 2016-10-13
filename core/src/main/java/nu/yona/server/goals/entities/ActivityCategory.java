@@ -29,7 +29,7 @@ public class ActivityCategory extends EntityWithID
 	}
 
 	@ElementCollection
-	private Map<Locale, String> name;
+	private Map<Locale, String> localizableName;
 
 	private boolean mandatoryNoGo;
 
@@ -39,25 +39,34 @@ public class ActivityCategory extends EntityWithID
 	@ElementCollection
 	private Set<String> applications;
 
+	@ElementCollection
+	private Map<Locale, String> localizableDescription;
+
 	// Default constructor is required for JPA
 	public ActivityCategory()
 	{
 		super(null);
 	}
 
-	public ActivityCategory(UUID id, Map<Locale, String> name, boolean mandatoryNoGo, Set<String> smoothwallCategories,
-			Set<String> applications)
+	public ActivityCategory(UUID id, Map<Locale, String> localizableName, boolean mandatoryNoGo, Set<String> smoothwallCategories,
+			Set<String> applications, Map<Locale, String> localizableDescription)
 	{
 		super(id);
-		this.name = name;
+		this.localizableName = localizableName;
 		this.mandatoryNoGo = mandatoryNoGo;
 		this.smoothwallCategories = new HashSet<>(smoothwallCategories);
 		this.applications = new HashSet<>(applications);
+		this.localizableDescription = localizableDescription;
 	}
 
-	public Map<Locale, String> getName()
+	public Map<Locale, String> getLocalizableName()
 	{
-		return new HashMap<>(name);
+		return new HashMap<>(localizableName);
+	}
+
+	public void setLocalizableName(Map<Locale, String> name)
+	{
+		this.localizableName = name;
 	}
 
 	public boolean isMandatoryNoGo()
@@ -75,6 +84,11 @@ public class ActivityCategory extends EntityWithID
 		return Collections.unmodifiableSet(smoothwallCategories);
 	}
 
+	public void setSmoothwallCategories(Set<String> smoothwallCategories)
+	{
+		this.smoothwallCategories = new HashSet<>(smoothwallCategories);
+	}
+
 	public Set<String> getApplications()
 	{
 		return Collections.unmodifiableSet(applications);
@@ -85,19 +99,20 @@ public class ActivityCategory extends EntityWithID
 		this.applications = applications;
 	}
 
-	public void setName(Map<Locale, String> name)
+	public Map<Locale, String> getLocalizableDescription()
 	{
-		this.name = name;
+		return new HashMap<>(localizableDescription);
 	}
 
-	public void setSmoothwallCategories(Set<String> smoothwallCategories)
+	public void setLocalizableDescription(Map<Locale, String> localizableDescription)
 	{
-		this.smoothwallCategories = new HashSet<>(smoothwallCategories);
+		this.localizableDescription = localizableDescription;
 	}
 
-	public static ActivityCategory createInstance(UUID id, Map<Locale, String> name, boolean mandatoryNoGo,
-			Set<String> smoothwallCategories, Set<String> applications)
+	public static ActivityCategory createInstance(UUID id, Map<Locale, String> localizableName, boolean mandatoryNoGo,
+			Set<String> smoothwallCategories, Set<String> applications, Map<Locale, String> localizableDescription)
 	{
-		return new ActivityCategory(id, name, mandatoryNoGo, smoothwallCategories, applications);
+		return new ActivityCategory(id, localizableName, mandatoryNoGo, smoothwallCategories, applications,
+				localizableDescription);
 	}
 }

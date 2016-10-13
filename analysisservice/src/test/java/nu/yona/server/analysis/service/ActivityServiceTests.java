@@ -105,16 +105,21 @@ public class ActivityServiceTests
 		// created 2 weeks ago
 		gamblingGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now().minusWeeks(2),
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
-						new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet()));
-		newsGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
-				usString("news"), false, new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
-		gamingGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
-				usString("gaming"), false, new HashSet<String>(Arrays.asList("games")), Collections.emptySet()));
-		socialGoal = TimeZoneGoal.createInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
-				usString("social"), false, new HashSet<String>(Arrays.asList("social")), Collections.emptySet()),
+						new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet(), usString("Descr")));
+		newsGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(),
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
+						new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr")));
+		gamingGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(),
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
+						new HashSet<String>(Arrays.asList("games")), Collections.emptySet(), usString("Descr")));
+		socialGoal = TimeZoneGoal.createInstance(ZonedDateTime.now(),
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("social"), false,
+						new HashSet<String>(Arrays.asList("social")), Collections.emptySet(), usString("Descr")),
 				Collections.emptyList());
-		shoppingGoal = BudgetGoal.createInstance(ZonedDateTime.now(), ActivityCategory.createInstance(UUID.randomUUID(),
-				usString("shopping"), false, new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet()), 1);
+		shoppingGoal = BudgetGoal.createInstance(ZonedDateTime.now(),
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("shopping"), false,
+						new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet(), usString("Descr")),
+				1);
 
 		goalMap.put("gambling", gamblingGoal);
 		goalMap.put("news", newsGoal);

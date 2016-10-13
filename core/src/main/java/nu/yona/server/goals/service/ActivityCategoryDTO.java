@@ -40,25 +40,29 @@ public class ActivityCategoryDTO
 	private final boolean mandatoryNoGo;
 	private final Set<String> smoothwallCategories;
 	private final Set<String> applications;
+	private final Map<Locale, String> localizableDescription;
 
 	@JsonCreator
 	public ActivityCategoryDTO(@JsonProperty("id") UUID id,
 			@JsonProperty("localizableName") @JsonDeserialize(as = HashMap.class, keyAs = String.class, contentAs = String.class) HashMap<String, String> localizableName,
 			@JsonProperty("mandatoryNoGo") boolean mandatory,
 			@JsonProperty("smoothwallCategories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> smoothwallCategories,
-			@JsonProperty("applications") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> applications)
+			@JsonProperty("applications") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> applications,
+			@JsonProperty("localizableDescription") @JsonDeserialize(as = HashMap.class, keyAs = String.class, contentAs = String.class) HashMap<String, String> localizableDescription)
 	{
-		this(id, mapToLocaleMap(localizableName), mandatory, smoothwallCategories, applications);
+		this(id, mapToLocaleMap(localizableName), mandatory, smoothwallCategories, applications,
+				mapToLocaleMap(localizableDescription));
 	}
 
 	public ActivityCategoryDTO(UUID id, Map<Locale, String> localizableName, boolean mandatory, Set<String> smoothwallCategories,
-			Set<String> applications)
+			Set<String> applications, Map<Locale, String> localizableDescription)
 	{
 		this.id = id;
 		this.localizableName = localizableName;
 		this.mandatoryNoGo = mandatory;
 		this.smoothwallCategories = new HashSet<>(smoothwallCategories);
 		this.applications = new HashSet<>(applications);
+		this.localizableDescription = localizableDescription;
 	}
 
 	private static Map<Locale, String> mapToLocaleMap(Map<String, String> localeStringMap)
@@ -135,24 +139,46 @@ public class ActivityCategoryDTO
 		return Collections.unmodifiableSet(applications);
 	}
 
+	@JsonView(AdminView.class)
+	public Map<String, String> getLocalizableDescription()
+	{
+		return mapToStringMap(localizableDescription);
+	}
+
+	@JsonIgnore
+	public Map<Locale, String> getLocalizableDescriptionByLocale()
+	{
+		return Collections.unmodifiableMap(localizableDescription);
+	}
+
+	@JsonView(AppView.class)
+	public String getDescription()
+	{
+		String retVal = localizableDescription.get(LocaleContextHolder.getLocale());
+		assert retVal != null;
+		return retVal;
+	}
+
 	public static ActivityCategoryDTO createInstance(ActivityCategory activityCategoryEntity)
 	{
-		return new ActivityCategoryDTO(activityCategoryEntity.getID(), activityCategoryEntity.getName(),
+		return new ActivityCategoryDTO(activityCategoryEntity.getID(), activityCategoryEntity.getLocalizableName(),
 				activityCategoryEntity.isMandatoryNoGo(), activityCategoryEntity.getSmoothwallCategories(),
-				activityCategoryEntity.getApplications());
+				activityCategoryEntity.getApplications(), activityCategoryEntity.getLocalizableDescription());
 	}
 
 	public ActivityCategory createActivityCategoryEntity()
 	{
-		return ActivityCategory.createInstance(id, localizableName, mandatoryNoGo, smoothwallCategories, applications);
+		return ActivityCategory.createInstance(id, localizableName, mandatoryNoGo, smoothwallCategories, applications,
+				localizableDescription);
 	}
 
 	public ActivityCategory updateActivityCategory(ActivityCategory originalActivityCategoryEntity)
 	{
-		originalActivityCategoryEntity.setName(localizableName);
+		originalActivityCategoryEntity.setLocalizableName(localizableName);
 		originalActivityCategoryEntity.setMandatoryNoGo(mandatoryNoGo);
 		originalActivityCategoryEntity.setSmoothwallCategories(smoothwallCategories);
 		originalActivityCategoryEntity.setApplications(applications);
+		originalActivityCategoryEntity.setLocalizableDescription(localizableDescription);
 
 		return originalActivityCategoryEntity;
 	}

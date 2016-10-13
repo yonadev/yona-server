@@ -63,9 +63,9 @@ public class ActivityCategoryServiceIntegrationTest extends ActivityCategoryServ
 		assertGetAllActivityCategoriesResult("Initial", "gambling", "news");
 
 		ActivityCategory dummy = ActivityCategory.createInstance(UUID.randomUUID(), usString("dummy"), false,
-				new HashSet<String>(Arrays.asList("games")), Collections.emptySet());
+				new HashSet<String>(Arrays.asList("games")), Collections.emptySet(), usString("Descr"));
 		ActivityCategory gaming = ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
-				new HashSet<String>(Arrays.asList("games")), Collections.emptySet());
+				new HashSet<String>(Arrays.asList("games")), Collections.emptySet(), usString("Descr"));
 		// Add to collection, so it appears as if it is in the database
 		// It hasn't been loaded, so should not be in the cache
 		activityCategories.add(gaming);
@@ -78,7 +78,7 @@ public class ActivityCategoryServiceIntegrationTest extends ActivityCategoryServ
 
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after add", "gambling", "news", "gaming");
 
-		gaming.setName(usString("amusement"));
+		gaming.setLocalizableName(usString("amusement"));
 		service.updateActivityCategory(gaming.getID(), ActivityCategoryDTO.createInstance(gaming));
 
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after add", "gambling", "news", "amusement");
