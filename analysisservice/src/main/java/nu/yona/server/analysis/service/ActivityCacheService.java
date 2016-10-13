@@ -14,6 +14,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.DayActivity;
 
 @Service
@@ -25,7 +26,13 @@ public class ActivityCacheService
 	{
 		List<DayActivity> lastActivityList = DayActivity.getRepository().findLast(userAnonymizedID, goalID, new PageRequest(0, 1))
 				.getContent();
-		return lastActivityList.isEmpty() ? null : ActivityDTO.createInstance(lastActivityList.get(0).getLastActivity());
+		if (lastActivityList.isEmpty())
+		{
+			return null;
+		}
+		Activity lastActivity = lastActivityList.get(0).getLastActivity();
+		// this can be the case when a DayActivity is created with inactivity
+		return lastActivity == null ? null : ActivityDTO.createInstance(lastActivity);
 	}
 
 	@CachePut(value = "activities", key = "{#userAnonymizedID,#goalID}")
