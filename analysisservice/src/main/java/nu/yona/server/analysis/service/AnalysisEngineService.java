@@ -294,7 +294,7 @@ public class AnalysisEngineService
 		{
 			return activityCacheResult.status != ActivityCacheResultStatus.CACHED_HAS_LATER_DAY;
 		}
-		return activityCacheResult.content.getEndTime().isBefore(newOrUpdatedActivity.getEndTime());
+		return !activityCacheResult.content.getEndTime().isAfter(newOrUpdatedActivity.getEndTime());
 	}
 
 	private ZonedDateTime getStartOfDay(ZonedDateTime time, UserAnonymizedDTO userAnonymized)
