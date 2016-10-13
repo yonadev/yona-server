@@ -221,14 +221,7 @@ public class AnalysisEngineServiceTests
 		p.setConflictInterval("PT0.01S");
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
-		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal,
-				ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS));
-		Activity earlierActivityEntity = Activity.createInstance(ZonedDateTime.now(), ZonedDateTime.now());
-		dayActivity.addActivity(earlierActivityEntity);
-		ActivityDTO earlierActivity = ActivityDTO.createInstance(earlierActivityEntity);
-		when(mockDayActivityRepository.findOne(userAnonID, dayActivity.getDate(), gamblingGoal.getID())).thenReturn(dayActivity);
-		when(mockAnalysisEngineCacheService.fetchLastActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
-				.thenReturn(earlierActivity);
+		mockEarlierActivity(gamblingGoal, ZonedDateTime.now());
 
 		// Execute the analysis engine service after a period of inactivity longer than the conflict interval.
 
@@ -356,14 +349,8 @@ public class AnalysisEngineServiceTests
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
 		ZonedDateTime t = ZonedDateTime.now();
-		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal,
-				ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS));
-		Activity earlierActivityEntity = Activity.createInstance(t, t);
-		dayActivity.addActivity(earlierActivityEntity);
-		ActivityDTO earlierActivity = ActivityDTO.createInstance(earlierActivityEntity);
-		when(mockDayActivityRepository.findOne(userAnonID, dayActivity.getDate(), gamblingGoal.getID())).thenReturn(dayActivity);
-		when(mockAnalysisEngineCacheService.fetchLastActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
-				.thenReturn(earlierActivity);
+		DayActivity dayActivity = mockEarlierActivity(gamblingGoal, t);
+		Activity earlierActivityEntity = dayActivity.getLastActivity();
 
 		// Execute the analysis engine service.
 		Set<String> conflictCategories1 = new HashSet<String>(Arrays.asList("lotto"));
@@ -463,17 +450,9 @@ public class AnalysisEngineServiceTests
 	public void activityOnNewDay()
 	{
 		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
-
-		DayActivity earlierDayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal,
-				now.minusDays(1).truncatedTo(ChronoUnit.DAYS));
 		ZonedDateTime earlierActivityTime = now.minusDays(1);
-		Activity earlierActivityEntity = Activity.createInstance(earlierActivityTime, earlierActivityTime);
-		earlierDayActivity.addActivity(earlierActivityEntity);
-		ActivityDTO earlierActivity = ActivityDTO.createInstance(earlierActivityEntity);
-		when(mockDayActivityRepository.findOne(userAnonID, earlierDayActivity.getDate(), gamblingGoal.getID()))
-				.thenReturn(earlierDayActivity);
-		when(mockAnalysisEngineCacheService.fetchLastActivityForUser(eq(userAnonID), eq(gamblingGoal.getID())))
-				.thenReturn(earlierActivity);
+
+		DayActivity earlierDayActivity = mockEarlierActivity(gamblingGoal, earlierActivityTime);
 
 		ZonedDateTime startTime = now.minusMinutes(10);
 		ZonedDateTime endTime = now;
@@ -500,15 +479,10 @@ public class AnalysisEngineServiceTests
 	public void appActivityCompletelyPrecedingLastCachedActivity()
 	{
 		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
-
-		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, now.truncatedTo(ChronoUnit.DAYS));
 		ZonedDateTime earlierActivityTime = now;
-		Activity earlierActivityEntity = Activity.createInstance(earlierActivityTime, earlierActivityTime);
-		dayActivity.addActivity(earlierActivityEntity);
-		ActivityDTO earlierActivity = ActivityDTO.createInstance(earlierActivityEntity);
-		when(mockDayActivityRepository.findOne(userAnonID, dayActivity.getDate(), gamblingGoal.getID())).thenReturn(dayActivity);
-		when(mockAnalysisEngineCacheService.fetchLastActivityForUser(userAnonID, gamblingGoal.getID()))
-				.thenReturn(earlierActivity);
+
+		DayActivity dayActivity = mockEarlierActivity(gamblingGoal, earlierActivityTime);
+		Activity earlierActivityEntity = dayActivity.getLastActivity();
 
 		ZonedDateTime startTime = now.minusMinutes(10);
 		ZonedDateTime endTime = now.minusSeconds(15);
@@ -533,15 +507,10 @@ public class AnalysisEngineServiceTests
 	public void appActivityPrecedingAndExtendingLastCachedActivity()
 	{
 		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
-
-		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, now.truncatedTo(ChronoUnit.DAYS));
 		ZonedDateTime earlierActivityTime = now.minusSeconds(15);
-		Activity earlierActivityEntity = Activity.createInstance(earlierActivityTime, earlierActivityTime);
-		dayActivity.addActivity(earlierActivityEntity);
-		ActivityDTO earlierActivity = ActivityDTO.createInstance(earlierActivityEntity);
-		when(mockDayActivityRepository.findOne(userAnonID, dayActivity.getDate(), gamblingGoal.getID())).thenReturn(dayActivity);
-		when(mockAnalysisEngineCacheService.fetchLastActivityForUser(userAnonID, gamblingGoal.getID()))
-				.thenReturn(earlierActivity);
+
+		DayActivity dayActivity = mockEarlierActivity(gamblingGoal, earlierActivityTime);
+		Activity earlierActivityEntity = dayActivity.getLastActivity();
 
 		ZonedDateTime startTime = now.minusMinutes(10);
 		ZonedDateTime endTime = now;
@@ -568,14 +537,7 @@ public class AnalysisEngineServiceTests
 		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
 		ZonedDateTime yesterdayTime = now.minusDays(1);
 
-		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, now.truncatedTo(ChronoUnit.DAYS));
-		ZonedDateTime earlierActivityTime = now;
-		Activity earlierActivityEntity = Activity.createInstance(earlierActivityTime, earlierActivityTime);
-		dayActivity.addActivity(earlierActivityEntity);
-		ActivityDTO earlierActivity = ActivityDTO.createInstance(earlierActivityEntity);
-		when(mockDayActivityRepository.findOne(userAnonID, dayActivity.getDate(), gamblingGoal.getID())).thenReturn(dayActivity);
-		when(mockAnalysisEngineCacheService.fetchLastActivityForUser(userAnonID, gamblingGoal.getID()))
-				.thenReturn(earlierActivity);
+		mockEarlierActivity(gamblingGoal, now);
 
 		ZonedDateTime startTime = yesterdayTime;
 		ZonedDateTime endTime = yesterdayTime.plusMinutes(10);
@@ -594,6 +556,18 @@ public class AnalysisEngineServiceTests
 		assertThat("Expect activity added", precedingDayActivity.getValue().getLastActivity(), notNullValue());
 		// Verify that the activity preceding the cached activity was not cached!
 		verify(mockAnalysisEngineCacheService, never()).updateLastActivityForUser(any(), any(), any());
+	}
+
+	private DayActivity mockEarlierActivity(Goal forGoal, ZonedDateTime activityTime)
+	{
+		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, forGoal,
+				activityTime.truncatedTo(ChronoUnit.DAYS));
+		Activity earlierActivityEntity = Activity.createInstance(activityTime, activityTime);
+		dayActivity.addActivity(earlierActivityEntity);
+		ActivityDTO earlierActivity = ActivityDTO.createInstance(earlierActivityEntity);
+		when(mockDayActivityRepository.findOne(userAnonID, dayActivity.getDate(), forGoal.getID())).thenReturn(dayActivity);
+		when(mockAnalysisEngineCacheService.fetchLastActivityForUser(userAnonID, forGoal.getID())).thenReturn(earlierActivity);
+		return dayActivity;
 	}
 
 	@Test
