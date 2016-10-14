@@ -4,11 +4,18 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import nu.yona.server.Translator;
 import nu.yona.server.goals.entities.ActivityCategory;
@@ -53,7 +59,9 @@ public class ActivityCategoryService
 	@Transactional
 	public ActivityCategoryDTO addActivityCategory(ActivityCategoryDTO activityCategoryDTO)
 	{
-		logger.info("Adding activity category '{}'", activityCategoryDTO.getName(Translator.EN_US_LOCALE));
+		logger.info("Adding activity category '{}' with ID '{}'", activityCategoryDTO.getName(Translator.EN_US_LOCALE),
+				activityCategoryDTO.getID());
+		verifyNoDuplicateNames(Collections.emptySet(), activityCategoryDTO.getLocalizableNameByLocale());
 		return ActivityCategoryDTO.createInstance(repository.save(activityCategoryDTO.createActivityCategoryEntity()));
 	}
 
@@ -61,8 +69,29 @@ public class ActivityCategoryService
 	@Transactional
 	public ActivityCategoryDTO updateActivityCategory(UUID id, ActivityCategoryDTO activityCategoryDTO)
 	{
+		logger.info("Updating activity category '{}' with ID '{}'", activityCategoryDTO.getName(Translator.EN_US_LOCALE), id);
+		verifyNoDuplicateNames(Collections.singleton(id), activityCategoryDTO.getLocalizableNameByLocale());
 		ActivityCategory originalEntity = getEntityByID(id);
 		return ActivityCategoryDTO.createInstance(updateActivityCategory(originalEntity, activityCategoryDTO));
+	}
+
+	private void verifyNoDuplicateNames(Set<UUID> idsToSkip, Map<Locale, String> localizableName)
+	{
+		Iterable<ActivityCategory> allCategories = repository.findAll();
+		List<ActivityCategory> categoriesToConsider = StreamSupport.stream(allCategories.spliterator(), false)
+				.filter(c -> !idsToSkip.contains(c.getID())).collect(Collectors.toList());
+		for (Entry<Locale, String> localeAndName : localizableName.entrySet())
+		{
+			verifyNoDuplicateNames(categoriesToConsider, localeAndName);
+		}
+	}
+
+	private void verifyNoDuplicateNames(List<ActivityCategory> categoriesToConsider, Entry<Locale, String> localeAndName)
+	{
+		if (categoriesToConsider.stream().anyMatch(c -> localeAndName.getValue().equals(c.getName().get(localeAndName.getKey()))))
+		{
+			throw ActivityCategoryException.duplicateName(localeAndName.getKey(), localeAndName.getValue());
+		}
 	}
 
 	private ActivityCategory updateActivityCategory(ActivityCategory activityCategoryTargetEntity,
@@ -76,6 +105,7 @@ public class ActivityCategoryService
 	@Transactional
 	public void deleteActivityCategory(UUID id)
 	{
+		logger.info("Deleting activity category with ID '{}'", id);
 		repository.delete(id);
 	}
 
@@ -90,7 +120,7 @@ public class ActivityCategoryService
 		ActivityCategory entity = repository.findOne(id);
 		if (entity == null)
 		{
-			throw ActivityCategoryNotFoundException.notFound(id);
+			throw ActivityCategoryException.notFound(id);
 		}
 		return entity;
 	}

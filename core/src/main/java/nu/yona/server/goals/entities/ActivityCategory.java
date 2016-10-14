@@ -65,6 +65,11 @@ public class ActivityCategory extends EntityWithID
 		return mandatoryNoGo;
 	}
 
+	public void setMandatoryNoGo(boolean mandatoryNoGo)
+	{
+		this.mandatoryNoGo = mandatoryNoGo;
+	}
+
 	public Set<String> getSmoothwallCategories()
 	{
 		return Collections.unmodifiableSet(smoothwallCategories);
@@ -73,6 +78,11 @@ public class ActivityCategory extends EntityWithID
 	public Set<String> getApplications()
 	{
 		return Collections.unmodifiableSet(applications);
+	}
+
+	public void setApplications(Set<String> applications)
+	{
+		this.applications = applications;
 	}
 
 	public void setName(Map<Locale, String> name)
