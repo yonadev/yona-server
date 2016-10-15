@@ -8,6 +8,7 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.AppService
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -15,6 +16,9 @@ class ActivityCategoriesTest extends Specification
 {
 	@Shared
 	def AdminService adminService = new AdminService()
+
+	@Shared
+	def AppService appService = new AppService()
 
 	def 'Get all activity categories loaded from file'()
 	{
@@ -48,6 +52,8 @@ class ActivityCategoriesTest extends Specification
 		def smoothwallCategories = ["programming", "scripting"] as Set
 		def apps = ["Eclipse", "Visual Studio"] as Set
 		String programmingActivityCategoryJson = createActivityCategoryJson(["nl-NL": dutchName, "en-US" : englishName], isNoGo, smoothwallCategories, apps)
+		int numOfCategoriesInAppServiceBeforeAdd = appService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size()
+
 		when:
 		def response = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, programmingActivityCategoryJson)
 
@@ -69,8 +75,13 @@ class ActivityCategoriesTest extends Specification
 		getResponse.responseData.smoothwallCategories as Set == smoothwallCategories
 		getResponse.responseData.applications as Set == apps
 
+		def appServiceGetResponse = appService.getAllActivityCategories()
+		appServiceGetResponse.responseData._embedded."yona:activityCategories".size() == numOfCategoriesInAppServiceBeforeAdd + 1
+		def programmingCategory = findActivityCategoryByName(appServiceGetResponse, englishName)
+		programmingCategory?.applications as Set == apps
+
 		cleanup:
-		if (response.status == 200)
+		if (response?.status == 200)
 		{
 			adminService.yonaServer.deleteResource(response.responseData._links.self.href)
 		}
@@ -88,6 +99,8 @@ class ActivityCategoriesTest extends Specification
 		def smoothwallCategories = ["chess"] as Set
 		def apps = ["Chess Free", "Analyze This", "Chess Opening Blunders"] as Set
 		String chessActivityCategoryJson = createActivityCategoryJson(["nl-NL": dutchName, "en-US" : englishName], isNoGo, smoothwallCategories, apps)
+		def programmingCategory = findActivityCategoryByName(appService.getAllActivityCategories(), "Programming")
+
 		when:
 		def response = adminService.yonaServer.updateResource(createResponse.responseData._links.self.href, chessActivityCategoryJson)
 
@@ -109,8 +122,12 @@ class ActivityCategoriesTest extends Specification
 		getResponse.responseData.smoothwallCategories as Set == smoothwallCategories
 		getResponse.responseData.applications as Set == apps
 
+		def chessCategory = findActivityCategoryByName(appService.getAllActivityCategories(), englishName)
+		chessCategory._links.self.href == programmingCategory._links.self.href
+		chessCategory.applications as Set == apps
+
 		cleanup:
-		if (createResponse.status == 200)
+		if (createResponse?.status == 200)
 		{
 			adminService.yonaServer.deleteResource(createResponse.responseData._links.self.href)
 		}
@@ -123,12 +140,18 @@ class ActivityCategoriesTest extends Specification
 		def createResponse = adminService.yonaServer.createResource(AdminService.ACTIVITY_CATEGORIES_PATH, programmingActivityCategoryJson)
 		assert createResponse.status == 200
 		def numActivityCategories = adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size()
+		int numOfCategoriesInAppServiceBeforeDelete = appService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size()
+
 		when:
 		def response = adminService.yonaServer.deleteResource(createResponse.responseData._links.self.href)
 
 		then:
 		response.status == 200
 		adminService.getAllActivityCategories().responseData._embedded."yona:activityCategories".size() == numActivityCategories - 1
+
+		def appServiceGetResponse = appService.getAllActivityCategories()
+		appServiceGetResponse.responseData._embedded."yona:activityCategories".size() == numOfCategoriesInAppServiceBeforeDelete - 1
+		findActivityCategoryByName(appServiceGetResponse, "Programming") == null
 	}
 
 	def 'Try add duplicate English name' ()
@@ -162,7 +185,7 @@ class ActivityCategoriesTest extends Specification
 		response.responseData.code == "error.activitycategory.duplicate.name"
 
 		cleanup:
-		if (createResponse.status == 200)
+		if (createResponse?.status == 200)
 		{
 			adminService.yonaServer.deleteResource(createResponse.responseData._links.self.href)
 		}
@@ -180,5 +203,10 @@ class ActivityCategoriesTest extends Specification
 			"applications": [$applicationsString]
 		}"""
 		return json
+	}
+
+	private findActivityCategoryByName(response, name)
+	{
+		response.responseData._embedded."yona:activityCategories".find{ it.name == name }
 	}
 }

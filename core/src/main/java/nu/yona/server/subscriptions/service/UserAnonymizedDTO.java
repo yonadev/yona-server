@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Optional;
@@ -19,8 +20,10 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
-public class UserAnonymizedDTO
+public class UserAnonymizedDTO implements Serializable
 {
+	private static final long serialVersionUID = 5569303515806259326L;
+
 	private final UUID id;
 	private final Set<GoalDTO> goals;
 	private final MessageDestinationDTO anonymousMessageDestination;
