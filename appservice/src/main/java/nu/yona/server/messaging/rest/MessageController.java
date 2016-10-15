@@ -11,6 +11,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -48,6 +49,7 @@ import nu.yona.server.analysis.service.ActivityCommentMessageDTO;
 import nu.yona.server.analysis.service.DayActivityDTO;
 import nu.yona.server.analysis.service.GoalConflictMessageDTO;
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.rest.ActivityCategoryController;
 import nu.yona.server.goals.service.GoalChangeMessageDTO;
 import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDTO;
@@ -390,7 +392,13 @@ public class MessageController
 		private void addActivityCommentMessageLinks(ActivityCommentMessageDTO message)
 		{
 			IntervalActivity activity = IntervalActivity.getIntervalActivityRepository().findOne(message.getActivityID());
-			if (goalIDMapping.isUserGoal(activity.getGoal().getID()))
+			Objects.requireNonNull(activity,
+					String.format("Activity linked from activity comment message not found from sender '%s' and activity id '%s'",
+							message.getSenderNickname(), message.getActivityID()));
+			Goal goal = Objects.requireNonNull(activity.getGoal(),
+					String.format("Activity getGoal() returns null for '%s' instance with id '%s' and start time '%s'",
+							activity.getClass().getSimpleName(), activity.getID(), activity.getStartTime()));
+			if (goalIDMapping.isUserGoal(goal.getID()))
 			{
 				messageController.getUserActivityController().addLinks(goalIDMapping, activity, message);
 			}
@@ -401,3 +409,4 @@ public class MessageController
 		}
 	}
 }
+

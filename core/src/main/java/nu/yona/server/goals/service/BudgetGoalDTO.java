@@ -21,6 +21,8 @@ import nu.yona.server.goals.entities.Goal;
 @JsonRootName("budgetGoal")
 public class BudgetGoalDTO extends GoalDTO
 {
+	private static final long serialVersionUID = -5887972069171102985L;
+
 	private final int maxDurationMinutes;
 
 	@JsonCreator

@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,7 +26,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import nu.yona.server.goals.entities.ActivityCategory;
 
 @JsonRootName("activityCategory")
-public class ActivityCategoryDTO
+public class ActivityCategoryDTO implements Serializable
 {
 	public static class AdminView
 	{
@@ -34,6 +35,8 @@ public class ActivityCategoryDTO
 	public static class AppView
 	{
 	}
+
+	private static final long serialVersionUID = 2498926948887006481L;
 
 	private UUID id;
 	private final Map<Locale, String> localizableName;
