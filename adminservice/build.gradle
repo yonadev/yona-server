@@ -118,13 +118,8 @@ task intTest(type:Test){
 	description = "Run integration tests (located in src/intTest/...)."
 	testClassesDir = project.sourceSets.intTest.output.classesDir
 	classpath = project.sourceSets.intTest.runtimeClasspath
-}
 
-task setupIntTest(type: Test) {
-	include '**/InitialGoalCreationTest.*'
-	description = "Run tintegration test setup."
-	testClassesDir = project.sourceSets.intTest.output.classesDir
-	classpath = project.sourceSets.intTest.runtimeClasspath
+	systemProperties = System.getProperties()
 
 	systemProperties = [
 		'yona.adminservice.url': project.ext.yona_adminservice_url,
@@ -132,9 +127,3 @@ task setupIntTest(type: Test) {
 		'yona.appservice.url': project.ext.yona_appservice_url
 	]
 }
-
-intTest {
-	exclude '**/InitialGoalCreationTest.*'
-}
-
-intTest.dependsOn setupIntTest
