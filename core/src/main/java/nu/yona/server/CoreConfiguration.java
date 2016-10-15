@@ -11,6 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CachingConfigurerSupport;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
@@ -32,6 +35,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.spring.cache.HazelcastCacheManager;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.properties.YonaProperties;
@@ -41,7 +47,7 @@ import nu.yona.server.rest.RestClientErrorHandler;
 @EnableHypermediaSupport(type = HypermediaType.HAL)
 @EnableSpringDataWebSupport
 @Configuration
-public class CoreConfiguration
+public class CoreConfiguration extends CachingConfigurerSupport
 {
 	private static final Logger logger = LoggerFactory.getLogger(CoreConfiguration.class);
 
@@ -160,9 +166,17 @@ public class CoreConfiguration
 		return restTemplate;
 	}
 
+	@Override
 	@Bean
-	public com.hazelcast.config.Config hazelcastConfig()
+	public CacheManager cacheManager()
 	{
-		return new Config();
+		HazelcastInstance client = Hazelcast.newHazelcastInstance(new Config());
+		return new HazelcastCacheManager(client);
+	}
+
+	@Bean
+	public CacheManager localCache()
+	{
+		return new ConcurrentMapCacheManager();
 	}
 }
