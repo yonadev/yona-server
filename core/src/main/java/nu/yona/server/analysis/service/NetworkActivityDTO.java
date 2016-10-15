@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -27,26 +26,19 @@ import nu.yona.server.Constants;
 @JsonRootName("networkActivity")
 public class NetworkActivityDTO
 {
-	private final UUID vpnLoginID;
 	private final Set<String> categories;
 	private final String url;
 	private final Optional<ZonedDateTime> eventTime;
 
 	@JsonCreator
-	public NetworkActivityDTO(@JsonProperty("vpnLoginID") UUID vpnLoginID,
+	public NetworkActivityDTO(
 			@JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories,
 			@JsonProperty("url") String url,
 			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("eventTime") Optional<ZonedDateTime> eventTime)
 	{
-		this.vpnLoginID = vpnLoginID;
 		this.categories = categories;
 		this.url = url;
 		this.eventTime = eventTime;
-	}
-
-	public UUID getVPNLoginID()
-	{
-		return vpnLoginID;
 	}
 
 	public Set<String> getCategories()

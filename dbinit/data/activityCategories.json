@@ -1,6 +1,6 @@
 [{
 	"id": "192d69f4-8d3e-499b-983c-36ca97340ba9",
-	"name": {
+	"localizableName": {
 		"en-US": "Gambling",
 		"nl-NL": "Gokken"
 	},
@@ -11,7 +11,7 @@
 },
 {
 	"id": "743738fd-052f-4532-a2a3-ba60dcb1adbf",
-	"name": {
+	"localizableName": {
 		"en-US": "News",
 		"nl-NL": "Nieuws"
 	},
@@ -21,7 +21,7 @@
 },
 {
 	"id": "27395d17-7022-4f71-9daf-f431ff4f11e8",
-	"name": {
+	"localizableName": {
 		"en-US": "Social",
 		"nl-NL": "Social media"
 	},
@@ -31,7 +31,7 @@
 },
 {
 	"id": "eb7be352-b449-4d30-98fe-3be6ad555b43",
-	"name": {
+	"localizableName": {
 		"en-US": "Multimedia",
 		"nl-NL": "Multimedia"
 	},
@@ -41,7 +41,7 @@
 },
 {
 	"id": "90b9838f-1430-484b-94c1-e169318091cb",
-	"name": {
+	"localizableName": {
 		"en-US": "Communication",
 		"nl-NL": "Communicatie"
 	},
@@ -51,7 +51,7 @@
 },
 {
 	"id": "1f088f0b-9952-4ac7-bdc0-fd242238bc1d",
-	"name": {
+	"localizableName": {
 		"en-US": "Adult content",
 		"nl-NL": "Adult"
 	},

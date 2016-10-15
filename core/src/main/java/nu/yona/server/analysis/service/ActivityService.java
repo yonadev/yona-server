@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2016 Stichting Yona Foundation
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server.analysis.service;
 
 import java.time.Duration;
@@ -13,8 +20,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -38,7 +46,6 @@ import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
@@ -73,50 +80,88 @@ public class ActivityService
 	@Autowired
 	private YonaProperties yonaProperties;
 
+	@Autowired
+	private AnalysisEngineProxyService analysisEngineProxyService;
+
 	@Transactional
 	public Page<WeekActivityOverviewDTO> getUserWeekActivityOverviews(UUID userID, Pageable pageable)
 	{
-		return getWeekActivityOverviews(userService.getUserAnonymizedID(userID), pageable);
+		return executeAndCreateInactivityEntries(
+				mia -> getWeekActivityOverviews(userService.getUserAnonymizedID(userID), pageable, mia));
 	}
 
 	@Transactional
 	public Page<WeekActivityOverviewDTO> getBuddyWeekActivityOverviews(UUID buddyID, Pageable pageable)
 	{
-		return getWeekActivityOverviews(getBuddyUserAnonymizedID(buddyID), pageable);
+		return executeAndCreateInactivityEntries(
+				mia -> getWeekActivityOverviews(getBuddyUserAnonymizedID(buddyID), pageable, mia));
 	}
 
-	private Page<WeekActivityOverviewDTO> getWeekActivityOverviews(UUID userAnonymizedID, Pageable pageable)
+	private <T> T executeAndCreateInactivityEntries(Function<Set<IntervalInactivityDTO>, T> executor)
+	{
+		Set<IntervalInactivityDTO> missingInactivities = new HashSet<>();
+		// Execute the method that finds missing inactivities
+		T retVal = executor.apply(missingInactivities);
+
+		createInactivityEntities(missingInactivities);
+
+		return retVal;
+	}
+
+	private void createInactivityEntities(Set<IntervalInactivityDTO> missingInactivities)
+	{
+		Map<UUID, Set<IntervalInactivityDTO>> activitiesByUserAnonymizedID = missingInactivities.stream()
+				.collect(Collectors.groupingBy(mia -> mia.getUserAnonymizedID().get(), Collectors.toSet()));
+
+		activitiesByUserAnonymizedID.forEach((u, mias) -> analysisEngineProxyService.createInactivityEntities(u, mias));
+	}
+
+	private Page<WeekActivityOverviewDTO> getWeekActivityOverviews(UUID userAnonymizedID, Pageable pageable,
+			Set<IntervalInactivityDTO> missingInactivities)
 	{
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
 		Interval interval = getInterval(getCurrentWeekDate(userAnonymized), pageable, ChronoUnit.WEEKS);
 
 		Map<LocalDate, Set<WeekActivity>> weekActivityEntitiesByLocalDate = getWeekActivitiesGroupedByDate(userAnonymizedID,
 				interval);
-		addMissingInactivity(weekActivityEntitiesByLocalDate, interval, ChronoUnit.WEEKS, userAnonymized,
-				(goal, startOfWeek) -> createAndSaveWeekInactivity(userAnonymizedID, goal, startOfWeek),
-				wa -> createAndSaveInactivityDays(wa));
 		Map<ZonedDateTime, Set<WeekActivity>> weekActivityEntitiesByZonedDate = mapToZonedDateTime(
 				weekActivityEntitiesByLocalDate);
+		Map<ZonedDateTime, Set<WeekActivityDTO>> weekActivityDTOsByZonedDate = mapWeekActivitiesToDTOs(
+				weekActivityEntitiesByZonedDate);
+		addMissingInactivity(weekActivityDTOsByZonedDate, interval, ChronoUnit.WEEKS, userAnonymized,
+				(goal, startOfWeek) -> createAndSaveWeekInactivity(userAnonymized, goal, startOfWeek, LevelOfDetail.WeekOverview,
+						missingInactivities),
+				(g, wa) -> createAndSaveInactivityDays(userAnonymized,
+						userAnonymized.getGoalsForActivityCategory(g.getActivityCategory()), wa, missingInactivities));
 		return new PageImpl<WeekActivityOverviewDTO>(
-				weekActivityEntitiesByZonedDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
+				weekActivityDTOsByZonedDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 						.map(e -> WeekActivityOverviewDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList()),
 				pageable, getTotalPageableItems(userAnonymized, ChronoUnit.WEEKS));
 	}
 
-	private WeekActivity createAndSaveWeekInactivity(UUID userAnonymizedID, Goal goal, ZonedDateTime startOfWeek)
+	private Map<ZonedDateTime, Set<WeekActivityDTO>> mapWeekActivitiesToDTOs(
+			Map<ZonedDateTime, Set<WeekActivity>> weekActivityEntitiesByLocalDate)
 	{
-		UserAnonymized userAnonymized = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedID);
-		WeekActivity weekActivity = WeekActivity.createInstance(userAnonymized, goal, startOfWeek);
-		createAndSaveInactivityDays(weekActivity);
-
-		return weekActivityRepository.save(weekActivity);
+		return weekActivityEntitiesByLocalDate.entrySet().stream()
+				.collect(Collectors.toMap(e -> e.getKey(), e -> mapWeekActivitiesToDTOs(e.getValue())));
 	}
 
-	private void createAndSaveInactivityDays(WeekActivity weekActivity)
+	private Set<WeekActivityDTO> mapWeekActivitiesToDTOs(Set<WeekActivity> weekActivityEntities)
 	{
-		Collection<DayActivity> inactivityDays = weekActivity.createRequiredInactivityDays();
+		return weekActivityEntities.stream().map(e -> WeekActivityDTO.createInstance(e, LevelOfDetail.WeekOverview))
+				.collect(Collectors.toSet());
+	}
 
-		inactivityDays.forEach(da -> dayActivityRepository.save(da));
+	private WeekActivityDTO createAndSaveWeekInactivity(UserAnonymizedDTO userAnonymized, Goal goal, ZonedDateTime startOfWeek,
+			LevelOfDetail levelOfDetail, Set<IntervalInactivityDTO> missingInactivities)
+	{
+		return WeekActivityDTO.createInstanceInactivity(userAnonymized, goal, startOfWeek, levelOfDetail, missingInactivities);
+	}
+
+	private void createAndSaveInactivityDays(UserAnonymizedDTO userAnonymized, Set<GoalDTO> goals, WeekActivityDTO weekActivity,
+			Set<IntervalInactivityDTO> missingInactivities)
+	{
+		weekActivity.createRequiredInactivityDays(userAnonymized, goals, LevelOfDetail.WeekOverview, missingInactivities);
 	}
 
 	private long getTotalPageableItems(UserAnonymizedDTO userAnonymized, ChronoUnit timeUnit)
@@ -156,7 +201,8 @@ public class ActivityService
 	@Transactional
 	public Page<DayActivityOverviewDTO<DayActivityDTO>> getUserDayActivityOverviews(UUID userID, Pageable pageable)
 	{
-		return getDayActivityOverviews(userService.getUserAnonymizedID(userID), pageable);
+		return executeAndCreateInactivityEntries(
+				mia -> getDayActivityOverviews(userService.getUserAnonymizedID(userID), pageable, mia));
 	}
 
 	@Transactional
@@ -176,23 +222,31 @@ public class ActivityService
 		Set<BuddyDTO> buddies = buddyService.getBuddiesOfUserThatAcceptedSending(userID);
 		Set<UUID> userAnonymizedIDs = buddies.stream().map(b -> getBuddyUserAnonymizedID(b)).collect(Collectors.toSet());
 		userAnonymizedIDs.add(userAnonymizedID);
-		Map<ZonedDateTime, Set<DayActivity>> dayActivityEntitiesByZonedDate = userAnonymizedIDs.stream()
-				.map(id -> getDayActivities(userAnonymizedService.getUserAnonymized(id), interval)).map(Map::entrySet)
-				.flatMap(Collection::stream).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
-					Set<DayActivity> allActivities = new HashSet<>(a);
+		Map<ZonedDateTime, Set<DayActivityDTO>> dayActivityDTOsByZonedDate = executeAndCreateInactivityEntries(
+				mia -> getDayActivitiesForUserAnonymizedIDsInInterval(userAnonymizedIDs, interval, mia));
+		List<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> dayActivityOverviews = dayActivityEntitiesToOverviewsUserWithBuddies(
+				dayActivityDTOsByZonedDate);
+		return new PageImpl<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>>(dayActivityOverviews, pageable,
+				getTotalPageableItems(userAnonymized, ChronoUnit.DAYS));
+	}
+
+	private Map<ZonedDateTime, Set<DayActivityDTO>> getDayActivitiesForUserAnonymizedIDsInInterval(Set<UUID> userAnonymizedIDs,
+			Interval interval, Set<IntervalInactivityDTO> mia)
+	{
+		return userAnonymizedIDs.stream().map(id -> getDayActivities(userAnonymizedService.getUserAnonymized(id), interval, mia))
+				.map(Map::entrySet).flatMap(Collection::stream)
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
+					Set<DayActivityDTO> allActivities = new HashSet<>(a);
 					allActivities.addAll(b);
 					return allActivities;
 				}));
-		List<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> dayActivityOverviews = dayActivityEntitiesToOverviewsUserWithBuddies(
-				dayActivityEntitiesByZonedDate);
-		return new PageImpl<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>>(dayActivityOverviews, pageable,
-				getTotalPageableItems(userAnonymized, ChronoUnit.DAYS));
 	}
 
 	@Transactional
 	public Page<DayActivityOverviewDTO<DayActivityDTO>> getBuddyDayActivityOverviews(UUID buddyID, Pageable pageable)
 	{
-		return getDayActivityOverviews(getBuddyUserAnonymizedID(buddyID), pageable);
+		return executeAndCreateInactivityEntries(
+				mia -> getDayActivityOverviews(getBuddyUserAnonymizedID(buddyID), pageable, mia));
 	}
 
 	private UUID getBuddyUserAnonymizedID(UUID buddyID)
@@ -206,49 +260,69 @@ public class ActivityService
 				.orElseThrow(() -> new IllegalStateException("Should have user anonymized ID when fetching buddy activity"));
 	}
 
-	private Page<DayActivityOverviewDTO<DayActivityDTO>> getDayActivityOverviews(UUID userAnonymizedID, Pageable pageable)
+	private Page<DayActivityOverviewDTO<DayActivityDTO>> getDayActivityOverviews(UUID userAnonymizedID, Pageable pageable,
+			Set<IntervalInactivityDTO> missingInactivities)
 	{
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
 		Interval interval = getInterval(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
 
-		Map<ZonedDateTime, Set<DayActivity>> dayActivityEntitiesByZonedDate = getDayActivities(userAnonymized, interval);
-		List<DayActivityOverviewDTO<DayActivityDTO>> dayActivityOverviews = dayActivityEntitiesToOverviews(
-				dayActivityEntitiesByZonedDate);
+		Map<ZonedDateTime, Set<DayActivityDTO>> dayActivitiesByZonedDate = getDayActivities(userAnonymized, interval,
+				missingInactivities);
+		List<DayActivityOverviewDTO<DayActivityDTO>> dayActivityOverviews = dayActivityDTOsToOverviews(dayActivitiesByZonedDate);
 
 		return new PageImpl<DayActivityOverviewDTO<DayActivityDTO>>(dayActivityOverviews, pageable,
 				getTotalPageableItems(userAnonymized, ChronoUnit.DAYS));
 	}
 
-	private Map<ZonedDateTime, Set<DayActivity>> getDayActivities(UserAnonymizedDTO userAnonymized, Interval interval)
+	private Map<ZonedDateTime, Set<DayActivityDTO>> getDayActivities(UserAnonymizedDTO userAnonymized, Interval interval,
+			Set<IntervalInactivityDTO> missingInactivities)
 	{
 		Map<LocalDate, Set<DayActivity>> dayActivityEntitiesByLocalDate = getDayActivitiesGroupedByDate(userAnonymized.getID(),
 				interval);
-		addMissingInactivity(dayActivityEntitiesByLocalDate, interval, ChronoUnit.DAYS, userAnonymized,
-				(goal, startOfDay) -> createAndSaveDayInactivity(userAnonymized.getID(), goal, startOfDay), a -> {
-				});
 		Map<ZonedDateTime, Set<DayActivity>> dayActivityEntitiesByZonedDate = mapToZonedDateTime(dayActivityEntitiesByLocalDate);
-		return dayActivityEntitiesByZonedDate;
+		Map<ZonedDateTime, Set<DayActivityDTO>> dayActivityDTOsByZonedDate = mapDayActivitiesToDTOs(
+				dayActivityEntitiesByZonedDate);
+		addMissingInactivity(dayActivityDTOsByZonedDate, interval, ChronoUnit.DAYS, userAnonymized,
+				(goal, startOfDay) -> createAndSaveDayInactivity(userAnonymized, goal, startOfDay, LevelOfDetail.DayOverview,
+						missingInactivities),
+				(g, a) -> {
+				});
+		return dayActivityDTOsByZonedDate;
 	}
 
-	private DayActivity createAndSaveDayInactivity(UUID userAnonymizedID, Goal goal, ZonedDateTime startOfDay)
-	{
-		return dayActivityRepository.save(DayActivity
-				.createInstanceInactivity(userAnonymizedService.getUserAnonymizedEntity(userAnonymizedID), goal, startOfDay));
-	}
-
-	private List<DayActivityOverviewDTO<DayActivityDTO>> dayActivityEntitiesToOverviews(
+	private Map<ZonedDateTime, Set<DayActivityDTO>> mapDayActivitiesToDTOs(
 			Map<ZonedDateTime, Set<DayActivity>> dayActivityEntitiesByZonedDate)
 	{
-		List<DayActivityOverviewDTO<DayActivityDTO>> dayActivityOverviews = dayActivityEntitiesByZonedDate.entrySet().stream()
+		return dayActivityEntitiesByZonedDate.entrySet().stream()
+				.collect(Collectors.toMap(e -> e.getKey(), e -> mapDayActivitiesToDTOs(e.getValue())));
+	}
+
+	private Set<DayActivityDTO> mapDayActivitiesToDTOs(Set<DayActivity> dayActivityEntities)
+	{
+		return dayActivityEntities.stream().map(e -> DayActivityDTO.createInstance(e, LevelOfDetail.DayOverview))
+				.collect(Collectors.toSet());
+	}
+
+	private DayActivityDTO createAndSaveDayInactivity(UserAnonymizedDTO userAnonymized, Goal goal, ZonedDateTime startOfDay,
+			LevelOfDetail levelOfDetail, Set<IntervalInactivityDTO> missingInactivities)
+	{
+		return DayActivityDTO.createInstanceInactivity(userAnonymized, GoalDTO.createInstance(goal), startOfDay, levelOfDetail,
+				missingInactivities);
+	}
+
+	private List<DayActivityOverviewDTO<DayActivityDTO>> dayActivityDTOsToOverviews(
+			Map<ZonedDateTime, Set<DayActivityDTO>> dayActivityDTOsByZonedDate)
+	{
+		List<DayActivityOverviewDTO<DayActivityDTO>> dayActivityOverviews = dayActivityDTOsByZonedDate.entrySet().stream()
 				.sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 				.map(e -> DayActivityOverviewDTO.createInstanceForUser(e.getKey(), e.getValue())).collect(Collectors.toList());
 		return dayActivityOverviews;
 	}
 
 	private List<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> dayActivityEntitiesToOverviewsUserWithBuddies(
-			Map<ZonedDateTime, Set<DayActivity>> dayActivityEntitiesByZonedDate)
+			Map<ZonedDateTime, Set<DayActivityDTO>> dayActivityDTOsByZonedDate)
 	{
-		List<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> dayActivityOverviews = dayActivityEntitiesByZonedDate.entrySet()
+		List<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> dayActivityOverviews = dayActivityDTOsByZonedDate.entrySet()
 				.stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 				.map(e -> DayActivityOverviewDTO.createInstanceForUserWithBuddies(e.getKey(), e.getValue()))
 				.collect(Collectors.toList());
@@ -288,9 +362,9 @@ public class ActivityService
 		return LocalDate.now(ZoneId.of(userAnonymized.getTimeZoneId()));
 	}
 
-	private <T extends IntervalActivity> void addMissingInactivity(Map<LocalDate, Set<T>> activityEntitiesByDate,
+	private <T extends IntervalActivityDTO> void addMissingInactivity(Map<ZonedDateTime, Set<T>> activityEntitiesByDate,
 			Interval interval, ChronoUnit timeUnit, UserAnonymizedDTO userAnonymized,
-			BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier, Consumer<T> existingEntityInactivityCompletor)
+			BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier, BiConsumer<Goal, T> existingEntityInactivityCompletor)
 	{
 		for (LocalDate date = interval.startDate; date.isBefore(interval.endDate)
 				|| date.isEqual(interval.endDate); date = date.plus(1, timeUnit))
@@ -303,11 +377,11 @@ public class ActivityService
 				continue;
 			}
 
-			if (!activityEntitiesByDate.containsKey(date))
+			if (!activityEntitiesByDate.containsKey(dateAtStartOfInterval))
 			{
-				activityEntitiesByDate.put(date, new HashSet<T>());
+				activityEntitiesByDate.put(dateAtStartOfInterval, new HashSet<T>());
 			}
-			Set<T> activityEntitiesAtDate = activityEntitiesByDate.get(date);
+			Set<T> activityEntitiesAtDate = activityEntitiesByDate.get(dateAtStartOfInterval);
 			activeGoals.stream().map(g -> goalService.getGoalEntityForUserAnonymizedID(userAnonymized.getID(), g.getID()))
 					.forEach(g -> addMissingInactivity(g, dateAtStartOfInterval, activityEntitiesAtDate, userAnonymized,
 							inactivityEntitySupplier, existingEntityInactivityCompletor));
@@ -322,16 +396,16 @@ public class ActivityService
 		return activeGoals;
 	}
 
-	private <T extends IntervalActivity> void addMissingInactivity(Goal activeGoal, ZonedDateTime dateAtStartOfInterval,
+	private <T extends IntervalActivityDTO> void addMissingInactivity(Goal activeGoal, ZonedDateTime dateAtStartOfInterval,
 			Set<T> activityEntitiesAtDate, UserAnonymizedDTO userAnonymized,
-			BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier, Consumer<T> existingEntityInactivityCompletor)
+			BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier, BiConsumer<Goal, T> existingEntityInactivityCompletor)
 	{
 		Optional<T> activityForGoal = getActivityForGoal(activityEntitiesAtDate, activeGoal);
 		if (activityForGoal.isPresent())
 		{
 			// even if activity was already recorded, it might be that this is not for the complete period
 			// so make the interval activity complete with a consumer
-			existingEntityInactivityCompletor.accept(activityForGoal.get());
+			existingEntityInactivityCompletor.accept(activeGoal, activityForGoal.get());
 		}
 		else
 		{
@@ -339,33 +413,42 @@ public class ActivityService
 		}
 	}
 
-	private <T extends IntervalActivity> Optional<T> getActivityForGoal(Set<T> dayActivityEntitiesAtDate, Goal goal)
+	private <T extends IntervalActivityDTO> Optional<T> getActivityForGoal(Set<T> dayActivityDTOsAtDate, Goal goal)
 	{
-		return dayActivityEntitiesAtDate.stream().filter(a -> a.getGoal().equals(goal)).findAny();
+		return dayActivityDTOsAtDate.stream().filter(a -> a.getGoalID().equals(goal.getID())).findAny();
 	}
 
 	@Transactional
 	public WeekActivityDTO getUserWeekActivityDetail(UUID userID, LocalDate date, UUID goalID)
 	{
-		return getWeekActivityDetail(userID, userService.getUserAnonymizedID(userID), date, goalID);
+		return executeAndCreateInactivityEntries(
+				mia -> getWeekActivityDetail(userID, userService.getUserAnonymizedID(userID), date, goalID, mia));
 	}
 
 	@Transactional
 	public WeekActivityDTO getBuddyWeekActivityDetail(UUID buddyID, LocalDate date, UUID goalID)
 	{
 		BuddyDTO buddy = buddyService.getBuddy(buddyID);
-		return getWeekActivityDetail(buddy.getUser().getID(), getBuddyUserAnonymizedID(buddy), date, goalID);
+		return executeAndCreateInactivityEntries(
+				mia -> getWeekActivityDetail(buddy.getUser().getID(), getBuddyUserAnonymizedID(buddy), date, goalID, mia));
 	}
 
-	private WeekActivityDTO getWeekActivityDetail(UUID userID, UUID userAnonymizedID, LocalDate date, UUID goalID)
+	private WeekActivityDTO getWeekActivityDetail(UUID userID, UUID userAnonymizedID, LocalDate date, UUID goalID,
+			Set<IntervalInactivityDTO> missingInactivities)
 	{
+		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
 		WeekActivity weekActivityEntity = weekActivityRepository.findOne(userAnonymizedID, date, goalID);
 		if (weekActivityEntity == null)
 		{
-			weekActivityEntity = getMissingInactivity(userID, date, goalID, userAnonymizedID, ChronoUnit.WEEKS,
-					(goal, startOfWeek) -> createAndSaveWeekInactivity(userAnonymizedID, goal, startOfWeek));
+			return getMissingInactivity(userID, date, goalID, userAnonymized, ChronoUnit.WEEKS,
+					(goal, startOfWeek) -> createAndSaveWeekInactivity(userAnonymized, goal, startOfWeek,
+							LevelOfDetail.WeekDetail, missingInactivities));
 		}
-		return WeekActivityDTO.createInstance(weekActivityEntity, LevelOfDetail.WeekDetail);
+		WeekActivityDTO weekActivityDTO = WeekActivityDTO.createInstance(weekActivityEntity, LevelOfDetail.WeekDetail);
+		weekActivityDTO.createRequiredInactivityDays(userAnonymized,
+				userAnonymized.getGoalsForActivityCategory(weekActivityEntity.getGoal().getActivityCategory()),
+				LevelOfDetail.WeekDetail, missingInactivities);
+		return weekActivityDTO;
 	}
 
 	@Transactional
@@ -389,23 +472,28 @@ public class ActivityService
 	@Transactional
 	public DayActivityDTO getUserDayActivityDetail(UUID userID, LocalDate date, UUID goalID)
 	{
-		return getDayActivityDetail(userID, userService.getUserAnonymizedID(userID), date, goalID);
+		return executeAndCreateInactivityEntries(
+				mia -> getDayActivityDetail(userID, userService.getUserAnonymizedID(userID), date, goalID, mia));
 	}
 
 	@Transactional
 	public DayActivityDTO getBuddyDayActivityDetail(UUID buddyID, LocalDate date, UUID goalID)
 	{
 		BuddyDTO buddy = buddyService.getBuddy(buddyID);
-		return getDayActivityDetail(buddy.getUser().getID(), getBuddyUserAnonymizedID(buddy), date, goalID);
+		return executeAndCreateInactivityEntries(
+				mia -> getDayActivityDetail(buddy.getUser().getID(), getBuddyUserAnonymizedID(buddy), date, goalID, mia));
 	}
 
-	private DayActivityDTO getDayActivityDetail(UUID userID, UUID userAnonymizedID, LocalDate date, UUID goalID)
+	private DayActivityDTO getDayActivityDetail(UUID userID, UUID userAnonymizedID, LocalDate date, UUID goalID,
+			Set<IntervalInactivityDTO> missingInactivities)
 	{
+		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
 		DayActivity dayActivityEntity = dayActivityRepository.findOne(userAnonymizedID, date, goalID);
 		if (dayActivityEntity == null)
 		{
-			dayActivityEntity = getMissingInactivity(userID, date, goalID, userAnonymizedID, ChronoUnit.DAYS,
-					(goal, startOfDay) -> createAndSaveDayInactivity(userAnonymizedID, goal, startOfDay));
+			return getMissingInactivity(userID, date, goalID, userAnonymized, ChronoUnit.DAYS,
+					(goal, startOfDay) -> createAndSaveDayInactivity(userAnonymized, goal, startOfDay, LevelOfDetail.DayDetail,
+							missingInactivities));
 		}
 		return DayActivityDTO.createInstance(dayActivityEntity, LevelOfDetail.DayDetail);
 	}
@@ -514,10 +602,9 @@ public class ActivityService
 				isSentItem, message, repliedMessageID);
 	}
 
-	private <T extends IntervalActivity> T getMissingInactivity(UUID userID, LocalDate date, UUID goalID, UUID userAnonymizedID,
-			ChronoUnit timeUnit, BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier)
+	private <T extends IntervalActivityDTO> T getMissingInactivity(UUID userID, LocalDate date, UUID goalID,
+			UserAnonymizedDTO userAnonymized, ChronoUnit timeUnit, BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier)
 	{
-		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
 		Goal goal = goalService.getGoalEntityForUserAnonymizedID(userAnonymized.getID(), goalID);
 		ZonedDateTime dateAtStartOfInterval = date.atStartOfDay(ZoneId.of(userAnonymized.getTimeZoneId()));
 		if (!goal.wasActiveAtInterval(dateAtStartOfInterval, timeUnit))

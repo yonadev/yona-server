@@ -21,5 +21,11 @@ class ActivityCategoriesTest extends AbstractAppServiceIntegrationTest
 		response.status == 200
 		response.responseData._links.self.href == appService.url + appService.ACTIVITY_CATEGORIES_PATH
 		response.responseData._embedded."yona:activityCategories".size() > 0
+		def gamblingCategory = response.responseData._embedded."yona:activityCategories".find
+		{
+			it._links.self.href == GAMBLING_ACT_CAT_URL
+		}
+		gamblingCategory.keySet() == ["_links", "applications", "name"] as Set
+		gamblingCategory.applications as Set == ["Lotto App", "Poker App"] as Set
 	}
 }

@@ -92,7 +92,7 @@ public class BudgetGoalDTO extends GoalDTO
 		ActivityCategory activityCategory = ActivityCategory.getRepository().findOne(this.getActivityCategoryID());
 		if (activityCategory == null)
 		{
-			throw ActivityCategoryNotFoundException.notFound(this.getActivityCategoryID());
+			throw ActivityCategoryException.notFound(this.getActivityCategoryID());
 		}
 		return BudgetGoal.createInstance(getCreationTime().orElse(ZonedDateTime.now()), activityCategory,
 				this.maxDurationMinutes);

@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import nu.yona.server.analysis.service.AnalysisEngineService;
+import nu.yona.server.analysis.service.AnalysisEngineProxyService;
 import nu.yona.server.analysis.service.AppActivityDTO;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.YonaException;
@@ -40,13 +40,13 @@ import nu.yona.server.subscriptions.service.UserService;
 public class AppActivityController
 {
 	@Autowired
-	private AnalysisEngineService analysisEngineService;
-
-	@Autowired
 	private UserService userService;
 
+	@Autowired
+	private AnalysisEngineProxyService analysisEngineProxyService;
+
 	/*
-	 * Adds app activity registered by the Yona app.
+	 * Adds app activity registered by the Yona app. This request is delegated to the analysis engine service.
 	 * @param password User password, validated before adding the activity.
 	 * @param appActivities Because it may be that multiple app activities may have taken place during the time the network is
 	 * down, accept an array of activities.
@@ -58,7 +58,7 @@ public class AppActivityController
 	{
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> {
 			UUID userAnonymizedID = userService.getPrivateUser(userID).getPrivateData().getUserAnonymizedID();
-			analysisEngineService.analyze(userAnonymizedID, appActivities);
+			analysisEngineProxyService.analyzeAppActivity(userAnonymizedID, appActivities);
 			return null;
 		});
 		return new ResponseEntity<Void>(HttpStatus.OK);

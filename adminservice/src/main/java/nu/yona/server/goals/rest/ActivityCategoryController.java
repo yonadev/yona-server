@@ -22,9 +22,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import com.fasterxml.jackson.annotation.JsonView;
 
 import nu.yona.server.goals.rest.ActivityCategoryController.ActivityCategoryResource;
 import nu.yona.server.goals.service.ActivityCategoryDTO;
@@ -40,6 +44,7 @@ public class ActivityCategoryController
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	@ResponseBody
+	@JsonView(ActivityCategoryDTO.AdminView.class)
 	public HttpEntity<ActivityCategoryResource> getActivityCategory(@PathVariable UUID id)
 	{
 		return createOKResponse(activityCategoryService.getActivityCategory(id));
@@ -47,9 +52,35 @@ public class ActivityCategoryController
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
+	@JsonView(ActivityCategoryDTO.AdminView.class)
 	public HttpEntity<Resources<ActivityCategoryResource>> getAllActivityCategories()
 	{
 		return createOKResponse(activityCategoryService.getAllActivityCategories(), getAllActivityCategoriesLinkBuilder());
+	}
+
+	@RequestMapping(value = "/", method = RequestMethod.POST)
+	@ResponseBody
+	@JsonView(ActivityCategoryDTO.AdminView.class)
+	public HttpEntity<ActivityCategoryResource> addActivityCategory(@RequestBody ActivityCategoryDTO activityCategory)
+	{
+		activityCategory.setID(UUID.randomUUID());
+		return createOKResponse(activityCategoryService.addActivityCategory(activityCategory));
+	}
+
+	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+	@ResponseBody
+	@JsonView(ActivityCategoryDTO.AdminView.class)
+	public HttpEntity<ActivityCategoryResource> updateActivityCategory(@PathVariable UUID id,
+			@RequestBody ActivityCategoryDTO activityCategory)
+	{
+		return createOKResponse(activityCategoryService.updateActivityCategory(id, activityCategory));
+	}
+
+	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+	@ResponseStatus(HttpStatus.OK)
+	public void deleteActivityCategory(@PathVariable UUID id)
+	{
+		activityCategoryService.deleteActivityCategory(id);
 	}
 
 	static ControllerLinkBuilder getAllActivityCategoriesLinkBuilder()

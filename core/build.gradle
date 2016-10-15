@@ -47,6 +47,7 @@ dependencies {
 	compile("commons-lang:commons-lang:2.4")
 	compile("javax.mail:mail:1.4.7")
 	compile("org.apache.velocity:velocity")
+	compile("org.apache.velocity:velocity-tools")
 	compile("org.springframework.ldap:spring-ldap-core:2.0.4.RELEASE")
 	compile("org.springframework.security:spring-security-web:4.0.3.RELEASE")
 	compile("com.google.guava:guava:18.0")

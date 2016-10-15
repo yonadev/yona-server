@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appID": "KMR2VE49BG.nl.yonafoundation.yona",
+        "appID": "${esc.javascript($appleAppID)}",
         "paths":[ "/yonaapp/" ]
       }
     ]
