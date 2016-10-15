@@ -20,7 +20,8 @@ import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.WeekActivity;
 
 @Service
-// DayActivity entities are cached which should not be serialized, hence the local cache
+// Day activities are only used in the analysis engine service, so a local cache suffices for as long as we do not
+// scale out the analysis engine service.
 @CacheConfig(cacheManager = "localCache")
 public class ActivityCacheService
 {
