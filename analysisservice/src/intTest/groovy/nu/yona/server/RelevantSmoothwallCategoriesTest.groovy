@@ -25,7 +25,7 @@ class RelevantSmoothwallCategoriesTest extends Specification
 
 		then:
 		response.status == 200
-		response.responseData.categories.size() == 21
+		response.responseData.categories.size() > 10
 		response.responseData.categories.contains("Gambling")
 		response.responseData.categories.contains("lotto")
 		response.responseData.categories.contains("news/media")

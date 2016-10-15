@@ -25,6 +25,8 @@ import nu.yona.server.goals.entities.TimeZoneGoal;
 @JsonRootName("timeZoneGoal")
 public class TimeZoneGoalDTO extends GoalDTO
 {
+	private static final long serialVersionUID = 7479427103494945857L;
+
 	private static Pattern zonePattern = Pattern.compile("[0-2][0-9]:[0-5][0-9]-[0-2][0-9]:[0-5][0-9]");
 	private final List<String> zones;
 	private final List<Integer> spreadCells;
@@ -160,7 +162,7 @@ public class TimeZoneGoalDTO extends GoalDTO
 		ActivityCategory activityCategory = ActivityCategory.getRepository().findOne(this.getActivityCategoryID());
 		if (activityCategory == null)
 		{
-			throw ActivityCategoryNotFoundException.notFound(this.getActivityCategoryID());
+			throw ActivityCategoryException.notFound(this.getActivityCategoryID());
 		}
 		return TimeZoneGoal.createInstance(getCreationTime().orElse(ZonedDateTime.now()), activityCategory, this.zones);
 	}
