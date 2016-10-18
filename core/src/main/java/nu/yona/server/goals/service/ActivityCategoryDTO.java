@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,34 +20,45 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import nu.yona.server.goals.entities.ActivityCategory;
 
 @JsonRootName("activityCategory")
-public class ActivityCategoryDTO
+public class ActivityCategoryDTO implements Serializable
 {
-	private final UUID id;
-	private final Map<Locale, String> name;
-	private boolean mandatoryNoGo;
-	private Set<String> smoothwallCategories;
-	private Set<String> applications;
+	public static class AdminView
+	{
+	}
+
+	public static class AppView
+	{
+	}
+
+	private static final long serialVersionUID = 2498926948887006481L;
+
+	private UUID id;
+	private final Map<Locale, String> localizableName;
+	private final boolean mandatoryNoGo;
+	private final Set<String> smoothwallCategories;
+	private final Set<String> applications;
 
 	@JsonCreator
 	public ActivityCategoryDTO(@JsonProperty("id") UUID id,
-			@JsonProperty("name") @JsonDeserialize(as = HashMap.class, keyAs = String.class, contentAs = String.class) HashMap<String, String> name,
+			@JsonProperty("localizableName") @JsonDeserialize(as = HashMap.class, keyAs = String.class, contentAs = String.class) HashMap<String, String> localizableName,
 			@JsonProperty("mandatoryNoGo") boolean mandatory,
 			@JsonProperty("smoothwallCategories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> smoothwallCategories,
 			@JsonProperty("applications") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> applications)
 	{
-		this(id, mapToLocaleMap(name), mandatory, smoothwallCategories, applications);
+		this(id, mapToLocaleMap(localizableName), mandatory, smoothwallCategories, applications);
 	}
 
-	public ActivityCategoryDTO(UUID id, Map<Locale, String> name, boolean mandatory, Set<String> smoothwallCategories,
+	public ActivityCategoryDTO(UUID id, Map<Locale, String> localizableName, boolean mandatory, Set<String> smoothwallCategories,
 			Set<String> applications)
 	{
 		this.id = id;
-		this.name = name;
+		this.localizableName = localizableName;
 		this.mandatoryNoGo = mandatory;
 		this.smoothwallCategories = new HashSet<>(smoothwallCategories);
 		this.applications = new HashSet<>(applications);
@@ -62,36 +74,65 @@ public class ActivityCategoryDTO
 		return localeMap;
 	}
 
+	private static Map<String, String> mapToStringMap(Map<Locale, String> localeMap)
+	{
+		Map<String, String> localeStringMap = new HashMap<>();
+		for (Locale locale : localeMap.keySet())
+		{
+			localeStringMap.put(locale.toLanguageTag(), localeMap.get(locale));
+		}
+		return localeStringMap;
+	}
+
 	@JsonIgnore
 	public UUID getID()
 	{
 		return id;
 	}
 
+	public void setID(UUID id)
+	{
+		this.id = id;
+	}
+
+	@JsonView(AppView.class)
 	public String getName()
 	{
-		String retVal = name.get(LocaleContextHolder.getLocale());
+		String retVal = localizableName.get(LocaleContextHolder.getLocale());
 		assert retVal != null;
 		return retVal;
 	}
 
-	public String getName(Locale locale)
+	@JsonView(AdminView.class)
+	public Map<String, String> getLocalizableName()
 	{
-		return name.get(locale);
+		return mapToStringMap(localizableName);
 	}
 
 	@JsonIgnore
+	public Map<Locale, String> getLocalizableNameByLocale()
+	{
+		return Collections.unmodifiableMap(localizableName);
+	}
+
+	public String getName(Locale locale)
+	{
+		return localizableName.get(locale);
+	}
+
+	@JsonView(AdminView.class)
 	public boolean isMandatoryNoGo()
 	{
 		return mandatoryNoGo;
 	}
 
-	@JsonIgnore
+	@JsonView(AdminView.class)
 	public Set<String> getSmoothwallCategories()
 	{
 		return Collections.unmodifiableSet(smoothwallCategories);
 	}
 
+	@JsonView({ AdminView.class, AppView.class })
 	public Set<String> getApplications()
 	{
 		return Collections.unmodifiableSet(applications);
@@ -106,13 +147,15 @@ public class ActivityCategoryDTO
 
 	public ActivityCategory createActivityCategoryEntity()
 	{
-		return ActivityCategory.createInstance(id, name, mandatoryNoGo, smoothwallCategories, applications);
+		return ActivityCategory.createInstance(id, localizableName, mandatoryNoGo, smoothwallCategories, applications);
 	}
 
 	public ActivityCategory updateActivityCategory(ActivityCategory originalActivityCategoryEntity)
 	{
-		originalActivityCategoryEntity.setName(name);
+		originalActivityCategoryEntity.setName(localizableName);
+		originalActivityCategoryEntity.setMandatoryNoGo(mandatoryNoGo);
 		originalActivityCategoryEntity.setSmoothwallCategories(smoothwallCategories);
+		originalActivityCategoryEntity.setApplications(applications);
 
 		return originalActivityCategoryEntity;
 	}

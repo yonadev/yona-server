@@ -26,6 +26,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.fasterxml.jackson.annotation.JsonView;
+
 import nu.yona.server.goals.rest.ActivityCategoryController.ActivityCategoryResource;
 import nu.yona.server.goals.service.ActivityCategoryDTO;
 import nu.yona.server.goals.service.ActivityCategoryService;
@@ -40,6 +42,7 @@ public class ActivityCategoryController
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	@ResponseBody
+	@JsonView(ActivityCategoryDTO.AppView.class)
 	public HttpEntity<ActivityCategoryResource> getActivityCategory(@PathVariable UUID id)
 	{
 		return createOKResponse(activityCategoryService.getActivityCategory(id));
@@ -47,6 +50,7 @@ public class ActivityCategoryController
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
+	@JsonView(ActivityCategoryDTO.AppView.class)
 	public HttpEntity<Resources<ActivityCategoryResource>> getAllActivityCategories()
 	{
 		return createOKResponse(activityCategoryService.getAllActivityCategories(), getAllActivityCategoriesLinkBuilder());

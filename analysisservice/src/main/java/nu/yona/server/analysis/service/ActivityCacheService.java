@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +19,9 @@ import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.DayActivity;
 
 @Service
+// Day activities are only used in the analysis engine service, so a local cache suffices for as long as we do not
+// scale out the analysis engine service.
+@CacheConfig(cacheManager = "localCache")
 public class ActivityCacheService
 {
 	@Cacheable(value = "activities", key = "{#userAnonymizedID,#goalID}")

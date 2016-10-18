@@ -11,6 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CachingConfigurerSupport;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
@@ -29,7 +32,12 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.spring.cache.HazelcastCacheManager;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.properties.YonaProperties;
@@ -39,7 +47,7 @@ import nu.yona.server.rest.RestClientErrorHandler;
 @EnableHypermediaSupport(type = HypermediaType.HAL)
 @EnableSpringDataWebSupport
 @Configuration
-public class CoreConfiguration
+public class CoreConfiguration extends CachingConfigurerSupport
 {
 	private static final Logger logger = LoggerFactory.getLogger(CoreConfiguration.class);
 
@@ -130,6 +138,9 @@ public class CoreConfiguration
 		// service to the analysis engine service.
 		springHateoasObjectMapper.disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
 
+		// This way, the JsonView annotations on the controlers work properly
+		springHateoasObjectMapper.enable(MapperFeature.DEFAULT_VIEW_INCLUSION);
+
 		return springHateoasObjectMapper;
 	}
 
@@ -153,5 +164,19 @@ public class CoreConfiguration
 		RestTemplate restTemplate = new RestTemplate();
 		restTemplate.setErrorHandler(new RestClientErrorHandler(objectMapper));
 		return restTemplate;
+	}
+
+	@Override
+	@Bean
+	public CacheManager cacheManager()
+	{
+		HazelcastInstance client = Hazelcast.newHazelcastInstance(new Config());
+		return new HazelcastCacheManager(client);
+	}
+
+	@Bean
+	public CacheManager localCache()
+	{
+		return new ConcurrentMapCacheManager();
 	}
 }
