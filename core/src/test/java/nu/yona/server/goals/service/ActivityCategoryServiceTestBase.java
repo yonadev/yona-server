@@ -34,9 +34,9 @@ public abstract class ActivityCategoryServiceTestBase
 	{
 		LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
 		gambling = ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
-				new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet());
+				new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet(), usString("Descr"));
 		news = ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
-				new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet());
+				new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr"));
 
 		activityCategories.add(gambling);
 		activityCategories.add(news);
@@ -44,7 +44,7 @@ public abstract class ActivityCategoryServiceTestBase
 		when(mockRepository.findAll()).thenReturn(Collections.unmodifiableSet(activityCategories));
 		when(mockRepository.findOne(gambling.getID())).thenReturn(gambling);
 		when(mockRepository.findOne(news.getID())).thenReturn(news);
-		//save should not return null but the saved entity
+		// save should not return null but the saved entity
 		when(mockRepository.save(any(ActivityCategory.class))).thenAnswer(new Answer<ActivityCategory>() {
 			@Override
 			public ActivityCategory answer(InvocationOnMock invocation) throws Throwable

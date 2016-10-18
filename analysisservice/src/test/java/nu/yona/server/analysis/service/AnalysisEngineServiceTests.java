@@ -108,15 +108,20 @@ public class AnalysisEngineServiceTests
 		gamblingGoal = BudgetGoal.createNoGoInstance(yesterday,
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
 						new HashSet<String>(Arrays.asList("poker", "lotto")),
-						new HashSet<String>(Arrays.asList("Poker App", "Lotto App"))));
+						new HashSet<String>(Arrays.asList("Poker App", "Lotto App")), usString("Descr")));
 		newsGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(), usString("news"),
-				false, new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet()));
-		gamingGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(),
-				usString("gaming"), false, new HashSet<String>(Arrays.asList("games")), Collections.emptySet()));
-		socialGoal = TimeZoneGoal.createInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(), usString("social"),
-				false, new HashSet<String>(Arrays.asList("social")), Collections.emptySet()), Collections.emptyList());
-		shoppingGoal = BudgetGoal.createInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(),
-				usString("shopping"), false, new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet()), 1);
+				false, new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr")));
+		gamingGoal = BudgetGoal.createNoGoInstance(yesterday,
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
+						new HashSet<String>(Arrays.asList("games")), Collections.emptySet(), usString("Descr")));
+		socialGoal = TimeZoneGoal.createInstance(yesterday,
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("social"), false,
+						new HashSet<String>(Arrays.asList("social")), Collections.emptySet(), usString("Descr")),
+				Collections.emptyList());
+		shoppingGoal = BudgetGoal.createInstance(yesterday,
+				ActivityCategory.createInstance(UUID.randomUUID(), usString("shopping"), false,
+						new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet(), usString("Descr")),
+				1);
 
 		goalMap.put("gambling", gamblingGoal);
 		goalMap.put("news", newsGoal);
