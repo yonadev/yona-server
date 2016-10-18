@@ -125,6 +125,18 @@ public class AnalysisEngineService
 
 	private void analyze(ActivityPayload payload, Set<ActivityCategoryDTO> matchingActivityCategories)
 	{
+		// We add a lock here because we further down in this class need to prevent conflicting updates to the DayActivity
+		// entities.
+		// The lock is added in this method (and not further down) so that we only have to lock once;
+		// because the lock is per user, it doesn't matter much that we block early.
+		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(payload.userAnonymized.getID()))
+		{
+			analyzeInsideLock(payload, matchingActivityCategories);
+		}
+	}
+
+	private void analyzeInsideLock(ActivityPayload payload, Set<ActivityCategoryDTO> matchingActivityCategories)
+	{
 		Set<GoalDTO> matchingGoalsOfUser = determineMatchingGoalsForUser(payload.userAnonymized, matchingActivityCategories,
 				payload.startTime);
 		for (GoalDTO matchingGoalOfUser : matchingGoalsOfUser)
@@ -239,11 +251,11 @@ public class AnalysisEngineService
 	private void updateActivityEndTime(ActivityPayload payload, GoalDTO matchingGoal, ActivityDTO lastRegisteredActivity)
 	{
 		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getID());
-		// TODO: are we sure that getLastActivity() gives the same activity? no concurrency issues?
+		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
 		Activity activity = dayActivity.getLastActivity();
 		activity.setEndTime(payload.endTime);
 		DayActivity updatedDayActivity = dayActivityRepository.save(dayActivity);
-		// TODO: are we sure that getLastActivity() gives the same activity? no concurrency issues?
+		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
 		Activity updatedActivity = updatedDayActivity.getLastActivity();
 		if (shouldUpdateCache(lastRegisteredActivity, updatedActivity))
 		{
@@ -297,7 +309,7 @@ public class AnalysisEngineService
 		Activity activity = Activity.createInstance(payload.startTime, endTime);
 		dayActivity.addActivity(activity);
 		DayActivity updatedDayActivity = dayActivityRepository.save(dayActivity);
-		// TODO: are we sure that getLastActivity() gives the same activity? no concurrency issues?
+		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
 		return updatedDayActivity.getLastActivity();
 	}
 
@@ -312,20 +324,6 @@ public class AnalysisEngineService
 	}
 
 	private DayActivity createNewDayActivity(ActivityPayload payload, Goal matchingGoal)
-	{
-		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(payload.userAnonymized.getID()))
-		{
-			// Within the lock, check that no other thread in the meanwhile created this day activity
-			DayActivity existingDayActivity = findExistingDayActivity(payload, matchingGoal.getID());
-			if (existingDayActivity != null)
-			{
-				return existingDayActivity;
-			}
-			return createNewDayActivityInsideLock(payload, matchingGoal);
-		}
-	}
-
-	private DayActivity createNewDayActivityInsideLock(ActivityPayload payload, Goal matchingGoal)
 	{
 		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(payload.userAnonymized.getID());
 
