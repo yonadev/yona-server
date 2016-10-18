@@ -21,10 +21,10 @@ import nu.yona.server.analysis.entities.DayActivity;
 @Service
 // Day activities are only used in the analysis engine service, so a local cache suffices for as long as we do not
 // scale out the analysis engine service.
-@CacheConfig(cacheManager = "localCache")
+@CacheConfig(cacheManager = "localCache", cacheNames = "lastActivity")
 public class ActivityCacheService
 {
-	@Cacheable(value = "activities", key = "{#userAnonymizedID,#goalID}")
+	@Cacheable(key = "{#userAnonymizedID,#goalID}")
 	@Transactional
 	public ActivityDTO fetchLastActivityForUser(UUID userAnonymizedID, UUID goalID)
 	{
@@ -39,7 +39,7 @@ public class ActivityCacheService
 		return lastActivity == null ? null : ActivityDTO.createInstance(lastActivity);
 	}
 
-	@CachePut(value = "activities", key = "{#userAnonymizedID,#goalID}")
+	@CachePut(key = "{#userAnonymizedID,#goalID}")
 	public ActivityDTO updateLastActivityForUser(UUID userAnonymizedID, UUID goalID, ActivityDTO activity)
 	{
 		// Nothing else to do. Just let Spring cache this new value.

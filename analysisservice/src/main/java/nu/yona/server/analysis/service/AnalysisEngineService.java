@@ -154,18 +154,18 @@ public class AnalysisEngineService
 
 	private void addOrUpdateDayTruncatedActivity(ActivityPayload payload, GoalDTO matchingGoal)
 	{
-		ActivityCacheResult activity = getRegisteredDayActivity(payload, matchingGoal);
-		if (canCombineWithLastRegisteredActivity(payload, activity.content))
+		ActivityCacheResult activityCacheResult = getRegisteredDayActivity(payload, matchingGoal);
+		if (canCombineWithLastRegisteredActivity(payload, activityCacheResult.content))
 		{
-			if (isBeyondSkipWindowAfterLastRegisteredActivity(payload, activity.content))
+			if (isBeyondSkipWindowAfterLastRegisteredActivity(payload, activityCacheResult.content))
 			{
 				// Update message only if it is within five seconds to avoid unnecessary cache flushes.
-				updateActivityEndTime(payload, matchingGoal, activity);
+				updateActivityEndTime(payload, matchingGoal, activityCacheResult);
 			}
 		}
 		else
 		{
-			addActivity(payload, matchingGoal, activity);
+			addActivity(payload, matchingGoal, activityCacheResult);
 		}
 	}
 
