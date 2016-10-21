@@ -125,6 +125,18 @@ public class AnalysisEngineService
 
 	private void analyze(ActivityPayload payload, Set<ActivityCategoryDTO> matchingActivityCategories)
 	{
+		// We add a lock here because we further down in this class need to prevent conflicting updates to the DayActivity
+		// entities.
+		// The lock is added in this method (and not further down) so that we only have to lock once;
+		// because the lock is per user, it doesn't matter much that we block early.
+		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(payload.userAnonymized.getID()))
+		{
+			analyzeInsideLock(payload, matchingActivityCategories);
+		}
+	}
+
+	private void analyzeInsideLock(ActivityPayload payload, Set<ActivityCategoryDTO> matchingActivityCategories)
+	{
 		Set<GoalDTO> matchingGoalsOfUser = determineMatchingGoalsForUser(payload.userAnonymized, matchingActivityCategories,
 				payload.startTime);
 		for (GoalDTO matchingGoalOfUser : matchingGoalsOfUser)
@@ -154,18 +166,18 @@ public class AnalysisEngineService
 
 	private void addOrUpdateDayTruncatedActivity(ActivityPayload payload, GoalDTO matchingGoal)
 	{
-		ActivityCacheResult activity = getRegisteredDayActivity(payload, matchingGoal);
-		if (canCombineWithLastRegisteredActivity(payload, activity.content))
+		ActivityDTO lastRegisteredActivity = getLastRegisteredActivity(payload, matchingGoal);
+		if (canCombineWithLastRegisteredActivity(payload, lastRegisteredActivity))
 		{
-			if (isBeyondSkipWindowAfterLastRegisteredActivity(payload, activity.content))
+			if (isBeyondSkipWindowAfterLastRegisteredActivity(payload, lastRegisteredActivity))
 			{
 				// Update message only if it is within five seconds to avoid unnecessary cache flushes.
-				updateActivityEndTime(payload, matchingGoal, activity);
+				updateActivityEndTime(payload, matchingGoal, lastRegisteredActivity);
 			}
 		}
 		else
 		{
-			addActivity(payload, matchingGoal, activity);
+			addActivity(payload, matchingGoal, lastRegisteredActivity);
 		}
 	}
 
@@ -209,36 +221,9 @@ public class AnalysisEngineService
 		return payload.startTime.isAfter(intervalEndTime);
 	}
 
-	private ActivityCacheResult getRegisteredDayActivity(ActivityPayload payload, GoalDTO matchingGoal)
+	private ActivityDTO getLastRegisteredActivity(ActivityPayload payload, GoalDTO matchingGoal)
 	{
-		ActivityDTO lastRegisteredActivity = cacheService.fetchLastActivityForUser(payload.userAnonymized.getID(),
-				matchingGoal.getID());
-		if (lastRegisteredActivity == null)
-		{
-			return ActivityCacheResult.cacheEmpty();
-		}
-		else if (hasLaterDay(lastRegisteredActivity, payload))
-		{
-			return ActivityCacheResult.cachedHasLaterDay();
-		}
-		else if (hasEarlierDay(lastRegisteredActivity, payload))
-		{
-			return ActivityCacheResult.cachedHasEarlierDay();
-		}
-		else
-		{
-			return ActivityCacheResult.fromCache(lastRegisteredActivity);
-		}
-	}
-
-	private boolean hasEarlierDay(ActivityDTO lastRegisteredActivity, ActivityPayload payload)
-	{
-		return lastRegisteredActivity.getEndTime().isBefore(getStartOfDay(payload.startTime, payload.userAnonymized));
-	}
-
-	private boolean hasLaterDay(ActivityDTO lastRegisteredActivity, ActivityPayload payload)
-	{
-		return getStartOfDay(lastRegisteredActivity.getStartTime(), payload.userAnonymized).isAfter(payload.startTime);
+		return cacheService.fetchLastActivityForUser(payload.userAnonymized.getID(), matchingGoal.getID());
 	}
 
 	private boolean isCrossDayActivity(ActivityPayload payload)
@@ -246,12 +231,12 @@ public class AnalysisEngineService
 		return getStartOfDay(payload.endTime, payload.userAnonymized).isAfter(payload.startTime);
 	}
 
-	private void addActivity(ActivityPayload payload, GoalDTO matchingGoal, ActivityCacheResult activityCacheResult)
+	private void addActivity(ActivityPayload payload, GoalDTO matchingGoal, ActivityDTO lastRegisteredActivity)
 	{
 		Goal matchingGoalEntity = goalService.getGoalEntityForUserAnonymizedID(payload.userAnonymized.getID(),
 				matchingGoal.getID());
 		Activity addedActivity = createNewActivity(payload, matchingGoalEntity);
-		if (shouldUpdateCache(activityCacheResult, addedActivity))
+		if (shouldUpdateCache(lastRegisteredActivity, addedActivity))
 		{
 			cacheService.updateLastActivityForUser(payload.userAnonymized.getID(), matchingGoal.getID(),
 					ActivityDTO.createInstance(addedActivity));
@@ -263,29 +248,29 @@ public class AnalysisEngineService
 		}
 	}
 
-	private void updateActivityEndTime(ActivityPayload payload, GoalDTO matchingGoal, ActivityCacheResult activityCacheResult)
+	private void updateActivityEndTime(ActivityPayload payload, GoalDTO matchingGoal, ActivityDTO lastRegisteredActivity)
 	{
 		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getID());
-		// TODO: are we sure that getLastActivity() gives the same activity? no concurrency issues?
+		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
 		Activity activity = dayActivity.getLastActivity();
 		activity.setEndTime(payload.endTime);
 		DayActivity updatedDayActivity = dayActivityRepository.save(dayActivity);
-		// TODO: are we sure that getLastActivity() gives the same activity? no concurrency issues?
+		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
 		Activity updatedActivity = updatedDayActivity.getLastActivity();
-		if (shouldUpdateCache(activityCacheResult, updatedActivity))
+		if (shouldUpdateCache(lastRegisteredActivity, updatedActivity))
 		{
 			cacheService.updateLastActivityForUser(payload.userAnonymized.getID(), matchingGoal.getID(),
 					ActivityDTO.createInstance(updatedActivity));
 		}
 	}
 
-	private boolean shouldUpdateCache(ActivityCacheResult activityCacheResult, Activity newOrUpdatedActivity)
+	private boolean shouldUpdateCache(ActivityDTO lastRegisteredActivity, Activity newOrUpdatedActivity)
 	{
-		if (activityCacheResult.content == null)
-		{
-			return activityCacheResult.status != ActivityCacheResultStatus.CACHED_HAS_LATER_DAY;
-		}
-		return !activityCacheResult.content.getEndTime().isAfter(newOrUpdatedActivity.getEndTime());
+		if (lastRegisteredActivity == null)
+			return true;
+
+		// do not update the cache if the new or updated activity occurs earlier than the last registered activity
+		return !newOrUpdatedActivity.getEndTime().isBefore(lastRegisteredActivity.getEndTime());
 	}
 
 	private ZonedDateTime getStartOfDay(ZonedDateTime time, UserAnonymizedDTO userAnonymized)
@@ -324,7 +309,7 @@ public class AnalysisEngineService
 		Activity activity = Activity.createInstance(payload.startTime, endTime);
 		dayActivity.addActivity(activity);
 		DayActivity updatedDayActivity = dayActivityRepository.save(dayActivity);
-		// TODO: are we sure that getLastActivity() gives the same activity? no concurrency issues?
+		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
 		return updatedDayActivity.getLastActivity();
 	}
 
@@ -339,20 +324,6 @@ public class AnalysisEngineService
 	}
 
 	private DayActivity createNewDayActivity(ActivityPayload payload, Goal matchingGoal)
-	{
-		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(payload.userAnonymized.getID()))
-		{
-			// Within the lock, check that no other thread in the meanwhile created this day activity
-			DayActivity existingDayActivity = findExistingDayActivity(payload, matchingGoal.getID());
-			if (existingDayActivity != null)
-			{
-				return existingDayActivity;
-			}
-			return createNewDayActivityInsideLock(payload, matchingGoal);
-		}
-	}
-
-	private DayActivity createNewDayActivityInsideLock(ActivityPayload payload, Goal matchingGoal)
 	{
 		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(payload.userAnonymized.getID());
 
@@ -406,43 +377,6 @@ public class AnalysisEngineService
 				.filter(g -> g.getCreationTime().get().isBefore(activityStartTime.plus(DEVICE_TIME_INACCURACY_MARGIN)))
 				.collect(Collectors.toSet());
 		return matchingGoalsOfUser;
-	}
-
-	private enum ActivityCacheResultStatus
-	{
-		CACHE_EMPTY, FROM_CACHE, CACHED_HAS_EARLIER_DAY, CACHED_HAS_LATER_DAY
-	}
-
-	private static class ActivityCacheResult
-	{
-		public final ActivityCacheResultStatus status;
-		public final ActivityDTO content;
-
-		public ActivityCacheResult(ActivityDTO content, ActivityCacheResultStatus status)
-		{
-			this.status = status;
-			this.content = content;
-		}
-
-		public static ActivityCacheResult cacheEmpty()
-		{
-			return new ActivityCacheResult(null, ActivityCacheResultStatus.CACHE_EMPTY);
-		}
-
-		public static ActivityCacheResult fromCache(ActivityDTO lastRegisteredActivity)
-		{
-			return new ActivityCacheResult(lastRegisteredActivity, ActivityCacheResultStatus.FROM_CACHE);
-		}
-
-		public static ActivityCacheResult cachedHasEarlierDay()
-		{
-			return new ActivityCacheResult(null, ActivityCacheResultStatus.CACHED_HAS_EARLIER_DAY);
-		}
-
-		public static ActivityCacheResult cachedHasLaterDay()
-		{
-			return new ActivityCacheResult(null, ActivityCacheResultStatus.CACHED_HAS_LATER_DAY);
-		}
 	}
 
 	private static class ActivityPayload
