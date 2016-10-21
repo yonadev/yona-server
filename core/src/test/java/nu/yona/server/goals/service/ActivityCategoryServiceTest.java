@@ -33,9 +33,9 @@ import nu.yona.server.goals.entities.ActivityCategoryRepository;
 public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 {
 	@Mock
-	private ActivityCategoryRepository mockRepository = mock(ActivityCategoryRepository.class);
+	private final ActivityCategoryRepository mockRepository = mock(ActivityCategoryRepository.class);
 	@InjectMocks
-	private ActivityCategoryService service = new ActivityCategoryService();
+	private final ActivityCategoryService service = new ActivityCategoryService();
 
 	@Before
 	public void setUp()
@@ -79,10 +79,10 @@ public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 		// modify
 		Set<ActivityCategoryDTO> importActivityCategories = new HashSet<ActivityCategoryDTO>();
 		ActivityCategoryDTO newsModified = new ActivityCategoryDTO(news.getID(), usString("news"), false,
-				new HashSet<String>(Arrays.asList("refdag", "bbc", "atom feeds")), new HashSet<String>());
+				new HashSet<String>(Arrays.asList("refdag", "bbc", "atom feeds")), new HashSet<String>(), usString("Descr"));
 		importActivityCategories.add(newsModified);
 		ActivityCategoryDTO gaming = new ActivityCategoryDTO(UUID.randomUUID(), usString("gaming"), false,
-				new HashSet<String>(Arrays.asList("games")), new HashSet<String>());
+				new HashSet<String>(Arrays.asList("games")), new HashSet<String>(), usString("Descr"));
 		importActivityCategories.add(gaming);
 
 		service.importActivityCategories(importActivityCategories);
@@ -90,10 +90,10 @@ public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 		ArgumentCaptor<ActivityCategory> matchActivityCategory = ArgumentCaptor.forClass(ActivityCategory.class);
 		// 1 added and 1 updated
 		verify(mockRepository, times(2)).save(matchActivityCategory.capture());
-		assertThat(matchActivityCategory.getAllValues().stream().map(x -> x.getName().get(Translator.EN_US_LOCALE))
+		assertThat(matchActivityCategory.getAllValues().stream().map(x -> x.getLocalizableName().get(Translator.EN_US_LOCALE))
 				.collect(Collectors.toSet()), containsInAnyOrder("news", "gaming"));
 		// 1 deleted
 		verify(mockRepository, times(1)).delete(matchActivityCategory.capture());
-		assertThat(matchActivityCategory.getValue().getName().get(Translator.EN_US_LOCALE), equalTo("gambling"));
+		assertThat(matchActivityCategory.getValue().getLocalizableName().get(Translator.EN_US_LOCALE), equalTo("gambling"));
 	}
 }

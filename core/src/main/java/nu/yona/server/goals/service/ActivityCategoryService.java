@@ -88,7 +88,8 @@ public class ActivityCategoryService
 
 	private void verifyNoDuplicateNames(List<ActivityCategory> categoriesToConsider, Entry<Locale, String> localeAndName)
 	{
-		if (categoriesToConsider.stream().anyMatch(c -> localeAndName.getValue().equals(c.getName().get(localeAndName.getKey()))))
+		if (categoriesToConsider.stream()
+				.anyMatch(c -> localeAndName.getValue().equals(c.getLocalizableName().get(localeAndName.getKey()))))
 		{
 			throw ActivityCategoryException.duplicateName(localeAndName.getKey(), localeAndName.getValue());
 		}
@@ -111,7 +112,7 @@ public class ActivityCategoryService
 
 	private void deleteActivityCategory(ActivityCategory activityCategoryEntity)
 	{
-		logger.info("Deleting activity category '{}'", activityCategoryEntity.getName());
+		logger.info("Deleting activity category '{}'", activityCategoryEntity.getLocalizableName());
 		repository.delete(activityCategoryEntity);
 	}
 

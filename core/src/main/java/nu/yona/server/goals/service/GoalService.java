@@ -95,8 +95,8 @@ public class GoalService
 				.findFirst();
 		if (conflictingExistingGoal.isPresent())
 		{
-			throw GoalServiceException.cannotAddSecondGoalOnActivityCategory(
-					conflictingExistingGoal.get().getActivityCategory().getName().get(LocaleContextHolder.getLocale()));
+			throw GoalServiceException.cannotAddSecondGoalOnActivityCategory(conflictingExistingGoal.get().getActivityCategory()
+					.getLocalizableName().get(LocaleContextHolder.getLocale()));
 		}
 
 		Goal goalEntity = goal.createGoalEntity();

@@ -21,6 +21,7 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		then:
 		successResponse.status == 200
 		successResponse.responseData.name == "Gambling"
+		successResponse.responseData.description == "This challenge includes apps and sites like Poker and Blackjack"
 		successResponse.headers."Content-Language" == "en-US"
 		errorResponse.status == 400
 		errorResponse.data.code == "error.user.mobile.number.invalid"
@@ -39,6 +40,7 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		then:
 		successResponse.status == 200
 		successResponse.responseData.name == "Gokken"
+		successResponse.responseData.description == "Deze challenge bevat apps en sites zoals Poker en Blackjack"
 		successResponse.headers."Content-Language" == "nl-NL"
 		errorResponse.status == 400
 		errorResponse.data.code == "error.user.mobile.number.invalid"
@@ -57,6 +59,7 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		then:
 		successResponse.status == 200
 		successResponse.responseData.name == "Gambling"
+		successResponse.responseData.description == "This challenge includes apps and sites like Poker and Blackjack"
 		successResponse.headers."Content-Language" == "en-US"
 		errorResponse.status == 400
 		errorResponse.data.code == "error.user.mobile.number.invalid"

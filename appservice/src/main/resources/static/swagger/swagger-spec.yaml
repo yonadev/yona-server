@@ -2250,6 +2250,10 @@ definitions:
         example:
           - Roulette
           - Blackjack
+      description:
+        type: string
+        description: The desription of this activity category
+        example: This challenge includes apps and sites like Poker and Blackjack
       _links:
         allOf:
           - $ref: '#/definitions/Curies'
