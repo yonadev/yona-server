@@ -71,8 +71,7 @@ public class ActivityCategoryService
 	public ActivityCategoryDTO updateActivityCategory(UUID id, ActivityCategoryDTO activityCategoryDTO)
 	{
 		ActivityCategory originalEntity = getEntityByID(id);
-		logger.info("Updating activity category '{}' with ID '{}'",
-				originalEntity.getLocalizableName().get(Translator.EN_US_LOCALE), id);
+		logger.info("Updating activity category '{}' with ID '{}'", getName(originalEntity), id);
 		verifyNoDuplicateNames(Collections.singleton(id), activityCategoryDTO.getLocalizableNameByLocale());
 		return ActivityCategoryDTO.createInstance(updateActivityCategory(originalEntity, activityCategoryDTO));
 	}
@@ -93,8 +92,7 @@ public class ActivityCategoryService
 	@Transactional
 	public void deleteActivityCategory(UUID id)
 	{
-		logger.info("Deleting activity category with ID '{}'", id);
-		repository.delete(id);
+		deleteActivityCategory(getEntityByID(id));
 	}
 
 	public Set<ActivityCategoryDTO> getMatchingCategoriesForSmoothwallCategories(Set<String> smoothwallCategories)
@@ -110,6 +108,12 @@ public class ActivityCategoryService
 	{
 		return getAllActivityCategories().stream().filter(ac -> ac.getApplications().contains(application))
 				.collect(Collectors.toSet());
+	}
+
+	private void deleteActivityCategory(ActivityCategory entity)
+	{
+		logger.info("Deleting activity category '{}' with ID '{}'", getName(entity), entity.getID());
+		repository.delete(entity);
 	}
 
 	private void verifyNoDuplicateNames(Set<UUID> idsToSkip, Map<Locale, String> localizableName)
@@ -199,7 +203,12 @@ public class ActivityCategoryService
 				.collect(Collectors.toMap(ac -> ac.getID(), ac -> ac));
 
 		activityCategoriesInRepository.stream().filter(ac -> !activityCategoryDTOsMap.containsKey(ac.getID()))
-				.forEach(ac -> deleteActivityCategory(ac.getID()));
+				.forEach(ac -> deleteActivityCategory(ac));
+	}
+
+	private String getName(ActivityCategory entity)
+	{
+		return entity.getLocalizableName().get(Translator.EN_US_LOCALE);
 	}
 
 	/**
