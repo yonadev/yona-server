@@ -47,7 +47,7 @@ public class ActivityCategoryFileLoader implements CommandLineRunner
 			Set<ActivityCategoryDTO> activityCategoriesFromFile = mapper.readValue(input,
 					new TypeReference<Set<ActivityCategoryDTO>>() {
 					});
-			activityCategoryService.importActivityCategories(activityCategoriesFromFile);
+			activityCategoryService.updateActivityCategorySet(activityCategoriesFromFile);
 			logger.info("Activity categories loaded successfully");
 		}
 		catch (IOException e)

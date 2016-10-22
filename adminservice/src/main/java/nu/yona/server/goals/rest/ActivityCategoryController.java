@@ -76,6 +76,16 @@ public class ActivityCategoryController
 		return createOKResponse(activityCategoryService.updateActivityCategory(id, activityCategory));
 	}
 
+	@RequestMapping(value = "/", method = RequestMethod.PUT)
+	@ResponseBody
+	@JsonView(ActivityCategoryDTO.AdminView.class)
+	public HttpEntity<Resources<ActivityCategoryResource>> updateActivityCategorySet(
+			@RequestBody Set<ActivityCategoryDTO> activityCategorySet)
+	{
+		activityCategoryService.updateActivityCategorySet(activityCategorySet);
+		return createOKResponse(activityCategoryService.getAllActivityCategories(), getAllActivityCategoriesLinkBuilder());
+	}
+
 	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
 	public void deleteActivityCategory(@PathVariable UUID id)

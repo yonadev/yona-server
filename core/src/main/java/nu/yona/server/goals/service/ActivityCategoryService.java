@@ -4,13 +4,16 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.io.Serializable;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -47,12 +50,10 @@ public class ActivityCategoryService
 	@Transactional
 	public Set<ActivityCategoryDTO> getAllActivityCategories()
 	{
-		Set<ActivityCategoryDTO> activityCategories = new HashSet<ActivityCategoryDTO>();
-		for (ActivityCategory activityCategory : repository.findAll())
-		{
-			activityCategories.add(ActivityCategoryDTO.createInstance(activityCategory));
-		}
-		return activityCategories;
+		// Sort the collection to make it simpler to compare the activity categories
+		return StreamSupport.stream(repository.findAll().spliterator(), false).map(e -> ActivityCategoryDTO.createInstance(e))
+				.collect(Collectors.toCollection(() -> new TreeSet<>(
+						(Comparator<ActivityCategoryDTO> & Serializable) (l, r) -> l.getName().compareTo(r.getName()))));
 	}
 
 	@CacheEvict(value = "activityCategorySet", key = "'instance'")
@@ -69,10 +70,46 @@ public class ActivityCategoryService
 	@Transactional
 	public ActivityCategoryDTO updateActivityCategory(UUID id, ActivityCategoryDTO activityCategoryDTO)
 	{
-		logger.info("Updating activity category '{}' with ID '{}'", activityCategoryDTO.getName(Translator.EN_US_LOCALE), id);
-		verifyNoDuplicateNames(Collections.singleton(id), activityCategoryDTO.getLocalizableNameByLocale());
 		ActivityCategory originalEntity = getEntityByID(id);
+		logger.info("Updating activity category '{}' with ID '{}'",
+				originalEntity.getLocalizableName().get(Translator.EN_US_LOCALE), id);
+		verifyNoDuplicateNames(Collections.singleton(id), activityCategoryDTO.getLocalizableNameByLocale());
 		return ActivityCategoryDTO.createInstance(updateActivityCategory(originalEntity, activityCategoryDTO));
+	}
+
+	@CacheEvict(value = "activityCategorySet", key = "'instance'")
+	@Transactional
+	public void updateActivityCategorySet(Set<ActivityCategoryDTO> activityCategoryDTOs)
+	{
+		logger.info("Updating entire activity category set");
+		Set<ActivityCategory> activityCategoriesInRepository = getAllActivityCategoryEntities();
+		deleteRemovedActivityCategories(activityCategoriesInRepository, activityCategoryDTOs);
+		explicitlyFlushUpdatesToDatabase();
+		addOrUpdateNewActivityCategories(activityCategoryDTOs, activityCategoriesInRepository);
+		logger.info("Activity category set update completed");
+	}
+
+	@CacheEvict(value = "activityCategorySet", key = "'instance'")
+	@Transactional
+	public void deleteActivityCategory(UUID id)
+	{
+		logger.info("Deleting activity category with ID '{}'", id);
+		repository.delete(id);
+	}
+
+	public Set<ActivityCategoryDTO> getMatchingCategoriesForSmoothwallCategories(Set<String> smoothwallCategories)
+	{
+		return getAllActivityCategories().stream().filter(ac -> {
+			Set<String> acSmoothwallCategories = new HashSet<>(ac.getSmoothwallCategories());
+			acSmoothwallCategories.retainAll(smoothwallCategories);
+			return !acSmoothwallCategories.isEmpty();
+		}).collect(Collectors.toSet());
+	}
+
+	public Set<ActivityCategoryDTO> getMatchingCategoriesForApp(String application)
+	{
+		return getAllActivityCategories().stream().filter(ac -> ac.getApplications().contains(application))
+				.collect(Collectors.toSet());
 	}
 
 	private void verifyNoDuplicateNames(Set<UUID> idsToSkip, Map<Locale, String> localizableName)
@@ -98,22 +135,7 @@ public class ActivityCategoryService
 	private ActivityCategory updateActivityCategory(ActivityCategory activityCategoryTargetEntity,
 			ActivityCategoryDTO activityCategorySourceDTO)
 	{
-		logger.info("Updating activity category '{}'", activityCategorySourceDTO.getName(Translator.EN_US_LOCALE));
 		return repository.save(activityCategorySourceDTO.updateActivityCategory(activityCategoryTargetEntity));
-	}
-
-	@CacheEvict(value = "activityCategorySet", key = "'instance'")
-	@Transactional
-	public void deleteActivityCategory(UUID id)
-	{
-		logger.info("Deleting activity category with ID '{}'", id);
-		repository.delete(id);
-	}
-
-	private void deleteActivityCategory(ActivityCategory activityCategoryEntity)
-	{
-		logger.info("Deleting activity category '{}'", activityCategoryEntity.getLocalizableName());
-		repository.delete(activityCategoryEntity);
 	}
 
 	private ActivityCategory getEntityByID(UUID id)
@@ -136,15 +158,6 @@ public class ActivityCategoryService
 		return activityCategories;
 	}
 
-	@CacheEvict(value = "activityCategorySet", key = "'instance'")
-	@Transactional
-	public void importActivityCategories(Set<ActivityCategoryDTO> activityCategoryDTOs)
-	{
-		Set<ActivityCategory> activityCategoriesInRepository = getAllActivityCategoryEntities();
-		deleteRemovedActivityCategories(activityCategoriesInRepository, activityCategoryDTOs);
-		addOrUpdateNewActivityCategories(activityCategoryDTOs, activityCategoriesInRepository);
-	}
-
 	private void addOrUpdateNewActivityCategories(Set<ActivityCategoryDTO> activityCategoryDTOs,
 			Set<ActivityCategory> activityCategoriesInRepository)
 	{
@@ -153,19 +166,30 @@ public class ActivityCategoryService
 
 		for (ActivityCategoryDTO activityCategoryDTO : activityCategoryDTOs)
 		{
-			ActivityCategory activityCategoryInRepository = activityCategoriesInRepositoryMap.get(activityCategoryDTO.getID());
-			if (activityCategoryInRepository == null)
+			ActivityCategory activityCategoryEntity = activityCategoriesInRepositoryMap.get(activityCategoryDTO.getID());
+			if (activityCategoryEntity == null)
 			{
 				addActivityCategory(activityCategoryDTO);
+				explicitlyFlushUpdatesToDatabase();
 			}
 			else
 			{
-				if (!activityCategoryInRepository.getSmoothwallCategories().equals(activityCategoryDTO.getSmoothwallCategories()))
+				if (!isUpToDate(activityCategoryEntity, activityCategoryDTO))
 				{
-					updateActivityCategory(activityCategoryInRepository, activityCategoryDTO);
+					updateActivityCategory(activityCategoryDTO.getID(), activityCategoryDTO);
+					explicitlyFlushUpdatesToDatabase();
 				}
 			}
 		}
+	}
+
+	private boolean isUpToDate(ActivityCategory entity, ActivityCategoryDTO dto)
+	{
+		return entity.getLocalizableName().equals(dto.getLocalizableNameByLocale())
+				&& entity.isMandatoryNoGo() == dto.isMandatoryNoGo()
+				&& entity.getSmoothwallCategories().equals(dto.getSmoothwallCategories())
+				&& entity.getApplications().equals(dto.getApplications())
+				&& entity.getLocalizableDescription().equals(dto.getLocalizableDescriptionByLocale());
 	}
 
 	private void deleteRemovedActivityCategories(Set<ActivityCategory> activityCategoriesInRepository,
@@ -175,21 +199,17 @@ public class ActivityCategoryService
 				.collect(Collectors.toMap(ac -> ac.getID(), ac -> ac));
 
 		activityCategoriesInRepository.stream().filter(ac -> !activityCategoryDTOsMap.containsKey(ac.getID()))
-				.forEach(this::deleteActivityCategory);
+				.forEach(ac -> deleteActivityCategory(ac.getID()));
 	}
 
-	public Set<ActivityCategoryDTO> getMatchingCategoriesForSmoothwallCategories(Set<String> smoothwallCategories)
+	/**
+	 * This method calls flush on the activity category repository. It shouldn't be necessary to do this, but the implicit flush
+	 * (done just before JPA sends a query to the database) causes a
+	 * "java.sql.SQLException: invalid transaction state: read-only SQL-transaction". Explicit flushes prevent that issue. This
+	 * requires the repository to be a JpaRepository rather than a CrudRepository.
+	 */
+	private void explicitlyFlushUpdatesToDatabase()
 	{
-		return getAllActivityCategories().stream().filter(ac -> {
-			Set<String> acSmoothwallCategories = new HashSet<>(ac.getSmoothwallCategories());
-			acSmoothwallCategories.retainAll(smoothwallCategories);
-			return !acSmoothwallCategories.isEmpty();
-		}).collect(Collectors.toSet());
-	}
-
-	public Set<ActivityCategoryDTO> getMatchingCategoriesForApp(String application)
-	{
-		return getAllActivityCategories().stream().filter(ac -> ac.getApplications().contains(application))
-				.collect(Collectors.toSet());
+		repository.flush();
 	}
 }

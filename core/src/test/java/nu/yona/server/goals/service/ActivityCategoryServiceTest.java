@@ -85,7 +85,7 @@ public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 				new HashSet<String>(Arrays.asList("games")), new HashSet<String>(), usString("Descr"));
 		importActivityCategories.add(gaming);
 
-		service.importActivityCategories(importActivityCategories);
+		service.updateActivityCategorySet(importActivityCategories);
 
 		ArgumentCaptor<ActivityCategory> matchActivityCategory = ArgumentCaptor.forClass(ActivityCategory.class);
 		// 1 added and 1 updated

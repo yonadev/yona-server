@@ -28,13 +28,13 @@ public class ActivityCacheService
 	@Transactional
 	public ActivityDTO fetchLastActivityForUser(UUID userAnonymizedID, UUID goalID)
 	{
-		List<DayActivity> lastActivityList = DayActivity.getRepository().findLast(userAnonymizedID, goalID, new PageRequest(0, 1))
+		List<DayActivity> lastDayActivityList = DayActivity.getRepository().findLast(userAnonymizedID, goalID, new PageRequest(0, 1))
 				.getContent();
-		if (lastActivityList.isEmpty())
+		if (lastDayActivityList.isEmpty())
 		{
 			return null;
 		}
-		Activity lastActivity = lastActivityList.get(0).getLastActivity();
+		Activity lastActivity = lastDayActivityList.get(0).getLastActivity();
 		// this can be the case when a DayActivity is created with inactivity
 		return lastActivity == null ? null : ActivityDTO.createInstance(lastActivity);
 	}
