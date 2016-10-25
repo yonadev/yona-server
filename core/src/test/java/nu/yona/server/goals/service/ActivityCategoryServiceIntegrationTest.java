@@ -89,7 +89,7 @@ public class ActivityCategoryServiceIntegrationTest extends ActivityCategoryServ
 
 		activityCategories.add(news);
 		activityCategories.remove(gaming);
-		service.importActivityCategories(
+		service.updateActivityCategorySet(
 				activityCategories.stream().map(a -> ActivityCategoryDTO.createInstance(a)).collect(Collectors.toSet()));
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after import", "gambling", "news");
 	}

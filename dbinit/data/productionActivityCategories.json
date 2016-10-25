@@ -5,7 +5,7 @@
          "en-US": "Adult content",
          "nl-NL": "Adult"
       },
-      "mandatoryNoGo": false,
+      "mandatoryNoGo": true,
       "smoothwallCategories": [
          "Adult Sites",
          "Adult Themes",
@@ -14,7 +14,7 @@
          "Sexuality Sites"
       ],
       "applications": [
-
+         "com.baraka111.dirty.jokes.funny"
       ],
       "localizableDescription": {
          "en-US": "This challenge includes apps and sites with adult and porn",
@@ -57,12 +57,52 @@
          "lotto"
       ],
       "applications": [
-         "Poker App",
-         "Lotto App"
+         "com.dragonplay.liveholdempro"
       ],
       "localizableDescription": {
          "en-US": "This challenge includes apps and sites like Poker and Blackjack",
          "nl-NL": "Deze challenge bevat apps en sites zoals Poker en Blackjack"
+      }
+   },
+   {
+      "id": "0da5104b-eb24-4d75-bca3-4794a6d40e27",
+      "localizableName": {
+         "en-US": "Games",
+         "nl-NL": "Games"
+      },
+      "mandatoryNoGo": false,
+      "smoothwallCategories": [
+         "Computer Games",
+         "KS-Games",
+         "Online Games"
+      ],
+      "applications": [
+         "com.king.candycrushsaga",
+         "com.king.candycrushsodasaga",
+         "com.king.candycrushjellysaga",
+         "com.rovio.ABstellapop",
+         "com.rovio.angrybirds",
+         "com.rovio.angrybirdsfight",
+         "com.rovio.angrybirdsfriends",
+         "com.rovio.angrybirdsgo",
+         "com.rovio.angrybirdsrio",
+         "com.rovio.angrybirdsseasons",
+         "com.rovio.angrybirdsspace.ads",
+         "com.rovio.angrybirdsstarwars.ads.iap",
+         "com.rovio.angrybirdsstarwarsii.ads",
+         "com.rovio.angrybirdsstella",
+         "com.rovio.angrybirdstransformers",
+         "com.rovio.baba",
+         "com.rovio.BadPiggies",
+         "com.rovio.BadPiggiesHD",
+         "com.rovio.gold",
+         "com.rovio.popcorn",
+         "com.rovio.Toons.tv",
+         "com.nianticlabs.pokemongo"
+      ],
+      "localizableDescription": {
+         "en-US": "This challenge includes apps and sites like Candy Crush and Angry Birds",
+         "nl-NL": "Deze challenge bevat apps en sites zoals Candy Crush en Angry Birds"
       }
    },
    {
@@ -102,8 +142,7 @@
       ],
       "applications": [
          "nl.sanomamedia.android.nu",
-         "nl.nos.app",
-         "NU.nl"
+         "nl.nos.app"
       ],
       "localizableDescription": {
          "en-US": "This challenge includes apps and sites like NU.nl and NOS",
@@ -126,8 +165,7 @@
       "applications": [
          "com.facebook.katana",
          "com.instagram.android",
-         "com.twitter.android",
-         "Facebook"
+         "com.twitter.android"
       ],
       "localizableDescription": {
          "en-US": "This challenge includes apps and sites like Facebook and Instagram",

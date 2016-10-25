@@ -52,11 +52,11 @@ public class ActivityCategory extends EntityWithID
 			Set<String> applications, Map<Locale, String> localizableDescription)
 	{
 		super(id);
-		this.localizableName = localizableName;
+		setLocalizableName(localizableName);
 		this.mandatoryNoGo = mandatoryNoGo;
-		this.smoothwallCategories = new HashSet<>(smoothwallCategories);
-		this.applications = new HashSet<>(applications);
-		this.localizableDescription = localizableDescription;
+		setSmoothwallCategories(smoothwallCategories);
+		setApplications(applications);
+		setLocalizableDescription(localizableDescription);
 	}
 
 	public Map<Locale, String> getLocalizableName()
@@ -64,9 +64,9 @@ public class ActivityCategory extends EntityWithID
 		return new HashMap<>(localizableName);
 	}
 
-	public void setLocalizableName(Map<Locale, String> name)
+	public final void setLocalizableName(Map<Locale, String> name)
 	{
-		this.localizableName = name;
+		this.localizableName = new HashMap<>(name);
 	}
 
 	public boolean isMandatoryNoGo()
@@ -84,7 +84,7 @@ public class ActivityCategory extends EntityWithID
 		return Collections.unmodifiableSet(smoothwallCategories);
 	}
 
-	public void setSmoothwallCategories(Set<String> smoothwallCategories)
+	public final void setSmoothwallCategories(Set<String> smoothwallCategories)
 	{
 		this.smoothwallCategories = new HashSet<>(smoothwallCategories);
 	}
@@ -94,9 +94,9 @@ public class ActivityCategory extends EntityWithID
 		return Collections.unmodifiableSet(applications);
 	}
 
-	public void setApplications(Set<String> applications)
+	public final void setApplications(Set<String> applications)
 	{
-		this.applications = applications;
+		this.applications = new HashSet<>(applications);
 	}
 
 	public Map<Locale, String> getLocalizableDescription()
@@ -104,9 +104,9 @@ public class ActivityCategory extends EntityWithID
 		return new HashMap<>(localizableDescription);
 	}
 
-	public void setLocalizableDescription(Map<Locale, String> localizableDescription)
+	public final void setLocalizableDescription(Map<Locale, String> localizableDescription)
 	{
-		this.localizableDescription = localizableDescription;
+		this.localizableDescription = new HashMap<>(localizableDescription);
 	}
 
 	public static ActivityCategory createInstance(UUID id, Map<Locale, String> localizableName, boolean mandatoryNoGo,

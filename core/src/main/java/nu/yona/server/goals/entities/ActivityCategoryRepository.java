@@ -6,10 +6,10 @@ package nu.yona.server.goals.entities;
 
 import java.util.UUID;
 
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ActivityCategoryRepository extends CrudRepository<ActivityCategory, UUID>
+public interface ActivityCategoryRepository extends JpaRepository<ActivityCategory, UUID>
 {
 }

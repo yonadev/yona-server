@@ -7,12 +7,13 @@ package nu.yona.server.goals.service;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import org.mockito.invocation.InvocationOnMock;
@@ -25,7 +26,7 @@ import nu.yona.server.goals.entities.ActivityCategoryRepository;
 
 public abstract class ActivityCategoryServiceTestBase
 {
-	protected Set<ActivityCategory> activityCategories = new HashSet<ActivityCategory>();
+	protected List<ActivityCategory> activityCategories = new ArrayList<ActivityCategory>();
 
 	protected ActivityCategory gambling;
 	protected ActivityCategory news;
@@ -41,7 +42,7 @@ public abstract class ActivityCategoryServiceTestBase
 		activityCategories.add(gambling);
 		activityCategories.add(news);
 
-		when(mockRepository.findAll()).thenReturn(Collections.unmodifiableSet(activityCategories));
+		when(mockRepository.findAll()).thenReturn(Collections.unmodifiableList(activityCategories));
 		when(mockRepository.findOne(gambling.getID())).thenReturn(gambling);
 		when(mockRepository.findOne(news.getID())).thenReturn(news);
 		// save should not return null but the saved entity
