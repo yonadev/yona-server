@@ -13,7 +13,9 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +29,7 @@ import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.util.TransactionHelper;
 
 @Service
 public class MessageService
@@ -36,6 +39,9 @@ public class MessageService
 
 	@Autowired
 	private TheDTOManager dtoManager;
+
+	@Autowired
+	private TransactionHelper transactionHelper;
 
 	@Transactional
 	public Page<MessageDTO> getReceivedMessages(UUID userID, boolean onlyUnreadMessages, Pageable pageable)
@@ -58,6 +64,49 @@ public class MessageService
 
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return messageSource.getReceivedMessages(pageable, onlyUnreadMessages);
+	}
+
+	private void transferDirectMessagesToAnonymousDestination(UserDTO user)
+	{
+		// handle in a separate transaction to limit exceptions caused by concurrent calls to this method
+		transactionHelper.executeInNewTransaction(() -> transferDirectMessagesToAnonymousDestinationInSubtransaction(user));
+	}
+
+	private void transferDirectMessagesToAnonymousDestinationInSubtransaction(UserDTO user)
+	{
+		try
+		{
+			tryTransferDirectMessagesToAnonymousDestination(user);
+		}
+		catch (DataIntegrityViolationException e)
+		{
+			if (e.getCause() instanceof ConstraintViolationException)
+			{
+				// Ignore and proceed. Another concurrent thread has transferred the messages.
+				// We avoid a lock here because that limits scaling this service horizontally.
+			}
+			else
+			{
+				throw e;
+			}
+		}
+	}
+
+	private void tryTransferDirectMessagesToAnonymousDestination(UserDTO user)
+	{
+		MessageSource directMessageSource = getNamedMessageSource(user);
+		MessageDestination directMessageDestination = directMessageSource.getDestination();
+		Page<Message> directMessages = directMessageSource.getMessages(null);
+
+		MessageSource anonymousMessageSource = getAnonymousMessageSource(user);
+		MessageDestination anonymousMessageDestination = anonymousMessageSource.getDestination();
+		for (Message directMessage : directMessages)
+		{
+			directMessageDestination.remove(directMessage);
+			anonymousMessageDestination.send(directMessage);
+		}
+		MessageDestination.getRepository().save(directMessageDestination);
+		MessageDestination.getRepository().save(anonymousMessageDestination);
 	}
 
 	@Transactional
@@ -89,23 +138,6 @@ public class MessageService
 		deleteMessage(user, message, messageSource.getDestination());
 
 		return MessageActionDTO.createInstanceActionDone();
-	}
-
-	private void transferDirectMessagesToAnonymousDestination(UserDTO user)
-	{
-		MessageSource directMessageSource = getNamedMessageSource(user);
-		MessageDestination directMessageDestination = directMessageSource.getDestination();
-		Page<Message> directMessages = directMessageSource.getMessages(null);
-
-		MessageSource anonymousMessageSource = getAnonymousMessageSource(user);
-		MessageDestination anonymousMessageDestination = anonymousMessageSource.getDestination();
-		for (Message directMessage : directMessages)
-		{
-			directMessageDestination.remove(directMessage);
-			anonymousMessageDestination.send(directMessage);
-		}
-		MessageDestination.getRepository().save(directMessageDestination);
-		MessageDestination.getRepository().save(anonymousMessageDestination);
 	}
 
 	private void deleteMessage(UserDTO user, Message message, MessageDestination destination)

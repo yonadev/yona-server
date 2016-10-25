@@ -44,6 +44,7 @@ import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
+import nu.yona.server.util.TransactionHelper;
 
 @Service
 public class UserService
@@ -130,10 +131,8 @@ public class UserService
 		validateUserFields(user);
 
 		// use a separate transaction because in the top transaction we insert a user with the same unique key
-		transactionHelper.executeInNewTransaction(() -> {
-			handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode);
-			return null;
-		});
+		transactionHelper.executeInNewTransaction(
+				() -> handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode));
 
 		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
 
@@ -278,14 +277,14 @@ public class UserService
 
 		// use a separate transaction to commit within the crypto session
 		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null, () -> transactionHelper
-				.executeInNewTransaction(() -> addUserCreatedOnBuddyRequestInSubTransaction(buddyUser).getID()));
+				.executeInNewTransaction(() -> addUserCreatedOnBuddyRequestInSubtransaction(buddyUser).getID()));
 
 		logger.info("User with mobile number '{}' and ID '{}' created on buddy request", buddyUser.getMobileNumber(),
 				buddyUser.getID());
 		return getUserEntityByID(savedUserID);
 	}
 
-	private User addUserCreatedOnBuddyRequestInSubTransaction(UserDTO buddyUserResource)
+	private User addUserCreatedOnBuddyRequestInSubtransaction(UserDTO buddyUserResource)
 	{
 		User newUser = User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
 				buddyUserResource.getPrivateData().getNickname(), buddyUserResource.getMobileNumber(),
@@ -367,10 +366,10 @@ public class UserService
 		// use a separate transaction to read within the crypto session
 		return CryptoSession.execute(Optional.of(password), () -> canAccessPrivateData(originalUserEntity.getID()),
 				() -> transactionHelper
-						.executeInNewTransaction(() -> retrieveUserEncryptedDataInSubTransaction(originalUserEntity)));
+						.executeInNewTransaction(() -> retrieveUserEncryptedDataInSubtransaction(originalUserEntity)));
 	}
 
-	private EncryptedUserData retrieveUserEncryptedDataInSubTransaction(User originalUserEntity)
+	private EncryptedUserData retrieveUserEncryptedDataInSubtransaction(User originalUserEntity)
 	{
 		MessageSource namedMessageSource = originalUserEntity.getNamedMessageSource();
 		MessageSource anonymousMessageSource = originalUserEntity.getAnonymousMessageSource();
@@ -545,7 +544,6 @@ public class UserService
 		transactionHelper.executeInNewTransaction(() -> {
 			confirmationCode.incrementAttempts();
 			User.getRepository().save(userEntity);
-			return null;
 		});
 	}
 
