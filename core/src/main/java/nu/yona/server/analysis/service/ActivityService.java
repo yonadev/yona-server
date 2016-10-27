@@ -1,14 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -167,7 +165,7 @@ public class ActivityService
 	private long getTotalPageableItems(UserAnonymizedDTO userAnonymized, ChronoUnit timeUnit)
 	{
 		long activityMemoryDays = yonaProperties.getAnalysisService().getActivityMemory().toDays();
-		Optional<ZonedDateTime> oldestGoalCreationTime = userAnonymized.getOldestGoalCreationTime();
+		Optional<LocalDateTime> oldestGoalCreationTime = userAnonymized.getOldestGoalCreationTime();
 		long activityRecordedDays = oldestGoalCreationTime.isPresent() ? (Duration
 				.between(oldestGoalCreationTime.get(), ZonedDateTime.now(ZoneId.of(userAnonymized.getTimeZoneId()))).toDays() + 1)
 				: 0;

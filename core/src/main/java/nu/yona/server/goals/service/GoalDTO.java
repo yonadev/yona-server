@@ -5,6 +5,7 @@
 package nu.yona.server.goals.service;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalUnit;
 import java.util.Objects;
@@ -15,6 +16,7 @@ import org.apache.commons.lang.NotImplementedException;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
@@ -25,6 +27,7 @@ import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.rest.PolymorphicDTO;
+import nu.yona.server.util.TimeUtil;
 
 @JsonRootName("goal")
 @JsonSubTypes({ @Type(value = BudgetGoalDTO.class, name = "BudgetGoal"),
@@ -35,11 +38,11 @@ public abstract class GoalDTO extends PolymorphicDTO implements Serializable
 
 	private final UUID id;
 	private UUID activityCategoryID;
-	private final ZonedDateTime creationTime;
+	private final LocalDateTime creationTime;
 	private final boolean mandatory;
-	private final ZonedDateTime endTime;
+	private final LocalDateTime endTime;
 
-	protected GoalDTO(UUID id, Optional<ZonedDateTime> creationTime, Optional<ZonedDateTime> endTime, UUID activityCategoryID,
+	protected GoalDTO(UUID id, Optional<LocalDateTime> creationTime, Optional<LocalDateTime> endTime, UUID activityCategoryID,
 			boolean mandatory)
 	{
 		Objects.requireNonNull(creationTime);
@@ -54,7 +57,7 @@ public abstract class GoalDTO extends PolymorphicDTO implements Serializable
 		this.endTime = endTime.orElse(null);
 	}
 
-	protected GoalDTO(Optional<ZonedDateTime> creationTime)
+	protected GoalDTO(Optional<LocalDateTime> creationTime)
 	{
 		this(null, creationTime, Optional.empty(), null, false /* ignored */);
 	}
@@ -67,8 +70,15 @@ public abstract class GoalDTO extends PolymorphicDTO implements Serializable
 		return id;
 	}
 
+	@JsonProperty("creationTime")
 	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
-	public Optional<ZonedDateTime> getCreationTime()
+	public Optional<ZonedDateTime> getCreationTimeAsZonedDateTime()
+	{
+		return Optional.ofNullable(creationTime).map(TimeUtil::toUtcZonedDateTime);
+	}
+
+	@JsonIgnore
+	public Optional<LocalDateTime> getCreationTime()
 	{
 		return Optional.ofNullable(creationTime);
 	}

@@ -5,7 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.io.Serializable;
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -85,10 +85,10 @@ public class UserAnonymizedDTO implements Serializable
 				.filter(ba -> ba.getUserAnonymizedID().filter(id -> id.equals(fromUserAnonymizedID)).isPresent()).findAny();
 	}
 
-	public Optional<ZonedDateTime> getOldestGoalCreationTime()
+	public Optional<LocalDateTime> getOldestGoalCreationTime()
 	{
 		return getGoals().stream().map(goal -> getOldestVersionOfGoal(goal).getCreationTime()).filter(Optional::isPresent)
-				.map(Optional::get).min(ZonedDateTime::compareTo);
+				.map(Optional::get).min(LocalDateTime::compareTo);
 	}
 
 	private GoalDTO getOldestVersionOfGoal(GoalDTO goal)

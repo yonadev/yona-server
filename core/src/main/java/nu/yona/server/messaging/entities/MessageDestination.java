@@ -20,10 +20,12 @@ import javax.persistence.Transient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.crypto.PublicKeyEncryptor;
 import nu.yona.server.crypto.PublicKeyUtil;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.goals.entities.Goal;
 
 @Entity
 @Table(name = "MESSAGE_DESTINATIONS")
@@ -100,6 +102,12 @@ public class MessageDestination extends EntityWithID
 	{
 		Optional<UUID> sentByUserAnonymizedIDInOptional = Optional.of(sentByUserAnonymizedID);
 		messages.removeIf(message -> sentByUserAnonymizedIDInOptional.equals(message.getRelatedUserAnonymizedID()));
+	}
+
+	public void removeGoalConflictMessages(Goal goal)
+	{
+		messages.removeIf(
+				message -> message instanceof GoalConflictMessage && ((GoalConflictMessage) message).getGoal().equals(goal));
 	}
 
 	public Page<Message> getActivityRelatedMessages(UUID activityID, Pageable pageable)

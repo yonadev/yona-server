@@ -27,6 +27,7 @@ import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.util.TimeUtil;
 
 public class DayActivityTests
 {
@@ -43,7 +44,7 @@ public class DayActivityTests
 		ActivityCategory activityCategory = ActivityCategory.createInstance(UUID.randomUUID(),
 				Collections.singletonMap(Locale.US, "being bored"), false, Collections.emptySet(), Collections.emptySet(),
 				Collections.singletonMap(Locale.US, "Descr"));
-		goal = BudgetGoal.createInstance(ZonedDateTime.now(), activityCategory, 60);
+		goal = BudgetGoal.createInstance(TimeUtil.utcNow(), activityCategory, 60);
 		// Set up UserAnonymized instance.
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());

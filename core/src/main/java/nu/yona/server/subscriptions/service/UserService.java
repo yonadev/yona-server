@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +43,7 @@ import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
+import nu.yona.server.util.TimeUtil;
 
 @Service
 public class UserService
@@ -179,7 +179,7 @@ public class UserService
 	private void addNoGoGoal(User userEntity, ActivityCategoryDTO category)
 	{
 		userEntity.getAnonymized().addGoal(
-				BudgetGoal.createNoGoInstance(ZonedDateTime.now(), ActivityCategory.getRepository().findOne(category.getID())));
+				BudgetGoal.createNoGoInstance(TimeUtil.utcNow(), ActivityCategory.getRepository().findOne(category.getID())));
 	}
 
 	private void handleExistingUserForMobileNumber(String mobileNumber, Optional<String> overwriteUserConfirmationCode)

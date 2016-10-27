@@ -472,6 +472,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def response = appService.removeGoal(richard, budgetGoalNews)
 
 		then:
+		response.status == 200
 		def expectedTotalDaysAfterDelete = expectedTotalDaysBeforeDelete - 2
 		def expectedTotalWeeksAfterDelete = expectedTotalWeeksBeforeDelete
 		def expectedValuesRichardLastWeekAfterDelete = [

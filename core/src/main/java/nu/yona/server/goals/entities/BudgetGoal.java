@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -22,14 +22,14 @@ public class BudgetGoal extends Goal
 
 	}
 
-	private BudgetGoal(UUID id, ZonedDateTime creationTime, ActivityCategory activityCategory, int maxDurationMinutes)
+	private BudgetGoal(UUID id, LocalDateTime creationTime, ActivityCategory activityCategory, int maxDurationMinutes)
 	{
 		super(id, creationTime, activityCategory);
 
 		this.maxDurationMinutes = maxDurationMinutes;
 	}
 
-	private BudgetGoal(UUID id, BudgetGoal originalGoal, ZonedDateTime endTime)
+	private BudgetGoal(UUID id, BudgetGoal originalGoal, LocalDateTime endTime)
 	{
 		super(id, originalGoal, endTime);
 
@@ -47,7 +47,7 @@ public class BudgetGoal extends Goal
 	}
 
 	@Override
-	public Goal cloneAsHistoryItem(ZonedDateTime endTime)
+	public Goal cloneAsHistoryItem(LocalDateTime endTime)
 	{
 		return createInstance(this, endTime);
 	}
@@ -76,17 +76,17 @@ public class BudgetGoal extends Goal
 		return Math.max(dayActivity.getTotalActivityDurationMinutes() - this.getMaxDurationMinutes(), 0);
 	}
 
-	public static BudgetGoal createNoGoInstance(ZonedDateTime creationTime, ActivityCategory activityCategory)
+	public static BudgetGoal createNoGoInstance(LocalDateTime creationTime, ActivityCategory activityCategory)
 	{
 		return createInstance(creationTime, activityCategory, 0);
 	}
 
-	public static BudgetGoal createInstance(ZonedDateTime creationTime, ActivityCategory activityCategory, int maxDurationMinutes)
+	public static BudgetGoal createInstance(LocalDateTime creationTime, ActivityCategory activityCategory, int maxDurationMinutes)
 	{
 		return new BudgetGoal(UUID.randomUUID(), creationTime, activityCategory, maxDurationMinutes);
 	}
 
-	private static BudgetGoal createInstance(BudgetGoal originalGoal, ZonedDateTime endTime)
+	private static BudgetGoal createInstance(BudgetGoal originalGoal, LocalDateTime endTime)
 	{
 		return new BudgetGoal(UUID.randomUUID(), originalGoal, endTime);
 	}

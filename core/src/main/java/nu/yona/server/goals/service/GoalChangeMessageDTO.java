@@ -31,15 +31,15 @@ import nu.yona.server.subscriptions.service.UserDTO;
 public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 {
 	public static final String GOAL_REL_NAME = "goal";
-	private final GoalDTO changedGoal;
+	private final UUID activityCategoryIdOfChangedGoal;
 	private final Change change;
 
 	private GoalChangeMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
-			GoalDTO changedGoal, Change change, String message)
+			UUID activityCategoryIdOfChangedGoal, Change change, String message)
 	{
 		super(id, creationTime, isRead, senderInfo, message);
 
-		this.changedGoal = changedGoal;
+		this.activityCategoryIdOfChangedGoal = activityCategoryIdOfChangedGoal;
 		this.change = change;
 	}
 
@@ -50,9 +50,9 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 	}
 
 	@JsonIgnore
-	public GoalDTO getChangedGoal()
+	public UUID getActivityCategoryIdOfChangedGoal()
 	{
-		return changedGoal;
+		return activityCategoryIdOfChangedGoal;
 	}
 
 	public Change getChange()
@@ -76,8 +76,8 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 	public static GoalChangeMessageDTO createInstance(UserDTO actingUser, GoalChangeMessage messageEntity, SenderInfo senderInfo)
 	{
 		return new GoalChangeMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				senderInfo, GoalDTO.createInstance(messageEntity.getChangedGoal()),
-				messageEntity.getChange(), messageEntity.getMessage());
+				senderInfo, messageEntity.getActivityCategoryOfChangedGoal().getID(), messageEntity.getChange(),
+				messageEntity.getMessage());
 	}
 
 	@Component
