@@ -6,7 +6,7 @@ EXPOSE 8080
 
 VOLUME /tmp
 
-ADD analysisservice-full.jar app.jar
+ADD analysisservice.jar app.jar
 
 RUN bash -c 'touch /app.jar'
 
