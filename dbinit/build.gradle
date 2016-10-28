@@ -52,6 +52,10 @@ task buildDocker(type: Docker, dependsOn: bootRepackage) {
 			into stageDir
 			rename "${jar.baseName}-${jar.version}-${bootRepackage.classifier}", "${jar.baseName}"
 		}
+		copy {
+			from 'data'
+			into "$stageDir/data"
+		}
 	}
 }
 
