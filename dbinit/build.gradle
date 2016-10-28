@@ -41,20 +41,15 @@ dependencies {
 
 group = 'yonadev'
 
-task buildDocker(type: Docker, dependsOn: build) {
-	tag = "${project.group}/yonahsqldb"
+task buildDocker(type: Docker, dependsOn: bootRepackage) {
 	push = true
 	applicationName = jar.baseName
 	dockerfile = file('src/main/docker/Dockerfile')
 	doFirst {
 		copy {
-			from jar
+			from bootRepackage
 			into stageDir
-		rename jar.archiveName, jar.baseName +".jar"
-		}
-		copy {
-			from 'data'
-			into "$stageDir/data"
+			rename "${jar.baseName}-${jar.version}-${bootRepackage.classifier}", "${jar.baseName}"
 		}
 	}
 }

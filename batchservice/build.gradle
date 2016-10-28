@@ -81,15 +81,15 @@ bootRun {
 
 group = 'yonadev'
 
-task buildDocker(type: Docker, dependsOn: build) {
+task buildDocker(type: Docker, dependsOn: bootRepackage) {
 	push = true
 	applicationName = jar.baseName
 	dockerfile = file('src/main/docker/Dockerfile')
 	doFirst {
 		copy {
-			from jar
+			from bootRepackage
 			into stageDir
-		rename jar.archiveName, jar.baseName +".jar"
+			rename "${jar.baseName}-${jar.version}-${bootRepackage.classifier}", "${jar.baseName}"
 		}
 	}
 }
