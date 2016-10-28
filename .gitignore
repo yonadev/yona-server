@@ -1,4 +1,4 @@
-# Entries taken from https://github.com/github/gitignore/blob/master/Gradle.gitignore
+# Entries taken from https://github.com/github/gitignore/blob/master/Gradle.gitignore 
 /.gradle
 **/build/
 
