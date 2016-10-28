@@ -229,11 +229,7 @@ public class GoalService
 	{
 		deleteActivitiesForGoal(goalEntity);
 		deleteGoalConflictMessagesForGoal(userAnonymizedEntity, goalEntity);
-		Optional<Goal> previousGoal;
-		while ((previousGoal = goalEntity.getPreviousVersionOfThisGoal()).isPresent())
-		{
-			deleteGoalAndRelatedEntities(userAnonymizedEntity, previousGoal.get());
-		}
+		goalEntity.getPreviousVersionOfThisGoal().ifPresent(pg -> deleteGoalAndRelatedEntities(userAnonymizedEntity, pg));
 		Goal.getRepository().delete(goalEntity);
 	}
 
