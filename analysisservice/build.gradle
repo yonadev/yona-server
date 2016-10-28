@@ -6,7 +6,7 @@ buildscript {
 	}
 	dependencies {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:$project.ext.springBootVersion")
-		classpath("io.spring.gradle:dependency-management-plugin:0.5.3.RELEASE")
+		classpath("io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE")
 		classpath('se.transmode.gradle:gradle-docker:1.2')
 		classpath 'net.researchgate:gradle-release:2.3.4'
 	}
@@ -122,4 +122,8 @@ task intTest(type:Test){
 		'yona.analysisservice.url': project.ext.yona_analysisservice_url,
 		'yona.appservice.url': project.ext.yona_appservice_url
 	]
+}
+
+bootRepackage {
+        classifier = "full"
 }
