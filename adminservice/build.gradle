@@ -18,11 +18,10 @@ apply plugin: "groovy"
 apply plugin: 'idea'
 apply plugin: 'spring-boot'
 apply plugin: 'io.spring.dependency-management'
-apply plugin: 'war'
 apply plugin: 'docker'
 apply plugin: 'net.researchgate.release'
 
-war {
+jar {
 	baseName = 'adminservice'
 }
 
