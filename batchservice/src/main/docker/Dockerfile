@@ -6,7 +6,7 @@ EXPOSE 8080
 
 VOLUME /tmp
 
-ADD batchservice.jar app.jar
+ADD batchservice-full.jar app.jar
 
 RUN bash -c 'touch /app.jar'
 
