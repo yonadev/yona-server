@@ -50,6 +50,7 @@ import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.util.TimeUtil;
 
 @Service
 public class ActivityService
@@ -166,9 +167,8 @@ public class ActivityService
 	{
 		long activityMemoryDays = yonaProperties.getAnalysisService().getActivityMemory().toDays();
 		Optional<LocalDateTime> oldestGoalCreationTime = userAnonymized.getOldestGoalCreationTime();
-		long activityRecordedDays = oldestGoalCreationTime.isPresent() ? (Duration
-				.between(oldestGoalCreationTime.get(), ZonedDateTime.now(ZoneId.of(userAnonymized.getTimeZoneId()))).toDays() + 1)
-				: 0;
+		long activityRecordedDays = oldestGoalCreationTime.isPresent()
+				? (Duration.between(oldestGoalCreationTime.get(), TimeUtil.utcNow()).toDays() + 1) : 0;
 		long totalDays = Math.min(activityRecordedDays, activityMemoryDays);
 		switch (timeUnit)
 		{
