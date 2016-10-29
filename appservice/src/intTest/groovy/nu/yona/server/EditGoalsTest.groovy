@@ -488,6 +488,42 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Goal conflict messages are removed when goal is removed'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		ZonedDateTime now = YonaServer.now
+		def postToAEResponse = analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		postToAEResponse.status == 200
+		def getMessagesRichardBeforeGoalDeleteResponse = appService.getMessages(richard)
+		getMessagesRichardBeforeGoalDeleteResponse.status == 200
+		getMessagesRichardBeforeGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage" }.size() == 1
+		def getMessagesBobBeforeGoalDeleteResponse = appService.getMessages(bob)
+		getMessagesBobBeforeGoalDeleteResponse.status == 200
+		getMessagesBobBeforeGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}.size() == 1
+
+		Goal newsGoal = richard.findActiveGoal(NEWS_ACT_CAT_URL)
+
+		when:
+		def response = appService.removeGoal(richard, newsGoal, "Don't want to monitor my social time anymore")
+
+		then:
+		response.status == 200
+
+		def getMessagesRichardAfterGoalDeleteResponse = appService.getMessages(richard)
+		getMessagesRichardAfterGoalDeleteResponse.status == 200
+		getMessagesRichardAfterGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage" }.size() == 0
+		def getMessagesBobAfterGoalDeleteResponse = appService.getMessages(bob)
+		getMessagesBobAfterGoalDeleteResponse.status == 200
+		getMessagesBobAfterGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}.size() == 0
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
 	def 'Validation: Try to remove mandatory goal'()
 	{
 		given:

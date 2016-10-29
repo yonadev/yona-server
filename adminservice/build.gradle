@@ -6,7 +6,7 @@ buildscript {
 	}
 	dependencies {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:$project.ext.springBootVersion")
-		classpath("io.spring.gradle:dependency-management-plugin:0.5.3.RELEASE")
+		classpath("io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE")
 		classpath('se.transmode.gradle:gradle-docker:1.2')
 		classpath 'net.researchgate:gradle-release:2.3.4'
 	}
@@ -18,11 +18,10 @@ apply plugin: "groovy"
 apply plugin: 'idea'
 apply plugin: 'spring-boot'
 apply plugin: 'io.spring.dependency-management'
-apply plugin: 'war'
 apply plugin: 'docker'
 apply plugin: 'net.researchgate.release'
 
-war {
+jar {
 	baseName = 'adminservice'
 }
 
@@ -87,15 +86,15 @@ bootRun {
 
 group = 'yonadev'
 
-task buildDocker(type: Docker, dependsOn: build) {
+task buildDocker(type: Docker, dependsOn: bootRepackage) {
 	push = true
 	applicationName = jar.baseName
 	dockerfile = file('src/main/docker/Dockerfile')
 	doFirst {
 		copy {
-			from jar
+			from bootRepackage
 			into stageDir
-		rename jar.archiveName, jar.baseName +".jar"
+			rename "${jar.baseName}-${jar.version}-${bootRepackage.classifier}", "${jar.baseName}"
 		}
 	}
 }
@@ -126,4 +125,8 @@ task intTest(type:Test){
 		'yona.analysisservice.url': project.ext.yona_analysisservice_url,
 		'yona.appservice.url': project.ext.yona_appservice_url
 	]
+}
+
+bootRepackage {
+        classifier = "full"
 }

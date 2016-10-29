@@ -324,8 +324,8 @@ public class MessageController
 
 		private void addRelatedActivityCategoryLink(GoalChangeMessageDTO message)
 		{
-			message.add(ActivityCategoryController
-					.getActivityCategoryLinkBuilder(message.getChangedGoal().getActivityCategoryID()).withRel("related"));
+			message.add(ActivityCategoryController.getActivityCategoryLinkBuilder(message.getActivityCategoryIdOfChangedGoal())
+					.withRel("related"));
 		}
 
 		private void addGoalConflictMessageLinks(GoalConflictMessageDTO message)
@@ -409,4 +409,3 @@ public class MessageController
 		}
 	}
 }
-

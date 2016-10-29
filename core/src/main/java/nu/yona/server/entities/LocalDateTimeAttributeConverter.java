@@ -4,31 +4,32 @@
  *******************************************************************************/
 package nu.yona.server.entities;
 
-import java.time.LocalDate;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 @Converter(autoApply = true)
-public class LocalDateAttributeConverter implements AttributeConverter<LocalDate, java.sql.Date>
+public class LocalDateTimeAttributeConverter implements AttributeConverter<LocalDateTime, Timestamp>
 {
 
 	@Override
-	public java.sql.Date convertToDatabaseColumn(LocalDate entityValue)
+	public Timestamp convertToDatabaseColumn(LocalDateTime entityValue)
 	{
 		if (entityValue != null)
 		{
-			return java.sql.Date.valueOf(entityValue);
+			return Timestamp.valueOf(entityValue);
 		}
 		return null;
 	}
 
 	@Override
-	public LocalDate convertToEntityAttribute(java.sql.Date databaseValue)
+	public LocalDateTime convertToEntityAttribute(Timestamp databaseValue)
 	{
 		if (databaseValue != null)
 		{
-			return databaseValue.toLocalDate();
+			return databaseValue.toLocalDateTime();
 		}
 		return null;
 	}

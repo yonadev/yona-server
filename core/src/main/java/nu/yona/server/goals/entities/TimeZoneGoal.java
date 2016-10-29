@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
@@ -37,7 +37,7 @@ public class TimeZoneGoal extends Goal
 
 	}
 
-	private TimeZoneGoal(UUID id, ZonedDateTime creationTime, ActivityCategory activityCategory, List<String> zones,
+	private TimeZoneGoal(UUID id, LocalDateTime creationTime, ActivityCategory activityCategory, List<String> zones,
 			List<Integer> spreadCells)
 	{
 		super(id, creationTime, activityCategory);
@@ -46,7 +46,7 @@ public class TimeZoneGoal extends Goal
 		this.spreadCells = spreadCells;
 	}
 
-	private TimeZoneGoal(UUID id, TimeZoneGoal originalGoal, ZonedDateTime endTime)
+	private TimeZoneGoal(UUID id, TimeZoneGoal originalGoal, LocalDateTime endTime)
 	{
 		super(id, originalGoal, endTime);
 
@@ -66,7 +66,7 @@ public class TimeZoneGoal extends Goal
 	}
 
 	@Override
-	public Goal cloneAsHistoryItem(ZonedDateTime endTime)
+	public Goal cloneAsHistoryItem(LocalDateTime endTime)
 	{
 		return createInstance(this, endTime);
 	}
@@ -106,7 +106,7 @@ public class TimeZoneGoal extends Goal
 		return Math.min(dayActivity.getTotalActivityDurationMinutes(), sumOfSpreadOutsideGoal);
 	}
 
-	public static TimeZoneGoal createInstance(ZonedDateTime creationTime, ActivityCategory activityCategory, List<String> zones)
+	public static TimeZoneGoal createInstance(LocalDateTime creationTime, ActivityCategory activityCategory, List<String> zones)
 	{
 		return new TimeZoneGoal(UUID.randomUUID(), creationTime, activityCategory, zones, calculateSpreadCells(zones));
 	}
@@ -140,7 +140,7 @@ public class TimeZoneGoal extends Goal
 		return begin.get(ChronoField.MINUTE_OF_DAY) / 15;
 	}
 
-	private static TimeZoneGoal createInstance(TimeZoneGoal originalGoal, ZonedDateTime endTime)
+	private static TimeZoneGoal createInstance(TimeZoneGoal originalGoal, LocalDateTime endTime)
 	{
 		return new TimeZoneGoal(UUID.randomUUID(), originalGoal, endTime);
 	}

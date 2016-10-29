@@ -36,6 +36,7 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.util.LockPool;
+import nu.yona.server.util.TimeUtil;
 
 @Service
 public class AnalysisEngineService
@@ -374,7 +375,8 @@ public class AnalysisEngineService
 		Set<GoalDTO> goalsOfUser = userAnonymized.getGoals();
 		Set<GoalDTO> matchingGoalsOfUser = goalsOfUser.stream().filter(g -> !g.isHistoryItem())
 				.filter(g -> matchingActivityCategoryIDs.contains(g.getActivityCategoryID()))
-				.filter(g -> g.getCreationTime().get().isBefore(activityStartTime.plus(DEVICE_TIME_INACCURACY_MARGIN)))
+				.filter(g -> g.getCreationTime().get()
+						.isBefore(TimeUtil.toUtcLocalDateTime(activityStartTime.plus(DEVICE_TIME_INACCURACY_MARGIN))))
 				.collect(Collectors.toSet());
 		return matchingGoalsOfUser;
 	}

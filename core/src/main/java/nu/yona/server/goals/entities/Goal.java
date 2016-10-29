@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalUnit;
 import java.util.HashSet;
@@ -22,6 +23,7 @@ import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.entities.EntityUtil;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "GOALS")
@@ -35,8 +37,8 @@ public abstract class Goal extends EntityWithID
 	@ManyToOne
 	private ActivityCategory activityCategory;
 
-	private ZonedDateTime creationTime;
-	private ZonedDateTime endTime;
+	private LocalDateTime creationTime;
+	private LocalDateTime endTime;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Goal previousInstanceOfThisGoal;
@@ -47,7 +49,7 @@ public abstract class Goal extends EntityWithID
 		super(null);
 	}
 
-	protected Goal(UUID id, ZonedDateTime creationTime, ActivityCategory activityCategory)
+	protected Goal(UUID id, LocalDateTime creationTime, ActivityCategory activityCategory)
 	{
 		super(id);
 
@@ -59,7 +61,7 @@ public abstract class Goal extends EntityWithID
 		this.activityCategory = activityCategory;
 	}
 
-	protected Goal(UUID id, Goal originalGoal, ZonedDateTime endTime)
+	protected Goal(UUID id, Goal originalGoal, LocalDateTime endTime)
 	{
 		super(id);
 
@@ -77,7 +79,7 @@ public abstract class Goal extends EntityWithID
 		return activityCategory;
 	}
 
-	public ZonedDateTime getCreationTime()
+	public LocalDateTime getCreationTime()
 	{
 		return creationTime;
 	}
@@ -85,12 +87,12 @@ public abstract class Goal extends EntityWithID
 	/**
 	 * For test purposes only.
 	 */
-	public void setCreationTime(ZonedDateTime creationTime)
+	public void setCreationTime(LocalDateTime creationTime)
 	{
 		this.creationTime = creationTime;
 	}
 
-	public ZonedDateTime getEndTime()
+	public LocalDateTime getEndTime()
 	{
 		return endTime;
 	}
@@ -109,7 +111,7 @@ public abstract class Goal extends EntityWithID
 		this.previousInstanceOfThisGoal = previousGoal;
 	}
 
-	public abstract Goal cloneAsHistoryItem(ZonedDateTime endTime);
+	public abstract Goal cloneAsHistoryItem(LocalDateTime endTime);
 
 	public abstract boolean isMandatory();
 
@@ -124,10 +126,10 @@ public abstract class Goal extends EntityWithID
 		return wasActiveAtInterval(creationTime, Optional.ofNullable(endTime), dateAtStartOfInterval, timeUnit);
 	}
 
-	public static boolean wasActiveAtInterval(ZonedDateTime creationTime, Optional<ZonedDateTime> endTime,
+	public static boolean wasActiveAtInterval(LocalDateTime creationTime, Optional<LocalDateTime> endTime,
 			ZonedDateTime dateAtStartOfInterval, TemporalUnit timeUnit)
 	{
-		ZonedDateTime startNextInterval = dateAtStartOfInterval.plus(1, timeUnit);
+		LocalDateTime startNextInterval = TimeUtil.toUtcLocalDateTime(dateAtStartOfInterval.plus(1, timeUnit));
 		return creationTime.isBefore(startNextInterval) && endTime.map(end -> end.isAfter(startNextInterval)).orElse(true);
 	}
 
