@@ -29,7 +29,7 @@ adminservice:
     - 8080:8080
   log_driver: "gelf"
   log_opt:
-    gelf-address: "udp://localhost:12201"
+    gelf-address: "udp://log:12201"
   volumes_from:
         - configuration:ro
 
@@ -42,7 +42,7 @@ analysisservice:
     - 8081:8080
   log_driver: "gelf"
   log_opt:
-    gelf-address: "udp://localhost:12201"
+    gelf-address: "udp://log:12201"
   volumes_from:
         - configuration:ro
 
@@ -58,7 +58,7 @@ appservice:
     - 80:8080
   log_driver: "gelf"
   log_opt:
-    gelf-address: "udp://localhost:12201"
+    gelf-address: "udp://log:12201"
   volumes_from:
         - configuration:ro
 
@@ -71,6 +71,6 @@ batchservice:
     - 8083:8080
   log_driver: "gelf"
   log_opt:
-    gelf-address: "udp://localhost:12201"
+    gelf-address: "udp://log:12201"
   volumes_from:
         - configuration:ro
