@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
 import org.hibernate.exception.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -34,6 +36,8 @@ import nu.yona.server.util.TransactionHelper;
 @Service
 public class MessageService
 {
+	private static final Logger logger = LoggerFactory.getLogger(MessageService.class);
+
 	@Autowired
 	private UserService userService;
 
@@ -84,6 +88,11 @@ public class MessageService
 			{
 				// Ignore and proceed. Another concurrent thread has transferred the messages.
 				// We avoid a lock here because that limits scaling this service horizontally.
+				logger.info(
+						"The direct log messages of user with mobile number '" + user.getMobileNumber() + "' and ID '"
+								+ user.getID()
+								+ "' were apparently concurrently moved to the anonymous messages while handling another request.",
+						e);
 			}
 			else
 			{
