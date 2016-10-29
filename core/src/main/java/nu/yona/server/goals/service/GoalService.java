@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.Set;
@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.analysis.entities.WeekActivity;
+import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.GoalChangeMessage;
 import nu.yona.server.messaging.service.MessageService;
@@ -28,6 +29,7 @@ import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.util.TimeUtil;
 
 @Service
 public class GoalService
@@ -103,7 +105,7 @@ public class GoalService
 		userAnonymizedEntity.addGoal(goalEntity);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getID(), userAnonymizedEntity);
 
-		broadcastGoalChangeMessage(userEntity, goalEntity, GoalChangeMessage.Change.GOAL_ADDED, message);
+		broadcastGoalChangeMessage(userEntity, goalEntity.getActivityCategory(), GoalChangeMessage.Change.GOAL_ADDED, message);
 
 		return GoalDTO.createInstance(goalEntity);
 	}
@@ -148,15 +150,16 @@ public class GoalService
 	{
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		cloneExistingGoalAsHistoryItem(userAnonymizedEntity, existingGoal,
-				newGoalDTO.getCreationTime().orElse(ZonedDateTime.now()));
+				newGoalDTO.getCreationTime().orElse(TimeUtil.utcNow()));
 		newGoalDTO.getCreationTime().ifPresent(ct -> existingGoal.setCreationTime(ct));
 		newGoalDTO.updateGoalEntity(existingGoal);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getID(), userAnonymizedEntity);
 
-		broadcastGoalChangeMessage(userEntity, existingGoal, GoalChangeMessage.Change.GOAL_CHANGED, message);
+		broadcastGoalChangeMessage(userEntity, existingGoal.getActivityCategory(), GoalChangeMessage.Change.GOAL_CHANGED,
+				message);
 	}
 
-	private void cloneExistingGoalAsHistoryItem(UserAnonymized userAnonymizedEntity, Goal existingGoal, ZonedDateTime endTime)
+	private void cloneExistingGoalAsHistoryItem(UserAnonymized userAnonymizedEntity, Goal existingGoal, LocalDateTime endTime)
 	{
 		Goal historyGoal = existingGoal.cloneAsHistoryItem(endTime);
 		existingGoal.setPreviousVersionOfThisGoal(historyGoal);
@@ -214,27 +217,41 @@ public class GoalService
 			throw GoalServiceException.cannotRemoveMandatoryGoal(userID, goalID);
 		}
 
-		deleteActivitiesForGoal(goalEntity);
+		ActivityCategory activityCategoryOfChangedGoal = goalEntity.getActivityCategory();
+		deleteGoalAndRelatedEntities(userAnonymizedEntity, goalEntity);
 		userAnonymizedEntity.removeGoal(goalEntity);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getID(), userAnonymizedEntity);
 
-		broadcastGoalChangeMessage(userEntity, goalEntity, GoalChangeMessage.Change.GOAL_DELETED, message);
+		broadcastGoalChangeMessage(userEntity, activityCategoryOfChangedGoal, GoalChangeMessage.Change.GOAL_DELETED, message);
+	}
+
+	private void deleteGoalAndRelatedEntities(UserAnonymized userAnonymizedEntity, Goal goalEntity)
+	{
+		deleteActivitiesForGoal(goalEntity);
+		deleteGoalConflictMessagesForGoal(userAnonymizedEntity, goalEntity);
+		goalEntity.getPreviousVersionOfThisGoal().ifPresent(pg -> deleteGoalAndRelatedEntities(userAnonymizedEntity, pg));
+		Goal.getRepository().delete(goalEntity);
 	}
 
 	private void deleteActivitiesForGoal(Goal goalEntity)
 	{
-		goalEntity.getPreviousVersionOfThisGoal().ifPresent(g -> deleteActivitiesForGoal(g));
-
 		UUID goalID = goalEntity.getID();
 		WeekActivity.getRepository().deleteAllForGoal(goalID);
 		DayActivity.getRepository().deleteAllForGoal(goalID);
 	}
 
-	private void broadcastGoalChangeMessage(User userEntity, Goal changedGoal, GoalChangeMessage.Change change,
-			Optional<String> message)
+	private void deleteGoalConflictMessagesForGoal(UserAnonymized userAnonymizedEntity, Goal goalEntity)
+	{
+		userAnonymizedEntity.getAnonymousDestination().removeGoalConflictMessages(goalEntity);
+		userAnonymizedEntity.getBuddiesAnonymized()
+				.forEach(ba -> ba.getUserAnonymized().getAnonymousDestination().removeGoalConflictMessages(goalEntity));
+	}
+
+	private void broadcastGoalChangeMessage(User userEntity, ActivityCategory activityCategoryOfChangedGoal,
+			GoalChangeMessage.Change change, Optional<String> message)
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDTO.createInstance(userEntity.getAnonymized()),
 				() -> GoalChangeMessage.createInstance(userEntity.getID(), userEntity.getUserAnonymizedID(),
-						userEntity.getNickname(), changedGoal, change, message.orElse(null)));
+						userEntity.getNickname(), activityCategoryOfChangedGoal, change, message.orElse(null)));
 	}
 }

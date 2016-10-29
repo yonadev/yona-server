@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,6 +18,7 @@ import nu.yona.server.Constants;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.util.TimeUtil;
 
 @JsonRootName("budgetGoal")
 public class BudgetGoalDTO extends GoalDTO
@@ -30,13 +32,13 @@ public class BudgetGoalDTO extends GoalDTO
 			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("creationTime") Optional<ZonedDateTime> creationTime,
 			@JsonProperty(required = true, value = "maxDurationMinutes") int maxDurationMinutes)
 	{
-		super(creationTime);
+		super(creationTime.map(TimeUtil::toUtcLocalDateTime));
 
 		this.maxDurationMinutes = maxDurationMinutes;
 	}
 
-	public BudgetGoalDTO(UUID id, UUID activityCategoryID, int maxDurationMinutes, ZonedDateTime creationTime,
-			Optional<ZonedDateTime> endTime, boolean mandatory)
+	public BudgetGoalDTO(UUID id, UUID activityCategoryID, int maxDurationMinutes, LocalDateTime creationTime,
+			Optional<LocalDateTime> endTime, boolean mandatory)
 	{
 		super(id, Optional.of(creationTime), endTime, activityCategoryID, mandatory);
 
@@ -87,6 +89,7 @@ public class BudgetGoalDTO extends GoalDTO
 				entity.getCreationTime(), Optional.ofNullable(entity.getEndTime()), entity.isMandatory());
 	}
 
+	@Override
 	public BudgetGoal createGoalEntity()
 	{
 		ActivityCategory activityCategory = ActivityCategory.getRepository().findOne(this.getActivityCategoryID());
@@ -94,7 +97,6 @@ public class BudgetGoalDTO extends GoalDTO
 		{
 			throw ActivityCategoryException.notFound(this.getActivityCategoryID());
 		}
-		return BudgetGoal.createInstance(getCreationTime().orElse(ZonedDateTime.now()), activityCategory,
-				this.maxDurationMinutes);
+		return BudgetGoal.createInstance(getCreationTime().orElse(TimeUtil.utcNow()), activityCategory, this.maxDurationMinutes);
 	}
 }

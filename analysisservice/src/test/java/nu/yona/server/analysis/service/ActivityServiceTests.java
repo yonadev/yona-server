@@ -60,6 +60,7 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.util.TimeUtil;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ActivityServiceTests
@@ -103,20 +104,20 @@ public class ActivityServiceTests
 		when(mockRepositories.getRepositoryFor(DayActivity.class)).thenReturn(mockDayActivityRepository);
 
 		// created 2 weeks ago
-		gamblingGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now().minusWeeks(2),
+		gamblingGoal = BudgetGoal.createNoGoInstance(TimeUtil.utcNow().minusWeeks(2),
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
 						new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet(), usString("Descr")));
-		newsGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(),
+		newsGoal = BudgetGoal.createNoGoInstance(TimeUtil.utcNow(),
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
 						new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr")));
-		gamingGoal = BudgetGoal.createNoGoInstance(ZonedDateTime.now(),
+		gamingGoal = BudgetGoal.createNoGoInstance(TimeUtil.utcNow(),
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
 						new HashSet<String>(Arrays.asList("games")), Collections.emptySet(), usString("Descr")));
-		socialGoal = TimeZoneGoal.createInstance(ZonedDateTime.now(),
+		socialGoal = TimeZoneGoal.createInstance(TimeUtil.utcNow(),
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("social"), false,
 						new HashSet<String>(Arrays.asList("social")), Collections.emptySet(), usString("Descr")),
 				Collections.emptyList());
-		shoppingGoal = BudgetGoal.createInstance(ZonedDateTime.now(),
+		shoppingGoal = BudgetGoal.createInstance(TimeUtil.utcNow(),
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("shopping"), false,
 						new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet(), usString("Descr")),
 				1);

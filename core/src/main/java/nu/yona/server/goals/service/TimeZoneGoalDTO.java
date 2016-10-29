@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,6 +22,7 @@ import nu.yona.server.Constants;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.TimeZoneGoal;
+import nu.yona.server.util.TimeUtil;
 
 @JsonRootName("timeZoneGoal")
 public class TimeZoneGoalDTO extends GoalDTO
@@ -36,14 +38,14 @@ public class TimeZoneGoalDTO extends GoalDTO
 			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("creationTime") Optional<ZonedDateTime> creationTime,
 			@JsonProperty(required = true, value = "zones") List<String> zones)
 	{
-		super(creationTime);
+		super(creationTime.map(TimeUtil::toUtcLocalDateTime));
 
 		this.zones = zones;
 		this.spreadCells = Collections.emptyList();
 	}
 
-	private TimeZoneGoalDTO(UUID id, UUID activityCategoryID, List<String> zones, ZonedDateTime creationTime,
-			Optional<ZonedDateTime> endTime, List<Integer> spreadCells)
+	private TimeZoneGoalDTO(UUID id, UUID activityCategoryID, List<String> zones, LocalDateTime creationTime,
+			Optional<LocalDateTime> endTime, List<Integer> spreadCells)
 	{
 		super(id, Optional.of(creationTime), endTime, activityCategoryID, false);
 
@@ -157,6 +159,7 @@ public class TimeZoneGoalDTO extends GoalDTO
 				entity.getCreationTime(), Optional.ofNullable(entity.getEndTime()), entity.getSpreadCells());
 	}
 
+	@Override
 	public TimeZoneGoal createGoalEntity()
 	{
 		ActivityCategory activityCategory = ActivityCategory.getRepository().findOne(this.getActivityCategoryID());
@@ -164,6 +167,6 @@ public class TimeZoneGoalDTO extends GoalDTO
 		{
 			throw ActivityCategoryException.notFound(this.getActivityCategoryID());
 		}
-		return TimeZoneGoal.createInstance(getCreationTime().orElse(ZonedDateTime.now()), activityCategory, this.zones);
+		return TimeZoneGoal.createInstance(getCreationTime().orElse(TimeUtil.utcNow()), activityCategory, this.zones);
 	}
 }

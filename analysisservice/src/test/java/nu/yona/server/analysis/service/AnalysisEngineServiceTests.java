@@ -19,6 +19,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -66,6 +67,7 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.util.LockPool;
+import nu.yona.server.util.TimeUtil;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AnalysisEngineServiceTests
@@ -107,7 +109,7 @@ public class AnalysisEngineServiceTests
 	@Before
 	public void setUp()
 	{
-		ZonedDateTime yesterday = ZonedDateTime.now().minusDays(1);
+		LocalDateTime yesterday = TimeUtil.utcNow().minusDays(1);
 		gamblingGoal = BudgetGoal.createNoGoInstance(yesterday,
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
 						new HashSet<String>(Arrays.asList("poker", "lotto")),
