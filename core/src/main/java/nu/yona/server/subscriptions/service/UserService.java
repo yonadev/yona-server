@@ -384,6 +384,9 @@ public class UserService
 	public void deleteUser(UUID id, Optional<String> message)
 	{
 		User userEntity = getUserEntityByID(id);
+		buddyService.processPossiblePendingBuddyResponseMessages(userEntity);
+
+		handleBuddyUsersRemovedWhileOffline(userEntity);
 
 		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
 				DropBuddyReason.USER_ACCOUNT_DELETED));
