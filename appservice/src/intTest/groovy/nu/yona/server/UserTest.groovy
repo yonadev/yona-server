@@ -311,18 +311,18 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		responseAppleAppSiteAssociation.responseData.applinks.details[0].appID ==~ /.*\.yona/
 	}
 
-	def confirmMobileNumber(User user, code)
+	private def confirmMobileNumber(User user, code)
 	{
 		appService.confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${code}" } """, user.password)
 	}
 
-	User createJohnDoe(def ts)
+	private User createJohnDoe(def ts)
 	{
 		appService.addUser(appService.&assertUserCreationResponseDetails, password, firstName, lastName, nickname,
 				"+$ts")
 	}
 
-	void testUser(User user, includePrivateData, mobileNumberConfirmed, timestamp)
+	private void testUser(User user, includePrivateData, mobileNumberConfirmed, timestamp)
 	{
 		assert user.firstName == "John"
 		assert user.lastName == "Doe"
