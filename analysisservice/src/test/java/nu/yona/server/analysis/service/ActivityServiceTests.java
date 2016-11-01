@@ -406,7 +406,7 @@ public class ActivityServiceTests
 		assertSpread(activityStartTime, activityDuration, expectedSpread);
 	}
 
-	private void assertSpread(Duration activityStartTime, Duration activityDuration, int[] expectedSpread)
+	private void assertSpread(Duration activityStartOffsetOnDay, Duration activityDuration, int[] expectedSpread)
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 		ZonedDateTime yesterday = today.minusDays(1);
@@ -414,8 +414,10 @@ public class ActivityServiceTests
 		// gambling goal was created 2 weeks ago, see above
 		// mock some activity on yesterday 20:58-21:00
 		DayActivity yesterdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, yesterday);
-		Activity recordedActivity = Activity.createInstance(yesterday.plus(activityStartTime),
-				yesterday.plus(activityStartTime).plus(activityDuration));
+		ZonedDateTime activityStartTime = yesterday.withHour((int) activityStartOffsetOnDay.toHours())
+				.withMinute((int) activityStartOffsetOnDay.toMinutes() % 60)
+				.withSecond((int) activityStartOffsetOnDay.getSeconds() % 60);
+		Activity recordedActivity = Activity.createInstance(activityStartTime, activityStartTime.plus(activityDuration));
 		yesterdayRecordedActivity.addActivity(recordedActivity);
 		when(mockDayActivityRepository.findOne(userAnonID, yesterday.toLocalDate(), gamblingGoal.getID()))
 				.thenReturn(yesterdayRecordedActivity);

@@ -281,7 +281,7 @@ public class AnalysisEngineService
 
 	private ZonedDateTime getEndOfDay(ZonedDateTime time, UserAnonymizedDTO userAnonymized)
 	{
-		return getStartOfDay(time, userAnonymized).plusHours(23).plusMinutes(59).plusSeconds(59);
+		return getStartOfDay(time, userAnonymized).withHour(23).withMinute(59).withSecond(59);
 	}
 
 	private ZonedDateTime getStartOfWeek(ZonedDateTime time, UserAnonymizedDTO userAnonymized)
