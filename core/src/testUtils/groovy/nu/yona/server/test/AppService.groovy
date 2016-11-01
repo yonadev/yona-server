@@ -105,7 +105,7 @@ class AppService extends Service
 			return null
 		}
 		def response = yonaServer.deleteResourceWithPassword(user.editURL, user.password, ["message":message])
-		// assert response.status == 200 Enable this after fixing YD-261
+		assert response.status == 200
 		return response
 	}
 

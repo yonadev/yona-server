@@ -337,7 +337,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		}
 	}
 
-	def assertUserOverwriteResponseDetails(def response)
+	private def assertUserOverwriteResponseDetails(def response)
 	{
 		appService.assertResponseStatusCreated(response)
 		appService.assertUserWithPrivateData(response.responseData)

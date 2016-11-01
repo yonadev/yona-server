@@ -241,6 +241,12 @@ public class BuddyService
 		return messageToBeProcessed.isPresent();
 	}
 
+	public void processPossiblePendingBuddyResponseMessages(User userEntity)
+	{
+		getBuddyEntitiesOfUser(userEntity.getID()).stream()
+				.forEach(b -> processPossiblePendingBuddyResponseMessage(userEntity, b));
+	}
+
 	private Optional<UUID> getUserID(BuddyConnectResponseMessage message)
 	{
 		return message.getSenderUser().map(u -> u.getID());
@@ -279,6 +285,7 @@ public class BuddyService
 		{
 			// Buddy request was accepted
 			removeMessagesSentByBuddy(user, buddy);
+			removeMessagesSentByUserToBuddy(user, buddy);
 
 			// Send message to "self", to notify the user about the removed buddy user
 			UUID buddyUserAnonymizedID = getUserAnonymizedIDForBuddy(buddy);
@@ -337,16 +344,37 @@ public class BuddyService
 		return buddyIDs.stream().map(id -> getBuddy(id)).collect(Collectors.toSet());
 	}
 
+	private Set<Buddy> getBuddyEntitiesOfUser(UUID forUserID)
+	{
+		UserDTO user = userService.getPrivateUser(forUserID);
+		return getBuddyEntities(user.getPrivateData().getBuddyIDs());
+	}
+
+	private Set<Buddy> getBuddyEntities(Set<UUID> buddyIDs)
+	{
+		return buddyIDs.stream().map(id -> getEntityByID(id)).collect(Collectors.toSet());
+	}
+
 	private void removeMessagesSentByBuddy(User user, Buddy buddy)
 	{
-		Optional<UUID> userAnonymizedID = buddy.getUserAnonymizedID();
-		if (!userAnonymizedID.isPresent())
+		Optional<UUID> buddyUserAnonymizedID = buddy.getUserAnonymizedID();
+		if (!buddyUserAnonymizedID.isPresent())
 		{
 			return;
 		}
-		removeNamedMessagesSentByUser(user, userAnonymizedID.get());
+		removeNamedMessagesSentByUser(user, buddyUserAnonymizedID.get());
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(user.getUserAnonymizedID());
-		removeAnonymousMessagesSentByUser(userAnonymized, userAnonymizedID.get());
+		removeAnonymousMessagesSentByUser(userAnonymized, buddyUserAnonymizedID.get());
+	}
+
+	private void removeMessagesSentByUserToBuddy(User user, Buddy buddy)
+	{
+		UUID buddyUserAnonymizedID = getUserAnonymizedIDForBuddy(buddy);
+		UserAnonymizedDTO buddyUserAnonymized = userAnonymizedService.getUserAnonymized(buddyUserAnonymizedID);
+		removeAnonymousMessagesSentByUser(buddyUserAnonymized, user.getUserAnonymizedID());
+		// We are not removing the named messages because we don't have User entity anymore
+		// (this method is being called from removeBuddyInfoForRemovedUser) and thus we don't know the named destination.
+		// Given that the user and the named destination are both removed, this is not causing any issues.
 	}
 
 	private void sendDropBuddyMessage(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
@@ -384,16 +412,16 @@ public class BuddyService
 		// Else: user who requested buddy relationship didn't process the accept message yet
 	}
 
-	private void removeNamedMessagesSentByUser(User user, UUID sentByUserAnonymizedID)
+	private void removeNamedMessagesSentByUser(User receivingUser, UUID sentByUserAnonymizedID)
 	{
-		MessageDestination namedMessageDestination = user.getNamedMessageDestination();
+		MessageDestination namedMessageDestination = receivingUser.getNamedMessageDestination();
 		messageService.removeMessagesFromUser(MessageDestinationDTO.createInstance(namedMessageDestination),
 				sentByUserAnonymizedID);
 	}
 
-	private void removeAnonymousMessagesSentByUser(UserAnonymizedDTO userAnonymized, UUID sentByUserAnonymizedID)
+	private void removeAnonymousMessagesSentByUser(UserAnonymizedDTO receivingUserAnonymized, UUID sentByUserAnonymizedID)
 	{
-		MessageDestinationDTO anonymousMessageDestination = userAnonymized.getAnonymousDestination();
+		MessageDestinationDTO anonymousMessageDestination = receivingUserAnonymized.getAnonymousDestination();
 		messageService.removeMessagesFromUser(anonymousMessageDestination, sentByUserAnonymizedID);
 	}
 

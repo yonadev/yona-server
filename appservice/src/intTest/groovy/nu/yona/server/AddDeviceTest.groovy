@@ -64,6 +64,7 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 
 		cleanup:
 		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
 	def 'Try set new device request with wrong information'()

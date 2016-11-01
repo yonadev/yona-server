@@ -41,6 +41,10 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 400
 		response.responseData.code == "error.buddy.only.twoway.buddies.allowed"
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
 	def 'Richard requests Bob to become his buddy'()
@@ -313,6 +317,10 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
 		getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}.size() == 1
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
 	def 'Goal conflict of Bob is reported to Richard and Bob'()
@@ -673,6 +681,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		makeBuddies(bob, richard)
 		assertGoalConflictIsReportedToBuddy(bob, richard)
 		assertGoalConflictIsReportedToBuddy(richard, bob)
+
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)

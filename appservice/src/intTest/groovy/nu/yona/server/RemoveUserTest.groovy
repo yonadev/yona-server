@@ -37,6 +37,9 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		newRichard
+
+		cleanup:
+		appService.deleteUser(newRichard)
 	}
 
 	def 'Remove Richard while being a buddy of Bob and verify that Bob receives a buddy disconnect message'()
