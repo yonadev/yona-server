@@ -372,6 +372,9 @@ public class BuddyService
 		UUID buddyUserAnonymizedID = getUserAnonymizedIDForBuddy(buddy);
 		UserAnonymizedDTO buddyUserAnonymized = userAnonymizedService.getUserAnonymized(buddyUserAnonymizedID);
 		removeAnonymousMessagesSentByUser(buddyUserAnonymized, user.getUserAnonymizedID());
+		// We are not removing the named messages because we don't have User entity anymore
+		// (this method is being called from removeBuddyInfoForRemovedUser) and thus we don't know the named destination.
+		// Given that the user and the named destination are both removed, this is not causing any issues.
 	}
 
 	private void sendDropBuddyMessage(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
