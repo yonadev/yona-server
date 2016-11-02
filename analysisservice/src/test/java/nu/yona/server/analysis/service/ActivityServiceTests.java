@@ -136,7 +136,7 @@ public class ActivityServiceTests
 		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		UserAnonymizedDTO userAnon = UserAnonymizedDTO.createInstance(userAnonEntity);
-		userAnonZone = ZoneId.of(userAnon.getTimeZoneId());
+		userAnonZone = userAnon.getTimeZone();
 		userAnonID = userAnon.getID();
 
 		userID = UUID.randomUUID();

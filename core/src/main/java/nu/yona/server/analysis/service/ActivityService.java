@@ -7,7 +7,6 @@ package nu.yona.server.analysis.service;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -357,7 +356,7 @@ public class ActivityService
 
 	private LocalDate getCurrentDayDate(UserAnonymizedDTO userAnonymized)
 	{
-		return LocalDate.now(ZoneId.of(userAnonymized.getTimeZoneId()));
+		return LocalDate.now(userAnonymized.getTimeZone());
 	}
 
 	private <T extends IntervalActivityDTO> void addMissingInactivity(Map<ZonedDateTime, Set<T>> activityEntitiesByDate,
@@ -367,7 +366,7 @@ public class ActivityService
 		for (LocalDate date = interval.startDate; date.isBefore(interval.endDate)
 				|| date.isEqual(interval.endDate); date = date.plus(1, timeUnit))
 		{
-			ZonedDateTime dateAtStartOfInterval = date.atStartOfDay(ZoneId.of(userAnonymized.getTimeZoneId()));
+			ZonedDateTime dateAtStartOfInterval = date.atStartOfDay(userAnonymized.getTimeZone());
 
 			Set<GoalDTO> activeGoals = getActiveGoals(userAnonymized, dateAtStartOfInterval, timeUnit);
 			if (activeGoals.isEmpty())
@@ -604,7 +603,7 @@ public class ActivityService
 			UserAnonymizedDTO userAnonymized, ChronoUnit timeUnit, BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier)
 	{
 		Goal goal = goalService.getGoalEntityForUserAnonymizedID(userAnonymized.getID(), goalID);
-		ZonedDateTime dateAtStartOfInterval = date.atStartOfDay(ZoneId.of(userAnonymized.getTimeZoneId()));
+		ZonedDateTime dateAtStartOfInterval = date.atStartOfDay(userAnonymized.getTimeZone());
 		if (!goal.wasActiveAtInterval(dateAtStartOfInterval, timeUnit))
 		{
 			throw ActivityServiceException.activityDateGoalMismatch(userID, date, goalID);

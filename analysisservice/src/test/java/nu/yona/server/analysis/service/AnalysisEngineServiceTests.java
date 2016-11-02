@@ -171,7 +171,7 @@ public class AnalysisEngineServiceTests
 		UserAnonymizedDTO userAnon = UserAnonymizedDTO.createInstance(userAnonEntity);
 		anonMessageDestination = userAnon.getAnonymousDestination();
 		userAnonID = userAnon.getID();
-		userAnonZoneId = ZoneId.of(userAnon.getTimeZoneId());
+		userAnonZoneId = userAnon.getTimeZone();
 
 		// Stub the UserAnonymizedService to return our user.
 		when(mockUserAnonymizedService.getUserAnonymized(userAnonID)).thenReturn(userAnon);

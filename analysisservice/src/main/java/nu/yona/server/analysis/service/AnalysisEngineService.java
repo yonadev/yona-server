@@ -277,7 +277,7 @@ public class AnalysisEngineService
 
 	private ZonedDateTime getStartOfDay(ZonedDateTime time, UserAnonymizedDTO userAnonymized)
 	{
-		return time.withZoneSameInstant(ZoneId.of(userAnonymized.getTimeZoneId())).truncatedTo(ChronoUnit.DAYS);
+		return time.withZoneSameInstant(userAnonymized.getTimeZone()).truncatedTo(ChronoUnit.DAYS);
 	}
 
 	private ZonedDateTime getEndOfDay(ZonedDateTime time, UserAnonymizedDTO userAnonymized)
@@ -415,7 +415,7 @@ public class AnalysisEngineService
 		static ActivityPayload createInstance(UserAnonymizedDTO userAnonymized, NetworkActivityDTO networkActivity)
 		{
 			ZonedDateTime startTime = networkActivity.getEventTime().orElse(ZonedDateTime.now())
-					.withZoneSameInstant(ZoneId.of(userAnonymized.getTimeZoneId()));
+					.withZoneSameInstant(userAnonymized.getTimeZone());
 			return new ActivityPayload(userAnonymized, Optional.of(networkActivity.getURL()), startTime, startTime,
 					Optional.empty());
 		}
@@ -423,7 +423,7 @@ public class AnalysisEngineService
 		static ActivityPayload createInstance(UserAnonymizedDTO userAnonymized, ZonedDateTime startTime, ZonedDateTime endTime,
 				String application)
 		{
-			ZoneId userTimeZone = ZoneId.of(userAnonymized.getTimeZoneId());
+			ZoneId userTimeZone = userAnonymized.getTimeZone();
 			return new ActivityPayload(userAnonymized, Optional.empty(), startTime.withZoneSameInstant(userTimeZone),
 					endTime.withZoneSameInstant(userTimeZone), Optional.of(application));
 		}
