@@ -1,14 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.jobs;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Date;
 
@@ -51,6 +46,7 @@ import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.PinResetRequestService;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.util.TimeUtil;
 
 @Component
 public class PinResetConfirmationCodeSenderBatchJob
@@ -96,7 +92,7 @@ public class PinResetConfirmationCodeSenderBatchJob
 
 			JpaPagingItemReader<User> reader = new JpaPagingItemReader<User>();
 			reader.setQueryString(jpqlQuery);
-			reader.setParameterValues(Collections.singletonMap("tillDate", toZonedDateTime(tillDate)));
+			reader.setParameterValues(Collections.singletonMap("tillDate", TimeUtil.toUtcLocalDateTime(tillDate)));
 			reader.setEntityManagerFactory(entityManager.getEntityManagerFactory());
 			reader.setPageSize(CHUNK_SIZE);
 			reader.afterPropertiesSet();
@@ -172,8 +168,8 @@ public class PinResetConfirmationCodeSenderBatchJob
 			launcher.setJobRepository(jobRepository);
 			launcher.setTaskExecutor(new SimpleAsyncTaskExecutor());
 
-			Date tillDate = toDate(
-					ZonedDateTime.now().plus(yonaProperties.getBatch().getPinResetRequestConfirmationCodeInterval())
+			Date tillDate = TimeUtil
+					.toDate(TimeUtil.utcNow().plus(yonaProperties.getBatch().getPinResetRequestConfirmationCodeInterval())
 							.minus(yonaProperties.getSecurity().getPinResetRequestConfirmationCodeDelay()));
 			JobParameters jobParameters = new JobParametersBuilder().addDate("tillDate", tillDate).toJobParameters();
 			launcher.run(pinResetConfirmationCodeSenderJob(), jobParameters);
@@ -184,15 +180,5 @@ public class PinResetConfirmationCodeSenderBatchJob
 			logger.error("Unexpected exception", e);
 			throw YonaException.unexpected(e);
 		}
-	}
-
-	private static ZonedDateTime toZonedDateTime(final Date date)
-	{
-		return ZonedDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
-	}
-
-	private static Date toDate(final ZonedDateTime zonedDateTime)
-	{
-		return Date.from(zonedDateTime.toInstant());
 	}
 }
