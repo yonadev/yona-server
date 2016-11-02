@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Set;
@@ -24,6 +25,7 @@ import nu.yona.server.Constants;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.util.TimeUtil;
 
 @JsonRootName("user")
 public class UserDTO
@@ -38,12 +40,12 @@ public class UserDTO
 	private final String mobileNumber;
 	private final boolean isMobileNumberConfirmed;
 	private final UserPrivateDTO privateData;
-	private final Optional<ZonedDateTime> creationTime;
+	private final Optional<LocalDateTime> creationTime;
 
 	/*
 	 * Only intended for test purposes.
 	 */
-	private UserDTO(UUID id, ZonedDateTime creationTime, String firstName, String lastName, String nickname, String mobileNumber,
+	private UserDTO(UUID id, LocalDateTime creationTime, String firstName, String lastName, String nickname, String mobileNumber,
 			boolean isConfirmed, UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
 			UUID anonymousMessageDestinationID, Set<GoalDTO> goals, Set<UUID> buddyIDs,
 			Function<Set<UUID>, Set<BuddyDTO>> buddyIDToDTOMapper, UUID userAnonymizedID, VPNProfileDTO vpnProfile)
@@ -53,7 +55,7 @@ public class UserDTO
 						anonymousMessageDestinationID, goals, buddyIDs, buddyIDToDTOMapper, userAnonymizedID, vpnProfile));
 	}
 
-	private UserDTO(UUID id, String firstName, String lastName, String mobileNumber, ZonedDateTime creationTime,
+	private UserDTO(UUID id, String firstName, String lastName, String mobileNumber, LocalDateTime creationTime,
 			boolean isConfirmed)
 	{
 		this(id, firstName, lastName, null, mobileNumber, Optional.of(creationTime), isConfirmed, null);
@@ -69,7 +71,7 @@ public class UserDTO
 	}
 
 	private UserDTO(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber,
-			Optional<ZonedDateTime> creationTime, boolean isMobileNumberConfirmed, UserPrivateDTO privateData)
+			Optional<LocalDateTime> creationTime, boolean isMobileNumberConfirmed, UserPrivateDTO privateData)
 	{
 		this.id = id;
 		this.firstName = firstName;
@@ -114,8 +116,14 @@ public class UserDTO
 		return mobileNumber;
 	}
 
+	@JsonProperty("creationTime")
 	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
-	public Optional<ZonedDateTime> getCreationTime()
+	public Optional<ZonedDateTime> getCreationTimeAsZonedDateTime()
+	{
+		return creationTime.map(TimeUtil::toUtcZonedDateTime);
+	}
+
+	public Optional<LocalDateTime> getCreationTime()
 	{
 		return creationTime;
 	}
@@ -163,9 +171,8 @@ public class UserDTO
 	}
 
 	/**
-	 * Creates a {@link UserDTO} with the public data of the user. Please use {@link #createInstance(User)} if
-	 * {@code userEntity} may be {@code null}. Use {@link #createInstanceWithPrivateData(User)} to include private data of the
-	 * user.
+	 * Creates a {@link UserDTO} with the public data of the user. Please use {@link #createInstance(User)} if {@code userEntity}
+	 * may be {@code null}. Use {@link #createInstanceWithPrivateData(User)} to include private data of the user.
 	 * 
 	 * @param userEntity
 	 * @return
