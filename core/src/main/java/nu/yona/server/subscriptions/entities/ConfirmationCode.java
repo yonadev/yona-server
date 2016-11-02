@@ -1,25 +1,23 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
 import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "CONFIRMATION_CODES")
 public class ConfirmationCode extends EntityWithID
 {
-	private ZonedDateTime creationTime;
+	private LocalDateTime creationTime;
 	private String confirmationCode;
 	private int attempts;
 
@@ -29,7 +27,7 @@ public class ConfirmationCode extends EntityWithID
 		super(null);
 	}
 
-	private ConfirmationCode(UUID id, ZonedDateTime creationTime, String confirmationCode)
+	private ConfirmationCode(UUID id, LocalDateTime creationTime, String confirmationCode)
 	{
 		super(id);
 		this.creationTime = creationTime;
@@ -46,7 +44,7 @@ public class ConfirmationCode extends EntityWithID
 		this.confirmationCode = confirmationCode;
 	}
 
-	public ZonedDateTime getCreationTime()
+	public LocalDateTime getCreationTime()
 	{
 		return creationTime;
 	}
@@ -63,6 +61,6 @@ public class ConfirmationCode extends EntityWithID
 
 	public static ConfirmationCode createInstance(String confirmationCode)
 	{
-		return new ConfirmationCode(UUID.randomUUID(), ZonedDateTime.now(), confirmationCode);
+		return new ConfirmationCode(UUID.randomUUID(), TimeUtil.utcNow(), confirmationCode);
 	}
 }
