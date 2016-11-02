@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Set;
@@ -43,7 +44,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private final UUID goalID;
 	private final UUID activityCategoryID;
 
-	private GoalConflictMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID goalID,
+	private GoalConflictMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID goalID,
 			UUID activityCategoryID, Optional<String> url, Status status, ZonedDateTime activityStartTime,
 			ZonedDateTime activityEndTime)
 	{
@@ -115,8 +116,8 @@ public class GoalConflictMessageDTO extends MessageDTO
 
 	private static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, SenderInfo senderInfo)
 	{
-		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(), senderInfo,
-				messageEntity.getGoal().getID(), messageEntity.getActivity().getActivityCategory().getID(),
+		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getGoal().getID(), messageEntity.getActivity().getActivityCategory().getID(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : Optional.empty(), messageEntity.getStatus(),
 				messageEntity.getActivity().getStartTime(), messageEntity.getActivity().getEndTime());
 	}

@@ -4,19 +4,19 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public abstract class BuddyMessageLinkedUserDTO extends BuddyMessageDTO
 {
 
-	protected BuddyMessageLinkedUserDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+	protected BuddyMessageLinkedUserDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo,
 			String message)
 	{
 		super(id, creationTime, isRead, senderInfo, message);
 	}
 
-	protected BuddyMessageLinkedUserDTO(UUID id, ZonedDateTime creationTime, boolean isRead, UUID relatedMessageID,
+	protected BuddyMessageLinkedUserDTO(UUID id, LocalDateTime creationTime, boolean isRead, UUID relatedMessageID,
 			SenderInfo senderInfo, String message)
 	{
 		super(id, creationTime, isRead, senderInfo, relatedMessageID, message);

@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Optional;
@@ -36,6 +37,7 @@ import nu.yona.server.subscriptions.service.BuddyDisconnectMessageDTO;
 import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDTO;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.util.TimeUtil;
 
 @JsonRootName("message")
 @JsonSubTypes({ @Type(value = BuddyConnectRequestMessageDTO.class, name = "BuddyConnectRequestMessage"),
@@ -52,17 +54,17 @@ public abstract class MessageDTO extends PolymorphicDTO
 	private static final String MARK_UNREAD = "markUnread";
 	private static final String MARK_READ = "markRead";
 	private final UUID id;
-	private final ZonedDateTime creationTime;
+	private final LocalDateTime creationTime;
 	private final UUID relatedMessageID;
 	private final boolean isRead;
 	private final SenderInfo senderInfo;
 
-	protected MessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo)
+	protected MessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo)
 	{
 		this(id, senderInfo, creationTime, isRead, null);
 	}
 
-	protected MessageDTO(UUID id, SenderInfo senderInfo, ZonedDateTime creationTime, boolean isRead, UUID relatedMessageID)
+	protected MessageDTO(UUID id, SenderInfo senderInfo, LocalDateTime creationTime, boolean isRead, UUID relatedMessageID)
 	{
 		this.id = id;
 		this.senderInfo = senderInfo;
@@ -101,8 +103,14 @@ public abstract class MessageDTO extends PolymorphicDTO
 		return senderInfo.getBuddy().map(b -> b.getID());
 	}
 
+	@JsonProperty("creationTime")
 	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
-	public ZonedDateTime getCreationTime()
+	public ZonedDateTime getCreationTimeAsZonedDateTime()
+	{
+		return TimeUtil.toUtcZonedDateTime(creationTime);
+	}
+
+	public LocalDateTime getCreationTime()
 	{
 		return creationTime;
 	}
