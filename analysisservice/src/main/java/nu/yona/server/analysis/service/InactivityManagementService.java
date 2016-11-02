@@ -72,7 +72,9 @@ public class InactivityManagementService
 		createInactivity(userAnonymizedID, weekInactivity,
 				() -> weekActivityRepository.findOne(userAnonymizedID, weekInactivity.getStartTime().toLocalDate(),
 						weekInactivity.getGoalID()),
-				(ua, g) -> WeekActivity.createInstance(ua, g, weekInactivity.getStartTime()), weekActivityRepository);
+				(ua, g) -> WeekActivity.createInstance(ua, g, weekInactivity.getStartTime().getZone(),
+						weekInactivity.getStartTime().toLocalDate()),
+				weekActivityRepository);
 	}
 
 	private void createDayInactivity(UUID userAnonymizedID, IntervalInactivityDTO dayInactivity)
@@ -80,7 +82,9 @@ public class InactivityManagementService
 		createInactivity(userAnonymizedID, dayInactivity,
 				() -> dayActivityRepository.findOne(userAnonymizedID, dayInactivity.getStartTime().toLocalDate(),
 						dayInactivity.getGoalID()),
-				(ua, g) -> DayActivity.createInstance(ua, g, dayInactivity.getStartTime()), dayActivityRepository);
+				(ua, g) -> DayActivity.createInstance(ua, g, dayInactivity.getStartTime().getZone(),
+						dayInactivity.getStartTime().toLocalDate()),
+				dayActivityRepository);
 	}
 
 	private <T, R> void createInactivity(UUID userAnonymizedID, IntervalInactivityDTO intervalInactivity,

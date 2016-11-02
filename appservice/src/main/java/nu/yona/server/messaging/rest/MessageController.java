@@ -397,7 +397,7 @@ public class MessageController
 							message.getSenderNickname(), message.getActivityID()));
 			Goal goal = Objects.requireNonNull(activity.getGoal(),
 					String.format("Activity getGoal() returns null for '%s' instance with id '%s' and start time '%s'",
-							activity.getClass().getSimpleName(), activity.getID(), activity.getStartTime()));
+							activity.getClass().getSimpleName(), activity.getID(), activity.getStartDate()));
 			if (goalIDMapping.isUserGoal(goal.getID()))
 			{
 				messageController.getUserActivityController().addLinks(goalIDMapping, activity, message);

@@ -193,7 +193,7 @@ public class ActivityService
 	{
 		Set<WeekActivity> weekActivityEntities = weekActivityRepository.findAll(userAnonymizedID, interval.startDate,
 				interval.endDate);
-		return weekActivityEntities.stream().collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
+		return weekActivityEntities.stream().collect(Collectors.groupingBy(a -> a.getStartDate(), Collectors.toSet()));
 	}
 
 	@Transactional
@@ -331,7 +331,7 @@ public class ActivityService
 	{
 		List<DayActivity> dayActivityEntities = dayActivityRepository
 				.findAllActivitiesForUserInIntervalEndIncluded(userAnonymizedID, interval.startDate, interval.endDate);
-		return dayActivityEntities.stream().collect(Collectors.groupingBy(a -> a.getDate(), Collectors.toSet()));
+		return dayActivityEntities.stream().collect(Collectors.groupingBy(a -> a.getStartDate(), Collectors.toSet()));
 	}
 
 	private Interval getInterval(LocalDate currentUnitDate, Pageable pageable, ChronoUnit timeUnit)

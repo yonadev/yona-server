@@ -5,6 +5,8 @@
 package nu.yona.server.analysis.entities;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -19,8 +21,9 @@ import nu.yona.server.goals.entities.ActivityCategory;
 @Table(name = "ACTIVITIES")
 public class Activity extends EntityWithID
 {
-	private ZonedDateTime startTime;
-	private ZonedDateTime endTime;
+	private ZoneId timeZone;
+	private LocalDateTime startTime;
+	private LocalDateTime endTime;
 	@ManyToOne
 	private ActivityCategory activityCategory;
 
@@ -30,29 +33,45 @@ public class Activity extends EntityWithID
 		super(null);
 	}
 
-	public Activity(UUID id, ZonedDateTime startTime, ZonedDateTime endTime)
+	public Activity(UUID id, ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime)
 	{
 		super(id);
+		this.timeZone = timeZone;
 		this.startTime = startTime;
 		this.endTime = endTime;
 	}
 
-	public ZonedDateTime getStartTime()
+	public ZoneId getTimeZone()
+	{
+		return timeZone;
+	}
+
+	public LocalDateTime getStartTime()
 	{
 		return startTime;
 	}
 
-	public void setStartTime(ZonedDateTime startTime)
+	public ZonedDateTime getStartTimeAsZonedDateTime()
+	{
+		return startTime.atZone(timeZone);
+	}
+
+	public void setStartTime(LocalDateTime startTime)
 	{
 		this.startTime = startTime;
 	}
 
-	public ZonedDateTime getEndTime()
+	public LocalDateTime getEndTime()
 	{
 		return endTime;
 	}
 
-	public void setEndTime(ZonedDateTime endTime)
+	public ZonedDateTime getEndTimeAsZonedDateTime()
+	{
+		return endTime.atZone(timeZone);
+	}
+
+	public void setEndTime(LocalDateTime endTime)
 	{
 		this.endTime = endTime;
 	}
@@ -72,8 +91,8 @@ public class Activity extends EntityWithID
 		return activityCategory;
 	}
 
-	public static Activity createInstance(ZonedDateTime startTime, ZonedDateTime endTime)
+	public static Activity createInstance(ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime)
 	{
-		return new Activity(UUID.randomUUID(), startTime, endTime);
+		return new Activity(UUID.randomUUID(), timeZone, startTime, endTime);
 	}
 }
