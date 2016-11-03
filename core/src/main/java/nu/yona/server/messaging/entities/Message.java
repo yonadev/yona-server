@@ -23,10 +23,12 @@ import nu.yona.server.util.TimeUtil;
 @Table(name = "MESSAGES")
 public abstract class Message extends EntityWithID
 {
+	@Type(type = "uuid-char")
 	private final UUID relatedUserAnonymizedID;
 
 	@Type(type = "uuid-char")
 	private UUID threadHeadMessageID;
+
 	@Type(type = "uuid-char")
 	private UUID repliedMessageID;
 
