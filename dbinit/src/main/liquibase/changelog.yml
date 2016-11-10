@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - includeAll:
+      path: src/main/liquibase/base
+#  - includeAll:
+#      path: src/main/liquibase/updates

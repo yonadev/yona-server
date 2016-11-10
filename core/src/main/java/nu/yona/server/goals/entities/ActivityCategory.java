@@ -20,7 +20,7 @@ import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
 
 @Entity
-@Table(name = "ACTIVITYCATEGORIES")
+@Table(name = "ACTIVITY_CATEGORIES")
 public class ActivityCategory extends EntityWithID
 {
 	public static ActivityCategoryRepository getRepository()
