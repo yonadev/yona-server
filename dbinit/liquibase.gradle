@@ -3,12 +3,12 @@ configurations {
 }
 
 dependencies {
-  liquibase group: 'org.liquibase.ext', name: 'liquibase-hibernate4', version: 3.6
+  liquibase("org.liquibase.ext:liquibase-hibernate4:3.6")
 }
 
 //loading properties file.
 Properties liquibaseProps = new Properties()
-liquibaseProps.load(new FileInputStream("dbinit/src/main/resources/liquibase-task.properties"))
+liquibaseProps.load(new FileInputStream("dbinit/src/main/liquibase/liquibase-task.properties"))
 
 Properties applicationProps = new Properties()
 applicationProps.load(new FileInputStream("core/src/main/resources/application.properties"))
@@ -52,7 +52,7 @@ task liquibaseDiffChangelog(type: JavaExec) {
   classpath configurations.liquibase
   main = "liquibase.integration.commandline.Main"
 
-  args "--changeLogFile=${changeLogPath}/changelog" + buildTimestamp() +".yml"
+  args "--changeLogFile=${changeLogPath}/changelog-0000-yd-000.yml"
   args "--referenceUrl=${hibernateUrl}"
   args "--url=${databaseUrl}"
   args "--driver=org.hsqldb.jdbc.JDBCDriver"
@@ -75,8 +75,4 @@ task liquibaseUpdate(type: JavaExec) {
   args "--username=${userName}"
   // args "--password=${password}"
   args "update"
-}
-
-def buildTimestamp() {
-  return new Date().format('yyyyMMddHHmmss')
 }
