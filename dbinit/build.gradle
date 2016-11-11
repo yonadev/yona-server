@@ -3,11 +3,12 @@ description = 'Database initializer'
 buildscript {
 	repositories {
 		mavenCentral()
+		jcenter()
 	}
 	dependencies {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:$project.ext.springBootVersion")
 		classpath("io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE")
-		classpath('se.transmode.gradle:gradle-docker:1.2')
+		classpath('com.bmuschko:gradle-docker-plugin:3.0.3')
 		classpath 'net.researchgate:gradle-release:2.3.4'
 	}
 }
@@ -16,9 +17,12 @@ apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'spring-boot'
 apply plugin: 'io.spring.dependency-management'
-apply plugin: 'docker'
+apply plugin: 'com.bmuschko.docker-remote-api'
 apply plugin: 'net.researchgate.release'
 apply from: 'liquibase.gradle'
+
+import com.bmuschko.gradle.docker.tasks.container.*
+import com.bmuschko.gradle.docker.tasks.image.*
 
 jar {
 	baseName = 'DatabaseInitializer'
@@ -43,22 +47,35 @@ dependencies {
 
 group = 'yonadev'
 
-task buildDocker(type: Docker, dependsOn: bootRepackage) {
+docker {
+	registryCredentials {
+		username = dockerHubUserName
+		password = dockerHubPassword
+	}
+}
+
+task buildDockerImage(type: DockerBuildImage, dependsOn: bootRepackage) {
+    inputDir = mkdir("build/docker")
 	tag = "${project.group}/yonahsqldb"
-	push = true
-	applicationName = jar.baseName
-	dockerfile = file('src/main/docker/Dockerfile')
 	doFirst {
 		copy {
 			from bootRepackage
-			into stageDir
+			into inputDir
 			rename "${jar.baseName}-${jar.version}-${bootRepackage.classifier}", "${jar.baseName}"
 		}
 		copy {
+			from 'src/main/docker/Dockerfile'
+			into "$inputDir"
+		}
+		copy {
 			from 'data'
-			into "$stageDir/data"
+			into "$inputDir/data"
 		}
 	}
+}
+
+task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
+	imageName = "${project.group}/yonahsqldb"
 }
 
 bootRun {
