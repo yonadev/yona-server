@@ -5,6 +5,7 @@
 package nu.yona.server.analysis.entities;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
@@ -27,7 +28,7 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Entity
 @Table(name = "INTERVAL_ACTIVITIES", uniqueConstraints = {
-		@UniqueConstraint(columnNames = { "dtype", "user_anonymized", "date", "goal" }) })
+		@UniqueConstraint(columnNames = { "dtype", "user_anonymized", "start_date", "goal" }) })
 public abstract class IntervalActivity extends EntityWithID
 {
 	public static IntervalActivityRepository getIntervalActivityRepository()
@@ -43,15 +44,12 @@ public abstract class IntervalActivity extends EntityWithID
 	@ManyToOne
 	private Goal goal;
 
-	/*
-	 * The date. Stored for easier querying (if the time zone of the user changes, we cannot query for equal start time).
-	 */
-	private LocalDate date;
+	private ZoneId timeZone;
 
 	/*
-	 * The start date and time with saved time zone.
+	 * The start date in the specified zone
 	 */
-	private ZonedDateTime startTime;
+	private LocalDate startDate;
 
 	@ElementCollection
 	private List<Integer> spread;
@@ -66,18 +64,19 @@ public abstract class IntervalActivity extends EntityWithID
 		super(null);
 	}
 
-	protected IntervalActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startTime, List<Integer> spread,
-			int totalActivityDurationMinutes, boolean aggregatesComputed)
+	protected IntervalActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startDate,
+			List<Integer> spread, int totalActivityDurationMinutes, boolean aggregatesComputed)
 	{
 		super(id);
 		Objects.requireNonNull(userAnonymized);
 		Objects.requireNonNull(goal);
-		Objects.requireNonNull(startTime);
+		Objects.requireNonNull(timeZone);
+		Objects.requireNonNull(startDate);
 		Objects.requireNonNull(spread);
 		this.userAnonymized = userAnonymized;
 		this.goal = goal;
-		this.date = startTime.toLocalDate();
-		this.startTime = startTime;
+		this.timeZone = timeZone;
+		this.startDate = startDate;
 		this.spread = spread;
 		this.totalActivityDurationMinutes = totalActivityDurationMinutes;
 		this.aggregatesComputed = aggregatesComputed;
@@ -104,26 +103,31 @@ public abstract class IntervalActivity extends EntityWithID
 		this.goal = goal;
 	}
 
-	public LocalDate getDate()
+	public ZoneId getTimeZone()
 	{
-		return date;
+		return timeZone;
+	}
+
+	public LocalDate getStartDate()
+	{
+		return startDate;
 	}
 
 	public ZonedDateTime getStartTime()
 	{
-		return startTime;
+		return startDate.atStartOfDay().atZone(timeZone);
 	}
 
 	public abstract ZonedDateTime getEndTime();
 
 	public boolean hasPrevious()
 	{
-		return hasPrevious(goal, startTime, getTimeUnit());
+		return hasPrevious(goal, getStartTime(), getTimeUnit());
 	}
 
 	public boolean hasNext()
 	{
-		return hasNext(startTime, getTimeUnit());
+		return hasNext(getStartTime(), getTimeUnit());
 	}
 
 	public static boolean hasPrevious(Goal goal, ZonedDateTime startTime, TemporalUnit timeUnit)

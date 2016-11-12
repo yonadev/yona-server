@@ -1,13 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,6 +18,7 @@ import org.springframework.stereotype.Service;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.util.TimeUtil;
 
 @Service
 public class NewDeviceRequestService
@@ -96,7 +94,7 @@ public class NewDeviceRequestService
 
 	private boolean isExpired(NewDeviceRequest newDeviceRequestEntity)
 	{
-		ZonedDateTime creationTime = newDeviceRequestEntity.getCreationTime();
-		return creationTime.plus(yonaProperties.getSecurity().getNewDeviceRequestExpirationTime()).isBefore(ZonedDateTime.now());
+		LocalDateTime creationTime = newDeviceRequestEntity.getCreationTime();
+		return creationTime.plus(yonaProperties.getSecurity().getNewDeviceRequestExpirationTime()).isBefore(TimeUtil.utcNow());
 	}
 }

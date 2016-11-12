@@ -1,14 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
 import java.time.Duration;
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import javax.transaction.Transactional;
@@ -23,6 +20,7 @@ import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.util.TimeUtil;
 
 @Service
 public class PinResetRequestService
@@ -122,7 +120,7 @@ public class PinResetRequestService
 
 	public boolean isExpired(ConfirmationCode confirmationCode)
 	{
-		ZonedDateTime creationTime = confirmationCode.getCreationTime();
-		return creationTime.plus(yonaProperties.getSecurity().getPinResetRequestExpirationTime()).isBefore(ZonedDateTime.now());
+		LocalDateTime creationTime = confirmationCode.getCreationTime();
+		return creationTime.plus(yonaProperties.getSecurity().getPinResetRequestExpirationTime()).isBefore(TimeUtil.utcNow());
 	}
 }

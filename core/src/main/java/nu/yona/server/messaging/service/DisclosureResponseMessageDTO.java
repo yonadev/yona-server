@@ -5,7 +5,7 @@
 package nu.yona.server.messaging.service;
 
 import java.time.LocalDate;
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,7 +31,7 @@ public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	private final LocalDate targetGoalConflictDate;
 	private final Status status;
 
-	private DisclosureResponseMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+	private DisclosureResponseMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo,
 			Status status, String message, UUID targetGoalConflictMessageID, UUID targetGoalConflictGoalID,
 			LocalDate targetGoalConflictDate)
 	{
@@ -82,8 +82,9 @@ public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
 		return new DisclosureResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				senderInfo, messageEntity.getStatus(), messageEntity.getMessage(),
-				targetGoalConflictMessage.getID(), targetGoalConflictMessage.getGoal().getID(), targetGoalConflictMessage.getActivity().getStartTime().toLocalDate());
+				senderInfo, messageEntity.getStatus(), messageEntity.getMessage(), targetGoalConflictMessage.getID(),
+				targetGoalConflictMessage.getGoal().getID(),
+				targetGoalConflictMessage.getActivity().getStartTime().toLocalDate());
 	}
 
 	@Component

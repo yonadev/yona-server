@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
@@ -33,10 +35,10 @@ public class WeekActivity extends IntervalActivity
 		super();
 	}
 
-	private WeekActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek, List<Integer> spread,
-			int totalActivityDurationMinutes, boolean aggregatesComputed)
+	private WeekActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfWeek,
+			List<Integer> spread, int totalActivityDurationMinutes, boolean aggregatesComputed)
 	{
-		super(id, userAnonymized, goal, startOfWeek, spread, totalActivityDurationMinutes, aggregatesComputed);
+		super(id, userAnonymized, goal, timeZone, startOfWeek, spread, totalActivityDurationMinutes, aggregatesComputed);
 	}
 
 	@Override
@@ -48,19 +50,18 @@ public class WeekActivity extends IntervalActivity
 	@Override
 	public ZonedDateTime getEndTime()
 	{
-		return getStartTime().plusDays(7);
+		return getStartDate().plusDays(7).atStartOfDay(getTimeZone());
 	}
 
 	public List<DayActivity> getDayActivities()
 	{
 		List<DayActivity> dayActivities = DayActivity.getRepository().findActivitiesForUserAndGoalsInIntervalEndExcluded(
-				getUserAnonymized().getID(), getGoal().getIDsIncludingHistoryItems(), getStartTime().toLocalDate(),
-				getEndTime().toLocalDate());
+				getUserAnonymized().getID(), getGoal().getIDsIncludingHistoryItems(), getStartDate(), getEndTime().toLocalDate());
 
 		if (dayActivities.size() > 7)
 		{
 			throw new IllegalStateException(
-					"Invalid number of day activities in week starting at " + getStartTime() + ": " + dayActivities.size());
+					"Invalid number of day activities in week starting at " + getStartDate() + ": " + dayActivities.size());
 		}
 
 		return dayActivities;
@@ -90,9 +91,9 @@ public class WeekActivity extends IntervalActivity
 				Integer::sum);
 	}
 
-	public static WeekActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfWeek)
+	public static WeekActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfWeek)
 	{
-		return new WeekActivity(UUID.randomUUID(), userAnonymized, goal, startOfWeek,
+		return new WeekActivity(UUID.randomUUID(), userAnonymized, goal, timeZone, startOfWeek,
 				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, false);
 	}
 }

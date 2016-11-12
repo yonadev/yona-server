@@ -17,8 +17,8 @@ import nu.yona.server.analysis.entities.Activity;
 @JsonRootName("activity")
 public class ActivityDTO
 {
-	private ZonedDateTime startTime;
-	private ZonedDateTime endTime;
+	private final ZonedDateTime startTime;
+	private final ZonedDateTime endTime;
 
 	@JsonCreator
 	public ActivityDTO(@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("startTime") ZonedDateTime startTime,
@@ -42,6 +42,6 @@ public class ActivityDTO
 
 	static ActivityDTO createInstance(Activity activity)
 	{
-		return new ActivityDTO(activity.getStartTime(), activity.getEndTime());
+		return new ActivityDTO(activity.getStartTimeAsZonedDateTime(), activity.getEndTimeAsZonedDateTime());
 	}
 }

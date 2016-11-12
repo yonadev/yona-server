@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
@@ -19,13 +19,13 @@ public abstract class BuddyMessageDTO extends MessageDTO
 {
 	private final String message;
 
-	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo, String message)
+	protected BuddyMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, String message)
 	{
 		super(id, creationTime, isRead, senderInfo);
 		this.message = message;
 	}
 
-	protected BuddyMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID relatedMessageID,
+	protected BuddyMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID relatedMessageID,
 			String message)
 	{
 		super(id, senderInfo, creationTime, isRead, relatedMessageID);
@@ -45,8 +45,7 @@ public abstract class BuddyMessageDTO extends MessageDTO
 		{
 			// The buddy entity does not contain the user anonymized ID yet
 			BuddyMessage buddyMessageEntity = (BuddyMessage) messageEntity;
-			return createSenderInfoForDetachedBuddy(buddyMessageEntity.getSenderUser(),
-					buddyMessageEntity.getSenderNickname());
+			return createSenderInfoForDetachedBuddy(buddyMessageEntity.getSenderUser(), buddyMessageEntity.getSenderNickname());
 		}
 	}
 }

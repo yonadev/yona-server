@@ -254,7 +254,7 @@ public class AnalysisEngineService
 		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getID());
 		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
 		Activity activity = dayActivity.getLastActivity();
-		activity.setEndTime(payload.endTime);
+		activity.setEndTime(payload.endTime.toLocalDateTime());
 		DayActivity updatedDayActivity = dayActivityRepository.save(dayActivity);
 		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
 		Activity updatedActivity = updatedDayActivity.getLastActivity();
@@ -271,12 +271,13 @@ public class AnalysisEngineService
 			return true;
 
 		// do not update the cache if the new or updated activity occurs earlier than the last registered activity
-		return !newOrUpdatedActivity.getEndTime().isBefore(lastRegisteredActivity.getEndTime());
+		return !newOrUpdatedActivity.getEndTime().atZone(newOrUpdatedActivity.getTimeZone())
+				.isBefore(lastRegisteredActivity.getEndTime());
 	}
 
 	private ZonedDateTime getStartOfDay(ZonedDateTime time, UserAnonymizedDTO userAnonymized)
 	{
-		return time.withZoneSameInstant(ZoneId.of(userAnonymized.getTimeZoneId())).truncatedTo(ChronoUnit.DAYS);
+		return time.withZoneSameInstant(userAnonymized.getTimeZone()).truncatedTo(ChronoUnit.DAYS);
 	}
 
 	private ZonedDateTime getEndOfDay(ZonedDateTime time, UserAnonymizedDTO userAnonymized)
@@ -307,7 +308,8 @@ public class AnalysisEngineService
 		}
 
 		ZonedDateTime endTime = ensureMinimumDurationOneMinute(payload);
-		Activity activity = Activity.createInstance(payload.startTime, endTime);
+		Activity activity = Activity.createInstance(payload.startTime.getZone(), payload.startTime.toLocalDateTime(),
+				endTime.toLocalDateTime());
 		dayActivity.addActivity(activity);
 		DayActivity updatedDayActivity = dayActivityRepository.save(dayActivity);
 		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
@@ -328,15 +330,16 @@ public class AnalysisEngineService
 	{
 		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(payload.userAnonymized.getID());
 
-		DayActivity dayActivity = DayActivity.createInstance(userAnonymizedEntity, matchingGoal,
-				getStartOfDay(payload.startTime, payload.userAnonymized));
+		DayActivity dayActivity = DayActivity.createInstance(userAnonymizedEntity, matchingGoal, payload.startTime.getZone(),
+				getStartOfDay(payload.startTime, payload.userAnonymized).toLocalDate());
 
 		ZonedDateTime startOfWeek = getStartOfWeek(payload.startTime, payload.userAnonymized);
 		WeekActivity weekActivity = weekActivityRepository.findOne(payload.userAnonymized.getID(), matchingGoal.getID(),
 				startOfWeek.toLocalDate());
 		if (weekActivity == null)
 		{
-			weekActivity = WeekActivity.createInstance(userAnonymizedEntity, matchingGoal, startOfWeek);
+			weekActivity = WeekActivity.createInstance(userAnonymizedEntity, matchingGoal, startOfWeek.getZone(),
+					startOfWeek.toLocalDate());
 		}
 		dayActivityRepository.save(dayActivity);
 		weekActivityRepository.save(weekActivity);
@@ -412,7 +415,7 @@ public class AnalysisEngineService
 		static ActivityPayload createInstance(UserAnonymizedDTO userAnonymized, NetworkActivityDTO networkActivity)
 		{
 			ZonedDateTime startTime = networkActivity.getEventTime().orElse(ZonedDateTime.now())
-					.withZoneSameInstant(ZoneId.of(userAnonymized.getTimeZoneId()));
+					.withZoneSameInstant(userAnonymized.getTimeZone());
 			return new ActivityPayload(userAnonymized, Optional.of(networkActivity.getURL()), startTime, startTime,
 					Optional.empty());
 		}
@@ -420,7 +423,7 @@ public class AnalysisEngineService
 		static ActivityPayload createInstance(UserAnonymizedDTO userAnonymized, ZonedDateTime startTime, ZonedDateTime endTime,
 				String application)
 		{
-			ZoneId userTimeZone = ZoneId.of(userAnonymized.getTimeZoneId());
+			ZoneId userTimeZone = userAnonymized.getTimeZone();
 			return new ActivityPayload(userAnonymized, Optional.empty(), startTime.withZoneSameInstant(userTimeZone),
 					endTime.withZoneSameInstant(userTimeZone), Optional.of(application));
 		}

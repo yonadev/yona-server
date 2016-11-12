@@ -23,19 +23,19 @@ import nu.yona.server.goals.entities.Goal;
 public interface DayActivityRepository extends CrudRepository<DayActivity, UUID>
 {
 	@Query("select a from DayActivity a"
-			+ " where a.userAnonymized.id = :userAnonymizedID and a.goal.id = :goalID order by a.date desc")
+			+ " where a.userAnonymized.id = :userAnonymizedID and a.goal.id = :goalID order by a.startDate desc")
 	Page<DayActivity> findLast(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("goalID") UUID goalID, Pageable pageable);
 
 	@Query("select a from DayActivity a"
-			+ " where a.userAnonymized.id = :userAnonymizedID and a.date = :date and a.goal.id = :goalID")
-	DayActivity findOne(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("date") LocalDate date,
+			+ " where a.userAnonymized.id = :userAnonymizedID and a.startDate = :startDate and a.goal.id = :goalID")
+	DayActivity findOne(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("startDate") LocalDate startDate,
 			@Param("goalID") UUID goalID);
 
-	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedID and a.date >= :dateFrom and a.date <= :dateUntil order by a.date desc")
+	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedID and a.startDate >= :dateFrom and a.startDate <= :dateUntil order by a.startDate desc")
 	List<DayActivity> findAllActivitiesForUserInIntervalEndIncluded(@Param("userAnonymizedID") UUID userAnonymizedID,
 			@Param("dateFrom") LocalDate dateFrom, @Param("dateUntil") LocalDate dateUntil);
 
-	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedID and a.goal.id in :goalIDs and a.date >= :dateFrom and a.date < :dateUntil order by a.date desc")
+	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedID and a.goal.id in :goalIDs and a.startDate >= :dateFrom and a.startDate < :dateUntil order by a.startDate desc")
 	List<DayActivity> findActivitiesForUserAndGoalsInIntervalEndExcluded(@Param("userAnonymizedID") UUID userAnonymizedID,
 			@Param("goalIDs") Set<UUID> goalIDs, @Param("dateFrom") LocalDate dateFrom, @Param("dateUntil") LocalDate dateUntil);
 

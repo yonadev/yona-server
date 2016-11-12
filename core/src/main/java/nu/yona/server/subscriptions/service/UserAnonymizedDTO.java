@@ -6,6 +6,7 @@ package nu.yona.server.subscriptions.service;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -28,6 +29,8 @@ public class UserAnonymizedDTO implements Serializable
 	private final Set<GoalDTO> goals;
 	private final MessageDestinationDTO anonymousMessageDestination;
 	private final Set<UUID> buddyAnonymizedIDs;
+
+	private static final ZoneId DEFAULT_TIME_ZONE = ZoneId.of("Europe/Amsterdam");
 
 	public UserAnonymizedDTO(UUID id, Set<GoalDTO> goals, MessageDestinationDTO anonymousMessageDestination,
 			Set<UUID> buddyAnonymizedIDs)
@@ -61,9 +64,9 @@ public class UserAnonymizedDTO implements Serializable
 				.collect(Collectors.toSet());
 	}
 
-	public String getTimeZoneId()
+	public ZoneId getTimeZone()
 	{
-		return "Europe/Amsterdam";
+		return DEFAULT_TIME_ZONE;
 	}
 
 	public MessageDestinationDTO getAnonymousDestination()

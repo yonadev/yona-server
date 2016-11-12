@@ -10,11 +10,14 @@ import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
+import org.hibernate.annotations.Type;
+
 import nu.yona.server.messaging.entities.BuddyMessage;
 
 @Entity
 public class ActivityCommentMessage extends BuddyMessage
 {
+	@Type(type = "uuid-char")
 	private UUID activityID;
 
 	/**
