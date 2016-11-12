@@ -49,27 +49,23 @@ group = 'yonadev'
 
 docker {
 	registryCredentials {
-		username = dockerHubUserName
-		password = dockerHubPassword
+		username = project.hasProperty('dockerHubUserName')? project.dockerHubUserName : null
+		password = project.hasProperty('dockerHubPassword')? project.dockerHubPassword : null
 	}
 }
 
-task buildDockerImage(type: DockerBuildImage, dependsOn: bootRepackage) {
+task buildDockerImage(type: DockerBuildImage) {
     inputDir = mkdir("build/docker")
-	tag = "${project.group}/yonahsqldb"
+	tag = "${project.group}/yona-hsql-liquibase-update"
 	doFirst {
 		copy {
-			from bootRepackage
-			into inputDir
-			rename "${jar.baseName}-${jar.version}-${bootRepackage.classifier}", "${jar.baseName}"
+			from 'src/main/liquibase'
+			into "$inputDir/changelogs"
+			exclude "liquibase-task.properties"
 		}
 		copy {
 			from 'src/main/docker/Dockerfile'
 			into "$inputDir"
-		}
-		copy {
-			from 'data'
-			into "$inputDir/data"
 		}
 	}
 }

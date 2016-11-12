@@ -1,5 +1,7 @@
 databaseChangeLog:
-  - includeAll:
-      path: src/main/liquibase/base
-#  - includeAll:
-#      path: src/main/liquibase/updates
+  - include:
+      relativeToChangelogFile: true
+      file: base/base.yml
+#  - include:
+#      relativeToChangelogFile: true
+#      file: update/updates.yml
