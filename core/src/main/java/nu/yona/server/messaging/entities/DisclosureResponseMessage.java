@@ -8,6 +8,8 @@ import java.util.UUID;
 
 import javax.persistence.Entity;
 
+import org.hibernate.annotations.Type;
+
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.crypto.Decryptor;
@@ -16,6 +18,7 @@ import nu.yona.server.crypto.Encryptor;
 @Entity
 public class DisclosureResponseMessage extends BuddyMessage
 {
+	@Type(type = "uuid-char")
 	private UUID targetGoalConflictMessageID;
 	private Status status;
 
