@@ -291,11 +291,6 @@ public class AnalysisEngineServiceTests
 				equalTo(gamblingGoal.getID()));
 	}
 
-	private ZonedDateTime nowInAmsterdam()
-	{
-		return ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Amsterdam"));
-	}
-
 	/**
 	 * Tests that a conflict message is created when analysis service is called with a not matching and a matching category.
 	 */
@@ -622,5 +617,10 @@ public class AnalysisEngineServiceTests
 	{
 		AppActivityDTO.Activity[] activities = { new AppActivityDTO.Activity(app, startTime, endTime) };
 		return new AppActivityDTO(nowInAmsterdam(), activities);
+	}
+
+	private ZonedDateTime nowInAmsterdam()
+	{
+		return ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Amsterdam"));
 	}
 }
