@@ -20,6 +20,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import com.hazelcast.core.Hazelcast;
+
 import nu.yona.server.admin.batch.config.MainConfiguration;
 
 @SpringBootApplication(scanBasePackages = { "nu.yona.server" }, exclude = { BatchAutoConfiguration.class,
@@ -30,7 +32,19 @@ public class AdminServiceApplication extends SpringBootServletInitializer
 {
 	public static void main(String[] args)
 	{
-		SpringApplication.run(AdminServiceApplication.class, args);
+		try
+		{
+			SpringApplication.run(AdminServiceApplication.class, args);
+		}
+		catch (Exception ex)
+		{
+
+			// issue in Hazelcast: it doesn't shutdown automatically,
+			// while we want this for the short running database initializer
+			// see https://github.com/hazelcast/hazelcast/issues/6339
+			Hazelcast.shutdownAll();
+			throw ex;
+		}
 	}
 
 	@Override

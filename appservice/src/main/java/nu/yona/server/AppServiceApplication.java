@@ -15,6 +15,8 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+import com.hazelcast.core.Hazelcast;
+
 import nu.yona.server.properties.YonaProperties;
 
 @SpringBootApplication
@@ -26,7 +28,19 @@ public class AppServiceApplication extends SpringBootServletInitializer
 
 	public static void main(String[] args)
 	{
-		SpringApplication.run(AppServiceApplication.class, args);
+		try
+		{
+			SpringApplication.run(AppServiceApplication.class, args);
+		}
+		catch (Exception ex)
+		{
+
+			// issue in Hazelcast: it doesn't shutdown automatically,
+			// while we want this for the short running database initializer
+			// see https://github.com/hazelcast/hazelcast/issues/6339
+			Hazelcast.shutdownAll();
+			throw ex;
+		}
 	}
 
 	@Override

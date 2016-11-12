@@ -15,6 +15,8 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 
+import com.hazelcast.core.Hazelcast;
+
 @EnableCaching
 @EnableBatchProcessing
 @EnableScheduling
@@ -23,7 +25,19 @@ public class BatchServiceApplication extends SpringBootServletInitializer
 {
 	public static void main(String[] args)
 	{
-		SpringApplication.run(BatchServiceApplication.class, args);
+		try
+		{
+			SpringApplication.run(BatchServiceApplication.class, args);
+		}
+		catch (Exception ex)
+		{
+
+			// issue in Hazelcast: it doesn't shutdown automatically,
+			// while we want this for the short running database initializer
+			// see https://github.com/hazelcast/hazelcast/issues/6339
+			Hazelcast.shutdownAll();
+			throw ex;
+		}
 	}
 
 	@Override
