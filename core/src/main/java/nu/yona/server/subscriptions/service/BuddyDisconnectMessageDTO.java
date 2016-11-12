@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -33,8 +33,8 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 	private final DropBuddyReason reason;
 	private final boolean isProcessed;
 
-	private BuddyDisconnectMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
-			String message, DropBuddyReason reason, boolean isProcessed)
+	private BuddyDisconnectMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, String message,
+			DropBuddyReason reason, boolean isProcessed)
 	{
 		super(id, creationTime, isRead, senderInfo, message);
 		this.reason = reason;
@@ -79,8 +79,7 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 			SenderInfo senderInfo)
 	{
 		return new BuddyDisconnectMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				senderInfo, messageEntity.getMessage(), messageEntity.getReason(),
-				messageEntity.isProcessed());
+				senderInfo, messageEntity.getMessage(), messageEntity.getReason(), messageEntity.isProcessed());
 	}
 
 	@Component

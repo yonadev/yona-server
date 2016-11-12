@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Set;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.Constants;
@@ -31,6 +33,7 @@ import nu.yona.server.messaging.service.MessageService.TheDTOManager;
 import nu.yona.server.messaging.service.SenderInfo;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.util.TimeUtil;
 
 @JsonRootName("goalConflictMessage")
 public class GoalConflictMessageDTO extends MessageDTO
@@ -38,14 +41,14 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private static final String REQUEST_DISCLOSURE = "requestDisclosure";
 	private final Optional<String> url;
 	private final Status status;
-	private final ZonedDateTime activityStartTime;
-	private final ZonedDateTime activityEndTime;
+	private final LocalDateTime activityStartTime;
+	private final LocalDateTime activityEndTime;
 	private final UUID goalID;
 	private final UUID activityCategoryID;
 
-	private GoalConflictMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID goalID,
-			UUID activityCategoryID, Optional<String> url, Status status, ZonedDateTime activityStartTime,
-			ZonedDateTime activityEndTime)
+	private GoalConflictMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID goalID,
+			UUID activityCategoryID, Optional<String> url, Status status, LocalDateTime activityStartTime,
+			LocalDateTime activityEndTime)
 	{
 		super(id, creationTime, isRead, senderInfo);
 		this.goalID = goalID;
@@ -95,14 +98,26 @@ public class GoalConflictMessageDTO extends MessageDTO
 		return url;
 	}
 
+	@JsonProperty("activityStartTime")
 	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
-	public ZonedDateTime getActivityStartTime()
+	public ZonedDateTime getActivityStartTimeAsZonedDateTime()
+	{
+		return TimeUtil.toUtcZonedDateTime(activityStartTime);
+	}
+
+	public LocalDateTime getActivityStartTime()
 	{
 		return activityStartTime;
 	}
 
+	@JsonProperty("activityEndTime")
 	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
-	public ZonedDateTime getActivityEndTime()
+	public ZonedDateTime getActivityEndTimeAsZonedDateTime()
+	{
+		return TimeUtil.toUtcZonedDateTime(activityEndTime);
+	}
+
+	public LocalDateTime getActivityEndTime()
 	{
 		return activityEndTime;
 	}
@@ -115,10 +130,11 @@ public class GoalConflictMessageDTO extends MessageDTO
 
 	private static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, SenderInfo senderInfo)
 	{
-		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(), senderInfo,
-				messageEntity.getGoal().getID(), messageEntity.getActivity().getActivityCategory().getID(),
+		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getGoal().getID(), messageEntity.getActivity().getActivityCategory().getID(),
 				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : Optional.empty(), messageEntity.getStatus(),
-				messageEntity.getActivity().getStartTime(), messageEntity.getActivity().getEndTime());
+				TimeUtil.toUtcLocalDateTime(messageEntity.getActivity().getStartTimeAsZonedDateTime()),
+				TimeUtil.toUtcLocalDateTime(messageEntity.getActivity().getEndTimeAsZonedDateTime()));
 	}
 
 	@Component

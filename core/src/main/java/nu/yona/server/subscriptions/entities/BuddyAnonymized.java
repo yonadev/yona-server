@@ -11,6 +11,8 @@ import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Type;
+
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
 
@@ -28,6 +30,7 @@ public class BuddyAnonymized extends EntityWithID
 		return (BuddyAnonymizedRepository) RepositoryProvider.getRepository(BuddyAnonymized.class, UUID.class);
 	}
 
+	@Type(type = "uuid-char")
 	private UUID userAnonymizedID;
 
 	/*

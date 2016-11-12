@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -37,8 +37,8 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	private final Optional<UUID> repliedMessageID;
 	private final UUID threadHeadMessageID;
 
-	private ActivityCommentMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
-			UUID activityID, UUID threadHeadMessageID, Optional<UUID> repliedMessageID, String message)
+	private ActivityCommentMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID activityID,
+			UUID threadHeadMessageID, Optional<UUID> repliedMessageID, String message)
 	{
 		super(id, creationTime, isRead, senderInfo, message);
 		this.activityID = activityID;

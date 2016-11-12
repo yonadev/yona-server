@@ -136,7 +136,7 @@ public class ActivityServiceTests
 		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		UserAnonymizedDTO userAnon = UserAnonymizedDTO.createInstance(userAnonEntity);
-		userAnonZone = ZoneId.of(userAnon.getTimeZoneId());
+		userAnonZone = userAnon.getTimeZone();
 		userAnonID = userAnon.getID();
 
 		userID = UUID.randomUUID();
@@ -188,9 +188,11 @@ public class ActivityServiceTests
 
 		// gambling goal was created 2 weeks ago, see above
 		// mock some activity on yesterday 20:58-21:00
-		DayActivity yesterdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, yesterday);
-		Activity recordedActivity = Activity.createInstance(yesterday.plusHours(20).plusMinutes(58),
-				yesterday.plusHours(21).plusMinutes(00));
+		DayActivity yesterdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
+				yesterday.toLocalDate());
+		Activity recordedActivity = Activity.createInstance(userAnonZone,
+				yesterday.plusHours(20).plusMinutes(58).toLocalDateTime(),
+				yesterday.plusHours(21).plusMinutes(00).toLocalDateTime());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
 		when(mockDayActivityRepository.findAllActivitiesForUserInIntervalEndIncluded(userAnonID, today.minusDays(2).toLocalDate(),
 				today.toLocalDate())).thenReturn(Arrays.asList(yesterdayRecordedActivity));
@@ -232,24 +234,31 @@ public class ActivityServiceTests
 
 		// gambling goal was created 2 weeks ago, see above
 		// mock some activity in previous week on Saturday 19:10-19:55
-		WeekActivity previousWeekRecordedActivity = WeekActivity.createInstance(userAnonEntity, gamblingGoal,
-				getWeekStartTime(today.minusWeeks(1)));
+		WeekActivity previousWeekRecordedActivity = WeekActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
+				getWeekStartTime(today.minusWeeks(1)).toLocalDate());
 		ZonedDateTime saturdayStartOfDay = getWeekStartTime(today).minusDays(1);
-		DayActivity previousWeekSaturdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal,
-				saturdayStartOfDay);
-		Activity recordedActivity = Activity.createInstance(saturdayStartOfDay.plusHours(19).plusMinutes(10),
-				saturdayStartOfDay.plusHours(19).plusMinutes(55));
+		DayActivity previousWeekSaturdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
+				saturdayStartOfDay.toLocalDate());
+		Activity recordedActivity = Activity.createInstance(userAnonZone,
+				saturdayStartOfDay.plusHours(19).plusMinutes(10).toLocalDateTime(),
+				saturdayStartOfDay.plusHours(19).plusMinutes(55).toLocalDateTime());
 		previousWeekSaturdayRecordedActivity.addActivity(recordedActivity);
 		when(mockDayActivityRepository.findActivitiesForUserAndGoalsInIntervalEndExcluded(userAnonID,
 				new HashSet<UUID>(Arrays.asList(gamblingGoal.getID())), getWeekStartTime(today.minusWeeks(1)).toLocalDate(),
 				getWeekEndDate(getWeekStartTime(today.minusWeeks(1)).toLocalDate())))
 						.thenReturn(Arrays.asList(
-								DayActivity.createInstance(userAnonEntity, gamblingGoal, getWeekStartTime(today).minusDays(7)),
-								DayActivity.createInstance(userAnonEntity, gamblingGoal, getWeekStartTime(today).minusDays(6)),
-								DayActivity.createInstance(userAnonEntity, gamblingGoal, getWeekStartTime(today).minusDays(5)),
-								DayActivity.createInstance(userAnonEntity, gamblingGoal, getWeekStartTime(today).minusDays(4)),
-								DayActivity.createInstance(userAnonEntity, gamblingGoal, getWeekStartTime(today).minusDays(3)),
-								DayActivity.createInstance(userAnonEntity, gamblingGoal, getWeekStartTime(today).minusDays(2)),
+								DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
+										getWeekStartTime(today).minusDays(7).toLocalDate()),
+								DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
+										getWeekStartTime(today).minusDays(6).toLocalDate()),
+								DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
+										getWeekStartTime(today).minusDays(5).toLocalDate()),
+								DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
+										getWeekStartTime(today).minusDays(4).toLocalDate()),
+								DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
+										getWeekStartTime(today).minusDays(3).toLocalDate()),
+								DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
+										getWeekStartTime(today).minusDays(2).toLocalDate()),
 								previousWeekSaturdayRecordedActivity));
 		when(mockWeekActivityRepository.findAll(userAnonID, getWeekStartTime(today.minusWeeks(4)).toLocalDate(),
 				getWeekStartTime(today).toLocalDate()))
@@ -413,11 +422,13 @@ public class ActivityServiceTests
 
 		// gambling goal was created 2 weeks ago, see above
 		// mock some activity on yesterday 20:58-21:00
-		DayActivity yesterdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, yesterday);
+		DayActivity yesterdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
+				yesterday.toLocalDate());
 		ZonedDateTime activityStartTime = yesterday.withHour((int) activityStartOffsetOnDay.toHours())
 				.withMinute((int) activityStartOffsetOnDay.toMinutes() % 60)
 				.withSecond((int) activityStartOffsetOnDay.getSeconds() % 60);
-		Activity recordedActivity = Activity.createInstance(activityStartTime, activityStartTime.plus(activityDuration));
+		Activity recordedActivity = Activity.createInstance(userAnonZone, activityStartTime.toLocalDateTime(),
+				activityStartTime.plus(activityDuration).toLocalDateTime());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
 		when(mockDayActivityRepository.findOne(userAnonID, yesterday.toLocalDate(), gamblingGoal.getID()))
 				.thenReturn(yesterdayRecordedActivity);

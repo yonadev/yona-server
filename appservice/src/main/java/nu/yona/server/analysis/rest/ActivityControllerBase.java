@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.rest;
 
@@ -166,21 +163,21 @@ abstract class ActivityControllerBase
 	{
 		return goalIDMapping.getUser().getPrivateData().getBuddies().stream()
 				.filter(b -> b.getUser().getID().equals(message.getSenderUser().get().getID())).map(b -> b.getID()).findAny()
-				.orElseThrow(
-						() -> new IllegalArgumentException("User with ID " + message.getSenderUser().get().getID() + "is not a buddy"));
+				.orElseThrow(() -> new IllegalArgumentException(
+						"User with ID " + message.getSenderUser().get().getID() + "is not a buddy"));
 	}
 
 	private void addWeekDetailsLink(LinkProvider linkProvider, IntervalActivity activity, ActivityCommentMessageDTO message)
 	{
 		message.add(linkProvider
-				.getWeekActivityDetailLinkBuilder(WeekActivityDTO.formatDate(activity.getDate()), activity.getGoal().getID())
+				.getWeekActivityDetailLinkBuilder(WeekActivityDTO.formatDate(activity.getStartDate()), activity.getGoal().getID())
 				.withRel(WEEK_DETAIL_LINK));
 	}
 
 	private void addDayDetailsLink(LinkProvider linkProvider, IntervalActivity activity, ActivityCommentMessageDTO message)
 	{
 		message.add(linkProvider
-				.getDayActivityDetailLinkBuilder(DayActivityDTO.formatDate(activity.getDate()), activity.getGoal().getID())
+				.getDayActivityDetailLinkBuilder(DayActivityDTO.formatDate(activity.getStartDate()), activity.getGoal().getID())
 				.withRel(DAY_DETAIL_LINK));
 	}
 

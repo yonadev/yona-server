@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -22,6 +22,7 @@ import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "USERS")
@@ -39,7 +40,7 @@ public class User extends EntityWithID
 	@Column(unique = true)
 	private String mobileNumber;
 
-	private ZonedDateTime creationTime;
+	private LocalDateTime creationTime;
 
 	private byte[] initializationVector;
 
@@ -79,7 +80,7 @@ public class User extends EntityWithID
 		this.mobileNumber = mobileNumber;
 		this.setUserPrivate(userPrivate);
 		this.messageDestination = messageDestination;
-		this.creationTime = ZonedDateTime.now();
+		this.creationTime = TimeUtil.utcNow();
 	}
 
 	public static User createInstance(String firstName, String lastName, String nickname, String mobileNumber, String vpnPassword,
@@ -94,7 +95,7 @@ public class User extends EntityWithID
 				namedMessageSource.getDestination());
 	}
 
-	public ZonedDateTime getCreationTime()
+	public LocalDateTime getCreationTime()
 	{
 		return this.creationTime;
 	}

@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,19 +17,22 @@ import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "MESSAGES")
 public abstract class Message extends EntityWithID
 {
+	@Type(type = "uuid-char")
 	private final UUID relatedUserAnonymizedID;
 
 	@Type(type = "uuid-char")
 	private UUID threadHeadMessageID;
+
 	@Type(type = "uuid-char")
 	private UUID repliedMessageID;
 
-	private final ZonedDateTime creationTime;
+	private final LocalDateTime creationTime;
 
 	private final boolean isSentItem;
 
@@ -57,7 +60,7 @@ public abstract class Message extends EntityWithID
 		super(id);
 
 		this.relatedUserAnonymizedID = relatedUserAnonymizedID;
-		this.creationTime = ZonedDateTime.now();
+		this.creationTime = TimeUtil.utcNow();
 		this.isSentItem = isSentItem;
 	}
 
@@ -91,7 +94,7 @@ public abstract class Message extends EntityWithID
 		return Optional.ofNullable(repliedMessageID);
 	}
 
-	public ZonedDateTime getCreationTime()
+	public LocalDateTime getCreationTime()
 	{
 		return creationTime;
 	}

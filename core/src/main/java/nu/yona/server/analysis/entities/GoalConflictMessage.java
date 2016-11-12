@@ -11,6 +11,8 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
+import org.hibernate.annotations.Type;
+
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.goals.entities.Goal;
@@ -28,6 +30,7 @@ public class GoalConflictMessage extends Message
 	 * If this is a message sent to a buddy, this refers to the self goal conflict message posted at the user having the goal.
 	 * Otherwise {@literal null}.
 	 */
+	@Type(type = "uuid-char")
 	private UUID originGoalConflictMessageID;
 
 	@ManyToOne

@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,15 +12,13 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
-import nu.yona.server.Constants;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.service.DeviceRequestException;
+import nu.yona.server.util.TimeUtil;
 
 /*
  * A request to add another device for an existing user. The data cannot be encrypted with the 'yona password' key because that is
@@ -43,7 +41,7 @@ public class NewDeviceRequest extends EntityWithID
 	private String decryptionCheck;
 	private String decryptionCheckCipherText;
 
-	private ZonedDateTime creationDateTime;
+	private LocalDateTime creationTime;
 
 	@Transient
 	private String yonaPassword;
@@ -51,10 +49,23 @@ public class NewDeviceRequest extends EntityWithID
 
 	private byte[] initializationVector;
 
-	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
-	public ZonedDateTime getCreationTime()
+	// Default constructor is required for JPA
+	public NewDeviceRequest()
 	{
-		return creationDateTime;
+		super(null);
+	}
+
+	private NewDeviceRequest(UUID id, String yonaPassword, LocalDateTime creationDateTime)
+	{
+		super(id);
+		this.yonaPassword = yonaPassword;
+		this.creationTime = creationDateTime;
+		this.decryptionCheck = buildDecryptionCheck();
+	}
+
+	public LocalDateTime getCreationTime()
+	{
+		return creationTime;
 	}
 
 	public String getYonaPassword()
@@ -62,23 +73,9 @@ public class NewDeviceRequest extends EntityWithID
 		return yonaPassword;
 	}
 
-	// Default constructor is required for JPA
-	public NewDeviceRequest()
-	{
-		super(null);
-	}
-
-	private NewDeviceRequest(UUID id, String yonaPassword, ZonedDateTime creationDateTime)
-	{
-		super(id);
-		this.yonaPassword = yonaPassword;
-		this.creationDateTime = creationDateTime;
-		this.decryptionCheck = buildDecryptionCheck();
-	}
-
 	public static NewDeviceRequest createInstance(String yonaPassword)
 	{
-		return new NewDeviceRequest(UUID.randomUUID(), yonaPassword, ZonedDateTime.now());
+		return new NewDeviceRequest(UUID.randomUUID(), yonaPassword, TimeUtil.utcNow());
 	}
 
 	private static String buildDecryptionCheck()

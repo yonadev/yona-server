@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -34,7 +34,7 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 	private final UUID activityCategoryIdOfChangedGoal;
 	private final Change change;
 
-	private GoalChangeMessageDTO(UUID id, ZonedDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+	private GoalChangeMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo,
 			UUID activityCategoryIdOfChangedGoal, Change change, String message)
 	{
 		super(id, creationTime, isRead, senderInfo, message);

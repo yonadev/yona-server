@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
@@ -43,10 +45,11 @@ public class DayActivity extends IntervalActivity
 		super();
 	}
 
-	private DayActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay, List<Activity> activities,
-			List<Integer> spread, int totalActivityDurationMinutes, boolean goalAccomplished, boolean aggregatesComputed)
+	private DayActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfDay,
+			List<Activity> activities, List<Integer> spread, int totalActivityDurationMinutes, boolean goalAccomplished,
+			boolean aggregatesComputed)
 	{
-		super(id, userAnonymized, goal, startOfDay, spread, totalActivityDurationMinutes, aggregatesComputed);
+		super(id, userAnonymized, goal, timeZone, startOfDay, spread, totalActivityDurationMinutes, aggregatesComputed);
 
 		Objects.requireNonNull(activities);
 		this.activities = activities;
@@ -62,7 +65,7 @@ public class DayActivity extends IntervalActivity
 	@Override
 	public ZonedDateTime getEndTime()
 	{
-		return getStartTime().plusDays(1);
+		return getStartDate().atStartOfDay().plusDays(1).atZone(getTimeZone());
 	}
 
 	public Activity getLastActivity()
@@ -94,11 +97,12 @@ public class DayActivity extends IntervalActivity
 			Activity activity = activitiesSorted.get(i);
 
 			// continue until no overlap
-			ZonedDateTime activityBlockEndTime = activity.getEndTime();
-			while (i + 1 < activitiesSorted.size() && activitiesSorted.get(i + 1).getStartTime().isBefore(activityBlockEndTime))
+			ZonedDateTime activityBlockEndTime = activity.getEndTimeAsZonedDateTime();
+			while (i + 1 < activitiesSorted.size()
+					&& activitiesSorted.get(i + 1).getStartTimeAsZonedDateTime().isBefore(activityBlockEndTime))
 			{
 				// overlapping
-				ZonedDateTime activityEndTime = activitiesSorted.get(i + 1).getEndTime();
+				ZonedDateTime activityEndTime = activitiesSorted.get(i + 1).getEndTimeAsZonedDateTime();
 				if (activityEndTime.isAfter(activityBlockEndTime))
 				{
 					// extend the block
@@ -107,7 +111,7 @@ public class DayActivity extends IntervalActivity
 				i++;
 			}
 
-			addToSpread(result, activity.getStartTime(), activityBlockEndTime);
+			addToSpread(result, activity.getStartTimeAsZonedDateTime(), activityBlockEndTime);
 		}
 		return result;
 	}
@@ -199,9 +203,9 @@ public class DayActivity extends IntervalActivity
 		return this.getGoal().isGoalAccomplished(this);
 	}
 
-	public static DayActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZonedDateTime startOfDay)
+	public static DayActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfDay)
 	{
-		return new DayActivity(UUID.randomUUID(), userAnonymized, goal, startOfDay, new ArrayList<Activity>(),
+		return new DayActivity(UUID.randomUUID(), userAnonymized, goal, timeZone, startOfDay, new ArrayList<Activity>(),
 				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, true, false);
 	}
 }
