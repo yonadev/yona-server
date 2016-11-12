@@ -11,11 +11,14 @@ databaseChangeLog:
             name: id
             type: VARCHAR(255)
         - column:
+            name: time_zone
+            type: VARCHAR(255)
+        - column:
             name: end_time
-            type: VARBINARY(255)
+            type: timestamp(255)
         - column:
             name: start_time
-            type: VARBINARY(255)
+            type: timestamp(255)
         - column:
             name: activity_category
             type: VARCHAR(255)
@@ -150,7 +153,7 @@ databaseChangeLog:
             type: INT
         - column:
             name: user_anonymizedid
-            type: BINARY(255)
+            type: VARCHAR(255)
         tableName: buddies_anonymized
 - changeSet:
     id: 1478805823199-9
@@ -173,7 +176,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         - column:
             name: creation_time
-            type: VARBINARY(255)
+            type: timestamp(255)
         tableName: confirmation_codes
 - changeSet:
     id: 1478805823199-10
@@ -244,11 +247,11 @@ databaseChangeLog:
             name: aggregates_computed
             type: BOOLEAN
         - column:
-            name: date
-            type: date
+            name: time_zone
+            type: VARCHAR(255)
         - column:
-            name: start_time
-            type: VARBINARY(255)
+            name: start_date
+            type: date
         - column:
             constraints:
               nullable: false
@@ -367,7 +370,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         - column:
             name: creation_time
-            type: VARBINARY(255)
+            type: timestamp(255)
         - column:
             constraints:
               nullable: false
@@ -380,7 +383,7 @@ databaseChangeLog:
             type: BOOLEAN
         - column:
             name: related_user_anonymizedid
-            type: BINARY(255)
+            type: VARCHAR(255)
         - column:
             name: replied_messageid
             type: VARCHAR(255)
@@ -410,7 +413,7 @@ databaseChangeLog:
             type: INT
         - column:
             name: target_goal_conflict_messageid
-            type: BINARY(255)
+            type: VARCHAR(255)
         - column:
             name: new_nickname_ciphertext
             type: VARBINARY(255)
@@ -422,10 +425,10 @@ databaseChangeLog:
             type: BOOLEAN
         - column:
             name: activityid
-            type: BINARY(255)
+            type: VARCHAR(255)
         - column:
             name: origin_goal_conflict_messageid
-            type: BINARY(255)
+            type: VARCHAR(255)
         - column:
             name: url_ciphertext
             type: VARBINARY(255)
@@ -457,8 +460,8 @@ databaseChangeLog:
             name: id
             type: VARCHAR(255)
         - column:
-            name: creation_date_time
-            type: VARBINARY(255)
+            name: creation_time
+            type: timestamp(255)
         - column:
             name: decryption_check_cipher_text
             type: VARCHAR(255)
@@ -512,7 +515,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         - column:
             name: creation_time
-            type: VARBINARY(255)
+            type: timestamp(255)
         - column:
             name: first_name
             type: VARCHAR(255)
@@ -816,7 +819,7 @@ databaseChangeLog:
     author: Bert (generated)
     changes:
     - addUniqueConstraint:
-        columnNames: dtype, user_anonymized, date, goal
+        columnNames: dtype, user_anonymized, start_date, goal
         constraintName: UK_117hblrh856gbm3iyv26t77b7
         tableName: interval_activities
 - changeSet:
