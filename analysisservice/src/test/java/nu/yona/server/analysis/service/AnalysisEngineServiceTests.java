@@ -228,7 +228,7 @@ public class AnalysisEngineServiceTests
 		p.setConflictInterval("PT0.01S");
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
-		mockEarlierActivity(gamblingGoal, ZonedDateTime.now());
+		mockEarlierActivity(gamblingGoal, nowInAmsterdam());
 
 		// Execute the analysis engine service after a period of inactivity longer than the conflict interval.
 
@@ -260,7 +260,7 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void messageCreatedOnMatch()
 	{
-		ZonedDateTime t = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Amsterdam"));
+		ZonedDateTime t = nowInAmsterdam();
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
 		service.analyze(userAnonID, new NetworkActivityDTO(conflictCategories, "http://localhost/test", Optional.empty()));
@@ -357,7 +357,7 @@ public class AnalysisEngineServiceTests
 		p.setUpdateSkipWindow("PT0S");
 		when(mockYonaProperties.getAnalysisService()).thenReturn(p);
 
-		ZonedDateTime t = ZonedDateTime.now();
+		ZonedDateTime t = nowInAmsterdam();
 		DayActivity dayActivity = mockEarlierActivity(gamblingGoal, t);
 		Activity earlierActivityEntity = dayActivity.getLastActivity();
 
@@ -371,7 +371,7 @@ public class AnalysisEngineServiceTests
 		service.analyze(userAnonID, new NetworkActivityDTO(conflictCategories2, "http://localhost/test2", Optional.empty()));
 		service.analyze(userAnonID,
 				new NetworkActivityDTO(conflictCategoriesNotMatching1, "http://localhost/test3", Optional.empty()));
-		ZonedDateTime t2 = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Amsterdam"));
+		ZonedDateTime t2 = nowInAmsterdam();
 		service.analyze(userAnonID, new NetworkActivityDTO(conflictCategories2, "http://localhost/test4", Optional.empty()));
 
 		// Verify that the cache is used to check existing activity
@@ -616,6 +616,11 @@ public class AnalysisEngineServiceTests
 	private AppActivityDTO createSingleAppActivity(String app, ZonedDateTime startTime, ZonedDateTime endTime)
 	{
 		AppActivityDTO.Activity[] activities = { new AppActivityDTO.Activity(app, startTime, endTime) };
-		return new AppActivityDTO(ZonedDateTime.now(), activities);
+		return new AppActivityDTO(nowInAmsterdam(), activities);
+	}
+
+	private ZonedDateTime nowInAmsterdam()
+	{
+		return ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Amsterdam"));
 	}
 }
