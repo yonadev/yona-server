@@ -458,13 +458,15 @@ public class AnalysisEngineServiceTests
 	@Test
 	public void activityOnNewDay()
 	{
-		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
-		ZonedDateTime earlierActivityTime = now.minusDays(1);
+		ZonedDateTime today = ZonedDateTime.now(userAnonZoneId).truncatedTo(ChronoUnit.DAYS);
+		// mock earlier activity at yesterday 23:59:58,
+		// add new activity at today 00:00:01
+		ZonedDateTime earlierActivityTime = today.minusDays(1).withHour(23).withMinute(59).withSecond(58);
 
 		DayActivity earlierDayActivity = mockEarlierActivity(gamblingGoal, earlierActivityTime);
 
-		ZonedDateTime startTime = now.minusMinutes(10);
-		ZonedDateTime endTime = now;
+		ZonedDateTime startTime = today.withHour(0).withMinute(0).withSecond(1);
+		ZonedDateTime endTime = today.withHour(0).withMinute(10);
 		service.analyze(userAnonID, createSingleAppActivity("Poker App", startTime, endTime));
 
 		// Verify that there is a new conflict message sent.
@@ -475,8 +477,7 @@ public class AnalysisEngineServiceTests
 		// so (create, update) = 2 times save
 		verify(mockDayActivityRepository, times(2)).save(newDayActivity.capture());
 		assertThat("Expect new day", newDayActivity.getValue(), not(equalTo(earlierDayActivity)));
-		assertThat("Expect right date", newDayActivity.getValue().getStartDate(),
-				equalTo(now.truncatedTo(ChronoUnit.DAYS).toLocalDate()));
+		assertThat("Expect right date", newDayActivity.getValue().getStartDate(), equalTo(today.toLocalDate()));
 		assertThat("Expect activity added", newDayActivity.getValue().getLastActivity(), notNullValue());
 		assertThat("Expect matching start time", newDayActivity.getValue().getLastActivity().getStartTime(),
 				equalTo(startTime.toLocalDateTime()));
