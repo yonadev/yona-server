@@ -1,0 +1,1273 @@
+databaseChangeLog:
+- changeSet:
+    id: 1478805823199-1
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: time_zone
+            type: VARCHAR(255)
+        - column:
+            name: end_time
+            type: timestamp(255)
+        - column:
+            name: start_time
+            type: timestamp(255)
+        - column:
+            name: activity_category
+            type: VARCHAR(255)
+        tableName: activities
+- changeSet:
+    id: 1478805823199-2
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: mandatory_no_go
+            type: BOOLEAN
+        tableName: activity_categories
+- changeSet:
+    id: 1478805823199-3
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: activity_category
+            type: VARCHAR(255)
+        - column:
+            name: applications
+            type: VARCHAR(255)
+        tableName: activity_category_applications
+- changeSet:
+    id: 1478805823199-4
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: activity_category
+            type: VARCHAR(255)
+        - column:
+            name: localizable_description
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: localizable_description_key
+            type: VARCHAR(255)
+        tableName: activity_category_localizable_description
+- changeSet:
+    id: 1478805823199-5
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: activity_category
+            type: VARCHAR(255)
+        - column:
+            name: localizable_name
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: localizable_name_key
+            type: VARCHAR(255)
+        tableName: activity_category_localizable_name
+- changeSet:
+    id: 1478805823199-6
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: activity_category
+            type: VARCHAR(255)
+        - column:
+            name: smoothwall_categories
+            type: VARCHAR(255)
+        tableName: activity_category_smoothwall_categories
+- changeSet:
+    id: 1478805823199-7
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: buddy_anonymizedid
+            type: VARCHAR(255)
+        - column:
+            name: nickname
+            type: VARCHAR(255)
+        - column:
+            name: touch_version
+            type: INT
+        - column:
+            name: userid
+            type: VARCHAR(255)
+        tableName: buddies
+- changeSet:
+    id: 1478805823199-8
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: receiving_status
+            type: INT
+        - column:
+            name: sending_status
+            type: INT
+        - column:
+            name: user_anonymizedid
+            type: VARCHAR(255)
+        tableName: buddies_anonymized
+- changeSet:
+    id: 1478805823199-9
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: attempts
+            type: INT
+        - column:
+            name: confirmation_code
+            type: VARCHAR(255)
+        - column:
+            name: creation_time
+            type: timestamp(255)
+        tableName: confirmation_codes
+- changeSet:
+    id: 1478805823199-10
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: name
+            type: VARCHAR(255)
+        tableName: devices
+- changeSet:
+    id: 1478805823199-11
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: dtype
+            type: VARCHAR(31)
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: creation_time
+            type: timestamp
+        - column:
+            name: end_time
+            type: timestamp
+        - column:
+            name: max_duration_minutes
+            type: INT
+        - column:
+            name: activity_category
+            type: VARCHAR(255)
+        - column:
+            name: previous_instance_of_this_goal
+            type: VARCHAR(255)
+        tableName: goals
+- changeSet:
+    id: 1478805823199-12
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: dtype
+            type: VARCHAR(31)
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: aggregates_computed
+            type: BOOLEAN
+        - column:
+            name: time_zone
+            type: VARCHAR(255)
+        - column:
+            name: start_date
+            type: date
+        - column:
+            constraints:
+              nullable: false
+            name: total_activity_duration_minutes
+            type: INT
+        - column:
+            name: goal_accomplished
+            type: BOOLEAN
+        - column:
+            name: total_minutes_beyond_goal
+            type: INT
+        - column:
+            name: goal
+            type: VARCHAR(255)
+        - column:
+            name: user_anonymized
+            type: VARCHAR(255)
+        tableName: interval_activities
+- changeSet:
+    id: 1478805823199-13
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: interval_activities
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: activities
+            type: VARCHAR(255)
+        tableName: interval_activities_activities
+- changeSet:
+    id: 1478805823199-14
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: interval_activity
+            type: VARCHAR(255)
+        - column:
+            name: spread
+            type: INT
+        tableName: interval_activity_spread
+- changeSet:
+    id: 1478805823199-15
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: public_key_bytes
+            type: VARBINARY(1024)
+        tableName: message_destinations
+- changeSet:
+    id: 1478805823199-16
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: message_destinations
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: messages
+            type: VARCHAR(255)
+        tableName: message_destinations_messages
+- changeSet:
+    id: 1478805823199-17
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: private_key_bytes
+            type: VARCHAR(1024)
+        - column:
+            name: message_destination
+            type: VARCHAR(255)
+        tableName: message_sources
+- changeSet:
+    id: 1478805823199-18
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: dtype
+            type: VARCHAR(31)
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: creation_time
+            type: timestamp(255)
+        - column:
+            constraints:
+              nullable: false
+            name: is_read
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: is_sent_item
+            type: BOOLEAN
+        - column:
+            name: related_user_anonymizedid
+            type: VARCHAR(255)
+        - column:
+            name: replied_messageid
+            type: VARCHAR(255)
+        - column:
+            name: thread_head_messageid
+            type: VARCHAR(255)
+        - column:
+            name: message_ciphertext
+            type: VARBINARY(255)
+        - column:
+            name: sender_nickname_ciphertext
+            type: VARBINARY(255)
+        - column:
+            name: sender_useridciphertext
+            type: VARBINARY(255)
+        - column:
+            name: buddyidciphertext
+            type: VARBINARY(255)
+        - column:
+            name: is_processed
+            type: BOOLEAN
+        - column:
+            name: status
+            type: INT
+        - column:
+            name: change
+            type: INT
+        - column:
+            name: target_goal_conflict_messageid
+            type: VARCHAR(255)
+        - column:
+            name: new_nickname_ciphertext
+            type: VARBINARY(255)
+        - column:
+            name: is_requesting_receiving
+            type: BOOLEAN
+        - column:
+            name: is_requesting_sending
+            type: BOOLEAN
+        - column:
+            name: activityid
+            type: VARCHAR(255)
+        - column:
+            name: origin_goal_conflict_messageid
+            type: VARCHAR(255)
+        - column:
+            name: url_ciphertext
+            type: VARBINARY(255)
+        - column:
+            name: reason
+            type: INT
+        - column:
+            name: activity_category_of_changed_goal
+            type: VARCHAR(255)
+        - column:
+            name: sender_copy_message
+            type: VARCHAR(255)
+        - column:
+            name: activity
+            type: VARCHAR(255)
+        - column:
+            name: goal
+            type: VARCHAR(255)
+        tableName: messages
+- changeSet:
+    id: 1478805823199-19
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: creation_time
+            type: timestamp(255)
+        - column:
+            name: decryption_check_cipher_text
+            type: VARCHAR(255)
+        - column:
+            name: initialization_vector
+            type: VARBINARY(255)
+        - column:
+            name: yona_password_cipher_text
+            type: VARCHAR(255)
+        tableName: new_device_requests
+- changeSet:
+    id: 1478805823199-20
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: time_zone_goal
+            type: VARCHAR(255)
+        - column:
+            name: spread_cells
+            type: INT
+        tableName: time_zone_goal_spread_cells
+- changeSet:
+    id: 1478805823199-21
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: time_zone_goal
+            type: VARCHAR(255)
+        - column:
+            name: zones
+            type: VARCHAR(255)
+        tableName: time_zone_goal_zones
+- changeSet:
+    id: 1478805823199-22
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: creation_time
+            type: timestamp(255)
+        - column:
+            name: first_name
+            type: VARCHAR(255)
+        - column:
+            name: initialization_vector
+            type: VARBINARY(255)
+        - column:
+            constraints:
+              nullable: false
+            name: is_created_on_buddy_request
+            type: BOOLEAN
+        - column:
+            name: last_name
+            type: VARCHAR(255)
+        - column:
+            name: mobile_number
+            type: VARCHAR(255)
+        - column:
+            name: message_destination
+            type: VARCHAR(255)
+        - column:
+            name: mobile_number_confirmation_code
+            type: VARCHAR(255)
+        - column:
+            name: new_device_request
+            type: VARCHAR(255)
+        - column:
+            name: overwrite_user_confirmation_code
+            type: VARCHAR(255)
+        - column:
+            name: pin_reset_confirmation_code
+            type: VARCHAR(255)
+        - column:
+            name: user_private
+            type: VARCHAR(255)
+        tableName: users
+- changeSet:
+    id: 1478805823199-23
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: anonymous_destination
+            type: VARCHAR(255)
+        tableName: users_anonymized
+- changeSet:
+    id: 1478805823199-24
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: users_anonymized
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: buddies_anonymized
+            type: VARCHAR(255)
+        tableName: users_anonymized_buddies_anonymized
+- changeSet:
+    id: 1478805823199-25
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: users_anonymized
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: goals
+            type: VARCHAR(255)
+        tableName: users_anonymized_goals
+- changeSet:
+    id: 1478805823199-26
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: VARCHAR(255)
+        - column:
+            name: anonymous_message_sourceid
+            type: VARCHAR(255)
+        - column:
+            name: decryption_check
+            type: VARCHAR(255)
+        - column:
+            name: named_message_sourceid
+            type: VARCHAR(255)
+        - column:
+            name: nickname
+            type: VARCHAR(255)
+        - column:
+            name: touch_version
+            type: INT
+        - column:
+            name: user_anonymizedid
+            type: VARCHAR(255)
+        - column:
+            name: vpn_password
+            type: VARCHAR(255)
+        tableName: users_private
+- changeSet:
+    id: 1478805823199-27
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: users_private
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: buddies
+            type: VARCHAR(255)
+        tableName: users_private_buddies
+- changeSet:
+    id: 1478805823199-28
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: activity_category, localizable_description_key
+        tableName: activity_category_localizable_description
+- changeSet:
+    id: 1478805823199-29
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: activity_category, localizable_name_key
+        tableName: activity_category_localizable_name
+- changeSet:
+    id: 1478805823199-30
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: users_anonymized, buddies_anonymized
+        tableName: users_anonymized_buddies_anonymized
+- changeSet:
+    id: 1478805823199-31
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: users_anonymized, goals
+        tableName: users_anonymized_goals
+- changeSet:
+    id: 1478805823199-32
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: users_private, buddies
+        tableName: users_private_buddies
+- changeSet:
+    id: 1478805823199-33
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: activitiesPK
+        tableName: activities
+- changeSet:
+    id: 1478805823199-34
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: activity_categoriesPK
+        tableName: activity_categories
+- changeSet:
+    id: 1478805823199-35
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: buddiesPK
+        tableName: buddies
+- changeSet:
+    id: 1478805823199-36
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: buddies_anonymizedPK
+        tableName: buddies_anonymized
+- changeSet:
+    id: 1478805823199-37
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: confirmation_codesPK
+        tableName: confirmation_codes
+- changeSet:
+    id: 1478805823199-38
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: devicesPK
+        tableName: devices
+- changeSet:
+    id: 1478805823199-39
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: goalsPK
+        tableName: goals
+- changeSet:
+    id: 1478805823199-40
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: interval_activitiesPK
+        tableName: interval_activities
+- changeSet:
+    id: 1478805823199-41
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: message_destinationsPK
+        tableName: message_destinations
+- changeSet:
+    id: 1478805823199-42
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: message_sourcesPK
+        tableName: message_sources
+- changeSet:
+    id: 1478805823199-43
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: messagesPK
+        tableName: messages
+- changeSet:
+    id: 1478805823199-44
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: new_device_requestsPK
+        tableName: new_device_requests
+- changeSet:
+    id: 1478805823199-45
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: usersPK
+        tableName: users
+- changeSet:
+    id: 1478805823199-46
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: users_anonymizedPK
+        tableName: users_anonymized
+- changeSet:
+    id: 1478805823199-47
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: users_privatePK
+        tableName: users_private
+- changeSet:
+    id: 1478805823199-48
+    author: Bert (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: mobile_number
+        constraintName: UC_USERSMOBILE_NUMBER_COL
+        tableName: users
+- changeSet:
+    id: 1478805823199-49
+    author: Bert (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: dtype, user_anonymized, start_date, goal
+        constraintName: UK_117hblrh856gbm3iyv26t77b7
+        tableName: interval_activities
+- changeSet:
+    id: 1478805823199-50
+    author: Bert (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: messages
+        constraintName: UK_352x09pvbqwf7b5fc64g81jpr
+        tableName: message_destinations_messages
+- changeSet:
+    id: 1478805823199-51
+    author: Bert (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: buddies_anonymized
+        constraintName: UK_a207f4m3jlp17widbhhqeg5ry
+        tableName: users_anonymized_buddies_anonymized
+- changeSet:
+    id: 1478805823199-52
+    author: Bert (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: activities
+        constraintName: UK_hfa9y8vt3m5h635amo2x7vnw4
+        tableName: interval_activities_activities
+- changeSet:
+    id: 1478805823199-53
+    author: Bert (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: buddies
+        constraintName: UK_k434iayygfacxan40jfmrr765
+        tableName: users_private_buddies
+- changeSet:
+    id: 1478805823199-54
+    author: Bert (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: goals
+        constraintName: UK_khv3vca6v5wm356kuoeivpc26
+        tableName: users_anonymized_goals
+- changeSet:
+    id: 1478805823199-55
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: interval_activity
+        baseTableName: interval_activity_spread
+        constraintName: FK_1am1vcdichgu2pec92pxfi2xg
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: interval_activities
+- changeSet:
+    id: 1478805823199-56
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: activity_category
+        baseTableName: activities
+        constraintName: FK_2bscugmyjqu1vwdihg1h93xqo
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: activity_categories
+- changeSet:
+    id: 1478805823199-57
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: activity
+        baseTableName: messages
+        constraintName: FK_2wc9ejqrls5h1tb9x369cw0sb
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: activities
+- changeSet:
+    id: 1478805823199-58
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: messages
+        baseTableName: message_destinations_messages
+        constraintName: FK_352x09pvbqwf7b5fc64g81jpr
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: messages
+- changeSet:
+    id: 1478805823199-59
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: activity_category
+        baseTableName: activity_category_applications
+        constraintName: FK_39flq75f0dr9lp1k35nc0vop8
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: activity_categories
+- changeSet:
+    id: 1478805823199-60
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: message_destination
+        baseTableName: users
+        constraintName: FK_3qjral7h87fva2g67t5h6cxut
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: message_destinations
+- changeSet:
+    id: 1478805823199-61
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: activity_category
+        baseTableName: goals
+        constraintName: FK_4y21uy8cvbq82r3omnov1wpj5
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: activity_categories
+- changeSet:
+    id: 1478805823199-62
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: interval_activities
+        baseTableName: interval_activities_activities
+        constraintName: FK_5g96mxdh8afglllfsa3b6ueky
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: interval_activities
+- changeSet:
+    id: 1478805823199-63
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: mobile_number_confirmation_code
+        baseTableName: users
+        constraintName: FK_7g0w5mdkpoxlo2l8a80yodak8
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: confirmation_codes
+- changeSet:
+    id: 1478805823199-64
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: activity_category
+        baseTableName: activity_category_localizable_description
+        constraintName: FK_8o58vv59rn69lq2tjkl453uub
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: activity_categories
+- changeSet:
+    id: 1478805823199-65
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: activity_category
+        baseTableName: activity_category_localizable_name
+        constraintName: FK_9gxsvfm7yqjyn7ugxww6ji18l
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: activity_categories
+- changeSet:
+    id: 1478805823199-66
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: buddies_anonymized
+        baseTableName: users_anonymized_buddies_anonymized
+        constraintName: FK_a207f4m3jlp17widbhhqeg5ry
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: buddies_anonymized
+- changeSet:
+    id: 1478805823199-67
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: users_private
+        baseTableName: users_private_buddies
+        constraintName: FK_apgpbvf6foj8otbtqu21nv0bc
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: users_private
+- changeSet:
+    id: 1478805823199-68
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: message_destinations
+        baseTableName: message_destinations_messages
+        constraintName: FK_bmpnps7i16sn1hx7eycqmcvwk
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: message_destinations
+- changeSet:
+    id: 1478805823199-69
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: time_zone_goal
+        baseTableName: time_zone_goal_spread_cells
+        constraintName: FK_bov6be9ub1rgmp54lecdrvagl
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: goals
+- changeSet:
+    id: 1478805823199-70
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: goal
+        baseTableName: messages
+        constraintName: FK_c2yhjv2kwuo06e82xw80qxlb7
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: goals
+- changeSet:
+    id: 1478805823199-71
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: new_device_request
+        baseTableName: users
+        constraintName: FK_cfuveyeddynkx38bf3hv36ot1
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: new_device_requests
+- changeSet:
+    id: 1478805823199-72
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: activity_category
+        baseTableName: activity_category_smoothwall_categories
+        constraintName: FK_cv29le9v86qh8axhkmrq9fwbd
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: activity_categories
+- changeSet:
+    id: 1478805823199-73
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: user_private
+        baseTableName: users
+        constraintName: FK_dbwjxsj10yetkg0xcd2du6idj
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: users_private
+- changeSet:
+    id: 1478805823199-74
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: users_anonymized
+        baseTableName: users_anonymized_goals
+        constraintName: FK_dbxb1hi232j8fu4sev6fd4cth
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: users_anonymized
+- changeSet:
+    id: 1478805823199-75
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: overwrite_user_confirmation_code
+        baseTableName: users
+        constraintName: FK_dyjj2vle0tcs3f0cv37iejxac
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: confirmation_codes
+- changeSet:
+    id: 1478805823199-76
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: time_zone_goal
+        baseTableName: time_zone_goal_zones
+        constraintName: FK_en5os5ucv4mcxuaq78baloxcv
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: goals
+- changeSet:
+    id: 1478805823199-77
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: anonymous_destination
+        baseTableName: users_anonymized
+        constraintName: FK_h4lcsqxl0wun0jfl9ex68jglg
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: message_destinations
+- changeSet:
+    id: 1478805823199-78
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: activities
+        baseTableName: interval_activities_activities
+        constraintName: FK_hfa9y8vt3m5h635amo2x7vnw4
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: activities
+- changeSet:
+    id: 1478805823199-79
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: sender_copy_message
+        baseTableName: messages
+        constraintName: FK_iwc1b6xx85g8978xy0u7svjrm
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: messages
+- changeSet:
+    id: 1478805823199-80
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: buddies
+        baseTableName: users_private_buddies
+        constraintName: FK_k434iayygfacxan40jfmrr765
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: buddies
+- changeSet:
+    id: 1478805823199-81
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: goals
+        baseTableName: users_anonymized_goals
+        constraintName: FK_khv3vca6v5wm356kuoeivpc26
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: goals
+- changeSet:
+    id: 1478805823199-82
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: goal
+        baseTableName: interval_activities
+        constraintName: FK_lgpl4hhperk3lxkbfd26uo9rp
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: goals
+- changeSet:
+    id: 1478805823199-83
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: activity_category_of_changed_goal
+        baseTableName: messages
+        constraintName: FK_m2cbt911sy2yenyeo2oly4r9j
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: activity_categories
+- changeSet:
+    id: 1478805823199-84
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: pin_reset_confirmation_code
+        baseTableName: users
+        constraintName: FK_nfphkjohrici44nlhtmgmo7yb
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: confirmation_codes
+- changeSet:
+    id: 1478805823199-85
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: message_destination
+        baseTableName: message_sources
+        constraintName: FK_ovfwnaf5g63t4uw7wd9t18a55
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: message_destinations
+- changeSet:
+    id: 1478805823199-86
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: previous_instance_of_this_goal
+        baseTableName: goals
+        constraintName: FK_r608xh47clnntuy47phuyuik8
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: goals
+- changeSet:
+    id: 1478805823199-87
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: user_anonymized
+        baseTableName: interval_activities
+        constraintName: FK_rsrde1d8bxkvgd1ukbk4om81d
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: users_anonymized
+- changeSet:
+    id: 1478805823199-88
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: users_anonymized
+        baseTableName: users_anonymized_buddies_anonymized
+        constraintName: FK_sdd9w1gfd5ohx1nqok54brygp
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: users_anonymized
+

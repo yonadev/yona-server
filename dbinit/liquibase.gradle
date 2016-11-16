@@ -1,0 +1,78 @@
+configurations {
+  liquibase
+}
+
+dependencies {
+  liquibase("org.liquibase.ext:liquibase-hibernate4:3.6")
+}
+
+//loading properties file.
+Properties liquibaseProps = new Properties()
+liquibaseProps.load(new FileInputStream("dbinit/src/main/liquibase/liquibase-task.properties"))
+
+Properties applicationProps = new Properties()
+applicationProps.load(new FileInputStream("core/src/main/resources/application.properties"))
+
+String databaseUrl = applicationProps.getProperty('spring.datasource.url')
+String hibernateUrl = "hibernate:spring:" + liquibaseProps.getProperty('liquibase.domain.package') + "?dialect=" + applicationProps.getProperty('spring.jpa.database-platform') + "&hibernate.ejb.naming_strategy=" + applicationProps.getProperty('spring.jpa.hibernate.naming_strategy')
+String userName = applicationProps.getProperty('spring.datasource.username')
+String password = applicationProps.getProperty('spring.datasource.password')
+
+String changeLogPath = liquibaseProps.getProperty('liquibase.changelog.path')
+
+task liquibaseGenerateChangeLogFromCode(type: JavaExec) {
+  group = "liquibase"
+
+  classpath sourceSets.main.runtimeClasspath
+  classpath configurations.liquibase
+  main = "liquibase.integration.commandline.Main"
+
+  args "--changeLogFile=${changeLogPath}/base/entity.yml"
+  args "--url=${hibernateUrl}"
+  args "generateChangeLog"
+}
+
+task liquibaseGenerateChangeLogFromDB(type: JavaExec) {
+  group = "liquibase"
+
+  classpath sourceSets.main.runtimeClasspath
+  classpath configurations.liquibase
+  main = "liquibase.integration.commandline.Main"
+
+  args "--changeLogFile=${changeLogPath}/base/batch.yml"
+  args "--url=${databaseUrl}"
+  args "--driver=org.hsqldb.jdbc.JDBCDriver"
+  args "generateChangeLog"
+}
+
+task liquibaseDiffChangelog(type: JavaExec) {
+  group = "liquibase"
+
+  classpath sourceSets.main.runtimeClasspath
+  classpath configurations.liquibase
+  main = "liquibase.integration.commandline.Main"
+
+  args "--changeLogFile=${changeLogPath}/changelog-0000-yd-000.yml"
+  args "--referenceUrl=${hibernateUrl}"
+  args "--url=${databaseUrl}"
+  args "--driver=org.hsqldb.jdbc.JDBCDriver"
+  args "--username=${userName}"
+  // args "--password=${password}"
+  args "diffChangeLog"
+  args "--excludeObjects=" + liquibaseProps.getProperty('liquibase.diff.excludeObjects')
+}
+
+task liquibaseUpdate(type: JavaExec) {
+  group = "liquibase"
+
+  classpath sourceSets.main.runtimeClasspath
+  classpath configurations.liquibase
+  main = "liquibase.integration.commandline.Main"
+
+  args "--changeLogFile=${changeLogPath}/changelog.yml"
+  args "--url=${databaseUrl}"
+  args "--driver=org.hsqldb.jdbc.JDBCDriver"
+  args "--username=${userName}"
+  // args "--password=${password}"
+  args "update"
+}

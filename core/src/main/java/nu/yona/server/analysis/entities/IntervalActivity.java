@@ -28,7 +28,7 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Entity
 @Table(name = "INTERVAL_ACTIVITIES", uniqueConstraints = {
-		@UniqueConstraint(columnNames = { "DTYPE", "USER_ANONYMIZED_ID", "STARTDATE", "GOAL_ID" }) })
+		@UniqueConstraint(columnNames = { "dtype", "user_anonymized", "startDate", "goal" }) })
 public abstract class IntervalActivity extends EntityWithID
 {
 	public static IntervalActivityRepository getIntervalActivityRepository()

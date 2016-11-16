@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      relativeToChangelogFile: true
+      file: entity.yml
+  - include:
+      relativeToChangelogFile: true
+      file: batch.yml

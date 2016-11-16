@@ -1,76 +1,90 @@
+version: '2'
+
+networks:
+  yonanet:
+    external: true
+
+volumes:
+  config: {}
+
+services:
 ###########################################
 # Configuration data container
 ###########################################
-configuration:
-  image: busybox
-  volumes:
-    - ./config:/opt/app/config:ro
-
+  configuration:
+    image: busybox
+    networks:
+      - yonanet
+    volumes:
+      - config:/opt/app/config:ro
+  
 ###########################################
-# Database
+# Yona services
 ###########################################
-
-hsqldb:
-  image: yonadev/yonahsqldb:$yonatag
-  restart: unless-stopped
-  expose:
-    - "9001"
-
-###########################################
-# Services
-###########################################
-
-adminservice:
-  image: yonadev/adminservice:$yonatag
-  restart: unless-stopped
-  links:
-    - hsqldb:yonadbserver
-  ports:
-    - 8080:8080
-  log_driver: "gelf"
-  log_opt:
-    gelf-address: "udp://log:12201"
-  volumes_from:
-        - configuration:ro
-
-analysisservice:
-  image: yonadev/analysisservice:$yonatag
-  restart: unless-stopped
-  links:
-    - hsqldb:yonadbserver
-  ports:
-    - 8081:8080
-  log_driver: "gelf"
-  log_opt:
-    gelf-address: "udp://log:12201"
-  volumes_from:
-        - configuration:ro
-
-appservice:
-  image: yonadev/appservice:$yonatag
-  restart: unless-stopped
-  environment:
-    - YONA_ANALYSIS_SERVICE_SERVICE_URL=http://analysisservice:8080
-  links:
-    - hsqldb:yonadbserver
-    - analysisservice:analysisservice
-  ports:
-    - 80:8080
-  log_driver: "gelf"
-  log_opt:
-    gelf-address: "udp://log:12201"
-  volumes_from:
-        - configuration:ro
-
-batchservice:
-  image: yonadev/batchservice:$yonatag
-  restart: unless-stopped
-  links:
-    - hsqldb:yonadbserver
-  ports:
-    - 8083:8080
-  log_driver: "gelf"
-  log_opt:
-    gelf-address: "udp://log:12201"
-  volumes_from:
-        - configuration:ro
+  adminservice:
+    image: yonadev/adminservice:$yonatag
+    restart: unless-stopped
+    external_links:
+      - hsqldb:yonadbserver
+    ports:
+      - 8080:8080
+    logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://log:12201"
+    networks:
+      - yonanet
+    volumes_from:
+          - configuration:ro
+  
+  analysisservice:
+    image: yonadev/analysisservice:$yonatag
+    restart: unless-stopped
+    external_links:
+      - hsqldb:yonadbserver
+    ports:
+      - 8081:8080
+    logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://log:12201"
+    networks:
+      - yonanet
+    volumes_from:
+          - configuration:ro
+  
+  appservice:
+    image: yonadev/appservice:$yonatag
+    restart: unless-stopped
+    environment:
+      - YONA_ANALYSIS_SERVICE_SERVICE_URL=http://analysisservice:8080
+    links:
+      - analysisservice:analysisservice
+    external_links:
+      - hsqldb:yonadbserver
+    ports:
+      - 80:8080
+    logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://log:12201"
+    networks:
+      - yonanet
+    volumes_from:
+          - configuration:ro
+  
+  batchservice:
+    image: yonadev/batchservice:$yonatag
+    restart: unless-stopped
+    external_links:
+      - hsqldb:yonadbserver
+    ports:
+      - 8083:8080
+    logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://log:12201"
+    networks:
+      - yonanet
+    volumes_from:
+          - configuration:ro

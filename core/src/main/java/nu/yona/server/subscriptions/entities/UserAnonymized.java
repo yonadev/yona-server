@@ -4,10 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -17,7 +15,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
@@ -47,7 +44,7 @@ public class UserAnonymized extends EntityWithID
 		super(null);
 	}
 
-	private UserAnonymized(UUID id, MessageDestination anonymousDestination, Set<Goal> goals, List<WeekActivity> weekActivities)
+	private UserAnonymized(UUID id, MessageDestination anonymousDestination, Set<Goal> goals)
 	{
 		super(id);
 		this.anonymousDestination = anonymousDestination;
@@ -84,7 +81,7 @@ public class UserAnonymized extends EntityWithID
 
 	public static UserAnonymized createInstance(MessageDestination anonymousDestination, Set<Goal> goals)
 	{
-		return new UserAnonymized(UUID.randomUUID(), anonymousDestination, goals, new ArrayList<WeekActivity>());
+		return new UserAnonymized(UUID.randomUUID(), anonymousDestination, goals);
 	}
 
 	public Set<BuddyAnonymized> getBuddiesAnonymized()
