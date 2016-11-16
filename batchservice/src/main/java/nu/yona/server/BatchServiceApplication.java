@@ -31,10 +31,9 @@ public class BatchServiceApplication extends SpringBootServletInitializer
 		}
 		catch (Exception ex)
 		{
-
-			// issue in Hazelcast: it doesn't shutdown automatically,
-			// while we want this for the short running database initializer
-			// see https://github.com/hazelcast/hazelcast/issues/6339
+			// Issue in Hazelcast: it doesn't shutdown automatically: see https://github.com/hazelcast/hazelcast/issues/6339
+			// If service start up fails, we want the the process to exit, so in that case we are shutting down Hazelcast
+			// explicitly.
 			Hazelcast.shutdownAll();
 			throw ex;
 		}
