@@ -72,7 +72,7 @@ task buildDockerImage(type: DockerBuildImage) {
 }
 
 task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
-	imageName = "${project.group}/yonahsqldb"
+	imageName = "${project.group}/yona-hsql-liquibase-update"
 	tag = "latest"
 }
 
