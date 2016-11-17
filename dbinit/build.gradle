@@ -52,6 +52,7 @@ docker {
 		username = project.hasProperty('dockerHubUserName')? project.dockerHubUserName : null
 		password = project.hasProperty('dockerHubPassword')? project.dockerHubPassword : null
 	}
+	url = project.hasProperty('dockerUrl')? project.dockerUrl : "http://localhost:2375"
 }
 
 task buildDockerImage(type: DockerBuildImage) {
