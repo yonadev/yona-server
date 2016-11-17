@@ -73,6 +73,7 @@ task buildDockerImage(type: DockerBuildImage) {
 
 task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
 	imageName = "${project.group}/yonahsqldb"
+	imageName = "latest"
 }
 
 bootRun {
