@@ -31,7 +31,6 @@ import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
-import nu.yona.server.util.TransactionHelper;
 
 @Service
 public class MessageService
@@ -43,9 +42,6 @@ public class MessageService
 
 	@Autowired
 	private TheDTOManager dtoManager;
-
-	@Autowired
-	private TransactionHelper transactionHelper;
 
 	@Transactional
 	public Page<MessageDTO> getReceivedMessages(UUID userID, boolean onlyUnreadMessages, Pageable pageable)
@@ -64,20 +60,15 @@ public class MessageService
 
 	private Page<Message> getReceivedMessageEntities(UserDTO user, boolean onlyUnreadMessages, Pageable pageable)
 	{
-		transferDirectMessagesToAnonymousDestination(user);
-
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return messageSource.getReceivedMessages(pageable, onlyUnreadMessages);
 	}
 
-	private void transferDirectMessagesToAnonymousDestination(UserDTO user)
+	// handle in a separate transaction to limit exceptions caused by concurrent calls to this method
+	@Transactional
+	public void transferDirectMessagesToAnonymousDestination(UUID userID)
 	{
-		// handle in a separate transaction to limit exceptions caused by concurrent calls to this method
-		transactionHelper.executeInNewTransaction(() -> transferDirectMessagesToAnonymousDestinationInSubtransaction(user));
-	}
-
-	private void transferDirectMessagesToAnonymousDestinationInSubtransaction(UserDTO user)
-	{
+		UserDTO user = userService.getPrivateValidatedUser(userID);
 		try
 		{
 			tryTransferDirectMessagesToAnonymousDestination(user);
