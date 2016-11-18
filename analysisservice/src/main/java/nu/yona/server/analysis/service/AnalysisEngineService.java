@@ -207,7 +207,17 @@ public class AnalysisEngineService
 			return false;
 		}
 
+		if (isOnNewDay(payload, lastRegisteredActivity))
+		{
+			return false;
+		}
+
 		return true;
+	}
+
+	private boolean isOnNewDay(ActivityPayload payload, ActivityDTO lastRegisteredActivity)
+	{
+		return getStartOfDay(payload.startTime, payload.userAnonymized).isAfter(lastRegisteredActivity.getStartTime());
 	}
 
 	private boolean precedesLastRegisteredActivity(ActivityPayload payload, ActivityDTO lastRegisteredActivity)
