@@ -1,39 +1,20 @@
-description = 'Analysis'
+description = "Analysis"
 
-buildscript {
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:$project.ext.springBootVersion")
-		classpath("io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE")
-		classpath 'net.researchgate:gradle-release:2.3.4'
-		classpath('com.bmuschko:gradle-docker-plugin:3.0.3')
-	}
-}
-
-apply plugin: 'java'
-apply plugin: 'application'
-apply plugin: "groovy"
-apply plugin: 'idea'
-apply plugin: 'spring-boot'
-apply plugin: 'io.spring.dependency-management'
-apply plugin: 'com.bmuschko.docker-remote-api'
-apply plugin: 'net.researchgate.release'
+apply plugin: "application"
 
 import com.bmuschko.gradle.docker.tasks.container.*
 import com.bmuschko.gradle.docker.tasks.image.*
 
 
 jar {
-	baseName = 'analysisservice'
+	baseName = "analysisservice"
 }
 
 release {
 	failOnCommitNeeded = true
-	tagTemplate = 'analysisservice-${version}'
+	tagTemplate = "analysisservice-${version}"
 	git {
-		requireBranch = 'yd-40-changes-for-building|master'
+		requireBranch = "yd-40-changes-for-building|master"
 	}
 }
 
@@ -43,60 +24,40 @@ configurations {
 
 dependencies {
 	compile project(":core")
-	compile("org.springframework.boot:spring-boot-starter-data-jpa")
-	compile("org.springframework.boot:spring-boot-starter-hateoas")
-	compile("org.springframework.boot:spring-boot-starter-web")
-	compile("com.google.guava:guava:18.0")
+	runtime "org.hsqldb:hsqldb"
+	runtime "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$project.ext.version_jackson"
+	runtime "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$project.ext.version_jackson"
+	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
 
-	runtime("org.hsqldb:hsqldb")
-	runtime("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.6.6")
-	runtime("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.6.6")
-	providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
-
-	testCompile project(path: ':core', configuration: 'testUtils')
-	testCompile("org.springframework.boot:spring-boot-starter-test")
-	testCompile("junit:junit:4.12")
-
-	// mandatory dependencies for using Spock
-	testCompile "org.codehaus.groovy:groovy-all:2.4.6"
-	testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
-
-	// optional dependencies for using Spock
-	testCompile "org.hamcrest:hamcrest-core:1.3" // only necessary if Hamcrest matchers are used
-	testRuntime "cglib:cglib-nodep:3.1"			 // allows mocking of classes (in addition to interfaces)
-	testRuntime "org.objenesis:objenesis:2.2"	 // allows mocking of classes without default constructor (together with CGLIB)
-	testCompile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
-	testCompile "org.mockito:mockito-core:1.9.5"
+	testCompile project(path: ":core", configuration: "testUtils")
 }
 
 test {
-	enableAssertions=true
+	enableAssertions = true
 }
 
 bootRun {
-	enableAssertions=true
+	enableAssertions = true
 
-	if ( project.hasProperty('analysisservice.debug') || project.hasProperty('debug.all')) {
+	if ( project.hasProperty("analysisservice.debug") || project.hasProperty("debug.all")) {
 		jvmArgs "-Xdebug", "-Xrunjdwp:transport=dt_socket,address=" + project.ext.yona_analysisservice_debug_port + ",server=y,suspend=n"
 	}
 
 	systemProperties = [
-		'server.port': System.getProperty('server.port', project.ext.yona_analysisservice_port)
+		"server.port": System.getProperty("server.port", project.ext.yona_analysisservice_port)
 	]
 }
 
-group = 'yonadev'
-
 docker {
 	registryCredentials {
-		username = project.hasProperty('dockerHubUserName')? project.dockerHubUserName : null
-		password = project.hasProperty('dockerHubPassword')? project.dockerHubPassword : null
+		username = project.hasProperty("dockerHubUserName")? project.dockerHubUserName : null
+		password = project.hasProperty("dockerHubPassword")? project.dockerHubPassword : null
 	}
-	url = project.hasProperty('dockerUrl')? project.dockerUrl : "http://localhost:2375"
+	url = project.hasProperty("dockerUrl")? project.dockerUrl : "http://localhost:2375"
 }
 
 task buildDockerImage(type: DockerBuildImage, dependsOn: bootRepackage) {
-    inputDir = mkdir("build/docker")
+	inputDir = mkdir("build/docker")
 	tag = "${project.group}/${jar.baseName}"
 	doFirst {
 		copy {
@@ -105,7 +66,7 @@ task buildDockerImage(type: DockerBuildImage, dependsOn: bootRepackage) {
 			rename "${jar.baseName}-${jar.version}-${bootRepackage.classifier}", "${jar.baseName}"
 		}
 		copy {
-			from 'src/main/docker/Dockerfile'
+			from "src/main/docker/Dockerfile"
 			into "$inputDir"
 		}
 	}
@@ -136,12 +97,12 @@ task intTest(type:Test){
 	classpath = project.sourceSets.intTest.runtimeClasspath
 
 	systemProperties = [
-		'yona.adminservice.url': project.ext.yona_adminservice_url,
-		'yona.analysisservice.url': project.ext.yona_analysisservice_url,
-		'yona.appservice.url': project.ext.yona_appservice_url
+		"yona.adminservice.url": project.ext.yona_adminservice_url,
+		"yona.analysisservice.url": project.ext.yona_analysisservice_url,
+		"yona.appservice.url": project.ext.yona_appservice_url
 	]
 }
 
 bootRepackage {
-        classifier = "full"
+	classifier = "full"
 }

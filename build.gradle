@@ -2,49 +2,60 @@ buildscript {
 	repositories {
 		mavenCentral()
 	}
-
 	dependencies {
-		classpath 'net.researchgate:gradle-release:2.3.4'
+		classpath "org.springframework.boot:spring-boot-gradle-plugin:1.3.5.RELEASE"
 	}
 }
 
-description = 'Yona server'
+plugins {
+	id "java"
+	id "eclipse"
+	id "groovy"
+	id "io.spring.dependency-management" version "0.6.1.RELEASE"
+	id "net.researchgate.release" version "2.4.0"
+	id "com.bmuschko.docker-remote-api" version "3.0.3" apply false
+}
+
+description = "Yona server"
 
 allprojects {
-	apply plugin: 'eclipse'
-
-	group = 'yona-server'
+	group = "yonadev"
 }
 
 subprojects {
-
-	apply plugin: 'java'
-
 	sourceCompatibility = 1.8
 	targetCompatibility = 1.8
+	apply plugin: "eclipse"
+	apply plugin: "groovy"
+	apply plugin: "io.spring.dependency-management"
+	apply plugin: "spring-boot"
+	apply plugin: "net.researchgate.release"
+	apply plugin: "com.bmuschko.docker-remote-api"
 
 	project.ext {
-		springBootVersion = '1.3.5.RELEASE'
-		yona_adminservice_scheme=project.hasProperty('yona_adminservice_scheme')? project.yona_adminservice_scheme : 'http'
-		yona_adminservice_host=project.hasProperty('yona_adminservice_host')? project.yona_adminservice_host : 'localhost'
-		yona_adminservice_port=project.hasProperty('yona_adminservice_port')? project.yona_adminservice_port : '8080'
-		yona_adminservice_debug_port=project.hasProperty('yona_adminservice_debug_port')? project.yona_adminservice_debug_port : '8840'
-		yona_adminservice_url=project.hasProperty('yona_adminservice_url')? project.yona_adminservice_url : "${yona_adminservice_scheme}://${yona_adminservice_host}:${yona_adminservice_port}"
-		yona_analysisservice_scheme=project.hasProperty('yona_analysisservice_scheme')? project.yona_analysisservice_scheme : 'http'
-		yona_analysisservice_host=project.hasProperty('yona_analysisservice_host')? project.yona_analysisservice_host : 'localhost'
-		yona_analysisservice_port=project.hasProperty('yona_analysisservice_port')? project.yona_analysisservice_port : '8081'
-		yona_analysisservice_debug_port=project.hasProperty('yona_analysisservice_debug_port')? project.yona_analysisservice_debug_port : '8841'
-		yona_analysisservice_url=project.hasProperty('yona_analysisservice_url')? project.yona_analysisservice_url : "${yona_analysisservice_scheme}://${yona_analysisservice_host}:${yona_analysisservice_port}"
-		yona_appservice_scheme=project.hasProperty('yona_appservice_scheme')? project.yona_appservice_scheme : 'http'
-		yona_appservice_host=project.hasProperty('yona_appservice_host')? project.yona_appservice_host : 'localhost'
-		yona_appservice_port=project.hasProperty('yona_appservice_port')? project.yona_appservice_port : '8082'
-		yona_appservice_debug_port=project.hasProperty('yona_appservice_debug_port')? project.yona_appservice_debug_port : '8842'
-		yona_appservice_url=project.hasProperty('yona_appservice_url')? project.yona_appservice_url : "${yona_appservice_scheme}://${yona_appservice_host}:${yona_appservice_port}"
-		yona_batchservice_scheme=project.hasProperty('yona_batchservice_scheme')? project.yona_batchservice_scheme : 'http'
-		yona_batchservice_host=project.hasProperty('yona_batchservice_host')? project.yona_batchservice_host : 'localhost'
-		yona_batchservice_port=project.hasProperty('yona_batchservice_port')? project.yona_batchservice_port : '8083'
-		yona_batchservice_debug_port=project.hasProperty('yona_batchservice_debug_port')? project.yona_batchservice_debug_port : '8843'
-		yona_batchservice_url=project.hasProperty('yona_batchservice_url')? project.yona_batchservice_url : "${yona_batchservice_scheme}://${yona_batchservice_host}:${yona_batchservice_port}"
+		version_jackson    = "2.6.6"
+		version_batch_core = "3.0.7.RELEASE"
+
+		yona_adminservice_scheme        = project.properties["yona_adminservice_scheme"]       ?: "http"
+		yona_adminservice_host          = project.properties["yona_adminservice_host"]         ?: "localhost"
+		yona_adminservice_port          = project.properties["yona_adminservice_port"]         ?: "8080"
+		yona_adminservice_debug_port    = project.properties["yona_adminservice_debug_port"]   ?: "8840"
+		yona_adminservice_url           = project.properties["yona_adminservice_url"]          ?: "${yona_adminservice_scheme}://${yona_adminservice_host}:${yona_adminservice_port}"
+		yona_analysisservice_scheme     = project.properties["yona_analysisservice_scheme"]    ?: "http"
+		yona_analysisservice_host       = project.properties["yona_analysisservice_host"]      ?: "localhost"
+		yona_analysisservice_port       = project.properties["yona_analysisservice_port"]      ?: "8081"
+		yona_analysisservice_debug_port = project.properties["yona_analysisservice_debug_port"]?: "8841"
+		yona_analysisservice_url        = project.properties["yona_analysisservice_url"]       ?: "${yona_analysisservice_scheme}://${yona_analysisservice_host}:${yona_analysisservice_port}"
+		yona_appservice_scheme          = project.properties["yona_appservice_scheme"]         ?: "http"
+		yona_appservice_host            = project.properties["yona_appservice_host"]           ?: "localhost"
+		yona_appservice_port            = project.properties["yona_appservice_port"]           ?: "8082"
+		yona_appservice_debug_port      = project.properties["yona_appservice_debug_port"]     ?: "8842"
+		yona_appservice_url             = project.properties["yona_appservice_url"]            ?: "${yona_appservice_scheme}://${yona_appservice_host}:${yona_appservice_port}"
+		yona_batchservice_scheme        = project.properties["yona_batchservice_scheme"]       ?: "http"
+		yona_batchservice_host          = project.properties["yona_batchservice_host"]         ?: "localhost"
+		yona_batchservice_port          = project.properties["yona_batchservice_port"]         ?: "8083"
+		yona_batchservice_debug_port    = project.properties["yona_batchservice_debug_port"]   ?: "8843"
+		yona_batchservice_url           = project.properties["yona_batchservice_url"]          ?: "${yona_batchservice_scheme}://${yona_batchservice_host}:${yona_batchservice_port}"
 	}
 
 	repositories {
@@ -54,11 +65,11 @@ subprojects {
 
 eclipse {
 	classpath {
-		 containers.remove('org.eclipse.jdt.launching.JRE_CONTAINER')
-		 containers 'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8'
+		 containers.remove("org.eclipse.jdt.launching.JRE_CONTAINER")
+		 containers "org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"
 	}
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = '3.1'
+	gradleVersion = "3.1"
 }
