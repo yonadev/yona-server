@@ -80,8 +80,7 @@ public class MessageService
 				// Ignore and proceed. Another concurrent thread has transferred the messages.
 				// We avoid a lock here because that limits scaling this service horizontally.
 				logger.info(
-						"The direct log messages of user with mobile number '" + user.getMobileNumber() + "' and ID '"
-								+ user.getID()
+						"The direct messages of user with mobile number '" + user.getMobileNumber() + "' and ID '" + user.getID()
 								+ "' were apparently concurrently moved to the anonymous messages while handling another request.",
 						e);
 			}
