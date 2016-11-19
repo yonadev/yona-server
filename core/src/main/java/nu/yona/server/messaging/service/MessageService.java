@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +59,13 @@ public class MessageService
 
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return messageSource.getReceivedMessages(pageable, onlyUnreadMessages);
+	}
+
+	public Page<Message> getReceivedMessageEntitiesSinceDate(UUID userID, LocalDateTime earliestDateTime, Pageable pageable)
+	{
+		UserDTO user = userService.getPrivateValidatedUser(userID);
+		MessageSource messageSource = getAnonymousMessageSource(user);
+		return messageSource.getReceivedMessages(pageable, earliestDateTime);
 	}
 
 	@Transactional

@@ -5,6 +5,7 @@
 package nu.yona.server.messaging.entities;
 
 import java.security.PublicKey;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -87,6 +88,11 @@ public class MessageDestination extends EntityWithID
 
 		}
 		return Message.getRepository().findReceivedMessagesFromDestination(this.getID(), pageable);
+	}
+
+	public Page<Message> getReceivedMessages(Pageable pageable, LocalDateTime earliestDateTime)
+	{
+		return Message.getRepository().findReceivedMessagesFromDestinationSinceDate(this.getID(), earliestDateTime, pageable);
 	}
 
 	private PublicKey loadPublicKey()
