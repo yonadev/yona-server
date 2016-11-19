@@ -14,6 +14,7 @@ class Buddy
 	final String nickname
 	final String receivingStatus
 	final String sendingStatus
+	final String lastStatusChangeTime
 	final User user
 	final List<Goal> goals
 	final String url
@@ -25,6 +26,7 @@ class Buddy
 		this.nickname = json.nickname
 		this.receivingStatus = json.receivingStatus
 		this.sendingStatus = json.sendingStatus
+		this.lastStatusChangeTime = json.lastStatusChangeTime
 		if (json._embedded?."yona:user")
 		{
 			this.user = new User(json._embedded."yona:user")

@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -117,6 +118,11 @@ public class Buddy extends EntityWithID
 	public Status getSendingStatus()
 	{
 		return getBuddyAnonymized().getSendingStatus();
+	}
+
+	public LocalDateTime getLastStatusChangeTime()
+	{
+		return getBuddyAnonymized().getLastStatusChangeTime();
 	}
 
 	public void setUserAnonymizedID(UUID userAnonymizedID)

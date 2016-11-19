@@ -11,6 +11,7 @@ import groovy.json.*
 import java.time.Duration
 import java.time.ZonedDateTime
 
+import nu.yona.server.test.AppService
 import nu.yona.server.test.Buddy
 import nu.yona.server.test.Goal
 import nu.yona.server.test.User
@@ -54,6 +55,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		User bob = addBob()
 
 		when:
+		ZonedDateTime buddyRequestTime = YonaServer.now
 		def response = appService.sendBuddyConnectRequest(richard, bob)
 
 		then:
@@ -62,7 +64,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		response.responseData._links."yona:user" == null
 		response.responseData._links.self.href.startsWith(richard.url)
 
-		def richardWithBuddy = appService.reloadUser(richard)
+		User richardWithBuddy = appService.reloadUser(richard)
 		richardWithBuddy.buddies != null
 		richardWithBuddy.buddies.size() == 1
 		richardWithBuddy.buddies[0].user.firstName == bob.firstName
@@ -70,6 +72,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		richardWithBuddy.buddies[0].goals == null
 		richardWithBuddy.buddies[0].sendingStatus == "REQUESTED"
 		richardWithBuddy.buddies[0].receivingStatus == "REQUESTED"
+		assertDateTimeFormat(richardWithBuddy.buddies[0].lastStatusChangeTime)
+		assertEquals(richardWithBuddy.buddies[0].lastStatusChangeTime, buddyRequestTime)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -191,6 +195,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def processURL = connectResponseMessage.processURL
 
 		when:
+		sleep(100) // So we are sure the request time differs from the processing time
+		ZonedDateTime buddyResponseProcessTime = YonaServer.now
 		def response = appService.postMessageActionWithPassword(processURL, [ : ], richard.password)
 
 		then:
@@ -217,6 +223,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		richardWithBuddy.buddies[0].goals.size() == 2
 		richardWithBuddy.buddies[0].sendingStatus == "ACCEPTED"
 		richardWithBuddy.buddies[0].receivingStatus == "ACCEPTED"
+		assertDateTimeFormat(richardWithBuddy.buddies[0].lastStatusChangeTime)
+		assertEquals(richardWithBuddy.buddies[0].lastStatusChangeTime, buddyResponseProcessTime)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -385,12 +393,18 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def buddy = appService.getBuddies(richard)[0]
 
 		when:
+		sleep(100) // So we are sure the request time differs from the remove buddy time
+		ZonedDateTime removeBuddyTime = YonaServer.now
 		def response = appService.removeBuddy(richard, buddy, "Bob, as you know our ways parted, so I'll remove you as buddy.")
+		richard = appService.reloadUser(richard)
+		bob = appService.reloadUser(bob)
 
 		then:
 		response.status == 200
-		appService.getBuddies(richard).size() == 0 // Buddy removed for Richard
-		appService.getBuddies(bob).size() == 1 // Buddy not yet removed for Bob (not processed yet)
+		richard.buddies.size() == 0 // Buddy removed for Richard
+		bob.buddies.size() == 1 // Buddy not yet removed for Bob (not processed yet)
+		assertDateTimeFormat(bob.buddies[0].lastStatusChangeTime)
+		assertEquals(bob.buddies[0].lastStatusChangeTime, removeBuddyTime)
 
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		getMessagesRichardResponse.status == 200
@@ -488,13 +502,21 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
 		def buddy = appService.getBuddies(bob)[0]
 		def message = "Richard, as you know our ways parted, so I'll remove you as buddy."
+		sleep(100) // So we are sure the request time differs from the remove buddy time
+		ZonedDateTime removeBuddyTime = YonaServer.now
 		appService.removeBuddy(bob, buddy, message)
 
 		when:
 		def response = appService.getMessages(richard)
+		richard = appService.reloadUser(richard)
 
 		then:
 		response.status == 200
+
+		richard.buddies.size() == 1 // Buddy not yet removed for Richard (not processed yet)
+		assertDateTimeFormat(richard.buddies[0].lastStatusChangeTime)
+		assertEquals(richard.buddies[0].lastStatusChangeTime, removeBuddyTime)
+
 		def buddyDisconnectMessages = response.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}
 		buddyDisconnectMessages.size() == 1
 		buddyDisconnectMessages[0].reason == "USER_REMOVED_BUDDY"

@@ -179,21 +179,6 @@ databaseChangeLog:
             type: timestamp(255)
         tableName: confirmation_codes
 - changeSet:
-    id: 1478805823199-10
-    author: Bert (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: id
-            type: VARCHAR(255)
-        - column:
-            name: name
-            type: VARCHAR(255)
-        tableName: devices
-- changeSet:
     id: 1478805823199-11
     author: Bert (generated)
     changes:
@@ -726,14 +711,6 @@ databaseChangeLog:
         columnNames: id
         constraintName: confirmation_codesPK
         tableName: confirmation_codes
-- changeSet:
-    id: 1478805823199-38
-    author: Bert (generated)
-    changes:
-    - addPrimaryKey:
-        columnNames: id
-        constraintName: devicesPK
-        tableName: devices
 - changeSet:
     id: 1478805823199-39
     author: Bert (generated)

@@ -2188,6 +2188,11 @@ definitions:
         type: string
         description: The nickname of the buddy
         example: RQ
+      lastStatusChangeTime:
+        type: string
+        format: dateTime
+        description: The time of the last status change (request/accept/reject) of this buddy
+        example: 2016-02-23T21:28:58.556+0000
       _embedded:
         type: object
         properties:
@@ -2217,6 +2222,7 @@ definitions:
           - $ref: '#/definitions/WeeklyActivityReportsLink'
           - $ref: '#/definitions/DailyActivityReportsLink'
     required:
+      - lastStatusChangeTime
       - _embedded
       - _links
   NewDeviceRequest:
