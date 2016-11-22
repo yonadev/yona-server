@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
@@ -95,10 +96,18 @@ public class MessageController
 			@PathVariable UUID userID, Pageable pageable, PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
 	{
 		boolean onlyUnreadMessages = Boolean.TRUE.toString().equals(onlyUnreadMessagesStr);
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(pagedResourcesAssembler.toResource(
-						messageService.getReceivedMessages(userID, onlyUnreadMessages, pageable),
-						new MessageResourceAssembler(curieProvider, createGoalIDMapping(userID), this))));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> {
+			return getMessages(userID, pageable, pagedResourcesAssembler, onlyUnreadMessages);
+		});
+	}
+
+	private HttpEntity<PagedResources<MessageDTO>> getMessages(UUID userID, Pageable pageable,
+			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler, boolean onlyUnreadMessages)
+	{
+		messageService.transferDirectMessagesToAnonymousDestination(userID);
+		Page<MessageDTO> messages = messageService.getReceivedMessages(userID, onlyUnreadMessages, pageable);
+		return createOKResponse(pagedResourcesAssembler.toResource(messages,
+				new MessageResourceAssembler(curieProvider, createGoalIDMapping(userID), this)));
 	}
 
 	@RequestMapping(value = "/{messageID}", method = RequestMethod.GET)
