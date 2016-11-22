@@ -27,6 +27,7 @@ import javax.naming.ldap.LdapName;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.tools.generic.EscapeTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,6 +130,27 @@ public class UserController
 		{
 			return getPublicUser(passwordToUse, id);
 		}
+	}
+
+	@RequestMapping(value = "/{id}/buddy-invitation-deep-link-landing-page.html", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)
+	@ResponseBody
+	public ResponseEntity<byte[]> getBuddyInvitationDeepLinkLandingPage(@RequestParam(value = "tempPassword") String tempPassword,
+			@PathVariable UUID id)
+	{
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.TEXT_HTML);
+		return CryptoSession.execute(Optional.of(tempPassword), () -> userService.canAccessPrivateData(id),
+				() -> new ResponseEntity<byte[]>(getBuddyInvitationDeepLinkLandingPageBody(id, tempPassword), headers,
+						HttpStatus.OK));
+	}
+
+	private byte[] getBuddyInvitationDeepLinkLandingPageBody(UUID id, String tempPassword)
+	{
+		Map<String, Object> templateParameters = new HashMap<String, Object>();
+		templateParameters.put("deepLinkURL", getUserLinkWithTempPassword(id, tempPassword).toUri().toString());
+		templateParameters.put("esc", new EscapeTool());
+		return VelocityEngineUtils.mergeTemplateIntoString(velocityEngine, "buddy-invitation-deep-link-landing-page.vm", "UTF-8",
+				templateParameters).getBytes(StandardCharsets.UTF_8);
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
@@ -288,11 +310,14 @@ public class UserController
 		return createResponse(user, includePrivateData, HttpStatus.OK);
 	}
 
-	static Link getUserSelfLinkWithTempPassword(UUID userID, String tempPassword)
+	private static ControllerLinkBuilder getUserLinkWithTempPassword(UUID userID, String tempPassword)
 	{
-		ControllerLinkBuilder linkBuilder = linkTo(
-				methodOn(UserController.class).updateUser(Optional.empty(), tempPassword, userID, null));
-		return linkBuilder.withSelfRel();
+		return linkTo(methodOn(UserController.class).getUser(Optional.empty(), tempPassword, null, userID));
+	}
+
+	static ControllerLinkBuilder getBuddyInvitationDeepLinkLandingPageLink(UUID newUserID, String tempPassword)
+	{
+		return linkTo(methodOn(UserController.class).getBuddyInvitationDeepLinkLandingPage(tempPassword, newUserID));
 	}
 
 	private static Link getConfirmMobileLink(UUID userID)

@@ -90,6 +90,19 @@ class YonaServer
 		query: queryParametersOfURI + parameters)
 	}
 
+	def getNonJsonResource(path, headers = [:], parameters = [:])
+	{
+		def queryParametersOfURI = [ : ]
+		if (path ==~ /.*\?.*/)
+		{
+			queryParametersOfURI = getQueryParams(path)
+			path = path.substring(0, path.indexOf('?'))
+		}
+		restClient.get(path: path,
+		headers: headers,
+		query: queryParametersOfURI + parameters)
+	}
+
 	def postJson(path, jsonString, headers = [:], parameters = [:])
 	{
 		def object = null
@@ -188,7 +201,7 @@ class YonaServer
 	{
 		DateTimeFormatter.ofPattern("yyyy-MM-dd").format(dateTime)
 	}
-	
+
 	static String toIsoDateString(ZonedDateTime dateTime)
 	{
 		DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(dateTime)
