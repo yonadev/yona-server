@@ -1,21 +1,5 @@
 description = 'Core'
 
-buildscript {
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:$project.ext.springBootVersion")
-		classpath("io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE")
-	}
-}
-
-apply plugin: 'java'
-apply plugin: "groovy"
-apply plugin: 'idea'
-apply plugin: 'spring-boot'
-apply plugin: 'io.spring.dependency-management'
-
 jar {
 	baseName = 'Core'
 }
@@ -38,26 +22,26 @@ artifacts {
 }
 
 dependencies {
-	compile("org.springframework.boot:spring-boot-starter-hateoas")
-	compile("org.springframework.boot:spring-boot-starter-data-jpa")
-	compile("org.springframework.boot:spring-boot-starter-web")
-	compile("org.springframework:spring-context-support")
-	compile("org.atteo:evo-inflector:1.2.1")
-	compile("commons-validator:commons-validator:1.4.1")
-	compile("commons-lang:commons-lang:2.4")
-	compile("javax.mail:mail:1.4.7")
-	compile("org.apache.velocity:velocity")
-	compile("org.apache.velocity:velocity-tools")
-	compile("org.springframework.ldap:spring-ldap-core:2.0.4.RELEASE")
-	compile("org.springframework.security:spring-security-web:4.0.3.RELEASE")
-	compile("com.google.guava:guava:18.0")
-	compile("com.hazelcast:hazelcast-spring")
+	compile "org.springframework.boot:spring-boot-starter-hateoas"
+	compile "org.springframework.boot:spring-boot-starter-data-jpa"
+	compile "org.springframework.boot:spring-boot-starter-web"
+	compile "org.springframework:spring-context-support"
+	compile "org.atteo:evo-inflector:1.2.1"
+	compile "commons-validator:commons-validator:1.4.1"
+	compile "commons-lang:commons-lang:2.4"
+	compile "javax.mail:mail:1.4.7"
+	compile "org.apache.velocity:velocity"
+	compile "org.apache.velocity:velocity-tools"
+	compile "org.springframework.ldap:spring-ldap-core:2.0.4.RELEASE"
+	compile "org.springframework.security:spring-security-web:4.0.3.RELEASE"
+	compile "com.google.guava:guava:18.0"
+	compile "com.hazelcast:hazelcast-spring"
 	
 	compile "org.codehaus.groovy:groovy-all:2.4.6"
 	compile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
 
-	testCompile("org.springframework.boot:spring-boot-starter-test")
-	testCompile("junit:junit:4.12")
+	testCompile "org.springframework.boot:spring-boot-starter-test"
+	testCompile "junit:junit:4.12"
 	testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
 	
 	testUtilsCompile "org.codehaus.groovy:groovy-all:2.4.6"

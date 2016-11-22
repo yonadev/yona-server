@@ -1,71 +1,48 @@
-description = 'Database initializer'
+description = "Database initializer"
 
-buildscript {
-	repositories {
-		mavenCentral()
-		jcenter()
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:$project.ext.springBootVersion")
-		classpath("io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE")
-		classpath('com.bmuschko:gradle-docker-plugin:3.0.3')
-		classpath 'net.researchgate:gradle-release:2.3.4'
-	}
-}
-
-apply plugin: 'java'
-apply plugin: 'idea'
-apply plugin: 'spring-boot'
-apply plugin: 'io.spring.dependency-management'
-apply plugin: 'com.bmuschko.docker-remote-api'
-apply plugin: 'net.researchgate.release'
-apply from: 'liquibase.gradle'
+apply from: "liquibase.gradle"
 
 import com.bmuschko.gradle.docker.tasks.container.*
 import com.bmuschko.gradle.docker.tasks.image.*
 
 jar {
-	baseName = 'DatabaseInitializer'
+	baseName = "DatabaseInitializer"
 }
 
 release {
 	failOnCommitNeeded = true
-	tagTemplate = 'adminservice-${version}'
+	tagTemplate = "adminservice-${version}"
 	git {
-		requireBranch = 'yd-40-changes-for-building|master'
+		requireBranch = "yd-40-changes-for-building|master"
 	}
 }
 
 dependencies {
 	compile project(":core")
-	compile("org.springframework.boot:spring-boot-starter-data-jpa")
-	compile("org.springframework.batch:spring-batch-core:3.0.7.RELEASE")
-    compile("org.liquibase:liquibase-core:3.5.3")
-
-	runtime("org.hsqldb:hsqldb")
+	runtime "org.hsqldb:hsqldb"
+	compile "org.springframework.batch:spring-batch-core:$project.ext.version_batch_core"
+	compile "org.liquibase:liquibase-core:3.5.3"
 }
-
-group = 'yonadev'
 
 docker {
 	registryCredentials {
-		username = project.hasProperty('dockerHubUserName')? project.dockerHubUserName : null
-		password = project.hasProperty('dockerHubPassword')? project.dockerHubPassword : null
+		username = project.hasProperty("dockerHubUserName")? project.dockerHubUserName : null
+		password = project.hasProperty("dockerHubPassword")? project.dockerHubPassword : null
 	}
-	url = project.hasProperty('dockerUrl')? project.dockerUrl : "http://localhost:2375"
+	url = project.hasProperty("dockerUrl")? project.dockerUrl : "http://localhost:2375"
 }
 
 task buildDockerImage(type: DockerBuildImage) {
-    inputDir = mkdir("build/docker")
+	inputDir = mkdir("build/docker")
 	tag = "${project.group}/yona-hsql-liquibase-update"
 	doFirst {
 		copy {
-			from 'src/main/liquibase'
+			from "src/main/liquibase"
 			into "$inputDir/changelogs"
 			exclude "liquibase-task.properties"
 		}
 		copy {
-			from 'src/main/docker/Dockerfile'
+			from "src/main/docker/Dockerfile"
 			into "$inputDir"
 		}
 	}
@@ -77,15 +54,15 @@ task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
 }
 
 bootRun {
-	enableAssertions=true
+	enableAssertions = true
 
 	systemProperties = [
-		'spring.datasource.url': "jdbc:hsqldb:file:../YonaDB",
-		'spring.batch.initializer.enabled': "true",
-		'spring.jpa.hibernate.ddl-auto': "update"
+		"spring.datasource.url": "jdbc:hsqldb:file:../YonaDB",
+		"spring.batch.initializer.enabled": "true",
+		"spring.jpa.hibernate.ddl-auto": "update"
 	]
 }
 
 bootRepackage {
-        classifier = "full"
+	classifier = "full"
 }
