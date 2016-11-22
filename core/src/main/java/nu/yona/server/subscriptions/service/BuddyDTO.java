@@ -4,20 +4,26 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.Constants;
 import nu.yona.server.Translator;
 import nu.yona.server.goals.service.GoalDTO;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
+import nu.yona.server.util.TimeUtil;
 
 @JsonRootName("buddy")
 public class BuddyDTO
@@ -33,9 +39,22 @@ public class BuddyDTO
 	private final Status sendingStatus;
 	private final Status receivingStatus;
 	private Set<GoalDTO> goals = Collections.emptySet();
+	private final LocalDateTime lastStatusChangeTime;
 
-	public BuddyDTO(UUID id, UserDTO user, String message, String nickname, Optional<UUID> userAnonymizedID, Status sendingStatus,
-			Status receivingStatus)
+	public BuddyDTO(UUID id, UserDTO user, String nickname, Optional<UUID> userAnonymizedID, Status sendingStatus,
+			Status receivingStatus, LocalDateTime lastStatusChangeTime)
+	{
+		this(id, user, null, nickname, userAnonymizedID, sendingStatus, receivingStatus, lastStatusChangeTime);
+	}
+
+	public BuddyDTO(UserDTO user, String message, Status sendingStatus, Status receivingStatus,
+			LocalDateTime lastStatusChangeTime)
+	{
+		this(null, user, message, null, null, sendingStatus, receivingStatus, lastStatusChangeTime);
+	}
+
+	private BuddyDTO(UUID id, UserDTO user, String message, String nickname, Optional<UUID> userAnonymizedID,
+			Status sendingStatus, Status receivingStatus, LocalDateTime lastStatusChangeTime)
 	{
 		this.id = id;
 		this.user = user;
@@ -44,17 +63,7 @@ public class BuddyDTO
 		this.userAnonymizedID = userAnonymizedID;
 		this.sendingStatus = sendingStatus;
 		this.receivingStatus = receivingStatus;
-	}
-
-	public BuddyDTO(UUID id, UserDTO user, String nickname, Optional<UUID> userAnonymizedID, Status sendingStatus,
-			Status receivingStatus)
-	{
-		this(id, user, null, nickname, userAnonymizedID, sendingStatus, receivingStatus);
-	}
-
-	public BuddyDTO(UserDTO user, String message, Status sendingStatus, Status receivingStatus)
-	{
-		this(null, user, message, null, null, sendingStatus, receivingStatus);
+		this.lastStatusChangeTime = lastStatusChangeTime;
 	}
 
 	@JsonIgnore
@@ -88,9 +97,9 @@ public class BuddyDTO
 
 	public static BuddyDTO createInstance(Buddy buddyEntity)
 	{
-		return new BuddyDTO(buddyEntity.getID(), UserDTO.createInstance(buddyEntity.getUser()),
-				buddyEntity.getNickname(), getBuddyUserAnonymizedID(buddyEntity), buddyEntity.getSendingStatus(),
-				buddyEntity.getReceivingStatus());
+		return new BuddyDTO(buddyEntity.getID(), UserDTO.createInstance(buddyEntity.getUser()), buddyEntity.getNickname(),
+				getBuddyUserAnonymizedID(buddyEntity), buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus(),
+				buddyEntity.getLastStatusChangeTime());
 	}
 
 	private static Optional<UUID> getBuddyUserAnonymizedID(Buddy buddyEntity)
@@ -112,6 +121,19 @@ public class BuddyDTO
 	public Status getReceivingStatus()
 	{
 		return receivingStatus;
+	}
+
+	@JsonProperty("lastStatusChangeTime")
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	public ZonedDateTime getLastStatusChangeTimeAsZonedDateTime()
+	{
+		return TimeUtil.toUtcZonedDateTime(lastStatusChangeTime);
+	}
+
+	@JsonIgnore
+	public LocalDateTime getLastStatusChangeTime()
+	{
+		return lastStatusChangeTime;
 	}
 
 	@JsonIgnore

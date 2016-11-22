@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -30,4 +31,8 @@ public interface MessageRepository extends CrudRepository<Message, UUID>
 			+ " order by threadHeadMessage.creationTime asc, m.creationTime asc")
 	Page<Message> findByActivityID(@Param("destinationID") UUID destinationID, @Param("activityID") UUID activityID,
 			Pageable pageable);
+
+	@Query("select m from Message m, MessageDestination d where d.id = :destinationID and m.creationTime >= :earliestDateTime and m.isSentItem = false and m member of d.messages order by m.creationTime desc")
+	Page<Message> findReceivedMessagesFromDestinationSinceDate(@Param("destinationID") UUID destinationID,
+			@Param("earliestDateTime") LocalDateTime earliestDateTime, Pageable pageable);
 }

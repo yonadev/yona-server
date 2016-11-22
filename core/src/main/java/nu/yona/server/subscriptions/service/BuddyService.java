@@ -220,7 +220,8 @@ public class BuddyService
 		UserDTO user = userService.createUserDTOWithPrivateData(userEntity);
 		do
 		{
-			messagePage = messageService.getReceivedMessageEntities(user.getID(), new PageRequest(page++, pageSize));
+			messagePage = messageService.getReceivedMessageEntitiesSinceDate(user.getID(), buddy.getLastStatusChangeTime(),
+					new PageRequest(page++, pageSize));
 
 			messageFound = processPossiblePendingBuddyResponseMessage(user, buddy, messagePage);
 		}

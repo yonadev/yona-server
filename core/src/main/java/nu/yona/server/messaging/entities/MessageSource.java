@@ -6,6 +6,7 @@ package nu.yona.server.messaging.entities;
 
 import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -82,6 +83,13 @@ public class MessageSource extends EntityWithID
 	public Page<Message> getReceivedMessages(Pageable pageable, boolean onlyUnreadMessages)
 	{
 		Page<Message> messages = messageDestination.getReceivedMessages(pageable, onlyUnreadMessages);
+		decryptMessagePage(messages);
+		return messages;
+	}
+
+	public Page<Message> getReceivedMessages(Pageable pageable, LocalDateTime earliestDateTime)
+	{
+		Page<Message> messages = messageDestination.getReceivedMessages(pageable, earliestDateTime);
 		decryptMessagePage(messages);
 		return messages;
 	}

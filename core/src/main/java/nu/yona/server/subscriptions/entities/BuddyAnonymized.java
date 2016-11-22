@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,6 +16,7 @@ import org.hibernate.annotations.Type;
 
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "BUDDIES_ANONYMIZED")
@@ -45,6 +47,8 @@ public class BuddyAnonymized extends EntityWithID
 	 */
 	private Status receivingStatus = Status.NOT_REQUESTED;
 
+	private LocalDateTime lastStatusChangeTime;
+
 	// Default constructor is required for JPA
 	public BuddyAnonymized()
 	{
@@ -56,6 +60,7 @@ public class BuddyAnonymized extends EntityWithID
 		super(id);
 		this.sendingStatus = sendingStatus;
 		this.receivingStatus = receivingStatus;
+		setLastStatusChangeTimeToNow();
 	}
 
 	public static BuddyAnonymized createInstance(Status sendingStatus, Status receivingStatus)
@@ -79,7 +84,12 @@ public class BuddyAnonymized extends EntityWithID
 
 	public void setSendingStatus(Status sendingStatus)
 	{
+		if (this.sendingStatus == sendingStatus)
+		{
+			return;
+		}
 		this.sendingStatus = sendingStatus;
+		setLastStatusChangeTimeToNow();
 	}
 
 	public Status getReceivingStatus()
@@ -89,7 +99,12 @@ public class BuddyAnonymized extends EntityWithID
 
 	public void setReceivingStatus(Status receivingStatus)
 	{
+		if (this.receivingStatus == receivingStatus)
+		{
+			return;
+		}
 		this.receivingStatus = receivingStatus;
+		setLastStatusChangeTimeToNow();
 	}
 
 	public Optional<UUID> getUserAnonymizedID()
@@ -108,5 +123,16 @@ public class BuddyAnonymized extends EntityWithID
 		this.sendingStatus = Status.REJECTED;
 		this.receivingStatus = Status.REJECTED;
 		this.userAnonymizedID = null;
+		setLastStatusChangeTimeToNow();
+	}
+
+	public LocalDateTime getLastStatusChangeTime()
+	{
+		return lastStatusChangeTime;
+	}
+
+	private void setLastStatusChangeTimeToNow()
+	{
+		lastStatusChangeTime = TimeUtil.utcNow();
 	}
 }

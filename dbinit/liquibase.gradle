@@ -52,7 +52,7 @@ task liquibaseDiffChangelog(type: JavaExec) {
   classpath configurations.liquibase
   main = "liquibase.integration.commandline.Main"
 
-  args "--changeLogFile=${changeLogPath}/changelog-0000-yd-000.yml"
+  args "--changeLogFile=${changeLogPath}/updates/changelog-0000-yd-000.yml"
   args "--referenceUrl=${hibernateUrl}"
   args "--url=${databaseUrl}"
   args "--driver=org.hsqldb.jdbc.JDBCDriver"

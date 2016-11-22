@@ -52,6 +52,7 @@ import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.BuddyServiceException;
 import nu.yona.server.subscriptions.service.UserDTO;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.util.TimeUtil;
 
 @Controller
 @ExposesResourceFor(BuddyResource.class)
@@ -161,7 +162,8 @@ public class BuddyController
 		{
 			throw BuddyServiceException.missingUser(userRelName);
 		}
-		return new BuddyDTO(user, postPutBuddy.message, postPutBuddy.sendingStatus, postPutBuddy.receivingStatus);
+		return new BuddyDTO(user, postPutBuddy.message, postPutBuddy.sendingStatus, postPutBuddy.receivingStatus,
+				TimeUtil.utcNow());
 	}
 
 	public static Resources<BuddyResource> createAllBuddiesCollectionResource(CurieProvider curieProvider, UUID userID,
