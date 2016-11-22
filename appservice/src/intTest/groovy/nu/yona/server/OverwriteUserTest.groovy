@@ -73,7 +73,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesResponse = appService.getMessages(bob)
 		getMessagesResponse.status == 200
-		getMessagesResponse.responseData._embedded."yona:messages".size() == 1
+		getMessagesResponse.responseData._embedded?."yona:messages"?.size() == 1
 		def buddyDisconnectMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}
 		buddyDisconnectMessages.size() == 1
 		def disconnectMessage = buddyDisconnectMessages[0]

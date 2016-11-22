@@ -14,7 +14,11 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import org.hibernate.exception.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +36,8 @@ import nu.yona.server.subscriptions.service.UserService;
 @Service
 public class MessageService
 {
+	private static final Logger logger = LoggerFactory.getLogger(MessageService.class);
+
 	@Autowired
 	private UserService userService;
 
@@ -55,8 +61,6 @@ public class MessageService
 
 	private Page<Message> getReceivedMessageEntities(UserDTO user, boolean onlyUnreadMessages, Pageable pageable)
 	{
-		transferDirectMessagesToAnonymousDestination(user);
-
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return messageSource.getReceivedMessages(pageable, onlyUnreadMessages);
 	}
@@ -66,6 +70,50 @@ public class MessageService
 		UserDTO user = userService.getPrivateValidatedUser(userID);
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return messageSource.getReceivedMessages(pageable, earliestDateTime);
+	}
+
+	// handle in a separate transaction to limit exceptions caused by concurrent calls to this method
+	@Transactional
+	public void transferDirectMessagesToAnonymousDestination(UUID userID)
+	{
+		UserDTO user = userService.getPrivateValidatedUser(userID);
+		try
+		{
+			tryTransferDirectMessagesToAnonymousDestination(user);
+		}
+		catch (DataIntegrityViolationException e)
+		{
+			if (e.getCause() instanceof ConstraintViolationException)
+			{
+				// Ignore and proceed. Another concurrent thread has transferred the messages.
+				// We avoid a lock here because that limits scaling this service horizontally.
+				logger.info(
+						"The direct messages of user with mobile number '" + user.getMobileNumber() + "' and ID '" + user.getID()
+								+ "' were apparently concurrently moved to the anonymous messages while handling another request.",
+						e);
+			}
+			else
+			{
+				throw e;
+			}
+		}
+	}
+
+	private void tryTransferDirectMessagesToAnonymousDestination(UserDTO user)
+	{
+		MessageSource directMessageSource = getNamedMessageSource(user);
+		MessageDestination directMessageDestination = directMessageSource.getDestination();
+		Page<Message> directMessages = directMessageSource.getMessages(null);
+
+		MessageSource anonymousMessageSource = getAnonymousMessageSource(user);
+		MessageDestination anonymousMessageDestination = anonymousMessageSource.getDestination();
+		for (Message directMessage : directMessages)
+		{
+			directMessageDestination.remove(directMessage);
+			anonymousMessageDestination.send(directMessage);
+		}
+		MessageDestination.getRepository().save(directMessageDestination);
+		MessageDestination.getRepository().save(anonymousMessageDestination);
 	}
 
 	@Transactional
@@ -97,23 +145,6 @@ public class MessageService
 		deleteMessage(user, message, messageSource.getDestination());
 
 		return MessageActionDTO.createInstanceActionDone();
-	}
-
-	private void transferDirectMessagesToAnonymousDestination(UserDTO user)
-	{
-		MessageSource directMessageSource = getNamedMessageSource(user);
-		MessageDestination directMessageDestination = directMessageSource.getDestination();
-		Page<Message> directMessages = directMessageSource.getMessages(null);
-
-		MessageSource anonymousMessageSource = getAnonymousMessageSource(user);
-		MessageDestination anonymousMessageDestination = anonymousMessageSource.getDestination();
-		for (Message directMessage : directMessages)
-		{
-			directMessageDestination.remove(directMessage);
-			anonymousMessageDestination.send(directMessage);
-		}
-		MessageDestination.getRepository().save(directMessageDestination);
-		MessageDestination.getRepository().save(anonymousMessageDestination);
 	}
 
 	private void deleteMessage(UserDTO user, Message message, MessageDestination destination)
