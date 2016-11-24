@@ -13,8 +13,6 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import com.hazelcast.core.Hazelcast;
-
 import nu.yona.server.properties.YonaProperties;
 
 @SpringBootApplication
@@ -26,18 +24,7 @@ public class AppServiceApplication
 
 	public static void main(String[] args)
 	{
-		try
-		{
-			SpringApplication.run(AppServiceApplication.class, args);
-		}
-		catch (Exception ex)
-		{
-			// Issue in Hazelcast: it doesn't shutdown automatically: see https://github.com/hazelcast/hazelcast/issues/6339
-			// If service start up fails, we want the the process to exit, so in that case we are shutting down Hazelcast
-			// explicitly.
-			Hazelcast.shutdownAll();
-			throw ex;
-		}
+		SpringApplication.run(AppServiceApplication.class, args);
 	}
 
 	@Bean

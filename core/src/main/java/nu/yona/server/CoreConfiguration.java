@@ -170,8 +170,13 @@ public class CoreConfiguration extends CachingConfigurerSupport
 	@Bean
 	public CacheManager cacheManager()
 	{
-		HazelcastInstance client = Hazelcast.newHazelcastInstance(new Config());
-		return new HazelcastCacheManager(client);
+		return new HazelcastCacheManager(hazelcastInstance());
+	}
+
+	@Bean // By making this a bean, Spring takes care of shutting down Hazelcast
+	public HazelcastInstance hazelcastInstance()
+	{
+		return Hazelcast.newHazelcastInstance(new Config());
 	}
 
 	@Bean

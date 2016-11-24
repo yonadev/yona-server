@@ -9,8 +9,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
-import com.hazelcast.core.Hazelcast;
-
 @ComponentScan("nu.yona.server")
 @SpringBootApplication
 @EnableBatchProcessing
@@ -18,19 +16,8 @@ public class DatabaseInitializationApplication
 {
 	public static void main(String[] args)
 	{
-		try
-		{
-			SpringApplication app = new SpringApplication(DatabaseInitializationApplication.class);
-			app.setWebEnvironment(false);
-			app.run(args);
-		}
-		finally
-		{
-
-			// issue in Hazelcast: it doesn't shutdown automatically,
-			// while we want this for the short running database initializer
-			// see https://github.com/hazelcast/hazelcast/issues/6339
-			Hazelcast.shutdownAll();
-		}
+		SpringApplication app = new SpringApplication(DatabaseInitializationApplication.class);
+		app.setWebEnvironment(false);
+		app.run(args).close();
 	}
 }
