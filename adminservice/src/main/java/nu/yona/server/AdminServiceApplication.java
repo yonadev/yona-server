@@ -11,8 +11,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -28,7 +26,7 @@ import nu.yona.server.admin.batch.config.MainConfiguration;
 		DataSourceAutoConfiguration.class, WebMvcAutoConfiguration.class })
 @EnableCaching
 @Import(MainConfiguration.class)
-public class AdminServiceApplication extends SpringBootServletInitializer
+public class AdminServiceApplication
 {
 	public static void main(String[] args)
 	{
@@ -44,12 +42,6 @@ public class AdminServiceApplication extends SpringBootServletInitializer
 			Hazelcast.shutdownAll();
 			throw ex;
 		}
-	}
-
-	@Override
-	protected SpringApplicationBuilder configure(SpringApplicationBuilder application)
-	{
-		return application.sources(AdminServiceApplication.class);
 	}
 
 	@Bean

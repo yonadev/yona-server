@@ -2,9 +2,6 @@ buildscript {
 	repositories {
 		mavenCentral()
 	}
-	dependencies {
-		classpath "org.springframework.boot:spring-boot-gradle-plugin:1.3.5.RELEASE"
-	}
 }
 
 plugins {
@@ -12,6 +9,7 @@ plugins {
 	id "eclipse"
 	id "groovy"
 	id "io.spring.dependency-management" version "0.6.1.RELEASE"
+	id "org.springframework.boot" version "1.4.2.RELEASE" apply false
 	id "net.researchgate.release" version "2.4.0"
 	id "com.bmuschko.docker-remote-api" version "3.0.3" apply false
 }
@@ -28,12 +26,12 @@ subprojects {
 	apply plugin: "eclipse"
 	apply plugin: "groovy"
 	apply plugin: "io.spring.dependency-management"
-	apply plugin: "spring-boot"
+	apply plugin: "org.springframework.boot"
 	apply plugin: "net.researchgate.release"
 	apply plugin: "com.bmuschko.docker-remote-api"
 
 	project.ext {
-		version_jackson    = "2.6.6"
+		version_jackson    = "2.8.5"
 		version_batch_core = "3.0.7.RELEASE"
 
 		yona_adminservice_scheme        = project.properties["yona_adminservice_scheme"]       ?: "http"

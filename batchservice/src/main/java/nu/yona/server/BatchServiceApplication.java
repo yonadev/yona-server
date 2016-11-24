@@ -7,8 +7,6 @@ package nu.yona.server;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.TaskScheduler;
@@ -21,7 +19,7 @@ import com.hazelcast.core.Hazelcast;
 @EnableBatchProcessing
 @EnableScheduling
 @SpringBootApplication(scanBasePackages = { "nu.yona.server" })
-public class BatchServiceApplication extends SpringBootServletInitializer
+public class BatchServiceApplication
 {
 	public static void main(String[] args)
 	{
@@ -37,12 +35,6 @@ public class BatchServiceApplication extends SpringBootServletInitializer
 			Hazelcast.shutdownAll();
 			throw ex;
 		}
-	}
-
-	@Override
-	protected SpringApplicationBuilder configure(SpringApplicationBuilder application)
-	{
-		return application.sources(BatchServiceApplication.class);
 	}
 
 	@Bean

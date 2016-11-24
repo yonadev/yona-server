@@ -4,4 +4,7 @@ databaseChangeLog:
       file: entity.yml
   - include:
       relativeToChangelogFile: true
+      file: extra.yml
+  - include:
+      relativeToChangelogFile: true
       file: batch.yml

@@ -14,14 +14,12 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.persistence.Entity;
-import javax.persistence.Table;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Entity
-@Table(name = "WEEK_ACTIVITIES")
 public class WeekActivity extends IntervalActivity
 {
 	public static WeekActivityRepository getRepository()

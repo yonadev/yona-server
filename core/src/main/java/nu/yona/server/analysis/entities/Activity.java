@@ -10,17 +10,20 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.ZoneIdAttributeConverter;
 import nu.yona.server.goals.entities.ActivityCategory;
 
 @Entity
 @Table(name = "ACTIVITIES")
 public class Activity extends EntityWithID
 {
+	@Convert(converter = ZoneIdAttributeConverter.class)
 	private ZoneId timeZone;
 	private LocalDateTime startTime;
 	private LocalDateTime endTime;

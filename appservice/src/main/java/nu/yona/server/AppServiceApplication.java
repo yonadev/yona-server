@@ -7,8 +7,6 @@ package nu.yona.server;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -21,7 +19,7 @@ import nu.yona.server.properties.YonaProperties;
 
 @SpringBootApplication
 @EnableCaching
-public class AppServiceApplication extends SpringBootServletInitializer
+public class AppServiceApplication
 {
 	@Autowired
 	private YonaProperties yonaProperties;
@@ -40,12 +38,6 @@ public class AppServiceApplication extends SpringBootServletInitializer
 			Hazelcast.shutdownAll();
 			throw ex;
 		}
-	}
-
-	@Override
-	protected SpringApplicationBuilder configure(SpringApplicationBuilder application)
-	{
-		return application.sources(AppServiceApplication.class);
 	}
 
 	@Bean

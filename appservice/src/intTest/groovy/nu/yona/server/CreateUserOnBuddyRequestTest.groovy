@@ -163,6 +163,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		getUserResponse.responseData._embedded."yona:goals"._embedded."yona:goals".size() == 1 //mandatory goal
 		def getMessagesResponse = appService.getMessages(updatedBob)
 		getMessagesResponse.status == 200
+		getMessagesResponse.responseData._embedded."yona:messages".size() == 1 // The buddy request from Richard
 
 		cleanup:
 		appService.deleteUser(richard)

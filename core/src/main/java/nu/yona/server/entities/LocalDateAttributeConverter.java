@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
-@Converter(autoApply = true)
+@Converter(autoApply = false)
 public class LocalDateAttributeConverter implements AttributeConverter<LocalDate, java.sql.Date>
 {
 

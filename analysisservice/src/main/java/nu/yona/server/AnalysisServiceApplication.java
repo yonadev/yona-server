@@ -8,8 +8,6 @@ import java.util.UUID;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 
@@ -19,7 +17,7 @@ import nu.yona.server.util.LockPool;
 
 @SpringBootApplication
 @EnableCaching
-public class AnalysisServiceApplication extends SpringBootServletInitializer
+public class AnalysisServiceApplication
 {
 	public static void main(String[] args)
 	{
@@ -35,12 +33,6 @@ public class AnalysisServiceApplication extends SpringBootServletInitializer
 			Hazelcast.shutdownAll();
 			throw ex;
 		}
-	}
-
-	@Override
-	protected SpringApplicationBuilder configure(SpringApplicationBuilder application)
-	{
-		return application.sources(AnalysisServiceApplication.class);
 	}
 
 	@Bean

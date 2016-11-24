@@ -57,7 +57,16 @@ public class MessageSource extends EntityWithID
 	{
 		super(id);
 		this.messageDestination = messageDestination;
-		this.privateKeyBytes = PublicKeyUtil.privateKeyToBytes(privateKey);
+		this.privateKeyBytes = toAttributeArray(privateKey);
+	}
+
+	private static byte[] toAttributeArray(PrivateKey privateKey)
+	{
+		// Extract the private key bytes to the 1 position of an array. The 0 position is reserved to do the touch.
+		byte[] privateKeyBytes = PublicKeyUtil.privateKeyToBytes(privateKey);
+		byte[] extendedArray = new byte[privateKeyBytes.length + 1];
+		System.arraycopy(privateKeyBytes, 0, extendedArray, 1, privateKeyBytes.length);
+		return extendedArray;
 	}
 
 	public static MessageSource createInstance()
@@ -104,7 +113,7 @@ public class MessageSource extends EntityWithID
 	{
 		if (privateKey == null)
 		{
-			privateKey = PublicKeyUtil.privateKeyFromBytes(privateKeyBytes);
+			privateKey = PublicKeyUtil.privateKeyFromBytes(Arrays.copyOfRange(privateKeyBytes, 1, privateKeyBytes.length));
 		}
 		return privateKey;
 	}
@@ -123,7 +132,7 @@ public class MessageSource extends EntityWithID
 
 	public MessageSource touch()
 	{
-		privateKeyBytes = Arrays.copyOf(privateKeyBytes, privateKeyBytes.length);
+		privateKeyBytes[0]++;
 		return this;
 	}
 
