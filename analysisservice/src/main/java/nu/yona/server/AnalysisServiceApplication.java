@@ -13,8 +13,6 @@ import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 
-import com.hazelcast.core.Hazelcast;
-
 import nu.yona.server.util.LockPool;
 
 @SpringBootApplication
@@ -23,18 +21,7 @@ public class AnalysisServiceApplication extends SpringBootServletInitializer
 {
 	public static void main(String[] args)
 	{
-		try
-		{
-			SpringApplication.run(AnalysisServiceApplication.class, args);
-		}
-		catch (Exception ex)
-		{
-			// Issue in Hazelcast: it doesn't shutdown automatically: see https://github.com/hazelcast/hazelcast/issues/6339
-			// If service start up fails, we want the the process to exit, so in that case we are shutting down Hazelcast
-			// explicitly.
-			Hazelcast.shutdownAll();
-			throw ex;
-		}
+		SpringApplication.run(AnalysisServiceApplication.class, args);
 	}
 
 	@Override
