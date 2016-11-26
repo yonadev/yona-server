@@ -57,10 +57,10 @@ public class MessageSource extends EntityWithID
 	{
 		super(id);
 		this.messageDestination = messageDestination;
-		this.privateKeyBytes = toAttributeArray(privateKey);
+		this.privateKeyBytes = toArrayWithTouchByte(privateKey);
 	}
 
-	private static byte[] toAttributeArray(PrivateKey privateKey)
+	private static byte[] toArrayWithTouchByte(PrivateKey privateKey)
 	{
 		// Extract the private key bytes to the 1 position of an array. The 0 position is reserved to do the touch.
 		byte[] privateKeyBytes = PublicKeyUtil.privateKeyToBytes(privateKey);

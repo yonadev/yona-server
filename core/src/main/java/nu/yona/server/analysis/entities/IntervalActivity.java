@@ -29,6 +29,9 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Entity
 @Table(name = "INTERVAL_ACTIVITIES")
+// We used to have a unique constraint defined here: @UniqueConstraint(columnNames = { "dtype", "user_anonymized", "startDate",
+// "goal" })
+// Due to an inconsistency between Liquibase and JPA, we have moved this to Liquibase (extra.yml)
 public abstract class IntervalActivity extends EntityWithID
 {
 	public static IntervalActivityRepository getIntervalActivityRepository()

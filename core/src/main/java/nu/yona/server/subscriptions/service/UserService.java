@@ -363,7 +363,7 @@ public class UserService
 
 	private EncryptedUserData retrieveUserEncryptedData(User originalUserEntity, String password)
 	{
-		// use a separate transaction to read within the crypto session
+		// use a separate crypto session to read the data based on the temporary password
 		return CryptoSession.execute(Optional.of(password), () -> canAccessPrivateData(originalUserEntity.getID()),
 				() -> retrieveUserEncryptedDataInNewCryptoSession(originalUserEntity));
 	}
