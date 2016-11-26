@@ -6,15 +6,15 @@
  *******************************************************************************/
 package nu.yona.server
 
-import groovy.json.*
-import groovyx.net.http.RESTClient
-import groovyx.net.http.URIBuilder
-
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
+
+import groovy.json.*
+import groovyx.net.http.RESTClient
+import groovyx.net.http.URIBuilder
 
 class YonaServer
 {
@@ -181,14 +181,14 @@ class YonaServer
 
 	static ZonedDateTime parseIsoDateString(dateTimeString)
 	{
-		ZonedDateTime.parse(dateTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"))
+		ZonedDateTime.parse((String) dateTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"))
 	}
 
 	static String toIsoDayString(ZonedDateTime dateTime)
 	{
 		DateTimeFormatter.ofPattern("yyyy-MM-dd").format(dateTime)
 	}
-	
+
 	static String toIsoDateString(ZonedDateTime dateTime)
 	{
 		DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(dateTime)

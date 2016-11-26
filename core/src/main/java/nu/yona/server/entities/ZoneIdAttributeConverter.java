@@ -9,7 +9,7 @@ import java.time.ZoneId;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
-@Converter(autoApply = true)
+@Converter // Autoapply fails with Liquibase, so do not use that
 public class ZoneIdAttributeConverter implements AttributeConverter<ZoneId, String>
 {
 

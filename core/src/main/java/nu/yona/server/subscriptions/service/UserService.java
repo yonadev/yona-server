@@ -280,7 +280,7 @@ public class UserService
 				.executeInNewTransaction(() -> addUserCreatedOnBuddyRequestInSubtransaction(buddyUser).getID()));
 
 		logger.info("User with mobile number '{}' and ID '{}' created on buddy request", buddyUser.getMobileNumber(),
-				buddyUser.getID());
+				savedUserID);
 		return getUserEntityByID(savedUserID);
 	}
 
@@ -363,13 +363,12 @@ public class UserService
 
 	private EncryptedUserData retrieveUserEncryptedData(User originalUserEntity, String password)
 	{
-		// use a separate transaction to read within the crypto session
+		// use a separate crypto session to read the data based on the temporary password
 		return CryptoSession.execute(Optional.of(password), () -> canAccessPrivateData(originalUserEntity.getID()),
-				() -> transactionHelper
-						.executeInNewTransaction(() -> retrieveUserEncryptedDataInSubtransaction(originalUserEntity)));
+				() -> retrieveUserEncryptedDataInNewCryptoSession(originalUserEntity));
 	}
 
-	private EncryptedUserData retrieveUserEncryptedDataInSubtransaction(User originalUserEntity)
+	private EncryptedUserData retrieveUserEncryptedDataInNewCryptoSession(User originalUserEntity)
 	{
 		MessageSource namedMessageSource = originalUserEntity.getNamedMessageSource();
 		MessageSource anonymousMessageSource = originalUserEntity.getAnonymousMessageSource();

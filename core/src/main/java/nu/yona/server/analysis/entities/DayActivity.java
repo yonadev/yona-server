@@ -18,14 +18,12 @@ import java.util.stream.Collectors;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
-import javax.persistence.Table;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Entity
-@Table(name = "DAY_ACTIVITIES")
 public class DayActivity extends IntervalActivity
 {
 	public static DayActivityRepository getRepository()
