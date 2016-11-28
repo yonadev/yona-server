@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.crypto;
 
@@ -49,7 +49,7 @@ public class CryptoSession implements AutoCloseable
 	private Cipher encryptionCipher;
 	private Optional<byte[]> initializationVector = Optional.empty();
 	private final SecretKey secretKey;
-	private CryptoSession previousCryptoSession;
+	private final CryptoSession previousCryptoSession;
 	private Cipher decryptionCipher;
 
 	private CryptoSession(String password, CryptoSession previousCryptoSession)
@@ -71,6 +71,11 @@ public class CryptoSession implements AutoCloseable
 		return execute(password, null, executable);
 	}
 
+	public static void execute(Optional<String> password, Runnable runnable)
+	{
+		execute(password, null, runnable);
+	}
+
 	public static <T> T execute(Optional<String> password, VoidPredicate passwordChecker, Executable<T> executable)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(getPassword(password)))
@@ -81,6 +86,14 @@ public class CryptoSession implements AutoCloseable
 			}
 			return executable.execute();
 		}
+	}
+
+	public static void execute(Optional<String> password, VoidPredicate passwordChecker, Runnable runnable)
+	{
+		execute(password, passwordChecker, () -> {
+			runnable.run();
+			return Boolean.TRUE;
+		});
 	}
 
 	private Cipher getEncryptionCipher()

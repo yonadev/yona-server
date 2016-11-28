@@ -268,23 +268,7 @@ public class UserService
 	}
 
 	@Transactional
-	public User addUserCreatedOnBuddyRequest(UserDTO buddyUser, String tempPassword)
-	{
-		if (buddyUser == null)
-		{
-			throw UserServiceException.missingOrNullUser();
-		}
-
-		// use a separate transaction to commit within the crypto session
-		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null, () -> transactionHelper
-				.executeInNewTransaction(() -> addUserCreatedOnBuddyRequestInSubtransaction(buddyUser).getID()));
-
-		logger.info("User with mobile number '{}' and ID '{}' created on buddy request", buddyUser.getMobileNumber(),
-				savedUserID);
-		return getUserEntityByID(savedUserID);
-	}
-
-	private User addUserCreatedOnBuddyRequestInSubtransaction(UserDTO buddyUserResource)
+	User addUserCreatedOnBuddyRequest(UserDTO buddyUserResource)
 	{
 		User newUser = User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
 				buddyUserResource.getPrivateData().getNickname(), buddyUserResource.getMobileNumber(),
@@ -294,6 +278,8 @@ public class UserService
 		newUser.setMobileNumberConfirmationCode(createConfirmationCode());
 		User savedUser = User.getRepository().save(newUser);
 		ldapUserService.createVPNAccount(savedUser.getUserAnonymizedID().toString(), savedUser.getVPNPassword());
+		logger.info("User with mobile number '{}' and ID '{}' created on buddy request", savedUser.getMobileNumber(),
+				savedUser.getID());
 		return savedUser;
 	}
 

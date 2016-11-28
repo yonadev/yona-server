@@ -2,12 +2,14 @@
  
 call servers_stop.cmd
 
-del YonaDB.*
- 
 call gradlew %1 build
 if ERRORLEVEL 1 goto end
 
-start "HSQL database" java -cp "%HSQLDB_HOME%/lib/sqltool.jar" org.hsqldb.Server -database.0 file:YonaDB -dbname.0 xdb
+echo.
+echo Recreating Yona database
+echo.
+call mysql --user=root --password=root < scripts\recreateYonaDB.sql
+if ERRORLEVEL 1 goto end
 
 call gradlew :dbinit:liquibaseUpdate
 if ERRORLEVEL 1 goto end

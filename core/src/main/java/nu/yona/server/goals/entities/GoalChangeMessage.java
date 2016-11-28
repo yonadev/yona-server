@@ -6,6 +6,7 @@ package nu.yona.server.goals.entities;
 
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
@@ -22,6 +23,7 @@ public class GoalChangeMessage extends BuddyMessage
 	@ManyToOne
 	private ActivityCategory activityCategoryOfChangedGoal;
 
+	@Column(name = "`change`")
 	private Change change;
 
 	// Default constructor is required for JPA

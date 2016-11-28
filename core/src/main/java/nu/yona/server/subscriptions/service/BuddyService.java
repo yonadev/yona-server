@@ -25,9 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import nu.yona.server.Translator;
+import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
 import nu.yona.server.messaging.entities.Message;
@@ -46,6 +48,7 @@ import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
 import nu.yona.server.subscriptions.entities.BuddyInfoChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.util.TransactionHelper;
 
 @Service
 @Transactional
@@ -76,6 +79,9 @@ public class BuddyService
 
 	@Autowired
 	private BuddyConnectResponseMessageDTO.Manager connectResponseMessageHandler;
+
+	@Autowired
+	private TransactionHelper transactionHelper;
 
 	public enum DropBuddyReason
 	{
@@ -112,30 +118,46 @@ public class BuddyService
 				.collect(Collectors.toSet());
 	}
 
-	@Transactional
+	@Transactional(propagation = Propagation.NEVER) // It explicitly creates transactions when needed.
 	public BuddyDTO addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDTO buddy,
 			BiFunction<UUID, String, String> inviteURLGetter)
 	{
+		assertMobileNumberOfRequestingUserConfirmed(idOfRequestingUser);
+
+		boolean buddyUserExists = buddyUserExists(buddy);
+		if (!buddyUserExists)
+		{
+			createBuddyUser(idOfRequestingUser, buddy, inviteURLGetter);
+		}
+		BuddyDTO savedBuddy = transactionHelper
+				.executeInNewTransaction(() -> handleBuddyRequestForExistingUser(idOfRequestingUser, buddy));
+
 		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
-		requestingUser.assertMobileNumberConfirmed();
-
-		User buddyUserEntity = getBuddyUser(buddy);
-		BuddyDTO savedBuddy;
-		if (buddyUserEntity == null)
-		{
-			savedBuddy = handleBuddyRequestForNewUser(requestingUser, buddy, inviteURLGetter);
-		}
-		else
-		{
-			savedBuddy = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
-		}
-
 		logger.info(
 				"User with mobile number '{}' and ID '{}' sent buddy connect message to {} user with mobile number '{}' and ID '{}' as buddy",
-				requestingUser.getMobileNumber(), requestingUser.getID(), (buddyUserEntity == null) ? "new" : "existing",
+				requestingUser.getMobileNumber(), requestingUser.getID(), (buddyUserExists) ? "new" : "existing",
 				buddy.getUser().getMobileNumber(), buddy.getUser().getID());
 
 		return savedBuddy;
+	}
+
+	private void createBuddyUser(UUID idOfRequestingUser, BuddyDTO buddy, BiFunction<UUID, String, String> inviteURLGetter)
+	{
+		String tempPassword = getTempPassword();
+		// To ensure the data of the new user is encrypted with the temp password, the user is created in a separate transaction
+		// and crypto session.
+		UUID savedUserID = CryptoSession.execute(Optional.of(tempPassword), null, () -> transactionHelper.executeInNewTransaction(
+				() -> userService.addUserCreatedOnBuddyRequest(buddy.getUser()).getID()));
+
+		String inviteURL = inviteURLGetter.apply(savedUserID, tempPassword);
+		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
+		sendInvitationMessage(requestingUser, buddy, inviteURL);
+	}
+
+	private void assertMobileNumberOfRequestingUserConfirmed(UUID idOfRequestingUser)
+	{
+		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
+		requestingUser.assertMobileNumberConfirmed();
 	}
 
 	@Transactional
@@ -444,7 +466,7 @@ public class BuddyService
 		}
 	}
 
-	private void sendInvitationMessage(UserDTO requestingUser, User buddyUserEntity, BuddyDTO buddy, String inviteURL)
+	private void sendInvitationMessage(UserDTO requestingUser, BuddyDTO buddy, String inviteURL)
 	{
 		try
 		{
@@ -477,28 +499,15 @@ public class BuddyService
 		}
 	}
 
-	private BuddyDTO handleBuddyRequestForNewUser(UserDTO requestingUser, BuddyDTO buddy,
-			BiFunction<UUID, String, String> inviteURLGetter)
-	{
-		UserDTO buddyUser = buddy.getUser();
-
-		String tempPassword = getTempPassword();
-		User buddyUserEntity = userService.addUserCreatedOnBuddyRequest(buddyUser, tempPassword);
-		BuddyDTO savedBuddy = handleBuddyRequestForExistingUser(requestingUser, buddy, buddyUserEntity);
-
-		String inviteURL = inviteURLGetter.apply(buddyUserEntity.getID(), tempPassword);
-		sendInvitationMessage(requestingUser, buddyUserEntity, buddy, inviteURL);
-
-		return savedBuddy;
-	}
-
 	private String getTempPassword()
 	{
 		return (properties.getEmail().isEnabled()) ? userService.generatePassword() : "abcd";
 	}
 
-	private BuddyDTO handleBuddyRequestForExistingUser(UserDTO requestingUser, BuddyDTO buddy, User buddyUserEntity)
+	private BuddyDTO handleBuddyRequestForExistingUser(UUID idOfRequestingUser, BuddyDTO buddy)
 	{
+		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
+		User buddyUserEntity = UserService.findUserByMobileNumber(buddy.getUser().getMobileNumber());
 		buddy.getUser().setUserID(buddyUserEntity.getID());
 		if (buddy.getSendingStatus() != Status.REQUESTED || buddy.getReceivingStatus() != Status.REQUESTED)
 		{
@@ -531,15 +540,20 @@ public class BuddyService
 		return entity;
 	}
 
-	private User getBuddyUser(BuddyDTO buddy)
+	private boolean buddyUserExists(BuddyDTO buddy)
 	{
 		try
 		{
-			return UserService.findUserByMobileNumber(buddy.getUser().getMobileNumber());
+			if (buddy.getUser() == null)
+			{
+				throw UserServiceException.missingOrNullUser();
+			}
+			UserService.findUserByMobileNumber(buddy.getUser().getMobileNumber());
+			return true;
 		}
 		catch (UserServiceException e)
 		{
-			return null;
+			return false;
 		}
 	}
 

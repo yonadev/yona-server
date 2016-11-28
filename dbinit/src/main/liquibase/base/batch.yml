@@ -1,15 +1,13 @@
 databaseChangeLog:
 - changeSet:
-    id: 1478805447964-7
+    id: 1480156296243-1
     author: Bert (generated)
     changes:
     - createTable:
         columns:
         - column:
-            autoIncrement: true
             constraints:
-              primaryKey: true
-              primaryKeyName: SYS_PK_10393
+              nullable: false
             name: JOB_EXECUTION_ID
             type: BIGINT
         - column:
@@ -24,15 +22,13 @@ databaseChangeLog:
             constraints:
               nullable: false
             name: CREATE_TIME
-            type: TIMESTAMP
+            type: datetime(6)
         - column:
-            defaultValueComputed: 'NULL'
             name: START_TIME
-            type: TIMESTAMP
+            type: datetime(6)
         - column:
-            defaultValueComputed: 'NULL'
             name: END_TIME
-            type: TIMESTAMP
+            type: datetime(6)
         - column:
             name: STATUS
             type: VARCHAR(10)
@@ -44,13 +40,13 @@ databaseChangeLog:
             type: VARCHAR(2500)
         - column:
             name: LAST_UPDATED
-            type: TIMESTAMP
+            type: datetime(6)
         - column:
             name: JOB_CONFIGURATION_LOCATION
             type: VARCHAR(2500)
-        tableName: BATCH_JOB_EXECUTION
+        tableName: batch_job_execution
 - changeSet:
-    id: 1478805447964-8
+    id: 1480156296243-2
     author: Bert (generated)
     changes:
     - createTable:
@@ -67,10 +63,10 @@ databaseChangeLog:
             type: VARCHAR(2500)
         - column:
             name: SERIALIZED_CONTEXT
-            type: VARCHAR(16777216)
-        tableName: BATCH_JOB_EXECUTION_CONTEXT
+            type: TEXT
+        tableName: batch_job_execution_context
 - changeSet:
-    id: 1478805447964-9
+    id: 1480156296243-3
     author: Bert (generated)
     changes:
     - createTable:
@@ -94,9 +90,8 @@ databaseChangeLog:
             name: STRING_VAL
             type: VARCHAR(250)
         - column:
-            defaultValueComputed: 'NULL'
             name: DATE_VAL
-            type: TIMESTAMP
+            type: datetime(6)
         - column:
             name: LONG_VAL
             type: BIGINT
@@ -107,33 +102,34 @@ databaseChangeLog:
             constraints:
               nullable: false
             name: IDENTIFYING
-            type: CHARACTER(1)
-        tableName: BATCH_JOB_EXECUTION_PARAMS
+            type: CHAR(1)
+        tableName: batch_job_execution_params
 - changeSet:
-    id: 1478805447964-10
+    id: 1480156296243-4
     author: Bert (generated)
     changes:
     - createTable:
         columns:
         - column:
-            autoIncrement: true
             constraints:
-              primaryKey: true
-              primaryKeyName: SYS_PK_10445
+              nullable: false
             name: ID
             type: BIGINT
-        tableName: BATCH_JOB_EXECUTION_SEQ
+        - column:
+            constraints:
+              nullable: false
+            name: UNIQUE_KEY
+            type: CHAR(1)
+        tableName: batch_job_execution_seq
 - changeSet:
-    id: 1478805447964-11
+    id: 1480156296243-5
     author: Bert (generated)
     changes:
     - createTable:
         columns:
         - column:
-            autoIncrement: true
             constraints:
-              primaryKey: true
-              primaryKeyName: SYS_PK_10384
+              nullable: false
             name: JOB_INSTANCE_ID
             type: BIGINT
         - column:
@@ -149,32 +145,33 @@ databaseChangeLog:
               nullable: false
             name: JOB_KEY
             type: VARCHAR(32)
-        tableName: BATCH_JOB_INSTANCE
+        tableName: batch_job_instance
 - changeSet:
-    id: 1478805447964-12
+    id: 1480156296243-6
     author: Bert (generated)
     changes:
     - createTable:
         columns:
         - column:
-            autoIncrement: true
             constraints:
-              primaryKey: true
-              primaryKeyName: SYS_PK_10447
+              nullable: false
             name: ID
             type: BIGINT
-        tableName: BATCH_JOB_SEQ
+        - column:
+            constraints:
+              nullable: false
+            name: UNIQUE_KEY
+            type: CHAR(1)
+        tableName: batch_job_seq
 - changeSet:
-    id: 1478805447964-13
+    id: 1480156296243-7
     author: Bert (generated)
     changes:
     - createTable:
         columns:
         - column:
-            autoIncrement: true
             constraints:
-              primaryKey: true
-              primaryKeyName: SYS_PK_10414
+              nullable: false
             name: STEP_EXECUTION_ID
             type: BIGINT
         - column:
@@ -196,11 +193,10 @@ databaseChangeLog:
             constraints:
               nullable: false
             name: START_TIME
-            type: TIMESTAMP
+            type: datetime(6)
         - column:
-            defaultValueComputed: 'NULL'
             name: END_TIME
-            type: TIMESTAMP
+            type: datetime(6)
         - column:
             name: STATUS
             type: VARCHAR(10)
@@ -236,10 +232,10 @@ databaseChangeLog:
             type: VARCHAR(2500)
         - column:
             name: LAST_UPDATED
-            type: TIMESTAMP
-        tableName: BATCH_STEP_EXECUTION
+            type: datetime(6)
+        tableName: batch_step_execution
 - changeSet:
-    id: 1478805447964-14
+    id: 1480156296243-8
     author: Bert (generated)
     changes:
     - createTable:
@@ -256,143 +252,190 @@ databaseChangeLog:
             type: VARCHAR(2500)
         - column:
             name: SERIALIZED_CONTEXT
-            type: VARCHAR(16777216)
-        tableName: BATCH_STEP_EXECUTION_CONTEXT
+            type: TEXT
+        tableName: batch_step_execution_context
 - changeSet:
-    id: 1478805447964-15
+    id: 1480156296243-9
     author: Bert (generated)
     changes:
     - createTable:
         columns:
         - column:
-            autoIncrement: true
             constraints:
-              primaryKey: true
-              primaryKeyName: SYS_PK_10443
+              nullable: false
             name: ID
             type: BIGINT
-        tableName: BATCH_STEP_EXECUTION_SEQ
+        - column:
+            constraints:
+              nullable: false
+            name: UNIQUE_KEY
+            type: CHAR(1)
+        tableName: batch_step_execution_seq
 - changeSet:
-    id: 1478805447964-57
-    author: Bert (generated)
-    changes:
-    - addPrimaryKey:
-        columnNames: STEP_EXECUTION_ID
-        constraintName: SYS_PK_10428
-        tableName: BATCH_STEP_EXECUTION_CONTEXT
-- changeSet:
-    id: 1478805447964-58
+    id: 1480156296243-10
     author: Bert (generated)
     changes:
     - addPrimaryKey:
         columnNames: JOB_EXECUTION_ID
-        constraintName: SYS_PK_10436
-        tableName: BATCH_JOB_EXECUTION_CONTEXT
+        tableName: batch_job_execution
 - changeSet:
-    id: 1478805447964-59
+    id: 1480156296243-11
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: JOB_EXECUTION_ID
+        tableName: batch_job_execution_context
+- changeSet:
+    id: 1480156296243-12
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: JOB_INSTANCE_ID
+        tableName: batch_job_instance
+- changeSet:
+    id: 1480156296243-13
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: STEP_EXECUTION_ID
+        tableName: batch_step_execution
+- changeSet:
+    id: 1480156296243-14
+    author: Bert (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: STEP_EXECUTION_ID
+        tableName: batch_step_execution_context
+- changeSet:
+    id: 1480156296243-15
     author: Bert (generated)
     changes:
     - addUniqueConstraint:
         columnNames: JOB_NAME, JOB_KEY
         constraintName: JOB_INST_UN
-        tableName: BATCH_JOB_INSTANCE
+        tableName: batch_job_instance
 - changeSet:
-    id: 1478805447964-96
+    id: 1480156296243-16
+    author: Bert (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: UNIQUE_KEY
+        constraintName: UNIQUE_KEY_UN
+        tableName: batch_job_execution_seq
+- changeSet:
+    id: 1480156296243-17
+    author: Bert (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: UNIQUE_KEY
+        constraintName: UNIQUE_KEY_UN
+        tableName: batch_job_seq
+- changeSet:
+    id: 1480156296243-18
+    author: Bert (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: UNIQUE_KEY
+        constraintName: UNIQUE_KEY_UN
+        tableName: batch_step_execution_seq
+- changeSet:
+    id: 1480156296243-19
+    author: Bert (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: JOB_EXECUTION_ID
+        indexName: JOB_EXEC_PARAMS_FK
+        tableName: batch_job_execution_params
+- changeSet:
+    id: 1480156296243-20
+    author: Bert (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: JOB_EXECUTION_ID
+        indexName: JOB_EXEC_STEP_FK
+        tableName: batch_step_execution
+- changeSet:
+    id: 1480156296243-21
     author: Bert (generated)
     changes:
     - createIndex:
         columns:
         - column:
             name: JOB_INSTANCE_ID
-        indexName: SYS_IDX_10400
-        tableName: BATCH_JOB_EXECUTION
+        indexName: JOB_INST_EXEC_FK
+        tableName: batch_job_execution
 - changeSet:
-    id: 1478805447964-97
-    author: Bert (generated)
-    changes:
-    - createIndex:
-        columns:
-        - column:
-            name: JOB_EXECUTION_ID
-        indexName: SYS_IDX_10411
-        tableName: BATCH_JOB_EXECUTION_PARAMS
-- changeSet:
-    id: 1478805447964-98
-    author: Bert (generated)
-    changes:
-    - createIndex:
-        columns:
-        - column:
-            name: JOB_EXECUTION_ID
-        indexName: SYS_IDX_10425
-        tableName: BATCH_STEP_EXECUTION
-- changeSet:
-    id: 1478805447964-133
+    id: 1480156296243-22
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
         baseColumnNames: JOB_EXECUTION_ID
-        baseTableName: BATCH_JOB_EXECUTION_CONTEXT
+        baseTableName: batch_job_execution_context
         constraintName: JOB_EXEC_CTX_FK
         deferrable: false
         initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
         referencedColumnNames: JOB_EXECUTION_ID
-        referencedTableName: BATCH_JOB_EXECUTION
+        referencedTableName: batch_job_execution
 - changeSet:
-    id: 1478805447964-134
+    id: 1480156296243-23
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
         baseColumnNames: JOB_EXECUTION_ID
-        baseTableName: BATCH_JOB_EXECUTION_PARAMS
+        baseTableName: batch_job_execution_params
         constraintName: JOB_EXEC_PARAMS_FK
         deferrable: false
         initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
         referencedColumnNames: JOB_EXECUTION_ID
-        referencedTableName: BATCH_JOB_EXECUTION
+        referencedTableName: batch_job_execution
 - changeSet:
-    id: 1478805447964-135
+    id: 1480156296243-24
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
         baseColumnNames: JOB_EXECUTION_ID
-        baseTableName: BATCH_STEP_EXECUTION
+        baseTableName: batch_step_execution
         constraintName: JOB_EXEC_STEP_FK
         deferrable: false
         initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
         referencedColumnNames: JOB_EXECUTION_ID
-        referencedTableName: BATCH_JOB_EXECUTION
+        referencedTableName: batch_job_execution
 - changeSet:
-    id: 1478805447964-136
+    id: 1480156296243-25
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
         baseColumnNames: JOB_INSTANCE_ID
-        baseTableName: BATCH_JOB_EXECUTION
+        baseTableName: batch_job_execution
         constraintName: JOB_INST_EXEC_FK
         deferrable: false
         initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
         referencedColumnNames: JOB_INSTANCE_ID
-        referencedTableName: BATCH_JOB_INSTANCE
+        referencedTableName: batch_job_instance
 - changeSet:
-    id: 1478805447964-137
+    id: 1480156296243-26
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
         baseColumnNames: STEP_EXECUTION_ID
-        baseTableName: BATCH_STEP_EXECUTION_CONTEXT
+        baseTableName: batch_step_execution_context
         constraintName: STEP_EXEC_CTX_FK
         deferrable: false
         initiallyDeferred: false
-        onDelete: NO ACTION
-        onUpdate: NO ACTION
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
         referencedColumnNames: STEP_EXECUTION_ID
-        referencedTableName: BATCH_STEP_EXECUTION
+        referencedTableName: batch_step_execution
+
