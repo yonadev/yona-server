@@ -127,7 +127,7 @@ public class BuddyService
 		boolean buddyUserExists = buddyUserExists(buddy);
 		if (!buddyUserExists)
 		{
-			createBuddyUser(idOfRequestingUser, buddy, inviteURLGetter);
+			createAndInviteBuddyUser(idOfRequestingUser, buddy, inviteURLGetter);
 		}
 		BuddyDTO savedBuddy = transactionHelper
 				.executeInNewTransaction(() -> handleBuddyRequestForExistingUser(idOfRequestingUser, buddy));
@@ -141,7 +141,7 @@ public class BuddyService
 		return savedBuddy;
 	}
 
-	private void createBuddyUser(UUID idOfRequestingUser, BuddyDTO buddy, BiFunction<UUID, String, String> inviteURLGetter)
+	private void createAndInviteBuddyUser(UUID idOfRequestingUser, BuddyDTO buddy, BiFunction<UUID, String, String> inviteURLGetter)
 	{
 		String tempPassword = getTempPassword();
 		// To ensure the data of the new user is encrypted with the temp password, the user is created in a separate transaction

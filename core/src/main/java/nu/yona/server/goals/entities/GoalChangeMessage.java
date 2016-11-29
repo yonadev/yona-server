@@ -23,7 +23,7 @@ public class GoalChangeMessage extends BuddyMessage
 	@ManyToOne
 	private ActivityCategory activityCategoryOfChangedGoal;
 
-	@Column(name = "`change`")
+	@Column(name = "`change`") // "change" is a reserved word for MySQL
 	private Change change;
 
 	// Default constructor is required for JPA
