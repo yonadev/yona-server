@@ -21,13 +21,13 @@ import javax.persistence.Table;
 
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.entities.EntityUtil;
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "GOALS")
-public abstract class Goal extends EntityWithID
+public abstract class Goal extends EntityWithUuid
 {
 	public static GoalRepository getRepository()
 	{

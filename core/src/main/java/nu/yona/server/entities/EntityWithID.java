@@ -1,37 +1,25 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.entities;
 
-import java.util.UUID;
-
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
-import org.hibernate.annotations.Type;
-
 @MappedSuperclass
-public abstract class EntityWithID
+public abstract class EntityWithId
 {
 	@Id
-	@Type(type = "uuid-char")
-	private UUID id;
+	@GeneratedValue
+	private long id;
 
-	/**
-	 * This is the only constructor, to ensure that subclasses don't accidentally omit the ID.
-	 * 
-	 * @param id The ID of the entity
-	 */
-	protected EntityWithID(UUID id)
+	protected EntityWithId()
 	{
-		this.id = id;
 	}
 
-	public UUID getID()
+	public long getID()
 	{
 		return id;
 	}
@@ -39,12 +27,12 @@ public abstract class EntityWithID
 	@Override
 	public int hashCode()
 	{
-		return id.hashCode();
+		return Long.hashCode(id);
 	}
 
 	@Override
 	public boolean equals(Object that)
 	{
-		return (this == that) || ((that instanceof EntityWithID) && getID().equals(((EntityWithID) that).getID()));
+		return (this == that) || ((that instanceof EntityWithId) && getID() == ((EntityWithId) that).getID());
 	}
 }

@@ -8,20 +8,19 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.UUID;
 
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.ZoneIdAttributeConverter;
 import nu.yona.server.goals.entities.ActivityCategory;
 
 @Entity
 @Table(name = "ACTIVITIES")
-public class Activity extends EntityWithID
+public class Activity extends EntityWithId
 {
 	@Convert(converter = ZoneIdAttributeConverter.class)
 	private ZoneId timeZone;
@@ -33,12 +32,11 @@ public class Activity extends EntityWithID
 	// Default constructor is required for JPA
 	public Activity()
 	{
-		super(null);
+		super();
 	}
 
-	public Activity(UUID id, ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime)
+	public Activity(ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime)
 	{
-		super(id);
 		this.timeZone = timeZone;
 		this.startTime = startTime;
 		this.endTime = endTime;
@@ -96,6 +94,6 @@ public class Activity extends EntityWithID
 
 	public static Activity createInstance(ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime)
 	{
-		return new Activity(UUID.randomUUID(), timeZone, startTime, endTime);
+		return new Activity(timeZone, startTime, endTime);
 	}
 }

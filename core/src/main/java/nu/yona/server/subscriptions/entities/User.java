@@ -16,7 +16,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
@@ -26,7 +26,7 @@ import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "USERS")
-public class User extends EntityWithID
+public class User extends EntityWithUuid
 {
 	public static UserRepository getRepository()
 	{

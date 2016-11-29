@@ -16,13 +16,13 @@ import javax.persistence.Table;
 
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.crypto.UUIDFieldEncrypter;
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 
 @Entity
 @Table(name = "BUDDIES")
-public class Buddy extends EntityWithID
+public class Buddy extends EntityWithUuid
 {
 	public static BuddyRepository getRepository()
 	{
