@@ -9,24 +9,26 @@
 
 ./servers_stop.sh
 
-rm -rf YonaDB.*
-
 function waitTillPortIsListenedTo() {
     while ! nc -z localhost $1; do sleep 2; done
 }
  
-./gradlew $@ build :dbinit:bootRun
+./gradlew $@ build
 
-java -cp "$HSQLDB_HOME/lib/sqltool.jar" org.hsqldb.Server -database.0 file:YonaDB -dbname.0 xdb > /dev/null 2>&1 &
-waitTillPortIsListenedTo 9001
+echo "\nRecreating Yona database\n"
+mysql --user=$YONA_DB_USER_NAME --password=$YONA_DB_PASSWORD < scripts/recreateYonaDB.sql
+
+./gradlew :dbinit:liquibaseUpdate
+
 ./gradlew $@ :adminservice:bootRun > /dev/null 2>&1 &
-waitTillPortIsListenedTo 8080
 ./gradlew $@ :analysisservice:bootRun > /dev/null 2>&1 &
-waitTillPortIsListenedTo 8081
 ./gradlew $@ :appservice:bootRun > /dev/null 2>&1 &
-waitTillPortIsListenedTo 8082
 ./gradlew $@ :batchservice:bootRun > /dev/null 2>&1 &
+waitTillPortIsListenedTo 8080
+waitTillPortIsListenedTo 8081
+waitTillPortIsListenedTo 8082
 waitTillPortIsListenedTo 8083
 
 export GRADLE_OPTS=
+curl -X PUT --header "Content-Type: application/json" -d @dbinit/data/activityCategories.json http://localhost:8080/activityCategories/
 ./gradlew --rerun-tasks :adminservice:intTest :analysisservice:intTest :appservice:intTest 

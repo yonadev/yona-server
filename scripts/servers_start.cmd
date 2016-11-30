@@ -8,7 +8,7 @@ if ERRORLEVEL 1 goto end
 echo.
 echo Recreating Yona database
 echo.
-call mysql --user=root --password=root < scripts\recreateYonaDB.sql
+call mysql --user=%YONA_DB_USER_NAME% --password=%YONA_DB_PASSWORD% < scripts\recreateYonaDB.sql
 if ERRORLEVEL 1 goto end
 
 call gradlew :dbinit:liquibaseUpdate
