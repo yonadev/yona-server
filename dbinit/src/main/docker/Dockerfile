@@ -1,3 +1,3 @@
-FROM yonadev/hsqldb-liquibase-update:3.5.3
+FROM yonadev/mariadb-liquibase-update:3.5.3
 
 COPY changelogs /changelogs

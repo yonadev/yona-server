@@ -30,7 +30,7 @@ dependencies {
 	compile "org.springframework:spring-jdbc:4.0.6.RELEASE"
 	compile "org.springframework.batch:spring-batch-core:$project.ext.version_batch_core"
 
-	runtime "org.hsqldb:hsqldb"
+	runtime "org.mariadb.jdbc:mariadb-java-client:$project.ext.version_mariadb_client"
 	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
 
 	testCompile project(path: ":core", configuration: "testUtils")
