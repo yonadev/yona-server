@@ -13,6 +13,8 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 
+import nu.yona.server.properties.PropertyInitializer;
+
 @EnableCaching
 @EnableBatchProcessing
 @EnableScheduling
@@ -21,6 +23,7 @@ public class BatchServiceApplication
 {
 	public static void main(String[] args)
 	{
+		PropertyInitializer.initializePropertiesFromEnvironment();
 		SpringApplication.run(BatchServiceApplication.class, args);
 	}
 

@@ -13,12 +13,12 @@ liquibaseProps.load(new FileInputStream("dbinit/src/main/liquibase/liquibase-tas
 Properties applicationProps = new Properties()
 applicationProps.load(new FileInputStream("core/src/main/resources/application.properties"))
 
-String databaseUrl = applicationProps.getProperty("spring.datasource.url")
+String databaseUrl = "$System.env.YONA_DB_URL"
 String hibernateUrl = "hibernate:spring:" + liquibaseProps.getProperty("liquibase.domain.package") \
 	+ "?dialect=" + applicationProps.getProperty("spring.jpa.database-platform") \
 	+ "&hibernate.physical_naming_strategy=" + liquibaseProps.getProperty("liquibase.physical_naming_strategy")
-String userName = applicationProps.getProperty("spring.datasource.username")
-String password = applicationProps.getProperty("spring.datasource.password")
+String userName = "$System.env.YONA_DB_USER_NAME"
+String password = "$System.env.YONA_DB_PASSWORD"
 String jdbcDriver = liquibaseProps.getProperty("liquibase.jdbc.driver")
 
 String changeLogPath = liquibaseProps.getProperty("liquibase.changelog.path")
