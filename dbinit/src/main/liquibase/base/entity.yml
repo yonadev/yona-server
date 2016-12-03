@@ -3,8 +3,14 @@ databaseChangeLog:
     id: 1480743759071-1
     author: avdijk (generated)
     changes:
-    - createSequence:
-        sequenceName: hibernate_sequence
+    # - createSequence:
+        # sequenceName: hibernate_sequence
+    - createTable:
+        columns:
+        - column:
+            name: next_val
+            type: BIGINT
+        tableName: hibernate_sequence
 - changeSet:
     id: 1480743759071-2
     author: avdijk (generated)
