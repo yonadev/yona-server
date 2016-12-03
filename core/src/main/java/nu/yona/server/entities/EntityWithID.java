@@ -27,12 +27,20 @@ public abstract class EntityWithId
 	@Override
 	public int hashCode()
 	{
+		if (!isIdSet())
+			return super.hashCode();
+
 		return Long.hashCode(id);
 	}
 
 	@Override
 	public boolean equals(Object that)
 	{
-		return (this == that) || ((that instanceof EntityWithId) && getID() == ((EntityWithId) that).getID());
+		return (this == that) || (isIdSet() && (that instanceof EntityWithId) && getID() == ((EntityWithId) that).getID());
+	}
+
+	private boolean isIdSet()
+	{
+		return id != 0;
 	}
 }

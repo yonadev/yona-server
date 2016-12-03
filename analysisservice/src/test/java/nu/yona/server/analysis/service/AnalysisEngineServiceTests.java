@@ -512,7 +512,7 @@ public class AnalysisEngineServiceTests
 				any());
 
 		assertThat("Expect a new activity added (merge is quite complicated so has not been implemented yet)",
-				dayActivity.getLastActivity().getID(), not(equalTo(earlierActivityEntity.getID())));
+				dayActivity.getLastActivity(), not(equalTo(earlierActivityEntity)));
 		assertThat("Expect right activity start time", dayActivity.getLastActivity().getStartTime(),
 				equalTo(startTime.toLocalDateTime()));
 	}
@@ -541,7 +541,7 @@ public class AnalysisEngineServiceTests
 				any());
 
 		assertThat("Expect a new activity added (merge is quite complicated so has not been implemented yet)",
-				dayActivity.getLastActivity().getID(), not(equalTo(earlierActivityEntity.getID())));
+				dayActivity.getLastActivity(), not(equalTo(earlierActivityEntity)));
 		assertThat("Expect right activity start time", dayActivity.getLastActivity().getStartTime(),
 				equalTo(startTime.toLocalDateTime()));
 	}
