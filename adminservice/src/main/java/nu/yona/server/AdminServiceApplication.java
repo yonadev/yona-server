@@ -19,6 +19,7 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import nu.yona.server.admin.batch.config.MainConfiguration;
+import nu.yona.server.properties.PropertyInitializer;
 
 @SpringBootApplication(scanBasePackages = { "nu.yona.server" }, exclude = { BatchAutoConfiguration.class,
 		DataSourceAutoConfiguration.class, WebMvcAutoConfiguration.class })
@@ -28,6 +29,7 @@ public class AdminServiceApplication
 {
 	public static void main(String[] args)
 	{
+		PropertyInitializer.initializePropertiesFromEnvironment();
 		SpringApplication.run(AdminServiceApplication.class, args);
 	}
 

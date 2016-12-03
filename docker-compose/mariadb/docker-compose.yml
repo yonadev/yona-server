@@ -4,9 +4,9 @@ networks:
     external: true
 
 services:
-  hsqldb:
-    image: yonadev/hsqldb:2.3.3
-    container_name: hsqldb
+  mariadb:
+    image: mariadb:10.1.19
+    container_name: mariadb
     restart: unless-stopped
     logging:
         driver: "gelf"
@@ -14,5 +14,8 @@ services:
           gelf-address: "udp://log:12201"
     networks:
       - yonanet
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=yona
     expose:
-      - "9001"
+      - "3306"

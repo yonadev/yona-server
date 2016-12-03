@@ -13,6 +13,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+import nu.yona.server.properties.PropertyInitializer;
 import nu.yona.server.properties.YonaProperties;
 
 @SpringBootApplication
@@ -24,6 +25,7 @@ public class AppServiceApplication
 
 	public static void main(String[] args)
 	{
+		PropertyInitializer.initializePropertiesFromEnvironment();
 		SpringApplication.run(AppServiceApplication.class, args);
 	}
 

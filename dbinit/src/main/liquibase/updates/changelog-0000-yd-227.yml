@@ -7,5 +7,5 @@ databaseChangeLog:
         columns:
         - column:
             name: last_status_change_time
-            type: timestamp
+            type: datetime(6)
         tableName: buddies_anonymized

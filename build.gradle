@@ -31,8 +31,9 @@ subprojects {
 	apply plugin: "com.bmuschko.docker-remote-api"
 
 	project.ext {
-		version_jackson    = "2.8.5"
-		version_batch_core = "3.0.7.RELEASE"
+		version_jackson        = "2.8.5"
+		version_batch_core     = "3.0.7.RELEASE"
+		version_mariadb_client = "1.5.5"
 
 		yona_adminservice_scheme        = project.properties["yona_adminservice_scheme"]       ?: "http"
 		yona_adminservice_host          = project.properties["yona_adminservice_host"]         ?: "localhost"

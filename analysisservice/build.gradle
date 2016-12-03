@@ -24,7 +24,7 @@ configurations {
 
 dependencies {
 	compile project(":core")
-	runtime "org.hsqldb:hsqldb"
+	runtime "org.mariadb.jdbc:mariadb-java-client:$project.ext.version_mariadb_client"
 	runtime "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$project.ext.version_jackson"
 	runtime "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$project.ext.version_jackson"
 	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"

@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 
+import nu.yona.server.properties.PropertyInitializer;
 import nu.yona.server.util.LockPool;
 
 @SpringBootApplication
@@ -19,6 +20,7 @@ public class AnalysisServiceApplication
 {
 	public static void main(String[] args)
 	{
+		PropertyInitializer.initializePropertiesFromEnvironment();
 		SpringApplication.run(AnalysisServiceApplication.class, args);
 	}
 

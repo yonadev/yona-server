@@ -24,8 +24,9 @@ services:
   adminservice:
     image: yonadev/adminservice:$yonatag
     restart: unless-stopped
+    env_file: db_settings.env
     external_links:
-      - hsqldb:yonadbserver
+      - mariadb:yonadbserver
     ports:
       - 8080:8080
     logging:
@@ -40,8 +41,9 @@ services:
   analysisservice:
     image: yonadev/analysisservice:$yonatag
     restart: unless-stopped
+    env_file: db_settings.env
     external_links:
-      - hsqldb:yonadbserver
+      - mariadb:yonadbserver
     ports:
       - 8081:8080
     logging:
@@ -56,12 +58,13 @@ services:
   appservice:
     image: yonadev/appservice:$yonatag
     restart: unless-stopped
+    env_file: db_settings.env
     environment:
       - YONA_ANALYSIS_SERVICE_SERVICE_URL=http://analysisservice:8080
     links:
       - analysisservice:analysisservice
     external_links:
-      - hsqldb:yonadbserver
+      - mariadb:yonadbserver
     ports:
       - 80:8080
     logging:
@@ -76,8 +79,9 @@ services:
   batchservice:
     image: yonadev/batchservice:$yonatag
     restart: unless-stopped
+    env_file: db_settings.env
     external_links:
-      - hsqldb:yonadbserver
+      - mariadb:yonadbserver
     ports:
       - 8083:8080
     logging:

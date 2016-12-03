@@ -9,6 +9,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
+import nu.yona.server.properties.PropertyInitializer;
+
 @ComponentScan("nu.yona.server")
 @SpringBootApplication
 @EnableBatchProcessing
@@ -16,6 +18,7 @@ public class DatabaseInitializationApplication
 {
 	public static void main(String[] args)
 	{
+		PropertyInitializer.initializePropertiesFromEnvironment();
 		SpringApplication app = new SpringApplication(DatabaseInitializationApplication.class);
 		app.setWebEnvironment(false);
 		app.run(args).close();
