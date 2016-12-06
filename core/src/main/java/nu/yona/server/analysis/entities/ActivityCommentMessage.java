@@ -10,15 +10,12 @@ import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
-import org.hibernate.annotations.Type;
-
 import nu.yona.server.messaging.entities.BuddyMessage;
 
 @Entity
 public class ActivityCommentMessage extends BuddyMessage
 {
-	@Type(type = "uuid-char")
-	private UUID activityID;
+	private long activityID;
 
 	/**
 	 * Buddy comment messages are always sent in pairs: a message to the buddy and a copy for the user. This property maintains
@@ -27,7 +24,7 @@ public class ActivityCommentMessage extends BuddyMessage
 	@ManyToOne
 	private ActivityCommentMessage senderCopyMessage;
 
-	private ActivityCommentMessage(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname, UUID activityID,
+	private ActivityCommentMessage(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname, long activityID,
 			boolean isSentItem, String message, Optional<Long> threadHeadMessageID, Optional<Long> repliedMessageID)
 	{
 		super(senderUserID, senderUserAnonymizedID, senderNickname, isSentItem, message);
@@ -53,13 +50,13 @@ public class ActivityCommentMessage extends BuddyMessage
 		this.senderCopyMessage = senderCopyMessage;
 	}
 
-	public UUID getActivityID()
+	public long getActivityID()
 	{
 		return activityID;
 	}
 
 	public static ActivityCommentMessage createInstance(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname,
-			UUID actitityID, boolean isSentItem, String message, Optional<Long> threadHeadMessageID,
+			long actitityID, boolean isSentItem, String message, Optional<Long> threadHeadMessageID,
 			Optional<Long> repliedMessageID)
 	{
 		return new ActivityCommentMessage(senderUserID, senderUserAnonymizedID, senderNickname, actitityID, isSentItem, message,

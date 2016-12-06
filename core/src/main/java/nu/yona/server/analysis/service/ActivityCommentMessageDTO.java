@@ -7,7 +7,6 @@ package nu.yona.server.analysis.service;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -33,11 +32,11 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 {
 	private static final String MESSAGE_PROPERTY = "message";
 	private static final String REPLY = "reply";
-	private final UUID activityID;
+	private final long activityID;
 	private final Optional<Long> repliedMessageID;
 	private final long threadHeadMessageID;
 
-	private ActivityCommentMessageDTO(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID activityID,
+	private ActivityCommentMessageDTO(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, long activityID,
 			long threadHeadMessageID, Optional<Long> repliedMessageID, String message)
 	{
 		super(id, creationTime, isRead, senderInfo, message);
@@ -70,7 +69,7 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	}
 
 	@JsonIgnore
-	public UUID getActivityID()
+	public long getActivityID()
 	{
 		return activityID;
 	}

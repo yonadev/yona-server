@@ -265,7 +265,7 @@ public class MessageService
 	}
 
 	@Transactional
-	public Page<MessageDTO> getActivityRelatedMessages(UUID userID, UUID activityID, Pageable pageable)
+	public Page<MessageDTO> getActivityRelatedMessages(UUID userID, long activityID, Pageable pageable)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
 		MessageSource messageSource = getAnonymousMessageSource(user);

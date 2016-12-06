@@ -33,10 +33,10 @@ public class WeekActivity extends IntervalActivity
 		super();
 	}
 
-	private WeekActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfWeek,
-			List<Integer> spread, int totalActivityDurationMinutes, boolean aggregatesComputed)
+	private WeekActivity(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfWeek, List<Integer> spread,
+			int totalActivityDurationMinutes, boolean aggregatesComputed)
 	{
-		super(id, userAnonymized, goal, timeZone, startOfWeek, spread, totalActivityDurationMinutes, aggregatesComputed);
+		super(userAnonymized, goal, timeZone, startOfWeek, spread, totalActivityDurationMinutes, aggregatesComputed);
 	}
 
 	@Override
@@ -91,7 +91,7 @@ public class WeekActivity extends IntervalActivity
 
 	public static WeekActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfWeek)
 	{
-		return new WeekActivity(UUID.randomUUID(), userAnonymized, goal, timeZone, startOfWeek,
+		return new WeekActivity(userAnonymized, goal, timeZone, startOfWeek,
 				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, false);
 	}
 }

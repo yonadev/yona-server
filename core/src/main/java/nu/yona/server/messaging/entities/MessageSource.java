@@ -136,7 +136,7 @@ public class MessageSource extends EntityWithUuid
 		return this;
 	}
 
-	public Page<? extends Message> getActivityRelatedMessages(UUID activityID, Pageable pageable)
+	public Page<? extends Message> getActivityRelatedMessages(long activityID, Pageable pageable)
 	{
 		Page<Message> messages = messageDestination.getActivityRelatedMessages(activityID, pageable);
 		decryptMessagePage(messages);

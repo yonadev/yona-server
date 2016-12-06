@@ -562,7 +562,7 @@ public class ActivityService
 				Optional.empty(), message.getMessage());
 	}
 
-	private MessageDTO sendMessagePair(UserDTO sendingUser, UUID targetUserAnonymizedID, UUID activityID,
+	private MessageDTO sendMessagePair(UserDTO sendingUser, UUID targetUserAnonymizedID, long activityID,
 			Optional<ActivityCommentMessage> repliedMessageOfSelf, Optional<ActivityCommentMessage> repliedMessageOfBuddy,
 			String message)
 	{
@@ -585,7 +585,7 @@ public class ActivityService
 		messageService.sendMessageToUserAnonymized(userAnonymized, messageEntity);
 	}
 
-	private ActivityCommentMessage createMessage(UserDTO sendingUser, UUID activityID, Optional<Long> threadHeadMessageID,
+	private ActivityCommentMessage createMessage(UserDTO sendingUser, long activityID, Optional<Long> threadHeadMessageID,
 			Optional<Long> repliedMessageID, boolean isSentItem, String message)
 	{
 		return ActivityCommentMessage.createInstance(sendingUser.getID(), sendingUser.getPrivateData().getUserAnonymizedID(),

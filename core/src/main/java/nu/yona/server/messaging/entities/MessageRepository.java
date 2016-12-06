@@ -29,7 +29,7 @@ public interface MessageRepository extends CrudRepository<Message, Long>
 	@Query("select m from Message m, MessageDestination d, Message threadHeadMessage"
 			+ " where d.id = :destinationID and m member of d.messages and m.activityID = :activityID and threadHeadMessage.id = m.threadHeadMessageID"
 			+ " order by threadHeadMessage.creationTime asc, m.creationTime asc")
-	Page<Message> findByActivityID(@Param("destinationID") UUID destinationID, @Param("activityID") UUID activityID,
+	Page<Message> findByActivityID(@Param("destinationID") UUID destinationID, @Param("activityID") long activityID,
 			Pageable pageable);
 
 	@Query("select m from Message m, MessageDestination d where d.id = :destinationID and m.creationTime >= :earliestDateTime and m.isSentItem = false and m member of d.messages order by m.creationTime desc")

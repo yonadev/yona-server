@@ -43,11 +43,11 @@ public class DayActivity extends IntervalActivity
 		super();
 	}
 
-	private DayActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfDay,
+	private DayActivity(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfDay,
 			List<Activity> activities, List<Integer> spread, int totalActivityDurationMinutes, boolean goalAccomplished,
 			boolean aggregatesComputed)
 	{
-		super(id, userAnonymized, goal, timeZone, startOfDay, spread, totalActivityDurationMinutes, aggregatesComputed);
+		super(userAnonymized, goal, timeZone, startOfDay, spread, totalActivityDurationMinutes, aggregatesComputed);
 
 		Objects.requireNonNull(activities);
 		this.activities = activities;
@@ -203,7 +203,7 @@ public class DayActivity extends IntervalActivity
 
 	public static DayActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfDay)
 	{
-		return new DayActivity(UUID.randomUUID(), userAnonymized, goal, timeZone, startOfDay, new ArrayList<Activity>(),
+		return new DayActivity(userAnonymized, goal, timeZone, startOfDay, new ArrayList<Activity>(),
 				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, true, false);
 	}
 }

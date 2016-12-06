@@ -116,7 +116,7 @@ public class MessageDestination extends EntityWithUuid
 				message -> message instanceof GoalConflictMessage && ((GoalConflictMessage) message).getGoal().equals(goal));
 	}
 
-	public Page<Message> getActivityRelatedMessages(UUID activityID, Pageable pageable)
+	public Page<Message> getActivityRelatedMessages(long activityID, Pageable pageable)
 	{
 		return Message.getRepository().findByActivityID(getID(), activityID, pageable);
 	}
