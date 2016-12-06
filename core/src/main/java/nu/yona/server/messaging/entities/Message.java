@@ -5,7 +5,6 @@
 package nu.yona.server.messaging.entities;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,9 +26,9 @@ public abstract class Message extends EntityWithId
 	@Type(type = "uuid-char")
 	private final UUID relatedUserAnonymizedID;
 
-	private Optional<Long> threadHeadMessageID;
+	private Long threadHeadMessageID;
 
-	private Optional<Long> repliedMessageID;
+	private Long repliedMessageID;
 
 	private final LocalDateTime creationTime;
 
@@ -75,22 +74,22 @@ public abstract class Message extends EntityWithId
 
 	protected void setRepliedMessageID(Optional<Long> repliedMessageID)
 	{
-		this.repliedMessageID = Objects.requireNonNull(repliedMessageID);
+		this.repliedMessageID = repliedMessageID.orElse(null);
 	}
 
 	protected void setThreadHeadMessageID(Optional<Long> threadHeadMessageID)
 	{
-		this.threadHeadMessageID = Objects.requireNonNull(threadHeadMessageID);
+		this.threadHeadMessageID = threadHeadMessageID.orElse(null);
 	}
 
 	public long getThreadHeadMessageID()
 	{
-		return threadHeadMessageID.orElse(getID());
+		return threadHeadMessageID != null ? threadHeadMessageID : getID();
 	}
 
 	public Optional<Long> getRepliedMessageID()
 	{
-		return repliedMessageID;
+		return Optional.ofNullable(repliedMessageID);
 	}
 
 	public LocalDateTime getCreationTime()

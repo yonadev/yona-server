@@ -29,7 +29,7 @@ public class GoalConflictMessage extends Message
 	 * If this is a message sent to a buddy, this refers to the self goal conflict message posted at the user having the goal.
 	 * Otherwise {@literal null}.
 	 */
-	private Optional<Long> originGoalConflictMessageID;
+	private Long originGoalConflictMessageID;
 
 	@ManyToOne
 	private Activity activity;
@@ -52,7 +52,7 @@ public class GoalConflictMessage extends Message
 	{
 		super(relatedUserAnonymizedID);
 
-		this.originGoalConflictMessageID = Objects.requireNonNull(originGoalConflictMessageID);
+		this.originGoalConflictMessageID = originGoalConflictMessageID.orElse(null);
 		this.goal = Objects.requireNonNull(goal);
 		this.activity = Objects.requireNonNull(activity);
 		this.url = Objects.requireNonNull(url);
@@ -71,7 +71,7 @@ public class GoalConflictMessage extends Message
 
 	public long getOriginGoalConflictMessageID()
 	{
-		return originGoalConflictMessageID.orElse(getID());
+		return originGoalConflictMessageID != null ? originGoalConflictMessageID : getID();
 	}
 
 	public Optional<String> getURL()
@@ -93,7 +93,7 @@ public class GoalConflictMessage extends Message
 
 	public boolean isFromBuddy()
 	{
-		return originGoalConflictMessageID.isPresent();
+		return originGoalConflictMessageID != null;
 	}
 
 	public Status getStatus()
@@ -106,15 +106,16 @@ public class GoalConflictMessage extends Message
 		this.status = status;
 	}
 
-	public static GoalConflictMessage createInstanceFromBuddy(UUID relatedUserAnonymizedID, GoalConflictMessage origin)
+	public static GoalConflictMessage createInstanceFromBuddy(UUID relatedUserAnonymizedID, GoalConflictMessage origin,
+			long savedOriginId)
 	{
 		if (origin == null)
 		{
 			throw new IllegalArgumentException("origin cannot be null");
 		}
 
-		assert origin.getID() != 0;
-		return new GoalConflictMessage(relatedUserAnonymizedID, Optional.of(origin.getID()), origin.getActivity(),
+		assert savedOriginId != 0;
+		return new GoalConflictMessage(relatedUserAnonymizedID, Optional.of(savedOriginId), origin.getActivity(),
 				origin.getGoal(), origin.getURL(), Status.ANNOUNCED);
 	}
 
