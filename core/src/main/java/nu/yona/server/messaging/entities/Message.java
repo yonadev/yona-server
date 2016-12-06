@@ -5,6 +5,7 @@
 package nu.yona.server.messaging.entities;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,22 +16,20 @@ import org.hibernate.annotations.Type;
 
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
-import nu.yona.server.entities.EntityWithUuid;
+import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "MESSAGES")
-public abstract class Message extends EntityWithUuid
+public abstract class Message extends EntityWithId
 {
 	@Type(type = "uuid-char")
 	private final UUID relatedUserAnonymizedID;
 
-	@Type(type = "uuid-char")
-	private UUID threadHeadMessageID;
+	private Optional<Long> threadHeadMessageID;
 
-	@Type(type = "uuid-char")
-	private UUID repliedMessageID;
+	private Optional<Long> repliedMessageID;
 
 	private final LocalDateTime creationTime;
 
@@ -40,7 +39,7 @@ public abstract class Message extends EntityWithUuid
 
 	public static MessageRepository getRepository()
 	{
-		return (MessageRepository) RepositoryProvider.getRepository(Message.class, UUID.class);
+		return (MessageRepository) RepositoryProvider.getRepository(Message.class, Long.class);
 	}
 
 	/**
@@ -50,14 +49,14 @@ public abstract class Message extends EntityWithUuid
 	 * @param relatedUserAnonymizedID The ID of the related anonymized user. This is either the sender of this message or the one
 	 *            for which this message is sent (e.g in case of a goal conflict message).
 	 */
-	protected Message(UUID id, UUID relatedUserAnonymizedID)
+	protected Message(UUID relatedUserAnonymizedID)
 	{
-		this(id, relatedUserAnonymizedID, false);
+		this(relatedUserAnonymizedID, false);
 	}
 
-	protected Message(UUID id, UUID relatedUserAnonymizedID, boolean isSentItem)
+	protected Message(UUID relatedUserAnonymizedID, boolean isSentItem)
 	{
-		super(id);
+		super();
 
 		this.relatedUserAnonymizedID = relatedUserAnonymizedID;
 		this.creationTime = TimeUtil.utcNow();
@@ -74,24 +73,24 @@ public abstract class Message extends EntityWithUuid
 		decrypt(decryptor);
 	}
 
-	protected void setRepliedMessageID(Optional<UUID> repliedMessageID)
+	protected void setRepliedMessageID(Optional<Long> repliedMessageID)
 	{
-		this.repliedMessageID = repliedMessageID.orElse(null);
+		this.repliedMessageID = Objects.requireNonNull(repliedMessageID);
 	}
 
-	protected void setThreadHeadMessageID(UUID threadHeadMessageID)
+	protected void setThreadHeadMessageID(Optional<Long> threadHeadMessageID)
 	{
-		this.threadHeadMessageID = threadHeadMessageID;
+		this.threadHeadMessageID = Objects.requireNonNull(threadHeadMessageID);
 	}
 
-	public UUID getThreadHeadMessageID()
+	public long getThreadHeadMessageID()
 	{
-		return threadHeadMessageID;
+		return threadHeadMessageID.orElse(getID());
 	}
 
-	public Optional<UUID> getRepliedMessageID()
+	public Optional<Long> getRepliedMessageID()
 	{
-		return Optional.ofNullable(repliedMessageID);
+		return repliedMessageID;
 	}
 
 	public LocalDateTime getCreationTime()

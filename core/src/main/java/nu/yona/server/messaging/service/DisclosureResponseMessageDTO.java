@@ -31,8 +31,8 @@ public class DisclosureResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	private final LocalDate targetGoalConflictDate;
 	private final Status status;
 
-	private DisclosureResponseMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo,
-			Status status, String message, UUID targetGoalConflictMessageID, UUID targetGoalConflictGoalID,
+	private DisclosureResponseMessageDTO(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+			Status status, String message, long targetGoalConflictMessageID, UUID targetGoalConflictGoalID,
 			LocalDate targetGoalConflictDate)
 	{
 		super(id, creationTime, isRead, targetGoalConflictMessageID, senderInfo, message);

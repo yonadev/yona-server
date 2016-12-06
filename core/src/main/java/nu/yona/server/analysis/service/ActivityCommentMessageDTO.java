@@ -34,11 +34,11 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	private static final String MESSAGE_PROPERTY = "message";
 	private static final String REPLY = "reply";
 	private final UUID activityID;
-	private final Optional<UUID> repliedMessageID;
-	private final UUID threadHeadMessageID;
+	private final Optional<Long> repliedMessageID;
+	private final long threadHeadMessageID;
 
-	private ActivityCommentMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID activityID,
-			UUID threadHeadMessageID, Optional<UUID> repliedMessageID, String message)
+	private ActivityCommentMessageDTO(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID activityID,
+			long threadHeadMessageID, Optional<Long> repliedMessageID, String message)
 	{
 		super(id, creationTime, isRead, senderInfo, message);
 		this.activityID = activityID;
@@ -75,13 +75,13 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 		return activityID;
 	}
 
-	public UUID getThreadHeadMessageID()
+	public long getThreadHeadMessageID()
 	{
 		return threadHeadMessageID;
 	}
 
 	@JsonIgnore
-	public Optional<UUID> getRepliedMessageID()
+	public Optional<Long> getRepliedMessageID()
 	{
 		return repliedMessageID;
 	}

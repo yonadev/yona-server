@@ -117,7 +117,7 @@ public class MessageService
 	}
 
 	@Transactional
-	public MessageDTO getMessage(UUID userID, UUID messageID)
+	public MessageDTO getMessage(UUID userID, long messageID)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
 
@@ -126,7 +126,7 @@ public class MessageService
 	}
 
 	@Transactional
-	public MessageActionDTO handleMessageAction(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
+	public MessageActionDTO handleMessageAction(UUID userID, long id, String action, MessageActionDTO requestPayload)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
 
@@ -135,7 +135,7 @@ public class MessageService
 	}
 
 	@Transactional
-	public MessageActionDTO deleteMessage(UUID userID, UUID id)
+	public MessageActionDTO deleteMessage(UUID userID, long id)
 	{
 		UserDTO user = userService.getPrivateValidatedUser(userID);
 

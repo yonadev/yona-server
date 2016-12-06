@@ -5,7 +5,6 @@
 package nu.yona.server.messaging.service;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 
@@ -19,13 +18,13 @@ public abstract class BuddyMessageDTO extends MessageDTO
 {
 	private final String message;
 
-	protected BuddyMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, String message)
+	protected BuddyMessageDTO(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, String message)
 	{
 		super(id, creationTime, isRead, senderInfo);
 		this.message = message;
 	}
 
-	protected BuddyMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID relatedMessageID,
+	protected BuddyMessageDTO(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, long relatedMessageID,
 			String message)
 	{
 		super(id, senderInfo, creationTime, isRead, relatedMessageID);

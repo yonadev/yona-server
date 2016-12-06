@@ -585,18 +585,12 @@ public class ActivityService
 		messageService.sendMessageToUserAnonymized(userAnonymized, messageEntity);
 	}
 
-	private ActivityCommentMessage createMessage(UserDTO sendingUser, UUID activityID, Optional<UUID> threadHeadMessageID,
-			Optional<UUID> repliedMessageID, boolean isSentItem, String message)
+	private ActivityCommentMessage createMessage(UserDTO sendingUser, UUID activityID, Optional<Long> threadHeadMessageID,
+			Optional<Long> repliedMessageID, boolean isSentItem, String message)
 	{
-		if (threadHeadMessageID.isPresent())
-		{
-			return ActivityCommentMessage.createInstance(sendingUser.getID(), sendingUser.getPrivateData().getUserAnonymizedID(),
-					sendingUser.getPrivateData().getNickname(), activityID, isSentItem, message, threadHeadMessageID.get(),
-					repliedMessageID);
-		}
-		return ActivityCommentMessage.createThreadHeadInstance(sendingUser.getID(),
-				sendingUser.getPrivateData().getUserAnonymizedID(), sendingUser.getPrivateData().getNickname(), activityID,
-				isSentItem, message, repliedMessageID);
+		return ActivityCommentMessage.createInstance(sendingUser.getID(), sendingUser.getPrivateData().getUserAnonymizedID(),
+				sendingUser.getPrivateData().getNickname(), activityID, isSentItem, message, threadHeadMessageID,
+				repliedMessageID);
 	}
 
 	private <T extends IntervalActivityDTO> T getMissingInactivity(UUID userID, LocalDate date, UUID goalID,

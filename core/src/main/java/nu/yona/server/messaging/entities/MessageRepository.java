@@ -15,7 +15,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface MessageRepository extends CrudRepository<Message, UUID>
+public interface MessageRepository extends CrudRepository<Message, Long>
 {
 	@Query("select m from Message m, MessageDestination d where d.id = :destinationID and m member of d.messages order by m.creationTime desc")
 	Page<Message> findFromDestination(@Param("destinationID") UUID destinationID, Pageable pageable);

@@ -8,8 +8,6 @@ import java.util.UUID;
 
 import javax.persistence.Entity;
 
-import org.hibernate.annotations.Type;
-
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.crypto.Decryptor;
@@ -18,8 +16,7 @@ import nu.yona.server.crypto.Encryptor;
 @Entity
 public class DisclosureResponseMessage extends BuddyMessage
 {
-	@Type(type = "uuid-char")
-	private UUID targetGoalConflictMessageID;
+	private long targetGoalConflictMessageID;
 	private Status status;
 
 	// Default constructor is required for JPA
@@ -28,10 +25,10 @@ public class DisclosureResponseMessage extends BuddyMessage
 
 	}
 
-	private DisclosureResponseMessage(UUID id, UUID senderUserID, UUID senderUserAnonymizedID, UUID targetGoalConflictMessageID,
+	private DisclosureResponseMessage(UUID senderUserID, UUID senderUserAnonymizedID, long targetGoalConflictMessageID,
 			Status status, String senderNickname, String message)
 	{
-		super(id, senderUserID, senderUserAnonymizedID, senderNickname, message);
+		super(senderUserID, senderUserAnonymizedID, senderNickname, message);
 		this.targetGoalConflictMessageID = targetGoalConflictMessageID;
 		this.status = status;
 	}
@@ -59,9 +56,9 @@ public class DisclosureResponseMessage extends BuddyMessage
 	}
 
 	public static DisclosureResponseMessage createInstance(UUID senderUserID, UUID senderUserAnonymizedID,
-			UUID targetGoalConflictMessageID, Status status, String senderNickname, String message)
+			long targetGoalConflictMessageID, Status status, String senderNickname, String message)
 	{
-		return new DisclosureResponseMessage(UUID.randomUUID(), senderUserID, senderUserAnonymizedID, targetGoalConflictMessageID,
-				status, senderNickname, message);
+		return new DisclosureResponseMessage(senderUserID, senderUserAnonymizedID, targetGoalConflictMessageID, status,
+				senderNickname, message);
 	}
 }

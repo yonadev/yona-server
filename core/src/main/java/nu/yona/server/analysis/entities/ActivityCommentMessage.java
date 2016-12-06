@@ -27,10 +27,10 @@ public class ActivityCommentMessage extends BuddyMessage
 	@ManyToOne
 	private ActivityCommentMessage senderCopyMessage;
 
-	private ActivityCommentMessage(UUID id, UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname,
-			UUID activityID, boolean isSentItem, String message, UUID threadHeadMessageID, Optional<UUID> repliedMessageID)
+	private ActivityCommentMessage(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname, UUID activityID,
+			boolean isSentItem, String message, Optional<Long> threadHeadMessageID, Optional<Long> repliedMessageID)
 	{
-		super(id, senderUserID, senderUserAnonymizedID, senderNickname, isSentItem, message);
+		super(senderUserID, senderUserAnonymizedID, senderNickname, isSentItem, message);
 		this.activityID = activityID;
 
 		setThreadHeadMessageID(threadHeadMessageID);
@@ -58,26 +58,11 @@ public class ActivityCommentMessage extends BuddyMessage
 		return activityID;
 	}
 
-	public static ActivityCommentMessage createThreadHeadInstance(UUID senderUserID, UUID senderUserAnonymizedID,
-			String senderNickname, UUID actitityID, boolean isSentItem, String message, Optional<UUID> repliedMessageID)
-	{
-		UUID messageID = UUID.randomUUID();
-		return createInstance(messageID, senderUserID, senderUserAnonymizedID, senderNickname, actitityID, isSentItem, message,
-				messageID, repliedMessageID);
-	}
-
 	public static ActivityCommentMessage createInstance(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname,
-			UUID actitityID, boolean isSentItem, String message, UUID threadHeadMessageID, Optional<UUID> repliedMessageID)
+			UUID actitityID, boolean isSentItem, String message, Optional<Long> threadHeadMessageID,
+			Optional<Long> repliedMessageID)
 	{
-		return createInstance(UUID.randomUUID(), senderUserID, senderUserAnonymizedID, senderNickname, actitityID, isSentItem,
-				message, threadHeadMessageID, repliedMessageID);
-	}
-
-	private static ActivityCommentMessage createInstance(UUID id, UUID senderUserID, UUID senderUserAnonymizedID,
-			String senderNickname, UUID actitityID, boolean isSentItem, String message, UUID threadHeadMessageID,
-			Optional<UUID> repliedMessageID)
-	{
-		return new ActivityCommentMessage(id, senderUserID, senderUserAnonymizedID, senderNickname, actitityID, isSentItem,
-				message, threadHeadMessageID, repliedMessageID);
+		return new ActivityCommentMessage(senderUserID, senderUserAnonymizedID, senderNickname, actitityID, isSentItem, message,
+				threadHeadMessageID, repliedMessageID);
 	}
 }
