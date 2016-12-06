@@ -120,4 +120,15 @@ public class MessageDestination extends EntityWithUuid
 	{
 		return Message.getRepository().findByActivityID(getID(), activityID, pageable);
 	}
+
+	public long getLastSentMessageId()
+	{
+		// id is not encrypted so can return it
+		return getLastSentMessage().getID();
+	}
+
+	private Message getLastSentMessage()
+	{
+		return messages.get(messages.size() - 1);
+	}
 }

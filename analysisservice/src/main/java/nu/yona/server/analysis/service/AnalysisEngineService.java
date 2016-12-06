@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -374,10 +375,12 @@ public class AnalysisEngineService
 	{
 		GoalConflictMessage selfGoalConflictMessage = GoalConflictMessage.createInstance(payload.userAnonymized.getID(), activity,
 				matchingGoal, payload.url);
-		messageService.sendMessage(selfGoalConflictMessage, payload.userAnonymized.getAnonymousDestination());
+		long savedSelfGoalConflictMessageId = messageService.sendMessage(selfGoalConflictMessage,
+				payload.userAnonymized.getAnonymousDestination());
 
 		messageService.broadcastMessageToBuddies(payload.userAnonymized,
-				() -> GoalConflictMessage.createInstanceFromBuddy(payload.userAnonymized.getID(), selfGoalConflictMessage));
+				() -> GoalConflictMessage.createInstanceFromBuddy(payload.userAnonymized.getID(), selfGoalConflictMessage,
+						savedSelfGoalConflictMessageId));
 	}
 
 	private Set<GoalDTO> determineMatchingGoalsForUser(UserAnonymizedDTO userAnonymized,
@@ -405,11 +408,11 @@ public class AnalysisEngineService
 		private ActivityPayload(UserAnonymizedDTO userAnonymized, Optional<String> url, ZonedDateTime startTime,
 				ZonedDateTime endTime, Optional<String> application)
 		{
-			this.userAnonymized = userAnonymized;
-			this.url = url;
-			this.startTime = startTime;
-			this.endTime = endTime;
-			this.application = application;
+			this.userAnonymized = Objects.requireNonNull(userAnonymized);
+			this.url = Objects.requireNonNull(url);
+			this.startTime = Objects.requireNonNull(startTime);
+			this.endTime = Objects.requireNonNull(endTime);
+			this.application = Objects.requireNonNull(application);
 		}
 
 		static ActivityPayload copyTillEndTime(ActivityPayload payload, ZonedDateTime endTime)

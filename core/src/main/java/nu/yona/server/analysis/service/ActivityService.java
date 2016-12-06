@@ -572,17 +572,18 @@ public class ActivityService
 		ActivityCommentMessage messageToSelf = createMessage(sendingUser, activityID,
 				repliedMessageOfSelf.map(ActivityCommentMessage::getThreadHeadMessageID),
 				repliedMessageOfSelf.map(ActivityCommentMessage::getID), true, message);
-		sendMessage(sendingUser.getPrivateData().getUserAnonymizedID(), messageToSelf);
-		messageToBuddy.setSenderCopyMessage(messageToSelf);
+		ActivityCommentMessage savedMessageToSelf = (ActivityCommentMessage) messageService
+				.sendMessageToSelfAnonymized(sendingUser, messageToSelf);
+		messageToBuddy.setSenderCopyMessage(savedMessageToSelf);
 		sendMessage(targetUserAnonymizedID, messageToBuddy);
 
 		return messageService.messageToDTO(sendingUser, messageToSelf);
 	}
 
-	private void sendMessage(UUID targetUserAnonymizedID, ActivityCommentMessage messageEntity)
+	private long sendMessage(UUID targetUserAnonymizedID, ActivityCommentMessage messageEntity)
 	{
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(targetUserAnonymizedID);
-		messageService.sendMessageToUserAnonymized(userAnonymized, messageEntity);
+		return messageService.sendMessageToUserAnonymized(userAnonymized, messageEntity);
 	}
 
 	private ActivityCommentMessage createMessage(UserDTO sendingUser, long activityID, Optional<Long> threadHeadMessageID,

@@ -232,11 +232,27 @@ public class MessageService
 	}
 
 	@Transactional
-	public void sendMessage(Message message, MessageDestinationDTO destination)
+	public Message sendMessageToSelfAnonymized(UserDTO user, Message message)
 	{
-		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getID());
+		long savedMessageId = sendMessage(message, user.getPrivateData().getAnonymousMessageDestinationID());
+		return getAnonymousMessageSource(user).getMessage(savedMessageId);
+	}
+
+	@Transactional
+	public long sendMessage(Message message, MessageDestinationDTO destination)
+	{
+		return sendMessage(message, destination.getID());
+	}
+
+	private long sendMessage(Message message, UUID messageDestinationID)
+	{
+		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(messageDestinationID);
 		destinationEntity.send(message);
-		MessageDestination.getRepository().save(destinationEntity);
+		MessageDestination savedDestinationEntity = MessageDestination.getRepository().save(destinationEntity);
+
+		// because this is executed inside a transaction, we are sure to get the right item
+		// notice the other properties of the message may be encrypted, so it is not safe to return a Message entity here
+		return savedDestinationEntity.getLastSentMessageId();
 	}
 
 	@Transactional
@@ -259,9 +275,9 @@ public class MessageService
 	}
 
 	@Transactional
-	public void sendMessageToUserAnonymized(UserAnonymizedDTO userAnonymized, Message message)
+	public long sendMessageToUserAnonymized(UserAnonymizedDTO userAnonymized, Message message)
 	{
-		sendMessage(message, userAnonymized.getAnonymousDestination());
+		return sendMessage(message, userAnonymized.getAnonymousDestination());
 	}
 
 	@Transactional
