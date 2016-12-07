@@ -7,7 +7,6 @@ package nu.yona.server.analysis.service;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -33,12 +32,12 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 {
 	private static final String MESSAGE_PROPERTY = "message";
 	private static final String REPLY = "reply";
-	private final UUID activityID;
-	private final Optional<UUID> repliedMessageID;
-	private final UUID threadHeadMessageID;
+	private final long activityID;
+	private final Optional<Long> repliedMessageID;
+	private final long threadHeadMessageID;
 
-	private ActivityCommentMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID activityID,
-			UUID threadHeadMessageID, Optional<UUID> repliedMessageID, String message)
+	private ActivityCommentMessageDTO(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, long activityID,
+			long threadHeadMessageID, Optional<Long> repliedMessageID, String message)
 	{
 		super(id, creationTime, isRead, senderInfo, message);
 		this.activityID = activityID;
@@ -70,18 +69,18 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	}
 
 	@JsonIgnore
-	public UUID getActivityID()
+	public long getActivityID()
 	{
 		return activityID;
 	}
 
-	public UUID getThreadHeadMessageID()
+	public long getThreadHeadMessageID()
 	{
 		return threadHeadMessageID;
 	}
 
 	@JsonIgnore
-	public Optional<UUID> getRepliedMessageID()
+	public Optional<Long> getRepliedMessageID()
 	{
 		return repliedMessageID;
 	}

@@ -7,6 +7,7 @@ package nu.yona.server.messaging.service;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -53,28 +54,34 @@ public abstract class MessageDTO extends PolymorphicDTO
 {
 	private static final String MARK_UNREAD = "markUnread";
 	private static final String MARK_READ = "markRead";
-	private final UUID id;
+	private final long id;
 	private final LocalDateTime creationTime;
-	private final UUID relatedMessageID;
+	private final Optional<Long> relatedMessageID;
 	private final boolean isRead;
 	private final SenderInfo senderInfo;
 
-	protected MessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo)
+	protected MessageDTO(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo)
 	{
-		this(id, senderInfo, creationTime, isRead, null);
+		this(id, senderInfo, creationTime, isRead, Optional.empty());
 	}
 
-	protected MessageDTO(UUID id, SenderInfo senderInfo, LocalDateTime creationTime, boolean isRead, UUID relatedMessageID)
+	protected MessageDTO(long id, SenderInfo senderInfo, LocalDateTime creationTime, boolean isRead, long relatedMessageID)
+	{
+		this(id, senderInfo, creationTime, isRead, Optional.of(relatedMessageID));
+	}
+
+	private MessageDTO(long id, SenderInfo senderInfo, LocalDateTime creationTime, boolean isRead,
+			Optional<Long> relatedMessageID)
 	{
 		this.id = id;
 		this.senderInfo = senderInfo;
 		this.creationTime = creationTime;
 		this.isRead = isRead;
-		this.relatedMessageID = relatedMessageID;
+		this.relatedMessageID = Objects.requireNonNull(relatedMessageID);
 	}
 
 	@JsonIgnore
-	public UUID getID()
+	public long getID()
 	{
 		return id;
 	}
@@ -122,7 +129,7 @@ public abstract class MessageDTO extends PolymorphicDTO
 	}
 
 	@JsonIgnore
-	public UUID getRelatedMessageID()
+	public Optional<Long> getRelatedMessageID()
 	{
 		return relatedMessageID;
 	}

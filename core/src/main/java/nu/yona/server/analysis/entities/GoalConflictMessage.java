@@ -4,14 +4,13 @@
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
-
-import org.hibernate.annotations.Type;
 
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
@@ -30,8 +29,7 @@ public class GoalConflictMessage extends Message
 	 * If this is a message sent to a buddy, this refers to the self goal conflict message posted at the user having the goal.
 	 * Otherwise {@literal null}.
 	 */
-	@Type(type = "uuid-char")
-	private UUID originGoalConflictMessageID;
+	private Long originGoalConflictMessageID;
 
 	@ManyToOne
 	private Activity activity;
@@ -46,18 +44,18 @@ public class GoalConflictMessage extends Message
 	// Default constructor is required for JPA
 	public GoalConflictMessage()
 	{
-		super(null, null);
+		super(null);
 	}
 
-	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedID, UUID originGoalConflictMessageID, Activity activity,
+	public GoalConflictMessage(UUID relatedUserAnonymizedID, Optional<Long> originGoalConflictMessageID, Activity activity,
 			Goal goal, Optional<String> url, Status status)
 	{
-		super(id, relatedUserAnonymizedID);
+		super(relatedUserAnonymizedID);
 
-		this.originGoalConflictMessageID = originGoalConflictMessageID;
-		this.goal = goal;
-		this.activity = activity;
-		this.url = url;
+		this.originGoalConflictMessageID = originGoalConflictMessageID.orElse(null);
+		this.goal = Objects.requireNonNull(goal);
+		this.activity = Objects.requireNonNull(activity);
+		this.url = Objects.requireNonNull(url);
 		this.status = status;
 	}
 
@@ -71,9 +69,9 @@ public class GoalConflictMessage extends Message
 		return goal;
 	}
 
-	public UUID getOriginGoalConflictMessageID()
+	public long getOriginGoalConflictMessageID()
 	{
-		return originGoalConflictMessageID;
+		return originGoalConflictMessageID != null ? originGoalConflictMessageID : getID();
 	}
 
 	public Optional<String> getURL()
@@ -108,22 +106,23 @@ public class GoalConflictMessage extends Message
 		this.status = status;
 	}
 
-	public static GoalConflictMessage createInstanceFromBuddy(UUID relatedUserAnonymizedID, GoalConflictMessage origin)
+	public static GoalConflictMessage createInstanceFromBuddy(UUID relatedUserAnonymizedID, GoalConflictMessage origin,
+			long savedOriginId)
 	{
 		if (origin == null)
 		{
 			throw new IllegalArgumentException("origin cannot be null");
 		}
 
-		assert origin.getID() != null;
-		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, origin.getID(), origin.getActivity(),
+		assert savedOriginId != 0;
+		return new GoalConflictMessage(relatedUserAnonymizedID, Optional.of(savedOriginId), origin.getActivity(),
 				origin.getGoal(), origin.getURL(), Status.ANNOUNCED);
 	}
 
 	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedID, Activity activity, Goal goal,
 			Optional<String> url)
 	{
-		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, null, activity, goal, url, Status.ANNOUNCED);
+		return new GoalConflictMessage(relatedUserAnonymizedID, Optional.empty(), activity, goal, url, Status.ANNOUNCED);
 	}
 
 	public boolean isUrlDisclosed()

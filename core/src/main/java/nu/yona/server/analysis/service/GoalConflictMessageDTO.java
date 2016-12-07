@@ -46,7 +46,7 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private final UUID goalID;
 	private final UUID activityCategoryID;
 
-	private GoalConflictMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID goalID,
+	private GoalConflictMessageDTO(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID goalID,
 			UUID activityCategoryID, Optional<String> url, Status status, LocalDateTime activityStartTime,
 			LocalDateTime activityEndTime)
 	{

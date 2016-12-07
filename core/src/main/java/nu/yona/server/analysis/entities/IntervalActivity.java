@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
@@ -21,7 +20,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import nu.yona.server.entities.EntityUtil;
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.entities.ZoneIdAttributeConverter;
 import nu.yona.server.goals.entities.Goal;
@@ -32,11 +31,11 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 // We used to have a unique constraint defined here: @UniqueConstraint(columnNames = { "dtype", "user_anonymized", "startDate",
 // "goal" })
 // Due to an inconsistency between Liquibase and JPA, we have moved this to Liquibase (extra.yml)
-public abstract class IntervalActivity extends EntityWithID
+public abstract class IntervalActivity extends EntityWithId
 {
 	public static IntervalActivityRepository getIntervalActivityRepository()
 	{
-		return (IntervalActivityRepository) RepositoryProvider.getRepository(IntervalActivity.class, UUID.class);
+		return (IntervalActivityRepository) RepositoryProvider.getRepository(IntervalActivity.class, Long.class);
 	}
 
 	public static final int SPREAD_COUNT = 96;
@@ -65,13 +64,13 @@ public abstract class IntervalActivity extends EntityWithID
 	// Default constructor for JPA
 	protected IntervalActivity()
 	{
-		super(null);
+		super();
 	}
 
-	protected IntervalActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startDate,
+	protected IntervalActivity(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startDate,
 			List<Integer> spread, int totalActivityDurationMinutes, boolean aggregatesComputed)
 	{
-		super(id);
+		super();
 		Objects.requireNonNull(userAnonymized);
 		Objects.requireNonNull(goal);
 		Objects.requireNonNull(timeZone);

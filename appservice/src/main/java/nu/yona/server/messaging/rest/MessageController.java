@@ -113,7 +113,7 @@ public class MessageController
 	@RequestMapping(value = "/{messageID}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<MessageDTO> getMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userID, @PathVariable UUID messageID)
+			@PathVariable UUID userID, @PathVariable long messageID)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
 				toMessageResource(createGoalIDMapping(userID), messageService.getMessage(userID, messageID))));
@@ -132,7 +132,7 @@ public class MessageController
 	@RequestMapping(value = "/{id}/{action}", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<MessageActionResource> handleAnonymousMessageAction(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, @PathVariable UUID id,
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, @PathVariable long id,
 			@PathVariable String action, @RequestBody MessageActionDTO requestPayload)
 	{
 
@@ -146,7 +146,7 @@ public class MessageController
 	@ResponseBody
 	public HttpEntity<MessageActionResource> deleteAnonymousMessage(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
-			@PathVariable UUID messageID)
+			@PathVariable long messageID)
 	{
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
@@ -169,7 +169,7 @@ public class MessageController
 		return new ResponseEntity<MessageActionResource>(messageAction, HttpStatus.OK);
 	}
 
-	public static ControllerLinkBuilder getAnonymousMessageLinkBuilder(UUID userID, UUID messageID)
+	public static ControllerLinkBuilder getAnonymousMessageLinkBuilder(UUID userID, long messageID)
 	{
 		MessageController methodOn = methodOn(MessageController.class);
 		return linkTo(methodOn.getMessage(Optional.empty(), userID, messageID));
@@ -249,9 +249,9 @@ public class MessageController
 
 		private void addRelatedMessageLink(MessageDTO message, MessageDTO messageResource)
 		{
-			if (message.getRelatedMessageID() != null)
+			if (message.getRelatedMessageID().isPresent())
 			{
-				messageResource.add(getAnonymousMessageLinkBuilder(goalIDMapping.getUserID(), message.getRelatedMessageID())
+				messageResource.add(getAnonymousMessageLinkBuilder(goalIDMapping.getUserID(), message.getRelatedMessageID().get())
 						.withRel("related"));
 			}
 		}

@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
@@ -20,9 +17,10 @@ public class BuddyDisconnectMessage extends BuddyMessage
 	private boolean isProcessed;
 	private DropBuddyReason reason;
 
-	public BuddyDisconnectMessage(UUID id, UUID senderUserID, UUID senderAnonymizedUserID, String senderNickname, String message, DropBuddyReason reason)
+	public BuddyDisconnectMessage(UUID senderUserID, UUID senderAnonymizedUserID, String senderNickname, String message,
+			DropBuddyReason reason)
 	{
-		super(id, senderUserID, senderAnonymizedUserID, senderNickname, message);
+		super(senderUserID, senderAnonymizedUserID, senderNickname, message);
 		this.reason = reason;
 	}
 
@@ -47,9 +45,9 @@ public class BuddyDisconnectMessage extends BuddyMessage
 		this.isProcessed = true;
 	}
 
-	public static BuddyDisconnectMessage createInstance(UUID senderUserID, UUID senderAnonymizedUserID, String senderNickname, String message,
-			DropBuddyReason reason)
+	public static BuddyDisconnectMessage createInstance(UUID senderUserID, UUID senderAnonymizedUserID, String senderNickname,
+			String message, DropBuddyReason reason)
 	{
-		return new BuddyDisconnectMessage(UUID.randomUUID(), senderUserID, senderAnonymizedUserID, senderNickname, message, reason);
+		return new BuddyDisconnectMessage(senderUserID, senderAnonymizedUserID, senderNickname, message, reason);
 	}
 }

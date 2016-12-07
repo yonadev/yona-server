@@ -24,13 +24,13 @@ import org.springframework.data.domain.Pageable;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.crypto.PublicKeyEncryptor;
 import nu.yona.server.crypto.PublicKeyUtil;
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 
 @Entity
 @Table(name = "MESSAGE_DESTINATIONS")
-public class MessageDestination extends EntityWithID
+public class MessageDestination extends EntityWithUuid
 {
 	public static MessageDestinationRepository getRepository()
 	{
@@ -116,8 +116,19 @@ public class MessageDestination extends EntityWithID
 				message -> message instanceof GoalConflictMessage && ((GoalConflictMessage) message).getGoal().equals(goal));
 	}
 
-	public Page<Message> getActivityRelatedMessages(UUID activityID, Pageable pageable)
+	public Page<Message> getActivityRelatedMessages(long activityID, Pageable pageable)
 	{
 		return Message.getRepository().findByActivityID(getID(), activityID, pageable);
+	}
+
+	public long getLastSentMessageId()
+	{
+		// id is not encrypted so can return it
+		return getLastSentMessage().getID();
+	}
+
+	private Message getLastSentMessage()
+	{
+		return messages.get(messages.size() - 1);
 	}
 }

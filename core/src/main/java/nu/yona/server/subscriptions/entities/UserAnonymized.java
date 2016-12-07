@@ -15,14 +15,14 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 
 @Entity
 @Table(name = "USERS_ANONYMIZED")
-public class UserAnonymized extends EntityWithID
+public class UserAnonymized extends EntityWithUuid
 {
 	public static UserAnonymizedRepository getRepository()
 	{
