@@ -577,7 +577,7 @@ public class ActivityService
 		messageToBuddy.setSenderCopyMessage(savedMessageToSelf);
 		sendMessage(targetUserAnonymizedID, messageToBuddy);
 
-		return messageService.messageToDTO(sendingUser, messageToSelf);
+		return messageService.messageToDTO(sendingUser, savedMessageToSelf);
 	}
 
 	private long sendMessage(UUID targetUserAnonymizedID, ActivityCommentMessage messageEntity)
