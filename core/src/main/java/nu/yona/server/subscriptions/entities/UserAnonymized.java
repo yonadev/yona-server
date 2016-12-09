@@ -15,6 +15,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Where;
+
 import nu.yona.server.entities.EntityWithID;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
@@ -32,7 +34,9 @@ public class UserAnonymized extends EntityWithID
 	@OneToOne
 	private MessageDestination anonymousDestination;
 
-	@OneToMany(cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "userAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Where(clause = "end_time is null") // The history items have the user anonymized ID set, so they would appear in this
+										// collection if not explicitly excluded
 	private Set<Goal> goals;
 
 	@OneToMany
@@ -60,6 +64,11 @@ public class UserAnonymized extends EntityWithID
 	public MessageDestination getAnonymousDestination()
 	{
 		return anonymousDestination;
+	}
+
+	public void clearAnonymousDestination()
+	{
+		anonymousDestination = null;
 	}
 
 	public void addBuddyAnonymized(BuddyAnonymized buddyAnonimized)
@@ -91,6 +100,7 @@ public class UserAnonymized extends EntityWithID
 
 	public void addGoal(Goal goal)
 	{
+		goal.setUserAnonymized(this);
 		goals.add(goal);
 	}
 

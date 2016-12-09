@@ -5,7 +5,6 @@
 package nu.yona.server.goals.service;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -16,9 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
-import nu.yona.server.analysis.entities.DayActivity;
-import nu.yona.server.analysis.entities.IntervalActivity;
-import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.GoalChangeMessage;
@@ -162,19 +158,8 @@ public class GoalService
 	private void cloneExistingGoalAsHistoryItem(UserAnonymized userAnonymizedEntity, Goal existingGoal, LocalDateTime endTime)
 	{
 		Goal historyGoal = existingGoal.cloneAsHistoryItem(endTime);
+		existingGoal.transferHistoryActivities(historyGoal);
 		existingGoal.setPreviousVersionOfThisGoal(historyGoal);
-		WeekActivity.getRepository().findByGoal(existingGoal).stream()
-				.filter(a -> historyGoal.wasActiveAtInterval(a.getStartTime(), ChronoUnit.WEEKS))
-				.forEach(a -> setGoalAndSave(a, historyGoal));
-		DayActivity.getRepository().findByGoal(existingGoal).stream()
-				.filter(a -> historyGoal.wasActiveAtInterval(a.getStartTime(), ChronoUnit.DAYS))
-				.forEach(a -> setGoalAndSave(a, historyGoal));
-	}
-
-	private void setGoalAndSave(IntervalActivity activity, Goal goal)
-	{
-		activity.setGoal(goal);
-		IntervalActivity.getIntervalActivityRepository().save(activity);
 	}
 
 	private void assertNoActivityCategoryChange(GoalDTO newGoalDTO, GoalDTO existingGoalDTO)
@@ -218,8 +203,8 @@ public class GoalService
 		}
 
 		ActivityCategory activityCategoryOfChangedGoal = goalEntity.getActivityCategory();
-		deleteGoalAndRelatedEntities(userAnonymizedEntity, goalEntity);
 		userAnonymizedEntity.removeGoal(goalEntity);
+		deleteGoalAndRelatedEntities(userAnonymizedEntity, goalEntity);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getID(), userAnonymizedEntity);
 
 		broadcastGoalChangeMessage(userEntity, activityCategoryOfChangedGoal, GoalChangeMessage.Change.GOAL_DELETED, message);
@@ -227,17 +212,13 @@ public class GoalService
 
 	private void deleteGoalAndRelatedEntities(UserAnonymized userAnonymizedEntity, Goal goalEntity)
 	{
-		deleteActivitiesForGoal(goalEntity);
-		deleteGoalConflictMessagesForGoal(userAnonymizedEntity, goalEntity);
-		goalEntity.getPreviousVersionOfThisGoal().ifPresent(pg -> deleteGoalAndRelatedEntities(userAnonymizedEntity, pg));
-		Goal.getRepository().delete(goalEntity);
+		deleteGoalRelatedMessages(userAnonymizedEntity, goalEntity);
 	}
 
-	private void deleteActivitiesForGoal(Goal goalEntity)
+	private void deleteGoalRelatedMessages(UserAnonymized userAnonymizedEntity, Goal goalEntity)
 	{
-		UUID goalID = goalEntity.getID();
-		WeekActivity.getRepository().deleteAllForGoal(goalID);
-		DayActivity.getRepository().deleteAllForGoal(goalID);
+		deleteGoalConflictMessagesForGoal(userAnonymizedEntity, goalEntity);
+		goalEntity.getPreviousVersionOfThisGoal().ifPresent(pg -> deleteGoalRelatedMessages(userAnonymizedEntity, pg));
 	}
 
 	private void deleteGoalConflictMessagesForGoal(UserAnonymized userAnonymizedEntity, Goal goalEntity)

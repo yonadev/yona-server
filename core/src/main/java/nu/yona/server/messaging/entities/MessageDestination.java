@@ -52,7 +52,7 @@ public class MessageDestination extends EntityWithID
 		super(null);
 	}
 
-	public MessageDestination(UUID id, PublicKey publicKey)
+	private MessageDestination(UUID id, PublicKey publicKey)
 	{
 		super(id);
 		this.publicKeyBytes = PublicKeyUtil.publicKeyToBytes(publicKey);

@@ -6,6 +6,7 @@ package nu.yona.server.subscriptions.entities;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -105,7 +106,9 @@ public class UserPrivate extends EntityWithID
 
 	UserAnonymized getUserAnonymized()
 	{
-		return UserAnonymized.getRepository().findOne(userAnonymizedID);
+		UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(userAnonymizedID);
+		Objects.requireNonNull(userAnonymized, "UserAnonymized with ID " + userAnonymizedID + " not found");
+		return userAnonymized;
 	}
 
 	public Set<Buddy> getBuddies()

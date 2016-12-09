@@ -216,6 +216,11 @@ public class User extends EntityWithID
 		return messageDestination;
 	}
 
+	public void clearNamedMessageDestination()
+	{
+		messageDestination = null;
+	}
+
 	public void addBuddy(Buddy buddy)
 	{
 		getUserPrivate().addBuddy(buddy);

@@ -6,6 +6,7 @@ package nu.yona.server.subscriptions.service;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -23,8 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import nu.yona.server.analysis.entities.DayActivity;
-import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
@@ -33,6 +32,7 @@ import nu.yona.server.exceptions.UserOverwriteConfirmationException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
+import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDTO;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.messaging.entities.MessageSource;
@@ -375,20 +375,50 @@ public class UserService
 		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
 				DropBuddyReason.USER_ACCOUNT_DELETED));
 
-		WeekActivity.getRepository().deleteAllForUser(userEntity.getUserAnonymizedID());
-		DayActivity.getRepository().deleteAllForUser(userEntity.getUserAnonymizedID());
-
 		UUID vpnLoginID = userEntity.getVPNLoginID();
 		UUID userAnonymizedID = userEntity.getUserAnonymizedID();
-		userAnonymizedService.deleteUserAnonymized(userAnonymizedID);
 		MessageSource namedMessageSource = userEntity.getNamedMessageSource();
 		MessageSource anonymousMessageSource = userEntity.getAnonymousMessageSource();
+		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedID);
+		userAnonymizedEntity.clearAnonymousDestination();
+		userAnonymizedEntity = UserAnonymized.getRepository().saveAndFlush(userAnonymizedEntity);
+		userEntity.clearNamedMessageDestination();
+		User updatedUserEntity = User.getRepository().saveAndFlush(userEntity);
+
 		MessageSource.getRepository().delete(anonymousMessageSource);
 		MessageSource.getRepository().delete(namedMessageSource);
-		User.getRepository().delete(userEntity);
+		MessageSource.getRepository().flush();
+
+		Set<Goal> allGoalsIncludingHistoryItems = getAllGoalsIncludingHistoryItems(updatedUserEntity);
+		allGoalsIncludingHistoryItems.forEach(g -> g.getWeekActivities().forEach(wa -> wa.removeAllDayActivities()));
+		UserAnonymized.getRepository().saveAndFlush(updatedUserEntity.getAnonymized());
+
+		allGoalsIncludingHistoryItems.forEach(g -> g.removeAllWeekActivities());
+		UserAnonymized.getRepository().saveAndFlush(updatedUserEntity.getAnonymized());
+
+		userAnonymizedService.deleteUserAnonymized(userAnonymizedID);
+		User.getRepository().delete(updatedUserEntity);
 
 		ldapUserService.deleteVPNAccount(vpnLoginID.toString());
-		logger.info("Deleted user with mobile number '{}' and ID '{}'", userEntity.getMobileNumber(), userEntity.getID());
+		logger.info("Deleted user with mobile number '{}' and ID '{}'", updatedUserEntity.getMobileNumber(),
+				updatedUserEntity.getID());
+	}
+
+	private Set<Goal> getAllGoalsIncludingHistoryItems(User userEntity)
+	{
+		Set<Goal> allGoals = new HashSet<>(userEntity.getGoals());
+		Set<Goal> historyItems = new HashSet<>();
+		for (Goal goal : allGoals)
+		{
+			Optional<Goal> historyItem = goal.getPreviousVersionOfThisGoal();
+			while (historyItem.isPresent())
+			{
+				historyItems.add(historyItem.get());
+				historyItem = historyItem.get().getPreviousVersionOfThisGoal();
+			}
+		}
+		allGoals.addAll(historyItems);
+		return allGoals;
 	}
 
 	@Transactional

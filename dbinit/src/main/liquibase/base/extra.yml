@@ -1,9 +1,0 @@
-databaseChangeLog:
-- changeSet:
-    id: yd-381-1
-    author: Bert
-    changes:
-    - addUniqueConstraint:
-        columnNames: dtype, user_anonymized_id, start_date, goal_id
-        constraintName: no_duplicate_activities
-        tableName: interval_activities
