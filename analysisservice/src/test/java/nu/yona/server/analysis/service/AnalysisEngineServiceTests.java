@@ -71,7 +71,8 @@ import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TimeUtil;
 
 @RunWith(MockitoJUnitRunner.class)
-@Ignore // TODO YD-385 temporarily ignored, should come back before commit
+@Ignore // TODO YD-385 The day activities are now not directly saved to a repository, so this test can't work. Any idea how we'll
+		// test this?
 public class AnalysisEngineServiceTests
 {
 	private final Map<String, Goal> goalMap = new HashMap<String, Goal>();

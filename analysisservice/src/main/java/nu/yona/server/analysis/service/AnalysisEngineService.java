@@ -133,7 +133,7 @@ public class AnalysisEngineService
 		{
 			UserAnonymized userAnonymized = userAnonymizedService.getUserAnonymizedEntity(payload.userAnonymized.getID());
 			analyzeInsideLock(userAnonymized, payload, matchingActivityCategories);
-			UserAnonymized.getRepository().save(userAnonymized);
+			userAnonymizedService.updateUserAnonymized(userAnonymized);
 		}
 	}
 
@@ -219,7 +219,8 @@ public class AnalysisEngineService
 
 	private boolean isOnNewDay(ActivityPayload payload, ActivityDTO lastRegisteredActivity)
 	{
-		return TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.startTime).isAfter(lastRegisteredActivity.getStartTime());
+		return TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.startTime)
+				.isAfter(lastRegisteredActivity.getStartTime());
 	}
 
 	private boolean precedesLastRegisteredActivity(ActivityPayload payload, ActivityDTO lastRegisteredActivity)
@@ -256,8 +257,8 @@ public class AnalysisEngineService
 					ActivityDTO.createInstance(addedActivity));
 		}
 
-		UserAnonymized.getRepository().saveAndFlush(userAnonymized); // Save first, so the activity is available when saving the
-																		// message
+		userAnonymizedService.updateUserAnonymized(userAnonymized); // Save first, so the activity is available when saving the
+																	// message
 		if (matchingGoal.isNoGoGoal())
 		{
 			sendConflictMessageToAllDestinationsOfUser(payload, addedActivity, matchingGoalEntity);

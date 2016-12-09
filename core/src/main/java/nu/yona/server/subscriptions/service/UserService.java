@@ -381,7 +381,7 @@ public class UserService
 		MessageSource anonymousMessageSource = userEntity.getAnonymousMessageSource();
 		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedID);
 		userAnonymizedEntity.clearAnonymousDestination();
-		userAnonymizedEntity = UserAnonymized.getRepository().saveAndFlush(userAnonymizedEntity);
+		userAnonymizedEntity = userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 		userEntity.clearNamedMessageDestination();
 		User updatedUserEntity = User.getRepository().saveAndFlush(userEntity);
 
@@ -391,10 +391,10 @@ public class UserService
 
 		Set<Goal> allGoalsIncludingHistoryItems = getAllGoalsIncludingHistoryItems(updatedUserEntity);
 		allGoalsIncludingHistoryItems.forEach(g -> g.getWeekActivities().forEach(wa -> wa.removeAllDayActivities()));
-		UserAnonymized.getRepository().saveAndFlush(updatedUserEntity.getAnonymized());
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 
 		allGoalsIncludingHistoryItems.forEach(g -> g.removeAllWeekActivities());
-		UserAnonymized.getRepository().saveAndFlush(updatedUserEntity.getAnonymized());
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 
 		userAnonymizedService.deleteUserAnonymized(userAnonymizedID);
 		User.getRepository().delete(updatedUserEntity);
