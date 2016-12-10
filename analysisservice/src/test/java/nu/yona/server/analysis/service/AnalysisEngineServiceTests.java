@@ -80,6 +80,8 @@ public class AnalysisEngineServiceTests
 	@Mock
 	private ActivityCategoryService mockActivityCategoryService;
 	@Mock
+	private ActivityCategoryService.FilterService mockActivityCategoryFilterService;
+	@Mock
 	private UserAnonymizedService mockUserAnonymizedService;
 	@Mock
 	private GoalService mockGoalService;
@@ -140,7 +142,7 @@ public class AnalysisEngineServiceTests
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 
 		when(mockActivityCategoryService.getAllActivityCategories()).thenReturn(getAllActivityCategories());
-		when(mockActivityCategoryService.getMatchingCategoriesForSmoothwallCategories(anySetOf(String.class)))
+		when(mockActivityCategoryFilterService.getMatchingCategoriesForSmoothwallCategories(anySetOf(String.class)))
 				.thenAnswer(new Answer<Set<ActivityCategoryDTO>>() {
 					@Override
 					public Set<ActivityCategoryDTO> answer(InvocationOnMock invocation) throws Throwable
@@ -154,7 +156,7 @@ public class AnalysisEngineServiceTests
 								.collect(Collectors.toSet());
 					}
 				});
-		when(mockActivityCategoryService.getMatchingCategoriesForApp(any(String.class)))
+		when(mockActivityCategoryFilterService.getMatchingCategoriesForApp(any(String.class)))
 				.thenAnswer(new Answer<Set<ActivityCategoryDTO>>() {
 					@Override
 					public Set<ActivityCategoryDTO> answer(InvocationOnMock invocation) throws Throwable

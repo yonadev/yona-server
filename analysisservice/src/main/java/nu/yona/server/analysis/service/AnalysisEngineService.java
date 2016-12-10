@@ -40,12 +40,39 @@ import nu.yona.server.util.TimeUtil;
 @Service
 public class AnalysisEngineService
 {
+	private class UserAnonymizedEntityHolder
+	{
+		private final UUID id;
+		private Optional<UserAnonymized> entity = Optional.empty();
+
+		UserAnonymizedEntityHolder(UUID id)
+		{
+			this.id = id;
+		}
+
+		UserAnonymized getEntity()
+		{
+			if (!entity.isPresent())
+			{
+				entity = Optional.of(userAnonymizedService.getUserAnonymizedEntity(id));
+			}
+			return entity.get();
+		}
+
+		boolean isEntityFetched()
+		{
+			return entity.isPresent();
+		}
+	}
+
 	private static final Duration DEVICE_TIME_INACCURACY_MARGIN = Duration.ofSeconds(10);
 	private static final Duration ONE_MINUTE = Duration.ofMinutes(1);
 	@Autowired
 	private YonaProperties yonaProperties;
 	@Autowired
 	private ActivityCategoryService activityCategoryService;
+	@Autowired
+	private ActivityCategoryService.FilterService activityCategoryFilterService;
 	@Autowired
 	private ActivityCacheService cacheService;
 	@Autowired
@@ -68,7 +95,7 @@ public class AnalysisEngineService
 		Duration deviceTimeOffset = determineDeviceTimeOffset(appActivities);
 		for (AppActivityDTO.Activity appActivity : appActivities.getActivities())
 		{
-			Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryService
+			Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryFilterService
 					.getMatchingCategoriesForApp(appActivity.getApplication());
 			analyze(createActivityPayload(deviceTimeOffset, appActivity, userAnonymized), matchingActivityCategories);
 		}
@@ -78,7 +105,7 @@ public class AnalysisEngineService
 	public void analyze(UUID userAnonymizedID, NetworkActivityDTO networkActivity)
 	{
 		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
-		Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryService
+		Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryFilterService
 				.getMatchingCategoriesForSmoothwallCategories(networkActivity.getCategories());
 		analyze(ActivityPayload.createInstance(userAnonymized, networkActivity), matchingActivityCategories);
 	}
@@ -131,24 +158,28 @@ public class AnalysisEngineService
 		// because the lock is per user, it doesn't matter much that we block early.
 		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(payload.userAnonymized.getID()))
 		{
-			UserAnonymized userAnonymized = userAnonymizedService.getUserAnonymizedEntity(payload.userAnonymized.getID());
-			analyzeInsideLock(userAnonymized, payload, matchingActivityCategories);
-			userAnonymizedService.updateUserAnonymized(userAnonymized);
+			UserAnonymizedEntityHolder userAnonymizedHolder = new UserAnonymizedEntityHolder(payload.userAnonymized.getID());
+			analyzeInsideLock(userAnonymizedHolder, payload, matchingActivityCategories);
+			if (userAnonymizedHolder.isEntityFetched())
+			{
+				userAnonymizedService.updateUserAnonymized(userAnonymizedHolder.getEntity());
+			}
 		}
 	}
 
-	private void analyzeInsideLock(UserAnonymized userAnonymized, ActivityPayload payload,
+	private void analyzeInsideLock(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload,
 			Set<ActivityCategoryDTO> matchingActivityCategories)
 	{
 		Set<GoalDTO> matchingGoalsOfUser = determineMatchingGoalsForUser(payload.userAnonymized, matchingActivityCategories,
 				payload.startTime);
 		for (GoalDTO matchingGoalOfUser : matchingGoalsOfUser)
 		{
-			addOrUpdateActivity(userAnonymized, payload, matchingGoalOfUser);
+			addOrUpdateActivity(userAnonymizedHolder, payload, matchingGoalOfUser);
 		}
 	}
 
-	private void addOrUpdateActivity(UserAnonymized userAnonymized, ActivityPayload payload, GoalDTO matchingGoal)
+	private void addOrUpdateActivity(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload,
+			GoalDTO matchingGoal)
 	{
 		if (isCrossDayActivity(payload))
 		{
@@ -158,16 +189,17 @@ public class AnalysisEngineService
 			ActivityPayload nextDayPayload = ActivityPayload.copyFromStartTime(payload,
 					TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.endTime));
 
-			addOrUpdateDayTruncatedActivity(userAnonymized, truncatedPayload, matchingGoal);
-			addOrUpdateDayTruncatedActivity(userAnonymized, nextDayPayload, matchingGoal);
+			addOrUpdateDayTruncatedActivity(userAnonymizedHolder, truncatedPayload, matchingGoal);
+			addOrUpdateDayTruncatedActivity(userAnonymizedHolder, nextDayPayload, matchingGoal);
 		}
 		else
 		{
-			addOrUpdateDayTruncatedActivity(userAnonymized, payload, matchingGoal);
+			addOrUpdateDayTruncatedActivity(userAnonymizedHolder, payload, matchingGoal);
 		}
 	}
 
-	private void addOrUpdateDayTruncatedActivity(UserAnonymized userAnonymized, ActivityPayload payload, GoalDTO matchingGoal)
+	private void addOrUpdateDayTruncatedActivity(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload,
+			GoalDTO matchingGoal)
 	{
 		ActivityDTO lastRegisteredActivity = getLastRegisteredActivity(payload, matchingGoal);
 		if (canCombineWithLastRegisteredActivity(payload, lastRegisteredActivity))
@@ -175,12 +207,12 @@ public class AnalysisEngineService
 			if (isBeyondSkipWindowAfterLastRegisteredActivity(payload, lastRegisteredActivity))
 			{
 				// Update message only if it is within five seconds to avoid unnecessary cache flushes.
-				updateActivityEndTime(payload, matchingGoal, lastRegisteredActivity);
+				updateActivityEndTime(userAnonymizedHolder, payload, matchingGoal, lastRegisteredActivity);
 			}
 		}
 		else
 		{
-			addActivity(userAnonymized, payload, matchingGoal, lastRegisteredActivity);
+			addActivity(userAnonymizedHolder, payload, matchingGoal, lastRegisteredActivity);
 		}
 	}
 
@@ -245,27 +277,28 @@ public class AnalysisEngineService
 		return TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.endTime).isAfter(payload.startTime);
 	}
 
-	private void addActivity(UserAnonymized userAnonymized, ActivityPayload payload, GoalDTO matchingGoal,
+	private void addActivity(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload, GoalDTO matchingGoal,
 			ActivityDTO lastRegisteredActivity)
 	{
 		Goal matchingGoalEntity = goalService.getGoalEntityForUserAnonymizedID(payload.userAnonymized.getID(),
 				matchingGoal.getID());
-		Activity addedActivity = createNewActivity(userAnonymized, payload, matchingGoalEntity);
+		Activity addedActivity = createNewActivity(userAnonymizedHolder.getEntity(), payload, matchingGoalEntity);
 		if (shouldUpdateCache(lastRegisteredActivity, addedActivity))
 		{
 			cacheService.updateLastActivityForUser(payload.userAnonymized.getID(), matchingGoal.getID(),
 					ActivityDTO.createInstance(addedActivity));
 		}
 
-		userAnonymizedService.updateUserAnonymized(userAnonymized); // Save first, so the activity is available when saving the
-																	// message
+		// Save first, so the activity is available when saving the message
+		userAnonymizedService.updateUserAnonymized(userAnonymizedHolder.getEntity());
 		if (matchingGoal.isNoGoGoal())
 		{
 			sendConflictMessageToAllDestinationsOfUser(payload, addedActivity, matchingGoalEntity);
 		}
 	}
 
-	private void updateActivityEndTime(ActivityPayload payload, GoalDTO matchingGoal, ActivityDTO lastRegisteredActivity)
+	private void updateActivityEndTime(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload,
+			GoalDTO matchingGoal, ActivityDTO lastRegisteredActivity)
 	{
 		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getID());
 		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
@@ -277,6 +310,9 @@ public class AnalysisEngineService
 			cacheService.updateLastActivityForUser(payload.userAnonymized.getID(), matchingGoal.getID(),
 					ActivityDTO.createInstance(activity));
 		}
+
+		// Explicitly fetch the entity to indicate that the user entity is dirty
+		userAnonymizedHolder.getEntity();
 	}
 
 	private boolean shouldUpdateCache(ActivityDTO lastRegisteredActivity, Activity newOrUpdatedActivity)

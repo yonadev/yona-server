@@ -34,6 +34,33 @@ import nu.yona.server.goals.entities.ActivityCategoryRepository;
 @Service
 public class ActivityCategoryService
 {
+	/**
+	 * The FilterService is created as a small nested class, to ensure ActivityCategoryService.getAllActivityCategories is called
+	 * from outside, through the Spring proxy. Calling it from inside means the call does not go through the Spring proxy and thus
+	 * Spring cannot intercept the call to fetch the data from the cache.
+	 */
+	@Service
+	public static class FilterService
+	{
+		@Autowired
+		private ActivityCategoryService activityCategoryService;
+
+		public Set<ActivityCategoryDTO> getMatchingCategoriesForSmoothwallCategories(Set<String> smoothwallCategories)
+		{
+			return activityCategoryService.getAllActivityCategories().stream().filter(ac -> {
+				Set<String> acSmoothwallCategories = new HashSet<>(ac.getSmoothwallCategories());
+				acSmoothwallCategories.retainAll(smoothwallCategories);
+				return !acSmoothwallCategories.isEmpty();
+			}).collect(Collectors.toSet());
+		}
+
+		public Set<ActivityCategoryDTO> getMatchingCategoriesForApp(String application)
+		{
+			return activityCategoryService.getAllActivityCategories().stream()
+					.filter(ac -> ac.getApplications().contains(application)).collect(Collectors.toSet());
+		}
+	}
+
 	@Autowired
 	private ActivityCategoryRepository repository;
 
@@ -93,21 +120,6 @@ public class ActivityCategoryService
 	public void deleteActivityCategory(UUID id)
 	{
 		deleteActivityCategory(getEntityByID(id));
-	}
-
-	public Set<ActivityCategoryDTO> getMatchingCategoriesForSmoothwallCategories(Set<String> smoothwallCategories)
-	{
-		return getAllActivityCategories().stream().filter(ac -> {
-			Set<String> acSmoothwallCategories = new HashSet<>(ac.getSmoothwallCategories());
-			acSmoothwallCategories.retainAll(smoothwallCategories);
-			return !acSmoothwallCategories.isEmpty();
-		}).collect(Collectors.toSet());
-	}
-
-	public Set<ActivityCategoryDTO> getMatchingCategoriesForApp(String application)
-	{
-		return getAllActivityCategories().stream().filter(ac -> ac.getApplications().contains(application))
-				.collect(Collectors.toSet());
 	}
 
 	private void deleteActivityCategory(ActivityCategory entity)
