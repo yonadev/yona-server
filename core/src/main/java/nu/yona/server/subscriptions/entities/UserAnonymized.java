@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -39,7 +40,8 @@ public class UserAnonymized extends EntityWithID
 										// collection if not explicitly excluded
 	private Set<Goal> goals;
 
-	@OneToMany
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+	@JoinColumn(name = "owning_user_anonymized_id", referencedColumnName = "id")
 	private Set<BuddyAnonymized> buddiesAnonymized;
 
 	// Default constructor is required for JPA
