@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Convert;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -55,8 +55,8 @@ public abstract class IntervalActivity extends EntityWithID
 	 */
 	private LocalDate startDate;
 
-	@ElementCollection
-	private List<Integer> spread;
+	@Column(length = SPREAD_COUNT)
+	private byte[] spread;
 
 	private int totalActivityDurationMinutes;
 
@@ -68,22 +68,17 @@ public abstract class IntervalActivity extends EntityWithID
 		super(null);
 	}
 
-	protected IntervalActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startDate,
-			List<Integer> spread, int totalActivityDurationMinutes, boolean aggregatesComputed)
+	protected IntervalActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startDate)
 	{
 		super(id);
 		Objects.requireNonNull(userAnonymized);
 		Objects.requireNonNull(goal);
 		Objects.requireNonNull(timeZone);
 		Objects.requireNonNull(startDate);
-		Objects.requireNonNull(spread);
 		this.userAnonymized = userAnonymized;
 		this.goal = goal;
 		this.timeZone = timeZone;
 		this.startDate = startDate;
-		this.spread = spread;
-		this.totalActivityDurationMinutes = totalActivityDurationMinutes;
-		this.aggregatesComputed = aggregatesComputed;
 	}
 
 	protected abstract TemporalUnit getTimeUnit();
@@ -153,7 +148,7 @@ public abstract class IntervalActivity extends EntityWithID
 	{
 		if (areAggregatesComputed())
 		{
-			return Collections.unmodifiableList(spread);
+			return Collections.unmodifiableList(spreadBytesAsIntegerList());
 		}
 
 		return computeSpread();
@@ -167,6 +162,20 @@ public abstract class IntervalActivity extends EntityWithID
 		}
 
 		return computeTotalActivityDurationMinutes();
+	}
+
+	private List<Integer> spreadBytesAsIntegerList()
+	{
+		if (spread == null)
+		{
+			return Collections.emptyList();
+		}
+		List<Integer> integers = new ArrayList<>(spread.length);
+		for (int i = 0; (i < spread.length); i++)
+		{
+			integers.set(i, (int) spread[i]);
+		}
+		return integers;
 	}
 
 	protected static List<Integer> getEmptySpread()
