@@ -252,7 +252,11 @@ public class MessageService
 
 		// because this is executed inside a transaction, we are sure to get the right item
 		// notice the other properties of the message may be encrypted, so it is not safe to return a Message entity here
-		return savedDestinationEntity.getLastSentMessageId();
+		Message resultMessage = savedDestinationEntity.getLastSentMessage();
+		resultMessage.setSelfThreadHeadIfRequired();
+		Message.getRepository().save(message);
+		// can return id because it is not encrypted
+		return resultMessage.getID();
 	}
 
 	@Transactional

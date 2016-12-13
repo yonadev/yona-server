@@ -127,4 +127,19 @@ public abstract class Message extends EntityWithId
 	protected abstract void encrypt(Encryptor encryptor);
 
 	protected abstract void decrypt(Decryptor decryptor);
+
+	public void setSelfThreadHeadIfRequired()
+	{
+		if (threadHeadMessageID == null)
+		{
+			setSelfThreadHead();
+		}
+	}
+
+	private void setSelfThreadHead()
+	{
+		long id = getID();
+		assert id != 0;
+		threadHeadMessageID = id;
+	}
 }

@@ -519,6 +519,7 @@ public class ActivityService
 		IntervalActivity dayActivityEntity = activitySupplier.get();
 		if (dayActivityEntity == null)
 		{
+			// TODO: log
 			return new PageImpl<>(Collections.emptyList());
 		}
 		return messageService.getActivityRelatedMessages(userID, dayActivityEntity.getID(), pageable);
