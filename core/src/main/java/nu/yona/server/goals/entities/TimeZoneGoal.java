@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 
@@ -25,8 +26,8 @@ import nu.yona.server.analysis.entities.DayActivity;
 @Entity
 public class TimeZoneGoal extends Goal
 {
-	@ElementCollection
-	private List<String> zones;
+	@Column(length = 24 * 4 * 6)
+	private String zones;
 
 	@ElementCollection
 	private List<Integer> spreadCells;
@@ -42,7 +43,7 @@ public class TimeZoneGoal extends Goal
 	{
 		super(id, creationTime, activityCategory);
 
-		this.zones = zones;
+		this.zones = listToString(zones);
 		this.spreadCells = spreadCells;
 	}
 
@@ -50,18 +51,18 @@ public class TimeZoneGoal extends Goal
 	{
 		super(id, originalGoal, endTime);
 
-		this.zones = new ArrayList<>(originalGoal.zones);
+		this.zones = originalGoal.zones;
 		this.spreadCells = new ArrayList<>(originalGoal.spreadCells);
 	}
 
 	public List<String> getZones()
 	{
-		return new ArrayList<>(zones);
+		return stringToList(zones);
 	}
 
 	public void setZones(List<String> zones)
 	{
-		this.zones = new ArrayList<>(zones);
+		this.zones = listToString(zones);
 		this.spreadCells = calculateSpreadCells(zones);
 	}
 
@@ -148,5 +149,23 @@ public class TimeZoneGoal extends Goal
 	public List<Integer> getSpreadCells()
 	{
 		return new ArrayList<>(spreadCells);
+	}
+
+	public static String listToString(List<String> entityValue)
+	{
+		if (entityValue == null)
+		{
+			return null;
+		}
+		return String.join(",", entityValue);
+	}
+
+	public static List<String> stringToList(String databaseValue)
+	{
+		if (databaseValue == null)
+		{
+			return null;
+		}
+		return Arrays.asList(databaseValue.split(","));
 	}
 }
