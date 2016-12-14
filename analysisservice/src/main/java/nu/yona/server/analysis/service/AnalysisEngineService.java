@@ -40,31 +40,6 @@ import nu.yona.server.util.TimeUtil;
 @Service
 public class AnalysisEngineService
 {
-	private class UserAnonymizedEntityHolder
-	{
-		private final UUID id;
-		private Optional<UserAnonymized> entity = Optional.empty();
-
-		UserAnonymizedEntityHolder(UUID id)
-		{
-			this.id = id;
-		}
-
-		UserAnonymized getEntity()
-		{
-			if (!entity.isPresent())
-			{
-				entity = Optional.of(userAnonymizedService.getUserAnonymizedEntity(id));
-			}
-			return entity.get();
-		}
-
-		boolean isEntityFetched()
-		{
-			return entity.isPresent();
-		}
-	}
-
 	private static final Duration DEVICE_TIME_INACCURACY_MARGIN = Duration.ofSeconds(10);
 	private static final Duration ONE_MINUTE = Duration.ofMinutes(1);
 	@Autowired
@@ -449,6 +424,31 @@ public class AnalysisEngineService
 			ZoneId userTimeZone = userAnonymized.getTimeZone();
 			return new ActivityPayload(userAnonymized, Optional.empty(), startTime.withZoneSameInstant(userTimeZone),
 					endTime.withZoneSameInstant(userTimeZone), Optional.of(application));
+		}
+	}
+
+	private class UserAnonymizedEntityHolder
+	{
+		private final UUID id;
+		private Optional<UserAnonymized> entity = Optional.empty();
+	
+		UserAnonymizedEntityHolder(UUID id)
+		{
+			this.id = id;
+		}
+	
+		UserAnonymized getEntity()
+		{
+			if (!entity.isPresent())
+			{
+				entity = Optional.of(userAnonymizedService.getUserAnonymizedEntity(id));
+			}
+			return entity.get();
+		}
+	
+		boolean isEntityFetched()
+		{
+			return entity.isPresent();
 		}
 	}
 }
