@@ -43,7 +43,7 @@ import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.messaging.rest.MessageController.MessageResourceAssembler;
 import nu.yona.server.messaging.service.MessageDTO;
 import nu.yona.server.subscriptions.rest.BuddyController;
-import nu.yona.server.subscriptions.service.GoalIDMapping;
+import nu.yona.server.subscriptions.service.GoalIdMapping;
 import nu.yona.server.subscriptions.service.UserService;
 
 /*
@@ -70,11 +70,11 @@ abstract class ActivityControllerBase
 
 	protected static final String WEEK_ACTIVITY_OVERVIEWS_URI_FRAGMENT = "/weeks/";
 	protected static final String DAY_OVERVIEWS_URI_FRAGMENT = "/days/";
-	protected static final String WEEK_ACTIVITY_DETAIL_URI_FRAGMENT = "/weeks/{date}/details/{goalID}";
+	protected static final String WEEK_ACTIVITY_DETAIL_URI_FRAGMENT = "/weeks/{date}/details/{goalId}";
 	protected static final String WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT = WEEK_ACTIVITY_DETAIL_URI_FRAGMENT + "/messages/";
-	protected static final String DAY_ACTIVITY_DETAIL_URI_FRAGMENT = "/days/{date}/details/{goalID}";
+	protected static final String DAY_ACTIVITY_DETAIL_URI_FRAGMENT = "/days/{date}/details/{goalId}";
 	protected static final String DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT = DAY_ACTIVITY_DETAIL_URI_FRAGMENT + "/messages/";
-	protected static final String GOAL_PATH_VARIABLE = "goalID";
+	protected static final String GOAL_PATH_VARIABLE = "goalId";
 	protected static final String DATE_PATH_VARIABLE = "date";
 	protected static final int WEEKS_DEFAULT_PAGE_SIZE = 2;
 	protected static final int DAYS_DEFAULT_PAGE_SIZE = 3;
@@ -83,63 +83,63 @@ abstract class ActivityControllerBase
 	protected static final String NEXT_REL = "next"; // IANA reserved, so will not be prefixed
 
 	protected HttpEntity<PagedResources<WeekActivityOverviewResource>> getWeekActivityOverviews(Optional<String> password,
-			UUID userID, Pageable pageable, PagedResourcesAssembler<WeekActivityOverviewDTO> pagedResourcesAssembler,
+			UUID userId, Pageable pageable, PagedResourcesAssembler<WeekActivityOverviewDTO> pagedResourcesAssembler,
 			Supplier<Page<WeekActivityOverviewDTO>> activitySupplier, LinkProvider linkProvider)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
 				() -> new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
 						new WeekActivityOverviewResourceAssembler(linkProvider)), HttpStatus.OK));
 	}
 
 	protected HttpEntity<PagedResources<DayActivityOverviewResource>> getDayActivityOverviews(Optional<String> password,
-			UUID userID, Pageable pageable,
+			UUID userId, Pageable pageable,
 			PagedResourcesAssembler<DayActivityOverviewDTO<DayActivityDTO>> pagedResourcesAssembler,
 			Supplier<Page<DayActivityOverviewDTO<DayActivityDTO>>> activitySupplier, LinkProvider linkProvider)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
 				() -> new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
 						new DayActivityOverviewResourceAssembler(linkProvider)), HttpStatus.OK));
 	}
 
-	protected HttpEntity<WeekActivityResource> getWeekActivityDetail(Optional<String> password, UUID userID, String dateStr,
+	protected HttpEntity<WeekActivityResource> getWeekActivityDetail(Optional<String> password, UUID userId, String dateStr,
 			Function<LocalDate, WeekActivityDTO> activitySupplier, LinkProvider linkProvider)
 	{
 		LocalDate date = WeekActivityDTO.parseDate(dateStr);
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
 				() -> new ResponseEntity<>(
 						new WeekActivityResourceAssembler(linkProvider, true).toResource(activitySupplier.apply(date)),
 						HttpStatus.OK));
 	}
 
-	protected HttpEntity<DayActivityResource> getDayActivityDetail(Optional<String> password, UUID userID, String dateStr,
+	protected HttpEntity<DayActivityResource> getDayActivityDetail(Optional<String> password, UUID userId, String dateStr,
 			Function<LocalDate, DayActivityDTO> activitySupplier, LinkProvider linkProvider)
 	{
 		LocalDate date = DayActivityDTO.parseDate(dateStr);
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
 				() -> new ResponseEntity<>(
 						new DayActivityResourceAssembler(linkProvider, true, true).toResource(activitySupplier.apply(date)),
 						HttpStatus.OK));
 	}
 
-	protected HttpEntity<PagedResources<MessageDTO>> getActivityDetailMessages(Optional<String> password, UUID userID,
+	protected HttpEntity<PagedResources<MessageDTO>> getActivityDetailMessages(Optional<String> password, UUID userId,
 			Pageable pageable, PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler,
 			Supplier<Page<MessageDTO>> messageSupplier, LinkProvider linkProvider)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
 				() -> new ResponseEntity<>(
 						pagedResourcesAssembler.toResource(messageSupplier.get(),
-								new MessageResourceAssembler(curieProvider, createGoalIDMapping(userID), messageController)),
+								new MessageResourceAssembler(curieProvider, createGoalIdMapping(userId), messageController)),
 				HttpStatus.OK));
 	}
 
-	protected GoalIDMapping createGoalIDMapping(UUID userID)
+	protected GoalIdMapping createGoalIdMapping(UUID userId)
 	{
-		return GoalIDMapping.createInstance(userService.getPrivateUser(userID));
+		return GoalIdMapping.createInstance(userService.getPrivateUser(userId));
 	}
 
-	public abstract void addLinks(GoalIDMapping goalIDMapping, IntervalActivity activity, ActivityCommentMessageDTO message);
+	public abstract void addLinks(GoalIdMapping goalIdMapping, IntervalActivity activity, ActivityCommentMessageDTO message);
 
-	protected void addStandardLinks(GoalIDMapping goalIDMapping, LinkProvider linkProvider, IntervalActivity activity,
+	protected void addStandardLinks(GoalIdMapping goalIdMapping, LinkProvider linkProvider, IntervalActivity activity,
 			ActivityCommentMessageDTO message)
 	{
 		if (activity instanceof WeekActivity)
@@ -150,69 +150,69 @@ abstract class ActivityControllerBase
 		{
 			addDayDetailsLink(linkProvider, activity, message);
 		}
-		if (!message.getSenderUser().get().getID().equals(goalIDMapping.getUserID()))
+		if (!message.getSenderUser().get().getId().equals(goalIdMapping.getUserId()))
 		{
-			UUID buddyID = determineBuddyID(goalIDMapping, message);
-			addBuddyLink(goalIDMapping.getUserID(), buddyID, message);
+			UUID buddyId = determineBuddyId(goalIdMapping, message);
+			addBuddyLink(goalIdMapping.getUserId(), buddyId, message);
 		}
-		addThreadHeadMessageLink(goalIDMapping.getUserID(), message);
-		message.getRepliedMessageID().ifPresent(rmid -> addRepliedMessageLink(goalIDMapping.getUserID(), message));
+		addThreadHeadMessageLink(goalIdMapping.getUserId(), message);
+		message.getRepliedMessageId().ifPresent(rmid -> addRepliedMessageLink(goalIdMapping.getUserId(), message));
 	}
 
-	private UUID determineBuddyID(GoalIDMapping goalIDMapping, ActivityCommentMessageDTO message)
+	private UUID determineBuddyId(GoalIdMapping goalIdMapping, ActivityCommentMessageDTO message)
 	{
-		return goalIDMapping.getUser().getPrivateData().getBuddies().stream()
-				.filter(b -> b.getUser().getID().equals(message.getSenderUser().get().getID())).map(b -> b.getID()).findAny()
+		return goalIdMapping.getUser().getPrivateData().getBuddies().stream()
+				.filter(b -> b.getUser().getId().equals(message.getSenderUser().get().getId())).map(b -> b.getId()).findAny()
 				.orElseThrow(() -> new IllegalArgumentException(
-						"User with ID " + message.getSenderUser().get().getID() + "is not a buddy"));
+						"User with ID " + message.getSenderUser().get().getId() + "is not a buddy"));
 	}
 
 	private void addWeekDetailsLink(LinkProvider linkProvider, IntervalActivity activity, ActivityCommentMessageDTO message)
 	{
 		message.add(linkProvider
-				.getWeekActivityDetailLinkBuilder(WeekActivityDTO.formatDate(activity.getStartDate()), activity.getGoal().getID())
+				.getWeekActivityDetailLinkBuilder(WeekActivityDTO.formatDate(activity.getStartDate()), activity.getGoal().getId())
 				.withRel(WEEK_DETAIL_LINK));
 	}
 
 	private void addDayDetailsLink(LinkProvider linkProvider, IntervalActivity activity, ActivityCommentMessageDTO message)
 	{
 		message.add(linkProvider
-				.getDayActivityDetailLinkBuilder(DayActivityDTO.formatDate(activity.getStartDate()), activity.getGoal().getID())
+				.getDayActivityDetailLinkBuilder(DayActivityDTO.formatDate(activity.getStartDate()), activity.getGoal().getId())
 				.withRel(DAY_DETAIL_LINK));
 	}
 
-	private void addThreadHeadMessageLink(UUID userID, ActivityCommentMessageDTO message)
+	private void addThreadHeadMessageLink(UUID userId, ActivityCommentMessageDTO message)
 	{
 		message.add(
-				MessageController.getAnonymousMessageLinkBuilder(userID, message.getThreadHeadMessageID()).withRel("threadHead"));
+				MessageController.getAnonymousMessageLinkBuilder(userId, message.getThreadHeadMessageId()).withRel("threadHead"));
 	}
 
-	private void addRepliedMessageLink(UUID userID, ActivityCommentMessageDTO message)
+	private void addRepliedMessageLink(UUID userId, ActivityCommentMessageDTO message)
 	{
-		message.add(MessageController.getAnonymousMessageLinkBuilder(userID, message.getRepliedMessageID().get())
+		message.add(MessageController.getAnonymousMessageLinkBuilder(userId, message.getRepliedMessageId().get())
 				.withRel("repliedMessage"));
 	}
 
-	private void addBuddyLink(UUID userID, UUID buddyID, ActivityCommentMessageDTO message)
+	private void addBuddyLink(UUID userId, UUID buddyId, ActivityCommentMessageDTO message)
 	{
-		message.add(BuddyController.getBuddyLinkBuilder(userID, buddyID).withRel(BuddyController.BUDDY_LINK));
+		message.add(BuddyController.getBuddyLinkBuilder(userId, buddyId).withRel(BuddyController.BUDDY_LINK));
 	}
 
 	interface LinkProvider
 	{
-		public ControllerLinkBuilder getDayActivityDetailLinkBuilder(String dateStr, UUID goalID);
+		public ControllerLinkBuilder getDayActivityDetailLinkBuilder(String dateStr, UUID goalId);
 
-		public ControllerLinkBuilder getWeekActivityDetailLinkBuilder(String dateStr, UUID goalID);
+		public ControllerLinkBuilder getWeekActivityDetailLinkBuilder(String dateStr, UUID goalId);
 
-		public ControllerLinkBuilder getGoalLinkBuilder(UUID goalID);
+		public ControllerLinkBuilder getGoalLinkBuilder(UUID goalId);
 
-		public ControllerLinkBuilder getDayActivityDetailMessagesLinkBuilder(String dateStr, UUID goalID);
+		public ControllerLinkBuilder getDayActivityDetailMessagesLinkBuilder(String dateStr, UUID goalId);
 
-		public Optional<ControllerLinkBuilder> getDayActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalID);
+		public Optional<ControllerLinkBuilder> getDayActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalId);
 
-		public ControllerLinkBuilder getWeekActivityDetailMessagesLinkBuilder(String dateStr, UUID goalID);
+		public ControllerLinkBuilder getWeekActivityDetailMessagesLinkBuilder(String dateStr, UUID goalId);
 
-		public Optional<ControllerLinkBuilder> getWeekActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalID);
+		public Optional<ControllerLinkBuilder> getWeekActivityDetailAddCommentLinkBuilder(String dateStr, UUID goalId);
 	}
 
 	static class WeekActivityResource extends Resource<WeekActivityDTO>
@@ -337,26 +337,26 @@ abstract class ActivityControllerBase
 		private void addWeekDetailsLink(WeekActivityResource weekActivityResource, String rel)
 		{
 			weekActivityResource.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getDateStr(),
-					weekActivityResource.getContent().getGoalID()).withRel(rel));
+					weekActivityResource.getContent().getGoalId()).withRel(rel));
 		}
 
 		private void addGoalLink(WeekActivityResource weekActivityResource)
 		{
 			weekActivityResource
-					.add(linkProvider.getGoalLinkBuilder(weekActivityResource.getContent().getGoalID()).withRel("goal"));
+					.add(linkProvider.getGoalLinkBuilder(weekActivityResource.getContent().getGoalId()).withRel("goal"));
 		}
 
 		private void addMessagesLink(WeekActivityResource weekActivityResource)
 		{
 			weekActivityResource
 					.add(linkProvider.getWeekActivityDetailMessagesLinkBuilder(weekActivityResource.getContent().getDateStr(),
-							weekActivityResource.getContent().getGoalID()).withRel("messages"));
+							weekActivityResource.getContent().getGoalId()).withRel("messages"));
 		}
 
 		private void addAddCommentLink(WeekActivityResource weekActivityResource)
 		{
 			Optional<ControllerLinkBuilder> linkBuilder = linkProvider.getWeekActivityDetailAddCommentLinkBuilder(
-					weekActivityResource.getContent().getDateStr(), weekActivityResource.getContent().getGoalID());
+					weekActivityResource.getContent().getDateStr(), weekActivityResource.getContent().getGoalId());
 			linkBuilder.ifPresent(lb -> weekActivityResource.add(lb.withRel("addComment")));
 		}
 
@@ -366,13 +366,13 @@ abstract class ActivityControllerBase
 			{
 				weekActivityResource
 						.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getPreviousDateStr(),
-								weekActivityResource.getContent().getGoalID()).withRel(PREV_REL));
+								weekActivityResource.getContent().getGoalId()).withRel(PREV_REL));
 			}
 			if (weekActivityResource.getContent().hasNext())
 			{
 				weekActivityResource
 						.add(linkProvider.getWeekActivityDetailLinkBuilder(weekActivityResource.getContent().getNextDateStr(),
-								weekActivityResource.getContent().getGoalID()).withRel(NEXT_REL));
+								weekActivityResource.getContent().getGoalId()).withRel(NEXT_REL));
 			}
 		}
 	}
@@ -418,26 +418,26 @@ abstract class ActivityControllerBase
 		private void addGoalLink(DayActivityResource dayActivityResource)
 		{
 			dayActivityResource
-					.add(linkProvider.getGoalLinkBuilder(dayActivityResource.getContent().getGoalID()).withRel("goal"));
+					.add(linkProvider.getGoalLinkBuilder(dayActivityResource.getContent().getGoalId()).withRel("goal"));
 		}
 
 		private void addDayDetailsLink(DayActivityResource dayActivityResource, String rel)
 		{
 			dayActivityResource.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getDateStr(),
-					dayActivityResource.getContent().getGoalID()).withRel(rel));
+					dayActivityResource.getContent().getGoalId()).withRel(rel));
 		}
 
 		private void addMessagesLink(DayActivityResource dayActivityResource)
 		{
 			dayActivityResource
 					.add(linkProvider.getDayActivityDetailMessagesLinkBuilder(dayActivityResource.getContent().getDateStr(),
-							dayActivityResource.getContent().getGoalID()).withRel("messages"));
+							dayActivityResource.getContent().getGoalId()).withRel("messages"));
 		}
 
 		private void addAddCommentLink(DayActivityResource dayActivityResource)
 		{
 			Optional<ControllerLinkBuilder> linkBuilder = linkProvider.getDayActivityDetailAddCommentLinkBuilder(
-					dayActivityResource.getContent().getDateStr(), dayActivityResource.getContent().getGoalID());
+					dayActivityResource.getContent().getDateStr(), dayActivityResource.getContent().getGoalId());
 			linkBuilder.ifPresent(lb -> dayActivityResource.add(lb.withRel("addComment")));
 		}
 
@@ -447,13 +447,13 @@ abstract class ActivityControllerBase
 			{
 				dayActivityResource
 						.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getPreviousDateStr(),
-								dayActivityResource.getContent().getGoalID()).withRel(PREV_REL));
+								dayActivityResource.getContent().getGoalId()).withRel(PREV_REL));
 			}
 			if (dayActivityResource.getContent().hasNext())
 			{
 				dayActivityResource
 						.add(linkProvider.getDayActivityDetailLinkBuilder(dayActivityResource.getContent().getNextDateStr(),
-								dayActivityResource.getContent().getGoalID()).withRel(NEXT_REL));
+								dayActivityResource.getContent().getGoalId()).withRel(NEXT_REL));
 			}
 		}
 	}

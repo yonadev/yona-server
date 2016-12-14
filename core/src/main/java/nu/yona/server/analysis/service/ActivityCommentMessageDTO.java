@@ -33,17 +33,17 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 {
 	private static final String MESSAGE_PROPERTY = "message";
 	private static final String REPLY = "reply";
-	private final UUID activityID;
-	private final Optional<UUID> repliedMessageID;
-	private final UUID threadHeadMessageID;
+	private final UUID activityId;
+	private final Optional<UUID> repliedMessageId;
+	private final UUID threadHeadMessageId;
 
-	private ActivityCommentMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID activityID,
-			UUID threadHeadMessageID, Optional<UUID> repliedMessageID, String message)
+	private ActivityCommentMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID activityId,
+			UUID threadHeadMessageId, Optional<UUID> repliedMessageId, String message)
 	{
 		super(id, creationTime, isRead, senderInfo, message);
-		this.activityID = activityID;
-		this.threadHeadMessageID = threadHeadMessageID;
-		this.repliedMessageID = repliedMessageID;
+		this.activityId = activityId;
+		this.threadHeadMessageId = threadHeadMessageId;
+		this.repliedMessageId = repliedMessageId;
 	}
 
 	@Override
@@ -70,28 +70,28 @@ public class ActivityCommentMessageDTO extends BuddyMessageLinkedUserDTO
 	}
 
 	@JsonIgnore
-	public UUID getActivityID()
+	public UUID getActivityId()
 	{
-		return activityID;
+		return activityId;
 	}
 
-	public UUID getThreadHeadMessageID()
+	public UUID getThreadHeadMessageId()
 	{
-		return threadHeadMessageID;
+		return threadHeadMessageId;
 	}
 
 	@JsonIgnore
-	public Optional<UUID> getRepliedMessageID()
+	public Optional<UUID> getRepliedMessageId()
 	{
-		return repliedMessageID;
+		return repliedMessageId;
 	}
 
 	public static ActivityCommentMessageDTO createInstance(UserDTO actingUser, ActivityCommentMessage messageEntity,
 			SenderInfo senderInfo)
 	{
-		return new ActivityCommentMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				senderInfo, messageEntity.getActivityID(), messageEntity.getThreadHeadMessageID(),
-				messageEntity.getRepliedMessageID(), messageEntity.getMessage());
+		return new ActivityCommentMessageDTO(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getIntervalActivityId(), messageEntity.getThreadHeadMessageId(),
+				messageEntity.getRepliedMessageId(), messageEntity.getMessage());
 	}
 
 	@Component

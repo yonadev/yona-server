@@ -46,7 +46,7 @@ public class NetworkActivityDTO
 		return Collections.unmodifiableSet(categories);
 	}
 
-	public String getURL()
+	public String getUrl()
 	{
 		return url;
 	}

@@ -38,14 +38,14 @@ public class DayActivityDTO extends IntervalActivityDTO
 	private final int totalMinutesBeyondGoal;
 	private final Set<MessageDTO> messages;
 
-	private final UUID activityCategoryID;
+	private final UUID activityCategoryId;
 
-	private DayActivityDTO(UUID goalID, UUID activityCategoryID, ZonedDateTime startTime, boolean shouldSerializeDate,
+	private DayActivityDTO(UUID goalId, UUID activityCategoryId, ZonedDateTime startTime, boolean shouldSerializeDate,
 			List<Integer> spread, int totalActivityDurationMinutes, boolean goalAccomplished, int totalMinutesBeyondGoal,
 			Set<MessageDTO> messages, boolean hasPrevious, boolean hasNext)
 	{
-		super(goalID, startTime, shouldSerializeDate, spread, Optional.of(totalActivityDurationMinutes), hasPrevious, hasNext);
-		this.activityCategoryID = activityCategoryID;
+		super(goalId, startTime, shouldSerializeDate, spread, Optional.of(totalActivityDurationMinutes), hasPrevious, hasNext);
+		this.activityCategoryId = activityCategoryId;
 		this.goalAccomplished = goalAccomplished;
 		this.totalMinutesBeyondGoal = totalMinutesBeyondGoal;
 		this.messages = messages;
@@ -58,15 +58,15 @@ public class DayActivityDTO extends IntervalActivityDTO
 	}
 
 	@Override
-	protected String formatDateAsISO(LocalDate date)
+	protected String formatDateAsIso(LocalDate date)
 	{
 		return formatDate(date);
 	}
 
 	@JsonIgnore
-	public UUID getActivityCategoryID()
+	public UUID getActivityCategoryId()
 	{
-		return activityCategoryID;
+		return activityCategoryId;
 	}
 
 	public boolean isGoalAccomplished()
@@ -97,10 +97,10 @@ public class DayActivityDTO extends IntervalActivityDTO
 
 	static DayActivityDTO createInstance(DayActivity dayActivity, LevelOfDetail levelOfDetail)
 	{
-		return new DayActivityDTO(dayActivity.getGoal().getID(), dayActivity.getGoal().getActivityCategory().getID(),
-				dayActivity.getStartTime(), levelOfDetail == LevelOfDetail.DayDetail,
-				getSpread(dayActivity, levelOfDetail), dayActivity.getTotalActivityDurationMinutes(),
-				dayActivity.isGoalAccomplished(), dayActivity.getTotalMinutesBeyondGoal(),
+		return new DayActivityDTO(dayActivity.getGoal().getId(), dayActivity.getGoal().getActivityCategory().getId(),
+				dayActivity.getStartTime(), levelOfDetail == LevelOfDetail.DayDetail, getSpread(dayActivity, levelOfDetail),
+				dayActivity.getTotalActivityDurationMinutes(), dayActivity.isGoalAccomplished(),
+				dayActivity.getTotalMinutesBeyondGoal(),
 				levelOfDetail == LevelOfDetail.DayDetail ? getMessages(dayActivity) : Collections.emptySet(),
 				dayActivity.hasPrevious(), dayActivity.hasNext());
 	}
@@ -108,8 +108,9 @@ public class DayActivityDTO extends IntervalActivityDTO
 	static DayActivityDTO createInstanceInactivity(UserAnonymizedDTO userAnonymized, GoalDTO goal, ZonedDateTime startTime,
 			LevelOfDetail levelOfDetail, Set<IntervalInactivityDTO> missingInactivities)
 	{
-		missingInactivities.add(IntervalInactivityDTO.createDayInstance(userAnonymized.getID(), goal.getID(), startTime));
-		return new DayActivityDTO(goal.getID(), goal.getActivityCategoryID(), startTime, levelOfDetail == LevelOfDetail.DayDetail,
+		missingInactivities.add(IntervalInactivityDTO.createDayInstance(userAnonymized.getId(), goal.getGoalId(), startTime));
+		return new DayActivityDTO(goal.getGoalId(), goal.getActivityCategoryId(), startTime,
+				levelOfDetail == LevelOfDetail.DayDetail,
 				includeSpread(goal, levelOfDetail) ? createInactiveSpread() : Collections.emptyList(), 0, true, 0,
 				Collections.emptySet(), IntervalActivityDTO.hasPrevious(goal, startTime, ChronoUnit.DAYS),
 				IntervalActivity.hasNext(startTime, ChronoUnit.DAYS));

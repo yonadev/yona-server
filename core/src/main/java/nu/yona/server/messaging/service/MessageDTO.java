@@ -55,7 +55,7 @@ public abstract class MessageDTO extends PolymorphicDTO
 	private static final String MARK_READ = "markRead";
 	private final UUID id;
 	private final LocalDateTime creationTime;
-	private final UUID relatedMessageID;
+	private final UUID relatedMessageId;
 	private final boolean isRead;
 	private final SenderInfo senderInfo;
 
@@ -64,17 +64,17 @@ public abstract class MessageDTO extends PolymorphicDTO
 		this(id, senderInfo, creationTime, isRead, null);
 	}
 
-	protected MessageDTO(UUID id, SenderInfo senderInfo, LocalDateTime creationTime, boolean isRead, UUID relatedMessageID)
+	protected MessageDTO(UUID id, SenderInfo senderInfo, LocalDateTime creationTime, boolean isRead, UUID relatedMessageId)
 	{
 		this.id = id;
 		this.senderInfo = senderInfo;
 		this.creationTime = creationTime;
 		this.isRead = isRead;
-		this.relatedMessageID = relatedMessageID;
+		this.relatedMessageId = relatedMessageId;
 	}
 
 	@JsonIgnore
-	public UUID getID()
+	public UUID getMessageId()
 	{
 		return id;
 	}
@@ -98,9 +98,9 @@ public abstract class MessageDTO extends PolymorphicDTO
 	}
 
 	@JsonIgnore
-	public Optional<UUID> getSenderBuddyID()
+	public Optional<UUID> getSenderBuddyId()
 	{
-		return senderInfo.getBuddy().map(b -> b.getID());
+		return senderInfo.getBuddy().map(b -> b.getId());
 	}
 
 	@JsonProperty("creationTime")
@@ -122,9 +122,9 @@ public abstract class MessageDTO extends PolymorphicDTO
 	}
 
 	@JsonIgnore
-	public UUID getRelatedMessageID()
+	public UUID getRelatedMessageId()
 	{
-		return relatedMessageID;
+		return relatedMessageId;
 	}
 
 	@JsonIgnore
@@ -176,18 +176,18 @@ public abstract class MessageDTO extends PolymorphicDTO
 
 		protected final SenderInfo getSenderInfo(UserDTO actingUser, Message messageEntity)
 		{
-			Optional<UUID> senderUserAnonymizedID = messageEntity.getRelatedUserAnonymizedID();
-			if (senderUserAnonymizedID.isPresent())
+			Optional<UUID> senderUserAnonymizedId = messageEntity.getRelatedUserAnonymizedId();
+			if (senderUserAnonymizedId.isPresent())
 			{
-				if (actingUser.getPrivateData().getUserAnonymizedID().equals(senderUserAnonymizedID.get()))
+				if (actingUser.getPrivateData().getUserAnonymizedId().equals(senderUserAnonymizedId.get()))
 				{
 					return createSenderInfoForSelf(actingUser);
 				}
 
 				// Note: actingUser may be out of sync here, because the message action may have changed its state
 				// so retrieve afresh from buddy service
-				Optional<BuddyDTO> buddy = buddyService.getBuddyOfUserByUserAnonymizedID(actingUser.getID(),
-						senderUserAnonymizedID.get());
+				Optional<BuddyDTO> buddy = buddyService.getBuddyOfUserByUserAnonymizedId(actingUser.getId(),
+						senderUserAnonymizedId.get());
 				if (buddy.isPresent())
 				{
 					return createSenderInfoForBuddy(buddy.get());
@@ -200,17 +200,17 @@ public abstract class MessageDTO extends PolymorphicDTO
 		protected SenderInfo getSenderInfoExtensionPoint(Message messageEntity)
 		{
 			throw new IllegalStateException("Cannot find buddy for message of type '" + messageEntity.getClass().getName()
-					+ "' with user anonymized ID '" + messageEntity.getRelatedUserAnonymizedID() + "'");
+					+ "' with user anonymized ID '" + messageEntity.getRelatedUserAnonymizedId() + "'");
 		}
 
 		private SenderInfo createSenderInfoForSelf(UserDTO actingUser)
 		{
-			return senderInfoFactory.createInstanceForSelf(actingUser.getID(), actingUser.getPrivateData().getNickname());
+			return senderInfoFactory.createInstanceForSelf(actingUser.getId(), actingUser.getPrivateData().getNickname());
 		}
 
 		private SenderInfo createSenderInfoForBuddy(BuddyDTO buddy)
 		{
-			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getID(), buddy.getNickname(), buddy.getID());
+			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getId(), buddy.getNickname(), buddy.getId());
 		}
 
 		protected SenderInfo createSenderInfoForDetachedBuddy(Optional<User> userEntity, String nickname)

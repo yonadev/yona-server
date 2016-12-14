@@ -15,13 +15,13 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.ZoneIdAttributeConverter;
 import nu.yona.server.goals.entities.ActivityCategory;
 
 @Entity
 @Table(name = "ACTIVITIES")
-public class Activity extends EntityWithID
+public class Activity extends EntityWithId
 {
 	@Convert(converter = ZoneIdAttributeConverter.class)
 	private ZoneId timeZone;

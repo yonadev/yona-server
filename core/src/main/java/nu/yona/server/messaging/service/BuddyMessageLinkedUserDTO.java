@@ -16,9 +16,9 @@ public abstract class BuddyMessageLinkedUserDTO extends BuddyMessageDTO
 		super(id, creationTime, isRead, senderInfo, message);
 	}
 
-	protected BuddyMessageLinkedUserDTO(UUID id, LocalDateTime creationTime, boolean isRead, UUID relatedMessageID,
+	protected BuddyMessageLinkedUserDTO(UUID id, LocalDateTime creationTime, boolean isRead, UUID relatedMessageId,
 			SenderInfo senderInfo, String message)
 	{
-		super(id, creationTime, isRead, senderInfo, relatedMessageID, message);
+		super(id, creationTime, isRead, senderInfo, relatedMessageId, message);
 	}
 }

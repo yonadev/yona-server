@@ -54,7 +54,7 @@ public class WeekActivity extends IntervalActivity
 	public List<DayActivity> getDayActivities()
 	{
 		List<DayActivity> dayActivities = DayActivity.getRepository().findActivitiesForUserAndGoalsInIntervalEndExcluded(
-				getUserAnonymized().getID(), getGoal().getIDsIncludingHistoryItems(), getStartDate(), getEndTime().toLocalDate());
+				getUserAnonymized().getId(), getGoal().getIdsIncludingHistoryItems(), getStartDate(), getEndTime().toLocalDate());
 
 		if (dayActivities.size() > 7)
 		{

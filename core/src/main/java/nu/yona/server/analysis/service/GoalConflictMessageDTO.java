@@ -43,16 +43,16 @@ public class GoalConflictMessageDTO extends MessageDTO
 	private final Status status;
 	private final LocalDateTime activityStartTime;
 	private final LocalDateTime activityEndTime;
-	private final UUID goalID;
-	private final UUID activityCategoryID;
+	private final UUID goalId;
+	private final UUID activityCategoryId;
 
-	private GoalConflictMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID goalID,
-			UUID activityCategoryID, Optional<String> url, Status status, LocalDateTime activityStartTime,
+	private GoalConflictMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID goalId,
+			UUID activityCategoryId, Optional<String> url, Status status, LocalDateTime activityStartTime,
 			LocalDateTime activityEndTime)
 	{
 		super(id, creationTime, isRead, senderInfo);
-		this.goalID = goalID;
-		this.activityCategoryID = activityCategoryID;
+		this.goalId = goalId;
+		this.activityCategoryId = activityCategoryId;
 		this.url = url;
 		this.status = status;
 		this.activityStartTime = activityStartTime;
@@ -77,15 +77,15 @@ public class GoalConflictMessageDTO extends MessageDTO
 	}
 
 	@JsonIgnore
-	public UUID getGoalID()
+	public UUID getGoalId()
 	{
-		return goalID;
+		return goalId;
 	}
 
 	@JsonIgnore
-	public UUID getActivityCategoryID()
+	public UUID getActivityCategoryId()
 	{
-		return activityCategoryID;
+		return activityCategoryId;
 	}
 
 	public Status getStatus()
@@ -130,9 +130,9 @@ public class GoalConflictMessageDTO extends MessageDTO
 
 	private static GoalConflictMessageDTO createInstance(GoalConflictMessage messageEntity, SenderInfo senderInfo)
 	{
-		return new GoalConflictMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				senderInfo, messageEntity.getGoal().getID(), messageEntity.getActivity().getActivityCategory().getID(),
-				messageEntity.isUrlDisclosed() ? messageEntity.getURL() : Optional.empty(), messageEntity.getStatus(),
+		return new GoalConflictMessageDTO(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getGoal().getId(), messageEntity.getActivity().getActivityCategory().getId(),
+				messageEntity.isUrlDisclosed() ? messageEntity.getUrl() : Optional.empty(), messageEntity.getStatus(),
 				TimeUtil.toUtcLocalDateTime(messageEntity.getActivity().getStartTimeAsZonedDateTime()),
 				TimeUtil.toUtcLocalDateTime(messageEntity.getActivity().getEndTimeAsZonedDateTime()));
 	}
@@ -181,9 +181,9 @@ public class GoalConflictMessageDTO extends MessageDTO
 			messageEntity = updateMessageStatusAsDisclosureRequested(messageEntity);
 
 			MessageDestinationDTO messageDestination = userAnonymizedService
-					.getUserAnonymized(messageEntity.getRelatedUserAnonymizedID().get()).getAnonymousDestination();
+					.getUserAnonymized(messageEntity.getRelatedUserAnonymizedId().get()).getAnonymousDestination();
 			messageService.sendMessage(
-					DisclosureRequestMessage.createInstance(actingUser.getID(), actingUser.getPrivateData().getUserAnonymizedID(),
+					DisclosureRequestMessage.createInstance(actingUser.getId(), actingUser.getPrivateData().getUserAnonymizedId(),
 							actingUser.getPrivateData().getNickname(), requestPayload.getProperty("message"), messageEntity),
 					messageDestination);
 

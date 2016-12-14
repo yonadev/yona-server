@@ -37,10 +37,10 @@ public class BudgetGoalDTO extends GoalDTO
 		this.maxDurationMinutes = maxDurationMinutes;
 	}
 
-	public BudgetGoalDTO(UUID id, UUID activityCategoryID, int maxDurationMinutes, LocalDateTime creationTime,
+	public BudgetGoalDTO(UUID id, UUID activityCategoryId, int maxDurationMinutes, LocalDateTime creationTime,
 			Optional<LocalDateTime> endTime, boolean mandatory)
 	{
-		super(id, Optional.of(creationTime), endTime, activityCategoryID, mandatory);
+		super(id, Optional.of(creationTime), endTime, activityCategoryId, mandatory);
 
 		this.maxDurationMinutes = maxDurationMinutes;
 	}
@@ -85,17 +85,17 @@ public class BudgetGoalDTO extends GoalDTO
 
 	public static BudgetGoalDTO createInstance(BudgetGoal entity)
 	{
-		return new BudgetGoalDTO(entity.getID(), entity.getActivityCategory().getID(), entity.getMaxDurationMinutes(),
+		return new BudgetGoalDTO(entity.getId(), entity.getActivityCategory().getId(), entity.getMaxDurationMinutes(),
 				entity.getCreationTime(), Optional.ofNullable(entity.getEndTime()), entity.isMandatory());
 	}
 
 	@Override
 	public BudgetGoal createGoalEntity()
 	{
-		ActivityCategory activityCategory = ActivityCategory.getRepository().findOne(this.getActivityCategoryID());
+		ActivityCategory activityCategory = ActivityCategory.getRepository().findOne(this.getActivityCategoryId());
 		if (activityCategory == null)
 		{
-			throw ActivityCategoryException.notFound(this.getActivityCategoryID());
+			throw ActivityCategoryException.notFound(this.getActivityCategoryId());
 		}
 		return BudgetGoal.createInstance(getCreationTime().orElse(TimeUtil.utcNow()), activityCategory, this.maxDurationMinutes);
 	}

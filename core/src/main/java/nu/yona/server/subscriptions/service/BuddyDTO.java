@@ -35,16 +35,16 @@ public class BuddyDTO
 	private final UserDTO user;
 	private final String message;
 	private final String nickname;
-	private final Optional<UUID> userAnonymizedID;
+	private final Optional<UUID> userAnonymizedId;
 	private final Status sendingStatus;
 	private final Status receivingStatus;
 	private Set<GoalDTO> goals = Collections.emptySet();
 	private final LocalDateTime lastStatusChangeTime;
 
-	public BuddyDTO(UUID id, UserDTO user, String nickname, Optional<UUID> userAnonymizedID, Status sendingStatus,
+	public BuddyDTO(UUID id, UserDTO user, String nickname, Optional<UUID> userAnonymizedId, Status sendingStatus,
 			Status receivingStatus, LocalDateTime lastStatusChangeTime)
 	{
-		this(id, user, null, nickname, userAnonymizedID, sendingStatus, receivingStatus, lastStatusChangeTime);
+		this(id, user, null, nickname, userAnonymizedId, sendingStatus, receivingStatus, lastStatusChangeTime);
 	}
 
 	public BuddyDTO(UserDTO user, String message, Status sendingStatus, Status receivingStatus,
@@ -53,21 +53,21 @@ public class BuddyDTO
 		this(null, user, message, null, null, sendingStatus, receivingStatus, lastStatusChangeTime);
 	}
 
-	private BuddyDTO(UUID id, UserDTO user, String message, String nickname, Optional<UUID> userAnonymizedID,
+	private BuddyDTO(UUID id, UserDTO user, String message, String nickname, Optional<UUID> userAnonymizedId,
 			Status sendingStatus, Status receivingStatus, LocalDateTime lastStatusChangeTime)
 	{
 		this.id = id;
 		this.user = user;
 		this.message = message;
 		this.nickname = nickname;
-		this.userAnonymizedID = userAnonymizedID;
+		this.userAnonymizedId = userAnonymizedId;
 		this.sendingStatus = sendingStatus;
 		this.receivingStatus = receivingStatus;
 		this.lastStatusChangeTime = lastStatusChangeTime;
 	}
 
 	@JsonIgnore
-	public UUID getID()
+	public UUID getId()
 	{
 		return id;
 	}
@@ -86,7 +86,7 @@ public class BuddyDTO
 
 	Buddy createBuddyEntity(Translator translator)
 	{
-		return Buddy.createInstance(user.getID(), determineTempNickname(translator), getSendingStatus(), getReceivingStatus());
+		return Buddy.createInstance(user.getId(), determineTempNickname(translator), getSendingStatus(), getReceivingStatus());
 	}
 
 	private String determineTempNickname(Translator translator)
@@ -97,14 +97,14 @@ public class BuddyDTO
 
 	public static BuddyDTO createInstance(Buddy buddyEntity)
 	{
-		return new BuddyDTO(buddyEntity.getID(), UserDTO.createInstance(buddyEntity.getUser()), buddyEntity.getNickname(),
-				getBuddyUserAnonymizedID(buddyEntity), buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus(),
+		return new BuddyDTO(buddyEntity.getId(), UserDTO.createInstance(buddyEntity.getUser()), buddyEntity.getNickname(),
+				getBuddyUserAnonymizedId(buddyEntity), buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus(),
 				buddyEntity.getLastStatusChangeTime());
 	}
 
-	private static Optional<UUID> getBuddyUserAnonymizedID(Buddy buddyEntity)
+	private static Optional<UUID> getBuddyUserAnonymizedId(Buddy buddyEntity)
 	{
-		return BuddyService.canIncludePrivateData(buddyEntity) ? buddyEntity.getUserAnonymizedID() : Optional.empty();
+		return BuddyService.canIncludePrivateData(buddyEntity) ? buddyEntity.getUserAnonymizedId() : Optional.empty();
 	}
 
 	@JsonInclude(Include.NON_EMPTY)
@@ -137,9 +137,9 @@ public class BuddyDTO
 	}
 
 	@JsonIgnore
-	public Optional<UUID> getUserAnonymizedID()
+	public Optional<UUID> getUserAnonymizedId()
 	{
-		return userAnonymizedID;
+		return userAnonymizedId;
 	}
 
 	public void setGoals(Set<GoalDTO> goals)

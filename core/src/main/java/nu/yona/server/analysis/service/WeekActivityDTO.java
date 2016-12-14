@@ -44,11 +44,11 @@ public class WeekActivityDTO extends IntervalActivityDTO
 
 	private final Map<DayOfWeek, DayActivityDTO> dayActivities;
 
-	private WeekActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
+	private WeekActivityDTO(UUID goalId, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
 			Optional<Integer> totalActivityDurationMinutes, Map<DayOfWeek, DayActivityDTO> dayActivities, boolean hasPrevious,
 			boolean hasNext)
 	{
-		super(goalID, startTime, shouldSerializeDate, spread, totalActivityDurationMinutes, hasPrevious, hasNext);
+		super(goalId, startTime, shouldSerializeDate, spread, totalActivityDurationMinutes, hasPrevious, hasNext);
 		this.dayActivities = dayActivities;
 	}
 
@@ -59,7 +59,7 @@ public class WeekActivityDTO extends IntervalActivityDTO
 	}
 
 	@Override
-	protected String formatDateAsISO(LocalDate date)
+	protected String formatDateAsIso(LocalDate date)
 	{
 		return formatDate(date);
 	}
@@ -87,7 +87,7 @@ public class WeekActivityDTO extends IntervalActivityDTO
 	static WeekActivityDTO createInstance(WeekActivity weekActivity, LevelOfDetail levelOfDetail)
 	{
 		boolean includeDetail = levelOfDetail == LevelOfDetail.WeekDetail;
-		return new WeekActivityDTO(weekActivity.getGoal().getID(), weekActivity.getStartTime(), includeDetail,
+		return new WeekActivityDTO(weekActivity.getGoal().getId(), weekActivity.getStartTime(), includeDetail,
 				includeDetail ? weekActivity.getSpread() : Collections.emptyList(),
 				includeDetail ? Optional.of(weekActivity.getTotalActivityDurationMinutes()) : Optional.empty(),
 				weekActivity.getDayActivities().stream()
@@ -99,9 +99,9 @@ public class WeekActivityDTO extends IntervalActivityDTO
 	public static WeekActivityDTO createInstanceInactivity(UserAnonymizedDTO userAnonymized, Goal goal, ZonedDateTime startOfWeek,
 			LevelOfDetail levelOfDetail, Set<IntervalInactivityDTO> missingInactivities)
 	{
-		missingInactivities.add(IntervalInactivityDTO.createWeekInstance(userAnonymized.getID(), goal.getID(), startOfWeek));
+		missingInactivities.add(IntervalInactivityDTO.createWeekInstance(userAnonymized.getId(), goal.getId(), startOfWeek));
 		boolean includeDetail = levelOfDetail == LevelOfDetail.WeekDetail;
-		WeekActivityDTO weekActivity = new WeekActivityDTO(goal.getID(), startOfWeek, includeDetail,
+		WeekActivityDTO weekActivity = new WeekActivityDTO(goal.getId(), startOfWeek, includeDetail,
 				includeDetail ? DayActivityDTO.createInactiveSpread() : Collections.emptyList(),
 				includeDetail ? Optional.of(0) : Optional.empty(), new HashMap<>(),
 				IntervalActivity.hasPrevious(goal, startOfWeek, ChronoUnit.WEEKS),

@@ -80,7 +80,7 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 	public static BuddyConnectResponseMessageDTO createInstance(UserDTO actingUser, BuddyConnectResponseMessage messageEntity,
 			SenderInfo senderInfo)
 	{
-		return new BuddyConnectResponseMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+		return new BuddyConnectResponseMessageDTO(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				senderInfo, messageEntity.getMessage(), messageEntity.getStatus(), messageEntity.isProcessed());
 	}
 
@@ -129,12 +129,12 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 
 			if (connectResponseMessageEntity.getStatus() == Status.REJECTED)
 			{
-				buddyService.removeBuddyAfterConnectRejection(actingUser.getID(), connectResponseMessageEntity.getBuddyID());
+				buddyService.removeBuddyAfterConnectRejection(actingUser.getId(), connectResponseMessageEntity.getBuddyId());
 			}
 			else
 			{
-				buddyService.setBuddyAcceptedWithSecretUserInfo(connectResponseMessageEntity.getBuddyID(),
-						connectResponseMessageEntity.getRelatedUserAnonymizedID().get(),
+				buddyService.setBuddyAcceptedWithSecretUserInfo(connectResponseMessageEntity.getBuddyId(),
+						connectResponseMessageEntity.getRelatedUserAnonymizedId().get(),
 						connectResponseMessageEntity.getSenderNickname());
 			}
 
@@ -142,10 +142,10 @@ public class BuddyConnectResponseMessageDTO extends BuddyMessageLinkedUserDTO
 
 			String mobileNumber = connectResponseMessageEntity.getSenderUser().map(u -> u.getMobileNumber())
 					.orElse("already deleted");
-			String id = connectResponseMessageEntity.getSenderUser().map(u -> u.getID().toString()).orElse("already deleted");
+			String id = connectResponseMessageEntity.getSenderUser().map(u -> u.getId().toString()).orElse("already deleted");
 			logger.info(
 					"User with mobile number '{}' and ID '{}' processed buddy connect response from user with mobile number '{}' and ID '{}'",
-					actingUser.getMobileNumber(), actingUser.getID(), mobileNumber, id);
+					actingUser.getMobileNumber(), actingUser.getId(), mobileNumber, id);
 
 			return MessageActionDTO
 					.createInstanceActionDone(theDTOFactory.createInstance(actingUser, connectResponseMessageEntity));

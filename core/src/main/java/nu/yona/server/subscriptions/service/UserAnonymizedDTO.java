@@ -28,27 +28,27 @@ public class UserAnonymizedDTO implements Serializable
 	private final UUID id;
 	private final Set<GoalDTO> goals;
 	private final MessageDestinationDTO anonymousMessageDestination;
-	private final Set<UUID> buddyAnonymizedIDs;
+	private final Set<UUID> buddyAnonymizedIds;
 
 	private static final ZoneId DEFAULT_TIME_ZONE = ZoneId.of("Europe/Amsterdam");
 
 	public UserAnonymizedDTO(UUID id, Set<GoalDTO> goals, MessageDestinationDTO anonymousMessageDestination,
-			Set<UUID> buddyAnonymizedIDs)
+			Set<UUID> buddyAnonymizedIds)
 	{
 		this.id = id;
 		this.goals = new HashSet<>(goals);
 		this.anonymousMessageDestination = anonymousMessageDestination;
-		this.buddyAnonymizedIDs = buddyAnonymizedIDs;
+		this.buddyAnonymizedIds = buddyAnonymizedIds;
 	}
 
 	public static UserAnonymizedDTO createInstance(UserAnonymized entity)
 	{
-		return new UserAnonymizedDTO(entity.getID(), getGoalsIncludingHistoryItems(entity),
+		return new UserAnonymizedDTO(entity.getId(), getGoalsIncludingHistoryItems(entity),
 				MessageDestinationDTO.createInstance(entity.getAnonymousDestination()), entity.getBuddiesAnonymized().stream()
-						.map(buddyAnonymized -> buddyAnonymized.getID()).collect(Collectors.toSet()));
+						.map(buddyAnonymized -> buddyAnonymized.getId()).collect(Collectors.toSet()));
 	}
 
-	public UUID getID()
+	public UUID getId()
 	{
 		return id;
 	}
@@ -60,7 +60,7 @@ public class UserAnonymizedDTO implements Serializable
 
 	public Set<GoalDTO> getGoalsForActivityCategory(ActivityCategory activityCategory)
 	{
-		return getGoals().stream().filter(g -> g.getActivityCategoryID().equals(activityCategory.getID()))
+		return getGoals().stream().filter(g -> g.getActivityCategoryId().equals(activityCategory.getId()))
 				.collect(Collectors.toSet());
 	}
 
@@ -76,16 +76,16 @@ public class UserAnonymizedDTO implements Serializable
 
 	public Set<MessageDestinationDTO> getBuddyDestinations()
 	{
-		return buddyAnonymizedIDs.stream().map(id -> BuddyAnonymized.getRepository().findOne(id))
+		return buddyAnonymizedIds.stream().map(id -> BuddyAnonymized.getRepository().findOne(id))
 				.filter(ba -> ba.getSendingStatus() == Status.ACCEPTED)
 				.map(ba -> MessageDestinationDTO.createInstance(ba.getUserAnonymized().getAnonymousDestination()))
 				.collect(Collectors.toSet());
 	}
 
-	public Optional<BuddyAnonymized> getBuddyAnonymized(UUID fromUserAnonymizedID)
+	public Optional<BuddyAnonymized> getBuddyAnonymized(UUID fromUserAnonymizedId)
 	{
-		return buddyAnonymizedIDs.stream().map(id -> BuddyAnonymized.getRepository().findOne(id))
-				.filter(ba -> ba.getUserAnonymizedID().filter(id -> id.equals(fromUserAnonymizedID)).isPresent()).findAny();
+		return buddyAnonymizedIds.stream().map(id -> BuddyAnonymized.getRepository().findOne(id))
+				.filter(ba -> ba.getUserAnonymizedId().filter(id -> id.equals(fromUserAnonymizedId)).isPresent()).findAny();
 	}
 
 	public Optional<LocalDateTime> getOldestGoalCreationTime()
@@ -124,6 +124,6 @@ public class UserAnonymizedDTO implements Serializable
 
 	public boolean hasAnyBuddies()
 	{
-		return !buddyAnonymizedIDs.isEmpty();
+		return !buddyAnonymizedIds.isEmpty();
 	}
 }

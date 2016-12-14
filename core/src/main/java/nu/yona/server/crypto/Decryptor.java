@@ -13,9 +13,9 @@ public interface Decryptor
 
 	String decryptString(byte[] ciphertext);
 
-	UUID decryptUUID(byte[] ciphertext);
+	UUID decryptUuid(byte[] ciphertext);
 
 	long decryptLong(byte[] ciphertext);
 
-	Set<UUID> decryptUUIDSet(byte[] ciphertext);
+	Set<UUID> decryptUuidSet(byte[] ciphertext);
 }

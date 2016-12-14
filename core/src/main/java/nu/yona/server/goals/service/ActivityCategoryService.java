@@ -42,7 +42,7 @@ public class ActivityCategoryService
 	@Transactional
 	public ActivityCategoryDTO getActivityCategory(UUID id)
 	{
-		ActivityCategory activityCategoryEntity = getEntityByID(id);
+		ActivityCategory activityCategoryEntity = getEntityById(id);
 		return ActivityCategoryDTO.createInstance(activityCategoryEntity);
 	}
 
@@ -61,7 +61,7 @@ public class ActivityCategoryService
 	public ActivityCategoryDTO addActivityCategory(ActivityCategoryDTO activityCategoryDTO)
 	{
 		logger.info("Adding activity category '{}' with ID '{}'", activityCategoryDTO.getName(Translator.EN_US_LOCALE),
-				activityCategoryDTO.getID());
+				activityCategoryDTO.getId());
 		verifyNoDuplicateNames(Collections.emptySet(), activityCategoryDTO.getLocalizableNameByLocale());
 		return ActivityCategoryDTO.createInstance(repository.save(activityCategoryDTO.createActivityCategoryEntity()));
 	}
@@ -70,7 +70,7 @@ public class ActivityCategoryService
 	@Transactional
 	public ActivityCategoryDTO updateActivityCategory(UUID id, ActivityCategoryDTO activityCategoryDTO)
 	{
-		ActivityCategory originalEntity = getEntityByID(id);
+		ActivityCategory originalEntity = getEntityById(id);
 		logger.info("Updating activity category '{}' with ID '{}'", getName(originalEntity), id);
 		verifyNoDuplicateNames(Collections.singleton(id), activityCategoryDTO.getLocalizableNameByLocale());
 		return ActivityCategoryDTO.createInstance(updateActivityCategory(originalEntity, activityCategoryDTO));
@@ -92,7 +92,7 @@ public class ActivityCategoryService
 	@Transactional
 	public void deleteActivityCategory(UUID id)
 	{
-		deleteActivityCategory(getEntityByID(id));
+		deleteActivityCategory(getEntityById(id));
 	}
 
 	public Set<ActivityCategoryDTO> getMatchingCategoriesForSmoothwallCategories(Set<String> smoothwallCategories)
@@ -112,7 +112,7 @@ public class ActivityCategoryService
 
 	private void deleteActivityCategory(ActivityCategory entity)
 	{
-		logger.info("Deleting activity category '{}' with ID '{}'", getName(entity), entity.getID());
+		logger.info("Deleting activity category '{}' with ID '{}'", getName(entity), entity.getId());
 		repository.delete(entity);
 	}
 
@@ -120,7 +120,7 @@ public class ActivityCategoryService
 	{
 		Iterable<ActivityCategory> allCategories = repository.findAll();
 		List<ActivityCategory> categoriesToConsider = StreamSupport.stream(allCategories.spliterator(), false)
-				.filter(c -> !idsToSkip.contains(c.getID())).collect(Collectors.toList());
+				.filter(c -> !idsToSkip.contains(c.getId())).collect(Collectors.toList());
 		for (Entry<Locale, String> localeAndName : localizableName.entrySet())
 		{
 			verifyNoDuplicateNames(categoriesToConsider, localeAndName);
@@ -142,7 +142,7 @@ public class ActivityCategoryService
 		return repository.save(activityCategorySourceDTO.updateActivityCategory(activityCategoryTargetEntity));
 	}
 
-	private ActivityCategory getEntityByID(UUID id)
+	private ActivityCategory getEntityById(UUID id)
 	{
 		ActivityCategory entity = repository.findOne(id);
 		if (entity == null)
@@ -166,11 +166,11 @@ public class ActivityCategoryService
 			Set<ActivityCategory> activityCategoriesInRepository)
 	{
 		Map<UUID, ActivityCategory> activityCategoriesInRepositoryMap = activityCategoriesInRepository.stream()
-				.collect(Collectors.toMap(ac -> ac.getID(), ac -> ac));
+				.collect(Collectors.toMap(ac -> ac.getId(), ac -> ac));
 
 		for (ActivityCategoryDTO activityCategoryDTO : activityCategoryDTOs)
 		{
-			ActivityCategory activityCategoryEntity = activityCategoriesInRepositoryMap.get(activityCategoryDTO.getID());
+			ActivityCategory activityCategoryEntity = activityCategoriesInRepositoryMap.get(activityCategoryDTO.getId());
 			if (activityCategoryEntity == null)
 			{
 				addActivityCategory(activityCategoryDTO);
@@ -180,7 +180,7 @@ public class ActivityCategoryService
 			{
 				if (!isUpToDate(activityCategoryEntity, activityCategoryDTO))
 				{
-					updateActivityCategory(activityCategoryDTO.getID(), activityCategoryDTO);
+					updateActivityCategory(activityCategoryDTO.getId(), activityCategoryDTO);
 					explicitlyFlushUpdatesToDatabase();
 				}
 			}
@@ -200,9 +200,9 @@ public class ActivityCategoryService
 			Set<ActivityCategoryDTO> activityCategoryDTOs)
 	{
 		Map<UUID, ActivityCategoryDTO> activityCategoryDTOsMap = activityCategoryDTOs.stream()
-				.collect(Collectors.toMap(ac -> ac.getID(), ac -> ac));
+				.collect(Collectors.toMap(ac -> ac.getId(), ac -> ac));
 
-		activityCategoriesInRepository.stream().filter(ac -> !activityCategoryDTOsMap.containsKey(ac.getID()))
+		activityCategoriesInRepository.stream().filter(ac -> !activityCategoryDTOsMap.containsKey(ac.getId()))
 				.forEach(ac -> deleteActivityCategory(ac));
 	}
 

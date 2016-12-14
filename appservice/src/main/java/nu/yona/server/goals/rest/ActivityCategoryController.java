@@ -45,7 +45,7 @@ public class ActivityCategoryController
 	@JsonView(ActivityCategoryDTO.AppView.class)
 	public HttpEntity<ActivityCategoryResource> getActivityCategory(@PathVariable UUID id)
 	{
-		return createOKResponse(activityCategoryService.getActivityCategory(id));
+		return createOkResponse(activityCategoryService.getActivityCategory(id));
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
@@ -53,10 +53,10 @@ public class ActivityCategoryController
 	@JsonView(ActivityCategoryDTO.AppView.class)
 	public HttpEntity<Resources<ActivityCategoryResource>> getAllActivityCategories()
 	{
-		return createOKResponse(activityCategoryService.getAllActivityCategories(), getAllActivityCategoriesLinkBuilder());
+		return createOkResponse(activityCategoryService.getAllActivityCategories(), getAllActivityCategoriesLinkBuilder());
 	}
 
-	private HttpEntity<ActivityCategoryResource> createOKResponse(ActivityCategoryDTO activityCategory)
+	private HttpEntity<ActivityCategoryResource> createOkResponse(ActivityCategoryDTO activityCategory)
 	{
 		return createResponse(activityCategory, HttpStatus.OK);
 	}
@@ -67,7 +67,7 @@ public class ActivityCategoryController
 				status);
 	}
 
-	private HttpEntity<Resources<ActivityCategoryResource>> createOKResponse(Set<ActivityCategoryDTO> activityCategories,
+	private HttpEntity<Resources<ActivityCategoryResource>> createOkResponse(Set<ActivityCategoryDTO> activityCategories,
 			ControllerLinkBuilder controllerMethodLinkBuilder)
 	{
 		return new ResponseEntity<Resources<ActivityCategoryResource>>(
@@ -112,7 +112,7 @@ public class ActivityCategoryController
 		@Override
 		public ActivityCategoryResource toResource(ActivityCategoryDTO activityCategory)
 		{
-			return super.createResourceWithId(activityCategory.getID(), activityCategory);
+			return super.createResourceWithId(activityCategory.getId(), activityCategory);
 		}
 
 		@Override

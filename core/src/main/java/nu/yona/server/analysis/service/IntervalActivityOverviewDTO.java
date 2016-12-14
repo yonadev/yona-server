@@ -24,7 +24,7 @@ public abstract class IntervalActivityOverviewDTO
 	@JsonProperty("date")
 	public String getDateStr()
 	{
-		return formatDateAsISO(date.toLocalDate());
+		return formatDateAsIso(date.toLocalDate());
 	}
 
 	/**
@@ -41,5 +41,5 @@ public abstract class IntervalActivityOverviewDTO
 	 * @param localDate The date to be formatted
 	 * @return The formatted date
 	 */
-	protected abstract String formatDateAsISO(LocalDate localDate);
+	protected abstract String formatDateAsIso(LocalDate localDate);
 }

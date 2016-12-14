@@ -20,36 +20,36 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class IntervalInactivityDTO
 {
 	public static final String DATE_PATTERN_WITH_ZONE = "yyyy-MM-dd'T'HH:mm:ss.SSSVV";
-	private final Optional<UUID> userAnonymizedID;
-	private final UUID goalID;
+	private final Optional<UUID> userAnonymizedId;
+	private final UUID goalId;
 	private final ZonedDateTime startTime;
 	private final ChronoUnit timeUnit;
 
-	private IntervalInactivityDTO(Optional<UUID> userAnonymizedID, UUID goalID, ZonedDateTime startTime, ChronoUnit timeUnit)
+	private IntervalInactivityDTO(Optional<UUID> userAnonymizedId, UUID goalId, ZonedDateTime startTime, ChronoUnit timeUnit)
 	{
-		this.userAnonymizedID = userAnonymizedID;
-		this.goalID = goalID;
+		this.userAnonymizedId = userAnonymizedId;
+		this.goalId = goalId;
 		this.startTime = startTime;
 		this.timeUnit = timeUnit;
 	}
 
 	@JsonCreator
-	public IntervalInactivityDTO(@JsonProperty("goalID") UUID goalID,
+	public IntervalInactivityDTO(@JsonProperty("goalId") UUID goalId,
 			@JsonFormat(pattern = DATE_PATTERN_WITH_ZONE) @JsonProperty("startTime") ZonedDateTime startTime,
 			@JsonProperty("timeUnit") ChronoUnit timeUnit)
 	{
-		this(Optional.empty(), goalID, startTime, timeUnit);
+		this(Optional.empty(), goalId, startTime, timeUnit);
 	}
 
 	@JsonIgnore
-	public Optional<UUID> getUserAnonymizedID()
+	public Optional<UUID> getUserAnonymizedId()
 	{
-		return userAnonymizedID;
+		return userAnonymizedId;
 	}
 
-	public UUID getGoalID()
+	public UUID getGoalId()
 	{
-		return goalID;
+		return goalId;
 	}
 
 	@JsonFormat(pattern = DATE_PATTERN_WITH_ZONE)
@@ -63,13 +63,13 @@ public class IntervalInactivityDTO
 		return timeUnit;
 	}
 
-	public static IntervalInactivityDTO createWeekInstance(UUID userAnonymizedID, UUID goalID, ZonedDateTime startTime)
+	public static IntervalInactivityDTO createWeekInstance(UUID userAnonymizedId, UUID goalId, ZonedDateTime startTime)
 	{
-		return new IntervalInactivityDTO(Optional.of(userAnonymizedID), goalID, startTime, ChronoUnit.WEEKS);
+		return new IntervalInactivityDTO(Optional.of(userAnonymizedId), goalId, startTime, ChronoUnit.WEEKS);
 	}
 
-	public static IntervalInactivityDTO createDayInstance(UUID userAnonymizedID, UUID goalID, ZonedDateTime startTime)
+	public static IntervalInactivityDTO createDayInstance(UUID userAnonymizedId, UUID goalId, ZonedDateTime startTime)
 	{
-		return new IntervalInactivityDTO(Optional.of(userAnonymizedID), goalID, startTime, ChronoUnit.DAYS);
+		return new IntervalInactivityDTO(Optional.of(userAnonymizedId), goalId, startTime, ChronoUnit.DAYS);
 	}
 }

@@ -12,7 +12,7 @@ import javax.persistence.MappedSuperclass;
 import org.hibernate.annotations.Type;
 
 @MappedSuperclass
-public abstract class EntityWithID
+public abstract class EntityWithId
 {
 	@Id
 	@Type(type = "uuid-char")
@@ -23,12 +23,12 @@ public abstract class EntityWithID
 	 * 
 	 * @param id The ID of the entity
 	 */
-	protected EntityWithID(UUID id)
+	protected EntityWithId(UUID id)
 	{
 		this.id = id;
 	}
 
-	public UUID getID()
+	public UUID getId()
 	{
 		return id;
 	}
@@ -42,6 +42,6 @@ public abstract class EntityWithID
 	@Override
 	public boolean equals(Object that)
 	{
-		return (this == that) || ((that instanceof EntityWithID) && getID().equals(((EntityWithID) that).getID()));
+		return (this == that) || ((that instanceof EntityWithId) && getId().equals(((EntityWithId) that).getId()));
 	}
 }

@@ -70,7 +70,7 @@ public class BuddyInfoChangeMessageDTO extends BuddyMessageLinkedUserDTO
 	public static BuddyInfoChangeMessageDTO createInstance(UserDTO actingUser, BuddyInfoChangeMessage messageEntity,
 			SenderInfo senderInfo)
 	{
-		return new BuddyInfoChangeMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+		return new BuddyInfoChangeMessageDTO(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				senderInfo, messageEntity.getMessage(), messageEntity.isProcessed());
 	}
 
@@ -112,9 +112,9 @@ public class BuddyInfoChangeMessageDTO extends BuddyMessageLinkedUserDTO
 		private MessageActionDTO handleAction_Process(UserDTO actingUser, BuddyInfoChangeMessage messageEntity,
 				MessageActionDTO requestPayload)
 		{
-			if (messageEntity.getRelatedUserAnonymizedID().isPresent())
+			if (messageEntity.getRelatedUserAnonymizedId().isPresent())
 			{
-				buddyService.updateBuddyUserInfo(actingUser.getID(), messageEntity.getRelatedUserAnonymizedID().get(),
+				buddyService.updateBuddyUserInfo(actingUser.getId(), messageEntity.getRelatedUserAnonymizedId().get(),
 						messageEntity.getNewNickname());
 			}
 

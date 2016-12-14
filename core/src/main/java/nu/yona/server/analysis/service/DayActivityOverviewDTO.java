@@ -30,7 +30,7 @@ public class DayActivityOverviewDTO<T> extends IntervalActivityOverviewDTO
 	}
 
 	@Override
-	protected String formatDateAsISO(LocalDate date)
+	protected String formatDateAsIso(LocalDate date)
 	{
 		return DayActivityDTO.formatDate(date);
 	}
@@ -49,9 +49,9 @@ public class DayActivityOverviewDTO<T> extends IntervalActivityOverviewDTO
 	public static DayActivityOverviewDTO<DayActivityWithBuddiesDTO> createInstanceForUserWithBuddies(ZonedDateTime date,
 			Set<DayActivityDTO> dayActivities)
 	{
-		Map<UUID, List<DayActivityDTO>> dayActivitiesByActivityCategoryID = dayActivities.stream()
-				.collect(Collectors.groupingBy(da -> da.getActivityCategoryID(), Collectors.toList()));
-		Set<DayActivityWithBuddiesDTO> dayActivityDTOs = dayActivitiesByActivityCategoryID.entrySet().stream()
+		Map<UUID, List<DayActivityDTO>> dayActivitiesByActivityCategoryId = dayActivities.stream()
+				.collect(Collectors.groupingBy(da -> da.getActivityCategoryId(), Collectors.toList()));
+		Set<DayActivityWithBuddiesDTO> dayActivityDTOs = dayActivitiesByActivityCategoryId.entrySet().stream()
 				.map(e -> DayActivityWithBuddiesDTO.createInstance(e.getKey(), e.getValue())).collect(Collectors.toSet());
 		return new DayActivityOverviewDTO<>(date, dayActivityDTOs);
 	}

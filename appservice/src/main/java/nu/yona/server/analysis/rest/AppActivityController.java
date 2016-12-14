@@ -36,7 +36,7 @@ import nu.yona.server.subscriptions.service.UserService;
  * the application service once there is a network connection.
  */
 @Controller
-@RequestMapping(value = "/users/{userID}/appActivity", produces = { MediaType.APPLICATION_JSON_VALUE })
+@RequestMapping(value = "/users/{userId}/appActivity", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class AppActivityController
 {
 	@Autowired
@@ -54,22 +54,22 @@ public class AppActivityController
 	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<Void> addAppActivity(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userID, @RequestBody AppActivityDTO appActivities)
+			@PathVariable UUID userId, @RequestBody AppActivityDTO appActivities)
 	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> {
-			UUID userAnonymizedID = userService.getPrivateUser(userID).getPrivateData().getUserAnonymizedID();
-			analysisEngineProxyService.analyzeAppActivity(userAnonymizedID, appActivities);
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId), () -> {
+			UUID userAnonymizedId = userService.getPrivateUser(userId).getPrivateData().getUserAnonymizedId();
+			analysisEngineProxyService.analyzeAppActivity(userAnonymizedId, appActivities);
 			return null;
 		});
 		return new ResponseEntity<Void>(HttpStatus.OK);
 	}
 
-	public static Link getAppActivityLink(UUID userID)
+	public static Link getAppActivityLink(UUID userId)
 	{
 		try
 		{
 			ControllerLinkBuilder linkBuilder = linkTo(
-					methodOn(AppActivityController.class).addAppActivity(Optional.empty(), userID, null));
+					methodOn(AppActivityController.class).addAppActivity(Optional.empty(), userId, null));
 			return linkBuilder.withRel("appActivity");
 		}
 		catch (SecurityException e)

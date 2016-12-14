@@ -24,13 +24,13 @@ import org.springframework.data.domain.Pageable;
 import nu.yona.server.crypto.ByteFieldEncrypter;
 import nu.yona.server.crypto.PublicKeyDecryptor;
 import nu.yona.server.crypto.PublicKeyUtil;
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.messaging.service.MessageNotFoundException;
 
 @Entity
 @Table(name = "MESSAGE_SOURCES")
-public class MessageSource extends EntityWithID
+public class MessageSource extends EntityWithId
 {
 	public static MessageSourceRepository getRepository()
 	{
@@ -136,9 +136,9 @@ public class MessageSource extends EntityWithID
 		return this;
 	}
 
-	public Page<? extends Message> getActivityRelatedMessages(UUID activityID, Pageable pageable)
+	public Page<? extends Message> getActivityRelatedMessages(UUID activityId, Pageable pageable)
 	{
-		Page<Message> messages = messageDestination.getActivityRelatedMessages(activityID, pageable);
+		Page<Message> messages = messageDestination.getActivityRelatedMessages(activityId, pageable);
 		decryptMessagePage(messages);
 		return messages;
 	}

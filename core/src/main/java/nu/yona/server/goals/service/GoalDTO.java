@@ -37,17 +37,17 @@ public abstract class GoalDTO extends PolymorphicDTO implements Serializable
 	private static final long serialVersionUID = 2825849099414812967L;
 
 	private final UUID id;
-	private UUID activityCategoryID;
+	private UUID activityCategoryId;
 	private final LocalDateTime creationTime;
 	private final boolean mandatory;
 	private final LocalDateTime endTime;
 
-	protected GoalDTO(UUID id, Optional<LocalDateTime> creationTime, Optional<LocalDateTime> endTime, UUID activityCategoryID,
+	protected GoalDTO(UUID id, Optional<LocalDateTime> creationTime, Optional<LocalDateTime> endTime, UUID activityCategoryId,
 			boolean mandatory)
 	{
 		Objects.requireNonNull(creationTime);
 		this.id = id;
-		this.setActivityCategoryID(activityCategoryID);
+		this.setActivityCategoryId(activityCategoryId);
 		this.mandatory = mandatory;
 
 		// not using Optional as field here because of implementing Serializable
@@ -65,7 +65,7 @@ public abstract class GoalDTO extends PolymorphicDTO implements Serializable
 	public abstract void validate();
 
 	@JsonIgnore
-	public UUID getID()
+	public UUID getGoalId()
 	{
 		return id;
 	}
@@ -98,15 +98,15 @@ public abstract class GoalDTO extends PolymorphicDTO implements Serializable
 	}
 
 	@JsonIgnore
-	public UUID getActivityCategoryID()
+	public UUID getActivityCategoryId()
 	{
-		return activityCategoryID;
+		return activityCategoryId;
 	}
 
 	@JsonIgnore
-	public void setActivityCategoryID(UUID activityCategoryID)
+	public void setActivityCategoryId(UUID activityCategoryId)
 	{
-		this.activityCategoryID = activityCategoryID;
+		this.activityCategoryId = activityCategoryId;
 	}
 
 	@JsonIgnore

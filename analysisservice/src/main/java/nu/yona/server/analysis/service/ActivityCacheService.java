@@ -24,11 +24,11 @@ import nu.yona.server.analysis.entities.DayActivity;
 @CacheConfig(cacheManager = "localCache", cacheNames = "lastActivity")
 public class ActivityCacheService
 {
-	@Cacheable(key = "{#userAnonymizedID,#goalID}")
+	@Cacheable(key = "{#userAnonymizedId,#goalId}")
 	@Transactional
-	public ActivityDTO fetchLastActivityForUser(UUID userAnonymizedID, UUID goalID)
+	public ActivityDTO fetchLastActivityForUser(UUID userAnonymizedId, UUID goalId)
 	{
-		List<DayActivity> lastDayActivityList = DayActivity.getRepository().findLast(userAnonymizedID, goalID, new PageRequest(0, 1))
+		List<DayActivity> lastDayActivityList = DayActivity.getRepository().findLast(userAnonymizedId, goalId, new PageRequest(0, 1))
 				.getContent();
 		if (lastDayActivityList.isEmpty())
 		{
@@ -39,8 +39,8 @@ public class ActivityCacheService
 		return lastActivity == null ? null : ActivityDTO.createInstance(lastActivity);
 	}
 
-	@CachePut(key = "{#userAnonymizedID,#goalID}")
-	public ActivityDTO updateLastActivityForUser(UUID userAnonymizedID, UUID goalID, ActivityDTO activity)
+	@CachePut(key = "{#userAnonymizedId,#goalId}")
+	public ActivityDTO updateLastActivityForUser(UUID userAnonymizedId, UUID goalId, ActivityDTO activity)
 	{
 		// Nothing else to do. Just let Spring cache this new value.
 		return activity;

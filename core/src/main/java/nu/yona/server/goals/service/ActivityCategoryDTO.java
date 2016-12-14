@@ -89,12 +89,12 @@ public class ActivityCategoryDTO implements Serializable
 	}
 
 	@JsonIgnore
-	public UUID getID()
+	public UUID getId()
 	{
 		return id;
 	}
 
-	public void setID(UUID id)
+	public void setId(UUID id)
 	{
 		this.id = id;
 	}
@@ -164,7 +164,7 @@ public class ActivityCategoryDTO implements Serializable
 
 	public static ActivityCategoryDTO createInstance(ActivityCategory activityCategoryEntity)
 	{
-		return new ActivityCategoryDTO(activityCategoryEntity.getID(), activityCategoryEntity.getLocalizableName(),
+		return new ActivityCategoryDTO(activityCategoryEntity.getId(), activityCategoryEntity.getLocalizableName(),
 				activityCategoryEntity.isMandatoryNoGo(), activityCategoryEntity.getSmoothwallCategories(),
 				activityCategoryEntity.getApplications(), activityCategoryEntity.getLocalizableDescription());
 	}

@@ -45,16 +45,16 @@ public class MessageService
 	private TheDTOManager dtoManager;
 
 	@Transactional
-	public Page<MessageDTO> getReceivedMessages(UUID userID, boolean onlyUnreadMessages, Pageable pageable)
+	public Page<MessageDTO> getReceivedMessages(UUID userId, boolean onlyUnreadMessages, Pageable pageable)
 	{
-		UserDTO user = userService.getPrivateValidatedUser(userID);
+		UserDTO user = userService.getPrivateValidatedUser(userId);
 		return wrapMessagesAsDTOs(user, getReceivedMessageEntities(user, onlyUnreadMessages, pageable), pageable);
 	}
 
 	@Transactional
-	public Page<Message> getReceivedMessageEntities(UUID userID, Pageable pageable)
+	public Page<Message> getReceivedMessageEntities(UUID userId, Pageable pageable)
 	{
-		UserDTO user = userService.getPrivateValidatedUser(userID);
+		UserDTO user = userService.getPrivateValidatedUser(userId);
 
 		return getReceivedMessageEntities(user, false, pageable);
 	}
@@ -65,18 +65,18 @@ public class MessageService
 		return messageSource.getReceivedMessages(pageable, onlyUnreadMessages);
 	}
 
-	public Page<Message> getReceivedMessageEntitiesSinceDate(UUID userID, LocalDateTime earliestDateTime, Pageable pageable)
+	public Page<Message> getReceivedMessageEntitiesSinceDate(UUID userId, LocalDateTime earliestDateTime, Pageable pageable)
 	{
-		UserDTO user = userService.getPrivateValidatedUser(userID);
+		UserDTO user = userService.getPrivateValidatedUser(userId);
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return messageSource.getReceivedMessages(pageable, earliestDateTime);
 	}
 
 	// handle in a separate transaction to limit exceptions caused by concurrent calls to this method
 	@Transactional
-	public void transferDirectMessagesToAnonymousDestination(UUID userID)
+	public void transferDirectMessagesToAnonymousDestination(UUID userId)
 	{
-		UserDTO user = userService.getPrivateValidatedUser(userID);
+		UserDTO user = userService.getPrivateValidatedUser(userId);
 		try
 		{
 			tryTransferDirectMessagesToAnonymousDestination(user);
@@ -88,7 +88,7 @@ public class MessageService
 				// Ignore and proceed. Another concurrent thread has transferred the messages.
 				// We avoid a lock here because that limits scaling this service horizontally.
 				logger.info(
-						"The direct messages of user with mobile number '" + user.getMobileNumber() + "' and ID '" + user.getID()
+						"The direct messages of user with mobile number '" + user.getMobileNumber() + "' and ID '" + user.getId()
 								+ "' were apparently concurrently moved to the anonymous messages while handling another request.",
 						e);
 			}
@@ -117,27 +117,27 @@ public class MessageService
 	}
 
 	@Transactional
-	public MessageDTO getMessage(UUID userID, UUID messageID)
+	public MessageDTO getMessage(UUID userId, UUID messageId)
 	{
-		UserDTO user = userService.getPrivateValidatedUser(userID);
+		UserDTO user = userService.getPrivateValidatedUser(userId);
 
 		MessageSource messageSource = getAnonymousMessageSource(user);
-		return dtoManager.createInstance(user, messageSource.getMessage(messageID));
+		return dtoManager.createInstance(user, messageSource.getMessage(messageId));
 	}
 
 	@Transactional
-	public MessageActionDTO handleMessageAction(UUID userID, UUID id, String action, MessageActionDTO requestPayload)
+	public MessageActionDTO handleMessageAction(UUID userId, UUID id, String action, MessageActionDTO requestPayload)
 	{
-		UserDTO user = userService.getPrivateValidatedUser(userID);
+		UserDTO user = userService.getPrivateValidatedUser(userId);
 
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
 	}
 
 	@Transactional
-	public MessageActionDTO deleteMessage(UUID userID, UUID id)
+	public MessageActionDTO deleteMessage(UUID userId, UUID id)
 	{
-		UserDTO user = userService.getPrivateValidatedUser(userID);
+		UserDTO user = userService.getPrivateValidatedUser(userId);
 
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		Message message = messageSource.getMessage(id);
@@ -161,12 +161,12 @@ public class MessageService
 
 	private MessageSource getNamedMessageSource(UserDTO user)
 	{
-		return MessageSource.getRepository().findOne(user.getPrivateData().getNamedMessageSourceID());
+		return MessageSource.getRepository().findOne(user.getPrivateData().getNamedMessageSourceId());
 	}
 
 	private MessageSource getAnonymousMessageSource(UserDTO user)
 	{
-		return MessageSource.getRepository().findOne(user.getPrivateData().getAnonymousMessageSourceID());
+		return MessageSource.getRepository().findOne(user.getPrivateData().getAnonymousMessageSourceId());
 	}
 
 	private Page<MessageDTO> wrapMessagesAsDTOs(UserDTO user, Page<? extends Message> messageEntities, Pageable pageable)
@@ -234,21 +234,21 @@ public class MessageService
 	@Transactional
 	public void sendMessage(Message message, MessageDestinationDTO destination)
 	{
-		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getID());
+		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getId());
 		destinationEntity.send(message);
 		MessageDestination.getRepository().save(destinationEntity);
 	}
 
 	@Transactional
-	public void removeMessagesFromUser(MessageDestinationDTO destination, UUID sentByUserAnonymizedID)
+	public void removeMessagesFromUser(MessageDestinationDTO destination, UUID sentByUserAnonymizedId)
 	{
-		if (sentByUserAnonymizedID == null)
+		if (sentByUserAnonymizedId == null)
 		{
-			throw new IllegalArgumentException("sentByUserAnonymizedID cannot be null");
+			throw new IllegalArgumentException("sentByUserAnonymizedId cannot be null");
 		}
 
-		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getID());
-		destinationEntity.removeMessagesFromUser(sentByUserAnonymizedID);
+		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getId());
+		destinationEntity.removeMessagesFromUser(sentByUserAnonymizedId);
 		MessageDestination.getRepository().save(destinationEntity);
 	}
 
@@ -265,10 +265,10 @@ public class MessageService
 	}
 
 	@Transactional
-	public Page<MessageDTO> getActivityRelatedMessages(UUID userID, UUID activityID, Pageable pageable)
+	public Page<MessageDTO> getActivityRelatedMessages(UUID userId, UUID activityId, Pageable pageable)
 	{
-		UserDTO user = userService.getPrivateValidatedUser(userID);
+		UserDTO user = userService.getPrivateValidatedUser(userId);
 		MessageSource messageSource = getAnonymousMessageSource(user);
-		return wrapMessagesAsDTOs(user, messageSource.getActivityRelatedMessages(activityID, pageable), pageable);
+		return wrapMessagesAsDTOs(user, messageSource.getActivityRelatedMessages(activityId, pageable), pageable);
 	}
 }

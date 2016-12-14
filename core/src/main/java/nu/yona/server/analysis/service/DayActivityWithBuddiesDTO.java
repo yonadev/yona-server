@@ -22,18 +22,18 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 public class DayActivityWithBuddiesDTO
 {
 	private final Collection<ActivityForOneUser> activitiesByUser;
-	private final UUID activityCategoryID;
+	private final UUID activityCategoryId;
 
-	private DayActivityWithBuddiesDTO(UUID activityCategoryID, Collection<ActivityForOneUser> activitiesByUser)
+	private DayActivityWithBuddiesDTO(UUID activityCategoryId, Collection<ActivityForOneUser> activitiesByUser)
 	{
-		this.activityCategoryID = activityCategoryID;
+		this.activityCategoryId = activityCategoryId;
 		this.activitiesByUser = activitiesByUser;
 	}
 
 	@JsonIgnore
-	public UUID getActivityCategoryID()
+	public UUID getActivityCategoryId()
 	{
-		return activityCategoryID;
+		return activityCategoryId;
 	}
 
 	@JsonIgnore
@@ -42,11 +42,11 @@ public class DayActivityWithBuddiesDTO
 		return Collections.unmodifiableCollection(activitiesByUser);
 	}
 
-	static DayActivityWithBuddiesDTO createInstance(UUID activityCategoryID, Collection<DayActivityDTO> dayActivities)
+	static DayActivityWithBuddiesDTO createInstance(UUID activityCategoryId, Collection<DayActivityDTO> dayActivities)
 	{
 		Collection<ActivityForOneUser> activitiesByUser = dayActivities.stream().map(da -> ActivityForOneUser.createInstance(da))
 				.collect(Collectors.toList());
-		return new DayActivityWithBuddiesDTO(activityCategoryID, activitiesByUser);
+		return new DayActivityWithBuddiesDTO(activityCategoryId, activitiesByUser);
 	}
 
 	public static class ActivityForOneUser
@@ -55,12 +55,12 @@ public class DayActivityWithBuddiesDTO
 		private final int totalMinutesBeyondGoal;
 		private final List<Integer> spread;
 		private final int totalActivityDurationMinutes;
-		private final UUID goalID;
+		private final UUID goalId;
 
-		private ActivityForOneUser(UUID goalID, List<Integer> spread, int totalActivityDurationMinutes, boolean goalAccomplished,
+		private ActivityForOneUser(UUID goalId, List<Integer> spread, int totalActivityDurationMinutes, boolean goalAccomplished,
 				int totalMinutesBeyondGoal)
 		{
-			this.goalID = goalID;
+			this.goalId = goalId;
 			this.spread = spread;
 			this.totalActivityDurationMinutes = totalActivityDurationMinutes;
 			this.goalAccomplished = goalAccomplished;
@@ -69,14 +69,14 @@ public class DayActivityWithBuddiesDTO
 
 		public static ActivityForOneUser createInstance(DayActivityDTO da)
 		{
-			return new ActivityForOneUser(da.getGoalID(), da.getSpread(), da.getTotalActivityDurationMinutes().get(),
+			return new ActivityForOneUser(da.getGoalId(), da.getSpread(), da.getTotalActivityDurationMinutes().get(),
 					da.isGoalAccomplished(), da.getTotalMinutesBeyondGoal());
 		}
 
 		@JsonIgnore
-		public UUID getGoalID()
+		public UUID getGoalId()
 		{
-			return goalID;
+			return goalId;
 		}
 
 		public boolean isGoalAccomplished()

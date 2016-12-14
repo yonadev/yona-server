@@ -23,13 +23,13 @@ public class UserPrivateDTO
 	private final String nickname;
 	private final Set<GoalDTO> goals;
 	private final VPNProfileDTO vpnProfile;
-	private final UUID userAnonymizedID;
-	private final UUID namedMessageSourceID;
-	private final UUID namedMessageDestinationID;
-	private final UUID anonymousMessageSourceID;
-	private final UUID anonymousMessageDestinationID;
-	private final Set<UUID> buddyIDs;
-	private final Function<Set<UUID>, Set<BuddyDTO>> buddyIDToDTOMapper;
+	private final UUID userAnonymizedId;
+	private final UUID namedMessageSourceId;
+	private final UUID namedMessageDestinationId;
+	private final UUID anonymousMessageSourceId;
+	private final UUID anonymousMessageDestinationId;
+	private final Set<UUID> buddyIds;
+	private final Function<Set<UUID>, Set<BuddyDTO>> buddyIdToDTOMapper;
 
 	@JsonCreator
 	public UserPrivateDTO(@JsonProperty("nickname") String nickname)
@@ -38,21 +38,21 @@ public class UserPrivateDTO
 				new VPNProfileDTO(null));
 	}
 
-	UserPrivateDTO(String nickname, UUID namedMessageSourceID, UUID namedMessageDestinationID, UUID anonymousMessageSourceID,
-			UUID anonymousMessageDestinationID, Set<GoalDTO> goals, Set<UUID> buddyIDs,
-			Function<Set<UUID>, Set<BuddyDTO>> buddyIDToDTOMapper, UUID userAnonymizedID, VPNProfileDTO vpnProfile)
+	UserPrivateDTO(String nickname, UUID namedMessageSourceId, UUID namedMessageDestinationId, UUID anonymousMessageSourceId,
+			UUID anonymousMessageDestinationId, Set<GoalDTO> goals, Set<UUID> buddyIds,
+			Function<Set<UUID>, Set<BuddyDTO>> buddyIdToDTOMapper, UUID userAnonymizedId, VPNProfileDTO vpnProfile)
 	{
 		Objects.requireNonNull(goals);
-		Objects.requireNonNull(buddyIDs);
+		Objects.requireNonNull(buddyIds);
 		this.nickname = nickname;
-		this.namedMessageSourceID = namedMessageSourceID;
-		this.namedMessageDestinationID = namedMessageDestinationID;
-		this.anonymousMessageSourceID = anonymousMessageSourceID;
-		this.anonymousMessageDestinationID = anonymousMessageDestinationID;
+		this.namedMessageSourceId = namedMessageSourceId;
+		this.namedMessageDestinationId = namedMessageDestinationId;
+		this.anonymousMessageSourceId = anonymousMessageSourceId;
+		this.anonymousMessageDestinationId = anonymousMessageDestinationId;
 		this.goals = goals;
-		this.buddyIDs = buddyIDs;
-		this.buddyIDToDTOMapper = buddyIDToDTOMapper;
-		this.userAnonymizedID = userAnonymizedID;
+		this.buddyIds = buddyIds;
+		this.buddyIdToDTOMapper = buddyIdToDTOMapper;
+		this.userAnonymizedId = userAnonymizedId;
 		this.vpnProfile = vpnProfile;
 	}
 
@@ -74,44 +74,44 @@ public class UserPrivateDTO
 	}
 
 	@JsonIgnore
-	public UUID getNamedMessageSourceID()
+	public UUID getNamedMessageSourceId()
 	{
-		return namedMessageSourceID;
+		return namedMessageSourceId;
 	}
 
 	@JsonIgnore
-	public UUID getNamedMessageDestinationID()
+	public UUID getNamedMessageDestinationId()
 	{
-		return namedMessageDestinationID;
+		return namedMessageDestinationId;
 	}
 
 	@JsonIgnore
-	public UUID getAnonymousMessageSourceID()
+	public UUID getAnonymousMessageSourceId()
 	{
-		return anonymousMessageSourceID;
+		return anonymousMessageSourceId;
 	}
 
 	@JsonIgnore
-	public UUID getAnonymousMessageDestinationID()
+	public UUID getAnonymousMessageDestinationId()
 	{
-		return anonymousMessageDestinationID;
+		return anonymousMessageDestinationId;
 	}
 
 	@JsonIgnore
-	public Set<UUID> getBuddyIDs()
+	public Set<UUID> getBuddyIds()
 	{
-		return Collections.unmodifiableSet(buddyIDs);
+		return Collections.unmodifiableSet(buddyIds);
 	}
 
 	@JsonIgnore
 	public Set<BuddyDTO> getBuddies()
 	{
-		return buddyIDToDTOMapper.apply(buddyIDs);
+		return buddyIdToDTOMapper.apply(buddyIds);
 	}
 
 	@JsonIgnore
-	public UUID getUserAnonymizedID()
+	public UUID getUserAnonymizedId()
 	{
-		return userAnonymizedID;
+		return userAnonymizedId;
 	}
 }

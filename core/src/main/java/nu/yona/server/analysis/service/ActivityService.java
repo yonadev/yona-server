@@ -82,17 +82,17 @@ public class ActivityService
 	private AnalysisEngineProxyService analysisEngineProxyService;
 
 	@Transactional
-	public Page<WeekActivityOverviewDTO> getUserWeekActivityOverviews(UUID userID, Pageable pageable)
+	public Page<WeekActivityOverviewDTO> getUserWeekActivityOverviews(UUID userId, Pageable pageable)
 	{
 		return executeAndCreateInactivityEntries(
-				mia -> getWeekActivityOverviews(userService.getUserAnonymizedID(userID), pageable, mia));
+				mia -> getWeekActivityOverviews(userService.getUserAnonymizedId(userId), pageable, mia));
 	}
 
 	@Transactional
-	public Page<WeekActivityOverviewDTO> getBuddyWeekActivityOverviews(UUID buddyID, Pageable pageable)
+	public Page<WeekActivityOverviewDTO> getBuddyWeekActivityOverviews(UUID buddyId, Pageable pageable)
 	{
 		return executeAndCreateInactivityEntries(
-				mia -> getWeekActivityOverviews(getBuddyUserAnonymizedID(buddyID), pageable, mia));
+				mia -> getWeekActivityOverviews(getBuddyUserAnonymizedId(buddyId), pageable, mia));
 	}
 
 	private <T> T executeAndCreateInactivityEntries(Function<Set<IntervalInactivityDTO>, T> executor)
@@ -108,19 +108,19 @@ public class ActivityService
 
 	private void createInactivityEntities(Set<IntervalInactivityDTO> missingInactivities)
 	{
-		Map<UUID, Set<IntervalInactivityDTO>> activitiesByUserAnonymizedID = missingInactivities.stream()
-				.collect(Collectors.groupingBy(mia -> mia.getUserAnonymizedID().get(), Collectors.toSet()));
+		Map<UUID, Set<IntervalInactivityDTO>> activitiesByUserAnonymizedId = missingInactivities.stream()
+				.collect(Collectors.groupingBy(mia -> mia.getUserAnonymizedId().get(), Collectors.toSet()));
 
-		activitiesByUserAnonymizedID.forEach((u, mias) -> analysisEngineProxyService.createInactivityEntities(u, mias));
+		activitiesByUserAnonymizedId.forEach((u, mias) -> analysisEngineProxyService.createInactivityEntities(u, mias));
 	}
 
-	private Page<WeekActivityOverviewDTO> getWeekActivityOverviews(UUID userAnonymizedID, Pageable pageable,
+	private Page<WeekActivityOverviewDTO> getWeekActivityOverviews(UUID userAnonymizedId, Pageable pageable,
 			Set<IntervalInactivityDTO> missingInactivities)
 	{
-		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
+		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		Interval interval = getInterval(getCurrentWeekDate(userAnonymized), pageable, ChronoUnit.WEEKS);
 
-		Map<LocalDate, Set<WeekActivity>> weekActivityEntitiesByLocalDate = getWeekActivitiesGroupedByDate(userAnonymizedID,
+		Map<LocalDate, Set<WeekActivity>> weekActivityEntitiesByLocalDate = getWeekActivitiesGroupedByDate(userAnonymizedId,
 				interval);
 		Map<ZonedDateTime, Set<WeekActivity>> weekActivityEntitiesByZonedDate = mapToZonedDateTime(
 				weekActivityEntitiesByLocalDate);
@@ -188,26 +188,26 @@ public class ActivityService
 		return intervalActivityEntitiesByZonedDate;
 	}
 
-	private Map<LocalDate, Set<WeekActivity>> getWeekActivitiesGroupedByDate(UUID userAnonymizedID, Interval interval)
+	private Map<LocalDate, Set<WeekActivity>> getWeekActivitiesGroupedByDate(UUID userAnonymizedId, Interval interval)
 	{
-		Set<WeekActivity> weekActivityEntities = weekActivityRepository.findAll(userAnonymizedID, interval.startDate,
+		Set<WeekActivity> weekActivityEntities = weekActivityRepository.findAll(userAnonymizedId, interval.startDate,
 				interval.endDate);
 		return weekActivityEntities.stream().collect(Collectors.groupingBy(a -> a.getStartDate(), Collectors.toSet()));
 	}
 
 	@Transactional
-	public Page<DayActivityOverviewDTO<DayActivityDTO>> getUserDayActivityOverviews(UUID userID, Pageable pageable)
+	public Page<DayActivityOverviewDTO<DayActivityDTO>> getUserDayActivityOverviews(UUID userId, Pageable pageable)
 	{
 		return executeAndCreateInactivityEntries(
-				mia -> getDayActivityOverviews(userService.getUserAnonymizedID(userID), pageable, mia));
+				mia -> getDayActivityOverviews(userService.getUserAnonymizedId(userId), pageable, mia));
 	}
 
 	@Transactional
-	public Page<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> getUserDayActivityOverviewsWithBuddies(UUID userID,
+	public Page<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> getUserDayActivityOverviewsWithBuddies(UUID userId,
 			Pageable pageable)
 	{
-		UUID userAnonymizedID = userService.getUserAnonymizedID(userID);
-		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
+		UUID userAnonymizedId = userService.getUserAnonymizedId(userId);
+		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 
 		if (!userAnonymized.hasAnyBuddies())
 		{
@@ -216,21 +216,21 @@ public class ActivityService
 
 		Interval interval = getInterval(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
 
-		Set<BuddyDTO> buddies = buddyService.getBuddiesOfUserThatAcceptedSending(userID);
-		Set<UUID> userAnonymizedIDs = buddies.stream().map(b -> getBuddyUserAnonymizedID(b)).collect(Collectors.toSet());
-		userAnonymizedIDs.add(userAnonymizedID);
+		Set<BuddyDTO> buddies = buddyService.getBuddiesOfUserThatAcceptedSending(userId);
+		Set<UUID> userAnonymizedIds = buddies.stream().map(b -> getBuddyUserAnonymizedId(b)).collect(Collectors.toSet());
+		userAnonymizedIds.add(userAnonymizedId);
 		Map<ZonedDateTime, Set<DayActivityDTO>> dayActivityDTOsByZonedDate = executeAndCreateInactivityEntries(
-				mia -> getDayActivitiesForUserAnonymizedIDsInInterval(userAnonymizedIDs, interval, mia));
+				mia -> getDayActivitiesForUserAnonymizedIdsInInterval(userAnonymizedIds, interval, mia));
 		List<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> dayActivityOverviews = dayActivityEntitiesToOverviewsUserWithBuddies(
 				dayActivityDTOsByZonedDate);
 		return new PageImpl<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>>(dayActivityOverviews, pageable,
 				getTotalPageableItems(userAnonymized, ChronoUnit.DAYS));
 	}
 
-	private Map<ZonedDateTime, Set<DayActivityDTO>> getDayActivitiesForUserAnonymizedIDsInInterval(Set<UUID> userAnonymizedIDs,
+	private Map<ZonedDateTime, Set<DayActivityDTO>> getDayActivitiesForUserAnonymizedIdsInInterval(Set<UUID> userAnonymizedIds,
 			Interval interval, Set<IntervalInactivityDTO> mia)
 	{
-		return userAnonymizedIDs.stream().map(id -> getDayActivities(userAnonymizedService.getUserAnonymized(id), interval, mia))
+		return userAnonymizedIds.stream().map(id -> getDayActivities(userAnonymizedService.getUserAnonymized(id), interval, mia))
 				.map(Map::entrySet).flatMap(Collection::stream)
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> {
 					Set<DayActivityDTO> allActivities = new HashSet<>(a);
@@ -240,27 +240,27 @@ public class ActivityService
 	}
 
 	@Transactional
-	public Page<DayActivityOverviewDTO<DayActivityDTO>> getBuddyDayActivityOverviews(UUID buddyID, Pageable pageable)
+	public Page<DayActivityOverviewDTO<DayActivityDTO>> getBuddyDayActivityOverviews(UUID buddyId, Pageable pageable)
 	{
 		return executeAndCreateInactivityEntries(
-				mia -> getDayActivityOverviews(getBuddyUserAnonymizedID(buddyID), pageable, mia));
+				mia -> getDayActivityOverviews(getBuddyUserAnonymizedId(buddyId), pageable, mia));
 	}
 
-	private UUID getBuddyUserAnonymizedID(UUID buddyID)
+	private UUID getBuddyUserAnonymizedId(UUID buddyId)
 	{
-		return getBuddyUserAnonymizedID(buddyService.getBuddy(buddyID));
+		return getBuddyUserAnonymizedId(buddyService.getBuddy(buddyId));
 	}
 
-	private UUID getBuddyUserAnonymizedID(BuddyDTO buddy)
+	private UUID getBuddyUserAnonymizedId(BuddyDTO buddy)
 	{
-		return buddy.getUserAnonymizedID()
+		return buddy.getUserAnonymizedId()
 				.orElseThrow(() -> new IllegalStateException("Should have user anonymized ID when fetching buddy activity"));
 	}
 
-	private Page<DayActivityOverviewDTO<DayActivityDTO>> getDayActivityOverviews(UUID userAnonymizedID, Pageable pageable,
+	private Page<DayActivityOverviewDTO<DayActivityDTO>> getDayActivityOverviews(UUID userAnonymizedId, Pageable pageable,
 			Set<IntervalInactivityDTO> missingInactivities)
 	{
-		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
+		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		Interval interval = getInterval(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
 
 		Map<ZonedDateTime, Set<DayActivityDTO>> dayActivitiesByZonedDate = getDayActivities(userAnonymized, interval,
@@ -274,7 +274,7 @@ public class ActivityService
 	private Map<ZonedDateTime, Set<DayActivityDTO>> getDayActivities(UserAnonymizedDTO userAnonymized, Interval interval,
 			Set<IntervalInactivityDTO> missingInactivities)
 	{
-		Map<LocalDate, Set<DayActivity>> dayActivityEntitiesByLocalDate = getDayActivitiesGroupedByDate(userAnonymized.getID(),
+		Map<LocalDate, Set<DayActivity>> dayActivityEntitiesByLocalDate = getDayActivitiesGroupedByDate(userAnonymized.getId(),
 				interval);
 		Map<ZonedDateTime, Set<DayActivity>> dayActivityEntitiesByZonedDate = mapToZonedDateTime(dayActivityEntitiesByLocalDate);
 		Map<ZonedDateTime, Set<DayActivityDTO>> dayActivityDTOsByZonedDate = mapDayActivitiesToDTOs(
@@ -326,10 +326,10 @@ public class ActivityService
 		return dayActivityOverviews;
 	}
 
-	private Map<LocalDate, Set<DayActivity>> getDayActivitiesGroupedByDate(UUID userAnonymizedID, Interval interval)
+	private Map<LocalDate, Set<DayActivity>> getDayActivitiesGroupedByDate(UUID userAnonymizedId, Interval interval)
 	{
 		List<DayActivity> dayActivityEntities = dayActivityRepository
-				.findAllActivitiesForUserInIntervalEndIncluded(userAnonymizedID, interval.startDate, interval.endDate);
+				.findAllActivitiesForUserInIntervalEndIncluded(userAnonymizedId, interval.startDate, interval.endDate);
 		return dayActivityEntities.stream().collect(Collectors.groupingBy(a -> a.getStartDate(), Collectors.toSet()));
 	}
 
@@ -379,7 +379,7 @@ public class ActivityService
 				activityEntitiesByDate.put(dateAtStartOfInterval, new HashSet<T>());
 			}
 			Set<T> activityEntitiesAtDate = activityEntitiesByDate.get(dateAtStartOfInterval);
-			activeGoals.stream().map(g -> goalService.getGoalEntityForUserAnonymizedID(userAnonymized.getID(), g.getID()))
+			activeGoals.stream().map(g -> goalService.getGoalEntityForUserAnonymizedId(userAnonymized.getId(), g.getGoalId()))
 					.forEach(g -> addMissingInactivity(g, dateAtStartOfInterval, activityEntitiesAtDate, userAnonymized,
 							inactivityEntitySupplier, existingEntityInactivityCompletor));
 		}
@@ -412,32 +412,32 @@ public class ActivityService
 
 	private <T extends IntervalActivityDTO> Optional<T> getActivityForGoal(Set<T> dayActivityDTOsAtDate, Goal goal)
 	{
-		return dayActivityDTOsAtDate.stream().filter(a -> a.getGoalID().equals(goal.getID())).findAny();
+		return dayActivityDTOsAtDate.stream().filter(a -> a.getGoalId().equals(goal.getId())).findAny();
 	}
 
 	@Transactional
-	public WeekActivityDTO getUserWeekActivityDetail(UUID userID, LocalDate date, UUID goalID)
+	public WeekActivityDTO getUserWeekActivityDetail(UUID userId, LocalDate date, UUID goalId)
 	{
 		return executeAndCreateInactivityEntries(
-				mia -> getWeekActivityDetail(userID, userService.getUserAnonymizedID(userID), date, goalID, mia));
+				mia -> getWeekActivityDetail(userId, userService.getUserAnonymizedId(userId), date, goalId, mia));
 	}
 
 	@Transactional
-	public WeekActivityDTO getBuddyWeekActivityDetail(UUID buddyID, LocalDate date, UUID goalID)
+	public WeekActivityDTO getBuddyWeekActivityDetail(UUID buddyId, LocalDate date, UUID goalId)
 	{
-		BuddyDTO buddy = buddyService.getBuddy(buddyID);
+		BuddyDTO buddy = buddyService.getBuddy(buddyId);
 		return executeAndCreateInactivityEntries(
-				mia -> getWeekActivityDetail(buddy.getUser().getID(), getBuddyUserAnonymizedID(buddy), date, goalID, mia));
+				mia -> getWeekActivityDetail(buddy.getUser().getId(), getBuddyUserAnonymizedId(buddy), date, goalId, mia));
 	}
 
-	private WeekActivityDTO getWeekActivityDetail(UUID userID, UUID userAnonymizedID, LocalDate date, UUID goalID,
+	private WeekActivityDTO getWeekActivityDetail(UUID userId, UUID userAnonymizedId, LocalDate date, UUID goalId,
 			Set<IntervalInactivityDTO> missingInactivities)
 	{
-		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
-		WeekActivity weekActivityEntity = weekActivityRepository.findOne(userAnonymizedID, date, goalID);
+		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
+		WeekActivity weekActivityEntity = weekActivityRepository.findOne(userAnonymizedId, date, goalId);
 		if (weekActivityEntity == null)
 		{
-			return getMissingInactivity(userID, date, goalID, userAnonymized, ChronoUnit.WEEKS,
+			return getMissingInactivity(userId, date, goalId, userAnonymized, ChronoUnit.WEEKS,
 					(goal, startOfWeek) -> createAndSaveWeekInactivity(userAnonymized, goal, startOfWeek,
 							LevelOfDetail.WeekDetail, missingInactivities));
 		}
@@ -449,46 +449,46 @@ public class ActivityService
 	}
 
 	@Transactional
-	public Page<MessageDTO> getUserWeekActivityDetailMessages(UUID userID, LocalDate date, UUID goalID, Pageable pageable)
+	public Page<MessageDTO> getUserWeekActivityDetailMessages(UUID userId, LocalDate date, UUID goalId, Pageable pageable)
 	{
 		Supplier<IntervalActivity> activitySupplier = () -> weekActivityRepository
-				.findOne(userService.getUserAnonymizedID(userID), date, goalID);
-		return getActivityDetailMessages(userID, activitySupplier, pageable);
+				.findOne(userService.getUserAnonymizedId(userId), date, goalId);
+		return getActivityDetailMessages(userId, activitySupplier, pageable);
 	}
 
 	@Transactional
-	public Page<MessageDTO> getBuddyWeekActivityDetailMessages(UUID userID, UUID buddyID, LocalDate date, UUID goalID,
+	public Page<MessageDTO> getBuddyWeekActivityDetailMessages(UUID userId, UUID buddyId, LocalDate date, UUID goalId,
 			Pageable pageable)
 	{
-		BuddyDTO buddy = buddyService.getBuddy(buddyID);
-		Supplier<IntervalActivity> activitySupplier = () -> weekActivityRepository.findOne(getBuddyUserAnonymizedID(buddy), date,
-				goalID);
-		return getActivityDetailMessages(userID, activitySupplier, pageable);
+		BuddyDTO buddy = buddyService.getBuddy(buddyId);
+		Supplier<IntervalActivity> activitySupplier = () -> weekActivityRepository.findOne(getBuddyUserAnonymizedId(buddy), date,
+				goalId);
+		return getActivityDetailMessages(userId, activitySupplier, pageable);
 	}
 
 	@Transactional
-	public DayActivityDTO getUserDayActivityDetail(UUID userID, LocalDate date, UUID goalID)
+	public DayActivityDTO getUserDayActivityDetail(UUID userId, LocalDate date, UUID goalId)
 	{
 		return executeAndCreateInactivityEntries(
-				mia -> getDayActivityDetail(userID, userService.getUserAnonymizedID(userID), date, goalID, mia));
+				mia -> getDayActivityDetail(userId, userService.getUserAnonymizedId(userId), date, goalId, mia));
 	}
 
 	@Transactional
-	public DayActivityDTO getBuddyDayActivityDetail(UUID buddyID, LocalDate date, UUID goalID)
+	public DayActivityDTO getBuddyDayActivityDetail(UUID buddyId, LocalDate date, UUID goalId)
 	{
-		BuddyDTO buddy = buddyService.getBuddy(buddyID);
+		BuddyDTO buddy = buddyService.getBuddy(buddyId);
 		return executeAndCreateInactivityEntries(
-				mia -> getDayActivityDetail(buddy.getUser().getID(), getBuddyUserAnonymizedID(buddy), date, goalID, mia));
+				mia -> getDayActivityDetail(buddy.getUser().getId(), getBuddyUserAnonymizedId(buddy), date, goalId, mia));
 	}
 
-	private DayActivityDTO getDayActivityDetail(UUID userID, UUID userAnonymizedID, LocalDate date, UUID goalID,
+	private DayActivityDTO getDayActivityDetail(UUID userId, UUID userAnonymizedId, LocalDate date, UUID goalId,
 			Set<IntervalInactivityDTO> missingInactivities)
 	{
-		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
-		DayActivity dayActivityEntity = dayActivityRepository.findOne(userAnonymizedID, date, goalID);
+		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
+		DayActivity dayActivityEntity = dayActivityRepository.findOne(userAnonymizedId, date, goalId);
 		if (dayActivityEntity == null)
 		{
-			return getMissingInactivity(userID, date, goalID, userAnonymized, ChronoUnit.DAYS,
+			return getMissingInactivity(userId, date, goalId, userAnonymized, ChronoUnit.DAYS,
 					(goal, startOfDay) -> createAndSaveDayInactivity(userAnonymized, goal, startOfDay, LevelOfDetail.DayDetail,
 							missingInactivities));
 		}
@@ -496,24 +496,24 @@ public class ActivityService
 	}
 
 	@Transactional
-	public Page<MessageDTO> getUserDayActivityDetailMessages(UUID userID, LocalDate date, UUID goalID, Pageable pageable)
+	public Page<MessageDTO> getUserDayActivityDetailMessages(UUID userId, LocalDate date, UUID goalId, Pageable pageable)
 	{
-		Supplier<IntervalActivity> activitySupplier = () -> dayActivityRepository.findOne(userService.getUserAnonymizedID(userID),
-				date, goalID);
-		return getActivityDetailMessages(userID, activitySupplier, pageable);
+		Supplier<IntervalActivity> activitySupplier = () -> dayActivityRepository.findOne(userService.getUserAnonymizedId(userId),
+				date, goalId);
+		return getActivityDetailMessages(userId, activitySupplier, pageable);
 	}
 
 	@Transactional
-	public Page<MessageDTO> getBuddyDayActivityDetailMessages(UUID userID, UUID buddyID, LocalDate date, UUID goalID,
+	public Page<MessageDTO> getBuddyDayActivityDetailMessages(UUID userId, UUID buddyId, LocalDate date, UUID goalId,
 			Pageable pageable)
 	{
-		BuddyDTO buddy = buddyService.getBuddy(buddyID);
-		Supplier<IntervalActivity> activitySupplier = () -> dayActivityRepository.findOne(getBuddyUserAnonymizedID(buddy), date,
-				goalID);
-		return getActivityDetailMessages(userID, activitySupplier, pageable);
+		BuddyDTO buddy = buddyService.getBuddy(buddyId);
+		Supplier<IntervalActivity> activitySupplier = () -> dayActivityRepository.findOne(getBuddyUserAnonymizedId(buddy), date,
+				goalId);
+		return getActivityDetailMessages(userId, activitySupplier, pageable);
 	}
 
-	private Page<MessageDTO> getActivityDetailMessages(UUID userID, Supplier<IntervalActivity> activitySupplier,
+	private Page<MessageDTO> getActivityDetailMessages(UUID userId, Supplier<IntervalActivity> activitySupplier,
 			Pageable pageable)
 	{
 		IntervalActivity dayActivityEntity = activitySupplier.get();
@@ -521,92 +521,92 @@ public class ActivityService
 		{
 			return new PageImpl<>(Collections.emptyList());
 		}
-		return messageService.getActivityRelatedMessages(userID, dayActivityEntity.getID(), pageable);
+		return messageService.getActivityRelatedMessages(userId, dayActivityEntity.getId(), pageable);
 	}
 
 	@FunctionalInterface
 	static interface ActivitySupplier
 	{
-		IntervalActivity get(BuddyDTO buddy, LocalDate date, UUID goalID);
+		IntervalActivity get(BuddyDTO buddy, LocalDate date, UUID goalId);
 	}
 
 	@Transactional
-	public MessageDTO addMessageToDayActivity(UUID userID, UUID buddyID, LocalDate date, UUID goalID,
+	public MessageDTO addMessageToDayActivity(UUID userId, UUID buddyId, LocalDate date, UUID goalId,
 			PostPutActivityCommentMessageDTO message)
 	{
-		ActivitySupplier activitySupplier = (b, d, g) -> dayActivityRepository.findOne(getBuddyUserAnonymizedID(b), d, g);
-		return addMessageToActivity(userID, buddyID, date, goalID, activitySupplier, message);
+		ActivitySupplier activitySupplier = (b, d, g) -> dayActivityRepository.findOne(getBuddyUserAnonymizedId(b), d, g);
+		return addMessageToActivity(userId, buddyId, date, goalId, activitySupplier, message);
 	}
 
 	@Transactional
-	public MessageDTO addMessageToWeekActivity(UUID userID, UUID buddyID, LocalDate date, UUID goalID,
+	public MessageDTO addMessageToWeekActivity(UUID userId, UUID buddyId, LocalDate date, UUID goalId,
 			PostPutActivityCommentMessageDTO message)
 	{
-		ActivitySupplier activitySupplier = (b, d, g) -> weekActivityRepository.findOne(getBuddyUserAnonymizedID(b), d, g);
-		return addMessageToActivity(userID, buddyID, date, goalID, activitySupplier, message);
+		ActivitySupplier activitySupplier = (b, d, g) -> weekActivityRepository.findOne(getBuddyUserAnonymizedId(b), d, g);
+		return addMessageToActivity(userId, buddyId, date, goalId, activitySupplier, message);
 	}
 
 	@Transactional
-	public MessageDTO addMessageToActivity(UUID userID, UUID buddyID, LocalDate date, UUID goalID,
+	public MessageDTO addMessageToActivity(UUID userId, UUID buddyId, LocalDate date, UUID goalId,
 			ActivitySupplier activitySupplier, PostPutActivityCommentMessageDTO message)
 	{
-		UserDTO sendingUser = userService.getPrivateUser(userID);
-		BuddyDTO buddy = buddyService.getBuddy(buddyID);
-		IntervalActivity dayActivityEntity = activitySupplier.get(buddy, date, goalID);
+		UserDTO sendingUser = userService.getPrivateUser(userId);
+		BuddyDTO buddy = buddyService.getBuddy(buddyId);
+		IntervalActivity dayActivityEntity = activitySupplier.get(buddy, date, goalId);
 		if (dayActivityEntity == null)
 		{
-			throw ActivityServiceException.buddyDayActivityNotFound(userID, buddyID, date, goalID);
+			throw ActivityServiceException.buddyDayActivityNotFound(userId, buddyId, date, goalId);
 		}
 
-		return sendMessagePair(sendingUser, getBuddyUserAnonymizedID(buddy), dayActivityEntity.getID(), Optional.empty(),
+		return sendMessagePair(sendingUser, getBuddyUserAnonymizedId(buddy), dayActivityEntity.getId(), Optional.empty(),
 				Optional.empty(), message.getMessage());
 	}
 
-	private MessageDTO sendMessagePair(UserDTO sendingUser, UUID targetUserAnonymizedID, UUID activityID,
+	private MessageDTO sendMessagePair(UserDTO sendingUser, UUID targetUserAnonymizedId, UUID intervalActivityId,
 			Optional<ActivityCommentMessage> repliedMessageOfSelf, Optional<ActivityCommentMessage> repliedMessageOfBuddy,
 			String message)
 	{
-		ActivityCommentMessage messageToBuddy = createMessage(sendingUser, activityID,
-				repliedMessageOfBuddy.map(ActivityCommentMessage::getThreadHeadMessageID),
-				repliedMessageOfBuddy.map(ActivityCommentMessage::getID), false, message);
-		ActivityCommentMessage messageToSelf = createMessage(sendingUser, activityID,
-				repliedMessageOfSelf.map(ActivityCommentMessage::getThreadHeadMessageID),
-				repliedMessageOfSelf.map(ActivityCommentMessage::getID), true, message);
-		sendMessage(sendingUser.getPrivateData().getUserAnonymizedID(), messageToSelf);
+		ActivityCommentMessage messageToBuddy = createMessage(sendingUser, intervalActivityId,
+				repliedMessageOfBuddy.map(ActivityCommentMessage::getThreadHeadMessageId),
+				repliedMessageOfBuddy.map(ActivityCommentMessage::getId), false, message);
+		ActivityCommentMessage messageToSelf = createMessage(sendingUser, intervalActivityId,
+				repliedMessageOfSelf.map(ActivityCommentMessage::getThreadHeadMessageId),
+				repliedMessageOfSelf.map(ActivityCommentMessage::getId), true, message);
+		sendMessage(sendingUser.getPrivateData().getUserAnonymizedId(), messageToSelf);
 		messageToBuddy.setSenderCopyMessage(messageToSelf);
-		sendMessage(targetUserAnonymizedID, messageToBuddy);
+		sendMessage(targetUserAnonymizedId, messageToBuddy);
 
 		return messageService.messageToDTO(sendingUser, messageToSelf);
 	}
 
-	private void sendMessage(UUID targetUserAnonymizedID, ActivityCommentMessage messageEntity)
+	private void sendMessage(UUID targetUserAnonymizedId, ActivityCommentMessage messageEntity)
 	{
-		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(targetUserAnonymizedID);
+		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(targetUserAnonymizedId);
 		messageService.sendMessageToUserAnonymized(userAnonymized, messageEntity);
 	}
 
-	private ActivityCommentMessage createMessage(UserDTO sendingUser, UUID activityID, Optional<UUID> threadHeadMessageID,
-			Optional<UUID> repliedMessageID, boolean isSentItem, String message)
+	private ActivityCommentMessage createMessage(UserDTO sendingUser, UUID intervalActivityId, Optional<UUID> threadHeadMessageId,
+			Optional<UUID> repliedMessageId, boolean isSentItem, String message)
 	{
-		if (threadHeadMessageID.isPresent())
+		if (threadHeadMessageId.isPresent())
 		{
-			return ActivityCommentMessage.createInstance(sendingUser.getID(), sendingUser.getPrivateData().getUserAnonymizedID(),
-					sendingUser.getPrivateData().getNickname(), activityID, isSentItem, message, threadHeadMessageID.get(),
-					repliedMessageID);
+			return ActivityCommentMessage.createInstance(sendingUser.getId(), sendingUser.getPrivateData().getUserAnonymizedId(),
+					sendingUser.getPrivateData().getNickname(), intervalActivityId, isSentItem, message, threadHeadMessageId.get(),
+					repliedMessageId);
 		}
-		return ActivityCommentMessage.createThreadHeadInstance(sendingUser.getID(),
-				sendingUser.getPrivateData().getUserAnonymizedID(), sendingUser.getPrivateData().getNickname(), activityID,
-				isSentItem, message, repliedMessageID);
+		return ActivityCommentMessage.createThreadHeadInstance(sendingUser.getId(),
+				sendingUser.getPrivateData().getUserAnonymizedId(), sendingUser.getPrivateData().getNickname(), intervalActivityId,
+				isSentItem, message, repliedMessageId);
 	}
 
-	private <T extends IntervalActivityDTO> T getMissingInactivity(UUID userID, LocalDate date, UUID goalID,
+	private <T extends IntervalActivityDTO> T getMissingInactivity(UUID userId, LocalDate date, UUID goalId,
 			UserAnonymizedDTO userAnonymized, ChronoUnit timeUnit, BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier)
 	{
-		Goal goal = goalService.getGoalEntityForUserAnonymizedID(userAnonymized.getID(), goalID);
+		Goal goal = goalService.getGoalEntityForUserAnonymizedId(userAnonymized.getId(), goalId);
 		ZonedDateTime dateAtStartOfInterval = date.atStartOfDay(userAnonymized.getTimeZone());
 		if (!goal.wasActiveAtInterval(dateAtStartOfInterval, timeUnit))
 		{
-			throw ActivityServiceException.activityDateGoalMismatch(userID, date, goalID);
+			throw ActivityServiceException.activityDateGoalMismatch(userId, date, goalId);
 		}
 		return inactivityEntitySupplier.apply(goal, dateAtStartOfInterval);
 	}
@@ -614,8 +614,8 @@ public class ActivityService
 	@Transactional
 	public MessageDTO replyToMessage(UserDTO sendingUser, ActivityCommentMessage repliedMessage, String message)
 	{
-		UUID targetUserAnonymizedID = repliedMessage.getRelatedUserAnonymizedID().get();
-		return sendMessagePair(sendingUser, targetUserAnonymizedID, repliedMessage.getActivityID(), Optional.of(repliedMessage),
+		UUID targetUserAnonymizedId = repliedMessage.getRelatedUserAnonymizedId().get();
+		return sendMessagePair(sendingUser, targetUserAnonymizedId, repliedMessage.getIntervalActivityId(), Optional.of(repliedMessage),
 				Optional.of(repliedMessage.getSenderCopyMessage()), message);
 	}
 

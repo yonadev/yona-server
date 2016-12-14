@@ -69,7 +69,7 @@ public class ActivityCategoryServiceIntegrationTest extends ActivityCategoryServ
 		// Add to collection, so it appears as if it is in the database
 		// It hasn't been loaded, so should not be in the cache
 		activityCategories.add(gaming);
-		when(mockRepository.findOne(gaming.getID())).thenReturn(gaming);
+		when(mockRepository.findOne(gaming.getId())).thenReturn(gaming);
 
 		assertGetAllActivityCategoriesResult("Set expected to be cached", "gambling", "news");
 
@@ -79,11 +79,11 @@ public class ActivityCategoryServiceIntegrationTest extends ActivityCategoryServ
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after add", "gambling", "news", "gaming");
 
 		gaming.setLocalizableName(usString("amusement"));
-		service.updateActivityCategory(gaming.getID(), ActivityCategoryDTO.createInstance(gaming));
+		service.updateActivityCategory(gaming.getId(), ActivityCategoryDTO.createInstance(gaming));
 
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after add", "gambling", "news", "amusement");
 		activityCategories.remove(news);
-		service.deleteActivityCategory(news.getID());
+		service.deleteActivityCategory(news.getId());
 
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after add", "gambling", "amusement");
 

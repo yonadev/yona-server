@@ -70,10 +70,10 @@ public final class SenderInfo
 		@Autowired
 		private Translator translator;
 
-		public SenderInfo createInstanceForBuddy(UUID userID, String nickname, UUID buddyID)
+		public SenderInfo createInstanceForBuddy(UUID userId, String nickname, UUID buddyId)
 		{
-			return new SenderInfo(Optional.of(userService.getPublicUser(userID)), nickname, true,
-					Optional.of(buddyService.getBuddy(buddyID)));
+			return new SenderInfo(Optional.of(userService.getPublicUser(userId)), nickname, true,
+					Optional.of(buddyService.getBuddy(buddyId)));
 		}
 
 		public SenderInfo createInstanceForDetachedBuddy(Optional<UserDTO> user, String nickname)
@@ -81,10 +81,10 @@ public final class SenderInfo
 			return new SenderInfo(user, nickname, true, Optional.empty());
 		}
 
-		public SenderInfo createInstanceForSelf(UUID userID, String nickname)
+		public SenderInfo createInstanceForSelf(UUID userId, String nickname)
 		{
 			String selfNickname = translator.getLocalizedMessage("message.self.nickname", nickname);
-			return new SenderInfo(Optional.of(userService.getPrivateUser(userID)), selfNickname, false, Optional.empty());
+			return new SenderInfo(Optional.of(userService.getPrivateUser(userId)), selfNickname, false, Optional.empty());
 		}
 	}
 }

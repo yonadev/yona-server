@@ -46,48 +46,48 @@ public class InactivityManagementService
 	private LockPool<UUID> userAnonymizedSynchronizer;
 
 	@Transactional
-	public void createInactivityEntities(UUID userAnonymizedID, Set<IntervalInactivityDTO> intervalInactivities)
+	public void createInactivityEntities(UUID userAnonymizedId, Set<IntervalInactivityDTO> intervalInactivities)
 	{
-		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(userAnonymizedID))
+		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(userAnonymizedId))
 		{
-			createWeekInactivityEntities(userAnonymizedID,
+			createWeekInactivityEntities(userAnonymizedId,
 					intervalInactivities.stream().filter(ia -> ia.getTimeUnit() == ChronoUnit.WEEKS).collect(Collectors.toSet()));
-			createDayInactivityEntities(userAnonymizedID,
+			createDayInactivityEntities(userAnonymizedId,
 					intervalInactivities.stream().filter(ia -> ia.getTimeUnit() == ChronoUnit.DAYS).collect(Collectors.toSet()));
 		}
 	}
 
-	private void createWeekInactivityEntities(UUID userAnonymizedID, Set<IntervalInactivityDTO> weekInactivities)
+	private void createWeekInactivityEntities(UUID userAnonymizedId, Set<IntervalInactivityDTO> weekInactivities)
 	{
-		weekInactivities.stream().forEach(wi -> createWeekInactivity(userAnonymizedID, wi));
+		weekInactivities.stream().forEach(wi -> createWeekInactivity(userAnonymizedId, wi));
 	}
 
-	private void createDayInactivityEntities(UUID userAnonymizedID, Set<IntervalInactivityDTO> weekInactivities)
+	private void createDayInactivityEntities(UUID userAnonymizedId, Set<IntervalInactivityDTO> weekInactivities)
 	{
-		weekInactivities.stream().forEach(wi -> createDayInactivity(userAnonymizedID, wi));
+		weekInactivities.stream().forEach(wi -> createDayInactivity(userAnonymizedId, wi));
 	}
 
-	private void createWeekInactivity(UUID userAnonymizedID, IntervalInactivityDTO weekInactivity)
+	private void createWeekInactivity(UUID userAnonymizedId, IntervalInactivityDTO weekInactivity)
 	{
-		createInactivity(userAnonymizedID, weekInactivity,
-				() -> weekActivityRepository.findOne(userAnonymizedID, weekInactivity.getStartTime().toLocalDate(),
-						weekInactivity.getGoalID()),
+		createInactivity(userAnonymizedId, weekInactivity,
+				() -> weekActivityRepository.findOne(userAnonymizedId, weekInactivity.getStartTime().toLocalDate(),
+						weekInactivity.getGoalId()),
 				(ua, g) -> WeekActivity.createInstance(ua, g, weekInactivity.getStartTime().getZone(),
 						weekInactivity.getStartTime().toLocalDate()),
 				weekActivityRepository);
 	}
 
-	private void createDayInactivity(UUID userAnonymizedID, IntervalInactivityDTO dayInactivity)
+	private void createDayInactivity(UUID userAnonymizedId, IntervalInactivityDTO dayInactivity)
 	{
-		createInactivity(userAnonymizedID, dayInactivity,
-				() -> dayActivityRepository.findOne(userAnonymizedID, dayInactivity.getStartTime().toLocalDate(),
-						dayInactivity.getGoalID()),
+		createInactivity(userAnonymizedId, dayInactivity,
+				() -> dayActivityRepository.findOne(userAnonymizedId, dayInactivity.getStartTime().toLocalDate(),
+						dayInactivity.getGoalId()),
 				(ua, g) -> DayActivity.createInstance(ua, g, dayInactivity.getStartTime().getZone(),
 						dayInactivity.getStartTime().toLocalDate()),
 				dayActivityRepository);
 	}
 
-	private <T, R> void createInactivity(UUID userAnonymizedID, IntervalInactivityDTO intervalInactivity,
+	private <T, R> void createInactivity(UUID userAnonymizedId, IntervalInactivityDTO intervalInactivity,
 			Supplier<T> existingActivityFinder, BiFunction<UserAnonymized, Goal, T> creator, CrudRepository<T, UUID> repository)
 	{
 		T existingActivity = existingActivityFinder.get();
@@ -95,8 +95,8 @@ public class InactivityManagementService
 		{
 			return;
 		}
-		UserAnonymized userAnonymized = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedID);
-		Goal goal = goalService.getGoalEntityForUserAnonymizedID(userAnonymizedID, intervalInactivity.getGoalID());
+		UserAnonymized userAnonymized = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
+		Goal goal = goalService.getGoalEntityForUserAnonymizedId(userAnonymizedId, intervalInactivity.getGoalId());
 		T inactivityEntity = creator.apply(userAnonymized, goal);
 
 		repository.save(inactivityEntity);

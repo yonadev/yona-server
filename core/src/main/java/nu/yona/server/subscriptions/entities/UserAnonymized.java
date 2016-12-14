@@ -15,14 +15,14 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 
 @Entity
 @Table(name = "USERS_ANONYMIZED")
-public class UserAnonymized extends EntityWithID
+public class UserAnonymized extends EntityWithId
 {
 	public static UserAnonymizedRepository getRepository()
 	{
@@ -73,10 +73,10 @@ public class UserAnonymized extends EntityWithID
 		assert removed;
 	}
 
-	public UUID getVPNLoginID()
+	public UUID getVpnLoginId()
 	{
 		// these are the same for performance
-		return getID();
+		return getId();
 	}
 
 	public static UserAnonymized createInstance(MessageDestination anonymousDestination, Set<Goal> goals)

@@ -75,8 +75,8 @@ public class GoalChangeMessageDTO extends BuddyMessageLinkedUserDTO
 
 	public static GoalChangeMessageDTO createInstance(UserDTO actingUser, GoalChangeMessage messageEntity, SenderInfo senderInfo)
 	{
-		return new GoalChangeMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				senderInfo, messageEntity.getActivityCategoryOfChangedGoal().getID(), messageEntity.getChange(),
+		return new GoalChangeMessageDTO(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getActivityCategoryOfChangedGoal().getId(), messageEntity.getChange(),
 				messageEntity.getMessage());
 	}
 

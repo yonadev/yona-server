@@ -66,12 +66,12 @@ import nu.yona.server.subscriptions.rest.UserController;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDTO;
 import nu.yona.server.subscriptions.service.BuddyDTO;
 import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDTO;
-import nu.yona.server.subscriptions.service.GoalIDMapping;
+import nu.yona.server.subscriptions.service.GoalIdMapping;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(MessageDTO.class)
-@RequestMapping(value = "/users/{userID}/messages", produces = { MediaType.APPLICATION_JSON_VALUE })
+@RequestMapping(value = "/users/{userId}/messages", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class MessageController
 {
 	@Autowired
@@ -93,92 +93,92 @@ public class MessageController
 	@ResponseBody
 	public HttpEntity<PagedResources<MessageDTO>> getMessages(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "onlyUnreadMessages", required = false, defaultValue = "false") String onlyUnreadMessagesStr,
-			@PathVariable UUID userID, Pageable pageable, PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
+			@PathVariable UUID userId, Pageable pageable, PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
 	{
 		boolean onlyUnreadMessages = Boolean.TRUE.toString().equals(onlyUnreadMessagesStr);
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> {
-			return getMessages(userID, pageable, pagedResourcesAssembler, onlyUnreadMessages);
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId), () -> {
+			return getMessages(userId, pageable, pagedResourcesAssembler, onlyUnreadMessages);
 		});
 	}
 
-	private HttpEntity<PagedResources<MessageDTO>> getMessages(UUID userID, Pageable pageable,
+	private HttpEntity<PagedResources<MessageDTO>> getMessages(UUID userId, Pageable pageable,
 			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler, boolean onlyUnreadMessages)
 	{
-		messageService.transferDirectMessagesToAnonymousDestination(userID);
-		Page<MessageDTO> messages = messageService.getReceivedMessages(userID, onlyUnreadMessages, pageable);
-		return createOKResponse(pagedResourcesAssembler.toResource(messages,
-				new MessageResourceAssembler(curieProvider, createGoalIDMapping(userID), this)));
+		messageService.transferDirectMessagesToAnonymousDestination(userId);
+		Page<MessageDTO> messages = messageService.getReceivedMessages(userId, onlyUnreadMessages, pageable);
+		return createOkResponse(pagedResourcesAssembler.toResource(messages,
+				new MessageResourceAssembler(curieProvider, createGoalIdMapping(userId), this)));
 	}
 
-	@RequestMapping(value = "/{messageID}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{messageId}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<MessageDTO> getMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userID, @PathVariable UUID messageID)
+			@PathVariable UUID userId, @PathVariable UUID messageId)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> createOKResponse(
-				toMessageResource(createGoalIDMapping(userID), messageService.getMessage(userID, messageID))));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId), () -> createOkResponse(
+				toMessageResource(createGoalIdMapping(userId), messageService.getMessage(userId, messageId))));
 	}
 
-	private GoalIDMapping createGoalIDMapping(UUID userID)
+	private GoalIdMapping createGoalIdMapping(UUID userId)
 	{
-		return GoalIDMapping.createInstance(userService.getPrivateUser(userID));
+		return GoalIdMapping.createInstance(userService.getPrivateUser(userId));
 	}
 
-	public MessageDTO toMessageResource(GoalIDMapping goalIDMapping, MessageDTO message)
+	public MessageDTO toMessageResource(GoalIdMapping goalIdMapping, MessageDTO message)
 	{
-		return new MessageResourceAssembler(curieProvider, goalIDMapping, this).toResource(message);
+		return new MessageResourceAssembler(curieProvider, goalIdMapping, this).toResource(message);
 	}
 
 	@RequestMapping(value = "/{id}/{action}", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<MessageActionResource> handleAnonymousMessageAction(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID, @PathVariable UUID id,
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId, @PathVariable UUID id,
 			@PathVariable String action, @RequestBody MessageActionDTO requestPayload)
 	{
 
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(new MessageActionResource(curieProvider,
-						messageService.handleMessageAction(userID, id, action, requestPayload), createGoalIDMapping(userID),
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
+				() -> createOkResponse(new MessageActionResource(curieProvider,
+						messageService.handleMessageAction(userId, id, action, requestPayload), createGoalIdMapping(userId),
 						this)));
 	}
 
-	@RequestMapping(value = "/{messageID}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/{messageId}", method = RequestMethod.DELETE)
 	@ResponseBody
 	public HttpEntity<MessageActionResource> deleteAnonymousMessage(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userID,
-			@PathVariable UUID messageID)
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
+			@PathVariable UUID messageId)
 	{
 
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID),
-				() -> createOKResponse(new MessageActionResource(curieProvider, messageService.deleteMessage(userID, messageID),
-						createGoalIDMapping(userID), this)));
+		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
+				() -> createOkResponse(new MessageActionResource(curieProvider, messageService.deleteMessage(userId, messageId),
+						createGoalIdMapping(userId), this)));
 	}
 
-	private HttpEntity<PagedResources<MessageDTO>> createOKResponse(PagedResources<MessageDTO> messages)
+	private HttpEntity<PagedResources<MessageDTO>> createOkResponse(PagedResources<MessageDTO> messages)
 	{
 		return new ResponseEntity<PagedResources<MessageDTO>>(messages, HttpStatus.OK);
 	}
 
-	private HttpEntity<MessageDTO> createOKResponse(MessageDTO message)
+	private HttpEntity<MessageDTO> createOkResponse(MessageDTO message)
 	{
 		return new ResponseEntity<MessageDTO>(message, HttpStatus.OK);
 	}
 
-	private HttpEntity<MessageActionResource> createOKResponse(MessageActionResource messageAction)
+	private HttpEntity<MessageActionResource> createOkResponse(MessageActionResource messageAction)
 	{
 		return new ResponseEntity<MessageActionResource>(messageAction, HttpStatus.OK);
 	}
 
-	public static ControllerLinkBuilder getAnonymousMessageLinkBuilder(UUID userID, UUID messageID)
+	public static ControllerLinkBuilder getAnonymousMessageLinkBuilder(UUID userId, UUID messageId)
 	{
 		MessageController methodOn = methodOn(MessageController.class);
-		return linkTo(methodOn.getMessage(Optional.empty(), userID, messageID));
+		return linkTo(methodOn.getMessage(Optional.empty(), userId, messageId));
 	}
 
-	public static Link getMessagesLink(UUID userID)
+	public static Link getMessagesLink(UUID userId)
 	{
 		ControllerLinkBuilder linkBuilder = linkTo(
-				methodOn(MessageController.class).getMessages(Optional.empty(), null, userID, null, null));
+				methodOn(MessageController.class).getMessages(Optional.empty(), null, userId, null, null));
 		return linkBuilder.withRel("messages");
 	}
 
@@ -194,16 +194,16 @@ public class MessageController
 
 	static class MessageActionResource extends Resource<MessageActionDTO>
 	{
-		private final GoalIDMapping goalIDMapping;
+		private final GoalIdMapping goalIdMapping;
 		private final CurieProvider curieProvider;
 		private final MessageController messageController;
 
-		public MessageActionResource(CurieProvider curieProvider, MessageActionDTO messageAction, GoalIDMapping goalIDMapping,
+		public MessageActionResource(CurieProvider curieProvider, MessageActionDTO messageAction, GoalIdMapping goalIdMapping,
 				MessageController messageController)
 		{
 			super(messageAction);
 			this.curieProvider = curieProvider;
-			this.goalIDMapping = goalIDMapping;
+			this.goalIdMapping = goalIdMapping;
 			this.messageController = messageController;
 		}
 
@@ -212,22 +212,22 @@ public class MessageController
 		{
 			Set<MessageDTO> affectedMessages = getContent().getAffectedMessages();
 			return Collections.singletonMap(curieProvider.getNamespacedRelFor("affectedMessages"),
-					new MessageResourceAssembler(curieProvider, goalIDMapping, messageController).toResources(affectedMessages));
+					new MessageResourceAssembler(curieProvider, goalIdMapping, messageController).toResources(affectedMessages));
 		}
 	}
 
 	public static class MessageResourceAssembler extends ResourceAssemblerSupport<MessageDTO, MessageDTO>
 	{
-		private final GoalIDMapping goalIDMapping;
+		private final GoalIdMapping goalIdMapping;
 		private final CurieProvider curieProvider;
 		private final MessageController messageController;
 
-		public MessageResourceAssembler(CurieProvider curieProvider, GoalIDMapping goalIDMapping,
+		public MessageResourceAssembler(CurieProvider curieProvider, GoalIdMapping goalIdMapping,
 				MessageController messageController)
 		{
 			super(MessageController.class, MessageDTO.class);
 			this.curieProvider = curieProvider;
-			this.goalIDMapping = goalIDMapping;
+			this.goalIdMapping = goalIdMapping;
 			this.messageController = messageController;
 		}
 
@@ -235,7 +235,8 @@ public class MessageController
 		public MessageDTO toResource(MessageDTO message)
 		{
 			message.removeLinks(); // So we are sure the below links are the only ones
-			ControllerLinkBuilder selfLinkBuilder = getAnonymousMessageLinkBuilder(goalIDMapping.getUserID(), message.getID());
+			ControllerLinkBuilder selfLinkBuilder = getAnonymousMessageLinkBuilder(goalIdMapping.getUserId(),
+					message.getMessageId());
 			addSelfLink(selfLinkBuilder, message);
 			addActionLinks(selfLinkBuilder, message);
 			addRelatedMessageLink(message, message);
@@ -249,9 +250,9 @@ public class MessageController
 
 		private void addRelatedMessageLink(MessageDTO message, MessageDTO messageResource)
 		{
-			if (message.getRelatedMessageID() != null)
+			if (message.getRelatedMessageId() != null)
 			{
-				messageResource.add(getAnonymousMessageLinkBuilder(goalIDMapping.getUserID(), message.getRelatedMessageID())
+				messageResource.add(getAnonymousMessageLinkBuilder(goalIdMapping.getUserId(), message.getRelatedMessageId())
 						.withRel("related"));
 			}
 		}
@@ -324,9 +325,9 @@ public class MessageController
 
 		private void addSenderBuddyLinkIfAvailable(MessageDTO message)
 		{
-			if (message.getSenderBuddyID().isPresent())
+			if (message.getSenderBuddyId().isPresent())
 			{
-				message.add(BuddyController.getBuddyLinkBuilder(goalIDMapping.getUserID(), message.getSenderBuddyID().get())
+				message.add(BuddyController.getBuddyLinkBuilder(goalIdMapping.getUserId(), message.getSenderBuddyId().get())
 						.withRel(BuddyController.BUDDY_LINK));
 			}
 		}
@@ -345,15 +346,15 @@ public class MessageController
 
 		private void addActivityCategoryLink(GoalConflictMessageDTO message)
 		{
-			message.add(ActivityCategoryController.getActivityCategoryLinkBuilder(message.getActivityCategoryID())
+			message.add(ActivityCategoryController.getActivityCategoryLinkBuilder(message.getActivityCategoryId())
 					.withRel("activityCategory"));
 		}
 
 		private void addDayActivityDetailLink(DisclosureRequestMessageDTO message)
 		{
 			String dateStr = DayActivityDTO.formatDate(message.getTargetGoalConflictDate());
-			message.add(UserActivityController.getUserDayActivityDetailLinkBuilder(goalIDMapping.getUserID(), dateStr,
-					message.getTargetGoalConflictGoalID()).withRel(UserActivityController.DAY_DETAIL_LINK));
+			message.add(UserActivityController.getUserDayActivityDetailLinkBuilder(goalIdMapping.getUserId(), dateStr,
+					message.getTargetGoalConflictGoalId()).withRel(UserActivityController.DAY_DETAIL_LINK));
 		}
 
 		private void addDayActivityDetailLink(DisclosureResponseMessageDTO message)
@@ -361,8 +362,8 @@ public class MessageController
 			String dateStr = DayActivityDTO.formatDate(message.getTargetGoalConflictDate());
 			message.add(
 					BuddyActivityController
-							.getBuddyDayActivityDetailLinkBuilder(goalIDMapping.getUserID(), message.getSenderBuddyID().get(),
-									dateStr, message.getTargetGoalConflictGoalID())
+							.getBuddyDayActivityDetailLinkBuilder(goalIdMapping.getUserId(), message.getSenderBuddyId().get(),
+									dateStr, message.getTargetGoalConflictGoalId())
 							.withRel(BuddyActivityController.DAY_DETAIL_LINK));
 		}
 
@@ -371,14 +372,14 @@ public class MessageController
 			String dateStr = DayActivityDTO.formatDate(message.getActivityStartTime().toLocalDate());
 			if (message.isSentFromBuddy())
 			{
-				message.add(BuddyActivityController.getBuddyDayActivityDetailLinkBuilder(goalIDMapping.getUserID(),
-						message.getSenderBuddyID().get(), dateStr, message.getGoalID())
+				message.add(BuddyActivityController.getBuddyDayActivityDetailLinkBuilder(goalIdMapping.getUserId(),
+						message.getSenderBuddyId().get(), dateStr, message.getGoalId())
 						.withRel(BuddyActivityController.DAY_DETAIL_LINK));
 			}
 			else
 			{
 				message.add(UserActivityController
-						.getUserDayActivityDetailLinkBuilder(goalIDMapping.getUserID(), dateStr, message.getGoalID())
+						.getUserDayActivityDetailLinkBuilder(goalIdMapping.getUserId(), dateStr, message.getGoalId())
 						.withRel(UserActivityController.DAY_DETAIL_LINK));
 			}
 		}
@@ -394,26 +395,26 @@ public class MessageController
 		private void addUserLinkIfAvailable(BuddyMessageLinkedUserDTO buddyMessage)
 		{
 			buddyMessage.getSenderUser().ifPresent(user -> {
-				buddyMessage.add(UserController.getPublicUserLink(BuddyDTO.USER_REL_NAME, user.getID()));
+				buddyMessage.add(UserController.getPublicUserLink(BuddyDTO.USER_REL_NAME, user.getId()));
 			});
 		}
 
 		private void addActivityCommentMessageLinks(ActivityCommentMessageDTO message)
 		{
-			IntervalActivity activity = IntervalActivity.getIntervalActivityRepository().findOne(message.getActivityID());
+			IntervalActivity activity = IntervalActivity.getIntervalActivityRepository().findOne(message.getActivityId());
 			Objects.requireNonNull(activity,
 					String.format("Activity linked from activity comment message not found from sender '%s' and activity id '%s'",
-							message.getSenderNickname(), message.getActivityID()));
+							message.getSenderNickname(), message.getActivityId()));
 			Goal goal = Objects.requireNonNull(activity.getGoal(),
 					String.format("Activity getGoal() returns null for '%s' instance with id '%s' and start time '%s'",
-							activity.getClass().getSimpleName(), activity.getID(), activity.getStartDate()));
-			if (goalIDMapping.isUserGoal(goal.getID()))
+							activity.getClass().getSimpleName(), activity.getId(), activity.getStartDate()));
+			if (goalIdMapping.isUserGoal(goal.getId()))
 			{
-				messageController.getUserActivityController().addLinks(goalIDMapping, activity, message);
+				messageController.getUserActivityController().addLinks(goalIdMapping, activity, message);
 			}
 			else
 			{
-				messageController.getBuddyActivityController().addLinks(goalIDMapping, activity, message);
+				messageController.getBuddyActivityController().addLinks(goalIdMapping, activity, message);
 			}
 		}
 	}

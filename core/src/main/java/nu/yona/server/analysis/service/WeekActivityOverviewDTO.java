@@ -26,7 +26,7 @@ public class WeekActivityOverviewDTO extends IntervalActivityOverviewDTO
 	}
 
 	@Override
-	protected String formatDateAsISO(LocalDate date)
+	protected String formatDateAsIso(LocalDate date)
 	{
 		return WeekActivityDTO.formatDate(date);
 	}

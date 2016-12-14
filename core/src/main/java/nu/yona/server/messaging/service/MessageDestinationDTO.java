@@ -27,10 +27,10 @@ public class MessageDestinationDTO implements Serializable
 
 	public static MessageDestinationDTO createInstance(MessageDestination entity)
 	{
-		return new MessageDestinationDTO(entity.getID());
+		return new MessageDestinationDTO(entity.getId());
 	}
 
-	public UUID getID()
+	public UUID getId()
 	{
 		return id;
 	}

@@ -44,10 +44,10 @@ public class TimeZoneGoalDTO extends GoalDTO
 		this.spreadCells = Collections.emptyList();
 	}
 
-	private TimeZoneGoalDTO(UUID id, UUID activityCategoryID, List<String> zones, LocalDateTime creationTime,
+	private TimeZoneGoalDTO(UUID id, UUID activityCategoryId, List<String> zones, LocalDateTime creationTime,
 			Optional<LocalDateTime> endTime, List<Integer> spreadCells)
 	{
-		super(id, Optional.of(creationTime), endTime, activityCategoryID, false);
+		super(id, Optional.of(creationTime), endTime, activityCategoryId, false);
 
 		this.zones = zones;
 		this.spreadCells = spreadCells;
@@ -155,17 +155,17 @@ public class TimeZoneGoalDTO extends GoalDTO
 
 	static TimeZoneGoalDTO createInstance(TimeZoneGoal entity)
 	{
-		return new TimeZoneGoalDTO(entity.getID(), entity.getActivityCategory().getID(), entity.getZones(),
+		return new TimeZoneGoalDTO(entity.getId(), entity.getActivityCategory().getId(), entity.getZones(),
 				entity.getCreationTime(), Optional.ofNullable(entity.getEndTime()), entity.getSpreadCells());
 	}
 
 	@Override
 	public TimeZoneGoal createGoalEntity()
 	{
-		ActivityCategory activityCategory = ActivityCategory.getRepository().findOne(this.getActivityCategoryID());
+		ActivityCategory activityCategory = ActivityCategory.getRepository().findOne(this.getActivityCategoryId());
 		if (activityCategory == null)
 		{
-			throw ActivityCategoryException.notFound(this.getActivityCategoryID());
+			throw ActivityCategoryException.notFound(this.getActivityCategoryId());
 		}
 		return TimeZoneGoal.createInstance(getCreationTime().orElse(TimeUtil.utcNow()), activityCategory, this.zones);
 	}

@@ -26,7 +26,7 @@ public abstract class IntervalActivityDTO
 		WeekOverview, WeekDetail, DayOverview, DayDetail
 	}
 
-	private final UUID goalID;
+	private final UUID goalId;
 	private final ZonedDateTime startTime;
 	private final boolean shouldSerializeDate;
 
@@ -35,10 +35,10 @@ public abstract class IntervalActivityDTO
 
 	private final boolean hasPrevious, hasNext;
 
-	protected IntervalActivityDTO(UUID goalID, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
+	protected IntervalActivityDTO(UUID goalId, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
 			Optional<Integer> totalActivityDurationMinutes, boolean hasPrevious, boolean hasNext)
 	{
-		this.goalID = goalID;
+		this.goalId = goalId;
 		this.startTime = startTime;
 		this.shouldSerializeDate = shouldSerializeDate;
 		this.spread = spread;
@@ -55,7 +55,7 @@ public abstract class IntervalActivityDTO
 	 * @param localDate The date to be formatted
 	 * @return The formatted date
 	 */
-	protected abstract String formatDateAsISO(LocalDate localDate);
+	protected abstract String formatDateAsIso(LocalDate localDate);
 
 	@JsonIgnore
 	public boolean hasPrevious()
@@ -95,7 +95,7 @@ public abstract class IntervalActivityDTO
 	@JsonIgnore
 	public String getDateStr()
 	{
-		return formatDateAsISO(getStartTime().toLocalDate());
+		return formatDateAsIso(getStartTime().toLocalDate());
 	}
 
 	/*
@@ -104,7 +104,7 @@ public abstract class IntervalActivityDTO
 	@JsonIgnore
 	public String getPreviousDateStr()
 	{
-		return formatDateAsISO(getStartTime().minus(1, getTimeUnit()).toLocalDate());
+		return formatDateAsIso(getStartTime().minus(1, getTimeUnit()).toLocalDate());
 	}
 
 	/*
@@ -113,7 +113,7 @@ public abstract class IntervalActivityDTO
 	@JsonIgnore
 	public String getNextDateStr()
 	{
-		return formatDateAsISO(getStartTime().plus(1, getTimeUnit()).toLocalDate());
+		return formatDateAsIso(getStartTime().plus(1, getTimeUnit()).toLocalDate());
 	}
 
 	/**
@@ -134,9 +134,9 @@ public abstract class IntervalActivityDTO
 	 * can be retrieved by the link.
 	 */
 	@JsonIgnore
-	public UUID getGoalID()
+	public UUID getGoalId()
 	{
-		return goalID;
+		return goalId;
 	}
 
 	@JsonInclude(Include.NON_EMPTY)

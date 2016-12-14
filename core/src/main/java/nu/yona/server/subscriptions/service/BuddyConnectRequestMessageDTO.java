@@ -83,12 +83,12 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 			throw BuddyServiceException.messageEntityCannotBeNull();
 		}
 
-		if (!messageEntity.getRelatedUserAnonymizedID().isPresent())
+		if (!messageEntity.getRelatedUserAnonymizedId().isPresent())
 		{
 			throw BuddyServiceException.userAnonymizedIdCannotBeNull();
 		}
 
-		return new BuddyConnectRequestMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+		return new BuddyConnectRequestMessageDTO(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				senderInfo, messageEntity.getMessage(), messageEntity.getStatus());
 	}
 
@@ -138,11 +138,11 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 		{
 			if (!connectRequestMessageEntity.getSenderUser().isPresent())
 			{
-				throw UserServiceException.notFoundByID(connectRequestMessageEntity.getSenderUserID());
+				throw UserServiceException.notFoundById(connectRequestMessageEntity.getSenderUserId());
 			}
 			User senderUser = connectRequestMessageEntity.getSenderUser().get();
-			buddyService.addBuddyToAcceptingUser(actingUser, senderUser.getID(), connectRequestMessageEntity.getSenderNickname(),
-					connectRequestMessageEntity.getRelatedUserAnonymizedID().get(),
+			buddyService.addBuddyToAcceptingUser(actingUser, senderUser.getId(), connectRequestMessageEntity.getSenderNickname(),
+					connectRequestMessageEntity.getRelatedUserAnonymizedId().get(),
 					connectRequestMessageEntity.requestingSending(), connectRequestMessageEntity.requestingReceiving());
 
 			connectRequestMessageEntity = updateMessageStatusAsAccepted(connectRequestMessageEntity);
@@ -151,7 +151,7 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 
 			logger.info(
 					"User with mobile number '{}' and ID '{}' accepted buddy connect request from user with mobile number '{}' and ID '{}'",
-					actingUser.getMobileNumber(), actingUser.getID(), senderUser.getMobileNumber(), senderUser.getID());
+					actingUser.getMobileNumber(), actingUser.getId(), senderUser.getMobileNumber(), senderUser.getId());
 
 			return MessageActionDTO
 					.createInstanceActionDone(theDTOFactory.createInstance(actingUser, connectRequestMessageEntity));
@@ -166,10 +166,10 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 
 			String mobileNumber = connectRequestMessageEntity.getSenderUser().map(u -> u.getMobileNumber())
 					.orElse("already deleted");
-			String id = connectRequestMessageEntity.getSenderUser().map(u -> u.getID().toString()).orElse("already deleted");
+			String id = connectRequestMessageEntity.getSenderUser().map(u -> u.getId().toString()).orElse("already deleted");
 			logger.info(
 					"User with mobile number '{}' and ID '{}' rejected buddy connect request from user with mobile number '{}' and ID '{}'",
-					actingUser.getMobileNumber(), actingUser.getID(), mobileNumber, id);
+					actingUser.getMobileNumber(), actingUser.getId(), mobileNumber, id);
 
 			return MessageActionDTO
 					.createInstanceActionDone(theDTOFactory.createInstance(actingUser, connectRequestMessageEntity));
@@ -190,9 +190,9 @@ public class BuddyConnectRequestMessageDTO extends BuddyMessageEmbeddedUserDTO
 		private void sendResponseMessageToRequestingUser(UserDTO respondingUser,
 				BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage)
 		{
-			buddyService.sendBuddyConnectResponseMessage(respondingUser.getID(),
-					respondingUser.getPrivateData().getUserAnonymizedID(), respondingUser.getPrivateData().getNickname(),
-					connectRequestMessageEntity.getRelatedUserAnonymizedID().get(), connectRequestMessageEntity.getBuddyID(),
+			buddyService.sendBuddyConnectResponseMessage(respondingUser.getId(),
+					respondingUser.getPrivateData().getUserAnonymizedId(), respondingUser.getPrivateData().getNickname(),
+					connectRequestMessageEntity.getRelatedUserAnonymizedId().get(), connectRequestMessageEntity.getBuddyId(),
 					connectRequestMessageEntity.getStatus(), responseMessage);
 		}
 	}

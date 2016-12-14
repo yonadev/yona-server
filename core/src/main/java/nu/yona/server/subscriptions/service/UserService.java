@@ -78,19 +78,19 @@ public class UserService
 	@Transactional
 	public boolean canAccessPrivateData(UUID id)
 	{
-		return getUserEntityByID(id).canAccessPrivateData();
+		return getUserEntityById(id).canAccessPrivateData();
 	}
 
 	@Transactional
 	public UserDTO getPublicUser(UUID id)
 	{
-		return UserDTO.createInstance(getUserEntityByID(id));
+		return UserDTO.createInstance(getUserEntityById(id));
 	}
 
 	@Transactional
 	public UserDTO getPrivateUser(UUID id)
 	{
-		User user = getUserEntityByID(id);
+		User user = getUserEntityById(id);
 		handleBuddyUsersRemovedWhileOffline(user);
 		return createUserDTOWithPrivateData(user);
 	}
@@ -98,7 +98,7 @@ public class UserService
 	@Transactional
 	public UserDTO getPrivateValidatedUser(UUID id)
 	{
-		User validatedUser = getValidatedUserbyID(id);
+		User validatedUser = getValidatedUserbyId(id);
 		handleBuddyUsersRemovedWhileOffline(validatedUser);
 		return createUserDTOWithPrivateData(validatedUser);
 	}
@@ -112,7 +112,7 @@ public class UserService
 		User.getRepository().save(existingUserEntity);
 		sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsService.TemplateName_OverwriteUserConfirmation);
 		logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code",
-				existingUserEntity.getMobileNumber(), existingUserEntity.getID());
+				existingUserEntity.getMobileNumber(), existingUserEntity.getId());
 	}
 
 	@Transactional
@@ -122,7 +122,7 @@ public class UserService
 		existingUserEntity.setOverwriteUserConfirmationCode(null);
 		User.getRepository().save(existingUserEntity);
 		logger.info("User with mobile number '{}' and ID '{}' cleared the account overwrite confirmation code",
-				existingUserEntity.getMobileNumber(), existingUserEntity.getID());
+				existingUserEntity.getMobileNumber(), existingUserEntity.getId());
 	}
 
 	@Transactional
@@ -150,7 +150,7 @@ public class UserService
 			userEntity.setMobileNumberConfirmationCode(confirmationCode.get());
 		}
 		userEntity = User.getRepository().save(userEntity);
-		ldapUserService.createVPNAccount(userEntity.getUserAnonymizedID().toString(), userEntity.getVPNPassword());
+		ldapUserService.createVpnAccount(userEntity.getUserAnonymizedId().toString(), userEntity.getVpnPassword());
 
 		UserDTO userDTO = createUserDTOWithPrivateData(userEntity);
 		if (confirmationCode.isPresent())
@@ -159,14 +159,14 @@ public class UserService
 					SmsService.TemplateName_AddUserNumberConfirmation);
 		}
 
-		logger.info("Added new user with mobile number '{}' and ID '{}'", userDTO.getMobileNumber(), userDTO.getID());
+		logger.info("Added new user with mobile number '{}' and ID '{}'", userDTO.getMobileNumber(), userDTO.getId());
 		return userDTO;
 	}
 
 	UserDTO createUserDTOWithPrivateData(User user)
 	{
 		return UserDTO.createInstanceWithPrivateData(user,
-				(buddyIDs) -> buddyIDs.stream().map((bid) -> buddyService.getBuddy(bid)).collect(Collectors.toSet()));
+				(buddyIds) -> buddyIds.stream().map((bid) -> buddyService.getBuddy(bid)).collect(Collectors.toSet()));
 	}
 
 	private void addMandatoryGoals(User userEntity)
@@ -178,7 +178,7 @@ public class UserService
 	private void addNoGoGoal(User userEntity, ActivityCategoryDTO category)
 	{
 		userEntity.getAnonymized().addGoal(
-				BudgetGoal.createNoGoInstance(TimeUtil.utcNow(), ActivityCategory.getRepository().findOne(category.getID())));
+				BudgetGoal.createNoGoInstance(TimeUtil.utcNow(), ActivityCategory.getRepository().findOne(category.getId())));
 	}
 
 	private void handleExistingUserForMobileNumber(String mobileNumber, Optional<String> overwriteUserConfirmationCode)
@@ -224,13 +224,13 @@ public class UserService
 		// (the relation is encrypted, the password is not available)
 		User.getRepository().delete(existingUserEntity);
 		logger.info("User with mobile number '{}' and ID '{}' removed, to overwrite the account",
-				existingUserEntity.getMobileNumber(), existingUserEntity.getID());
+				existingUserEntity.getMobileNumber(), existingUserEntity.getId());
 	}
 
 	@Transactional
-	public UserDTO confirmMobileNumber(UUID userID, String userProvidedConfirmationCode)
+	public UserDTO confirmMobileNumber(UUID userId, String userProvidedConfirmationCode)
 	{
-		User userEntity = getUserEntityByID(userID);
+		User userEntity = getUserEntityById(userId);
 		ConfirmationCode confirmationCode = userEntity.getMobileNumberConfirmationCode();
 
 		verifyConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
@@ -249,16 +249,16 @@ public class UserService
 		User.getRepository().save(userEntity);
 
 		logger.info("User with mobile number '{}' and ID '{}' successfully confirmed their mobile number",
-				userEntity.getMobileNumber(), userEntity.getID());
+				userEntity.getMobileNumber(), userEntity.getId());
 		return createUserDTOWithPrivateData(userEntity);
 	}
 
 	@Transactional
-	public Object resendMobileNumberConfirmationCode(UUID userID)
+	public Object resendMobileNumberConfirmationCode(UUID userId)
 	{
-		User userEntity = getUserEntityByID(userID);
+		User userEntity = getUserEntityById(userId);
 		logger.info("User with mobile number '{}' and ID '{}' requests to resend the mobile number confirmation code",
-				userEntity.getMobileNumber(), userEntity.getID());
+				userEntity.getMobileNumber(), userEntity.getId());
 		ConfirmationCode confirmationCode = createConfirmationCode();
 		userEntity.setMobileNumberConfirmationCode(confirmationCode);
 		User.getRepository().save(userEntity);
@@ -277,16 +277,16 @@ public class UserService
 		newUser.setIsCreatedOnBuddyRequest();
 		newUser.setMobileNumberConfirmationCode(createConfirmationCode());
 		User savedUser = User.getRepository().save(newUser);
-		ldapUserService.createVPNAccount(savedUser.getUserAnonymizedID().toString(), savedUser.getVPNPassword());
+		ldapUserService.createVpnAccount(savedUser.getUserAnonymizedId().toString(), savedUser.getVpnPassword());
 		logger.info("User with mobile number '{}' and ID '{}' created on buddy request", savedUser.getMobileNumber(),
-				savedUser.getID());
+				savedUser.getId());
 		return savedUser;
 	}
 
 	@Transactional
 	public UserDTO updateUser(UUID id, UserDTO user)
 	{
-		User originalUserEntity = getUserEntityByID(id);
+		User originalUserEntity = getUserEntityById(id);
 		UserDTO originalUser = createUserDTOWithPrivateData(originalUserEntity);
 		validateUpdateRequest(user, originalUser, originalUserEntity);
 
@@ -304,7 +304,7 @@ public class UserService
 			sendConfirmationCodeTextMessage(updatedUserEntity.getMobileNumber(), confirmationCode.get(),
 					SmsService.TemplateName_ChangedUserNumberConfirmation);
 		}
-		logger.info("Updated user with mobile number '{}' and ID '{}'", userDTO.getMobileNumber(), userDTO.getID());
+		logger.info("Updated user with mobile number '{}' and ID '{}'", userDTO.getMobileNumber(), userDTO.getId());
 		buddyService.broadcastUserInfoChangeToBuddies(savedUserEntity, originalUser);
 		return userDTO;
 	}
@@ -314,7 +314,7 @@ public class UserService
 		if (originalUserEntity.isCreatedOnBuddyRequest())
 		{
 			// security check: should not be able to update a user created on buddy request with its temp password
-			throw UserServiceException.cannotUpdateBecauseCreatedOnBuddyRequest(user.getID());
+			throw UserServiceException.cannotUpdateBecauseCreatedOnBuddyRequest(user.getId());
 		}
 		if (isMobileNumberDifferent(user, originalUser))
 		{
@@ -330,7 +330,7 @@ public class UserService
 	@Transactional
 	public UserDTO updateUserCreatedOnBuddyRequest(UUID id, String tempPassword, UserDTO userResource)
 	{
-		User originalUserEntity = getUserEntityByID(id);
+		User originalUserEntity = getUserEntityById(id);
 		if (!originalUserEntity.isCreatedOnBuddyRequest())
 		{
 			// security check: should not be able to replace the password on an existing user
@@ -343,14 +343,14 @@ public class UserService
 				SmsService.TemplateName_AddUserNumberConfirmation);
 		UserDTO userDTO = createUserDTOWithPrivateData(savedUserEntity);
 		logger.info("Updated user (created on buddy request) with mobile number '{}' and ID '{}'", userDTO.getMobileNumber(),
-				userDTO.getID());
+				userDTO.getId());
 		return userDTO;
 	}
 
 	private EncryptedUserData retrieveUserEncryptedData(User originalUserEntity, String password)
 	{
 		// use a separate crypto session to read the data based on the temporary password
-		return CryptoSession.execute(Optional.of(password), () -> canAccessPrivateData(originalUserEntity.getID()),
+		return CryptoSession.execute(Optional.of(password), () -> canAccessPrivateData(originalUserEntity.getId()),
 				() -> retrieveUserEncryptedDataInNewCryptoSession(originalUserEntity));
 	}
 
@@ -367,7 +367,7 @@ public class UserService
 	@Transactional
 	public void deleteUser(UUID id, Optional<String> message)
 	{
-		User userEntity = getUserEntityByID(id);
+		User userEntity = getUserEntityById(id);
 		buddyService.processPossiblePendingBuddyResponseMessages(userEntity);
 
 		handleBuddyUsersRemovedWhileOffline(userEntity);
@@ -375,45 +375,45 @@ public class UserService
 		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
 				DropBuddyReason.USER_ACCOUNT_DELETED));
 
-		WeekActivity.getRepository().deleteAllForUser(userEntity.getUserAnonymizedID());
-		DayActivity.getRepository().deleteAllForUser(userEntity.getUserAnonymizedID());
+		WeekActivity.getRepository().deleteAllForUser(userEntity.getUserAnonymizedId());
+		DayActivity.getRepository().deleteAllForUser(userEntity.getUserAnonymizedId());
 
-		UUID vpnLoginID = userEntity.getVPNLoginID();
-		UUID userAnonymizedID = userEntity.getUserAnonymizedID();
-		userAnonymizedService.deleteUserAnonymized(userAnonymizedID);
+		UUID vpnLoginId = userEntity.getVpnLoginId();
+		UUID userAnonymizedId = userEntity.getUserAnonymizedId();
+		userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
 		MessageSource namedMessageSource = userEntity.getNamedMessageSource();
 		MessageSource anonymousMessageSource = userEntity.getAnonymousMessageSource();
 		MessageSource.getRepository().delete(anonymousMessageSource);
 		MessageSource.getRepository().delete(namedMessageSource);
 		User.getRepository().delete(userEntity);
 
-		ldapUserService.deleteVPNAccount(vpnLoginID.toString());
-		logger.info("Deleted user with mobile number '{}' and ID '{}'", userEntity.getMobileNumber(), userEntity.getID());
+		ldapUserService.deleteVpnAccount(vpnLoginId.toString());
+		logger.info("Deleted user with mobile number '{}' and ID '{}'", userEntity.getMobileNumber(), userEntity.getId());
 	}
 
 	@Transactional
 	public void addBuddy(UserDTO user, BuddyDTO buddy)
 	{
-		if (user == null || user.getID() == null)
+		if (user == null || user.getId() == null)
 		{
 			throw InvalidDataException.emptyUserId();
 		}
 
-		if (buddy == null || buddy.getID() == null)
+		if (buddy == null || buddy.getId() == null)
 		{
 			throw InvalidDataException.emptyBuddyId();
 		}
 
-		User userEntity = getUserEntityByID(user.getID());
+		User userEntity = getUserEntityById(user.getId());
 		userEntity.assertMobileNumberConfirmed();
 
-		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getID());
+		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getId());
 		userEntity.addBuddy(buddyEntity);
 		User.getRepository().save(userEntity);
 
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		userAnonymizedEntity.addBuddyAnonymized(buddyEntity.getBuddyAnonymized());
-		userAnonymizedService.updateUserAnonymized(userEntity.getUserAnonymizedID(), userAnonymizedEntity);
+		userAnonymizedService.updateUserAnonymized(userEntity.getUserAnonymizedId(), userAnonymizedEntity);
 	}
 
 	public String generatePassword()
@@ -444,7 +444,7 @@ public class UserService
 	 * @return The user entity (never null)
 	 */
 	@Transactional
-	public User getUserEntityByID(UUID id)
+	public User getUserEntityById(UUID id)
 	{
 		if (id == null)
 		{
@@ -455,7 +455,7 @@ public class UserService
 
 		if (entity == null)
 		{
-			throw UserServiceException.notFoundByID(id);
+			throw UserServiceException.notFoundById(id);
 		}
 
 		return entity;
@@ -472,9 +472,9 @@ public class UserService
 	 * @param id The id of the user.
 	 * @return The validated user entity. An exception is thrown is something is missing.
 	 */
-	public User getValidatedUserbyID(UUID id)
+	public User getValidatedUserbyId(UUID id)
 	{
-		User retVal = getUserEntityByID(id);
+		User retVal = getUserEntityById(id);
 		retVal.assertMobileNumberConfirmed();
 
 		return retVal;
@@ -608,8 +608,8 @@ public class UserService
 		}
 	}
 
-	public UUID getUserAnonymizedID(UUID userID)
+	public UUID getUserAnonymizedId(UUID userId)
 	{
-		return getPrivateUser(userID).getPrivateData().getUserAnonymizedID();
+		return getPrivateUser(userId).getPrivateData().getUserAnonymizedId();
 	}
 }

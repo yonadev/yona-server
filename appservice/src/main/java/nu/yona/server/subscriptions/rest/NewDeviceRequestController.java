@@ -67,9 +67,9 @@ public class NewDeviceRequestController
 		try
 		{
 			userService.validateMobileNumber(mobileNumber);
-			UUID userID = userService.getUserByMobileNumber(mobileNumber).getID();
-			checkPassword(password, userID);
-			newDeviceRequestService.setNewDeviceRequestForUser(userID, password.get(),
+			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
+			checkPassword(password, userId);
+			newDeviceRequestService.setNewDeviceRequestForUser(userId, password.get(),
 					newDeviceRequestCreation.getNewDeviceRequestPassword());
 		}
 		catch (UserServiceException e)
@@ -91,7 +91,7 @@ public class NewDeviceRequestController
 			userService.validateMobileNumber(mobileNumber);
 			UserDTO user = userService.getUserByMobileNumber(mobileNumber);
 			return createNewDeviceRequestResponse(user,
-					newDeviceRequestService.getNewDeviceRequestForUser(user.getID(), newDeviceRequestPassword), HttpStatus.OK);
+					newDeviceRequestService.getNewDeviceRequestForUser(user.getId(), newDeviceRequestPassword), HttpStatus.OK);
 		}
 		catch (UserServiceException e)
 		{
@@ -109,9 +109,9 @@ public class NewDeviceRequestController
 		try
 		{
 			userService.validateMobileNumber(mobileNumber);
-			UUID userID = userService.getUserByMobileNumber(mobileNumber).getID();
-			checkPassword(password, userID);
-			newDeviceRequestService.clearNewDeviceRequestForUser(userID);
+			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
+			checkPassword(password, userId);
+			newDeviceRequestService.clearNewDeviceRequestForUser(userId);
 		}
 		catch (UserServiceException e)
 		{
@@ -120,9 +120,9 @@ public class NewDeviceRequestController
 		}
 	}
 
-	private void checkPassword(Optional<String> password, UUID userID)
+	private void checkPassword(Optional<String> password, UUID userId)
 	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userID), () -> null);
+		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId), () -> null);
 	}
 
 	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(UserDTO user,
@@ -187,7 +187,7 @@ public class NewDeviceRequestController
 
 		private void addUserLink(Resource<NewDeviceRequestDTO> newDeviceRequestResource)
 		{
-			newDeviceRequestResource.add(UserController.getPrivateUserLink(BuddyDTO.USER_REL_NAME, user.getID()));
+			newDeviceRequestResource.add(UserController.getPrivateUserLink(BuddyDTO.USER_REL_NAME, user.getId()));
 		}
 	}
 }

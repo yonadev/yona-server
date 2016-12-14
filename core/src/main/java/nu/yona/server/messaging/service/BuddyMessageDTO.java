@@ -25,10 +25,10 @@ public abstract class BuddyMessageDTO extends MessageDTO
 		this.message = message;
 	}
 
-	protected BuddyMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID relatedMessageID,
+	protected BuddyMessageDTO(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID relatedMessageId,
 			String message)
 	{
-		super(id, senderInfo, creationTime, isRead, relatedMessageID);
+		super(id, senderInfo, creationTime, isRead, relatedMessageId);
 		this.message = message;
 	}
 

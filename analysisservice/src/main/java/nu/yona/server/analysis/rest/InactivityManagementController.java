@@ -27,11 +27,11 @@ public class InactivityManagementController
 	@Autowired
 	private InactivityManagementService inactivityManagementService;
 
-	@RequestMapping(value = "/{userAnonymizedID}/inactivity/", method = RequestMethod.POST)
+	@RequestMapping(value = "/{userAnonymizedId}/inactivity/", method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
-	public void createInactivityEntities(@PathVariable UUID userAnonymizedID,
+	public void createInactivityEntities(@PathVariable UUID userAnonymizedId,
 			@RequestBody Set<IntervalInactivityDTO> intervalInactivities)
 	{
-		inactivityManagementService.createInactivityEntities(userAnonymizedID, intervalInactivities);
+		inactivityManagementService.createInactivityEntities(userAnonymizedId, intervalInactivities);
 	}
 }

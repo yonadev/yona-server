@@ -78,7 +78,7 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 	public static BuddyDisconnectMessageDTO createInstance(UserDTO actingUser, BuddyDisconnectMessage messageEntity,
 			SenderInfo senderInfo)
 	{
-		return new BuddyDisconnectMessageDTO(messageEntity.getID(), messageEntity.getCreationTime(), messageEntity.isRead(),
+		return new BuddyDisconnectMessageDTO(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				senderInfo, messageEntity.getMessage(), messageEntity.getReason(), messageEntity.isProcessed());
 	}
 
@@ -120,7 +120,7 @@ public class BuddyDisconnectMessageDTO extends BuddyMessageEmbeddedUserDTO
 		private MessageActionDTO handleAction_Process(UserDTO actingUser, BuddyDisconnectMessage messageEntity,
 				MessageActionDTO requestPayload)
 		{
-			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getID(), messageEntity.getSenderUserID());
+			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getId(), messageEntity.getSenderUserId());
 
 			messageEntity = updateMessageStatusAsProcessed(messageEntity);
 

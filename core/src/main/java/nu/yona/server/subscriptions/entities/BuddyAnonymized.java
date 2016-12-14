@@ -14,13 +14,13 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
 
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "BUDDIES_ANONYMIZED")
-public class BuddyAnonymized extends EntityWithID
+public class BuddyAnonymized extends EntityWithId
 {
 	public enum Status
 	{
@@ -33,7 +33,7 @@ public class BuddyAnonymized extends EntityWithID
 	}
 
 	@Type(type = "uuid-char")
-	private UUID userAnonymizedID;
+	private UUID userAnonymizedId;
 
 	/*
 	 * When the sendingStatus is ACCEPTED, the buddy user accepted to send goal conflicts and activity information to the other
@@ -70,11 +70,11 @@ public class BuddyAnonymized extends EntityWithID
 
 	public UserAnonymized getUserAnonymized()
 	{
-		if (userAnonymizedID == null)
+		if (userAnonymizedId == null)
 		{
 			throw new IllegalStateException("UserAnonymized is not available in this state");
 		}
-		return UserAnonymized.getRepository().findOne(userAnonymizedID);
+		return UserAnonymized.getRepository().findOne(userAnonymizedId);
 	}
 
 	public Status getSendingStatus()
@@ -107,22 +107,22 @@ public class BuddyAnonymized extends EntityWithID
 		setLastStatusChangeTimeToNow();
 	}
 
-	public Optional<UUID> getUserAnonymizedID()
+	public Optional<UUID> getUserAnonymizedId()
 	{
-		return Optional.ofNullable(userAnonymizedID);
+		return Optional.ofNullable(userAnonymizedId);
 	}
 
-	public void setUserAnonymizedID(UUID userAnonymizedID)
+	public void setUserAnonymizedId(UUID userAnonymizedId)
 	{
-		Objects.requireNonNull(userAnonymizedID);
-		this.userAnonymizedID = userAnonymizedID;
+		Objects.requireNonNull(userAnonymizedId);
+		this.userAnonymizedId = userAnonymizedId;
 	}
 
 	public void setDisconnected()
 	{
 		this.sendingStatus = Status.REJECTED;
 		this.receivingStatus = Status.REJECTED;
-		this.userAnonymizedID = null;
+		this.userAnonymizedId = null;
 		setLastStatusChangeTimeToNow();
 	}
 
