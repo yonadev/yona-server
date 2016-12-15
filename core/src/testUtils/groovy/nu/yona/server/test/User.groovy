@@ -27,7 +27,7 @@ class User
 	final List<Buddy> buddies
 	final VPNProfile vpnProfile
 	final String url
-	final String editURL
+	final String editUrl
 	final String buddiesUrl
 	final String goalsUrl
 	final String messagesUrl
@@ -42,7 +42,7 @@ class User
 	final String clearPinResetUrl
 	final String sslRootCertUrl
 	final String appleMobileConfig
-	final String sslRootCertCN
+	final String sslRootCertCn
 	final String password
 
 	User(def json, String password)
@@ -73,11 +73,11 @@ class User
 			this.nickname = json.nickname
 
 			this.buddies = (json._embedded?."yona:buddies"?._embedded) ? json._embedded."yona:buddies"._embedded."yona:buddies".collect{new Buddy(it)} : []
-			this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJSON(it)} : []
+			this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJson(it)} : []
 			this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
 		}
 		this.url = YonaServer.stripQueryString(json._links.self.href)
-		this.editURL = json._links?.edit?.href
+		this.editUrl = json._links?.edit?.href
 		this.buddiesUrl = json._embedded?."yona:buddies"?._links?.self?.href
 		this.goalsUrl = json._embedded?."yona:goals"?._links?.self?.href
 		this.messagesUrl = json._links?."yona:messages"?.href
@@ -92,10 +92,10 @@ class User
 		this.clearPinResetUrl = json._links?."yona:clearPinReset"?.href
 		this.sslRootCertUrl = json._links?."yona:sslRootCert"?.href
 		this.appleMobileConfig = json._links?."yona:appleMobileConfig"?.href
-		this.sslRootCertCN = json.sslRootCertCN
+		this.sslRootCertCn = json.sslRootCertCN
 	}
 
-	def convertToJSON()
+	def convertToJson()
 	{
 		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, nickname, mobileNumber)
 
@@ -128,13 +128,13 @@ class User
 
 class VPNProfile
 {
-	final String vpnLoginID
+	final String vpnLoginId
 	final String vpnPassword
 	final String ovpnProfileUrl
 
 	VPNProfile(def json)
 	{
-		this.vpnLoginID = json.vpnLoginID
+		this.vpnLoginId = json.vpnLoginID
 		this.vpnPassword = json.vpnPassword
 		this.ovpnProfileUrl = json._links."yona:ovpnProfile".href
 	}

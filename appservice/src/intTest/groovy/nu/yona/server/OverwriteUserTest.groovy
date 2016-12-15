@@ -115,13 +115,13 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		buddyConnectRequestMessages.size() == 1
 		buddyConnectRequestMessages[0].nickname == richard.nickname
 
-		def acceptURL = buddyConnectRequestMessages[0]._links?."yona:accept"?.href
-		def acceptBuddyRequestResponse = appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
+		def acceptUrl = buddyConnectRequestMessages[0]._links?."yona:accept"?.href
+		def acceptBuddyRequestResponse = appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
 		acceptBuddyRequestResponse.status == 400
 		acceptBuddyRequestResponse.responseData.code == "error.user.not.found.id"
 
-		def rejectURL = buddyConnectRequestMessages[0]._links?."yona:reject"?.href
-		def rejectBuddyRequestResponse = appService.postMessageActionWithPassword(rejectURL, ["message" : "Too bad!"], bob.password)
+		def rejectUrl = buddyConnectRequestMessages[0]._links?."yona:reject"?.href
+		def rejectBuddyRequestResponse = appService.postMessageActionWithPassword(rejectUrl, ["message" : "Too bad!"], bob.password)
 		rejectBuddyRequestResponse.status == 200
 
 		def buddiesRichard = appService.getBuddies(richardChanged)
@@ -292,25 +292,25 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def userCreationMobileNumber = "+${timestamp}99"
-		def userCreationJSON = """{
+		def userCreationJson = """{
 						"firstName":"John",
 						"lastName":"Doe",
 						"nickname":"JD",
 						"mobileNumber":"${userCreationMobileNumber}"}"""
 
-		def userAddResponse = appService.addUser(userCreationJSON, "Password")
+		def userAddResponse = appService.addUser(userCreationJson, "Password")
 		def overwriteRequestResponse = appService.requestOverwriteUser(userCreationMobileNumber)
-		def userURL = YonaServer.stripQueryString(userAddResponse.responseData._links.self.href)
+		def userUrl = YonaServer.stripQueryString(userAddResponse.responseData._links.self.href)
 
 		when:
-		def response1TimeWrong = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "12341"])
+		def response1TimeWrong = appService.addUser(userCreationJson, "New password", ["overwriteUserConfirmationCode": "12341"])
 		response1TimeWrong.responseData.remainingAttempts == 4
-		appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "12342"])
-		appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "12343"])
-		def response4TimesWrong = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "12344"])
-		def response5TimesWrong = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "12345"])
-		def response6TimesWrong = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "12346"])
-		def response7thTimeRight = appService.addUser(userCreationJSON, "New password", ["overwriteUserConfirmationCode": "1234"])
+		appService.addUser(userCreationJson, "New password", ["overwriteUserConfirmationCode": "12342"])
+		appService.addUser(userCreationJson, "New password", ["overwriteUserConfirmationCode": "12343"])
+		def response4TimesWrong = appService.addUser(userCreationJson, "New password", ["overwriteUserConfirmationCode": "12344"])
+		def response5TimesWrong = appService.addUser(userCreationJson, "New password", ["overwriteUserConfirmationCode": "12345"])
+		def response6TimesWrong = appService.addUser(userCreationJson, "New password", ["overwriteUserConfirmationCode": "12346"])
+		def response7thTimeRight = appService.addUser(userCreationJson, "New password", ["overwriteUserConfirmationCode": "1234"])
 
 		then:
 		userAddResponse.status == 201
@@ -331,9 +331,9 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		response7thTimeRight.responseData.code == "error.user.overwrite.confirmation.code.too.many.failed.attempts"
 
 		cleanup:
-		if (userURL)
+		if (userUrl)
 		{
-			appService.deleteUser(userURL, "Password")
+			appService.deleteUser(userUrl, "Password")
 		}
 	}
 
