@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.crypto;
 
@@ -17,8 +17,7 @@ import javax.crypto.Cipher;
 
 public class PublicKeyEncryptor implements Encryptor
 {
-
-	private PublicKey publicKey;
+	private final PublicKey publicKey;
 
 	private PublicKeyEncryptor(PublicKey publicKey)
 	{
@@ -47,7 +46,7 @@ public class PublicKeyEncryptor implements Encryptor
 			Cipher encryptCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 			encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
 
-			return encryptCipher.doFinal(plaintext);
+			return CryptoUtil.encrypt(PublicKeyUtil.CURRENT_CRYPTO_VARIANT_NUMBER, encryptCipher, plaintext);
 		}
 		catch (GeneralSecurityException e)
 		{

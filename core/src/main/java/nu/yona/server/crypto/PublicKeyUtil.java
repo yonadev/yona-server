@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.crypto;
 
@@ -16,7 +16,9 @@ import java.security.spec.X509EncodedKeySpec;
 
 public final class PublicKeyUtil
 {
-	public static final String KEY_ALGORITHM = "RSA";
+	static final int KEY_LENGTH_BITS = 1024;
+	private static final String KEY_ALGORITHM = "RSA";
+	static final byte CURRENT_CRYPTO_VARIANT_NUMBER = 1;
 
 	private PublicKeyUtil()
 	{
@@ -28,7 +30,7 @@ public final class PublicKeyUtil
 		{
 			KeyPairGenerator keyGen = KeyPairGenerator.getInstance(KEY_ALGORITHM);
 			SecureRandom random = CryptoUtil.getSecureRandomInstance();
-			keyGen.initialize(1024, random);
+			keyGen.initialize(KEY_LENGTH_BITS, random);
 			KeyPair pair = keyGen.generateKeyPair();
 			return pair;
 		}

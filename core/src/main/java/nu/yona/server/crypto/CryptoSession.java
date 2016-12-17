@@ -13,13 +13,10 @@ import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.Optional;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
-import javax.crypto.ShortBufferException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -31,8 +28,7 @@ import nu.yona.server.exceptions.YonaException;
 
 public class CryptoSession implements AutoCloseable
 {
-	private static final int CRYPTO_VARIANT_NUMBER_LENGTH = 1;
-	private static final byte CURRENT_CRYPTO_VARIANT_NUMBER = 1;
+	static final byte CURRENT_CRYPTO_VARIANT_NUMBER = 1;
 	private static final String CIPHER_TYPE = "AES/CBC/PKCS5Padding";
 
 	public interface Executable<T>
@@ -147,21 +143,7 @@ public class CryptoSession implements AutoCloseable
 	 */
 	public byte[] encrypt(byte[] plaintext)
 	{
-		try
-		{
-			byte[] ciphertext = new byte[getEncryptionCipher().getOutputSize(plaintext.length) + CRYPTO_VARIANT_NUMBER_LENGTH];
-			setCryptoVariantNumber(ciphertext);
-			int bytesStored = getEncryptionCipher().doFinal(plaintext, 0, plaintext.length, ciphertext, 1);
-			if (bytesStored != ciphertext.length - CRYPTO_VARIANT_NUMBER_LENGTH)
-			{
-				ciphertext = Arrays.copyOf(ciphertext, ciphertext.length + CRYPTO_VARIANT_NUMBER_LENGTH);
-			}
-			return ciphertext;
-		}
-		catch (IllegalBlockSizeException | BadPaddingException | ShortBufferException e)
-		{
-			throw CryptoException.encryptingData(e);
-		}
+		return CryptoUtil.encrypt(CURRENT_CRYPTO_VARIANT_NUMBER, getEncryptionCipher(), plaintext);
 	}
 
 	/**
@@ -172,35 +154,7 @@ public class CryptoSession implements AutoCloseable
 	 */
 	public byte[] decrypt(byte[] ciphertext)
 	{
-		try
-		{
-			verifyCryptoVariantNumber(ciphertext);
-			byte[] plaintext = new byte[getDecryptionCipher().getOutputSize(ciphertext.length)];
-			int bytesStored = getDecryptionCipher().doFinal(ciphertext, CRYPTO_VARIANT_NUMBER_LENGTH,
-					plaintext.length - CRYPTO_VARIANT_NUMBER_LENGTH, plaintext, 0);
-			if (bytesStored != plaintext.length)
-			{
-				plaintext = Arrays.copyOf(plaintext, bytesStored);
-			}
-			return plaintext;
-		}
-		catch (IllegalBlockSizeException | BadPaddingException | ShortBufferException e)
-		{
-			throw CryptoException.decryptingData(e);
-		}
-	}
-
-	private void setCryptoVariantNumber(byte[] ciphertext)
-	{
-		ciphertext[0] = CURRENT_CRYPTO_VARIANT_NUMBER;
-	}
-
-	private void verifyCryptoVariantNumber(byte[] ciphertext)
-	{
-		if (ciphertext[0] != CURRENT_CRYPTO_VARIANT_NUMBER)
-		{
-			throw CryptoException.decryptingData();
-		}
+		return CryptoUtil.decrypt(CURRENT_CRYPTO_VARIANT_NUMBER, getDecryptionCipher(), ciphertext);
 	}
 
 	private SecretKey getSecretKey(char[] password)

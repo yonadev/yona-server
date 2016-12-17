@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.crypto;
 
@@ -19,7 +19,7 @@ import javax.crypto.Cipher;
 public class PublicKeyDecryptor implements Decryptor
 {
 
-	private PrivateKey privateKey;
+	private final PrivateKey privateKey;
 
 	private PublicKeyDecryptor(PrivateKey privateKey)
 	{
@@ -48,7 +48,7 @@ public class PublicKeyDecryptor implements Decryptor
 			Cipher decryptCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 			decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
 
-			return decryptCipher.doFinal(ciphertext);
+			return CryptoUtil.decrypt(PublicKeyUtil.CURRENT_CRYPTO_VARIANT_NUMBER, decryptCipher, ciphertext);
 		}
 		catch (GeneralSecurityException e)
 		{

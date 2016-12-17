@@ -9,6 +9,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -56,11 +57,23 @@ public class CryptoSessionTest
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
 		byte[] ciphertext = Base64.getDecoder().decode(encrypt(PASSWORD1, PLAINTEXT1, initializationVector, false));
-		assertThat(ciphertext[0], equalTo((byte) 1)); // Currently the only crypto variant number supported for symmetrical
-														// encryption
+		assertThat(ciphertext[0], equalTo(CryptoSession.CURRENT_CRYPTO_VARIANT_NUMBER));
 
 		ciphertext[0] = 13; // Unsupported crypto variant number
 		decrypt(PASSWORD1, Base64.getEncoder().encodeToString(ciphertext), initializationVector);
+	}
+
+	@Test
+	public void testLongPlaintext()
+	{
+		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
+		char[] chars = new char[2500];
+		Arrays.fill(chars, 'a');
+		String longPlainText = String.valueOf(chars);
+		String ciphertext = encrypt(PASSWORD1, longPlainText, initializationVector, false);
+		assertThat(ciphertext, not(equalTo(longPlainText)));
+		String plaintext = decrypt(PASSWORD1, ciphertext, initializationVector);
+		assertThat(plaintext, equalTo(longPlainText));
 	}
 
 	@Test
