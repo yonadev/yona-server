@@ -417,7 +417,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         - column:
             name: url_ciphertext
-            type: TINYBLOB
+            type: BLOB
         - column:
             name: reason
             type: INT
