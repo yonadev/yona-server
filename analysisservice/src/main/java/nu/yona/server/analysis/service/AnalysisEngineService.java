@@ -427,16 +427,30 @@ public class AnalysisEngineService
 		}
 	}
 
+	/**
+	 * Holds a user anonymized entity, provided it was fetched. The purpose of this class is to keep track of whether the user
+	 * anonymized entity was fetched from the database. If it was fetched, it was most likely done to update something in the
+	 * large composite of the user anonymized entity. If that was done, the user anonymized entity is dirty and needs to be saved.
+	 * <br/>
+	 * Saving it implies that JPA saves any updates to that entity itself, but also to any of the entities in associations marked
+	 * with CascadeType.ALL or CascadeType.PERSIST. Here in the analysis service, that applies to new or updated Activity,
+	 * DayActivity and WeekActivity entities.<br/>
+	 * The alternative to having this class would be to always fetch the user anonymized entity at the start of "analyze", but
+	 * that would imply that we always make a round trip to the database, even in cases were our optimizations make that
+	 * unnecessary.<br/>
+	 * The "analyze" method will always save the user anonymized entity to its repository if it was fetched. JPA take care of
+	 * preventing unnecessary update actions.
+	 */
 	private class UserAnonymizedEntityHolder
 	{
 		private final UUID id;
 		private Optional<UserAnonymized> entity = Optional.empty();
-	
+
 		UserAnonymizedEntityHolder(UUID id)
 		{
 			this.id = id;
 		}
-	
+
 		UserAnonymized getEntity()
 		{
 			if (!entity.isPresent())
@@ -445,7 +459,7 @@ public class AnalysisEngineService
 			}
 			return entity.get();
 		}
-	
+
 		boolean isEntityFetched()
 		{
 			return entity.isPresent();
