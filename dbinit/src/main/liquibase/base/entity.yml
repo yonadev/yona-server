@@ -400,7 +400,6 @@ databaseChangeLog:
             name: is_processed
             type: BOOLEAN
         - column:
-            type: BLOB
             name: change
             type: INT
         - column:
