@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.crypto;
 
@@ -52,6 +49,18 @@ public class CryptoSessionTest
 		assertThat(ciphertext, not(equalTo(PLAINTEXT1)));
 		String plaintext = decrypt(PASSWORD1, ciphertext, initializationVector);
 		assertThat(plaintext, equalTo(PLAINTEXT1));
+	}
+
+	@Test(expected = CryptoException.class)
+	public void testCryptoVariantNumber()
+	{
+		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
+		byte[] ciphertext = Base64.getDecoder().decode(encrypt(PASSWORD1, PLAINTEXT1, initializationVector, false));
+		assertThat(ciphertext[0], equalTo((byte) 1)); // Currently the only crypto variant number supported for symmetrical
+														// encryption
+
+		ciphertext[0] = 13; // Unsupported crypto variant number
+		decrypt(PASSWORD1, Base64.getEncoder().encodeToString(ciphertext), initializationVector);
 	}
 
 	@Test
