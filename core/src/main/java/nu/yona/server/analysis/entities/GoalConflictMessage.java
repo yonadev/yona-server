@@ -7,6 +7,7 @@ package nu.yona.server.analysis.entities;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
@@ -41,6 +42,7 @@ public class GoalConflictMessage extends Message
 
 	@Transient
 	private Optional<String> url;
+	@Column(length = 3000)
 	private byte[] urlCiphertext;
 
 	// Default constructor is required for JPA

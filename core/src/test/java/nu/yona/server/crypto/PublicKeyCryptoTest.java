@@ -17,7 +17,7 @@ import org.junit.Test;
 
 public class PublicKeyCryptoTest
 {
-	private static final int MIN_BLOCK_LENGTH = CryptoUtil.CRYPTO_VARIANT_NUMBER_LENGTH + PublicKeyUtil.KEY_LENGTH_BITS / 8;
+	private static final int MIN_BLOCK_LENGTH = CryptoUtil.CRYPTO_VARIANT_NUMBER_LENGTH + PublicKeyUtil.KEY_LENGTH_BYTES;
 	private static final KeyPair keyPair = PublicKeyUtil.generateKeyPair();
 	private static final String PLAINTEXT1 = "One";
 
@@ -43,7 +43,7 @@ public class PublicKeyCryptoTest
 	public void testCryptoVariantNumber()
 	{
 		byte[] ciphertext = encrypt(keyPair.getPublic(), PLAINTEXT1);
-		assertThat(ciphertext[0], equalTo(PublicKeyUtil.CURRENT_CRYPTO_VARIANT_NUMBER));
+		assertThat(ciphertext[0], equalTo(PublicKeyUtil.CURRENT_SMALL_PLAINTEXT_CRYPTO_VARIANT_NUMBER));
 
 		ciphertext[0] = 13; // Unsupported crypto variant number
 		decrypt(keyPair.getPrivate(), ciphertext);
@@ -57,6 +57,33 @@ public class PublicKeyCryptoTest
 		String longPlainText = String.valueOf(chars);
 		byte[] ciphertext = encrypt(keyPair.getPublic(), longPlainText);
 		assertThat(ciphertext.length, greaterThan(MIN_BLOCK_LENGTH));
+		assertThat(ciphertext[0], equalTo(PublicKeyUtil.CURRENT_LARGE_PLAINTEXT_CRYPTO_VARIANT_NUMBER));
+		String plaintext = decrypt(keyPair.getPrivate(), ciphertext);
+		assertThat(plaintext, equalTo(longPlainText));
+	}
+
+	@Test
+	public void testLargestSmallPlaintext()
+	{
+		char[] chars = new char[86];
+		Arrays.fill(chars, 'a');
+		String longPlainText = String.valueOf(chars);
+		byte[] ciphertext = encrypt(keyPair.getPublic(), longPlainText);
+		assertThat(ciphertext.length, equalTo(MIN_BLOCK_LENGTH));
+		assertThat(ciphertext[0], equalTo(PublicKeyUtil.CURRENT_SMALL_PLAINTEXT_CRYPTO_VARIANT_NUMBER));
+		String plaintext = decrypt(keyPair.getPrivate(), ciphertext);
+		assertThat(plaintext, equalTo(longPlainText));
+	}
+
+	@Test
+	public void testSmallestLargePlaintext()
+	{
+		char[] chars = new char[87];
+		Arrays.fill(chars, 'a');
+		String longPlainText = String.valueOf(chars);
+		byte[] ciphertext = encrypt(keyPair.getPublic(), longPlainText);
+		assertThat(ciphertext.length, greaterThan(MIN_BLOCK_LENGTH));
+		assertThat(ciphertext[0], equalTo(PublicKeyUtil.CURRENT_LARGE_PLAINTEXT_CRYPTO_VARIANT_NUMBER));
 		String plaintext = decrypt(keyPair.getPrivate(), ciphertext);
 		assertThat(plaintext, equalTo(longPlainText));
 	}

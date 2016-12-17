@@ -17,6 +17,10 @@ import javax.crypto.Cipher;
 
 public class PublicKeyEncryptor implements Encryptor
 {
+	/**
+	 * Maximum payload in a single RSA-encrypted message with OAEP padding, see http://stackoverflow.com/a/11750658/4353482
+	 */
+	private static final int SMALL_PAYLOAD_MAX_LENGTH = 86;
 	private final PublicKey publicKey;
 
 	private PublicKeyEncryptor(PublicKey publicKey)
@@ -43,10 +47,11 @@ public class PublicKeyEncryptor implements Encryptor
 			{
 				return null;
 			}
-			Cipher encryptCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			Cipher encryptCipher = Cipher.getInstance(PublicKeyUtil.CIPHER_TYPE);
 			encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
 
-			return CryptoUtil.encrypt(PublicKeyUtil.CURRENT_CRYPTO_VARIANT_NUMBER, encryptCipher, plaintext);
+			return CryptoUtil.encrypt(PublicKeyUtil.CURRENT_SMALL_PLAINTEXT_CRYPTO_VARIANT_NUMBER, SMALL_PAYLOAD_MAX_LENGTH,
+					PublicKeyUtil.CURRENT_LARGE_PLAINTEXT_CRYPTO_VARIANT_NUMBER, encryptCipher, plaintext);
 		}
 		catch (GeneralSecurityException e)
 		{

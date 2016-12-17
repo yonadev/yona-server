@@ -16,9 +16,12 @@ import java.security.spec.X509EncodedKeySpec;
 
 public final class PublicKeyUtil
 {
-	static final int KEY_LENGTH_BITS = 1024;
+	private static final int KEY_LENGTH_BITS = 1024;
+	static final int KEY_LENGTH_BYTES = KEY_LENGTH_BITS / 8;
 	private static final String KEY_ALGORITHM = "RSA";
-	static final byte CURRENT_CRYPTO_VARIANT_NUMBER = 1;
+	static final byte CURRENT_SMALL_PLAINTEXT_CRYPTO_VARIANT_NUMBER = 1;
+	static final byte CURRENT_LARGE_PLAINTEXT_CRYPTO_VARIANT_NUMBER = 2;
+	static final String CIPHER_TYPE = "RSA/ECB/OAEPWithSHA-1AndMGF1Padding";
 
 	private PublicKeyUtil()
 	{

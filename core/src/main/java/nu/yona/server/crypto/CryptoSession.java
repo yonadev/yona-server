@@ -4,22 +4,13 @@
  *******************************************************************************/
 package nu.yona.server.crypto;
 
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
-import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.Optional;
 
 import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,21 +20,7 @@ import nu.yona.server.exceptions.YonaException;
 public class CryptoSession implements AutoCloseable
 {
 	static final byte CURRENT_CRYPTO_VARIANT_NUMBER = 1;
-	private static final String CIPHER_TYPE = "AES/CBC/PKCS5Padding";
-
-	public interface Executable<T>
-	{
-		T execute();
-	}
-
-	public interface VoidPredicate
-	{
-		boolean test();
-	}
-
 	private static final Logger logger = LoggerFactory.getLogger(CryptoSession.class);
-	private static final byte[] SALT = "0123456789012345".getBytes();
-	private static final int INITIALIZATION_VECTOR_LENGTH = 16;
 	private static ThreadLocal<CryptoSession> threadLocal = new ThreadLocal<>();
 	private Cipher encryptionCipher;
 	private Optional<byte[]> initializationVector = Optional.empty();
@@ -53,7 +30,7 @@ public class CryptoSession implements AutoCloseable
 
 	private CryptoSession(String password, CryptoSession previousCryptoSession)
 	{
-		secretKey = getSecretKey(password.toCharArray());
+		secretKey = CryptoUtil.getSecretKey(password);
 		this.previousCryptoSession = previousCryptoSession;
 		threadLocal.set(this);
 	}
@@ -95,30 +72,6 @@ public class CryptoSession implements AutoCloseable
 		});
 	}
 
-	private Cipher getEncryptionCipher()
-	{
-		try
-		{
-			if (encryptionCipher == null)
-			{
-				encryptionCipher = Cipher.getInstance(CIPHER_TYPE);
-				if (!isInitializationVectorSet())
-				{
-					encryptionCipher.init(Cipher.ENCRYPT_MODE, secretKey);
-				}
-				else
-				{
-					encryptionCipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(initializationVector.get()));
-				}
-			}
-			return encryptionCipher;
-		}
-		catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e)
-		{
-			throw CryptoException.gettingCipher(CIPHER_TYPE);
-		}
-	}
-
 	private static CryptoSession start(String password)
 	{
 		logger.debug("Starting crypto session on thread {}", Thread.currentThread());
@@ -157,21 +110,6 @@ public class CryptoSession implements AutoCloseable
 		return CryptoUtil.decrypt(CURRENT_CRYPTO_VARIANT_NUMBER, getDecryptionCipher(), ciphertext);
 	}
 
-	private SecretKey getSecretKey(char[] password)
-	{
-		try
-		{
-			SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-			KeySpec spec = new PBEKeySpec(password, SALT, 65536, 128);
-			SecretKey tmp = factory.generateSecret(spec);
-			return new SecretKeySpec(tmp.getEncoded(), "AES");
-		}
-		catch (NoSuchAlgorithmException | InvalidKeySpecException e)
-		{
-			throw CryptoException.creatingSecretKey(e);
-		}
-	}
-
 	public byte[] generateInitializationVector()
 	{
 		try
@@ -203,9 +141,9 @@ public class CryptoSession implements AutoCloseable
 		{
 			throw CryptoException.initializationVectorParameterNull();
 		}
-		if (initializationVector.length != INITIALIZATION_VECTOR_LENGTH)
+		if (initializationVector.length != CryptoUtil.INITIALIZATION_VECTOR_LENGTH)
 		{
-			throw CryptoException.initializationVectorWrongSize(initializationVector.length, INITIALIZATION_VECTOR_LENGTH);
+			throw CryptoException.initializationVectorWrongSize(initializationVector.length, CryptoUtil.INITIALIZATION_VECTOR_LENGTH);
 		}
 		if (isInitializationVectorSet())
 		{
@@ -224,29 +162,47 @@ public class CryptoSession implements AutoCloseable
 		return initializationVector.isPresent();
 	}
 
+	private Cipher getEncryptionCipher()
+	{
+		if (encryptionCipher == null)
+		{
+			if (isInitializationVectorSet())
+			{
+				encryptionCipher = CryptoUtil.getSymmetricalEncryptionCipher(secretKey, initializationVector.get());
+			}
+			else
+			{
+				encryptionCipher = CryptoUtil.getSymmetricalEncryptionCipher(secretKey);
+			}
+		}
+		return encryptionCipher;
+	}
+
 	private Cipher getDecryptionCipher()
 	{
-		try
+		if (decryptionCipher == null)
 		{
-			if (decryptionCipher == null)
+			if (!isInitializationVectorSet())
 			{
-				if (!isInitializationVectorSet())
-				{
-					throw CryptoException.initializationVectorNotSet();
-				}
-				decryptionCipher = Cipher.getInstance(CIPHER_TYPE);
-				decryptionCipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(getInitializationVector()));
+				throw CryptoException.initializationVectorNotSet();
 			}
-			return decryptionCipher;
+			decryptionCipher = CryptoUtil.getSymmetricalDecryptionCipher(secretKey, getInitializationVector());
 		}
-		catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e)
-		{
-			throw CryptoException.gettingCipher(CIPHER_TYPE);
-		}
+		return decryptionCipher;
 	}
 
 	private static String getPassword(Optional<String> password)
 	{
 		return password.orElseThrow(() -> MissingPasswordException.passwordHeaderNotProvided());
+	}
+
+	public interface Executable<T>
+	{
+		T execute();
+	}
+
+	public interface VoidPredicate
+	{
+		boolean test();
 	}
 }

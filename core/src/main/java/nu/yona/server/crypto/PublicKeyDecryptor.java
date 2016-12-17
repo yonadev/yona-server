@@ -45,10 +45,11 @@ public class PublicKeyDecryptor implements Decryptor
 			{
 				return null;
 			}
-			Cipher decryptCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			Cipher decryptCipher = Cipher.getInstance(PublicKeyUtil.CIPHER_TYPE);
 			decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
 
-			return CryptoUtil.decrypt(PublicKeyUtil.CURRENT_CRYPTO_VARIANT_NUMBER, decryptCipher, ciphertext);
+			return CryptoUtil.decrypt(PublicKeyUtil.CURRENT_SMALL_PLAINTEXT_CRYPTO_VARIANT_NUMBER,
+					PublicKeyUtil.CURRENT_LARGE_PLAINTEXT_CRYPTO_VARIANT_NUMBER, decryptCipher, ciphertext);
 		}
 		catch (GeneralSecurityException e)
 		{
