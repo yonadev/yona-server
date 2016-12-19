@@ -4,21 +4,14 @@
  *******************************************************************************/
 package nu.yona.server.crypto;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.Optional;
 
 import javax.crypto.Cipher;
 
 public class PublicKeyDecryptor implements Decryptor
 {
-
 	private final PrivateKey privateKey;
 
 	private PublicKeyDecryptor(PrivateKey privateKey)
@@ -36,8 +29,7 @@ public class PublicKeyDecryptor implements Decryptor
 		return new PublicKeyDecryptor(privateKey);
 	}
 
-	@Override
-	public byte[] decrypt(byte[] ciphertext)
+	byte[] decrypt(byte[] ciphertext)
 	{
 		try
 		{
@@ -48,8 +40,7 @@ public class PublicKeyDecryptor implements Decryptor
 			Cipher decryptCipher = Cipher.getInstance(PublicKeyUtil.CIPHER_TYPE);
 			decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
 
-			return CryptoUtil.decrypt(PublicKeyUtil.CURRENT_SMALL_PLAINTEXT_CRYPTO_VARIANT_NUMBER,
-					PublicKeyUtil.CURRENT_LARGE_PLAINTEXT_CRYPTO_VARIANT_NUMBER, decryptCipher, ciphertext);
+			return CryptoUtil.decrypt(PublicKeyUtil.CURRENT_SMALL_PLAINTEXT_CRYPTO_VARIANT_NUMBER, decryptCipher, ciphertext);
 		}
 		catch (GeneralSecurityException e)
 		{
@@ -58,53 +49,12 @@ public class PublicKeyDecryptor implements Decryptor
 	}
 
 	@Override
-	public String decryptString(byte[] ciphertext)
+	public void executeInCryptoSession(byte[] decryptionInfoBytes, Runnable runnable)
 	{
-		return (ciphertext == null) ? null : new String(decrypt(ciphertext), StandardCharsets.UTF_8);
-	}
-
-	@Override
-	public UUID decryptUUID(byte[] ciphertext)
-	{
-		return (ciphertext == null) ? null : UUID.fromString(decryptString(ciphertext));
-	}
-
-	@Override
-	public long decryptLong(byte[] ciphertext)
-	{
-		return Long.parseLong(decryptString(ciphertext));
-	}
-
-	@Override
-	public Set<UUID> decryptUUIDSet(byte[] ciphertext)
-	{
-		try
-		{
-			byte[] plaintext = decrypt(ciphertext);
-			DataInputStream stream = new DataInputStream(new ByteArrayInputStream(plaintext));
-			int length = stream.readInt();
-			Set<UUID> ids = new HashSet<>(length);
-			for (int i = 0; (i < length); i++)
-			{
-				ids.add(readUUID(stream));
-			}
-			return ids;
-		}
-		catch (IOException e)
-		{
-			throw CryptoException.decryptingData(e);
-		}
-	}
-
-	private UUID readUUID(DataInputStream stream)
-	{
-		try
-		{
-			return new UUID(stream.readLong(), stream.readLong());
-		}
-		catch (IOException e)
-		{
-			throw CryptoException.readingUUID(e);
-		}
+		DecryptionInfo decryptionInfo = new DecryptionInfo(decrypt(decryptionInfoBytes));
+		CryptoSession.execute(Optional.of(decryptionInfo.getPassword()), () -> {
+			CryptoSession.getCurrent().setInitializationVector(decryptionInfo.getInitializationVector());
+			runnable.run();
+		});
 	}
 }

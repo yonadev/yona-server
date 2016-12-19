@@ -5,13 +5,14 @@
 package nu.yona.server.crypto;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertThat;
 
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.Arrays;
+import java.util.Optional;
 
 import org.junit.Test;
 
@@ -28,6 +29,26 @@ public class PublicKeyCryptoTest
 		assertThat(ciphertext.length, equalTo(MIN_BLOCK_LENGTH));
 		String plaintext = decrypt(keyPair.getPrivate(), ciphertext);
 		assertThat(plaintext, equalTo(PLAINTEXT1));
+	}
+
+	@Test
+	public void testDecryptionInfo()
+	{
+		PublicKeyEncryptor encryptor = PublicKeyEncryptor.createInstance(keyPair.getPublic());
+		String password = CryptoUtil.getRandomString(32);
+		DataContainer dataContainer = new DataContainer();
+		CryptoSession.execute(Optional.of(password), () -> {
+			dataContainer.decryptionInfo = encryptor.getDecryptionInfo(password);
+			dataContainer.ciphertext = CryptoUtil.encryptString(PLAINTEXT1);
+		});
+		assertThat(dataContainer.decryptionInfo.length, equalTo(MIN_BLOCK_LENGTH));
+		assertThat(dataContainer.ciphertext.length, lessThan(MIN_BLOCK_LENGTH));
+
+		PublicKeyDecryptor decryptor = PublicKeyDecryptor.createInstance(keyPair.getPrivate());
+		decryptor.executeInCryptoSession(dataContainer.decryptionInfo, () -> {
+			dataContainer.plaintext = CryptoUtil.decryptString(dataContainer.ciphertext);
+		});
+		assertThat(dataContainer.plaintext, equalTo(PLAINTEXT1));
 	}
 
 	@Test(expected = CryptoException.class)
@@ -49,54 +70,22 @@ public class PublicKeyCryptoTest
 		decrypt(keyPair.getPrivate(), ciphertext);
 	}
 
-	@Test
-	public void testLongPlaintext()
-	{
-		char[] chars = new char[2500];
-		Arrays.fill(chars, 'a');
-		String longPlainText = String.valueOf(chars);
-		byte[] ciphertext = encrypt(keyPair.getPublic(), longPlainText);
-		assertThat(ciphertext.length, greaterThan(MIN_BLOCK_LENGTH));
-		assertThat(ciphertext[0], equalTo(PublicKeyUtil.CURRENT_LARGE_PLAINTEXT_CRYPTO_VARIANT_NUMBER));
-		String plaintext = decrypt(keyPair.getPrivate(), ciphertext);
-		assertThat(plaintext, equalTo(longPlainText));
-	}
-
-	@Test
-	public void testLargestSmallPlaintext()
-	{
-		char[] chars = new char[86];
-		Arrays.fill(chars, 'a');
-		String longPlainText = String.valueOf(chars);
-		byte[] ciphertext = encrypt(keyPair.getPublic(), longPlainText);
-		assertThat(ciphertext.length, equalTo(MIN_BLOCK_LENGTH));
-		assertThat(ciphertext[0], equalTo(PublicKeyUtil.CURRENT_SMALL_PLAINTEXT_CRYPTO_VARIANT_NUMBER));
-		String plaintext = decrypt(keyPair.getPrivate(), ciphertext);
-		assertThat(plaintext, equalTo(longPlainText));
-	}
-
-	@Test
-	public void testSmallestLargePlaintext()
-	{
-		char[] chars = new char[87];
-		Arrays.fill(chars, 'a');
-		String longPlainText = String.valueOf(chars);
-		byte[] ciphertext = encrypt(keyPair.getPublic(), longPlainText);
-		assertThat(ciphertext.length, greaterThan(MIN_BLOCK_LENGTH));
-		assertThat(ciphertext[0], equalTo(PublicKeyUtil.CURRENT_LARGE_PLAINTEXT_CRYPTO_VARIANT_NUMBER));
-		String plaintext = decrypt(keyPair.getPrivate(), ciphertext);
-		assertThat(plaintext, equalTo(longPlainText));
-	}
-
 	private static byte[] encrypt(PublicKey publicKey, String plaintext)
 	{
 		PublicKeyEncryptor encryptor = PublicKeyEncryptor.createInstance(publicKey);
-		return encryptor.encrypt(plaintext);
+		return encryptor.encrypt(plaintext.getBytes(StandardCharsets.UTF_8));
 	}
 
 	private static String decrypt(PrivateKey privateKey, byte[] ciphertext)
 	{
 		PublicKeyDecryptor decryptor = PublicKeyDecryptor.createInstance(privateKey);
-		return decryptor.decryptString(ciphertext);
+		return new String(decryptor.decrypt(ciphertext), StandardCharsets.UTF_8);
+	}
+
+	static class DataContainer
+	{
+		public String plaintext;
+		public byte[] decryptionInfo;
+		public byte[] ciphertext;
 	}
 }

@@ -14,8 +14,7 @@ import javax.persistence.Transient;
 
 import org.hibernate.annotations.Type;
 
-import nu.yona.server.crypto.Decryptor;
-import nu.yona.server.crypto.Encryptor;
+import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.Message;
 
@@ -84,15 +83,15 @@ public class GoalConflictMessage extends Message
 	}
 
 	@Override
-	public void encrypt(Encryptor encryptor)
+	public void encrypt()
 	{
-		urlCiphertext = encryptor.encrypt(url.orElse(null));
+		urlCiphertext = CryptoUtil.encryptString(url.orElse(null));
 	}
 
 	@Override
-	public void decrypt(Decryptor decryptor)
+	public void decrypt()
 	{
-		url = Optional.ofNullable(decryptor.decryptString(urlCiphertext));
+		url = Optional.ofNullable(CryptoUtil.decryptString(urlCiphertext));
 	}
 
 	public boolean isFromBuddy()

@@ -13,6 +13,8 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
 
+import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.entities.EntityWithID;
@@ -23,6 +25,8 @@ import nu.yona.server.util.TimeUtil;
 @Table(name = "MESSAGES")
 public abstract class Message extends EntityWithID
 {
+	private byte[] decryptionInfo;
+
 	@Type(type = "uuid-char")
 	private final UUID relatedUserAnonymizedID;
 
@@ -66,12 +70,16 @@ public abstract class Message extends EntityWithID
 
 	public void encryptMessage(Encryptor encryptor)
 	{
-		encrypt(encryptor);
+		String password = CryptoUtil.getRandomString(32);
+		CryptoSession.execute(Optional.of(password), () -> {
+			decryptionInfo = encryptor.getDecryptionInfo(password);
+			encrypt();
+		});
 	}
 
 	public void decryptMessage(Decryptor decryptor)
 	{
-		decrypt(decryptor);
+		decryptor.executeInCryptoSession(decryptionInfo, () -> decrypt());
 	}
 
 	protected void setRepliedMessageID(Optional<UUID> repliedMessageID)
@@ -126,7 +134,7 @@ public abstract class Message extends EntityWithID
 		return Optional.ofNullable(relatedUserAnonymizedID);
 	}
 
-	protected abstract void encrypt(Encryptor encryptor);
+	protected abstract void encrypt();
 
-	protected abstract void decrypt(Decryptor decryptor);
+	protected abstract void decrypt();
 }

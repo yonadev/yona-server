@@ -354,6 +354,9 @@ databaseChangeLog:
             name: id
             type: VARCHAR(255)
         - column:
+            name: decryption_info
+            type: TINYBLOB
+        - column:
             name: creation_time
             type: datetime(6)
         - column:

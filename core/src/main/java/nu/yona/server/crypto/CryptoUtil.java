@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.crypto;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -14,6 +16,7 @@ import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -36,8 +39,6 @@ public class CryptoUtil
 	static final byte[] SALT = "0123456789012345".getBytes();
 	private static final String SECRET_KEY_ALGORITHM = "PBKDF2WithHmacSHA256";
 	private static final int SECRET_KEY_LENGTH_BITS = 128;
-	private static final int SECRET_KEY_LENGTH_BYTES = SECRET_KEY_LENGTH_BITS / 8;
-	private static final int ASYMMETRICAL_BLOCK_SIZE = PublicKeyUtil.KEY_LENGTH_BYTES;
 	static final int CRYPTO_VARIANT_NUMBER_LENGTH = 1;
 	static final String SYMMETRICAL_CIPHER_TYPE = "AES/CBC/PKCS5Padding";
 	static final int INITIALIZATION_VECTOR_LENGTH = 16;
@@ -65,6 +66,66 @@ public class CryptoUtil
 	{
 		SecureRandom random = CryptoUtil.getSecureRandomInstance();
 		return StringUtils.leftPad("" + random.nextInt((int) Math.pow(10, length)), length, '0');
+	}
+
+	public static byte[] encryptUuid(UUID plaintext)
+	{
+		if (plaintext == null)
+		{
+			return null;
+		}
+		ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+		bb.putLong(plaintext.getMostSignificantBits());
+		bb.putLong(plaintext.getLeastSignificantBits());
+		return encryptBytes(bb.array());
+	}
+
+	public static byte[] encryptString(String plaintext)
+	{
+		if (plaintext == null)
+		{
+			return null;
+		}
+		return encryptBytes(plaintext.toString().getBytes(StandardCharsets.UTF_8));
+	}
+
+	public static byte[] encryptBytes(byte[] plaintext)
+	{
+		if (plaintext == null)
+		{
+			return null;
+		}
+		return CryptoSession.getCurrent().encrypt(plaintext);
+	}
+
+	public static UUID decryptUuid(byte[] ciphertext)
+	{
+		if (ciphertext == null)
+		{
+			return null;
+		}
+		ByteBuffer bb = ByteBuffer.wrap(decryptBytes(ciphertext));
+		long firstLong = bb.getLong();
+		long secondLong = bb.getLong();
+		return new UUID(firstLong, secondLong);
+	}
+
+	public static String decryptString(byte[] ciphertext)
+	{
+		if (ciphertext == null)
+		{
+			return null;
+		}
+		return new String(decryptBytes(ciphertext), StandardCharsets.UTF_8);
+	}
+
+	public static byte[] decryptBytes(byte[] ciphertext)
+	{
+		if (ciphertext == null)
+		{
+			return null;
+		}
+		return CryptoSession.getCurrent().decrypt(ciphertext);
 	}
 
 	static SecureRandom getSecureRandomInstance()
@@ -165,16 +226,6 @@ public class CryptoUtil
 		}
 	}
 
-	public static byte[] encrypt(byte smallPlaintextCryptoVariantNumber, int smallPlaintextMaxLength,
-			byte largePlaintextCryptoVariantNumber, Cipher cipher, byte[] plaintext)
-	{
-		if (plaintext.length > smallPlaintextMaxLength)
-		{
-			return encryptLargePlaintext(largePlaintextCryptoVariantNumber, cipher, plaintext);
-		}
-		return encrypt(smallPlaintextCryptoVariantNumber, cipher, plaintext);
-	}
-
 	/**
 	 * Decrypts the given ciphertext bytes.
 	 * 
@@ -201,16 +252,6 @@ public class CryptoUtil
 		}
 	}
 
-	public static byte[] decrypt(byte smallPlaintextCryptoVariantNumber, byte largePlaintextCryptoVariantNumber, Cipher cipher,
-			byte[] ciphertext)
-	{
-		if (ciphertext[0] == largePlaintextCryptoVariantNumber)
-		{
-			return decryptLargePlaintext(cipher, ciphertext);
-		}
-		return decrypt(smallPlaintextCryptoVariantNumber, cipher, ciphertext);
-	}
-
 	private static void setCryptoVariantNumber(byte cryptoVariantNumber, byte[] ciphertext)
 	{
 		ciphertext[0] = cryptoVariantNumber;
@@ -222,85 +263,5 @@ public class CryptoUtil
 		{
 			throw CryptoException.decryptingData();
 		}
-	}
-
-	/**
-	 * Encrypts a large block of plaintext using a combination of asymmetrical encryption (public key, RSA) and symmetrical
-	 * encryption (secret key, AES). The ciphertext consists of three fragments:
-	 * <ol>
-	 * <li>1 byte containing the crypto variant number</li>
-	 * <li>A block as long as the RSA key strength, encrypted with the asymmetrical cipher containing the secret key and the
-	 * initialization vector used to encrypt the next block</li>
-	 * <li>A block with the cipher text corresponding to the given plaintext, encrypted with the secret key of the previous bullet
-	 * </li>
-	 * <ol/>
-	 * 
-	 * @param cryptoVariantNumber The crypto variant number to be included
-	 * @param asymmetricalCipher The asymmetrical ciper to be used
-	 * @param plaintext The plaintext to be encrypted
-	 * @return The full set of encrypted information
-	 */
-	private static byte[] encryptLargePlaintext(byte cryptoVariantNumber, Cipher asymmetricalCipher, byte[] plaintext)
-	{
-		try
-		{
-			SecretKey secretKey = getSecretKey(getRandomString(32));
-			Cipher symmetricalCipher = getSymmetricalEncryptionCipher(secretKey);
-			byte[] ciphertext = symmetricalCipher.doFinal(plaintext);
-
-			byte[] decryptionInfoPlaintext = buildDecryptionInfoPlaintext(secretKey, symmetricalCipher.getIV());
-			byte[] decryptionInfoCiphertext = asymmetricalCipher.doFinal(decryptionInfoPlaintext);
-			assert decryptionInfoCiphertext.length == ASYMMETRICAL_BLOCK_SIZE;
-
-			return buildFullCiphertext(cryptoVariantNumber, decryptionInfoCiphertext, ciphertext);
-		}
-		catch (IllegalBlockSizeException | BadPaddingException e)
-		{
-			throw CryptoException.encryptingData(e);
-		}
-	}
-
-	private static byte[] buildDecryptionInfoPlaintext(SecretKey secretKey, byte[] initializationVector)
-	{
-		byte[] decryptionInfoPlaintext = new byte[SECRET_KEY_LENGTH_BYTES + INITIALIZATION_VECTOR_LENGTH];
-		System.arraycopy(secretKey.getEncoded(), 0, decryptionInfoPlaintext, 0, SECRET_KEY_LENGTH_BYTES);
-		System.arraycopy(initializationVector, 0, decryptionInfoPlaintext, SECRET_KEY_LENGTH_BYTES, INITIALIZATION_VECTOR_LENGTH);
-		return decryptionInfoPlaintext;
-	}
-
-	private static byte[] buildFullCiphertext(byte cryptoVariantNumber, byte[] decryptionInfo, byte[] ciphertext)
-	{
-		byte[] fullCipherText = new byte[CRYPTO_VARIANT_NUMBER_LENGTH + decryptionInfo.length + ciphertext.length];
-		fullCipherText[0] = cryptoVariantNumber;
-		System.arraycopy(decryptionInfo, 0, fullCipherText, CRYPTO_VARIANT_NUMBER_LENGTH, decryptionInfo.length);
-		System.arraycopy(ciphertext, 0, fullCipherText, CRYPTO_VARIANT_NUMBER_LENGTH + decryptionInfo.length, ciphertext.length);
-		return fullCipherText;
-	}
-
-	/**
-	 * @see CryptoUtil#encryptLargePlaintext(byte, Cipher, byte[])
-	 */
-	private static byte[] decryptLargePlaintext(Cipher asymmetricalCipher, byte[] ciphertext)
-	{
-		try
-		{
-			byte[] decryptionInfo = asymmetricalCipher.doFinal(ciphertext, CRYPTO_VARIANT_NUMBER_LENGTH, ASYMMETRICAL_BLOCK_SIZE);
-			byte[] encodedSecretKey = copyBlock(decryptionInfo, 0, SECRET_KEY_LENGTH_BYTES);
-			byte[] initializationVector = copyBlock(decryptionInfo, SECRET_KEY_LENGTH_BYTES, INITIALIZATION_VECTOR_LENGTH);
-
-			SecretKey secretKey = new SecretKeySpec(encodedSecretKey, "AES");
-			Cipher symmetricalCipher = getSymmetricalDecryptionCipher(secretKey, initializationVector);
-			int payloadOffset = CRYPTO_VARIANT_NUMBER_LENGTH + ASYMMETRICAL_BLOCK_SIZE;
-			return symmetricalCipher.doFinal(ciphertext, payloadOffset, ciphertext.length - payloadOffset);
-		}
-		catch (IllegalBlockSizeException | BadPaddingException e)
-		{
-			throw CryptoException.decryptingData(e);
-		}
-	}
-
-	private static byte[] copyBlock(byte[] bytes, int offset, int length)
-	{
-		return Arrays.copyOfRange(bytes, offset, offset + length);
 	}
 }

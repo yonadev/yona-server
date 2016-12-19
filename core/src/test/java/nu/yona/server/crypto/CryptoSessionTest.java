@@ -6,12 +6,14 @@ package nu.yona.server.crypto;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.Test;
 
@@ -50,6 +52,20 @@ public class CryptoSessionTest
 		assertThat(ciphertext, not(equalTo(PLAINTEXT1)));
 		String plaintext = decrypt(PASSWORD1, ciphertext, initializationVector);
 		assertThat(plaintext, equalTo(PLAINTEXT1));
+	}
+
+	@Test
+	public void testUuid()
+	{
+		UUID uuid = UUID.randomUUID();
+		DataContainer dataContainer = new DataContainer();
+		CryptoSession.execute(Optional.of(PASSWORD1), () -> {
+			CryptoSession.getCurrent().generateInitializationVector(); // Not used
+			dataContainer.ciphertext = CryptoUtil.encryptUuid(uuid);
+			dataContainer.uuid = CryptoUtil.decryptUuid(dataContainer.ciphertext);
+		});
+		assertThat(dataContainer.ciphertext.length, greaterThan(16));
+		assertThat(uuid, equalTo(dataContainer.uuid));
 	}
 
 	@Test(expected = CryptoException.class)
@@ -165,5 +181,11 @@ public class CryptoSessionTest
 			CryptoSession.getCurrent().setInitializationVector(initializationVector);
 		}
 		return new String(CryptoSession.getCurrent().decrypt(Base64.getDecoder().decode(ciphertext)));
+	}
+
+	static class DataContainer
+	{
+		public UUID uuid;
+		public byte[] ciphertext;
 	}
 }
