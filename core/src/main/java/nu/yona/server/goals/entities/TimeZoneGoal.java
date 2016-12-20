@@ -9,16 +9,15 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 
 import nu.yona.server.analysis.entities.DayActivity;
@@ -31,8 +30,8 @@ public class TimeZoneGoal extends Goal
 	@Column(length = 24 * 4 * 12) // 24 hours, 4 quarters of an hour, 12 characters (hh:mm-hh:mm,)
 	private String zones;
 
-	@ElementCollection
-	private List<Integer> spreadCells;
+	@Column(length = 24 * 4) // 24 hours, 4 quarters of an hour
+	private byte[] spreadCells;
 
 	// Default constructor is required for JPA
 	public TimeZoneGoal()
@@ -46,7 +45,7 @@ public class TimeZoneGoal extends Goal
 		super(id, creationTime, activityCategory);
 
 		this.zones = listToString(zones);
-		this.spreadCells = spreadCells;
+		this.spreadCells = integerListToByteArray(spreadCells);
 	}
 
 	private TimeZoneGoal(UUID id, TimeZoneGoal originalGoal, LocalDateTime endTime)
@@ -54,7 +53,7 @@ public class TimeZoneGoal extends Goal
 		super(id, originalGoal, endTime);
 
 		this.zones = originalGoal.zones;
-		this.spreadCells = new ArrayList<>(originalGoal.spreadCells);
+		this.spreadCells = Arrays.copyOf(originalGoal.spreadCells, originalGoal.spreadCells.length);
 	}
 
 	public List<String> getZones()
@@ -65,7 +64,7 @@ public class TimeZoneGoal extends Goal
 	public void setZones(List<String> zones)
 	{
 		this.zones = listToString(zones);
-		this.spreadCells = calculateSpreadCells(zones);
+		this.spreadCells = integerListToByteArray(calculateSpreadCells(zones));
 	}
 
 	@Override
@@ -96,8 +95,13 @@ public class TimeZoneGoal extends Goal
 	private int[] determineSpreadOutsideGoal(DayActivity dayActivity)
 	{
 		int[] spread = dayActivity.getSpread().stream().mapToInt(i -> i.intValue()).toArray();
-		spreadCells.stream().forEach(i -> spread[i] = 0);
+		getSpreadCellsIntStream().forEach(i -> spread[i] = 0);
 		return spread;
+	}
+
+	private IntStream getSpreadCellsIntStream()
+	{
+		return IntStream.range(0, spreadCells.length).map(i -> spreadCells[i]);
 	}
 
 	@Override
@@ -107,6 +111,16 @@ public class TimeZoneGoal extends Goal
 		int sumOfSpreadOutsideGoal = Arrays.stream(spread).sum();
 		// Due to rounding, the sum of the spread might be more than the total duration, so take the lowest of the two
 		return Math.min(dayActivity.getTotalActivityDurationMinutes(), sumOfSpreadOutsideGoal);
+	}
+
+	private static byte[] integerListToByteArray(List<Integer> spreadCells)
+	{
+		byte[] bytes = new byte[spreadCells.size()];
+		for (int i = 0; (i < bytes.length); i++)
+		{
+			bytes[i] = spreadCells.get(i).byteValue();
+		}
+		return bytes;
 	}
 
 	public static TimeZoneGoal createInstance(LocalDateTime creationTime, ActivityCategory activityCategory, List<String> zones)
@@ -150,7 +164,7 @@ public class TimeZoneGoal extends Goal
 
 	public List<Integer> getSpreadCells()
 	{
-		return new ArrayList<>(spreadCells);
+		return getSpreadCellsIntStream().boxed().collect(Collectors.toList());
 	}
 
 	public static String listToString(List<String> entityValue)
