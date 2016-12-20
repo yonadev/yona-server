@@ -34,14 +34,14 @@ import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
 import nu.yona.server.entities.EntityUtil;
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "GOALS")
-public abstract class Goal extends EntityWithID implements Serializable
+public abstract class Goal extends EntityWithId implements Serializable
 {
 	public static GoalRepository getRepository()
 	{
@@ -211,13 +211,13 @@ public abstract class Goal extends EntityWithID implements Serializable
 		return creationTime.isBefore(startNextInterval) && endTime.map(end -> end.isAfter(startNextInterval)).orElse(true);
 	}
 
-	public Set<UUID> getIDsIncludingHistoryItems()
+	public Set<UUID> getIdsIncludingHistoryItems()
 	{
 		Set<UUID> ids = new HashSet<>();
 		Optional<Goal> previous = Optional.of(this);
 		while (previous.isPresent())
 		{
-			ids.add(previous.get().getID());
+			ids.add(previous.get().getId());
 			previous = previous.get().getPreviousVersionOfThisGoal();
 		}
 

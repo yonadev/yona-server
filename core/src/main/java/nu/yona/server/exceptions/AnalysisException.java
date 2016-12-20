@@ -24,21 +24,21 @@ public class AnalysisException extends YonaException
 		super(t, messageId, parameters);
 	}
 
-	public static AnalysisException appActivityStartAfterEnd(UUID userAnonymizedID, String application, ZonedDateTime startTime,
+	public static AnalysisException appActivityStartAfterEnd(UUID userAnonymizedId, String application, ZonedDateTime startTime,
 			ZonedDateTime endTime)
 	{
-		return new AnalysisException("error.analysis.invalid.app.activity.data.end.before.start", userAnonymizedID, application,
+		return new AnalysisException("error.analysis.invalid.app.activity.data.end.before.start", userAnonymizedId, application,
 				startTime, endTime);
 	}
 
-	public static AnalysisException appActivityStartsInFuture(UUID userAnonymizedID, String application, ZonedDateTime startTime)
+	public static AnalysisException appActivityStartsInFuture(UUID userAnonymizedId, String application, ZonedDateTime startTime)
 	{
-		return new AnalysisException("error.analysis.invalid.app.activity.data.starts.in.future", userAnonymizedID, application,
+		return new AnalysisException("error.analysis.invalid.app.activity.data.starts.in.future", userAnonymizedId, application,
 				startTime);
 	}
 
-	public static AnalysisException appActivityEndsInFuture(UUID userAnonymizedID, String application, ZonedDateTime endTime)
+	public static AnalysisException appActivityEndsInFuture(UUID userAnonymizedId, String application, ZonedDateTime endTime)
 	{
-		return new AnalysisException("error.analysis.invalid.app.activity.data.ends.in.future", userAnonymizedID, application, endTime);
+		return new AnalysisException("error.analysis.invalid.app.activity.data.ends.in.future", userAnonymizedId, application, endTime);
 	}
 }

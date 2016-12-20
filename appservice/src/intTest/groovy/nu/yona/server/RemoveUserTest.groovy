@@ -180,7 +180,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def richardResponseDetailsBob = appService.getDayActivityDetails(richard, richard.buddies[0], budgetGoalNewsBuddyBob, 1, "Tue")
 		appService.yonaServer.createResourceWithPassword(richardResponseDetailsBob.responseData._links."yona:addComment".href, """{"message": "Hi Bob, nice activity!"}""", richard.password)
 		//buddy info change
-		def updatedRichardJson = richard.convertToJSON()
+		def updatedRichardJson = richard.convertToJson()
 		updatedRichardJson.nickname = "Richardo"
 		richard = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedRichardJson, richard.password))
 
@@ -245,8 +245,8 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def message = "Goodbye friends! I deinstalled the Internet"
 		appService.deleteUser(richard, message)
 		def getResponse = appService.getMessages(bob)
-		def processURL = (getResponse.status == 200) ? getResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links."yona:process".href : null
-		appService.postMessageActionWithPassword(processURL, [:], bob.password)
+		def processUrl = (getResponse.status == 200) ? getResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links."yona:process".href : null
+		appService.postMessageActionWithPassword(processUrl, [:], bob.password)
 
 		when:
 		def response = analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")

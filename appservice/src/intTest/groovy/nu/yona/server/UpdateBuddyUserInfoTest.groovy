@@ -19,7 +19,7 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		User bob = richardAndBob.bob
 
 		when:
-		def updatedBobJson = bob.convertToJSON()
+		def updatedBobJson = bob.convertToJson()
 		updatedBobJson.nickname = "Bobby"
 		User bobAfterUpdate = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, bob.password))
 		def richardMessagesAfterUpdate = appService.getMessages(richard)
@@ -61,7 +61,7 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		User bob = richardAndBob.bob
 
 		when:
-		def updatedBobJson = bob.convertToJSON()
+		def updatedBobJson = bob.convertToJson()
 		updatedBobJson.firstName = "Robert"
 		updatedBobJson.lastName = "Dunstan"
 		User bobAfterUpdate = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, bob.password))

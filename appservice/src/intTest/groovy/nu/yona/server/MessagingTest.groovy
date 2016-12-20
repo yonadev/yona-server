@@ -117,10 +117,10 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 		def bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
-		def messageURL = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}[0]._links.self.href
+		def messageUrl = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}[0]._links.self.href
 
 		when:
-		def response = appService.deleteResourceWithPassword(messageURL, bob.password)
+		def response = appService.deleteResourceWithPassword(messageUrl, bob.password)
 
 		then:
 		response.status == 400
@@ -140,12 +140,12 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 		def bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptURL = appService.fetchBuddyConnectRequestMessage(bob).acceptURL
-		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
-		def messageDeleteURL = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}[0]._links.edit.href
+		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
+		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
+		def messageDeleteUrl = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}[0]._links.edit.href
 
 		when:
-		def response = appService.deleteResourceWithPassword(messageDeleteURL, bob.password)
+		def response = appService.deleteResourceWithPassword(messageDeleteUrl, bob.password)
 
 		then:
 		response.status == 200
@@ -162,12 +162,12 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 		def bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptURL = appService.fetchBuddyConnectRequestMessage(bob).acceptURL
-		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
-		def messageURL = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}[0]._links.self.href
+		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
+		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
+		def messageUrl = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}[0]._links.self.href
 
 		when:
-		def response = appService.deleteResourceWithPassword(messageURL, richard.password)
+		def response = appService.deleteResourceWithPassword(messageUrl, richard.password)
 
 		then:
 		response.status == 400
@@ -187,14 +187,14 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 		def bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptURL = appService.fetchBuddyConnectRequestMessage(bob).acceptURL
-		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
-		def processURL = appService.fetchBuddyConnectResponseMessage(richard).processURL
-		def processResponse = appService.postMessageActionWithPassword(processURL, [ : ], richard.password)
-		def messageDeleteURL = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}[0]._links.edit.href
+		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
+		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
+		def processUrl = appService.fetchBuddyConnectResponseMessage(richard).processUrl
+		def processResponse = appService.postMessageActionWithPassword(processUrl, [ : ], richard.password)
+		def messageDeleteUrl = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}[0]._links.edit.href
 
 		when:
-		def response = appService.deleteResourceWithPassword(messageDeleteURL, richard.password)
+		def response = appService.deleteResourceWithPassword(messageDeleteUrl, richard.password)
 
 		then:
 		response.status == 200
@@ -212,10 +212,10 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		def messageDeleteURL = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links.edit.href
+		def messageDeleteUrl = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links.edit.href
 
 		when:
-		def response = appService.deleteResourceWithPassword(messageDeleteURL, richard.password)
+		def response = appService.deleteResourceWithPassword(messageDeleteUrl, richard.password)
 
 		then:
 		response.status == 200
@@ -235,10 +235,10 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		def messageDeleteURL = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links.edit.href
+		def messageDeleteUrl = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links.edit.href
 
 		when:
-		def response = appService.deleteResourceWithPassword(messageDeleteURL, bob.password)
+		def response = appService.deleteResourceWithPassword(messageDeleteUrl, bob.password)
 
 		then:
 		response.status == 200

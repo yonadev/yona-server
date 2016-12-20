@@ -25,14 +25,14 @@ import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
 import nu.yona.server.exceptions.AnalysisException;
 import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.goals.service.ActivityCategoryDTO;
+import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
-import nu.yona.server.goals.service.GoalDTO;
+import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
-import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
+import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TimeUtil;
@@ -64,36 +64,36 @@ public class AnalysisEngineService
 	private LockPool<UUID> userAnonymizedSynchronizer;
 
 	@Transactional
-	public void analyze(UUID userAnonymizedID, AppActivityDTO appActivities)
+	public void analyze(UUID userAnonymizedId, AppActivityDto appActivities)
 	{
-		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
+		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		Duration deviceTimeOffset = determineDeviceTimeOffset(appActivities);
-		for (AppActivityDTO.Activity appActivity : appActivities.getActivities())
+		for (AppActivityDto.Activity appActivity : appActivities.getActivities())
 		{
-			Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryFilterService
+			Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService
 					.getMatchingCategoriesForApp(appActivity.getApplication());
 			analyze(createActivityPayload(deviceTimeOffset, appActivity, userAnonymized), matchingActivityCategories);
 		}
 	}
 
 	@Transactional
-	public void analyze(UUID userAnonymizedID, NetworkActivityDTO networkActivity)
+	public void analyze(UUID userAnonymizedId, NetworkActivityDto networkActivity)
 	{
-		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
-		Set<ActivityCategoryDTO> matchingActivityCategories = activityCategoryFilterService
+		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
+		Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService
 				.getMatchingCategoriesForSmoothwallCategories(networkActivity.getCategories());
 		analyze(ActivityPayload.createInstance(userAnonymized, networkActivity), matchingActivityCategories);
 	}
 
-	private Duration determineDeviceTimeOffset(AppActivityDTO appActivities)
+	private Duration determineDeviceTimeOffset(AppActivityDto appActivities)
 	{
 		Duration offset = Duration.between(ZonedDateTime.now(), appActivities.getDeviceDateTime());
 		return (offset.abs().compareTo(DEVICE_TIME_INACCURACY_MARGIN) > 0) ? offset : Duration.ZERO; // Ignore if less than 10
 																										// seconds
 	}
 
-	private ActivityPayload createActivityPayload(Duration deviceTimeOffset, AppActivityDTO.Activity appActivity,
-			UserAnonymizedDTO userAnonymized)
+	private ActivityPayload createActivityPayload(Duration deviceTimeOffset, AppActivityDto.Activity appActivity,
+			UserAnonymizedDto userAnonymized)
 	{
 		ZonedDateTime correctedStartTime = correctTime(deviceTimeOffset, appActivity.getStartTime());
 		ZonedDateTime correctedEndTime = correctTime(deviceTimeOffset, appActivity.getEndTime());
@@ -102,21 +102,21 @@ public class AnalysisEngineService
 		return ActivityPayload.createInstance(userAnonymized, correctedStartTime, correctedEndTime, application);
 	}
 
-	private void validateTimes(UserAnonymizedDTO userAnonymized, String application, ZonedDateTime correctedStartTime,
+	private void validateTimes(UserAnonymizedDto userAnonymized, String application, ZonedDateTime correctedStartTime,
 			ZonedDateTime correctedEndTime)
 	{
 		if (correctedEndTime.isBefore(correctedStartTime))
 		{
-			throw AnalysisException.appActivityStartAfterEnd(userAnonymized.getID(), application, correctedStartTime,
+			throw AnalysisException.appActivityStartAfterEnd(userAnonymized.getId(), application, correctedStartTime,
 					correctedEndTime);
 		}
 		if (correctedStartTime.isAfter(ZonedDateTime.now().plus(DEVICE_TIME_INACCURACY_MARGIN)))
 		{
-			throw AnalysisException.appActivityStartsInFuture(userAnonymized.getID(), application, correctedStartTime);
+			throw AnalysisException.appActivityStartsInFuture(userAnonymized.getId(), application, correctedStartTime);
 		}
 		if (correctedEndTime.isAfter(ZonedDateTime.now().plus(DEVICE_TIME_INACCURACY_MARGIN)))
 		{
-			throw AnalysisException.appActivityEndsInFuture(userAnonymized.getID(), application, correctedEndTime);
+			throw AnalysisException.appActivityEndsInFuture(userAnonymized.getId(), application, correctedEndTime);
 		}
 	}
 
@@ -125,15 +125,15 @@ public class AnalysisEngineService
 		return time.minus(deviceTimeOffset);
 	}
 
-	private void analyze(ActivityPayload payload, Set<ActivityCategoryDTO> matchingActivityCategories)
+	private void analyze(ActivityPayload payload, Set<ActivityCategoryDto> matchingActivityCategories)
 	{
 		// We add a lock here because we further down in this class need to prevent conflicting updates to the DayActivity
 		// entities.
 		// The lock is added in this method (and not further down) so that we only have to lock once;
 		// because the lock is per user, it doesn't matter much that we block early.
-		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(payload.userAnonymized.getID()))
+		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(payload.userAnonymized.getId()))
 		{
-			UserAnonymizedEntityHolder userAnonymizedHolder = new UserAnonymizedEntityHolder(payload.userAnonymized.getID());
+			UserAnonymizedEntityHolder userAnonymizedHolder = new UserAnonymizedEntityHolder(payload.userAnonymized.getId());
 			analyzeInsideLock(userAnonymizedHolder, payload, matchingActivityCategories);
 			if (userAnonymizedHolder.isEntityFetched())
 			{
@@ -143,18 +143,18 @@ public class AnalysisEngineService
 	}
 
 	private void analyzeInsideLock(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload,
-			Set<ActivityCategoryDTO> matchingActivityCategories)
+			Set<ActivityCategoryDto> matchingActivityCategories)
 	{
-		Set<GoalDTO> matchingGoalsOfUser = determineMatchingGoalsForUser(payload.userAnonymized, matchingActivityCategories,
+		Set<GoalDto> matchingGoalsOfUser = determineMatchingGoalsForUser(payload.userAnonymized, matchingActivityCategories,
 				payload.startTime);
-		for (GoalDTO matchingGoalOfUser : matchingGoalsOfUser)
+		for (GoalDto matchingGoalOfUser : matchingGoalsOfUser)
 		{
 			addOrUpdateActivity(userAnonymizedHolder, payload, matchingGoalOfUser);
 		}
 	}
 
 	private void addOrUpdateActivity(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload,
-			GoalDTO matchingGoal)
+			GoalDto matchingGoal)
 	{
 		if (isCrossDayActivity(payload))
 		{
@@ -174,9 +174,9 @@ public class AnalysisEngineService
 	}
 
 	private void addOrUpdateDayTruncatedActivity(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload,
-			GoalDTO matchingGoal)
+			GoalDto matchingGoal)
 	{
-		ActivityDTO lastRegisteredActivity = getLastRegisteredActivity(payload, matchingGoal);
+		ActivityDto lastRegisteredActivity = getLastRegisteredActivity(payload, matchingGoal);
 		if (canCombineWithLastRegisteredActivity(payload, lastRegisteredActivity))
 		{
 			if (isBeyondSkipWindowAfterLastRegisteredActivity(payload, lastRegisteredActivity))
@@ -191,13 +191,13 @@ public class AnalysisEngineService
 		}
 	}
 
-	private boolean isBeyondSkipWindowAfterLastRegisteredActivity(ActivityPayload payload, ActivityDTO lastRegisteredActivity)
+	private boolean isBeyondSkipWindowAfterLastRegisteredActivity(ActivityPayload payload, ActivityDto lastRegisteredActivity)
 	{
 		return Duration.between(lastRegisteredActivity.getEndTime(), payload.endTime)
 				.compareTo(yonaProperties.getAnalysisService().getUpdateSkipWindow()) >= 0;
 	}
 
-	private boolean canCombineWithLastRegisteredActivity(ActivityPayload payload, ActivityDTO lastRegisteredActivity)
+	private boolean canCombineWithLastRegisteredActivity(ActivityPayload payload, ActivityDto lastRegisteredActivity)
 	{
 		if (lastRegisteredActivity == null)
 		{
@@ -224,27 +224,27 @@ public class AnalysisEngineService
 		return true;
 	}
 
-	private boolean isOnNewDay(ActivityPayload payload, ActivityDTO lastRegisteredActivity)
+	private boolean isOnNewDay(ActivityPayload payload, ActivityDto lastRegisteredActivity)
 	{
 		return TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.startTime)
 				.isAfter(lastRegisteredActivity.getStartTime());
 	}
 
-	private boolean precedesLastRegisteredActivity(ActivityPayload payload, ActivityDTO lastRegisteredActivity)
+	private boolean precedesLastRegisteredActivity(ActivityPayload payload, ActivityDto lastRegisteredActivity)
 	{
 		return payload.startTime.isBefore(lastRegisteredActivity.getStartTime());
 	}
 
-	private boolean isBeyondCombineIntervalWithLastRegisteredActivity(ActivityPayload payload, ActivityDTO lastRegisteredActivity)
+	private boolean isBeyondCombineIntervalWithLastRegisteredActivity(ActivityPayload payload, ActivityDto lastRegisteredActivity)
 	{
 		ZonedDateTime intervalEndTime = lastRegisteredActivity.getEndTime()
 				.plus(yonaProperties.getAnalysisService().getConflictInterval());
 		return payload.startTime.isAfter(intervalEndTime);
 	}
 
-	private ActivityDTO getLastRegisteredActivity(ActivityPayload payload, GoalDTO matchingGoal)
+	private ActivityDto getLastRegisteredActivity(ActivityPayload payload, GoalDto matchingGoal)
 	{
-		return cacheService.fetchLastActivityForUser(payload.userAnonymized.getID(), matchingGoal.getID());
+		return cacheService.fetchLastActivityForUser(payload.userAnonymized.getId(), matchingGoal.getGoalId());
 	}
 
 	private boolean isCrossDayActivity(ActivityPayload payload)
@@ -252,16 +252,16 @@ public class AnalysisEngineService
 		return TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.endTime).isAfter(payload.startTime);
 	}
 
-	private void addActivity(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload, GoalDTO matchingGoal,
-			ActivityDTO lastRegisteredActivity)
+	private void addActivity(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload, GoalDto matchingGoal,
+			ActivityDto lastRegisteredActivity)
 	{
-		Goal matchingGoalEntity = goalService.getGoalEntityForUserAnonymizedID(payload.userAnonymized.getID(),
-				matchingGoal.getID());
+		Goal matchingGoalEntity = goalService.getGoalEntityForUserAnonymizedId(payload.userAnonymized.getId(),
+				matchingGoal.getGoalId());
 		Activity addedActivity = createNewActivity(userAnonymizedHolder.getEntity(), payload, matchingGoalEntity);
 		if (shouldUpdateCache(lastRegisteredActivity, addedActivity))
 		{
-			cacheService.updateLastActivityForUser(payload.userAnonymized.getID(), matchingGoal.getID(),
-					ActivityDTO.createInstance(addedActivity));
+			cacheService.updateLastActivityForUser(payload.userAnonymized.getId(), matchingGoal.getGoalId(),
+					ActivityDto.createInstance(addedActivity));
 		}
 
 		// Save first, so the activity is available when saving the message
@@ -273,24 +273,24 @@ public class AnalysisEngineService
 	}
 
 	private void updateActivityEndTime(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload,
-			GoalDTO matchingGoal, ActivityDTO lastRegisteredActivity)
+			GoalDto matchingGoal, ActivityDto lastRegisteredActivity)
 	{
-		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getID());
+		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getGoalId());
 		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
 		Activity activity = dayActivity.getLastActivity();
 		activity.setEndTime(payload.endTime.toLocalDateTime());
 		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
 		if (shouldUpdateCache(lastRegisteredActivity, activity))
 		{
-			cacheService.updateLastActivityForUser(payload.userAnonymized.getID(), matchingGoal.getID(),
-					ActivityDTO.createInstance(activity));
+			cacheService.updateLastActivityForUser(payload.userAnonymized.getId(), matchingGoal.getGoalId(),
+					ActivityDto.createInstance(activity));
 		}
 
 		// Explicitly fetch the entity to indicate that the user entity is dirty
 		userAnonymizedHolder.getEntity();
 	}
 
-	private boolean shouldUpdateCache(ActivityDTO lastRegisteredActivity, Activity newOrUpdatedActivity)
+	private boolean shouldUpdateCache(ActivityDto lastRegisteredActivity, Activity newOrUpdatedActivity)
 	{
 		if (lastRegisteredActivity == null)
 			return true;
@@ -302,7 +302,7 @@ public class AnalysisEngineService
 
 	private Activity createNewActivity(UserAnonymized userAnonymized, ActivityPayload payload, Goal matchingGoal)
 	{
-		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getID());
+		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getId());
 		if (dayActivity == null)
 		{
 			dayActivity = createNewDayActivity(userAnonymized, payload, matchingGoal);
@@ -332,7 +332,7 @@ public class AnalysisEngineService
 				TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.startTime).toLocalDate());
 
 		ZonedDateTime startOfWeek = TimeUtil.getStartOfWeek(payload.userAnonymized.getTimeZone(), payload.startTime);
-		WeekActivity weekActivity = weekActivityRepository.findOne(payload.userAnonymized.getID(), matchingGoal.getID(),
+		WeekActivity weekActivity = weekActivityRepository.findOne(payload.userAnonymized.getId(), matchingGoal.getId(),
 				startOfWeek.toLocalDate());
 		if (weekActivity == null)
 		{
@@ -345,10 +345,10 @@ public class AnalysisEngineService
 		return dayActivity;
 	}
 
-	private DayActivity findExistingDayActivity(ActivityPayload payload, UUID matchingGoalID)
+	private DayActivity findExistingDayActivity(ActivityPayload payload, UUID matchingGoalId)
 	{
-		return dayActivityRepository.findOne(payload.userAnonymized.getID(),
-				TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.startTime).toLocalDate(), matchingGoalID);
+		return dayActivityRepository.findOne(payload.userAnonymized.getId(),
+				TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.startTime).toLocalDate(), matchingGoalId);
 	}
 
 	@Transactional
@@ -360,22 +360,22 @@ public class AnalysisEngineService
 
 	private void sendConflictMessageToAllDestinationsOfUser(ActivityPayload payload, Activity activity, Goal matchingGoal)
 	{
-		GoalConflictMessage selfGoalConflictMessage = GoalConflictMessage.createInstance(payload.userAnonymized.getID(), activity,
+		GoalConflictMessage selfGoalConflictMessage = GoalConflictMessage.createInstance(payload.userAnonymized.getId(), activity,
 				matchingGoal, payload.url);
 		messageService.sendMessage(selfGoalConflictMessage, payload.userAnonymized.getAnonymousDestination());
 
 		messageService.broadcastMessageToBuddies(payload.userAnonymized,
-				() -> GoalConflictMessage.createInstanceFromBuddy(payload.userAnonymized.getID(), selfGoalConflictMessage));
+				() -> GoalConflictMessage.createInstanceFromBuddy(payload.userAnonymized.getId(), selfGoalConflictMessage));
 	}
 
-	private Set<GoalDTO> determineMatchingGoalsForUser(UserAnonymizedDTO userAnonymized,
-			Set<ActivityCategoryDTO> matchingActivityCategories, ZonedDateTime activityStartTime)
+	private Set<GoalDto> determineMatchingGoalsForUser(UserAnonymizedDto userAnonymized,
+			Set<ActivityCategoryDto> matchingActivityCategories, ZonedDateTime activityStartTime)
 	{
-		Set<UUID> matchingActivityCategoryIDs = matchingActivityCategories.stream().map(ac -> ac.getID())
+		Set<UUID> matchingActivityCategoryIds = matchingActivityCategories.stream().map(ac -> ac.getId())
 				.collect(Collectors.toSet());
-		Set<GoalDTO> goalsOfUser = userAnonymized.getGoals();
-		Set<GoalDTO> matchingGoalsOfUser = goalsOfUser.stream().filter(g -> !g.isHistoryItem())
-				.filter(g -> matchingActivityCategoryIDs.contains(g.getActivityCategoryID()))
+		Set<GoalDto> goalsOfUser = userAnonymized.getGoals();
+		Set<GoalDto> matchingGoalsOfUser = goalsOfUser.stream().filter(g -> !g.isHistoryItem())
+				.filter(g -> matchingActivityCategoryIds.contains(g.getActivityCategoryId()))
 				.filter(g -> g.getCreationTime().get()
 						.isBefore(TimeUtil.toUtcLocalDateTime(activityStartTime.plus(DEVICE_TIME_INACCURACY_MARGIN))))
 				.collect(Collectors.toSet());
@@ -384,13 +384,13 @@ public class AnalysisEngineService
 
 	private static class ActivityPayload
 	{
-		public final UserAnonymizedDTO userAnonymized;
+		public final UserAnonymizedDto userAnonymized;
 		public final Optional<String> url;
 		public final ZonedDateTime startTime;
 		public final ZonedDateTime endTime;
 		public final Optional<String> application;
 
-		private ActivityPayload(UserAnonymizedDTO userAnonymized, Optional<String> url, ZonedDateTime startTime,
+		private ActivityPayload(UserAnonymizedDto userAnonymized, Optional<String> url, ZonedDateTime startTime,
 				ZonedDateTime endTime, Optional<String> application)
 		{
 			this.userAnonymized = userAnonymized;
@@ -410,15 +410,15 @@ public class AnalysisEngineService
 			return new ActivityPayload(payload.userAnonymized, payload.url, startTime, payload.endTime, payload.application);
 		}
 
-		static ActivityPayload createInstance(UserAnonymizedDTO userAnonymized, NetworkActivityDTO networkActivity)
+		static ActivityPayload createInstance(UserAnonymizedDto userAnonymized, NetworkActivityDto networkActivity)
 		{
 			ZonedDateTime startTime = networkActivity.getEventTime().orElse(ZonedDateTime.now())
 					.withZoneSameInstant(userAnonymized.getTimeZone());
-			return new ActivityPayload(userAnonymized, Optional.of(networkActivity.getURL()), startTime, startTime,
+			return new ActivityPayload(userAnonymized, Optional.of(networkActivity.getUrl()), startTime, startTime,
 					Optional.empty());
 		}
 
-		static ActivityPayload createInstance(UserAnonymizedDTO userAnonymized, ZonedDateTime startTime, ZonedDateTime endTime,
+		static ActivityPayload createInstance(UserAnonymizedDto userAnonymized, ZonedDateTime startTime, ZonedDateTime endTime,
 				String application)
 		{
 			ZoneId userTimeZone = userAnonymized.getTimeZone();

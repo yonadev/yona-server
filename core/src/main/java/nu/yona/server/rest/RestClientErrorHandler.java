@@ -39,7 +39,7 @@ public class RestClientErrorHandler implements ResponseErrorHandler
 	public void handleError(ClientHttpResponse response) throws IOException
 	{
 		logger.error("Response error: {} {}", getStatusCode(response), response.getStatusText());
-		Optional<ErrorResponseDTO> yonaErrorResponse = getYonaErrorResponse(response);
+		Optional<ErrorResponseDto> yonaErrorResponse = getYonaErrorResponse(response);
 		yonaErrorResponse.ifPresent(yer -> {
 			throw UpstreamException.yonaException(getStatusCode(response), yer.getCode(), yer.getMessage());
 		});
@@ -64,13 +64,13 @@ public class RestClientErrorHandler implements ResponseErrorHandler
 		}
 	}
 
-	private Optional<ErrorResponseDTO> getYonaErrorResponse(ClientHttpResponse response)
+	private Optional<ErrorResponseDto> getYonaErrorResponse(ClientHttpResponse response)
 	{
 		try
 		{
 			if (getStatusCode(response).series() == HttpStatus.Series.CLIENT_ERROR)
 			{
-				return Optional.ofNullable(objectMapper.readValue(response.getBody(), ErrorResponseDTO.class));
+				return Optional.ofNullable(objectMapper.readValue(response.getBody(), ErrorResponseDto.class));
 			}
 		}
 		catch (IOException e)

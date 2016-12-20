@@ -34,14 +34,14 @@ class AnalysisService extends Service
 		def categoriesString = YonaServer.makeStringList(categories)
 		def eventTimeString = (eventTime) ? YonaServer.toIsoDateString(eventTime) : null
 		def eventTimeProperty = (eventTimeString) ? """"eventTime" : "$eventTimeString",""" : ""
-		postToAnalysisEngine(user.vpnProfile.vpnLoginID, """{
+		postToAnalysisEngine(user.vpnProfile.vpnLoginId, """{
 					$eventTimeProperty
 					"categories": [$categoriesString],
 					"url":"$url"
 				}""")
 	}
-	def postToAnalysisEngine(String vpnLoginID, jsonString)
+	def postToAnalysisEngine(String vpnLoginId, jsonString)
 	{
-		yonaServer.postJson(USER_ANONYMIZED_PATH + vpnLoginID + "/networkActivity/", jsonString)
+		yonaServer.postJson(USER_ANONYMIZED_PATH + vpnLoginId + "/networkActivity/", jsonString)
 	}
 }

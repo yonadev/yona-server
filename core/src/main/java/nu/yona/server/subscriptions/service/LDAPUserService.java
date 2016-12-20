@@ -36,9 +36,9 @@ public class LDAPUserService
 	@Autowired
 	private LdapTemplate ldapTemplate;
 
-	public void createVPNAccount(String vpnLoginID, String vpnPassword)
+	public void createVpnAccount(String vpnLoginId, String vpnPassword)
 	{
-		if (StringUtils.isBlank(vpnLoginID))
+		if (StringUtils.isBlank(vpnLoginId))
 		{
 			throw LDAPUserServiceException.emptyVpnLoginId();
 		}
@@ -48,17 +48,17 @@ public class LDAPUserService
 			throw LDAPUserServiceException.emptyVpnPassword();
 		}
 
-		doLdapAction(Action.CREATE, new User(vpnLoginID, vpnPassword));
+		doLdapAction(Action.CREATE, new User(vpnLoginId, vpnPassword));
 	}
 
-	public void deleteVPNAccount(String vpnLoginID)
+	public void deleteVpnAccount(String vpnLoginId)
 	{
-		if (StringUtils.isBlank(vpnLoginID))
+		if (StringUtils.isBlank(vpnLoginId))
 		{
 			throw LDAPUserServiceException.emptyVpnLoginId();
 		}
 
-		doLdapAction(Action.DELETE, new User(vpnLoginID, ""));
+		doLdapAction(Action.DELETE, new User(vpnLoginId, ""));
 	}
 
 	private void doLdapAction(Action action, User user)
@@ -113,9 +113,9 @@ public class LDAPUserService
 			// Default constructor used by Spring
 		}
 
-		User(String vpnLoginID, String vpnPassword)
+		User(String vpnLoginId, String vpnPassword)
 		{
-			cn = uid = vpnLoginID;
+			cn = uid = vpnLoginId;
 
 			userPassword = generateSaltedPassword(vpnPassword);
 		}

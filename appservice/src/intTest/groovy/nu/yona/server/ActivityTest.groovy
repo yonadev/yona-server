@@ -1357,8 +1357,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		User bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
 		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
-		def acceptURL = connectRequestMessage.acceptURL
-		assert appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password).status == 200
+		def acceptUrl = connectRequestMessage.acceptUrl
+		assert appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password).status == 200
 		richard = appService.reloadUser(richard)
 
 		when:
@@ -1382,8 +1382,8 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		User bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
 		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
-		def acceptURL = connectRequestMessage.acceptURL
-		assert appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password).status == 200
+		def acceptUrl = connectRequestMessage.acceptUrl
+		assert appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password).status == 200
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
 		Goal budgetGoalGamblingRichard = bob.buddies[0].findActiveGoal(GAMBLING_ACT_CAT_URL)

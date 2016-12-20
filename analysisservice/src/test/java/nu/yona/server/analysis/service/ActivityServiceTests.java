@@ -57,7 +57,7 @@ import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.properties.AnalysisServiceProperties;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
-import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
+import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserService;
 import nu.yona.server.util.TimeUtil;
@@ -92,8 +92,8 @@ public class ActivityServiceTests
 	private Goal gamingGoal;
 	private Goal socialGoal;
 	private Goal shoppingGoal;
-	private UUID userID;
-	private UUID userAnonID;
+	private UUID userId;
+	private UUID userAnonId;
 	private UserAnonymized userAnonEntity;
 	private ZoneId userAnonZone;
 
@@ -135,25 +135,25 @@ public class ActivityServiceTests
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
-		UserAnonymizedDTO userAnon = UserAnonymizedDTO.createInstance(userAnonEntity);
+		UserAnonymizedDto userAnon = UserAnonymizedDto.createInstance(userAnonEntity);
 		userAnonZone = userAnon.getTimeZone();
-		userAnonID = userAnon.getID();
+		userAnonId = userAnon.getId();
 
-		userID = UUID.randomUUID();
+		userId = UUID.randomUUID();
 
 		// Stub the UserService to return our user anonymized ID.
-		when(mockUserService.getUserAnonymizedID(userID)).thenReturn(userAnonID);
+		when(mockUserService.getUserAnonymizedId(userId)).thenReturn(userAnonId);
 
 		// Stub the UserAnonymizedService to return our user.
-		when(mockUserAnonymizedService.getUserAnonymized(userAnonID)).thenReturn(userAnon);
-		when(mockUserAnonymizedService.getUserAnonymizedEntity(userAnonID)).thenReturn(userAnonEntity);
+		when(mockUserAnonymizedService.getUserAnonymized(userAnonId)).thenReturn(userAnon);
+		when(mockUserAnonymizedService.getUserAnonymizedEntity(userAnonId)).thenReturn(userAnonEntity);
 
 		// Stub the GoalService to return our goals.
-		when(mockGoalService.getGoalEntityForUserAnonymizedID(userAnonID, gamblingGoal.getID())).thenReturn(gamblingGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedID(userAnonID, newsGoal.getID())).thenReturn(newsGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedID(userAnonID, gamingGoal.getID())).thenReturn(gamingGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedID(userAnonID, socialGoal.getID())).thenReturn(socialGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedID(userAnonID, shoppingGoal.getID())).thenReturn(shoppingGoal);
+		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamblingGoal.getId())).thenReturn(gamblingGoal);
+		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, newsGoal.getId())).thenReturn(newsGoal);
+		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamingGoal.getId())).thenReturn(gamingGoal);
+		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, socialGoal.getId())).thenReturn(socialGoal);
+		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, shoppingGoal.getId())).thenReturn(shoppingGoal);
 
 		// save should not return null but the saved entity
 		when(mockDayActivityRepository.save(any(DayActivity.class))).thenAnswer(new Answer<DayActivity>() {
@@ -194,14 +194,14 @@ public class ActivityServiceTests
 				yesterday.plusHours(20).plusMinutes(58).toLocalDateTime(),
 				yesterday.plusHours(21).plusMinutes(00).toLocalDateTime());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
-		when(mockDayActivityRepository.findAllActivitiesForUserInIntervalEndIncluded(userAnonID, today.minusDays(2).toLocalDate(),
+		when(mockDayActivityRepository.findAllActivitiesForUserInIntervalEndIncluded(userAnonId, today.minusDays(2).toLocalDate(),
 				today.toLocalDate())).thenReturn(Arrays.asList(yesterdayRecordedActivity));
 
-		Page<DayActivityOverviewDTO<DayActivityDTO>> dayOverviews = service.getUserDayActivityOverviews(userID,
+		Page<DayActivityOverviewDto<DayActivityDto>> dayOverviews = service.getUserDayActivityOverviews(userId,
 				new PageRequest(0, 3));
 
 		// assert that the right retrieve from database was done
-		verify(mockDayActivityRepository, times(1)).findAllActivitiesForUserInIntervalEndIncluded(userAnonID,
+		verify(mockDayActivityRepository, times(1)).findAllActivitiesForUserInIntervalEndIncluded(userAnonId,
 				today.minusDays(2).toLocalDate(), today.toLocalDate());
 
 		// because the gambling goal was added with creation date two weeks ago, there are multiple days, equal to the limit of
@@ -209,10 +209,10 @@ public class ActivityServiceTests
 		assertThat(dayOverviews.getNumberOfElements(), equalTo(3));
 
 		// get the current day (first item)
-		DayActivityOverviewDTO<DayActivityDTO> dayOverview = dayOverviews.getContent().get(0);
+		DayActivityOverviewDto<DayActivityDto> dayOverview = dayOverviews.getContent().get(0);
 		assertThat(dayOverview.getDayActivities().size(), equalTo(userAnonEntity.getGoals().size()));
-		DayActivityDTO dayActivityForGambling = dayOverview.getDayActivities().stream()
-				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
+		DayActivityDto dayActivityForGambling = dayOverview.getDayActivities().stream()
+				.filter(a -> a.getGoalId().equals(gamblingGoal.getId())).findAny().get();
 		assertThat(dayActivityForGambling.getStartTime(), equalTo(today));
 		assertThat(dayActivityForGambling.getTotalActivityDurationMinutes().get(), equalTo(0));
 		assertThat(dayActivityForGambling.getTotalMinutesBeyondGoal(), equalTo(0));
@@ -220,7 +220,7 @@ public class ActivityServiceTests
 		// get yesterday, with recorded activity
 		dayOverview = dayOverviews.getContent().get(1);
 		assertThat(dayOverview.getDayActivities().size(), equalTo(1));
-		dayActivityForGambling = dayOverview.getDayActivities().stream().filter(a -> a.getGoalID().equals(gamblingGoal.getID()))
+		dayActivityForGambling = dayOverview.getDayActivities().stream().filter(a -> a.getGoalId().equals(gamblingGoal.getId()))
 				.findAny().get();
 		assertThat(dayActivityForGambling.getStartTime(), equalTo(yesterday));
 		assertThat(dayActivityForGambling.getTotalActivityDurationMinutes().get(), equalTo(2));
@@ -257,24 +257,24 @@ public class ActivityServiceTests
 				getWeekStartTime(today).minusDays(2).toLocalDate()));
 		previousWeekRecordedActivity.addDayActivity(previousWeekSaturdayRecordedActivity);
 
-		when(mockWeekActivityRepository.findAll(userAnonID, getWeekStartTime(today.minusWeeks(4)).toLocalDate(),
+		when(mockWeekActivityRepository.findAll(userAnonId, getWeekStartTime(today.minusWeeks(4)).toLocalDate(),
 				getWeekStartTime(today).toLocalDate()))
 						.thenReturn(new HashSet<WeekActivity>(Arrays.asList(previousWeekRecordedActivity)));
 
-		Page<WeekActivityOverviewDTO> weekOverviews = service.getUserWeekActivityOverviews(userID, new PageRequest(0, 5));
+		Page<WeekActivityOverviewDto> weekOverviews = service.getUserWeekActivityOverviews(userId, new PageRequest(0, 5));
 
 		// assert that the right retrieve from database was done
-		verify(mockWeekActivityRepository, times(1)).findAll(userAnonID, getWeekStartTime(today.minusWeeks(4)).toLocalDate(),
+		verify(mockWeekActivityRepository, times(1)).findAll(userAnonId, getWeekStartTime(today.minusWeeks(4)).toLocalDate(),
 				getWeekStartTime(today).toLocalDate());
 
 		// because the gambling goal was added with creation date two weeks ago, there are multiple weeks
 		assertThat(weekOverviews.getNumberOfElements(), equalTo(3));
 
 		// get the current week (first item)
-		WeekActivityOverviewDTO weekOverview = weekOverviews.getContent().get(0);
+		WeekActivityOverviewDto weekOverview = weekOverviews.getContent().get(0);
 		assertThat(weekOverview.getWeekActivities().size(), equalTo(userAnonEntity.getGoals().size()));
-		WeekActivityDTO weekActivityForGambling = weekOverview.getWeekActivities().stream()
-				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
+		WeekActivityDto weekActivityForGambling = weekOverview.getWeekActivities().stream()
+				.filter(a -> a.getGoalId().equals(gamblingGoal.getId())).findAny().get();
 		assertThat(weekActivityForGambling.getStartTime(), equalTo(getWeekStartTime(today)));
 		// TODO: mock day activity in this week?
 		// int thisWeekNumberOfWeekDaysPast = today.getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : today.getDayOfWeek().getValue();
@@ -286,20 +286,20 @@ public class ActivityServiceTests
 		weekOverview = weekOverviews.getContent().get(1);
 		assertThat(weekOverview.getWeekActivities().size(), equalTo(1));
 		weekActivityForGambling = weekOverview.getWeekActivities().stream()
-				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
+				.filter(a -> a.getGoalId().equals(gamblingGoal.getId())).findAny().get();
 		assertThat(weekActivityForGambling.getStartTime(), equalTo(getWeekStartTime(today.minusWeeks(1))));
 		assertThat(weekActivityForGambling.getDayActivities().size(), equalTo(7));
-		DayActivityDTO previousWeekSaturdayActivity = weekActivityForGambling.getDayActivities().get(DayOfWeek.SATURDAY);
+		DayActivityDto previousWeekSaturdayActivity = weekActivityForGambling.getDayActivities().get(DayOfWeek.SATURDAY);
 		assertThat(previousWeekSaturdayActivity.getTotalActivityDurationMinutes().get(), equalTo(45));
 		assertThat(previousWeekSaturdayActivity.getTotalMinutesBeyondGoal(), equalTo(45));
-		DayActivityDTO previousWeekFridayActivity = weekActivityForGambling.getDayActivities().get(DayOfWeek.FRIDAY);
+		DayActivityDto previousWeekFridayActivity = weekActivityForGambling.getDayActivities().get(DayOfWeek.FRIDAY);
 		assertThat(previousWeekFridayActivity.getTotalActivityDurationMinutes().get(), equalTo(0));
 
 		// get the week the gambling goal was created
 		weekOverview = weekOverviews.getContent().get(2);
 		assertThat(weekOverview.getWeekActivities().size(), equalTo(1));
 		weekActivityForGambling = weekOverview.getWeekActivities().stream()
-				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
+				.filter(a -> a.getGoalId().equals(gamblingGoal.getId())).findAny().get();
 		assertThat(weekActivityForGambling.getStartTime(), equalTo(getWeekStartTime(today.minusWeeks(2))));
 		// TODO: mock day activity in this week?
 		// int expectedNumberOfWeekDaysRecorded = gamblingGoal.getCreationTime().getDayOfWeek() == DayOfWeek.SUNDAY ? 7
@@ -314,15 +314,15 @@ public class ActivityServiceTests
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 
-		Page<DayActivityOverviewDTO<DayActivityDTO>> inactivityDayOverviews = service.getUserDayActivityOverviews(userID,
+		Page<DayActivityOverviewDto<DayActivityDto>> inactivityDayOverviews = service.getUserDayActivityOverviews(userId,
 				new PageRequest(0, 3));
 		// because the gambling goal was added with creation date two weeks ago, there are multiple days
 		assertThat(inactivityDayOverviews.getNumberOfElements(), equalTo(3));
 		// the other goals were created today, so get the most recent (first) element
-		DayActivityOverviewDTO<DayActivityDTO> inactivityDayOverview = inactivityDayOverviews.getContent().get(0);
+		DayActivityOverviewDto<DayActivityDto> inactivityDayOverview = inactivityDayOverviews.getContent().get(0);
 		assertThat(inactivityDayOverview.getDayActivities().size(), equalTo(userAnonEntity.getGoals().size()));
-		DayActivityDTO inactivityDayForGambling = inactivityDayOverview.getDayActivities().stream()
-				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
+		DayActivityDto inactivityDayForGambling = inactivityDayOverview.getDayActivities().stream()
+				.filter(a -> a.getGoalId().equals(gamblingGoal.getId())).findAny().get();
 		assertThat(inactivityDayForGambling.getStartTime(), equalTo(today));
 		assertThat(inactivityDayForGambling.getTotalActivityDurationMinutes().get(), equalTo(0));
 		assertThat(inactivityDayForGambling.getTotalMinutesBeyondGoal(), equalTo(0));
@@ -331,15 +331,15 @@ public class ActivityServiceTests
 	@Test
 	public void weekActivityOverviewInactivity()
 	{
-		Page<WeekActivityOverviewDTO> inactivityWeekOverviews = service.getUserWeekActivityOverviews(userID,
+		Page<WeekActivityOverviewDto> inactivityWeekOverviews = service.getUserWeekActivityOverviews(userId,
 				new PageRequest(0, 5));
 		// because the gambling goal was added with creation date two weeks ago, there are multiple weeks
 		assertThat(inactivityWeekOverviews.getNumberOfElements(), equalTo(3));
 		// the other goals were created today, so get the most recent (first) element
-		WeekActivityOverviewDTO inactivityWeekOverview = inactivityWeekOverviews.getContent().get(0);
+		WeekActivityOverviewDto inactivityWeekOverview = inactivityWeekOverviews.getContent().get(0);
 		assertThat(inactivityWeekOverview.getWeekActivities().size(), equalTo(userAnonEntity.getGoals().size()));
-		WeekActivityDTO inactivityWeekForGambling = inactivityWeekOverview.getWeekActivities().stream()
-				.filter(a -> a.getGoalID().equals(gamblingGoal.getID())).findAny().get();
+		WeekActivityDto inactivityWeekForGambling = inactivityWeekOverview.getWeekActivities().stream()
+				.filter(a -> a.getGoalId().equals(gamblingGoal.getId())).findAny().get();
 		assertThat(inactivityWeekForGambling.getStartTime(), equalTo(getWeekStartTime(ZonedDateTime.now(userAnonZone))));
 		// TODO: mock day activity in this week?
 		// ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
@@ -352,8 +352,8 @@ public class ActivityServiceTests
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 
-		DayActivityDTO inactivityDay = service.getUserDayActivityDetail(userID, LocalDate.now(userAnonZone),
-				gamblingGoal.getID());
+		DayActivityDto inactivityDay = service.getUserDayActivityDetail(userId, LocalDate.now(userAnonZone),
+				gamblingGoal.getId());
 		assertThat(inactivityDay.getSpread().size(), equalTo(96));
 		assertThat(inactivityDay.getStartTime(), equalTo(today));
 		assertThat(inactivityDay.getTimeZoneId(), equalTo(userAnonZone.getId()));
@@ -364,8 +364,8 @@ public class ActivityServiceTests
 	@Test
 	public void weekActivityDetailInactivity()
 	{
-		WeekActivityDTO inactivityWeek = service.getUserWeekActivityDetail(userID, getWeekStartDate(LocalDate.now(userAnonZone)),
-				gamblingGoal.getID());
+		WeekActivityDto inactivityWeek = service.getUserWeekActivityDetail(userId, getWeekStartDate(LocalDate.now(userAnonZone)),
+				gamblingGoal.getId());
 		assertThat(inactivityWeek.getSpread().size(), equalTo(96));
 		assertThat(inactivityWeek.getStartTime(), equalTo(getWeekStartTime(ZonedDateTime.now(userAnonZone))));
 		assertThat(inactivityWeek.getTimeZoneId(), equalTo(userAnonZone.getId()));
@@ -427,11 +427,11 @@ public class ActivityServiceTests
 		Activity recordedActivity = Activity.createInstance(userAnonZone, activityStartTime.toLocalDateTime(),
 				activityStartTime.plus(activityDuration).toLocalDateTime());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
-		when(mockDayActivityRepository.findOne(userAnonID, yesterday.toLocalDate(), gamblingGoal.getID()))
+		when(mockDayActivityRepository.findOne(userAnonId, yesterday.toLocalDate(), gamblingGoal.getId()))
 				.thenReturn(yesterdayRecordedActivity);
 
-		DayActivityDTO inactivityDay = service.getUserDayActivityDetail(userID, yesterday.toLocalDate(), gamblingGoal.getID());
-		verify(mockDayActivityRepository, times(1)).findOne(userAnonID, yesterday.toLocalDate(), gamblingGoal.getID());
+		DayActivityDto inactivityDay = service.getUserDayActivityDetail(userId, yesterday.toLocalDate(), gamblingGoal.getId());
+		verify(mockDayActivityRepository, times(1)).findOne(userAnonId, yesterday.toLocalDate(), gamblingGoal.getId());
 		assertThat(inactivityDay.getSpread(), equalTo(Arrays.asList(ArrayUtils.toObject((expectedSpread)))));
 	}
 

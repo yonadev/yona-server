@@ -13,9 +13,9 @@ abstract class Service
 	final String url
 	final YonaServer yonaServer
 
-	protected Service(String urlPropertyName, String defaultURL)
+	protected Service(String urlPropertyName, String defaultUrl)
 	{
-		this.url = getProperty(urlPropertyName, defaultURL)
+		this.url = getProperty(urlPropertyName, defaultUrl)
 		this.yonaServer = new YonaServer(url)
 	}
 

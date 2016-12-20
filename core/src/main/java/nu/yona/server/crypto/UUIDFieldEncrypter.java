@@ -23,10 +23,10 @@ public class UUIDFieldEncrypter implements AttributeConverter<UUID, String>
 	@Override
 	public UUID convertToEntityAttribute(String dbData)
 	{
-		return (dbData == null) ? null : decryptToUUID(dbData);
+		return (dbData == null) ? null : decryptToUuid(dbData);
 	}
 
-	private UUID decryptToUUID(String dbData)
+	private UUID decryptToUuid(String dbData)
 	{
 		String decryptedString = stringFieldEncrypter.convertToEntityAttribute(dbData);
 		return (decryptedString == null) ? null : tryToConvertToUuid(decryptedString);
