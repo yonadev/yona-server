@@ -280,7 +280,7 @@ public class ActivityService
 		Map<ZonedDateTime, Set<DayActivityDTO>> dayActivityDTOsByZonedDate = mapDayActivitiesToDTOs(
 				dayActivityEntitiesByZonedDate);
 		addMissingInactivity(dayActivityDTOsByZonedDate, interval, ChronoUnit.DAYS, userAnonymized,
-				(goal, startOfDay) -> createAndSaveDayInactivity(userAnonymized, goal, startOfDay, LevelOfDetail.DayOverview,
+				(goal, startOfDay) -> createDayInactivity(userAnonymized, goal, startOfDay, LevelOfDetail.DayOverview,
 						missingInactivities),
 				(g, a) -> {
 				});
@@ -300,7 +300,7 @@ public class ActivityService
 				.collect(Collectors.toSet());
 	}
 
-	private DayActivityDTO createAndSaveDayInactivity(UserAnonymizedDTO userAnonymized, Goal goal, ZonedDateTime startOfDay,
+	private DayActivityDTO createDayInactivity(UserAnonymizedDTO userAnonymized, Goal goal, ZonedDateTime startOfDay,
 			LevelOfDetail levelOfDetail, Set<IntervalInactivityDTO> missingInactivities)
 	{
 		return DayActivityDTO.createInstanceInactivity(userAnonymized, GoalDTO.createInstance(goal), startOfDay, levelOfDetail,
@@ -489,7 +489,7 @@ public class ActivityService
 		if (dayActivityEntity == null)
 		{
 			return getMissingInactivity(userId, date, goalId, userAnonymized, ChronoUnit.DAYS,
-					(goal, startOfDay) -> createAndSaveDayInactivity(userAnonymized, goal, startOfDay, LevelOfDetail.DayDetail,
+					(goal, startOfDay) -> createDayInactivity(userAnonymized, goal, startOfDay, LevelOfDetail.DayDetail,
 							missingInactivities));
 		}
 		return DayActivityDTO.createInstance(dayActivityEntity, LevelOfDetail.DayDetail);
@@ -562,14 +562,14 @@ public class ActivityService
 				Optional.empty(), message.getMessage());
 	}
 
-	private MessageDTO sendMessagePair(UserDTO sendingUser, UUID targetUserAnonymizedId, UUID intervalActivityId,
+	private MessageDTO sendMessagePair(UserDTO sendingUser, UUID targetUserAnonymizedId, UUID activityId,
 			Optional<ActivityCommentMessage> repliedMessageOfSelf, Optional<ActivityCommentMessage> repliedMessageOfBuddy,
 			String message)
 	{
-		ActivityCommentMessage messageToBuddy = createMessage(sendingUser, intervalActivityId,
+		ActivityCommentMessage messageToBuddy = createMessage(sendingUser, activityId,
 				repliedMessageOfBuddy.map(ActivityCommentMessage::getThreadHeadMessageId),
 				repliedMessageOfBuddy.map(ActivityCommentMessage::getId), false, message);
-		ActivityCommentMessage messageToSelf = createMessage(sendingUser, intervalActivityId,
+		ActivityCommentMessage messageToSelf = createMessage(sendingUser, activityId,
 				repliedMessageOfSelf.map(ActivityCommentMessage::getThreadHeadMessageId),
 				repliedMessageOfSelf.map(ActivityCommentMessage::getId), true, message);
 		sendMessage(sendingUser.getPrivateData().getUserAnonymizedId(), messageToSelf);
@@ -585,17 +585,17 @@ public class ActivityService
 		messageService.sendMessageToUserAnonymized(userAnonymized, messageEntity);
 	}
 
-	private ActivityCommentMessage createMessage(UserDTO sendingUser, UUID intervalActivityId, Optional<UUID> threadHeadMessageId,
+	private ActivityCommentMessage createMessage(UserDTO sendingUser, UUID activityId, Optional<UUID> threadHeadMessageId,
 			Optional<UUID> repliedMessageId, boolean isSentItem, String message)
 	{
 		if (threadHeadMessageId.isPresent())
 		{
 			return ActivityCommentMessage.createInstance(sendingUser.getId(), sendingUser.getPrivateData().getUserAnonymizedId(),
-					sendingUser.getPrivateData().getNickname(), intervalActivityId, isSentItem, message, threadHeadMessageId.get(),
+					sendingUser.getPrivateData().getNickname(), activityId, isSentItem, message, threadHeadMessageId.get(),
 					repliedMessageId);
 		}
 		return ActivityCommentMessage.createThreadHeadInstance(sendingUser.getId(),
-				sendingUser.getPrivateData().getUserAnonymizedId(), sendingUser.getPrivateData().getNickname(), intervalActivityId,
+				sendingUser.getPrivateData().getUserAnonymizedId(), sendingUser.getPrivateData().getNickname(), activityId,
 				isSentItem, message, repliedMessageId);
 	}
 
@@ -615,8 +615,8 @@ public class ActivityService
 	public MessageDTO replyToMessage(UserDTO sendingUser, ActivityCommentMessage repliedMessage, String message)
 	{
 		UUID targetUserAnonymizedId = repliedMessage.getRelatedUserAnonymizedId().get();
-		return sendMessagePair(sendingUser, targetUserAnonymizedId, repliedMessage.getIntervalActivityId(), Optional.of(repliedMessage),
-				Optional.of(repliedMessage.getSenderCopyMessage()), message);
+		return sendMessagePair(sendingUser, targetUserAnonymizedId, repliedMessage.getIntervalActivityId(),
+				Optional.of(repliedMessage), Optional.of(repliedMessage.getSenderCopyMessage()), message);
 	}
 
 	private class Interval

@@ -25,6 +25,8 @@ import nu.yona.server.analysis.entities.DayActivity;
 @Entity
 public class TimeZoneGoal extends Goal
 {
+	private static final long serialVersionUID = -8166664564237587040L;
+
 	@ElementCollection
 	private List<String> zones;
 

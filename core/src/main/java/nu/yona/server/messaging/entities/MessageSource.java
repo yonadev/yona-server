@@ -53,7 +53,7 @@ public class MessageSource extends EntityWithId
 		super(null);
 	}
 
-	public MessageSource(UUID id, PrivateKey privateKey, MessageDestination messageDestination)
+	private MessageSource(UUID id, PrivateKey privateKey, MessageDestination messageDestination)
 	{
 		super(id);
 		this.messageDestination = messageDestination;

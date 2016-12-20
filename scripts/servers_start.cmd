@@ -14,6 +14,10 @@ if ERRORLEVEL 1 goto end
 call gradlew :dbinit:liquibaseUpdate
 if ERRORLEVEL 1 goto end
 
+echo Verifying the database schema
+call gradlew :dbinit:bootRun
+if ERRORLEVEL 1 goto end
+
 start "Admin service" cmd /c gradlew %1 :adminservice:bootRun
 start "Analysis service" cmd /c gradlew %1 :analysisservice:bootRun
 start "App service" cmd /c gradlew %1 :appservice:bootRun

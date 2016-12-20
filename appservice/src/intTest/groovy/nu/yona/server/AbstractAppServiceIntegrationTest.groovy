@@ -6,13 +6,12 @@
  *******************************************************************************/
 package nu.yona.server
 
-import groovy.json.*
-
 import java.time.Duration
 import java.time.ZonedDateTime
 import java.time.format.TextStyle
 import java.time.temporal.ChronoField
 
+import groovy.json.*
 import nu.yona.server.test.AnalysisService
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.AppService
@@ -181,6 +180,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	void setGoalCreationTime(User user, activityCategoryUrl, relativeCreationDateTimeString)
 	{
+		assert user.findActiveGoal(activityCategoryUrl)
 		Goal goal = user.findActiveGoal(activityCategoryUrl)
 		goal.creationTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
 		def response = appService.updateGoal(user, goal.url, goal)
