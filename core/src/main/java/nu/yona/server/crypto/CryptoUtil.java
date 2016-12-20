@@ -83,6 +83,17 @@ public class CryptoUtil
 		return encryptBytes(plaintext.toString().getBytes(StandardCharsets.UTF_8));
 	}
 
+	public static byte[] encryptLong(Long plaintext)
+	{
+		if (plaintext == null)
+		{
+			return null;
+		}
+		ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+		bb.putLong(plaintext);
+		return encryptBytes(bb.array());
+	}
+
 	public static byte[] encryptBytes(byte[] plaintext)
 	{
 		if (plaintext == null)
@@ -111,6 +122,16 @@ public class CryptoUtil
 			return null;
 		}
 		return new String(decryptBytes(ciphertext), StandardCharsets.UTF_8);
+	}
+
+	public static Long decryptLong(byte[] ciphertext)
+	{
+		if (ciphertext == null)
+		{
+			return null;
+		}
+		ByteBuffer bb = ByteBuffer.wrap(decryptBytes(ciphertext));
+		return bb.getLong();
 	}
 
 	public static byte[] decryptBytes(byte[] ciphertext)
