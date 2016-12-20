@@ -6,41 +6,23 @@ package nu.yona.server.crypto;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Optional;
 import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
 import javax.crypto.ShortBufferException;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.lang.StringUtils;
 
 public class CryptoUtil
 {
-	/**
-	 * As we are using secure random passwords, a static salt suffices.
-	 */
-	static final byte[] SALT = "0123456789012345".getBytes();
-	private static final String SECRET_KEY_ALGORITHM = "PBKDF2WithHmacSHA256";
-	private static final int SECRET_KEY_LENGTH_BITS = 128;
 	static final int CRYPTO_VARIANT_NUMBER_LENGTH = 1;
-	static final String SYMMETRICAL_CIPHER_TYPE = "AES/CBC/PKCS5Padding";
 	static final int INITIALIZATION_VECTOR_LENGTH = 16;
 
 	private CryptoUtil()
@@ -66,6 +48,18 @@ public class CryptoUtil
 	{
 		SecureRandom random = CryptoUtil.getSecureRandomInstance();
 		return StringUtils.leftPad("" + random.nextInt((int) Math.pow(10, length)), length, '0');
+	}
+
+	static SecureRandom getSecureRandomInstance()
+	{
+		try
+		{
+			return SecureRandom.getInstance("SHA1PRNG", "SUN");
+		}
+		catch (NoSuchAlgorithmException | NoSuchProviderException e)
+		{
+			throw CryptoException.gettingRandomInstance(e);
+		}
 	}
 
 	public static byte[] encryptUuid(UUID plaintext)
@@ -126,79 +120,6 @@ public class CryptoUtil
 			return null;
 		}
 		return CryptoSession.getCurrent().decrypt(ciphertext);
-	}
-
-	static SecureRandom getSecureRandomInstance()
-	{
-		try
-		{
-			return SecureRandom.getInstance("SHA1PRNG", "SUN");
-		}
-		catch (NoSuchAlgorithmException | NoSuchProviderException e)
-		{
-			throw CryptoException.gettingRandomInstance(e);
-		}
-	}
-
-	static SecretKey getSecretKey(String password)
-	{
-		try
-		{
-			SecretKeyFactory factory = SecretKeyFactory.getInstance(SECRET_KEY_ALGORITHM);
-			KeySpec spec = new PBEKeySpec(password.toCharArray(), SALT, 65536, SECRET_KEY_LENGTH_BITS);
-			SecretKey tmp = factory.generateSecret(spec);
-			return new SecretKeySpec(tmp.getEncoded(), "AES");
-		}
-		catch (NoSuchAlgorithmException | InvalidKeySpecException e)
-		{
-			throw CryptoException.creatingSecretKey(e);
-		}
-	}
-
-	static Cipher getSymmetricalEncryptionCipher(SecretKey secretKey)
-	{
-		return getSymmetricalEncryptionCipher(secretKey, Optional.empty());
-	}
-
-	static Cipher getSymmetricalEncryptionCipher(SecretKey secretKey, byte[] initializationVector)
-	{
-		return getSymmetricalEncryptionCipher(secretKey, Optional.of(initializationVector));
-	}
-
-	private static Cipher getSymmetricalEncryptionCipher(SecretKey secretKey, Optional<byte[]> initializationVector)
-	{
-		try
-		{
-			Cipher cipher = Cipher.getInstance(CryptoUtil.SYMMETRICAL_CIPHER_TYPE);
-			if (initializationVector.isPresent())
-			{
-				cipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(initializationVector.get()));
-			}
-			else
-			{
-				// Let the provider generate an initializaiton vector
-				cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-			}
-			return cipher;
-		}
-		catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e)
-		{
-			throw CryptoException.gettingCipher(e, CryptoUtil.SYMMETRICAL_CIPHER_TYPE);
-		}
-	}
-
-	static Cipher getSymmetricalDecryptionCipher(SecretKey secretKey, byte[] initializationVector)
-	{
-		try
-		{
-			Cipher cipher = Cipher.getInstance(CryptoUtil.SYMMETRICAL_CIPHER_TYPE);
-			cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(initializationVector));
-			return cipher;
-		}
-		catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e)
-		{
-			throw CryptoException.gettingCipher(e, CryptoUtil.SYMMETRICAL_CIPHER_TYPE);
-		}
 	}
 
 	/**
