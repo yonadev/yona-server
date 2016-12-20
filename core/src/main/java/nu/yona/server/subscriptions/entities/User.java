@@ -201,14 +201,14 @@ public class User extends EntityWithUuid
 		return getUserPrivate().getUserAnonymized().getGoals();
 	}
 
-	public UUID getUserAnonymizedID()
+	public UUID getUserAnonymizedId()
 	{
-		return getUserPrivate().getUserAnonymizedID();
+		return getUserPrivate().getUserAnonymizedId();
 	}
 
-	public String getVPNPassword()
+	public String getVpnPassword()
 	{
-		return getUserPrivate().getVPNPassword();
+		return getUserPrivate().getVpnPassword();
 	}
 
 	public MessageDestination getNamedMessageDestination()
@@ -231,9 +231,9 @@ public class User extends EntityWithUuid
 		getUserPrivate().removeBuddy(buddy);
 	}
 
-	public void removeBuddiesFromUser(UUID fromUserID)
+	public void removeBuddiesFromUser(UUID fromUserId)
 	{
-		getUserPrivate().removeBuddyForUserID(fromUserID);
+		getUserPrivate().removeBuddyForUserId(fromUserId);
 	}
 
 	public MessageSource getNamedMessageSource()
@@ -281,10 +281,10 @@ public class User extends EntityWithUuid
 		isCreatedOnBuddyRequest = true;
 	}
 
-	public Buddy getBuddyByUserAnonymizedID(UUID relatedUserAnonymizedID)
+	public Buddy getBuddyByUserAnonymizedId(UUID relatedUserAnonymizedId)
 	{
-		return getBuddies().stream().filter(buddy -> buddy.getUserAnonymizedID().isPresent()
-				&& relatedUserAnonymizedID.equals(buddy.getUserAnonymizedID().get())).findAny().get();
+		return getBuddies().stream().filter(buddy -> buddy.getUserAnonymizedId().isPresent()
+				&& relatedUserAnonymizedId.equals(buddy.getUserAnonymizedId().get())).findAny().get();
 	}
 
 	public void assertMobileNumberConfirmed()
@@ -305,9 +305,9 @@ public class User extends EntityWithUuid
 		return overwriteUserConfirmationCode;
 	}
 
-	public UUID getVPNLoginID()
+	public UUID getVpnLoginId()
 	{
-		return getUserPrivate().getVPNLoginID();
+		return getUserPrivate().getVpnLoginId();
 	}
 
 	public ConfirmationCode getPinResetConfirmationCode()

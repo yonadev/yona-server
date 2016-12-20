@@ -84,10 +84,10 @@ public class UserAnonymized extends EntityWithUuid
 		assert removed;
 	}
 
-	public UUID getVPNLoginID()
+	public UUID getVpnLoginId()
 	{
 		// these are the same for performance
-		return getID();
+		return getId();
 	}
 
 	public static UserAnonymized createInstance(MessageDestination anonymousDestination, Set<Goal> goals)

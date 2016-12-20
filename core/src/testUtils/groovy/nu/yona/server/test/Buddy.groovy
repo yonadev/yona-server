@@ -20,7 +20,7 @@ class Buddy
 	final String url
 	final String dailyActivityReportsUrl
 	final String weeklyActivityReportsUrl
-	final String editURL
+	final String editUrl
 	Buddy(def json)
 	{
 		this.nickname = json.nickname
@@ -31,11 +31,11 @@ class Buddy
 		{
 			this.user = new User(json._embedded."yona:user")
 		}
-		this.goals = (json._embedded?."yona:goals"?._embedded?."yona:goals") ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJSON(it)} : null
+		this.goals = (json._embedded?."yona:goals"?._embedded?."yona:goals") ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJson(it)} : null
 		this.url = YonaServer.stripQueryString(json._links.self.href)
 		this.dailyActivityReportsUrl = json._links?."yona:dailyActivityReports"?.href
 		this.weeklyActivityReportsUrl = json._links?."yona:weeklyActivityReports"?.href
-		this.editURL = json._links?.edit?.href
+		this.editUrl = json._links?.edit?.href
 	}
 
 	def findActiveGoal(def activityCategoryUrl)
@@ -48,8 +48,8 @@ class Buddy
 	 */
 	Goal findGoal(Goal goal)
 	{
-		def goalID = goal.url.substring(goal.url.lastIndexOf('/') + 1)
-		Goal matchingGoal = goals.find{it.url.endsWith(goalID)}
+		def goalId = goal.url.substring(goal.url.lastIndexOf('/') + 1)
+		Goal matchingGoal = goals.find{it.url.endsWith(goalId)}
 		assert matchingGoal
 		return matchingGoal
 	}

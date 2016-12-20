@@ -38,7 +38,7 @@ public class BuddyAnonymized extends EntityWithUuid
 	private UUID owningUserAnonymizedId;
 
 	@Type(type = "uuid-char")
-	private UUID userAnonymizedID;
+	private UUID userAnonymizedId;
 
 	/*
 	 * When the sendingStatus is ACCEPTED, the buddy user accepted to send goal conflicts and activity information to the other
@@ -75,11 +75,11 @@ public class BuddyAnonymized extends EntityWithUuid
 
 	public UserAnonymized getUserAnonymized()
 	{
-		if (userAnonymizedID == null)
+		if (userAnonymizedId == null)
 		{
 			throw new IllegalStateException("UserAnonymized is not available in this state");
 		}
-		return UserAnonymized.getRepository().findOne(userAnonymizedID);
+		return UserAnonymized.getRepository().findOne(userAnonymizedId);
 	}
 
 	public Status getSendingStatus()
@@ -112,22 +112,22 @@ public class BuddyAnonymized extends EntityWithUuid
 		setLastStatusChangeTimeToNow();
 	}
 
-	public Optional<UUID> getUserAnonymizedID()
+	public Optional<UUID> getUserAnonymizedId()
 	{
-		return Optional.ofNullable(userAnonymizedID);
+		return Optional.ofNullable(userAnonymizedId);
 	}
 
-	public void setUserAnonymizedID(UUID userAnonymizedID)
+	public void setUserAnonymizedId(UUID userAnonymizedId)
 	{
-		Objects.requireNonNull(userAnonymizedID);
-		this.userAnonymizedID = userAnonymizedID;
+		Objects.requireNonNull(userAnonymizedId);
+		this.userAnonymizedId = userAnonymizedId;
 	}
 
 	public void setDisconnected()
 	{
 		this.sendingStatus = Status.REJECTED;
 		this.receivingStatus = Status.REJECTED;
-		this.userAnonymizedID = null;
+		this.userAnonymizedId = null;
 		setLastStatusChangeTimeToNow();
 	}
 

@@ -63,7 +63,7 @@ public class PublicKeyDecryptor implements Decryptor
 	}
 
 	@Override
-	public UUID decryptUUID(byte[] ciphertext)
+	public UUID decryptUuid(byte[] ciphertext)
 	{
 		return (ciphertext == null) ? null : UUID.fromString(decryptString(ciphertext));
 	}
@@ -75,7 +75,7 @@ public class PublicKeyDecryptor implements Decryptor
 	}
 
 	@Override
-	public Set<UUID> decryptUUIDSet(byte[] ciphertext)
+	public Set<UUID> decryptUuidSet(byte[] ciphertext)
 	{
 		try
 		{
@@ -85,7 +85,7 @@ public class PublicKeyDecryptor implements Decryptor
 			Set<UUID> ids = new HashSet<>(length);
 			for (int i = 0; (i < length); i++)
 			{
-				ids.add(readUUID(stream));
+				ids.add(readUuid(stream));
 			}
 			return ids;
 		}
@@ -95,7 +95,7 @@ public class PublicKeyDecryptor implements Decryptor
 		}
 	}
 
-	private UUID readUUID(DataInputStream stream)
+	private UUID readUuid(DataInputStream stream)
 	{
 		try
 		{
@@ -103,7 +103,7 @@ public class PublicKeyDecryptor implements Decryptor
 		}
 		catch (IOException e)
 		{
-			throw CryptoException.readingUUID(e);
+			throw CryptoException.readingUuid(e);
 		}
 	}
 }

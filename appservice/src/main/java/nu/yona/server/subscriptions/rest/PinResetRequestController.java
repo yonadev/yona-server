@@ -33,11 +33,11 @@ import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
-import nu.yona.server.rest.ErrorResponseDTO;
+import nu.yona.server.rest.ErrorResponseDto;
 import nu.yona.server.rest.GlobalExceptionMapping;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
-import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDTO;
+import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDto;
 import nu.yona.server.subscriptions.service.PinResetRequestService;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -61,15 +61,15 @@ public class PinResetRequestController
 
 	@RequestMapping(value = "/request", method = RequestMethod.POST)
 	@ResponseBody
-	public ResponseEntity<ConfirmationCodeDelayDTO> requestPinReset(
+	public ResponseEntity<ConfirmationCodeDelayDto> requestPinReset(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
 	{
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
 			pinResetRequestService.requestPinReset(id);
 			return null;
 		});
-		return new ResponseEntity<ConfirmationCodeDelayDTO>(
-				new ConfirmationCodeDelayDTO(yonaProperties.getSecurity().getPinResetRequestConfirmationCodeDelay()),
+		return new ResponseEntity<ConfirmationCodeDelayDto>(
+				new ConfirmationCodeDelayDto(yonaProperties.getSecurity().getPinResetRequestConfirmationCodeDelay()),
 				HttpStatus.OK);
 	}
 
@@ -77,7 +77,7 @@ public class PinResetRequestController
 	@ResponseBody
 	public ResponseEntity<Void> verifyPinResetConfirmationCode(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
-			@RequestBody ConfirmationCodeDTO confirmationCode)
+			@RequestBody ConfirmationCodeDto confirmationCode)
 	{
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
 			pinResetRequestService.verifyPinResetConfirmationCode(id, confirmationCode.getCode());
@@ -111,21 +111,21 @@ public class PinResetRequestController
 	}
 
 	@ExceptionHandler(ConfirmationException.class)
-	private ResponseEntity<ErrorResponseDTO> handleException(ConfirmationException e)
+	private ResponseEntity<ErrorResponseDto> handleException(ConfirmationException e)
 	{
 		if (e.getRemainingAttempts() >= 0)
 		{
-			ErrorResponseDTO responseMessage = new ConfirmationFailedResponseDTO(e.getMessageId(), e.getMessage(),
+			ErrorResponseDto responseMessage = new ConfirmationFailedResponseDto(e.getMessageId(), e.getMessage(),
 					e.getRemainingAttempts());
 			logger.error("Pin reset confirmation failed", e);
-			return new ResponseEntity<ErrorResponseDTO>(responseMessage, e.getStatusCode());
+			return new ResponseEntity<ErrorResponseDto>(responseMessage, e.getStatusCode());
 		}
 		return globalExceptionMapping.handleYonaException(e);
 	}
 
 	public void addLinks(UserResource userResource)
 	{
-		ConfirmationCode confirmationCode = userService.getUserEntityByID(userResource.getContent().getID())
+		ConfirmationCode confirmationCode = userService.getUserEntityById(userResource.getContent().getId())
 				.getPinResetConfirmationCode();
 		if (confirmationCode == null || pinResetRequestService.isExpired(confirmationCode))
 		{
@@ -142,28 +142,28 @@ public class PinResetRequestController
 	private void addPinResetRequestLink(UserResource userResource)
 	{
 		PinResetRequestController methodOn = methodOn(PinResetRequestController.class);
-		ResponseEntity<ConfirmationCodeDelayDTO> method = methodOn.requestPinReset(null, userResource.getContent().getID());
+		ResponseEntity<ConfirmationCodeDelayDto> method = methodOn.requestPinReset(null, userResource.getContent().getId());
 		addLink(userResource, method, "yona:requestPinReset");
 	}
 
 	private void addVerifyPinResetLink(UserResource userResource)
 	{
 		PinResetRequestController methodOn = methodOn(PinResetRequestController.class);
-		ResponseEntity<Void> method = methodOn.verifyPinResetConfirmationCode(null, userResource.getContent().getID(), null);
+		ResponseEntity<Void> method = methodOn.verifyPinResetConfirmationCode(null, userResource.getContent().getId(), null);
 		addLink(userResource, method, "yona:verifyPinReset");
 	}
 
 	private void addResendPinResetConfirmationCodeLink(UserResource userResource)
 	{
 		PinResetRequestController methodOn = methodOn(PinResetRequestController.class);
-		ResponseEntity<Void> method = methodOn.resendPinResetConfirmationCode(null, userResource.getContent().getID());
+		ResponseEntity<Void> method = methodOn.resendPinResetConfirmationCode(null, userResource.getContent().getId());
 		addLink(userResource, method, "yona:resendPinResetConfirmationCode");
 	}
 
 	private void addClearPinResetLink(UserResource userResource)
 	{
 		PinResetRequestController methodOn = methodOn(PinResetRequestController.class);
-		ResponseEntity<Void> method = methodOn.clearPinResetRequest(null, userResource.getContent().getID());
+		ResponseEntity<Void> method = methodOn.clearPinResetRequest(null, userResource.getContent().getId());
 		addLink(userResource, method, "yona:clearPinReset");
 	}
 
@@ -172,11 +172,11 @@ public class PinResetRequestController
 		userResource.add(linkTo(method).withRel(rel));
 	}
 
-	public class ConfirmationCodeDelayDTO
+	public class ConfirmationCodeDelayDto
 	{
 		private final Duration delay;
 
-		public ConfirmationCodeDelayDTO(Duration delay)
+		public ConfirmationCodeDelayDto(Duration delay)
 		{
 			this.delay = delay;
 		}

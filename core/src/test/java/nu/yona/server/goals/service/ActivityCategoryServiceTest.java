@@ -64,8 +64,8 @@ public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 	@Test
 	public void getActivityCategory()
 	{
-		assertThat(service.getActivityCategory(gambling.getID()).getName(), equalTo("gambling"));
-		assertThat(service.getActivityCategory(news.getID()).getName(), equalTo("news"));
+		assertThat(service.getActivityCategory(gambling.getId()).getName(), equalTo("gambling"));
+		assertThat(service.getActivityCategory(news.getId()).getName(), equalTo("news"));
 	}
 
 	/*
@@ -77,11 +77,11 @@ public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 		assertGetAllActivityCategoriesResult("Initial", "gambling", "news");
 
 		// modify
-		Set<ActivityCategoryDTO> importActivityCategories = new HashSet<ActivityCategoryDTO>();
-		ActivityCategoryDTO newsModified = new ActivityCategoryDTO(news.getID(), usString("news"), false,
+		Set<ActivityCategoryDto> importActivityCategories = new HashSet<ActivityCategoryDto>();
+		ActivityCategoryDto newsModified = new ActivityCategoryDto(news.getId(), usString("news"), false,
 				new HashSet<String>(Arrays.asList("refdag", "bbc", "atom feeds")), new HashSet<String>(), usString("Descr"));
 		importActivityCategories.add(newsModified);
-		ActivityCategoryDTO gaming = new ActivityCategoryDTO(UUID.randomUUID(), usString("gaming"), false,
+		ActivityCategoryDto gaming = new ActivityCategoryDto(UUID.randomUUID(), usString("gaming"), false,
 				new HashSet<String>(Arrays.asList("games")), new HashSet<String>(), usString("Descr"));
 		importActivityCategories.add(gaming);
 

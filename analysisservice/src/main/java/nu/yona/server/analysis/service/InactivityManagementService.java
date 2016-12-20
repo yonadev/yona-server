@@ -23,10 +23,10 @@ import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
 import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.goals.service.GoalDTO;
+import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
-import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
+import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TimeUtil;
@@ -50,61 +50,61 @@ public class InactivityManagementService
 	private LockPool<UUID> userAnonymizedSynchronizer;
 
 	@Transactional
-	public void createInactivityEntities(UUID userAnonymizedID, Set<IntervalInactivityDTO> intervalInactivities)
+	public void createInactivityEntities(UUID userAnonymizedId, Set<IntervalInactivityDto> intervalInactivities)
 	{
-		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(userAnonymizedID))
+		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(userAnonymizedId))
 		{
-			UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedID);
-			createWeekInactivityEntities(userAnonymizedID,
+			UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
+			createWeekInactivityEntities(userAnonymizedId,
 					intervalInactivities.stream().filter(ia -> ia.getTimeUnit() == ChronoUnit.WEEKS).collect(Collectors.toSet()));
 			createDayInactivityEntities(userAnonymized,
 					intervalInactivities.stream().filter(ia -> ia.getTimeUnit() == ChronoUnit.DAYS).collect(Collectors.toSet()));
 		}
 	}
 
-	private void createWeekInactivityEntities(UUID userAnonymizedID, Set<IntervalInactivityDTO> weekInactivities)
+	private void createWeekInactivityEntities(UUID userAnonymizedId, Set<IntervalInactivityDto> weekInactivities)
 	{
-		weekInactivities.stream().forEach(wi -> createWeekInactivity(userAnonymizedID, wi));
+		weekInactivities.stream().forEach(wi -> createWeekInactivity(userAnonymizedId, wi));
 	}
 
-	private void createDayInactivityEntities(UserAnonymizedDTO userAnonymized, Set<IntervalInactivityDTO> dayInactivities)
+	private void createDayInactivityEntities(UserAnonymizedDto userAnonymized, Set<IntervalInactivityDto> dayInactivities)
 	{
 		dayInactivities.stream()
-				.forEach(di -> createDayInactivity(userAnonymized.getID(),
-						createWeekInactivity(userAnonymized.getID(), getGoal(userAnonymized, di.getGoalID()).getID(),
+				.forEach(di -> createDayInactivity(userAnonymized.getId(),
+						createWeekInactivity(userAnonymized.getId(), getGoal(userAnonymized, di.getGoalId()).getGoalId(),
 								TimeUtil.getStartOfWeek(userAnonymized.getTimeZone(), di.getStartTime())),
 						di));
 	}
 
-	private GoalDTO getGoal(UserAnonymizedDTO userAnonymized, UUID goalID)
+	private GoalDto getGoal(UserAnonymizedDto userAnonymized, UUID goalId)
 	{
-		return goalService.getGoalForUserAnonymizedID(userAnonymized.getID(), goalID);
+		return goalService.getGoalForUserAnonymizedId(userAnonymized.getId(), goalId);
 	}
 
-	private void createWeekInactivity(UUID userAnonymizedID, IntervalInactivityDTO weekInactivity)
+	private void createWeekInactivity(UUID userAnonymizedId, IntervalInactivityDto weekInactivity)
 	{
-		createWeekInactivity(userAnonymizedID, weekInactivity.getGoalID(), weekInactivity.getStartTime());
+		createWeekInactivity(userAnonymizedId, weekInactivity.getGoalId(), weekInactivity.getStartTime());
 	}
 
-	private WeekActivity createWeekInactivity(UUID userAnonymizedID, UUID goalId, ZonedDateTime weekStartTime)
+	private WeekActivity createWeekInactivity(UUID userAnonymizedId, UUID goalId, ZonedDateTime weekStartTime)
 	{
-		return createInactivity(userAnonymizedID, goalId,
-				() -> weekActivityRepository.findOne(userAnonymizedID, weekStartTime.toLocalDate(), goalId),
+		return createInactivity(userAnonymizedId, goalId,
+				() -> weekActivityRepository.findOne(userAnonymizedId, weekStartTime.toLocalDate(), goalId),
 				(ua, g) -> WeekActivity.createInstance(ua, g, weekStartTime.getZone(), weekStartTime.toLocalDate()),
 				(wa) -> wa.getGoal().addWeekActivity(wa));
 	}
 
-	private void createDayInactivity(UUID userAnonymizedID, WeekActivity weekActivity, IntervalInactivityDTO dayInactivity)
+	private void createDayInactivity(UUID userAnonymizedId, WeekActivity weekActivity, IntervalInactivityDto dayInactivity)
 	{
-		createInactivity(userAnonymizedID, dayInactivity.getGoalID(),
-				() -> dayActivityRepository.findOne(userAnonymizedID, dayInactivity.getStartTime().toLocalDate(),
-						dayInactivity.getGoalID()),
+		createInactivity(userAnonymizedId, dayInactivity.getGoalId(),
+				() -> dayActivityRepository.findOne(userAnonymizedId, dayInactivity.getStartTime().toLocalDate(),
+						dayInactivity.getGoalId()),
 				(ua, g) -> DayActivity.createInstance(ua, g, dayInactivity.getStartTime().getZone(),
 						dayInactivity.getStartTime().toLocalDate()),
 				(da) -> weekActivity.addDayActivity(da));
 	}
 
-	private <T, R> T createInactivity(UUID userAnonymizedID, UUID goalId, Supplier<T> existingActivityFinder,
+	private <T, R> T createInactivity(UUID userAnonymizedId, UUID goalId, Supplier<T> existingActivityFinder,
 			BiFunction<UserAnonymized, Goal, T> creator, Consumer<T> storer)
 	{
 		T existingActivity = existingActivityFinder.get();
@@ -112,8 +112,8 @@ public class InactivityManagementService
 		{
 			return existingActivity;
 		}
-		UserAnonymized userAnonymized = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedID);
-		Goal goal = goalService.getGoalEntityForUserAnonymizedID(userAnonymizedID, goalId);
+		UserAnonymized userAnonymized = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
+		Goal goal = goalService.getGoalEntityForUserAnonymizedId(userAnonymizedId, goalId);
 		T inactivityEntity = creator.apply(userAnonymized, goal);
 
 		storer.accept(inactivityEntity);

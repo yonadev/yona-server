@@ -43,17 +43,17 @@ public class UserPrivate extends EntityWithUuid
 	private String nickname;
 
 	@Convert(converter = UUIDFieldEncrypter.class)
-	private UUID userAnonymizedID;
+	private UUID userAnonymizedId;
 
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "owning_user_private_id", referencedColumnName = "id")
 	private Set<Buddy> buddies;
 
 	@Convert(converter = UUIDFieldEncrypter.class)
-	private UUID anonymousMessageSourceID;
+	private UUID anonymousMessageSourceId;
 
 	@Convert(converter = UUIDFieldEncrypter.class)
-	private UUID namedMessageSourceID;
+	private UUID namedMessageSourceId;
 
 	@Convert(converter = StringFieldEncrypter.class)
 	private String vpnPassword;
@@ -64,17 +64,17 @@ public class UserPrivate extends EntityWithUuid
 		super(null);
 	}
 
-	private UserPrivate(UUID id, String nickname, UUID userAnonymizedID, String vpnPassword, UUID anonymousMessageSourceID,
-			UUID namedMessageSourceID)
+	private UserPrivate(UUID id, String nickname, UUID userAnonymizedId, String vpnPassword, UUID anonymousMessageSourceId,
+			UUID namedMessageSourceId)
 	{
 		super(id);
 		this.decryptionCheck = buildDecryptionCheck();
 		this.nickname = nickname;
-		this.userAnonymizedID = userAnonymizedID;
+		this.userAnonymizedId = userAnonymizedId;
 		this.vpnPassword = vpnPassword;
 		this.buddies = new HashSet<>();
-		this.anonymousMessageSourceID = anonymousMessageSourceID;
-		this.namedMessageSourceID = namedMessageSourceID;
+		this.anonymousMessageSourceId = anonymousMessageSourceId;
+		this.namedMessageSourceId = namedMessageSourceId;
 	}
 
 	private static String buildDecryptionCheck()
@@ -87,8 +87,8 @@ public class UserPrivate extends EntityWithUuid
 	{
 		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
 		UserAnonymized.getRepository().save(userAnonymized);
-		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymized.getID(), vpnPassword, anonymousMessageSource.getID(),
-				namedMessageSource.getID());
+		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymized.getId(), vpnPassword, anonymousMessageSource.getId(),
+				namedMessageSource.getId());
 	}
 
 	public boolean isDecryptedProperly()
@@ -108,8 +108,8 @@ public class UserPrivate extends EntityWithUuid
 
 	UserAnonymized getUserAnonymized()
 	{
-		UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(userAnonymizedID);
-		Objects.requireNonNull(userAnonymized, "UserAnonymized with ID " + userAnonymizedID + " not found");
+		UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(userAnonymizedId);
+		Objects.requireNonNull(userAnonymized, "UserAnonymized with ID " + userAnonymizedId + " not found");
 		return userAnonymized;
 	}
 
@@ -128,28 +128,28 @@ public class UserPrivate extends EntityWithUuid
 		buddies.remove(buddy);
 	}
 
-	public void removeBuddyForUserID(UUID userID)
+	public void removeBuddyForUserId(UUID userId)
 	{
-		buddies.removeIf(buddy -> buddy.getUserID().equals(userID));
+		buddies.removeIf(buddy -> buddy.getUserId().equals(userId));
 	}
 
 	public MessageSource getAnonymousMessageSource()
 	{
-		return MessageSource.getRepository().findOne(anonymousMessageSourceID);
+		return MessageSource.getRepository().findOne(anonymousMessageSourceId);
 	}
 
 	public MessageSource getNamedMessageSource()
 	{
-		return MessageSource.getRepository().findOne(namedMessageSourceID);
+		return MessageSource.getRepository().findOne(namedMessageSourceId);
 	}
 
-	public UUID getVPNLoginID()
+	public UUID getVpnLoginId()
 	{
 		// these are the same for performance
-		return userAnonymizedID;
+		return userAnonymizedId;
 	}
 
-	public String getVPNPassword()
+	public String getVpnPassword()
 	{
 		return vpnPassword;
 	}
@@ -164,9 +164,9 @@ public class UserPrivate extends EntityWithUuid
 		touchVersion++;
 	}
 
-	public UUID getUserAnonymizedID()
+	public UUID getUserAnonymizedId()
 	{
-		return userAnonymizedID;
+		return userAnonymizedId;
 	}
 
 	public Set<Buddy> getBuddiesRelatedToRemovedUsers()

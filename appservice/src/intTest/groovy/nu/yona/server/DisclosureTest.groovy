@@ -53,12 +53,12 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def bob = richardAndBob.bob
 		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
 		def goalConflictMessage = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]
-		def disclosureRequestURL = goalConflictMessage._links."yona:requestDisclosure".href
+		def disclosureRequestUrl = goalConflictMessage._links."yona:requestDisclosure".href
 		Goal goalRichard = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
 
 		when:
 		def requestMessageText = "Can I have a look?"
-		def response = appService.postMessageActionWithPassword(disclosureRequestURL, [ "message" : requestMessageText], bob.password)
+		def response = appService.postMessageActionWithPassword(disclosureRequestUrl, [ "message" : requestMessageText], bob.password)
 
 		then:
 		response.status == 200
@@ -101,16 +101,16 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
-		def disclosureRequestURL = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links."yona:requestDisclosure".href
-		appService.postMessageActionWithPassword(disclosureRequestURL, [ : ], bob.password)
+		def disclosureRequestUrl = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links."yona:requestDisclosure".href
+		appService.postMessageActionWithPassword(disclosureRequestUrl, [ : ], bob.password)
 		def disclosureRequestMessage = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "DisclosureRequestMessage"}[0]
-		def disclosureRequestAcceptURL = disclosureRequestMessage._links."yona:accept".href
+		def disclosureRequestAcceptUrl = disclosureRequestMessage._links."yona:accept".href
 		bob = appService.reloadUser(bob)
 		Goal goalBuddyRichard = bob.buddies[0].findActiveGoal(GAMBLING_ACT_CAT_URL)
 
 		when:
 		def responseMessageText = "Sure!"
-		def response = appService.postMessageActionWithPassword(disclosureRequestAcceptURL, [ "message" : responseMessageText ], richard.password)
+		def response = appService.postMessageActionWithPassword(disclosureRequestAcceptUrl, [ "message" : responseMessageText ], richard.password)
 
 		then:
 		response.status == 200
@@ -174,14 +174,14 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com")
-		def disclosureRequestURL = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links."yona:requestDisclosure".href
-		appService.postMessageActionWithPassword(disclosureRequestURL, [ : ], bob.password)
+		def disclosureRequestUrl = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links."yona:requestDisclosure".href
+		appService.postMessageActionWithPassword(disclosureRequestUrl, [ : ], bob.password)
 		def disclosureRequestMessage = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "DisclosureRequestMessage"}[0]
-		def disclosureRequestRejectURL = disclosureRequestMessage._links."yona:reject".href
+		def disclosureRequestRejectUrl = disclosureRequestMessage._links."yona:reject".href
 
 		when:
 		def responseMessageText = "Nope!"
-		def response = appService.postMessageActionWithPassword(disclosureRequestRejectURL, [ "message" : responseMessageText ], richard.password)
+		def response = appService.postMessageActionWithPassword(disclosureRequestRejectUrl, [ "message" : responseMessageText ], richard.password)
 
 		then:
 		response.status == 200

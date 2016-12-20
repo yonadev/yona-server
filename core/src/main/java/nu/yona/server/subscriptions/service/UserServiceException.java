@@ -23,7 +23,7 @@ public class UserServiceException extends YonaException
 		return new UserServiceException("error.user.not.found.mobile", mobileNumber);
 	}
 
-	public static UserServiceException notFoundByID(UUID id)
+	public static UserServiceException notFoundById(UUID id)
 	{
 		return new UserServiceException("error.user.not.found.id", id);
 	}

@@ -25,40 +25,40 @@ public class UserAnonymizedService
 	private UserAnonymizedRepository userAnonymizedRepository;
 
 	@Cacheable
-	public UserAnonymizedDTO getUserAnonymized(UUID userAnonymizedID)
+	public UserAnonymizedDto getUserAnonymized(UUID userAnonymizedId)
 	{
-		UserAnonymized entity = userAnonymizedRepository.findOne(userAnonymizedID);
+		UserAnonymized entity = userAnonymizedRepository.findOne(userAnonymizedId);
 		if (entity == null)
 		{
-			throw InvalidDataException.userAnonymizedIDNotFound(userAnonymizedID);
+			throw InvalidDataException.userAnonymizedIdNotFound(userAnonymizedId);
 		}
-		return UserAnonymizedDTO.createInstance(entity);
+		return UserAnonymizedDto.createInstance(entity);
 	}
 
 	/*
 	 * Prefer to use other method, because this one is not cached.
 	 */
-	public UserAnonymized getUserAnonymizedEntity(UUID userAnonymizedID)
+	public UserAnonymized getUserAnonymizedEntity(UUID userAnonymizedId)
 	{
-		return userAnonymizedRepository.findOne(userAnonymizedID);
+		return userAnonymizedRepository.findOne(userAnonymizedId);
 	}
 
-	@CachePut(key = "#userAnonymizedID")
-	public UserAnonymizedDTO updateUserAnonymized(UUID userAnonymizedID, UserAnonymized entity)
+	@CachePut(key = "#userAnonymizedId")
+	public UserAnonymizedDto updateUserAnonymized(UUID userAnonymizedId, UserAnonymized entity)
 	{
 		UserAnonymized savedEntity = userAnonymizedRepository.save(entity);
-		return UserAnonymizedDTO.createInstance(savedEntity);
+		return UserAnonymizedDto.createInstance(savedEntity);
 	}
 
-	@CacheEvict(key = "#userAnonymizedID")
+	@CacheEvict(key = "#userAnonymizedId")
 	public UserAnonymized updateUserAnonymized(UserAnonymized entity)
 	{
 		return userAnonymizedRepository.saveAndFlush(entity);
 	}
 
-	@CacheEvict(key = "#userAnonymizedID")
-	public void deleteUserAnonymized(UUID userAnonymizedID)
+	@CacheEvict(key = "#userAnonymizedId")
+	public void deleteUserAnonymized(UUID userAnonymizedId)
 	{
-		userAnonymizedRepository.delete(userAnonymizedID);
+		userAnonymizedRepository.delete(userAnonymizedId);
 	}
 }

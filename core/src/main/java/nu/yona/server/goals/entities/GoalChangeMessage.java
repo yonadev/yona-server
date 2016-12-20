@@ -32,10 +32,10 @@ public class GoalChangeMessage extends BuddyMessage
 		super();
 	}
 
-	protected GoalChangeMessage(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname,
+	protected GoalChangeMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
 			ActivityCategory activityCategoryOfChangedGoal, Change change, String message)
 	{
-		super(senderUserID, senderUserAnonymizedID, senderNickname, message);
+		super(senderUserId, senderUserAnonymizedId, senderNickname, message);
 
 		this.activityCategoryOfChangedGoal = activityCategoryOfChangedGoal;
 		this.change = change;
@@ -51,10 +51,10 @@ public class GoalChangeMessage extends BuddyMessage
 		return change;
 	}
 
-	public static GoalChangeMessage createInstance(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname,
+	public static GoalChangeMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
 			ActivityCategory activityCategoryOfChangedGoal, Change change, String message)
 	{
-		return new GoalChangeMessage(senderUserID, senderUserAnonymizedID, senderNickname, activityCategoryOfChangedGoal, change,
+		return new GoalChangeMessage(senderUserId, senderUserAnonymizedId, senderNickname, activityCategoryOfChangedGoal, change,
 				message);
 	}
 }

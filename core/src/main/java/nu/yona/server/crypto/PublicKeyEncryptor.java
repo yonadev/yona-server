@@ -81,7 +81,7 @@ public class PublicKeyEncryptor implements Encryptor
 			ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 			DataOutputStream dataStream = new DataOutputStream(byteStream);
 			dataStream.writeInt(plaintext.size());
-			plaintext.stream().forEach(id -> writeUUID(dataStream, id));
+			plaintext.stream().forEach(id -> writeUuid(dataStream, id));
 
 			return encrypt(byteStream.toByteArray());
 		}
@@ -91,7 +91,7 @@ public class PublicKeyEncryptor implements Encryptor
 		}
 	}
 
-	private void writeUUID(DataOutputStream dataStream, UUID id)
+	private void writeUuid(DataOutputStream dataStream, UUID id)
 	{
 		try
 		{

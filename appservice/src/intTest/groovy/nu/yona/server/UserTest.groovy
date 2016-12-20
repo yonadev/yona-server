@@ -203,7 +203,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def newNickname = "Johnny"
-		def updatedJohn = john.convertToJSON()
+		def updatedJohn = john.convertToJson()
 		updatedJohn.nickname = newNickname
 		def userUpdateResponse = appService.updateUser(john.url, updatedJohn, john.password)
 
@@ -226,7 +226,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		String newMobileNumber = "${john.mobileNumber}1"
-		def updatedJohn = john.convertToJSON()
+		def updatedJohn = john.convertToJson()
 		updatedJohn.mobileNumber = newMobileNumber
 		def userUpdateResponse = appService.updateUser(john.url, updatedJohn, john.password)
 
@@ -249,7 +249,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, john)
 
 		when:
-		def updatedJohn = john.convertToJSON()
+		def updatedJohn = john.convertToJson()
 		updatedJohn.mobileNumber = richard.mobileNumber
 		def response = appService.updateUser(john.url, updatedJohn, john.password)
 
@@ -277,7 +277,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		responseOvpnProfile.contentType == "application/x-openvpn-profile"
 		responseSslRootCert.status == 200
 		responseSslRootCert.contentType == "application/pkix-cert"
-		richard.sslRootCertCN == "smoothwall003.yona"
+		richard.sslRootCertCn == "smoothwall003.yona"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -339,7 +339,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			assert user.goals != null
 			if (mobileNumberConfirmed)
 			{
-				assert user.vpnProfile.vpnLoginID ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+				assert user.vpnProfile.vpnLoginId ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
 				assert user.vpnProfile.vpnPassword.length() == 32
 				assert user.vpnProfile.ovpnProfileUrl
 

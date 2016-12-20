@@ -39,10 +39,10 @@ public class Buddy extends EntityWithUuid
 	private int touchVersion;
 
 	@Convert(converter = UUIDFieldEncrypter.class)
-	private UUID userID;
+	private UUID userId;
 
 	@Convert(converter = UUIDFieldEncrypter.class)
-	private UUID buddyAnonymizedID;
+	private UUID buddyAnonymizedId;
 
 	@Convert(converter = StringFieldEncrypter.class)
 	private String nickname;
@@ -53,32 +53,32 @@ public class Buddy extends EntityWithUuid
 		super(null);
 	}
 
-	private Buddy(UUID id, UUID userID, String nickname, UUID buddyAnonymizedID)
+	private Buddy(UUID id, UUID userId, String nickname, UUID buddyAnonymizedId)
 	{
 		super(id);
-		Objects.requireNonNull(userID);
+		Objects.requireNonNull(userId);
 		Objects.requireNonNull(nickname);
-		Objects.requireNonNull(buddyAnonymizedID);
-		this.userID = userID;
+		Objects.requireNonNull(buddyAnonymizedId);
+		this.userId = userId;
 		this.nickname = nickname;
-		this.buddyAnonymizedID = buddyAnonymizedID;
+		this.buddyAnonymizedId = buddyAnonymizedId;
 	}
 
-	public static Buddy createInstance(UUID buddyUserID, String nickname, Status sendingStatus, Status receivingStatus)
+	public static Buddy createInstance(UUID buddyUserId, String nickname, Status sendingStatus, Status receivingStatus)
 	{
 		BuddyAnonymized buddyAnonymized = BuddyAnonymized.createInstance(sendingStatus, receivingStatus);
 		buddyAnonymized = BuddyAnonymized.getRepository().save(buddyAnonymized);
-		return new Buddy(UUID.randomUUID(), buddyUserID, nickname, buddyAnonymized.getID());
+		return new Buddy(UUID.randomUUID(), buddyUserId, nickname, buddyAnonymized.getId());
 	}
 
-	public UUID getBuddyAnonymizedID()
+	public UUID getBuddyAnonymizedId()
 	{
-		return buddyAnonymizedID;
+		return buddyAnonymizedId;
 	}
 
 	public BuddyAnonymized getBuddyAnonymized()
 	{
-		return BuddyAnonymized.getRepository().findOne(buddyAnonymizedID);
+		return BuddyAnonymized.getRepository().findOne(buddyAnonymizedId);
 	}
 
 	public String getNickname()
@@ -91,19 +91,19 @@ public class Buddy extends EntityWithUuid
 		this.nickname = nickname;
 	}
 
-	public UUID getUserID()
+	public UUID getUserId()
 	{
-		return userID;
+		return userId;
 	}
 
 	public User getUser()
 	{
-		return User.getRepository().findOne(userID);
+		return User.getRepository().findOne(userId);
 	}
 
-	public Optional<UUID> getUserAnonymizedID()
+	public Optional<UUID> getUserAnonymizedId()
 	{
-		return getBuddyAnonymized().getUserAnonymizedID();
+		return getBuddyAnonymized().getUserAnonymizedId();
 	}
 
 	public Status getReceivingStatus()
@@ -131,10 +131,10 @@ public class Buddy extends EntityWithUuid
 		return getBuddyAnonymized().getLastStatusChangeTime();
 	}
 
-	public void setUserAnonymizedID(UUID userAnonymizedID)
+	public void setUserAnonymizedId(UUID userAnonymizedId)
 	{
 		BuddyAnonymized buddyAnonymized = getBuddyAnonymized();
-		buddyAnonymized.setUserAnonymizedID(userAnonymizedID);
+		buddyAnonymized.setUserAnonymizedId(userAnonymizedId);
 		BuddyAnonymized.getRepository().save(buddyAnonymized);
 	}
 

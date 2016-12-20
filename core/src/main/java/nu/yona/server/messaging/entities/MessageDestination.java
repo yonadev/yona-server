@@ -79,22 +79,22 @@ public class MessageDestination extends EntityWithUuid
 
 	public Page<Message> getMessages(Pageable pageable)
 	{
-		return Message.getRepository().findFromDestination(this.getID(), pageable);
+		return Message.getRepository().findFromDestination(this.getId(), pageable);
 	}
 
 	public Page<Message> getReceivedMessages(Pageable pageable, boolean onlyUnreadMessages)
 	{
 		if (onlyUnreadMessages)
 		{
-			return Message.getRepository().findUnreadReceivedMessagesFromDestination(this.getID(), pageable);
+			return Message.getRepository().findUnreadReceivedMessagesFromDestination(this.getId(), pageable);
 
 		}
-		return Message.getRepository().findReceivedMessagesFromDestination(this.getID(), pageable);
+		return Message.getRepository().findReceivedMessagesFromDestination(this.getId(), pageable);
 	}
 
 	public Page<Message> getReceivedMessages(Pageable pageable, LocalDateTime earliestDateTime)
 	{
-		return Message.getRepository().findReceivedMessagesFromDestinationSinceDate(this.getID(), earliestDateTime, pageable);
+		return Message.getRepository().findReceivedMessagesFromDestinationSinceDate(this.getId(), earliestDateTime, pageable);
 	}
 
 	private PublicKey loadPublicKey()
@@ -106,10 +106,10 @@ public class MessageDestination extends EntityWithUuid
 		return publicKey;
 	}
 
-	public void removeMessagesFromUser(UUID sentByUserAnonymizedID)
+	public void removeMessagesFromUser(UUID sentByUserAnonymizedId)
 	{
-		Optional<UUID> sentByUserAnonymizedIDInOptional = Optional.of(sentByUserAnonymizedID);
-		messages.removeIf(message -> sentByUserAnonymizedIDInOptional.equals(message.getRelatedUserAnonymizedID()));
+		Optional<UUID> sentByUserAnonymizedIdInOptional = Optional.of(sentByUserAnonymizedId);
+		messages.removeIf(message -> sentByUserAnonymizedIdInOptional.equals(message.getRelatedUserAnonymizedId()));
 	}
 
 	public void removeGoalConflictMessages(Goal goal)
@@ -118,9 +118,9 @@ public class MessageDestination extends EntityWithUuid
 				message -> message instanceof GoalConflictMessage && ((GoalConflictMessage) message).getGoal().equals(goal));
 	}
 
-	public Page<Message> getActivityRelatedMessages(long activityID, Pageable pageable)
+	public Page<Message> getActivityRelatedMessages(long activityId, Pageable pageable)
 	{
-		return Message.getRepository().findByActivityID(getID(), activityID, pageable);
+		return Message.getRepository().findByIntervalActivityId(getId(), activityId, pageable);
 	}
 
 	/*

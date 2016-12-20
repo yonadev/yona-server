@@ -15,7 +15,7 @@ import nu.yona.server.messaging.entities.BuddyMessage;
 @Entity
 public class ActivityCommentMessage extends BuddyMessage
 {
-	private long activityID;
+	private long intervalActivityId;
 
 	/**
 	 * Buddy comment messages are always sent in pairs: a message to the buddy and a copy for the user. This property maintains
@@ -24,14 +24,14 @@ public class ActivityCommentMessage extends BuddyMessage
 	@ManyToOne
 	private ActivityCommentMessage senderCopyMessage;
 
-	private ActivityCommentMessage(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname, long activityID,
-			boolean isSentItem, String message, Optional<Long> threadHeadMessageID, Optional<Long> repliedMessageID)
+	private ActivityCommentMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname, long activityId,
+			boolean isSentItem, String message, Optional<Long> threadHeadMessageId, Optional<Long> repliedMessageId)
 	{
-		super(senderUserID, senderUserAnonymizedID, senderNickname, isSentItem, message);
-		this.activityID = activityID;
+		super(senderUserId, senderUserAnonymizedId, senderNickname, isSentItem, message);
+		this.intervalActivityId = activityId;
 
-		setThreadHeadMessageID(threadHeadMessageID);
-		setRepliedMessageID(repliedMessageID);
+		setThreadHeadMessageId(threadHeadMessageId);
+		setRepliedMessageId(repliedMessageId);
 	}
 
 	// Default constructor is required for JPA
@@ -50,16 +50,16 @@ public class ActivityCommentMessage extends BuddyMessage
 		this.senderCopyMessage = senderCopyMessage;
 	}
 
-	public long getActivityID()
+	public long getIntervalActivityId()
 	{
-		return activityID;
+		return intervalActivityId;
 	}
 
-	public static ActivityCommentMessage createInstance(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname,
-			long actitityID, boolean isSentItem, String message, Optional<Long> threadHeadMessageID,
-			Optional<Long> repliedMessageID)
+	public static ActivityCommentMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
+			long actitityId, boolean isSentItem, String message, Optional<Long> threadHeadMessageId,
+			Optional<Long> repliedMessageId)
 	{
-		return new ActivityCommentMessage(senderUserID, senderUserAnonymizedID, senderNickname, actitityID, isSentItem, message,
-				threadHeadMessageID, repliedMessageID);
+		return new ActivityCommentMessage(senderUserId, senderUserAnonymizedId, senderNickname, actitityId, isSentItem, message,
+				threadHeadMessageId, repliedMessageId);
 	}
 }

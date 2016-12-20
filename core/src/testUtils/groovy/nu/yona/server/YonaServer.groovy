@@ -23,9 +23,9 @@ class YonaServer
 	JsonSlurper jsonSlurper = new JsonSlurper()
 	RESTClient restClient
 
-	YonaServer (baseURL)
+	YonaServer (baseUrl)
 	{
-		restClient = new RESTClient(baseURL)
+		restClient = new RESTClient(baseUrl)
 
 		restClient.handler.failure = restClient.handler.success
 	}
@@ -78,16 +78,16 @@ class YonaServer
 
 	def getResource(path, headers = [:], parameters = [:])
 	{
-		def queryParametersOfURI = [ : ]
+		def queryParametersOfUri = [ : ]
 		if (path ==~ /.*\?.*/)
 		{
-			queryParametersOfURI = getQueryParams(path)
+			queryParametersOfUri = getQueryParams(path)
 			path = path.substring(0, path.indexOf('?'))
 		}
 		restClient.get(path: path,
 		contentType:'application/json',
 		headers: headers,
-		query: queryParametersOfURI + parameters)
+		query: queryParametersOfUri + parameters)
 	}
 
 	def postJson(path, jsonString, headers = [:], parameters = [:])

@@ -25,11 +25,11 @@ import nu.yona.server.util.TimeUtil;
 public abstract class Message extends EntityWithId
 {
 	@Type(type = "uuid-char")
-	private final UUID relatedUserAnonymizedID;
+	private final UUID relatedUserAnonymizedId;
 
-	private Long threadHeadMessageID;
+	private Long threadHeadMessageId;
 
-	private Long repliedMessageID;
+	private Long repliedMessageId;
 
 	@Type(type = "uuid-char")
 	@Column(name = "message_destination_id")
@@ -50,19 +50,19 @@ public abstract class Message extends EntityWithId
 	 * This is the only constructor, to ensure that subclasses don't accidentally omit the ID.
 	 * 
 	 * @param id The ID of the entity
-	 * @param relatedUserAnonymizedID The ID of the related anonymized user. This is either the sender of this message or the one
+	 * @param relatedUserAnonymizedId The ID of the related anonymized user. This is either the sender of this message or the one
 	 *            for which this message is sent (e.g in case of a goal conflict message).
 	 */
-	protected Message(UUID relatedUserAnonymizedID)
+	protected Message(UUID relatedUserAnonymizedId)
 	{
-		this(relatedUserAnonymizedID, false);
+		this(relatedUserAnonymizedId, false);
 	}
 
-	protected Message(UUID relatedUserAnonymizedID, boolean isSentItem)
+	protected Message(UUID relatedUserAnonymizedId, boolean isSentItem)
 	{
 		super();
 
-		this.relatedUserAnonymizedID = relatedUserAnonymizedID;
+		this.relatedUserAnonymizedId = relatedUserAnonymizedId;
 		this.creationTime = TimeUtil.utcNow();
 		this.isSentItem = isSentItem;
 	}
@@ -77,24 +77,24 @@ public abstract class Message extends EntityWithId
 		decrypt(decryptor);
 	}
 
-	protected void setRepliedMessageID(Optional<Long> repliedMessageID)
+	protected void setRepliedMessageId(Optional<Long> repliedMessageId)
 	{
-		this.repliedMessageID = repliedMessageID.orElse(null);
+		this.repliedMessageId = repliedMessageId.orElse(null);
 	}
 
-	protected void setThreadHeadMessageID(Optional<Long> threadHeadMessageID)
+	protected void setThreadHeadMessageId(Optional<Long> threadHeadMessageId)
 	{
-		this.threadHeadMessageID = threadHeadMessageID.orElse(null);
+		this.threadHeadMessageId = threadHeadMessageId.orElse(null);
 	}
 
-	public long getThreadHeadMessageID()
+	public long getThreadHeadMessageId()
 	{
-		return threadHeadMessageID != null ? threadHeadMessageID : getID();
+		return threadHeadMessageId != null ? threadHeadMessageId : getId();
 	}
 
-	public Optional<Long> getRepliedMessageID()
+	public Optional<Long> getRepliedMessageId()
 	{
-		return Optional.ofNullable(repliedMessageID);
+		return Optional.ofNullable(repliedMessageId);
 	}
 
 	public LocalDateTime getCreationTime()
@@ -124,9 +124,9 @@ public abstract class Message extends EntityWithId
 	 * @return The ID of the related anonymized user. Might be null if that user was already deleted at the time this message was
 	 *         sent on behalf of that user.
 	 */
-	public Optional<UUID> getRelatedUserAnonymizedID()
+	public Optional<UUID> getRelatedUserAnonymizedId()
 	{
-		return Optional.ofNullable(relatedUserAnonymizedID);
+		return Optional.ofNullable(relatedUserAnonymizedId);
 	}
 
 	protected abstract void encrypt(Encryptor encryptor);
@@ -135,7 +135,7 @@ public abstract class Message extends EntityWithId
 
 	public void setSelfThreadHeadIfRequired()
 	{
-		if (threadHeadMessageID == null)
+		if (threadHeadMessageId == null)
 		{
 			setSelfThreadHead();
 		}
@@ -143,8 +143,8 @@ public abstract class Message extends EntityWithId
 
 	private void setSelfThreadHead()
 	{
-		long id = getID();
+		long id = getId();
 		assert id != 0;
-		threadHeadMessageID = id;
+		threadHeadMessageId = id;
 	}
 }

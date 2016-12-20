@@ -16,7 +16,7 @@ import nu.yona.server.crypto.Encryptor;
 @Entity
 public class DisclosureResponseMessage extends BuddyMessage
 {
-	private long targetGoalConflictMessageID;
+	private long targetGoalConflictMessageId;
 	private Status status;
 
 	// Default constructor is required for JPA
@@ -25,17 +25,17 @@ public class DisclosureResponseMessage extends BuddyMessage
 
 	}
 
-	private DisclosureResponseMessage(UUID senderUserID, UUID senderUserAnonymizedID, long targetGoalConflictMessageID,
+	private DisclosureResponseMessage(UUID senderUserId, UUID senderUserAnonymizedId, long targetGoalConflictMessageId,
 			Status status, String senderNickname, String message)
 	{
-		super(senderUserID, senderUserAnonymizedID, senderNickname, message);
-		this.targetGoalConflictMessageID = targetGoalConflictMessageID;
+		super(senderUserId, senderUserAnonymizedId, senderNickname, message);
+		this.targetGoalConflictMessageId = targetGoalConflictMessageId;
 		this.status = status;
 	}
 
 	public GoalConflictMessage getTargetGoalConflictMessage()
 	{
-		return (GoalConflictMessage) GoalConflictMessage.getRepository().findOne(targetGoalConflictMessageID);
+		return (GoalConflictMessage) GoalConflictMessage.getRepository().findOne(targetGoalConflictMessageId);
 	}
 
 	public Status getStatus()
@@ -55,10 +55,10 @@ public class DisclosureResponseMessage extends BuddyMessage
 		super.decrypt(decryptor);
 	}
 
-	public static DisclosureResponseMessage createInstance(UUID senderUserID, UUID senderUserAnonymizedID,
-			long targetGoalConflictMessageID, Status status, String senderNickname, String message)
+	public static DisclosureResponseMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId,
+			long targetGoalConflictMessageId, Status status, String senderNickname, String message)
 	{
-		return new DisclosureResponseMessage(senderUserID, senderUserAnonymizedID, targetGoalConflictMessageID, status,
+		return new DisclosureResponseMessage(senderUserId, senderUserAnonymizedId, targetGoalConflictMessageId, status,
 				senderNickname, message);
 	}
 }

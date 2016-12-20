@@ -20,10 +20,10 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 		super();
 	}
 
-	private BuddyConnectResponseMessage(UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname, String message,
-			UUID buddyID, BuddyAnonymized.Status status)
+	private BuddyConnectResponseMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname, String message,
+			UUID buddyId, BuddyAnonymized.Status status)
 	{
-		super(senderUserID, senderUserAnonymizedID, senderNickname, message, buddyID);
+		super(senderUserId, senderUserAnonymizedId, senderNickname, message, buddyId);
 		this.status = status;
 	}
 
@@ -42,9 +42,9 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 		this.isProcessed = true;
 	}
 
-	public static BuddyConnectResponseMessage createInstance(UUID senderUserID, UUID senderUserAnonymizedID,
-			String senderNickname, String message, UUID buddyID, BuddyAnonymized.Status status)
+	public static BuddyConnectResponseMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId,
+			String senderNickname, String message, UUID buddyId, BuddyAnonymized.Status status)
 	{
-		return new BuddyConnectResponseMessage(senderUserID, senderUserAnonymizedID, senderNickname, message, buddyID, status);
+		return new BuddyConnectResponseMessage(senderUserId, senderUserAnonymizedId, senderNickname, message, buddyId, status);
 	}
 }

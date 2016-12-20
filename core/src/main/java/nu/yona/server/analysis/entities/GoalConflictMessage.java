@@ -29,7 +29,7 @@ public class GoalConflictMessage extends Message
 	 * If this is a message sent to a buddy, this refers to the self goal conflict message posted at the user having the goal.
 	 * Otherwise {@literal null}.
 	 */
-	private Long originGoalConflictMessageID;
+	private Long originGoalConflictMessageId;
 
 	@ManyToOne
 	private Activity activity;
@@ -47,12 +47,12 @@ public class GoalConflictMessage extends Message
 		super(null);
 	}
 
-	public GoalConflictMessage(UUID relatedUserAnonymizedID, Optional<Long> originGoalConflictMessageID, Activity activity,
+	public GoalConflictMessage(UUID relatedUserAnonymizedId, Optional<Long> originGoalConflictMessageId, Activity activity,
 			Goal goal, Optional<String> url, Status status)
 	{
-		super(relatedUserAnonymizedID);
+		super(relatedUserAnonymizedId);
 
-		this.originGoalConflictMessageID = originGoalConflictMessageID.orElse(null);
+		this.originGoalConflictMessageId = originGoalConflictMessageId.orElse(null);
 		this.goal = Objects.requireNonNull(goal);
 		this.activity = Objects.requireNonNull(activity);
 		this.url = Objects.requireNonNull(url);
@@ -69,12 +69,12 @@ public class GoalConflictMessage extends Message
 		return goal;
 	}
 
-	public long getOriginGoalConflictMessageID()
+	public long getOriginGoalConflictMessageId()
 	{
-		return originGoalConflictMessageID != null ? originGoalConflictMessageID : getID();
+		return originGoalConflictMessageId != null ? originGoalConflictMessageId : getId();
 	}
 
-	public Optional<String> getURL()
+	public Optional<String> getUrl()
 	{
 		return url;
 	}
@@ -93,7 +93,7 @@ public class GoalConflictMessage extends Message
 
 	public boolean isFromBuddy()
 	{
-		return originGoalConflictMessageID != null;
+		return originGoalConflictMessageId != null;
 	}
 
 	public Status getStatus()
@@ -106,7 +106,7 @@ public class GoalConflictMessage extends Message
 		this.status = status;
 	}
 
-	public static GoalConflictMessage createInstanceFromBuddy(UUID relatedUserAnonymizedID, GoalConflictMessage origin,
+	public static GoalConflictMessage createInstanceFromBuddy(UUID relatedUserAnonymizedId, GoalConflictMessage origin,
 			long savedOriginId)
 	{
 		if (origin == null)
@@ -115,14 +115,14 @@ public class GoalConflictMessage extends Message
 		}
 
 		assert savedOriginId != 0;
-		return new GoalConflictMessage(relatedUserAnonymizedID, Optional.of(savedOriginId), origin.getActivity(),
-				origin.getGoal(), origin.getURL(), Status.ANNOUNCED);
+		return new GoalConflictMessage(relatedUserAnonymizedId, Optional.of(savedOriginId), origin.getActivity(),
+				origin.getGoal(), origin.getUrl(), Status.ANNOUNCED);
 	}
 
-	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedID, Activity activity, Goal goal,
+	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedId, Activity activity, Goal goal,
 			Optional<String> url)
 	{
-		return new GoalConflictMessage(relatedUserAnonymizedID, Optional.empty(), activity, goal, url, Status.ANNOUNCED);
+		return new GoalConflictMessage(relatedUserAnonymizedId, Optional.empty(), activity, goal, url, Status.ANNOUNCED);
 	}
 
 	public boolean isUrlDisclosed()

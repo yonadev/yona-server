@@ -211,13 +211,13 @@ public abstract class Goal extends EntityWithUuid implements Serializable
 		return creationTime.isBefore(startNextInterval) && endTime.map(end -> end.isAfter(startNextInterval)).orElse(true);
 	}
 
-	public Set<UUID> getIDsIncludingHistoryItems()
+	public Set<UUID> getIdsIncludingHistoryItems()
 	{
 		Set<UUID> ids = new HashSet<>();
 		Optional<Goal> previous = Optional.of(this);
 		while (previous.isPresent())
 		{
-			ids.add(previous.get().getID());
+			ids.add(previous.get().getId());
 			previous = previous.get().getPreviousVersionOfThisGoal();
 		}
 

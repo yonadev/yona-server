@@ -45,7 +45,7 @@ public class ActivityCategoryService
 		@Autowired
 		private ActivityCategoryService activityCategoryService;
 
-		public Set<ActivityCategoryDTO> getMatchingCategoriesForSmoothwallCategories(Set<String> smoothwallCategories)
+		public Set<ActivityCategoryDto> getMatchingCategoriesForSmoothwallCategories(Set<String> smoothwallCategories)
 		{
 			return activityCategoryService.getAllActivityCategories().stream().filter(ac -> {
 				Set<String> acSmoothwallCategories = new HashSet<>(ac.getSmoothwallCategories());
@@ -54,7 +54,7 @@ public class ActivityCategoryService
 			}).collect(Collectors.toSet());
 		}
 
-		public Set<ActivityCategoryDTO> getMatchingCategoriesForApp(String application)
+		public Set<ActivityCategoryDto> getMatchingCategoriesForApp(String application)
 		{
 			return activityCategoryService.getAllActivityCategories().stream()
 					.filter(ac -> ac.getApplications().contains(application)).collect(Collectors.toSet());
@@ -67,51 +67,51 @@ public class ActivityCategoryService
 	private static final Logger logger = LoggerFactory.getLogger(ActivityCategoryService.class);
 
 	@Transactional
-	public ActivityCategoryDTO getActivityCategory(UUID id)
+	public ActivityCategoryDto getActivityCategory(UUID id)
 	{
-		ActivityCategory activityCategoryEntity = getEntityByID(id);
-		return ActivityCategoryDTO.createInstance(activityCategoryEntity);
+		ActivityCategory activityCategoryEntity = getEntityById(id);
+		return ActivityCategoryDto.createInstance(activityCategoryEntity);
 	}
 
 	@Cacheable(value = "activityCategorySet", key = "'instance'")
 	@Transactional
-	public Set<ActivityCategoryDTO> getAllActivityCategories()
+	public Set<ActivityCategoryDto> getAllActivityCategories()
 	{
 		// Sort the collection to make it simpler to compare the activity categories
-		return StreamSupport.stream(repository.findAll().spliterator(), false).map(e -> ActivityCategoryDTO.createInstance(e))
+		return StreamSupport.stream(repository.findAll().spliterator(), false).map(e -> ActivityCategoryDto.createInstance(e))
 				.collect(Collectors.toCollection(() -> new TreeSet<>(
-						(Comparator<ActivityCategoryDTO> & Serializable) (l, r) -> l.getName().compareTo(r.getName()))));
+						(Comparator<ActivityCategoryDto> & Serializable) (l, r) -> l.getName().compareTo(r.getName()))));
 	}
 
 	@CacheEvict(value = "activityCategorySet", key = "'instance'")
 	@Transactional
-	public ActivityCategoryDTO addActivityCategory(ActivityCategoryDTO activityCategoryDTO)
+	public ActivityCategoryDto addActivityCategory(ActivityCategoryDto activityCategoryDto)
 	{
-		logger.info("Adding activity category '{}' with ID '{}'", activityCategoryDTO.getName(Translator.EN_US_LOCALE),
-				activityCategoryDTO.getID());
-		verifyNoDuplicateNames(Collections.emptySet(), activityCategoryDTO.getLocalizableNameByLocale());
-		return ActivityCategoryDTO.createInstance(repository.save(activityCategoryDTO.createActivityCategoryEntity()));
+		logger.info("Adding activity category '{}' with ID '{}'", activityCategoryDto.getName(Translator.EN_US_LOCALE),
+				activityCategoryDto.getId());
+		verifyNoDuplicateNames(Collections.emptySet(), activityCategoryDto.getLocalizableNameByLocale());
+		return ActivityCategoryDto.createInstance(repository.save(activityCategoryDto.createActivityCategoryEntity()));
 	}
 
 	@CacheEvict(value = "activityCategorySet", key = "'instance'")
 	@Transactional
-	public ActivityCategoryDTO updateActivityCategory(UUID id, ActivityCategoryDTO activityCategoryDTO)
+	public ActivityCategoryDto updateActivityCategory(UUID id, ActivityCategoryDto activityCategoryDto)
 	{
-		ActivityCategory originalEntity = getEntityByID(id);
+		ActivityCategory originalEntity = getEntityById(id);
 		logger.info("Updating activity category '{}' with ID '{}'", getName(originalEntity), id);
-		verifyNoDuplicateNames(Collections.singleton(id), activityCategoryDTO.getLocalizableNameByLocale());
-		return ActivityCategoryDTO.createInstance(updateActivityCategory(originalEntity, activityCategoryDTO));
+		verifyNoDuplicateNames(Collections.singleton(id), activityCategoryDto.getLocalizableNameByLocale());
+		return ActivityCategoryDto.createInstance(updateActivityCategory(originalEntity, activityCategoryDto));
 	}
 
 	@CacheEvict(value = "activityCategorySet", key = "'instance'")
 	@Transactional
-	public void updateActivityCategorySet(Set<ActivityCategoryDTO> activityCategoryDTOs)
+	public void updateActivityCategorySet(Set<ActivityCategoryDto> activityCategoryDtos)
 	{
 		logger.info("Updating entire activity category set");
 		Set<ActivityCategory> activityCategoriesInRepository = getAllActivityCategoryEntities();
-		deleteRemovedActivityCategories(activityCategoriesInRepository, activityCategoryDTOs);
+		deleteRemovedActivityCategories(activityCategoriesInRepository, activityCategoryDtos);
 		explicitlyFlushUpdatesToDatabase();
-		addOrUpdateNewActivityCategories(activityCategoryDTOs, activityCategoriesInRepository);
+		addOrUpdateNewActivityCategories(activityCategoryDtos, activityCategoriesInRepository);
 		logger.info("Activity category set update completed");
 	}
 
@@ -119,12 +119,12 @@ public class ActivityCategoryService
 	@Transactional
 	public void deleteActivityCategory(UUID id)
 	{
-		deleteActivityCategory(getEntityByID(id));
+		deleteActivityCategory(getEntityById(id));
 	}
 
 	private void deleteActivityCategory(ActivityCategory entity)
 	{
-		logger.info("Deleting activity category '{}' with ID '{}'", getName(entity), entity.getID());
+		logger.info("Deleting activity category '{}' with ID '{}'", getName(entity), entity.getId());
 		repository.delete(entity);
 	}
 
@@ -132,7 +132,7 @@ public class ActivityCategoryService
 	{
 		Iterable<ActivityCategory> allCategories = repository.findAll();
 		List<ActivityCategory> categoriesToConsider = StreamSupport.stream(allCategories.spliterator(), false)
-				.filter(c -> !idsToSkip.contains(c.getID())).collect(Collectors.toList());
+				.filter(c -> !idsToSkip.contains(c.getId())).collect(Collectors.toList());
 		for (Entry<Locale, String> localeAndName : localizableName.entrySet())
 		{
 			verifyNoDuplicateNames(categoriesToConsider, localeAndName);
@@ -149,12 +149,12 @@ public class ActivityCategoryService
 	}
 
 	private ActivityCategory updateActivityCategory(ActivityCategory activityCategoryTargetEntity,
-			ActivityCategoryDTO activityCategorySourceDTO)
+			ActivityCategoryDto activityCategorySourceDto)
 	{
-		return repository.save(activityCategorySourceDTO.updateActivityCategory(activityCategoryTargetEntity));
+		return repository.save(activityCategorySourceDto.updateActivityCategory(activityCategoryTargetEntity));
 	}
 
-	private ActivityCategory getEntityByID(UUID id)
+	private ActivityCategory getEntityById(UUID id)
 	{
 		ActivityCategory entity = repository.findOne(id);
 		if (entity == null)
@@ -174,32 +174,32 @@ public class ActivityCategoryService
 		return activityCategories;
 	}
 
-	private void addOrUpdateNewActivityCategories(Set<ActivityCategoryDTO> activityCategoryDTOs,
+	private void addOrUpdateNewActivityCategories(Set<ActivityCategoryDto> activityCategoryDtos,
 			Set<ActivityCategory> activityCategoriesInRepository)
 	{
 		Map<UUID, ActivityCategory> activityCategoriesInRepositoryMap = activityCategoriesInRepository.stream()
-				.collect(Collectors.toMap(ac -> ac.getID(), ac -> ac));
+				.collect(Collectors.toMap(ac -> ac.getId(), ac -> ac));
 
-		for (ActivityCategoryDTO activityCategoryDTO : activityCategoryDTOs)
+		for (ActivityCategoryDto activityCategoryDto : activityCategoryDtos)
 		{
-			ActivityCategory activityCategoryEntity = activityCategoriesInRepositoryMap.get(activityCategoryDTO.getID());
+			ActivityCategory activityCategoryEntity = activityCategoriesInRepositoryMap.get(activityCategoryDto.getId());
 			if (activityCategoryEntity == null)
 			{
-				addActivityCategory(activityCategoryDTO);
+				addActivityCategory(activityCategoryDto);
 				explicitlyFlushUpdatesToDatabase();
 			}
 			else
 			{
-				if (!isUpToDate(activityCategoryEntity, activityCategoryDTO))
+				if (!isUpToDate(activityCategoryEntity, activityCategoryDto))
 				{
-					updateActivityCategory(activityCategoryDTO.getID(), activityCategoryDTO);
+					updateActivityCategory(activityCategoryDto.getId(), activityCategoryDto);
 					explicitlyFlushUpdatesToDatabase();
 				}
 			}
 		}
 	}
 
-	private boolean isUpToDate(ActivityCategory entity, ActivityCategoryDTO dto)
+	private boolean isUpToDate(ActivityCategory entity, ActivityCategoryDto dto)
 	{
 		return entity.getLocalizableName().equals(dto.getLocalizableNameByLocale())
 				&& entity.isMandatoryNoGo() == dto.isMandatoryNoGo()
@@ -209,12 +209,12 @@ public class ActivityCategoryService
 	}
 
 	private void deleteRemovedActivityCategories(Set<ActivityCategory> activityCategoriesInRepository,
-			Set<ActivityCategoryDTO> activityCategoryDTOs)
+			Set<ActivityCategoryDto> activityCategoryDtos)
 	{
-		Map<UUID, ActivityCategoryDTO> activityCategoryDTOsMap = activityCategoryDTOs.stream()
-				.collect(Collectors.toMap(ac -> ac.getID(), ac -> ac));
+		Map<UUID, ActivityCategoryDto> activityCategoryDtosMap = activityCategoryDtos.stream()
+				.collect(Collectors.toMap(ac -> ac.getId(), ac -> ac));
 
-		activityCategoriesInRepository.stream().filter(ac -> !activityCategoryDTOsMap.containsKey(ac.getID()))
+		activityCategoriesInRepository.stream().filter(ac -> !activityCategoryDtosMap.containsKey(ac.getId()))
 				.forEach(ac -> deleteActivityCategory(ac));
 	}
 

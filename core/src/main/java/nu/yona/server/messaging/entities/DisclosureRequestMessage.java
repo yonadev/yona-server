@@ -16,7 +16,7 @@ import nu.yona.server.crypto.Encryptor;
 @Entity
 public class DisclosureRequestMessage extends BuddyMessage
 {
-	private long targetGoalConflictMessageID;
+	private long targetGoalConflictMessageId;
 	private Status status;
 
 	// Default constructor is required for JPA
@@ -24,22 +24,22 @@ public class DisclosureRequestMessage extends BuddyMessage
 	{
 	}
 
-	private DisclosureRequestMessage(UUID senderUserID, UUID senderUserAnonymizedID, long targetGoalConflictMessageID,
+	private DisclosureRequestMessage(UUID senderUserId, UUID senderUserAnonymizedId, long targetGoalConflictMessageId,
 			String senderUserNickname, String message)
 	{
-		super(senderUserID, senderUserAnonymizedID, senderUserNickname, message);
-		this.targetGoalConflictMessageID = targetGoalConflictMessageID;
+		super(senderUserId, senderUserAnonymizedId, senderUserNickname, message);
+		this.targetGoalConflictMessageId = targetGoalConflictMessageId;
 		this.status = Status.DISCLOSURE_REQUESTED;
 	}
 
-	public long getTargetGoalConflictMessageID()
+	public long getTargetGoalConflictMessageId()
 	{
-		return targetGoalConflictMessageID;
+		return targetGoalConflictMessageId;
 	}
 
 	public GoalConflictMessage getTargetGoalConflictMessage()
 	{
-		return (GoalConflictMessage) GoalConflictMessage.getRepository().findOne(targetGoalConflictMessageID);
+		return (GoalConflictMessage) GoalConflictMessage.getRepository().findOne(targetGoalConflictMessageId);
 	}
 
 	public Status getStatus()
@@ -64,10 +64,10 @@ public class DisclosureRequestMessage extends BuddyMessage
 		super.decrypt(decryptor);
 	}
 
-	public static Message createInstance(UUID senderUserID, UUID senderUserAnonymizedID, String senderUserNickname,
+	public static Message createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname,
 			String message, GoalConflictMessage targetGoalConflictMessage)
 	{
-		return new DisclosureRequestMessage(senderUserID, senderUserAnonymizedID, targetGoalConflictMessage.getID(),
+		return new DisclosureRequestMessage(senderUserId, senderUserAnonymizedId, targetGoalConflictMessage.getId(),
 				senderUserNickname, message);
 	}
 }
