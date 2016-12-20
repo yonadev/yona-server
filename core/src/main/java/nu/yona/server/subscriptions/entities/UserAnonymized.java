@@ -11,18 +11,21 @@ import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-import nu.yona.server.entities.EntityWithID;
+import org.hibernate.annotations.Where;
+
+import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 
 @Entity
 @Table(name = "USERS_ANONYMIZED")
-public class UserAnonymized extends EntityWithID
+public class UserAnonymized extends EntityWithId
 {
 	public static UserAnonymizedRepository getRepository()
 	{
@@ -32,10 +35,13 @@ public class UserAnonymized extends EntityWithID
 	@OneToOne
 	private MessageDestination anonymousDestination;
 
-	@OneToMany(cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "userAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Where(clause = "end_time is null") // The history items have the user anonymized ID set, so they would appear in this
+										// collection if not explicitly excluded
 	private Set<Goal> goals;
 
-	@OneToMany
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+	@JoinColumn(name = "owning_user_anonymized_id", referencedColumnName = "id")
 	private Set<BuddyAnonymized> buddiesAnonymized;
 
 	// Default constructor is required for JPA
@@ -62,6 +68,11 @@ public class UserAnonymized extends EntityWithID
 		return anonymousDestination;
 	}
 
+	public void clearAnonymousDestination()
+	{
+		anonymousDestination = null;
+	}
+
 	public void addBuddyAnonymized(BuddyAnonymized buddyAnonimized)
 	{
 		buddiesAnonymized.add(buddyAnonimized);
@@ -73,10 +84,10 @@ public class UserAnonymized extends EntityWithID
 		assert removed;
 	}
 
-	public UUID getVPNLoginID()
+	public UUID getVpnLoginId()
 	{
 		// these are the same for performance
-		return getID();
+		return getId();
 	}
 
 	public static UserAnonymized createInstance(MessageDestination anonymousDestination, Set<Goal> goals)
@@ -91,6 +102,7 @@ public class UserAnonymized extends EntityWithID
 
 	public void addGoal(Goal goal)
 	{
+		goal.setUserAnonymized(this);
 		goals.add(goal);
 	}
 

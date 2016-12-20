@@ -10,12 +10,12 @@ import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "CONFIRMATION_CODES")
-public class ConfirmationCode extends EntityWithID
+public class ConfirmationCode extends EntityWithId
 {
 	private LocalDateTime creationTime;
 	private String confirmationCode;

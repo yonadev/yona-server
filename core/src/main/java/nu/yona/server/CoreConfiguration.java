@@ -91,9 +91,9 @@ public class CoreConfiguration extends CachingConfigurerSupport
 			return null;
 		}
 		LdapContextSource contextSource = new LdapContextSource();
-		contextSource.setUrl(yonaProperties.getLdap().getURL());
-		contextSource.setBase(yonaProperties.getLdap().getBaseDN());
-		contextSource.setUserDn(yonaProperties.getLdap().getAccessUserDN());
+		contextSource.setUrl(yonaProperties.getLdap().getUrl());
+		contextSource.setBase(yonaProperties.getLdap().getBaseDn());
+		contextSource.setUserDn(yonaProperties.getLdap().getAccessUserDn());
 		contextSource.setPassword(yonaProperties.getLdap().getAccessUserPassword());
 		contextSource.afterPropertiesSet();
 		return new LdapTemplate(contextSource);

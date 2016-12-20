@@ -18,19 +18,19 @@ public class GoalServiceException extends YonaException
 		super(messageId, parameters);
 	}
 
-	public static GoalServiceException goalNotFoundByIdForUserAnonymized(UUID userAnonymizedID, UUID goalID)
+	public static GoalServiceException goalNotFoundByIdForUserAnonymized(UUID userAnonymizedId, UUID goalId)
 	{
-		return new GoalServiceException("error.goal.not.found.id.for.user.anonymized", userAnonymizedID, goalID);
+		return new GoalServiceException("error.goal.not.found.id.for.user.anonymized", userAnonymizedId, goalId);
 	}
 
-	public static GoalServiceException goalNotFoundByIdForUser(UUID userID, UUID goalID)
+	public static GoalServiceException goalNotFoundByIdForUser(UUID userId, UUID goalId)
 	{
-		return new GoalServiceException("error.goal.not.found.id.for.user", userID, goalID);
+		return new GoalServiceException("error.goal.not.found.id.for.user", userId, goalId);
 	}
 
-	public static GoalServiceException goalNotFoundByIdForBuddy(UUID userID, UUID buddyID, UUID goalID)
+	public static GoalServiceException goalNotFoundByIdForBuddy(UUID userId, UUID buddyId, UUID goalId)
 	{
-		return new GoalServiceException("error.goal.not.found.id.for.buddy", userID, buddyID, goalID);
+		return new GoalServiceException("error.goal.not.found.id.for.buddy", userId, buddyId, goalId);
 	}
 
 	public static GoalServiceException cannotAddSecondGoalOnActivityCategory(String activityCategoryName)
@@ -38,9 +38,9 @@ public class GoalServiceException extends YonaException
 		return new GoalServiceException("error.goal.cannot.add.second.on.activity.category", activityCategoryName);
 	}
 
-	public static GoalServiceException cannotRemoveMandatoryGoal(UUID userID, UUID goalID)
+	public static GoalServiceException cannotRemoveMandatoryGoal(UUID userId, UUID goalId)
 	{
-		return new GoalServiceException("error.goal.cannot.remove.mandatory", userID, goalID);
+		return new GoalServiceException("error.goal.cannot.remove.mandatory", userId, goalId);
 	}
 
 	public static GoalServiceException cannotChangeTypeOfGoal(String existingClassName, String newClassName)
@@ -48,9 +48,9 @@ public class GoalServiceException extends YonaException
 		return new GoalServiceException("error.goal.cannot.change.type", existingClassName, newClassName);
 	}
 
-	public static GoalServiceException cannotChangeActivityCategoryOfGoal(UUID existingCategoryID, UUID newCategoryID)
+	public static GoalServiceException cannotChangeActivityCategoryOfGoal(UUID existingCategoryId, UUID newCategoryId)
 	{
-		return new GoalServiceException("error.goal.cannot.change.activity.category", existingCategoryID, newCategoryID);
+		return new GoalServiceException("error.goal.cannot.change.activity.category", existingCategoryId, newCategoryId);
 	}
 
 	public static GoalServiceException budgetGoalMaxDurationNegative(int maxDurationMinutes)

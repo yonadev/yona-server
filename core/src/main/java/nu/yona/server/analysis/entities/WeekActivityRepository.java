@@ -20,26 +20,26 @@ import nu.yona.server.goals.entities.Goal;
 public interface WeekActivityRepository extends CrudRepository<WeekActivity, UUID>
 {
 	@Query("select a from WeekActivity a"
-			+ " where a.userAnonymized.id = :userAnonymizedID and a.goal.id = :goalID and a.startDate = :startDate")
-	WeekActivity findOne(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("goalID") UUID goalID,
+			+ " where a.userAnonymized.id = :userAnonymizedId and a.goal.id = :goalId and a.startDate = :startDate")
+	WeekActivity findOne(@Param("userAnonymizedId") UUID userAnonymizedId, @Param("goalId") UUID goalId,
 			@Param("startDate") LocalDate startDate);
 
 	@Query("select a from WeekActivity a"
-			+ " where a.userAnonymized.id = :userAnonymizedID and a.startDate = :startDate and a.goal.id = :goalID")
-	WeekActivity findOne(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("startDate") LocalDate startDate,
-			@Param("goalID") UUID goalID);
+			+ " where a.userAnonymized.id = :userAnonymizedId and a.startDate = :startDate and a.goal.id = :goalId")
+	WeekActivity findOne(@Param("userAnonymizedId") UUID userAnonymizedId, @Param("startDate") LocalDate startDate,
+			@Param("goalId") UUID goalId);
 
-	@Query("select a from WeekActivity a where a.userAnonymized.id = :userAnonymizedID and a.startDate >= :dateFrom and a.startDate <= :dateUntil order by a.startDate desc")
-	Set<WeekActivity> findAll(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("dateFrom") LocalDate dateFrom,
+	@Query("select a from WeekActivity a where a.userAnonymized.id = :userAnonymizedId and a.startDate >= :dateFrom and a.startDate <= :dateUntil order by a.startDate desc")
+	Set<WeekActivity> findAll(@Param("userAnonymizedId") UUID userAnonymizedId, @Param("dateFrom") LocalDate dateFrom,
 			@Param("dateUntil") LocalDate dateUntil);
 
 	@Modifying
-	@Query("delete from WeekActivity a where a.userAnonymized.id = :userAnonymizedID")
-	void deleteAllForUser(@Param("userAnonymizedID") UUID userAnonymizedID);
+	@Query("delete from WeekActivity a where a.userAnonymized.id = :userAnonymizedId")
+	void deleteAllForUser(@Param("userAnonymizedId") UUID userAnonymizedId);
 
 	@Modifying
-	@Query("delete from WeekActivity a where a.goal.id = :goalID")
-	void deleteAllForGoal(@Param("goalID") UUID goalID);
+	@Query("delete from WeekActivity a where a.goal.id = :goalId")
+	void deleteAllForGoal(@Param("goalId") UUID goalId);
 
 	Set<WeekActivity> findByGoal(Goal goal);
 }

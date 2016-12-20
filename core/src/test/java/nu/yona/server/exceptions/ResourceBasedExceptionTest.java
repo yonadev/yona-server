@@ -72,9 +72,9 @@ public class ResourceBasedExceptionTest
 	@Test
 	public void testFailedMessageTranslationWithoutInsertions()
 	{
-		String messageID = "non.existing.message.id";
-		String expectedResult = messageID;
-		assertExceptionTranslation(expectedResult, messageID);
+		String messageId = "non.existing.message.id";
+		String expectedResult = messageId;
+		assertExceptionTranslation(expectedResult, messageId);
 	}
 
 	@Test
@@ -88,9 +88,9 @@ public class ResourceBasedExceptionTest
 	@Test
 	public void testFailedMessageTranslationWithInsertions()
 	{
-		String messageID = "non.existing.message.id";
-		String expectedResult = messageID + "; parameters: \"first\", \"second\"";
-		assertExceptionTranslation(expectedResult, messageID, "first", "second");
+		String messageId = "non.existing.message.id";
+		String expectedResult = messageId + "; parameters: \"first\", \"second\"";
+		assertExceptionTranslation(expectedResult, messageId, "first", "second");
 	}
 
 	private void assertExceptionTranslation(String expectedResult, String messageId, Object... parameters)

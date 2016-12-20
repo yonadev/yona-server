@@ -11,8 +11,8 @@ public class LdapProperties
 {
 	private boolean isEnabled;
 	private String url = "ldap://localhost:389";
-	private String baseDN = "DC=yona,DC=nu";
-	private String accessUserDN = "CN=Manager," + baseDN;
+	private String baseDn = "DC=yona,DC=nu";
+	private String accessUserDn = "CN=Manager," + baseDn;
 	private String accessUserPassword = "Top secret";
 
 	public boolean isEnabled()
@@ -25,34 +25,34 @@ public class LdapProperties
 		this.isEnabled = isEnabled;
 	}
 
-	public String getURL()
+	public String getUrl()
 	{
 		return url;
 	}
 
-	public void setURL(String url)
+	public void setUrl(String url)
 	{
 		this.url = url;
 	}
 
-	public String getBaseDN()
+	public String getBaseDn()
 	{
-		return baseDN;
+		return baseDn;
 	}
 
-	public void setBaseDN(String baseDN)
+	public void setBaseDn(String baseDn)
 	{
-		this.baseDN = baseDN;
+		this.baseDn = baseDn;
 	}
 
-	public String getAccessUserDN()
+	public String getAccessUserDn()
 	{
-		return accessUserDN;
+		return accessUserDn;
 	}
 
-	public void setAccessUserDN(String accessUserDN)
+	public void setAccessUserDn(String accessUserDn)
 	{
-		this.accessUserDN = accessUserDN;
+		this.accessUserDn = accessUserDn;
 	}
 
 	public String getAccessUserPassword()

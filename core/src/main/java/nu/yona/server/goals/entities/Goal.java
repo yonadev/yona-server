@@ -4,35 +4,55 @@
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Where;
+
 import nu.yona.server.analysis.entities.DayActivity;
+import nu.yona.server.analysis.entities.WeekActivity;
+import nu.yona.server.analysis.entities.WeekActivityRepository;
 import nu.yona.server.entities.EntityUtil;
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "GOALS")
-public abstract class Goal extends EntityWithID
+public abstract class Goal extends EntityWithId implements Serializable
 {
 	public static GoalRepository getRepository()
 	{
 		return (GoalRepository) RepositoryProvider.getRepository(Goal.class, UUID.class);
 	}
+
+	private static final long serialVersionUID = -3209852229834825712L;
+
+	@ManyToOne
+	@JoinColumn(name = "user_anonymized_id")
+	private UserAnonymized userAnonymized;
 
 	@ManyToOne
 	private ActivityCategory activityCategory;
@@ -42,6 +62,11 @@ public abstract class Goal extends EntityWithID
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Goal previousInstanceOfThisGoal;
+
+	@OneToMany(cascade = CascadeType.ALL)
+	@JoinColumn(name = "goal_id", referencedColumnName = "id")
+	@Where(clause = "dtype='WeekActivity'")
+	private final List<WeekActivity> weekActivities = new ArrayList<>();
 
 	// Default constructor is required for JPA
 	public Goal()
@@ -69,9 +94,15 @@ public abstract class Goal extends EntityWithID
 		{
 			throw new IllegalArgumentException("originalGoal cannot be null");
 		}
+		this.userAnonymized = originalGoal.userAnonymized;
 		this.activityCategory = originalGoal.activityCategory;
 		this.creationTime = originalGoal.creationTime;
 		this.endTime = endTime;
+	}
+
+	public void setUserAnonymized(UserAnonymized userAnonymized)
+	{
+		this.userAnonymized = userAnonymized;
 	}
 
 	public ActivityCategory getActivityCategory()
@@ -111,6 +142,53 @@ public abstract class Goal extends EntityWithID
 		this.previousInstanceOfThisGoal = previousGoal;
 	}
 
+	public List<WeekActivity> getWeekActivities()
+	{
+		return Collections.unmodifiableList(weekActivities);
+	}
+
+	public void addWeekActivity(WeekActivity weekActivity)
+	{
+		Objects.requireNonNull(weekActivity);
+		weekActivities.add(weekActivity);
+	}
+
+	public void setWeekActivities(List<WeekActivity> weekActivities)
+	{
+		this.weekActivities.clear();
+		this.weekActivities.addAll(weekActivities);
+		weekActivities.forEach(wa -> wa.setGoal(this));
+	}
+
+	public void transferHistoryActivities(Goal historyGoal)
+	{
+		transferHistoryWeekActivities(historyGoal);
+
+		setHistoryGoalForHistoryRemainingDayActivities(historyGoal);
+	}
+
+	private void setHistoryGoalForHistoryRemainingDayActivities(Goal historyGoal)
+	{
+		weekActivities.forEach(wa -> wa.getDayActivities().stream()
+				.filter(da -> historyGoal.wasActiveAtInterval(da.getStartTime(), ChronoUnit.DAYS))
+				.forEach(da -> da.setGoal(historyGoal)));
+	}
+
+	private void transferHistoryWeekActivities(Goal historyGoal)
+	{
+		List<WeekActivity> historyWeekActivities = weekActivities.stream()
+				.filter(wa -> historyGoal.wasActiveAtInterval(wa.getStartTime(), ChronoUnit.WEEKS)).collect(Collectors.toList());
+		historyGoal.setWeekActivities(historyWeekActivities);
+		weekActivities.removeAll(historyWeekActivities);
+	}
+
+	public void removeAllWeekActivities()
+	{
+		WeekActivityRepository repository = WeekActivity.getRepository();
+		repository.delete(weekActivities);
+		weekActivities.clear();
+	}
+
 	public abstract Goal cloneAsHistoryItem(LocalDateTime endTime);
 
 	public abstract boolean isMandatory();
@@ -133,13 +211,13 @@ public abstract class Goal extends EntityWithID
 		return creationTime.isBefore(startNextInterval) && endTime.map(end -> end.isAfter(startNextInterval)).orElse(true);
 	}
 
-	public Set<UUID> getIDsIncludingHistoryItems()
+	public Set<UUID> getIdsIncludingHistoryItems()
 	{
 		Set<UUID> ids = new HashSet<>();
 		Optional<Goal> previous = Optional.of(this);
 		while (previous.isPresent())
 		{
-			ids.add(previous.get().getID());
+			ids.add(previous.get().getId());
 			previous = previous.get().getPreviousVersionOfThisGoal();
 		}
 

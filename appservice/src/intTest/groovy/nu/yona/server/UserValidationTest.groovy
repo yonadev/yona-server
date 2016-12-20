@@ -16,7 +16,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 {
 
 	def jsonSlurper = new JsonSlurper()
-	def userCreationJSON = """{
+	def userCreationJson = """{
 				"firstName":"John",
 				"lastName":"Doe",
 				"nickname":"JD",
@@ -29,7 +29,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 	def 'AddUser - empty first name'()
 	{
 		when:
-		def object = jsonSlurper.parseText(userCreationJSON)
+		def object = jsonSlurper.parseText(userCreationJson)
 		object.remove('firstName')
 		def response = appService.addUser(object, password)
 
@@ -41,7 +41,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 	def 'AddUser - empty last name'()
 	{
 		when:
-		def object = jsonSlurper.parseText(userCreationJSON)
+		def object = jsonSlurper.parseText(userCreationJson)
 		object.remove('lastName')
 		def response = appService.addUser(object, password)
 
@@ -53,7 +53,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 	def 'AddUser - empty nickname'()
 	{
 		when:
-		def object = jsonSlurper.parseText(userCreationJSON)
+		def object = jsonSlurper.parseText(userCreationJson)
 		object.remove('nickname')
 		def response = appService.addUser(object, password)
 
@@ -65,7 +65,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 	def 'AddUser - empty mobile number'()
 	{
 		when:
-		def object = jsonSlurper.parseText(userCreationJSON)
+		def object = jsonSlurper.parseText(userCreationJson)
 		object.remove('mobileNumber')
 		def response = appService.addUser(object, password)
 
@@ -77,7 +77,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 	def 'AddUser - invalid mobile number'()
 	{
 		when:
-		def object = jsonSlurper.parseText(userCreationJSON)
+		def object = jsonSlurper.parseText(userCreationJson)
 		object.put('mobileNumber', '++55 5 ')
 		def response = appService.addUser(object, password)
 

@@ -14,6 +14,8 @@ import nu.yona.server.analysis.entities.DayActivity;
 @Entity
 public class BudgetGoal extends Goal
 {
+	private static final long serialVersionUID = -2070046758903687364L;
+
 	private int maxDurationMinutes;
 
 	// Default constructor is required for JPA
