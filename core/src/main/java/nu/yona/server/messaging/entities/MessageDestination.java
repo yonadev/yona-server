@@ -14,6 +14,7 @@ import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -44,6 +45,7 @@ public class MessageDestination extends EntityWithUuid
 	private PublicKey publicKey;
 
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+	@JoinColumn(name = "message_destination_id", referencedColumnName = "id")
 	private List<Message> messages;
 
 	// Default constructor is required for JPA
@@ -52,7 +54,7 @@ public class MessageDestination extends EntityWithUuid
 		super(null);
 	}
 
-	public MessageDestination(UUID id, PublicKey publicKey)
+	private MessageDestination(UUID id, PublicKey publicKey)
 	{
 		super(id);
 		this.publicKeyBytes = PublicKeyUtil.publicKeyToBytes(publicKey);

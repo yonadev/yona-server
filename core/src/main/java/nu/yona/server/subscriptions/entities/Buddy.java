@@ -14,6 +14,8 @@ import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Type;
+
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.crypto.UUIDFieldEncrypter;
 import nu.yona.server.entities.EntityWithUuid;
@@ -28,6 +30,10 @@ public class Buddy extends EntityWithUuid
 	{
 		return (BuddyRepository) RepositoryProvider.getRepository(Buddy.class, UUID.class);
 	}
+
+	@Type(type = "uuid-char")
+	@Column(name = "owning_user_private_id")
+	private UUID owningUserPrivateId;
 
 	@Column(nullable = true)
 	private int touchVersion;

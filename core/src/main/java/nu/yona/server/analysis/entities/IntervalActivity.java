@@ -16,6 +16,8 @@ import java.util.Objects;
 import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
@@ -28,6 +30,7 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Entity
 @Table(name = "INTERVAL_ACTIVITIES")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 // We used to have a unique constraint defined here: @UniqueConstraint(columnNames = { "dtype", "user_anonymized", "startDate",
 // "goal" })
 // Due to an inconsistency between Liquibase and JPA, we have moved this to Liquibase (extra.yml)

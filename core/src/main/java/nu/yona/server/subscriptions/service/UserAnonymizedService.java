@@ -6,6 +6,7 @@ package nu.yona.server.subscriptions.service;
 
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -14,15 +15,19 @@ import org.springframework.stereotype.Service;
 
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.entities.UserAnonymizedRepository;
 
 @CacheConfig(cacheNames = "usersAnonymized")
 @Service
 public class UserAnonymizedService
 {
+	@Autowired(required = false)
+	private UserAnonymizedRepository userAnonymizedRepository;
+
 	@Cacheable
 	public UserAnonymizedDTO getUserAnonymized(UUID userAnonymizedID)
 	{
-		UserAnonymized entity = UserAnonymized.getRepository().findOne(userAnonymizedID);
+		UserAnonymized entity = userAnonymizedRepository.findOne(userAnonymizedID);
 		if (entity == null)
 		{
 			throw InvalidDataException.userAnonymizedIDNotFound(userAnonymizedID);
@@ -35,19 +40,25 @@ public class UserAnonymizedService
 	 */
 	public UserAnonymized getUserAnonymizedEntity(UUID userAnonymizedID)
 	{
-		return UserAnonymized.getRepository().findOne(userAnonymizedID);
+		return userAnonymizedRepository.findOne(userAnonymizedID);
 	}
 
 	@CachePut(key = "#userAnonymizedID")
 	public UserAnonymizedDTO updateUserAnonymized(UUID userAnonymizedID, UserAnonymized entity)
 	{
-		UserAnonymized savedEntity = UserAnonymized.getRepository().save(entity);
+		UserAnonymized savedEntity = userAnonymizedRepository.save(entity);
 		return UserAnonymizedDTO.createInstance(savedEntity);
+	}
+
+	@CacheEvict(key = "#userAnonymizedID")
+	public UserAnonymized updateUserAnonymized(UserAnonymized entity)
+	{
+		return userAnonymizedRepository.saveAndFlush(entity);
 	}
 
 	@CacheEvict(key = "#userAnonymizedID")
 	public void deleteUserAnonymized(UUID userAnonymizedID)
 	{
-		UserAnonymized.getRepository().delete(userAnonymizedID);
+		userAnonymizedRepository.delete(userAnonymizedID);
 	}
 }

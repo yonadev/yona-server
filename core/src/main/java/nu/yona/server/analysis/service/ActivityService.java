@@ -280,7 +280,7 @@ public class ActivityService
 		Map<ZonedDateTime, Set<DayActivityDTO>> dayActivityDTOsByZonedDate = mapDayActivitiesToDTOs(
 				dayActivityEntitiesByZonedDate);
 		addMissingInactivity(dayActivityDTOsByZonedDate, interval, ChronoUnit.DAYS, userAnonymized,
-				(goal, startOfDay) -> createAndSaveDayInactivity(userAnonymized, goal, startOfDay, LevelOfDetail.DayOverview,
+				(goal, startOfDay) -> createDayInactivity(userAnonymized, goal, startOfDay, LevelOfDetail.DayOverview,
 						missingInactivities),
 				(g, a) -> {
 				});
@@ -300,7 +300,7 @@ public class ActivityService
 				.collect(Collectors.toSet());
 	}
 
-	private DayActivityDTO createAndSaveDayInactivity(UserAnonymizedDTO userAnonymized, Goal goal, ZonedDateTime startOfDay,
+	private DayActivityDTO createDayInactivity(UserAnonymizedDTO userAnonymized, Goal goal, ZonedDateTime startOfDay,
 			LevelOfDetail levelOfDetail, Set<IntervalInactivityDTO> missingInactivities)
 	{
 		return DayActivityDTO.createInstanceInactivity(userAnonymized, GoalDTO.createInstance(goal), startOfDay, levelOfDetail,
@@ -489,7 +489,7 @@ public class ActivityService
 		if (dayActivityEntity == null)
 		{
 			return getMissingInactivity(userID, date, goalID, userAnonymized, ChronoUnit.DAYS,
-					(goal, startOfDay) -> createAndSaveDayInactivity(userAnonymized, goal, startOfDay, LevelOfDetail.DayDetail,
+					(goal, startOfDay) -> createDayInactivity(userAnonymized, goal, startOfDay, LevelOfDetail.DayDetail,
 							missingInactivities));
 		}
 		return DayActivityDTO.createInstance(dayActivityEntity, LevelOfDetail.DayDetail);

@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
+import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
@@ -26,6 +27,10 @@ public class Activity extends EntityWithId
 	private ZoneId timeZone;
 	private LocalDateTime startTime;
 	private LocalDateTime endTime;
+
+	@Column(name = "day_activity_id")
+	private long dayActivityId;
+
 	@ManyToOne
 	private ActivityCategory activityCategory;
 
