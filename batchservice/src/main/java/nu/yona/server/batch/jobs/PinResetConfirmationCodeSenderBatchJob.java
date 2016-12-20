@@ -114,7 +114,7 @@ public class PinResetConfirmationCodeSenderBatchJob
 			public User process(final User user) throws Exception
 			{
 				logger.info("Generating pin reset confirmation code for user with mobile number '{}' and ID '{}'",
-						user.getMobileNumber(), user.getID());
+						user.getMobileNumber(), user.getId());
 				LocaleContextHolder.setLocale(Translator.EN_US_LOCALE); // TODO: Make this the user's locale
 				ConfirmationCode pinResetConfirmationCode = user.getPinResetConfirmationCode();
 				pinResetConfirmationCode.setConfirmationCode(userService.generateConfirmationCode());

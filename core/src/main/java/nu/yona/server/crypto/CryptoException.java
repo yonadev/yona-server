@@ -78,7 +78,7 @@ public class CryptoException extends YonaException
 		return new CryptoException(e, "error.getting.random.instance");
 	}
 
-	public static CryptoException readingUUID(Throwable e)
+	public static CryptoException readingUuid(Throwable e)
 	{
 		return new CryptoException(e, "error.reading.uuid");
 	}

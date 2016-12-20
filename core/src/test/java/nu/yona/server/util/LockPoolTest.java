@@ -15,7 +15,7 @@ import nu.yona.server.exceptions.YonaException;
 
 public class LockPoolTest
 {
-	private final AtomicInteger freeLockID = new AtomicInteger(0);
+	private final AtomicInteger freeLockId = new AtomicInteger(0);
 
 	@Test
 	public void testLockingNonReentrant()
@@ -38,7 +38,7 @@ public class LockPoolTest
 	{
 		final int numThreads = 10;
 		final int iterations = 5;
-		assertThat(testConcurrently(numThreads, iterations, this::attempImmediateAccessRandomID), equalTo(false));
+		assertThat(testConcurrently(numThreads, iterations, this::attempImmediateAccessRandomId), equalTo(false));
 	}
 
 	private boolean testConcurrently(int numThreads, int iterations, AccessAttempt accessAttempt)
@@ -75,8 +75,8 @@ public class LockPoolTest
 	private void attemptNonReentrantAccess(LockPool<Integer> lockPool, AtomicBoolean concurrencyIndicator,
 			AtomicBoolean failureIndicator)
 	{
-		int lockID = 0;
-		try (LockPool<Integer>.Lock lock = lockPool.lock(lockID))
+		int lockId = 0;
+		try (LockPool<Integer>.Lock lock = lockPool.lock(lockId))
 		{
 			verifyNonConcurrentExecution(concurrencyIndicator, failureIndicator);
 		}
@@ -85,11 +85,11 @@ public class LockPoolTest
 	private void attemptReentrantAccess(LockPool<Integer> lockPool, AtomicBoolean concurrencyIndicator,
 			AtomicBoolean failureIndicator)
 	{
-		int lockID = 0;
-		try (LockPool<Integer>.Lock lock1 = lockPool.lock(lockID))
+		int lockId = 0;
+		try (LockPool<Integer>.Lock lock1 = lockPool.lock(lockId))
 		{
 			verifyNonConcurrentExecution(concurrencyIndicator, failureIndicator);
-			try (LockPool<Integer>.Lock lock2 = lockPool.lock(lockID))
+			try (LockPool<Integer>.Lock lock2 = lockPool.lock(lockId))
 			{
 				verifyNonConcurrentExecution(concurrencyIndicator, failureIndicator);
 			}
@@ -97,16 +97,16 @@ public class LockPoolTest
 		}
 	}
 
-	private void attempImmediateAccessRandomID(LockPool<Integer> lockPool, AtomicBoolean concurrencyIndicator,
+	private void attempImmediateAccessRandomId(LockPool<Integer> lockPool, AtomicBoolean concurrencyIndicator,
 			AtomicBoolean failureIndicator)
 	{
-		int lockID = freeLockID.incrementAndGet();
+		int lockId = freeLockId.incrementAndGet();
 		int sleepDuration = 500;
 		long startTime = System.currentTimeMillis();
 		long accessTime;
-		try (LockPool<Integer>.Lock lock1 = lockPool.lock(lockID))
+		try (LockPool<Integer>.Lock lock1 = lockPool.lock(lockId))
 		{
-			try (LockPool<Integer>.Lock lock2 = lockPool.lock(lockID))
+			try (LockPool<Integer>.Lock lock2 = lockPool.lock(lockId))
 			{
 				accessTime = System.currentTimeMillis();
 				sleepWithoutInterrupt(sleepDuration);

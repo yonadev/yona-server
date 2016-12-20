@@ -10,13 +10,18 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+
+import org.hibernate.annotations.Type;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
@@ -30,7 +35,12 @@ public class DayActivity extends IntervalActivity
 		return (DayActivityRepository) RepositoryProvider.getRepository(DayActivity.class, UUID.class);
 	}
 
+	@Column(name = "week_activity_id")
+	@Type(type = "uuid-char")
+	private UUID weekActivityId;
+
 	@OneToMany(cascade = CascadeType.ALL)
+	@JoinColumn(name = "day_activity_id", referencedColumnName = "id")
 	private List<Activity> activities;
 
 	private boolean goalAccomplished;
@@ -59,6 +69,11 @@ public class DayActivity extends IntervalActivity
 	public ZonedDateTime getEndTime()
 	{
 		return getStartDate().atStartOfDay().plusDays(1).atZone(getTimeZone());
+	}
+
+	public List<Activity> getActivities()
+	{
+		return Collections.unmodifiableList(activities);
 	}
 
 	public Activity getLastActivity()

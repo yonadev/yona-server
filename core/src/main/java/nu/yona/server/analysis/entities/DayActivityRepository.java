@@ -23,29 +23,29 @@ import nu.yona.server.goals.entities.Goal;
 public interface DayActivityRepository extends CrudRepository<DayActivity, UUID>
 {
 	@Query("select a from DayActivity a"
-			+ " where a.userAnonymized.id = :userAnonymizedID and a.goal.id = :goalID order by a.startDate desc")
-	Page<DayActivity> findLast(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("goalID") UUID goalID, Pageable pageable);
+			+ " where a.userAnonymized.id = :userAnonymizedId and a.goal.id = :goalId order by a.startDate desc")
+	Page<DayActivity> findLast(@Param("userAnonymizedId") UUID userAnonymizedId, @Param("goalId") UUID goalId, Pageable pageable);
 
 	@Query("select a from DayActivity a"
-			+ " where a.userAnonymized.id = :userAnonymizedID and a.startDate = :startDate and a.goal.id = :goalID")
-	DayActivity findOne(@Param("userAnonymizedID") UUID userAnonymizedID, @Param("startDate") LocalDate startDate,
-			@Param("goalID") UUID goalID);
+			+ " where a.userAnonymized.id = :userAnonymizedId and a.startDate = :startDate and a.goal.id = :goalId")
+	DayActivity findOne(@Param("userAnonymizedId") UUID userAnonymizedId, @Param("startDate") LocalDate startDate,
+			@Param("goalId") UUID goalId);
 
-	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedID and a.startDate >= :dateFrom and a.startDate <= :dateUntil order by a.startDate desc")
-	List<DayActivity> findAllActivitiesForUserInIntervalEndIncluded(@Param("userAnonymizedID") UUID userAnonymizedID,
+	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedId and a.startDate >= :dateFrom and a.startDate <= :dateUntil order by a.startDate desc")
+	List<DayActivity> findAllActivitiesForUserInIntervalEndIncluded(@Param("userAnonymizedId") UUID userAnonymizedId,
 			@Param("dateFrom") LocalDate dateFrom, @Param("dateUntil") LocalDate dateUntil);
 
-	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedID and a.goal.id in :goalIDs and a.startDate >= :dateFrom and a.startDate < :dateUntil order by a.startDate desc")
-	List<DayActivity> findActivitiesForUserAndGoalsInIntervalEndExcluded(@Param("userAnonymizedID") UUID userAnonymizedID,
-			@Param("goalIDs") Set<UUID> goalIDs, @Param("dateFrom") LocalDate dateFrom, @Param("dateUntil") LocalDate dateUntil);
+	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedId and a.goal.id in :goalIds and a.startDate >= :dateFrom and a.startDate < :dateUntil order by a.startDate desc")
+	List<DayActivity> findActivitiesForUserAndGoalsInIntervalEndExcluded(@Param("userAnonymizedId") UUID userAnonymizedId,
+			@Param("goalIds") Set<UUID> goalIds, @Param("dateFrom") LocalDate dateFrom, @Param("dateUntil") LocalDate dateUntil);
 
 	@Modifying
-	@Query("delete from DayActivity a where a.userAnonymized.id = :userAnonymizedID")
-	void deleteAllForUser(@Param("userAnonymizedID") UUID userAnonymizedID);
+	@Query("delete from DayActivity a where a.userAnonymized.id = :userAnonymizedId")
+	void deleteAllForUser(@Param("userAnonymizedId") UUID userAnonymizedId);
 
 	@Modifying
-	@Query("delete from DayActivity a where a.goal.id = :goalID")
-	void deleteAllForGoal(@Param("goalID") UUID goalID);
+	@Query("delete from DayActivity a where a.goal.id = :goalId")
+	void deleteAllForGoal(@Param("goalId") UUID goalId);
 
 	Set<DayActivity> findByGoal(Goal goal);
 }

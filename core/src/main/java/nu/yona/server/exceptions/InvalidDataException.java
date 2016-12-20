@@ -26,7 +26,7 @@ public class InvalidDataException extends YonaException
 		super(t, messageId, parameters);
 	}
 
-	public static InvalidDataException userAnonymizedIDNotFound(UUID id)
+	public static InvalidDataException userAnonymizedIdNotFound(UUID id)
 	{
 		return new InvalidDataException("error.useranonymizedid.not.found", id);
 	}

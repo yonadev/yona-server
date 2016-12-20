@@ -31,7 +31,7 @@ public class GoalConflictMessage extends Message
 	 * Otherwise {@literal null}.
 	 */
 	@Type(type = "uuid-char")
-	private UUID originGoalConflictMessageID;
+	private UUID originGoalConflictMessageId;
 
 	@ManyToOne
 	private Activity activity;
@@ -49,12 +49,12 @@ public class GoalConflictMessage extends Message
 		super(null, null);
 	}
 
-	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedID, UUID originGoalConflictMessageID, Activity activity,
+	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedId, UUID originGoalConflictMessageId, Activity activity,
 			Goal goal, Optional<String> url, Status status)
 	{
-		super(id, relatedUserAnonymizedID);
+		super(id, relatedUserAnonymizedId);
 
-		this.originGoalConflictMessageID = originGoalConflictMessageID;
+		this.originGoalConflictMessageId = originGoalConflictMessageId;
 		this.goal = goal;
 		this.activity = activity;
 		this.url = url;
@@ -71,12 +71,12 @@ public class GoalConflictMessage extends Message
 		return goal;
 	}
 
-	public UUID getOriginGoalConflictMessageID()
+	public UUID getOriginGoalConflictMessageId()
 	{
-		return originGoalConflictMessageID;
+		return originGoalConflictMessageId;
 	}
 
-	public Optional<String> getURL()
+	public Optional<String> getUrl()
 	{
 		return url;
 	}
@@ -95,7 +95,7 @@ public class GoalConflictMessage extends Message
 
 	public boolean isFromBuddy()
 	{
-		return originGoalConflictMessageID != null;
+		return originGoalConflictMessageId != null;
 	}
 
 	public Status getStatus()
@@ -108,22 +108,22 @@ public class GoalConflictMessage extends Message
 		this.status = status;
 	}
 
-	public static GoalConflictMessage createInstanceFromBuddy(UUID relatedUserAnonymizedID, GoalConflictMessage origin)
+	public static GoalConflictMessage createInstanceFromBuddy(UUID relatedUserAnonymizedId, GoalConflictMessage origin)
 	{
 		if (origin == null)
 		{
 			throw new IllegalArgumentException("origin cannot be null");
 		}
 
-		assert origin.getID() != null;
-		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, origin.getID(), origin.getActivity(),
-				origin.getGoal(), origin.getURL(), Status.ANNOUNCED);
+		assert origin.getId() != null;
+		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedId, origin.getId(), origin.getActivity(),
+				origin.getGoal(), origin.getUrl(), Status.ANNOUNCED);
 	}
 
-	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedID, Activity activity, Goal goal,
+	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedId, Activity activity, Goal goal,
 			Optional<String> url)
 	{
-		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedID, null, activity, goal, url, Status.ANNOUNCED);
+		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedId, null, activity, goal, url, Status.ANNOUNCED);
 	}
 
 	public boolean isUrlDisclosed()

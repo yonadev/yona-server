@@ -24,26 +24,26 @@ public class AnalysisEngineProxyService
 	@Autowired
 	private RestTemplate restTemplate;
 
-	private String analysisEngineURL;
+	private String analysisEngineUrl;
 
 	@PostConstruct
 	private void init()
 	{
-		analysisEngineURL = yonaProperties.getAnalysisService().getServiceUrl();
+		analysisEngineUrl = yonaProperties.getAnalysisService().getServiceUrl();
 	}
 
-	public void createInactivityEntities(UUID userAnonymizedID, Set<IntervalInactivityDTO> intervalInactivities)
+	public void createInactivityEntities(UUID userAnonymizedId, Set<IntervalInactivityDto> intervalInactivities)
 	{
-		restTemplate.postForEntity(buildBaseURL(userAnonymizedID) + "/inactivity/", intervalInactivities, String.class);
+		restTemplate.postForEntity(buildBaseUrl(userAnonymizedId) + "/inactivity/", intervalInactivities, String.class);
 	}
 
-	public void analyzeAppActivity(UUID userAnonymizedID, AppActivityDTO appActivities)
+	public void analyzeAppActivity(UUID userAnonymizedId, AppActivityDto appActivities)
 	{
-		restTemplate.postForEntity(buildBaseURL(userAnonymizedID) + "/appActivity/", appActivities, String.class);
+		restTemplate.postForEntity(buildBaseUrl(userAnonymizedId) + "/appActivity/", appActivities, String.class);
 	}
 
-	private String buildBaseURL(UUID userAnonymizedID)
+	private String buildBaseUrl(UUID userAnonymizedId)
 	{
-		return analysisEngineURL + "/userAnonymized/" + userAnonymizedID;
+		return analysisEngineUrl + "/userAnonymized/" + userAnonymizedId;
 	}
 }

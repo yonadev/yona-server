@@ -43,8 +43,8 @@ public abstract class ActivityCategoryServiceTestBase
 		activityCategories.add(news);
 
 		when(mockRepository.findAll()).thenReturn(Collections.unmodifiableList(activityCategories));
-		when(mockRepository.findOne(gambling.getID())).thenReturn(gambling);
-		when(mockRepository.findOne(news.getID())).thenReturn(news);
+		when(mockRepository.findOne(gambling.getId())).thenReturn(gambling);
+		when(mockRepository.findOne(news.getId())).thenReturn(news);
 		// save should not return null but the saved entity
 		when(mockRepository.save(any(ActivityCategory.class))).thenAnswer(new Answer<ActivityCategory>() {
 			@Override

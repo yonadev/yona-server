@@ -69,28 +69,28 @@ public class ActivityCategoryServiceIntegrationTest extends ActivityCategoryServ
 		// Add to collection, so it appears as if it is in the database
 		// It hasn't been loaded, so should not be in the cache
 		activityCategories.add(gaming);
-		when(mockRepository.findOne(gaming.getID())).thenReturn(gaming);
+		when(mockRepository.findOne(gaming.getId())).thenReturn(gaming);
 
 		assertGetAllActivityCategoriesResult("Set expected to be cached", "gambling", "news");
 
 		// Add dummy activity category to trigger cache eviction
-		service.addActivityCategory(ActivityCategoryDTO.createInstance(dummy));
+		service.addActivityCategory(ActivityCategoryDto.createInstance(dummy));
 
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after add", "gambling", "news", "gaming");
 
 		gaming.setLocalizableName(usString("amusement"));
-		service.updateActivityCategory(gaming.getID(), ActivityCategoryDTO.createInstance(gaming));
+		service.updateActivityCategory(gaming.getId(), ActivityCategoryDto.createInstance(gaming));
 
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after add", "gambling", "news", "amusement");
 		activityCategories.remove(news);
-		service.deleteActivityCategory(news.getID());
+		service.deleteActivityCategory(news.getId());
 
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after add", "gambling", "amusement");
 
 		activityCategories.add(news);
 		activityCategories.remove(gaming);
 		service.updateActivityCategorySet(
-				activityCategories.stream().map(a -> ActivityCategoryDTO.createInstance(a)).collect(Collectors.toSet()));
+				activityCategories.stream().map(a -> ActivityCategoryDto.createInstance(a)).collect(Collectors.toSet()));
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after import", "gambling", "news");
 	}
 

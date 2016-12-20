@@ -32,9 +32,9 @@ public class NewDeviceRequestService
 	private YonaProperties yonaProperties;
 
 	@Transactional
-	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID userID, String yonaPassword, String newDeviceRequestPassword)
+	public NewDeviceRequestDto setNewDeviceRequestForUser(UUID userId, String yonaPassword, String newDeviceRequestPassword)
 	{
-		User userEntity = userService.getValidatedUserbyID(userID);
+		User userEntity = userService.getValidatedUserbyId(userId);
 
 		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(yonaPassword);
 		newDeviceRequestEntity.encryptYonaPassword(newDeviceRequestPassword);
@@ -42,14 +42,14 @@ public class NewDeviceRequestService
 		userEntity.setNewDeviceRequest(newDeviceRequestEntity);
 
 		logger.info("User with mobile number '{}' and ID '{}' set a new device request", userEntity.getMobileNumber(),
-				userEntity.getID());
-		return NewDeviceRequestDTO.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest());
+				userEntity.getId());
+		return NewDeviceRequestDto.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest());
 	}
 
 	@Transactional
-	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID userID, Optional<String> newDeviceRequestPassword)
+	public NewDeviceRequestDto getNewDeviceRequestForUser(UUID userId, Optional<String> newDeviceRequestPassword)
 	{
-		User userEntity = userService.getValidatedUserbyID(userID);
+		User userEntity = userService.getValidatedUserbyId(userId);
 		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
 
 		if (newDeviceRequestEntity == null)
@@ -66,27 +66,27 @@ public class NewDeviceRequestService
 		{
 			newDeviceRequestEntity.decryptYonaPassword(newDeviceRequestPassword.get(), userEntity.getMobileNumber());
 			logger.info("User with mobile number '{}' and ID '{}' fetched the new device request", userEntity.getMobileNumber(),
-					userEntity.getID());
-			return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
+					userEntity.getId());
+			return NewDeviceRequestDto.createInstanceWithPassword(newDeviceRequestEntity);
 		}
 		else
 		{
 			logger.info("User with mobile number '{}' and ID '{}' verified the existence of new device request",
-					userEntity.getMobileNumber(), userEntity.getID());
-			return NewDeviceRequestDTO.createInstance(userEntity.getNewDeviceRequest());
+					userEntity.getMobileNumber(), userEntity.getId());
+			return NewDeviceRequestDto.createInstance(userEntity.getNewDeviceRequest());
 		}
 	}
 
 	@Transactional
-	public void clearNewDeviceRequestForUser(UUID userID)
+	public void clearNewDeviceRequestForUser(UUID userId)
 	{
-		User userEntity = userService.getValidatedUserbyID(userID);
+		User userEntity = userService.getValidatedUserbyId(userId);
 
 		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
 		if (existingNewDeviceRequestEntity != null)
 		{
 			logger.info("User with mobile number '{}' and ID '{}' cleared the new device request", userEntity.getMobileNumber(),
-					userEntity.getID());
+					userEntity.getId());
 			userEntity.setNewDeviceRequest(null);
 			User.getRepository().save(userEntity);
 		}

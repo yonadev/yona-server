@@ -209,7 +209,7 @@ class ActivityCategoriesTest extends Specification
 		}
 	}
 
-	private String createActivityCategoryJson(localizableName, boolean mandatoryNoGO, smoothwallCategories, applications, localizableDescription)
+	private String createActivityCategoryJson(localizableName, boolean mandatoryNoGo, smoothwallCategories, applications, localizableDescription)
 	{
 		String localizableNameString = YonaServer.makeStringMap(localizableName)
 		String smoothwallCategoriesString = YonaServer.makeStringList(smoothwallCategories)
@@ -217,7 +217,7 @@ class ActivityCategoriesTest extends Specification
 		String localizableDescriptionString = YonaServer.makeStringMap(localizableDescription)
 		def json = """{
 			"localizableName": {$localizableNameString},
-			"mandatoryNoGo": $mandatoryNoGO,
+			"mandatoryNoGo": $mandatoryNoGo,
 			"smoothwallCategories": [$smoothwallCategoriesString],
 			"applications": [$applicationsString],
 			"localizableDescription": {$localizableDescriptionString}

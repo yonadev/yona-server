@@ -16,7 +16,7 @@ abstract class Goal
 {
 	final String activityCategoryUrl
 	final String url
-	final String editURL
+	final String editUrl
 	ZonedDateTime creationTime
 	final boolean historyItem
 	Goal(def json)
@@ -24,13 +24,13 @@ abstract class Goal
 		this.creationTime = (json.creationTime instanceof ZonedDateTime) ? json.creationTime : null // Only set the creation time when explicitly provided
 		this.activityCategoryUrl = (json.activityCategoryUrl) ?: json._links."yona:activityCategory".href
 		this.url = json._links ? YonaServer.stripQueryString(json._links.self.href) : null
-		this.editURL = json._links?.edit?.href
+		this.editUrl = json._links?.edit?.href
 		this.historyItem = json.historyItem
 	}
 
 	def abstract convertToJsonString()
 
-	static def fromJSON(def json)
+	static def fromJson(def json)
 	{
 		if(json["@type"] == "BudgetGoal")
 		{
@@ -43,7 +43,7 @@ abstract class Goal
 		else throw new RuntimeException("Unknown goal type: " + json["@type"])
 	}
 
-	def convertToJSON()
+	def convertToJson()
 	{
 		def jsonStr = convertToJsonString()
 

@@ -39,11 +39,11 @@ public class PinResetRequestService
 	private YonaProperties yonaProperties;
 
 	@Transactional
-	public void requestPinReset(UUID userID)
+	public void requestPinReset(UUID userId)
 	{
-		User userEntity = userService.getUserEntityByID(userID);
+		User userEntity = userService.getUserEntityById(userId);
 		logger.info("User with mobile number '{}' and ID '{}' requested a pin reset confirmation code",
-				userEntity.getMobileNumber(), userID);
+				userEntity.getMobileNumber(), userId);
 		ConfirmationCode confirmationCode = createConfirmationCode(Moment.DELAYED);
 		setConfirmationCode(userEntity, confirmationCode);
 		if (confirmationCode.getConfirmationCode() != null)
@@ -53,11 +53,11 @@ public class PinResetRequestService
 	}
 
 	@Transactional
-	public void verifyPinResetConfirmationCode(UUID userID, String userProvidedConfirmationCode)
+	public void verifyPinResetConfirmationCode(UUID userId, String userProvidedConfirmationCode)
 	{
-		User userEntity = userService.getUserEntityByID(userID);
+		User userEntity = userService.getUserEntityById(userId);
 		logger.info("User with mobile number '{}' and ID '{}' requested to verity the pin reset confirmation code",
-				userEntity.getMobileNumber(), userID);
+				userEntity.getMobileNumber(), userId);
 		ConfirmationCode confirmationCode = userEntity.getPinResetConfirmationCode();
 		if ((confirmationCode == null) || isExpired(confirmationCode))
 		{
@@ -79,22 +79,22 @@ public class PinResetRequestService
 	}
 
 	@Transactional
-	public void resendPinResetConfirmationCode(UUID userID)
+	public void resendPinResetConfirmationCode(UUID userId)
 	{
-		User userEntity = userService.getUserEntityByID(userID);
+		User userEntity = userService.getUserEntityById(userId);
 		logger.info("User with mobile number '{}' and ID '{}' requested to resend the pin reset confirmation code",
-				userEntity.getMobileNumber(), userEntity.getID());
+				userEntity.getMobileNumber(), userEntity.getId());
 		ConfirmationCode confirmationCode = createConfirmationCode(Moment.IMMEDIATELY);
 		setConfirmationCode(userEntity, confirmationCode);
 		sendConfirmationCodeTextMessage(userEntity, confirmationCode);
 	}
 
 	@Transactional
-	public void clearPinResetRequest(UUID userID)
+	public void clearPinResetRequest(UUID userId)
 	{
-		User userEntity = userService.getUserEntityByID(userID);
+		User userEntity = userService.getUserEntityById(userId);
 		logger.info("User with mobile number '{}' and ID '{}' requested to clear the pin reset confirmation code",
-				userEntity.getMobileNumber(), userEntity.getID());
+				userEntity.getMobileNumber(), userEntity.getId());
 		setConfirmationCode(userEntity, null);
 	}
 
