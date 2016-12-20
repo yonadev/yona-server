@@ -18,14 +18,14 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.Where;
 
-import nu.yona.server.entities.EntityWithId;
+import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 
 @Entity
 @Table(name = "USERS_ANONYMIZED")
-public class UserAnonymized extends EntityWithId
+public class UserAnonymized extends EntityWithUuid
 {
 	public static UserAnonymizedRepository getRepository()
 	{

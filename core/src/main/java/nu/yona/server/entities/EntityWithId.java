@@ -4,31 +4,23 @@
  *******************************************************************************/
 package nu.yona.server.entities;
 
-import java.util.UUID;
-
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
-
-import org.hibernate.annotations.Type;
 
 @MappedSuperclass
 public abstract class EntityWithId
 {
 	@Id
-	@Type(type = "uuid-char")
-	private final UUID id;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private long id;
 
-	/**
-	 * This is the only constructor, to ensure that subclasses don't accidentally omit the ID.
-	 * 
-	 * @param id The ID of the entity
-	 */
-	protected EntityWithId(UUID id)
+	protected EntityWithId()
 	{
-		this.id = id;
 	}
 
-	public UUID getId()
+	public long getId()
 	{
 		return id;
 	}
@@ -36,12 +28,22 @@ public abstract class EntityWithId
 	@Override
 	public int hashCode()
 	{
-		return id.hashCode();
+		if (!isIdSet())
+		{
+			return super.hashCode();
+		}
+
+		return Long.hashCode(id);
 	}
 
 	@Override
 	public boolean equals(Object that)
 	{
-		return (this == that) || ((that instanceof EntityWithId) && getId().equals(((EntityWithId) that).getId()));
+		return (this == that) || (isIdSet() && (that instanceof EntityWithId) && getId() == ((EntityWithId) that).getId());
+	}
+
+	private boolean isIdSet()
+	{
+		return id != 0;
 	}
 }

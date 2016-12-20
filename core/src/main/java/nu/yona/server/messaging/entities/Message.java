@@ -16,13 +16,13 @@ import org.hibernate.annotations.Type;
 
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
-import nu.yona.server.entities.EntityWithId;
+import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "MESSAGES")
-public abstract class Message extends EntityWithId
+public abstract class Message extends EntityWithUuid
 {
 	@Type(type = "uuid-char")
 	private final UUID relatedUserAnonymizedId;

@@ -41,12 +41,10 @@ public class Activity extends EntityWithId
 	// Default constructor is required for JPA
 	public Activity()
 	{
-		super(null);
 	}
 
-	public Activity(UUID id, ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime)
+	public Activity(ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime)
 	{
-		super(id);
 		this.timeZone = timeZone;
 		this.startTime = startTime;
 		this.endTime = endTime;
@@ -104,6 +102,6 @@ public class Activity extends EntityWithId
 
 	public static Activity createInstance(ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime)
 	{
-		return new Activity(UUID.randomUUID(), timeZone, startTime, endTime);
+		return new Activity(timeZone, startTime, endTime);
 	}
 }
