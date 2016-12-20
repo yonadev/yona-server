@@ -32,12 +32,12 @@ public class AnalysisEngineProxyService
 		analysisEngineUrl = yonaProperties.getAnalysisService().getServiceUrl();
 	}
 
-	public void createInactivityEntities(UUID userAnonymizedId, Set<IntervalInactivityDTO> intervalInactivities)
+	public void createInactivityEntities(UUID userAnonymizedId, Set<IntervalInactivityDto> intervalInactivities)
 	{
 		restTemplate.postForEntity(buildBaseUrl(userAnonymizedId) + "/inactivity/", intervalInactivities, String.class);
 	}
 
-	public void analyzeAppActivity(UUID userAnonymizedId, AppActivityDTO appActivities)
+	public void analyzeAppActivity(UUID userAnonymizedId, AppActivityDto appActivities)
 	{
 		restTemplate.postForEntity(buildBaseUrl(userAnonymizedId) + "/appActivity/", appActivities, String.class);
 	}

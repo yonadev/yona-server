@@ -21,9 +21,9 @@ import nu.yona.server.goals.entities.GoalChangeMessage;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
-import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
+import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
-import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 import nu.yona.server.util.TimeUtil;
 
@@ -39,19 +39,19 @@ public class GoalService
 	@Autowired
 	private MessageService messageService;
 
-	public Set<GoalDTO> getGoalsOfUser(UUID forUserId)
+	public Set<GoalDto> getGoalsOfUser(UUID forUserId)
 	{
-		UserDTO user = userService.getPrivateUser(forUserId);
+		UserDto user = userService.getPrivateUser(forUserId);
 		return user.getPrivateData().getGoals();
 	}
 
-	public GoalDTO getGoalForUserId(UUID userId, UUID goalId)
+	public GoalDto getGoalForUserId(UUID userId, UUID goalId)
 	{
 		User userEntity = userService.getUserEntityById(userId);
-		return GoalDTO.createInstance(getGoalEntity(userEntity, goalId));
+		return GoalDto.createInstance(getGoalEntity(userEntity, goalId));
 	}
 
-	public GoalDTO getGoalForUserAnonymizedId(UUID userAnonymizedId, UUID goalId)
+	public GoalDto getGoalForUserAnonymizedId(UUID userAnonymizedId, UUID goalId)
 	{
 		return userAnonymizedService.getUserAnonymized(userAnonymizedId).getGoals().stream()
 				.filter(g -> g.getGoalId().equals(goalId)).findFirst()
@@ -84,7 +84,7 @@ public class GoalService
 	}
 
 	@Transactional
-	public GoalDTO addGoal(UUID userId, GoalDTO goal, Optional<String> message)
+	public GoalDto addGoal(UUID userId, GoalDto goal, Optional<String> message)
 	{
 		goal.validate();
 		User userEntity = userService.getUserEntityById(userId);
@@ -104,52 +104,52 @@ public class GoalService
 
 		broadcastGoalChangeMessage(userEntity, goalEntity.getActivityCategory(), GoalChangeMessage.Change.GOAL_ADDED, message);
 
-		return GoalDTO.createInstance(goalEntity);
+		return GoalDto.createInstance(goalEntity);
 	}
 
 	@Transactional
-	public GoalDTO updateGoal(UUID userId, UUID goalId, GoalDTO newGoalDTO, Optional<String> message)
+	public GoalDto updateGoal(UUID userId, UUID goalId, GoalDto newGoalDto, Optional<String> message)
 	{
 		User userEntity = userService.getUserEntityById(userId);
 		Goal existingGoal = getGoalEntity(userEntity, goalId);
 
-		verifyGoalUpdate(existingGoal, newGoalDTO);
-		if (newGoalDTO.getCreationTime().isPresent() && !newGoalDTO.isGoalChanged(existingGoal))
+		verifyGoalUpdate(existingGoal, newGoalDto);
+		if (newGoalDto.getCreationTime().isPresent() && !newGoalDto.isGoalChanged(existingGoal))
 		{
 			// Tests update the creation time. Handle that as a special case.
-			updateGoalCreationTime(userEntity, existingGoal, newGoalDTO);
+			updateGoalCreationTime(userEntity, existingGoal, newGoalDto);
 		}
-		else if (newGoalDTO.isGoalChanged(existingGoal))
+		else if (newGoalDto.isGoalChanged(existingGoal))
 		{
-			assertNoUpdateToThePast(newGoalDTO, existingGoal);
-			updateGoal(userEntity, existingGoal, newGoalDTO, message);
+			assertNoUpdateToThePast(newGoalDto, existingGoal);
+			updateGoal(userEntity, existingGoal, newGoalDto, message);
 		}
 
-		return GoalDTO.createInstance(existingGoal);
+		return GoalDto.createInstance(existingGoal);
 	}
 
-	private void updateGoalCreationTime(User userEntity, Goal existingGoal, GoalDTO newGoalDTO)
+	private void updateGoalCreationTime(User userEntity, Goal existingGoal, GoalDto newGoalDto)
 	{
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
-		existingGoal.setCreationTime(newGoalDTO.getCreationTime().get());
+		existingGoal.setCreationTime(newGoalDto.getCreationTime().get());
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getId(), userAnonymizedEntity);
 	}
 
-	private void verifyGoalUpdate(Goal existingGoal, GoalDTO newGoalDTO)
+	private void verifyGoalUpdate(Goal existingGoal, GoalDto newGoalDto)
 	{
-		newGoalDTO.validate();
-		GoalDTO existingGoalDTO = GoalDTO.createInstance(existingGoal);
-		assertNoTypeChange(newGoalDTO, existingGoalDTO);
-		assertNoActivityCategoryChange(newGoalDTO, existingGoalDTO);
+		newGoalDto.validate();
+		GoalDto existingGoalDto = GoalDto.createInstance(existingGoal);
+		assertNoTypeChange(newGoalDto, existingGoalDto);
+		assertNoActivityCategoryChange(newGoalDto, existingGoalDto);
 	}
 
-	private void updateGoal(User userEntity, Goal existingGoal, GoalDTO newGoalDTO, Optional<String> message)
+	private void updateGoal(User userEntity, Goal existingGoal, GoalDto newGoalDto, Optional<String> message)
 	{
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		cloneExistingGoalAsHistoryItem(userAnonymizedEntity, existingGoal,
-				newGoalDTO.getCreationTime().orElse(TimeUtil.utcNow()));
-		newGoalDTO.getCreationTime().ifPresent(ct -> existingGoal.setCreationTime(ct));
-		newGoalDTO.updateGoalEntity(existingGoal);
+				newGoalDto.getCreationTime().orElse(TimeUtil.utcNow()));
+		newGoalDto.getCreationTime().ifPresent(ct -> existingGoal.setCreationTime(ct));
+		newGoalDto.updateGoalEntity(existingGoal);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getId(), userAnonymizedEntity);
 
 		broadcastGoalChangeMessage(userEntity, existingGoal.getActivityCategory(), GoalChangeMessage.Change.GOAL_CHANGED,
@@ -163,30 +163,30 @@ public class GoalService
 		existingGoal.setPreviousVersionOfThisGoal(historyGoal);
 	}
 
-	private void assertNoActivityCategoryChange(GoalDTO newGoalDTO, GoalDTO existingGoalDTO)
+	private void assertNoActivityCategoryChange(GoalDto newGoalDto, GoalDto existingGoalDto)
 	{
-		if (!newGoalDTO.getActivityCategoryId().equals(existingGoalDTO.getActivityCategoryId()))
+		if (!newGoalDto.getActivityCategoryId().equals(existingGoalDto.getActivityCategoryId()))
 		{
-			throw GoalServiceException.cannotChangeActivityCategoryOfGoal(newGoalDTO.getActivityCategoryId(),
-					existingGoalDTO.getActivityCategoryId());
+			throw GoalServiceException.cannotChangeActivityCategoryOfGoal(newGoalDto.getActivityCategoryId(),
+					existingGoalDto.getActivityCategoryId());
 		}
 	}
 
-	private void assertNoTypeChange(GoalDTO newGoalDTO, GoalDTO existingGoalDTO)
+	private void assertNoTypeChange(GoalDto newGoalDto, GoalDto existingGoalDto)
 	{
-		if (!newGoalDTO.getClass().equals(existingGoalDTO.getClass()))
+		if (!newGoalDto.getClass().equals(existingGoalDto.getClass()))
 		{
-			throw GoalServiceException.cannotChangeTypeOfGoal(existingGoalDTO.getClass().getSimpleName(),
-					newGoalDTO.getClass().getSimpleName());
+			throw GoalServiceException.cannotChangeTypeOfGoal(existingGoalDto.getClass().getSimpleName(),
+					newGoalDto.getClass().getSimpleName());
 		}
 	}
 
-	private void assertNoUpdateToThePast(GoalDTO newGoalDTO, Goal existingGoal)
+	private void assertNoUpdateToThePast(GoalDto newGoalDto, Goal existingGoal)
 	{
-		if (newGoalDTO.getCreationTime().isPresent()
-				&& newGoalDTO.getCreationTime().get().isBefore(existingGoal.getCreationTime()))
+		if (newGoalDto.getCreationTime().isPresent()
+				&& newGoalDto.getCreationTime().get().isBefore(existingGoal.getCreationTime()))
 		{
-			throw GoalServiceException.goalUpdateCannotBeMadeOlderThanOriginal(newGoalDTO.getCreationTime().get(),
+			throw GoalServiceException.goalUpdateCannotBeMadeOlderThanOriginal(newGoalDto.getCreationTime().get(),
 					existingGoal.getCreationTime());
 		}
 	}
@@ -232,7 +232,7 @@ public class GoalService
 	private void broadcastGoalChangeMessage(User userEntity, ActivityCategory activityCategoryOfChangedGoal,
 			GoalChangeMessage.Change change, Optional<String> message)
 	{
-		messageService.broadcastMessageToBuddies(UserAnonymizedDTO.createInstance(userEntity.getAnonymized()),
+		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
 				() -> GoalChangeMessage.createInstance(userEntity.getId(), userEntity.getUserAnonymizedId(),
 						userEntity.getNickname(), activityCategoryOfChangedGoal, change, message.orElse(null)));
 	}

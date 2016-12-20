@@ -208,10 +208,12 @@ class AppService extends Service
 		def vpnLoginIdPattern = '(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
 		if (user instanceof User)
 		{
+			// The User Groovy object follows the new camel casing pattern: Id with lowercase d
 			assert user.vpnProfile.vpnLoginId ==~ /$vpnLoginIdPattern/
 		}
 		else
 		{
+			// For backward compatibility, the JSON still has the old camel casing pattern: ID with uppercase D
 			assert user.vpnProfile.vpnLoginID ==~ /$vpnLoginIdPattern/
 		}
 		assert user.vpnProfile.vpnPassword.length() == 32

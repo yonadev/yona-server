@@ -36,17 +36,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import nu.yona.server.analysis.entities.IntervalActivity;
-import nu.yona.server.analysis.service.ActivityCommentMessageDTO;
-import nu.yona.server.analysis.service.DayActivityDTO;
-import nu.yona.server.analysis.service.DayActivityOverviewDTO;
-import nu.yona.server.analysis.service.DayActivityWithBuddiesDTO;
-import nu.yona.server.analysis.service.DayActivityWithBuddiesDTO.ActivityForOneUser;
-import nu.yona.server.analysis.service.WeekActivityDTO;
-import nu.yona.server.analysis.service.WeekActivityOverviewDTO;
+import nu.yona.server.analysis.service.ActivityCommentMessageDto;
+import nu.yona.server.analysis.service.DayActivityDto;
+import nu.yona.server.analysis.service.DayActivityOverviewDto;
+import nu.yona.server.analysis.service.DayActivityWithBuddiesDto;
+import nu.yona.server.analysis.service.DayActivityWithBuddiesDto.ActivityForOneUser;
+import nu.yona.server.analysis.service.WeekActivityDto;
+import nu.yona.server.analysis.service.WeekActivityOverviewDto;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.goals.rest.ActivityCategoryController;
 import nu.yona.server.goals.rest.GoalController;
-import nu.yona.server.messaging.service.MessageDTO;
+import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.rest.UserController;
 import nu.yona.server.subscriptions.service.GoalIdMapping;
@@ -63,7 +63,7 @@ public class UserActivityController extends ActivityControllerBase
 	public HttpEntity<PagedResources<WeekActivityOverviewResource>> getUserWeekActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PageableDefault(size = WEEKS_DEFAULT_PAGE_SIZE) Pageable pageable,
-			PagedResourcesAssembler<WeekActivityOverviewDTO> pagedResourcesAssembler)
+			PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler)
 	{
 		return getWeekActivityOverviews(password, userId, pageable, pagedResourcesAssembler,
 				() -> activityService.getUserWeekActivityOverviews(userId, pageable), new UserActivityLinkProvider(userId));
@@ -74,7 +74,7 @@ public class UserActivityController extends ActivityControllerBase
 	public HttpEntity<PagedResources<DayActivityOverviewResource>> getUserDayActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PageableDefault(size = DAYS_DEFAULT_PAGE_SIZE) Pageable pageable,
-			PagedResourcesAssembler<DayActivityOverviewDTO<DayActivityDTO>> pagedResourcesAssembler)
+			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler)
 	{
 		return getDayActivityOverviews(password, userId, pageable, pagedResourcesAssembler,
 				() -> activityService.getUserDayActivityOverviews(userId, pageable), new UserActivityLinkProvider(userId));
@@ -92,15 +92,15 @@ public class UserActivityController extends ActivityControllerBase
 
 	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<PagedResources<MessageDTO>> getUserWeekActivityDetailMessages(
+	public HttpEntity<PagedResources<MessageDto>> getUserWeekActivityDetailMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr, @PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId,
 			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
-			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
+			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
 		return getActivityDetailMessages(
 				password, userId, pageable, pagedResourcesAssembler, () -> activityService
-						.getUserWeekActivityDetailMessages(userId, WeekActivityDTO.parseDate(dateStr), goalId, pageable),
+						.getUserWeekActivityDetailMessages(userId, WeekActivityDto.parseDate(dateStr), goalId, pageable),
 				new UserActivityLinkProvider(userId));
 	}
 
@@ -116,15 +116,15 @@ public class UserActivityController extends ActivityControllerBase
 
 	@RequestMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<PagedResources<MessageDTO>> getUserDayActivityDetailMessages(
+	public HttpEntity<PagedResources<MessageDto>> getUserDayActivityDetailMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr, @PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId,
 			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
-			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
+			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
 		return getActivityDetailMessages(
 				password, userId, pageable, pagedResourcesAssembler, () -> activityService
-						.getUserDayActivityDetailMessages(userId, DayActivityDTO.parseDate(dateStr), goalId, pageable),
+						.getUserDayActivityDetailMessages(userId, DayActivityDto.parseDate(dateStr), goalId, pageable),
 				new UserActivityLinkProvider(userId));
 	}
 
@@ -133,7 +133,7 @@ public class UserActivityController extends ActivityControllerBase
 	public HttpEntity<PagedResources<DayActivityOverviewWithBuddiesResource>> getDayActivityOverviewsWithBuddies(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PageableDefault(size = DAYS_DEFAULT_PAGE_SIZE) Pageable pageable,
-			PagedResourcesAssembler<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> pagedResourcesAssembler)
+			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityWithBuddiesDto>> pagedResourcesAssembler)
 	{
 		return getDayActivityOverviewsWithBuddies(password, userId, pageable, pagedResourcesAssembler,
 				() -> activityService.getUserDayActivityOverviewsWithBuddies(userId, pageable),
@@ -142,16 +142,16 @@ public class UserActivityController extends ActivityControllerBase
 
 	private HttpEntity<PagedResources<DayActivityOverviewWithBuddiesResource>> getDayActivityOverviewsWithBuddies(
 			Optional<String> password, UUID userId, Pageable pageable,
-			PagedResourcesAssembler<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> pagedResourcesAssembler,
-			Supplier<Page<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>>> activitySupplier, LinkProvider linkProvider)
+			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityWithBuddiesDto>> pagedResourcesAssembler,
+			Supplier<Page<DayActivityOverviewDto<DayActivityWithBuddiesDto>>> activitySupplier, LinkProvider linkProvider)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
 				() -> getDayActivityOverviewsWithBuddies(userId, pagedResourcesAssembler, activitySupplier));
 	}
 
 	private ResponseEntity<PagedResources<DayActivityOverviewWithBuddiesResource>> getDayActivityOverviewsWithBuddies(UUID userId,
-			PagedResourcesAssembler<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>> pagedResourcesAssembler,
-			Supplier<Page<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>>> activitySupplier)
+			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityWithBuddiesDto>> pagedResourcesAssembler,
+			Supplier<Page<DayActivityOverviewDto<DayActivityWithBuddiesDto>>> activitySupplier)
 	{
 		GoalIdMapping goalIdMapping = GoalIdMapping.createInstance(userService.getPrivateUser(userId));
 		return new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
@@ -159,7 +159,7 @@ public class UserActivityController extends ActivityControllerBase
 	}
 
 	@Override
-	public void addLinks(GoalIdMapping goalIdMapping, IntervalActivity activity, ActivityCommentMessageDTO message)
+	public void addLinks(GoalIdMapping goalIdMapping, IntervalActivity activity, ActivityCommentMessageDto message)
 	{
 		LinkProvider linkProvider = new UserActivityLinkProvider(goalIdMapping.getUserId());
 		addStandardLinks(goalIdMapping, linkProvider, activity, message);
@@ -244,12 +244,12 @@ public class UserActivityController extends ActivityControllerBase
 		}
 	}
 
-	static class DayActivityOverviewWithBuddiesResource extends Resource<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>>
+	static class DayActivityOverviewWithBuddiesResource extends Resource<DayActivityOverviewDto<DayActivityWithBuddiesDto>>
 	{
 		private final GoalIdMapping goalIdMapping;
 
 		public DayActivityOverviewWithBuddiesResource(GoalIdMapping goalIdMapping,
-				DayActivityOverviewDTO<DayActivityWithBuddiesDTO> dayActivityOverview)
+				DayActivityOverviewDto<DayActivityWithBuddiesDto> dayActivityOverview)
 		{
 			super(dayActivityOverview);
 			this.goalIdMapping = goalIdMapping;
@@ -263,7 +263,7 @@ public class UserActivityController extends ActivityControllerBase
 	}
 
 	static class DayActivityOverviewWithBuddiesResourceAssembler extends
-			ResourceAssemblerSupport<DayActivityOverviewDTO<DayActivityWithBuddiesDTO>, DayActivityOverviewWithBuddiesResource>
+			ResourceAssemblerSupport<DayActivityOverviewDto<DayActivityWithBuddiesDto>, DayActivityOverviewWithBuddiesResource>
 	{
 		private final GoalIdMapping goalIdMapping;
 
@@ -275,25 +275,25 @@ public class UserActivityController extends ActivityControllerBase
 
 		@Override
 		public DayActivityOverviewWithBuddiesResource toResource(
-				DayActivityOverviewDTO<DayActivityWithBuddiesDTO> dayActivityOverview)
+				DayActivityOverviewDto<DayActivityWithBuddiesDto> dayActivityOverview)
 		{
 			return instantiateResource(dayActivityOverview);
 		}
 
 		@Override
 		protected DayActivityOverviewWithBuddiesResource instantiateResource(
-				DayActivityOverviewDTO<DayActivityWithBuddiesDTO> dayActivityOverview)
+				DayActivityOverviewDto<DayActivityWithBuddiesDto> dayActivityOverview)
 		{
 			return new DayActivityOverviewWithBuddiesResource(goalIdMapping, dayActivityOverview);
 		}
 	}
 
-	static class DayActivityWithBuddiesResource extends Resource<DayActivityWithBuddiesDTO>
+	static class DayActivityWithBuddiesResource extends Resource<DayActivityWithBuddiesDto>
 	{
 		private final GoalIdMapping goalIdMapping;
 		private final String dateStr;
 
-		public DayActivityWithBuddiesResource(GoalIdMapping goalIdMapping, String dateStr, DayActivityWithBuddiesDTO dayActivity)
+		public DayActivityWithBuddiesResource(GoalIdMapping goalIdMapping, String dateStr, DayActivityWithBuddiesDto dayActivity)
 		{
 			super(dayActivity);
 			this.goalIdMapping = goalIdMapping;
@@ -308,7 +308,7 @@ public class UserActivityController extends ActivityControllerBase
 	}
 
 	static class DayActivityWithBuddiesResourceAssembler
-			extends ResourceAssemblerSupport<DayActivityWithBuddiesDTO, DayActivityWithBuddiesResource>
+			extends ResourceAssemblerSupport<DayActivityWithBuddiesDto, DayActivityWithBuddiesResource>
 	{
 		private final GoalIdMapping goalIdMapping;
 		private final String dateStr;
@@ -321,7 +321,7 @@ public class UserActivityController extends ActivityControllerBase
 		}
 
 		@Override
-		public DayActivityWithBuddiesResource toResource(DayActivityWithBuddiesDTO dayActivity)
+		public DayActivityWithBuddiesResource toResource(DayActivityWithBuddiesDto dayActivity)
 		{
 			DayActivityWithBuddiesResource dayActivityResource = instantiateResource(dayActivity);
 			addActivityCategoryLink(dayActivityResource);
@@ -329,7 +329,7 @@ public class UserActivityController extends ActivityControllerBase
 		}
 
 		@Override
-		protected DayActivityWithBuddiesResource instantiateResource(DayActivityWithBuddiesDTO dayActivity)
+		protected DayActivityWithBuddiesResource instantiateResource(DayActivityWithBuddiesDto dayActivity)
 		{
 			return new DayActivityWithBuddiesResource(goalIdMapping, dateStr, dayActivity);
 		}

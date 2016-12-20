@@ -34,8 +34,8 @@ import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
-import nu.yona.server.messaging.service.MessageActionDTO;
-import nu.yona.server.messaging.service.MessageDestinationDTO;
+import nu.yona.server.messaging.service.MessageActionDto;
+import nu.yona.server.messaging.service.MessageDestinationDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
@@ -78,7 +78,7 @@ public class BuddyService
 	private UserAnonymizedService userAnonymizedService;
 
 	@Autowired
-	private BuddyConnectResponseMessageDTO.Manager connectResponseMessageHandler;
+	private BuddyConnectResponseMessageDto.Manager connectResponseMessageHandler;
 
 	@Autowired
 	private TransactionHelper transactionHelper;
@@ -88,10 +88,10 @@ public class BuddyService
 		USER_ACCOUNT_DELETED, USER_REMOVED_BUDDY
 	}
 
-	public BuddyDTO getBuddy(UUID buddyId)
+	public BuddyDto getBuddy(UUID buddyId)
 	{
 		Buddy buddyEntity = getEntityById(buddyId);
-		BuddyDTO result = BuddyDTO.createInstance(buddyEntity);
+		BuddyDto result = BuddyDto.createInstance(buddyEntity);
 		if (canIncludePrivateData(buddyEntity))
 		{
 			UUID buddyUserAnonymizedId = getUserAnonymizedIdForBuddy(buddyEntity);
@@ -106,20 +106,20 @@ public class BuddyService
 		return (buddyEntity.getReceivingStatus() == Status.ACCEPTED) || (buddyEntity.getSendingStatus() == Status.ACCEPTED);
 	}
 
-	public Set<BuddyDTO> getBuddiesOfUser(UUID forUserId)
+	public Set<BuddyDto> getBuddiesOfUser(UUID forUserId)
 	{
-		UserDTO user = userService.getPrivateUser(forUserId);
+		UserDto user = userService.getPrivateUser(forUserId);
 		return getBuddies(user.getPrivateData().getBuddyIds());
 	}
 
-	public Set<BuddyDTO> getBuddiesOfUserThatAcceptedSending(UUID forUserId)
+	public Set<BuddyDto> getBuddiesOfUserThatAcceptedSending(UUID forUserId)
 	{
 		return getBuddiesOfUser(forUserId).stream().filter(b -> b.getSendingStatus() == Status.ACCEPTED)
 				.collect(Collectors.toSet());
 	}
 
 	@Transactional(propagation = Propagation.NEVER) // It explicitly creates transactions when needed.
-	public BuddyDTO addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDTO buddy,
+	public BuddyDto addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDto buddy,
 			BiFunction<UUID, String, String> inviteUrlGetter)
 	{
 		assertMobileNumberOfRequestingUserConfirmed(idOfRequestingUser);
@@ -129,10 +129,10 @@ public class BuddyService
 		{
 			createAndInviteBuddyUser(idOfRequestingUser, buddy, inviteUrlGetter);
 		}
-		BuddyDTO savedBuddy = transactionHelper
+		BuddyDto savedBuddy = transactionHelper
 				.executeInNewTransaction(() -> handleBuddyRequestForExistingUser(idOfRequestingUser, buddy));
 
-		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
+		UserDto requestingUser = userService.getPrivateUser(idOfRequestingUser);
 		logger.info(
 				"User with mobile number '{}' and ID '{}' sent buddy connect message to {} user with mobile number '{}' and ID '{}' as buddy",
 				requestingUser.getMobileNumber(), requestingUser.getId(), (buddyUserExists) ? "new" : "existing",
@@ -141,7 +141,7 @@ public class BuddyService
 		return savedBuddy;
 	}
 
-	private void createAndInviteBuddyUser(UUID idOfRequestingUser, BuddyDTO buddy, BiFunction<UUID, String, String> inviteUrlGetter)
+	private void createAndInviteBuddyUser(UUID idOfRequestingUser, BuddyDto buddy, BiFunction<UUID, String, String> inviteUrlGetter)
 	{
 		String tempPassword = getTempPassword();
 		// To ensure the data of the new user is encrypted with the temp password, the user is created in a separate transaction
@@ -150,18 +150,18 @@ public class BuddyService
 				() -> userService.addUserCreatedOnBuddyRequest(buddy.getUser()).getId()));
 
 		String inviteUrl = inviteUrlGetter.apply(savedUserId, tempPassword);
-		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
+		UserDto requestingUser = userService.getPrivateUser(idOfRequestingUser);
 		sendInvitationMessage(requestingUser, buddy, inviteUrl);
 	}
 
 	private void assertMobileNumberOfRequestingUserConfirmed(UUID idOfRequestingUser)
 	{
-		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
+		UserDto requestingUser = userService.getPrivateUser(idOfRequestingUser);
 		requestingUser.assertMobileNumberConfirmed();
 	}
 
 	@Transactional
-	public BuddyDTO addBuddyToAcceptingUser(UserDTO acceptingUser, UUID buddyUserId, String buddyNickName,
+	public BuddyDto addBuddyToAcceptingUser(UserDto acceptingUser, UUID buddyUserId, String buddyNickName,
 			UUID buddyUserAnonymizedId, boolean isRequestingSending, boolean isRequestingReceiving)
 	{
 		if (acceptingUser == null)
@@ -174,9 +174,9 @@ public class BuddyService
 				isRequestingSending ? Status.ACCEPTED : Status.NOT_REQUESTED,
 				isRequestingReceiving ? Status.ACCEPTED : Status.NOT_REQUESTED);
 		buddy.setUserAnonymizedId(buddyUserAnonymizedId);
-		BuddyDTO buddyDTO = BuddyDTO.createInstance(Buddy.getRepository().save(buddy));
-		userService.addBuddy(acceptingUser, buddyDTO);
-		return buddyDTO;
+		BuddyDto buddyDto = BuddyDto.createInstance(Buddy.getRepository().save(buddy));
+		userService.addBuddy(acceptingUser, buddyDto);
+		return buddyDto;
 	}
 
 	@Transactional
@@ -239,7 +239,7 @@ public class BuddyService
 		final int pageSize = 50;
 		Page<Message> messagePage;
 		boolean messageFound = false;
-		UserDTO user = userService.createUserDTOWithPrivateData(userEntity);
+		UserDto user = userService.createUserDtoWithPrivateData(userEntity);
 		do
 		{
 			messagePage = messageService.getReceivedMessageEntitiesSinceDate(user.getId(), buddy.getLastStatusChangeTime(),
@@ -250,7 +250,7 @@ public class BuddyService
 		while (!messageFound && messagePage.getNumberOfElements() == pageSize);
 	}
 
-	private boolean processPossiblePendingBuddyResponseMessage(UserDTO user, Buddy buddy, Page<Message> messagePage)
+	private boolean processPossiblePendingBuddyResponseMessage(UserDto user, Buddy buddy, Page<Message> messagePage)
 	{
 
 		Stream<BuddyConnectResponseMessage> buddyConnectResponseMessages = messagePage.getContent().stream()
@@ -260,7 +260,7 @@ public class BuddyService
 		Optional<BuddyConnectResponseMessage> messageToBeProcessed = messagesFromBuddy.filter(m -> m.isProcessed() == false)
 				.findFirst();
 		messageToBeProcessed.ifPresent(
-				m -> connectResponseMessageHandler.handleAction_Process(user, m, new MessageActionDTO(Collections.emptyMap())));
+				m -> connectResponseMessageHandler.handleAction_Process(user, m, new MessageActionDto(Collections.emptyMap())));
 		return messageToBeProcessed.isPresent();
 	}
 
@@ -294,7 +294,7 @@ public class BuddyService
 				|| requestingUserBuddy.getReceivingStatus() == Status.ACCEPTED)
 		{
 			UUID buddyUserAnonymizedId = getUserAnonymizedIdForBuddy(requestingUserBuddy);
-			UserAnonymizedDTO buddyUserAnonymized = userAnonymizedService.getUserAnonymized(buddyUserAnonymizedId);
+			UserAnonymizedDto buddyUserAnonymized = userAnonymizedService.getUserAnonymized(buddyUserAnonymizedId);
 			disconnectBuddyIfConnected(buddyUserAnonymized, requestingUser.getUserAnonymizedId());
 			removeAnonymousMessagesSentByUser(buddyUserAnonymized, requestingUser.getUserAnonymizedId());
 			sendDropBuddyMessage(requestingUser, requestingUserBuddy, message, reason);
@@ -362,14 +362,14 @@ public class BuddyService
 		buddy.setNickName(nickname);
 	}
 
-	public Set<BuddyDTO> getBuddies(Set<UUID> buddyIds)
+	public Set<BuddyDto> getBuddies(Set<UUID> buddyIds)
 	{
 		return buddyIds.stream().map(id -> getBuddy(id)).collect(Collectors.toSet());
 	}
 
 	private Set<Buddy> getBuddyEntitiesOfUser(UUID forUserId)
 	{
-		UserDTO user = userService.getPrivateUser(forUserId);
+		UserDto user = userService.getPrivateUser(forUserId);
 		return getBuddyEntities(user.getPrivateData().getBuddyIds());
 	}
 
@@ -386,14 +386,14 @@ public class BuddyService
 			return;
 		}
 		removeNamedMessagesSentByUser(user, buddyUserAnonymizedId.get());
-		UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(user.getUserAnonymizedId());
+		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(user.getUserAnonymizedId());
 		removeAnonymousMessagesSentByUser(userAnonymized, buddyUserAnonymizedId.get());
 	}
 
 	private void removeMessagesSentByUserToBuddy(User user, Buddy buddy)
 	{
 		UUID buddyUserAnonymizedId = getUserAnonymizedIdForBuddy(buddy);
-		UserAnonymizedDTO buddyUserAnonymized = userAnonymizedService.getUserAnonymized(buddyUserAnonymizedId);
+		UserAnonymizedDto buddyUserAnonymized = userAnonymizedService.getUserAnonymized(buddyUserAnonymizedId);
 		removeAnonymousMessagesSentByUser(buddyUserAnonymized, user.getUserAnonymizedId());
 		// We are not removing the named messages because we don't have User entity anymore
 		// (this method is being called from removeBuddyInfoForRemovedUser) and thus we don't know the named destination.
@@ -410,22 +410,22 @@ public class BuddyService
 	private void sendDropBuddyMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
 			Optional<String> message, DropBuddyReason reason, MessageDestination messageDestination)
 	{
-		MessageDestinationDTO messageDestinationDTO = MessageDestinationDTO.createInstance(messageDestination);
+		MessageDestinationDto messageDestinationDto = MessageDestinationDto.createInstance(messageDestination);
 		messageService.sendMessage(BuddyDisconnectMessage.createInstance(senderUserId, senderUserAnonymizedId, senderNickname,
-				getDropBuddyMessage(reason, message), reason), messageDestinationDTO);
+				getDropBuddyMessage(reason, message), reason), messageDestinationDto);
 	}
 
 	void sendBuddyConnectResponseMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
 			UUID receiverUserAnonymizedId, UUID buddyId, Status status, String responseMessage)
 	{
-		MessageDestinationDTO messageDestination = userAnonymizedService.getUserAnonymized(receiverUserAnonymizedId)
+		MessageDestinationDto messageDestination = userAnonymizedService.getUserAnonymized(receiverUserAnonymizedId)
 				.getAnonymousDestination();
 		assert messageDestination != null;
 		messageService.sendMessage(BuddyConnectResponseMessage.createInstance(senderUserId, senderUserAnonymizedId,
 				senderNickname, responseMessage, buddyId, status), messageDestination);
 	}
 
-	private void disconnectBuddyIfConnected(UserAnonymizedDTO buddyUserAnonymized, UUID userAnonymizedId)
+	private void disconnectBuddyIfConnected(UserAnonymizedDto buddyUserAnonymized, UUID userAnonymizedId)
 	{
 		Optional<BuddyAnonymized> buddyAnonymized = buddyUserAnonymized.getBuddyAnonymized(userAnonymizedId);
 		buddyAnonymized.ifPresent(ba -> {
@@ -438,13 +438,13 @@ public class BuddyService
 	private void removeNamedMessagesSentByUser(User receivingUser, UUID sentByUserAnonymizedId)
 	{
 		MessageDestination namedMessageDestination = receivingUser.getNamedMessageDestination();
-		messageService.removeMessagesFromUser(MessageDestinationDTO.createInstance(namedMessageDestination),
+		messageService.removeMessagesFromUser(MessageDestinationDto.createInstance(namedMessageDestination),
 				sentByUserAnonymizedId);
 	}
 
-	private void removeAnonymousMessagesSentByUser(UserAnonymizedDTO receivingUserAnonymized, UUID sentByUserAnonymizedId)
+	private void removeAnonymousMessagesSentByUser(UserAnonymizedDto receivingUserAnonymized, UUID sentByUserAnonymizedId)
 	{
-		MessageDestinationDTO anonymousMessageDestination = receivingUserAnonymized.getAnonymousDestination();
+		MessageDestinationDto anonymousMessageDestination = receivingUserAnonymized.getAnonymousDestination();
 		messageService.removeMessagesFromUser(anonymousMessageDestination, sentByUserAnonymizedId);
 	}
 
@@ -466,7 +466,7 @@ public class BuddyService
 		}
 	}
 
-	private void sendInvitationMessage(UserDTO requestingUser, BuddyDTO buddy, String inviteUrl)
+	private void sendInvitationMessage(UserDto requestingUser, BuddyDto buddy, String inviteUrl)
 	{
 		try
 		{
@@ -504,9 +504,9 @@ public class BuddyService
 		return (properties.getEmail().isEnabled()) ? userService.generatePassword() : "abcd";
 	}
 
-	private BuddyDTO handleBuddyRequestForExistingUser(UUID idOfRequestingUser, BuddyDTO buddy)
+	private BuddyDto handleBuddyRequestForExistingUser(UUID idOfRequestingUser, BuddyDto buddy)
 	{
-		UserDTO requestingUser = userService.getPrivateUser(idOfRequestingUser);
+		UserDto requestingUser = userService.getPrivateUser(idOfRequestingUser);
 		User buddyUserEntity = UserService.findUserByMobileNumber(buddy.getUser().getMobileNumber());
 		buddy.getUser().setUserId(buddyUserEntity.getId());
 		if (buddy.getSendingStatus() != Status.REQUESTED || buddy.getReceivingStatus() != Status.REQUESTED)
@@ -515,7 +515,7 @@ public class BuddyService
 		}
 		Buddy buddyEntity = buddy.createBuddyEntity(translator);
 		Buddy savedBuddyEntity = Buddy.getRepository().save(buddyEntity);
-		BuddyDTO savedBuddy = BuddyDTO.createInstance(savedBuddyEntity);
+		BuddyDto savedBuddy = BuddyDto.createInstance(savedBuddyEntity);
 		userService.addBuddy(requestingUser, savedBuddy);
 
 		boolean isRequestingSending = buddy.getReceivingStatus() == Status.REQUESTED;
@@ -525,7 +525,7 @@ public class BuddyService
 				BuddyConnectRequestMessage.createInstance(requestingUser.getId(),
 						requestingUser.getPrivateData().getUserAnonymizedId(), requestingUser.getPrivateData().getNickname(),
 						buddy.getMessage(), savedBuddyEntity.getId(), isRequestingSending, isRequestingReceiving),
-				MessageDestinationDTO.createInstance(messageDestination));
+				MessageDestinationDto.createInstance(messageDestination));
 
 		return savedBuddy;
 	}
@@ -540,7 +540,7 @@ public class BuddyService
 		return entity;
 	}
 
-	private boolean buddyUserExists(BuddyDTO buddy)
+	private boolean buddyUserExists(BuddyDto buddy)
 	{
 		try
 		{
@@ -557,10 +557,10 @@ public class BuddyService
 		}
 	}
 
-	public Optional<BuddyDTO> getBuddyOfUserByUserAnonymizedId(UUID forUserId, UUID userAnonymizedId)
+	public Optional<BuddyDto> getBuddyOfUserByUserAnonymizedId(UUID forUserId, UUID userAnonymizedId)
 	{
-		Set<BuddyDTO> buddies = getBuddiesOfUser(forUserId);
-		for (BuddyDTO buddy : buddies)
+		Set<BuddyDto> buddies = getBuddiesOfUser(forUserId);
+		for (BuddyDto buddy : buddies)
 		{
 			if (buddy.getUserAnonymizedId().filter(id -> id.equals(userAnonymizedId)).isPresent())
 			{
@@ -571,15 +571,15 @@ public class BuddyService
 	}
 
 	@Transactional
-	void broadcastUserInfoChangeToBuddies(User updatedUserEntity, UserDTO originalUser)
+	void broadcastUserInfoChangeToBuddies(User updatedUserEntity, UserDto originalUser)
 	{
-		messageService.broadcastMessageToBuddies(UserAnonymizedDTO.createInstance(updatedUserEntity.getAnonymized()),
+		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(updatedUserEntity.getAnonymized()),
 				() -> BuddyInfoChangeMessage.createInstance(updatedUserEntity.getId(), updatedUserEntity.getUserAnonymizedId(),
 						originalUser.getPrivateData().getNickname(), getUserInfoChangeMessage(updatedUserEntity, originalUser),
 						updatedUserEntity.getNickname()));
 	}
 
-	private String getUserInfoChangeMessage(User updatedUserEntity, UserDTO originalUser)
+	private String getUserInfoChangeMessage(User updatedUserEntity, UserDto originalUser)
 	{
 		return translator.getLocalizedMessage("message.buddy.user.info.changed");
 	}

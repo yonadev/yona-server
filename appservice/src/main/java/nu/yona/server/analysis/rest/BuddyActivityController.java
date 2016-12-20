@@ -33,15 +33,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import nu.yona.server.analysis.entities.IntervalActivity;
-import nu.yona.server.analysis.service.ActivityCommentMessageDTO;
-import nu.yona.server.analysis.service.DayActivityDTO;
-import nu.yona.server.analysis.service.DayActivityOverviewDTO;
-import nu.yona.server.analysis.service.PostPutActivityCommentMessageDTO;
-import nu.yona.server.analysis.service.WeekActivityDTO;
-import nu.yona.server.analysis.service.WeekActivityOverviewDTO;
+import nu.yona.server.analysis.service.ActivityCommentMessageDto;
+import nu.yona.server.analysis.service.DayActivityDto;
+import nu.yona.server.analysis.service.DayActivityOverviewDto;
+import nu.yona.server.analysis.service.PostPutActivityCommentMessageDto;
+import nu.yona.server.analysis.service.WeekActivityDto;
+import nu.yona.server.analysis.service.WeekActivityOverviewDto;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.messaging.rest.MessageController;
-import nu.yona.server.messaging.service.MessageDTO;
+import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.service.GoalIdMapping;
 
@@ -60,7 +60,7 @@ public class BuddyActivityController extends ActivityControllerBase
 	public HttpEntity<PagedResources<WeekActivityOverviewResource>> getBuddyWeekActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @PageableDefault(size = WEEKS_DEFAULT_PAGE_SIZE) Pageable pageable,
-			PagedResourcesAssembler<WeekActivityOverviewDTO> pagedResourcesAssembler)
+			PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler)
 	{
 		return getWeekActivityOverviews(password, userId, pageable, pagedResourcesAssembler,
 				() -> activityService.getBuddyWeekActivityOverviews(buddyId, pageable),
@@ -72,7 +72,7 @@ public class BuddyActivityController extends ActivityControllerBase
 	public HttpEntity<PagedResources<DayActivityOverviewResource>> getBuddyDayActivityOverviews(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @PageableDefault(size = DAYS_DEFAULT_PAGE_SIZE) Pageable pageable,
-			PagedResourcesAssembler<DayActivityOverviewDTO<DayActivityDTO>> pagedResourcesAssembler)
+			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler)
 	{
 		return getDayActivityOverviews(password, userId, pageable, pagedResourcesAssembler,
 				() -> activityService.getBuddyDayActivityOverviews(buddyId, pageable),
@@ -93,25 +93,25 @@ public class BuddyActivityController extends ActivityControllerBase
 
 	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<PagedResources<MessageDTO>> getBuddyWeekActivityDetailMessages(
+	public HttpEntity<PagedResources<MessageDto>> getBuddyWeekActivityDetailMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId,
 			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
-			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
+			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
 		return getActivityDetailMessages(password,
 				userId, pageable, pagedResourcesAssembler, () -> activityService.getBuddyWeekActivityDetailMessages(userId,
-						buddyId, WeekActivityDTO.parseDate(dateStr), goalId, pageable),
+						buddyId, WeekActivityDto.parseDate(dateStr), goalId, pageable),
 				new BuddyActivityLinkProvider(userId, buddyId));
 	}
 
 	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.POST)
 	@ResponseBody
-	public HttpEntity<MessageDTO> addBuddyWeekActivityDetailMessage(
+	public HttpEntity<MessageDto> addBuddyWeekActivityDetailMessage(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
-			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId, @RequestBody PostPutActivityCommentMessageDTO newMessage)
+			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId, @RequestBody PostPutActivityCommentMessageDto newMessage)
 	{
 		return CryptoSession
 				.execute(password,
@@ -119,7 +119,7 @@ public class BuddyActivityController extends ActivityControllerBase
 								.canAccessPrivateData(
 										userId),
 						() -> new ResponseEntity<>(messageController.toMessageResource(createGoalIdMapping(userId),
-								activityService.addMessageToWeekActivity(userId, buddyId, WeekActivityDTO.parseDate(dateStr),
+								activityService.addMessageToWeekActivity(userId, buddyId, WeekActivityDto.parseDate(dateStr),
 										goalId, newMessage)),
 								HttpStatus.OK));
 	}
@@ -138,25 +138,25 @@ public class BuddyActivityController extends ActivityControllerBase
 
 	@RequestMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<PagedResources<MessageDTO>> getBuddyDayActivityDetailMessages(
+	public HttpEntity<PagedResources<MessageDto>> getBuddyDayActivityDetailMessages(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
 			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId,
 			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
-			PagedResourcesAssembler<MessageDTO> pagedResourcesAssembler)
+			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
 		return getActivityDetailMessages(password,
 				userId, pageable, pagedResourcesAssembler, () -> activityService.getBuddyDayActivityDetailMessages(userId,
-						buddyId, DayActivityDTO.parseDate(dateStr), goalId, pageable),
+						buddyId, DayActivityDto.parseDate(dateStr), goalId, pageable),
 				new BuddyActivityLinkProvider(userId, buddyId));
 	}
 
 	@RequestMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.POST)
 	@ResponseBody
-	public HttpEntity<MessageDTO> addBuddyDayActivityDetailMessage(
+	public HttpEntity<MessageDto> addBuddyDayActivityDetailMessage(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
-			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId, @RequestBody PostPutActivityCommentMessageDTO newMessage)
+			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId, @RequestBody PostPutActivityCommentMessageDto newMessage)
 	{
 		return CryptoSession
 				.execute(password,
@@ -164,13 +164,13 @@ public class BuddyActivityController extends ActivityControllerBase
 								.canAccessPrivateData(
 										userId),
 						() -> new ResponseEntity<>(messageController.toMessageResource(createGoalIdMapping(userId),
-								activityService.addMessageToDayActivity(userId, buddyId, DayActivityDTO.parseDate(dateStr),
+								activityService.addMessageToDayActivity(userId, buddyId, DayActivityDto.parseDate(dateStr),
 										goalId, newMessage)),
 								HttpStatus.OK));
 	}
 
 	@Override
-	public void addLinks(GoalIdMapping goalIdMapping, IntervalActivity activity, ActivityCommentMessageDTO message)
+	public void addLinks(GoalIdMapping goalIdMapping, IntervalActivity activity, ActivityCommentMessageDto message)
 	{
 		LinkProvider linkProvider = new BuddyActivityLinkProvider(goalIdMapping.getUserId(),
 				goalIdMapping.getBuddyId(activity.getGoal().getId()));

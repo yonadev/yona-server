@@ -23,10 +23,10 @@ import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
 import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.goals.service.GoalDTO;
+import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
-import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
+import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TimeUtil;
@@ -50,11 +50,11 @@ public class InactivityManagementService
 	private LockPool<UUID> userAnonymizedSynchronizer;
 
 	@Transactional
-	public void createInactivityEntities(UUID userAnonymizedId, Set<IntervalInactivityDTO> intervalInactivities)
+	public void createInactivityEntities(UUID userAnonymizedId, Set<IntervalInactivityDto> intervalInactivities)
 	{
 		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(userAnonymizedId))
 		{
-			UserAnonymizedDTO userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
+			UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 			createWeekInactivityEntities(userAnonymizedId,
 					intervalInactivities.stream().filter(ia -> ia.getTimeUnit() == ChronoUnit.WEEKS).collect(Collectors.toSet()));
 			createDayInactivityEntities(userAnonymized,
@@ -62,12 +62,12 @@ public class InactivityManagementService
 		}
 	}
 
-	private void createWeekInactivityEntities(UUID userAnonymizedId, Set<IntervalInactivityDTO> weekInactivities)
+	private void createWeekInactivityEntities(UUID userAnonymizedId, Set<IntervalInactivityDto> weekInactivities)
 	{
 		weekInactivities.stream().forEach(wi -> createWeekInactivity(userAnonymizedId, wi));
 	}
 
-	private void createDayInactivityEntities(UserAnonymizedDTO userAnonymized, Set<IntervalInactivityDTO> dayInactivities)
+	private void createDayInactivityEntities(UserAnonymizedDto userAnonymized, Set<IntervalInactivityDto> dayInactivities)
 	{
 		dayInactivities.stream()
 				.forEach(di -> createDayInactivity(userAnonymized.getId(),
@@ -76,12 +76,12 @@ public class InactivityManagementService
 						di));
 	}
 
-	private GoalDTO getGoal(UserAnonymizedDTO userAnonymized, UUID goalId)
+	private GoalDto getGoal(UserAnonymizedDto userAnonymized, UUID goalId)
 	{
 		return goalService.getGoalForUserAnonymizedId(userAnonymized.getId(), goalId);
 	}
 
-	private void createWeekInactivity(UUID userAnonymizedId, IntervalInactivityDTO weekInactivity)
+	private void createWeekInactivity(UUID userAnonymizedId, IntervalInactivityDto weekInactivity)
 	{
 		createWeekInactivity(userAnonymizedId, weekInactivity.getGoalId(), weekInactivity.getStartTime());
 	}
@@ -94,7 +94,7 @@ public class InactivityManagementService
 				(wa) -> wa.getGoal().addWeekActivity(wa));
 	}
 
-	private void createDayInactivity(UUID userAnonymizedId, WeekActivity weekActivity, IntervalInactivityDTO dayInactivity)
+	private void createDayInactivity(UUID userAnonymizedId, WeekActivity weekActivity, IntervalInactivityDto dayInactivity)
 	{
 		createInactivity(userAnonymizedId, dayInactivity.getGoalId(),
 				() -> dayActivityRepository.findOne(userAnonymizedId, dayInactivity.getStartTime().toLocalDate(),

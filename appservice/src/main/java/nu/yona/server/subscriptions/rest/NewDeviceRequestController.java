@@ -38,11 +38,11 @@ import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.NewDeviceRequestController.NewDeviceRequestResource;
-import nu.yona.server.subscriptions.service.BuddyDTO;
+import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.DeviceRequestException;
-import nu.yona.server.subscriptions.service.NewDeviceRequestDTO;
+import nu.yona.server.subscriptions.service.NewDeviceRequestDto;
 import nu.yona.server.subscriptions.service.NewDeviceRequestService;
-import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 import nu.yona.server.subscriptions.service.UserServiceException;
 
@@ -62,7 +62,7 @@ public class NewDeviceRequestController
 	@RequestMapping(value = "/{mobileNumber}", method = RequestMethod.PUT)
 	@ResponseStatus(HttpStatus.OK)
 	public void setNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable String mobileNumber, @RequestBody NewDeviceRequestCreationDTO newDeviceRequestCreation)
+			@PathVariable String mobileNumber, @RequestBody NewDeviceRequestCreationDto newDeviceRequestCreation)
 	{
 		try
 		{
@@ -89,7 +89,7 @@ public class NewDeviceRequestController
 		try
 		{
 			userService.validateMobileNumber(mobileNumber);
-			UserDTO user = userService.getUserByMobileNumber(mobileNumber);
+			UserDto user = userService.getUserByMobileNumber(mobileNumber);
 			return createNewDeviceRequestResponse(user,
 					newDeviceRequestService.getNewDeviceRequestForUser(user.getId(), newDeviceRequestPassword), HttpStatus.OK);
 		}
@@ -125,8 +125,8 @@ public class NewDeviceRequestController
 		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId), () -> null);
 	}
 
-	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(UserDTO user,
-			NewDeviceRequestDTO newDeviceRequest, HttpStatus statusCode)
+	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(UserDto user,
+			NewDeviceRequestDto newDeviceRequest, HttpStatus statusCode)
 	{
 		return new ResponseEntity<NewDeviceRequestResource>(
 				new NewDeviceRequestResourceAssembler(user).toResource(newDeviceRequest), statusCode);
@@ -138,27 +138,27 @@ public class NewDeviceRequestController
 		return linkTo(methodOn.getNewDeviceRequestForUser(null, mobileNumber));
 	}
 
-	public static class NewDeviceRequestResource extends Resource<NewDeviceRequestDTO>
+	public static class NewDeviceRequestResource extends Resource<NewDeviceRequestDto>
 	{
-		public NewDeviceRequestResource(NewDeviceRequestDTO newDeviceRequest)
+		public NewDeviceRequestResource(NewDeviceRequestDto newDeviceRequest)
 		{
 			super(newDeviceRequest);
 		}
 	}
 
 	public static class NewDeviceRequestResourceAssembler
-			extends ResourceAssemblerSupport<NewDeviceRequestDTO, NewDeviceRequestResource>
+			extends ResourceAssemblerSupport<NewDeviceRequestDto, NewDeviceRequestResource>
 	{
-		private UserDTO user;
+		private UserDto user;
 
-		public NewDeviceRequestResourceAssembler(UserDTO user)
+		public NewDeviceRequestResourceAssembler(UserDto user)
 		{
 			super(NewDeviceRequestController.class, NewDeviceRequestResource.class);
 			this.user = user;
 		}
 
 		@Override
-		public NewDeviceRequestResource toResource(NewDeviceRequestDTO newDeviceRequest)
+		public NewDeviceRequestResource toResource(NewDeviceRequestDto newDeviceRequest)
 		{
 			NewDeviceRequestResource newDeviceRequestResource = instantiateResource(newDeviceRequest);
 			addSelfLink(newDeviceRequestResource);
@@ -168,26 +168,26 @@ public class NewDeviceRequestController
 		}
 
 		@Override
-		protected NewDeviceRequestResource instantiateResource(NewDeviceRequestDTO newDeviceRequest)
+		protected NewDeviceRequestResource instantiateResource(NewDeviceRequestDto newDeviceRequest)
 		{
 			return new NewDeviceRequestResource(newDeviceRequest);
 		}
 
-		private void addSelfLink(Resource<NewDeviceRequestDTO> newDeviceRequestResource)
+		private void addSelfLink(Resource<NewDeviceRequestDto> newDeviceRequestResource)
 		{
 			newDeviceRequestResource
 					.add(NewDeviceRequestController.getNewDeviceRequestLinkBuilder(user.getMobileNumber()).withSelfRel());
 		}
 
-		private void addEditLink(Resource<NewDeviceRequestDTO> newDeviceRequestResource)
+		private void addEditLink(Resource<NewDeviceRequestDto> newDeviceRequestResource)
 		{
 			newDeviceRequestResource.add(NewDeviceRequestController.getNewDeviceRequestLinkBuilder(user.getMobileNumber())
 					.withRel(JsonRootRelProvider.EDIT_REL));
 		}
 
-		private void addUserLink(Resource<NewDeviceRequestDTO> newDeviceRequestResource)
+		private void addUserLink(Resource<NewDeviceRequestDto> newDeviceRequestResource)
 		{
-			newDeviceRequestResource.add(UserController.getPrivateUserLink(BuddyDTO.USER_REL_NAME, user.getId()));
+			newDeviceRequestResource.add(UserController.getPrivateUserLink(BuddyDto.USER_REL_NAME, user.getId()));
 		}
 	}
 }

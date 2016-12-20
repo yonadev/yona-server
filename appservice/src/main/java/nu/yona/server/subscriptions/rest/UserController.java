@@ -66,19 +66,19 @@ import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.rest.GoalController;
-import nu.yona.server.goals.service.GoalDTO;
+import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
-import nu.yona.server.rest.ErrorResponseDTO;
+import nu.yona.server.rest.ErrorResponseDto;
 import nu.yona.server.rest.GlobalExceptionMapping;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
-import nu.yona.server.subscriptions.service.BuddyDTO;
-import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDTO;
-import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.subscriptions.service.BuddyDto;
+import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDto;
+import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
-import nu.yona.server.subscriptions.service.VPNProfileDTO;
+import nu.yona.server.subscriptions.service.VPNProfileDto;
 
 @Controller
 @ExposesResourceFor(UserResource.class)
@@ -151,7 +151,7 @@ public class UserController
 						HttpStatus.OK));
 	}
 
-	private byte[] getUserSpecificAppleMobileConfig(UserDTO privateUser)
+	private byte[] getUserSpecificAppleMobileConfig(UserDto privateUser)
 	{
 		Map<String, Object> templateParameters = new HashMap<String, Object>();
 		templateParameters.put("ldapUsername", privateUser.getPrivateData().getVpnProfile().getVpnLoginId().toString());
@@ -165,7 +165,7 @@ public class UserController
 	@ResponseStatus(HttpStatus.CREATED)
 	public HttpEntity<UserResource> addUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "overwriteUserConfirmationCode", required = false) String overwriteUserConfirmationCode,
-			@RequestBody UserDTO user, HttpServletRequest request)
+			@RequestBody UserDto user, HttpServletRequest request)
 	{
 		return dosProtectionService.executeAttempt(getAddUserLinkBuilder().toUri(), request,
 				yonaProperties.getSecurity().getMaxCreateUserAttemptsPerTimeWindow(),
@@ -176,7 +176,7 @@ public class UserController
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr, @PathVariable UUID id,
-			@RequestBody UserDTO userResource)
+			@RequestBody UserDto userResource)
 	{
 		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
 		if (tempPassword.isPresent())
@@ -208,7 +208,7 @@ public class UserController
 	@ResponseBody
 	public HttpEntity<UserResource> confirmMobileNumber(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
-			@RequestBody ConfirmationCodeDTO mobileNumberConfirmation)
+			@RequestBody ConfirmationCodeDto mobileNumberConfirmation)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
 				() -> createOkResponse(userService.confirmMobileNumber(id, mobileNumberConfirmation.getCode()), true));
@@ -225,14 +225,14 @@ public class UserController
 	}
 
 	@ExceptionHandler(ConfirmationException.class)
-	private ResponseEntity<ErrorResponseDTO> handleException(ConfirmationException e)
+	private ResponseEntity<ErrorResponseDto> handleException(ConfirmationException e)
 	{
 		if (e.getRemainingAttempts() >= 0)
 		{
-			ErrorResponseDTO responseMessage = new ConfirmationFailedResponseDTO(e.getMessageId(), e.getMessage(),
+			ErrorResponseDto responseMessage = new ConfirmationFailedResponseDto(e.getMessageId(), e.getMessage(),
 					e.getRemainingAttempts());
 			logger.error("Confirmation failed", e);
-			return new ResponseEntity<ErrorResponseDTO>(responseMessage, e.getStatusCode());
+			return new ResponseEntity<ErrorResponseDto>(responseMessage, e.getStatusCode());
 		}
 		return globalExceptionMapping.handleYonaException(e);
 	}
@@ -250,7 +250,7 @@ public class UserController
 	}
 
 	private HttpEntity<UserResource> addUser(Optional<String> password, Optional<String> overwriteUserConfirmationCode,
-			UserDTO user)
+			UserDto user)
 	{
 		if (overwriteUserConfirmationCode.isPresent())
 		{
@@ -277,13 +277,13 @@ public class UserController
 		return Optional.empty();
 	}
 
-	private HttpEntity<UserResource> createResponse(UserDTO user, boolean includePrivateData, HttpStatus status)
+	private HttpEntity<UserResource> createResponse(UserDto user, boolean includePrivateData, HttpStatus status)
 	{
 		return new ResponseEntity<UserResource>(
 				new UserResourceAssembler(curieProvider, pinResetRequestController, includePrivateData).toResource(user), status);
 	}
 
-	private HttpEntity<UserResource> createOkResponse(UserDTO user, boolean includePrivateData)
+	private HttpEntity<UserResource> createOkResponse(UserDto user, boolean includePrivateData)
 	{
 		return createResponse(user, includePrivateData, HttpStatus.OK);
 	}
@@ -334,11 +334,11 @@ public class UserController
 				.withRel(rel);
 	}
 
-	static class UserResource extends Resource<UserDTO>
+	static class UserResource extends Resource<UserDto>
 	{
 		private final CurieProvider curieProvider;
 
-		public UserResource(CurieProvider curieProvider, UserDTO user)
+		public UserResource(CurieProvider curieProvider, UserDto user)
 		{
 			super(user);
 			this.curieProvider = curieProvider;
@@ -380,13 +380,13 @@ public class UserController
 				return Collections.emptyMap();
 			}
 
-			Set<BuddyDTO> buddies = getContent().getPrivateData().getBuddies();
+			Set<BuddyDto> buddies = getContent().getPrivateData().getBuddies();
 			HashMap<String, Object> result = new HashMap<String, Object>();
-			result.put(curieProvider.getNamespacedRelFor(UserDTO.BUDDIES_REL_NAME),
+			result.put(curieProvider.getNamespacedRelFor(UserDto.BUDDIES_REL_NAME),
 					BuddyController.createAllBuddiesCollectionResource(curieProvider, getContent().getId(), buddies));
 
-			Set<GoalDTO> goals = getContent().getPrivateData().getGoals();
-			result.put(curieProvider.getNamespacedRelFor(UserDTO.GOALS_REL_NAME),
+			Set<GoalDto> goals = getContent().getPrivateData().getGoals();
+			result.put(curieProvider.getNamespacedRelFor(UserDto.GOALS_REL_NAME),
 					GoalController.createAllGoalsCollectionResource(getContent().getId(), goals));
 
 			return result;
@@ -398,19 +398,19 @@ public class UserController
 		}
 
 		@JsonInclude(Include.NON_EMPTY)
-		public Resource<VPNProfileDTO> getVpnProfile()
+		public Resource<VPNProfileDto> getVpnProfile()
 		{
 			if (!includeLinksAndEmbeddedData())
 			{
 				return null;
 			}
-			Resource<VPNProfileDTO> vpnProfileResource = new Resource<VPNProfileDTO>(
+			Resource<VPNProfileDto> vpnProfileResource = new Resource<VPNProfileDto>(
 					getContent().getPrivateData().getVpnProfile());
 			addOvpnProfileLink(vpnProfileResource);
 			return vpnProfileResource;
 		}
 
-		private void addOvpnProfileLink(Resource<VPNProfileDTO> vpnProfileResource)
+		private void addOvpnProfileLink(Resource<VPNProfileDto> vpnProfileResource)
 		{
 			vpnProfileResource.add(
 					new Link(ServletUriComponentsBuilder.fromCurrentContextPath().path("/vpn/profile.ovpn").build().toUriString(),
@@ -424,7 +424,7 @@ public class UserController
 		}
 	}
 
-	public static class UserResourceAssembler extends ResourceAssemblerSupport<UserDTO, UserResource>
+	public static class UserResourceAssembler extends ResourceAssemblerSupport<UserDto, UserResource>
 	{
 		private final boolean includePrivateData;
 		private final CurieProvider curieProvider;
@@ -445,7 +445,7 @@ public class UserController
 		}
 
 		@Override
-		public UserResource toResource(UserDTO user)
+		public UserResource toResource(UserDto user)
 		{
 			UserResource userResource = instantiateResource(user);
 			addSelfLink(userResource, includePrivateData);
@@ -481,7 +481,7 @@ public class UserController
 							.withRel("appleMobileConfig"));
 		}
 
-		private void addSslRootCertificateLink(Resource<UserDTO> userResource)
+		private void addSslRootCertificateLink(Resource<UserDto> userResource)
 		{
 			userResource.add(new Link(
 					ServletUriComponentsBuilder.fromCurrentContextPath().path(SSL_ROOT_CERTIFICATE_PATH).build().toUriString(),
@@ -489,12 +489,12 @@ public class UserController
 		}
 
 		@Override
-		protected UserResource instantiateResource(UserDTO user)
+		protected UserResource instantiateResource(UserDto user)
 		{
 			return new UserResource(curieProvider, user);
 		}
 
-		private static void addSelfLink(Resource<UserDTO> userResource, boolean includePrivateData)
+		private static void addSelfLink(Resource<UserDto> userResource, boolean includePrivateData)
 		{
 			if (userResource.getContent().getId() == null)
 			{
@@ -505,19 +505,19 @@ public class UserController
 			userResource.add(UserController.getUserSelfLink(userResource.getContent().getId(), includePrivateData));
 		}
 
-		private static void addEditLink(Resource<UserDTO> userResource)
+		private static void addEditLink(Resource<UserDto> userResource)
 		{
 			userResource.add(linkTo(
 					methodOn(UserController.class).updateUser(Optional.empty(), null, userResource.getContent().getId(), null))
 							.withRel(JsonRootRelProvider.EDIT_REL));
 		}
 
-		private static void addConfirmMobileNumberLink(Resource<UserDTO> userResource)
+		private static void addConfirmMobileNumberLink(Resource<UserDto> userResource)
 		{
 			userResource.add(UserController.getConfirmMobileLink(userResource.getContent().getId()));
 		}
 
-		private static void addResendMobileNumberConfirmationLink(Resource<UserDTO> userResource)
+		private static void addResendMobileNumberConfirmationLink(Resource<UserDto> userResource)
 		{
 			userResource.add(UserController.getResendMobileNumberConfirmationLink(userResource.getContent().getId()));
 		}

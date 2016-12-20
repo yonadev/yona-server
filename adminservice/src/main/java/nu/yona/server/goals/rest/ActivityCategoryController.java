@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import com.fasterxml.jackson.annotation.JsonView;
 
 import nu.yona.server.goals.rest.ActivityCategoryController.ActivityCategoryResource;
-import nu.yona.server.goals.service.ActivityCategoryDTO;
+import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
 
 @Controller
@@ -44,7 +44,7 @@ public class ActivityCategoryController
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	@ResponseBody
-	@JsonView(ActivityCategoryDTO.AdminView.class)
+	@JsonView(ActivityCategoryDto.AdminView.class)
 	public HttpEntity<ActivityCategoryResource> getActivityCategory(@PathVariable UUID id)
 	{
 		return createOkResponse(activityCategoryService.getActivityCategory(id));
@@ -52,7 +52,7 @@ public class ActivityCategoryController
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
-	@JsonView(ActivityCategoryDTO.AdminView.class)
+	@JsonView(ActivityCategoryDto.AdminView.class)
 	public HttpEntity<Resources<ActivityCategoryResource>> getAllActivityCategories()
 	{
 		return createOkResponse(activityCategoryService.getAllActivityCategories(), getAllActivityCategoriesLinkBuilder());
@@ -60,8 +60,8 @@ public class ActivityCategoryController
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseBody
-	@JsonView(ActivityCategoryDTO.AdminView.class)
-	public HttpEntity<ActivityCategoryResource> addActivityCategory(@RequestBody ActivityCategoryDTO activityCategory)
+	@JsonView(ActivityCategoryDto.AdminView.class)
+	public HttpEntity<ActivityCategoryResource> addActivityCategory(@RequestBody ActivityCategoryDto activityCategory)
 	{
 		activityCategory.setId(UUID.randomUUID());
 		return createOkResponse(activityCategoryService.addActivityCategory(activityCategory));
@@ -69,18 +69,18 @@ public class ActivityCategoryController
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
 	@ResponseBody
-	@JsonView(ActivityCategoryDTO.AdminView.class)
+	@JsonView(ActivityCategoryDto.AdminView.class)
 	public HttpEntity<ActivityCategoryResource> updateActivityCategory(@PathVariable UUID id,
-			@RequestBody ActivityCategoryDTO activityCategory)
+			@RequestBody ActivityCategoryDto activityCategory)
 	{
 		return createOkResponse(activityCategoryService.updateActivityCategory(id, activityCategory));
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.PUT)
 	@ResponseBody
-	@JsonView(ActivityCategoryDTO.AdminView.class)
+	@JsonView(ActivityCategoryDto.AdminView.class)
 	public HttpEntity<Resources<ActivityCategoryResource>> updateActivityCategorySet(
-			@RequestBody Set<ActivityCategoryDTO> activityCategorySet)
+			@RequestBody Set<ActivityCategoryDto> activityCategorySet)
 	{
 		activityCategoryService.updateActivityCategorySet(activityCategorySet);
 		return createOkResponse(activityCategoryService.getAllActivityCategories(), getAllActivityCategoriesLinkBuilder());
@@ -99,41 +99,41 @@ public class ActivityCategoryController
 		return linkTo(methodOn.getAllActivityCategories());
 	}
 
-	private HttpEntity<ActivityCategoryResource> createOkResponse(ActivityCategoryDTO activityCategory)
+	private HttpEntity<ActivityCategoryResource> createOkResponse(ActivityCategoryDto activityCategory)
 	{
 		return createResponse(activityCategory, HttpStatus.OK);
 	}
 
-	private HttpEntity<ActivityCategoryResource> createResponse(ActivityCategoryDTO activityCategory, HttpStatus status)
+	private HttpEntity<ActivityCategoryResource> createResponse(ActivityCategoryDto activityCategory, HttpStatus status)
 	{
 		return new ResponseEntity<ActivityCategoryResource>(new ActivityCategoryResourceAssembler().toResource(activityCategory),
 				status);
 	}
 
-	private HttpEntity<Resources<ActivityCategoryResource>> createOkResponse(Set<ActivityCategoryDTO> activityCategories,
+	private HttpEntity<Resources<ActivityCategoryResource>> createOkResponse(Set<ActivityCategoryDto> activityCategories,
 			ControllerLinkBuilder controllerMethodLinkBuilder)
 	{
 		return new ResponseEntity<Resources<ActivityCategoryResource>>(
 				wrapActivityCategoriesAsResourceList(activityCategories, controllerMethodLinkBuilder), HttpStatus.OK);
 	}
 
-	private Resources<ActivityCategoryResource> wrapActivityCategoriesAsResourceList(Set<ActivityCategoryDTO> activityCategories,
+	private Resources<ActivityCategoryResource> wrapActivityCategoriesAsResourceList(Set<ActivityCategoryDto> activityCategories,
 			ControllerLinkBuilder controllerMethodLinkBuilder)
 	{
 		return new Resources<>(new ActivityCategoryResourceAssembler().toResources(activityCategories),
 				controllerMethodLinkBuilder.withSelfRel());
 	}
 
-	public static class ActivityCategoryResource extends Resource<ActivityCategoryDTO>
+	public static class ActivityCategoryResource extends Resource<ActivityCategoryDto>
 	{
-		public ActivityCategoryResource(ActivityCategoryDTO activityCategory)
+		public ActivityCategoryResource(ActivityCategoryDto activityCategory)
 		{
 			super(activityCategory);
 		}
 	}
 
 	private static class ActivityCategoryResourceAssembler
-			extends ResourceAssemblerSupport<ActivityCategoryDTO, ActivityCategoryResource>
+			extends ResourceAssemblerSupport<ActivityCategoryDto, ActivityCategoryResource>
 	{
 		public ActivityCategoryResourceAssembler()
 		{
@@ -141,13 +141,13 @@ public class ActivityCategoryController
 		}
 
 		@Override
-		public ActivityCategoryResource toResource(ActivityCategoryDTO activityCategory)
+		public ActivityCategoryResource toResource(ActivityCategoryDto activityCategory)
 		{
 			return super.createResourceWithId(activityCategory.getId(), activityCategory);
 		}
 
 		@Override
-		protected ActivityCategoryResource instantiateResource(ActivityCategoryDTO activityCategory)
+		protected ActivityCategoryResource instantiateResource(ActivityCategoryDto activityCategory)
 		{
 			return new ActivityCategoryResource(activityCategory);
 		}

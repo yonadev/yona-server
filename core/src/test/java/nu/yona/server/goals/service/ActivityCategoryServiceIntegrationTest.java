@@ -74,12 +74,12 @@ public class ActivityCategoryServiceIntegrationTest extends ActivityCategoryServ
 		assertGetAllActivityCategoriesResult("Set expected to be cached", "gambling", "news");
 
 		// Add dummy activity category to trigger cache eviction
-		service.addActivityCategory(ActivityCategoryDTO.createInstance(dummy));
+		service.addActivityCategory(ActivityCategoryDto.createInstance(dummy));
 
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after add", "gambling", "news", "gaming");
 
 		gaming.setLocalizableName(usString("amusement"));
-		service.updateActivityCategory(gaming.getId(), ActivityCategoryDTO.createInstance(gaming));
+		service.updateActivityCategory(gaming.getId(), ActivityCategoryDto.createInstance(gaming));
 
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after add", "gambling", "news", "amusement");
 		activityCategories.remove(news);
@@ -90,7 +90,7 @@ public class ActivityCategoryServiceIntegrationTest extends ActivityCategoryServ
 		activityCategories.add(news);
 		activityCategories.remove(gaming);
 		service.updateActivityCategorySet(
-				activityCategories.stream().map(a -> ActivityCategoryDTO.createInstance(a)).collect(Collectors.toSet()));
+				activityCategories.stream().map(a -> ActivityCategoryDto.createInstance(a)).collect(Collectors.toSet()));
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after import", "gambling", "news");
 	}
 

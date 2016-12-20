@@ -36,13 +36,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.InvalidDataException;
-import nu.yona.server.goals.service.GoalDTO;
+import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
-@ExposesResourceFor(GoalDTO.class)
+@ExposesResourceFor(GoalDto.class)
 @RequestMapping(value = "/users/{userId}/goals", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class GoalController
 {
@@ -59,17 +59,17 @@ public class GoalController
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<Resources<GoalDTO>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+	public HttpEntity<Resources<GoalDto>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
-				() -> new ResponseEntity<Resources<GoalDTO>>(
+				() -> new ResponseEntity<Resources<GoalDto>>(
 						createAllGoalsCollectionResource(userId, goalService.getGoalsOfUser(userId)), HttpStatus.OK));
 	}
 
 	@RequestMapping(value = "/{goalId}", method = RequestMethod.GET)
 	@ResponseBody
-	public HttpEntity<GoalDTO> getGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+	public HttpEntity<GoalDto> getGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID goalId)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
@@ -78,8 +78,8 @@ public class GoalController
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseBody
-	public HttpEntity<GoalDTO> addGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId, @RequestBody GoalDTO goal,
+	public HttpEntity<GoalDto> addGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userId, @RequestBody GoalDto goal,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
 		setActivityCategoryId(goal);
@@ -89,8 +89,8 @@ public class GoalController
 
 	@RequestMapping(value = "/{goalId}", method = RequestMethod.PUT)
 	@ResponseBody
-	public HttpEntity<GoalDTO> updateGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId, @PathVariable UUID goalId, @RequestBody GoalDTO goal,
+	public HttpEntity<GoalDto> updateGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userId, @PathVariable UUID goalId, @RequestBody GoalDto goal,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
 		setActivityCategoryId(goal);
@@ -110,7 +110,7 @@ public class GoalController
 		});
 	}
 
-	public static Resources<GoalDTO> createAllGoalsCollectionResource(UUID userId, Set<GoalDTO> allGoalsOfUser)
+	public static Resources<GoalDto> createAllGoalsCollectionResource(UUID userId, Set<GoalDto> allGoalsOfUser)
 	{
 		return new Resources<>(new GoalResourceAssembler(userId).toResources(allGoalsOfUser),
 				getAllGoalsLinkBuilder(userId).withSelfRel());
@@ -122,12 +122,12 @@ public class GoalController
 		return linkTo(methodOn.getAllGoals(null, userId));
 	}
 
-	private HttpEntity<GoalDTO> createResponse(UUID userId, GoalDTO goal, HttpStatus status)
+	private HttpEntity<GoalDto> createResponse(UUID userId, GoalDto goal, HttpStatus status)
 	{
-		return new ResponseEntity<GoalDTO>(new GoalResourceAssembler(userId).toResource(goal), status);
+		return new ResponseEntity<GoalDto>(new GoalResourceAssembler(userId).toResource(goal), status);
 	}
 
-	private void setActivityCategoryId(GoalDTO goal)
+	private void setActivityCategoryId(GoalDto goal)
 	{
 		Link activityCategoryLink = goal.getLink(curieProvider.getNamespacedRelFor(ACTIVITY_CATEGORY_REL));
 		if (activityCategoryLink == null)
@@ -149,7 +149,7 @@ public class GoalController
 		return linkTo(methodOn.getGoal(Optional.empty(), userId, goalId));
 	}
 
-	public static class GoalResourceAssembler extends ResourceAssemblerSupport<GoalDTO, GoalDTO>
+	public static class GoalResourceAssembler extends ResourceAssemblerSupport<GoalDto, GoalDto>
 	{
 		private final boolean canBeEditable;
 		private final Function<UUID, ControllerLinkBuilder> selfLinkBuilderSupplier;
@@ -161,13 +161,13 @@ public class GoalController
 
 		public GoalResourceAssembler(boolean canBeEditable, Function<UUID, ControllerLinkBuilder> selfLinkBuilderSupplier)
 		{
-			super(GoalController.class, GoalDTO.class);
+			super(GoalController.class, GoalDto.class);
 			this.canBeEditable = canBeEditable;
 			this.selfLinkBuilderSupplier = selfLinkBuilderSupplier;
 		}
 
 		@Override
-		public GoalDTO toResource(GoalDTO goal)
+		public GoalDto toResource(GoalDto goal)
 		{
 			goal.removeLinks();
 			ControllerLinkBuilder selfLinkBuilder = selfLinkBuilderSupplier.apply(goal.getGoalId());
@@ -180,24 +180,24 @@ public class GoalController
 			return goal;
 		}
 
-		private void addActivityCategoryLink(GoalDTO goalResource)
+		private void addActivityCategoryLink(GoalDto goalResource)
 		{
 			goalResource.add(ActivityCategoryController.getActivityCategoryLinkBuilder(goalResource.getActivityCategoryId())
 					.withRel(GoalController.ACTIVITY_CATEGORY_REL));
 		}
 
 		@Override
-		protected GoalDTO instantiateResource(GoalDTO goal)
+		protected GoalDto instantiateResource(GoalDto goal)
 		{
 			return goal;
 		}
 
-		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, GoalDTO goalResource)
+		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, GoalDto goalResource)
 		{
 			goalResource.add(selfLinkBuilder.withSelfRel());
 		}
 
-		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, GoalDTO goalResource)
+		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, GoalDto goalResource)
 		{
 			goalResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
 		}

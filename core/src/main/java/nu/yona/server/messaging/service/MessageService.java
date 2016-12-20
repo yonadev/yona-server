@@ -29,8 +29,8 @@ import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
-import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
-import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.subscriptions.service.UserAnonymizedDto;
+import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Service
@@ -42,24 +42,24 @@ public class MessageService
 	private UserService userService;
 
 	@Autowired
-	private TheDTOManager dtoManager;
+	private TheDtoManager dtoManager;
 
 	@Transactional
-	public Page<MessageDTO> getReceivedMessages(UUID userId, boolean onlyUnreadMessages, Pageable pageable)
+	public Page<MessageDto> getReceivedMessages(UUID userId, boolean onlyUnreadMessages, Pageable pageable)
 	{
-		UserDTO user = userService.getPrivateValidatedUser(userId);
-		return wrapMessagesAsDTOs(user, getReceivedMessageEntities(user, onlyUnreadMessages, pageable), pageable);
+		UserDto user = userService.getPrivateValidatedUser(userId);
+		return wrapMessagesAsDtos(user, getReceivedMessageEntities(user, onlyUnreadMessages, pageable), pageable);
 	}
 
 	@Transactional
 	public Page<Message> getReceivedMessageEntities(UUID userId, Pageable pageable)
 	{
-		UserDTO user = userService.getPrivateValidatedUser(userId);
+		UserDto user = userService.getPrivateValidatedUser(userId);
 
 		return getReceivedMessageEntities(user, false, pageable);
 	}
 
-	private Page<Message> getReceivedMessageEntities(UserDTO user, boolean onlyUnreadMessages, Pageable pageable)
+	private Page<Message> getReceivedMessageEntities(UserDto user, boolean onlyUnreadMessages, Pageable pageable)
 	{
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return messageSource.getReceivedMessages(pageable, onlyUnreadMessages);
@@ -67,7 +67,7 @@ public class MessageService
 
 	public Page<Message> getReceivedMessageEntitiesSinceDate(UUID userId, LocalDateTime earliestDateTime, Pageable pageable)
 	{
-		UserDTO user = userService.getPrivateValidatedUser(userId);
+		UserDto user = userService.getPrivateValidatedUser(userId);
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return messageSource.getReceivedMessages(pageable, earliestDateTime);
 	}
@@ -76,7 +76,7 @@ public class MessageService
 	@Transactional
 	public void transferDirectMessagesToAnonymousDestination(UUID userId)
 	{
-		UserDTO user = userService.getPrivateValidatedUser(userId);
+		UserDto user = userService.getPrivateValidatedUser(userId);
 		try
 		{
 			tryTransferDirectMessagesToAnonymousDestination(user);
@@ -99,7 +99,7 @@ public class MessageService
 		}
 	}
 
-	private void tryTransferDirectMessagesToAnonymousDestination(UserDTO user)
+	private void tryTransferDirectMessagesToAnonymousDestination(UserDto user)
 	{
 		MessageSource directMessageSource = getNamedMessageSource(user);
 		MessageDestination directMessageDestination = directMessageSource.getDestination();
@@ -117,40 +117,40 @@ public class MessageService
 	}
 
 	@Transactional
-	public MessageDTO getMessage(UUID userId, UUID messageId)
+	public MessageDto getMessage(UUID userId, UUID messageId)
 	{
-		UserDTO user = userService.getPrivateValidatedUser(userId);
+		UserDto user = userService.getPrivateValidatedUser(userId);
 
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return dtoManager.createInstance(user, messageSource.getMessage(messageId));
 	}
 
 	@Transactional
-	public MessageActionDTO handleMessageAction(UUID userId, UUID id, String action, MessageActionDTO requestPayload)
+	public MessageActionDto handleMessageAction(UUID userId, UUID id, String action, MessageActionDto requestPayload)
 	{
-		UserDTO user = userService.getPrivateValidatedUser(userId);
+		UserDto user = userService.getPrivateValidatedUser(userId);
 
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
 	}
 
 	@Transactional
-	public MessageActionDTO deleteMessage(UUID userId, UUID id)
+	public MessageActionDto deleteMessage(UUID userId, UUID id)
 	{
-		UserDTO user = userService.getPrivateValidatedUser(userId);
+		UserDto user = userService.getPrivateValidatedUser(userId);
 
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		Message message = messageSource.getMessage(id);
 
 		deleteMessage(user, message, messageSource.getDestination());
 
-		return MessageActionDTO.createInstanceActionDone();
+		return MessageActionDto.createInstanceActionDone();
 	}
 
-	private void deleteMessage(UserDTO user, Message message, MessageDestination destination)
+	private void deleteMessage(UserDto user, Message message, MessageDestination destination)
 	{
-		MessageDTO messageDTO = dtoManager.createInstance(user, message);
-		if (!messageDTO.canBeDeleted())
+		MessageDto messageDto = dtoManager.createInstance(user, message);
+		if (!messageDto.canBeDeleted())
 		{
 			throw InvalidMessageActionException.unprocessedMessageCannotBeDeleted();
 		}
@@ -159,63 +159,63 @@ public class MessageService
 		MessageDestination.getRepository().save(destination);
 	}
 
-	private MessageSource getNamedMessageSource(UserDTO user)
+	private MessageSource getNamedMessageSource(UserDto user)
 	{
 		return MessageSource.getRepository().findOne(user.getPrivateData().getNamedMessageSourceId());
 	}
 
-	private MessageSource getAnonymousMessageSource(UserDTO user)
+	private MessageSource getAnonymousMessageSource(UserDto user)
 	{
 		return MessageSource.getRepository().findOne(user.getPrivateData().getAnonymousMessageSourceId());
 	}
 
-	private Page<MessageDTO> wrapMessagesAsDTOs(UserDTO user, Page<? extends Message> messageEntities, Pageable pageable)
+	private Page<MessageDto> wrapMessagesAsDtos(UserDto user, Page<? extends Message> messageEntities, Pageable pageable)
 	{
-		List<MessageDTO> allMessagePayloads = wrapMessagesAsDTOs(user, messageEntities.getContent());
-		return new PageImpl<MessageDTO>(allMessagePayloads, pageable, messageEntities.getTotalElements());
+		List<MessageDto> allMessagePayloads = wrapMessagesAsDtos(user, messageEntities.getContent());
+		return new PageImpl<MessageDto>(allMessagePayloads, pageable, messageEntities.getTotalElements());
 	}
 
-	private List<MessageDTO> wrapMessagesAsDTOs(UserDTO user, List<? extends Message> messageEntities)
+	private List<MessageDto> wrapMessagesAsDtos(UserDto user, List<? extends Message> messageEntities)
 	{
-		return messageEntities.stream().map(m -> messageToDTO(user, m)).collect(Collectors.toList());
+		return messageEntities.stream().map(m -> messageToDto(user, m)).collect(Collectors.toList());
 	}
 
-	public MessageDTO messageToDTO(UserDTO user, Message message)
+	public MessageDto messageToDto(UserDto user, Message message)
 	{
 		return dtoManager.createInstance(user, message);
 	}
 
-	public static interface DTOManager
+	public static interface DtoManager
 	{
-		MessageDTO createInstance(UserDTO actingUser, Message messageEntity);
+		MessageDto createInstance(UserDto actingUser, Message messageEntity);
 
-		MessageActionDTO handleAction(UserDTO actingUser, Message messageEntity, String action, MessageActionDTO requestPayload);
+		MessageActionDto handleAction(UserDto actingUser, Message messageEntity, String action, MessageActionDto requestPayload);
 	}
 
 	@Component
-	public static class TheDTOManager implements DTOManager
+	public static class TheDtoManager implements DtoManager
 	{
-		private final Map<Class<? extends Message>, DTOManager> managers = new HashMap<>();
+		private final Map<Class<? extends Message>, DtoManager> managers = new HashMap<>();
 
 		@Override
-		public MessageDTO createInstance(UserDTO user, Message messageEntity)
+		public MessageDto createInstance(UserDto user, Message messageEntity)
 		{
 			return getManager(messageEntity).createInstance(user, messageEntity);
 		}
 
 		@Override
-		public MessageActionDTO handleAction(UserDTO user, Message messageEntity, String action, MessageActionDTO requestPayload)
+		public MessageActionDto handleAction(UserDto user, Message messageEntity, String action, MessageActionDto requestPayload)
 		{
 			return getManager(messageEntity).handleAction(user, messageEntity, action, requestPayload);
 		}
 
-		public void addManager(Class<? extends Message> messageEntityClass, DTOManager manager)
+		public void addManager(Class<? extends Message> messageEntityClass, DtoManager manager)
 		{
-			DTOManager previousManager = managers.put(messageEntityClass, manager);
+			DtoManager previousManager = managers.put(messageEntityClass, manager);
 			assert previousManager == null;
 		}
 
-		private DTOManager getManager(Message messageEntity)
+		private DtoManager getManager(Message messageEntity)
 		{
 			assert messageEntity != null;
 
@@ -232,7 +232,7 @@ public class MessageService
 	}
 
 	@Transactional
-	public void sendMessage(Message message, MessageDestinationDTO destination)
+	public void sendMessage(Message message, MessageDestinationDto destination)
 	{
 		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getId());
 		destinationEntity.send(message);
@@ -240,7 +240,7 @@ public class MessageService
 	}
 
 	@Transactional
-	public void removeMessagesFromUser(MessageDestinationDTO destination, UUID sentByUserAnonymizedId)
+	public void removeMessagesFromUser(MessageDestinationDto destination, UUID sentByUserAnonymizedId)
 	{
 		if (sentByUserAnonymizedId == null)
 		{
@@ -253,22 +253,22 @@ public class MessageService
 	}
 
 	@Transactional
-	public void broadcastMessageToBuddies(UserAnonymizedDTO userAnonymized, Supplier<Message> messageSupplier)
+	public void broadcastMessageToBuddies(UserAnonymizedDto userAnonymized, Supplier<Message> messageSupplier)
 	{
 		userAnonymized.getBuddyDestinations().stream().forEach(destination -> sendMessage(messageSupplier.get(), destination));
 	}
 
 	@Transactional
-	public void sendMessageToUserAnonymized(UserAnonymizedDTO userAnonymized, Message message)
+	public void sendMessageToUserAnonymized(UserAnonymizedDto userAnonymized, Message message)
 	{
 		sendMessage(message, userAnonymized.getAnonymousDestination());
 	}
 
 	@Transactional
-	public Page<MessageDTO> getActivityRelatedMessages(UUID userId, UUID activityId, Pageable pageable)
+	public Page<MessageDto> getActivityRelatedMessages(UUID userId, UUID activityId, Pageable pageable)
 	{
-		UserDTO user = userService.getPrivateValidatedUser(userId);
+		UserDto user = userService.getPrivateValidatedUser(userId);
 		MessageSource messageSource = getAnonymousMessageSource(user);
-		return wrapMessagesAsDTOs(user, messageSource.getActivityRelatedMessages(activityId, pageable), pageable);
+		return wrapMessagesAsDtos(user, messageSource.getActivityRelatedMessages(activityId, pageable), pageable);
 	}
 }

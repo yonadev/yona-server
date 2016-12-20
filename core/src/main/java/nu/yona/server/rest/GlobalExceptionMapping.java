@@ -39,11 +39,11 @@ public class GlobalExceptionMapping
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ResponseBody
-	public ErrorResponseDTO handleOtherException(Exception exception)
+	public ErrorResponseDto handleOtherException(Exception exception)
 	{
 		logUnhandledException("Request completed with unknown exception: ", exception);
 
-		return new ErrorResponseDTO(null, exception.getMessage());
+		return new ErrorResponseDto(null, exception.getMessage());
 	}
 
 	/**
@@ -54,13 +54,13 @@ public class GlobalExceptionMapping
 	 * @return The response object to return.
 	 */
 	@ExceptionHandler(YonaException.class)
-	public ResponseEntity<ErrorResponseDTO> handleYonaException(YonaException exception)
+	public ResponseEntity<ErrorResponseDto> handleYonaException(YonaException exception)
 	{
 		logUnhandledException("Request completed with Yona exception: ", exception);
 
-		ErrorResponseDTO responseMessage = new ErrorResponseDTO(exception.getMessageId(), exception.getMessage());
+		ErrorResponseDto responseMessage = new ErrorResponseDto(exception.getMessageId(), exception.getMessage());
 
-		return new ResponseEntity<ErrorResponseDTO>(responseMessage, exception.getStatusCode());
+		return new ResponseEntity<ErrorResponseDto>(responseMessage, exception.getStatusCode());
 	}
 
 	private void logUnhandledException(String message, Exception exception)

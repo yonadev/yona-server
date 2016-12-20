@@ -56,16 +56,16 @@ import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.TimeZoneGoal;
-import nu.yona.server.goals.service.ActivityCategoryDTO;
+import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageDestination;
-import nu.yona.server.messaging.service.MessageDestinationDTO;
+import nu.yona.server.messaging.service.MessageDestinationDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.AnalysisServiceProperties;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
-import nu.yona.server.subscriptions.service.UserAnonymizedDTO;
+import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TimeUtil;
@@ -105,7 +105,7 @@ public class AnalysisEngineServiceTests
 	private Goal gamingGoal;
 	private Goal socialGoal;
 	private Goal shoppingGoal;
-	private MessageDestinationDTO anonMessageDestination;
+	private MessageDestinationDto anonMessageDestination;
 	private UUID userAnonId;
 	private UserAnonymized userAnonEntity;
 
@@ -143,9 +143,9 @@ public class AnalysisEngineServiceTests
 
 		when(mockActivityCategoryService.getAllActivityCategories()).thenReturn(getAllActivityCategories());
 		when(mockActivityCategoryFilterService.getMatchingCategoriesForSmoothwallCategories(anySetOf(String.class)))
-				.thenAnswer(new Answer<Set<ActivityCategoryDTO>>() {
+				.thenAnswer(new Answer<Set<ActivityCategoryDto>>() {
 					@Override
-					public Set<ActivityCategoryDTO> answer(InvocationOnMock invocation) throws Throwable
+					public Set<ActivityCategoryDto> answer(InvocationOnMock invocation) throws Throwable
 					{
 						Object[] args = invocation.getArguments();
 						@SuppressWarnings("unchecked")
@@ -157,9 +157,9 @@ public class AnalysisEngineServiceTests
 					}
 				});
 		when(mockActivityCategoryFilterService.getMatchingCategoriesForApp(any(String.class)))
-				.thenAnswer(new Answer<Set<ActivityCategoryDTO>>() {
+				.thenAnswer(new Answer<Set<ActivityCategoryDto>>() {
 					@Override
-					public Set<ActivityCategoryDTO> answer(InvocationOnMock invocation) throws Throwable
+					public Set<ActivityCategoryDto> answer(InvocationOnMock invocation) throws Throwable
 					{
 						Object[] args = invocation.getArguments();
 						String application = (String) args[0];
@@ -173,7 +173,7 @@ public class AnalysisEngineServiceTests
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
-		UserAnonymizedDTO userAnon = UserAnonymizedDTO.createInstance(userAnonEntity);
+		UserAnonymizedDto userAnon = UserAnonymizedDto.createInstance(userAnonEntity);
 		anonMessageDestination = userAnon.getAnonymousDestination();
 		userAnonId = userAnon.getId();
 		userAnonZoneId = userAnon.getTimeZone();
@@ -204,9 +204,9 @@ public class AnalysisEngineServiceTests
 		return Collections.singletonMap(Translator.EN_US_LOCALE, string);
 	}
 
-	private Set<ActivityCategoryDTO> getAllActivityCategories()
+	private Set<ActivityCategoryDto> getAllActivityCategories()
 	{
-		return goalMap.values().stream().map(goal -> ActivityCategoryDTO.createInstance(goal.getActivityCategory()))
+		return goalMap.values().stream().map(goal -> ActivityCategoryDto.createInstance(goal.getActivityCategory()))
 				.collect(Collectors.toSet());
 	}
 
@@ -247,10 +247,10 @@ public class AnalysisEngineServiceTests
 		}
 
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(userAnonId, new NetworkActivityDTO(conflictCategories, "http://localhost/test1", Optional.empty()));
+		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test1", Optional.empty()));
 
 		// Verify that there is a new conflict message sent.
-		ArgumentCaptor<MessageDestinationDTO> messageDestination = ArgumentCaptor.forClass(MessageDestinationDTO.class);
+		ArgumentCaptor<MessageDestinationDto> messageDestination = ArgumentCaptor.forClass(MessageDestinationDto.class);
 		verify(mockMessageService, times(1)).sendMessage(any(), messageDestination.capture());
 		assertThat("Expect right message destination", messageDestination.getValue().getId(),
 				equalTo(anonMessageDestination.getId()));
@@ -268,7 +268,7 @@ public class AnalysisEngineServiceTests
 		ZonedDateTime t = nowInAmsterdam();
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
-		service.analyze(userAnonId, new NetworkActivityDTO(conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify that there is a day activity update.
 		// first the DayActivity is created and then updated with the Activity
@@ -286,7 +286,7 @@ public class AnalysisEngineServiceTests
 		verify(mockAnalysisEngineCacheService).updateLastActivityForUser(eq(userAnonId), eq(gamblingGoal.getId()), any());
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
-		ArgumentCaptor<MessageDestinationDTO> messageDestination = ArgumentCaptor.forClass(MessageDestinationDTO.class);
+		ArgumentCaptor<MessageDestinationDto> messageDestination = ArgumentCaptor.forClass(MessageDestinationDto.class);
 		verify(mockMessageService).sendMessage(message.capture(), messageDestination.capture());
 		assertThat("Expect right message destination", messageDestination.getValue().getId(),
 				equalTo(anonMessageDestination.getId()));
@@ -304,12 +304,12 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag", "lotto"));
-		service.analyze(userAnonId, new NetworkActivityDTO(conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		verifyActivityUpdate(gamblingGoal);
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
-		ArgumentCaptor<MessageDestinationDTO> messageDestination = ArgumentCaptor.forClass(MessageDestinationDTO.class);
+		ArgumentCaptor<MessageDestinationDto> messageDestination = ArgumentCaptor.forClass(MessageDestinationDto.class);
 		verify(mockMessageService).sendMessage(message.capture(), messageDestination.capture());
 		assertThat("Expect right message destination", messageDestination.getValue().getId(),
 				equalTo(anonMessageDestination.getId()));
@@ -325,7 +325,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto", "games"));
-		service.analyze(userAnonId, new NetworkActivityDTO(conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify that there are 2 day activities updated, for both goals.
 		// for every goal, first the DayActivity is created and then updated with the Activity
@@ -341,7 +341,7 @@ public class AnalysisEngineServiceTests
 		verify(mockAnalysisEngineCacheService, times(1)).updateLastActivityForUser(eq(userAnonId), eq(gamingGoal.getId()), any());
 		// Verify that there are 2 conflict messages sent, for both goals.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
-		ArgumentCaptor<MessageDestinationDTO> messageDestination = ArgumentCaptor.forClass(MessageDestinationDTO.class);
+		ArgumentCaptor<MessageDestinationDto> messageDestination = ArgumentCaptor.forClass(MessageDestinationDto.class);
 		verify(mockMessageService, times(2)).sendMessage(message.capture(), messageDestination.capture());
 		assertThat("Expect right message destination", messageDestination.getValue().getId(),
 				equalTo(anonMessageDestination.getId()));
@@ -371,13 +371,13 @@ public class AnalysisEngineServiceTests
 		Set<String> conflictCategories2 = new HashSet<String>(Arrays.asList("poker"));
 		Set<String> conflictCategoriesNotMatching1 = new HashSet<String>(Arrays.asList("refdag"));
 		service.analyze(userAnonId,
-				new NetworkActivityDTO(conflictCategoriesNotMatching1, "http://localhost/test", Optional.empty()));
-		service.analyze(userAnonId, new NetworkActivityDTO(conflictCategories1, "http://localhost/test1", Optional.empty()));
-		service.analyze(userAnonId, new NetworkActivityDTO(conflictCategories2, "http://localhost/test2", Optional.empty()));
+				new NetworkActivityDto(conflictCategoriesNotMatching1, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories1, "http://localhost/test1", Optional.empty()));
+		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories2, "http://localhost/test2", Optional.empty()));
 		service.analyze(userAnonId,
-				new NetworkActivityDTO(conflictCategoriesNotMatching1, "http://localhost/test3", Optional.empty()));
+				new NetworkActivityDto(conflictCategoriesNotMatching1, "http://localhost/test3", Optional.empty()));
 		ZonedDateTime t2 = nowInAmsterdam();
-		service.analyze(userAnonId, new NetworkActivityDTO(conflictCategories2, "http://localhost/test4", Optional.empty()));
+		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories2, "http://localhost/test4", Optional.empty()));
 
 		// Verify that the cache is used to check existing activity
 		verify(mockAnalysisEngineCacheService, times(3)).fetchLastActivityForUser(userAnonId, gamblingGoal.getId());
@@ -404,7 +404,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag"));
-		service.analyze(userAnonId, new NetworkActivityDTO(conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify that there was no attempted activity update.
 		verify(mockAnalysisEngineCacheService, never()).fetchLastActivityForUser(eq(userAnonId), any());
@@ -428,7 +428,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("webshop"));
-		service.analyze(userAnonId, new NetworkActivityDTO(conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		verifyActivityUpdate(shoppingGoal);
 		verifyNoMessagesCreated();
@@ -454,7 +454,7 @@ public class AnalysisEngineServiceTests
 	{
 		// Execute the analysis engine service.
 		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("social"));
-		service.analyze(userAnonId, new NetworkActivityDTO(conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		verifyActivityUpdate(socialGoal);
 		verifyNoMessagesCreated();
@@ -584,7 +584,7 @@ public class AnalysisEngineServiceTests
 		Activity earlierActivityEntity = Activity.createInstance(activityTime.getZone(), activityTime.toLocalDateTime(),
 				activityTime.toLocalDateTime());
 		dayActivity.addActivity(earlierActivityEntity);
-		ActivityDTO earlierActivity = ActivityDTO.createInstance(earlierActivityEntity);
+		ActivityDto earlierActivity = ActivityDto.createInstance(earlierActivityEntity);
 		when(mockDayActivityRepository.findOne(userAnonId, dayActivity.getStartDate(), forGoal.getId())).thenReturn(dayActivity);
 		when(mockAnalysisEngineCacheService.fetchLastActivityForUser(userAnonId, forGoal.getId())).thenReturn(earlierActivity);
 		return dayActivity;
@@ -619,10 +619,10 @@ public class AnalysisEngineServiceTests
 		assertThat(nextPart.getEndTime(), equalTo(endTime.toLocalDateTime()));
 	}
 
-	private AppActivityDTO createSingleAppActivity(String app, ZonedDateTime startTime, ZonedDateTime endTime)
+	private AppActivityDto createSingleAppActivity(String app, ZonedDateTime startTime, ZonedDateTime endTime)
 	{
-		AppActivityDTO.Activity[] activities = { new AppActivityDTO.Activity(app, startTime, endTime) };
-		return new AppActivityDTO(nowInAmsterdam(), activities);
+		AppActivityDto.Activity[] activities = { new AppActivityDto.Activity(app, startTime, endTime) };
+		return new AppActivityDto(nowInAmsterdam(), activities);
 	}
 
 	private ZonedDateTime nowInAmsterdam()

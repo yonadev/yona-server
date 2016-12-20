@@ -25,14 +25,14 @@ public class UserAnonymizedService
 	private UserAnonymizedRepository userAnonymizedRepository;
 
 	@Cacheable
-	public UserAnonymizedDTO getUserAnonymized(UUID userAnonymizedId)
+	public UserAnonymizedDto getUserAnonymized(UUID userAnonymizedId)
 	{
 		UserAnonymized entity = userAnonymizedRepository.findOne(userAnonymizedId);
 		if (entity == null)
 		{
 			throw InvalidDataException.userAnonymizedIdNotFound(userAnonymizedId);
 		}
-		return UserAnonymizedDTO.createInstance(entity);
+		return UserAnonymizedDto.createInstance(entity);
 	}
 
 	/*
@@ -44,10 +44,10 @@ public class UserAnonymizedService
 	}
 
 	@CachePut(key = "#userAnonymizedId")
-	public UserAnonymizedDTO updateUserAnonymized(UUID userAnonymizedId, UserAnonymized entity)
+	public UserAnonymizedDto updateUserAnonymized(UUID userAnonymizedId, UserAnonymized entity)
 	{
 		UserAnonymized savedEntity = userAnonymizedRepository.save(entity);
-		return UserAnonymizedDTO.createInstance(savedEntity);
+		return UserAnonymizedDto.createInstance(savedEntity);
 	}
 
 	@CacheEvict(key = "#userAnonymizedId")

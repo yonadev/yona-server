@@ -10,22 +10,22 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import nu.yona.server.goals.service.GoalDTO;
+import nu.yona.server.goals.service.GoalDto;
 
 public class GoalIdMapping
 {
-	private final UserDTO user;
+	private final UserDto user;
 	private final Set<UUID> userGoalIds;
 	private final Map<UUID, UUID> goalIdToBuddyIdmapping;
 
-	private GoalIdMapping(UserDTO user, Set<UUID> userGoalIds, Map<UUID, UUID> goalIdToBuddyIdmapping)
+	private GoalIdMapping(UserDto user, Set<UUID> userGoalIds, Map<UUID, UUID> goalIdToBuddyIdmapping)
 	{
 		this.user = user;
 		this.userGoalIds = userGoalIds;
 		this.goalIdToBuddyIdmapping = goalIdToBuddyIdmapping;
 	}
 
-	public UserDTO getUser()
+	public UserDto getUser()
 	{
 		return user;
 	}
@@ -50,9 +50,9 @@ public class GoalIdMapping
 		return uuid;
 	}
 
-	public static GoalIdMapping createInstance(UserDTO user)
+	public static GoalIdMapping createInstance(UserDto user)
 	{
-		Set<UUID> userGoalIds = user.getPrivateData().getGoals().stream().map(GoalDTO::getGoalId).collect(Collectors.toSet());
+		Set<UUID> userGoalIds = user.getPrivateData().getGoals().stream().map(GoalDto::getGoalId).collect(Collectors.toSet());
 		Map<UUID, UUID> goalIdToBuddyIdmapping = new HashMap<>();
 		user.getPrivateData().getBuddies()
 				.forEach(b -> b.getGoals().forEach(g -> goalIdToBuddyIdmapping.put(g.getGoalId(), b.getId())));

@@ -32,7 +32,7 @@ public class NewDeviceRequestService
 	private YonaProperties yonaProperties;
 
 	@Transactional
-	public NewDeviceRequestDTO setNewDeviceRequestForUser(UUID userId, String yonaPassword, String newDeviceRequestPassword)
+	public NewDeviceRequestDto setNewDeviceRequestForUser(UUID userId, String yonaPassword, String newDeviceRequestPassword)
 	{
 		User userEntity = userService.getValidatedUserbyId(userId);
 
@@ -43,11 +43,11 @@ public class NewDeviceRequestService
 
 		logger.info("User with mobile number '{}' and ID '{}' set a new device request", userEntity.getMobileNumber(),
 				userEntity.getId());
-		return NewDeviceRequestDTO.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest());
+		return NewDeviceRequestDto.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest());
 	}
 
 	@Transactional
-	public NewDeviceRequestDTO getNewDeviceRequestForUser(UUID userId, Optional<String> newDeviceRequestPassword)
+	public NewDeviceRequestDto getNewDeviceRequestForUser(UUID userId, Optional<String> newDeviceRequestPassword)
 	{
 		User userEntity = userService.getValidatedUserbyId(userId);
 		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
@@ -67,13 +67,13 @@ public class NewDeviceRequestService
 			newDeviceRequestEntity.decryptYonaPassword(newDeviceRequestPassword.get(), userEntity.getMobileNumber());
 			logger.info("User with mobile number '{}' and ID '{}' fetched the new device request", userEntity.getMobileNumber(),
 					userEntity.getId());
-			return NewDeviceRequestDTO.createInstanceWithPassword(newDeviceRequestEntity);
+			return NewDeviceRequestDto.createInstanceWithPassword(newDeviceRequestEntity);
 		}
 		else
 		{
 			logger.info("User with mobile number '{}' and ID '{}' verified the existence of new device request",
 					userEntity.getMobileNumber(), userEntity.getId());
-			return NewDeviceRequestDTO.createInstance(userEntity.getNewDeviceRequest());
+			return NewDeviceRequestDto.createInstance(userEntity.getNewDeviceRequest());
 		}
 	}
 
