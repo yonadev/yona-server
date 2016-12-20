@@ -6,6 +6,7 @@ package nu.yona.server.subscriptions.entities;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -14,6 +15,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -43,7 +45,8 @@ public class UserPrivate extends EntityWithID
 	@Convert(converter = UUIDFieldEncrypter.class)
 	private UUID userAnonymizedID;
 
-	@OneToMany(cascade = CascadeType.ALL)
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+	@JoinColumn(name = "owning_user_private_id", referencedColumnName = "id")
 	private Set<Buddy> buddies;
 
 	@Convert(converter = UUIDFieldEncrypter.class)
@@ -105,7 +108,9 @@ public class UserPrivate extends EntityWithID
 
 	UserAnonymized getUserAnonymized()
 	{
-		return UserAnonymized.getRepository().findOne(userAnonymizedID);
+		UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(userAnonymizedID);
+		Objects.requireNonNull(userAnonymized, "UserAnonymized with ID " + userAnonymizedID + " not found");
+		return userAnonymized;
 	}
 
 	public Set<Buddy> getBuddies()

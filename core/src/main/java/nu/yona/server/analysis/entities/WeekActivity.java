@@ -4,16 +4,21 @@
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
@@ -26,6 +31,10 @@ public class WeekActivity extends IntervalActivity
 	{
 		return (WeekActivityRepository) RepositoryProvider.getRepository(WeekActivity.class, UUID.class);
 	}
+
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+	@JoinColumn(name = "week_activity_id", referencedColumnName = "id")
+	private final List<DayActivity> dayActivities = new ArrayList<>();
 
 	// Default constructor is required for JPA
 	public WeekActivity()
@@ -51,18 +60,37 @@ public class WeekActivity extends IntervalActivity
 		return getStartDate().plusDays(7).atStartOfDay(getTimeZone());
 	}
 
+	@Override
+	public void setGoal(Goal goal)
+	{
+		super.setGoal(goal);
+		dayActivities.forEach(da -> da.setGoal(goal));
+	}
+
 	public List<DayActivity> getDayActivities()
 	{
-		List<DayActivity> dayActivities = DayActivity.getRepository().findActivitiesForUserAndGoalsInIntervalEndExcluded(
-				getUserAnonymized().getID(), getGoal().getIDsIncludingHistoryItems(), getStartDate(), getEndTime().toLocalDate());
-
 		if (dayActivities.size() > 7)
 		{
 			throw new IllegalStateException(
 					"Invalid number of day activities in week starting at " + getStartDate() + ": " + dayActivities.size());
 		}
 
-		return dayActivities;
+		return Collections.unmodifiableList(dayActivities);
+	}
+
+	public void addDayActivity(DayActivity dayActivity)
+	{
+		if (dayActivities.size() >= 7)
+		{
+			throw new IllegalStateException("Week is already full (" + dayActivities.size() + " days present)");
+		}
+
+		dayActivities.add(dayActivity);
+	}
+
+	public void removeAllDayActivities()
+	{
+		dayActivities.clear();
 	}
 
 	@Override
@@ -91,6 +119,8 @@ public class WeekActivity extends IntervalActivity
 
 	public static WeekActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfWeek)
 	{
+		assert startOfWeek.getDayOfWeek() == DayOfWeek.SUNDAY : "Date " + startOfWeek
+				+ " is wrong. In Yona, Sunday is the first day of the week";
 		return new WeekActivity(UUID.randomUUID(), userAnonymized, goal, timeZone, startOfWeek,
 				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, false);
 	}

@@ -55,11 +55,6 @@ task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
 
 bootRun {
 	enableAssertions = true
-
-	systemProperties = [
-		"spring.batch.initializer.enabled": "true",
-		"spring.jpa.hibernate.ddl-auto": "update"
-	]
 }
 
 bootRepackage {

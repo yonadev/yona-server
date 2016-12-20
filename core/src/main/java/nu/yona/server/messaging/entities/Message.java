@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
@@ -31,6 +32,10 @@ public abstract class Message extends EntityWithID
 
 	@Type(type = "uuid-char")
 	private UUID repliedMessageID;
+
+	@Type(type = "uuid-char")
+	@Column(name = "message_destination_id")
+	private UUID messageDestinationId;
 
 	private final LocalDateTime creationTime;
 

@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
@@ -31,6 +32,10 @@ public class BuddyAnonymized extends EntityWithID
 	{
 		return (BuddyAnonymizedRepository) RepositoryProvider.getRepository(BuddyAnonymized.class, UUID.class);
 	}
+
+	@Type(type = "uuid-char")
+	@Column(name = "owning_user_anonymized_id")
+	private UUID owningUserAnonymizedId;
 
 	@Type(type = "uuid-char")
 	private UUID userAnonymizedID;
