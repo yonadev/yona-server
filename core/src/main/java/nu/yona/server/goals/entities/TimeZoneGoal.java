@@ -9,7 +9,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -19,7 +18,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 
 import nu.yona.server.analysis.entities.DayActivity;
@@ -29,8 +27,8 @@ public class TimeZoneGoal extends Goal
 {
 	private static final long serialVersionUID = -8166664564237587040L;
 
-	@ElementCollection
-	private List<String> zones;
+	@Column(length = 24 * 4 * 12) // 24 hours, 4 quarters of an hour, 12 characters (hh:mm-hh:mm,)
+	private String zones;
 
 	@Column(length = 24 * 14) // 15 minute intervals
 	private byte[] spreadCells;
@@ -46,7 +44,7 @@ public class TimeZoneGoal extends Goal
 	{
 		super(id, creationTime, activityCategory);
 
-		this.zones = zones;
+		this.zones = listToString(zones);
 		this.spreadCells = integerListToByteArray(spreadCells);
 	}
 
@@ -54,18 +52,18 @@ public class TimeZoneGoal extends Goal
 	{
 		super(id, originalGoal, endTime);
 
-		this.zones = new ArrayList<>(originalGoal.zones);
+		this.zones = originalGoal.zones;
 		this.spreadCells = Arrays.copyOf(originalGoal.spreadCells, originalGoal.spreadCells.length);
 	}
 
 	public List<String> getZones()
 	{
-		return new ArrayList<>(zones);
+		return stringToList(zones);
 	}
 
 	public void setZones(List<String> zones)
 	{
-		this.zones = new ArrayList<>(zones);
+		this.zones = listToString(zones);
 		this.spreadCells = integerListToByteArray(calculateSpreadCells(zones));
 	}
 
@@ -167,5 +165,23 @@ public class TimeZoneGoal extends Goal
 	public List<Integer> getSpreadCells()
 	{
 		return getSpreadCellsIntStream().boxed().collect(Collectors.toList());
+	}
+
+	public static String listToString(List<String> entityValue)
+	{
+		if (entityValue == null)
+		{
+			return null;
+		}
+		return String.join(",", entityValue);
+	}
+
+	public static List<String> stringToList(String databaseValue)
+	{
+		if (databaseValue == null)
+		{
+			return null;
+		}
+		return Arrays.asList(databaseValue.split(","));
 	}
 }
