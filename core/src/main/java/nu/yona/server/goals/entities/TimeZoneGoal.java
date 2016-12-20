@@ -30,7 +30,7 @@ public class TimeZoneGoal extends Goal
 	@Column(length = 24 * 4 * 12) // 24 hours, 4 quarters of an hour, 12 characters (hh:mm-hh:mm,)
 	private String zones;
 
-	@Column(length = 24 * 14) // 15 minute intervals
+	@Column(length = 24 * 4) // 24 hours, 4 quarters of an hour
 	private byte[] spreadCells;
 
 	// Default constructor is required for JPA

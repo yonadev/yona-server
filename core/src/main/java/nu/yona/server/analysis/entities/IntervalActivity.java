@@ -169,10 +169,8 @@ public abstract class IntervalActivity extends EntityWithId
 
 	private List<Integer> spreadBytesAsIntegerList()
 	{
-		if (spread == null)
-		{
-			return Collections.emptyList();
-		}
+		assert spread.length == SPREAD_COUNT;
+
 		List<Integer> integers = new ArrayList<>(spread.length);
 		for (int i = 0; (i < spread.length); i++)
 		{
