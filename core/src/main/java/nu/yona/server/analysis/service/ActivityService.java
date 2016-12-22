@@ -521,7 +521,7 @@ public class ActivityService
 		{
 			return new PageImpl<>(Collections.emptyList());
 		}
-		return messageService.getActivityRelatedMessages(userId, dayActivityEntity.getId(), pageable);
+		return messageService.getActivityRelatedMessages(userId, dayActivityEntity, pageable);
 	}
 
 	@FunctionalInterface
@@ -558,18 +558,18 @@ public class ActivityService
 			throw ActivityServiceException.buddyDayActivityNotFound(userId, buddyId, date, goalId);
 		}
 
-		return sendMessagePair(sendingUser, getBuddyUserAnonymizedId(buddy), dayActivityEntity.getId(), Optional.empty(),
+		return sendMessagePair(sendingUser, getBuddyUserAnonymizedId(buddy), dayActivityEntity, Optional.empty(),
 				Optional.empty(), message.getMessage());
 	}
 
-	private MessageDto sendMessagePair(UserDto sendingUser, UUID targetUserAnonymizedId, UUID activityId,
+	private MessageDto sendMessagePair(UserDto sendingUser, UUID targetUserAnonymizedId, IntervalActivity intervalActivityEntity,
 			Optional<ActivityCommentMessage> repliedMessageOfSelf, Optional<ActivityCommentMessage> repliedMessageOfBuddy,
 			String message)
 	{
-		ActivityCommentMessage messageToBuddy = createMessage(sendingUser, activityId,
+		ActivityCommentMessage messageToBuddy = createMessage(sendingUser, intervalActivityEntity,
 				repliedMessageOfBuddy.map(ActivityCommentMessage::getThreadHeadMessageId),
 				repliedMessageOfBuddy.map(ActivityCommentMessage::getId), false, message);
-		ActivityCommentMessage messageToSelf = createMessage(sendingUser, activityId,
+		ActivityCommentMessage messageToSelf = createMessage(sendingUser, intervalActivityEntity,
 				repliedMessageOfSelf.map(ActivityCommentMessage::getThreadHeadMessageId),
 				repliedMessageOfSelf.map(ActivityCommentMessage::getId), true, message);
 		sendMessage(sendingUser.getPrivateData().getUserAnonymizedId(), messageToSelf);
@@ -585,18 +585,18 @@ public class ActivityService
 		messageService.sendMessageToUserAnonymized(userAnonymized, messageEntity);
 	}
 
-	private ActivityCommentMessage createMessage(UserDto sendingUser, UUID activityId, Optional<UUID> threadHeadMessageId,
-			Optional<UUID> repliedMessageId, boolean isSentItem, String message)
+	private ActivityCommentMessage createMessage(UserDto sendingUser, IntervalActivity intervalActivityEntity,
+			Optional<UUID> threadHeadMessageId, Optional<UUID> repliedMessageId, boolean isSentItem, String message)
 	{
 		if (threadHeadMessageId.isPresent())
 		{
 			return ActivityCommentMessage.createInstance(sendingUser.getId(), sendingUser.getPrivateData().getUserAnonymizedId(),
-					sendingUser.getPrivateData().getNickname(), activityId, isSentItem, message, threadHeadMessageId.get(),
-					repliedMessageId);
+					sendingUser.getPrivateData().getNickname(), intervalActivityEntity, isSentItem, message,
+					threadHeadMessageId.get(), repliedMessageId);
 		}
 		return ActivityCommentMessage.createThreadHeadInstance(sendingUser.getId(),
-				sendingUser.getPrivateData().getUserAnonymizedId(), sendingUser.getPrivateData().getNickname(), activityId,
-				isSentItem, message, repliedMessageId);
+				sendingUser.getPrivateData().getUserAnonymizedId(), sendingUser.getPrivateData().getNickname(),
+				intervalActivityEntity, isSentItem, message, repliedMessageId);
 	}
 
 	private <T extends IntervalActivityDto> T getMissingInactivity(UUID userId, LocalDate date, UUID goalId,
@@ -615,7 +615,7 @@ public class ActivityService
 	public MessageDto replyToMessage(UserDto sendingUser, ActivityCommentMessage repliedMessage, String message)
 	{
 		UUID targetUserAnonymizedId = repliedMessage.getRelatedUserAnonymizedId().get();
-		return sendMessagePair(sendingUser, targetUserAnonymizedId, repliedMessage.getIntervalActivityId(),
+		return sendMessagePair(sendingUser, targetUserAnonymizedId, repliedMessage.getIntervalActivity(),
 				Optional.of(repliedMessage), Optional.of(repliedMessage.getSenderCopyMessage()), message);
 	}
 

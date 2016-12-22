@@ -8,15 +8,11 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.UUID;
 
-import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-
-import org.hibernate.annotations.Type;
 
 import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.ZoneIdAttributeConverter;
@@ -31,9 +27,8 @@ public class Activity extends EntityWithId
 	private LocalDateTime startTime;
 	private LocalDateTime endTime;
 
-	@Column(name = "day_activity_id")
-	@Type(type = "uuid-char")
-	private UUID dayActivityId;
+	@ManyToOne
+	private DayActivity dayActivity;
 
 	@ManyToOne
 	private ActivityCategory activityCategory;
@@ -48,6 +43,16 @@ public class Activity extends EntityWithId
 		this.timeZone = timeZone;
 		this.startTime = startTime;
 		this.endTime = endTime;
+	}
+
+	public DayActivity getDayActivity()
+	{
+		return dayActivity;
+	}
+
+	public void setDayActivity(DayActivity dayActivity)
+	{
+		this.dayActivity = dayActivity;
 	}
 
 	public ZoneId getTimeZone()

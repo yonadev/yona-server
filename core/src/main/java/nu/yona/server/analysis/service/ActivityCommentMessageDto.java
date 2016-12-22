@@ -33,15 +33,15 @@ public class ActivityCommentMessageDto extends BuddyMessageLinkedUserDto
 {
 	private static final String MESSAGE_PROPERTY = "message";
 	private static final String REPLY = "reply";
-	private final UUID activityId;
+	private final long intervalActivityId;
 	private final Optional<UUID> repliedMessageId;
 	private final UUID threadHeadMessageId;
 
-	private ActivityCommentMessageDto(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID activityId,
+	private ActivityCommentMessageDto(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, long activityId,
 			UUID threadHeadMessageId, Optional<UUID> repliedMessageId, String message)
 	{
 		super(id, creationTime, isRead, senderInfo, message);
-		this.activityId = activityId;
+		this.intervalActivityId = activityId;
 		this.threadHeadMessageId = threadHeadMessageId;
 		this.repliedMessageId = repliedMessageId;
 	}
@@ -70,9 +70,9 @@ public class ActivityCommentMessageDto extends BuddyMessageLinkedUserDto
 	}
 
 	@JsonIgnore
-	public UUID getActivityId()
+	public long getIntervalActivityId()
 	{
-		return activityId;
+		return intervalActivityId;
 	}
 
 	public UUID getThreadHeadMessageId()
@@ -90,7 +90,7 @@ public class ActivityCommentMessageDto extends BuddyMessageLinkedUserDto
 			SenderInfo senderInfo)
 	{
 		return new ActivityCommentMessageDto(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				senderInfo, messageEntity.getIntervalActivityId(), messageEntity.getThreadHeadMessageId(),
+				senderInfo, messageEntity.getIntervalActivity().getId(), messageEntity.getThreadHeadMessageId(),
 				messageEntity.getRepliedMessageId(), messageEntity.getMessage());
 	}
 

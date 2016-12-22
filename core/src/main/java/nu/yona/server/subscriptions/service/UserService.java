@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
@@ -36,6 +37,7 @@ import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
 import nu.yona.server.subscriptions.entities.Buddy;
@@ -74,6 +76,9 @@ public class UserService
 
 	@Autowired
 	private ActivityCategoryService activityCategoryService;
+
+	@Autowired
+	private MessageService messageService;
 
 	@Transactional
 	public boolean canAccessPrivateData(UUID id)
@@ -390,7 +395,7 @@ public class UserService
 		MessageSource.getRepository().flush();
 
 		Set<Goal> allGoalsIncludingHistoryItems = getAllGoalsIncludingHistoryItems(updatedUserEntity);
-		allGoalsIncludingHistoryItems.forEach(g -> g.getWeekActivities().forEach(wa -> wa.removeAllDayActivities()));
+		allGoalsIncludingHistoryItems.forEach(g -> g.getWeekActivities().forEach(wa -> clearWeekActivityReferences(wa)));
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 
 		allGoalsIncludingHistoryItems.forEach(g -> g.removeAllWeekActivities());
@@ -402,6 +407,14 @@ public class UserService
 		ldapUserService.deleteVpnAccount(vpnLoginId.toString());
 		logger.info("Deleted user with mobile number '{}' and ID '{}'", updatedUserEntity.getMobileNumber(),
 				updatedUserEntity.getId());
+	}
+
+	private void clearWeekActivityReferences(WeekActivity weekActivity)
+	{
+		// Other users might have commented on the activities being deleted. Delete these messages.
+		messageService.deleteMessagesForIntervalActivity(weekActivity);
+		weekActivity.getDayActivities().forEach(da -> messageService.deleteMessagesForIntervalActivity(da));
+		weekActivity.removeAllDayActivities();
 	}
 
 	private Set<Goal> getAllGoalsIncludingHistoryItems(User userEntity)

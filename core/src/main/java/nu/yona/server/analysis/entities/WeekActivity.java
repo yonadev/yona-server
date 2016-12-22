@@ -17,7 +17,6 @@ import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 
 import nu.yona.server.entities.RepositoryProvider;
@@ -32,8 +31,7 @@ public class WeekActivity extends IntervalActivity
 		return (WeekActivityRepository) RepositoryProvider.getRepository(WeekActivity.class, UUID.class);
 	}
 
-	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-	@JoinColumn(name = "week_activity_id", referencedColumnName = "id")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "weekActivity", orphanRemoval = true)
 	private final List<DayActivity> dayActivities = new ArrayList<>();
 
 	// Default constructor is required for JPA
@@ -42,10 +40,10 @@ public class WeekActivity extends IntervalActivity
 		super();
 	}
 
-	private WeekActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfWeek,
-			List<Integer> spread, int totalActivityDurationMinutes, boolean aggregatesComputed)
+	private WeekActivity(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfWeek, List<Integer> spread,
+			int totalActivityDurationMinutes, boolean aggregatesComputed)
 	{
-		super(id, userAnonymized, goal, timeZone, startOfWeek, spread, totalActivityDurationMinutes, aggregatesComputed);
+		super(userAnonymized, goal, timeZone, startOfWeek, spread, totalActivityDurationMinutes, aggregatesComputed);
 	}
 
 	@Override
@@ -85,11 +83,13 @@ public class WeekActivity extends IntervalActivity
 			throw new IllegalStateException("Week is already full (" + dayActivities.size() + " days present)");
 		}
 
+		dayActivity.setWeekActivity(this);
 		dayActivities.add(dayActivity);
 	}
 
 	public void removeAllDayActivities()
 	{
+		dayActivities.forEach(da -> da.setWeekActivity(null));
 		dayActivities.clear();
 	}
 
@@ -121,7 +121,7 @@ public class WeekActivity extends IntervalActivity
 	{
 		assert startOfWeek.getDayOfWeek() == DayOfWeek.SUNDAY : "Date " + startOfWeek
 				+ " is wrong. In Yona, Sunday is the first day of the week";
-		return new WeekActivity(UUID.randomUUID(), userAnonymized, goal, timeZone, startOfWeek,
+		return new WeekActivity(userAnonymized, goal, timeZone, startOfWeek,
 				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, false);
 	}
 }
