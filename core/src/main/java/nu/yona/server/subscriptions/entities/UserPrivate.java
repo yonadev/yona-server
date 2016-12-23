@@ -22,13 +22,13 @@ import javax.persistence.Table;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.StringFieldEncrypter;
 import nu.yona.server.crypto.UUIDFieldEncrypter;
-import nu.yona.server.entities.EntityWithId;
+import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageSource;
 
 @Entity
 @Table(name = "USERS_PRIVATE")
-public class UserPrivate extends EntityWithId
+public class UserPrivate extends EntityWithUuid
 {
 
 	private static final String DECRYPTION_CHECK_STRING = "Decrypted properly#";

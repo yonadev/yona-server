@@ -16,12 +16,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-
-import org.hibernate.annotations.Type;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
@@ -35,12 +32,10 @@ public class DayActivity extends IntervalActivity
 		return (DayActivityRepository) RepositoryProvider.getRepository(DayActivity.class, UUID.class);
 	}
 
-	@Column(name = "week_activity_id")
-	@Type(type = "uuid-char")
-	private UUID weekActivityId;
+	@ManyToOne
+	private WeekActivity weekActivity;
 
-	@OneToMany(cascade = CascadeType.ALL)
-	@JoinColumn(name = "day_activity_id", referencedColumnName = "id")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "dayActivity")
 	private List<Activity> activities;
 
 	private boolean goalAccomplished;
@@ -52,9 +47,9 @@ public class DayActivity extends IntervalActivity
 		super();
 	}
 
-	private DayActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfDay)
+	private DayActivity(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfDay)
 	{
-		super(id, userAnonymized, goal, timeZone, startOfDay);
+		super(userAnonymized, goal, timeZone, startOfDay);
 
 		activities = new ArrayList<>();
 	}
@@ -88,8 +83,19 @@ public class DayActivity extends IntervalActivity
 
 	public void addActivity(Activity activity)
 	{
+		activity.setDayActivity(this);
 		activity.setActivityCategory(getGoal().getActivityCategory());
 		this.activities.add(activity);
+	}
+
+	public WeekActivity getWeekActivity()
+	{
+		return weekActivity;
+	}
+
+	public void setWeekActivity(WeekActivity weekActivity)
+	{
+		this.weekActivity = weekActivity;
 	}
 
 	@Override
@@ -213,6 +219,6 @@ public class DayActivity extends IntervalActivity
 
 	public static DayActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfDay)
 	{
-		return new DayActivity(UUID.randomUUID(), userAnonymized, goal, timeZone, startOfDay);
+		return new DayActivity(userAnonymized, goal, timeZone, startOfDay);
 	}
 }

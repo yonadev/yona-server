@@ -21,16 +21,17 @@ import javax.persistence.Transient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.crypto.ByteFieldEncrypter;
 import nu.yona.server.crypto.PublicKeyDecryptor;
 import nu.yona.server.crypto.PublicKeyUtil;
-import nu.yona.server.entities.EntityWithId;
+import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.messaging.service.MessageNotFoundException;
 
 @Entity
 @Table(name = "MESSAGE_SOURCES")
-public class MessageSource extends EntityWithId
+public class MessageSource extends EntityWithUuid
 {
 	public static MessageSourceRepository getRepository()
 	{
@@ -136,9 +137,9 @@ public class MessageSource extends EntityWithId
 		return this;
 	}
 
-	public Page<? extends Message> getActivityRelatedMessages(UUID activityId, Pageable pageable)
+	public Page<? extends Message> getActivityRelatedMessages(IntervalActivity intervalActivityEntity, Pageable pageable)
 	{
-		Page<Message> messages = messageDestination.getActivityRelatedMessages(activityId, pageable);
+		Page<Message> messages = messageDestination.getActivityRelatedMessages(intervalActivityEntity, pageable);
 		decryptMessagePage(messages);
 		return messages;
 	}

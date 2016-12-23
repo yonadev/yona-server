@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -39,7 +38,7 @@ public abstract class IntervalActivity extends EntityWithId
 {
 	public static IntervalActivityRepository getIntervalActivityRepository()
 	{
-		return (IntervalActivityRepository) RepositoryProvider.getRepository(IntervalActivity.class, UUID.class);
+		return (IntervalActivityRepository) RepositoryProvider.getRepository(IntervalActivity.class, Long.class);
 	}
 
 	public static final int SPREAD_COUNT = 96;
@@ -68,12 +67,10 @@ public abstract class IntervalActivity extends EntityWithId
 	// Default constructor for JPA
 	protected IntervalActivity()
 	{
-		super(null);
 	}
 
-	protected IntervalActivity(UUID id, UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startDate)
+	protected IntervalActivity(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startDate)
 	{
-		super(id);
 		Objects.requireNonNull(userAnonymized);
 		Objects.requireNonNull(goal);
 		Objects.requireNonNull(timeZone);

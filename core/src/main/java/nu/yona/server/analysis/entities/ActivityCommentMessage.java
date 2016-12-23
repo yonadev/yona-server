@@ -10,15 +10,13 @@ import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
-import org.hibernate.annotations.Type;
-
 import nu.yona.server.messaging.entities.BuddyMessage;
 
 @Entity
 public class ActivityCommentMessage extends BuddyMessage
 {
-	@Type(type = "uuid-char")
-	private UUID intervalActivityId;
+	@ManyToOne
+	private IntervalActivity intervalActivity;
 
 	/**
 	 * Buddy comment messages are always sent in pairs: a message to the buddy and a copy for the user. This property maintains
@@ -28,10 +26,11 @@ public class ActivityCommentMessage extends BuddyMessage
 	private ActivityCommentMessage senderCopyMessage;
 
 	private ActivityCommentMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
-			UUID activityId, boolean isSentItem, String message, UUID threadHeadMessageId, Optional<UUID> repliedMessageId)
+			IntervalActivity intervalActivityEntity, boolean isSentItem, String message, UUID threadHeadMessageId,
+			Optional<UUID> repliedMessageId)
 	{
 		super(id, senderUserId, senderUserAnonymizedId, senderNickname, isSentItem, message);
-		this.intervalActivityId = activityId;
+		this.intervalActivity = intervalActivityEntity;
 
 		setThreadHeadMessageId(threadHeadMessageId);
 		setRepliedMessageId(repliedMessageId);
@@ -53,31 +52,33 @@ public class ActivityCommentMessage extends BuddyMessage
 		this.senderCopyMessage = senderCopyMessage;
 	}
 
-	public UUID getIntervalActivityId()
+	public IntervalActivity getIntervalActivity()
 	{
-		return intervalActivityId;
+		return intervalActivity;
 	}
 
 	public static ActivityCommentMessage createThreadHeadInstance(UUID senderUserId, UUID senderUserAnonymizedId,
-			String senderNickname, UUID intervalActivityId, boolean isSentItem, String message, Optional<UUID> repliedMessageId)
+			String senderNickname, IntervalActivity intervalActivityEntity, boolean isSentItem, String message,
+			Optional<UUID> repliedMessageId)
 	{
 		UUID messageId = UUID.randomUUID();
-		return createInstance(messageId, senderUserId, senderUserAnonymizedId, senderNickname, intervalActivityId, isSentItem, message,
-				messageId, repliedMessageId);
+		return createInstance(messageId, senderUserId, senderUserAnonymizedId, senderNickname, intervalActivityEntity, isSentItem,
+				message, messageId, repliedMessageId);
 	}
 
 	public static ActivityCommentMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
-			UUID intervalActivityId, boolean isSentItem, String message, UUID threadHeadMessageId, Optional<UUID> repliedMessageId)
+			IntervalActivity intervalActivity, boolean isSentItem, String message, UUID threadHeadMessageId,
+			Optional<UUID> repliedMessageId)
 	{
-		return createInstance(UUID.randomUUID(), senderUserId, senderUserAnonymizedId, senderNickname, intervalActivityId, isSentItem,
-				message, threadHeadMessageId, repliedMessageId);
+		return createInstance(UUID.randomUUID(), senderUserId, senderUserAnonymizedId, senderNickname, intervalActivity,
+				isSentItem, message, threadHeadMessageId, repliedMessageId);
 	}
 
 	private static ActivityCommentMessage createInstance(UUID id, UUID senderUserId, UUID senderUserAnonymizedId,
-			String senderNickname, UUID intervalActivityId, boolean isSentItem, String message, UUID threadHeadMessageId,
-			Optional<UUID> repliedMessageId)
+			String senderNickname, IntervalActivity intervalActivityEntity, boolean isSentItem, String message,
+			UUID threadHeadMessageId, Optional<UUID> repliedMessageId)
 	{
-		return new ActivityCommentMessage(id, senderUserId, senderUserAnonymizedId, senderNickname, intervalActivityId, isSentItem,
-				message, threadHeadMessageId, repliedMessageId);
+		return new ActivityCommentMessage(id, senderUserId, senderUserAnonymizedId, senderNickname, intervalActivityEntity,
+				isSentItem, message, threadHeadMessageId, repliedMessageId);
 	}
 }

@@ -15,13 +15,13 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
 
-import nu.yona.server.entities.EntityWithId;
+import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "BUDDIES_ANONYMIZED")
-public class BuddyAnonymized extends EntityWithId
+public class BuddyAnonymized extends EntityWithUuid
 {
 	public enum Status
 	{

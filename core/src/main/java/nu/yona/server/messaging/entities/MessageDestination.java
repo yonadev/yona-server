@@ -23,15 +23,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
+import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.crypto.PublicKeyEncryptor;
 import nu.yona.server.crypto.PublicKeyUtil;
-import nu.yona.server.entities.EntityWithId;
+import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 
 @Entity
 @Table(name = "MESSAGE_DESTINATIONS")
-public class MessageDestination extends EntityWithId
+public class MessageDestination extends EntityWithUuid
 {
 	public static MessageDestinationRepository getRepository()
 	{
@@ -118,8 +119,8 @@ public class MessageDestination extends EntityWithId
 				message -> message instanceof GoalConflictMessage && ((GoalConflictMessage) message).getGoal().equals(goal));
 	}
 
-	public Page<Message> getActivityRelatedMessages(UUID activityId, Pageable pageable)
+	public Page<Message> getActivityRelatedMessages(IntervalActivity intervalActivityEntity, Pageable pageable)
 	{
-		return Message.getRepository().findByIntervalActivityId(getId(), activityId, pageable);
+		return Message.getRepository().findByIntervalActivity(getId(), intervalActivityEntity, pageable);
 	}
 }

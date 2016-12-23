@@ -34,14 +34,14 @@ import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
 import nu.yona.server.entities.EntityUtil;
-import nu.yona.server.entities.EntityWithId;
+import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "GOALS")
-public abstract class Goal extends EntityWithId implements Serializable
+public abstract class Goal extends EntityWithUuid implements Serializable
 {
 	public static GoalRepository getRepository()
 	{

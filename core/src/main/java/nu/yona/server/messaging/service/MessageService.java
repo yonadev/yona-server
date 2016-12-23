@@ -5,6 +5,7 @@
 package nu.yona.server.messaging.service;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -265,10 +267,19 @@ public class MessageService
 	}
 
 	@Transactional
-	public Page<MessageDto> getActivityRelatedMessages(UUID userId, UUID activityId, Pageable pageable)
+	public Page<MessageDto> getActivityRelatedMessages(UUID userId, IntervalActivity intervalActivityEntity, Pageable pageable)
 	{
 		UserDto user = userService.getPrivateValidatedUser(userId);
 		MessageSource messageSource = getAnonymousMessageSource(user);
-		return wrapMessagesAsDtos(user, messageSource.getActivityRelatedMessages(activityId, pageable), pageable);
+		return wrapMessagesAsDtos(user, messageSource.getActivityRelatedMessages(intervalActivityEntity, pageable), pageable);
+	}
+
+	public void deleteMessagesForIntervalActivities(Collection<IntervalActivity> intervalActivities)
+	{
+		if (intervalActivities.isEmpty())
+		{
+			return;
+		}
+		Message.getRepository().deleteMessagesForIntervalActivities(intervalActivities);
 	}
 }

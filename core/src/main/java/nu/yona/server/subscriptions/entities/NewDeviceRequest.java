@@ -15,7 +15,7 @@ import javax.persistence.Transient;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.StringFieldEncrypter;
-import nu.yona.server.entities.EntityWithId;
+import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.service.DeviceRequestException;
 import nu.yona.server.util.TimeUtil;
@@ -28,7 +28,7 @@ import nu.yona.server.util.TimeUtil;
  */
 @Entity
 @Table(name = "NEW_DEVICE_REQUESTS")
-public class NewDeviceRequest extends EntityWithId
+public class NewDeviceRequest extends EntityWithUuid
 {
 	public static NewDeviceRequestRepository getRepository()
 	{
