@@ -16,7 +16,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
@@ -26,7 +26,7 @@ import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "USERS")
-public class User extends EntityWithID
+public class User extends EntityWithUuid
 {
 	public static UserRepository getRepository()
 	{
@@ -46,16 +46,16 @@ public class User extends EntityWithID
 
 	private boolean isCreatedOnBuddyRequest;
 
-	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
 	private ConfirmationCode mobileNumberConfirmationCode;
 
-	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
 	private ConfirmationCode overwriteUserConfirmationCode;
 
-	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
 	private ConfirmationCode pinResetConfirmationCode;
 
-	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
 	private UserPrivate userPrivate;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
@@ -201,19 +201,24 @@ public class User extends EntityWithID
 		return getUserPrivate().getUserAnonymized().getGoals();
 	}
 
-	public UUID getUserAnonymizedID()
+	public UUID getUserAnonymizedId()
 	{
-		return getUserPrivate().getUserAnonymizedID();
+		return getUserPrivate().getUserAnonymizedId();
 	}
 
-	public String getVPNPassword()
+	public String getVpnPassword()
 	{
-		return getUserPrivate().getVPNPassword();
+		return getUserPrivate().getVpnPassword();
 	}
 
 	public MessageDestination getNamedMessageDestination()
 	{
 		return messageDestination;
+	}
+
+	public void clearNamedMessageDestination()
+	{
+		messageDestination = null;
 	}
 
 	public void addBuddy(Buddy buddy)
@@ -226,9 +231,9 @@ public class User extends EntityWithID
 		getUserPrivate().removeBuddy(buddy);
 	}
 
-	public void removeBuddiesFromUser(UUID fromUserID)
+	public void removeBuddiesFromUser(UUID fromUserId)
 	{
-		getUserPrivate().removeBuddyForUserID(fromUserID);
+		getUserPrivate().removeBuddyForUserId(fromUserId);
 	}
 
 	public MessageSource getNamedMessageSource()
@@ -276,10 +281,10 @@ public class User extends EntityWithID
 		isCreatedOnBuddyRequest = true;
 	}
 
-	public Buddy getBuddyByUserAnonymizedID(UUID relatedUserAnonymizedID)
+	public Buddy getBuddyByUserAnonymizedId(UUID relatedUserAnonymizedId)
 	{
-		return getBuddies().stream().filter(buddy -> buddy.getUserAnonymizedID().isPresent()
-				&& relatedUserAnonymizedID.equals(buddy.getUserAnonymizedID().get())).findAny().get();
+		return getBuddies().stream().filter(buddy -> buddy.getUserAnonymizedId().isPresent()
+				&& relatedUserAnonymizedId.equals(buddy.getUserAnonymizedId().get())).findAny().get();
 	}
 
 	public void assertMobileNumberConfirmed()
@@ -300,9 +305,9 @@ public class User extends EntityWithID
 		return overwriteUserConfirmationCode;
 	}
 
-	public UUID getVPNLoginID()
+	public UUID getVpnLoginId()
 	{
-		return getUserPrivate().getVPNLoginID();
+		return getUserPrivate().getVpnLoginId();
 	}
 
 	public ConfirmationCode getPinResetConfirmationCode()

@@ -14,9 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import nu.yona.server.Translator;
-import nu.yona.server.subscriptions.service.BuddyDTO;
+import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyService;
-import nu.yona.server.subscriptions.service.UserDTO;
+import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 
 /*
@@ -25,12 +25,12 @@ import nu.yona.server.subscriptions.service.UserService;
  */
 public final class SenderInfo
 {
-	private final Optional<UserDTO> user;
+	private final Optional<UserDto> user;
 	private final String nickname;
 	private final boolean isBuddy;
-	private final Optional<BuddyDTO> buddy;
+	private final Optional<BuddyDto> buddy;
 
-	private SenderInfo(Optional<UserDTO> user, String nickname, boolean isBuddy, Optional<BuddyDTO> buddy)
+	private SenderInfo(Optional<UserDto> user, String nickname, boolean isBuddy, Optional<BuddyDto> buddy)
 	{
 		this.user = user;
 		this.nickname = nickname;
@@ -48,12 +48,12 @@ public final class SenderInfo
 		return isBuddy;
 	}
 
-	public Optional<UserDTO> getUser()
+	public Optional<UserDto> getUser()
 	{
 		return user;
 	}
 
-	public Optional<BuddyDTO> getBuddy()
+	public Optional<BuddyDto> getBuddy()
 	{
 		return buddy;
 	}
@@ -70,21 +70,21 @@ public final class SenderInfo
 		@Autowired
 		private Translator translator;
 
-		public SenderInfo createInstanceForBuddy(UUID userID, String nickname, UUID buddyID)
+		public SenderInfo createInstanceForBuddy(UUID userId, String nickname, UUID buddyId)
 		{
-			return new SenderInfo(Optional.of(userService.getPublicUser(userID)), nickname, true,
-					Optional.of(buddyService.getBuddy(buddyID)));
+			return new SenderInfo(Optional.of(userService.getPublicUser(userId)), nickname, true,
+					Optional.of(buddyService.getBuddy(buddyId)));
 		}
 
-		public SenderInfo createInstanceForDetachedBuddy(Optional<UserDTO> user, String nickname)
+		public SenderInfo createInstanceForDetachedBuddy(Optional<UserDto> user, String nickname)
 		{
 			return new SenderInfo(user, nickname, true, Optional.empty());
 		}
 
-		public SenderInfo createInstanceForSelf(UUID userID, String nickname)
+		public SenderInfo createInstanceForSelf(UUID userId, String nickname)
 		{
 			String selfNickname = translator.getLocalizedMessage("message.self.nickname", nickname);
-			return new SenderInfo(Optional.of(userService.getPrivateUser(userID)), selfNickname, false, Optional.empty());
+			return new SenderInfo(Optional.of(userService.getPrivateUser(userId)), selfNickname, false, Optional.empty());
 		}
 	}
 }

@@ -16,8 +16,8 @@ import nu.yona.server.messaging.entities.BuddyMessage;
 public abstract class BuddyConnectMessage extends BuddyMessage
 {
 	@Transient
-	private UUID buddyID;
-	private byte[] buddyIDCiphertext;
+	private UUID buddyId;
+	private byte[] buddyIdCiphertext;
 
 	// Default constructor is required for JPA
 	protected BuddyConnectMessage()
@@ -25,29 +25,29 @@ public abstract class BuddyConnectMessage extends BuddyMessage
 		super();
 	}
 
-	protected BuddyConnectMessage(UUID id, UUID senderUserID, UUID senderUserAnonymizedID, String senderNickname, String message,
-			UUID buddyID)
+	protected BuddyConnectMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname, String message,
+			UUID buddyId)
 	{
-		super(id, senderUserID, senderUserAnonymizedID, senderNickname, message);
-		this.buddyID = buddyID;
+		super(id, senderUserId, senderUserAnonymizedId, senderNickname, message);
+		this.buddyId = buddyId;
 	}
 
-	public UUID getBuddyID()
+	public UUID getBuddyId()
 	{
-		return buddyID;
+		return buddyId;
 	}
 
 	@Override
 	public void encrypt()
 	{
 		super.encrypt();
-		buddyIDCiphertext = CryptoUtil.encryptUuid(buddyID);
+		buddyIdCiphertext = CryptoUtil.encryptUuid(buddyId);
 	}
 
 	@Override
 	public void decrypt()
 	{
 		super.decrypt();
-		buddyID = CryptoUtil.decryptUuid(buddyIDCiphertext);
+		buddyId = CryptoUtil.decryptUuid(buddyIdCiphertext);
 	}
 }

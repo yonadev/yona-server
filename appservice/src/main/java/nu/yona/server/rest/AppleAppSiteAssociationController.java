@@ -37,7 +37,7 @@ public class AppleAppSiteAssociationController
 	public ResponseEntity<byte[]> getAppleAppSiteAssociation()
 	{
 		Map<String, Object> templateParameters = new HashMap<String, Object>();
-		templateParameters.put("appleAppID", yonaProperties.getAppleAppID());
+		templateParameters.put("appleAppId", yonaProperties.getAppleAppId());
 		templateParameters.put("esc", new EscapeTool());
 		return new ResponseEntity<byte[]>(VelocityEngineUtils
 				.mergeTemplateIntoString(velocityEngine, "apple-app-site-association.vm", "UTF-8", templateParameters)

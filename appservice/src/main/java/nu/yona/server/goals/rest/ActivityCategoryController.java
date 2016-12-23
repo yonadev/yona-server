@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.fasterxml.jackson.annotation.JsonView;
 
 import nu.yona.server.goals.rest.ActivityCategoryController.ActivityCategoryResource;
-import nu.yona.server.goals.service.ActivityCategoryDTO;
+import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
 
 @Controller
@@ -42,39 +42,39 @@ public class ActivityCategoryController
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	@ResponseBody
-	@JsonView(ActivityCategoryDTO.AppView.class)
+	@JsonView(ActivityCategoryDto.AppView.class)
 	public HttpEntity<ActivityCategoryResource> getActivityCategory(@PathVariable UUID id)
 	{
-		return createOKResponse(activityCategoryService.getActivityCategory(id));
+		return createOkResponse(activityCategoryService.getActivityCategory(id));
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
-	@JsonView(ActivityCategoryDTO.AppView.class)
+	@JsonView(ActivityCategoryDto.AppView.class)
 	public HttpEntity<Resources<ActivityCategoryResource>> getAllActivityCategories()
 	{
-		return createOKResponse(activityCategoryService.getAllActivityCategories(), getAllActivityCategoriesLinkBuilder());
+		return createOkResponse(activityCategoryService.getAllActivityCategories(), getAllActivityCategoriesLinkBuilder());
 	}
 
-	private HttpEntity<ActivityCategoryResource> createOKResponse(ActivityCategoryDTO activityCategory)
+	private HttpEntity<ActivityCategoryResource> createOkResponse(ActivityCategoryDto activityCategory)
 	{
 		return createResponse(activityCategory, HttpStatus.OK);
 	}
 
-	private HttpEntity<ActivityCategoryResource> createResponse(ActivityCategoryDTO activityCategory, HttpStatus status)
+	private HttpEntity<ActivityCategoryResource> createResponse(ActivityCategoryDto activityCategory, HttpStatus status)
 	{
 		return new ResponseEntity<ActivityCategoryResource>(new ActivityCategoryResourceAssembler().toResource(activityCategory),
 				status);
 	}
 
-	private HttpEntity<Resources<ActivityCategoryResource>> createOKResponse(Set<ActivityCategoryDTO> activityCategories,
+	private HttpEntity<Resources<ActivityCategoryResource>> createOkResponse(Set<ActivityCategoryDto> activityCategories,
 			ControllerLinkBuilder controllerMethodLinkBuilder)
 	{
 		return new ResponseEntity<Resources<ActivityCategoryResource>>(
 				wrapActivityCategoriesAsResourceList(activityCategories, controllerMethodLinkBuilder), HttpStatus.OK);
 	}
 
-	private Resources<ActivityCategoryResource> wrapActivityCategoriesAsResourceList(Set<ActivityCategoryDTO> activityCategories,
+	private Resources<ActivityCategoryResource> wrapActivityCategoriesAsResourceList(Set<ActivityCategoryDto> activityCategories,
 			ControllerLinkBuilder controllerMethodLinkBuilder)
 	{
 		return new Resources<>(new ActivityCategoryResourceAssembler().toResources(activityCategories),
@@ -93,16 +93,16 @@ public class ActivityCategoryController
 		return linkTo(methodOn.getActivityCategory(id));
 	}
 
-	public static class ActivityCategoryResource extends Resource<ActivityCategoryDTO>
+	public static class ActivityCategoryResource extends Resource<ActivityCategoryDto>
 	{
-		public ActivityCategoryResource(ActivityCategoryDTO activityCategory)
+		public ActivityCategoryResource(ActivityCategoryDto activityCategory)
 		{
 			super(activityCategory);
 		}
 	}
 
 	private static class ActivityCategoryResourceAssembler
-			extends ResourceAssemblerSupport<ActivityCategoryDTO, ActivityCategoryResource>
+			extends ResourceAssemblerSupport<ActivityCategoryDto, ActivityCategoryResource>
 	{
 		public ActivityCategoryResourceAssembler()
 		{
@@ -110,13 +110,13 @@ public class ActivityCategoryController
 		}
 
 		@Override
-		public ActivityCategoryResource toResource(ActivityCategoryDTO activityCategory)
+		public ActivityCategoryResource toResource(ActivityCategoryDto activityCategory)
 		{
-			return super.createResourceWithId(activityCategory.getID(), activityCategory);
+			return super.createResourceWithId(activityCategory.getId(), activityCategory);
 		}
 
 		@Override
-		protected ActivityCategoryResource instantiateResource(ActivityCategoryDTO activityCategory)
+		protected ActivityCategoryResource instantiateResource(ActivityCategoryDto activityCategory)
 		{
 			return new ActivityCategoryResource(activityCategory);
 		}

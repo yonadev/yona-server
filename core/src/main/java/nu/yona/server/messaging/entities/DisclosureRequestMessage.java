@@ -17,7 +17,7 @@ import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 public class DisclosureRequestMessage extends BuddyMessage
 {
 	@Type(type = "uuid-char")
-	private UUID targetGoalConflictMessageID;
+	private UUID targetGoalConflictMessageId;
 	private Status status;
 
 	// Default constructor is required for JPA
@@ -25,22 +25,22 @@ public class DisclosureRequestMessage extends BuddyMessage
 	{
 	}
 
-	private DisclosureRequestMessage(UUID id, UUID senderUserID, UUID senderUserAnonymizedID, UUID targetGoalConflictMessageID,
+	private DisclosureRequestMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, UUID targetGoalConflictMessageId,
 			String senderUserNickname, String message)
 	{
-		super(id, senderUserID, senderUserAnonymizedID, senderUserNickname, message);
-		this.targetGoalConflictMessageID = targetGoalConflictMessageID;
+		super(id, senderUserId, senderUserAnonymizedId, senderUserNickname, message);
+		this.targetGoalConflictMessageId = targetGoalConflictMessageId;
 		this.status = Status.DISCLOSURE_REQUESTED;
 	}
 
-	public UUID getTargetGoalConflictMessageID()
+	public UUID getTargetGoalConflictMessageId()
 	{
-		return targetGoalConflictMessageID;
+		return targetGoalConflictMessageId;
 	}
 
 	public GoalConflictMessage getTargetGoalConflictMessage()
 	{
-		return (GoalConflictMessage) GoalConflictMessage.getRepository().findOne(targetGoalConflictMessageID);
+		return (GoalConflictMessage) GoalConflictMessage.getRepository().findOne(targetGoalConflictMessageId);
 	}
 
 	public Status getStatus()
@@ -53,10 +53,10 @@ public class DisclosureRequestMessage extends BuddyMessage
 		this.status = status;
 	}
 
-	public static Message createInstance(UUID senderUserID, UUID senderUserAnonymizedID, String senderUserNickname,
+	public static Message createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname,
 			String message, GoalConflictMessage targetGoalConflictMessage)
 	{
-		return new DisclosureRequestMessage(UUID.randomUUID(), senderUserID, senderUserAnonymizedID,
-				targetGoalConflictMessage.getID(), senderUserNickname, message);
+		return new DisclosureRequestMessage(UUID.randomUUID(), senderUserId, senderUserAnonymizedId,
+				targetGoalConflictMessage.getId(), senderUserNickname, message);
 	}
 }

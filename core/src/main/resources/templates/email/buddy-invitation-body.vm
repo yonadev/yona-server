@@ -10,7 +10,7 @@
 		
 		<p>Important: Validate that ${requestingUserName} has really invited you. The mobile number registered with Yona for this user is ${requestingUserMobileNumber}.</p>
 		
- 		<p><a href="${inviteURL}">${inviteURL}</a></p>
+ 		<p><a href="${inviteUrl}">${inviteUrl}</a></p>
 		
 		<p>
 			Best regards,<br/>

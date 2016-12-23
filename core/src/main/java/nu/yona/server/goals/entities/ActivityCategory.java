@@ -16,12 +16,12 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 
 @Entity
 @Table(name = "ACTIVITY_CATEGORIES")
-public class ActivityCategory extends EntityWithID
+public class ActivityCategory extends EntityWithUuid
 {
 	public static ActivityCategoryRepository getRepository()
 	{

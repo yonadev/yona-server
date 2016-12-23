@@ -20,10 +20,10 @@ public class BuddyInfoChangeMessage extends BuddyMessage
 	private byte[] newNicknameCiphertext;
 	private boolean isProcessed;
 
-	public BuddyInfoChangeMessage(UUID id, UUID senderUserID, UUID senderAnonymizedUserID, String senderNickname, String message,
+	public BuddyInfoChangeMessage(UUID id, UUID senderUserId, UUID senderAnonymizedUserId, String senderNickname, String message,
 			String newNickname)
 	{
-		super(id, senderUserID, senderAnonymizedUserID, senderNickname, message);
+		super(id, senderUserId, senderAnonymizedUserId, senderNickname, message);
 		this.newNickname = newNickname;
 	}
 
@@ -62,10 +62,10 @@ public class BuddyInfoChangeMessage extends BuddyMessage
 		newNickname = CryptoUtil.decryptString(newNicknameCiphertext);
 	}
 
-	public static BuddyInfoChangeMessage createInstance(UUID senderUserID, UUID senderAnonymizedUserID, String senderNickname,
+	public static BuddyInfoChangeMessage createInstance(UUID senderUserId, UUID senderAnonymizedUserId, String senderNickname,
 			String message, String newNickname)
 	{
-		return new BuddyInfoChangeMessage(UUID.randomUUID(), senderUserID, senderAnonymizedUserID, senderNickname, message,
+		return new BuddyInfoChangeMessage(UUID.randomUUID(), senderUserId, senderAnonymizedUserId, senderNickname, message,
 				newNickname);
 	}
 }

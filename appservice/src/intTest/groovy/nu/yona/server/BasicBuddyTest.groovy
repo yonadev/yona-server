@@ -116,16 +116,16 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		User bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
 		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
-		def acceptURL = connectRequestMessage.acceptURL
+		def acceptUrl = connectRequestMessage.acceptUrl
 
 		when:
-		def response = appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
+		def response = appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
 
 		then:
 		response.status == 200
 		response.responseData.properties.status == "done"
 		response.responseData._embedded."yona:affectedMessages".size() == 1
-		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == connectRequestMessage.selfURL
+		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == connectRequestMessage.selfUrl
 		response.responseData._embedded."yona:affectedMessages"[0].status == "ACCEPTED"
 		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:accept" == null
 		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:reject" == null
@@ -156,8 +156,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		User bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptURL = appService.fetchBuddyConnectRequestMessage(bob).acceptURL
-		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
+		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
+		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
 
 		when:
 		def response = appService.getMessages(richard)
@@ -187,24 +187,24 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		User bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptURL = appService.fetchBuddyConnectRequestMessage(bob).acceptURL
-		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
+		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
+		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
 		def connectResponseMessage = appService.fetchBuddyConnectResponseMessage(richard)
-		def processURL = connectResponseMessage.processURL
+		def processUrl = connectResponseMessage.processUrl
 
 		when:
 		sleep(100) // So we are sure the request time differs from the processing time
 		ZonedDateTime buddyResponseProcessTime = YonaServer.now
-		def response = appService.postMessageActionWithPassword(processURL, [ : ], richard.password)
+		def response = appService.postMessageActionWithPassword(processUrl, [ : ], richard.password)
 
 		then:
 		response.status == 200
 		response.responseData.properties.status == "done"
 		response.responseData._embedded."yona:affectedMessages".size() == 1
-		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == connectResponseMessage.selfURL
+		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == connectResponseMessage.selfUrl
 		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
-		def buddyURL = response.responseData._embedded."yona:affectedMessages"[0]._links."yona:buddy"?.href
-		buddyURL != null
+		def buddyUrl = response.responseData._embedded."yona:affectedMessages"[0]._links."yona:buddy"?.href
+		buddyUrl != null
 
 		def buddies = appService.getBuddies(richard)
 		buddies.size() == 1
@@ -212,7 +212,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddies[0].nickname == bob.nickname
 		buddies[0].sendingStatus == "ACCEPTED"
 		buddies[0].receivingStatus == "ACCEPTED"
-		buddies[0].url == buddyURL
+		buddies[0].url == buddyUrl
 
 		def richardWithBuddy = appService.reloadUser(richard)
 		richardWithBuddy.buddies != null
@@ -512,10 +512,10 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def message = "Bob, as you know our ways parted, so I'll remove you as buddy."
 		appService.removeBuddy(richard, buddy, message)
 		def disconnectMessage = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		def processURL = disconnectMessage._links."yona:process".href
+		def processUrl = disconnectMessage._links."yona:process".href
 
 		when:
-		def response = appService.postMessageActionWithPassword(processURL, [ : ], bob.password)
+		def response = appService.postMessageActionWithPassword(processUrl, [ : ], bob.password)
 
 		then:
 		response.status == 200
@@ -583,10 +583,10 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def message = "Richard, as you know our ways parted, so I'll remove you as buddy."
 		appService.removeBuddy(bob, buddy, message)
 		def disconnectMessage = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		def processURL = disconnectMessage._links."yona:process".href
+		def processUrl = disconnectMessage._links."yona:process".href
 
 		when:
-		def response = appService.postMessageActionWithPassword(processURL, [ : ], richard.password)
+		def response = appService.postMessageActionWithPassword(processUrl, [ : ], richard.password)
 
 		then:
 		response.status == 200
@@ -654,8 +654,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		User bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptURL = appService.fetchBuddyConnectRequestMessage(bob).acceptURL
-		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
+		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
+		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
 
 		when:
 		def response = appService.removeBuddy(richard, appService.getBuddies(richard)[0], "Sorry, I regret having asked you")
@@ -668,9 +668,9 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.getMessages(bob).responseData.page.totalElements == 1 // Only the disconnect message
 
 		def disconnectMessage = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		def processURL = disconnectMessage._links."yona:process".href
+		def processUrl = disconnectMessage._links."yona:process".href
 
-		def responseProcessDisconnect = appService.postMessageActionWithPassword(processURL, [ : ], bob.password)
+		def responseProcessDisconnect = appService.postMessageActionWithPassword(processUrl, [ : ], bob.password)
 		responseProcessDisconnect.status == 200
 		responseProcessDisconnect.responseData._embedded."yona:affectedMessages".size() == 1
 		responseProcessDisconnect.responseData._embedded."yona:affectedMessages"[0]._links.self.href == disconnectMessage._links.self.href
@@ -689,8 +689,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		User bob = addBob()
 		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptURL = appService.fetchBuddyConnectRequestMessage(bob).acceptURL
-		appService.postMessageActionWithPassword(acceptURL, ["message" : "Yes, great idea!"], bob.password)
+		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
+		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
 
 		when:
 		def response = appService.removeBuddy(bob, appService.getBuddies(bob)[0], "Sorry, I regret accepting you")
@@ -708,8 +708,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		messagesRichard.responseData.page.totalElements == 1
 		messagesRichard.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}?.size() == 1
 		def disconnectMessage = messagesRichard.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		def processURL = disconnectMessage._links."yona:process".href
-		def responseProcessDisconnect = appService.postMessageActionWithPassword(processURL, [ : ], richard.password)
+		def processUrl = disconnectMessage._links."yona:process".href
+		def responseProcessDisconnect = appService.postMessageActionWithPassword(processUrl, [ : ], richard.password)
 		responseProcessDisconnect.status == 200
 
 		appService.getBuddies(richard).size() == 0 // Buddy now removed for Richard
@@ -766,8 +766,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 	private void processBuddyDisconnectMessage(User user)
 	{
 		def disconnectMessage = appService.getMessages(user).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		def processURL = disconnectMessage._links."yona:process".href
-		def response = appService.postMessageActionWithPassword(processURL, [ : ], user.password)
+		def processUrl = disconnectMessage._links."yona:process".href
+		def response = appService.postMessageActionWithPassword(processUrl, [ : ], user.password)
 		response.status == 200
 	}
 

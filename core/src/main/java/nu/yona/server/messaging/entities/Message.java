@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
@@ -17,24 +18,28 @@ import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
-import nu.yona.server.entities.EntityWithID;
+import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "MESSAGES")
-public abstract class Message extends EntityWithID
+public abstract class Message extends EntityWithUuid
 {
 	private byte[] decryptionInfo;
 
 	@Type(type = "uuid-char")
-	private final UUID relatedUserAnonymizedID;
+	private final UUID relatedUserAnonymizedId;
 
 	@Type(type = "uuid-char")
-	private UUID threadHeadMessageID;
+	private UUID threadHeadMessageId;
 
 	@Type(type = "uuid-char")
-	private UUID repliedMessageID;
+	private UUID repliedMessageId;
+
+	@Type(type = "uuid-char")
+	@Column(name = "message_destination_id")
+	private UUID messageDestinationId;
 
 	private final LocalDateTime creationTime;
 
@@ -51,19 +56,19 @@ public abstract class Message extends EntityWithID
 	 * This is the only constructor, to ensure that subclasses don't accidentally omit the ID.
 	 * 
 	 * @param id The ID of the entity
-	 * @param relatedUserAnonymizedID The ID of the related anonymized user. This is either the sender of this message or the one
+	 * @param relatedUserAnonymizedId The ID of the related anonymized user. This is either the sender of this message or the one
 	 *            for which this message is sent (e.g in case of a goal conflict message).
 	 */
-	protected Message(UUID id, UUID relatedUserAnonymizedID)
+	protected Message(UUID id, UUID relatedUserAnonymizedId)
 	{
-		this(id, relatedUserAnonymizedID, false);
+		this(id, relatedUserAnonymizedId, false);
 	}
 
-	protected Message(UUID id, UUID relatedUserAnonymizedID, boolean isSentItem)
+	protected Message(UUID id, UUID relatedUserAnonymizedId, boolean isSentItem)
 	{
 		super(id);
 
-		this.relatedUserAnonymizedID = relatedUserAnonymizedID;
+		this.relatedUserAnonymizedId = relatedUserAnonymizedId;
 		this.creationTime = TimeUtil.utcNow();
 		this.isSentItem = isSentItem;
 	}
@@ -82,24 +87,24 @@ public abstract class Message extends EntityWithID
 		decryptor.executeInCryptoSession(decryptionInfo, () -> decrypt());
 	}
 
-	protected void setRepliedMessageID(Optional<UUID> repliedMessageID)
+	protected void setRepliedMessageId(Optional<UUID> repliedMessageId)
 	{
-		this.repliedMessageID = repliedMessageID.orElse(null);
+		this.repliedMessageId = repliedMessageId.orElse(null);
 	}
 
-	protected void setThreadHeadMessageID(UUID threadHeadMessageID)
+	protected void setThreadHeadMessageId(UUID threadHeadMessageId)
 	{
-		this.threadHeadMessageID = threadHeadMessageID;
+		this.threadHeadMessageId = threadHeadMessageId;
 	}
 
-	public UUID getThreadHeadMessageID()
+	public UUID getThreadHeadMessageId()
 	{
-		return threadHeadMessageID;
+		return threadHeadMessageId;
 	}
 
-	public Optional<UUID> getRepliedMessageID()
+	public Optional<UUID> getRepliedMessageId()
 	{
-		return Optional.ofNullable(repliedMessageID);
+		return Optional.ofNullable(repliedMessageId);
 	}
 
 	public LocalDateTime getCreationTime()
@@ -129,9 +134,9 @@ public abstract class Message extends EntityWithID
 	 * @return The ID of the related anonymized user. Might be null if that user was already deleted at the time this message was
 	 *         sent on behalf of that user.
 	 */
-	public Optional<UUID> getRelatedUserAnonymizedID()
+	public Optional<UUID> getRelatedUserAnonymizedId()
 	{
-		return Optional.ofNullable(relatedUserAnonymizedID);
+		return Optional.ofNullable(relatedUserAnonymizedId);
 	}
 
 	protected abstract void encrypt();

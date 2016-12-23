@@ -17,7 +17,7 @@ import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 public class DisclosureResponseMessage extends BuddyMessage
 {
 	@Type(type = "uuid-char")
-	private UUID targetGoalConflictMessageID;
+	private UUID targetGoalConflictMessageId;
 	private Status status;
 
 	// Default constructor is required for JPA
@@ -26,17 +26,17 @@ public class DisclosureResponseMessage extends BuddyMessage
 
 	}
 
-	private DisclosureResponseMessage(UUID id, UUID senderUserID, UUID senderUserAnonymizedID, UUID targetGoalConflictMessageID,
+	private DisclosureResponseMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, UUID targetGoalConflictMessageId,
 			Status status, String senderNickname, String message)
 	{
-		super(id, senderUserID, senderUserAnonymizedID, senderNickname, message);
-		this.targetGoalConflictMessageID = targetGoalConflictMessageID;
+		super(id, senderUserId, senderUserAnonymizedId, senderNickname, message);
+		this.targetGoalConflictMessageId = targetGoalConflictMessageId;
 		this.status = status;
 	}
 
 	public GoalConflictMessage getTargetGoalConflictMessage()
 	{
-		return (GoalConflictMessage) GoalConflictMessage.getRepository().findOne(targetGoalConflictMessageID);
+		return (GoalConflictMessage) GoalConflictMessage.getRepository().findOne(targetGoalConflictMessageId);
 	}
 
 	public Status getStatus()
@@ -44,10 +44,10 @@ public class DisclosureResponseMessage extends BuddyMessage
 		return status;
 	}
 
-	public static DisclosureResponseMessage createInstance(UUID senderUserID, UUID senderUserAnonymizedID,
-			UUID targetGoalConflictMessageID, Status status, String senderNickname, String message)
+	public static DisclosureResponseMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId,
+			UUID targetGoalConflictMessageId, Status status, String senderNickname, String message)
 	{
-		return new DisclosureResponseMessage(UUID.randomUUID(), senderUserID, senderUserAnonymizedID, targetGoalConflictMessageID,
+		return new DisclosureResponseMessage(UUID.randomUUID(), senderUserId, senderUserAnonymizedId, targetGoalConflictMessageId,
 				status, senderNickname, message);
 	}
 }

@@ -17,8 +17,8 @@ import nu.yona.server.subscriptions.entities.User;
 public abstract class BuddyMessage extends Message
 {
 	@Transient
-	private UUID senderUserID;
-	private byte[] senderUserIDCiphertext;
+	private UUID senderUserId;
+	private byte[] senderUserIdCiphertext;
 
 	@Transient
 	private String message;
@@ -34,16 +34,16 @@ public abstract class BuddyMessage extends Message
 		super(null, null);
 	}
 
-	protected BuddyMessage(UUID id, UUID senderUserID, UUID senderUserAnonymizedID, String senderUserNickname, String message)
+	protected BuddyMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname, String message)
 	{
-		this(id, senderUserID, senderUserAnonymizedID, senderUserNickname, false, message);
+		this(id, senderUserId, senderUserAnonymizedId, senderUserNickname, false, message);
 	}
 
-	protected BuddyMessage(UUID id, UUID senderUserID, UUID senderUserAnonymizedID, String senderUserNickname, boolean isSentItem,
+	protected BuddyMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname, boolean isSentItem,
 			String message)
 	{
-		super(id, senderUserAnonymizedID, isSentItem);
-		this.senderUserID = senderUserID;
+		super(id, senderUserAnonymizedId, isSentItem);
+		this.senderUserId = senderUserId;
 		this.senderNickname = senderUserNickname;
 		this.message = message;
 	}
@@ -55,7 +55,7 @@ public abstract class BuddyMessage extends Message
 	 */
 	public Optional<User> getSenderUser()
 	{
-		return (senderUserID == null) ? Optional.empty() : Optional.ofNullable(User.getRepository().findOne(senderUserID));
+		return (senderUserId == null) ? Optional.empty() : Optional.ofNullable(User.getRepository().findOne(senderUserId));
 	}
 
 	/**
@@ -64,9 +64,9 @@ public abstract class BuddyMessage extends Message
 	 * @return The ID of the user sending this message. Might be null if that user was already deleted at the time this message
 	 *         was sent on behalf of that user.
 	 */
-	public UUID getSenderUserID()
+	public UUID getSenderUserId()
 	{
-		return senderUserID;
+		return senderUserId;
 	}
 
 	public String getMessage()
@@ -82,7 +82,7 @@ public abstract class BuddyMessage extends Message
 	@Override
 	public void encrypt()
 	{
-		senderUserIDCiphertext = CryptoUtil.encryptUuid(senderUserID);
+		senderUserIdCiphertext = CryptoUtil.encryptUuid(senderUserId);
 		messageCiphertext = CryptoUtil.encryptString(message);
 		senderNicknameCiphertext = CryptoUtil.encryptString(senderNickname);
 	}
@@ -90,7 +90,7 @@ public abstract class BuddyMessage extends Message
 	@Override
 	public void decrypt()
 	{
-		senderUserID = CryptoUtil.decryptUuid(senderUserIDCiphertext);
+		senderUserId = CryptoUtil.decryptUuid(senderUserIdCiphertext);
 		message = CryptoUtil.decryptString(messageCiphertext);
 		senderNickname = CryptoUtil.decryptString(senderNicknameCiphertext);
 	}

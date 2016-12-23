@@ -117,19 +117,19 @@ public class CryptoSessionTest
 	}
 
 	@Test
-	public void testInvalidPasswordWhileCheckerSaysOK()
+	public void testInvalidPasswordWhileCheckerSaysOk()
 	{
 		assertThat(PLAINTEXT1,
-				equalTo(CryptoSession.execute(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsOK, () -> PLAINTEXT1)));
+				equalTo(CryptoSession.execute(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsOk, () -> PLAINTEXT1)));
 	}
 
 	@Test(expected = CryptoException.class)
-	public void testInvalidPasswordWhileCheckerSaysNotOK()
+	public void testInvalidPasswordWhileCheckerSaysNotOk()
 	{
-		CryptoSession.execute(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsNotOK, () -> PLAINTEXT1);
+		CryptoSession.execute(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsNotOk, () -> PLAINTEXT1);
 	}
 
-	private static boolean passwordIsOK()
+	private static boolean passwordIsOk()
 	{
 		testEncryptDecryptInCurrentSession();
 		return true;
@@ -144,7 +144,7 @@ public class CryptoSessionTest
 		assertThat(plaintext, equalTo(PLAINTEXT1));
 	}
 
-	private static boolean passwordIsNotOK()
+	private static boolean passwordIsNotOk()
 	{
 		return false;
 	}

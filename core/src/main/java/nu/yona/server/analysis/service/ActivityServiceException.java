@@ -18,13 +18,13 @@ public class ActivityServiceException extends YonaException
 		super(messageId, parameters);
 	}
 
-	public static ActivityServiceException activityDateGoalMismatch(UUID userID, LocalDate date, UUID goalID)
+	public static ActivityServiceException activityDateGoalMismatch(UUID userId, LocalDate date, UUID goalId)
 	{
-		return new ActivityServiceException("error.activity.date.goal.mismatch", userID, date, goalID);
+		return new ActivityServiceException("error.activity.date.goal.mismatch", userId, date, goalId);
 	}
 
-	public static ActivityServiceException buddyDayActivityNotFound(UUID userID, UUID buddyID, LocalDate date, UUID goalID)
+	public static ActivityServiceException buddyDayActivityNotFound(UUID userId, UUID buddyId, LocalDate date, UUID goalId)
 	{
-		return new ActivityServiceException("error.activity.buddy.day.activity.not.found", userID, buddyID, date, goalID);
+		return new ActivityServiceException("error.activity.buddy.day.activity.not.found", userId, buddyId, date, goalId);
 	}
 }
