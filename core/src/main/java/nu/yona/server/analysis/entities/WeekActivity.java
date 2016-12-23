@@ -40,10 +40,9 @@ public class WeekActivity extends IntervalActivity
 		super();
 	}
 
-	private WeekActivity(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfWeek, List<Integer> spread,
-			int totalActivityDurationMinutes, boolean aggregatesComputed)
+	private WeekActivity(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfWeek)
 	{
-		super(userAnonymized, goal, timeZone, startOfWeek, spread, totalActivityDurationMinutes, aggregatesComputed);
+		super(userAnonymized, goal, timeZone, startOfWeek);
 	}
 
 	@Override
@@ -121,7 +120,6 @@ public class WeekActivity extends IntervalActivity
 	{
 		assert startOfWeek.getDayOfWeek() == DayOfWeek.SUNDAY : "Date " + startOfWeek
 				+ " is wrong. In Yona, Sunday is the first day of the week";
-		return new WeekActivity(userAnonymized, goal, timeZone, startOfWeek,
-				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, false);
+		return new WeekActivity(userAnonymized, goal, timeZone, startOfWeek);
 	}
 }

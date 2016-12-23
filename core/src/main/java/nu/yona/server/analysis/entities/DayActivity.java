@@ -12,7 +12,6 @@ import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -48,15 +47,11 @@ public class DayActivity extends IntervalActivity
 		super();
 	}
 
-	private DayActivity(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfDay,
-			List<Activity> activities, List<Integer> spread, int totalActivityDurationMinutes, boolean goalAccomplished,
-			boolean aggregatesComputed)
+	private DayActivity(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfDay)
 	{
-		super(userAnonymized, goal, timeZone, startOfDay, spread, totalActivityDurationMinutes, aggregatesComputed);
+		super(userAnonymized, goal, timeZone, startOfDay);
 
-		Objects.requireNonNull(activities);
-		this.activities = activities;
-		this.goalAccomplished = goalAccomplished;
+		activities = new ArrayList<>();
 	}
 
 	@Override
@@ -224,7 +219,6 @@ public class DayActivity extends IntervalActivity
 
 	public static DayActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfDay)
 	{
-		return new DayActivity(userAnonymized, goal, timeZone, startOfDay, new ArrayList<Activity>(),
-				new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT), 0, true, false);
+		return new DayActivity(userAnonymized, goal, timeZone, startOfDay);
 	}
 }

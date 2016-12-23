@@ -1,6 +1,6 @@
 databaseChangeLog:
 - changeSet:
-    id: 1482302477537-1
+    id: 1482475241806-1
     author: Bert (generated)
     changes:
     - createTable:
@@ -11,9 +11,6 @@ databaseChangeLog:
               primaryKey: true
               primaryKeyName: activitiesPK
             name: id
-            type: BIGINT
-        - column:
-            name: day_activity_id
             type: BIGINT
         - column:
             name: end_time
@@ -27,9 +24,12 @@ databaseChangeLog:
         - column:
             name: activity_category_id
             type: VARCHAR(255)
+        - column:
+            name: day_activity_id
+            type: BIGINT
         tableName: activities
 - changeSet:
-    id: 1482302477537-2
+    id: 1482475241806-2
     author: Bert (generated)
     changes:
     - createTable:
@@ -46,7 +46,7 @@ databaseChangeLog:
             type: BOOLEAN
         tableName: activity_categories
 - changeSet:
-    id: 1482302477537-3
+    id: 1482475241806-3
     author: Bert (generated)
     changes:
     - createTable:
@@ -61,7 +61,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: activity_category_applications
 - changeSet:
-    id: 1482302477537-4
+    id: 1482475241806-4
     author: Bert (generated)
     changes:
     - createTable:
@@ -81,7 +81,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: activity_category_localizable_description
 - changeSet:
-    id: 1482302477537-5
+    id: 1482475241806-5
     author: Bert (generated)
     changes:
     - createTable:
@@ -101,7 +101,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: activity_category_localizable_name
 - changeSet:
-    id: 1482302477537-6
+    id: 1482475241806-6
     author: Bert (generated)
     changes:
     - createTable:
@@ -116,7 +116,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: activity_category_smoothwall_categories
 - changeSet:
-    id: 1482302477537-7
+    id: 1482475241806-7
     author: Bert (generated)
     changes:
     - createTable:
@@ -143,7 +143,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: buddies
 - changeSet:
-    id: 1482302477537-8
+    id: 1482475241806-8
     author: Bert (generated)
     changes:
     - createTable:
@@ -167,7 +167,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: buddies_anonymized
 - changeSet:
-    id: 1482302477537-9
+    id: 1482475241806-9
     author: Bert (generated)
     changes:
     - createTable:
@@ -190,7 +190,7 @@ databaseChangeLog:
             type: datetime(6)
         tableName: confirmation_codes
 - changeSet:
-    id: 1482302477537-10
+    id: 1482475241806-10
     author: Bert (generated)
     changes:
     - createTable:
@@ -215,6 +215,9 @@ databaseChangeLog:
             name: max_duration_minutes
             type: INT
         - column:
+            name: spread_cells
+            type: TINYBLOB
+        - column:
             name: zones
             type: CLOB
         - column:
@@ -228,7 +231,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: goals
 - changeSet:
-    id: 1482302477537-11
+    id: 1482475241806-11
     author: Bert (generated)
     changes:
     - createTable:
@@ -251,6 +254,9 @@ databaseChangeLog:
             name: aggregates_computed
             type: BOOLEAN
         - column:
+            name: spread
+            type: TINYBLOB
+        - column:
             name: start_date
             type: date
         - column:
@@ -268,32 +274,17 @@ databaseChangeLog:
             name: total_minutes_beyond_goal
             type: INT
         - column:
-            name: week_activity_id
-            type: BIGINT
-        - column:
             name: goal_id
             type: VARCHAR(255)
         - column:
             name: user_anonymized_id
             type: VARCHAR(255)
+        - column:
+            name: week_activity_id
+            type: BIGINT
         tableName: interval_activities
 - changeSet:
-    id: 1482302477537-12
-    author: Bert (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: interval_activity_id
-            type: BIGINT
-        - column:
-            name: spread
-            type: INT
-        tableName: interval_activity_spread
-- changeSet:
-    id: 1482302477537-13
+    id: 1482475241806-12
     author: Bert (generated)
     changes:
     - createTable:
@@ -308,7 +299,7 @@ databaseChangeLog:
             type: TINYBLOB
         tableName: message_destinations
 - changeSet:
-    id: 1482302477537-14
+    id: 1482475241806-13
     author: Bert (generated)
     changes:
     - createTable:
@@ -326,7 +317,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: message_sources
 - changeSet:
-    id: 1482302477537-15
+    id: 1482475241806-14
     author: Bert (generated)
     changes:
     - createTable:
@@ -376,18 +367,6 @@ databaseChangeLog:
             name: sender_user_id_ciphertext
             type: TINYBLOB
         - column:
-            name: is_processed
-            type: BOOLEAN
-        - column:
-            name: new_nickname_ciphertext
-            type: TINYBLOB
-        - column:
-            name: status
-            type: INT
-        - column:
-            name: target_goal_conflict_message_id
-            type: VARCHAR(255)
-        - column:
             name: change
             type: INT
         - column:
@@ -400,8 +379,14 @@ databaseChangeLog:
             name: is_requesting_sending
             type: BOOLEAN
         - column:
-            name: reason
+            name: status
             type: INT
+        - column:
+            name: is_processed
+            type: BOOLEAN
+        - column:
+            name: target_goal_conflict_message_id
+            type: VARCHAR(255)
         - column:
             name: origin_goal_conflict_message_id
             type: VARCHAR(255)
@@ -409,11 +394,11 @@ databaseChangeLog:
             name: url_ciphertext
             type: TINYBLOB
         - column:
-            name: interval_activity_id
-            type: BIGINT
+            name: reason
+            type: INT
         - column:
-            name: sender_copy_message_id
-            type: VARCHAR(255)
+            name: new_nickname_ciphertext
+            type: TINYBLOB
         - column:
             name: activity_category_of_changed_goal_id
             type: VARCHAR(255)
@@ -423,9 +408,15 @@ databaseChangeLog:
         - column:
             name: goal_id
             type: VARCHAR(255)
+        - column:
+            name: interval_activity_id
+            type: BIGINT
+        - column:
+            name: sender_copy_message_id
+            type: VARCHAR(255)
         tableName: messages
 - changeSet:
-    id: 1482302477537-16
+    id: 1482475241806-15
     author: Bert (generated)
     changes:
     - createTable:
@@ -449,22 +440,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: new_device_requests
 - changeSet:
-    id: 1482302477537-17
-    author: Bert (generated)
-    changes:
-    - createTable:
-        columns:
-        - column:
-            constraints:
-              nullable: false
-            name: time_zone_goal_id
-            type: VARCHAR(255)
-        - column:
-            name: spread_cells
-            type: INT
-        tableName: time_zone_goal_spread_cells
-- changeSet:
-    id: 1482302477537-18
+    id: 1482475241806-16
     author: Bert (generated)
     changes:
     - createTable:
@@ -514,7 +490,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: users
 - changeSet:
-    id: 1482302477537-19
+    id: 1482475241806-17
     author: Bert (generated)
     changes:
     - createTable:
@@ -529,7 +505,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: users_anonymized
 - changeSet:
-    id: 1482302477537-20
+    id: 1482475241806-18
     author: Bert (generated)
     changes:
     - createTable:
@@ -562,21 +538,21 @@ databaseChangeLog:
             type: VARCHAR(255)
         tableName: users_private
 - changeSet:
-    id: 1482302477537-21
+    id: 1482475241806-19
     author: Bert (generated)
     changes:
     - addPrimaryKey:
         columnNames: activity_category_id, localizable_description_key
         tableName: activity_category_localizable_description
 - changeSet:
-    id: 1482302477537-22
+    id: 1482475241806-20
     author: Bert (generated)
     changes:
     - addPrimaryKey:
         columnNames: activity_category_id, localizable_name_key
         tableName: activity_category_localizable_name
 - changeSet:
-    id: 1482302477537-23
+    id: 1482475241806-21
     author: Bert (generated)
     changes:
     - addPrimaryKey:
@@ -584,7 +560,7 @@ databaseChangeLog:
         constraintName: activity_categoriesPK
         tableName: activity_categories
 - changeSet:
-    id: 1482302477537-24
+    id: 1482475241806-22
     author: Bert (generated)
     changes:
     - addPrimaryKey:
@@ -592,7 +568,7 @@ databaseChangeLog:
         constraintName: buddiesPK
         tableName: buddies
 - changeSet:
-    id: 1482302477537-25
+    id: 1482475241806-23
     author: Bert (generated)
     changes:
     - addPrimaryKey:
@@ -600,7 +576,7 @@ databaseChangeLog:
         constraintName: buddies_anonymizedPK
         tableName: buddies_anonymized
 - changeSet:
-    id: 1482302477537-26
+    id: 1482475241806-24
     author: Bert (generated)
     changes:
     - addPrimaryKey:
@@ -608,7 +584,7 @@ databaseChangeLog:
         constraintName: confirmation_codesPK
         tableName: confirmation_codes
 - changeSet:
-    id: 1482302477537-27
+    id: 1482475241806-25
     author: Bert (generated)
     changes:
     - addPrimaryKey:
@@ -616,7 +592,7 @@ databaseChangeLog:
         constraintName: goalsPK
         tableName: goals
 - changeSet:
-    id: 1482302477537-28
+    id: 1482475241806-26
     author: Bert (generated)
     changes:
     - addPrimaryKey:
@@ -624,7 +600,7 @@ databaseChangeLog:
         constraintName: message_destinationsPK
         tableName: message_destinations
 - changeSet:
-    id: 1482302477537-29
+    id: 1482475241806-27
     author: Bert (generated)
     changes:
     - addPrimaryKey:
@@ -632,7 +608,7 @@ databaseChangeLog:
         constraintName: message_sourcesPK
         tableName: message_sources
 - changeSet:
-    id: 1482302477537-30
+    id: 1482475241806-28
     author: Bert (generated)
     changes:
     - addPrimaryKey:
@@ -640,7 +616,7 @@ databaseChangeLog:
         constraintName: messagesPK
         tableName: messages
 - changeSet:
-    id: 1482302477537-31
+    id: 1482475241806-29
     author: Bert (generated)
     changes:
     - addPrimaryKey:
@@ -648,7 +624,7 @@ databaseChangeLog:
         constraintName: new_device_requestsPK
         tableName: new_device_requests
 - changeSet:
-    id: 1482302477537-32
+    id: 1482475241806-30
     author: Bert (generated)
     changes:
     - addPrimaryKey:
@@ -656,7 +632,7 @@ databaseChangeLog:
         constraintName: usersPK
         tableName: users
 - changeSet:
-    id: 1482302477537-33
+    id: 1482475241806-31
     author: Bert (generated)
     changes:
     - addPrimaryKey:
@@ -664,7 +640,7 @@ databaseChangeLog:
         constraintName: users_anonymizedPK
         tableName: users_anonymized
 - changeSet:
-    id: 1482302477537-34
+    id: 1482475241806-32
     author: Bert (generated)
     changes:
     - addPrimaryKey:
@@ -672,7 +648,7 @@ databaseChangeLog:
         constraintName: users_privatePK
         tableName: users_private
 - changeSet:
-    id: 1482302477537-35
+    id: 1482475241806-33
     author: Bert (generated)
     changes:
     - addUniqueConstraint:
@@ -680,7 +656,7 @@ databaseChangeLog:
         constraintName: UC_USERSMOBILE_NUMBER_COL
         tableName: users
 - changeSet:
-    id: 1482302477537-36
+    id: 1482475241806-34
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -692,7 +668,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: interval_activities
 - changeSet:
-    id: 1482302477537-37
+    id: 1482475241806-35
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -704,7 +680,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: users_private
 - changeSet:
-    id: 1482302477537-38
+    id: 1482475241806-36
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -716,7 +692,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: confirmation_codes
 - changeSet:
-    id: 1482302477537-39
+    id: 1482475241806-37
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -728,7 +704,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: goals
 - changeSet:
-    id: 1482302477537-40
+    id: 1482475241806-38
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -740,7 +716,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: goals
 - changeSet:
-    id: 1482302477537-41
+    id: 1482475241806-39
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -752,7 +728,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: activity_categories
 - changeSet:
-    id: 1482302477537-42
+    id: 1482475241806-40
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -764,7 +740,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: users_anonymized
 - changeSet:
-    id: 1482302477537-43
+    id: 1482475241806-41
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -776,7 +752,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: activity_categories
 - changeSet:
-    id: 1482302477537-44
+    id: 1482475241806-42
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -788,7 +764,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: confirmation_codes
 - changeSet:
-    id: 1482302477537-45
+    id: 1482475241806-43
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -800,7 +776,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: activity_categories
 - changeSet:
-    id: 1482302477537-46
+    id: 1482475241806-44
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -812,7 +788,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: confirmation_codes
 - changeSet:
-    id: 1482302477537-47
+    id: 1482475241806-45
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -824,7 +800,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: goals
 - changeSet:
-    id: 1482302477537-48
+    id: 1482475241806-46
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -836,7 +812,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: message_destinations
 - changeSet:
-    id: 1482302477537-49
+    id: 1482475241806-47
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -848,7 +824,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: interval_activities
 - changeSet:
-    id: 1482302477537-50
+    id: 1482475241806-48
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -860,7 +836,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: users_anonymized
 - changeSet:
-    id: 1482302477537-51
+    id: 1482475241806-49
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -872,19 +848,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: message_destinations
 - changeSet:
-    id: 1482302477537-52
-    author: Bert (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: time_zone_goal_id
-        baseTableName: time_zone_goal_spread_cells
-        constraintName: FKalg1pepghycd58o8slaq7tbfa
-        deferrable: false
-        initiallyDeferred: false
-        referencedColumnNames: id
-        referencedTableName: goals
-- changeSet:
-    id: 1482302477537-53
+    id: 1482475241806-50
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -896,19 +860,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: messages
 - changeSet:
-    id: 1482302477537-54
-    author: Bert (generated)
-    changes:
-    - addForeignKeyConstraint:
-        baseColumnNames: interval_activity_id
-        baseTableName: interval_activity_spread
-        constraintName: FKdhqxach4m803o1ig8qqu0kep3
-        deferrable: false
-        initiallyDeferred: false
-        referencedColumnNames: id
-        referencedTableName: interval_activities
-- changeSet:
-    id: 1482302477537-55
+    id: 1482475241806-51
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -920,7 +872,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: interval_activities
 - changeSet:
-    id: 1482302477537-56
+    id: 1482475241806-52
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -932,7 +884,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: activities
 - changeSet:
-    id: 1482302477537-57
+    id: 1482475241806-53
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -944,7 +896,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: activity_categories
 - changeSet:
-    id: 1482302477537-58
+    id: 1482475241806-54
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -956,7 +908,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: new_device_requests
 - changeSet:
-    id: 1482302477537-59
+    id: 1482475241806-55
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -968,7 +920,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: message_destinations
 - changeSet:
-    id: 1482302477537-60
+    id: 1482475241806-56
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -980,7 +932,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: message_destinations
 - changeSet:
-    id: 1482302477537-61
+    id: 1482475241806-57
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -992,7 +944,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: activity_categories
 - changeSet:
-    id: 1482302477537-62
+    id: 1482475241806-58
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1004,7 +956,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: activity_categories
 - changeSet:
-    id: 1482302477537-63
+    id: 1482475241806-59
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1016,7 +968,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: users_anonymized
 - changeSet:
-    id: 1482302477537-64
+    id: 1482475241806-60
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
@@ -1028,7 +980,7 @@ databaseChangeLog:
         referencedColumnNames: id
         referencedTableName: users_private
 - changeSet:
-    id: 1482302477537-65
+    id: 1482475241806-61
     author: Bert (generated)
     changes:
     - addForeignKeyConstraint:
