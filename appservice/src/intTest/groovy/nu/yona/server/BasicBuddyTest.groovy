@@ -414,6 +414,27 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Try analyzing a too long URL'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		ZonedDateTime now = YonaServer.now
+
+		when:
+		def url = buildLongUrl(2049)
+		def response = analysisService.postToAnalysisEngine(richard, ["news/media"], url)
+
+		then:
+		response.status == 400
+		response.responseData.code == "error.analysis.invalid.network.activity.url.too.long"
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
 	private def buildLongUrl(def length){
 		def baseUrl = "http://www.abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijk.com/?queryString="
 		def queryString = 'X'*(length - baseUrl.length())

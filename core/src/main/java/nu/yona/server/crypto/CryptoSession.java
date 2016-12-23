@@ -38,6 +38,8 @@ public class CryptoSession implements AutoCloseable
 	private static final byte[] SALT = "0123456789012345".getBytes();
 
 	private static final Logger logger = LoggerFactory.getLogger(CryptoSession.class);
+	private static final int ITERATIONS_FOR_MULTIUSE_KEY = 1000;
+	public static final int ITERATIONS_FOR_SINGLE_USE_KEY = 100;
 	private static ThreadLocal<CryptoSession> threadLocal = new ThreadLocal<>();
 	private Cipher encryptionCipher;
 	private Optional<byte[]> initializationVector = Optional.empty();
@@ -45,9 +47,9 @@ public class CryptoSession implements AutoCloseable
 	private final CryptoSession previousCryptoSession;
 	private Cipher decryptionCipher;
 
-	private CryptoSession(String password, CryptoSession previousCryptoSession)
+	private CryptoSession(String password, int iterations, CryptoSession previousCryptoSession)
 	{
-		secretKey = getSecretKey(password);
+		this.secretKey = getSecretKey(password, iterations);
 		this.previousCryptoSession = previousCryptoSession;
 		threadLocal.set(this);
 	}
@@ -113,10 +115,15 @@ public class CryptoSession implements AutoCloseable
 		}
 	}
 
-	private static CryptoSession start(String password)
+	public static CryptoSession start(String password)
+	{
+		return start(password, ITERATIONS_FOR_MULTIUSE_KEY);
+	}
+
+	public static CryptoSession start(String password, int iterations)
 	{
 		logger.debug("Starting crypto session on thread {}", Thread.currentThread());
-		return new CryptoSession(password, threadLocal.get());
+		return new CryptoSession(password, iterations, threadLocal.get());
 	}
 
 	public static CryptoSession getCurrent()
@@ -151,12 +158,12 @@ public class CryptoSession implements AutoCloseable
 		return CryptoUtil.decrypt(CURRENT_CRYPTO_VARIANT_NUMBER, getDecryptionCipher(), ciphertext);
 	}
 
-	private static SecretKey getSecretKey(String password)
+	private static SecretKey getSecretKey(String password, int iterations)
 	{
 		try
 		{
 			SecretKeyFactory factory = SecretKeyFactory.getInstance(SECRET_KEY_ALGORITHM);
-			KeySpec spec = new PBEKeySpec(password.toCharArray(), SALT, 65536, SECRET_KEY_LENGTH_BITS);
+			KeySpec spec = new PBEKeySpec(password.toCharArray(), SALT, iterations, SECRET_KEY_LENGTH_BITS);
 			SecretKey tmp = factory.generateSecret(spec);
 			return new SecretKeySpec(tmp.getEncoded(), "AES");
 		}

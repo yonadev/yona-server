@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.Optional;
 
 import org.junit.Test;
 
@@ -37,10 +36,9 @@ public class PublicKeyCryptoTest
 		PublicKeyEncryptor encryptor = PublicKeyEncryptor.createInstance(keyPair.getPublic());
 		String password = CryptoUtil.getRandomString(32);
 		DataContainer dataContainer = new DataContainer();
-		CryptoSession.execute(Optional.of(password), () -> {
-			dataContainer.decryptionInfo = encryptor.getDecryptionInfo(password);
-			dataContainer.ciphertext = CryptoUtil.encryptString(PLAINTEXT1);
-		});
+		dataContainer.decryptionInfo = encryptor.executeInCryptoSession(password,
+				() -> dataContainer.ciphertext = CryptoUtil.encryptString(PLAINTEXT1));
+
 		assertThat(dataContainer.decryptionInfo.length, equalTo(MIN_BLOCK_LENGTH));
 		assertThat(dataContainer.ciphertext.length, lessThan(MIN_BLOCK_LENGTH));
 

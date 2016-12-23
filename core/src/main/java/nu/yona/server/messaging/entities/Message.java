@@ -14,7 +14,6 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
 
-import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
@@ -76,10 +75,7 @@ public abstract class Message extends EntityWithUuid
 	public void encryptMessage(Encryptor encryptor)
 	{
 		String password = CryptoUtil.getRandomString(32);
-		CryptoSession.execute(Optional.of(password), () -> {
-			decryptionInfo = encryptor.getDecryptionInfo(password);
-			encrypt();
-		});
+		decryptionInfo = encryptor.executeInCryptoSession(password, () -> encrypt());
 	}
 
 	public void decryptMessage(Decryptor decryptor)

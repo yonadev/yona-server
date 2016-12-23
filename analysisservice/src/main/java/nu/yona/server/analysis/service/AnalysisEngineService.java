@@ -42,6 +42,7 @@ public class AnalysisEngineService
 {
 	private static final Duration DEVICE_TIME_INACCURACY_MARGIN = Duration.ofSeconds(10);
 	private static final Duration ONE_MINUTE = Duration.ofMinutes(1);
+	private static final int MAX_SUPPORTED_URL_LENGTH = 2048;
 	@Autowired
 	private YonaProperties yonaProperties;
 	@Autowired
@@ -79,6 +80,10 @@ public class AnalysisEngineService
 	@Transactional
 	public void analyze(UUID userAnonymizedId, NetworkActivityDto networkActivity)
 	{
+		if (networkActivity.getUrl().length() > MAX_SUPPORTED_URL_LENGTH)
+		{
+			throw AnalysisException.urlTooLong(networkActivity.getUrl().length(), MAX_SUPPORTED_URL_LENGTH);
+		}
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService
 				.getMatchingCategoriesForSmoothwallCategories(networkActivity.getCategories());

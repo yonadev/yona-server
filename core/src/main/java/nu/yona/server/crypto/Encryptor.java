@@ -6,5 +6,5 @@ package nu.yona.server.crypto;
 
 public interface Encryptor
 {
-	byte[] getDecryptionInfo(String password);
+	byte[] executeInCryptoSession(String password, Runnable runnable);
 }

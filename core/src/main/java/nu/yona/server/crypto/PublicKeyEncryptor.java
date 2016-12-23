@@ -48,7 +48,17 @@ public class PublicKeyEncryptor implements Encryptor
 	}
 
 	@Override
-	public byte[] getDecryptionInfo(String password)
+	public byte[] executeInCryptoSession(String password, Runnable runnable)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password, CryptoSession.ITERATIONS_FOR_SINGLE_USE_KEY))
+		{
+			byte[] decryptionInfo = getDecryptionInfo(password);
+			runnable.run();
+			return decryptionInfo;
+		}
+	}
+
+	private byte[] getDecryptionInfo(String password)
 	{
 		DecryptionInfo decryptionInfo = new DecryptionInfo(password, CryptoSession.getCurrent().generateInitializationVector());
 		return encrypt(decryptionInfo.convertToByteArray());
