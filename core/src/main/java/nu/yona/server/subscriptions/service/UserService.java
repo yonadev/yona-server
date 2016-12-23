@@ -7,6 +7,7 @@ package nu.yona.server.subscriptions.service;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -24,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import nu.yona.server.analysis.entities.WeekActivity;
+import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.InvalidDataException;
@@ -395,7 +396,8 @@ public class UserService
 		MessageSource.getRepository().flush();
 
 		Set<Goal> allGoalsIncludingHistoryItems = getAllGoalsIncludingHistoryItems(updatedUserEntity);
-		allGoalsIncludingHistoryItems.forEach(g -> g.getWeekActivities().forEach(wa -> clearWeekActivityReferences(wa)));
+		deleteAllWeekActivityCommentMessages(allGoalsIncludingHistoryItems);
+		deleteAllDayActivitiesWithTheirCommentMessages(allGoalsIncludingHistoryItems);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 
 		allGoalsIncludingHistoryItems.forEach(g -> g.removeAllWeekActivities());
@@ -409,12 +411,21 @@ public class UserService
 				updatedUserEntity.getId());
 	}
 
-	private void clearWeekActivityReferences(WeekActivity weekActivity)
+	private void deleteAllDayActivitiesWithTheirCommentMessages(Set<Goal> allGoalsIncludingHistoryItems)
+	{
+		allGoalsIncludingHistoryItems.forEach(g -> g.getWeekActivities().forEach(wa -> {
+			// Other users might have commented on the activities being deleted. Delete these messages.
+			messageService.deleteMessagesForIntervalActivities(wa.getDayActivities().stream().collect(Collectors.toList()));
+			wa.removeAllDayActivities();
+		}));
+	}
+
+	private void deleteAllWeekActivityCommentMessages(Set<Goal> allGoalsIncludingHistoryItems)
 	{
 		// Other users might have commented on the activities being deleted. Delete these messages.
-		messageService.deleteMessagesForIntervalActivity(weekActivity);
-		weekActivity.getDayActivities().forEach(da -> messageService.deleteMessagesForIntervalActivity(da));
-		weekActivity.removeAllDayActivities();
+		List<IntervalActivity> allWeekActivities = allGoalsIncludingHistoryItems.stream()
+				.flatMap(g -> g.getWeekActivities().stream()).collect(Collectors.toList());
+		messageService.deleteMessagesForIntervalActivities(allWeekActivities);
 	}
 
 	private Set<Goal> getAllGoalsIncludingHistoryItems(User userEntity)

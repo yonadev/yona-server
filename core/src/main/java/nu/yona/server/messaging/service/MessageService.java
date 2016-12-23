@@ -5,6 +5,7 @@
 package nu.yona.server.messaging.service;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -273,8 +274,12 @@ public class MessageService
 		return wrapMessagesAsDtos(user, messageSource.getActivityRelatedMessages(intervalActivityEntity, pageable), pageable);
 	}
 
-	public void deleteMessagesForIntervalActivity(IntervalActivity intervalActivity)
+	public void deleteMessagesForIntervalActivities(Collection<IntervalActivity> intervalActivities)
 	{
-		Message.getRepository().deleteMessagesForIntervalActivity(intervalActivity);
+		if (intervalActivities.isEmpty())
+		{
+			return;
+		}
+		Message.getRepository().deleteMessagesForIntervalActivities(intervalActivities);
 	}
 }

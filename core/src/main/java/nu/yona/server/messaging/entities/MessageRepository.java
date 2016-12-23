@@ -5,6 +5,7 @@
 package nu.yona.server.messaging.entities;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -40,6 +41,6 @@ public interface MessageRepository extends CrudRepository<Message, UUID>
 			@Param("earliestDateTime") LocalDateTime earliestDateTime, Pageable pageable);
 
 	@Modifying
-	@Query("delete from Message m where m.intervalActivity = :intervalActivity")
-	void deleteMessagesForIntervalActivity(@Param("intervalActivity") IntervalActivity intervalActivity);
+	@Query("delete from Message m where m.intervalActivity in :intervalActivities")
+	void deleteMessagesForIntervalActivities(@Param("intervalActivities") Collection<IntervalActivity> intervalActivities);
 }
