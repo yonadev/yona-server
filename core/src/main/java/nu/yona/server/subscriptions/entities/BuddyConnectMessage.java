@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
@@ -26,9 +26,10 @@ public abstract class BuddyConnectMessage extends BuddyMessage
 		super();
 	}
 
-	protected BuddyConnectMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname, String message, UUID buddyId)
+	protected BuddyConnectMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname, String message,
+			UUID buddyId)
 	{
-		super(id, senderUserId, senderUserAnonymizedId, senderNickname, message);
+		super(senderUserId, senderUserAnonymizedId, senderNickname, message);
 		this.buddyId = buddyId;
 	}
 

@@ -32,17 +32,16 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 	private static final String ACCEPT = "accept";
 	private static final String REJECT = "reject";
 
-	private final UUID targetGoalConflictGoalId;
-	private final LocalDate targetGoalConflictDate;
+	private final UUID goalId;
+	private final LocalDate goalConflictStartTime;
 	private final Status status;
 
-	private DisclosureRequestMessageDto(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo,
-			String message, Status status, UUID targetGoalConflictMessageId, UUID targetGoalConflictGoalId,
-			LocalDate targetGoalConflictDate)
+	private DisclosureRequestMessageDto(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+			String message, Status status, long originalGoalConflictMessage, UUID goalId, LocalDate goalConflictStartTime)
 	{
-		super(id, creationTime, isRead, targetGoalConflictMessageId, senderInfo, message);
-		this.targetGoalConflictGoalId = targetGoalConflictGoalId;
-		this.targetGoalConflictDate = targetGoalConflictDate;
+		super(id, creationTime, isRead, originalGoalConflictMessage, senderInfo, message);
+		this.goalId = goalId;
+		this.goalConflictStartTime = goalConflictStartTime;
 		this.status = status;
 	}
 
@@ -65,15 +64,15 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 	}
 
 	@JsonIgnore
-	public UUID getTargetGoalConflictGoalId()
+	public UUID getGoalId()
 	{
-		return targetGoalConflictGoalId;
+		return goalId;
 	}
 
 	@JsonIgnore
-	public LocalDate getTargetGoalConflictDate()
+	public LocalDate getGoalConflictStartTime()
 	{
-		return targetGoalConflictDate;
+		return goalConflictStartTime;
 	}
 
 	public Status getStatus()
@@ -93,7 +92,7 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
 		return new DisclosureRequestMessageDto(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				senderInfo, messageEntity.getMessage(), messageEntity.getStatus(),
-				targetGoalConflictMessage.getOriginGoalConflictMessageId(), targetGoalConflictMessage.getGoal().getId(),
+				targetGoalConflictMessage.getOriginGoalConflictMessage().getId(), targetGoalConflictMessage.getGoal().getId(),
 				targetGoalConflictMessage.getActivity().getStartTime().toLocalDate());
 	}
 
@@ -180,7 +179,7 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 					.getUserAnonymized(requestMessageEntity.getRelatedUserAnonymizedId().get()).getAnonymousDestination();
 			assert messageDestination != null;
 			messageService.sendMessage(DisclosureResponseMessage.createInstance(respondingUser.getId(),
-					respondingUser.getPrivateData().getUserAnonymizedId(), requestMessageEntity.getTargetGoalConflictMessageId(),
+					respondingUser.getPrivateData().getUserAnonymizedId(), requestMessageEntity.getTargetGoalConflictMessage(),
 					requestMessageEntity.getStatus(), respondingUser.getPrivateData().getNickname(), message),
 					messageDestination);
 		}

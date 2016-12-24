@@ -34,7 +34,7 @@ public class GoalChangeMessageDto extends BuddyMessageLinkedUserDto
 	private final UUID activityCategoryIdOfChangedGoal;
 	private final Change change;
 
-	private GoalChangeMessageDto(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+	private GoalChangeMessageDto(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo,
 			UUID activityCategoryIdOfChangedGoal, Change change, String message)
 	{
 		super(id, creationTime, isRead, senderInfo, message);

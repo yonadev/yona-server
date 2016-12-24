@@ -4,13 +4,15 @@
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
-import java.util.Optional;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 import nu.yona.server.messaging.entities.BuddyMessage;
+import nu.yona.server.messaging.entities.Message;
 
 @Entity
 public class ActivityCommentMessage extends BuddyMessage
@@ -22,18 +24,17 @@ public class ActivityCommentMessage extends BuddyMessage
 	 * Buddy comment messages are always sent in pairs: a message to the buddy and a copy for the user. This property maintains
 	 * the relationship between the two.
 	 */
-	@ManyToOne
+	@OneToOne(mappedBy = "buddyMessage", cascade = CascadeType.REMOVE)
 	private ActivityCommentMessage senderCopyMessage;
 
-	private ActivityCommentMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
-			IntervalActivity intervalActivityEntity, boolean isSentItem, String message, UUID threadHeadMessageId,
-			Optional<UUID> repliedMessageId)
-	{
-		super(id, senderUserId, senderUserAnonymizedId, senderNickname, isSentItem, message);
-		this.intervalActivity = intervalActivityEntity;
+	@OneToOne(cascade = CascadeType.REMOVE)
+	private ActivityCommentMessage buddyMessage;
 
-		setThreadHeadMessageId(threadHeadMessageId);
-		setRepliedMessageId(repliedMessageId);
+	private ActivityCommentMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
+			IntervalActivity intervalActivityEntity, boolean isSentItem, String message)
+	{
+		super(senderUserId, senderUserAnonymizedId, senderNickname, isSentItem, message);
+		this.intervalActivity = intervalActivityEntity;
 	}
 
 	// Default constructor is required for JPA
@@ -47,9 +48,35 @@ public class ActivityCommentMessage extends BuddyMessage
 		return this.senderCopyMessage;
 	}
 
-	public void setSenderCopyMessage(ActivityCommentMessage senderCopyMessage)
+	private void setSenderCopyMessage(ActivityCommentMessage senderCopyMessage)
 	{
 		this.senderCopyMessage = senderCopyMessage;
+	}
+
+	@Override
+	public void clearThreadHeadSelfReference()
+	{
+		Message threadHeadMessage = getThreadHeadMessage();
+		if (threadHeadMessage == null || threadHeadMessage.getId() != getId())
+		{
+			// Prevent recursion
+			return;
+		}
+		super.clearThreadHeadSelfReference();
+		if (senderCopyMessage != null)
+		{
+			senderCopyMessage.clearThreadHeadSelfReference();
+		}
+		if (buddyMessage != null)
+		{
+			buddyMessage.clearThreadHeadSelfReference();
+		}
+	}
+
+	public void setBuddyMessage(ActivityCommentMessage message)
+	{
+		buddyMessage = message;
+		message.setSenderCopyMessage(this);
 	}
 
 	public IntervalActivity getIntervalActivity()
@@ -58,27 +85,29 @@ public class ActivityCommentMessage extends BuddyMessage
 	}
 
 	public static ActivityCommentMessage createThreadHeadInstance(UUID senderUserId, UUID senderUserAnonymizedId,
-			String senderNickname, IntervalActivity intervalActivityEntity, boolean isSentItem, String message,
-			Optional<UUID> repliedMessageId)
+			String senderNickname, IntervalActivity intervalActivityEntity, boolean isSentItem, String message)
 	{
-		UUID messageId = UUID.randomUUID();
-		return createInstance(messageId, senderUserId, senderUserAnonymizedId, senderNickname, intervalActivityEntity, isSentItem,
-				message, messageId, repliedMessageId);
+		ActivityCommentMessage activityCommentMessage = createInstance(senderUserId, senderUserAnonymizedId, senderNickname,
+				intervalActivityEntity, isSentItem, message);
+		// This message is its own little thread
+		activityCommentMessage.setThreadHeadMessage(activityCommentMessage);
+		return activityCommentMessage;
 	}
 
 	public static ActivityCommentMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
-			IntervalActivity intervalActivity, boolean isSentItem, String message, UUID threadHeadMessageId,
-			Optional<UUID> repliedMessageId)
+			IntervalActivity intervalActivity, boolean isSentItem, String message, Message repliedMessage)
 	{
-		return createInstance(UUID.randomUUID(), senderUserId, senderUserAnonymizedId, senderNickname, intervalActivity,
-				isSentItem, message, threadHeadMessageId, repliedMessageId);
+		ActivityCommentMessage activityCommentMessage = createInstance(senderUserId, senderUserAnonymizedId, senderNickname,
+				intervalActivity, isSentItem, message);
+		repliedMessage.addReply(activityCommentMessage);
+		repliedMessage.getThreadHeadMessage().addMessageToThread(activityCommentMessage);
+		return activityCommentMessage;
 	}
 
-	private static ActivityCommentMessage createInstance(UUID id, UUID senderUserId, UUID senderUserAnonymizedId,
-			String senderNickname, IntervalActivity intervalActivityEntity, boolean isSentItem, String message,
-			UUID threadHeadMessageId, Optional<UUID> repliedMessageId)
+	private static ActivityCommentMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
+			IntervalActivity intervalActivityEntity, boolean isSentItem, String message)
 	{
-		return new ActivityCommentMessage(id, senderUserId, senderUserAnonymizedId, senderNickname, intervalActivityEntity,
-				isSentItem, message, threadHeadMessageId, repliedMessageId);
+		return new ActivityCommentMessage(senderUserId, senderUserAnonymizedId, senderNickname, intervalActivityEntity,
+				isSentItem, message);
 	}
 }

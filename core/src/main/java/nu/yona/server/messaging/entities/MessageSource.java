@@ -119,7 +119,7 @@ public class MessageSource extends EntityWithUuid
 		return privateKey;
 	}
 
-	public Message getMessage(UUID idToFetch)
+	public Message getMessage(long idToFetch)
 	{
 		Message message = Message.getRepository().findOne(idToFetch);
 		if (message == null)

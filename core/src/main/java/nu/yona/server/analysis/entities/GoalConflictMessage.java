@@ -4,18 +4,21 @@
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Transient;
-
-import org.hibernate.annotations.Type;
 
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
 import nu.yona.server.goals.entities.Goal;
+import nu.yona.server.messaging.entities.DisclosureRequestMessage;
+import nu.yona.server.messaging.entities.DisclosureResponseMessage;
 import nu.yona.server.messaging.entities.Message;
 
 @Entity
@@ -30,14 +33,23 @@ public class GoalConflictMessage extends Message
 	 * If this is a message sent to a buddy, this refers to the self goal conflict message posted at the user having the goal.
 	 * Otherwise {@literal null}.
 	 */
-	@Type(type = "uuid-char")
-	private UUID originGoalConflictMessageId;
+	@ManyToOne
+	private GoalConflictMessage originGoalConflictMessage;
+
+	@OneToMany(mappedBy = "originGoalConflictMessage")
+	private final List<GoalConflictMessage> buddyGoalConflictMessages;
 
 	@ManyToOne
 	private Activity activity;
 	@ManyToOne
 	private Goal goal;
 	private Status status;
+
+	@OneToMany(mappedBy = "targetGoalConflictMessage")
+	private final List<DisclosureRequestMessage> disclosureRequestMessages;
+
+	@OneToMany(mappedBy = "targetGoalConflictMessage")
+	private final List<DisclosureResponseMessage> disclosureResponseMessages;
 
 	@Transient
 	private Optional<String> url;
@@ -46,19 +58,22 @@ public class GoalConflictMessage extends Message
 	// Default constructor is required for JPA
 	public GoalConflictMessage()
 	{
-		super(null, null);
+		this.buddyGoalConflictMessages = null;
+		this.disclosureRequestMessages = null;
+		this.disclosureResponseMessages = null;
 	}
 
-	public GoalConflictMessage(UUID id, UUID relatedUserAnonymizedId, UUID originGoalConflictMessageId, Activity activity,
-			Goal goal, Optional<String> url, Status status)
+	public GoalConflictMessage(UUID relatedUserAnonymizedId, Activity activity, Goal goal, Optional<String> url, Status status)
 	{
-		super(id, relatedUserAnonymizedId);
+		super(relatedUserAnonymizedId);
 
-		this.originGoalConflictMessageId = originGoalConflictMessageId;
 		this.goal = goal;
 		this.activity = activity;
 		this.url = url;
 		this.status = status;
+		this.buddyGoalConflictMessages = new ArrayList<>();
+		this.disclosureRequestMessages = new ArrayList<>();
+		this.disclosureResponseMessages = new ArrayList<>();
 	}
 
 	public Activity getActivity()
@@ -71,9 +86,20 @@ public class GoalConflictMessage extends Message
 		return goal;
 	}
 
-	public UUID getOriginGoalConflictMessageId()
+	public GoalConflictMessage getOriginGoalConflictMessage()
 	{
-		return originGoalConflictMessageId;
+		return originGoalConflictMessage;
+	}
+
+	private void setOriginGoalConflictMessage(GoalConflictMessage originGoalConflictMessage)
+	{
+		this.originGoalConflictMessage = originGoalConflictMessage;
+	}
+
+	public void addBuddyGoalConflictMessage(GoalConflictMessage goalConflictMessage)
+	{
+		buddyGoalConflictMessages.add(goalConflictMessage);
+		goalConflictMessage.setOriginGoalConflictMessage(this);
 	}
 
 	public Optional<String> getUrl()
@@ -95,7 +121,7 @@ public class GoalConflictMessage extends Message
 
 	public boolean isFromBuddy()
 	{
-		return originGoalConflictMessageId != null;
+		return originGoalConflictMessage != null;
 	}
 
 	public Status getStatus()
@@ -108,22 +134,35 @@ public class GoalConflictMessage extends Message
 		this.status = status;
 	}
 
-	public static GoalConflictMessage createInstanceFromBuddy(UUID relatedUserAnonymizedId, GoalConflictMessage origin)
+	public void addDisclosureRequest(DisclosureRequestMessage disclosureRequestMessage)
+	{
+		disclosureRequestMessages.add(disclosureRequestMessage);
+		disclosureRequestMessage.setTargetGoalConflictMessage(this);
+	}
+
+	public void addDisclosureResponse(DisclosureResponseMessage disclosureResponseMessage)
+	{
+		disclosureResponseMessages.add(disclosureResponseMessage);
+		disclosureResponseMessage.setTargetGoalConflictMessage(this);
+	}
+
+	public static GoalConflictMessage createInstanceForBuddy(UUID relatedUserAnonymizedId, GoalConflictMessage origin)
 	{
 		if (origin == null)
 		{
 			throw new IllegalArgumentException("origin cannot be null");
 		}
 
-		assert origin.getId() != null;
-		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedId, origin.getId(), origin.getActivity(),
+		GoalConflictMessage goalConflictMessage = new GoalConflictMessage(relatedUserAnonymizedId, origin.getActivity(),
 				origin.getGoal(), origin.getUrl(), Status.ANNOUNCED);
+		origin.addBuddyGoalConflictMessage(goalConflictMessage);
+		return goalConflictMessage;
 	}
 
 	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedId, Activity activity, Goal goal,
 			Optional<String> url)
 	{
-		return new GoalConflictMessage(UUID.randomUUID(), relatedUserAnonymizedId, null, activity, goal, url, Status.ANNOUNCED);
+		return new GoalConflictMessage(relatedUserAnonymizedId, activity, goal, url, Status.ANNOUNCED);
 	}
 
 	public boolean isUrlDisclosed()

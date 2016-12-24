@@ -5,37 +5,51 @@
 package nu.yona.server.messaging.entities;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.persistence.Column;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
 
 import nu.yona.server.crypto.Decryptor;
 import nu.yona.server.crypto.Encryptor;
-import nu.yona.server.entities.EntityWithUuid;
+import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "MESSAGES")
-public abstract class Message extends EntityWithUuid
+public abstract class Message extends EntityWithId
 {
+	public static MessageRepository getRepository()
+	{
+		return (MessageRepository) RepositoryProvider.getRepository(Message.class, Long.class);
+	}
+
 	@Type(type = "uuid-char")
 	private final UUID relatedUserAnonymizedId;
 
-	@Type(type = "uuid-char")
-	private UUID threadHeadMessageId;
+	@ManyToOne
+	private Message threadHeadMessage;
 
-	@Type(type = "uuid-char")
-	private UUID repliedMessageId;
+	@OneToMany(mappedBy = "threadHeadMessage", cascade = CascadeType.REMOVE)
+	private final List<Message> messagesInThread;
 
-	@Type(type = "uuid-char")
-	@Column(name = "message_destination_id")
-	private UUID messageDestinationId;
+	@ManyToOne
+	private Message repliedMessage;
+
+	@OneToMany(mappedBy = "repliedMessage", cascade = CascadeType.REMOVE)
+	private final List<Message> replies;
+
+	@ManyToOne
+	private MessageDestination messageDestination;
 
 	private final LocalDateTime creationTime;
 
@@ -43,30 +57,27 @@ public abstract class Message extends EntityWithUuid
 
 	private boolean isRead;
 
-	public static MessageRepository getRepository()
+	protected Message()
 	{
-		return (MessageRepository) RepositoryProvider.getRepository(Message.class, UUID.class);
+		this.relatedUserAnonymizedId = null;
+		this.messagesInThread = null;
+		this.replies = null;
+		this.creationTime = null;
+		this.isSentItem = false;
 	}
 
-	/**
-	 * This is the only constructor, to ensure that subclasses don't accidentally omit the ID.
-	 * 
-	 * @param id The ID of the entity
-	 * @param relatedUserAnonymizedId The ID of the related anonymized user. This is either the sender of this message or the one
-	 *            for which this message is sent (e.g in case of a goal conflict message).
-	 */
-	protected Message(UUID id, UUID relatedUserAnonymizedId)
+	protected Message(UUID relatedUserAnonymizedId)
 	{
-		this(id, relatedUserAnonymizedId, false);
+		this(relatedUserAnonymizedId, false);
 	}
 
-	protected Message(UUID id, UUID relatedUserAnonymizedId, boolean isSentItem)
+	protected Message(UUID relatedUserAnonymizedId, boolean isSentItem)
 	{
-		super(id);
-
 		this.relatedUserAnonymizedId = relatedUserAnonymizedId;
 		this.creationTime = TimeUtil.utcNow();
 		this.isSentItem = isSentItem;
+		this.replies = new ArrayList<>();
+		this.messagesInThread = new ArrayList<>();
 	}
 
 	public void encryptMessage(Encryptor encryptor)
@@ -79,24 +90,54 @@ public abstract class Message extends EntityWithUuid
 		decrypt(decryptor);
 	}
 
-	protected void setRepliedMessageId(Optional<UUID> repliedMessageId)
+	public MessageDestination getMessageDestination()
 	{
-		this.repliedMessageId = repliedMessageId.orElse(null);
+		return messageDestination;
 	}
 
-	protected void setThreadHeadMessageId(UUID threadHeadMessageId)
+	public void setMessageDestination(MessageDestination messageDestination)
 	{
-		this.threadHeadMessageId = threadHeadMessageId;
+		this.messageDestination = messageDestination;
 	}
 
-	public UUID getThreadHeadMessageId()
+	public Optional<Message> getRepliedMessage()
 	{
-		return threadHeadMessageId;
+		return Optional.ofNullable(repliedMessage);
 	}
 
-	public Optional<UUID> getRepliedMessageId()
+	private void setRepliedMessage(Message repliedMessage)
 	{
-		return Optional.ofNullable(repliedMessageId);
+		this.repliedMessage = repliedMessage;
+	}
+
+	public void addReply(Message reply)
+	{
+		replies.add(reply);
+		reply.setRepliedMessage(this);
+	}
+
+	public Message getThreadHeadMessage()
+	{
+		return threadHeadMessage;
+	}
+
+	protected void setThreadHeadMessage(Message threadHeadMessage)
+	{
+		this.threadHeadMessage = threadHeadMessage;
+	}
+
+	public void clearThreadHeadSelfReference()
+	{
+		if ((threadHeadMessage != null) && threadHeadMessage.getId() == getId())
+		{
+			threadHeadMessage = null;
+		}
+	}
+
+	public void addMessageToThread(Message message)
+	{
+		replies.add(message);
+		message.setThreadHeadMessage(this);
 	}
 
 	public LocalDateTime getCreationTime()
@@ -120,8 +161,12 @@ public abstract class Message extends EntityWithUuid
 	}
 
 	/**
-	 * The ID of the related anonymized user. This is either the sender of this message or the one for which this message is sent
-	 * (e.g in case of a goal conflict message).
+	 * The ID of the related anonymized user. This is is one of:
+	 * <ul>
+	 * <li>If this message is a sent item, it is the target user of buddy copy of this message</li>
+	 * <li>The sender of this message</li>
+	 * <li>The one for which this message is sent (e.g in case of a goal conflict message)</li>
+	 * </ul>
 	 * 
 	 * @return The ID of the related anonymized user. Might be null if that user was already deleted at the time this message was
 	 *         sent on behalf of that user.

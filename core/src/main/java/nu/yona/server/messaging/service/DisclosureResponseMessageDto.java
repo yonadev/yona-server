@@ -27,18 +27,17 @@ import nu.yona.server.subscriptions.service.UserDto;
 @JsonRootName("disclosureResponseMessage")
 public class DisclosureResponseMessageDto extends BuddyMessageLinkedUserDto
 {
-	private final UUID targetGoalConflictGoalId;
-	private final LocalDate targetGoalConflictDate;
+	private final UUID goalId;
+	private final LocalDate goalConflictStartTime;
 	private final Status status;
 
-	private DisclosureResponseMessageDto(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo,
-			Status status, String message, UUID targetGoalConflictMessageId, UUID targetGoalConflictGoalId,
-			LocalDate targetGoalConflictDate)
+	private DisclosureResponseMessageDto(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+			Status status, String message, long targetGoalConflictMessageId, UUID goalId, LocalDate goalConflictStartTime)
 	{
 		super(id, creationTime, isRead, targetGoalConflictMessageId, senderInfo, message);
 		this.status = status;
-		this.targetGoalConflictGoalId = targetGoalConflictGoalId;
-		this.targetGoalConflictDate = targetGoalConflictDate;
+		this.goalId = goalId;
+		this.goalConflictStartTime = goalConflictStartTime;
 	}
 
 	@Override
@@ -55,15 +54,15 @@ public class DisclosureResponseMessageDto extends BuddyMessageLinkedUserDto
 	}
 
 	@JsonIgnore
-	public UUID getTargetGoalConflictGoalId()
+	public UUID getGoalId()
 	{
-		return targetGoalConflictGoalId;
+		return goalId;
 	}
 
 	@JsonIgnore
-	public LocalDate getTargetGoalConflictDate()
+	public LocalDate getGoalConflictStartTime()
 	{
-		return targetGoalConflictDate;
+		return goalConflictStartTime;
 	}
 
 	public Status getStatus()

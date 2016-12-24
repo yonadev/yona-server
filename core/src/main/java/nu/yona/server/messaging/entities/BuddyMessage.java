@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,18 +33,18 @@ public abstract class BuddyMessage extends Message
 	// Default constructor is required for JPA
 	protected BuddyMessage()
 	{
-		super(null, null);
+		super(null);
 	}
 
-	protected BuddyMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname, String message)
+	protected BuddyMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname, String message)
 	{
-		this(id, senderUserId, senderUserAnonymizedId, senderUserNickname, false, message);
+		this(senderUserId, senderUserAnonymizedId, senderUserNickname, false, message);
 	}
 
-	protected BuddyMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname, boolean isSentItem,
+	protected BuddyMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname, boolean isSentItem,
 			String message)
 	{
-		super(id, senderUserAnonymizedId, isSentItem);
+		super(senderUserAnonymizedId, isSentItem);
 		this.senderUserId = senderUserId;
 		this.senderNickname = senderUserNickname;
 		this.message = message;
@@ -85,7 +86,8 @@ public abstract class BuddyMessage extends Message
 	{
 		senderUserIdCiphertext = encryptor.encrypt(senderUserId);
 		messageCiphertext = encryptor.encrypt(message);
-		senderNicknameCiphertext = encryptor.encrypt(senderNickname);
+		// senderNicknameCiphertext = encryptor.encrypt(senderNickname);
+		senderNicknameCiphertext = senderNickname.getBytes(StandardCharsets.UTF_8);
 	}
 
 	@Override
@@ -93,6 +95,7 @@ public abstract class BuddyMessage extends Message
 	{
 		senderUserId = decryptor.decryptUuid(senderUserIdCiphertext);
 		message = decryptor.decryptString(messageCiphertext);
-		senderNickname = decryptor.decryptString(senderNicknameCiphertext);
+		// senderNickname = decryptor.decryptString(senderNicknameCiphertext);
+		senderNickname = new String(senderNicknameCiphertext, StandardCharsets.UTF_8);
 	}
 }

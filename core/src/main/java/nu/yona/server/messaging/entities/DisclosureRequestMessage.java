@@ -7,8 +7,7 @@ package nu.yona.server.messaging.entities;
 import java.util.UUID;
 
 import javax.persistence.Entity;
-
-import org.hibernate.annotations.Type;
+import javax.persistence.ManyToOne;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
@@ -18,8 +17,8 @@ import nu.yona.server.crypto.Encryptor;
 @Entity
 public class DisclosureRequestMessage extends BuddyMessage
 {
-	@Type(type = "uuid-char")
-	private UUID targetGoalConflictMessageId;
+	@ManyToOne
+	private GoalConflictMessage targetGoalConflictMessage;
 	private Status status;
 
 	// Default constructor is required for JPA
@@ -27,22 +26,21 @@ public class DisclosureRequestMessage extends BuddyMessage
 	{
 	}
 
-	private DisclosureRequestMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, UUID targetGoalConflictMessageId,
-			String senderUserNickname, String message)
+	private DisclosureRequestMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname, String message)
 	{
-		super(id, senderUserId, senderUserAnonymizedId, senderUserNickname, message);
-		this.targetGoalConflictMessageId = targetGoalConflictMessageId;
+		super(senderUserId, senderUserAnonymizedId, senderUserNickname, message);
 		this.status = Status.DISCLOSURE_REQUESTED;
-	}
-
-	public UUID getTargetGoalConflictMessageId()
-	{
-		return targetGoalConflictMessageId;
 	}
 
 	public GoalConflictMessage getTargetGoalConflictMessage()
 	{
-		return (GoalConflictMessage) GoalConflictMessage.getRepository().findOne(targetGoalConflictMessageId);
+		return targetGoalConflictMessage;
+	}
+
+	public void setTargetGoalConflictMessage(GoalConflictMessage goalConflictMessage)
+	{
+		// TODO Auto-generated method stub
+
 	}
 
 	public Status getStatus()
@@ -70,7 +68,9 @@ public class DisclosureRequestMessage extends BuddyMessage
 	public static Message createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname,
 			String message, GoalConflictMessage targetGoalConflictMessage)
 	{
-		return new DisclosureRequestMessage(UUID.randomUUID(), senderUserId, senderUserAnonymizedId,
-				targetGoalConflictMessage.getId(), senderUserNickname, message);
+		DisclosureRequestMessage disclosureRequestMessage = new DisclosureRequestMessage(senderUserId, senderUserAnonymizedId,
+				senderUserNickname, message);
+		targetGoalConflictMessage.addDisclosureRequest(disclosureRequestMessage);
+		return disclosureRequestMessage;
 	}
 }

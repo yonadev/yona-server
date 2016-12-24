@@ -268,7 +268,8 @@ public class AnalysisEngineService
 		userAnonymizedService.updateUserAnonymized(userAnonymizedHolder.getEntity());
 		if (matchingGoal.isNoGoGoal())
 		{
-			sendConflictMessageToAllDestinationsOfUser(payload, addedActivity, matchingGoalEntity);
+			sendConflictMessageToAllDestinationsOfUser(userAnonymizedHolder.getEntity(), payload, addedActivity,
+					matchingGoalEntity);
 		}
 	}
 
@@ -358,14 +359,17 @@ public class AnalysisEngineService
 				.collect(Collectors.toSet());
 	}
 
-	private void sendConflictMessageToAllDestinationsOfUser(ActivityPayload payload, Activity activity, Goal matchingGoal)
+	private void sendConflictMessageToAllDestinationsOfUser(UserAnonymized userAnonymized, ActivityPayload payload,
+			Activity activity, Goal matchingGoal)
 	{
 		GoalConflictMessage selfGoalConflictMessage = GoalConflictMessage.createInstance(payload.userAnonymized.getId(), activity,
 				matchingGoal, payload.url);
-		messageService.sendMessage(selfGoalConflictMessage, payload.userAnonymized.getAnonymousDestination());
+		messageService.sendMessage(selfGoalConflictMessage, userAnonymized.getAnonymousDestination());
+		// Save the messages, so the other messages can reference it
+		userAnonymizedService.updateUserAnonymized(userAnonymized);
 
 		messageService.broadcastMessageToBuddies(payload.userAnonymized,
-				() -> GoalConflictMessage.createInstanceFromBuddy(payload.userAnonymized.getId(), selfGoalConflictMessage));
+				() -> GoalConflictMessage.createInstanceForBuddy(payload.userAnonymized.getId(), selfGoalConflictMessage));
 	}
 
 	private Set<GoalDto> determineMatchingGoalsForUser(UserAnonymizedDto userAnonymized,

@@ -119,7 +119,7 @@ public class MessageService
 	}
 
 	@Transactional
-	public MessageDto getMessage(UUID userId, UUID messageId)
+	public MessageDto getMessage(UUID userId, long messageId)
 	{
 		UserDto user = userService.getPrivateValidatedUser(userId);
 
@@ -128,7 +128,7 @@ public class MessageService
 	}
 
 	@Transactional
-	public MessageActionDto handleMessageAction(UUID userId, UUID id, String action, MessageActionDto requestPayload)
+	public MessageActionDto handleMessageAction(UUID userId, long id, String action, MessageActionDto requestPayload)
 	{
 		UserDto user = userService.getPrivateValidatedUser(userId);
 
@@ -137,7 +137,7 @@ public class MessageService
 	}
 
 	@Transactional
-	public MessageActionDto deleteMessage(UUID userId, UUID id)
+	public MessageActionDto deleteMessage(UUID userId, long id)
 	{
 		UserDto user = userService.getPrivateValidatedUser(userId);
 
@@ -238,7 +238,13 @@ public class MessageService
 	{
 		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getId());
 		destinationEntity.send(message);
-		MessageDestination.getRepository().save(destinationEntity);
+		MessageDestination.getRepository().saveAndFlush(destinationEntity);
+	}
+
+	@Transactional
+	public void sendMessage(Message message, MessageDestination destinationEntity)
+	{
+		destinationEntity.send(message);
 	}
 
 	@Transactional
@@ -250,8 +256,11 @@ public class MessageService
 		}
 
 		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getId());
-		destinationEntity.removeMessagesFromUser(sentByUserAnonymizedId);
-		MessageDestination.getRepository().save(destinationEntity);
+		List<Message> messages = destinationEntity.removeMessagesFromUser(sentByUserAnonymizedId);
+		messages.stream().forEach(m -> m.clearThreadHeadSelfReference());
+		MessageDestination.getRepository().saveAndFlush(destinationEntity);
+		destinationEntity.remove(messages);
+		MessageDestination.getRepository().saveAndFlush(destinationEntity);
 	}
 
 	@Transactional

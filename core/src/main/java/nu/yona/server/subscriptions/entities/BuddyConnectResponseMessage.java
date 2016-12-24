@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
@@ -20,10 +20,10 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 		super();
 	}
 
-	private BuddyConnectResponseMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname, String message,
+	private BuddyConnectResponseMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname, String message,
 			UUID buddyId, BuddyAnonymized.Status status)
 	{
-		super(id, senderUserId, senderUserAnonymizedId, senderNickname, message, buddyId);
+		super(senderUserId, senderUserAnonymizedId, senderNickname, message, buddyId);
 		this.status = status;
 	}
 
@@ -45,7 +45,6 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 	public static BuddyConnectResponseMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId,
 			String senderNickname, String message, UUID buddyId, BuddyAnonymized.Status status)
 	{
-		return new BuddyConnectResponseMessage(UUID.randomUUID(), senderUserId, senderUserAnonymizedId, senderNickname, message,
-				buddyId, status);
+		return new BuddyConnectResponseMessage(senderUserId, senderUserAnonymizedId, senderNickname, message, buddyId, status);
 	}
 }
