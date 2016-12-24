@@ -252,6 +252,10 @@ public class UserController
 	private HttpEntity<UserResource> addUser(Optional<String> password, Optional<String> overwriteUserConfirmationCode,
 			UserDto user)
 	{
+		if (password.isPresent() && !password.get().startsWith(CryptoSession.AES_128_MARKER))
+		{
+			logger.warn("Creating user with classic password rather than AES key");
+		}
 		if (overwriteUserConfirmationCode.isPresent())
 		{
 			return CryptoSession.execute(password,

@@ -58,7 +58,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.requestOverwriteUser(richard.mobileNumber)
 
 		when:
-		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "ChangedPassword", "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": "1234"])
 
@@ -100,7 +100,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.requestOverwriteUser(richard.mobileNumber)
 
 		when:
-		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "ChangedPassword", "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": "1234"])
 
@@ -144,7 +144,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.requestOverwriteUser(richard.mobileNumber)
 
 		when:
-		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "ChangedPassword", "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": "1234"])
 
@@ -193,7 +193,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.requestOverwriteUser(richard.mobileNumber)
 
 		when:
-		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "ChangedPassword", "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": "1234"])
 
@@ -243,7 +243,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		appService.requestOverwriteUser(richard.mobileNumber)
-		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "ChangedPassword", "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": "1234"])
 
@@ -271,7 +271,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		assert appService.requestOverwriteUser(richard.mobileNumber).status == 200
 
 		when:
-		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.password}Changed", "${richard.firstName}Changed",
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "ChangedPassword", "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": "1234"])
 

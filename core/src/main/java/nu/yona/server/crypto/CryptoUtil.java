@@ -17,6 +17,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.ShortBufferException;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -166,6 +167,11 @@ public class CryptoUtil
 		{
 			throw CryptoException.encryptingData(e);
 		}
+	}
+
+	static SecretKeySpec secretKeyFromBytes(byte[] secretKeyBytes)
+	{
+		return new SecretKeySpec(secretKeyBytes, "AES");
 	}
 
 	/**

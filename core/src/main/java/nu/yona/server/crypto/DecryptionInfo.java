@@ -3,7 +3,6 @@ package nu.yona.server.crypto;
 import java.util.Arrays;
 
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 public class DecryptionInfo
 {
@@ -18,11 +17,11 @@ public class DecryptionInfo
 		this.initializationVector = initializationVector;
 	}
 
-	public DecryptionInfo(byte[] byteArray)
+	public DecryptionInfo(byte[] bytes)
 	{
-		initializationVector = Arrays.copyOfRange(byteArray, 0, CryptoUtil.INITIALIZATION_VECTOR_LENGTH);
-		secretKey = new SecretKeySpec(Arrays.copyOfRange(byteArray, CryptoUtil.INITIALIZATION_VECTOR_LENGTH, byteArray.length),
-				"AES");
+		initializationVector = Arrays.copyOfRange(bytes, 0, CryptoUtil.INITIALIZATION_VECTOR_LENGTH);
+		secretKey = CryptoUtil
+				.secretKeyFromBytes(Arrays.copyOfRange(bytes, CryptoUtil.INITIALIZATION_VECTOR_LENGTH, bytes.length));
 	}
 
 	public SecretKey getSecretKey()

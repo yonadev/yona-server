@@ -11,6 +11,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Optional;
 
 import javax.crypto.Cipher;
@@ -19,7 +20,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +28,7 @@ import nu.yona.server.exceptions.YonaException;
 
 public class CryptoSession implements AutoCloseable
 {
+	public static final String AES_128_MARKER = "AES:128:";
 	static final byte CURRENT_CRYPTO_VARIANT_NUMBER = 1;
 	private static final String CIPHER_TYPE = "AES/CBC/PKCS5Padding";
 	private static final String SECRET_KEY_ALGORITHM = "PBKDF2WithHmacSHA256";
@@ -161,15 +162,34 @@ public class CryptoSession implements AutoCloseable
 	{
 		try
 		{
+			if (passwordIsAesKey(password))
+			{
+				return decodeAesKey(password);
+			}
 			SecretKeyFactory factory = SecretKeyFactory.getInstance(SECRET_KEY_ALGORITHM);
 			KeySpec spec = new PBEKeySpec(password.toCharArray(), SALT, iterations, SECRET_KEY_LENGTH_BITS);
 			SecretKey tmp = factory.generateSecret(spec);
-			return new SecretKeySpec(tmp.getEncoded(), "AES");
+			return CryptoUtil.secretKeyFromBytes(tmp.getEncoded());
 		}
 		catch (NoSuchAlgorithmException | InvalidKeySpecException e)
 		{
 			throw CryptoException.creatingSecretKey(e);
 		}
+	}
+
+	private static SecretKey decodeAesKey(String password)
+	{
+		byte[] secretKeyBytes = Base64.getDecoder().decode(password.substring(AES_128_MARKER.length()));
+		if (secretKeyBytes.length != 16)
+		{
+			throw WrongPasswordException.wrongPasswordHeaderProvided(AES_128_MARKER, 16, secretKeyBytes.length);
+		}
+		return CryptoUtil.secretKeyFromBytes(secretKeyBytes);
+	}
+
+	private static boolean passwordIsAesKey(String password)
+	{
+		return password.startsWith(AES_128_MARKER);
 	}
 
 	public byte[] generateInitializationVector()
@@ -248,7 +268,7 @@ public class CryptoSession implements AutoCloseable
 
 	private static String getPassword(Optional<String> password)
 	{
-		return password.orElseThrow(() -> MissingPasswordException.passwordHeaderNotProvided());
+		return password.orElseThrow(() -> WrongPasswordException.passwordHeaderNotProvided());
 	}
 
 	public interface Executable<T>

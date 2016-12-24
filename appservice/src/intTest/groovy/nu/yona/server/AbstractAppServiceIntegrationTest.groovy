@@ -60,7 +60,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	User addRichard(boolean reload = true)
 	{
-		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
+		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "AES:128:RichardPasswordp1ORubw==", "Richard", "Quinn", "RQ",
 				"+$timestamp")
 		richard = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, richard)
 		def response = appService.addGoal(richard, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
@@ -70,7 +70,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	User addBob(boolean reload = true)
 	{
-		def bob = appService.addUser(appService.&assertUserCreationResponseDetails, "B o b", "Bob", "Dunn", "BD",
+		def bob = appService.addUser(appService.&assertUserCreationResponseDetails, "AES:128:BobPasswordnMnrp1ORubw==", "Bob", "Dunn", "BD",
 				"+$timestamp")
 		bob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bob)
 		def response = appService.addGoal(bob, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
@@ -80,7 +80,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	User addBea(boolean reload = true)
 	{
-		def bea = appService.addUser(appService.&assertUserCreationResponseDetails, "B e a", "Bea", "Dundee", "BDD",
+		def bea = appService.addUser(appService.&assertUserCreationResponseDetails, "AES:128:BeaPasswordnMnrp1ORubw==", "Bea", "Dundee", "BDD",
 				"+$timestamp")
 		bea = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bea)
 		return reload? appService.reloadUser(bea) : bea

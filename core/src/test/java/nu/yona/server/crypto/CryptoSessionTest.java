@@ -32,7 +32,7 @@ public class CryptoSessionTest
 		CryptoSession.getCurrent();
 	}
 
-	@Test(expected = MissingPasswordException.class)
+	@Test(expected = WrongPasswordException.class)
 	public void testExecuteEmptyPassword()
 	{
 		CryptoSession.execute(Optional.empty(), () -> "Done");
