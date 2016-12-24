@@ -1,31 +1,33 @@
 package nu.yona.server.crypto;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 public class DecryptionInfo
 {
 
-	private final String password;
+	private final SecretKey secretKey;
 	private final byte[] initializationVector;
 
-	public DecryptionInfo(String password, byte[] initializationVector)
+	public DecryptionInfo(SecretKey secretKey, byte[] initializationVector)
 	{
 		assert initializationVector.length == CryptoUtil.INITIALIZATION_VECTOR_LENGTH;
-		this.password = password;
+		this.secretKey = secretKey;
 		this.initializationVector = initializationVector;
 	}
 
 	public DecryptionInfo(byte[] byteArray)
 	{
 		initializationVector = Arrays.copyOfRange(byteArray, 0, CryptoUtil.INITIALIZATION_VECTOR_LENGTH);
-		password = new String(Arrays.copyOfRange(byteArray, CryptoUtil.INITIALIZATION_VECTOR_LENGTH, byteArray.length),
-				StandardCharsets.UTF_8);
+		secretKey = new SecretKeySpec(Arrays.copyOfRange(byteArray, CryptoUtil.INITIALIZATION_VECTOR_LENGTH, byteArray.length),
+				"AES");
 	}
 
-	public String getPassword()
+	public SecretKey getSecretKey()
 	{
-		return password;
+		return secretKey;
 	}
 
 	public byte[] getInitializationVector()
@@ -35,10 +37,10 @@ public class DecryptionInfo
 
 	public byte[] convertToByteArray()
 	{
-		byte[] passwordBytes = password.getBytes(StandardCharsets.UTF_8);
-		byte[] retVal = new byte[CryptoUtil.INITIALIZATION_VECTOR_LENGTH + passwordBytes.length];
+		byte[] secreteKeyBytes = secretKey.getEncoded();
+		byte[] retVal = new byte[CryptoUtil.INITIALIZATION_VECTOR_LENGTH + secreteKeyBytes.length];
 		System.arraycopy(initializationVector, 0, retVal, 0, CryptoUtil.INITIALIZATION_VECTOR_LENGTH);
-		System.arraycopy(passwordBytes, 0, retVal, CryptoUtil.INITIALIZATION_VECTOR_LENGTH, passwordBytes.length);
+		System.arraycopy(secreteKeyBytes, 0, retVal, CryptoUtil.INITIALIZATION_VECTOR_LENGTH, secreteKeyBytes.length);
 		return retVal;
 	}
 }

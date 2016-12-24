@@ -51,8 +51,7 @@ public class PublicKeyDecryptor implements Decryptor
 	public void executeInCryptoSession(byte[] decryptionInfoBytes, Runnable runnable)
 	{
 		DecryptionInfo decryptionInfo = new DecryptionInfo(decrypt(decryptionInfoBytes));
-		try (CryptoSession cryptoSession = CryptoSession.start(decryptionInfo.getPassword(),
-				CryptoSession.ITERATIONS_FOR_SINGLE_USE_KEY))
+		try (CryptoSession cryptoSession = CryptoSession.start(decryptionInfo.getSecretKey()))
 		{
 			cryptoSession.setInitializationVector(decryptionInfo.getInitializationVector());
 			runnable.run();

@@ -85,9 +85,9 @@ public class CryptoException extends YonaException
 		return new CryptoException(e, "error.writing.data");
 	}
 
-	public static CryptoException generatingKeyPair(Throwable e)
+	public static CryptoException generatingKey(Throwable e)
 	{
-		return new CryptoException(e, "error.generating.key.pair");
+		return new CryptoException(e, "error.generating.key");
 	}
 
 	public static CryptoException encodingPrivateKey(Throwable e)

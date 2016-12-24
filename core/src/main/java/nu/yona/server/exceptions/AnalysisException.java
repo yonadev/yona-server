@@ -42,9 +42,4 @@ public class AnalysisException extends YonaException
 		return new AnalysisException("error.analysis.invalid.app.activity.data.ends.in.future", userAnonymizedId, application,
 				endTime);
 	}
-
-	public static AnalysisException urlTooLong(int length, int maxSupportedUrlLength)
-	{
-		return new AnalysisException("error.analysis.invalid.network.activity.url.too.long", length, maxSupportedUrlLength);
-	}
 }

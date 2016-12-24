@@ -34,10 +34,9 @@ public class PublicKeyCryptoTest
 	public void testDecryptionInfo()
 	{
 		PublicKeyEncryptor encryptor = PublicKeyEncryptor.createInstance(keyPair.getPublic());
-		String password = CryptoUtil.getRandomString(32);
 		DataContainer dataContainer = new DataContainer();
-		dataContainer.decryptionInfo = encryptor.executeInCryptoSession(password,
-				() -> dataContainer.ciphertext = CryptoUtil.encryptString(PLAINTEXT1));
+		dataContainer.decryptionInfo = encryptor
+				.executeInCryptoSession(() -> dataContainer.ciphertext = CryptoUtil.encryptString(PLAINTEXT1));
 
 		assertThat(dataContainer.decryptionInfo.length, equalTo(MIN_BLOCK_LENGTH));
 		assertThat(dataContainer.ciphertext.length, lessThan(MIN_BLOCK_LENGTH));

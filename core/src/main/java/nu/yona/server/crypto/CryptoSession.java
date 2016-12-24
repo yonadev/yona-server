@@ -39,7 +39,6 @@ public class CryptoSession implements AutoCloseable
 
 	private static final Logger logger = LoggerFactory.getLogger(CryptoSession.class);
 	private static final int ITERATIONS_FOR_MULTIUSE_KEY = 1000;
-	public static final int ITERATIONS_FOR_SINGLE_USE_KEY = 100;
 	private static ThreadLocal<CryptoSession> threadLocal = new ThreadLocal<>();
 	private Cipher encryptionCipher;
 	private Optional<byte[]> initializationVector = Optional.empty();
@@ -47,9 +46,9 @@ public class CryptoSession implements AutoCloseable
 	private final CryptoSession previousCryptoSession;
 	private Cipher decryptionCipher;
 
-	private CryptoSession(String password, int iterations, CryptoSession previousCryptoSession)
+	private CryptoSession(SecretKey secretKey, CryptoSession previousCryptoSession)
 	{
-		this.secretKey = getSecretKey(password, iterations);
+		this.secretKey = secretKey;
 		this.previousCryptoSession = previousCryptoSession;
 		threadLocal.set(this);
 	}
@@ -117,13 +116,13 @@ public class CryptoSession implements AutoCloseable
 
 	public static CryptoSession start(String password)
 	{
-		return start(password, ITERATIONS_FOR_MULTIUSE_KEY);
+		return start(getSecretKey(password, ITERATIONS_FOR_MULTIUSE_KEY));
 	}
 
-	public static CryptoSession start(String password, int iterations)
+	public static CryptoSession start(SecretKey secretKey)
 	{
 		logger.debug("Starting crypto session on thread {}", Thread.currentThread());
-		return new CryptoSession(password, iterations, threadLocal.get());
+		return new CryptoSession(secretKey, threadLocal.get());
 	}
 
 	public static CryptoSession getCurrent()

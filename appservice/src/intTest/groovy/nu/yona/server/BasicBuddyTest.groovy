@@ -414,7 +414,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Try analyzing a too long URL'()
+	def 'Goal conflict of Richard with a more than 2k long URL is trunated and reported to Richard and Bob'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
@@ -427,8 +427,21 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def response = analysisService.postToAnalysisEngine(richard, ["news/media"], url)
 
 		then:
-		response.status == 400
-		response.responseData.code == "error.analysis.invalid.network.activity.url.too.long"
+		response.status == 200
+		def getMessagesRichardResponse = appService.getMessages(richard)
+		getMessagesRichardResponse.status == 200
+		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "GoalConflictMessage" }
+		richardGoalConflictMessages.size() == 1
+		richardGoalConflictMessages[0].url == url.substring(0, 2048)
+
+		assertMarkReadUnread(richard, richardGoalConflictMessages[0])
+
+		def getMessagesBobResponse = appService.getMessages(bob)
+		getMessagesBobResponse.status == 200
+		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		bobGoalConflictMessages.size() == 1
+		bobGoalConflictMessages[0].url == null
 
 		cleanup:
 		appService.deleteUser(richard)

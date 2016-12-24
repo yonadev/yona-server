@@ -5,9 +5,12 @@
 package nu.yona.server.crypto;
 
 import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 
 import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 
 public class PublicKeyEncryptor implements Encryptor
 {
@@ -48,19 +51,36 @@ public class PublicKeyEncryptor implements Encryptor
 	}
 
 	@Override
-	public byte[] executeInCryptoSession(String password, Runnable runnable)
+	public byte[] executeInCryptoSession(Runnable runnable)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, CryptoSession.ITERATIONS_FOR_SINGLE_USE_KEY))
+		SecretKey secretKey = generateRandomSecretKey();
+		try (CryptoSession cryptoSession = CryptoSession.start(secretKey))
 		{
-			byte[] decryptionInfo = getDecryptionInfo(password);
+			byte[] decryptionInfo = getDecryptionInfo(secretKey);
 			runnable.run();
 			return decryptionInfo;
 		}
 	}
 
-	private byte[] getDecryptionInfo(String password)
+	private SecretKey generateRandomSecretKey()
 	{
-		DecryptionInfo decryptionInfo = new DecryptionInfo(password, CryptoSession.getCurrent().generateInitializationVector());
+		try
+		{
+			KeyGenerator keyGen;
+			keyGen = KeyGenerator.getInstance("AES");
+			keyGen.init(128);
+			SecretKey secretKey = keyGen.generateKey();
+			return secretKey;
+		}
+		catch (NoSuchAlgorithmException e)
+		{
+			throw CryptoException.generatingKey(e);
+		}
+	}
+
+	private byte[] getDecryptionInfo(SecretKey secretKey)
+	{
+		DecryptionInfo decryptionInfo = new DecryptionInfo(secretKey, CryptoSession.getCurrent().generateInitializationVector());
 		return encrypt(decryptionInfo.convertToByteArray());
 	}
 }

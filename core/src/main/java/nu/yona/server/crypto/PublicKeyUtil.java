@@ -38,7 +38,7 @@ public final class PublicKeyUtil
 		}
 		catch (GeneralSecurityException e)
 		{
-			throw CryptoException.generatingKeyPair(e);
+			throw CryptoException.generatingKey(e);
 		}
 	}
 
