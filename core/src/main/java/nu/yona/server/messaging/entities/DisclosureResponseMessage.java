@@ -18,7 +18,7 @@ import nu.yona.server.crypto.Encryptor;
 public class DisclosureResponseMessage extends BuddyMessage
 {
 	@ManyToOne
-	private GoalConflictMessage targetGoalConflictMessage;
+	private GoalConflictMessage disclosureResponseTargetGoalConflictMessage;
 	private Status status;
 
 	// Default constructor is required for JPA
@@ -36,12 +36,12 @@ public class DisclosureResponseMessage extends BuddyMessage
 
 	public GoalConflictMessage getTargetGoalConflictMessage()
 	{
-		return targetGoalConflictMessage;
+		return disclosureResponseTargetGoalConflictMessage;
 	}
 
 	public void setTargetGoalConflictMessage(GoalConflictMessage goalConflictMessage)
 	{
-		this.targetGoalConflictMessage = goalConflictMessage;
+		this.disclosureResponseTargetGoalConflictMessage = goalConflictMessage;
 	}
 
 	public Status getStatus()

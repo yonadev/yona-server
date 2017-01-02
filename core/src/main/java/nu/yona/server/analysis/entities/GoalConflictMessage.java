@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -36,7 +37,7 @@ public class GoalConflictMessage extends Message
 	@ManyToOne
 	private GoalConflictMessage originGoalConflictMessage;
 
-	@OneToMany(mappedBy = "originGoalConflictMessage")
+	@OneToMany(mappedBy = "originGoalConflictMessage", cascade = { CascadeType.REMOVE })
 	private final List<GoalConflictMessage> buddyGoalConflictMessages;
 
 	@ManyToOne
@@ -45,10 +46,10 @@ public class GoalConflictMessage extends Message
 	private Goal goal;
 	private Status status;
 
-	@OneToMany(mappedBy = "targetGoalConflictMessage")
+	@OneToMany(mappedBy = "disclosureRequestTargetGoalConflictMessage", cascade = { CascadeType.REMOVE })
 	private final List<DisclosureRequestMessage> disclosureRequestMessages;
 
-	@OneToMany(mappedBy = "targetGoalConflictMessage")
+	@OneToMany(mappedBy = "disclosureResponseTargetGoalConflictMessage", cascade = { CascadeType.REMOVE })
 	private final List<DisclosureResponseMessage> disclosureResponseMessages;
 
 	@Transient

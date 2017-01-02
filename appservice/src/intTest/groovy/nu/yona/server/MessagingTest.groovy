@@ -205,7 +205,7 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Richard deletes a goal conflict message. After that, Bob still has it'()
+	def 'Richard deletes a goal conflict message. After that, it\'s gone for Bob too'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
@@ -221,7 +221,7 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		response.status == 200
 		appService.getMessages(richard).responseData._embedded?."yona:messages"?.findAll{ it."@type" == "GoalConflictMessage"}.size() == 0
 
-		appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}.size() == 1
+		appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}.size() == 0
 
 		cleanup:
 		appService.deleteUser(richard)
