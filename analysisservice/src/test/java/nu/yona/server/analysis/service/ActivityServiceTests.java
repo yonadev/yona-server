@@ -377,7 +377,7 @@ public class ActivityServiceTests
 		int hour = 20;
 		int[] expectedSpread = getEmptySpread();
 		expectedSpread[hour * 4] = 1;
-		// An activity duration of less than 1 minute is always upgraded to 1 minute See
+		// An activity duration of less than 1 minute is always upgraded to 1 minute. See
 		// AnalysisEngineService.ensureMinimumDurationOneMinute.
 		assertSpread("20:05:08", "20:06:11", expectedSpread);
 	}
