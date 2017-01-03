@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.crypto.SecretKey;
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.servlet.http.HttpServletRequest;
@@ -63,6 +64,7 @@ import nu.yona.server.DOSProtectionService;
 import nu.yona.server.analysis.rest.AppActivityController;
 import nu.yona.server.analysis.rest.UserActivityController;
 import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.rest.GoalController;
@@ -252,19 +254,15 @@ public class UserController
 	private HttpEntity<UserResource> addUser(Optional<String> password, Optional<String> overwriteUserConfirmationCode,
 			UserDto user)
 	{
-		if (password.isPresent() && !password.get().startsWith(CryptoSession.AES_128_MARKER))
+		if (password.isPresent())
 		{
-			logger.warn("Creating user with classic password rather than AES key");
+			logger.warn("Creating user with app-provided password");
 		}
-		if (overwriteUserConfirmationCode.isPresent())
+		SecretKey secretKey = password.map(p -> CryptoSession.getSecretKey(password.get()))
+				.orElse(CryptoUtil.generateRandomSecretKey());
+		try (CryptoSession cryptoSession = CryptoSession.start(secretKey))
 		{
-			return CryptoSession.execute(password,
-					() -> createResponse(userService.addUser(user, overwriteUserConfirmationCode), true, HttpStatus.CREATED));
-		}
-		else
-		{
-			return CryptoSession.execute(password,
-					() -> createResponse(userService.addUser(user, Optional.empty()), true, HttpStatus.CREATED));
+			return createResponse(userService.addUser(user, overwriteUserConfirmationCode), true, HttpStatus.CREATED);
 		}
 	}
 

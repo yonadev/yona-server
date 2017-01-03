@@ -6,10 +6,9 @@
  *******************************************************************************/
 package nu.yona.server.test
 
-import groovy.json.*
-
 import java.time.ZonedDateTime
 
+import groovy.json.*
 import net.sf.json.groovy.JsonSlurper
 import nu.yona.server.YonaServer
 
@@ -45,21 +44,7 @@ class User
 	final String sslRootCertCn
 	final String password
 
-	User(def json, String password)
-	{
-		this(json, true)
-		this.password = password
-	}
-	User(def json, String password, boolean hasPrivateData)
-	{
-		this(json, hasPrivateData)
-		this.password = password
-	}
 	User(def json)
-	{
-		this(json, false)
-	}
-	private User(def json, boolean hasPrivateData)
 	{
 		this.creationTime = (json.creationTime) ? YonaServer.parseIsoDateString(json.creationTime) : null
 		this.firstName = json.firstName
@@ -67,9 +52,11 @@ class User
 		this.mobileNumber = json.mobileNumber
 		this.mobileNumberConfirmationUrl = json._links?."yona:confirmMobileNumber"?.href
 		this.resendMobileNumberConfirmationCodeUrl = json._links?."yona:resendMobileNumberConfirmationCode"?.href
-		this.hasPrivateData = hasPrivateData
-		if (hasPrivateData)
+		this.hasPrivateData = json.yonaPassword != null
+		if (this.hasPrivateData)
 		{
+			// Private data is available
+			this.password = json.yonaPassword
 			this.nickname = json.nickname
 
 			this.buddies = (json._embedded?."yona:buddies"?._embedded) ? json._embedded."yona:buddies"._embedded."yona:buddies".collect{new Buddy(it)} : []
@@ -97,18 +84,20 @@ class User
 
 	def convertToJson()
 	{
-		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, nickname, mobileNumber)
+		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber)
 
 		return new JsonSlurper().parseText(jsonStr)
 	}
 
-	private static String makeUserJsonStringInternal(url, firstName, lastName, nickname, mobileNumber)
+	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber)
 	{
 		def selfLinkString = (url) ? """"_links":{"self":{"href":"$url"}},""" : ""
+		def passwordString = (password) ? """"yonaPassword":"${password}",""" : ""
 		def json = """{
 				$selfLinkString
 				"firstName":"${firstName}",
 				"lastName":"${lastName}",
+				$passwordString
 				"nickname":"${nickname}",
 				"mobileNumber":"${mobileNumber}"
 		}"""
@@ -122,7 +111,7 @@ class User
 
 	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber)
 	{
-		makeUserJsonStringInternal(null, firstName, lastName, nickname, mobileNumber)
+		makeUserJsonStringInternal(null, firstName, lastName, null, nickname, mobileNumber)
 	}
 }
 

@@ -182,7 +182,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		//buddy info change
 		def updatedRichardJson = richard.convertToJson()
 		updatedRichardJson.nickname = "Richardo"
-		richard = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedRichardJson, richard.password))
+		richard = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedRichardJson))
 
 		when:
 		def message = "Goodbye friends! I deinstalled the Internet"

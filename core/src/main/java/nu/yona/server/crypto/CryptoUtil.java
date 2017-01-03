@@ -16,6 +16,8 @@ import java.util.UUID;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import javax.crypto.ShortBufferException;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -210,6 +212,20 @@ public class CryptoUtil
 		if (ciphertext[0] != cryptoVariantNumber)
 		{
 			throw CryptoException.decryptingData();
+		}
+	}
+
+	public static SecretKey generateRandomSecretKey()
+	{
+		try
+		{
+			KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+			keyGen.init(128);
+			return keyGen.generateKey();
+		}
+		catch (NoSuchAlgorithmException e)
+		{
+			throw CryptoException.generatingKey(e);
 		}
 	}
 }
