@@ -6,12 +6,10 @@
  *******************************************************************************/
 package nu.yona.server
 
-import groovy.json.*
-
 import java.time.Duration
 import java.time.ZonedDateTime
 
-import nu.yona.server.test.AppService
+import groovy.json.*
 import nu.yona.server.test.Buddy
 import nu.yona.server.test.Goal
 import nu.yona.server.test.User
@@ -380,6 +378,80 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
+	}
+
+	def 'Goal conflict of Richard with an 2k long URL is reported to Richard and Bob'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		ZonedDateTime now = YonaServer.now
+
+		when:
+		def url = buildLongUrl(2048)
+		def response = analysisService.postToAnalysisEngine(richard, ["news/media"], url)
+
+		then:
+		response.status == 200
+		def getMessagesRichardResponse = appService.getMessages(richard)
+		getMessagesRichardResponse.status == 200
+		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "GoalConflictMessage" }
+		richardGoalConflictMessages.size() == 1
+		richardGoalConflictMessages[0].url == url
+
+		assertMarkReadUnread(richard, richardGoalConflictMessages[0])
+
+		def getMessagesBobResponse = appService.getMessages(bob)
+		getMessagesBobResponse.status == 200
+		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		bobGoalConflictMessages.size() == 1
+		bobGoalConflictMessages[0].url == null
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Goal conflict of Richard with a more than 2k long URL is trunated and reported to Richard and Bob'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		ZonedDateTime now = YonaServer.now
+
+		when:
+		def url = buildLongUrl(2049)
+		def response = analysisService.postToAnalysisEngine(richard, ["news/media"], url)
+
+		then:
+		response.status == 200
+		def getMessagesRichardResponse = appService.getMessages(richard)
+		getMessagesRichardResponse.status == 200
+		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "GoalConflictMessage" }
+		richardGoalConflictMessages.size() == 1
+		richardGoalConflictMessages[0].url == url.substring(0, 2048)
+
+		assertMarkReadUnread(richard, richardGoalConflictMessages[0])
+
+		def getMessagesBobResponse = appService.getMessages(bob)
+		getMessagesBobResponse.status == 200
+		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		bobGoalConflictMessages.size() == 1
+		bobGoalConflictMessages[0].url == null
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	private def buildLongUrl(def length){
+		def baseUrl = "http://www.abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijk.com/?queryString="
+		def queryString = 'X'*(length - baseUrl.length())
+		return baseUrl + queryString
 	}
 
 	def 'Richard removes Bob as buddy, so goal conflicts from Bob are gone'()

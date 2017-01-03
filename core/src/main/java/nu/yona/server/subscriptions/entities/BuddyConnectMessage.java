@@ -9,8 +9,7 @@ import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 
-import nu.yona.server.crypto.Decryptor;
-import nu.yona.server.crypto.Encryptor;
+import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.messaging.entities.BuddyMessage;
 
 @Entity
@@ -39,16 +38,16 @@ public abstract class BuddyConnectMessage extends BuddyMessage
 	}
 
 	@Override
-	public void encrypt(Encryptor encryptor)
+	public void encrypt()
 	{
-		super.encrypt(encryptor);
-		buddyIdCiphertext = encryptor.encrypt(buddyId);
+		super.encrypt();
+		buddyIdCiphertext = CryptoUtil.encryptUuid(buddyId);
 	}
 
 	@Override
-	public void decrypt(Decryptor decryptor)
+	public void decrypt()
 	{
-		super.decrypt(decryptor);
-		buddyId = decryptor.decryptUuid(buddyIdCiphertext);
+		super.decrypt();
+		buddyId = CryptoUtil.decryptUuid(buddyIdCiphertext);
 	}
 }

@@ -11,8 +11,6 @@ import javax.persistence.ManyToOne;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
-import nu.yona.server.crypto.Decryptor;
-import nu.yona.server.crypto.Encryptor;
 
 @Entity
 public class DisclosureResponseMessage extends BuddyMessage
@@ -47,18 +45,6 @@ public class DisclosureResponseMessage extends BuddyMessage
 	public Status getStatus()
 	{
 		return status;
-	}
-
-	@Override
-	public void encrypt(Encryptor encryptor)
-	{
-		super.encrypt(encryptor);
-	}
-
-	@Override
-	public void decrypt(Decryptor decryptor)
-	{
-		super.decrypt(decryptor);
 	}
 
 	public static DisclosureResponseMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId,

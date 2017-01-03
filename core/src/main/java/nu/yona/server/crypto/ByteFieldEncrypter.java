@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.crypto;
 
@@ -20,22 +20,20 @@ public class ByteFieldEncrypter implements AttributeConverter<byte[], String>
 			return null;
 		}
 
-		byte[] ciphertext = CryptoSession.getCurrent().encrypt(plaintext);
-		return Base64.getEncoder().encodeToString(ciphertext);
+		return Base64.getEncoder().encodeToString(CryptoUtil.encryptBytes(plaintext));
 	}
 
 	@Override
 	public byte[] convertToEntityAttribute(String dbData)
 	{
-		if (dbData == null)
-		{
-			return null;
-		}
-
 		try
 		{
-			byte[] ciphertext = Base64.getDecoder().decode(dbData);
-			return CryptoSession.getCurrent().decrypt(ciphertext);
+			if (dbData == null)
+			{
+				return null;
+			}
+
+			return CryptoUtil.decryptBytes(Base64.getDecoder().decode(dbData));
 		}
 		catch (RuntimeException ex)
 		{

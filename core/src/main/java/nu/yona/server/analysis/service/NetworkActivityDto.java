@@ -26,6 +26,7 @@ import nu.yona.server.Constants;
 @JsonRootName("networkActivity")
 public class NetworkActivityDto
 {
+	private static final int MAX_SUPPORTED_URL_LENGTH = 2048;
 	private final Set<String> categories;
 	private final String url;
 	private final Optional<ZonedDateTime> eventTime;
@@ -37,7 +38,7 @@ public class NetworkActivityDto
 			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("eventTime") Optional<ZonedDateTime> eventTime)
 	{
 		this.categories = categories;
-		this.url = url;
+		this.url = (url.length() > MAX_SUPPORTED_URL_LENGTH) ? url.substring(0, MAX_SUPPORTED_URL_LENGTH) : url;
 		this.eventTime = eventTime;
 	}
 

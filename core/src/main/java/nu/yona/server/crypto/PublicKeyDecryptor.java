@@ -1,25 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.crypto;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 
 import javax.crypto.Cipher;
 
 public class PublicKeyDecryptor implements Decryptor
 {
-
-	private PrivateKey privateKey;
+	private final PrivateKey privateKey;
 
 	private PublicKeyDecryptor(PrivateKey privateKey)
 	{
@@ -36,8 +28,7 @@ public class PublicKeyDecryptor implements Decryptor
 		return new PublicKeyDecryptor(privateKey);
 	}
 
-	@Override
-	public byte[] decrypt(byte[] ciphertext)
+	byte[] decrypt(byte[] ciphertext)
 	{
 		try
 		{
@@ -45,10 +36,10 @@ public class PublicKeyDecryptor implements Decryptor
 			{
 				return null;
 			}
-			Cipher decryptCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			Cipher decryptCipher = Cipher.getInstance(PublicKeyUtil.CIPHER_TYPE);
 			decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
 
-			return decryptCipher.doFinal(ciphertext);
+			return CryptoUtil.decrypt(PublicKeyUtil.CURRENT_SMALL_PLAINTEXT_CRYPTO_VARIANT_NUMBER, decryptCipher, ciphertext);
 		}
 		catch (GeneralSecurityException e)
 		{
@@ -57,53 +48,13 @@ public class PublicKeyDecryptor implements Decryptor
 	}
 
 	@Override
-	public String decryptString(byte[] ciphertext)
+	public void executeInCryptoSession(byte[] decryptionInfoBytes, Runnable runnable)
 	{
-		return (ciphertext == null) ? null : new String(decrypt(ciphertext), StandardCharsets.UTF_8);
-	}
-
-	@Override
-	public UUID decryptUuid(byte[] ciphertext)
-	{
-		return (ciphertext == null) ? null : UUID.fromString(decryptString(ciphertext));
-	}
-
-	@Override
-	public long decryptLong(byte[] ciphertext)
-	{
-		return Long.parseLong(decryptString(ciphertext));
-	}
-
-	@Override
-	public Set<UUID> decryptUuidSet(byte[] ciphertext)
-	{
-		try
+		DecryptionInfo decryptionInfo = new DecryptionInfo(decrypt(decryptionInfoBytes));
+		try (CryptoSession cryptoSession = CryptoSession.start(decryptionInfo.getSecretKey()))
 		{
-			byte[] plaintext = decrypt(ciphertext);
-			DataInputStream stream = new DataInputStream(new ByteArrayInputStream(plaintext));
-			int length = stream.readInt();
-			Set<UUID> ids = new HashSet<>(length);
-			for (int i = 0; (i < length); i++)
-			{
-				ids.add(readUuid(stream));
-			}
-			return ids;
-		}
-		catch (IOException e)
-		{
-			throw CryptoException.decryptingData(e);
-		}
-	}
-
-	private UUID readUuid(DataInputStream stream)
-	{
-		try
-		{
-			return new UUID(stream.readLong(), stream.readLong());
-		}
-		catch (IOException e)
-		{
-			throw CryptoException.readingUuid(e);
+			cryptoSession.setInitializationVector(decryptionInfo.getInitializationVector());
+			runnable.run();
 		}
 	}
 }

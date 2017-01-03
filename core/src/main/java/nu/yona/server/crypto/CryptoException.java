@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.crypto;
 
@@ -28,9 +25,9 @@ public class CryptoException extends YonaException
 		return new CryptoException("error.no.active.crypto.session", thread);
 	}
 
-	public static CryptoException gettingCipher(String name)
+	public static CryptoException gettingCipher(Throwable e, String name)
 	{
-		return new CryptoException("error.getting.cipher", name);
+		return new CryptoException(e, "error.getting.cipher", name);
 	}
 
 	public static CryptoException encryptingData(Throwable e)
@@ -88,9 +85,9 @@ public class CryptoException extends YonaException
 		return new CryptoException(e, "error.writing.data");
 	}
 
-	public static CryptoException generatingKeyPair(Throwable e)
+	public static CryptoException generatingKey(Throwable e)
 	{
-		return new CryptoException(e, "error.generating.key.pair");
+		return new CryptoException(e, "error.generating.key");
 	}
 
 	public static CryptoException encodingPrivateKey(Throwable e)

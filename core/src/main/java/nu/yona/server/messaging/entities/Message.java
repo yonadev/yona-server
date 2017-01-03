@@ -33,6 +33,8 @@ public abstract class Message extends EntityWithId
 		return (MessageRepository) RepositoryProvider.getRepository(Message.class, Long.class);
 	}
 
+	private byte[] decryptionInfo;
+
 	@Type(type = "uuid-char")
 	private final UUID relatedUserAnonymizedId;
 
@@ -82,12 +84,12 @@ public abstract class Message extends EntityWithId
 
 	public void encryptMessage(Encryptor encryptor)
 	{
-		encrypt(encryptor);
+		decryptionInfo = encryptor.executeInCryptoSession(() -> encrypt());
 	}
 
 	public void decryptMessage(Decryptor decryptor)
 	{
-		decrypt(decryptor);
+		decryptor.executeInCryptoSession(decryptionInfo, () -> decrypt());
 	}
 
 	public MessageDestination getMessageDestination()
@@ -176,7 +178,7 @@ public abstract class Message extends EntityWithId
 		return Optional.ofNullable(relatedUserAnonymizedId);
 	}
 
-	protected abstract void encrypt(Encryptor encryptor);
+	protected abstract void encrypt();
 
-	protected abstract void decrypt(Decryptor decryptor);
+	protected abstract void decrypt();
 }

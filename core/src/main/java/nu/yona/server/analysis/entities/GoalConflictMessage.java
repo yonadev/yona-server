@@ -10,13 +10,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 
-import nu.yona.server.crypto.Decryptor;
-import nu.yona.server.crypto.Encryptor;
+import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.DisclosureRequestMessage;
 import nu.yona.server.messaging.entities.DisclosureResponseMessage;
@@ -54,6 +54,7 @@ public class GoalConflictMessage extends Message
 
 	@Transient
 	private Optional<String> url;
+	@Column(length = 3000)
 	private byte[] urlCiphertext;
 
 	// Default constructor is required for JPA
@@ -109,15 +110,15 @@ public class GoalConflictMessage extends Message
 	}
 
 	@Override
-	public void encrypt(Encryptor encryptor)
+	public void encrypt()
 	{
-		urlCiphertext = encryptor.encrypt(url.orElse(null));
+		urlCiphertext = CryptoUtil.encryptString(url.orElse(null));
 	}
 
 	@Override
-	public void decrypt(Decryptor decryptor)
+	public void decrypt()
 	{
-		url = Optional.ofNullable(decryptor.decryptString(urlCiphertext));
+		url = Optional.ofNullable(CryptoUtil.decryptString(urlCiphertext));
 	}
 
 	public boolean isFromBuddy()

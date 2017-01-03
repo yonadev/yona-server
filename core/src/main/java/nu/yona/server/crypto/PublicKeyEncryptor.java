@@ -1,24 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.crypto;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.util.Set;
-import java.util.UUID;
 
 import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 
 public class PublicKeyEncryptor implements Encryptor
 {
-
-	private PublicKey publicKey;
+	private final PublicKey publicKey;
 
 	private PublicKeyEncryptor(PublicKey publicKey)
 	{
@@ -35,8 +31,7 @@ public class PublicKeyEncryptor implements Encryptor
 		return new PublicKeyEncryptor(publicKey);
 	}
 
-	@Override
-	public byte[] encrypt(byte[] plaintext)
+	byte[] encrypt(byte[] plaintext)
 	{
 		try
 		{
@@ -44,10 +39,10 @@ public class PublicKeyEncryptor implements Encryptor
 			{
 				return null;
 			}
-			Cipher encryptCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			Cipher encryptCipher = Cipher.getInstance(PublicKeyUtil.CIPHER_TYPE);
 			encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
 
-			return encryptCipher.doFinal(plaintext);
+			return CryptoUtil.encrypt(PublicKeyUtil.CURRENT_SMALL_PLAINTEXT_CRYPTO_VARIANT_NUMBER, encryptCipher, plaintext);
 		}
 		catch (GeneralSecurityException e)
 		{
@@ -56,51 +51,36 @@ public class PublicKeyEncryptor implements Encryptor
 	}
 
 	@Override
-	public byte[] encrypt(String plaintext)
+	public byte[] executeInCryptoSession(Runnable runnable)
 	{
-		return (plaintext == null) ? null : encrypt(plaintext.getBytes(StandardCharsets.UTF_8));
+		SecretKey secretKey = generateRandomSecretKey();
+		try (CryptoSession cryptoSession = CryptoSession.start(secretKey))
+		{
+			byte[] decryptionInfo = getDecryptionInfo(secretKey);
+			runnable.run();
+			return decryptionInfo;
+		}
 	}
 
-	@Override
-	public byte[] encrypt(UUID plaintext)
-	{
-		return (plaintext == null) ? null : encrypt(plaintext.toString());
-	}
-
-	@Override
-	public byte[] encrypt(long plaintext)
-	{
-		return encrypt(Long.toString(plaintext));
-	}
-
-	@Override
-	public byte[] encrypt(Set<UUID> plaintext)
+	private SecretKey generateRandomSecretKey()
 	{
 		try
 		{
-			ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-			DataOutputStream dataStream = new DataOutputStream(byteStream);
-			dataStream.writeInt(plaintext.size());
-			plaintext.stream().forEach(id -> writeUuid(dataStream, id));
-
-			return encrypt(byteStream.toByteArray());
+			KeyGenerator keyGen;
+			keyGen = KeyGenerator.getInstance("AES");
+			keyGen.init(128);
+			SecretKey secretKey = keyGen.generateKey();
+			return secretKey;
 		}
-		catch (IOException e)
+		catch (NoSuchAlgorithmException e)
 		{
-			throw CryptoException.encryptingData(e);
+			throw CryptoException.generatingKey(e);
 		}
 	}
 
-	private void writeUuid(DataOutputStream dataStream, UUID id)
+	private byte[] getDecryptionInfo(SecretKey secretKey)
 	{
-		try
-		{
-			dataStream.writeLong(id.getMostSignificantBits());
-			dataStream.writeLong(id.getLeastSignificantBits());
-		}
-		catch (IOException e)
-		{
-			throw CryptoException.writingData(e);
-		}
+		DecryptionInfo decryptionInfo = new DecryptionInfo(secretKey, CryptoSession.getCurrent().generateInitializationVector());
+		return encrypt(decryptionInfo.convertToByteArray());
 	}
 }
