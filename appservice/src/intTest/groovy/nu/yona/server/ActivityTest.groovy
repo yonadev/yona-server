@@ -6,8 +6,6 @@
  *******************************************************************************/
 package nu.yona.server
 
-import groovy.json.*
-
 import java.time.DayOfWeek
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -15,6 +13,7 @@ import java.time.format.DateTimeFormatterBuilder
 import java.time.format.SignStyle
 import java.time.temporal.IsoFields
 
+import groovy.json.*
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.Buddy
 import nu.yona.server.test.BudgetGoal

@@ -6,7 +6,6 @@ package nu.yona.server.subscriptions.service;
 
 import java.time.LocalDateTime;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -33,7 +32,7 @@ public class BuddyDisconnectMessageDto extends BuddyMessageEmbeddedUserDto
 	private final DropBuddyReason reason;
 	private final boolean isProcessed;
 
-	private BuddyDisconnectMessageDto(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, String message,
+	private BuddyDisconnectMessageDto(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, String message,
 			DropBuddyReason reason, boolean isProcessed)
 	{
 		super(id, creationTime, isRead, senderInfo, message);

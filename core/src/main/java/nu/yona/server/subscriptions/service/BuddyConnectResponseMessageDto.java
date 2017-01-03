@@ -6,7 +6,6 @@ package nu.yona.server.subscriptions.service;
 
 import java.time.LocalDateTime;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -35,7 +34,7 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 	private final Status status;
 	private final boolean isProcessed;
 
-	private BuddyConnectResponseMessageDto(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+	private BuddyConnectResponseMessageDto(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo,
 			String message, Status status, boolean isProcessed)
 	{
 		super(id, creationTime, isRead, senderInfo, message);

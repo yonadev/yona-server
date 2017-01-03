@@ -19,7 +19,7 @@ import org.springframework.stereotype.Repository;
 import nu.yona.server.analysis.entities.IntervalActivity;
 
 @Repository
-public interface MessageRepository extends CrudRepository<Message, UUID>
+public interface MessageRepository extends CrudRepository<Message, Long>
 {
 	@Query("select m from Message m, MessageDestination d where d.id = :destinationId and m member of d.messages order by m.creationTime desc")
 	Page<Message> findFromDestination(@Param("destinationId") UUID destinationId, Pageable pageable);
@@ -31,7 +31,7 @@ public interface MessageRepository extends CrudRepository<Message, UUID>
 	Page<Message> findUnreadReceivedMessagesFromDestination(@Param("destinationId") UUID destinationId, Pageable pageable);
 
 	@Query("select m from Message m, MessageDestination d, Message threadHeadMessage"
-			+ " where d.id = :destinationId and m member of d.messages and m.intervalActivity = :intervalActivity and threadHeadMessage.id = m.threadHeadMessageId"
+			+ " where d.id = :destinationId and m member of d.messages and m.intervalActivity = :intervalActivity and threadHeadMessage = m.threadHeadMessage"
 			+ " order by threadHeadMessage.creationTime asc, m.creationTime asc")
 	Page<Message> findByIntervalActivity(@Param("destinationId") UUID destinationId,
 			@Param("intervalActivity") IntervalActivity intervalActivityEntity, Pageable pageable);

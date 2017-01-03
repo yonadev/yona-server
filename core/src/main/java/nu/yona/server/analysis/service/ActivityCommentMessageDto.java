@@ -7,7 +7,6 @@ package nu.yona.server.analysis.service;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -34,11 +33,11 @@ public class ActivityCommentMessageDto extends BuddyMessageLinkedUserDto
 	private static final String MESSAGE_PROPERTY = "message";
 	private static final String REPLY = "reply";
 	private final long intervalActivityId;
-	private final Optional<UUID> repliedMessageId;
-	private final UUID threadHeadMessageId;
+	private final Optional<Long> repliedMessageId;
+	private final long threadHeadMessageId;
 
-	private ActivityCommentMessageDto(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, long activityId,
-			UUID threadHeadMessageId, Optional<UUID> repliedMessageId, String message)
+	private ActivityCommentMessageDto(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, long activityId,
+			long threadHeadMessageId, Optional<Long> repliedMessageId, String message)
 	{
 		super(id, creationTime, isRead, senderInfo, message);
 		this.intervalActivityId = activityId;
@@ -75,13 +74,13 @@ public class ActivityCommentMessageDto extends BuddyMessageLinkedUserDto
 		return intervalActivityId;
 	}
 
-	public UUID getThreadHeadMessageId()
+	public long getThreadHeadMessageId()
 	{
 		return threadHeadMessageId;
 	}
 
 	@JsonIgnore
-	public Optional<UUID> getRepliedMessageId()
+	public Optional<Long> getRepliedMessageId()
 	{
 		return repliedMessageId;
 	}
@@ -90,8 +89,8 @@ public class ActivityCommentMessageDto extends BuddyMessageLinkedUserDto
 			SenderInfo senderInfo)
 	{
 		return new ActivityCommentMessageDto(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
-				senderInfo, messageEntity.getIntervalActivity().getId(), messageEntity.getThreadHeadMessageId(),
-				messageEntity.getRepliedMessageId(), messageEntity.getMessage());
+				senderInfo, messageEntity.getIntervalActivity().getId(), messageEntity.getThreadHeadMessage().getId(),
+				messageEntity.getRepliedMessage().map(Message::getId), messageEntity.getMessage());
 	}
 
 	@Component

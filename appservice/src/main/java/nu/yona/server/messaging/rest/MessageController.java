@@ -113,7 +113,7 @@ public class MessageController
 	@RequestMapping(value = "/{messageId}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<MessageDto> getMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId, @PathVariable UUID messageId)
+			@PathVariable UUID userId, @PathVariable long messageId)
 	{
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId), () -> createOkResponse(
 				toMessageResource(createGoalIdMapping(userId), messageService.getMessage(userId, messageId))));
@@ -132,7 +132,7 @@ public class MessageController
 	@RequestMapping(value = "/{id}/{action}", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<MessageActionResource> handleAnonymousMessageAction(
-			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId, @PathVariable UUID id,
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId, @PathVariable long id,
 			@PathVariable String action, @RequestBody MessageActionDto requestPayload)
 	{
 
@@ -146,7 +146,7 @@ public class MessageController
 	@ResponseBody
 	public HttpEntity<MessageActionResource> deleteAnonymousMessage(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
-			@PathVariable UUID messageId)
+			@PathVariable long messageId)
 	{
 
 		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
@@ -169,7 +169,7 @@ public class MessageController
 		return new ResponseEntity<MessageActionResource>(messageAction, HttpStatus.OK);
 	}
 
-	public static ControllerLinkBuilder getAnonymousMessageLinkBuilder(UUID userId, UUID messageId)
+	public static ControllerLinkBuilder getAnonymousMessageLinkBuilder(UUID userId, long messageId)
 	{
 		MessageController methodOn = methodOn(MessageController.class);
 		return linkTo(methodOn.getMessage(Optional.empty(), userId, messageId));
@@ -250,11 +250,8 @@ public class MessageController
 
 		private void addRelatedMessageLink(MessageDto message, MessageDto messageResource)
 		{
-			if (message.getRelatedMessageId() != null)
-			{
-				messageResource.add(getAnonymousMessageLinkBuilder(goalIdMapping.getUserId(), message.getRelatedMessageId())
-						.withRel("related"));
-			}
+			message.getRelatedMessageId().ifPresent(rid -> messageResource
+					.add(getAnonymousMessageLinkBuilder(goalIdMapping.getUserId(), rid).withRel("related")));
 		}
 
 		@Override
@@ -352,19 +349,18 @@ public class MessageController
 
 		private void addDayActivityDetailLink(DisclosureRequestMessageDto message)
 		{
-			String dateStr = DayActivityDto.formatDate(message.getTargetGoalConflictDate());
-			message.add(UserActivityController.getUserDayActivityDetailLinkBuilder(goalIdMapping.getUserId(), dateStr,
-					message.getTargetGoalConflictGoalId()).withRel(UserActivityController.DAY_DETAIL_LINK));
+			String dateStr = DayActivityDto.formatDate(message.getGoalConflictStartTime());
+			message.add(UserActivityController
+					.getUserDayActivityDetailLinkBuilder(goalIdMapping.getUserId(), dateStr, message.getGoalId())
+					.withRel(UserActivityController.DAY_DETAIL_LINK));
 		}
 
 		private void addDayActivityDetailLink(DisclosureResponseMessageDto message)
 		{
-			String dateStr = DayActivityDto.formatDate(message.getTargetGoalConflictDate());
-			message.add(
-					BuddyActivityController
-							.getBuddyDayActivityDetailLinkBuilder(goalIdMapping.getUserId(), message.getSenderBuddyId().get(),
-									dateStr, message.getTargetGoalConflictGoalId())
-							.withRel(BuddyActivityController.DAY_DETAIL_LINK));
+			String dateStr = DayActivityDto.formatDate(message.getGoalConflictStartTime());
+			message.add(BuddyActivityController.getBuddyDayActivityDetailLinkBuilder(goalIdMapping.getUserId(),
+					message.getSenderBuddyId().get(), dateStr, message.getGoalId())
+					.withRel(BuddyActivityController.DAY_DETAIL_LINK));
 		}
 
 		private void addDayActivityDetailLink(GoalConflictMessageDto message)

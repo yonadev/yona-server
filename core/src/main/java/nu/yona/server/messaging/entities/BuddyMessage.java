@@ -31,18 +31,18 @@ public abstract class BuddyMessage extends Message
 	// Default constructor is required for JPA
 	protected BuddyMessage()
 	{
-		super(null, null);
+		super(null);
 	}
 
-	protected BuddyMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname, String message)
+	protected BuddyMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname, String message)
 	{
-		this(id, senderUserId, senderUserAnonymizedId, senderUserNickname, false, message);
+		this(senderUserId, senderUserAnonymizedId, senderUserNickname, false, message);
 	}
 
-	protected BuddyMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname, boolean isSentItem,
+	protected BuddyMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname, boolean isSentItem,
 			String message)
 	{
-		super(id, senderUserAnonymizedId, isSentItem);
+		super(senderUserAnonymizedId, isSentItem);
 		this.senderUserId = senderUserId;
 		this.senderNickname = senderUserNickname;
 		this.message = message;

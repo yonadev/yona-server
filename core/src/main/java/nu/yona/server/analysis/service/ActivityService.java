@@ -40,9 +40,11 @@ import nu.yona.server.analysis.service.IntervalActivityDto.LevelOfDetail;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
+import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
@@ -563,40 +565,38 @@ public class ActivityService
 	}
 
 	private MessageDto sendMessagePair(UserDto sendingUser, UUID targetUserAnonymizedId, IntervalActivity intervalActivityEntity,
-			Optional<ActivityCommentMessage> repliedMessageOfSelf, Optional<ActivityCommentMessage> repliedMessageOfBuddy,
-			String message)
+			Optional<Message> repliedMessageOfSelf, Optional<Message> repliedMessageOfBuddy, String message)
 	{
-		ActivityCommentMessage messageToBuddy = createMessage(sendingUser, intervalActivityEntity,
-				repliedMessageOfBuddy.map(ActivityCommentMessage::getThreadHeadMessageId),
-				repliedMessageOfBuddy.map(ActivityCommentMessage::getId), false, message);
-		ActivityCommentMessage messageToSelf = createMessage(sendingUser, intervalActivityEntity,
-				repliedMessageOfSelf.map(ActivityCommentMessage::getThreadHeadMessageId),
-				repliedMessageOfSelf.map(ActivityCommentMessage::getId), true, message);
-		sendMessage(sendingUser.getPrivateData().getUserAnonymizedId(), messageToSelf);
-		messageToBuddy.setSenderCopyMessage(messageToSelf);
+		UUID sendingUserAnonymizedId = sendingUser.getPrivateData().getUserAnonymizedId();
+		ActivityCommentMessage messageToBuddy = createMessage(sendingUser, sendingUserAnonymizedId, intervalActivityEntity,
+				repliedMessageOfBuddy, false, message);
+		ActivityCommentMessage messageToSelf = createMessage(sendingUser, targetUserAnonymizedId, intervalActivityEntity,
+				repliedMessageOfSelf, true, message);
 		sendMessage(targetUserAnonymizedId, messageToBuddy);
+		messageToSelf.setBuddyMessage(messageToBuddy);
+		sendMessage(sendingUserAnonymizedId, messageToSelf);
 
 		return messageService.messageToDto(sendingUser, messageToSelf);
 	}
 
 	private void sendMessage(UUID targetUserAnonymizedId, ActivityCommentMessage messageEntity)
 	{
-		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(targetUserAnonymizedId);
-		messageService.sendMessageToUserAnonymized(userAnonymized, messageEntity);
+		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(targetUserAnonymizedId);
+		messageService.sendMessage(messageEntity, userAnonymizedEntity.getAnonymousDestination());
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 	}
 
-	private ActivityCommentMessage createMessage(UserDto sendingUser, IntervalActivity intervalActivityEntity,
-			Optional<UUID> threadHeadMessageId, Optional<UUID> repliedMessageId, boolean isSentItem, String message)
+	private ActivityCommentMessage createMessage(UserDto sendingUser, UUID relatedUserAnonymizedId,
+			IntervalActivity intervalActivityEntity, Optional<Message> repliedMessage, boolean isSentItem, String message)
 	{
-		if (threadHeadMessageId.isPresent())
+		if (repliedMessage.isPresent())
 		{
-			return ActivityCommentMessage.createInstance(sendingUser.getId(), sendingUser.getPrivateData().getUserAnonymizedId(),
+			return ActivityCommentMessage.createInstance(sendingUser.getId(), relatedUserAnonymizedId,
 					sendingUser.getPrivateData().getNickname(), intervalActivityEntity, isSentItem, message,
-					threadHeadMessageId.get(), repliedMessageId);
+					repliedMessage.get());
 		}
-		return ActivityCommentMessage.createThreadHeadInstance(sendingUser.getId(),
-				sendingUser.getPrivateData().getUserAnonymizedId(), sendingUser.getPrivateData().getNickname(),
-				intervalActivityEntity, isSentItem, message, repliedMessageId);
+		return ActivityCommentMessage.createThreadHeadInstance(sendingUser.getId(), relatedUserAnonymizedId,
+				sendingUser.getPrivateData().getNickname(), intervalActivityEntity, isSentItem, message);
 	}
 
 	private <T extends IntervalActivityDto> T getMissingInactivity(UUID userId, LocalDate date, UUID goalId,

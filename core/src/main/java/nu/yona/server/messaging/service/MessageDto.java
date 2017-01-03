@@ -32,8 +32,8 @@ import nu.yona.server.rest.PolymorphicDto;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyConnectRequestMessageDto;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDto;
-import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyDisconnectMessageDto;
+import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDto;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserDto;
@@ -53,18 +53,19 @@ public abstract class MessageDto extends PolymorphicDto
 {
 	private static final String MARK_UNREAD = "markUnread";
 	private static final String MARK_READ = "markRead";
-	private final UUID id;
+	private final long id;
 	private final LocalDateTime creationTime;
-	private final UUID relatedMessageId;
+	private final Optional<Long> relatedMessageId;
 	private final boolean isRead;
 	private final SenderInfo senderInfo;
 
-	protected MessageDto(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo)
+	protected MessageDto(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo)
 	{
-		this(id, senderInfo, creationTime, isRead, null);
+		this(id, senderInfo, creationTime, isRead, Optional.empty());
 	}
 
-	protected MessageDto(UUID id, SenderInfo senderInfo, LocalDateTime creationTime, boolean isRead, UUID relatedMessageId)
+	protected MessageDto(long id, SenderInfo senderInfo, LocalDateTime creationTime, boolean isRead,
+			Optional<Long> relatedMessageId)
 	{
 		this.id = id;
 		this.senderInfo = senderInfo;
@@ -74,7 +75,7 @@ public abstract class MessageDto extends PolymorphicDto
 	}
 
 	@JsonIgnore
-	public UUID getMessageId()
+	public long getMessageId()
 	{
 		return id;
 	}
@@ -122,7 +123,7 @@ public abstract class MessageDto extends PolymorphicDto
 	}
 
 	@JsonIgnore
-	public UUID getRelatedMessageId()
+	public Optional<Long> getRelatedMessageId()
 	{
 		return relatedMessageId;
 	}
@@ -176,7 +177,7 @@ public abstract class MessageDto extends PolymorphicDto
 
 		protected final SenderInfo getSenderInfo(UserDto actingUser, Message messageEntity)
 		{
-			Optional<UUID> senderUserAnonymizedId = messageEntity.getRelatedUserAnonymizedId();
+			Optional<UUID> senderUserAnonymizedId = getSenderUserAnonymizedId(actingUser, messageEntity);
 			if (senderUserAnonymizedId.isPresent())
 			{
 				if (actingUser.getPrivateData().getUserAnonymizedId().equals(senderUserAnonymizedId.get()))
@@ -195,6 +196,11 @@ public abstract class MessageDto extends PolymorphicDto
 			}
 
 			return getSenderInfoExtensionPoint(messageEntity);
+		}
+
+		protected Optional<UUID> getSenderUserAnonymizedId(UserDto actingUser, Message messageEntity)
+		{
+			return messageEntity.getRelatedUserAnonymizedId();
 		}
 
 		protected SenderInfo getSenderInfoExtensionPoint(Message messageEntity)

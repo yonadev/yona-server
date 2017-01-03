@@ -26,8 +26,8 @@ import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 import nu.yona.server.messaging.entities.DisclosureRequestMessage;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageActionDto;
-import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageDestinationDto;
+import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.messaging.service.SenderInfo;
@@ -46,7 +46,7 @@ public class GoalConflictMessageDto extends MessageDto
 	private final UUID goalId;
 	private final UUID activityCategoryId;
 
-	private GoalConflictMessageDto(UUID id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID goalId,
+	private GoalConflictMessageDto(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, UUID goalId,
 			UUID activityCategoryId, Optional<String> url, Status status, LocalDateTime activityStartTime,
 			LocalDateTime activityEndTime)
 	{
@@ -182,7 +182,7 @@ public class GoalConflictMessageDto extends MessageDto
 
 			MessageDestinationDto messageDestination = userAnonymizedService
 					.getUserAnonymized(messageEntity.getRelatedUserAnonymizedId().get()).getAnonymousDestination();
-			messageService.sendMessage(
+			messageService.sendMessageAndFlushToDatabase(
 					DisclosureRequestMessage.createInstance(actingUser.getId(), actingUser.getPrivateData().getUserAnonymizedId(),
 							actingUser.getPrivateData().getNickname(), requestPayload.getProperty("message"), messageEntity),
 					messageDestination);

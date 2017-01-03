@@ -25,10 +25,10 @@ public abstract class BuddyConnectMessage extends BuddyMessage
 		super();
 	}
 
-	protected BuddyConnectMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname, String message,
+	protected BuddyConnectMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname, String message,
 			UUID buddyId)
 	{
-		super(id, senderUserId, senderUserAnonymizedId, senderNickname, message);
+		super(senderUserId, senderUserAnonymizedId, senderNickname, message);
 		this.buddyId = buddyId;
 	}
 

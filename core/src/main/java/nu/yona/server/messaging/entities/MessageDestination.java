@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -71,11 +72,17 @@ public class MessageDestination extends EntityWithUuid
 	{
 		message.encryptMessage(PublicKeyEncryptor.createInstance(loadPublicKey()));
 		messages.add(message);
+		message.setMessageDestination(this);
 	}
 
 	public void remove(Message message)
 	{
 		messages.remove(message);
+	}
+
+	public void remove(List<Message> messages)
+	{
+		this.messages.removeAll(messages);
 	}
 
 	public Page<Message> getMessages(Pageable pageable)
@@ -107,10 +114,11 @@ public class MessageDestination extends EntityWithUuid
 		return publicKey;
 	}
 
-	public void removeMessagesFromUser(UUID sentByUserAnonymizedId)
+	public List<Message> getMessagesFromUser(UUID sentByUserAnonymizedId)
 	{
 		Optional<UUID> sentByUserAnonymizedIdInOptional = Optional.of(sentByUserAnonymizedId);
-		messages.removeIf(message -> sentByUserAnonymizedIdInOptional.equals(message.getRelatedUserAnonymizedId()));
+		return messages.stream().filter(message -> sentByUserAnonymizedIdInOptional.equals(message.getRelatedUserAnonymizedId()))
+				.collect(Collectors.toList());
 	}
 
 	public void removeGoalConflictMessages(Goal goal)

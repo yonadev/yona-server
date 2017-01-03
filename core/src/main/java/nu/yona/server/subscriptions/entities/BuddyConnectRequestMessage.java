@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
@@ -25,10 +25,10 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		super();
 	}
 
-	private BuddyConnectRequestMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname, String message, UUID buddyId,
-			boolean isRequestingSending, boolean isRequestingReceiving)
+	private BuddyConnectRequestMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname, String message,
+			UUID buddyId, boolean isRequestingSending, boolean isRequestingReceiving)
 	{
-		super(id, senderUserId, senderUserAnonymizedId, senderNickname, message, buddyId);
+		super(senderUserId, senderUserAnonymizedId, senderNickname, message, buddyId);
 
 		if (senderUserId == null)
 		{
@@ -60,10 +60,10 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		return this.status;
 	}
 
-	public static BuddyConnectRequestMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId,
-			String senderNickname, String message, UUID buddyId, boolean isRequestingSending, boolean isRequestingReceiving)
+	public static BuddyConnectRequestMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
+			String message, UUID buddyId, boolean isRequestingSending, boolean isRequestingReceiving)
 	{
-		return new BuddyConnectRequestMessage(UUID.randomUUID(), senderUserId, senderUserAnonymizedId, senderNickname,
-				message, buddyId, isRequestingSending, isRequestingReceiving);
+		return new BuddyConnectRequestMessage(senderUserId, senderUserAnonymizedId, senderNickname, message, buddyId,
+				isRequestingSending, isRequestingReceiving);
 	}
 }

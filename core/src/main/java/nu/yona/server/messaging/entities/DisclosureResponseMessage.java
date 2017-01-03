@@ -7,8 +7,7 @@ package nu.yona.server.messaging.entities;
 import java.util.UUID;
 
 import javax.persistence.Entity;
-
-import org.hibernate.annotations.Type;
+import javax.persistence.ManyToOne;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
@@ -16,8 +15,8 @@ import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
 @Entity
 public class DisclosureResponseMessage extends BuddyMessage
 {
-	@Type(type = "uuid-char")
-	private UUID targetGoalConflictMessageId;
+	@ManyToOne
+	private GoalConflictMessage disclosureResponseTargetGoalConflictMessage;
 	private Status status;
 
 	// Default constructor is required for JPA
@@ -26,17 +25,21 @@ public class DisclosureResponseMessage extends BuddyMessage
 
 	}
 
-	private DisclosureResponseMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, UUID targetGoalConflictMessageId,
-			Status status, String senderNickname, String message)
+	private DisclosureResponseMessage(UUID senderUserId, UUID senderUserAnonymizedId, Status status, String senderNickname,
+			String message)
 	{
-		super(id, senderUserId, senderUserAnonymizedId, senderNickname, message);
-		this.targetGoalConflictMessageId = targetGoalConflictMessageId;
+		super(senderUserId, senderUserAnonymizedId, senderNickname, message);
 		this.status = status;
 	}
 
 	public GoalConflictMessage getTargetGoalConflictMessage()
 	{
-		return (GoalConflictMessage) GoalConflictMessage.getRepository().findOne(targetGoalConflictMessageId);
+		return disclosureResponseTargetGoalConflictMessage;
+	}
+
+	public void setTargetGoalConflictMessage(GoalConflictMessage goalConflictMessage)
+	{
+		this.disclosureResponseTargetGoalConflictMessage = goalConflictMessage;
 	}
 
 	public Status getStatus()
@@ -45,9 +48,11 @@ public class DisclosureResponseMessage extends BuddyMessage
 	}
 
 	public static DisclosureResponseMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId,
-			UUID targetGoalConflictMessageId, Status status, String senderNickname, String message)
+			GoalConflictMessage targetGoalConflictMessage, Status status, String senderNickname, String message)
 	{
-		return new DisclosureResponseMessage(UUID.randomUUID(), senderUserId, senderUserAnonymizedId, targetGoalConflictMessageId,
+		DisclosureResponseMessage disclosureResponseMessage = new DisclosureResponseMessage(senderUserId, senderUserAnonymizedId,
 				status, senderNickname, message);
+		targetGoalConflictMessage.addDisclosureResponse(disclosureResponseMessage);
+		return disclosureResponseMessage;
 	}
 }
