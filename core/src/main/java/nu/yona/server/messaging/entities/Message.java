@@ -165,9 +165,9 @@ public abstract class Message extends EntityWithId
 	/**
 	 * The ID of the related anonymized user. This is is one of:
 	 * <ul>
-	 * <li>If this message is a sent item, it is the target user of buddy copy of this message</li>
+	 * <li>If isSentItem == true, it is logically the target user</li>
 	 * <li>The sender of this message</li>
-	 * <li>The one for which this message is sent (e.g in case of a goal conflict message)</li>
+	 * <li>In case of a system-originated message (e.g. a goal conflict message), it is the user for which this message is sent</li>
 	 * </ul>
 	 * 
 	 * @return The ID of the related anonymized user. Might be null if that user was already deleted at the time this message was
