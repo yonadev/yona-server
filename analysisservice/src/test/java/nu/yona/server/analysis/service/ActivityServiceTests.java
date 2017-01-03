@@ -12,8 +12,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.DayOfWeek;
-import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -28,7 +28,6 @@ import java.util.UUID;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -373,66 +372,78 @@ public class ActivityServiceTests
 	}
 
 	@Test
-	@Ignore
 	public void spreadShortDurationInMiddleOfCell()
 	{
 		int hour = 20;
-		Duration activityStartTime = Duration.ofHours(hour).plusMinutes(5).plusSeconds(8);
-		Duration activityDuration = Duration.ofSeconds(3);
-		int[] expectedSpread = new int[96];
-		Arrays.fill(expectedSpread, 0);
+		int[] expectedSpread = getEmptySpread();
 		expectedSpread[hour * 4] = 1;
-		assertSpread(activityStartTime, activityDuration, expectedSpread);
+		// An activity duration of less than 1 minute is always upgraded to 1 minute. See
+		// AnalysisEngineService.ensureMinimumDurationOneMinute.
+		assertSpread("20:05:08", "20:06:11", expectedSpread);
 	}
 
 	@Test
-	@Ignore
+	public void spreadShortDurationInNextCellLessThanOneMinute()
+	{
+		int hour = 20;
+		int[] expectedSpread = getEmptySpread();
+		expectedSpread[hour * 4] = 10;
+		expectedSpread[hour * 4 + 1] = 0; // Less than one minute is ignored in next cell.
+		assertSpread("20:05:08", "20:15:03", expectedSpread);
+	}
+
+	@Test
 	public void spreadShortDurationInNextCell()
 	{
 		int hour = 20;
-		Duration activityStartTime = Duration.ofHours(hour).plusMinutes(5).plusSeconds(8);
-		Duration activityDuration = Duration.ofSeconds(55).plusMinutes(9);
-		int[] expectedSpread = new int[96];
-		Arrays.fill(expectedSpread, 0);
+		int[] expectedSpread = getEmptySpread();
 		expectedSpread[hour * 4] = 10;
-		expectedSpread[hour * 4 + 1] = 1;
-		assertSpread(activityStartTime, activityDuration, expectedSpread);
+		expectedSpread[hour * 4 + 1] = 1; // More than one minute is rounded down to minutes.
+		assertSpread("20:05:08", "20:16:03", expectedSpread);
 	}
 
 	@Test
 	public void spreadShortDurationInPreviousCell()
 	{
 		int hour = 20;
-		Duration activityStartTime = Duration.ofHours(hour).plusMinutes(14).plusSeconds(57);
-		Duration activityDuration = Duration.ofSeconds(3).plusMinutes(6);
-		int[] expectedSpread = new int[96];
-		Arrays.fill(expectedSpread, 0);
+		int[] expectedSpread = getEmptySpread();
 		expectedSpread[hour * 4] = 1;
 		expectedSpread[hour * 4 + 1] = 6;
-		assertSpread(activityStartTime, activityDuration, expectedSpread);
+		assertSpread("20:14:57", "20:21:00", expectedSpread);
 	}
 
-	private void assertSpread(Duration activityStartOffsetOnDay, Duration activityDuration, int[] expectedSpread)
+	private int[] getEmptySpread()
+	{
+		int[] expectedSpread = new int[96];
+		Arrays.fill(expectedSpread, 0);
+		return expectedSpread;
+	}
+
+	private void assertSpread(String activityStartTimeStr, String activityEndTimeStr, int[] expectedSpread)
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 		ZonedDateTime yesterday = today.minusDays(1);
+
+		LocalTime activityStartTimeOnDay = LocalTime.parse(activityStartTimeStr);
+		LocalTime activityEndTimeOnDay = LocalTime.parse(activityEndTimeStr);
 
 		// gambling goal was created 2 weeks ago, see above
 		// mock some activity on yesterday 20:58-21:00
 		DayActivity yesterdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
 				yesterday.toLocalDate());
-		ZonedDateTime activityStartTime = yesterday.withHour((int) activityStartOffsetOnDay.toHours())
-				.withMinute((int) activityStartOffsetOnDay.toMinutes() % 60)
-				.withSecond((int) activityStartOffsetOnDay.getSeconds() % 60);
+		ZonedDateTime activityStartTime = yesterday.withHour(activityStartTimeOnDay.getHour())
+				.withMinute(activityStartTimeOnDay.getMinute()).withSecond(activityStartTimeOnDay.getSecond());
+		ZonedDateTime activityEndTime = yesterday.withHour(activityEndTimeOnDay.getHour())
+				.withMinute(activityEndTimeOnDay.getMinute()).withSecond(activityEndTimeOnDay.getSecond());
 		Activity recordedActivity = Activity.createInstance(userAnonZone, activityStartTime.toLocalDateTime(),
-				activityStartTime.plus(activityDuration).toLocalDateTime());
+				activityEndTime.toLocalDateTime());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
 		when(mockDayActivityRepository.findOne(userAnonId, yesterday.toLocalDate(), gamblingGoal.getId()))
 				.thenReturn(yesterdayRecordedActivity);
 
-		DayActivityDto inactivityDay = service.getUserDayActivityDetail(userId, yesterday.toLocalDate(), gamblingGoal.getId());
+		DayActivityDto activityDay = service.getUserDayActivityDetail(userId, yesterday.toLocalDate(), gamblingGoal.getId());
 		verify(mockDayActivityRepository, times(1)).findOne(userAnonId, yesterday.toLocalDate(), gamblingGoal.getId());
-		assertThat(inactivityDay.getSpread(), equalTo(Arrays.asList(ArrayUtils.toObject((expectedSpread)))));
+		assertThat(activityDay.getSpread(), equalTo(Arrays.asList(ArrayUtils.toObject((expectedSpread)))));
 	}
 
 	private ZonedDateTime getWeekStartTime(ZonedDateTime dateTime)
