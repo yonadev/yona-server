@@ -411,7 +411,7 @@ public class BuddyService
 			Optional<String> message, DropBuddyReason reason, MessageDestination messageDestination)
 	{
 		MessageDestinationDto messageDestinationDto = MessageDestinationDto.createInstance(messageDestination);
-		messageService.sendMessage(BuddyDisconnectMessage.createInstance(senderUserId, senderUserAnonymizedId, senderNickname,
+		messageService.sendMessageAndFlushToDatabase(BuddyDisconnectMessage.createInstance(senderUserId, senderUserAnonymizedId, senderNickname,
 				getDropBuddyMessage(reason, message), reason), messageDestinationDto);
 	}
 
@@ -421,7 +421,7 @@ public class BuddyService
 		MessageDestinationDto messageDestination = userAnonymizedService.getUserAnonymized(receiverUserAnonymizedId)
 				.getAnonymousDestination();
 		assert messageDestination != null;
-		messageService.sendMessage(BuddyConnectResponseMessage.createInstance(senderUserId, senderUserAnonymizedId,
+		messageService.sendMessageAndFlushToDatabase(BuddyConnectResponseMessage.createInstance(senderUserId, senderUserAnonymizedId,
 				senderNickname, responseMessage, buddyId, status), messageDestination);
 	}
 
@@ -521,7 +521,7 @@ public class BuddyService
 		boolean isRequestingSending = buddy.getReceivingStatus() == Status.REQUESTED;
 		boolean isRequestingReceiving = buddy.getSendingStatus() == Status.REQUESTED;
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
-		messageService.sendMessage(
+		messageService.sendMessageAndFlushToDatabase(
 				BuddyConnectRequestMessage.createInstance(requestingUser.getId(),
 						requestingUser.getPrivateData().getUserAnonymizedId(), requestingUser.getPrivateData().getNickname(),
 						buddy.getMessage(), savedBuddyEntity.getId(), isRequestingSending, isRequestingReceiving),

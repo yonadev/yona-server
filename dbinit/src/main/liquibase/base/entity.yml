@@ -376,7 +376,7 @@ databaseChangeLog:
             type: INT
         - column:
             name: url_ciphertext
-            type: TINYBLOB
+            type: BLOB
         - column:
             name: new_nickname_ciphertext
             type: TINYBLOB

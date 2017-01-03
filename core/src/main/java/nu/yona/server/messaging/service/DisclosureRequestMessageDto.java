@@ -181,7 +181,7 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 			MessageDestinationDto messageDestination = userAnonymizedService
 					.getUserAnonymized(requestMessageEntity.getRelatedUserAnonymizedId().get()).getAnonymousDestination();
 			assert messageDestination != null;
-			messageService.sendMessage(DisclosureResponseMessage.createInstance(respondingUser.getId(),
+			messageService.sendMessageAndFlushToDatabase(DisclosureResponseMessage.createInstance(respondingUser.getId(),
 					respondingUser.getPrivateData().getUserAnonymizedId(), requestMessageEntity.getTargetGoalConflictMessage(),
 					requestMessageEntity.getStatus(), respondingUser.getPrivateData().getNickname(), message),
 					messageDestination);

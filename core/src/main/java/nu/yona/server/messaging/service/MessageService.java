@@ -234,17 +234,17 @@ public class MessageService
 	}
 
 	@Transactional
-	public void sendMessage(Message message, MessageDestinationDto destination)
+	public void sendMessageAndFlushToDatabase(Message message, MessageDestinationDto destination)
 	{
-		sendMessage(message, MessageDestination.getRepository().findOne(destination.getId()));
+		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getId());
+		destinationEntity.send(message);
+		MessageDestination.getRepository().saveAndFlush(destinationEntity);
 	}
 
 	@Transactional
 	public void sendMessage(Message message, MessageDestination destinationEntity)
 	{
 		destinationEntity.send(message);
-		// Save and flush, so another message can reference it, for instance as sender-copy.
-		MessageDestination.getRepository().saveAndFlush(destinationEntity);
 	}
 
 	@Transactional
@@ -267,13 +267,13 @@ public class MessageService
 	@Transactional
 	public void broadcastMessageToBuddies(UserAnonymizedDto userAnonymized, Supplier<Message> messageSupplier)
 	{
-		userAnonymized.getBuddyDestinations().stream().forEach(destination -> sendMessage(messageSupplier.get(), destination));
+		userAnonymized.getBuddyDestinations().stream().forEach(destination -> sendMessageAndFlushToDatabase(messageSupplier.get(), destination));
 	}
 
 	@Transactional
 	public void sendMessageToUserAnonymized(UserAnonymizedDto userAnonymized, Message message)
 	{
-		sendMessage(message, userAnonymized.getAnonymousDestination());
+		sendMessageAndFlushToDatabase(message, userAnonymized.getAnonymousDestination());
 	}
 
 	@Transactional

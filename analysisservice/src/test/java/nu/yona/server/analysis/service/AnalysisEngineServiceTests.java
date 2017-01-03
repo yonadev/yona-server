@@ -251,7 +251,7 @@ public class AnalysisEngineServiceTests
 
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<MessageDestinationDto> messageDestination = ArgumentCaptor.forClass(MessageDestinationDto.class);
-		verify(mockMessageService, times(1)).sendMessage(any(), messageDestination.capture());
+		verify(mockMessageService, times(1)).sendMessageAndFlushToDatabase(any(), messageDestination.capture());
 		assertThat("Expect right message destination", messageDestination.getValue().getId(),
 				equalTo(anonMessageDestination.getId()));
 
@@ -287,7 +287,7 @@ public class AnalysisEngineServiceTests
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		ArgumentCaptor<MessageDestinationDto> messageDestination = ArgumentCaptor.forClass(MessageDestinationDto.class);
-		verify(mockMessageService).sendMessage(message.capture(), messageDestination.capture());
+		verify(mockMessageService).sendMessageAndFlushToDatabase(message.capture(), messageDestination.capture());
 		assertThat("Expect right message destination", messageDestination.getValue().getId(),
 				equalTo(anonMessageDestination.getId()));
 		assertThat("Expected right related user set to goal conflict message",
@@ -310,7 +310,7 @@ public class AnalysisEngineServiceTests
 		// Verify that there is a new conflict message sent.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		ArgumentCaptor<MessageDestinationDto> messageDestination = ArgumentCaptor.forClass(MessageDestinationDto.class);
-		verify(mockMessageService).sendMessage(message.capture(), messageDestination.capture());
+		verify(mockMessageService).sendMessageAndFlushToDatabase(message.capture(), messageDestination.capture());
 		assertThat("Expect right message destination", messageDestination.getValue().getId(),
 				equalTo(anonMessageDestination.getId()));
 		assertThat("Expect right goal set to goal conflict message", message.getValue().getGoal().getId(),
@@ -342,7 +342,7 @@ public class AnalysisEngineServiceTests
 		// Verify that there are 2 conflict messages sent, for both goals.
 		ArgumentCaptor<GoalConflictMessage> message = ArgumentCaptor.forClass(GoalConflictMessage.class);
 		ArgumentCaptor<MessageDestinationDto> messageDestination = ArgumentCaptor.forClass(MessageDestinationDto.class);
-		verify(mockMessageService, times(2)).sendMessage(message.capture(), messageDestination.capture());
+		verify(mockMessageService, times(2)).sendMessageAndFlushToDatabase(message.capture(), messageDestination.capture());
 		assertThat("Expect right message destination", messageDestination.getValue().getId(),
 				equalTo(anonMessageDestination.getId()));
 		assertThat("Expect right goals set to goal conflict messages",
@@ -382,7 +382,7 @@ public class AnalysisEngineServiceTests
 		// Verify that the cache is used to check existing activity
 		verify(mockAnalysisEngineCacheService, times(3)).fetchLastActivityForUser(userAnonId, gamblingGoal.getId());
 		// Verify that there is no new conflict message sent.
-		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
+		verify(mockMessageService, never()).sendMessageAndFlushToDatabase(any(), eq(anonMessageDestination));
 		// Verify that the existing day activity was updated.
 		verify(mockDayActivityRepository, times(3)).save(dayActivity);
 		// Verify that the existing activity was updated in the cache.
@@ -417,7 +417,7 @@ public class AnalysisEngineServiceTests
 	private void verifyNoMessagesCreated()
 	{
 		// Verify that there is no conflict message sent.
-		verify(mockMessageService, never()).sendMessage(any(), eq(anonMessageDestination));
+		verify(mockMessageService, never()).sendMessageAndFlushToDatabase(any(), eq(anonMessageDestination));
 	}
 
 	/**
@@ -475,7 +475,7 @@ public class AnalysisEngineServiceTests
 		service.analyze(userAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
 		// Verify that there is a new conflict message sent.
-		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
+		verify(mockMessageService, times(1)).sendMessageAndFlushToDatabase(any(), eq(anonMessageDestination));
 		// Verify that a new day was saved
 		ArgumentCaptor<DayActivity> newDayActivity = ArgumentCaptor.forClass(DayActivity.class);
 		// first the DayActivity is created and then updated with the Activity
@@ -507,7 +507,7 @@ public class AnalysisEngineServiceTests
 		service.analyze(userAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
 		// Verify that there is a new conflict message sent.
-		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
+		verify(mockMessageService, times(1)).sendMessageAndFlushToDatabase(any(), eq(anonMessageDestination));
 		// Verify that a database lookup was done finding the existing DayActivity to update
 		verify(mockDayActivityRepository, times(1)).findOne(userAnonId, now.toLocalDate(), gamblingGoal.getId());
 		// Verify that the day was updated
@@ -536,7 +536,7 @@ public class AnalysisEngineServiceTests
 		service.analyze(userAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
 		// Verify that there is a new conflict message sent.
-		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
+		verify(mockMessageService, times(1)).sendMessageAndFlushToDatabase(any(), eq(anonMessageDestination));
 		// Verify that a database lookup was done finding the existing DayActivity to update
 		verify(mockDayActivityRepository, times(1)).findOne(userAnonId, now.toLocalDate(), gamblingGoal.getId());
 		// Verify that the day was updated
@@ -564,7 +564,7 @@ public class AnalysisEngineServiceTests
 		service.analyze(userAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
 		// Verify that there is a new conflict message sent.
-		verify(mockMessageService, times(1)).sendMessage(any(), eq(anonMessageDestination));
+		verify(mockMessageService, times(1)).sendMessageAndFlushToDatabase(any(), eq(anonMessageDestination));
 		// Verify that a database lookup was done for yesterday
 		verify(mockDayActivityRepository, times(1)).findOne(userAnonId, yesterdayTime.toLocalDate(), gamblingGoal.getId());
 		// Verify that yesterday was inserted in the database
