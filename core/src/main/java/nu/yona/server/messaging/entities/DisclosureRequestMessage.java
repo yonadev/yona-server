@@ -12,8 +12,6 @@ import org.hibernate.annotations.Type;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
-import nu.yona.server.crypto.Decryptor;
-import nu.yona.server.crypto.Encryptor;
 
 @Entity
 public class DisclosureRequestMessage extends BuddyMessage
@@ -53,18 +51,6 @@ public class DisclosureRequestMessage extends BuddyMessage
 	public void setStatus(Status status)
 	{
 		this.status = status;
-	}
-
-	@Override
-	public void encrypt(Encryptor encryptor)
-	{
-		super.encrypt(encryptor);
-	}
-
-	@Override
-	public void decrypt(Decryptor decryptor)
-	{
-		super.decrypt(decryptor);
 	}
 
 	public static Message createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname,

@@ -333,6 +333,9 @@ databaseChangeLog:
             name: id
             type: VARCHAR(255)
         - column:
+            name: decryption_info
+            type: TINYBLOB
+        - column:
             name: creation_time
             type: datetime(6)
         - column:
@@ -392,7 +395,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         - column:
             name: url_ciphertext
-            type: TINYBLOB
+            type: BLOB
         - column:
             name: reason
             type: INT

@@ -11,17 +11,15 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Optional;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,21 +28,18 @@ import nu.yona.server.exceptions.YonaException;
 
 public class CryptoSession implements AutoCloseable
 {
+	public static final String AES_128_MARKER = "AES:128:";
+	static final byte CURRENT_CRYPTO_VARIANT_NUMBER = 1;
 	private static final String CIPHER_TYPE = "AES/CBC/PKCS5Padding";
-
-	public interface Executable<T>
-	{
-		T execute();
-	}
-
-	public interface VoidPredicate
-	{
-		boolean test();
-	}
+	private static final String SECRET_KEY_ALGORITHM = "PBKDF2WithHmacSHA256";
+	private static final int SECRET_KEY_LENGTH_BITS = 128;
+	/**
+	 * As we are using secure random passwords, a fixed salt suffices.
+	 */
+	private static final byte[] SALT = "0123456789012345".getBytes();
 
 	private static final Logger logger = LoggerFactory.getLogger(CryptoSession.class);
-	private static final byte[] SALT = "0123456789012345".getBytes();
-	private static final int INITIALIZATION_VECTOR_LENGTH = 16;
+	private static final int ITERATIONS_FOR_MULTIUSE_KEY = 1000;
 	private static ThreadLocal<CryptoSession> threadLocal = new ThreadLocal<>();
 	private Cipher encryptionCipher;
 	private Optional<byte[]> initializationVector = Optional.empty();
@@ -52,9 +47,9 @@ public class CryptoSession implements AutoCloseable
 	private final CryptoSession previousCryptoSession;
 	private Cipher decryptionCipher;
 
-	private CryptoSession(String password, CryptoSession previousCryptoSession)
+	private CryptoSession(SecretKey secretKey, CryptoSession previousCryptoSession)
 	{
-		secretKey = getSecretKey(password.toCharArray());
+		this.secretKey = secretKey;
 		this.previousCryptoSession = previousCryptoSession;
 		threadLocal.set(this);
 	}
@@ -78,7 +73,7 @@ public class CryptoSession implements AutoCloseable
 
 	public static <T> T execute(Optional<String> password, VoidPredicate passwordChecker, Executable<T> executable)
 	{
-		try (CryptoSession cryptoSession = CryptoSession.start(getPassword(password)))
+		try (CryptoSession cryptoSession = start(getPassword(password)))
 		{
 			if (passwordChecker != null && !passwordChecker.test())
 			{
@@ -116,14 +111,19 @@ public class CryptoSession implements AutoCloseable
 		}
 		catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e)
 		{
-			throw CryptoException.gettingCipher(CIPHER_TYPE);
+			throw CryptoException.gettingCipher(e, CIPHER_TYPE);
 		}
 	}
 
-	private static CryptoSession start(String password)
+	public static CryptoSession start(String password)
+	{
+		return start(getSecretKey(password, ITERATIONS_FOR_MULTIUSE_KEY));
+	}
+
+	public static CryptoSession start(SecretKey secretKey)
 	{
 		logger.debug("Starting crypto session on thread {}", Thread.currentThread());
-		return new CryptoSession(password, threadLocal.get());
+		return new CryptoSession(secretKey, threadLocal.get());
 	}
 
 	public static CryptoSession getCurrent()
@@ -136,43 +136,60 @@ public class CryptoSession implements AutoCloseable
 		return cryptoSession;
 	}
 
+	/**
+	 * Encrypts the given plaintext bytes.
+	 * 
+	 * @param plaintext the bytes to be encrypted
+	 * @return the encrypted bytes, with the crypto variant number prepended to it.
+	 */
 	public byte[] encrypt(byte[] plaintext)
 	{
-		try
-		{
-			return getEncryptionCipher().doFinal(plaintext);
-		}
-		catch (IllegalBlockSizeException | BadPaddingException e)
-		{
-			throw CryptoException.encryptingData(e);
-		}
+		return CryptoUtil.encrypt(CURRENT_CRYPTO_VARIANT_NUMBER, getEncryptionCipher(), plaintext);
 	}
 
+	/**
+	 * Decrypts the given ciphertext bytes.
+	 * 
+	 * @param ciphertext the bytes to be decrypted, with a leading crypto variant number
+	 * @return the decrypted bytes
+	 */
 	public byte[] decrypt(byte[] ciphertext)
 	{
-		try
-		{
-			return getDecryptionCipher().doFinal(ciphertext);
-		}
-		catch (IllegalBlockSizeException | BadPaddingException e)
-		{
-			throw CryptoException.decryptingData(e);
-		}
+		return CryptoUtil.decrypt(CURRENT_CRYPTO_VARIANT_NUMBER, getDecryptionCipher(), ciphertext);
 	}
 
-	private SecretKey getSecretKey(char[] password)
+	private static SecretKey getSecretKey(String password, int iterations)
 	{
 		try
 		{
-			SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-			KeySpec spec = new PBEKeySpec(password, SALT, 65536, 128);
+			if (passwordIsAesKey(password))
+			{
+				return decodeAesKey(password);
+			}
+			SecretKeyFactory factory = SecretKeyFactory.getInstance(SECRET_KEY_ALGORITHM);
+			KeySpec spec = new PBEKeySpec(password.toCharArray(), SALT, iterations, SECRET_KEY_LENGTH_BITS);
 			SecretKey tmp = factory.generateSecret(spec);
-			return new SecretKeySpec(tmp.getEncoded(), "AES");
+			return CryptoUtil.secretKeyFromBytes(tmp.getEncoded());
 		}
 		catch (NoSuchAlgorithmException | InvalidKeySpecException e)
 		{
 			throw CryptoException.creatingSecretKey(e);
 		}
+	}
+
+	private static SecretKey decodeAesKey(String password)
+	{
+		byte[] secretKeyBytes = Base64.getDecoder().decode(password.substring(AES_128_MARKER.length()));
+		if (secretKeyBytes.length != 16)
+		{
+			throw WrongPasswordException.wrongPasswordHeaderProvided(AES_128_MARKER, 16, secretKeyBytes.length);
+		}
+		return CryptoUtil.secretKeyFromBytes(secretKeyBytes);
+	}
+
+	private static boolean passwordIsAesKey(String password)
+	{
+		return password.startsWith(AES_128_MARKER);
 	}
 
 	public byte[] generateInitializationVector()
@@ -206,9 +223,10 @@ public class CryptoSession implements AutoCloseable
 		{
 			throw CryptoException.initializationVectorParameterNull();
 		}
-		if (initializationVector.length != INITIALIZATION_VECTOR_LENGTH)
+		if (initializationVector.length != CryptoUtil.INITIALIZATION_VECTOR_LENGTH)
 		{
-			throw CryptoException.initializationVectorWrongSize(initializationVector.length, INITIALIZATION_VECTOR_LENGTH);
+			throw CryptoException.initializationVectorWrongSize(initializationVector.length,
+					CryptoUtil.INITIALIZATION_VECTOR_LENGTH);
 		}
 		if (isInitializationVectorSet())
 		{
@@ -244,12 +262,22 @@ public class CryptoSession implements AutoCloseable
 		}
 		catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e)
 		{
-			throw CryptoException.gettingCipher(CIPHER_TYPE);
+			throw CryptoException.gettingCipher(e, CIPHER_TYPE);
 		}
 	}
 
 	private static String getPassword(Optional<String> password)
 	{
-		return password.orElseThrow(() -> MissingPasswordException.passwordHeaderNotProvided());
+		return password.orElseThrow(() -> WrongPasswordException.passwordHeaderNotProvided());
+	}
+
+	public interface Executable<T>
+	{
+		T execute();
+	}
+
+	public interface VoidPredicate
+	{
+		boolean test();
 	}
 }

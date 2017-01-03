@@ -24,6 +24,8 @@ import nu.yona.server.util.TimeUtil;
 @Table(name = "MESSAGES")
 public abstract class Message extends EntityWithUuid
 {
+	private byte[] decryptionInfo;
+
 	@Type(type = "uuid-char")
 	private final UUID relatedUserAnonymizedId;
 
@@ -71,12 +73,12 @@ public abstract class Message extends EntityWithUuid
 
 	public void encryptMessage(Encryptor encryptor)
 	{
-		encrypt(encryptor);
+		decryptionInfo = encryptor.executeInCryptoSession(() -> encrypt());
 	}
 
 	public void decryptMessage(Decryptor decryptor)
 	{
-		decrypt(decryptor);
+		decryptor.executeInCryptoSession(decryptionInfo, () -> decrypt());
 	}
 
 	protected void setRepliedMessageId(Optional<UUID> repliedMessageId)
@@ -131,7 +133,7 @@ public abstract class Message extends EntityWithUuid
 		return Optional.ofNullable(relatedUserAnonymizedId);
 	}
 
-	protected abstract void encrypt(Encryptor encryptor);
+	protected abstract void encrypt();
 
-	protected abstract void decrypt(Decryptor decryptor);
+	protected abstract void decrypt();
 }

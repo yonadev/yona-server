@@ -39,6 +39,7 @@ public class AnalysisException extends YonaException
 
 	public static AnalysisException appActivityEndsInFuture(UUID userAnonymizedId, String application, ZonedDateTime endTime)
 	{
-		return new AnalysisException("error.analysis.invalid.app.activity.data.ends.in.future", userAnonymizedId, application, endTime);
+		return new AnalysisException("error.analysis.invalid.app.activity.data.ends.in.future", userAnonymizedId, application,
+				endTime);
 	}
 }

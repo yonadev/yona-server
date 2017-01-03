@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.crypto;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.Test;
 
@@ -32,7 +32,7 @@ public class CryptoSessionTest
 		CryptoSession.getCurrent();
 	}
 
-	@Test(expected = MissingPasswordException.class)
+	@Test(expected = WrongPasswordException.class)
 	public void testExecuteEmptyPassword()
 	{
 		CryptoSession.execute(Optional.empty(), () -> "Done");
@@ -52,6 +52,44 @@ public class CryptoSessionTest
 		assertThat(ciphertext, not(equalTo(PLAINTEXT1)));
 		String plaintext = decrypt(PASSWORD1, ciphertext, initializationVector);
 		assertThat(plaintext, equalTo(PLAINTEXT1));
+	}
+
+	@Test
+	public void testUuid()
+	{
+		UUID uuid = UUID.randomUUID();
+		DataContainer dataContainer = new DataContainer();
+		CryptoSession.execute(Optional.of(PASSWORD1), () -> {
+			CryptoSession.getCurrent().generateInitializationVector(); // Not used
+			dataContainer.ciphertext = CryptoUtil.encryptUuid(uuid);
+			dataContainer.uuid = CryptoUtil.decryptUuid(dataContainer.ciphertext);
+		});
+		assertThat(dataContainer.ciphertext.length, greaterThan(16));
+		assertThat(uuid, equalTo(dataContainer.uuid));
+	}
+
+	@Test(expected = CryptoException.class)
+	public void testCryptoVariantNumber()
+	{
+		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
+		byte[] ciphertext = Base64.getDecoder().decode(encrypt(PASSWORD1, PLAINTEXT1, initializationVector, false));
+		assertThat(ciphertext[0], equalTo(CryptoSession.CURRENT_CRYPTO_VARIANT_NUMBER));
+
+		ciphertext[0] = 13; // Unsupported crypto variant number
+		decrypt(PASSWORD1, Base64.getEncoder().encodeToString(ciphertext), initializationVector);
+	}
+
+	@Test
+	public void testLongPlaintext()
+	{
+		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
+		char[] chars = new char[2500];
+		Arrays.fill(chars, 'a');
+		String longPlainText = String.valueOf(chars);
+		String ciphertext = encrypt(PASSWORD1, longPlainText, initializationVector, false);
+		assertThat(ciphertext, not(equalTo(longPlainText)));
+		String plaintext = decrypt(PASSWORD1, ciphertext, initializationVector);
+		assertThat(plaintext, equalTo(longPlainText));
 	}
 
 	@Test
@@ -143,5 +181,11 @@ public class CryptoSessionTest
 			CryptoSession.getCurrent().setInitializationVector(initializationVector);
 		}
 		return new String(CryptoSession.getCurrent().decrypt(Base64.getDecoder().decode(ciphertext)));
+	}
+
+	static class DataContainer
+	{
+		public UUID uuid;
+		public byte[] ciphertext;
 	}
 }

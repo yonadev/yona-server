@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
@@ -9,8 +9,7 @@ import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 
-import nu.yona.server.crypto.Decryptor;
-import nu.yona.server.crypto.Encryptor;
+import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.messaging.entities.BuddyMessage;
 
 @Entity
@@ -26,7 +25,8 @@ public abstract class BuddyConnectMessage extends BuddyMessage
 		super();
 	}
 
-	protected BuddyConnectMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname, String message, UUID buddyId)
+	protected BuddyConnectMessage(UUID id, UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname, String message,
+			UUID buddyId)
 	{
 		super(id, senderUserId, senderUserAnonymizedId, senderNickname, message);
 		this.buddyId = buddyId;
@@ -38,16 +38,16 @@ public abstract class BuddyConnectMessage extends BuddyMessage
 	}
 
 	@Override
-	public void encrypt(Encryptor encryptor)
+	public void encrypt()
 	{
-		super.encrypt(encryptor);
-		buddyIdCiphertext = encryptor.encrypt(buddyId);
+		super.encrypt();
+		buddyIdCiphertext = CryptoUtil.encryptUuid(buddyId);
 	}
 
 	@Override
-	public void decrypt(Decryptor decryptor)
+	public void decrypt()
 	{
-		super.decrypt(decryptor);
-		buddyId = decryptor.decryptUuid(buddyIdCiphertext);
+		super.decrypt();
+		buddyId = CryptoUtil.decryptUuid(buddyIdCiphertext);
 	}
 }
