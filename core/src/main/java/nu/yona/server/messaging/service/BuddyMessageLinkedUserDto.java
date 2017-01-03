@@ -5,6 +5,7 @@
 package nu.yona.server.messaging.service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 public abstract class BuddyMessageLinkedUserDto extends BuddyMessageDto
 {
@@ -15,7 +16,7 @@ public abstract class BuddyMessageLinkedUserDto extends BuddyMessageDto
 		super(id, creationTime, isRead, senderInfo, message);
 	}
 
-	protected BuddyMessageLinkedUserDto(long id, LocalDateTime creationTime, boolean isRead, long relatedMessageId,
+	protected BuddyMessageLinkedUserDto(long id, LocalDateTime creationTime, boolean isRead, Optional<Long> relatedMessageId,
 			SenderInfo senderInfo, String message)
 	{
 		super(id, creationTime, isRead, senderInfo, relatedMessageId, message);

@@ -27,8 +27,8 @@ public abstract class BuddyMessageDto extends MessageDto
 		this.message = message;
 	}
 
-	protected BuddyMessageDto(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, long relatedMessageId,
-			String message)
+	protected BuddyMessageDto(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo,
+			Optional<Long> relatedMessageId, String message)
 	{
 		super(id, senderInfo, creationTime, isRead, relatedMessageId);
 		this.message = message;

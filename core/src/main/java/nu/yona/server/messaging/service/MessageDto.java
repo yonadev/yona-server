@@ -55,16 +55,17 @@ public abstract class MessageDto extends PolymorphicDto
 	private static final String MARK_READ = "markRead";
 	private final long id;
 	private final LocalDateTime creationTime;
-	private final long relatedMessageId;
+	private final Optional<Long> relatedMessageId;
 	private final boolean isRead;
 	private final SenderInfo senderInfo;
 
 	protected MessageDto(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo)
 	{
-		this(id, senderInfo, creationTime, isRead, 0);
+		this(id, senderInfo, creationTime, isRead, Optional.empty());
 	}
 
-	protected MessageDto(long id, SenderInfo senderInfo, LocalDateTime creationTime, boolean isRead, long relatedMessageId)
+	protected MessageDto(long id, SenderInfo senderInfo, LocalDateTime creationTime, boolean isRead,
+			Optional<Long> relatedMessageId)
 	{
 		this.id = id;
 		this.senderInfo = senderInfo;
@@ -122,7 +123,7 @@ public abstract class MessageDto extends PolymorphicDto
 	}
 
 	@JsonIgnore
-	public long getRelatedMessageId()
+	public Optional<Long> getRelatedMessageId()
 	{
 		return relatedMessageId;
 	}

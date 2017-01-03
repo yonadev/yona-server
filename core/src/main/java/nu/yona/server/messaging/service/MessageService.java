@@ -236,15 +236,15 @@ public class MessageService
 	@Transactional
 	public void sendMessage(Message message, MessageDestinationDto destination)
 	{
-		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getId());
-		destinationEntity.send(message);
-		MessageDestination.getRepository().saveAndFlush(destinationEntity);
+		sendMessage(message, MessageDestination.getRepository().findOne(destination.getId()));
 	}
 
 	@Transactional
 	public void sendMessage(Message message, MessageDestination destinationEntity)
 	{
 		destinationEntity.send(message);
+		// Save and flush, so another message can reference it, for instance as sender-copy.
+		MessageDestination.getRepository().saveAndFlush(destinationEntity);
 	}
 
 	@Transactional
@@ -256,7 +256,8 @@ public class MessageService
 		}
 
 		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getId());
-		List<Message> messages = destinationEntity.removeMessagesFromUser(sentByUserAnonymizedId);
+		List<Message> messages = destinationEntity.getMessagesFromUser(sentByUserAnonymizedId);
+		// Thread head messages have a self-reference that prevents deletion. Clear all such references.
 		messages.stream().forEach(m -> m.clearThreadHeadSelfReference());
 		MessageDestination.getRepository().saveAndFlush(destinationEntity);
 		destinationEntity.remove(messages);

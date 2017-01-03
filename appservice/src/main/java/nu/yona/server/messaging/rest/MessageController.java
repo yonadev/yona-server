@@ -250,11 +250,8 @@ public class MessageController
 
 		private void addRelatedMessageLink(MessageDto message, MessageDto messageResource)
 		{
-			if (message.getRelatedMessageId() != 0)
-			{
-				messageResource.add(getAnonymousMessageLinkBuilder(goalIdMapping.getUserId(), message.getRelatedMessageId())
-						.withRel("related"));
-			}
+			message.getRelatedMessageId().ifPresent(rid -> messageResource
+					.add(getAnonymousMessageLinkBuilder(goalIdMapping.getUserId(), rid).withRel("related")));
 		}
 
 		@Override

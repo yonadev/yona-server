@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -86,8 +85,7 @@ public abstract class BuddyMessage extends Message
 	{
 		senderUserIdCiphertext = encryptor.encrypt(senderUserId);
 		messageCiphertext = encryptor.encrypt(message);
-		// senderNicknameCiphertext = encryptor.encrypt(senderNickname);
-		senderNicknameCiphertext = senderNickname.getBytes(StandardCharsets.UTF_8);
+		senderNicknameCiphertext = encryptor.encrypt(senderNickname);
 	}
 
 	@Override
@@ -95,7 +93,6 @@ public abstract class BuddyMessage extends Message
 	{
 		senderUserId = decryptor.decryptUuid(senderUserIdCiphertext);
 		message = decryptor.decryptString(messageCiphertext);
-		// senderNickname = decryptor.decryptString(senderNicknameCiphertext);
-		senderNickname = new String(senderNicknameCiphertext, StandardCharsets.UTF_8);
+		senderNickname = decryptor.decryptString(senderNicknameCiphertext);
 	}
 }

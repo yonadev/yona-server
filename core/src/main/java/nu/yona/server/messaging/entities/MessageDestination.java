@@ -114,7 +114,7 @@ public class MessageDestination extends EntityWithUuid
 		return publicKey;
 	}
 
-	public List<Message> removeMessagesFromUser(UUID sentByUserAnonymizedId)
+	public List<Message> getMessagesFromUser(UUID sentByUserAnonymizedId)
 	{
 		Optional<UUID> sentByUserAnonymizedIdInOptional = Optional.of(sentByUserAnonymizedId);
 		return messages.stream().filter(message -> sentByUserAnonymizedIdInOptional.equals(message.getRelatedUserAnonymizedId()))
