@@ -20,6 +20,7 @@ import nu.yona.server.goals.service.GoalDto;
 @JsonRootName("userPrivate")
 public class UserPrivateDto
 {
+	private final String yonaPassword;
 	private final String nickname;
 	private final Set<GoalDto> goals;
 	private final VPNProfileDto vpnProfile;
@@ -34,16 +35,17 @@ public class UserPrivateDto
 	@JsonCreator
 	public UserPrivateDto(@JsonProperty("nickname") String nickname)
 	{
-		this(nickname, null, null, null, null, Collections.emptySet(), Collections.emptySet(), null, null,
+		this(null, nickname, null, null, null, null, Collections.emptySet(), Collections.emptySet(), null, null,
 				new VPNProfileDto(null));
 	}
 
-	UserPrivateDto(String nickname, UUID namedMessageSourceId, UUID namedMessageDestinationId, UUID anonymousMessageSourceId,
-			UUID anonymousMessageDestinationId, Set<GoalDto> goals, Set<UUID> buddyIds,
+	UserPrivateDto(String yonaPassword, String nickname, UUID namedMessageSourceId, UUID namedMessageDestinationId,
+			UUID anonymousMessageSourceId, UUID anonymousMessageDestinationId, Set<GoalDto> goals, Set<UUID> buddyIds,
 			Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper, UUID userAnonymizedId, VPNProfileDto vpnProfile)
 	{
 		Objects.requireNonNull(goals);
 		Objects.requireNonNull(buddyIds);
+		this.yonaPassword = yonaPassword;
 		this.nickname = nickname;
 		this.namedMessageSourceId = namedMessageSourceId;
 		this.namedMessageDestinationId = namedMessageDestinationId;
@@ -54,6 +56,11 @@ public class UserPrivateDto
 		this.buddyIdToDtoMapper = buddyIdToDtoMapper;
 		this.userAnonymizedId = userAnonymizedId;
 		this.vpnProfile = vpnProfile;
+	}
+
+	public String getYonaPassword()
+	{
+		return yonaPassword;
 	}
 
 	public String getNickname()

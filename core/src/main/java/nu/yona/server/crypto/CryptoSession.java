@@ -28,7 +28,7 @@ import nu.yona.server.exceptions.YonaException;
 
 public class CryptoSession implements AutoCloseable
 {
-	public static final String AES_128_MARKER = "AES:128:";
+	private static final String AES_128_MARKER = "AES:128:";
 	static final byte CURRENT_CRYPTO_VARIANT_NUMBER = 1;
 	private static final String CIPHER_TYPE = "AES/CBC/PKCS5Padding";
 	private static final String SECRET_KEY_ALGORITHM = "PBKDF2WithHmacSHA256";
@@ -117,7 +117,7 @@ public class CryptoSession implements AutoCloseable
 
 	public static CryptoSession start(String password)
 	{
-		return start(getSecretKey(password, ITERATIONS_FOR_MULTIUSE_KEY));
+		return start(getSecretKey(password));
 	}
 
 	public static CryptoSession start(SecretKey secretKey)
@@ -134,6 +134,11 @@ public class CryptoSession implements AutoCloseable
 			throw CryptoException.noActiveCryptoSession(Thread.currentThread());
 		}
 		return cryptoSession;
+	}
+
+	public String getKeyString()
+	{
+		return encodeAesKey(secretKey);
 	}
 
 	/**
@@ -158,6 +163,11 @@ public class CryptoSession implements AutoCloseable
 		return CryptoUtil.decrypt(CURRENT_CRYPTO_VARIANT_NUMBER, getDecryptionCipher(), ciphertext);
 	}
 
+	public static SecretKey getSecretKey(String password)
+	{
+		return getSecretKey(password, ITERATIONS_FOR_MULTIUSE_KEY);
+	}
+
 	private static SecretKey getSecretKey(String password, int iterations)
 	{
 		try
@@ -175,6 +185,11 @@ public class CryptoSession implements AutoCloseable
 		{
 			throw CryptoException.creatingSecretKey(e);
 		}
+	}
+
+	private static String encodeAesKey(SecretKey key)
+	{
+		return AES_128_MARKER + Base64.getEncoder().encodeToString(key.getEncoded());
 	}
 
 	private static SecretKey decodeAesKey(String password)

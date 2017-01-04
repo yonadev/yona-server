@@ -1874,6 +1874,10 @@ definitions:
     allOf:
       - $ref: '#/definitions/PrivateUserDataNoVPN'
     properties:
+      yonaPassword:
+        type: string
+        description: The Yona password for subsequent requests
+        example: AES:128:YXNkZnNhZGZnMnrp1ORubw==
       vpnProfile:
         $ref: '#/definitions/VPNProfile'
   PostPutUser:

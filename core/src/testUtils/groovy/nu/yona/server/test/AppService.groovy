@@ -27,18 +27,31 @@ class AppService extends Service
 	{
 		def response = confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"1234" }""", user.password)
 		asserter(response)
-		return (isSuccess(response)) ? new User(response.responseData, user.password, true) : null
+		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def addUser(Closure asserter, password, firstName, lastName, nickname, mobileNumber, parameters = [:])
+	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, parameters = [:])
+	{
+		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber)
+		def response = addUser(jsonStr, parameters)
+		asserter(response)
+		return (isSuccess(response)) ? new User(response.responseData) : null
+	}
+
+	def addUser(jsonString, parameters = [:])
+	{
+		yonaServer.createResource(USERS_PATH, jsonString, parameters)
+	}
+
+	def addUser(Closure asserter, String password, firstName, lastName, nickname, mobileNumber, parameters = [:])
 	{
 		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber)
 		def response = addUser(jsonStr, password, parameters)
 		asserter(response)
-		return (isSuccess(response)) ? new User(response.responseData, password) : null
+		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def addUser(jsonString, password, parameters = [:])
+	def addUser(jsonString, String password, parameters = [:])
 	{
 		yonaServer.createResourceWithPassword(USERS_PATH, jsonString, password, parameters)
 	}
@@ -55,7 +68,7 @@ class AppService extends Service
 			response = yonaServer.getResourceWithPassword(userUrl, password)
 		}
 		asserter(response)
-		return (isSuccess(response)) ? new User(response.responseData, password, includePrivateData) : null
+		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
 	def getUser(userUrl, boolean includePrivateData, password = null)
@@ -83,14 +96,14 @@ class AppService extends Service
 			response = yonaServer.getResourceWithPassword(user.url, user.password)
 			assertUserGetResponseDetailsWithoutPrivateData(response)
 		}
-		return (isSuccess(response)) ? new User(response.responseData, user.password, user.hasPrivateData) : null
+		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
 	def updateUser(Closure asserter, User user, url = null)
 	{
 		def response = updateUser((url) ?: user.url, user.convertToJson(), user.password)
 		asserter(response)
-		return (isSuccess(response)) ? new User(response.responseData, user.password) : null
+		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
 	def updateUser(userUrl, jsonString, password)

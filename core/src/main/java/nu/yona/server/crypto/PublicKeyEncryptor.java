@@ -5,11 +5,9 @@
 package nu.yona.server.crypto;
 
 import java.security.GeneralSecurityException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 
 import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
 public class PublicKeyEncryptor implements Encryptor
@@ -53,28 +51,12 @@ public class PublicKeyEncryptor implements Encryptor
 	@Override
 	public byte[] executeInCryptoSession(Runnable runnable)
 	{
-		SecretKey secretKey = generateRandomSecretKey();
+		SecretKey secretKey = CryptoUtil.generateRandomSecretKey();
 		try (CryptoSession cryptoSession = CryptoSession.start(secretKey))
 		{
 			byte[] decryptionInfo = getDecryptionInfo(secretKey);
 			runnable.run();
 			return decryptionInfo;
-		}
-	}
-
-	private SecretKey generateRandomSecretKey()
-	{
-		try
-		{
-			KeyGenerator keyGen;
-			keyGen = KeyGenerator.getInstance("AES");
-			keyGen.init(128);
-			SecretKey secretKey = keyGen.generateKey();
-			return secretKey;
-		}
-		catch (NoSuchAlgorithmException e)
-		{
-			throw CryptoException.generatingKey(e);
 		}
 	}
 

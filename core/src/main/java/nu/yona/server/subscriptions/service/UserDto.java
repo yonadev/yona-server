@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import nu.yona.server.Constants;
+import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.subscriptions.entities.User;
@@ -45,14 +46,15 @@ public class UserDto
 	/*
 	 * Only intended for test purposes.
 	 */
-	private UserDto(UUID id, LocalDateTime creationTime, String firstName, String lastName, String nickname, String mobileNumber,
-			boolean isConfirmed, UUID namedMessageSourceId, UUID namedMessageDestinationId, UUID anonymousMessageSourceId,
-			UUID anonymousMessageDestinationId, Set<GoalDto> goals, Set<UUID> buddyIds,
+	private UserDto(UUID id, LocalDateTime creationTime, String firstName, String lastName, String yonaPassword, String nickname,
+			String mobileNumber, boolean isConfirmed, UUID namedMessageSourceId, UUID namedMessageDestinationId,
+			UUID anonymousMessageSourceId, UUID anonymousMessageDestinationId, Set<GoalDto> goals, Set<UUID> buddyIds,
 			Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper, UUID userAnonymizedId, VPNProfileDto vpnProfile)
 	{
 		this(id, firstName, lastName, null, mobileNumber, Optional.of(creationTime), isConfirmed,
-				new UserPrivateDto(nickname, namedMessageSourceId, namedMessageDestinationId, anonymousMessageSourceId,
-						anonymousMessageDestinationId, goals, buddyIds, buddyIdToDtoMapper, userAnonymizedId, vpnProfile));
+				new UserPrivateDto(yonaPassword, nickname, namedMessageSourceId, namedMessageDestinationId,
+						anonymousMessageSourceId, anonymousMessageDestinationId, goals, buddyIds, buddyIdToDtoMapper,
+						userAnonymizedId, vpnProfile));
 	}
 
 	private UserDto(UUID id, String firstName, String lastName, String mobileNumber, LocalDateTime creationTime,
@@ -190,9 +192,10 @@ public class UserDto
 	static UserDto createInstanceWithPrivateData(User userEntity, Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper)
 	{
 		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getFirstName(), userEntity.getLastName(),
-				userEntity.getNickname(), userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(),
-				userEntity.getNamedMessageSource().getId(), userEntity.getNamedMessageDestination().getId(),
-				userEntity.getAnonymousMessageSource().getId(), userEntity.getAnonymousMessageSource().getDestination().getId(),
+				CryptoSession.getCurrent().getKeyString(), userEntity.getNickname(), userEntity.getMobileNumber(),
+				userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSource().getId(),
+				userEntity.getNamedMessageDestination().getId(), userEntity.getAnonymousMessageSource().getId(),
+				userEntity.getAnonymousMessageSource().getDestination().getId(),
 				UserAnonymizedDto.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), getBuddyIds(userEntity),
 				buddyIdToDtoMapper, userEntity.getUserAnonymizedId(), VPNProfileDto.createInstance(userEntity));
 	}

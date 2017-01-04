@@ -122,6 +122,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def newNickname = "Bobby"
 		def newPassword = "B o b"
 		def updatedBobJson = bob.convertToJson()
+		updatedBobJson.yonaPassword = newPassword
 		updatedBobJson.nickname = newNickname
 		appService.updateUser(inviteUrl, updatedBobJson, newPassword)
 		def bobFromGetAfterUpdate = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataIgnoreNickname, bob.url, true, newPassword)
@@ -130,7 +131,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def againChangedNickname = "Robert"
 		def againUpdatedBobJson = bobFromGetAfterUpdate.convertToJson()
 		againUpdatedBobJson.nickname = againChangedNickname
-		def againUpdatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(againUpdatedBobJson, newPassword))
+		def againUpdatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(againUpdatedBobJson))
 
 		then:
 		againUpdatedBob.nickname == againChangedNickname
@@ -150,8 +151,9 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def newNickname = "Bobby"
 		def newPassword = "B o b"
 		def updatedBobJson = bob.convertToJson()
+		updatedBobJson.yonaPassword = newPassword
 		updatedBobJson.nickname = newNickname
-		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteUrl)
+		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson), inviteUrl)
 
 		when:
 		updatedBob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
@@ -180,8 +182,9 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def newNickname = "Bobby"
 		def newPassword = "B o b"
 		def updatedBobJson = bob.convertToJson()
+		updatedBobJson.yonaPassword = newPassword
 		updatedBobJson.nickname = newNickname
-		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteUrl)
+		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson), inviteUrl)
 		updatedBob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptUrl
 
@@ -212,8 +215,9 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def newNickname = "Bobby"
 		def newPassword = "B o b"
 		def updatedBobJson = bob.convertToJson()
+		updatedBobJson.yonaPassword = newPassword
 		updatedBobJson.nickname = newNickname
-		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteUrl)
+		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson), inviteUrl)
 		updatedBob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptUrl
 		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], newPassword)
@@ -248,8 +252,9 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def newNickname = "Bobby"
 		def newPassword = "B o b"
 		def updatedBobJson = bob.convertToJson()
+		updatedBobJson.yonaPassword = newPassword
 		updatedBobJson.nickname = newNickname
-		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, newPassword), inviteUrl)
+		def updatedBob = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson), inviteUrl)
 		updatedBob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, updatedBob)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptUrl
 		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], newPassword)

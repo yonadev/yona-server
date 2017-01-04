@@ -21,7 +21,7 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		when:
 		def updatedBobJson = bob.convertToJson()
 		updatedBobJson.nickname = "Bobby"
-		User bobAfterUpdate = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, bob.password))
+		User bobAfterUpdate = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson))
 		def richardMessagesAfterUpdate = appService.getMessages(richard)
 		assert richardMessagesAfterUpdate.status == 200
 		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
@@ -64,7 +64,7 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJson()
 		updatedBobJson.firstName = "Robert"
 		updatedBobJson.lastName = "Dunstan"
-		User bobAfterUpdate = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson, bob.password))
+		User bobAfterUpdate = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson))
 		def richardMessagesAfterUpdate = appService.getMessages(richard)
 		assert richardMessagesAfterUpdate.status == 200
 		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
