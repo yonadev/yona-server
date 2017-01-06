@@ -112,50 +112,54 @@ public class UserController
 	@Autowired
 	private VelocityEngine velocityEngine;
 
-	@RequestMapping(value = "/{id}", params = { "includePrivateData" }, method = RequestMethod.GET)
+	@RequestMapping(value = "/{userId}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr,
 			@RequestParam(value = "includePrivateData", defaultValue = "false") String includePrivateDataStr,
-			@PathVariable UUID id)
+			@PathVariable UUID userId)
 	{
 		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
 		Optional<String> passwordToUse = getPasswordToUse(password, tempPassword);
 		boolean includePrivateData = Boolean.TRUE.toString().equals(includePrivateDataStr);
 		if (includePrivateData)
 		{
-			return CryptoSession.execute(passwordToUse, () -> userService.canAccessPrivateData(id),
-					() -> createOkResponse(userService.getPrivateUser(id), includePrivateData));
+			try (CryptoSession cryptoSession = CryptoSession.start(passwordToUse, () -> userService.canAccessPrivateData(userId)))
+			{
+				return createOkResponse(userService.getPrivateUser(userId), includePrivateData);
+			}
 		}
 		else
 		{
-			return getPublicUser(passwordToUse, id);
+			return getPublicUser(passwordToUse, userId);
 		}
 	}
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{userId}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getPublicUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID id)
+			@PathVariable UUID userId)
 	{
-		return createOkResponse(userService.getPublicUser(id), false);
+		return createOkResponse(userService.getPublicUser(userId), false);
 	}
 
-	@RequestMapping(value = "/{id}/apple.mobileconfig", method = RequestMethod.GET)
+	@RequestMapping(value = "/{userId}/apple.mobileconfig", method = RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity<byte[]> getAppleMobileConfig(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(new MediaType("application", "x-apple-aspen-config"));
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
-				() -> new ResponseEntity<byte[]>(getUserSpecificAppleMobileConfig(userService.getPrivateUser(id)), headers,
-						HttpStatus.OK));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return new ResponseEntity<>(getUserSpecificAppleMobileConfig(userService.getPrivateUser(userId)), headers,
+					HttpStatus.OK);
+		}
 	}
 
 	private byte[] getUserSpecificAppleMobileConfig(UserDto privateUser)
 	{
-		Map<String, Object> templateParameters = new HashMap<String, Object>();
+		Map<String, Object> templateParameters = new HashMap<>();
 		templateParameters.put("ldapUsername", privateUser.getPrivateData().getVpnProfile().getVpnLoginId().toString());
 		templateParameters.put("ldapPassword", privateUser.getPrivateData().getVpnProfile().getVpnPassword());
 		return VelocityEngineUtils.mergeTemplateIntoString(velocityEngine, "apple.mobileconfig.vm", "UTF-8", templateParameters)
@@ -174,56 +178,64 @@ public class UserController
 				() -> addUser(password, Optional.ofNullable(overwriteUserConfirmationCode), user));
 	}
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+	@RequestMapping(value = "/{userId}", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr, @PathVariable UUID id,
+			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr, @PathVariable UUID userId,
 			@RequestBody UserDto userResource)
 	{
 		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
 		if (tempPassword.isPresent())
 		{
-			return CryptoSession.execute(password, null,
-					() -> createOkResponse(userService.updateUserCreatedOnBuddyRequest(id, tempPassword.get(), userResource),
-							true));
+			try (CryptoSession cryptoSession = CryptoSession.start(password, null))
+			{
+				return createOkResponse(userService.updateUserCreatedOnBuddyRequest(userId, tempPassword.get(), userResource),
+						true);
+			}
 		}
 		else
 		{
-			return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
-					() -> createOkResponse(userService.updateUser(id, userResource), true));
+			try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+			{
+				return createOkResponse(userService.updateUser(userId, userResource), true);
+			}
 		}
 	}
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
+	public void deleteUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
-			userService.deleteUser(id, Optional.ofNullable(messageStr));
-			return null;
-		});
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			userService.deleteUser(userId, Optional.ofNullable(messageStr));
+		}
 	}
 
-	@RequestMapping(value = "/{id}/confirmMobileNumber", method = RequestMethod.POST)
+	@RequestMapping(value = "/{userId}/confirmMobileNumber", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpEntity<UserResource> confirmMobileNumber(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@RequestBody ConfirmationCodeDto mobileNumberConfirmation)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
-				() -> createOkResponse(userService.confirmMobileNumber(id, mobileNumberConfirmation.getCode()), true));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return createOkResponse(userService.confirmMobileNumber(userId, mobileNumberConfirmation.getCode()), true);
+		}
 	}
 
-	@RequestMapping(value = "/{id}/resendMobileNumberConfirmationCode", method = RequestMethod.POST)
+	@RequestMapping(value = "/{userId}/resendMobileNumberConfirmationCode", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<Void> resendMobileNumberConfirmationCode(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id),
-				() -> userService.resendMobileNumberConfirmationCode(id));
-		return new ResponseEntity<Void>(HttpStatus.OK);
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			userService.resendMobileNumberConfirmationCode(userId);
+			return new ResponseEntity<>(HttpStatus.OK);
+		}
 	}
 
 	@ExceptionHandler(ConfirmationException.class)
@@ -234,7 +246,7 @@ public class UserController
 			ErrorResponseDto responseMessage = new ConfirmationFailedResponseDto(e.getMessageId(), e.getMessage(),
 					e.getRemainingAttempts());
 			logger.error("Confirmation failed", e);
-			return new ResponseEntity<ErrorResponseDto>(responseMessage, e.getStatusCode());
+			return new ResponseEntity<>(responseMessage, e.getStatusCode());
 		}
 		return globalExceptionMapping.handleYonaException(e);
 	}
@@ -281,7 +293,7 @@ public class UserController
 
 	private HttpEntity<UserResource> createResponse(UserDto user, boolean includePrivateData, HttpStatus status)
 	{
-		return new ResponseEntity<UserResource>(
+		return new ResponseEntity<>(
 				new UserResourceAssembler(curieProvider, pinResetRequestController, includePrivateData).toResource(user), status);
 	}
 
@@ -383,7 +395,7 @@ public class UserController
 			}
 
 			Set<BuddyDto> buddies = getContent().getPrivateData().getBuddies();
-			HashMap<String, Object> result = new HashMap<String, Object>();
+			HashMap<String, Object> result = new HashMap<>();
 			result.put(curieProvider.getNamespacedRelFor(UserDto.BUDDIES_REL_NAME),
 					BuddyController.createAllBuddiesCollectionResource(curieProvider, getContent().getId(), buddies));
 
@@ -406,8 +418,7 @@ public class UserController
 			{
 				return null;
 			}
-			Resource<VPNProfileDto> vpnProfileResource = new Resource<VPNProfileDto>(
-					getContent().getPrivateData().getVpnProfile());
+			Resource<VPNProfileDto> vpnProfileResource = new Resource<>(getContent().getPrivateData().getVpnProfile());
 			addOvpnProfileLink(vpnProfileResource);
 			return vpnProfileResource;
 		}

@@ -8,6 +8,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -35,13 +36,9 @@ public class CryptoSessionTest
 	@Test(expected = WrongPasswordException.class)
 	public void testExecuteEmptyPassword()
 	{
-		CryptoSession.execute(Optional.empty(), () -> "Done");
-	}
-
-	@Test
-	public void testStringReturnValue()
-	{
-		assertThat(PLAINTEXT1, equalTo(CryptoSession.execute(Optional.of(PASSWORD1), () -> PLAINTEXT1)));
+		try (CryptoSession cryptoSession = CryptoSession.start(Optional.empty(), () -> true))
+		{
+		}
 	}
 
 	@Test
@@ -59,11 +56,12 @@ public class CryptoSessionTest
 	{
 		UUID uuid = UUID.randomUUID();
 		DataContainer dataContainer = new DataContainer();
-		CryptoSession.execute(Optional.of(PASSWORD1), () -> {
+		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), () -> true))
+		{
 			CryptoSession.getCurrent().generateInitializationVector(); // Not used
 			dataContainer.ciphertext = CryptoUtil.encryptUuid(uuid);
 			dataContainer.uuid = CryptoUtil.decryptUuid(dataContainer.ciphertext);
-		});
+		}
 		assertThat(dataContainer.ciphertext.length, greaterThan(16));
 		assertThat(uuid, equalTo(dataContainer.uuid));
 	}
@@ -119,14 +117,19 @@ public class CryptoSessionTest
 	@Test
 	public void testInvalidPasswordWhileCheckerSaysOk()
 	{
-		assertThat(PLAINTEXT1,
-				equalTo(CryptoSession.execute(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsOk, () -> PLAINTEXT1)));
+		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsOk))
+		{
+			assertTrue(true);
+		}
 	}
 
 	@Test(expected = CryptoException.class)
 	public void testInvalidPasswordWhileCheckerSaysNotOk()
 	{
-		CryptoSession.execute(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsNotOk, () -> PLAINTEXT1);
+		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsNotOk))
+		{
+			assertTrue(false);
+		}
 	}
 
 	private static boolean passwordIsOk()
@@ -151,13 +154,18 @@ public class CryptoSessionTest
 
 	private static String encrypt(String password, String plaintext, byte[] initializationVector, boolean ivIsInput)
 	{
-		return CryptoSession.execute(Optional.of(password),
-				() -> encryptInCurrentSession(plaintext, initializationVector, ivIsInput));
+		try (CryptoSession cryptoSession = CryptoSession.start(password))
+		{
+			return encryptInCurrentSession(plaintext, initializationVector, ivIsInput);
+		}
 	}
 
 	private static String decrypt(String password, String ciphertext, byte[] initializationVector)
 	{
-		return CryptoSession.execute(Optional.of(password), () -> decryptInCurrentSession(ciphertext, initializationVector));
+		try (CryptoSession cryptoSession = CryptoSession.start(password))
+		{
+			return decryptInCurrentSession(ciphertext, initializationVector);
+		}
 	}
 
 	private static String encryptInCurrentSession(String plaintext, byte[] initializationVector, boolean ivIsInput)

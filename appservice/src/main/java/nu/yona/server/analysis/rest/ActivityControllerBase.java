@@ -86,9 +86,11 @@ abstract class ActivityControllerBase
 			UUID userId, Pageable pageable, PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler,
 			Supplier<Page<WeekActivityOverviewDto>> activitySupplier, LinkProvider linkProvider)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
-				() -> new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
-						new WeekActivityOverviewResourceAssembler(linkProvider)), HttpStatus.OK));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
+					new WeekActivityOverviewResourceAssembler(linkProvider)), HttpStatus.OK);
+		}
 	}
 
 	protected HttpEntity<PagedResources<DayActivityOverviewResource>> getDayActivityOverviews(Optional<String> password,
@@ -96,40 +98,48 @@ abstract class ActivityControllerBase
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler,
 			Supplier<Page<DayActivityOverviewDto<DayActivityDto>>> activitySupplier, LinkProvider linkProvider)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
-				() -> new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
-						new DayActivityOverviewResourceAssembler(linkProvider)), HttpStatus.OK));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
+					new DayActivityOverviewResourceAssembler(linkProvider)), HttpStatus.OK);
+		}
 	}
 
 	protected HttpEntity<WeekActivityResource> getWeekActivityDetail(Optional<String> password, UUID userId, String dateStr,
 			Function<LocalDate, WeekActivityDto> activitySupplier, LinkProvider linkProvider)
 	{
-		LocalDate date = WeekActivityDto.parseDate(dateStr);
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
-				() -> new ResponseEntity<>(
-						new WeekActivityResourceAssembler(linkProvider, true).toResource(activitySupplier.apply(date)),
-						HttpStatus.OK));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			LocalDate date = WeekActivityDto.parseDate(dateStr);
+			return new ResponseEntity<>(
+					new WeekActivityResourceAssembler(linkProvider, true).toResource(activitySupplier.apply(date)),
+					HttpStatus.OK);
+		}
 	}
 
 	protected HttpEntity<DayActivityResource> getDayActivityDetail(Optional<String> password, UUID userId, String dateStr,
 			Function<LocalDate, DayActivityDto> activitySupplier, LinkProvider linkProvider)
 	{
-		LocalDate date = DayActivityDto.parseDate(dateStr);
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
-				() -> new ResponseEntity<>(
-						new DayActivityResourceAssembler(linkProvider, true, true).toResource(activitySupplier.apply(date)),
-						HttpStatus.OK));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			LocalDate date = DayActivityDto.parseDate(dateStr);
+			return new ResponseEntity<>(
+					new DayActivityResourceAssembler(linkProvider, true, true).toResource(activitySupplier.apply(date)),
+					HttpStatus.OK);
+		}
 	}
 
 	protected HttpEntity<PagedResources<MessageDto>> getActivityDetailMessages(Optional<String> password, UUID userId,
 			Pageable pageable, PagedResourcesAssembler<MessageDto> pagedResourcesAssembler,
 			Supplier<Page<MessageDto>> messageSupplier, LinkProvider linkProvider)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
-				() -> new ResponseEntity<>(
-						pagedResourcesAssembler.toResource(messageSupplier.get(),
-								new MessageResourceAssembler(curieProvider, createGoalIdMapping(userId), messageController)),
-				HttpStatus.OK));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return new ResponseEntity<>(
+					pagedResourcesAssembler.toResource(messageSupplier.get(),
+							new MessageResourceAssembler(curieProvider, createGoalIdMapping(userId), messageController)),
+					HttpStatus.OK);
+		}
 	}
 
 	protected GoalIdMapping createGoalIdMapping(UUID userId)

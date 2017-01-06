@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
@@ -42,7 +39,7 @@ import nu.yona.server.subscriptions.service.PinResetRequestService;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
-@RequestMapping(value = "/users/{id}/pinResetRequest", produces = { MediaType.APPLICATION_JSON_VALUE })
+@RequestMapping(value = "/users/{userId}/pinResetRequest", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class PinResetRequestController
 {
 	@Autowired
@@ -62,52 +59,53 @@ public class PinResetRequestController
 	@RequestMapping(value = "/request", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<ConfirmationCodeDelayDto> requestPinReset(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
-			pinResetRequestService.requestPinReset(id);
-			return null;
-		});
-		return new ResponseEntity<ConfirmationCodeDelayDto>(
-				new ConfirmationCodeDelayDto(yonaProperties.getSecurity().getPinResetRequestConfirmationCodeDelay()),
-				HttpStatus.OK);
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			pinResetRequestService.requestPinReset(userId);
+			return new ResponseEntity<>(
+					new ConfirmationCodeDelayDto(yonaProperties.getSecurity().getPinResetRequestConfirmationCodeDelay()),
+					HttpStatus.OK);
+		}
 	}
 
 	@RequestMapping(value = "/verify", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<Void> verifyPinResetConfirmationCode(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id,
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@RequestBody ConfirmationCodeDto confirmationCode)
 	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
-			pinResetRequestService.verifyPinResetConfirmationCode(id, confirmationCode.getCode());
-			return null;
-		});
-		return new ResponseEntity<Void>(HttpStatus.OK);
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+
+			pinResetRequestService.verifyPinResetConfirmationCode(userId, confirmationCode.getCode());
+			return new ResponseEntity<>(HttpStatus.OK);
+		}
 	}
 
 	@RequestMapping(value = "/resend", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<Void> resendPinResetConfirmationCode(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID id)
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
-			pinResetRequestService.resendPinResetConfirmationCode(id);
-			return null;
-		});
-		return new ResponseEntity<Void>(HttpStatus.OK);
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			pinResetRequestService.resendPinResetConfirmationCode(userId);
+			return new ResponseEntity<>(HttpStatus.OK);
+		}
 	}
 
 	@RequestMapping(value = "/clear", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<Void> clearPinResetRequest(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID id)
+			@PathVariable UUID userId)
 	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(id), () -> {
-			pinResetRequestService.clearPinResetRequest(id);
-			return null;
-		});
-		return new ResponseEntity<Void>(HttpStatus.OK);
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			pinResetRequestService.clearPinResetRequest(userId);
+			return new ResponseEntity<>(HttpStatus.OK);
+		}
 	}
 
 	@ExceptionHandler(ConfirmationException.class)
@@ -118,7 +116,7 @@ public class PinResetRequestController
 			ErrorResponseDto responseMessage = new ConfirmationFailedResponseDto(e.getMessageId(), e.getMessage(),
 					e.getRemainingAttempts());
 			logger.error("Pin reset confirmation failed", e);
-			return new ResponseEntity<ErrorResponseDto>(responseMessage, e.getStatusCode());
+			return new ResponseEntity<>(responseMessage, e.getStatusCode());
 		}
 		return globalExceptionMapping.handleYonaException(e);
 	}

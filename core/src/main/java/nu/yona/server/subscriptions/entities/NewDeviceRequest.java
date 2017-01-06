@@ -5,7 +5,6 @@
 package nu.yona.server.subscriptions.entities;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -95,23 +94,23 @@ public class NewDeviceRequest extends EntityWithUuid
 
 	public void encryptYonaPassword(String newDeviceRequestPassword)
 	{
-		CryptoSession.execute(Optional.of(newDeviceRequestPassword), null, () -> {
+		try (CryptoSession cryptoSession = CryptoSession.start(newDeviceRequestPassword))
+		{
 			this.initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 			CryptoSession.getCurrent().setInitializationVector(this.initializationVector);
 			this.yonaPasswordCipherText = new StringFieldEncrypter().convertToDatabaseColumn(this.yonaPassword);
 			this.decryptionCheckCipherText = new StringFieldEncrypter().convertToDatabaseColumn(this.decryptionCheck);
-			return null;
-		});
+		}
 	}
 
 	public void decryptYonaPassword(String newDeviceRequestPassword, String mobileNumber)
 	{
-		CryptoSession.execute(Optional.of(newDeviceRequestPassword), null, () -> {
+		try (CryptoSession cryptoSession = CryptoSession.start(newDeviceRequestPassword))
+		{
 			CryptoSession.getCurrent().setInitializationVector(this.initializationVector);
 			this.yonaPassword = new StringFieldEncrypter().convertToEntityAttribute(this.yonaPasswordCipherText);
 			this.decryptionCheck = new StringFieldEncrypter().convertToEntityAttribute(this.decryptionCheckCipherText);
-			return null;
-		});
+		}
 
 		if (!this.isDecryptedProperly())
 		{

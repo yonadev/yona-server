@@ -356,8 +356,11 @@ public class UserService
 	private EncryptedUserData retrieveUserEncryptedData(User originalUserEntity, String password)
 	{
 		// use a separate crypto session to read the data based on the temporary password
-		return CryptoSession.execute(Optional.of(password), () -> canAccessPrivateData(originalUserEntity.getId()),
-				() -> retrieveUserEncryptedDataInNewCryptoSession(originalUserEntity));
+		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(password),
+				() -> canAccessPrivateData(originalUserEntity.getId())))
+		{
+			return retrieveUserEncryptedDataInNewCryptoSession(originalUserEntity);
+		}
 	}
 
 	private EncryptedUserData retrieveUserEncryptedDataInNewCryptoSession(User originalUserEntity)
@@ -547,7 +550,7 @@ public class UserService
 
 	public void sendConfirmationCodeTextMessage(String mobileNumber, ConfirmationCode confirmationCode, String templateName)
 	{
-		Map<String, Object> templateParams = new HashMap<String, Object>();
+		Map<String, Object> templateParams = new HashMap<>();
 		templateParams.put("confirmationCode", confirmationCode.getConfirmationCode());
 		smsService.send(mobileNumber, templateName, templateParams);
 	}

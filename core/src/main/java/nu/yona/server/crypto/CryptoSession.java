@@ -61,36 +61,6 @@ public class CryptoSession implements AutoCloseable
 		threadLocal.set(previousCryptoSession);
 	}
 
-	public static <T> T execute(Optional<String> password, Executable<T> executable)
-	{
-		return execute(password, null, executable);
-	}
-
-	public static void execute(Optional<String> password, Runnable runnable)
-	{
-		execute(password, null, runnable);
-	}
-
-	public static <T> T execute(Optional<String> password, VoidPredicate passwordChecker, Executable<T> executable)
-	{
-		try (CryptoSession cryptoSession = start(getPassword(password)))
-		{
-			if (passwordChecker != null && !passwordChecker.test())
-			{
-				throw CryptoException.decryptingData();
-			}
-			return executable.execute();
-		}
-	}
-
-	public static void execute(Optional<String> password, VoidPredicate passwordChecker, Runnable runnable)
-	{
-		execute(password, passwordChecker, () -> {
-			runnable.run();
-			return Boolean.TRUE;
-		});
-	}
-
 	private Cipher getEncryptionCipher()
 	{
 		try
@@ -117,7 +87,27 @@ public class CryptoSession implements AutoCloseable
 
 	public static CryptoSession start(String password)
 	{
-		return start(getSecretKey(password));
+		return start(Optional.of(password), null);
+	}
+
+	public static CryptoSession start(Optional<String> optionalPassword, VoidPredicate passwordChecker)
+	{
+		String password = getPassword(optionalPassword);
+		CryptoSession session = start(getSecretKey(password));
+		try
+		{
+			if (passwordChecker != null && !passwordChecker.test())
+			{
+				throw CryptoException.decryptingData();
+			}
+		}
+		catch (Exception e)
+		{
+			session.close();
+			throw e;
+		}
+
+		return session;
 	}
 
 	public static CryptoSession start(SecretKey secretKey)

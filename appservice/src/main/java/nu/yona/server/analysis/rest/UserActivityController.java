@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.rest;
 
@@ -145,8 +142,10 @@ public class UserActivityController extends ActivityControllerBase
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityWithBuddiesDto>> pagedResourcesAssembler,
 			Supplier<Page<DayActivityOverviewDto<DayActivityWithBuddiesDto>>> activitySupplier, LinkProvider linkProvider)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
-				() -> getDayActivityOverviewsWithBuddies(userId, pagedResourcesAssembler, activitySupplier));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return getDayActivityOverviewsWithBuddies(userId, pagedResourcesAssembler, activitySupplier);
+		}
 	}
 
 	private ResponseEntity<PagedResources<DayActivityOverviewWithBuddiesResource>> getDayActivityOverviewsWithBuddies(UUID userId,
