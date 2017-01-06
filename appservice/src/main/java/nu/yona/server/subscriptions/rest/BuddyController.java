@@ -40,7 +40,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.analysis.rest.BuddyActivityController;
-import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.goals.rest.GoalController.GoalResourceAssembler;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalServiceException;

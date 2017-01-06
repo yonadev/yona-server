@@ -25,8 +25,8 @@ import org.springframework.data.domain.Pageable;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.IntervalActivity;
-import nu.yona.server.crypto.PublicKeyEncryptor;
-import nu.yona.server.crypto.PublicKeyUtil;
+import nu.yona.server.crypto.pubkey.PublicKeyEncryptor;
+import nu.yona.server.crypto.pubkey.PublicKeyUtil;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;

@@ -26,8 +26,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.IntervalActivity;
-import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.exceptions.UserOverwriteConfirmationException;

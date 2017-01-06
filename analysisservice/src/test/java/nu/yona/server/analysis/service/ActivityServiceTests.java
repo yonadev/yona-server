@@ -45,7 +45,7 @@ import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
-import nu.yona.server.crypto.PublicKeyUtil;
+import nu.yona.server.crypto.pubkey.PublicKeyUtil;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;

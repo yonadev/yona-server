@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;

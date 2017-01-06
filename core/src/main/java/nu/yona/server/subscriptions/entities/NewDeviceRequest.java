@@ -11,9 +11,9 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
-import nu.yona.server.crypto.StringFieldEncrypter;
+import nu.yona.server.crypto.seckey.CryptoSession;
+import nu.yona.server.crypto.seckey.StringFieldEncrypter;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.service.DeviceRequestException;

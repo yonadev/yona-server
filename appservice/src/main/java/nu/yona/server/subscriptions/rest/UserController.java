@@ -63,8 +63,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import nu.yona.server.DOSProtectionService;
 import nu.yona.server.analysis.rest.AppActivityController;
 import nu.yona.server.analysis.rest.UserActivityController;
-import nu.yona.server.crypto.CryptoSession;
-import nu.yona.server.crypto.CryptoUtil;
+import nu.yona.server.crypto.seckey.CryptoSession;
+import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.rest.GoalController;
@@ -271,7 +271,7 @@ public class UserController
 			logger.warn("Creating user with app-provided password");
 		}
 		SecretKey secretKey = password.map(p -> CryptoSession.getSecretKey(password.get()))
-				.orElse(CryptoUtil.generateRandomSecretKey());
+				.orElse(SecretKeyUtil.generateRandomSecretKey());
 		try (CryptoSession cryptoSession = CryptoSession.start(secretKey))
 		{
 			return createResponse(userService.addUser(user, overwriteUserConfirmationCode), true, HttpStatus.CREATED);

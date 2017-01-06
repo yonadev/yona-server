@@ -15,7 +15,7 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;

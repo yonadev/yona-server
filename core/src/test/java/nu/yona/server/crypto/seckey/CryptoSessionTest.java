@@ -2,7 +2,7 @@
  * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
-package nu.yona.server.crypto;
+package nu.yona.server.crypto.seckey;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
@@ -17,6 +17,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.Test;
+
+import nu.yona.server.crypto.CryptoException;
+import nu.yona.server.crypto.seckey.CryptoSession;
+import nu.yona.server.crypto.seckey.SecretKeyUtil;
+import nu.yona.server.crypto.seckey.WrongPasswordException;
 
 public class CryptoSessionTest
 {
@@ -59,8 +64,8 @@ public class CryptoSessionTest
 		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), () -> true))
 		{
 			CryptoSession.getCurrent().generateInitializationVector(); // Not used
-			dataContainer.ciphertext = CryptoUtil.encryptUuid(uuid);
-			dataContainer.uuid = CryptoUtil.decryptUuid(dataContainer.ciphertext);
+			dataContainer.ciphertext = SecretKeyUtil.encryptUuid(uuid);
+			dataContainer.uuid = SecretKeyUtil.decryptUuid(dataContainer.ciphertext);
 		}
 		assertThat(dataContainer.ciphertext.length, greaterThan(16));
 		assertThat(uuid, equalTo(dataContainer.uuid));

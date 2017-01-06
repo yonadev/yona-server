@@ -2,7 +2,7 @@
  * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
-package nu.yona.server.crypto;
+package nu.yona.server.crypto.pubkey;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.lessThan;
@@ -14,6 +14,10 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 
 import org.junit.Test;
+
+import nu.yona.server.crypto.CryptoException;
+import nu.yona.server.crypto.CryptoUtil;
+import nu.yona.server.crypto.seckey.SecretKeyUtil;
 
 public class PublicKeyCryptoTest
 {
@@ -36,14 +40,14 @@ public class PublicKeyCryptoTest
 		PublicKeyEncryptor encryptor = PublicKeyEncryptor.createInstance(keyPair.getPublic());
 		DataContainer dataContainer = new DataContainer();
 		dataContainer.decryptionInfo = encryptor
-				.executeInCryptoSession(() -> dataContainer.ciphertext = CryptoUtil.encryptString(PLAINTEXT1));
+				.executeInCryptoSession(() -> dataContainer.ciphertext = SecretKeyUtil.encryptString(PLAINTEXT1));
 
 		assertThat(dataContainer.decryptionInfo.length, equalTo(MIN_BLOCK_LENGTH));
 		assertThat(dataContainer.ciphertext.length, lessThan(MIN_BLOCK_LENGTH));
 
 		PublicKeyDecryptor decryptor = PublicKeyDecryptor.createInstance(keyPair.getPrivate());
 		decryptor.executeInCryptoSession(dataContainer.decryptionInfo, () -> {
-			dataContainer.plaintext = CryptoUtil.decryptString(dataContainer.ciphertext);
+			dataContainer.plaintext = SecretKeyUtil.decryptString(dataContainer.ciphertext);
 		});
 		assertThat(dataContainer.plaintext, equalTo(PLAINTEXT1));
 	}

@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;

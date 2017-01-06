@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.crypto.CryptoException;
-import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.NewDeviceRequestController.NewDeviceRequestResource;

@@ -38,7 +38,7 @@ import nu.yona.server.analysis.service.DayActivityDto;
 import nu.yona.server.analysis.service.DayActivityOverviewDto;
 import nu.yona.server.analysis.service.WeekActivityDto;
 import nu.yona.server.analysis.service.WeekActivityOverviewDto;
-import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.messaging.rest.MessageController.MessageResourceAssembler;
 import nu.yona.server.messaging.service.MessageDto;

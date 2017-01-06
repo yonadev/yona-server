@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import nu.yona.server.analysis.service.AnalysisEngineProxyService;
 import nu.yona.server.analysis.service.AppActivityDto;
-import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.subscriptions.service.UserService;
 

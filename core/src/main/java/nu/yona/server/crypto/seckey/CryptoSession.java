@@ -2,7 +2,7 @@
  * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
-package nu.yona.server.crypto;
+package nu.yona.server.crypto.seckey;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -24,6 +24,7 @@ import javax.crypto.spec.PBEKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import nu.yona.server.crypto.CryptoException;
 import nu.yona.server.exceptions.YonaException;
 
 public class CryptoSession implements AutoCloseable
@@ -139,7 +140,7 @@ public class CryptoSession implements AutoCloseable
 	 */
 	public byte[] encrypt(byte[] plaintext)
 	{
-		return CryptoUtil.encrypt(CURRENT_CRYPTO_VARIANT_NUMBER, getEncryptionCipher(), plaintext);
+		return SecretKeyUtil.encrypt(CURRENT_CRYPTO_VARIANT_NUMBER, getEncryptionCipher(), plaintext);
 	}
 
 	/**
@@ -150,7 +151,7 @@ public class CryptoSession implements AutoCloseable
 	 */
 	public byte[] decrypt(byte[] ciphertext)
 	{
-		return CryptoUtil.decrypt(CURRENT_CRYPTO_VARIANT_NUMBER, getDecryptionCipher(), ciphertext);
+		return SecretKeyUtil.decrypt(CURRENT_CRYPTO_VARIANT_NUMBER, getDecryptionCipher(), ciphertext);
 	}
 
 	public static SecretKey getSecretKey(String password)
@@ -169,7 +170,7 @@ public class CryptoSession implements AutoCloseable
 			SecretKeyFactory factory = SecretKeyFactory.getInstance(SECRET_KEY_ALGORITHM);
 			KeySpec spec = new PBEKeySpec(password.toCharArray(), SALT, iterations, SECRET_KEY_LENGTH_BITS);
 			SecretKey tmp = factory.generateSecret(spec);
-			return CryptoUtil.secretKeyFromBytes(tmp.getEncoded());
+			return SecretKeyUtil.secretKeyFromBytes(tmp.getEncoded());
 		}
 		catch (NoSuchAlgorithmException | InvalidKeySpecException e)
 		{
@@ -189,7 +190,7 @@ public class CryptoSession implements AutoCloseable
 		{
 			throw WrongPasswordException.wrongPasswordHeaderProvided(AES_128_MARKER, 16, secretKeyBytes.length);
 		}
-		return CryptoUtil.secretKeyFromBytes(secretKeyBytes);
+		return SecretKeyUtil.secretKeyFromBytes(secretKeyBytes);
 	}
 
 	private static boolean passwordIsAesKey(String password)
@@ -228,10 +229,10 @@ public class CryptoSession implements AutoCloseable
 		{
 			throw CryptoException.initializationVectorParameterNull();
 		}
-		if (initializationVector.length != CryptoUtil.INITIALIZATION_VECTOR_LENGTH)
+		if (initializationVector.length != SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH)
 		{
 			throw CryptoException.initializationVectorWrongSize(initializationVector.length,
-					CryptoUtil.INITIALIZATION_VECTOR_LENGTH);
+					SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH);
 		}
 		if (isInitializationVectorSet())
 		{

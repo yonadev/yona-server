@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import nu.yona.server.Translator;
-import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
 import nu.yona.server.messaging.entities.Message;

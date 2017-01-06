@@ -22,9 +22,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import nu.yona.server.analysis.entities.IntervalActivity;
-import nu.yona.server.crypto.ByteFieldEncrypter;
-import nu.yona.server.crypto.PublicKeyDecryptor;
-import nu.yona.server.crypto.PublicKeyUtil;
+import nu.yona.server.crypto.pubkey.PublicKeyDecryptor;
+import nu.yona.server.crypto.pubkey.PublicKeyUtil;
+import nu.yona.server.crypto.seckey.ByteFieldEncrypter;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.messaging.service.MessageNotFoundException;

@@ -49,7 +49,7 @@ import nu.yona.server.analysis.rest.UserActivityController;
 import nu.yona.server.analysis.service.ActivityCommentMessageDto;
 import nu.yona.server.analysis.service.DayActivityDto;
 import nu.yona.server.analysis.service.GoalConflictMessageDto;
-import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.rest.ActivityCategoryController;
 import nu.yona.server.goals.service.GoalChangeMessageDto;

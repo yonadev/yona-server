@@ -6,7 +6,7 @@ package nu.yona.server.subscriptions.service;
 
 import java.util.UUID;
 
-import nu.yona.server.crypto.Constants;
+import nu.yona.server.crypto.seckey.Constants;
 import nu.yona.server.exceptions.YonaException;
 
 public class UserServiceException extends YonaException

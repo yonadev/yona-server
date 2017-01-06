@@ -16,8 +16,8 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
 
-import nu.yona.server.crypto.StringFieldEncrypter;
-import nu.yona.server.crypto.UUIDFieldEncrypter;
+import nu.yona.server.crypto.seckey.StringFieldEncrypter;
+import nu.yona.server.crypto.seckey.UUIDFieldEncrypter;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;

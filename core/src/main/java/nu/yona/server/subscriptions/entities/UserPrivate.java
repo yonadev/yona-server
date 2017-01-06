@@ -20,8 +20,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import nu.yona.server.crypto.CryptoUtil;
-import nu.yona.server.crypto.StringFieldEncrypter;
-import nu.yona.server.crypto.UUIDFieldEncrypter;
+import nu.yona.server.crypto.seckey.StringFieldEncrypter;
+import nu.yona.server.crypto.seckey.UUIDFieldEncrypter;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageSource;

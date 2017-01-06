@@ -2,13 +2,17 @@
  * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
-package nu.yona.server.crypto;
+package nu.yona.server.crypto.pubkey;
 
 import java.security.GeneralSecurityException;
 import java.security.PublicKey;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+
+import nu.yona.server.crypto.CryptoException;
+import nu.yona.server.crypto.seckey.CryptoSession;
+import nu.yona.server.crypto.seckey.SecretKeyUtil;
 
 public class PublicKeyEncryptor implements Encryptor
 {
@@ -40,7 +44,7 @@ public class PublicKeyEncryptor implements Encryptor
 			Cipher encryptCipher = Cipher.getInstance(PublicKeyUtil.CIPHER_TYPE);
 			encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
 
-			return CryptoUtil.encrypt(PublicKeyUtil.CURRENT_SMALL_PLAINTEXT_CRYPTO_VARIANT_NUMBER, encryptCipher, plaintext);
+			return SecretKeyUtil.encrypt(PublicKeyUtil.CURRENT_SMALL_PLAINTEXT_CRYPTO_VARIANT_NUMBER, encryptCipher, plaintext);
 		}
 		catch (GeneralSecurityException e)
 		{
@@ -51,7 +55,7 @@ public class PublicKeyEncryptor implements Encryptor
 	@Override
 	public byte[] executeInCryptoSession(Runnable runnable)
 	{
-		SecretKey secretKey = CryptoUtil.generateRandomSecretKey();
+		SecretKey secretKey = SecretKeyUtil.generateRandomSecretKey();
 		try (CryptoSession cryptoSession = CryptoSession.start(secretKey))
 		{
 			byte[] decryptionInfo = getDecryptionInfo(secretKey);

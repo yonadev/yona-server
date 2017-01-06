@@ -16,7 +16,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 
-import nu.yona.server.crypto.CryptoUtil;
+import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.DisclosureRequestMessage;
 import nu.yona.server.messaging.entities.DisclosureResponseMessage;
@@ -112,13 +112,13 @@ public class GoalConflictMessage extends Message
 	@Override
 	public void encrypt()
 	{
-		urlCiphertext = CryptoUtil.encryptString(url.orElse(null));
+		urlCiphertext = SecretKeyUtil.encryptString(url.orElse(null));
 	}
 
 	@Override
 	public void decrypt()
 	{
-		url = Optional.ofNullable(CryptoUtil.decryptString(urlCiphertext));
+		url = Optional.ofNullable(SecretKeyUtil.decryptString(urlCiphertext));
 	}
 
 	public boolean isFromBuddy()

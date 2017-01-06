@@ -18,8 +18,8 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
 
-import nu.yona.server.crypto.Decryptor;
-import nu.yona.server.crypto.Encryptor;
+import nu.yona.server.crypto.pubkey.Decryptor;
+import nu.yona.server.crypto.pubkey.Encryptor;
 import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.util.TimeUtil;
