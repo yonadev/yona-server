@@ -13,7 +13,7 @@ import javax.persistence.Transient;
 
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.CryptoSession;
-import nu.yona.server.crypto.seckey.StringFieldEncrypter;
+import nu.yona.server.crypto.seckey.StringFieldEncryptor;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.service.DeviceRequestException;
@@ -98,8 +98,8 @@ public class NewDeviceRequest extends EntityWithUuid
 		{
 			this.initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 			CryptoSession.getCurrent().setInitializationVector(this.initializationVector);
-			this.yonaPasswordCipherText = new StringFieldEncrypter().convertToDatabaseColumn(this.yonaPassword);
-			this.decryptionCheckCipherText = new StringFieldEncrypter().convertToDatabaseColumn(this.decryptionCheck);
+			this.yonaPasswordCipherText = new StringFieldEncryptor().convertToDatabaseColumn(this.yonaPassword);
+			this.decryptionCheckCipherText = new StringFieldEncryptor().convertToDatabaseColumn(this.decryptionCheck);
 		}
 	}
 
@@ -108,8 +108,8 @@ public class NewDeviceRequest extends EntityWithUuid
 		try (CryptoSession cryptoSession = CryptoSession.start(newDeviceRequestPassword))
 		{
 			CryptoSession.getCurrent().setInitializationVector(this.initializationVector);
-			this.yonaPassword = new StringFieldEncrypter().convertToEntityAttribute(this.yonaPasswordCipherText);
-			this.decryptionCheck = new StringFieldEncrypter().convertToEntityAttribute(this.decryptionCheckCipherText);
+			this.yonaPassword = new StringFieldEncryptor().convertToEntityAttribute(this.yonaPasswordCipherText);
+			this.decryptionCheck = new StringFieldEncryptor().convertToEntityAttribute(this.decryptionCheckCipherText);
 		}
 
 		if (!this.isDecryptedProperly())

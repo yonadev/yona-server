@@ -10,21 +10,16 @@ import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 @Converter
-public class ByteFieldEncrypter implements AttributeConverter<byte[], String>
+public class StringFieldEncryptor implements AttributeConverter<String, String>
 {
 	@Override
-	public String convertToDatabaseColumn(byte[] plaintext)
+	public String convertToDatabaseColumn(String attribute)
 	{
-		if (plaintext == null)
-		{
-			return null;
-		}
-
-		return Base64.getEncoder().encodeToString(SecretKeyUtil.encryptBytes(plaintext));
+		return (attribute == null) ? null : Base64.getEncoder().encodeToString(SecretKeyUtil.encryptString(attribute));
 	}
 
 	@Override
-	public byte[] convertToEntityAttribute(String dbData)
+	public String convertToEntityAttribute(String dbData)
 	{
 		try
 		{
@@ -33,7 +28,7 @@ public class ByteFieldEncrypter implements AttributeConverter<byte[], String>
 				return null;
 			}
 
-			return SecretKeyUtil.decryptBytes(Base64.getDecoder().decode(dbData));
+			return SecretKeyUtil.decryptString(Base64.getDecoder().decode(dbData));
 		}
 		catch (RuntimeException ex)
 		{

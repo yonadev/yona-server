@@ -20,8 +20,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import nu.yona.server.crypto.CryptoUtil;
-import nu.yona.server.crypto.seckey.StringFieldEncrypter;
-import nu.yona.server.crypto.seckey.UUIDFieldEncrypter;
+import nu.yona.server.crypto.seckey.StringFieldEncryptor;
+import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageSource;
@@ -36,26 +36,26 @@ public class UserPrivate extends EntityWithUuid
 	@Column(nullable = true)
 	private int touchVersion;
 
-	@Convert(converter = StringFieldEncrypter.class)
+	@Convert(converter = StringFieldEncryptor.class)
 	private String decryptionCheck;
 
-	@Convert(converter = StringFieldEncrypter.class)
+	@Convert(converter = StringFieldEncryptor.class)
 	private String nickname;
 
-	@Convert(converter = UUIDFieldEncrypter.class)
+	@Convert(converter = UUIDFieldEncryptor.class)
 	private UUID userAnonymizedId;
 
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "owning_user_private_id", referencedColumnName = "id")
 	private Set<Buddy> buddies;
 
-	@Convert(converter = UUIDFieldEncrypter.class)
+	@Convert(converter = UUIDFieldEncryptor.class)
 	private UUID anonymousMessageSourceId;
 
-	@Convert(converter = UUIDFieldEncrypter.class)
+	@Convert(converter = UUIDFieldEncryptor.class)
 	private UUID namedMessageSourceId;
 
-	@Convert(converter = StringFieldEncrypter.class)
+	@Convert(converter = StringFieldEncryptor.class)
 	private String vpnPassword;
 
 	// Default constructor is required for JPA

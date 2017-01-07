@@ -10,8 +10,8 @@ import java.security.PrivateKey;
 import javax.crypto.Cipher;
 
 import nu.yona.server.crypto.CryptoException;
+import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.CryptoSession;
-import nu.yona.server.crypto.seckey.SecretKeyUtil;
 
 public class PublicKeyDecryptor implements Decryptor
 {
@@ -43,7 +43,7 @@ public class PublicKeyDecryptor implements Decryptor
 			Cipher decryptCipher = Cipher.getInstance(PublicKeyUtil.CIPHER_TYPE);
 			decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
 
-			return SecretKeyUtil.decrypt(PublicKeyUtil.CURRENT_SMALL_PLAINTEXT_CRYPTO_VARIANT_NUMBER, decryptCipher, ciphertext);
+			return CryptoUtil.decrypt(PublicKeyUtil.CURRENT_SMALL_PLAINTEXT_CRYPTO_VARIANT_NUMBER, decryptCipher, ciphertext);
 		}
 		catch (GeneralSecurityException e)
 		{

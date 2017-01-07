@@ -11,7 +11,7 @@ import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 @Converter
-public class UUIDFieldEncrypter implements AttributeConverter<UUID, String>
+public class UUIDFieldEncryptor implements AttributeConverter<UUID, String>
 {
 	@Override
 	public String convertToDatabaseColumn(UUID attribute)

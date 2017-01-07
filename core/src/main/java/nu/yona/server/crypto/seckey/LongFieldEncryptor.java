@@ -10,7 +10,7 @@ import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 @Converter
-public class LongFieldEncrypter implements AttributeConverter<Long, String>
+public class LongFieldEncryptor implements AttributeConverter<Long, String>
 {
 	@Override
 	public String convertToDatabaseColumn(Long attribute)

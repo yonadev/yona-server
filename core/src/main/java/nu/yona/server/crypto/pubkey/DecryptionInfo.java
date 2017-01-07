@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import javax.crypto.SecretKey;
 
+import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 
 public class DecryptionInfo
@@ -22,7 +23,7 @@ public class DecryptionInfo
 	public DecryptionInfo(byte[] bytes)
 	{
 		initializationVector = Arrays.copyOfRange(bytes, 0, SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH);
-		secretKey = SecretKeyUtil
+		secretKey = CryptoUtil
 				.secretKeyFromBytes(Arrays.copyOfRange(bytes, SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH, bytes.length));
 	}
 
@@ -38,10 +39,10 @@ public class DecryptionInfo
 
 	public byte[] convertToByteArray()
 	{
-		byte[] secreteKeyBytes = secretKey.getEncoded();
-		byte[] retVal = new byte[SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH + secreteKeyBytes.length];
+		byte[] secretKeyBytes = secretKey.getEncoded();
+		byte[] retVal = new byte[SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH + secretKeyBytes.length];
 		System.arraycopy(initializationVector, 0, retVal, 0, SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH);
-		System.arraycopy(secreteKeyBytes, 0, retVal, SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH, secreteKeyBytes.length);
+		System.arraycopy(secretKeyBytes, 0, retVal, SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH, secretKeyBytes.length);
 		return retVal;
 	}
 }

@@ -11,6 +11,7 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
 import nu.yona.server.crypto.CryptoException;
+import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 
@@ -44,7 +45,7 @@ public class PublicKeyEncryptor implements Encryptor
 			Cipher encryptCipher = Cipher.getInstance(PublicKeyUtil.CIPHER_TYPE);
 			encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
 
-			return SecretKeyUtil.encrypt(PublicKeyUtil.CURRENT_SMALL_PLAINTEXT_CRYPTO_VARIANT_NUMBER, encryptCipher, plaintext);
+			return CryptoUtil.encrypt(PublicKeyUtil.CURRENT_SMALL_PLAINTEXT_CRYPTO_VARIANT_NUMBER, encryptCipher, plaintext);
 		}
 		catch (GeneralSecurityException e)
 		{

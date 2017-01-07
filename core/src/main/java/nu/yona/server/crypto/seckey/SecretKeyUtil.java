@@ -7,19 +7,12 @@ package nu.yona.server.crypto.seckey;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.UUID;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import javax.crypto.ShortBufferException;
-import javax.crypto.spec.SecretKeySpec;
 
 import nu.yona.server.crypto.CryptoException;
-import nu.yona.server.crypto.CryptoUtil;
 
 public class SecretKeyUtil
 {
@@ -109,75 +102,6 @@ public class SecretKeyUtil
 			return null;
 		}
 		return CryptoSession.getCurrent().decrypt(ciphertext);
-	}
-
-	/**
-	 * Encrypts the given plaintext bytes.
-	 * 
-	 * @param plaintext the bytes to be encrypted
-	 * @return the encrypted bytes, with the crypto variant number prepended to it.
-	 */
-	public static byte[] encrypt(byte cryptoVariantNumber, Cipher cipher, byte[] plaintext)
-	{
-		try
-		{
-			byte[] ciphertext = new byte[cipher.getOutputSize(plaintext.length) + CryptoUtil.CRYPTO_VARIANT_NUMBER_LENGTH];
-			setCryptoVariantNumber(cryptoVariantNumber, ciphertext);
-			int bytesStored = cipher.doFinal(plaintext, 0, plaintext.length, ciphertext, 1);
-			if (bytesStored != ciphertext.length - CryptoUtil.CRYPTO_VARIANT_NUMBER_LENGTH)
-			{
-				ciphertext = Arrays.copyOf(ciphertext, ciphertext.length + CryptoUtil.CRYPTO_VARIANT_NUMBER_LENGTH);
-			}
-			return ciphertext;
-		}
-		catch (IllegalBlockSizeException | BadPaddingException | ShortBufferException e)
-		{
-			throw CryptoException.encryptingData(e);
-		}
-	}
-
-	public static SecretKeySpec secretKeyFromBytes(byte[] secretKeyBytes)
-	{
-		return new SecretKeySpec(secretKeyBytes, "AES");
-	}
-
-	/**
-	 * Decrypts the given ciphertext bytes.
-	 * 
-	 * @param ciphertext the bytes to be decrypted, with a leading crypto variant number
-	 * @return the decrypted bytes
-	 */
-	public static byte[] decrypt(byte cryptoVariantNumber, Cipher cipher, byte[] ciphertext)
-	{
-		try
-		{
-			verifyCryptoVariantNumber(cryptoVariantNumber, ciphertext);
-			byte[] plaintext = new byte[cipher.getOutputSize(ciphertext.length)];
-			int bytesStored = cipher.doFinal(ciphertext, CryptoUtil.CRYPTO_VARIANT_NUMBER_LENGTH,
-					ciphertext.length - CryptoUtil.CRYPTO_VARIANT_NUMBER_LENGTH, plaintext, 0);
-			if (bytesStored != plaintext.length)
-			{
-				plaintext = Arrays.copyOf(plaintext, bytesStored);
-			}
-			return plaintext;
-		}
-		catch (IllegalBlockSizeException | BadPaddingException | ShortBufferException e)
-		{
-			throw CryptoException.decryptingData(e);
-		}
-	}
-
-	private static void setCryptoVariantNumber(byte cryptoVariantNumber, byte[] ciphertext)
-	{
-		ciphertext[0] = cryptoVariantNumber;
-	}
-
-	private static void verifyCryptoVariantNumber(byte cryptoVariantNumber, byte[] ciphertext)
-	{
-		if (ciphertext[0] != cryptoVariantNumber)
-		{
-			throw CryptoException.decryptingData();
-		}
 	}
 
 	public static SecretKey generateRandomSecretKey()

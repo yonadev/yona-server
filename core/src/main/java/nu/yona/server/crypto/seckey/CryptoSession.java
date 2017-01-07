@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import nu.yona.server.crypto.CryptoException;
+import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.YonaException;
 
 public class CryptoSession implements AutoCloseable
@@ -140,7 +141,7 @@ public class CryptoSession implements AutoCloseable
 	 */
 	public byte[] encrypt(byte[] plaintext)
 	{
-		return SecretKeyUtil.encrypt(CURRENT_CRYPTO_VARIANT_NUMBER, getEncryptionCipher(), plaintext);
+		return CryptoUtil.encrypt(CURRENT_CRYPTO_VARIANT_NUMBER, getEncryptionCipher(), plaintext);
 	}
 
 	/**
@@ -151,7 +152,7 @@ public class CryptoSession implements AutoCloseable
 	 */
 	public byte[] decrypt(byte[] ciphertext)
 	{
-		return SecretKeyUtil.decrypt(CURRENT_CRYPTO_VARIANT_NUMBER, getDecryptionCipher(), ciphertext);
+		return CryptoUtil.decrypt(CURRENT_CRYPTO_VARIANT_NUMBER, getDecryptionCipher(), ciphertext);
 	}
 
 	public static SecretKey getSecretKey(String password)
@@ -170,7 +171,7 @@ public class CryptoSession implements AutoCloseable
 			SecretKeyFactory factory = SecretKeyFactory.getInstance(SECRET_KEY_ALGORITHM);
 			KeySpec spec = new PBEKeySpec(password.toCharArray(), SALT, iterations, SECRET_KEY_LENGTH_BITS);
 			SecretKey tmp = factory.generateSecret(spec);
-			return SecretKeyUtil.secretKeyFromBytes(tmp.getEncoded());
+			return CryptoUtil.secretKeyFromBytes(tmp.getEncoded());
 		}
 		catch (NoSuchAlgorithmException | InvalidKeySpecException e)
 		{
@@ -190,7 +191,7 @@ public class CryptoSession implements AutoCloseable
 		{
 			throw WrongPasswordException.wrongPasswordHeaderProvided(AES_128_MARKER, 16, secretKeyBytes.length);
 		}
-		return SecretKeyUtil.secretKeyFromBytes(secretKeyBytes);
+		return CryptoUtil.secretKeyFromBytes(secretKeyBytes);
 	}
 
 	private static boolean passwordIsAesKey(String password)
