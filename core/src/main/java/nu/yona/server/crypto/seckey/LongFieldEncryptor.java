@@ -2,7 +2,7 @@
  * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
-package nu.yona.server.crypto;
+package nu.yona.server.crypto.seckey;
 
 import java.util.Base64;
 
@@ -10,21 +10,16 @@ import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 @Converter
-public class ByteFieldEncrypter implements AttributeConverter<byte[], String>
+public class LongFieldEncryptor implements AttributeConverter<Long, String>
 {
 	@Override
-	public String convertToDatabaseColumn(byte[] plaintext)
+	public String convertToDatabaseColumn(Long attribute)
 	{
-		if (plaintext == null)
-		{
-			return null;
-		}
-
-		return Base64.getEncoder().encodeToString(CryptoUtil.encryptBytes(plaintext));
+		return (attribute == null) ? null : Base64.getEncoder().encodeToString(SecretKeyUtil.encryptLong(attribute));
 	}
 
 	@Override
-	public byte[] convertToEntityAttribute(String dbData)
+	public Long convertToEntityAttribute(String dbData)
 	{
 		try
 		{
@@ -33,7 +28,7 @@ public class ByteFieldEncrypter implements AttributeConverter<byte[], String>
 				return null;
 			}
 
-			return CryptoUtil.decryptBytes(Base64.getDecoder().decode(dbData));
+			return SecretKeyUtil.decryptLong(Base64.getDecoder().decode(dbData));
 		}
 		catch (RuntimeException ex)
 		{

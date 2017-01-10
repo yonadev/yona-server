@@ -2,7 +2,7 @@
  * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
-package nu.yona.server.crypto;
+package nu.yona.server.crypto.pubkey;
 
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
@@ -13,6 +13,9 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+
+import nu.yona.server.crypto.CryptoException;
+import nu.yona.server.crypto.CryptoUtil;
 
 public final class PublicKeyUtil
 {

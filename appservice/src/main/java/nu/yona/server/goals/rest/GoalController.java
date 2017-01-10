@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
@@ -62,9 +62,11 @@ public class GoalController
 	public HttpEntity<Resources<GoalDto>> getAllGoals(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
-				() -> new ResponseEntity<Resources<GoalDto>>(
-						createAllGoalsCollectionResource(userId, goalService.getGoalsOfUser(userId)), HttpStatus.OK));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return new ResponseEntity<>(createAllGoalsCollectionResource(userId, goalService.getGoalsOfUser(userId)),
+					HttpStatus.OK);
+		}
 	}
 
 	@RequestMapping(value = "/{goalId}", method = RequestMethod.GET)
@@ -72,8 +74,10 @@ public class GoalController
 	public HttpEntity<GoalDto> getGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID goalId)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
-				() -> createResponse(userId, goalService.getGoalForUserId(userId, goalId), HttpStatus.OK));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return createResponse(userId, goalService.getGoalForUserId(userId, goalId), HttpStatus.OK);
+		}
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)
@@ -82,9 +86,11 @@ public class GoalController
 			@PathVariable UUID userId, @RequestBody GoalDto goal,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
-		setActivityCategoryId(goal);
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId), () -> createResponse(userId,
-				goalService.addGoal(userId, goal, Optional.ofNullable(messageStr)), HttpStatus.CREATED));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			setActivityCategoryId(goal);
+			return createResponse(userId, goalService.addGoal(userId, goal, Optional.ofNullable(messageStr)), HttpStatus.CREATED);
+		}
 	}
 
 	@RequestMapping(value = "/{goalId}", method = RequestMethod.PUT)
@@ -93,9 +99,12 @@ public class GoalController
 			@PathVariable UUID userId, @PathVariable UUID goalId, @RequestBody GoalDto goal,
 			@RequestParam(value = "message", required = false) String messageStr)
 	{
-		setActivityCategoryId(goal);
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId), () -> createResponse(userId,
-				goalService.updateGoal(userId, goalId, goal, Optional.ofNullable(messageStr)), HttpStatus.OK));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			setActivityCategoryId(goal);
+			return createResponse(userId, goalService.updateGoal(userId, goalId, goal, Optional.ofNullable(messageStr)),
+					HttpStatus.OK);
+		}
 	}
 
 	@RequestMapping(value = "/{goalId}", method = RequestMethod.DELETE)
@@ -104,10 +113,10 @@ public class GoalController
 	public void removeGoal(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable UUID goalId, @RequestParam(value = "message", required = false) String messageStr)
 	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId), () -> {
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
 			goalService.removeGoal(userId, goalId, Optional.ofNullable(messageStr));
-			return null;
-		});
+		}
 	}
 
 	public static Resources<GoalDto> createAllGoalsCollectionResource(UUID userId, Set<GoalDto> allGoalsOfUser)
@@ -124,7 +133,7 @@ public class GoalController
 
 	private HttpEntity<GoalDto> createResponse(UUID userId, GoalDto goal, HttpStatus status)
 	{
-		return new ResponseEntity<GoalDto>(new GoalResourceAssembler(userId).toResource(goal), status);
+		return new ResponseEntity<>(new GoalResourceAssembler(userId).toResource(goal), status);
 	}
 
 	private void setActivityCategoryId(GoalDto goal)

@@ -5,16 +5,15 @@
 package nu.yona.server.subscriptions.entities;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import nu.yona.server.crypto.CryptoSession;
 import nu.yona.server.crypto.CryptoUtil;
-import nu.yona.server.crypto.StringFieldEncrypter;
+import nu.yona.server.crypto.seckey.CryptoSession;
+import nu.yona.server.crypto.seckey.StringFieldEncryptor;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.service.DeviceRequestException;
@@ -95,23 +94,23 @@ public class NewDeviceRequest extends EntityWithUuid
 
 	public void encryptYonaPassword(String newDeviceRequestPassword)
 	{
-		CryptoSession.execute(Optional.of(newDeviceRequestPassword), null, () -> {
+		try (CryptoSession cryptoSession = CryptoSession.start(newDeviceRequestPassword))
+		{
 			this.initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 			CryptoSession.getCurrent().setInitializationVector(this.initializationVector);
-			this.yonaPasswordCipherText = new StringFieldEncrypter().convertToDatabaseColumn(this.yonaPassword);
-			this.decryptionCheckCipherText = new StringFieldEncrypter().convertToDatabaseColumn(this.decryptionCheck);
-			return null;
-		});
+			this.yonaPasswordCipherText = new StringFieldEncryptor().convertToDatabaseColumn(this.yonaPassword);
+			this.decryptionCheckCipherText = new StringFieldEncryptor().convertToDatabaseColumn(this.decryptionCheck);
+		}
 	}
 
 	public void decryptYonaPassword(String newDeviceRequestPassword, String mobileNumber)
 	{
-		CryptoSession.execute(Optional.of(newDeviceRequestPassword), null, () -> {
+		try (CryptoSession cryptoSession = CryptoSession.start(newDeviceRequestPassword))
+		{
 			CryptoSession.getCurrent().setInitializationVector(this.initializationVector);
-			this.yonaPassword = new StringFieldEncrypter().convertToEntityAttribute(this.yonaPasswordCipherText);
-			this.decryptionCheck = new StringFieldEncrypter().convertToEntityAttribute(this.decryptionCheckCipherText);
-			return null;
-		});
+			this.yonaPassword = new StringFieldEncryptor().convertToEntityAttribute(this.yonaPasswordCipherText);
+			this.decryptionCheck = new StringFieldEncryptor().convertToEntityAttribute(this.decryptionCheckCipherText);
+		}
 
 		if (!this.isDecryptedProperly())
 		{
