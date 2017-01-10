@@ -1,0 +1,26 @@
+databaseChangeLog:
+- changeSet:
+    id: 1484081140862-1
+    author: avdijk (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: whitelisted_numberPK
+            name: id
+            type: BIGINT
+        - column:
+            name: mobile_number
+            type: VARCHAR(255)
+        tableName: whitelisted_number
+- changeSet:
+    id: 1484081140862-2
+    author: avdijk (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: mobile_number
+        constraintName: UC_WHITELISTED_NUMBERMOBILE_NUMBER_COL
+        tableName: whitelisted_number

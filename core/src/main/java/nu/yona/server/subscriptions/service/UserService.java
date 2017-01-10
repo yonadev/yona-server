@@ -81,6 +81,9 @@ public class UserService
 	@Autowired
 	private MessageService messageService;
 
+	@Autowired
+	private WhitelistedNumberService whitelistedNumberService;
+
 	@Transactional
 	public boolean canAccessPrivateData(UUID id)
 	{
@@ -134,6 +137,9 @@ public class UserService
 	@Transactional
 	public UserDto addUser(UserDto user, Optional<String> overwriteUserConfirmationCode)
 	{
+		// validate if the user is on the whitelist
+		whitelistedNumberService.validateNumber(user.getMobileNumber());
+
 		validateUserFields(user);
 
 		// use a separate transaction because in the top transaction we insert a user with the same unique key
@@ -276,6 +282,9 @@ public class UserService
 	@Transactional
 	User addUserCreatedOnBuddyRequest(UserDto buddyUserResource)
 	{
+		// validate if the invited buddy is on the whitelist
+		whitelistedNumberService.validateNumber(buddyUserResource.getMobileNumber());
+
 		User newUser = User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
 				buddyUserResource.getPrivateData().getNickname(), buddyUserResource.getMobileNumber(),
 				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet());
