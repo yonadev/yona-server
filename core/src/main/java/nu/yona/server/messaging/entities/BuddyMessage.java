@@ -10,7 +10,7 @@ import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 
-import nu.yona.server.crypto.CryptoUtil;
+import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.subscriptions.entities.User;
 
 @Entity
@@ -82,16 +82,16 @@ public abstract class BuddyMessage extends Message
 	@Override
 	public void encrypt()
 	{
-		senderUserIdCiphertext = CryptoUtil.encryptUuid(senderUserId);
-		messageCiphertext = CryptoUtil.encryptString(message);
-		senderNicknameCiphertext = CryptoUtil.encryptString(senderNickname);
+		senderUserIdCiphertext = SecretKeyUtil.encryptUuid(senderUserId);
+		messageCiphertext = SecretKeyUtil.encryptString(message);
+		senderNicknameCiphertext = SecretKeyUtil.encryptString(senderNickname);
 	}
 
 	@Override
 	public void decrypt()
 	{
-		senderUserId = CryptoUtil.decryptUuid(senderUserIdCiphertext);
-		message = CryptoUtil.decryptString(messageCiphertext);
-		senderNickname = CryptoUtil.decryptString(senderNicknameCiphertext);
+		senderUserId = SecretKeyUtil.decryptUuid(senderUserIdCiphertext);
+		message = SecretKeyUtil.decryptString(messageCiphertext);
+		senderNickname = SecretKeyUtil.decryptString(senderNicknameCiphertext);
 	}
 }

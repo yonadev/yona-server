@@ -21,7 +21,7 @@ import org.junit.Test;
 
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.DayActivity;
-import nu.yona.server.crypto.PublicKeyUtil;
+import nu.yona.server.crypto.pubkey.PublicKeyUtil;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;

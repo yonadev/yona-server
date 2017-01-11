@@ -2,7 +2,7 @@
  * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
-package nu.yona.server.crypto;
+package nu.yona.server.crypto.seckey;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -24,6 +24,8 @@ import javax.crypto.spec.PBEKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import nu.yona.server.crypto.CryptoException;
+import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.exceptions.YonaException;
 
 public class CryptoSession implements AutoCloseable
@@ -61,36 +63,6 @@ public class CryptoSession implements AutoCloseable
 		threadLocal.set(previousCryptoSession);
 	}
 
-	public static <T> T execute(Optional<String> password, Executable<T> executable)
-	{
-		return execute(password, null, executable);
-	}
-
-	public static void execute(Optional<String> password, Runnable runnable)
-	{
-		execute(password, null, runnable);
-	}
-
-	public static <T> T execute(Optional<String> password, VoidPredicate passwordChecker, Executable<T> executable)
-	{
-		try (CryptoSession cryptoSession = start(getPassword(password)))
-		{
-			if (passwordChecker != null && !passwordChecker.test())
-			{
-				throw CryptoException.decryptingData();
-			}
-			return executable.execute();
-		}
-	}
-
-	public static void execute(Optional<String> password, VoidPredicate passwordChecker, Runnable runnable)
-	{
-		execute(password, passwordChecker, () -> {
-			runnable.run();
-			return Boolean.TRUE;
-		});
-	}
-
 	private Cipher getEncryptionCipher()
 	{
 		try
@@ -117,7 +89,27 @@ public class CryptoSession implements AutoCloseable
 
 	public static CryptoSession start(String password)
 	{
-		return start(getSecretKey(password));
+		return start(Optional.of(password), null);
+	}
+
+	public static CryptoSession start(Optional<String> optionalPassword, VoidPredicate passwordChecker)
+	{
+		String password = getPassword(optionalPassword);
+		CryptoSession session = start(getSecretKey(password));
+		try
+		{
+			if (passwordChecker != null && !passwordChecker.test())
+			{
+				throw CryptoException.decryptingData();
+			}
+		}
+		catch (Exception e)
+		{
+			session.close();
+			throw e;
+		}
+
+		return session;
 	}
 
 	public static CryptoSession start(SecretKey secretKey)
@@ -238,10 +230,10 @@ public class CryptoSession implements AutoCloseable
 		{
 			throw CryptoException.initializationVectorParameterNull();
 		}
-		if (initializationVector.length != CryptoUtil.INITIALIZATION_VECTOR_LENGTH)
+		if (initializationVector.length != SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH)
 		{
 			throw CryptoException.initializationVectorWrongSize(initializationVector.length,
-					CryptoUtil.INITIALIZATION_VECTOR_LENGTH);
+					SecretKeyUtil.INITIALIZATION_VECTOR_LENGTH);
 		}
 		if (isInitializationVectorSet())
 		{

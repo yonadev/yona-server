@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import nu.yona.server.analysis.service.AnalysisEngineProxyService;
 import nu.yona.server.analysis.service.AppActivityDto;
-import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -56,12 +56,12 @@ public class AppActivityController
 	public ResponseEntity<Void> addAppActivity(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @RequestBody AppActivityDto appActivities)
 	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId), () -> {
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
 			UUID userAnonymizedId = userService.getPrivateUser(userId).getPrivateData().getUserAnonymizedId();
 			analysisEngineProxyService.analyzeAppActivity(userAnonymizedId, appActivities);
-			return null;
-		});
-		return new ResponseEntity<Void>(HttpStatus.OK);
+			return new ResponseEntity<>(HttpStatus.OK);
+		}
 	}
 
 	public static Link getAppActivityLink(UUID userId)

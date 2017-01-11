@@ -16,8 +16,8 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
 
-import nu.yona.server.crypto.StringFieldEncrypter;
-import nu.yona.server.crypto.UUIDFieldEncrypter;
+import nu.yona.server.crypto.seckey.StringFieldEncryptor;
+import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
@@ -38,13 +38,13 @@ public class Buddy extends EntityWithUuid
 	@Column(nullable = true)
 	private int touchVersion;
 
-	@Convert(converter = UUIDFieldEncrypter.class)
+	@Convert(converter = UUIDFieldEncryptor.class)
 	private UUID userId;
 
-	@Convert(converter = UUIDFieldEncrypter.class)
+	@Convert(converter = UUIDFieldEncryptor.class)
 	private UUID buddyAnonymizedId;
 
-	@Convert(converter = StringFieldEncrypter.class)
+	@Convert(converter = StringFieldEncryptor.class)
 	private String nickname;
 
 	// Default constructor is required for JPA

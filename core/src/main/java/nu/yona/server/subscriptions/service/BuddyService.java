@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import nu.yona.server.Translator;
-import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
 import nu.yona.server.messaging.entities.Message;
@@ -141,13 +141,18 @@ public class BuddyService
 		return savedBuddy;
 	}
 
-	private void createAndInviteBuddyUser(UUID idOfRequestingUser, BuddyDto buddy, BiFunction<UUID, String, String> inviteUrlGetter)
+	private void createAndInviteBuddyUser(UUID idOfRequestingUser, BuddyDto buddy,
+			BiFunction<UUID, String, String> inviteUrlGetter)
 	{
 		String tempPassword = getTempPassword();
 		// To ensure the data of the new user is encrypted with the temp password, the user is created in a separate transaction
 		// and crypto session.
-		UUID savedUserId = CryptoSession.execute(Optional.of(tempPassword), null, () -> transactionHelper.executeInNewTransaction(
-				() -> userService.addUserCreatedOnBuddyRequest(buddy.getUser()).getId()));
+		UUID savedUserId;
+		try (CryptoSession cryptoSession = CryptoSession.start(tempPassword))
+		{
+			savedUserId = transactionHelper
+					.executeInNewTransaction(() -> userService.addUserCreatedOnBuddyRequest(buddy.getUser()).getId());
+		}
 
 		String inviteUrl = inviteUrlGetter.apply(savedUserId, tempPassword);
 		UserDto requestingUser = userService.getPrivateUser(idOfRequestingUser);
@@ -481,7 +486,7 @@ public class BuddyService
 			String buddyEmailAddress = buddy.getUser().getEmailAddress();
 			String message = buddy.getMessage();
 			String buddyMobileNumber = buddy.getUser().getMobileNumber();
-			Map<String, Object> templateParams = new HashMap<String, Object>();
+			Map<String, Object> templateParams = new HashMap<>();
 			templateParams.put("inviteUrl", inviteUrl);
 			templateParams.put("requestingUserName", requestingUserName);
 			templateParams.put("requestingUserMobileNumber", requestingUserMobileNumber);

@@ -49,7 +49,7 @@ import nu.yona.server.analysis.rest.UserActivityController;
 import nu.yona.server.analysis.service.ActivityCommentMessageDto;
 import nu.yona.server.analysis.service.DayActivityDto;
 import nu.yona.server.analysis.service.GoalConflictMessageDto;
-import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.rest.ActivityCategoryController;
 import nu.yona.server.goals.service.GoalChangeMessageDto;
@@ -95,10 +95,12 @@ public class MessageController
 			@RequestParam(value = "onlyUnreadMessages", required = false, defaultValue = "false") String onlyUnreadMessagesStr,
 			@PathVariable UUID userId, Pageable pageable, PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
-		boolean onlyUnreadMessages = Boolean.TRUE.toString().equals(onlyUnreadMessagesStr);
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId), () -> {
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			boolean onlyUnreadMessages = Boolean.TRUE.toString().equals(onlyUnreadMessagesStr);
+
 			return getMessages(userId, pageable, pagedResourcesAssembler, onlyUnreadMessages);
-		});
+		}
 	}
 
 	private HttpEntity<PagedResources<MessageDto>> getMessages(UUID userId, Pageable pageable,
@@ -115,8 +117,10 @@ public class MessageController
 	public HttpEntity<MessageDto> getMessage(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable long messageId)
 	{
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId), () -> createOkResponse(
-				toMessageResource(createGoalIdMapping(userId), messageService.getMessage(userId, messageId))));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return createOkResponse(toMessageResource(createGoalIdMapping(userId), messageService.getMessage(userId, messageId)));
+		}
 	}
 
 	private GoalIdMapping createGoalIdMapping(UUID userId)
@@ -135,11 +139,11 @@ public class MessageController
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId, @PathVariable long id,
 			@PathVariable String action, @RequestBody MessageActionDto requestPayload)
 	{
-
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
-				() -> createOkResponse(new MessageActionResource(curieProvider,
-						messageService.handleMessageAction(userId, id, action, requestPayload), createGoalIdMapping(userId),
-						this)));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return createOkResponse(new MessageActionResource(curieProvider,
+					messageService.handleMessageAction(userId, id, action, requestPayload), createGoalIdMapping(userId), this));
+		}
 	}
 
 	@RequestMapping(value = "/{messageId}", method = RequestMethod.DELETE)
@@ -148,25 +152,26 @@ public class MessageController
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable long messageId)
 	{
-
-		return CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId),
-				() -> createOkResponse(new MessageActionResource(curieProvider, messageService.deleteMessage(userId, messageId),
-						createGoalIdMapping(userId), this)));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return createOkResponse(new MessageActionResource(curieProvider, messageService.deleteMessage(userId, messageId),
+					createGoalIdMapping(userId), this));
+		}
 	}
 
 	private HttpEntity<PagedResources<MessageDto>> createOkResponse(PagedResources<MessageDto> messages)
 	{
-		return new ResponseEntity<PagedResources<MessageDto>>(messages, HttpStatus.OK);
+		return new ResponseEntity<>(messages, HttpStatus.OK);
 	}
 
 	private HttpEntity<MessageDto> createOkResponse(MessageDto message)
 	{
-		return new ResponseEntity<MessageDto>(message, HttpStatus.OK);
+		return new ResponseEntity<>(message, HttpStatus.OK);
 	}
 
 	private HttpEntity<MessageActionResource> createOkResponse(MessageActionResource messageAction)
 	{
-		return new ResponseEntity<MessageActionResource>(messageAction, HttpStatus.OK);
+		return new ResponseEntity<>(messageAction, HttpStatus.OK);
 	}
 
 	public static ControllerLinkBuilder getAnonymousMessageLinkBuilder(UUID userId, long messageId)

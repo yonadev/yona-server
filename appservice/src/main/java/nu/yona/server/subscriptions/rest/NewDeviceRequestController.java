@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
@@ -34,7 +31,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.crypto.CryptoException;
-import nu.yona.server.crypto.CryptoSession;
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.NewDeviceRequestController.NewDeviceRequestResource;
@@ -122,13 +119,16 @@ public class NewDeviceRequestController
 
 	private void checkPassword(Optional<String> password, UUID userId)
 	{
-		CryptoSession.execute(password, () -> userService.canAccessPrivateData(userId), () -> null);
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			// Nothing to do here. The check is done in the above statement.
+		}
 	}
 
 	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(UserDto user,
 			NewDeviceRequestDto newDeviceRequest, HttpStatus statusCode)
 	{
-		return new ResponseEntity<NewDeviceRequestResource>(
+		return new ResponseEntity<>(
 				new NewDeviceRequestResourceAssembler(user).toResource(newDeviceRequest), statusCode);
 	}
 
@@ -149,7 +149,7 @@ public class NewDeviceRequestController
 	public static class NewDeviceRequestResourceAssembler
 			extends ResourceAssemblerSupport<NewDeviceRequestDto, NewDeviceRequestResource>
 	{
-		private UserDto user;
+		private final UserDto user;
 
 		public NewDeviceRequestResourceAssembler(UserDto user)
 		{
