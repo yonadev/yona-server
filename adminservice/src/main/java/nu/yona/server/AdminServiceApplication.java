@@ -15,6 +15,8 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -45,5 +47,14 @@ public class AdminServiceApplication
 		jpaTransactionManager.setEntityManagerFactory(entityManagerFactory);
 
 		return jpaTransactionManager;
+	}
+
+	/**
+	 * This bean is only required in the admin service, likely because of the batch admin UI that's configured.
+	 */
+	@Bean(name = "mvcConversionService")
+	public ConversionService getConversionService()
+	{
+		return new DefaultFormattingConversionService();
 	}
 }
