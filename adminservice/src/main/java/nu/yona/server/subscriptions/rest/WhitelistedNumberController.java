@@ -4,58 +4,36 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
-import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.subscriptions.service.WhitelistedNumberService;
 
 @Controller
-@RequestMapping(value = "/whitelistedNumbers", produces = { MediaType.TEXT_HTML_VALUE })
+@RequestMapping(value = "/whitelistedNumbers")
 public class WhitelistedNumberController
 {
 	@Autowired
 	private WhitelistedNumberService whitelistedNumberService;
 
-	@Autowired
-	private VelocityEngine velocityEngine;
-
 	@RequestMapping(value = "/", method = RequestMethod.GET)
-	@ResponseBody
-	public ResponseEntity<byte[]> getIndexPage()
+	public String getIndexPage(Model model)
 	{
-		VelocityContext velocityContext = new VelocityContext();
-		velocityContext.put("whitelistedNumbers", whitelistedNumberService.getAllWhitelistedNumbers());
+		model.addAttribute("whitelistedNumbers", whitelistedNumberService.getAllWhitelistedNumbers());
 
-		try (StringWriter stringWriter = new StringWriter())
-		{
-			velocityEngine.mergeTemplate("whitelisted-numbers.vm", "UTF-8", velocityContext, stringWriter);
-			return new ResponseEntity<byte[]>(stringWriter.toString().getBytes(StandardCharsets.UTF_8), HttpStatus.OK);
-		}
-		catch (IOException e)
-		{
-			throw YonaException.unexpected(e);
-		}
+		return "whitelisted-numbers";
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)
-	public ResponseEntity<byte[]> addWhitelistedNumber(@RequestParam String mobileNumber)
+	public String addWhitelistedNumber(@RequestParam String mobileNumber, Model model)
 	{
 		whitelistedNumberService.addWhitelistedNumber(mobileNumber);
+		model.addAttribute("whitelistedNumbers", whitelistedNumberService.getAllWhitelistedNumbers());
 
-		return getIndexPage();
+		return "whitelisted-numbers";
 	}
 }

@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -18,10 +19,15 @@ import nu.yona.server.subscriptions.entities.WhitelistedNumber;
 @Service
 public class WhitelistedNumberService
 {
+	@Autowired
+	private UserService userService;
+
 	@CacheEvict(value = "whitelistedNumberSet", key = "'instance'")
 	@Transactional
 	public void addWhitelistedNumber(String mobileNumber)
 	{
+		userService.validateMobileNumber(mobileNumber);
+
 		WhitelistedNumber.getRepository().save(WhitelistedNumber.createInstance(mobileNumber));
 	}
 

@@ -4,7 +4,7 @@
 <body>
 	<h2>Add whitelisted number</h2>
 	<form action="" method="post">
-        <p><label>Number: <input type="text" name="mobileNumber" /></label></p>
+        <p><label>Number: <input type="tel" name="mobileNumber" title="e.g. +31612345678" placeholder="+31612345678" pattern="\+[1-9][0-9]+" /></label></p>
         <p><input type="submit" value="Submit" /></p>
     </form>
     
