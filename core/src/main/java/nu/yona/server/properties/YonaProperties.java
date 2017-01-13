@@ -43,6 +43,8 @@ public class YonaProperties
 
 	private String appleAppId;
 
+	private boolean whitelistEnabled;
+
 	public AnalysisServiceProperties getAnalysisService()
 	{
 		return analysisService;
@@ -104,4 +106,13 @@ public class YonaProperties
 		return appleAppId;
 	}
 
+	public boolean getWhitelistEnabled()
+	{
+		return whitelistEnabled;
+	}
+
+	public void setWhitelistEnabled(boolean whitelistEnabled)
+	{
+		this.whitelistEnabled = whitelistEnabled;
+	}
 }

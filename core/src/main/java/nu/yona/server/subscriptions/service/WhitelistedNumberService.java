@@ -14,6 +14,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.WhitelistedNumber;
 
 @Service
@@ -21,6 +22,9 @@ public class WhitelistedNumberService
 {
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private YonaProperties yonaProperties;
 
 	@CacheEvict(value = "whitelistedNumberSet", key = "'instance'")
 	@Transactional
@@ -42,6 +46,9 @@ public class WhitelistedNumberService
 	@Transactional
 	public void validateNumber(String mobileNumber)
 	{
+		if (!yonaProperties.getWhitelistEnabled())
+			return;
+
 		if (!getAllWhitelistedNumbers().contains(mobileNumber))
 		{
 			throw WhitelistedNumberServiceException.numberNotWhitelisted(mobileNumber);
