@@ -40,7 +40,8 @@ bootRun {
 	}
 
 	systemProperties = [
-		"server.port": System.getProperty("server.port", project.ext.yona_batchservice_port)
+		"server.port": System.getProperty("server.port", project.ext.yona_batchservice_port),
+		"management.port": System.getProperty("management.port", project.ext.yona_batchservice_mgmt_port)
 	]
 }
 

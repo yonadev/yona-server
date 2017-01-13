@@ -16,6 +16,7 @@ import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.hateoas.RelProvider;
@@ -121,6 +122,7 @@ public class CoreConfiguration extends CachingConfigurerSupport
 	private BeanFactory beanFactory;
 
 	@Bean
+	@Primary
 	ObjectMapper objectMapper()
 	{
 		// HATEOAS disables the default Spring configuration options described at
