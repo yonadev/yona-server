@@ -9,8 +9,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +24,6 @@ public class WhitelistedNumberService
 	@Autowired
 	private YonaProperties yonaProperties;
 
-	@CacheEvict(value = "whitelistedNumberSet", key = "'instance'")
 	@Transactional
 	public void addWhitelistedNumber(String mobileNumber)
 	{
@@ -35,7 +32,6 @@ public class WhitelistedNumberService
 		WhitelistedNumber.getRepository().save(WhitelistedNumber.createInstance(mobileNumber));
 	}
 
-	@Cacheable(value = "whitelistedNumberSet", key = "'instance'")
 	@Transactional
 	public Set<String> getAllWhitelistedNumbers()
 	{
