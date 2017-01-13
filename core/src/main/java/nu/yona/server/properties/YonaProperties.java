@@ -43,6 +43,8 @@ public class YonaProperties
 
 	private String appleAppId;
 
+	private int maxUsers;
+
 	private boolean whitelistEnabled;
 
 	public AnalysisServiceProperties getAnalysisService()
@@ -104,6 +106,16 @@ public class YonaProperties
 	public String getAppleAppId()
 	{
 		return appleAppId;
+	}
+
+	public int getMaxUsers()
+	{
+		return maxUsers;
+	}
+
+	public void setMaxUsers(String maxUsersString)
+	{
+		this.maxUsers = Integer.parseInt(maxUsersString);
 	}
 
 	public boolean getWhitelistEnabled()
