@@ -32,8 +32,7 @@ public class WhitelistedNumberController
 	public String addWhitelistedNumber(@RequestParam String mobileNumber, Model model)
 	{
 		whitelistedNumberService.addWhitelistedNumber(mobileNumber);
-		model.addAttribute("whitelistedNumbers", whitelistedNumberService.getAllWhitelistedNumbers());
 
-		return "whitelisted-numbers";
+		return "redirect:/whitelistedNumbers/";
 	}
 }
