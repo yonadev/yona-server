@@ -12,31 +12,31 @@ import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.RepositoryProvider;
 
 @Entity
-@Table(name = "WHITELISTED_NUMBER")
-public class WhitelistedNumber extends EntityWithId
+@Table(name = "WHITE_LISTED_NUMBER")
+public class WhiteListedNumber extends EntityWithId
 {
-	public static WhitelistedNumberRepository getRepository()
+	public static WhiteListedNumberRepository getRepository()
 	{
-		return (WhitelistedNumberRepository) RepositoryProvider.getRepository(WhitelistedNumber.class, Long.class);
+		return (WhiteListedNumberRepository) RepositoryProvider.getRepository(WhiteListedNumber.class, Long.class);
 	}
 
 	@Column(unique = true)
 	private String mobileNumber;
 
 	// Default constructor is required for JPA
-	public WhitelistedNumber()
+	public WhiteListedNumber()
 	{
 		super();
 	}
 
-	private WhitelistedNumber(String mobileNumber)
+	private WhiteListedNumber(String mobileNumber)
 	{
 		this.mobileNumber = mobileNumber;
 	}
 
-	public static WhitelistedNumber createInstance(String mobileNumber)
+	public static WhiteListedNumber createInstance(String mobileNumber)
 	{
-		return new WhitelistedNumber(mobileNumber);
+		return new WhiteListedNumber(mobileNumber);
 	}
 
 	public String getMobileNumber()

@@ -8,22 +8,22 @@ import org.springframework.http.HttpStatus;
 
 import nu.yona.server.exceptions.YonaException;
 
-public class WhitelistedNumberServiceException extends YonaException
+public class WhiteListedNumberServiceException extends YonaException
 {
 	private static final long serialVersionUID = 2543728671534987461L;
 
-	private WhitelistedNumberServiceException(String messageId, Object... parameters)
+	private WhiteListedNumberServiceException(String messageId, Object... parameters)
 	{
 		super(messageId, parameters);
 	}
 
-	private WhitelistedNumberServiceException(HttpStatus statusCode, String messageId, Object... parameters)
+	private WhiteListedNumberServiceException(HttpStatus statusCode, String messageId, Object... parameters)
 	{
 		super(statusCode, messageId, parameters);
 	}
 
-	public static WhitelistedNumberServiceException numberNotWhitelisted(String mobileNumber)
+	public static WhiteListedNumberServiceException numberNotWhiteListed(String mobileNumber)
 	{
-		return new WhitelistedNumberServiceException(HttpStatus.FORBIDDEN, "error.number.not.whitelisted", mobileNumber);
+		return new WhiteListedNumberServiceException(HttpStatus.BAD_REQUEST, "error.number.not.white.listed", mobileNumber);
 	}
 }

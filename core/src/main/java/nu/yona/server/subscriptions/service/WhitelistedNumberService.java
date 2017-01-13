@@ -12,42 +12,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import nu.yona.server.properties.YonaProperties;
-import nu.yona.server.subscriptions.entities.WhitelistedNumber;
+import nu.yona.server.subscriptions.entities.WhiteListedNumber;
 
 @Service
-public class WhitelistedNumberService
+public class WhiteListedNumberService
 {
 	@Autowired
 	private UserService userService;
 
-	@Autowired
-	private YonaProperties yonaProperties;
-
 	@Transactional
-	public void addWhitelistedNumber(String mobileNumber)
+	public void addWhiteListedNumber(String mobileNumber)
 	{
 		userService.validateMobileNumber(mobileNumber);
 
-		WhitelistedNumber.getRepository().save(WhitelistedNumber.createInstance(mobileNumber));
+		WhiteListedNumber.getRepository().save(WhiteListedNumber.createInstance(mobileNumber));
 	}
 
 	@Transactional
-	public Set<String> getAllWhitelistedNumbers()
+	public Set<String> getAllWhiteListedNumbers()
 	{
-		return StreamSupport.stream(WhitelistedNumber.getRepository().findAll().spliterator(), false)
-				.map(whitelistedNumberEntity -> whitelistedNumberEntity.getMobileNumber()).collect(Collectors.toSet());
+		return StreamSupport.stream(WhiteListedNumber.getRepository().findAll().spliterator(), false)
+				.map(whiteListedNumberEntity -> whiteListedNumberEntity.getMobileNumber()).collect(Collectors.toSet());
 	}
 
 	@Transactional
-	public void validateNumber(String mobileNumber)
+	public void verifyMobileNumberIsAllowed(String mobileNumber)
 	{
-		if (!yonaProperties.getWhitelistEnabled())
-			return;
-
-		if (!getAllWhitelistedNumbers().contains(mobileNumber))
+		if (WhiteListedNumber.getRepository().findByMobileNumber(mobileNumber) == null)
 		{
-			throw WhitelistedNumberServiceException.numberNotWhitelisted(mobileNumber);
+			throw WhiteListedNumberServiceException.numberNotWhiteListed(mobileNumber);
 		}
 	}
 }

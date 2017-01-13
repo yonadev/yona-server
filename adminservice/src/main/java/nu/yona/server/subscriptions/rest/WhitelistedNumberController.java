@@ -11,28 +11,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import nu.yona.server.subscriptions.service.WhitelistedNumberService;
+import nu.yona.server.subscriptions.service.WhiteListedNumberService;
 
 @Controller
-@RequestMapping(value = "/whitelistedNumbers")
-public class WhitelistedNumberController
+@RequestMapping(value = "/whiteListedNumbers")
+public class WhiteListedNumberController
 {
 	@Autowired
-	private WhitelistedNumberService whitelistedNumberService;
+	private WhiteListedNumberService whiteListedNumberService;
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String getIndexPage(Model model)
 	{
-		model.addAttribute("whitelistedNumbers", whitelistedNumberService.getAllWhitelistedNumbers());
+		model.addAttribute("whiteListedNumbers", whiteListedNumberService.getAllWhiteListedNumbers());
 
-		return "whitelisted-numbers";
+		return "white-listed-numbers";
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)
-	public String addWhitelistedNumber(@RequestParam String mobileNumber, Model model)
+	public String addWhiteListedNumber(@RequestParam String mobileNumber)
 	{
-		whitelistedNumberService.addWhitelistedNumber(mobileNumber);
+		whiteListedNumberService.addWhiteListedNumber(mobileNumber);
 
-		return "redirect:/whitelistedNumbers/";
+		return "redirect:/whiteListedNumbers/";
 	}
 }
