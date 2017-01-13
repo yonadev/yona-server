@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+ <html>
+ <head><title>System messages</title></head>
+ <body>
+ 	<h2>Add system message</h2>
+ 	<form action="" method="post">
+         <p><label>Title: <input type="text" name="title" /></label></p>
+         <p><label>Message: <textarea name="message"></textarea></label></p>
+         <p><input type="submit" value="Submit" /></p>
+     </form>
+ </body>
+ </html> 
