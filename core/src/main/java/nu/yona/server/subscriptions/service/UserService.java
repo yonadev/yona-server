@@ -17,6 +17,7 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang.StringUtils;
@@ -80,6 +81,18 @@ public class UserService
 
 	@Autowired
 	private MessageService messageService;
+
+	@PostConstruct
+	private void onStart()
+	{
+		int maxUsers = yonaProperties.getMaxUsers();
+		if (maxUsers <= 0)
+		{
+			return;
+		}
+
+		logger.info("Maximum number of users: {}", maxUsers);
+	}
 
 	@Transactional
 	public boolean canAccessPrivateData(UUID id)
@@ -196,6 +209,7 @@ public class UserService
 		else
 		{
 			verifyUserDoesNotExist(mobileNumber);
+			verifyUserIsAllowed(mobileNumber);
 		}
 	}
 
@@ -212,6 +226,28 @@ public class UserService
 			throw UserServiceException.userExistsCreatedOnBuddyRequest(mobileNumber);
 		}
 		throw UserServiceException.userExists(mobileNumber);
+	}
+
+	private void verifyUserIsAllowed(String mobileNumber)
+	{
+		int maxUsers = yonaProperties.getMaxUsers();
+		if (maxUsers <= 0)
+		{
+			return;
+		}
+
+		long currentNumberOfUsers = User.getRepository().count();
+		if (currentNumberOfUsers < maxUsers)
+		{
+			if (currentNumberOfUsers >= maxUsers - maxUsers / 10)
+			{
+				logger.warn("Nearing the maximum number of users. Current number: {}, maximum: {}", currentNumberOfUsers,
+						maxUsers);
+			}
+			return;
+		}
+
+		throw UserServiceException.maximumNumberOfUsersReached();
 	}
 
 	private void deleteExistingUserToOverwriteIt(String mobileNumber, String userProvidedConfirmationCode)
@@ -276,6 +312,7 @@ public class UserService
 	@Transactional
 	User addUserCreatedOnBuddyRequest(UserDto buddyUserResource)
 	{
+		verifyUserIsAllowed(buddyUserResource.getMobileNumber());
 		User newUser = User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
 				buddyUserResource.getPrivateData().getNickname(), buddyUserResource.getMobileNumber(),
 				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet());
