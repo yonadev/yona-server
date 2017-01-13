@@ -83,7 +83,7 @@ public class UserService
 	private MessageService messageService;
 
 	@Autowired
-	private WhitelistedNumberService whitelistedNumberService;
+	private WhiteListedNumberService whiteListedNumberService;
 
 	@PostConstruct
 	private void onStart()
@@ -233,11 +233,10 @@ public class UserService
 
 	private void verifyUserIsAllowed(String mobileNumber)
 	{
-		whitelistedNumberService.validateNumber(mobileNumber);
-
 		int maxUsers = yonaProperties.getMaxUsers();
 		if (maxUsers <= 0)
 		{
+			whiteListedNumberService.verifyMobileNumberIsAllowed(mobileNumber);
 			return;
 		}
 

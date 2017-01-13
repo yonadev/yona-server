@@ -45,8 +45,6 @@ public class YonaProperties
 
 	private int maxUsers;
 
-	private boolean whitelistEnabled;
-
 	public AnalysisServiceProperties getAnalysisService()
 	{
 		return analysisService;
@@ -116,15 +114,5 @@ public class YonaProperties
 	public void setMaxUsers(String maxUsersString)
 	{
 		this.maxUsers = Integer.parseInt(maxUsersString);
-	}
-
-	public boolean getWhitelistEnabled()
-	{
-		return whitelistEnabled;
-	}
-
-	public void setWhitelistEnabled(boolean whitelistEnabled)
-	{
-		this.whitelistEnabled = whitelistEnabled;
 	}
 }
