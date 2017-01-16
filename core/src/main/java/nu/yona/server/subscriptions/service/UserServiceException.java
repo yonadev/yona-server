@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -61,5 +61,10 @@ public class UserServiceException extends YonaException
 	public static UserServiceException missingMobileNumber()
 	{
 		return new UserServiceException("error.user.missing.mobile.number");
+	}
+
+	public static UserServiceException maximumNumberOfUsersReached()
+	{
+		return new UserServiceException("error.user.maximum.number.reached");
 	}
 }

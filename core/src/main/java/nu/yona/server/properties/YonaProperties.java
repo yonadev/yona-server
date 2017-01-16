@@ -43,6 +43,8 @@ public class YonaProperties
 
 	private String appleAppId;
 
+	private int maxUsers;
+
 	public AnalysisServiceProperties getAnalysisService()
 	{
 		return analysisService;
@@ -104,4 +106,13 @@ public class YonaProperties
 		return appleAppId;
 	}
 
+	public int getMaxUsers()
+	{
+		return maxUsers;
+	}
+
+	public void setMaxUsers(String maxUsersString)
+	{
+		this.maxUsers = Integer.parseInt(maxUsersString);
+	}
 }
