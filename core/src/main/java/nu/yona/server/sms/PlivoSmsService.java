@@ -24,17 +24,17 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.velocity.VelocityEngineUtils;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import nu.yona.server.Translator;
 import nu.yona.server.exceptions.SmsException;
 import nu.yona.server.properties.SmsProperties;
 import nu.yona.server.properties.YonaProperties;
@@ -46,15 +46,18 @@ public class PlivoSmsService implements SmsService
 
 	@Autowired
 	private YonaProperties yonaProperties;
+
 	@Autowired
-	private VelocityEngine velocityEngine;
+	@Qualifier("smsTemplateEngine")
+	private TemplateEngine templateEngine;
 
 	@Override
 	public void send(String phoneNumber, String messageTemplateName, Map<String, Object> templateParameters)
 	{
-		String message = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine,
-				Translator.buildLocaleSpecificResourcePath("sms/" + messageTemplateName + "{0}.vm"), "UTF-8", templateParameters);
+		Context ctx = new Context();
+		templateParameters.entrySet().stream().forEach(e -> ctx.setVariable(e.getKey(), e.getValue()));
 
+		String message = templateEngine.process(messageTemplateName + ".txt", ctx);
 		logger.info("Sending SMS to number '{}'. Message: {}", phoneNumber, message);
 
 		if (!yonaProperties.getSms().isEnabled())
@@ -116,7 +119,7 @@ public class PlivoSmsService implements SmsService
 	{
 		try
 		{
-			Map<String, Object> requestMessage = new HashMap<String, Object>();
+			Map<String, Object> requestMessage = new HashMap<>();
 			requestMessage.put("src", yonaProperties.getSms().getSenderNumber());
 			requestMessage.put("dst", phoneNumber);
 			requestMessage.put("text", message);

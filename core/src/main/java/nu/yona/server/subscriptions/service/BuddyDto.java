@@ -33,7 +33,7 @@ public class BuddyDto
 
 	private final UUID id;
 	private final UserDto user;
-	private final String message;
+	private final String personalInvitationMessage;
 	private final String nickname;
 	private final Optional<UUID> userAnonymizedId;
 	private final Status sendingStatus;
@@ -47,18 +47,18 @@ public class BuddyDto
 		this(id, user, null, nickname, userAnonymizedId, sendingStatus, receivingStatus, lastStatusChangeTime);
 	}
 
-	public BuddyDto(UserDto user, String message, Status sendingStatus, Status receivingStatus,
+	public BuddyDto(UserDto user, String personalInvitationMessage, Status sendingStatus, Status receivingStatus,
 			LocalDateTime lastStatusChangeTime)
 	{
-		this(null, user, message, null, null, sendingStatus, receivingStatus, lastStatusChangeTime);
+		this(null, user, personalInvitationMessage, null, null, sendingStatus, receivingStatus, lastStatusChangeTime);
 	}
 
-	private BuddyDto(UUID id, UserDto user, String message, String nickname, Optional<UUID> userAnonymizedId,
+	private BuddyDto(UUID id, UserDto user, String personalInvitationMessage, String nickname, Optional<UUID> userAnonymizedId,
 			Status sendingStatus, Status receivingStatus, LocalDateTime lastStatusChangeTime)
 	{
 		this.id = id;
 		this.user = user;
-		this.message = message;
+		this.personalInvitationMessage = personalInvitationMessage;
 		this.nickname = nickname;
 		this.userAnonymizedId = userAnonymizedId;
 		this.sendingStatus = sendingStatus;
@@ -73,9 +73,9 @@ public class BuddyDto
 	}
 
 	@JsonIgnore
-	public String getMessage()
+	public String getPersonalInvitationMessage()
 	{
-		return message;
+		return personalInvitationMessage;
 	}
 
 	@JsonIgnore

@@ -20,6 +20,8 @@ allprojects {
 	group = "yonadev"
 }
 
+ext['thymeleaf.version'] = "3.0.3.RELEASE"
+
 subprojects {
 	sourceCompatibility = 1.8
 	targetCompatibility = 1.8

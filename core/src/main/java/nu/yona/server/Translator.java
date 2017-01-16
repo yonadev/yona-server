@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. 
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server;
 
@@ -8,6 +8,7 @@ import java.text.MessageFormat;
 import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ public class Translator
 	public static final Locale EN_US_LOCALE = Locale.forLanguageTag("en-US");
 	/** The source for the messages to use */
 	@Autowired
+	@Qualifier("messageSource")
 	private MessageSource msgSource;
 
 	/**

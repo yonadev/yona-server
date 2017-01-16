@@ -6,7 +6,6 @@ package nu.yona.server;
 
 import java.util.Properties;
 
-import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
@@ -148,14 +147,6 @@ public class CoreConfiguration extends CachingConfigurerSupport
 	public CurieProvider curieProvider()
 	{
 		return new DefaultCurieProvider("yona", new UriTemplate("http://dev.yona.nu/rels/{rel}"));
-	}
-
-	@Bean
-	public VelocityEngine velocityEngine()
-	{
-		VelocityEngine e = new VelocityEngine();
-		e.init();
-		return e;
 	}
 
 	@Bean
