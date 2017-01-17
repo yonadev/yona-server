@@ -4,9 +4,6 @@ networks:
   yonanet:
     external: true
 
-volumes:
-  config: {}
-
 services:
 ###########################################
 # Configuration data container
@@ -16,7 +13,7 @@ services:
     networks:
       - yonanet
     volumes:
-      - config:/opt/app/config:ro
+      - ./config:/opt/app/config:ro
   
 ###########################################
 # Yona services
