@@ -9,15 +9,11 @@ package nu.yona.server
 
 import groovy.json.*
 import nu.yona.server.test.AppService
-import spock.lang.Shared
 import spock.lang.Specification
 
 class ActivityCategoriesTest extends Specification
 {
-	@Shared
 	def AdminService adminService = new AdminService()
-
-	@Shared
 	def AppService appService = new AppService()
 
 	def 'Get all activity categories loaded from file'()

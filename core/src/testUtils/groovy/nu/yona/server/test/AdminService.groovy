@@ -20,9 +20,9 @@ class AdminService extends Service
 	def postSystemMessage(messageText)
 	{
 		yonaServer.restClient.post(path: SYSTEM_MESSAGES_PATH,
-		body: "message=" + messageText,
+		body: "message=" + java.net.URLEncoder.encode(messageText, "UTF-8"),
 		contentType:'application/x-www-form-urlencoded',
-		headers: [],
-		query: [])
+		headers: [:],
+		query: [:])
 	}
 }
