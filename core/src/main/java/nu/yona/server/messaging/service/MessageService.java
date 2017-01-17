@@ -255,9 +255,14 @@ public class MessageService
 	@Transactional
 	public void broadcastSystemAdminMessage(String messageText)
 	{
-		SystemAdminMessage systemAdminMessage = SystemAdminMessage.createInstance(messageText);
 		userAnonymizedService.getAllUsersAnonymized()
-				.forEach(userAnonymized -> sendMessageToUserAnonymized(userAnonymized, systemAdminMessage));
+				.forEach(userAnonymized -> sendSystemAdminMessage(messageText, userAnonymized));
+	}
+
+	private void sendSystemAdminMessage(String messageText, UserAnonymizedDto recipient)
+	{
+		SystemAdminMessage systemAdminMessage = SystemAdminMessage.createInstance(messageText);
+		sendMessageToUserAnonymized(recipient, systemAdminMessage);
 	}
 
 	@Transactional
