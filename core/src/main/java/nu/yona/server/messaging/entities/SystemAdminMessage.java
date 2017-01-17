@@ -31,6 +31,7 @@ public class SystemAdminMessage extends Message
 	@Override
 	protected void encrypt()
 	{
+		// it is not necessary to encrypt, the content is public
 	}
 
 	@Override
