@@ -177,7 +177,7 @@
 			<key>VPN</key>
 			<dict>
 				<key>AuthName</key>
-				<string>${ldapUsername}</string>
+				<string th:text="${ldapUsername}">To be replaced</string>
 				<key>AuthenticationMethod</key>
 				<string>Certificate</string>
 				<key>DisconnectOnIdle</key>
@@ -207,7 +207,7 @@
 				<key>auth</key>
 				<string>SHA1</string>
 				<key>auth-user-pass</key>
-				<string>${ldapUsername}\n${ldapPassword}</string>
+				<string th:text="${ldapUsername} +'\n' + ${ldapPassword}">To be replaced</string>
 				<key>ca</key>
 				<string>-----BEGIN CERTIFICATE-----
 \nMIICdDCCAd2gAwIBAgIJAKHlBds0knLfMA0GCSqGSIb3DQEBCwUAMDExEzARBgNV

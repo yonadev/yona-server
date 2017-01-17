@@ -27,10 +27,10 @@ import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
@@ -44,7 +44,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.velocity.VelocityEngineUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -55,6 +54,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -110,7 +111,8 @@ public class UserController
 	private PinResetRequestController pinResetRequestController;
 
 	@Autowired
-	private VelocityEngine velocityEngine;
+	@Qualifier("otherTemplateEngine")
+	private TemplateEngine templateEngine;
 
 	@RequestMapping(value = "/{userId}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
@@ -159,11 +161,11 @@ public class UserController
 
 	private byte[] getUserSpecificAppleMobileConfig(UserDto privateUser)
 	{
-		Map<String, Object> templateParameters = new HashMap<>();
-		templateParameters.put("ldapUsername", privateUser.getPrivateData().getVpnProfile().getVpnLoginId().toString());
-		templateParameters.put("ldapPassword", privateUser.getPrivateData().getVpnProfile().getVpnPassword());
-		return VelocityEngineUtils.mergeTemplateIntoString(velocityEngine, "apple.mobileconfig.vm", "UTF-8", templateParameters)
-				.getBytes(StandardCharsets.UTF_8);
+		Context ctx = new Context();
+		ctx.setVariable("ldapUsername", privateUser.getPrivateData().getVpnProfile().getVpnLoginId().toString());
+		ctx.setVariable("ldapPassword", privateUser.getPrivateData().getVpnProfile().getVpnPassword());
+
+		return templateEngine.process("apple.mobileconfig.xml", ctx).getBytes(StandardCharsets.UTF_8);
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)

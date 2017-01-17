@@ -5,20 +5,18 @@
 package nu.yona.server.rest;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.apache.velocity.app.VelocityEngine;
-import org.apache.velocity.tools.generic.EscapeTool;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.velocity.VelocityEngineUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import nu.yona.server.properties.YonaProperties;
 
@@ -30,17 +28,17 @@ public class AppleAppSiteAssociationController
 	private YonaProperties yonaProperties;
 
 	@Autowired
-	private VelocityEngine velocityEngine;
+	@Qualifier("otherTemplateEngine")
+	private TemplateEngine templateEngine;
 
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity<byte[]> getAppleAppSiteAssociation()
 	{
-		Map<String, Object> templateParameters = new HashMap<String, Object>();
-		templateParameters.put("appleAppId", yonaProperties.getAppleAppId());
-		templateParameters.put("esc", new EscapeTool());
-		return new ResponseEntity<byte[]>(VelocityEngineUtils
-				.mergeTemplateIntoString(velocityEngine, "apple-app-site-association.vm", "UTF-8", templateParameters)
-				.getBytes(StandardCharsets.UTF_8), HttpStatus.OK);
+		Context ctx = new Context();
+		ctx.setVariable("appleAppId", yonaProperties.getAppleAppId());
+
+		return new ResponseEntity<>(
+				templateEngine.process("apple-app-site-association.json", ctx).getBytes(StandardCharsets.UTF_8), HttpStatus.OK);
 	}
 }

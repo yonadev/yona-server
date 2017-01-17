@@ -416,8 +416,8 @@ public class BuddyService
 			Optional<String> message, DropBuddyReason reason, MessageDestination messageDestination)
 	{
 		MessageDestinationDto messageDestinationDto = MessageDestinationDto.createInstance(messageDestination);
-		messageService.sendMessageAndFlushToDatabase(BuddyDisconnectMessage.createInstance(senderUserId, senderUserAnonymizedId, senderNickname,
-				getDropBuddyMessage(reason, message), reason), messageDestinationDto);
+		messageService.sendMessageAndFlushToDatabase(BuddyDisconnectMessage.createInstance(senderUserId, senderUserAnonymizedId,
+				senderNickname, getDropBuddyMessage(reason, message), reason), messageDestinationDto);
 	}
 
 	void sendBuddyConnectResponseMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
@@ -426,8 +426,8 @@ public class BuddyService
 		MessageDestinationDto messageDestination = userAnonymizedService.getUserAnonymized(receiverUserAnonymizedId)
 				.getAnonymousDestination();
 		assert messageDestination != null;
-		messageService.sendMessageAndFlushToDatabase(BuddyConnectResponseMessage.createInstance(senderUserId, senderUserAnonymizedId,
-				senderNickname, responseMessage, buddyId, status), messageDestination);
+		messageService.sendMessageAndFlushToDatabase(BuddyConnectResponseMessage.createInstance(senderUserId,
+				senderUserAnonymizedId, senderNickname, responseMessage, buddyId, status), messageDestination);
 	}
 
 	private void disconnectBuddyIfConnected(UserAnonymizedDto buddyUserAnonymized, UUID userAnonymizedId)
@@ -484,15 +484,17 @@ public class BuddyService
 			String buddyName = StringUtils.join(new Object[] { buddy.getUser().getFirstName(), buddy.getUser().getLastName() },
 					" ");
 			String buddyEmailAddress = buddy.getUser().getEmailAddress();
-			String message = buddy.getMessage();
+			String personalInvitationMessage = buddy.getPersonalInvitationMessage();
 			String buddyMobileNumber = buddy.getUser().getMobileNumber();
 			Map<String, Object> templateParams = new HashMap<>();
 			templateParams.put("inviteUrl", inviteUrl);
-			templateParams.put("requestingUserName", requestingUserName);
+			templateParams.put("requestingUserFirstName", requestingUser.getFirstName());
+			templateParams.put("requestingUserLastName", requestingUser.getLastName());
 			templateParams.put("requestingUserMobileNumber", requestingUserMobileNumber);
 			templateParams.put("requestingUserNickname", requestingUserNickname);
-			templateParams.put("buddyName", buddyName);
-			templateParams.put("message", message);
+			templateParams.put("buddyFirstName", buddy.getUser().getFirstName());
+			templateParams.put("buddyLastName", buddy.getUser().getLastName());
+			templateParams.put("personalInvitationMessage", personalInvitationMessage);
 			templateParams.put("emailAddress", buddyEmailAddress);
 			emailService.sendEmail(requestingUserName, new InternetAddress(buddyEmailAddress, buddyName), subjectTemplateName,
 					bodyTemplateName, templateParams);
@@ -526,10 +528,9 @@ public class BuddyService
 		boolean isRequestingSending = buddy.getReceivingStatus() == Status.REQUESTED;
 		boolean isRequestingReceiving = buddy.getSendingStatus() == Status.REQUESTED;
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
-		messageService.sendMessageAndFlushToDatabase(
-				BuddyConnectRequestMessage.createInstance(requestingUser.getId(),
-						requestingUser.getPrivateData().getUserAnonymizedId(), requestingUser.getPrivateData().getNickname(),
-						buddy.getMessage(), savedBuddyEntity.getId(), isRequestingSending, isRequestingReceiving),
+		messageService.sendMessageAndFlushToDatabase(BuddyConnectRequestMessage.createInstance(requestingUser.getId(),
+				requestingUser.getPrivateData().getUserAnonymizedId(), requestingUser.getPrivateData().getNickname(),
+				buddy.getPersonalInvitationMessage(), savedBuddyEntity.getId(), isRequestingSending, isRequestingReceiving),
 				MessageDestinationDto.createInstance(messageDestination));
 
 		return savedBuddy;

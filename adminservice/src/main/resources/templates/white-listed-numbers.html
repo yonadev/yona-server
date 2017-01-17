@@ -10,10 +10,10 @@
     
     <h2>Currently white-listed numbers</h2>
     <table>
-    	<tbody>
-		    #foreach( $whiteListedNumber in $whiteListedNumbers )
-		    	<tr><td> $whiteListedNumber </td></tr>
-		    #end
+		<tbody>
+			<tr th:each="whiteListedNumber : ${whiteListedNumbers}">
+				<td th:text="${whiteListedNumber}">+31612345678</td>
+			</tr>
     	</tbody>
     </table>
 </body>
