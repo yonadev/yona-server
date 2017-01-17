@@ -151,6 +151,7 @@ public class TemplateTest
 		String expectedGreetingLine = MessageFormat.format("<p>Best regards,<br/>{0} {1} | {2}</p>", requestingUserFirstName,
 				requestingUserLastName, requestingUserNickname);
 		assertThat(result, containsString(expectedGreetingLine));
+		assertThat(result, containsString("I&#39;d like you to become my buddy"));
 	}
 
 	@Test
