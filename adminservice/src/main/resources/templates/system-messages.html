@@ -2,6 +2,8 @@
  <html>
  <head><title>System messages</title></head>
  <body>
+ 	<p class="flash-message" th:if="${flashMessage != null}" th:text="${flashMessage}">(Result from submit)</p>
+ 
  	<h2>Add system message</h2>
  	<form action="" method="post">
          <!--p><label>Title: <input type="text" name="title" /></label></p-->
