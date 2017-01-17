@@ -20,6 +20,8 @@ allprojects {
 	group = "yonadev"
 }
 
+ext['thymeleaf.version'] = "3.0.3.RELEASE"
+
 subprojects {
 	sourceCompatibility = 1.8
 	targetCompatibility = 1.8
@@ -82,5 +84,5 @@ eclipse {
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = "3.2.1"
+	gradleVersion = "3.3"
 }

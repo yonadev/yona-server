@@ -9,17 +9,17 @@ import java.util.Map;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.velocity.VelocityEngineUtils;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
-import nu.yona.server.Translator;
 import nu.yona.server.properties.YonaProperties;
 
 @Service
@@ -31,7 +31,8 @@ public class EmailService
 	@Autowired
 	private JavaMailSender mailSender;
 	@Autowired
-	private VelocityEngine velocityEngine;
+	@Qualifier("emailTemplateEngine")
+	private TemplateEngine emailTemplateEngine;
 
 	public void sendEmail(String senderName, InternetAddress receiverAddress, String subjectTemplateName, String bodyTemplateName,
 			Map<String, Object> templateParameters)
@@ -45,14 +46,14 @@ public class EmailService
 		}
 
 		MimeMessagePreparator preparator = new MimeMessagePreparator() {
+			@Override
 			public void prepare(MimeMessage mimeMessage) throws Exception
 			{
-				String subjectText = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine,
-						Translator.buildLocaleSpecificResourcePath("email/" + subjectTemplateName + "{0}.vm"), "UTF-8",
-						templateParameters);
-				String bodyText = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine,
-						Translator.buildLocaleSpecificResourcePath("email/" + bodyTemplateName + "{0}.vm"), "UTF-8",
-						templateParameters);
+				Context ctx = new Context();
+				templateParameters.entrySet().stream().forEach(e -> ctx.setVariable(e.getKey(), e.getValue()));
+
+				String subjectText = emailTemplateEngine.process(subjectTemplateName + ".txt", ctx);
+				String bodyText = emailTemplateEngine.process(bodyTemplateName + ".html", ctx);
 
 				MimeMessageHelper message = new MimeMessageHelper(mimeMessage);
 				message.setFrom(new InternetAddress(yonaProperties.getEmail().getSenderAddress(), senderName));

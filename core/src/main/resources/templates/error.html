@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<html>
+<head><title>Request handling failed</title></head>
+	<body th:with="httpStatus=${T(org.springframework.http.HttpStatus).valueOf(#response.status)}">
+        <h1 th:text="|${httpStatus} - ${httpStatus.reasonPhrase}|">406 Not Acceptable</h1>
+  		<p><b>Note:</b> the Yona services do not expose a web UI.</p>
+    </body>
+</html>

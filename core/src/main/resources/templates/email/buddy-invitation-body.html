@@ -1,0 +1,20 @@
+<html lang="en-US">
+    <body>
+		<h3 th:text="#{buddy-invitation-body.salutation(${buddyFirstName}, ${buddyLastName})}">Hi Bob Dunn, become my buddy for Yona!</h3>
+		
+		<p th:text="${personalInvitationMessage}">Some personal notes from me</p>
+		
+		<p th:text="#{buddy-invitation-body.body.p1}">As we have talked about, I'd like you to become my buddy in the Yona system. If you didn't install the Yona app yet, please start with doing that. Here are the links:...</p>
+
+		<p th:text="#{buddy-invitation-body.body.p2}">Next, open the below link by tapping on it and selecting Yona as the app to open it with.</p>
+		
+		<p th:text="#{buddy-invitation-body.body.warning(${requestingUserFirstName}, ${requestingUserLastName}, ${requestingUserMobileNumber})}">Important: Validate that Richard has really invited you. The mobile number registered with Yona for this user is +31612345678.</p>
+		
+ 		<p><a th:href="${inviteUrl}" th:text="${inviteUrl}" href="https://app.prd.yona.nu/users/a-b-c?includePrivateData=true">https://app.prd.yona.nu/users/a-b-c?includePrivateData=true</a></p>
+		
+		<p th:utext="#{buddy-invitation-body.body.greeting(${requestingUserFirstName}, ${requestingUserLastName}, ${requestingUserNickname})}">
+			Best regards,<br/>
+			Richard Quin | RQ
+		</p>
+    </body>
+</html>

@@ -1,0 +1,1 @@
+[[ #{overwrite-user-confirmation(${confirmationCode})} ]]
