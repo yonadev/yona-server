@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head><title>White-listed numbers</title></head>
+<body>
+	<h2>Add white-listed number</h2>
+	<form action="" method="post">
+        <p><label>Number: <input type="tel" name="mobileNumber" title="e.g. +31612345678" placeholder="+31612345678" pattern="\+[1-9][0-9]+" /></label></p>
+        <p><input type="submit" value="Submit" /></p>
+    </form>
+    
+    <h2>Currently white-listed numbers</h2>
+    <table>
+    	<tbody>
+		    #foreach( $whiteListedNumber in $whiteListedNumbers )
+		    	<tr><td> $whiteListedNumber </td></tr>
+		    #end
+    	</tbody>
+    </table>
+</body>
+</html>
