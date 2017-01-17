@@ -7,17 +7,17 @@ package nu.yona.server.messaging.entities;
 import javax.persistence.Entity;
 
 @Entity
-public class SystemMessage extends Message
+public class SystemAdminMessage extends Message
 {
 	private String message;
 
 	// Default constructor is required for JPA
-	protected SystemMessage()
+	protected SystemAdminMessage()
 	{
 		super(null);
 	}
 
-	protected SystemMessage(String message)
+	protected SystemAdminMessage(String message)
 	{
 		super(null);
 		this.message = message;
@@ -38,8 +38,8 @@ public class SystemMessage extends Message
 	{
 	}
 
-	public static SystemMessage createInstance(String message)
+	public static SystemAdminMessage createInstance(String message)
 	{
-		return new SystemMessage(message);
+		return new SystemAdminMessage(message);
 	}
 }

@@ -13,18 +13,17 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 
-import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.messaging.entities.Message;
-import nu.yona.server.messaging.entities.SystemMessage;
+import nu.yona.server.messaging.entities.SystemAdminMessage;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.subscriptions.service.UserDto;
 
-@JsonRootName("systemMessage")
-public class SystemMessageDto extends MessageDto
+@JsonRootName("systemAdminMessage")
+public class SystemAdminMessageDto extends MessageDto
 {
 	private final String message;
 
-	private SystemMessageDto(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, String message)
+	private SystemAdminMessageDto(long id, LocalDateTime creationTime, boolean isRead, SenderInfo senderInfo, String message)
 	{
 		super(id, creationTime, isRead, senderInfo);
 		this.message = message;
@@ -39,7 +38,7 @@ public class SystemMessageDto extends MessageDto
 	@Override
 	public String getType()
 	{
-		return "SystemMessage";
+		return "SystemAdminMessage";
 	}
 
 	public String getMessage()
@@ -47,10 +46,10 @@ public class SystemMessageDto extends MessageDto
 		return message;
 	}
 
-	private static MessageDto createInstance(SystemMessage messageEntity, SenderInfo senderInfo)
+	private static MessageDto createInstance(SystemAdminMessage messageEntity, SenderInfo senderInfo)
 	{
-		return new SystemMessageDto(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(), senderInfo,
-				messageEntity.getMessage());
+		return new SystemAdminMessageDto(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
+				senderInfo, messageEntity.getMessage());
 	}
 
 	@Component
@@ -62,7 +61,7 @@ public class SystemMessageDto extends MessageDto
 		@PostConstruct
 		private void init()
 		{
-			theDtoFactory.addManager(GoalConflictMessage.class, this);
+			theDtoFactory.addManager(SystemAdminMessage.class, this);
 		}
 
 		@Override
@@ -74,7 +73,8 @@ public class SystemMessageDto extends MessageDto
 		@Override
 		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
 		{
-			return SystemMessageDto.createInstance((SystemMessage) messageEntity, getSenderInfo(actingUser, messageEntity));
+			return SystemAdminMessageDto.createInstance((SystemAdminMessage) messageEntity,
+					getSenderInfo(actingUser, messageEntity));
 		}
 	}
 }

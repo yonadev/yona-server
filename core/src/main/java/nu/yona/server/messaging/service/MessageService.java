@@ -31,8 +31,9 @@ import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
-import nu.yona.server.messaging.entities.SystemMessage;
+import nu.yona.server.messaging.entities.SystemAdminMessage;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -43,6 +44,9 @@ public class MessageService
 
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private UserAnonymizedService userAnonymizedService;
 
 	@Autowired
 	private TheDtoManager dtoManager;
@@ -249,10 +253,11 @@ public class MessageService
 	}
 
 	@Transactional
-	public void broadcastSystemMessage(String message)
+	public void broadcastSystemAdminMessage(String messageText)
 	{
-		SystemMessage systemMessage = SystemMessage.createInstance(message);
-		// TODO
+		SystemAdminMessage systemAdminMessage = SystemAdminMessage.createInstance(messageText);
+		userAnonymizedService.getAllUsersAnonymized()
+				.forEach(userAnonymized -> sendMessageToUserAnonymized(userAnonymized, systemAdminMessage));
 	}
 
 	@Transactional

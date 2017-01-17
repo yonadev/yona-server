@@ -24,7 +24,7 @@ public class SystemMessageController
 	@RequestMapping(value = "/", method = RequestMethod.POST)
 	public String addSystemMessage(@RequestParam String message)
 	{
-		messageService.broadcastSystemMessage(message);
+		messageService.broadcastSystemAdminMessage(message);
 
 		return "redirect:/systemMessages/";
 	}
