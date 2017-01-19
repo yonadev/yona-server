@@ -13,8 +13,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +28,7 @@ import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TimeUtil;
+import nu.yona.server.util.TransactionHelper;
 
 @Service
 public class InactivityManagementService
@@ -49,16 +48,21 @@ public class InactivityManagementService
 	@Autowired
 	private LockPool<UUID> userAnonymizedSynchronizer;
 
-	@Transactional
+	@Autowired
+	private TransactionHelper transactionHelper;
+
+	// This is intentionally not marked with @Transactional, as the transaction is explicitly started within the lock
 	public void createInactivityEntities(UUID userAnonymizedId, Set<IntervalInactivityDto> intervalInactivities)
 	{
 		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(userAnonymizedId))
 		{
-			UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
-			createWeekInactivityEntities(userAnonymizedId,
-					intervalInactivities.stream().filter(ia -> ia.getTimeUnit() == ChronoUnit.WEEKS).collect(Collectors.toSet()));
-			createDayInactivityEntities(userAnonymized,
-					intervalInactivities.stream().filter(ia -> ia.getTimeUnit() == ChronoUnit.DAYS).collect(Collectors.toSet()));
+			transactionHelper.executeInNewTransaction(() -> {
+				UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
+				createWeekInactivityEntities(userAnonymizedId, intervalInactivities.stream()
+						.filter(ia -> ia.getTimeUnit() == ChronoUnit.WEEKS).collect(Collectors.toSet()));
+				createDayInactivityEntities(userAnonymized, intervalInactivities.stream()
+						.filter(ia -> ia.getTimeUnit() == ChronoUnit.DAYS).collect(Collectors.toSet()));
+			});
 		}
 	}
 

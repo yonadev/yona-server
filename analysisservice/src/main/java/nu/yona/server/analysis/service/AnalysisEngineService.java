@@ -36,6 +36,7 @@ import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TimeUtil;
+import nu.yona.server.util.TransactionHelper;
 
 @Service
 public class AnalysisEngineService
@@ -62,8 +63,11 @@ public class AnalysisEngineService
 	private WeekActivityRepository weekActivityRepository;
 	@Autowired
 	private LockPool<UUID> userAnonymizedSynchronizer;
+	@Autowired
+	private TransactionHelper transactionHelper;
 
-	@Transactional
+	// This is intentionally not marked with @Transactional, as the transaction is explicitly started within the lock inside
+	// analyze(ActivityPayload, Set<ActivityCategoryDto>)
 	public void analyze(UUID userAnonymizedId, AppActivityDto appActivities)
 	{
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
@@ -76,7 +80,8 @@ public class AnalysisEngineService
 		}
 	}
 
-	@Transactional
+	// This is intentionally not marked with @Transactional, as the transaction is explicitly started within the lock inside
+	// analyze(ActivityPayload, Set<ActivityCategoryDto>)
 	public void analyze(UUID userAnonymizedId, NetworkActivityDto networkActivity)
 	{
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
@@ -133,12 +138,14 @@ public class AnalysisEngineService
 		// because the lock is per user, it doesn't matter much that we block early.
 		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(payload.userAnonymized.getId()))
 		{
-			UserAnonymizedEntityHolder userAnonymizedHolder = new UserAnonymizedEntityHolder(payload.userAnonymized.getId());
-			analyzeInsideLock(userAnonymizedHolder, payload, matchingActivityCategories);
-			if (userAnonymizedHolder.isEntityFetched())
-			{
-				userAnonymizedService.updateUserAnonymized(userAnonymizedHolder.getEntity());
-			}
+			transactionHelper.executeInNewTransaction(() -> {
+				UserAnonymizedEntityHolder userAnonymizedHolder = new UserAnonymizedEntityHolder(payload.userAnonymized.getId());
+				analyzeInsideLock(userAnonymizedHolder, payload, matchingActivityCategories);
+				if (userAnonymizedHolder.isEntityFetched())
+				{
+					userAnonymizedService.updateUserAnonymized(userAnonymizedHolder.getEntity());
+				}
+			});
 		}
 	}
 
