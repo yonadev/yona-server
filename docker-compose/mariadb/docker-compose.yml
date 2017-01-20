@@ -17,5 +17,5 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=yona
-    expose:
-      - "3306"
+    ports:
+      - 3306:3306
