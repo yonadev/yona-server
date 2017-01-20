@@ -49,7 +49,7 @@ import nu.yona.server.util.TimeUtil;
 		@Type(value = GoalConflictMessageDto.class, name = "GoalConflictMessage"),
 		@Type(value = GoalChangeMessageDto.class, name = "GoalChangeMessage"),
 		@Type(value = ActivityCommentMessageDto.class, name = "ActivityCommentMessage"),
-		@Type(value = SystemAdminMessageDto.class, name = "SystemAdminMessage"), })
+		@Type(value = SystemMessageDto.class, name = "SystemMessage"), })
 public abstract class MessageDto extends PolymorphicDto
 {
 	private static final String MARK_UNREAD = "markUnread";

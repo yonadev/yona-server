@@ -4,20 +4,22 @@
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 
 @Entity
-public class SystemAdminMessage extends Message
+public class SystemMessage extends Message
 {
+	@Column(length = 255)
 	private String message;
 
 	// Default constructor is required for JPA
-	protected SystemAdminMessage()
+	protected SystemMessage()
 	{
 		super(null);
 	}
 
-	protected SystemAdminMessage(String message)
+	protected SystemMessage(String message)
 	{
 		super(null);
 		this.message = message;
@@ -39,8 +41,8 @@ public class SystemAdminMessage extends Message
 	{
 	}
 
-	public static SystemAdminMessage createInstance(String message)
+	public static SystemMessage createInstance(String message)
 	{
-		return new SystemAdminMessage(message);
+		return new SystemMessage(message);
 	}
 }

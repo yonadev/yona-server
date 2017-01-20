@@ -25,7 +25,7 @@ public class SystemMessageController
 	@RequestMapping(value = "/", method = RequestMethod.POST)
 	public String addSystemMessage(@RequestParam String message, RedirectAttributes redirectAttributes)
 	{
-		messageService.broadcastSystemAdminMessage(message);
+		messageService.broadcastSystemMessage(message);
 
 		redirectAttributes.addFlashAttribute("flashMessage", "System message sent successfully");
 		return "redirect:/systemMessages/";

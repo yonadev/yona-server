@@ -12,6 +12,7 @@ import java.time.format.TextStyle
 import java.time.temporal.ChronoField
 
 import groovy.json.*
+import nu.yona.server.test.AdminService
 import nu.yona.server.test.AnalysisService
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.AppService
@@ -30,6 +31,9 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	@Shared
 	def AppService appService = new AppService()
+
+	@Shared
+	def AdminService adminService = new AdminService()
 
 	@Shared
 	private String baseTimestamp = createBaseTimestamp()
