@@ -4,7 +4,9 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -23,6 +25,12 @@ public class UserAnonymizedService
 {
 	@Autowired(required = false)
 	private UserAnonymizedRepository userAnonymizedRepository;
+
+	public Set<UserAnonymizedDto> getAllUsersAnonymized()
+	{
+		return userAnonymizedRepository.findAll().stream().map(entity -> UserAnonymizedDto.createInstance(entity))
+				.collect(Collectors.toSet());
+	}
 
 	@Cacheable
 	public UserAnonymizedDto getUserAnonymized(UUID userAnonymizedId)

@@ -31,7 +31,9 @@ import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.messaging.entities.SystemMessage;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -42,6 +44,9 @@ public class MessageService
 
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private UserAnonymizedService userAnonymizedService;
 
 	@Autowired
 	private TheDtoManager dtoManager;
@@ -248,6 +253,19 @@ public class MessageService
 	}
 
 	@Transactional
+	public void broadcastSystemMessage(String messageText)
+	{
+		userAnonymizedService.getAllUsersAnonymized()
+				.forEach(userAnonymized -> sendSystemMessage(messageText, userAnonymized));
+	}
+
+	private void sendSystemMessage(String messageText, UserAnonymizedDto recipient)
+	{
+		SystemMessage systemMessage = SystemMessage.createInstance(messageText);
+		sendMessageToUserAnonymized(recipient, systemMessage);
+	}
+
+	@Transactional
 	public void removeMessagesFromUser(MessageDestinationDto destination, UUID sentByUserAnonymizedId)
 	{
 		if (sentByUserAnonymizedId == null)
@@ -267,7 +285,8 @@ public class MessageService
 	@Transactional
 	public void broadcastMessageToBuddies(UserAnonymizedDto userAnonymized, Supplier<Message> messageSupplier)
 	{
-		userAnonymized.getBuddyDestinations().stream().forEach(destination -> sendMessageAndFlushToDatabase(messageSupplier.get(), destination));
+		userAnonymized.getBuddyDestinations().stream()
+				.forEach(destination -> sendMessageAndFlushToDatabase(messageSupplier.get(), destination));
 	}
 
 	@Transactional

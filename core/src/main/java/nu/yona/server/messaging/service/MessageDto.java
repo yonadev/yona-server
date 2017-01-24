@@ -48,7 +48,8 @@ import nu.yona.server.util.TimeUtil;
 		@Type(value = DisclosureResponseMessageDto.class, name = "DisclosureResponseMessage"),
 		@Type(value = GoalConflictMessageDto.class, name = "GoalConflictMessage"),
 		@Type(value = GoalChangeMessageDto.class, name = "GoalChangeMessage"),
-		@Type(value = ActivityCommentMessageDto.class, name = "ActivityCommentMessage"), })
+		@Type(value = ActivityCommentMessageDto.class, name = "ActivityCommentMessage"),
+		@Type(value = SystemMessageDto.class, name = "SystemMessage"), })
 public abstract class MessageDto extends PolymorphicDto
 {
 	private static final String MARK_UNREAD = "markUnread";
@@ -222,6 +223,11 @@ public abstract class MessageDto extends PolymorphicDto
 		protected SenderInfo createSenderInfoForDetachedBuddy(Optional<User> userEntity, String nickname)
 		{
 			return senderInfoFactory.createInstanceForDetachedBuddy(UserDto.createInstance(userEntity), nickname);
+		}
+
+		protected SenderInfo createSenderInfoForSystem()
+		{
+			return senderInfoFactory.createInstanceForSystem();
 		}
 	}
 }

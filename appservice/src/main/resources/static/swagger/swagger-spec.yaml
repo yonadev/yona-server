@@ -2288,6 +2288,7 @@ definitions:
         - DisclosureRequestMessage
         - DisclosureResponseMessage
         - ActivityCommentMessage
+        - SystemMessage
       creationTime:
         type: string
         format: dateTime
@@ -2301,6 +2302,24 @@ definitions:
     required:
       - "@type"
       - creationTime
+  SystemMessage:
+    allOf:
+      - $ref: '#/definitions/Message'
+    properties:
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+          - $ref: '#/definitions/EditLink'
+          - $ref: '#/definitions/MarkReadLink'
+          - $ref: '#/definitions/MarkUnreadLink'
+      message:
+        type: string
+        description: The message from the system administrator
+        example: On Monday, 7th of November from 12am-6am UTC we will restart our servers. You will not be able to use the Yona app in this window.
+    required:
+      - _links
+      - message      
   BuddyMessage:
     allOf:
       - $ref: '#/definitions/Message'
