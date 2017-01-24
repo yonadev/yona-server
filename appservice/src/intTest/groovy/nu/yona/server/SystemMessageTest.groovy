@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2017 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -8,7 +8,7 @@ package nu.yona.server
 
 import groovy.json.*
 
-class SystemMessagesTest extends AbstractAppServiceIntegrationTest
+class SystemMessageTest extends AbstractAppServiceIntegrationTest
 {
 	def 'A system message gets received by both Bob and Richard'()
 	{
