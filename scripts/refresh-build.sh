@@ -1,3 +1,6 @@
+#!/bin/bash
+set -e # Fail on error
+
 export yonatag=build-$1
 export yona_db_user_name=$2
 export yona_db_password=$3
@@ -5,6 +8,9 @@ export yona_db_url=$4
 
 echo "Stopping Yona containers"
 docker-compose stop
+
+echo "Backing up the database"
+docker exec mariadb sh -c "exec mysqldump --databases yona -u$yona_db_user_name -p$yona_db_password"  | gzip -c > yonadb-before-$yonatag.sql.gz
 
 echo "Removing old containers"
 docker-compose rm -f
