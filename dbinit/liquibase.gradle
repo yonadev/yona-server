@@ -71,11 +71,13 @@ task liquibaseDiffChangelog(type: JavaExec) {
 task liquibaseUpdate(type: JavaExec) {
 	group = "liquibase"
 
+	workingDir = "${changeLogPath}"
+
 	classpath sourceSets.main.runtimeClasspath
 	classpath configurations.liquibase
 	main = "liquibase.integration.commandline.Main"
 
-	args "--changeLogFile=${changeLogPath}/changelog.yml"
+	args "--changeLogFile=changelog.yml"
 	args "--url=${databaseUrl}"
 	args "--driver=${jdbcDriver}"
 	args "--username=${userName}"
