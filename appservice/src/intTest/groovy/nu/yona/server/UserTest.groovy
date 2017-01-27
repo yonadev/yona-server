@@ -53,6 +53,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		john.mobileNumberConfirmationUrl == null
 
 		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
+		john.postOpenAppEventUrl == john.url + "/openApp"
 		john.buddiesUrl == john.url + "/buddies/"
 		john.goalsUrl == john.url + "/goals/"
 		john.messagesUrl == john.url + "/messages/"
@@ -328,6 +329,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		assert user.lastName == "Doe"
 		assert user.mobileNumber == "+${timestamp}"
 		assertEquals(user.creationTime, YonaServer.now)
+		assertEquals(user.appLastOpenedDate, YonaServer.now.toLocalDate())
 
 		if (includePrivateData)
 		{

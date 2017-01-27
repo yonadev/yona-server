@@ -190,6 +190,30 @@ paths:
           description: Confirmation failed
           schema:
             $ref: '#/definitions/Error'
+  '/users/{userID}/openApp':
+    parameters:
+      - name: userID
+        in: path
+        description: The ID of the user
+        required: true
+        type: string
+      - name: Yona-Password
+        in: header
+        description: The device password
+        required: true
+        type: string
+    post:
+      summary: Inform the server that the user just opened the Yona app
+      description: The server uses this to maintain the "last seen" information
+      tags:
+        - User
+      responses:
+        '200':
+          description: The request is successfully handled
+        default:
+          description: Action failed
+          schema:
+            $ref: '#/definitions/Error'
   '/users/{userID}/apple.mobileconfig':
     parameters:
       - name: userID
@@ -1898,6 +1922,16 @@ definitions:
         format: dateTime
         description: The creation time of this user
         example: 2016-04-26T20:08:55.365+0200
+      appLastOpenedDate:
+        type: string
+        format: date
+        description: The date the user last opened the Yona app
+        example: 2016-04-26
+      lastMonitoredActivityDate:
+        type: string
+        format: date
+        description: The date of the last monitored activity
+        example: 2016-04-26
       _embedded:
         type: object
         properties:
@@ -1957,6 +1991,14 @@ definitions:
               href:
                 type: string
                 description: This link allows requesting a resend of the mobile number confirmation code.
+          "yona:postOpenAppEvent":
+            type: object
+            required:
+              - href
+            properties:
+              href:
+                type: string
+                description: This link allows posting to the server that the Yona app was opened.
           "yona:requestPinReset":
             type: object
             required:

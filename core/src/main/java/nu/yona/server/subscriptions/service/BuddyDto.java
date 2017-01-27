@@ -124,7 +124,7 @@ public class BuddyDto
 	}
 
 	@JsonProperty("lastStatusChangeTime")
-	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)
 	public ZonedDateTime getLastStatusChangeTimeAsZonedDateTime()
 	{
 		return TimeUtil.toUtcZonedDateTime(lastStatusChangeTime);

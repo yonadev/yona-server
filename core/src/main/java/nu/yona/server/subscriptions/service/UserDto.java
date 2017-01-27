@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Optional;
@@ -35,32 +36,38 @@ public class UserDto
 	public static final String GOALS_REL_NAME = "goals";
 
 	private UUID id;
+	private final Optional<LocalDateTime> creationTime;
+	private final LocalDate appLastOpenedDate;
+	private final Optional<LocalDate> lastMonitoredActivityDate;
 	private final String firstName;
 	private final String lastName;
 	private final String emailAddress;
 	private final String mobileNumber;
 	private final boolean isMobileNumberConfirmed;
 	private final UserPrivateDto privateData;
-	private final Optional<LocalDateTime> creationTime;
 
 	/*
 	 * Only intended for test purposes.
 	 */
-	private UserDto(UUID id, LocalDateTime creationTime, String firstName, String lastName, String yonaPassword, String nickname,
-			String mobileNumber, boolean isConfirmed, UUID namedMessageSourceId, UUID namedMessageDestinationId,
+	private UserDto(UUID id, LocalDateTime creationTime, LocalDate appLastOpenedDate,
+			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String yonaPassword,
+			String nickname, String mobileNumber, boolean isConfirmed, UUID namedMessageSourceId, UUID namedMessageDestinationId,
 			UUID anonymousMessageSourceId, UUID anonymousMessageDestinationId, Set<GoalDto> goals, Set<UUID> buddyIds,
 			Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper, UUID userAnonymizedId, VPNProfileDto vpnProfile)
 	{
-		this(id, firstName, lastName, null, mobileNumber, Optional.of(creationTime), isConfirmed,
+		this(id, Optional.of(creationTime), appLastOpenedDate, lastMonitoredActivityDate, firstName, lastName, null, mobileNumber,
+				isConfirmed,
 				new UserPrivateDto(yonaPassword, nickname, namedMessageSourceId, namedMessageDestinationId,
 						anonymousMessageSourceId, anonymousMessageDestinationId, goals, buddyIds, buddyIdToDtoMapper,
 						userAnonymizedId, vpnProfile));
 	}
 
-	private UserDto(UUID id, String firstName, String lastName, String mobileNumber, LocalDateTime creationTime,
+	private UserDto(UUID id, LocalDateTime creationTime, LocalDate appLastOpenedDate,
+			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String mobileNumber,
 			boolean isConfirmed)
 	{
-		this(id, firstName, lastName, null, mobileNumber, Optional.of(creationTime), isConfirmed, null);
+		this(id, Optional.of(creationTime), appLastOpenedDate, lastMonitoredActivityDate, firstName, lastName, null, mobileNumber,
+				isConfirmed, null);
 	}
 
 	@JsonCreator
@@ -68,14 +75,17 @@ public class UserDto
 			@JsonProperty("emailAddress") String emailAddress, @JsonProperty("mobileNumber") String mobileNumber,
 			@JsonUnwrapped UserPrivateDto privateData)
 	{
-		this(null, firstName, lastName, emailAddress, mobileNumber, Optional.empty(), false /* default value, ignored */,
-				privateData);
+		this(null, Optional.empty(), null, Optional.empty(), firstName, lastName, emailAddress, mobileNumber,
+				false /* default value, ignored */, privateData);
 	}
 
-	private UserDto(UUID id, String firstName, String lastName, String emailAddress, String mobileNumber,
-			Optional<LocalDateTime> creationTime, boolean isMobileNumberConfirmed, UserPrivateDto privateData)
+	private UserDto(UUID id, Optional<LocalDateTime> creationTime, LocalDate appLastOpenedDate,
+			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String emailAddress,
+			String mobileNumber, boolean isMobileNumberConfirmed, UserPrivateDto privateData)
 	{
 		this.id = id;
+		this.appLastOpenedDate = appLastOpenedDate;
+		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.emailAddress = emailAddress;
@@ -97,6 +107,32 @@ public class UserDto
 		this.id = id;
 	}
 
+	@JsonProperty("creationTime")
+	@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)
+	public Optional<ZonedDateTime> getCreationTimeAsZonedDateTime()
+	{
+		return creationTime.map(TimeUtil::toUtcZonedDateTime);
+	}
+
+	@JsonIgnore
+	public Optional<LocalDateTime> getCreationTime()
+	{
+		return creationTime;
+	}
+
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	public LocalDate getAppLastOpenedDate()
+	{
+		return appLastOpenedDate;
+	}
+
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	@JsonInclude(Include.NON_EMPTY)
+	public Optional<LocalDate> getLastMonitoredActivityDate()
+	{
+		return lastMonitoredActivityDate;
+	}
+
 	public String getFirstName()
 	{
 		return firstName;
@@ -116,18 +152,6 @@ public class UserDto
 	public String getMobileNumber()
 	{
 		return mobileNumber;
-	}
-
-	@JsonProperty("creationTime")
-	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
-	public Optional<ZonedDateTime> getCreationTimeAsZonedDateTime()
-	{
-		return creationTime.map(TimeUtil::toUtcZonedDateTime);
-	}
-
-	public Optional<LocalDateTime> getCreationTime()
-	{
-		return creationTime;
 	}
 
 	@JsonIgnore
@@ -185,13 +209,15 @@ public class UserDto
 		{
 			throw new IllegalArgumentException("userEntity cannot be null");
 		}
-		return new UserDto(userEntity.getId(), userEntity.getFirstName(), userEntity.getLastName(), userEntity.getMobileNumber(),
-				userEntity.getCreationTime(), userEntity.isMobileNumberConfirmed());
+		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
+				userEntity.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
+				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed());
 	}
 
 	static UserDto createInstanceWithPrivateData(User userEntity, Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper)
 	{
-		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getFirstName(), userEntity.getLastName(),
+		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
+				userEntity.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
 				CryptoSession.getCurrent().getKeyString(), userEntity.getNickname(), userEntity.getMobileNumber(),
 				userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSource().getId(),
 				userEntity.getNamedMessageDestination().getId(), userEntity.getAnonymousMessageSource().getId(),

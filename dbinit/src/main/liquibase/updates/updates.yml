@@ -7,4 +7,7 @@ databaseChangeLog:
       file: changelog-0000-yd-400.yml
   - include:
       relativeToChangelogFile: true
-      file: changelog-0000-yd-402.yml      
+      file: changelog-0000-yd-402.yml
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0003-yd-378.yml
