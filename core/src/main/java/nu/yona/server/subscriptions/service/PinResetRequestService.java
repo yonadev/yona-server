@@ -56,7 +56,7 @@ public class PinResetRequestService
 	public void verifyPinResetConfirmationCode(UUID userId, String userProvidedConfirmationCode)
 	{
 		User userEntity = userService.getUserEntityById(userId);
-		logger.info("User with mobile number '{}' and ID '{}' requested to verity the pin reset confirmation code",
+		logger.info("User with mobile number '{}' and ID '{}' requested to verify the pin reset confirmation code",
 				userEntity.getMobileNumber(), userId);
 		ConfirmationCode confirmationCode = userEntity.getPinResetConfirmationCode();
 		if ((confirmationCode == null) || isExpired(confirmationCode))
