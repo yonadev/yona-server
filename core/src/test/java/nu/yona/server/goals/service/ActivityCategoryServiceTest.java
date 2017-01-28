@@ -7,7 +7,6 @@ package nu.yona.server.goals.service;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -17,31 +16,22 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import nu.yona.server.Translator;
 import nu.yona.server.goals.entities.ActivityCategory;
-import nu.yona.server.goals.entities.ActivityCategoryRepository;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = { ActivityCategoryServiceTestBaseConfiguration.class })
 public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 {
-	@Mock
-	private final ActivityCategoryRepository mockRepository = mock(ActivityCategoryRepository.class);
-	@InjectMocks
-	private final ActivityCategoryService service = new ActivityCategoryService();
-
-	@Before
-	public void setUp()
-	{
-		setUp(mockRepository);
-	}
+	@Autowired
+	private ActivityCategoryService service;
 
 	/*
 	 * Tests the method to get all categories.
@@ -77,23 +67,23 @@ public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 		assertGetAllActivityCategoriesResult("Initial", "gambling", "news");
 
 		// modify
-		Set<ActivityCategoryDto> importActivityCategories = new HashSet<ActivityCategoryDto>();
+		Set<ActivityCategoryDto> importActivityCategories = new HashSet<>();
 		ActivityCategoryDto newsModified = new ActivityCategoryDto(news.getId(), usString("news"), false,
-				new HashSet<String>(Arrays.asList("refdag", "bbc", "atom feeds")), new HashSet<String>(), usString("Descr"));
+				new HashSet<>(Arrays.asList("refdag", "bbc", "atom feeds")), new HashSet<String>(), usString("Descr"));
 		importActivityCategories.add(newsModified);
 		ActivityCategoryDto gaming = new ActivityCategoryDto(UUID.randomUUID(), usString("gaming"), false,
-				new HashSet<String>(Arrays.asList("games")), new HashSet<String>(), usString("Descr"));
+				new HashSet<>(Arrays.asList("games")), new HashSet<String>(), usString("Descr"));
 		importActivityCategories.add(gaming);
 
 		service.updateActivityCategorySet(importActivityCategories);
 
 		ArgumentCaptor<ActivityCategory> matchActivityCategory = ArgumentCaptor.forClass(ActivityCategory.class);
 		// 1 added and 1 updated
-		verify(mockRepository, times(2)).save(matchActivityCategory.capture());
+		verify(getMockRepository(), times(2)).save(matchActivityCategory.capture());
 		assertThat(matchActivityCategory.getAllValues().stream().map(x -> x.getLocalizableName().get(Translator.EN_US_LOCALE))
 				.collect(Collectors.toSet()), containsInAnyOrder("news", "gaming"));
 		// 1 deleted
-		verify(mockRepository, times(1)).delete(matchActivityCategory.capture());
+		verify(getMockRepository(), times(1)).delete(matchActivityCategory.capture());
 		assertThat(matchActivityCategory.getValue().getLocalizableName().get(Translator.EN_US_LOCALE), equalTo("gambling"));
 	}
 }
