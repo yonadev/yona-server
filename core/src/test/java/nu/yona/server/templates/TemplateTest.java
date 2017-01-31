@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.templates;
 
@@ -12,16 +12,28 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Optional;
 
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.HttpMethod;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.mock.web.MockServletContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.AbstractContext;
 import org.thymeleaf.context.Context;
+import org.thymeleaf.context.IWebContext;
 
 import nu.yona.server.ThymeleafConfiguration;
 import nu.yona.server.Translator;
@@ -109,7 +121,7 @@ public class TemplateTest
 	{
 		String requestingUserName = "John";
 		String result = buildEmailSubject(Optional.empty(), requestingUserName);
-		String expectedResult = MessageFormat.format("Yona buddy invitation from {0}", requestingUserName);
+		String expectedResult = MessageFormat.format("Become my friend on Yona!", requestingUserName);
 		assertThat(result, equalTo(expectedResult));
 	}
 
@@ -118,7 +130,7 @@ public class TemplateTest
 	{
 		String requestingUserName = "John";
 		String result = buildEmailSubject(Optional.of(Locale.forLanguageTag("nl-NL")), requestingUserName);
-		String expectedResult = MessageFormat.format("Yona vriendverzoek van {0}", requestingUserName);
+		String expectedResult = MessageFormat.format("Word vriend op Yona!", requestingUserName);
 		assertThat(result, equalTo(expectedResult));
 	}
 
@@ -145,13 +157,17 @@ public class TemplateTest
 		String result = buildEmailBuddy(Optional.empty(), buddyFirstName, buddyLastName, inviteUrl, personalInvitationMessage,
 				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber, requestingUserNickname);
 
-		String expectedLinkLine = MessageFormat.format("<p><a href=\"{0}\">{0}</a></p>", inviteUrl);
-		assertThat(result, containsString(expectedLinkLine));
+		String expectedLinkFragment = MessageFormat.format("<a href=\"{0}\"", inviteUrl);
+		assertThat(result, containsString(expectedLinkFragment));
 
-		String expectedGreetingLine = MessageFormat.format("<p>Best regards,<br/>{0} {1} | {2}</p>", requestingUserFirstName,
-				requestingUserLastName, requestingUserNickname);
-		assertThat(result, containsString(expectedGreetingLine));
-		assertThat(result, containsString("I&#39;d like you to become my buddy"));
+		String expectedWarningLine = MessageFormat.format(
+				"<strong>Important</strong>: Verify if the invitation is really from {0} {1} and check the mobile number: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
+				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber);
+		assertThat(result, containsString(expectedWarningLine));
+		assertThat(result, containsString("Open the app and &ldquo;join&rdquo;."));
+
+		// String expectedHeaderImageUrl = "https://app.prd.yona.nu/resources/img/en-GB/header.jpg";
+		// assertThat(result, containsString(expectedHeaderImageUrl));
 	}
 
 	@Test
@@ -169,19 +185,23 @@ public class TemplateTest
 				personalInvitationMessage, requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber,
 				requestingUserNickname);
 
-		String expectedLinkLine = MessageFormat.format("<p><a href=\"{0}\">{0}</a></p>", inviteUrl);
-		assertThat(result, containsString(expectedLinkLine));
+		String expectedLinkFragment = MessageFormat.format("<a href=\"{0}\"", inviteUrl);
+		assertThat(result, containsString(expectedLinkFragment));
 
-		String expectedGreetingLine = MessageFormat.format("<p>Groetjes,<br/>{0} {1} | {2}</p>", requestingUserFirstName,
-				requestingUserLastName, requestingUserNickname);
-		assertThat(result, containsString(expectedGreetingLine));
+		String expectedWarningLine = MessageFormat.format(
+				"<strong>Belangrijk</strong>: Let op of de uitnodiging werkelijk van {0} {1} komt en check het mobiele nummer: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
+				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber);
+		assertThat(result, containsString(expectedWarningLine));
+
+		// String expectedHeaderImageUrl = "https://app.prd.yona.nu/resources/img/nl-NL/header.jpg";
+		// assertThat(result, containsString(expectedHeaderImageUrl));
 	}
 
 	private String buildEmailBuddy(Optional<Locale> locale, String buddyFirstName, String buddyLastName, String inviteUrl,
 			String personalInvitationMessage, String requestingUserFirstName, String requestingUserLastName,
 			String requestingUserMobileNumber, String requestingUserNickname)
 	{
-		Context ctx = new Context();
+		OfflineContext ctx = new OfflineContext();
 		ctx.setVariable("buddyFirstName", buddyFirstName);
 		ctx.setVariable("buddyLastName", buddyLastName);
 		ctx.setVariable("inviteUrl", inviteUrl);
@@ -193,5 +213,35 @@ public class TemplateTest
 		locale.ifPresent(l -> ctx.setLocale(l));
 
 		return emailTemplateEngine.process("buddy-invitation-body.html", ctx);
+	}
+
+	private class OfflineContext extends AbstractContext implements IWebContext
+	{
+
+		@Override
+		public HttpServletRequest getRequest()
+		{
+			return new MockHttpServletRequest(getServletContext(), HttpMethod.POST.toString(),
+					"https://app.prd.yona.nu/users/a-b-c");
+		}
+
+		@Override
+		public HttpServletResponse getResponse()
+		{
+			return new MockHttpServletResponse();
+		}
+
+		@Override
+		public HttpSession getSession()
+		{
+			return new MockHttpSession();
+		}
+
+		@Override
+		public ServletContext getServletContext()
+		{
+			return new MockServletContext();
+		}
+
 	}
 }
