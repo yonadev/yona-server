@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.HashSet;
@@ -26,16 +27,19 @@ public class UserAnonymizedDto implements Serializable
 	private static final long serialVersionUID = 5569303515806259326L;
 
 	private final UUID id;
+
+	private final LocalDate lastMonitoredActivityDate;
 	private final Set<GoalDto> goals;
 	private final MessageDestinationDto anonymousMessageDestination;
 	private final Set<UUID> buddyAnonymizedIds;
 
 	private static final ZoneId DEFAULT_TIME_ZONE = ZoneId.of("Europe/Amsterdam");
 
-	public UserAnonymizedDto(UUID id, Set<GoalDto> goals, MessageDestinationDto anonymousMessageDestination,
-			Set<UUID> buddyAnonymizedIds)
+	public UserAnonymizedDto(UUID id, Optional<LocalDate> lastMonitoredActivityDate, Set<GoalDto> goals,
+			MessageDestinationDto anonymousMessageDestination, Set<UUID> buddyAnonymizedIds)
 	{
 		this.id = id;
+		this.lastMonitoredActivityDate = lastMonitoredActivityDate.orElse(null);
 		this.goals = new HashSet<>(goals);
 		this.anonymousMessageDestination = anonymousMessageDestination;
 		this.buddyAnonymizedIds = buddyAnonymizedIds;
@@ -43,7 +47,7 @@ public class UserAnonymizedDto implements Serializable
 
 	public static UserAnonymizedDto createInstance(UserAnonymized entity)
 	{
-		return new UserAnonymizedDto(entity.getId(), getGoalsIncludingHistoryItems(entity),
+		return new UserAnonymizedDto(entity.getId(), entity.getLastMonitoredActivityDate(), getGoalsIncludingHistoryItems(entity),
 				MessageDestinationDto.createInstance(entity.getAnonymousDestination()), entity.getBuddiesAnonymized().stream()
 						.map(buddyAnonymized -> buddyAnonymized.getId()).collect(Collectors.toSet()));
 	}
@@ -51,6 +55,11 @@ public class UserAnonymizedDto implements Serializable
 	public UUID getId()
 	{
 		return id;
+	}
+
+	public Optional<LocalDate> getLastMonitoredActivityDate()
+	{
+		return Optional.ofNullable(lastMonitoredActivityDate);
 	}
 
 	public Set<GoalDto> getGoals()

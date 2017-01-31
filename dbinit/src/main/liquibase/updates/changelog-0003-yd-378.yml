@@ -12,16 +12,6 @@ databaseChangeLog:
         tableName: users
 - changeSet:
     id: 1485291488594-2
-    author: Bert (generated)
-    changes:
-    - addColumn:
-        columns:
-        - column:
-            name: last_monitored_activity_date
-            type: date
-        tableName: users
-- changeSet:
-    id: 1485291488594-3
     author: Bert (manually created)
     changes:
         - createIndex:
@@ -33,6 +23,16 @@ databaseChangeLog:
             tableName: users
             unique: false
 - changeSet:
+    id: 1485291488594-3
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: last_monitored_activity_date
+            type: date
+        tableName: users_anonymized
+- changeSet:
     id: 1485291488594-4
     author: Bert (manually created)
     changes:
@@ -42,5 +42,5 @@ databaseChangeLog:
                     name: last_monitored_activity_date
                     type: date
             indexName: idx_last_monitored_activity_date
-            tableName: users
+            tableName: users_anonymized
             unique: false

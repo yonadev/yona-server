@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server.test
 
+import java.time.LocalDate
+
 import groovy.json.*
 import nu.yona.server.YonaServer
 
@@ -15,6 +17,7 @@ class Buddy
 	final String receivingStatus
 	final String sendingStatus
 	final String lastStatusChangeTime
+	final LocalDate lastMonitoredActivityDate
 	final User user
 	final List<Goal> goals
 	final String url
@@ -27,6 +30,7 @@ class Buddy
 		this.receivingStatus = json.receivingStatus
 		this.sendingStatus = json.sendingStatus
 		this.lastStatusChangeTime = json.lastStatusChangeTime
+		this.lastMonitoredActivityDate = (json.lastMonitoredActivityDate) ? YonaServer.parseIsoDateString(json.lastMonitoredActivityDate) : null
 		if (json._embedded?."yona:user")
 		{
 			this.user = new User(json._embedded."yona:user")

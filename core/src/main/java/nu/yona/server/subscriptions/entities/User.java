@@ -47,8 +47,6 @@ public class User extends EntityWithUuid
 
 	private LocalDate appLastOpenedDate;
 
-	private LocalDate lastMonitoredActivityDate;
-
 	private byte[] initializationVector;
 
 	private boolean isCreatedOnBuddyRequest;
@@ -117,17 +115,6 @@ public class User extends EntityWithUuid
 	{
 		Objects.requireNonNull(appLastOpenedDate);
 		this.appLastOpenedDate = appLastOpenedDate;
-	}
-
-	public Optional<LocalDate> getLastMonitoredActivityDate()
-	{
-		return Optional.ofNullable(lastMonitoredActivityDate);
-	}
-
-	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
-	{
-		Objects.requireNonNull(lastMonitoredActivityDate);
-		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 	}
 
 	public boolean isCreatedOnBuddyRequest()
@@ -352,6 +339,16 @@ public class User extends EntityWithUuid
 
 	public Set<Buddy> getBuddiesRelatedToRemovedUsers()
 	{
-		return userPrivate.getBuddiesRelatedToRemovedUsers();
+		return getUserPrivate().getBuddiesRelatedToRemovedUsers();
+	}
+
+	public Optional<LocalDate> getLastMonitoredActivityDate()
+	{
+		return getUserPrivate().getLastMonitoredActivityDate();
+	}
+
+	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
+	{
+		getUserPrivate().setLastMonitoredActivityDate(lastMonitoredActivityDate);
 	}
 }

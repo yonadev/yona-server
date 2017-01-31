@@ -8,6 +8,7 @@ package nu.yona.server
 
 import groovy.json.*
 import nu.yona.server.test.User
+import spock.lang.IgnoreRest
 
 class UserTest extends AbstractAppServiceIntegrationTest
 {
@@ -310,6 +311,56 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		responseAppleAppSiteAssociation.status == 200
 		responseAppleAppSiteAssociation.contentType == "application/json"
 		responseAppleAppSiteAssociation.responseData.applinks.details[0].appID ==~ /.*\.yona/
+	}
+
+	def 'Last monitored activity date is not present when there were no activities'()
+	{
+		given:
+		User richard = addRichard()
+
+		when:
+		richard = appService.reloadUser(richard)
+
+		then:
+		richard.lastMonitoredActivityDate == null
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Last monitored activity date is updated properly after one activity'()
+	{
+		given:
+		def richard = addRichard()
+
+		when:
+		def relativeActivityDate = "W-1 Thu 15:00"
+		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", relativeActivityDate)
+		richard = appService.reloadUser(richard)
+
+		then:
+		richard.lastMonitoredActivityDate == YonaServer.relativeDateTimeStringToZonedDateTime(relativeActivityDate).toLocalDate()
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Last monitored activity date is updated properly after multiple activities'()
+	{
+		given:
+		def richard = addRichard()
+
+		when:
+		def relativeActivityDate = "W-1 Sat 00:10"
+		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-1 Thu 15:00")
+		reportAppActivity(richard, "NU.nl", "W-1 Fri 23:55", relativeActivityDate)
+		richard = appService.reloadUser(richard)
+
+		then:
+		richard.lastMonitoredActivityDate == YonaServer.relativeDateTimeStringToZonedDateTime(relativeActivityDate).toLocalDate()
+
+		cleanup:
+		appService.deleteUser(richard)
 	}
 
 	private def confirmMobileNumber(User user, code)

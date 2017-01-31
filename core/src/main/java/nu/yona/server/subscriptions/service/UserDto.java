@@ -38,7 +38,6 @@ public class UserDto
 	private UUID id;
 	private final Optional<LocalDateTime> creationTime;
 	private final LocalDate appLastOpenedDate;
-	private final Optional<LocalDate> lastMonitoredActivityDate;
 	private final String firstName;
 	private final String lastName;
 	private final String emailAddress;
@@ -55,19 +54,16 @@ public class UserDto
 			UUID anonymousMessageSourceId, UUID anonymousMessageDestinationId, Set<GoalDto> goals, Set<UUID> buddyIds,
 			Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper, UUID userAnonymizedId, VPNProfileDto vpnProfile)
 	{
-		this(id, Optional.of(creationTime), appLastOpenedDate, lastMonitoredActivityDate, firstName, lastName, null, mobileNumber,
-				isConfirmed,
-				new UserPrivateDto(yonaPassword, nickname, namedMessageSourceId, namedMessageDestinationId,
-						anonymousMessageSourceId, anonymousMessageDestinationId, goals, buddyIds, buddyIdToDtoMapper,
-						userAnonymizedId, vpnProfile));
+		this(id, Optional.of(creationTime), appLastOpenedDate, firstName, lastName, null, mobileNumber, isConfirmed,
+				new UserPrivateDto(lastMonitoredActivityDate, yonaPassword, nickname, namedMessageSourceId,
+						namedMessageDestinationId, anonymousMessageSourceId, anonymousMessageDestinationId, goals, buddyIds,
+						buddyIdToDtoMapper, userAnonymizedId, vpnProfile));
 	}
 
-	private UserDto(UUID id, LocalDateTime creationTime, LocalDate appLastOpenedDate,
-			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String mobileNumber,
-			boolean isConfirmed)
+	private UserDto(UUID id, LocalDateTime creationTime, LocalDate appLastOpenedDate, String firstName, String lastName,
+			String mobileNumber, boolean isConfirmed)
 	{
-		this(id, Optional.of(creationTime), appLastOpenedDate, lastMonitoredActivityDate, firstName, lastName, null, mobileNumber,
-				isConfirmed, null);
+		this(id, Optional.of(creationTime), appLastOpenedDate, firstName, lastName, null, mobileNumber, isConfirmed, null);
 	}
 
 	@JsonCreator
@@ -75,17 +71,15 @@ public class UserDto
 			@JsonProperty("emailAddress") String emailAddress, @JsonProperty("mobileNumber") String mobileNumber,
 			@JsonUnwrapped UserPrivateDto privateData)
 	{
-		this(null, Optional.empty(), null, Optional.empty(), firstName, lastName, emailAddress, mobileNumber,
-				false /* default value, ignored */, privateData);
+		this(null, Optional.empty(), null, firstName, lastName, emailAddress, mobileNumber, false /* default value, ignored */,
+				privateData);
 	}
 
-	private UserDto(UUID id, Optional<LocalDateTime> creationTime, LocalDate appLastOpenedDate,
-			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String emailAddress,
-			String mobileNumber, boolean isMobileNumberConfirmed, UserPrivateDto privateData)
+	private UserDto(UUID id, Optional<LocalDateTime> creationTime, LocalDate appLastOpenedDate, String firstName, String lastName,
+			String emailAddress, String mobileNumber, boolean isMobileNumberConfirmed, UserPrivateDto privateData)
 	{
 		this.id = id;
 		this.appLastOpenedDate = appLastOpenedDate;
-		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.emailAddress = emailAddress;
@@ -124,13 +118,6 @@ public class UserDto
 	public LocalDate getAppLastOpenedDate()
 	{
 		return appLastOpenedDate;
-	}
-
-	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
-	@JsonInclude(Include.NON_EMPTY)
-	public Optional<LocalDate> getLastMonitoredActivityDate()
-	{
-		return lastMonitoredActivityDate;
 	}
 
 	public String getFirstName()
@@ -210,8 +197,8 @@ public class UserDto
 			throw new IllegalArgumentException("userEntity cannot be null");
 		}
 		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
-				userEntity.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
-				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed());
+				userEntity.getFirstName(), userEntity.getLastName(), userEntity.getMobileNumber(),
+				userEntity.isMobileNumberConfirmed());
 	}
 
 	static UserDto createInstanceWithPrivateData(User userEntity, Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper)

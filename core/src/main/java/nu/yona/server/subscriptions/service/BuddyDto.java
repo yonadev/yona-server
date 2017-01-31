@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Collections;
@@ -36,15 +37,18 @@ public class BuddyDto
 	private final String personalInvitationMessage;
 	private final String nickname;
 	private final Optional<UUID> userAnonymizedId;
+	private final Optional<LocalDate> lastMonitoredActivityDate;
 	private final Status sendingStatus;
 	private final Status receivingStatus;
 	private Set<GoalDto> goals = Collections.emptySet();
 	private final LocalDateTime lastStatusChangeTime;
 
-	public BuddyDto(UUID id, UserDto user, String nickname, Optional<UUID> userAnonymizedId, Status sendingStatus,
-			Status receivingStatus, LocalDateTime lastStatusChangeTime)
+	public BuddyDto(UUID id, UserDto user, String nickname, Optional<UUID> userAnonymizedId,
+			Optional<LocalDate> lastMonitoredActivityDate, Status sendingStatus, Status receivingStatus,
+			LocalDateTime lastStatusChangeTime)
 	{
-		this(id, user, null, nickname, userAnonymizedId, sendingStatus, receivingStatus, lastStatusChangeTime);
+		this(id, user, null, nickname, userAnonymizedId, lastMonitoredActivityDate, sendingStatus, receivingStatus,
+				lastStatusChangeTime);
 	}
 
 	public BuddyDto(UserDto user, String personalInvitationMessage, Status sendingStatus, Status receivingStatus,
@@ -54,13 +58,15 @@ public class BuddyDto
 	}
 
 	private BuddyDto(UUID id, UserDto user, String personalInvitationMessage, String nickname, Optional<UUID> userAnonymizedId,
-			Status sendingStatus, Status receivingStatus, LocalDateTime lastStatusChangeTime)
+			Optional<LocalDate> lastMonitoredActivityDate, Status sendingStatus, Status receivingStatus,
+			LocalDateTime lastStatusChangeTime)
 	{
 		this.id = id;
 		this.user = user;
 		this.personalInvitationMessage = personalInvitationMessage;
 		this.nickname = nickname;
 		this.userAnonymizedId = userAnonymizedId;
+		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 		this.sendingStatus = sendingStatus;
 		this.receivingStatus = receivingStatus;
 		this.lastStatusChangeTime = lastStatusChangeTime;
@@ -98,8 +104,8 @@ public class BuddyDto
 	public static BuddyDto createInstance(Buddy buddyEntity)
 	{
 		return new BuddyDto(buddyEntity.getId(), UserDto.createInstance(buddyEntity.getUser()), buddyEntity.getNickname(),
-				getBuddyUserAnonymizedId(buddyEntity), buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus(),
-				buddyEntity.getLastStatusChangeTime());
+				getBuddyUserAnonymizedId(buddyEntity), getlastMonitoredActivityDate(buddyEntity), buddyEntity.getSendingStatus(),
+				buddyEntity.getReceivingStatus(), buddyEntity.getLastStatusChangeTime());
 	}
 
 	private static Optional<UUID> getBuddyUserAnonymizedId(Buddy buddyEntity)
@@ -107,10 +113,23 @@ public class BuddyDto
 		return BuddyService.canIncludePrivateData(buddyEntity) ? buddyEntity.getUserAnonymizedId() : Optional.empty();
 	}
 
+	private static Optional<LocalDate> getlastMonitoredActivityDate(Buddy buddyEntity)
+	{
+		return BuddyService.canIncludePrivateData(buddyEntity)
+				? buddyEntity.getBuddyAnonymized().getUserAnonymized().getLastMonitoredActivityDate() : Optional.empty();
+	}
+
 	@JsonInclude(Include.NON_EMPTY)
 	public String getNickname()
 	{
 		return nickname;
+	}
+
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	@JsonInclude(Include.NON_EMPTY)
+	public Optional<LocalDate> getLastMonitoredActivityDate()
+	{
+		return lastMonitoredActivityDate;
 	}
 
 	public Status getSendingStatus()

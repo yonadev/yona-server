@@ -52,7 +52,6 @@ class User
 	{
 		this.creationTime = (json.creationTime) ? YonaServer.parseIsoDateTimeString(json.creationTime) : null
 		this.appLastOpenedDate = (json.appLastOpenedDate) ? YonaServer.parseIsoDateString(json.appLastOpenedDate) : null
-		this.lastMonitoredActivityDate = (json.lastMonitoredActivityDate) ? YonaServer.parseIsoDateString(json.lastMonitoredActivityDate) : null
 		this.firstName = json.firstName
 		this.lastName = json.lastName
 		this.mobileNumber = json.mobileNumber
@@ -63,6 +62,7 @@ class User
 		if (this.hasPrivateData)
 		{
 			// Private data is available
+			this.lastMonitoredActivityDate = (json.lastMonitoredActivityDate) ? YonaServer.parseIsoDateString(json.lastMonitoredActivityDate) : null
 			this.password = json.yonaPassword
 			this.nickname = json.nickname
 
