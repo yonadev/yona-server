@@ -14,14 +14,10 @@ if ERRORLEVEL 1 goto end
 call gradlew :dbinit:liquibaseUpdate
 if ERRORLEVEL 1 goto end
 
-echo Verifying the database schema
-call gradlew :dbinit:bootRun
-if ERRORLEVEL 1 goto end
-
-start "Admin service" java -jar adminservice\build\libs\adminservice-0.0.8-SNAPSHOT-full.jar --server.port=8080 --management.port=9080 --spring.jpa.hibernate.ddl-auto=none
-start "Analysis service" java -jar analysisservice\build\libs\analysisservice-0.0.8-SNAPSHOT-full.jar --server.port=8081 --management.port=9081 --spring.jpa.hibernate.ddl-auto=none
-start "App service" java -jar appservice\build\libs\appservice-0.0.8-SNAPSHOT-full.jar --server.port=8082 --management.port=9082 --spring.jpa.hibernate.ddl-auto=none
-start "Batch service" java -jar batchservice\build\libs\batchservice-0.0.8-SNAPSHOT-full.jar --server.port=8083 --management.port=9083 --spring.jpa.hibernate.ddl-auto=none
+start "Admin service" cmd /c gradlew %1 :adminservice:bootRun
+start "Analysis service" cmd /c gradlew %1 :analysisservice:bootRun
+start "App service" cmd /c gradlew %1 :appservice:bootRun
+start "Batch service" cmd /c gradlew %1 :batchservice:bootRun
 
 set GRADLE_OPTS=
 echo Wait until all services are started.
