@@ -35,7 +35,7 @@ public class YonaProperties
 	private final SmsProperties sms = new SmsProperties();
 
 	@NestedConfigurationProperty
-	private final BatchProperties batch = new BatchProperties();
+	private final BatchServiceProperties batch = new BatchServiceProperties();
 
 	private final Set<Locale> supportedLocales = new HashSet<>();
 
@@ -70,7 +70,7 @@ public class YonaProperties
 		return sms;
 	}
 
-	public BatchProperties getBatch()
+	public BatchServiceProperties getBatch()
 	{
 		return batch;
 	}

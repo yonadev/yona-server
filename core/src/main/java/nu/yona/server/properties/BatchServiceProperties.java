@@ -4,7 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.properties;
 
-public class BatchProperties
+public class BatchServiceProperties
 {
 	private String serviceUrl = "http://localhost:8083";
 
