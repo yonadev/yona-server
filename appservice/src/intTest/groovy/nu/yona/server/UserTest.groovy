@@ -8,7 +8,6 @@ package nu.yona.server
 
 import groovy.json.*
 import nu.yona.server.test.User
-import spock.lang.IgnoreRest
 
 class UserTest extends AbstractAppServiceIntegrationTest
 {

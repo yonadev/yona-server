@@ -2,6 +2,7 @@ databaseChangeLog:
 - changeSet:
     id: 1485291488594-1
     author: Bert (generated and altered)
+    comment: Create column with default, so preexisting users also have a date. For new users, the date is set at sign up.
     changes:
     - addColumn:
         columns:
@@ -25,6 +26,7 @@ databaseChangeLog:
 - changeSet:
     id: 1485291488594-3
     author: Bert (generated)
+    comment: Create column without default. If no activity is monitored, the date is null.
     changes:
     - addColumn:
         columns:

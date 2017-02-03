@@ -13,7 +13,6 @@ import groovy.json.*
 import nu.yona.server.test.Buddy
 import nu.yona.server.test.Goal
 import nu.yona.server.test.User
-import spock.lang.IgnoreRest
 
 class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 {
@@ -802,7 +801,6 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	@IgnoreRest
 	def 'Richard sees Bob\'s "last seen" info after one activity'()
 	{
 		given:

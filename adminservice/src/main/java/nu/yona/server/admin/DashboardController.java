@@ -23,6 +23,8 @@ import nu.yona.server.subscriptions.entities.UserRepository;
 @RequestMapping(value = "/dashboard")
 public class DashboardController
 {
+	private static final LocalDate LONG_AGO = LocalDate.of(2000, 1, 1);
+
 	@Autowired
 	private UserRepository userRepository;
 
@@ -33,7 +35,7 @@ public class DashboardController
 	public String getIndexPage(Model model)
 	{
 		List<Integer> intervalEndOffsets = Arrays.asList(1, 2, 7, 14, 30, 60);
-		List<Interval> intervals = determineIntervals(intervalEndOffsets);
+		List<HistoryInterval> intervals = determineIntervals(intervalEndOffsets);
 
 		model.addAttribute("totalNumOfUsers", userRepository.count());
 		model.addAttribute("appOpened", calculateAppOpenedPercentages(intervals));
@@ -42,28 +44,28 @@ public class DashboardController
 		return "dashboard";
 	}
 
-	private List<Interval> determineIntervals(List<Integer> intervalEndOffsets)
+	private List<HistoryInterval> determineIntervals(List<Integer> intervalEndOffsets)
 	{
-		Interval.setNextBegin(LocalDate.now());
-		List<Interval> intervals = intervalEndOffsets.stream().map(ieo -> Interval.nextInstance(ieo))
+		HistoryInterval.setNextStart(LocalDate.now());
+		List<HistoryInterval> intervals = intervalEndOffsets.stream().map(ieo -> HistoryInterval.nextInstance(ieo))
 				.collect(Collectors.toList());
-		intervals.add(Interval.nextInstance(LocalDate.of(2017, 1, 1)));
+		intervals.add(HistoryInterval.nextInstance(LONG_AGO));
 		return intervals;
 	}
 
-	private List<Integer> calculateAppOpenedPercentages(List<Interval> intervals)
+	private List<Integer> calculateAppOpenedPercentages(List<HistoryInterval> intervals)
 	{
-		return calculatePercentages(intervals, (i) -> userRepository.countByAppLastOpenedDateBetween(i.begin, i.end), 0);
+		return calculatePercentages(intervals, (i) -> userRepository.countByAppLastOpenedDateBetween(i.start, i.end), 0);
 	}
 
-	private List<Integer> calculateLastMonitoredActivityPercentages(List<Interval> intervals)
+	private List<Integer> calculateLastMonitoredActivityPercentages(List<HistoryInterval> intervals)
 	{
 		return calculatePercentages(intervals,
-				(i) -> userAnonymizedRepository.countByLastMonitoredActivityDateBetween(i.begin, i.end),
+				(i) -> userAnonymizedRepository.countByLastMonitoredActivityDateBetween(i.start, i.end),
 				userAnonymizedRepository.countByLastMonitoredActivityDateIsNull());
 	}
 
-	private List<Integer> calculatePercentages(List<Interval> intervals, Function<Interval, Integer> countRetriever,
+	private List<Integer> calculatePercentages(List<HistoryInterval> intervals, Function<HistoryInterval, Integer> countRetriever,
 			int neverUsedCount)
 	{
 		List<Integer> appOpenedCounts = intervals.stream().map(countRetriever).collect(Collectors.toList());
@@ -81,37 +83,42 @@ public class DashboardController
 	@FunctionalInterface
 	private interface Getter
 	{
-		int count(LocalDate begin, LocalDate end);
+		int count(LocalDate start, LocalDate end);
 	}
 
-	private static class Interval
+	/**
+	 * This interval is used to reason backward in time, so the end is more recent than the start. Note that the interval is used
+	 * for "between" queries, which include both start and end, so an interval with an equal start and end date covers just one
+	 * day.
+	 */
+	private static class HistoryInterval
 	{
-		final LocalDate begin;
+		final LocalDate start;
 		final LocalDate end;
-		private static LocalDate nextBegin;
+		private static LocalDate nextStart;
 
-		Interval(LocalDate begin, LocalDate end)
+		HistoryInterval(LocalDate start, LocalDate end)
 		{
-			this.begin = begin;
+			this.start = start;
 			this.end = end;
 		}
 
-		static Interval nextInstance(int endOffset)
+		static HistoryInterval nextInstance(int endOffset)
 		{
 			LocalDate end = LocalDate.now().minusDays(endOffset - 1);
 			return nextInstance(end);
 		}
 
-		private static Interval nextInstance(LocalDate end)
+		private static HistoryInterval nextInstance(LocalDate end)
 		{
-			Interval newInterval = new Interval(nextBegin, end);
-			nextBegin = newInterval.end.minusDays(1);
+			HistoryInterval newInterval = new HistoryInterval(nextStart, end);
+			nextStart = newInterval.end.minusDays(1);
 			return newInterval;
 		}
 
-		static void setNextBegin(LocalDate nextBegin)
+		static void setNextStart(LocalDate nextStart)
 		{
-			Interval.nextBegin = nextBegin;
+			HistoryInterval.nextStart = nextStart;
 		}
 	}
 }
