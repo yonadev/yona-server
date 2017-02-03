@@ -4,20 +4,17 @@
  *******************************************************************************/
 package nu.yona.server.properties;
 
-import java.time.Duration;
-
 public class BatchProperties
 {
-	private Duration pinResetRequestConfirmationCodeInterval = Duration.parse("PT10S");
+	private String serviceUrl = "http://localhost:8083";
 
-	public Duration getPinResetRequestConfirmationCodeInterval()
+	public String getServiceUrl()
 	{
-		return pinResetRequestConfirmationCodeInterval;
+		return serviceUrl;
 	}
 
-	public void setPinResetRequestConfirmationCodeInterval(String pinResetRequestConfirmationCodeInterval)
+	public void setServiceUrl(String serviceUrl)
 	{
-		this.pinResetRequestConfirmationCodeInterval = Duration.parse(pinResetRequestConfirmationCodeInterval);
+		this.serviceUrl = serviceUrl;
 	}
-
 }

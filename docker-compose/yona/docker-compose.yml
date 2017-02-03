@@ -60,6 +60,7 @@ services:
     env_file: db_settings.env
     environment:
       - YONA_ANALYSIS_SERVICE_SERVICE_URL=http://analysisservice:8080
+      - YONA_BATCH_SERVICE_URL=http://batchservice:8080
     links:
       - analysisservice:analysisservice
     external_links:
