@@ -53,6 +53,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		john.mobileNumberConfirmationUrl == null
 
 		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
+		john.postOpenAppEventUrl == john.url + "/openApp"
 		john.buddiesUrl == john.url + "/buddies/"
 		john.goalsUrl == john.url + "/goals/"
 		john.messagesUrl == john.url + "/messages/"
@@ -311,6 +312,56 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		responseAppleAppSiteAssociation.responseData.applinks.details[0].appID ==~ /.*\.yona/
 	}
 
+	def 'Last monitored activity date is not present when there were no activities'()
+	{
+		given:
+		User richard = addRichard()
+
+		when:
+		richard = appService.reloadUser(richard)
+
+		then:
+		richard.lastMonitoredActivityDate == null
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Last monitored activity date is updated properly after one activity'()
+	{
+		given:
+		def richard = addRichard()
+
+		when:
+		def relativeActivityDate = "W-1 Thu 15:00"
+		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", relativeActivityDate)
+		richard = appService.reloadUser(richard)
+
+		then:
+		richard.lastMonitoredActivityDate == YonaServer.relativeDateTimeStringToZonedDateTime(relativeActivityDate).toLocalDate()
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Last monitored activity date is updated properly after multiple activities'()
+	{
+		given:
+		def richard = addRichard()
+
+		when:
+		def relativeActivityDate = "W-1 Sat 00:10"
+		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-1 Thu 15:00")
+		reportAppActivity(richard, "NU.nl", "W-1 Fri 23:55", relativeActivityDate)
+		richard = appService.reloadUser(richard)
+
+		then:
+		richard.lastMonitoredActivityDate == YonaServer.relativeDateTimeStringToZonedDateTime(relativeActivityDate).toLocalDate()
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	private def confirmMobileNumber(User user, code)
 	{
 		appService.confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${code}" } """, user.password)
@@ -328,6 +379,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		assert user.lastName == "Doe"
 		assert user.mobileNumber == "+${timestamp}"
 		assertEquals(user.creationTime, YonaServer.now)
+		assertEquals(user.appLastOpenedDate, YonaServer.now.toLocalDate())
 
 		if (includePrivateData)
 		{

@@ -106,7 +106,7 @@ public abstract class MessageDto extends PolymorphicDto
 	}
 
 	@JsonProperty("creationTime")
-	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)
 	public ZonedDateTime getCreationTimeAsZonedDateTime()
 	{
 		return TimeUtil.toUtcZonedDateTime(creationTime);

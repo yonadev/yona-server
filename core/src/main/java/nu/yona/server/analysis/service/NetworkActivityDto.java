@@ -35,7 +35,7 @@ public class NetworkActivityDto
 	public NetworkActivityDto(
 			@JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories,
 			@JsonProperty("url") String url,
-			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("eventTime") Optional<ZonedDateTime> eventTime)
+			@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("eventTime") Optional<ZonedDateTime> eventTime)
 	{
 		this.categories = categories;
 		this.url = (url.length() > MAX_SUPPORTED_URL_LENGTH) ? url.substring(0, MAX_SUPPORTED_URL_LENGTH) : url;

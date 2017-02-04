@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard</title>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"
+	type="text/javascript"></script>
+<script
+	src="http://elycharts.com/sites/elycharts.com/repo/lib/raphael.js"
+	type="text/javascript"></script>
+<script
+	src="http://elycharts.com/sites/elycharts.com/repo/dist/elycharts.min.js"
+	type="text/javascript"></script>
+<script type="text/javascript" th:inline="javascript">
+	$(function() {
+		$("#chart").chart(
+				{
+					template : "line_basic_6",
+					tooltips : {
+						serieToday : [ "Today", "Today" ],
+						serieYesterday : [ "Yesterday", "Yesterday" ],
+						serieThisWeek : [ "Up to a week ago",
+								"Up to a week ago" ],
+						serieLastWeek : [ "Up to 2 weeks ago", "Up to 2 weeks ago" ],
+						serieThisMonth : [ "Up to 30 days ago",
+								"Up to 30 days ago" ],
+						serieLastMonth : [ "Up to 60 days ago", "Up to 60 days ago" ],
+						serieLongBack : [ "Long back", "Long back" ],
+						serieNever : [ "Never", "Never" ]
+					},
+					legend : {
+						serieNever : "Never",
+						serieLongBack : "Long back",
+						serieLastMonth : "Up to 60 days ago",
+						serieThisMonth : "Up to 30 days ago",
+						serieLastWeek : "Up to 2 weeks ago",
+						serieThisWeek : "Up to a week ago",
+						serieYesterday : "Yesterday",
+						serieToday : "Today"
+					},
+					values : {
+						serieToday : [ /*[[${appOpened[0]}]]*/ 21, /*[[${lastMonitoredActivity[0]}]]*/ 19 ],
+						serieYesterday : [ /*[[${appOpened[1]}]]*/ 32, /*[[${lastMonitoredActivity[1]}]]*/ 32 ],
+						serieThisWeek : [ /*[[${appOpened[2]}]]*/ 13, /*[[${lastMonitoredActivity[2]}]]*/ 14 ],
+						serieLastWeek : [ /*[[${appOpened[3]}]]*/ 9, /*[[${lastMonitoredActivity[3]}]]*/ 11 ],
+						serieThisMonth : [ /*[[${appOpened[4]}]]*/ 6, /*[[${lastMonitoredActivity[4]}]]*/ 5 ],
+						serieLastMonth : [ /*[[${appOpened[5]}]]*/ 2, /*[[${lastMonitoredActivity[5]}]]*/ 5 ],
+						serieLongBack : [ /*[[${appOpened[6]}]]*/ 16, /*[[${lastMonitoredActivity[6]}]]*/ 12 ],
+						serieNever : [ /*[[${appOpened[7]}]]*/ 1, /*[[${lastMonitoredActivity[7]}]]*/ 2 ]
+					},
+					labels : [ "App opened", "Monitored activity" ],
+					defaultSeries : {
+						type : "bar",
+						stacked : true,
+						axis : "l"
+					},
+					axis : {
+						l : {
+							max : 100,
+							suffix : "%"
+						}
+					}
+				});
+
+	});
+
+	$.elycharts.templates['line_basic_6'] = {
+		type : "line",
+		margins : [ 120, 20, 140, 40 ],
+		defaultSeries : {
+			highlight : {
+				newProps : {
+					r : 8,
+					opacity : 1
+				},
+				overlayProps : {
+					fill : "white",
+					opacity : 0.2
+				}
+			}
+		},
+		series : {
+			serieToday : {
+				color : "#41d23a",
+			},
+			serieYesterday : {
+				color : "#a3db1e",
+			},
+			serieThisWeek : {
+				color : "#d5e806",
+			},
+			serieLastWeek : {
+				color : "#fff000",
+			},
+			serieThisMonth : {
+				color : "#ffba00",
+			},
+			serieLastMonth : {
+				color : "#ff7800",
+			},
+			serieLongBack : {
+				color : "#f64e0c",
+			},
+			serieNever : {
+				color : "#e40026",
+			}
+		},
+		defaultAxis : {
+			labels : true
+		},
+		axis : {
+			x : {
+				labelsRotate : 60,
+				labelsProps : {
+					font : "12px Verdana"
+				}
+			}
+		},
+		features : {
+			grid : {
+				draw : true,
+				forceBorder : true,
+				ny : 5
+			},
+			legend : {
+				vertical : true,
+				width : 240,
+				height : 100,
+				x : 40,
+				y : 0,
+				borderProps : {
+					"fill-opacity" : 0.1
+				}
+			}
+		},
+		barMargins : 10
+	};
+</script>
+</head>
+<body>
+	<h1>User statistics</h1>
+	<p>Total number of users: <span th:text="${totalNumOfUsers}">1</span></p> 
+	<div id="chart" style="width: 300px; height: 600px"></div>
+</body>
+</html>

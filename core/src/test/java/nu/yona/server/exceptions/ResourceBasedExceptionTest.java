@@ -13,22 +13,29 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import nu.yona.server.CoreConfiguration;
 import nu.yona.server.Translator;
 
 @Configuration
-@ComponentScan(basePackages = { "nu.yona.server" })
-@EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class })
+@ComponentScan(useDefaultFilters = false, basePackages = "nu.yona.server", includeFilters = {
+		@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX),
+		@ComponentScan.Filter(pattern = "nu.yona.server.exceptions.ResourceBasedException.TranslatorInjector", type = FilterType.REGEX) })
 class MainContext
 {
+	@Bean(name = "messageSource")
+	public ReloadableResourceBundleMessageSource messageSource()
+	{
+		return new CoreConfiguration().messageSource();
+	}
 }
 
 @RunWith(SpringJUnit4ClassRunner.class)

@@ -71,7 +71,7 @@ public abstract class GoalDto extends PolymorphicDto implements Serializable
 	}
 
 	@JsonProperty("creationTime")
-	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)
 	public Optional<ZonedDateTime> getCreationTimeAsZonedDateTime()
 	{
 		return Optional.ofNullable(creationTime).map(TimeUtil::toUtcZonedDateTime);

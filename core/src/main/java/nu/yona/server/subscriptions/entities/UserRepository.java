@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,4 +12,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UserRepository extends JpaRepository<User, UUID>
 {
 	User findByMobileNumber(String mobileNumber);
+
+	int countByAppLastOpenedDateBetween(LocalDate startDate, LocalDate endDate);
 }

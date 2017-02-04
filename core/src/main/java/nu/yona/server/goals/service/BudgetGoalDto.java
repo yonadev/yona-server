@@ -29,7 +29,7 @@ public class BudgetGoalDto extends GoalDto
 
 	@JsonCreator
 	public BudgetGoalDto(
-			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("creationTime") Optional<ZonedDateTime> creationTime,
+			@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("creationTime") Optional<ZonedDateTime> creationTime,
 			@JsonProperty(required = true, value = "maxDurationMinutes") int maxDurationMinutes)
 	{
 		super(creationTime.map(TimeUtil::toUtcLocalDateTime));

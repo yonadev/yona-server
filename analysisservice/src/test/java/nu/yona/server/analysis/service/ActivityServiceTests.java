@@ -1,12 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,11 +31,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.support.Repositories;
 
 import nu.yona.server.Translator;
@@ -46,7 +44,6 @@ import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
 import nu.yona.server.crypto.pubkey.PublicKeyUtil;
-import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
@@ -59,12 +56,13 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.TimeUtil;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ActivityServiceTests
 {
-	private final Map<String, Goal> goalMap = new HashMap<String, Goal>();
+	private final Map<String, Goal> goalMap = new HashMap<>();
 
 	@Mock
 	private UserService mockUserService;
@@ -99,26 +97,25 @@ public class ActivityServiceTests
 	@Before
 	public void setUp()
 	{
-		RepositoryProvider.setRepositories(mockRepositories);
-		when(mockRepositories.getRepositoryFor(DayActivity.class)).thenReturn(mockDayActivityRepository);
+		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
+		repositoriesMap.put(DayActivity.class, mockDayActivityRepository);
+		JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);
 
 		// created 2 weeks ago
 		gamblingGoal = BudgetGoal.createNoGoInstance(TimeUtil.utcNow().minusWeeks(2),
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
-						new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet(), usString("Descr")));
+						new HashSet<>(Arrays.asList("poker", "lotto")), Collections.emptySet(), usString("Descr")));
 		newsGoal = BudgetGoal.createNoGoInstance(TimeUtil.utcNow(),
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
-						new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr")));
-		gamingGoal = BudgetGoal.createNoGoInstance(TimeUtil.utcNow(),
-				ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
-						new HashSet<String>(Arrays.asList("games")), Collections.emptySet(), usString("Descr")));
+						new HashSet<>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr")));
+		gamingGoal = BudgetGoal.createNoGoInstance(TimeUtil.utcNow(), ActivityCategory.createInstance(UUID.randomUUID(),
+				usString("gaming"), false, new HashSet<>(Arrays.asList("games")), Collections.emptySet(), usString("Descr")));
 		socialGoal = TimeZoneGoal.createInstance(TimeUtil.utcNow(),
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("social"), false,
-						new HashSet<String>(Arrays.asList("social")), Collections.emptySet(), usString("Descr")),
+						new HashSet<>(Arrays.asList("social")), Collections.emptySet(), usString("Descr")),
 				Collections.emptyList());
-		shoppingGoal = BudgetGoal.createInstance(TimeUtil.utcNow(),
-				ActivityCategory.createInstance(UUID.randomUUID(), usString("shopping"), false,
-						new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet(), usString("Descr")),
+		shoppingGoal = BudgetGoal.createInstance(TimeUtil.utcNow(), ActivityCategory.createInstance(UUID.randomUUID(),
+				usString("shopping"), false, new HashSet<>(Arrays.asList("webshop")), Collections.emptySet(), usString("Descr")),
 				1);
 
 		goalMap.put("gambling", gamblingGoal);
@@ -132,7 +129,7 @@ public class ActivityServiceTests
 		// Set up UserAnonymized instance.
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
-		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
+		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		UserAnonymizedDto userAnon = UserAnonymizedDto.createInstance(userAnonEntity);
 		userAnonZone = userAnon.getTimeZone();
@@ -154,24 +151,8 @@ public class ActivityServiceTests
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, socialGoal.getId())).thenReturn(socialGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, shoppingGoal.getId())).thenReturn(shoppingGoal);
 
-		// save should not return null but the saved entity
-		when(mockDayActivityRepository.save(any(DayActivity.class))).thenAnswer(new Answer<DayActivity>() {
-			@Override
-			public DayActivity answer(InvocationOnMock invocation) throws Throwable
-			{
-				Object[] args = invocation.getArguments();
-				return (DayActivity) args[0];
-			}
-		});
-		// save should not return null but the saved entity
-		when(mockWeekActivityRepository.save(any(WeekActivity.class))).thenAnswer(new Answer<WeekActivity>() {
-			@Override
-			public WeekActivity answer(InvocationOnMock invocation) throws Throwable
-			{
-				Object[] args = invocation.getArguments();
-				return (WeekActivity) args[0];
-			}
-		});
+		JUnitUtil.setUpRepositoryMock(mockDayActivityRepository);
+		JUnitUtil.setUpRepositoryMock(mockWeekActivityRepository);
 	}
 
 	private Map<Locale, String> usString(String string)
@@ -257,8 +238,7 @@ public class ActivityServiceTests
 		previousWeekRecordedActivity.addDayActivity(previousWeekSaturdayRecordedActivity);
 
 		when(mockWeekActivityRepository.findAll(userAnonId, getWeekStartTime(today.minusWeeks(4)).toLocalDate(),
-				getWeekStartTime(today).toLocalDate()))
-						.thenReturn(new HashSet<WeekActivity>(Arrays.asList(previousWeekRecordedActivity)));
+				getWeekStartTime(today).toLocalDate())).thenReturn(new HashSet<>(Arrays.asList(previousWeekRecordedActivity)));
 
 		Page<WeekActivityOverviewDto> weekOverviews = service.getUserWeekActivityOverviews(userId, new PageRequest(0, 5));
 

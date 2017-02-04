@@ -179,6 +179,8 @@ class AppService extends Service
 		{
 			assert user._links.self.href != null
 		}
+		assert user.creationTime != null
+		assert user.appLastOpenedDate != null
 		assert user.firstName != null
 		assert user.lastName != null
 		assert user.mobileNumber ==~/^\+[0-9]+$/
