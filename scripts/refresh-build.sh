@@ -6,6 +6,11 @@ export yona_db_user_name=$2
 export yona_db_password=$3
 export yona_db_url=$4
 
+echo "Pulling new images, based on old compose fil."
+echo "As the compose file rarely changes, this normally pulls everything needed"
+echo "The server is still running, so this reduces downtime"
+docker-compose pull
+
 echo "Stopping Yona containers"
 docker-compose stop
 
