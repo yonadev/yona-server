@@ -79,7 +79,8 @@ public class WeekActivity extends IntervalActivity
 	{
 		if (dayActivities.size() >= 7)
 		{
-			throw new IllegalStateException("Week is already full (" + dayActivities.size() + " days present)");
+			throw new IllegalStateException("Week starting at " + getStartDate() + " is already full (" + dayActivities.size()
+					+ " days present) while trying to add day activity for " + dayActivity.getStartDate());
 		}
 
 		dayActivity.setWeekActivity(this);
@@ -101,7 +102,7 @@ public class WeekActivity extends IntervalActivity
 
 	private List<Integer> sumSpread(List<Integer> one, List<Integer> other)
 	{
-		List<Integer> result = new ArrayList<Integer>(IntervalActivity.SPREAD_COUNT);
+		List<Integer> result = new ArrayList<>(IntervalActivity.SPREAD_COUNT);
 		for (int i = 0; i < IntervalActivity.SPREAD_COUNT; i++)
 		{
 			result.add(one.get(i) + other.get(i));
