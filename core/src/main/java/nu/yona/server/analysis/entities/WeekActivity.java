@@ -79,8 +79,9 @@ public class WeekActivity extends IntervalActivity
 	{
 		if (dayActivities.size() >= 7)
 		{
-			throw new IllegalStateException("Week starting at " + getStartDate() + " is already full (" + dayActivities.size()
-					+ " days present) while trying to add day activity for " + dayActivity.getStartDate());
+			throw new IllegalStateException("Week starting at " + getStartDate() + " for goal with ID " + getGoal().getId()
+					+ " is already full (" + dayActivities.size() + " days present) while trying to add day activity for "
+					+ dayActivity.getStartDate());
 		}
 
 		dayActivity.setWeekActivity(this);
