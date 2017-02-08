@@ -28,7 +28,7 @@ echo "Pulling new images"
 docker-compose pull
 
 echo "Updating the database schema"
-docker run -i --network yonanet --link mariadb:yonadbserver -e USER=$yona_db_user_name -e PASSWORD=$yona_db_password -e URL=$yona_db_url yonadev/yona-mariadb-liquibase-update:$yonatag
+docker run -i -rm --network yonanet --link mariadb:yonadbserver -e USER=$yona_db_user_name -e PASSWORD=$yona_db_password -e URL=$yona_db_url yonadev/yona-mariadb-liquibase-update:$yonatag
 
 echo "Generating database connection environment file"
 cat << EOF > db_settings.env
