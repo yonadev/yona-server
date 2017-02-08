@@ -17,8 +17,8 @@ docker-compose stop
 echo "Backing up the database"
 docker exec mariadb sh -c "exec mysqldump --databases yona -u$yona_db_user_name -p$yona_db_password"  | gzip -c > yonadb-before-$yonatag.sql.gz
 
-echo "Removing old containers"
-docker-compose rm -f
+echo "Removing old containers with their anonymous volumes"
+docker-compose rm -f -v
 
 echo "Updating the docker-compose.yml file"
 rm -f docker-compose.yml
