@@ -41,7 +41,8 @@ if ERRORLEVEL 1 goto error
 echo.
 echo Load the activity categories
 echo.
-curl -X PUT --header "Content-Type: application/json" -d @dbinit/data/activityCategories.json http://localhost:8080/activityCategories/
+curl -f -X PUT --header "Content-Type: application/json" -d @dbinit/data/activityCategories.json http://localhost:8080/activityCategories/
+if ERRORLEVEL 1 goto error
 
 echo.
 echo.
