@@ -40,9 +40,13 @@ public class DashboardController
 		List<Integer> intervalEndOffsets = Arrays.asList(1, 2, 7, 14, 30, 60);
 		List<HistoryInterval> intervals = determineIntervals(intervalEndOffsets);
 
+		List<Integer> appOpenedCounts = calculateAppOpenedCounts(intervals);
+		List<Integer> lastMonitoredActivityCounts = calculateLastMonitoredActivityCounts(intervals);
 		model.addAttribute("totalNumOfUsers", userRepository.count());
-		model.addAttribute("appOpened", calculateAppOpenedPercentages(intervals));
-		model.addAttribute("lastMonitoredActivity", calculateLastMonitoredActivityPercentages(intervals));
+		model.addAttribute("appOpenedCounts", appOpenedCounts);
+		model.addAttribute("appOpenedPercentages", absoluteValuesToPercentages(appOpenedCounts));
+		model.addAttribute("lastMonitoredActivityCounts", lastMonitoredActivityCounts);
+		model.addAttribute("lastMonitoredActivityPercentages", absoluteValuesToPercentages(lastMonitoredActivityCounts));
 
 		return "dashboard";
 	}
@@ -56,25 +60,24 @@ public class DashboardController
 		return intervals;
 	}
 
-	private List<Integer> calculateAppOpenedPercentages(List<HistoryInterval> intervals)
+	private List<Integer> calculateAppOpenedCounts(List<HistoryInterval> intervals)
 	{
-		return calculatePercentages(intervals, (i) -> userRepository.countByAppLastOpenedDateBetween(i.start, i.end), 0);
+		return calculateCounts(intervals, (i) -> userRepository.countByAppLastOpenedDateBetween(i.end, i.start), 0);
 	}
 
-	private List<Integer> calculateLastMonitoredActivityPercentages(List<HistoryInterval> intervals)
+	private List<Integer> calculateLastMonitoredActivityCounts(List<HistoryInterval> intervals)
 	{
-		return calculatePercentages(intervals,
-				(i) -> userAnonymizedRepository.countByLastMonitoredActivityDateBetween(i.start, i.end),
+		return calculateCounts(intervals, (i) -> userAnonymizedRepository.countByLastMonitoredActivityDateBetween(i.end, i.start),
 				userAnonymizedRepository.countByLastMonitoredActivityDateIsNull());
 	}
 
-	private List<Integer> calculatePercentages(List<HistoryInterval> intervals, Function<HistoryInterval, Integer> countRetriever,
+	private List<Integer> calculateCounts(List<HistoryInterval> intervals, Function<HistoryInterval, Integer> countRetriever,
 			int neverUsedCount)
 	{
 		List<Integer> appOpenedCounts = intervals.stream().map(countRetriever).collect(Collectors.toList());
 		appOpenedCounts.add(neverUsedCount);
 
-		return absoluteValuesToPercentages(appOpenedCounts);
+		return appOpenedCounts;
 	}
 
 	private List<Integer> absoluteValuesToPercentages(List<Integer> values)

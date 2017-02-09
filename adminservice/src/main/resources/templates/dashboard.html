@@ -12,60 +12,75 @@
 	type="text/javascript"></script>
 <script type="text/javascript" th:inline="javascript">
 	$(function() {
-		$("#chart").chart(
-				{
-					template : "line_basic_6",
-					tooltips : {
-						serieToday : [ "Today", "Today" ],
-						serieYesterday : [ "Yesterday", "Yesterday" ],
-						serieThisWeek : [ "Up to a week ago",
-								"Up to a week ago" ],
-						serieLastWeek : [ "Up to 2 weeks ago", "Up to 2 weeks ago" ],
-						serieThisMonth : [ "Up to 30 days ago",
-								"Up to 30 days ago" ],
-						serieLastMonth : [ "Up to 60 days ago", "Up to 60 days ago" ],
-						serieLongBack : [ "Long back", "Long back" ],
-						serieNever : [ "Never", "Never" ]
-					},
-					legend : {
-						serieNever : "Never",
-						serieLongBack : "Long back",
-						serieLastMonth : "Up to 60 days ago",
-						serieThisMonth : "Up to 30 days ago",
-						serieLastWeek : "Up to 2 weeks ago",
-						serieThisWeek : "Up to a week ago",
-						serieYesterday : "Yesterday",
-						serieToday : "Today"
-					},
-					values : {
-						serieToday : [ /*[[${appOpened[0]}]]*/ 21, /*[[${lastMonitoredActivity[0]}]]*/ 19 ],
-						serieYesterday : [ /*[[${appOpened[1]}]]*/ 32, /*[[${lastMonitoredActivity[1]}]]*/ 32 ],
-						serieThisWeek : [ /*[[${appOpened[2]}]]*/ 13, /*[[${lastMonitoredActivity[2]}]]*/ 14 ],
-						serieLastWeek : [ /*[[${appOpened[3]}]]*/ 9, /*[[${lastMonitoredActivity[3]}]]*/ 11 ],
-						serieThisMonth : [ /*[[${appOpened[4]}]]*/ 6, /*[[${lastMonitoredActivity[4]}]]*/ 5 ],
-						serieLastMonth : [ /*[[${appOpened[5]}]]*/ 2, /*[[${lastMonitoredActivity[5]}]]*/ 5 ],
-						serieLongBack : [ /*[[${appOpened[6]}]]*/ 16, /*[[${lastMonitoredActivity[6]}]]*/ 12 ],
-						serieNever : [ /*[[${appOpened[7]}]]*/ 1, /*[[${lastMonitoredActivity[7]}]]*/ 2 ]
-					},
-					labels : [ "App opened", "Monitored activity" ],
-					defaultSeries : {
-						type : "bar",
-						stacked : true,
-						axis : "l"
-					},
-					axis : {
-						l : {
-							max : 100,
-							suffix : "%"
-						}
-					}
-				});
+		$("#chart")
+				.chart(
+						{
+							template : "line_basic_6",
+							tooltips : {
+								serieToday : [
+										"[[${appOpenedCounts[0]}]] users",
+										"[[${lastMonitoredActivityCounts[0]}]] users" ],
+								serieYesterday : [
+										"[[${appOpenedCounts[1]}]] users",
+										"[[${lastMonitoredActivityCounts[1]}]] users" ],
+								serieThisWeek : [
+										"[[${appOpenedCounts[2]}]] users",
+										"[[${lastMonitoredActivityCounts[2]}]] users" ],
+								serieLastWeek : [
+										"[[${appOpenedCounts[3]}]] users",
+										"[[${lastMonitoredActivityCounts[3]}]] users" ],
+								serieThisMonth : [
+										"[[${appOpenedCounts[4]}]] users",
+										"[[${lastMonitoredActivityCounts[4]}]] users" ],
+								serieLastMonth : [
+										"[[${appOpenedCounts[5]}]] users",
+										"[[${lastMonitoredActivityCounts[5]}]] users" ],
+								serieLongBack : [
+										"[[${appOpenedCounts[6]}]] users",
+										"Long back: [[${lastMonitoredActivityCounts[6]}]] users" ],
+								serieNever : [
+										"[[${appOpenedCounts[7]}]] users",
+										"[[${lastMonitoredActivityCounts[7]}]] users" ]
+							},
+							legend : {
+								serieNever : "Never",
+								serieLongBack : "Long back",
+								serieLastMonth : "Up to 60 days ago",
+								serieThisMonth : "Up to 30 days ago",
+								serieLastWeek : "Up to 2 weeks ago",
+								serieThisWeek : "Up to a week ago",
+								serieYesterday : "Yesterday",
+								serieToday : "Today"
+							},
+							values : {
+								serieToday : [ /*[[${appOpenedPercentages[0]}]]*/ 21, /*[[${lastMonitoredActivityPercentages[0]}]]*/ 19 ],
+								serieYesterday : [ /*[[${appOpenedPercentages[1]}]]*/ 32, /*[[${lastMonitoredActivityPercentages[1]}]]*/ 32 ],
+								serieThisWeek : [ /*[[${appOpenedPercentages[2]}]]*/ 13, /*[[${lastMonitoredActivityPercentages[2]}]]*/ 14 ],
+								serieLastWeek : [ /*[[${appOpenedPercentages[3]}]]*/ 9, /*[[${lastMonitoredActivityPercentages[3]}]]*/ 11 ],
+								serieThisMonth : [ /*[[${appOpenedPercentages[4]}]]*/ 6, /*[[${lastMonitoredActivityPercentages[4]}]]*/ 5 ],
+								serieLastMonth : [ /*[[${appOpenedPercentages[5]}]]*/ 2, /*[[${lastMonitoredActivityPercentages[5]}]]*/ 5 ],
+								serieLongBack : [ /*[[${appOpenedPercentages[6]}]]*/ 16, /*[[${lastMonitoredActivityPercentages[6]}]]*/ 12 ],
+								serieNever : [ /*[[${appOpenedPercentages[7]}]]*/ 1, /*[[${lastMonitoredActivityPercentages[7]}]]*/ 2 ]
+							},
+							labels : [ "App opened", "Monitored activity" ],
+							defaultSeries : {
+								type : "bar",
+								stacked : true,
+								axis : "l"
+							},
+							axis : {
+								l : {
+									max : 100,
+									suffix : "%"
+								}
+							}
+						});
 
 	});
 
 	$.elycharts.templates['line_basic_6'] = {
 		type : "line",
-		margins : [ 120, 20, 140, 40 ],
+		margins : [ 120, 40, 140, 40 ],
 		defaultSeries : {
 			highlight : {
 				newProps : {
@@ -138,7 +153,9 @@
 </head>
 <body>
 	<h1>User statistics</h1>
-	<p>Total number of users: <span th:text="${totalNumOfUsers}">1</span></p> 
-	<div id="chart" style="width: 300px; height: 600px"></div>
+	<p>
+		Total number of users: <span th:text="${totalNumOfUsers}">1</span>
+	</p>
+	<div id="chart" style="width: 320px; height: 600px"></div>
 </body>
 </html>
