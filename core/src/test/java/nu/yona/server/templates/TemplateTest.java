@@ -12,28 +12,16 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Optional;
 
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.http.HttpMethod;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.mock.web.MockHttpSession;
-import org.springframework.mock.web.MockServletContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.AbstractContext;
 import org.thymeleaf.context.Context;
-import org.thymeleaf.context.IWebContext;
 
 import nu.yona.server.ThymeleafConfiguration;
 import nu.yona.server.Translator;
@@ -166,8 +154,8 @@ public class TemplateTest
 		assertThat(result, containsString(expectedWarningLine));
 		assertThat(result, containsString("Open the app and &ldquo;join&rdquo;."));
 
-		// String expectedHeaderImageUrl = "https://app.prd.yona.nu/resources/img/en-GB/header.jpg";
-		// assertThat(result, containsString(expectedHeaderImageUrl));
+		String expectedHeaderImageUrl = "http://app.prd.yona.nu/media/img/en_GB/header.jpg";
+		assertThat(result, containsString(expectedHeaderImageUrl));
 	}
 
 	@Test
@@ -193,15 +181,15 @@ public class TemplateTest
 				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber);
 		assertThat(result, containsString(expectedWarningLine));
 
-		// String expectedHeaderImageUrl = "https://app.prd.yona.nu/resources/img/nl-NL/header.jpg";
-		// assertThat(result, containsString(expectedHeaderImageUrl));
+		String expectedHeaderImageUrl = "http://app.prd.yona.nu/media/img/nl_NL/header.jpg";
+		assertThat(result, containsString(expectedHeaderImageUrl));
 	}
 
 	private String buildEmailBuddy(Optional<Locale> locale, String buddyFirstName, String buddyLastName, String inviteUrl,
 			String personalInvitationMessage, String requestingUserFirstName, String requestingUserLastName,
 			String requestingUserMobileNumber, String requestingUserNickname)
 	{
-		OfflineContext ctx = new OfflineContext();
+		Context ctx = new Context();
 		ctx.setVariable("buddyFirstName", buddyFirstName);
 		ctx.setVariable("buddyLastName", buddyLastName);
 		ctx.setVariable("inviteUrl", inviteUrl);
@@ -211,37 +199,8 @@ public class TemplateTest
 		ctx.setVariable("requestingUserMobileNumber", requestingUserMobileNumber);
 		ctx.setVariable("requestingUserNickname", requestingUserNickname);
 		locale.ifPresent(l -> ctx.setLocale(l));
+		ctx.setVariable("includedMediaBaseUrl", "http://app.prd.yona.nu/media/");
 
 		return emailTemplateEngine.process("buddy-invitation-body.html", ctx);
-	}
-
-	private class OfflineContext extends AbstractContext implements IWebContext
-	{
-
-		@Override
-		public HttpServletRequest getRequest()
-		{
-			return new MockHttpServletRequest(getServletContext(), HttpMethod.POST.toString(),
-					"https://app.prd.yona.nu/users/a-b-c");
-		}
-
-		@Override
-		public HttpServletResponse getResponse()
-		{
-			return new MockHttpServletResponse();
-		}
-
-		@Override
-		public HttpSession getSession()
-		{
-			return new MockHttpSession();
-		}
-
-		@Override
-		public ServletContext getServletContext()
-		{
-			return new MockServletContext();
-		}
-
 	}
 }
