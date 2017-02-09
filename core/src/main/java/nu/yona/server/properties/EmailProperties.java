@@ -9,7 +9,9 @@ public class EmailProperties
 	private final Smtp smtp = new Smtp();
 	private boolean isEnabled;
 	private String senderAddress;
-	private String includedMediaBaseUrl = "http://app.prd.yona.nu/media/";
+	private String includedMediaBaseUrl;
+	private String appleAppStoreLinkUrl;
+	private String googlePlayStoreLinkUrl;
 
 	public static class Smtp
 	{
@@ -125,5 +127,25 @@ public class EmailProperties
 	public void setIncludedMediaBaseUrl(String includedMediaBaseUrl)
 	{
 		this.includedMediaBaseUrl = includedMediaBaseUrl;
+	}
+
+	public String getAppleAppStoreLinkUrl()
+	{
+		return appleAppStoreLinkUrl;
+	}
+
+	public void setAppleAppStoreLinkUrl(String appleAppStoreLinkUrl)
+	{
+		this.appleAppStoreLinkUrl = appleAppStoreLinkUrl;
+	}
+
+	public String getGooglePlayStoreLinkUrl()
+	{
+		return googlePlayStoreLinkUrl;
+	}
+
+	public void setGooglePlayStoreLinkUrl(String googlePlayStoreLinkUrl)
+	{
+		this.googlePlayStoreLinkUrl = googlePlayStoreLinkUrl;
 	}
 }

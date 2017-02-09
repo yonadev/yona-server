@@ -51,6 +51,8 @@ public class EmailService
 			{
 				Context ctx = new Context();
 				ctx.setVariable("includedMediaBaseUrl", yonaProperties.getEmail().getIncludedMediaBaseUrl());
+				ctx.setVariable("appleAppStoreLinkUrl", yonaProperties.getEmail().getAppleAppStoreLinkUrl());
+				ctx.setVariable("googlePlayStoreLinkUrl", yonaProperties.getEmail().getGooglePlayStoreLinkUrl());
 				templateParameters.entrySet().stream().forEach(e -> ctx.setVariable(e.getKey(), e.getValue()));
 
 				String subjectText = emailTemplateEngine.process(subjectTemplateName + ".txt", ctx);

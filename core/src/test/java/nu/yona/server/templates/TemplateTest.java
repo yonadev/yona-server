@@ -154,7 +154,7 @@ public class TemplateTest
 		assertThat(result, containsString(expectedWarningLine));
 		assertThat(result, containsString("Open the app and &ldquo;join&rdquo;."));
 
-		String expectedHeaderImageUrl = "http://app.prd.yona.nu/media/img/en_GB/header.jpg";
+		String expectedHeaderImageUrl = "https://app.prd.yona.nu/media/img/en_GB/header.jpg";
 		assertThat(result, containsString(expectedHeaderImageUrl));
 	}
 
@@ -181,7 +181,7 @@ public class TemplateTest
 				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber);
 		assertThat(result, containsString(expectedWarningLine));
 
-		String expectedHeaderImageUrl = "http://app.prd.yona.nu/media/img/nl_NL/header.jpg";
+		String expectedHeaderImageUrl = "https://app.prd.yona.nu/media/img/nl_NL/header.jpg";
 		assertThat(result, containsString(expectedHeaderImageUrl));
 	}
 
@@ -199,7 +199,7 @@ public class TemplateTest
 		ctx.setVariable("requestingUserMobileNumber", requestingUserMobileNumber);
 		ctx.setVariable("requestingUserNickname", requestingUserNickname);
 		locale.ifPresent(l -> ctx.setLocale(l));
-		ctx.setVariable("includedMediaBaseUrl", "http://app.prd.yona.nu/media/");
+		ctx.setVariable("includedMediaBaseUrl", "https://app.prd.yona.nu/media/");
 
 		return emailTemplateEngine.process("buddy-invitation-body.html", ctx);
 	}
