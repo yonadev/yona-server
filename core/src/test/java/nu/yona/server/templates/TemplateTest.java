@@ -17,7 +17,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.thymeleaf.TemplateEngine;
@@ -45,7 +44,8 @@ public class TemplateTest
 	@Before
 	public void setUp()
 	{
-		LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
+		// LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
+		Locale.setDefault(Translator.EN_US_LOCALE);
 	}
 
 	@Test
@@ -109,7 +109,7 @@ public class TemplateTest
 	{
 		String requestingUserName = "John";
 		String result = buildEmailSubject(Optional.empty(), requestingUserName);
-		String expectedResult = MessageFormat.format("Become my friend on Yona!", requestingUserName);
+		String expectedResult = "Become my friend on Yona!";
 		assertThat(result, equalTo(expectedResult));
 	}
 
@@ -118,7 +118,7 @@ public class TemplateTest
 	{
 		String requestingUserName = "John";
 		String result = buildEmailSubject(Optional.of(Locale.forLanguageTag("nl-NL")), requestingUserName);
-		String expectedResult = MessageFormat.format("Word vriend op Yona!", requestingUserName);
+		String expectedResult = "Word vriend op Yona!";
 		assertThat(result, equalTo(expectedResult));
 	}
 
@@ -154,7 +154,7 @@ public class TemplateTest
 		assertThat(result, containsString(expectedWarningLine));
 		assertThat(result, containsString("Open the app and &ldquo;join&rdquo;."));
 
-		String expectedHeaderImageUrl = "https://app.prd.yona.nu/media/img/en_GB/header.jpg";
+		String expectedHeaderImageUrl = "https://app.prd.yona.nu/media/img/en_US/header.jpg";
 		assertThat(result, containsString(expectedHeaderImageUrl));
 	}
 

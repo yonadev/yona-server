@@ -10,8 +10,8 @@ public class EmailProperties
 	private boolean isEnabled;
 	private String senderAddress;
 	private String includedMediaBaseUrl;
-	private String appleAppStoreLinkUrl;
-	private String googlePlayStoreLinkUrl;
+	private String appleAppStoreUrl;
+	private String googlePlayStoreUrl;
 
 	public static class Smtp
 	{
@@ -129,23 +129,23 @@ public class EmailProperties
 		this.includedMediaBaseUrl = includedMediaBaseUrl;
 	}
 
-	public String getAppleAppStoreLinkUrl()
+	public String getAppleAppStoreUrl()
 	{
-		return appleAppStoreLinkUrl;
+		return appleAppStoreUrl;
 	}
 
-	public void setAppleAppStoreLinkUrl(String appleAppStoreLinkUrl)
+	public void setAppleAppStoreUrl(String appleAppStoreUrl)
 	{
-		this.appleAppStoreLinkUrl = appleAppStoreLinkUrl;
+		this.appleAppStoreUrl = appleAppStoreUrl;
 	}
 
-	public String getGooglePlayStoreLinkUrl()
+	public String getGooglePlayStoreUrl()
 	{
-		return googlePlayStoreLinkUrl;
+		return googlePlayStoreUrl;
 	}
 
-	public void setGooglePlayStoreLinkUrl(String googlePlayStoreLinkUrl)
+	public void setGooglePlayStoreUrl(String googlePlayStoreUrl)
 	{
-		this.googlePlayStoreLinkUrl = googlePlayStoreLinkUrl;
+		this.googlePlayStoreUrl = googlePlayStoreUrl;
 	}
 }
