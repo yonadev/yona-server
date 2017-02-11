@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.properties;
 
@@ -44,6 +44,10 @@ public class YonaProperties
 	private String appleAppId;
 
 	private int maxUsers;
+
+	private boolean isWhiteListActiveFreeSignUp;
+
+	private boolean isWhiteListActiveInvitedUsers;
 
 	public AnalysisServiceProperties getAnalysisService()
 	{
@@ -114,5 +118,25 @@ public class YonaProperties
 	public void setMaxUsers(String maxUsersString)
 	{
 		this.maxUsers = Integer.parseInt(maxUsersString);
+	}
+
+	public void setWhiteListActiveFreeSignUp(boolean isWhiteListActiveFreeSignUp)
+	{
+		this.isWhiteListActiveFreeSignUp = isWhiteListActiveFreeSignUp;
+	}
+
+	public boolean isWhiteListActiveFreeSignUp()
+	{
+		return isWhiteListActiveFreeSignUp;
+	}
+
+	public void setWhiteListActiveInvitedUsers(boolean isWhiteListActiveInvitedUsers)
+	{
+		this.isWhiteListActiveInvitedUsers = isWhiteListActiveInvitedUsers;
+	}
+
+	public boolean isWhiteListActiveInvitedUsers()
+	{
+		return isWhiteListActiveInvitedUsers;
 	}
 }

@@ -60,6 +60,11 @@ public class UserService
 	/** Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers */
 	private static Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
 
+	private enum UserSignUp
+	{
+		INVITED, FREE
+	}
+
 	private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
 	@Autowired(required = false)
@@ -228,7 +233,7 @@ public class UserService
 		else
 		{
 			verifyUserDoesNotExist(mobileNumber);
-			verifyUserIsAllowed(mobileNumber);
+			verifyUserIsAllowed(mobileNumber, UserSignUp.FREE);
 		}
 	}
 
@@ -247,27 +252,33 @@ public class UserService
 		throw UserServiceException.userExists(mobileNumber);
 	}
 
-	private void verifyUserIsAllowed(String mobileNumber)
+	private void verifyUserIsAllowed(String mobileNumber, UserSignUp origin)
+	{
+		verifyBelowMaxUsers();
+		verifyWhiteList(mobileNumber, origin);
+	}
+
+	private void verifyBelowMaxUsers()
 	{
 		int maxUsers = yonaProperties.getMaxUsers();
-		if (maxUsers <= 0)
+		long currentNumberOfUsers = userRepository.count();
+		if (currentNumberOfUsers >= maxUsers)
+		{
+			throw UserServiceException.maximumNumberOfUsersReached();
+		}
+		if (currentNumberOfUsers >= maxUsers - maxUsers / 10)
+		{
+			logger.warn("Nearing the maximum number of users. Current number: {}, maximum: {}", currentNumberOfUsers, maxUsers);
+		}
+	}
+
+	private void verifyWhiteList(String mobileNumber, UserSignUp origin)
+	{
+		if ((origin == UserSignUp.FREE && yonaProperties.isWhiteListActiveFreeSignUp())
+				|| (origin == UserSignUp.INVITED && yonaProperties.isWhiteListActiveInvitedUsers()))
 		{
 			whiteListedNumberService.verifyMobileNumberIsAllowed(mobileNumber);
-			return;
 		}
-
-		long currentNumberOfUsers = userRepository.count();
-		if (currentNumberOfUsers < maxUsers)
-		{
-			if (currentNumberOfUsers >= maxUsers - maxUsers / 10)
-			{
-				logger.warn("Nearing the maximum number of users. Current number: {}, maximum: {}", currentNumberOfUsers,
-						maxUsers);
-			}
-			return;
-		}
-
-		throw UserServiceException.maximumNumberOfUsersReached();
 	}
 
 	private void deleteExistingUserToOverwriteIt(String mobileNumber, String userProvidedConfirmationCode)
@@ -344,7 +355,7 @@ public class UserService
 	@Transactional
 	User addUserCreatedOnBuddyRequest(UserDto buddyUserResource)
 	{
-		verifyUserIsAllowed(buddyUserResource.getMobileNumber());
+		verifyUserIsAllowed(buddyUserResource.getMobileNumber(), UserSignUp.INVITED);
 		User newUser = User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
 				buddyUserResource.getPrivateData().getNickname(), buddyUserResource.getMobileNumber(),
 				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet());

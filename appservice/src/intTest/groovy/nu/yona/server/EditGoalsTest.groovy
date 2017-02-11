@@ -15,7 +15,6 @@ import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
 import nu.yona.server.test.User
-import spock.lang.IgnoreRest
 
 class EditGoalsTest extends AbstractAppServiceIntegrationTest
 {
