@@ -6,6 +6,7 @@
  *******************************************************************************/
 package nu.yona.server.test
 
+import java.time.LocalDate
 import java.time.ZonedDateTime
 
 import groovy.json.*
@@ -15,11 +16,14 @@ import nu.yona.server.YonaServer
 class User
 {
 	final ZonedDateTime creationTime
+	final LocalDate appLastOpenedDate
+	final LocalDate lastMonitoredActivityDate
 	final String firstName
 	final String lastName
 	final String mobileNumber
 	final String mobileNumberConfirmationUrl
 	final String resendMobileNumberConfirmationCodeUrl
+	final String postOpenAppEventUrl
 	final boolean hasPrivateData
 	final String nickname
 	final List<Goal> goals
@@ -46,16 +50,19 @@ class User
 
 	User(def json)
 	{
-		this.creationTime = (json.creationTime) ? YonaServer.parseIsoDateString(json.creationTime) : null
+		this.creationTime = (json.creationTime) ? YonaServer.parseIsoDateTimeString(json.creationTime) : null
+		this.appLastOpenedDate = (json.appLastOpenedDate) ? YonaServer.parseIsoDateString(json.appLastOpenedDate) : null
 		this.firstName = json.firstName
 		this.lastName = json.lastName
 		this.mobileNumber = json.mobileNumber
 		this.mobileNumberConfirmationUrl = json._links?."yona:confirmMobileNumber"?.href
 		this.resendMobileNumberConfirmationCodeUrl = json._links?."yona:resendMobileNumberConfirmationCode"?.href
+		this.postOpenAppEventUrl = json._links?."yona:postOpenAppEvent"?.href
 		this.hasPrivateData = json.yonaPassword != null
 		if (this.hasPrivateData)
 		{
 			// Private data is available
+			this.lastMonitoredActivityDate = (json.lastMonitoredActivityDate) ? YonaServer.parseIsoDateString(json.lastMonitoredActivityDate) : null
 			this.password = json.yonaPassword
 			this.nickname = json.nickname
 

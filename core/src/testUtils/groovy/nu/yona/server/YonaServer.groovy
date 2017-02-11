@@ -6,6 +6,7 @@
  *******************************************************************************/
 package nu.yona.server
 
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -179,9 +180,16 @@ class YonaServer
 		return stringList
 	}
 
-	static ZonedDateTime parseIsoDateString(dateTimeString)
+	static ZonedDateTime parseIsoDateTimeString(dateTimeString)
 	{
+		assert dateTimeString ==~ /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}\+\d{4}/
 		ZonedDateTime.parse((String) dateTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"))
+	}
+
+	static LocalDate parseIsoDateString(dateTimeString)
+	{
+		assert dateTimeString ==~ /[0-9]{4}-[0-9]{2}-[0-9]{2}/
+		LocalDate.parse((String) dateTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 	}
 
 	static String toIsoDayString(ZonedDateTime dateTime)

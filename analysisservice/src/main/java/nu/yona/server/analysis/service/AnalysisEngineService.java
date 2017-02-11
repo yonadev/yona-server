@@ -5,6 +5,7 @@
 package nu.yona.server.analysis.service;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Optional;
@@ -152,11 +153,23 @@ public class AnalysisEngineService
 	private void analyzeInsideLock(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload,
 			Set<ActivityCategoryDto> matchingActivityCategories)
 	{
+		updateLastMonitoredActivityDateIfRelevant(userAnonymizedHolder, payload);
 		Set<GoalDto> matchingGoalsOfUser = determineMatchingGoalsForUser(payload.userAnonymized, matchingActivityCategories,
 				payload.startTime);
 		for (GoalDto matchingGoalOfUser : matchingGoalsOfUser)
 		{
 			addOrUpdateActivity(userAnonymizedHolder, payload, matchingGoalOfUser);
+		}
+	}
+
+	private void updateLastMonitoredActivityDateIfRelevant(UserAnonymizedEntityHolder userAnonymizedHolder,
+			ActivityPayload payload)
+	{
+		Optional<LocalDate> lastMonitoredActivityDate = payload.userAnonymized.getLastMonitoredActivityDate();
+		LocalDate activityEndTime = payload.endTime.toLocalDate();
+		if (lastMonitoredActivityDate.map(d -> d.isBefore(activityEndTime)).orElse(true))
+		{
+			userAnonymizedHolder.getEntity().setLastMonitoredActivityDate(activityEndTime);
 		}
 	}
 

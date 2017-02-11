@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -16,44 +15,66 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
+import org.junit.Before;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.concurrent.ConcurrentMapCache;
+import org.springframework.cache.support.SimpleCacheManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.i18n.LocaleContextHolder;
 
 import nu.yona.server.Translator;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.ActivityCategoryRepository;
+import nu.yona.server.test.util.JUnitUtil;
+
+@Configuration
+@EnableCaching
+@ComponentScan(value = "nu.yona.server.goals.service", resourcePattern = "**/ActivityCategoryService.class")
+class ActivityCategoryServiceTestBaseConfiguration
+{
+	@Bean
+	public SimpleCacheManager cacheManager()
+	{
+		SimpleCacheManager cacheManager = new SimpleCacheManager();
+		cacheManager.setCaches(Arrays.asList(new ConcurrentMapCache("activityCategorySet")));
+		return cacheManager;
+	}
+}
 
 public abstract class ActivityCategoryServiceTestBase
 {
-	protected List<ActivityCategory> activityCategories = new ArrayList<ActivityCategory>();
+	@MockBean
+	private ActivityCategoryRepository mockRepository;
+
+	protected List<ActivityCategory> activityCategories = new ArrayList<>();
 
 	protected ActivityCategory gambling;
 	protected ActivityCategory news;
 
-	protected void setUp(ActivityCategoryRepository mockRepository)
+	@Before
+	public void setUpPerTestBase()
 	{
 		LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
 		gambling = ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
-				new HashSet<String>(Arrays.asList("poker", "lotto")), Collections.emptySet(), usString("Descr"));
+				new HashSet<>(Arrays.asList("poker", "lotto")), Collections.emptySet(), usString("Descr"));
 		news = ActivityCategory.createInstance(UUID.randomUUID(), usString("news"), false,
-				new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr"));
+				new HashSet<>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr"));
 
 		activityCategories.add(gambling);
 		activityCategories.add(news);
 
-		when(mockRepository.findAll()).thenReturn(Collections.unmodifiableList(activityCategories));
-		when(mockRepository.findOne(gambling.getId())).thenReturn(gambling);
-		when(mockRepository.findOne(news.getId())).thenReturn(news);
-		// save should not return null but the saved entity
-		when(mockRepository.save(any(ActivityCategory.class))).thenAnswer(new Answer<ActivityCategory>() {
-			@Override
-			public ActivityCategory answer(InvocationOnMock invocation) throws Throwable
-			{
-				Object[] args = invocation.getArguments();
-				return (ActivityCategory) args[0];
-			}
-		});
+		JUnitUtil.setUpRepositoryMock(getMockRepository());
+		when(getMockRepository().findAll()).thenReturn(Collections.unmodifiableList(activityCategories));
+		when(getMockRepository().findOne(gambling.getId())).thenReturn(gambling);
+		when(getMockRepository().findOne(news.getId())).thenReturn(news);
+	}
+
+	protected ActivityCategoryRepository getMockRepository()
+	{
+		return mockRepository;
 	}
 
 	protected Map<Locale, String> usString(String string)

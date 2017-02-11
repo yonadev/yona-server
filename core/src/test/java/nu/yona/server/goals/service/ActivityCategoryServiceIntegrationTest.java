@@ -14,39 +14,20 @@ import java.util.HashSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.concurrent.ConcurrentMapCache;
-import org.springframework.cache.support.SimpleCacheManager;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import nu.yona.server.goals.entities.ActivityCategory;
-import nu.yona.server.goals.entities.ActivityCategoryRepository;
-import nu.yona.server.goals.service.ActivityCategoryServiceIntegrationTest.TestConfiguration;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { TestConfiguration.class })
+@ContextConfiguration(classes = { ActivityCategoryServiceTestBaseConfiguration.class })
 public class ActivityCategoryServiceIntegrationTest extends ActivityCategoryServiceTestBase
 {
 	@Autowired
-	private ActivityCategoryRepository mockRepository;
-
-	@Autowired
 	private ActivityCategoryService service;
-
-	@Before
-	public void setUp()
-	{
-		setUp(mockRepository);
-	}
 
 	private void assertGetAllActivityCategoriesResult(String reason, String... names)
 	{
@@ -63,13 +44,13 @@ public class ActivityCategoryServiceIntegrationTest extends ActivityCategoryServ
 		assertGetAllActivityCategoriesResult("Initial", "gambling", "news");
 
 		ActivityCategory dummy = ActivityCategory.createInstance(UUID.randomUUID(), usString("dummy"), false,
-				new HashSet<String>(Arrays.asList("games")), Collections.emptySet(), usString("Descr"));
+				new HashSet<>(Arrays.asList("games")), Collections.emptySet(), usString("Descr"));
 		ActivityCategory gaming = ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
-				new HashSet<String>(Arrays.asList("games")), Collections.emptySet(), usString("Descr"));
+				new HashSet<>(Arrays.asList("games")), Collections.emptySet(), usString("Descr"));
 		// Add to collection, so it appears as if it is in the database
 		// It hasn't been loaded, so should not be in the cache
 		activityCategories.add(gaming);
-		when(mockRepository.findOne(gaming.getId())).thenReturn(gaming);
+		when(getMockRepository().findOne(gaming.getId())).thenReturn(gaming);
 
 		assertGetAllActivityCategoriesResult("Set expected to be cached", "gambling", "news");
 
@@ -92,25 +73,5 @@ public class ActivityCategoryServiceIntegrationTest extends ActivityCategoryServ
 		service.updateActivityCategorySet(
 				activityCategories.stream().map(a -> ActivityCategoryDto.createInstance(a)).collect(Collectors.toSet()));
 		assertGetAllActivityCategoriesResult("Cached set expected to be evicted after import", "gambling", "news");
-	}
-
-	@Configuration
-	@EnableCaching
-	@ComponentScan(value = "nu.yona.server.goals.service", resourcePattern = "**/ActivityCategoryService.class")
-	static class TestConfiguration
-	{
-		@Bean
-		public SimpleCacheManager cacheManager()
-		{
-			SimpleCacheManager cacheManager = new SimpleCacheManager();
-			cacheManager.setCaches(Arrays.asList(new ConcurrentMapCache("activityCategorySet")));
-			return cacheManager;
-		}
-
-		@Bean
-		ActivityCategoryRepository mockRepository()
-		{
-			return Mockito.mock(ActivityCategoryRepository.class);
-		}
 	}
 }

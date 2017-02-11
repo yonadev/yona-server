@@ -4,9 +4,11 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -172,5 +174,15 @@ public class UserPrivate extends EntityWithUuid
 	public Set<Buddy> getBuddiesRelatedToRemovedUsers()
 	{
 		return buddies.stream().filter(b -> b.getUser() == null).collect(Collectors.toSet());
+	}
+
+	public Optional<LocalDate> getLastMonitoredActivityDate()
+	{
+		return getUserAnonymized().getLastMonitoredActivityDate();
+	}
+
+	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
+	{
+		getUserAnonymized().setLastMonitoredActivityDate(lastMonitoredActivityDate);
 	}
 }

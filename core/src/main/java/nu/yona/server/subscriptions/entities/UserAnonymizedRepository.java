@@ -4,10 +4,14 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserAnonymizedRepository extends JpaRepository<UserAnonymized, UUID>
 {
+	int countByLastMonitoredActivityDateBetween(LocalDate startDate, LocalDate endDate);
+
+	int countByLastMonitoredActivityDateIsNull();
 }

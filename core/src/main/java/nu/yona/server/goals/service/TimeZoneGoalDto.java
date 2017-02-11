@@ -35,7 +35,7 @@ public class TimeZoneGoalDto extends GoalDto
 
 	@JsonCreator
 	public TimeZoneGoalDto(
-			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("creationTime") Optional<ZonedDateTime> creationTime,
+			@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("creationTime") Optional<ZonedDateTime> creationTime,
 			@JsonProperty(required = true, value = "zones") List<String> zones)
 	{
 		super(creationTime.map(TimeUtil::toUtcLocalDateTime));

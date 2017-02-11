@@ -4,22 +4,29 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.Constants;
 import nu.yona.server.goals.service.GoalDto;
 
 @JsonRootName("userPrivate")
 public class UserPrivateDto
 {
+	private final Optional<LocalDate> lastMonitoredActivityDate;
 	private final String yonaPassword;
 	private final String nickname;
 	private final Set<GoalDto> goals;
@@ -35,16 +42,18 @@ public class UserPrivateDto
 	@JsonCreator
 	public UserPrivateDto(@JsonProperty("nickname") String nickname)
 	{
-		this(null, nickname, null, null, null, null, Collections.emptySet(), Collections.emptySet(), null, null,
+		this(Optional.empty(), null, nickname, null, null, null, null, Collections.emptySet(), Collections.emptySet(), null, null,
 				new VPNProfileDto(null));
 	}
 
-	UserPrivateDto(String yonaPassword, String nickname, UUID namedMessageSourceId, UUID namedMessageDestinationId,
-			UUID anonymousMessageSourceId, UUID anonymousMessageDestinationId, Set<GoalDto> goals, Set<UUID> buddyIds,
-			Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper, UUID userAnonymizedId, VPNProfileDto vpnProfile)
+	UserPrivateDto(Optional<LocalDate> lastMonitoredActivityDate, String yonaPassword, String nickname, UUID namedMessageSourceId,
+			UUID namedMessageDestinationId, UUID anonymousMessageSourceId, UUID anonymousMessageDestinationId, Set<GoalDto> goals,
+			Set<UUID> buddyIds, Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper, UUID userAnonymizedId,
+			VPNProfileDto vpnProfile)
 	{
 		Objects.requireNonNull(goals);
 		Objects.requireNonNull(buddyIds);
+		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 		this.yonaPassword = yonaPassword;
 		this.nickname = nickname;
 		this.namedMessageSourceId = namedMessageSourceId;
@@ -56,6 +65,13 @@ public class UserPrivateDto
 		this.buddyIdToDtoMapper = buddyIdToDtoMapper;
 		this.userAnonymizedId = userAnonymizedId;
 		this.vpnProfile = vpnProfile;
+	}
+
+	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	@JsonInclude(Include.NON_EMPTY)
+	public Optional<LocalDate> getLastMonitoredActivityDate()
+	{
+		return lastMonitoredActivityDate;
 	}
 
 	public String getYonaPassword()

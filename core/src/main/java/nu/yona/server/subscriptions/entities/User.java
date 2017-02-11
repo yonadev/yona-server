@@ -4,7 +4,10 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -42,6 +45,8 @@ public class User extends EntityWithUuid
 
 	private LocalDateTime creationTime;
 
+	private LocalDate appLastOpenedDate;
+
 	private byte[] initializationVector;
 
 	private boolean isCreatedOnBuddyRequest;
@@ -75,12 +80,13 @@ public class User extends EntityWithUuid
 	{
 		super(id);
 		this.initializationVector = initializationVector;
+		this.creationTime = TimeUtil.utcNow();
+		this.appLastOpenedDate = this.creationTime.toLocalDate();
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.mobileNumber = mobileNumber;
 		this.setUserPrivate(userPrivate);
 		this.messageDestination = messageDestination;
-		this.creationTime = TimeUtil.utcNow();
 	}
 
 	public static User createInstance(String firstName, String lastName, String nickname, String mobileNumber, String vpnPassword,
@@ -98,6 +104,17 @@ public class User extends EntityWithUuid
 	public LocalDateTime getCreationTime()
 	{
 		return this.creationTime;
+	}
+
+	public LocalDate getAppLastOpenedDate()
+	{
+		return appLastOpenedDate;
+	}
+
+	public void setAppLastOpenedDate(LocalDate appLastOpenedDate)
+	{
+		Objects.requireNonNull(appLastOpenedDate);
+		this.appLastOpenedDate = appLastOpenedDate;
 	}
 
 	public boolean isCreatedOnBuddyRequest()
@@ -322,6 +339,16 @@ public class User extends EntityWithUuid
 
 	public Set<Buddy> getBuddiesRelatedToRemovedUsers()
 	{
-		return userPrivate.getBuddiesRelatedToRemovedUsers();
+		return getUserPrivate().getBuddiesRelatedToRemovedUsers();
+	}
+
+	public Optional<LocalDate> getLastMonitoredActivityDate()
+	{
+		return getUserPrivate().getLastMonitoredActivityDate();
+	}
+
+	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
+	{
+		getUserPrivate().setLastMonitoredActivityDate(lastMonitoredActivityDate);
 	}
 }

@@ -21,20 +21,20 @@ public class ActivityDto
 	private final ZonedDateTime endTime;
 
 	@JsonCreator
-	public ActivityDto(@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("startTime") ZonedDateTime startTime,
-			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("endTime") ZonedDateTime endTime)
+	public ActivityDto(@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("startTime") ZonedDateTime startTime,
+			@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("endTime") ZonedDateTime endTime)
 	{
 		this.startTime = startTime;
 		this.endTime = endTime;
 	}
 
-	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)
 	public ZonedDateTime getStartTime()
 	{
 		return startTime;
 	}
 
-	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)
 	public ZonedDateTime getEndTime()
 	{
 		return endTime;

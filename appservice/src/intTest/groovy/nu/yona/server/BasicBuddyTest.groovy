@@ -779,7 +779,71 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
+	}
 
+	def 'Richard sees Bob\'s "last seen" info when there were no activities'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+
+		when:
+		richard = appService.reloadUser(richard)
+		Buddy buddyBob = richard.buddies[0]
+
+		then:
+		assertEquals(buddyBob.user.appLastOpenedDate, YonaServer.now.toLocalDate())
+		buddyBob.lastMonitoredActivityDate == null
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Richard sees Bob\'s "last seen" info after one activity'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+
+		when:
+		def relativeActivityDate = "W-1 Thu 15:00"
+		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", relativeActivityDate)
+		richard = appService.reloadUser(richard)
+		Buddy buddyBob = richard.buddies[0]
+
+		then:
+		assertEquals(buddyBob.user.appLastOpenedDate, YonaServer.now.toLocalDate())
+		buddyBob.lastMonitoredActivityDate == YonaServer.relativeDateTimeStringToZonedDateTime(relativeActivityDate).toLocalDate()
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Richard sees Bob\'s "last seen" info after multiple activities'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+
+		when:
+		def relativeActivityDate = "W-1 Sat 00:10"
+		reportNetworkActivity(bob, ["YouTube"], "http://www.youtube.com", "W-1 Thu 15:00")
+		reportAppActivity(bob, "NU.nl", "W-1 Fri 23:55", relativeActivityDate)
+		richard = appService.reloadUser(richard)
+		Buddy buddyBob = richard.buddies[0]
+
+		then:
+		assertEquals(buddyBob.user.appLastOpenedDate, YonaServer.now.toLocalDate())
+		buddyBob.lastMonitoredActivityDate == YonaServer.relativeDateTimeStringToZonedDateTime(relativeActivityDate).toLocalDate()
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
 	private void makeBuddies(User user, User buddy) {
