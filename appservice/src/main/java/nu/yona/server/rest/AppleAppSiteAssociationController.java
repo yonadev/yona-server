@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.rest;
 
@@ -19,6 +19,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.util.ThymeleafUtil;
 
 @Controller
 @RequestMapping(value = "/.well-known/apple-app-site-association", produces = { MediaType.APPLICATION_JSON_VALUE })
@@ -35,7 +36,7 @@ public class AppleAppSiteAssociationController
 	@ResponseBody
 	public ResponseEntity<byte[]> getAppleAppSiteAssociation()
 	{
-		Context ctx = new Context();
+		Context ctx = ThymeleafUtil.createContext();
 		ctx.setVariable("appleAppId", yonaProperties.getAppleAppId());
 
 		return new ResponseEntity<>(

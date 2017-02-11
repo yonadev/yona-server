@@ -21,6 +21,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.util.ThymeleafUtil;
 
 @Service
 public class EmailService
@@ -49,7 +50,7 @@ public class EmailService
 			@Override
 			public void prepare(MimeMessage mimeMessage) throws Exception
 			{
-				Context ctx = new Context();
+				Context ctx = ThymeleafUtil.createContext();
 				ctx.setVariable("includedMediaBaseUrl", yonaProperties.getEmail().getIncludedMediaBaseUrl());
 				ctx.setVariable("appleAppStoreUrl", yonaProperties.getEmail().getAppleAppStoreUrl());
 				ctx.setVariable("googlePlayStoreUrl", yonaProperties.getEmail().getGooglePlayStoreUrl());

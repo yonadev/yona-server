@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.sms;
 
@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import nu.yona.server.exceptions.SmsException;
 import nu.yona.server.properties.SmsProperties;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.util.ThymeleafUtil;
 
 @Service
 public class PlivoSmsService implements SmsService
@@ -54,7 +55,7 @@ public class PlivoSmsService implements SmsService
 	@Override
 	public void send(String phoneNumber, String messageTemplateName, Map<String, Object> templateParameters)
 	{
-		Context ctx = new Context();
+		Context ctx = ThymeleafUtil.createContext();
 		templateParameters.entrySet().stream().forEach(e -> ctx.setVariable(e.getKey(), e.getValue()));
 
 		String message = templateEngine.process(messageTemplateName + ".txt", ctx);

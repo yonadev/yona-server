@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.thymeleaf.TemplateEngine;
@@ -24,6 +25,7 @@ import org.thymeleaf.context.Context;
 
 import nu.yona.server.ThymeleafConfiguration;
 import nu.yona.server.Translator;
+import nu.yona.server.util.ThymeleafUtil;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { ThymeleafConfiguration.class })
@@ -44,14 +46,13 @@ public class TemplateTest
 	@Before
 	public void setUp()
 	{
-		// LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
-		Locale.setDefault(Translator.EN_US_LOCALE);
+		LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
 	}
 
 	@Test
 	public void testAppleAppSiteAssociation()
 	{
-		Context ctx = new Context();
+		Context ctx = ThymeleafUtil.createContext();
 		String testAppleAppId = "ADummyTestId";
 		ctx.setVariable("appleAppId", testAppleAppId);
 
@@ -62,7 +63,7 @@ public class TemplateTest
 	@Test
 	public void testAppleMobileConfig()
 	{
-		Context ctx = new Context();
+		Context ctx = ThymeleafUtil.createContext();
 		String ldapUsername = "DummyLdapUserName";
 		String ldapPassword = "DummyLdapPassword";
 		ctx.setVariable("ldapUsername", ldapUsername);
@@ -96,7 +97,7 @@ public class TemplateTest
 
 	private String buildSms(Optional<Locale> locale, String requestingUserName, String emailAddress)
 	{
-		Context ctx = new Context();
+		Context ctx = ThymeleafUtil.createContext();
 		ctx.setVariable("requestingUserName", requestingUserName);
 		ctx.setVariable("emailAddress", emailAddress);
 		locale.ifPresent(l -> ctx.setLocale(l));
@@ -107,8 +108,7 @@ public class TemplateTest
 	@Test
 	public void testEmailSubject()
 	{
-		String requestingUserName = "John";
-		String result = buildEmailSubject(Optional.empty(), requestingUserName);
+		String result = buildEmailSubject(Optional.empty());
 		String expectedResult = "Become my friend on Yona!";
 		assertThat(result, equalTo(expectedResult));
 	}
@@ -116,16 +116,14 @@ public class TemplateTest
 	@Test
 	public void testDutchEmailSubject()
 	{
-		String requestingUserName = "John";
-		String result = buildEmailSubject(Optional.of(Locale.forLanguageTag("nl-NL")), requestingUserName);
+		String result = buildEmailSubject(Optional.of(Locale.forLanguageTag("nl-NL")));
 		String expectedResult = "Word vriend op Yona!";
 		assertThat(result, equalTo(expectedResult));
 	}
 
-	private String buildEmailSubject(Optional<Locale> locale, String requestingUserName)
+	private String buildEmailSubject(Optional<Locale> locale)
 	{
-		Context ctx = new Context();
-		ctx.setVariable("requestingUserName", requestingUserName);
+		Context ctx = ThymeleafUtil.createContext();
 		locale.ifPresent(l -> ctx.setLocale(l));
 
 		return emailTemplateEngine.process("buddy-invitation-subject.txt", ctx);
@@ -189,7 +187,7 @@ public class TemplateTest
 			String personalInvitationMessage, String requestingUserFirstName, String requestingUserLastName,
 			String requestingUserMobileNumber, String requestingUserNickname)
 	{
-		Context ctx = new Context();
+		Context ctx = ThymeleafUtil.createContext();
 		ctx.setVariable("buddyFirstName", buddyFirstName);
 		ctx.setVariable("buddyLastName", buddyLastName);
 		ctx.setVariable("inviteUrl", inviteUrl);
