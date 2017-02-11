@@ -54,6 +54,9 @@ public class EmailService
 				ctx.setVariable("includedMediaBaseUrl", yonaProperties.getEmail().getIncludedMediaBaseUrl());
 				ctx.setVariable("appleAppStoreUrl", yonaProperties.getEmail().getAppleAppStoreUrl());
 				ctx.setVariable("googlePlayStoreUrl", yonaProperties.getEmail().getGooglePlayStoreUrl());
+				ctx.setVariable("includedMediaBaseUrl", yonaProperties.getEmail().getIncludedMediaBaseUrl());
+				ctx.setVariable("appleAppStoreUrl", yonaProperties.getEmail().getAppleAppStoreUrl());
+				ctx.setVariable("googlePlayStoreUrl", yonaProperties.getEmail().getGooglePlayStoreUrl());
 				templateParameters.entrySet().stream().forEach(e -> ctx.setVariable(e.getKey(), e.getValue()));
 
 				String subjectText = emailTemplateEngine.process(subjectTemplateName + ".txt", ctx);
