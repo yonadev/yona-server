@@ -37,7 +37,7 @@
          "com.google.android.gm",
          "com.skype.raider",
          "com.facebook.orca",
-         "com.snapchat.android"
+         "com.snapchat.android",
          "org.telegram.messenger"
       ],
       "localizableDescription": {
@@ -99,7 +99,7 @@
          "com.rovio.gold",
          "com.rovio.popcorn",
          "com.rovio.Toons.tv",
-         "com.nianticlabs.pokemongo"
+         "com.nianticlabs.pokemongo",
          "hbwares.wordfeud.free"
       ],
       "localizableDescription": {
