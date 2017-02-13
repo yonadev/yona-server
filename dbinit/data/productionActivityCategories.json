@@ -38,6 +38,7 @@
          "com.skype.raider",
          "com.facebook.orca",
          "com.snapchat.android"
+         "org.telegram.messenger"
       ],
       "localizableDescription": {
          "en-US": "This challenge includes apps and sites like WhatsApp and Snapchat",
@@ -99,6 +100,7 @@
          "com.rovio.popcorn",
          "com.rovio.Toons.tv",
          "com.nianticlabs.pokemongo"
+         "hbwares.wordfeud.free"
       ],
       "localizableDescription": {
          "en-US": "This challenge includes apps and sites like Candy Crush and Angry Birds",
