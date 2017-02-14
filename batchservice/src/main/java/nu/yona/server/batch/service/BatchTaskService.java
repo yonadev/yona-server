@@ -42,11 +42,11 @@ public class BatchTaskService
 	{
 		logger.info("Received request to generate PIN reset confirmation code for user with ID {} at {}", request.getUserId(),
 				request.getExecutionTime());
-		scheduler.schedule(() -> generateAndSendPinResetConfirmationCode(request.getUserId()),
+		scheduler.schedule(() -> generateAndSendPinResetConfirmationCode(request.getUserId(), request.getLocaleString()),
 				TimeUtil.toDate(request.getExecutionTime()));
 	}
 
-	private void generateAndSendPinResetConfirmationCode(UUID userId)
+	private void generateAndSendPinResetConfirmationCode(UUID userId, String localeString)
 	{
 		try
 		{
@@ -55,7 +55,8 @@ public class BatchTaskService
 			launcher.setJobRepository(jobRepository);
 			launcher.setTaskExecutor(new SimpleAsyncTaskExecutor());
 
-			JobParameters jobParameters = new JobParametersBuilder().addString("userId", userId.toString()).toJobParameters();
+			JobParameters jobParameters = new JobParametersBuilder().addString("userId", userId.toString())
+					.addString("locale", localeString).toJobParameters();
 			launcher.run(pinResetConfirmationCodeSenderJob, jobParameters);
 		}
 		catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException

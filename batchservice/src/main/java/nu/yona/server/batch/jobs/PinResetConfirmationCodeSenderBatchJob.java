@@ -5,6 +5,7 @@
 package nu.yona.server.batch.jobs;
 
 import java.util.Collections;
+import java.util.Locale;
 import java.util.UUID;
 
 import javax.persistence.EntityManager;
@@ -27,7 +28,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
-import nu.yona.server.Translator;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
@@ -59,9 +59,12 @@ public class PinResetConfirmationCodeSenderBatchJob
 	@Autowired
 	private JpaPagingItemReader<User> reader;
 
+	@Autowired
+	private ItemProcessor<User, User> processor;
+
 	@Bean(destroyMethod = "")
 	@StepScope
-	public JpaPagingItemReader<User> reader(@Value("#{jobParameters[userId]}") final String userId)
+	public JpaPagingItemReader<User> reader(@Value("#{jobParameters[userId]}") String userId)
 	{
 		try
 		{
@@ -84,15 +87,16 @@ public class PinResetConfirmationCodeSenderBatchJob
 	}
 
 	@Bean
-	public ItemProcessor<User, User> processor()
+	@StepScope
+	public ItemProcessor<User, User> processor(@Value("#{jobParameters[locale]}") String localeString)
 	{
 		return new ItemProcessor<User, User>() {
 			@Override
-			public User process(final User user) throws Exception
+			public User process(User user) throws Exception
 			{
 				logger.info("Generating pin reset confirmation code for user with mobile number '{}' and ID '{}'",
 						user.getMobileNumber(), user.getId());
-				LocaleContextHolder.setLocale(Translator.EN_US_LOCALE); // TODO: Make this the user's locale
+				LocaleContextHolder.setLocale(Locale.forLanguageTag(localeString));
 				ConfirmationCode pinResetConfirmationCode = user.getPinResetConfirmationCode();
 				pinResetConfirmationCode.setConfirmationCode(userService.generateConfirmationCode());
 				pinResetRequestService.sendConfirmationCodeTextMessage(user, pinResetConfirmationCode);
@@ -114,7 +118,7 @@ public class PinResetConfirmationCodeSenderBatchJob
 	@Bean
 	public Step step1()
 	{
-		return stepBuilderFactory.get("step1").<User, User> chunk(CHUNK_SIZE).reader(reader).processor(processor())
+		return stepBuilderFactory.get("step1").<User, User> chunk(CHUNK_SIZE).reader(reader).processor(processor)
 				.writer(writer()).build();
 	}
 

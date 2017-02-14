@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
+import org.springframework.context.i18n.LocaleContextHolder;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -22,18 +24,26 @@ public class PinResetConfirmationCodeSendRequestDto
 {
 	private final UUID userId;
 	private final LocalDateTime executionTime;
+	private final String localeString;
 
 	@JsonCreator
 	public PinResetConfirmationCodeSendRequestDto(@JsonProperty("userId") UUID userId,
-			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("executionTime") Date executionTime)
+			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("executionTime") Date executionTime,
+			@JsonProperty("localeString") String localeString)
 	{
-		this(userId, TimeUtil.toUtcLocalDateTime(executionTime));
+		this(userId, TimeUtil.toUtcLocalDateTime(executionTime), localeString);
 	}
 
 	public PinResetConfirmationCodeSendRequestDto(UUID userId, LocalDateTime executionTime)
 	{
+		this(userId, executionTime, LocaleContextHolder.getLocale().toLanguageTag());
+	}
+
+	private PinResetConfirmationCodeSendRequestDto(UUID userId, LocalDateTime executionTime, String localeString)
+	{
 		this.userId = userId;
 		this.executionTime = executionTime;
+		this.localeString = localeString;
 	}
 
 	public UUID getUserId()
@@ -53,5 +63,10 @@ public class PinResetConfirmationCodeSendRequestDto
 	public LocalDateTime getExecutionTime()
 	{
 		return executionTime;
+	}
+
+	public String getLocaleString()
+	{
+		return localeString;
 	}
 }
