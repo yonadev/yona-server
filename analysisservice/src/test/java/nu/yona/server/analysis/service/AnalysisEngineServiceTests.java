@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
@@ -67,6 +67,7 @@ import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
+import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TimeUtil;
 
@@ -75,7 +76,7 @@ import nu.yona.server.util.TimeUtil;
 		// test this?
 public class AnalysisEngineServiceTests
 {
-	private final Map<String, Goal> goalMap = new HashMap<String, Goal>();
+	private final Map<String, Goal> goalMap = new HashMap<>();
 
 	@Mock
 	private ActivityCategoryService mockActivityCategoryService;
@@ -117,20 +118,20 @@ public class AnalysisEngineServiceTests
 		LocalDateTime yesterday = TimeUtil.utcNow().minusDays(1);
 		gamblingGoal = BudgetGoal.createNoGoInstance(yesterday,
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
-						new HashSet<String>(Arrays.asList("poker", "lotto")),
-						new HashSet<String>(Arrays.asList("Poker App", "Lotto App")), usString("Descr")));
+						new HashSet<>(Arrays.asList("poker", "lotto")),
+						new HashSet<>(Arrays.asList("Poker App", "Lotto App")), usString("Descr")));
 		newsGoal = BudgetGoal.createNoGoInstance(yesterday, ActivityCategory.createInstance(UUID.randomUUID(), usString("news"),
-				false, new HashSet<String>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr")));
+				false, new HashSet<>(Arrays.asList("refdag", "bbc")), Collections.emptySet(), usString("Descr")));
 		gamingGoal = BudgetGoal.createNoGoInstance(yesterday,
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("gaming"), false,
-						new HashSet<String>(Arrays.asList("games")), Collections.emptySet(), usString("Descr")));
+						new HashSet<>(Arrays.asList("games")), Collections.emptySet(), usString("Descr")));
 		socialGoal = TimeZoneGoal.createInstance(yesterday,
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("social"), false,
-						new HashSet<String>(Arrays.asList("social")), Collections.emptySet(), usString("Descr")),
+						new HashSet<>(Arrays.asList("social")), Collections.emptySet(), usString("Descr")),
 				Collections.emptyList());
 		shoppingGoal = BudgetGoal.createInstance(yesterday,
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("shopping"), false,
-						new HashSet<String>(Arrays.asList("webshop")), Collections.emptySet(), usString("Descr")),
+						new HashSet<>(Arrays.asList("webshop")), Collections.emptySet(), usString("Descr")),
 				1);
 
 		goalMap.put("gambling", gamblingGoal);
@@ -171,7 +172,7 @@ public class AnalysisEngineServiceTests
 		// Set up UserAnonymized instance.
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
-		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
+		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		UserAnonymizedDto userAnon = UserAnonymizedDto.createInstance(userAnonEntity);
 		anonMessageDestination = userAnon.getAnonymousDestination();
@@ -189,14 +190,7 @@ public class AnalysisEngineServiceTests
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, socialGoal.getId())).thenReturn(socialGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, shoppingGoal.getId())).thenReturn(shoppingGoal);
 
-		when(mockDayActivityRepository.save(any(DayActivity.class))).thenAnswer(new Answer<DayActivity>() {
-			@Override
-			public DayActivity answer(InvocationOnMock invocation) throws Throwable
-			{
-				Object[] args = invocation.getArguments();
-				return (DayActivity) args[0];
-			}
-		});
+		JUnitUtil.setUpRepositoryMock(mockDayActivityRepository);
 	}
 
 	private Map<Locale, String> usString(String string)
@@ -246,7 +240,7 @@ public class AnalysisEngineServiceTests
 
 		}
 
-		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
+		Set<String> conflictCategories = new HashSet<>(Arrays.asList("lotto"));
 		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test1", Optional.empty()));
 
 		// Verify that there is a new conflict message sent.
@@ -267,7 +261,7 @@ public class AnalysisEngineServiceTests
 	{
 		ZonedDateTime t = nowInAmsterdam();
 		// Execute the analysis engine service.
-		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto"));
+		Set<String> conflictCategories = new HashSet<>(Arrays.asList("lotto"));
 		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify that there is a day activity update.
@@ -303,7 +297,7 @@ public class AnalysisEngineServiceTests
 	public void messageCreatedOnMatchOneCategoryOfMultiple()
 	{
 		// Execute the analysis engine service.
-		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag", "lotto"));
+		Set<String> conflictCategories = new HashSet<>(Arrays.asList("refdag", "lotto"));
 		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		verifyActivityUpdate(gamblingGoal);
@@ -324,7 +318,7 @@ public class AnalysisEngineServiceTests
 	public void messagesCreatedOnMatchMultiple()
 	{
 		// Execute the analysis engine service.
-		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("lotto", "games"));
+		Set<String> conflictCategories = new HashSet<>(Arrays.asList("lotto", "games"));
 		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify that there are 2 day activities updated, for both goals.
@@ -367,9 +361,9 @@ public class AnalysisEngineServiceTests
 		Activity earlierActivityEntity = dayActivity.getLastActivity();
 
 		// Execute the analysis engine service.
-		Set<String> conflictCategories1 = new HashSet<String>(Arrays.asList("lotto"));
-		Set<String> conflictCategories2 = new HashSet<String>(Arrays.asList("poker"));
-		Set<String> conflictCategoriesNotMatching1 = new HashSet<String>(Arrays.asList("refdag"));
+		Set<String> conflictCategories1 = new HashSet<>(Arrays.asList("lotto"));
+		Set<String> conflictCategories2 = new HashSet<>(Arrays.asList("poker"));
+		Set<String> conflictCategoriesNotMatching1 = new HashSet<>(Arrays.asList("refdag"));
 		service.analyze(userAnonId,
 				new NetworkActivityDto(conflictCategoriesNotMatching1, "http://localhost/test", Optional.empty()));
 		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories1, "http://localhost/test1", Optional.empty()));
@@ -403,7 +397,7 @@ public class AnalysisEngineServiceTests
 	public void noMessagesCreatedOnNoMatch()
 	{
 		// Execute the analysis engine service.
-		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("refdag"));
+		Set<String> conflictCategories = new HashSet<>(Arrays.asList("refdag"));
 		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify that there was no attempted activity update.
@@ -427,7 +421,7 @@ public class AnalysisEngineServiceTests
 	public void noMessagesCreatedOnTimeZoneGoal()
 	{
 		// Execute the analysis engine service.
-		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("webshop"));
+		Set<String> conflictCategories = new HashSet<>(Arrays.asList("webshop"));
 		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		verifyActivityUpdate(shoppingGoal);
@@ -453,7 +447,7 @@ public class AnalysisEngineServiceTests
 	public void noMessagesCreatedOnNonZeroBudgetGoal()
 	{
 		// Execute the analysis engine service.
-		Set<String> conflictCategories = new HashSet<String>(Arrays.asList("social"));
+		Set<String> conflictCategories = new HashSet<>(Arrays.asList("social"));
 		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		verifyActivityUpdate(socialGoal);

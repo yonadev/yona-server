@@ -240,6 +240,18 @@ public class UserController
 		}
 	}
 
+	@RequestMapping(value = "/{userId}/openApp", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Void> postOpenAppEvent(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userId)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			userService.postOpenAppEvent(userId);
+			return new ResponseEntity<>(HttpStatus.OK);
+		}
+	}
+
 	@ExceptionHandler(ConfirmationException.class)
 	private ResponseEntity<ErrorResponseDto> handleException(ConfirmationException e)
 	{
@@ -323,6 +335,12 @@ public class UserController
 		ControllerLinkBuilder linkBuilder = linkTo(
 				methodOn(UserController.class).resendMobileNumberConfirmationCode(Optional.empty(), userId));
 		return linkBuilder.withRel("resendMobileNumberConfirmationCode");
+	}
+
+	public static Link getPostOpenAppEventLink(UUID userId)
+	{
+		ControllerLinkBuilder linkBuilder = linkTo(methodOn(UserController.class).postOpenAppEvent(Optional.empty(), userId));
+		return linkBuilder.withRel("postOpenAppEvent");
 	}
 
 	private static Link getUserSelfLink(UUID userId, boolean includePrivateData)
@@ -475,6 +493,7 @@ public class UserController
 				addEditLink(userResource);
 				if (user.isMobileNumberConfirmed())
 				{
+					addPostOpenAppEventLink(userResource);
 					addMessagesLink(userResource);
 					addDayActivityOverviewsLink(userResource);
 					addWeekActivityOverviewsLink(userResource);
@@ -535,6 +554,11 @@ public class UserController
 		private static void addResendMobileNumberConfirmationLink(Resource<UserDto> userResource)
 		{
 			userResource.add(UserController.getResendMobileNumberConfirmationLink(userResource.getContent().getId()));
+		}
+
+		private static void addPostOpenAppEventLink(Resource<UserDto> userResource)
+		{
+			userResource.add(UserController.getPostOpenAppEventLink(userResource.getContent().getId()));
 		}
 
 		private void addWeekActivityOverviewsLink(UserResource userResource)

@@ -1,12 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.util;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -58,15 +56,20 @@ public class TimeUtil
 
 	public static ZonedDateTime getStartOfWeek(ZoneId zoneId, ZonedDateTime time)
 	{
-		ZonedDateTime startOfDay = getStartOfDay(zoneId, time);
-		switch (startOfDay.getDayOfWeek())
+		LocalDate date = getStartOfDay(zoneId, time).toLocalDate();
+		return getStartOfWeek(date).atStartOfDay(zoneId);
+	}
+
+	public static LocalDate getStartOfWeek(LocalDate date)
+	{
+		switch (date.getDayOfWeek())
 		{
 			case SUNDAY:
 				// take as the first day of week
-				return startOfDay;
+				return date;
 			default:
 				// MONDAY=1, etc.
-				return startOfDay.minusDays(startOfDay.getDayOfWeek().getValue());
+				return date.minusDays(date.getDayOfWeek().getValue());
 		}
 	}
 

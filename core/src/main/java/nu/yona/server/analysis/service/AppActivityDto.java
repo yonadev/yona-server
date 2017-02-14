@@ -30,8 +30,8 @@ public class AppActivityDto
 
 		@JsonCreator
 		public Activity(@JsonProperty("application") String application,
-				@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("startTime") ZonedDateTime startTime,
-				@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("endTime") ZonedDateTime endTime)
+				@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("startTime") ZonedDateTime startTime,
+				@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("endTime") ZonedDateTime endTime)
 		{
 			this.application = application;
 			this.startTime = startTime;
@@ -43,13 +43,13 @@ public class AppActivityDto
 			return application;
 		}
 
-		@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+		@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)
 		public ZonedDateTime getStartTime()
 		{
 			return startTime;
 		}
 
-		@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+		@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)
 		public ZonedDateTime getEndTime()
 		{
 			return endTime;
@@ -61,14 +61,14 @@ public class AppActivityDto
 
 	@JsonCreator
 	public AppActivityDto(
-			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("deviceDateTime") ZonedDateTime deviceDateTime,
+			@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("deviceDateTime") ZonedDateTime deviceDateTime,
 			@JsonProperty("activities") Activity[] activities)
 	{
 		this.deviceDateTime = deviceDateTime;
 		this.activities = activities;
 	}
 
-	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)
 	public ZonedDateTime getDeviceDateTime()
 	{
 		return deviceDateTime;

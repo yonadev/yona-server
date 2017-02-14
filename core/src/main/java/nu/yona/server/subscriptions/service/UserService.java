@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,19 +34,22 @@ import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.exceptions.UserOverwriteConfirmationException;
 import nu.yona.server.exceptions.YonaException;
-import nu.yona.server.goals.entities.ActivityCategory;
+import nu.yona.server.goals.entities.ActivityCategoryRepository;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
 import nu.yona.server.subscriptions.entities.Buddy;
+import nu.yona.server.subscriptions.entities.BuddyRepository;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 import nu.yona.server.util.TimeUtil;
 import nu.yona.server.util.TransactionHelper;
@@ -56,33 +60,50 @@ public class UserService
 	/** Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers */
 	private static Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
 
+	private enum UserSignUp
+	{
+		INVITED, FREE
+	}
+
 	private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-	@Autowired
+	@Autowired(required = false)
+	private UserRepository userRepository;
+
+	@Autowired(required = false)
+	private MessageSourceRepository messageSourceRepository;
+
+	@Autowired(required = false)
+	private BuddyRepository buddyRepository;
+
+	@Autowired(required = false)
+	private ActivityCategoryRepository activityCategoryRepository;
+
+	@Autowired(required = false)
 	private LDAPUserService ldapUserService;
 
 	@Autowired
 	private YonaProperties yonaProperties;
 
-	@Autowired
+	@Autowired(required = false)
 	private SmsService smsService;
 
-	@Autowired
+	@Autowired(required = false)
 	private BuddyService buddyService;
 
-	@Autowired
+	@Autowired(required = false)
 	private TransactionHelper transactionHelper;
 
-	@Autowired
+	@Autowired(required = false)
 	private UserAnonymizedService userAnonymizedService;
 
-	@Autowired
+	@Autowired(required = false)
 	private ActivityCategoryService activityCategoryService;
 
-	@Autowired
+	@Autowired(required = false)
 	private MessageService messageService;
 
-	@Autowired
+	@Autowired(required = false)
 	private WhiteListedNumberService whiteListedNumberService;
 
 	@PostConstruct
@@ -131,7 +152,7 @@ public class UserService
 		User existingUserEntity = findUserByMobileNumber(mobileNumber);
 		ConfirmationCode confirmationCode = createConfirmationCode();
 		existingUserEntity.setOverwriteUserConfirmationCode(confirmationCode);
-		User.getRepository().save(existingUserEntity);
+		userRepository.save(existingUserEntity);
 		sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsService.TemplateName_OverwriteUserConfirmation);
 		logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code",
 				existingUserEntity.getMobileNumber(), existingUserEntity.getId());
@@ -142,7 +163,7 @@ public class UserService
 	{
 		User existingUserEntity = findUserByMobileNumber(mobileNumber);
 		existingUserEntity.setOverwriteUserConfirmationCode(null);
-		User.getRepository().save(existingUserEntity);
+		userRepository.save(existingUserEntity);
 		logger.info("User with mobile number '{}' and ID '{}' cleared the account overwrite confirmation code",
 				existingUserEntity.getMobileNumber(), existingUserEntity.getId());
 	}
@@ -171,7 +192,7 @@ public class UserService
 			confirmationCode = Optional.of(createConfirmationCode());
 			userEntity.setMobileNumberConfirmationCode(confirmationCode.get());
 		}
-		userEntity = User.getRepository().save(userEntity);
+		userEntity = userRepository.save(userEntity);
 		ldapUserService.createVpnAccount(userEntity.getUserAnonymizedId().toString(), userEntity.getVpnPassword());
 
 		UserDto userDto = createUserDtoWithPrivateData(userEntity);
@@ -199,8 +220,8 @@ public class UserService
 
 	private void addNoGoGoal(User userEntity, ActivityCategoryDto category)
 	{
-		userEntity.getAnonymized().addGoal(
-				BudgetGoal.createNoGoInstance(TimeUtil.utcNow(), ActivityCategory.getRepository().findOne(category.getId())));
+		userEntity.getAnonymized()
+				.addGoal(BudgetGoal.createNoGoInstance(TimeUtil.utcNow(), activityCategoryRepository.findOne(category.getId())));
 	}
 
 	private void handleExistingUserForMobileNumber(String mobileNumber, Optional<String> overwriteUserConfirmationCode)
@@ -212,13 +233,13 @@ public class UserService
 		else
 		{
 			verifyUserDoesNotExist(mobileNumber);
-			verifyUserIsAllowed(mobileNumber);
+			verifyUserIsAllowed(mobileNumber, UserSignUp.FREE);
 		}
 	}
 
 	private void verifyUserDoesNotExist(String mobileNumber)
 	{
-		User existingUser = User.getRepository().findByMobileNumber(mobileNumber);
+		User existingUser = userRepository.findByMobileNumber(mobileNumber);
 		if (existingUser == null)
 		{
 			return;
@@ -231,27 +252,33 @@ public class UserService
 		throw UserServiceException.userExists(mobileNumber);
 	}
 
-	private void verifyUserIsAllowed(String mobileNumber)
+	private void verifyUserIsAllowed(String mobileNumber, UserSignUp origin)
+	{
+		verifyBelowMaxUsers();
+		verifyWhiteList(mobileNumber, origin);
+	}
+
+	private void verifyBelowMaxUsers()
 	{
 		int maxUsers = yonaProperties.getMaxUsers();
-		if (maxUsers <= 0)
+		long currentNumberOfUsers = userRepository.count();
+		if (currentNumberOfUsers >= maxUsers)
+		{
+			throw UserServiceException.maximumNumberOfUsersReached();
+		}
+		if (currentNumberOfUsers >= maxUsers - maxUsers / 10)
+		{
+			logger.warn("Nearing the maximum number of users. Current number: {}, maximum: {}", currentNumberOfUsers, maxUsers);
+		}
+	}
+
+	private void verifyWhiteList(String mobileNumber, UserSignUp origin)
+	{
+		if ((origin == UserSignUp.FREE && yonaProperties.isWhiteListActiveFreeSignUp())
+				|| (origin == UserSignUp.INVITED && yonaProperties.isWhiteListActiveInvitedUsers()))
 		{
 			whiteListedNumberService.verifyMobileNumberIsAllowed(mobileNumber);
-			return;
 		}
-
-		long currentNumberOfUsers = User.getRepository().count();
-		if (currentNumberOfUsers < maxUsers)
-		{
-			if (currentNumberOfUsers >= maxUsers - maxUsers / 10)
-			{
-				logger.warn("Nearing the maximum number of users. Current number: {}, maximum: {}", currentNumberOfUsers,
-						maxUsers);
-			}
-			return;
-		}
-
-		throw UserServiceException.maximumNumberOfUsersReached();
 	}
 
 	private void deleteExistingUserToOverwriteIt(String mobileNumber, String userProvidedConfirmationCode)
@@ -268,7 +295,7 @@ public class UserService
 		// notice we can't delete the associated anonymized data
 		// because the anonymized data cannot be retrieved
 		// (the relation is encrypted, the password is not available)
-		User.getRepository().delete(existingUserEntity);
+		userRepository.delete(existingUserEntity);
 		logger.info("User with mobile number '{}' and ID '{}' removed, to overwrite the account",
 				existingUserEntity.getMobileNumber(), existingUserEntity.getId());
 	}
@@ -292,7 +319,7 @@ public class UserService
 
 		userEntity.setMobileNumberConfirmationCode(null);
 		userEntity.markMobileNumberConfirmed();
-		User.getRepository().save(userEntity);
+		userRepository.save(userEntity);
 
 		logger.info("User with mobile number '{}' and ID '{}' successfully confirmed their mobile number",
 				userEntity.getMobileNumber(), userEntity.getId());
@@ -307,23 +334,35 @@ public class UserService
 				userEntity.getMobileNumber(), userEntity.getId());
 		ConfirmationCode confirmationCode = createConfirmationCode();
 		userEntity.setMobileNumberConfirmationCode(confirmationCode);
-		User.getRepository().save(userEntity);
+		userRepository.save(userEntity);
 		sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode,
 				SmsService.TemplateName_AddUserNumberConfirmation);
 		return null;
 	}
 
 	@Transactional
+	public void postOpenAppEvent(UUID userId)
+	{
+		User userEntity = getUserEntityById(userId);
+		LocalDate now = TimeUtil.utcNow().toLocalDate();
+		if (userEntity.getAppLastOpenedDate().isBefore(now))
+		{
+			userEntity.setAppLastOpenedDate(now);
+			userRepository.save(userEntity);
+		}
+	}
+
+	@Transactional
 	User addUserCreatedOnBuddyRequest(UserDto buddyUserResource)
 	{
-		verifyUserIsAllowed(buddyUserResource.getMobileNumber());
+		verifyUserIsAllowed(buddyUserResource.getMobileNumber(), UserSignUp.INVITED);
 		User newUser = User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
 				buddyUserResource.getPrivateData().getNickname(), buddyUserResource.getMobileNumber(),
 				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet());
 		addMandatoryGoals(newUser);
 		newUser.setIsCreatedOnBuddyRequest();
 		newUser.setMobileNumberConfirmationCode(createConfirmationCode());
-		User savedUser = User.getRepository().save(newUser);
+		User savedUser = userRepository.save(newUser);
 		ldapUserService.createVpnAccount(savedUser.getUserAnonymizedId().toString(), savedUser.getVpnPassword());
 		logger.info("User with mobile number '{}' and ID '{}' created on buddy request", savedUser.getMobileNumber(),
 				savedUser.getId());
@@ -344,7 +383,7 @@ public class UserService
 			confirmationCode = Optional.of(createConfirmationCode());
 			updatedUserEntity.setMobileNumberConfirmationCode(confirmationCode.get());
 		}
-		User savedUserEntity = User.getRepository().save(updatedUserEntity);
+		User savedUserEntity = userRepository.save(updatedUserEntity);
 		UserDto userDto = createUserDtoWithPrivateData(savedUserEntity);
 		if (confirmationCode.isPresent())
 		{
@@ -433,11 +472,11 @@ public class UserService
 		userAnonymizedEntity.clearAnonymousDestination();
 		userAnonymizedEntity = userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 		userEntity.clearNamedMessageDestination();
-		User updatedUserEntity = User.getRepository().saveAndFlush(userEntity);
+		User updatedUserEntity = userRepository.saveAndFlush(userEntity);
 
-		MessageSource.getRepository().delete(anonymousMessageSource);
-		MessageSource.getRepository().delete(namedMessageSource);
-		MessageSource.getRepository().flush();
+		messageSourceRepository.delete(anonymousMessageSource);
+		messageSourceRepository.delete(namedMessageSource);
+		messageSourceRepository.flush();
 
 		Set<Goal> allGoalsIncludingHistoryItems = getAllGoalsIncludingHistoryItems(updatedUserEntity);
 		deleteAllWeekActivityCommentMessages(allGoalsIncludingHistoryItems);
@@ -448,7 +487,7 @@ public class UserService
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 
 		userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
-		User.getRepository().delete(updatedUserEntity);
+		userRepository.delete(updatedUserEntity);
 
 		ldapUserService.deleteVpnAccount(vpnLoginId.toString());
 		logger.info("Deleted user with mobile number '{}' and ID '{}'", updatedUserEntity.getMobileNumber(),
@@ -505,9 +544,9 @@ public class UserService
 		User userEntity = getUserEntityById(user.getId());
 		userEntity.assertMobileNumberConfirmed();
 
-		Buddy buddyEntity = Buddy.getRepository().findOne(buddy.getId());
+		Buddy buddyEntity = buddyRepository.findOne(buddy.getId());
 		userEntity.addBuddy(buddyEntity);
-		User.getRepository().save(userEntity);
+		userRepository.save(userEntity);
 
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		userAnonymizedEntity.addBuddyAnonymized(buddyEntity.getBuddyAnonymized());
@@ -549,7 +588,7 @@ public class UserService
 			throw InvalidDataException.emptyUserId();
 		}
 
-		User entity = User.getRepository().findOne(id);
+		User entity = userRepository.findOne(id);
 
 		if (entity == null)
 		{
@@ -629,7 +668,7 @@ public class UserService
 	{
 		transactionHelper.executeInNewTransaction(() -> {
 			confirmationCode.incrementAttempts();
-			User.getRepository().save(userEntity);
+			userRepository.save(userEntity);
 		});
 	}
 
@@ -638,13 +677,13 @@ public class UserService
 		// touch and save all user related data containing encryption
 		// see architecture overview for which classes contain encrypted data
 		// (this could also be achieved with very complex reflection)
-		retrievedEntitySet.userEntity.getBuddies().forEach(buddy -> Buddy.getRepository().save(buddy.touch()));
-		MessageSource.getRepository().save(retrievedEntitySet.namedMessageSource.touch());
-		MessageSource.getRepository().save(retrievedEntitySet.anonymousMessageSource.touch());
+		retrievedEntitySet.userEntity.getBuddies().forEach(buddy -> buddyRepository.save(buddy.touch()));
+		messageSourceRepository.save(retrievedEntitySet.namedMessageSource.touch());
+		messageSourceRepository.save(retrievedEntitySet.anonymousMessageSource.touch());
 		userResource.updateUser(retrievedEntitySet.userEntity);
 		retrievedEntitySet.userEntity.unsetIsCreatedOnBuddyRequest();
 		retrievedEntitySet.userEntity.touch();
-		return User.getRepository().save(retrievedEntitySet.userEntity);
+		return userRepository.save(retrievedEntitySet.userEntity);
 	}
 
 	private void validateUserFields(UserDto userResource)

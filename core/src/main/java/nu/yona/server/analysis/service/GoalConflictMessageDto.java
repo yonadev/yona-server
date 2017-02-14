@@ -99,7 +99,7 @@ public class GoalConflictMessageDto extends MessageDto
 	}
 
 	@JsonProperty("activityStartTime")
-	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)
 	public ZonedDateTime getActivityStartTimeAsZonedDateTime()
 	{
 		return TimeUtil.toUtcZonedDateTime(activityStartTime);
@@ -111,7 +111,7 @@ public class GoalConflictMessageDto extends MessageDto
 	}
 
 	@JsonProperty("activityEndTime")
-	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)
 	public ZonedDateTime getActivityEndTimeAsZonedDateTime()
 	{
 		return TimeUtil.toUtcZonedDateTime(activityEndTime);

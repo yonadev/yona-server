@@ -6,7 +6,9 @@ package nu.yona.server;
 
 public final class Constants
 {
-	public static final String ISO_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+	public static final String ISO_DATE_PATTERN = "yyyy-MM-dd";
+
+	public static final String ISO_DATE_TIME_PATTERN = ISO_DATE_PATTERN + "'T'HH:mm:ss.SSSZ";
 
 	private Constants()
 	{

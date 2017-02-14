@@ -4,8 +4,11 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,6 +35,8 @@ public class UserAnonymized extends EntityWithUuid
 		return (UserAnonymizedRepository) RepositoryProvider.getRepository(UserAnonymized.class, UUID.class);
 	}
 
+	private LocalDate lastMonitoredActivityDate;
+
 	@OneToOne
 	private MessageDestination anonymousDestination;
 
@@ -56,6 +61,17 @@ public class UserAnonymized extends EntityWithUuid
 		this.anonymousDestination = anonymousDestination;
 		this.goals = new HashSet<>(goals);
 		this.buddiesAnonymized = new HashSet<>();
+	}
+
+	public Optional<LocalDate> getLastMonitoredActivityDate()
+	{
+		return Optional.ofNullable(lastMonitoredActivityDate);
+	}
+
+	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
+	{
+		Objects.requireNonNull(lastMonitoredActivityDate);
+		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 	}
 
 	public Set<Goal> getGoals()
