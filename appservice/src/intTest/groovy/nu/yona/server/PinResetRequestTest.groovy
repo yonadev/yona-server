@@ -7,11 +7,9 @@
 package nu.yona.server
 
 
-import groovy.json.*
-
 import java.time.Duration
-import java.time.ZonedDateTime
 
+import groovy.json.*
 import nu.yona.server.test.User
 
 class PinResetRequestTest extends AbstractAppServiceIntegrationTest
@@ -39,7 +37,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 
 		when:
-		def response = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password])
+		def response = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password, "Accept-Language" : "nl-NL"])
 
 		then:
 		response.status == 200
@@ -62,7 +60,7 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 
 	private void sleepTillPinResetCodeIsGenerated(User user, def delayString)
 	{
-		long millis = Duration.parse(delayString).toMillis()
+		long millis = Duration.parse(delayString).toMillis() + 2000 // Add 2 seconds margin, to be sure it's completed
 		println("$YonaServer.now: sleepTillPinResetCodeIsGenerated: delayString=$delayString, user.url=$user.url, millis: $millis. Entering sleep")
 		sleep(millis)
 		println("$YonaServer.now: sleepTillPinResetCodeIsGenerated: sleep completed")

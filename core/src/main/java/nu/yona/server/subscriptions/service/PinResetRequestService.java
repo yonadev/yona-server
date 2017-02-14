@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.batch.client.BatchProxyService;
 import nu.yona.server.exceptions.PinResetRequestConfirmationException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
@@ -38,6 +39,9 @@ public class PinResetRequestService
 	@Autowired
 	private YonaProperties yonaProperties;
 
+	@Autowired
+	private BatchProxyService batchProxyService;
+
 	@Transactional
 	public void requestPinReset(UUID userId)
 	{
@@ -46,7 +50,13 @@ public class PinResetRequestService
 				userEntity.getMobileNumber(), userId);
 		ConfirmationCode confirmationCode = createConfirmationCode(Moment.DELAYED);
 		setConfirmationCode(userEntity, confirmationCode);
-		if (confirmationCode.getConfirmationCode() != null)
+		if (confirmationCode.getConfirmationCode() == null)
+		{
+			LocalDateTime executionTime = TimeUtil.utcNow()
+					.plus(yonaProperties.getSecurity().getPinResetRequestConfirmationCodeDelay());
+			batchProxyService.requestPinResetConfirmationCode(userId, executionTime);
+		}
+		else
 		{
 			sendConfirmationCodeTextMessage(userEntity, confirmationCode);
 		}
