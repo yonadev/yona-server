@@ -228,13 +228,13 @@ public class BuddyService
 		User buddyUser = buddy.getUser();
 		if (buddyUser == null)
 		{
-			logger.info("User with mobile number '{}' and ID '{}' removed buddy whose account is already removed", user.getId(),
-					user.getMobileNumber());
+			logger.info("User with mobile number '{}' and ID '{}' removed buddy whose account is already removed",
+					user.getMobileNumber(), user.getId());
 		}
 		else
 		{
 			logger.info("User with mobile number '{}' and ID '{}' removed buddy with mobile number '{}' and ID '{}' as buddy",
-					user.getId(), user.getMobileNumber(), buddyUser.getMobileNumber(), buddyUser.getId());
+					user.getMobileNumber(), user.getId(), buddyUser.getMobileNumber(), buddyUser.getId());
 		}
 	}
 
