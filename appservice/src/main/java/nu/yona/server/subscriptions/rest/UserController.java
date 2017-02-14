@@ -82,6 +82,7 @@ import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 import nu.yona.server.subscriptions.service.VPNProfileDto;
+import nu.yona.server.util.ThymeleafUtil;
 
 @Controller
 @ExposesResourceFor(UserResource.class)
@@ -161,7 +162,7 @@ public class UserController
 
 	private byte[] getUserSpecificAppleMobileConfig(UserDto privateUser)
 	{
-		Context ctx = new Context();
+		Context ctx = ThymeleafUtil.createContext();
 		ctx.setVariable("ldapUsername", privateUser.getPrivateData().getVpnProfile().getVpnLoginId().toString());
 		ctx.setVariable("ldapPassword", privateUser.getPrivateData().getVpnProfile().getVpnPassword());
 
