@@ -29,7 +29,7 @@ public class BatchProxyService
 	@PostConstruct
 	private void init()
 	{
-		batchServiceUrl = yonaProperties.getBatch().getServiceUrl();
+		batchServiceUrl = yonaProperties.getBatchService().getServiceUrl();
 	}
 
 	public void requestPinResetConfirmationCode(UUID userId, LocalDateTime executionTime)
