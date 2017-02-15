@@ -18,7 +18,7 @@ paths:
         - name: Yona-Password
           in: header
           description: The device password
-          required: true
+          required: false
           type: string
         - name: overwriteUserConfirmationCode
           in: query
