@@ -9,7 +9,13 @@ function waitTillGetWorks() {
 		n=$[$n+1]
 		sleep 5
 	done
-	[ $n -ge 12 ] && echo Failed to get URL $1 within timeout
+	if [ $n -ge 12 ] 
+	then
+		echo Failed to get URL $1 within timeout
+		return -1
+	fi
+
+	return 0
 }
 
 # Go to the home of the root user
