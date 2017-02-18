@@ -1,7 +1,7 @@
 pipeline {
     agent { label 'yona' }
-	offset = 300
     stages {
+		offset = 300
         stage('Build') {
 			steps {
 				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'docker-hub',
