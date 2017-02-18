@@ -1,7 +1,6 @@
 pipeline {
     agent { label 'yona' }
     stages {
-		offset = 300
         stage('Build') {
 			steps {
 				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'docker-hub',
@@ -21,6 +20,14 @@ pipeline {
         stage('Run integration tests') {
 			steps {
 				sh './gradlew -Pyona_appservice_url=http://185.3.209.132 -Pyona_adminservice_url=http://185.3.209.132:8080 -Pyona_analysisservice_url=http://185.3.209.132:8081 intTest'
+            }
+        }
+        stage('Tag revision on GitHub') {
+			steps {
+				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '65325e52-5ec0-46a7-a937-f81f545f3c1b', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD']]) {
+					sh("git tag -a build-$BUILD_NUMBER -m 'Jenkins'")
+					sh('git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/yonadev/yona-server.git --tags')
+				}
             }
         }
     }
