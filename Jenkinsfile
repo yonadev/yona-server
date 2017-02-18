@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Build') {
 			steps {
-				sh `gradlew -PdockerHubUserName=yonabuild -PdockerHubPassword="${dockerpassword}" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage
+				sh 'gradlew -PdockerHubUserName=yonabuild -PdockerHubPassword="${dockerpassword}" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage'
             }
         }
     }
