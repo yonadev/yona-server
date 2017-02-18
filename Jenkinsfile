@@ -1,5 +1,5 @@
 pipeline {
-    agent label 'yona'
+    agent { label 'yona' }
     stages {
         stage('Build') {
 			steps {
