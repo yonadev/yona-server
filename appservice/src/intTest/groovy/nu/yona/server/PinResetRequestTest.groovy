@@ -58,6 +58,42 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
+	def 'Request pin reset twice'()
+	{
+		given:
+		User richard = addRichard()
+		def firstResponse = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password, "Accept-Language" : "nl-NL"])
+		assert firstResponse.status == 200
+		sleepTillPinResetCodeIsGenerated(richard, firstResponse.responseData.delay)
+		richard = appService.reloadUser(richard)
+		assert richard.clearPinResetUrl == richard.url + "/pinResetRequest/clear"
+		assert appService.yonaServer.postJson(richard.clearPinResetUrl, [:], ["Yona-Password" : richard.password]).status == 200
+		richard = appService.reloadUser(richard)
+		assert richard.pinResetRequestUrl != null
+
+		when:
+		def response = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password, "Accept-Language" : "nl-NL"])
+
+		then:
+		response.status == 200
+		response.responseData.delay == "PT10S"
+		User  richardAfterGet = appService.reloadUser(richard)
+		!richardAfterGet.pinResetRequestUrl
+
+		!richardAfterGet.verifyPinResetUrl
+		!richardAfterGet.clearPinResetUrl
+
+		sleepTillPinResetCodeIsGenerated(richard, response.responseData.delay)
+		User  richardAfterDelayedGet = appService.reloadUser(richard)
+		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
+		richardAfterDelayedGet.verifyPinResetUrl == richard.url + "/pinResetRequest/verify"
+		richardAfterDelayedGet.clearPinResetUrl == richard.url + "/pinResetRequest/clear"
+
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	private void sleepTillPinResetCodeIsGenerated(User user, def delayString)
 	{
 		long millis = Duration.parse(delayString).toMillis() + 2000 // Add 2 seconds margin, to be sure it's completed
