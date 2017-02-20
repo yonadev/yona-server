@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e # Fail on error
 
-export jenkinsUrl="https://yonadev.ci.cloudbees.com/job/build-yonadev-master/lastSuccessfulBuild/api/xml?xpath=/freeStyleBuild/number/text()"
+export jenkinsUrl="https://yonadev.ci.cloudbees.com/job/build-and-test/job/master/lastSuccessfulBuild/api/xml?xpath=/workflowRun/action/buildsByBranchName/master/buildNumber/text()"
 #Extra curl call to ensure we fail if curl fails
 curl -f -s -H "Accept:application/json" "$jenkinsUrl"
 
