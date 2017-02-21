@@ -1,5 +1,6 @@
 package nu.yona.server.batch.service;
 
+import java.util.Date;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -56,7 +57,7 @@ public class BatchTaskService
 			launcher.setTaskExecutor(new SimpleAsyncTaskExecutor());
 
 			JobParameters jobParameters = new JobParametersBuilder().addString("userId", userId.toString())
-					.addString("locale", localeString).toJobParameters();
+					.addString("locale", localeString).addDate("uniqueInstanceId", new Date()).toJobParameters();
 			launcher.run(pinResetConfirmationCodeSenderJob, jobParameters);
 		}
 		catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
