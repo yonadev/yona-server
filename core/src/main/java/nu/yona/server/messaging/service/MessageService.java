@@ -6,6 +6,7 @@ package nu.yona.server.messaging.service;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,12 +82,13 @@ public class MessageService
 
 	// handle in a separate transaction to limit exceptions caused by concurrent calls to this method
 	@Transactional
-	public void transferDirectMessagesToAnonymousDestination(UUID userId)
+	public void prepareMessageCollection(UUID userId)
 	{
 		UserDto user = userService.getPrivateValidatedUser(userId);
 		try
 		{
 			tryTransferDirectMessagesToAnonymousDestination(user);
+			tryProcessUnprocessedMessages(user);
 		}
 		catch (DataIntegrityViolationException e)
 		{
@@ -121,6 +123,19 @@ public class MessageService
 		}
 		MessageDestination.getRepository().save(directMessageDestination);
 		MessageDestination.getRepository().save(anonymousMessageDestination);
+	}
+
+	private void tryProcessUnprocessedMessages(UserDto user)
+	{
+		MessageDestination anonymousMessageDestination = getAnonymousMessageSource(user).getDestination();
+		List<Long> idsOfUnprocessedMessages = Message.getRepository()
+				.findUnprocessedMessagesFromDestination(anonymousMessageDestination.getId());
+
+		MessageActionDto emptyPayload = new MessageActionDto(Collections.emptyMap());
+		for (long id : idsOfUnprocessedMessages)
+		{
+			handleMessageAction(user.getId(), id, "process", emptyPayload);
+		}
 	}
 
 	@Transactional
@@ -179,7 +194,7 @@ public class MessageService
 	private Page<MessageDto> wrapMessagesAsDtos(UserDto user, Page<? extends Message> messageEntities, Pageable pageable)
 	{
 		List<MessageDto> allMessagePayloads = wrapMessagesAsDtos(user, messageEntities.getContent());
-		return new PageImpl<MessageDto>(allMessagePayloads, pageable, messageEntities.getTotalElements());
+		return new PageImpl<>(allMessagePayloads, pageable, messageEntities.getTotalElements());
 	}
 
 	private List<MessageDto> wrapMessagesAsDtos(UserDto user, List<? extends Message> messageEntities)
@@ -255,8 +270,7 @@ public class MessageService
 	@Transactional
 	public void broadcastSystemMessage(String messageText)
 	{
-		userAnonymizedService.getAllUsersAnonymized()
-				.forEach(userAnonymized -> sendSystemMessage(messageText, userAnonymized));
+		userAnonymizedService.getAllUsersAnonymized().forEach(userAnonymized -> sendSystemMessage(messageText, userAnonymized));
 	}
 
 	private void sendSystemMessage(String messageText, UserAnonymizedDto recipient)
