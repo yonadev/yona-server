@@ -76,29 +76,29 @@ public class TemplateTest
 	@Test
 	public void testSms()
 	{
-		String requestingUserName = "john";
+		String requestingUserFirstName = "john";
 		String emailAddress = "a@b.c";
-		String result = buildSms(Optional.empty(), requestingUserName, emailAddress);
+		String result = buildSms(Optional.empty(), requestingUserFirstName, emailAddress);
 		String expectedResult = MessageFormat.format("You have been invited to Yona by {0}. Please check your email at {1}!",
-				requestingUserName, emailAddress);
+				requestingUserFirstName, emailAddress);
 		assertThat(result, equalTo(expectedResult));
 	}
 
 	@Test
 	public void testDutchSms()
 	{
-		String requestingUserName = "john";
+		String requestingUserFirstName = "john";
 		String emailAddress = "a@b.c";
-		String result = buildSms(Optional.of(Locale.forLanguageTag("nl-NL")), requestingUserName, emailAddress);
+		String result = buildSms(Optional.of(Locale.forLanguageTag("nl-NL")), requestingUserFirstName, emailAddress);
 		String expectedResult = MessageFormat.format("{0} heeft je uitgenodigd voor Yona. Zie je mail op {1}!",
-				requestingUserName, emailAddress);
+				requestingUserFirstName, emailAddress);
 		assertThat(result, equalTo(expectedResult));
 	}
 
-	private String buildSms(Optional<Locale> locale, String requestingUserName, String emailAddress)
+	private String buildSms(Optional<Locale> locale, String requestingUserFirstName, String emailAddress)
 	{
 		Context ctx = ThymeleafUtil.createContext();
-		ctx.setVariable("requestingUserName", requestingUserName);
+		ctx.setVariable("requestingUserFirstName", requestingUserFirstName);
 		ctx.setVariable("emailAddress", emailAddress);
 		locale.ifPresent(l -> ctx.setLocale(l));
 
