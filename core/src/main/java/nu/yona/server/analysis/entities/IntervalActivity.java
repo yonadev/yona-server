@@ -178,7 +178,7 @@ public abstract class IntervalActivity extends EntityWithId
 		List<Integer> integers = new ArrayList<>(spread.length);
 		for (int i = 0; (i < spread.length); i++)
 		{
-			integers.set(i, (int) spread[i]);
+			integers.add((int) spread[i]);
 		}
 		return integers;
 	}

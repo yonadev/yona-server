@@ -182,6 +182,15 @@ public class DayActivity extends IntervalActivity
 	}
 
 	@Override
+	public void computeAggregates()
+	{
+		totalMinutesBeyondGoal = computeTotalMinutesBeyondGoal();
+		goalAccomplished = computeGoalAccomplished();
+
+		super.computeAggregates();
+	}
+
+	@Override
 	protected int computeTotalActivityDurationMinutes()
 	{
 		return activities.stream().map(activity -> activity.getDurationMinutes()).reduce(0, Integer::sum);
