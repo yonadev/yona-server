@@ -51,4 +51,48 @@ public class WeekActivityTests extends IntervalActivityTestsBase
 
 		assertSpreadItemsAndTotal(w, "77=0,78=5,79=20,80=1,81=1,82=0", 27);
 	}
+
+	@Test
+	public void testResetAggregatesComputedRecomputesSpreadAggregates()
+	{
+		WeekActivity w = createWeekActivity();
+		DayActivity d1 = createDayActivity(w, 0);
+		addActivity(d1, "19:55", "19:59");
+		w.addDayActivity(d1);
+		d1.computeAggregates();
+		w.computeAggregates();
+
+		addActivity(d1, "20:05", "20:07");
+
+		assertSpreadItemsAndTotal(w, "78=0,79=4,80=2,81=0", 6);
+	}
+
+	@Test
+	public void testResetAggregatesComputedDayActivityResetsAggregatesComputed()
+	{
+		WeekActivity w = createWeekActivity();
+		DayActivity d1 = createDayActivity(w, 0);
+		w.addDayActivity(d1);
+		d1.computeAggregates();
+		w.computeAggregates();
+		assertThat(w.areAggregatesComputed(), equalTo(true));
+
+		addActivity(d1, "20:05", "20:07");
+
+		assertThat(w.areAggregatesComputed(), equalTo(false));
+	}
+
+	@Test
+	public void testAddDayActivityResetAggregatesComputed()
+	{
+		WeekActivity w = createWeekActivity();
+		w.computeAggregates();
+		assertThat(w.areAggregatesComputed(), equalTo(true));
+
+		DayActivity d1 = createDayActivity(w, 0);
+		addActivity(d1, "20:05", "20:07");
+		w.addDayActivity(d1);
+
+		assertThat(w.areAggregatesComputed(), equalTo(false));
+	}
 }

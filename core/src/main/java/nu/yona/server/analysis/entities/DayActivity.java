@@ -86,6 +86,19 @@ public class DayActivity extends IntervalActivity
 		activity.setDayActivity(this);
 		activity.setActivityCategory(getGoal().getActivityCategory());
 		this.activities.add(activity);
+
+		this.resetAggregatesComputed();
+	}
+
+	@Override
+	protected void resetAggregatesComputed()
+	{
+		super.resetAggregatesComputed();
+
+		if (weekActivity != null)
+		{
+			weekActivity.resetAggregatesComputed();
+		}
 	}
 
 	public WeekActivity getWeekActivity()

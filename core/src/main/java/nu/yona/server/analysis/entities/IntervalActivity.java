@@ -21,6 +21,9 @@ import javax.persistence.InheritanceType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import nu.yona.server.entities.EntityUtil;
 import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.RepositoryProvider;
@@ -40,6 +43,8 @@ public abstract class IntervalActivity extends EntityWithId
 	{
 		return (IntervalActivityRepository) RepositoryProvider.getRepository(IntervalActivity.class, Long.class);
 	}
+
+	private static final Logger logger = LoggerFactory.getLogger(IntervalActivity.class);
 
 	public static final int SPREAD_COUNT = 96;
 
@@ -149,6 +154,16 @@ public abstract class IntervalActivity extends EntityWithId
 		spread = spreadIntegersAsByteList(computeSpread());
 		totalActivityDurationMinutes = computeTotalActivityDurationMinutes();
 		aggregatesComputed = true;
+	}
+
+	protected void resetAggregatesComputed()
+	{
+		if (aggregatesComputed)
+		{
+			logger.info("Resetting aggregates computed on {} interval activity with id {} and start date {}", this.getTimeUnit(),
+					this.getId(), this.startDate);
+			aggregatesComputed = false;
+		}
 	}
 
 	public List<Integer> getSpread()

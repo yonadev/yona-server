@@ -92,6 +92,56 @@ public class DayActivityTests extends IntervalActivityTestsBase
 	}
 
 	@Test
+	public void testSetActivityEndTimeResetsAggregatesComputed()
+	{
+		DayActivity d = createDayActivity();
+		addActivity(d, "19:55", "19:59");
+		d.computeAggregates();
+		assertThat(d.areAggregatesComputed(), equalTo(true));
+
+		d.getLastActivity().setEndTime(d.getLastActivity().getEndTime().plusMinutes(5));
+
+		assertThat(d.areAggregatesComputed(), equalTo(false));
+	}
+
+	@Test
+	public void testAddActivityResetsAggregatesComputed()
+	{
+		DayActivity d = createDayActivity();
+		addActivity(d, "19:55", "19:59");
+		d.computeAggregates();
+		assertThat(d.areAggregatesComputed(), equalTo(true));
+
+		addActivity(d, "20:05", "20:07");
+
+		assertThat(d.areAggregatesComputed(), equalTo(false));
+	}
+
+	@Test
+	public void testResetAggregatesComputedRecomputesSpreadAggregates()
+	{
+		DayActivity d = createDayActivity();
+		addActivity(d, "19:55", "19:59");
+		d.computeAggregates();
+
+		addActivity(d, "20:05", "20:07");
+
+		assertSpreadItemsAndTotal(d, "78=0,79=4,80=2,81=0", 6);
+	}
+
+	@Test
+	public void testResetGoalAggregatesComputedRecomputesGoalAggregates()
+	{
+		DayActivity d = createDayActivity();
+		addActivity(d, "19:00", "19:31");
+		d.computeAggregates();
+
+		addActivity(d, "20:00", "20:30");
+
+		assertGoalMinutesBeyondAndAccomplished(d, 1, false);
+	}
+
+	@Test
 	public void testBudgetGoalBelowBudget()
 	{
 		DayActivity d = createDayActivity();
