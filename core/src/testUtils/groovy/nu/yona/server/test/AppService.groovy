@@ -273,10 +273,7 @@ class AppService extends Service
 		assert acceptResponse.status == 200
 
 		def processUrl = fetchBuddyConnectResponseMessage(requestingUser).processUrl
-
-		// Have the requesting user process the buddy connect response
-		def processResponse = postMessageActionWithPassword(processUrl, [ : ], requestingUser.password)
-		assert processResponse.status == 200
+		assert processUrl == null // Processing happens automatically these days
 	}
 
 	def sendBuddyConnectRequest(sendingUser, receivingUser)
@@ -341,7 +338,7 @@ class AppService extends Service
 		assert response.responseData._embedded
 
 		def buddyConnectResponseMessages = response.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}
-		assert buddyConnectResponseMessages[0]._links."yona:process".href
+		assert buddyConnectResponseMessages[0]._links."yona:process" == null // Processing happens automatically these days
 		def selfUrl = buddyConnectResponseMessages[0]?._links?.self?.href
 		def message = buddyConnectResponseMessages[0]?.message ?: null
 		def status = buddyConnectResponseMessages[0]?.status ?: null

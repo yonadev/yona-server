@@ -38,6 +38,8 @@ if ERRORLEVEL 1 goto error
 curl %CURLOPT% http://localhost:8082/activityCategories/ > nul
 if ERRORLEVEL 1 goto error
 
+if "%1"=="-keepDB" goto end
+
 echo.
 echo Load the activity categories
 echo.

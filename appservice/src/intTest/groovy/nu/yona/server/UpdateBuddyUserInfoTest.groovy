@@ -32,18 +32,11 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
-		buddyInfoUpdateMessages[0]._links."yona:process" != null
+		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
 		buddyInfoUpdateMessages[0]._links."yona:user".href == bob.url
 		buddyInfoUpdateMessages[0]._links."yona:buddy".href == richard.buddies[0].url
-		buddyInfoUpdateMessages[0].nickname == "BD"
+		buddyInfoUpdateMessages[0].nickname == "Bobby"
 		buddyInfoUpdateMessages[0].message == "User changed personal info"
-
-		def processResponse = appService.postMessageActionWithPassword(buddyInfoUpdateMessages[0]._links."yona:process".href, [ : ], richard.password)
-		processResponse.status == 200
-		processResponse.responseData.properties.status == "done"
-		processResponse.responseData._embedded."yona:affectedMessages".size() == 1
-		processResponse.responseData._embedded."yona:affectedMessages"[0]._links.self.href == buddyInfoUpdateMessages[0]._links.self.href
-		processResponse.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
 
 		User richardAfterProcess = appService.reloadUser(richard)
 		richardAfterProcess.buddies[0].nickname == "Bobby"
@@ -72,18 +65,11 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		then:
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
-		buddyInfoUpdateMessages[0]._links."yona:process" != null
+		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
 		buddyInfoUpdateMessages[0]._links."yona:user".href == bob.url
 		buddyInfoUpdateMessages[0]._links."yona:buddy".href == richard.buddies[0].url
 		buddyInfoUpdateMessages[0].nickname == "BD"
 		buddyInfoUpdateMessages[0].message == "User changed personal info"
-
-		def processResponse = appService.postMessageActionWithPassword(buddyInfoUpdateMessages[0]._links."yona:process".href, [ : ], richard.password)
-		processResponse.status == 200
-		processResponse.responseData.properties.status == "done"
-		processResponse.responseData._embedded."yona:affectedMessages".size() == 1
-		processResponse.responseData._embedded."yona:affectedMessages"[0]._links.self.href == buddyInfoUpdateMessages[0]._links.self.href
-		processResponse.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
 
 		User richardAfterProcess = appService.reloadUser(richard)
 		richardAfterProcess.buddies[0].nickname == "BD"
