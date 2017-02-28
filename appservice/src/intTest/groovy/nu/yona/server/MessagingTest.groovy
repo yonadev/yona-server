@@ -156,31 +156,6 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Richard tries to delete Bob\'s buddy acceptance before it is processed'()
-	{
-		given:
-		def richard = addRichard()
-		def bob = addBob()
-		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
-		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
-		def messageUrl = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}[0]._links.self.href
-
-		when:
-		def response = appService.deleteResourceWithPassword(messageUrl, richard.password)
-
-		then:
-		response.status == 400
-		response.responseData?.code == "error.cannot.delete.unprocessed.message"
-		def buddyConnectResponseMessages = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}
-		buddyConnectResponseMessages.size() == 1
-		!buddyConnectResponseMessages[0]._links.edit
-
-		cleanup:
-		appService.deleteUser(richard)
-		appService.deleteUser(bob)
-	}
-
 	def 'Richard deletes Bob\'s buddy acceptance after it is processed'()
 	{
 		given:
@@ -189,8 +164,7 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		appService.sendBuddyConnectRequest(richard, bob)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
 		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
-		def processUrl = appService.fetchBuddyConnectResponseMessage(richard).processUrl
-		def processResponse = appService.postMessageActionWithPassword(processUrl, [ : ], richard.password)
+		appService.fetchBuddyConnectResponseMessage(richard).processUrl == null // Processing happens automatically these days
 		def messageDeleteUrl = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}[0]._links.edit.href
 
 		when:

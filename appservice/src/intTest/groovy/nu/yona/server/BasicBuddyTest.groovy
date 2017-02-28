@@ -160,6 +160,8 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
 
 		when:
+		sleep(100) // So we are sure the request time differs from the processing time
+		ZonedDateTime buddyResponseProcessTime = YonaServer.now
 		def response = appService.getMessages(richard)
 
 		then:
@@ -172,39 +174,9 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertEquals(buddyConnectResponseMessages[0].creationTime, YonaServer.now)
 		buddyConnectResponseMessages[0].status == "ACCEPTED"
 		buddyConnectResponseMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
-		buddyConnectResponseMessages[0]._links."yona:process".href.startsWith(buddyConnectResponseMessages[0]._links.self.href)
+		buddyConnectResponseMessages[0]._links."yona:process" == null // Processing happens automatically these days
 
 		assertMarkReadUnread(richard, buddyConnectResponseMessages[0])
-
-		cleanup:
-		appService.deleteUser(richard)
-		appService.deleteUser(bob)
-	}
-
-	def 'Richard processes Bob\'s buddy acceptance'()
-	{
-		given:
-		User richard = addRichard()
-		User bob = addBob()
-		appService.sendBuddyConnectRequest(richard, bob)
-		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
-		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
-		def connectResponseMessage = appService.fetchBuddyConnectResponseMessage(richard)
-		def processUrl = connectResponseMessage.processUrl
-
-		when:
-		sleep(100) // So we are sure the request time differs from the processing time
-		ZonedDateTime buddyResponseProcessTime = YonaServer.now
-		def response = appService.postMessageActionWithPassword(processUrl, [ : ], richard.password)
-
-		then:
-		response.status == 200
-		response.responseData.properties.status == "done"
-		response.responseData._embedded."yona:affectedMessages".size() == 1
-		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == connectResponseMessage.selfUrl
-		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
-		def buddyUrl = response.responseData._embedded."yona:affectedMessages"[0]._links."yona:buddy"?.href
-		buddyUrl != null
 
 		def buddies = appService.getBuddies(richard)
 		buddies.size() == 1
@@ -212,7 +184,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddies[0].nickname == bob.nickname
 		buddies[0].sendingStatus == "ACCEPTED"
 		buddies[0].receivingStatus == "ACCEPTED"
-		buddies[0].url == buddyUrl
+		buddies[0].url == buddyConnectResponseMessages[0]._links."yona:buddy".href
 
 		def richardWithBuddy = appService.reloadUser(richard)
 		richardWithBuddy.buddies != null
@@ -298,6 +270,38 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		bobGoalConflictMessages[0]._links."yona:activityCategory".href == NEWS_ACT_CAT_URL
 		bobGoalConflictMessages[0]._links."yona:buddy"?.href == bob.buddies[0].url
 		bobGoalConflictMessages[0].url == null
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Goal conflict of Bob immediately after Bob\'s buddy acceptance is reported to Richard and Bob'()
+	{
+		given:
+		User richard = addRichard()
+		User bob = addBob()
+		appService.sendBuddyConnectRequest(richard, bob)
+		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
+		assert appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password).status == 200
+
+		when:
+		def response = analysisService.postToAnalysisEngine(bob, ["news/media"], "http://www.refdag.nl")
+
+		then:
+		response.status == 200
+		def getMessagesRichardResponse = appService.getMessages(richard)
+		getMessagesRichardResponse.status == 200
+		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "GoalConflictMessage" }
+		richardGoalConflictMessages.size() == 1
+		richardGoalConflictMessages[0].nickname == bob.nickname
+
+		def getMessagesBobResponse = appService.getMessages(bob)
+		getMessagesBobResponse.status == 200
+		def bobGoalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		bobGoalConflictMessages.size() == 1
+		bobGoalConflictMessages[0].nickname == "BD (me)"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -525,37 +529,9 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertEquals(buddyDisconnectMessages[0].creationTime, YonaServer.now)
 		buddyDisconnectMessages[0].message == message
 		buddyDisconnectMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
-		buddyDisconnectMessages[0]._links."yona:process".href.startsWith(buddyDisconnectMessages[0]._links.self.href)
+		buddyDisconnectMessages[0]._links."yona:process" == null // Processing happens automatically these days
 
 		assertMarkReadUnread(bob, buddyDisconnectMessages[0])
-
-		cleanup:
-		appService.deleteUser(richard)
-		appService.deleteUser(bob)
-	}
-
-	def 'Bob processes the buddy removal of Richard, so Richard is removed from his buddy list'()
-	{
-		given:
-		def richardAndBob = addRichardAndBobAsBuddies()
-		User richard = richardAndBob.richard
-		User bob = richardAndBob.bob
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
-		def buddy = appService.getBuddies(richard)[0]
-		def message = "Bob, as you know our ways parted, so I'll remove you as buddy."
-		appService.removeBuddy(richard, buddy, message)
-		def disconnectMessage = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		def processUrl = disconnectMessage._links."yona:process".href
-
-		when:
-		def response = appService.postMessageActionWithPassword(processUrl, [ : ], bob.password)
-
-		then:
-		response.status == 200
-		response.responseData._embedded."yona:affectedMessages".size() == 1
-		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == disconnectMessage._links.self.href
-		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
 
 		appService.getBuddies(bob).size() == 0
 
@@ -585,10 +561,6 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 200
 
-		richard.buddies.size() == 1 // Buddy not yet removed for Richard (not processed yet)
-		assertDateTimeFormat(richard.buddies[0].lastStatusChangeTime)
-		assertEquals(richard.buddies[0].lastStatusChangeTime, removeBuddyTime)
-
 		def buddyDisconnectMessages = response.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}
 		buddyDisconnectMessages.size() == 1
 		buddyDisconnectMessages[0].reason == "USER_REMOVED_BUDDY"
@@ -598,37 +570,9 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		assertEquals(buddyDisconnectMessages[0].creationTime, YonaServer.now)
 		buddyDisconnectMessages[0].message == message
 		buddyDisconnectMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
-		buddyDisconnectMessages[0]._links."yona:process".href.startsWith(buddyDisconnectMessages[0]._links.self.href)
+		buddyDisconnectMessages[0]._links."yona:process" == null // Processing happens automatically these days
 
-		cleanup:
-		appService.deleteUser(richard)
-		appService.deleteUser(bob)
-	}
-
-	def 'Richard processes the buddy removal of Bob, so Bob is removed from his buddy list'()
-	{
-		given:
-		def richardAndBob = addRichardAndBobAsBuddies()
-		User richard = richardAndBob.richard
-		User bob = richardAndBob.bob
-		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
-		def buddy = appService.getBuddies(bob)[0]
-		def message = "Richard, as you know our ways parted, so I'll remove you as buddy."
-		appService.removeBuddy(bob, buddy, message)
-		def disconnectMessage = appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		def processUrl = disconnectMessage._links."yona:process".href
-
-		when:
-		def response = appService.postMessageActionWithPassword(processUrl, [ : ], richard.password)
-
-		then:
-		response.status == 200
-		response.responseData._embedded."yona:affectedMessages".size() == 1
-		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == disconnectMessage._links.self.href
-		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
-
-		appService.getBuddies(richard).size() == 0
+		richard.buddies.size() == 0 // Buddy not yet removed for Richard (not processed yet)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -702,13 +646,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.getMessages(bob).responseData.page.totalElements == 1 // Only the disconnect message
 
 		def disconnectMessage = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		def processUrl = disconnectMessage._links."yona:process".href
-
-		def responseProcessDisconnect = appService.postMessageActionWithPassword(processUrl, [ : ], bob.password)
-		responseProcessDisconnect.status == 200
-		responseProcessDisconnect.responseData._embedded."yona:affectedMessages".size() == 1
-		responseProcessDisconnect.responseData._embedded."yona:affectedMessages"[0]._links.self.href == disconnectMessage._links.self.href
-		responseProcessDisconnect.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
+		disconnectMessage._links."yona:process" == null // Processing happens automatically these days
 
 		appService.getBuddies(bob).size() == 0 // Buddy removed now
 
@@ -742,9 +680,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		messagesRichard.responseData.page.totalElements == 1
 		messagesRichard.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}?.size() == 1
 		def disconnectMessage = messagesRichard.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		def processUrl = disconnectMessage._links."yona:process".href
-		def responseProcessDisconnect = appService.postMessageActionWithPassword(processUrl, [ : ], richard.password)
-		responseProcessDisconnect.status == 200
+		disconnectMessage._links."yona:process" == null // Processing happens automatically these days
 
 		appService.getBuddies(richard).size() == 0 // Buddy now removed for Richard
 
@@ -864,9 +800,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 	private void processBuddyDisconnectMessage(User user)
 	{
 		def disconnectMessage = appService.getMessages(user).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]
-		def processUrl = disconnectMessage._links."yona:process".href
-		def response = appService.postMessageActionWithPassword(processUrl, [ : ], user.password)
-		response.status == 200
+		disconnectMessage._links."yona:process" == null // Processing happens automatically these days
 	}
 
 	private void assertGoalConflictIsReportedToBuddy(User user, User buddy)

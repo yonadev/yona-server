@@ -6,6 +6,7 @@ package nu.yona.server.messaging.entities;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -39,6 +40,9 @@ public interface MessageRepository extends CrudRepository<Message, Long>
 	@Query("select m from Message m, MessageDestination d where d.id = :destinationId and m.creationTime >= :earliestDateTime and m.isSentItem = false and m member of d.messages order by m.creationTime desc")
 	Page<Message> findReceivedMessagesFromDestinationSinceDate(@Param("destinationId") UUID destinationId,
 			@Param("earliestDateTime") LocalDateTime earliestDateTime, Pageable pageable);
+
+	@Query("select m.id from Message m, MessageDestination d where d.id = :destinationId and m.isProcessed = false and m member of d.messages order by m.id desc")
+	List<Long> findUnprocessedMessagesFromDestination(@Param("destinationId") UUID destinationId);
 
 	@Modifying
 	@Query("delete from Message m where m.intervalActivity in :intervalActivities")

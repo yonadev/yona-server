@@ -106,7 +106,7 @@ public class MessageController
 	private HttpEntity<PagedResources<MessageDto>> getMessages(UUID userId, Pageable pageable,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler, boolean onlyUnreadMessages)
 	{
-		messageService.transferDirectMessagesToAnonymousDestination(userId);
+		messageService.prepareMessageCollection(userId);
 		Page<MessageDto> messages = messageService.getReceivedMessages(userId, onlyUnreadMessages, pageable);
 		return createOkResponse(pagedResourcesAssembler.toResource(messages,
 				new MessageResourceAssembler(curieProvider, createGoalIdMapping(userId), this)));

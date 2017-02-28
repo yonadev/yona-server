@@ -28,7 +28,7 @@ public class PinResetConfirmationCodeSendRequestDto
 
 	@JsonCreator
 	public PinResetConfirmationCodeSendRequestDto(@JsonProperty("userId") UUID userId,
-			@JsonFormat(pattern = Constants.ISO_DATE_PATTERN) @JsonProperty("executionTime") Date executionTime,
+			@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("executionTime") Date executionTime,
 			@JsonProperty("localeString") String localeString)
 	{
 		this(userId, TimeUtil.toUtcLocalDateTime(executionTime), localeString);
@@ -52,9 +52,9 @@ public class PinResetConfirmationCodeSendRequestDto
 	}
 
 	// Jackson fails on LocalDateTime, so use Date to serialize
-	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
+	@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)
 	@JsonProperty("executionTime")
-	public Date getExecutionTimeAsUtilDate()
+	public Date getExecutionTimeAsDate()
 	{
 		return TimeUtil.toDate(executionTime);
 	}
