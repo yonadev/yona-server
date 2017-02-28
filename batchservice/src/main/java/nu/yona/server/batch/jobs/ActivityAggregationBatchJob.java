@@ -11,15 +11,19 @@ import java.util.Collections;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +35,8 @@ import nu.yona.server.util.TimeUtil;
 @Component
 public class ActivityAggregationBatchJob
 {
+	private static final Logger logger = LoggerFactory.getLogger(ActivityAggregationBatchJob.class);
+
 	private static final int DAY_ACTIVITY_CHUNK_SIZE = 10;
 	private static final int WEEK_ACTIVITY_CHUNK_SIZE = 10;
 	// once we have users in multiple zones, the batch job should become sensitive to user time zone
@@ -45,6 +51,14 @@ public class ActivityAggregationBatchJob
 	@PersistenceContext
 	private EntityManager entityManager;
 
+	@Autowired
+	@Qualifier("activityAggregationJobDayActivityReader")
+	private JpaPagingItemReader<DayActivity> dayActivityReader;
+
+	@Autowired
+	@Qualifier("activityAggregationJobWeekActivityReader")
+	private JpaPagingItemReader<WeekActivity> weekActivityReader;
+
 	@Bean("activityAggregationJob")
 	public Job activityAggregationBatchJob()
 	{
@@ -55,20 +69,22 @@ public class ActivityAggregationBatchJob
 	private Step aggregateDayActivities()
 	{
 		return stepBuilderFactory.get("aggregateDayActivities").<DayActivity, DayActivity> chunk(DAY_ACTIVITY_CHUNK_SIZE)
-				.reader(dayActivityReader()).processor(dayActivityProcessor()).writer(dayActivityWriter()).build();
+				.reader(dayActivityReader).processor(dayActivityProcessor()).writer(dayActivityWriter()).build();
 	}
 
 	private Step aggregateWeekActivities()
 	{
 		return stepBuilderFactory.get("aggregateWeekActivities").<WeekActivity, WeekActivity> chunk(WEEK_ACTIVITY_CHUNK_SIZE)
-				.reader(weekActivityReader()).processor(weekActivityProcessor()).writer(weekActivityWriter()).build();
+				.reader(weekActivityReader).processor(weekActivityProcessor()).writer(weekActivityWriter()).build();
 	}
 
-	private JpaPagingItemReader<DayActivity> dayActivityReader()
+	@Bean(name = "activityAggregationJobDayActivityReader", destroyMethod = "")
+	@StepScope
+	public JpaPagingItemReader<DayActivity> dayActivityReader()
 	{
 		try
 		{
-			String jpqlQuery = "SELECT d FROM DayActivity d WHERE d.startDate <= :yesterday";
+			String jpqlQuery = "SELECT d FROM DayActivity d WHERE d.startDate <= :yesterday AND d.aggregatesComputed = false";
 
 			JpaPagingItemReader<DayActivity> reader = new JpaPagingItemReader<>();
 			reader.setQueryString(jpqlQuery);
@@ -93,6 +109,9 @@ public class ActivityAggregationBatchJob
 			@Override
 			public DayActivity process(DayActivity dayActivity) throws Exception
 			{
+				logger.debug("Processing day activity with id {}, start date {}", dayActivity.getId(),
+						dayActivity.getStartDate());
+
 				dayActivity.computeAggregates();
 				return dayActivity;
 			}
@@ -107,11 +126,13 @@ public class ActivityAggregationBatchJob
 		return writer;
 	}
 
-	private JpaPagingItemReader<WeekActivity> weekActivityReader()
+	@Bean(name = "activityAggregationJobWeekActivityReader", destroyMethod = "")
+	@StepScope
+	public JpaPagingItemReader<WeekActivity> weekActivityReader()
 	{
 		try
 		{
-			String jpqlQuery = "SELECT w FROM WeekActivity w WHERE w.startDate <= :lastWeek";
+			String jpqlQuery = "SELECT w FROM WeekActivity w WHERE w.startDate <= :lastWeek AND w.aggregatesComputed = false";
 
 			JpaPagingItemReader<WeekActivity> reader = new JpaPagingItemReader<>();
 			reader.setQueryString(jpqlQuery);
@@ -136,6 +157,9 @@ public class ActivityAggregationBatchJob
 			@Override
 			public WeekActivity process(WeekActivity weekActivity) throws Exception
 			{
+				logger.debug("Processing week activity with id {}, start date {}", weekActivity.getId(),
+						weekActivity.getStartDate());
+
 				weekActivity.computeAggregates();
 				return weekActivity;
 			}

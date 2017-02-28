@@ -16,16 +16,13 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.batch.client.PinResetConfirmationCodeSendRequestDto;
 import nu.yona.server.exceptions.YonaException;
-import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.util.TimeUtil;
 
 @Service
@@ -40,9 +37,6 @@ public class BatchTaskService
 	private JobRepository jobRepository;
 
 	@Autowired
-	private YonaProperties yonaProperties;
-
-	@Autowired
 	@Qualifier("pinResetConfirmationCodeSenderJob")
 	private Job pinResetConfirmationCodeSenderJob;
 
@@ -50,18 +44,7 @@ public class BatchTaskService
 	@Qualifier("activityAggregationJob")
 	private Job activityAggregationJob;
 
-	/*
-	 * This method is created as alternative to the Spring expression @Scheduled annotation referencing application properties, as
-	 * that is not supported yet.
-	 */
-	@EventListener({ ContextRefreshedEvent.class })
-	void onContextStarted(ContextRefreshedEvent event)
-	{
-		scheduler.schedule(this::aggregateActivities,
-				new CronTrigger(yonaProperties.getBatchService().getActivityAggregationJobCronExpression()));
-	}
-
-	// @Scheduled(cron = "${yona.batchService.activityAggregationJobCronExpression}")
+	@Scheduled(cron = "${yona.batchService.activityAggregationJobCronExpression}")
 	private void aggregateActivities()
 	{
 		try
