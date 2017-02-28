@@ -7,98 +7,30 @@ package nu.yona.server.analysis.service;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import java.text.MessageFormat;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
 
-import org.junit.Before;
 import org.junit.Test;
 
-import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.DayActivity;
-import nu.yona.server.crypto.pubkey.PublicKeyUtil;
-import nu.yona.server.goals.entities.ActivityCategory;
-import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.goals.entities.TimeZoneGoal;
-import nu.yona.server.messaging.entities.MessageDestination;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
-import nu.yona.server.util.TimeUtil;
 
-public class DayActivityTests
+public class DayActivityTests extends IntervalActivityTestsBase
 {
-	private ZoneId testZone;
-
-	private BudgetGoal budgetGoal;
-	private TimeZoneGoal timeZoneGoal;
-
-	private UserAnonymized userAnonEntity;
-
-	@Before
-	public void setUp()
-	{
-		testZone = ZoneId.of("Europe/Amsterdam");
-		ActivityCategory activityCategory = ActivityCategory.createInstance(UUID.randomUUID(),
-				Collections.singletonMap(Locale.US, "being bored"), false, Collections.emptySet(), Collections.emptySet(),
-				Collections.singletonMap(Locale.US, "Descr"));
-		budgetGoal = BudgetGoal.createInstance(TimeUtil.utcNow(), activityCategory, 60);
-		timeZoneGoal = TimeZoneGoal.createInstance(TimeUtil.utcNow(), activityCategory,
-				Arrays.asList("05:00-12:30", "13:00-24:00"));
-		// Set up UserAnonymized instance.
-		MessageDestination anonMessageDestinationEntity = MessageDestination
-				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
-		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(budgetGoal));
-		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
-	}
-
-	private ZonedDateTime getZonedDateTime(int hour, int minute, int second)
-	{
-		return ZonedDateTime.of(2016, 3, 17, hour, minute, second, 0, testZone);
-	}
-
 	private DayActivity createDayActivity()
 	{
-		return DayActivity.createInstance(userAnonEntity, budgetGoal, testZone, getZonedDateTime(0, 0, 0).toLocalDate());
+		return createDayActivity(budgetGoal);
 	}
 
 	private DayActivity createDayActivityTimeZoneGoal()
 	{
-		return DayActivity.createInstance(userAnonEntity, timeZoneGoal, testZone, getZonedDateTime(0, 0, 0).toLocalDate());
+		return createDayActivity(timeZoneGoal);
 	}
 
-	private ZonedDateTime getDate(String timeString)
+	private DayActivity createDayActivity(Goal goal)
 	{
-		int hourIndex = timeString.indexOf(':');
-		int hour = Integer.parseInt(timeString.substring(0, hourIndex));
-		int minuteIndex = timeString.indexOf(':', hourIndex + 1);
-		if (minuteIndex == -1)
-		{
-			int minute = Integer.parseInt(timeString.substring(hourIndex + 1));
-			return getDate(hour, minute);
-		}
-		else
-		{
-			int minute = Integer.parseInt(timeString.substring(hourIndex + 1, minuteIndex));
-			int second = Integer.parseInt(timeString.substring(minuteIndex + 1));
-			return getDate(hour, minute, second);
-		}
-	}
-
-	private ZonedDateTime getDate(int hour, int minute)
-	{
-		return getDate(hour, minute, 0);
-	}
-
-	private ZonedDateTime getDate(int hour, int minute, int second)
-	{
-		return getZonedDateTime(hour, minute, second);
+		// pick a fixed test date 28 Feb 2017
+		return DayActivity.createInstance(userAnonEntity, goal, testZone,
+				ZonedDateTime.of(2017, 2, 28, 0, 0, 0, 0, testZone).toLocalDate());
 	}
 
 	@Test
@@ -212,12 +144,6 @@ public class DayActivityTests
 		assertGoalMinutesBeyondAndAccomplished(d, 31, false);
 	}
 
-	private void addActivity(DayActivity d, String startTimeString, String endTimeString)
-	{
-		d.addActivity(Activity.createInstance(testZone, getDate(startTimeString).toLocalDateTime(),
-				getDate(endTimeString).toLocalDateTime()));
-	}
-
 	private void assertGoalMinutesBeyondAndAccomplished(DayActivity d, int expectedTotalBeyondGoal,
 			boolean expectedGoalAccomplished)
 	{
@@ -229,32 +155,5 @@ public class DayActivityTests
 		assertThat(d.areAggregatesComputed(), equalTo(true));
 		assertThat(d.isGoalAccomplished(), equalTo(expectedGoalAccomplished));
 		assertThat(d.getTotalMinutesBeyondGoal(), equalTo(expectedTotalBeyondGoal));
-	}
-
-	private void assertSpreadItemsAndTotal(DayActivity d, String expectedSpreadItems, int expectedTotalActivityDurationMinutes)
-	{
-		assertThat(d.areAggregatesComputed(), equalTo(false));
-		assertSpreadItems(d.getSpread(), expectedSpreadItems);
-		assertThat(d.getTotalActivityDurationMinutes(), equalTo(expectedTotalActivityDurationMinutes));
-
-		d.computeAggregates();
-		assertThat(d.areAggregatesComputed(), equalTo(true));
-		assertSpreadItems(d.getSpread(), expectedSpreadItems);
-		assertThat(d.getTotalActivityDurationMinutes(), equalTo(expectedTotalActivityDurationMinutes));
-	}
-
-	private void assertSpreadItems(List<Integer> actualSpread, String expectedSpreadItems)
-	{
-		Arrays.stream(expectedSpreadItems.split(","))
-				.forEach(expectedSpreadItem -> assertSpreadItem(actualSpread, expectedSpreadItem));
-	}
-
-	private void assertSpreadItem(List<Integer> actualSpread, String expectedSpreadItem)
-	{
-		int separatorIndex = expectedSpreadItem.indexOf('=');
-		int spreadIndex = Integer.parseInt(expectedSpreadItem.substring(0, separatorIndex));
-		int expectedValue = Integer.parseInt(expectedSpreadItem.substring(separatorIndex + 1));
-		assertThat(MessageFormat.format("expected value {0} at spread index {1}", expectedValue, spreadIndex),
-				actualSpread.get(spreadIndex), equalTo(expectedValue));
 	}
 }
