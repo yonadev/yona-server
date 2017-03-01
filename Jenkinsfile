@@ -8,6 +8,11 @@ pipeline {
 					sh './gradlew -PdockerHubUserName=$DOCKER_HUB_USERNAME -PdockerHubPassword="$DOCKER_HUB_PASSWORD" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage'
 				}
             }
+			post {
+				always {
+					junit '**/build/test-results/*/*.xml'
+				}
+			}
         }
         stage('Setup test server') {
 			steps {
@@ -21,6 +26,11 @@ pipeline {
 			steps {
 				sh './gradlew -Pyona_appservice_url=http://185.3.209.132 -Pyona_adminservice_url=http://185.3.209.132:8080 -Pyona_analysisservice_url=http://185.3.209.132:8081 intTest'
             }
+			post {
+				always {
+					junit '**/build/test-results/*/*.xml'
+				}
+			}
         }
         stage('Tag revision on GitHub') {
 			steps {
@@ -29,11 +39,6 @@ pipeline {
 					sh('git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/yonadev/yona-server.git --tags')
 				}
             }
-        }
-    }
-    post { 
-        always { 
-            junit '**/build/test-results/*/*.xml'
         }
     }
 }
