@@ -3,7 +3,7 @@ set -e # Fail on error
 
 function waitTillGetWorks() {
 	n=0
-	until [ $n -ge 12 ]
+	until [ $n -ge 24 ]
 	do
 		curl -f $1 && echo && break
 		n=$[$n+1]
@@ -12,7 +12,7 @@ function waitTillGetWorks() {
 	if [ $n -ge 12 ] 
 	then
 		echo Failed to get URL $1 within timeout
-		return -1
+		return 1
 	fi
 
 	return 0
