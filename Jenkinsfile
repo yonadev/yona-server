@@ -41,15 +41,6 @@ pipeline {
             }
         }
 		stage('Decide tag on Docker Hub') {
-            steps {
-                script {
-                    env.TAG_ON_DOCKER_HUB = input message: 'User input required',
-                            parameters: [choice(name: 'TAG_ON_DOCKER_HUB', choices: 'yes\nno', description: 'Tag this build on Docker Hub, it can be deployed?')]
-                }
-                echo "${env.TAG_ON_DOCKER_HUB}"
-            }
-        }
-		stage('Decide tag on Docker Hub') {
 			agent none
             steps {
                 script {
