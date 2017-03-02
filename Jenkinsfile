@@ -59,9 +59,7 @@ pipeline {
 				environment name: "TAG_ON_DOCKER_HUB", value: "yes"
 			}
             steps {
-				steps {
-					echo "Tagging on Docker Hub"
-				}
+				echo "Tagging on Docker Hub"
             }
         }
     }
