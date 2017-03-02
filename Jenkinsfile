@@ -51,10 +51,10 @@ pipeline {
         }
 		stage('Tag on Docker Hub') {
 			agent none
+			when {
+				environment name: "TAG_ON_DOCKER_HUB", value: "yes"
+			}
             steps {
-				when {
-					environment name: "TAG_ON_DOCKER_HUB", value: "yes"
-				}
 				steps {
 					echo "Tagging on Docker Hub"
 				}
