@@ -7,9 +7,17 @@ export yona_db_user_name=$2
 export yona_db_password=$3
 export yona_db_url=$4
 
-echo "Pulling new images, based on old compose fil."
+echo "Generating database connection environment file"
+cat << EOF > db_settings.env
+YONA_DB_USER_NAME=$yona_db_user_name
+YONA_DB_PASSWORD=$yona_db_password
+YONA_DB_URL=$yona_db_url
+EOF
+
+echo "Pulling new images, based on old compose file."
 echo "As the compose file rarely changes, this normally pulls everything needed"
 echo "The server is still running, so this reduces downtime"
+[[ -f docker-compose.yml ]] || wget https://raw.githubusercontent.com/yonadev/yona-server/master/docker-compose/yona/docker-compose.yml
 docker-compose pull
 docker pull yonadev/yona-mariadb-liquibase-update:$yonatag
 
@@ -31,13 +39,6 @@ docker-compose pull
 
 echo "Updating the database schema"
 docker run -i --rm --network yonanet --link mariadb:yonadbserver -e USER=$yona_db_user_name -e PASSWORD=$yona_db_password -e URL=$yona_db_url yonadev/yona-mariadb-liquibase-update:$yonatag
-
-echo "Generating database connection environment file"
-cat << EOF > db_settings.env
-YONA_DB_USER_NAME=$yona_db_user_name
-YONA_DB_PASSWORD=$yona_db_password
-YONA_DB_URL=$yona_db_url
-EOF
 
 echo "Starting the containers again"
 docker-compose up -d

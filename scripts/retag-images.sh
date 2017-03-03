@@ -7,4 +7,4 @@ do
 	echo Tagging and pushing yonadev/$image:build-$build
 	docker tag yonadev/$image:latest yonadev/$image:build-$build
 	docker push yonadev/$image:build-$build
-done
+done 
