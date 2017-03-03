@@ -39,7 +39,7 @@ pipeline {
 			agent { label 'yona' }
 			steps {
 				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '65325e52-5ec0-46a7-a937-f81f545f3c1b', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD']]) {
-					sh('git tag -a build-$BUILD_NUMBER -m 'Jenkins'')
+					sh('git tag -a build-$BUILD_NUMBER -m "Jenkins"')
 					sh('git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/yonadev/yona-server.git --tags')
 				}
             }
