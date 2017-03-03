@@ -39,7 +39,7 @@ pipeline {
 			agent { label 'yona' }
 			steps {
 				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '65325e52-5ec0-46a7-a937-f81f545f3c1b', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD']]) {
-					sh("git tag -a build-$BUILD_NUMBER -m 'Jenkins'")
+					sh('git tag -a build-$BUILD_NUMBER -m 'Jenkins'')
 					sh('git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/yonadev/yona-server.git --tags')
 				}
             }
@@ -49,17 +49,17 @@ pipeline {
             steps {
                 script {
                     env.TAG_ON_DOCKER_HUB = input message: 'User input required',
-                            parameters: [choice(name: 'TAG_ON_DOCKER_HUB', choices: 'yes\nno', description: 'Tag this build on Docker Hub, it can be deployed?')]
+                            parameters: [choice(name: 'Tag on Docker Hub', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy this build')]
                 }
             }
         }
 		stage('Tag on Docker Hub') {
 			agent { label 'yona' }
 			when {
-				environment name: "TAG_ON_DOCKER_HUB", value: "yes"
+				environment name: 'TAG_ON_DOCKER_HUB', value: 'yes'
 			}
             steps {
-				echo "Tagging on Docker Hub"
+				sh('scripts/retag-images.sh ${BUILD_NUMBER}')
             }
         }
     }
