@@ -82,7 +82,11 @@ pipeline {
 			steps {
 				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'test-db',
 								usernameVariable: 'YONA_DB_USERNAME', passwordVariable: 'YONA_DB_PASSWORD']]) {
-					sh 'scripts/refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USERNAME "$YONA_DB_PASSWORD" jdbc:mariadb://yonadbserver:3306/yona'
+					sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/refresh-build.sh'
+					sh 'chmod +x refresh-build.sh'
+					sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
+					sh 'chmod +x wait-for-services.sh'
+					sh 'refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USERNAME "$YONA_DB_PASSWORD" jdbc:mariadb://yonadbserver:3306/yona'
 				}
 			}
 		}
@@ -106,7 +110,11 @@ pipeline {
 			steps {
 				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'test-db',
 								usernameVariable: 'YONA_DB_USERNAME', passwordVariable: 'YONA_DB_PASSWORD']]) {
-					sh 'scripts/refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USERNAME "$YONA_DB_PASSWORD" jdbc:mariadb://yonadbserver:3306/yona'
+					sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/refresh-build.sh'
+					sh 'chmod +x refresh-build.sh'
+					sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
+					sh 'chmod +x wait-for-services.sh'
+					sh 'refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USERNAME "$YONA_DB_PASSWORD" jdbc:mariadb://yonadbserver:3306/yona'
 				}
 			}
 		}

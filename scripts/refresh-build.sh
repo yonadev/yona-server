@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e # Fail on error
+my_dir="$(dirname "$0")"
 
 export yonatag=build-$1
 export yona_db_user_name=$2
@@ -40,3 +41,6 @@ EOF
 
 echo "Starting the containers again"
 docker-compose up -d
+
+echo "Waiting for the services to start"
+"$my_dir/wait-for-services.sh"
