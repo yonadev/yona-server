@@ -9,7 +9,7 @@ function waitTillGetWorks() {
 		n=$[$n+1]
 		sleep 5
 	done
-	if [ $n -ge 12 ] 
+	if [ $n -ge 24 ] 
 	then
 		echo Failed to get URL $1 within timeout
 		return 1

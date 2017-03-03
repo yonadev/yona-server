@@ -6,6 +6,7 @@ export yonatag=build-$1
 export yona_db_user_name=$2
 export yona_db_password=$3
 export yona_db_url=$4
+export config_file=$5
 
 echo "Generating database connection environment file"
 cat << EOF > db_settings.env
@@ -39,6 +40,10 @@ docker-compose pull
 
 echo "Updating the database schema"
 docker run -i --rm --network yonanet --link mariadb:yonadbserver -e USER=$yona_db_user_name -e PASSWORD=$yona_db_password -e URL=$yona_db_url yonadev/yona-mariadb-liquibase-update:$yonatag
+
+echo "Copying the config file"
+[[ -d config ]] || mkdir config
+cp $config_file config/application.properties
 
 echo "Starting the containers again"
 docker-compose up -d
