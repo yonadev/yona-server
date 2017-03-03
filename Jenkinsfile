@@ -70,7 +70,7 @@ pipeline {
 			steps {
 				script {
 					env.DEPLOY_TO_MOB_TEST = input message: 'User input required',
-							parameters: [choice(name: 'Deploy to Mobiquity test server', choices: 'no\nyes', description: 'Choose "yes" if you want to the Mobiquity test server')]
+							parameters: [choice(name: 'Deploy to Mobiquity test server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the Mobiquity test server')]
 				}
 			}
 		}
@@ -86,7 +86,7 @@ pipeline {
 					sh 'chmod +x refresh-build.sh'
 					sh 'wget -O wait-for-services.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
 					sh 'chmod +x wait-for-services.sh'
-					sh 'refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USERNAME "$YONA_DB_PASSWORD" jdbc:mariadb://yonadbserver:3306/yona'
+					sh './refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USERNAME "$YONA_DB_PASSWORD" jdbc:mariadb://yonadbserver:3306/yona'
 				}
 			}
 		}
@@ -98,7 +98,7 @@ pipeline {
 			steps {
 				script {
 					env.DEPLOY_TO_ACC_TEST = input message: 'User input required',
-							parameters: [choice(name: 'Deploy to acceptance test server', choices: 'no\nyes', description: 'Choose "yes" if you want to the acceptance test server')]
+							parameters: [choice(name: 'Deploy to acceptance test server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the acceptance test server')]
 				}
 			}
 		}
@@ -114,7 +114,7 @@ pipeline {
 					sh 'chmod +x refresh-build.sh'
 					sh 'wget -O wait-for-services.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
 					sh 'chmod +x wait-for-services.sh'
-					sh 'refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USERNAME "$YONA_DB_PASSWORD" jdbc:mariadb://yonadbserver:3306/yona'
+					sh './refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USERNAME "$YONA_DB_PASSWORD" jdbc:mariadb://yonadbserver:3306/yona'
 				}
 			}
 		}
