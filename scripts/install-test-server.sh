@@ -58,3 +58,6 @@ docker-compose up -d
 
 echo "Waiting for the services to start"
 "$my_dir/wait-for-services.sh"
+
+echo "Loading the activity categories"
+curl https://raw.githubusercontent.com/yonadev/yona-server/master/dbinit/data/activityCategories.json | curl -X PUT http://localhost:8080/activityCategories/ -d @- --header "Content-Type: application/json"

@@ -26,6 +26,3 @@ waitTillGetWorks http://localhost:8081/relevantSmoothwallCategories/
 
 echo "Waiting for the app service to start"
 waitTillGetWorks http://localhost/activityCategories/
-
-echo "Loading the activity categories"
-curl https://raw.githubusercontent.com/yonadev/yona-server/master/dbinit/data/activityCategories.json | curl -X PUT http://localhost:8080/activityCategories/ -d @- --header "Content-Type: application/json"
