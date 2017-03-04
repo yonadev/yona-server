@@ -6,6 +6,7 @@
  *******************************************************************************/
 package nu.yona.server
 
+import java.time.DayOfWeek
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -348,6 +349,56 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def expectedValuesEndOfWeek = (expectedValues.size() == 1) ? expectedValues[getCurrentShortDay()] : expectedValues["Sat"]
 		expectedValuesEndOfWeek.find{it.goal.activityCategoryUrl == activityCategoryUrl}.goal
+	}
+
+	def assertDayOverviews(User user, int weeksBack, expectedValuesInWeek)
+	{
+		int pageSize=(weeksBack+1)*7
+		def responseDayOverviewsAll = appService.getDayActivityOverviews(user, ["size": pageSize])
+		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
+		def expectedTotalDays = expectedValuesInWeek.size() + currentDayOfWeek + 1
+		assertDayOverviewBasics(responseDayOverviewsAll, expectedTotalDays, expectedTotalDays, pageSize)
+		assertExpectedValuesPerDayPerGoal(expectedValuesInWeek,
+				{ shortDay, goal ->
+					if(goal instanceof BudgetGoal)
+					{
+						assertDayOverviewForBudgetGoal(responseDayOverviewsAll, expectedValuesOnDayForGoal.goal, expectedValuesInWeek, weeksBack, shortDay)
+					}
+					else
+					{
+						assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, expectedValuesOnDayForGoal.goal, expectedValuesInWeek, weeksBack, shortDay)
+					}
+				})
+		return true
+	}
+
+	def assertExpectedValuesPerDayPerGoal(expectedValuesInWeek, perDayPerGoalAsserter)
+	{
+		for(DayOfWeek day : DayOfWeek.values())
+		{
+			def shortDay = day.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
+			def expectedValuesOnDay = expectedValuesInWeek[day]
+			if(expectedValuesOnDay)
+			{
+				for(def expectedValuesOnDayForGoal : expectedValuesOnDay)
+				{
+					def goal = expectedValuesOnDayForGoal.goal
+					perDayPerGoalAsserter(shortDay, goal)
+				}
+			}
+		}
+	}
+
+	def assertWeekOverviews(User user, int weeksBack, expectedValuesInWeek, expectedTotalWeeks)
+	{
+		def responseWeekOverviews = appService.getWeekActivityOverviews(user)
+		assertWeekOverviewBasics(responseWeekOverviews, [3, expectedTotalWeeks], expectedTotalWeeks)
+		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[weeksBack]
+		assertExpectedValuesPerDayPerGoal(expectedValuesInWeek,
+				{ shortDay, goal ->
+					assertDayInWeekOverviewForGoal(weekOverviewLastWeek, goal, expectedValuesInWeek, shortDay)
+				})
+		return true
 	}
 
 	private def assertDayOverviewForGoal(response, Goal goal, expectedValues, weeksBack, shortDay)

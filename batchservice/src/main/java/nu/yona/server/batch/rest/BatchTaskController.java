@@ -26,4 +26,11 @@ public class BatchTaskController
 	{
 		batchTaskService.requestPinResetConfirmationCode(pinResetConfirmationCodeSendRequest);
 	}
+
+	@RequestMapping(value = "/aggregateActivities/", method = RequestMethod.POST)
+	@ResponseStatus(HttpStatus.OK)
+	public void aggregateActivities()
+	{
+		batchTaskService.aggregateActivities();
+	}
 }

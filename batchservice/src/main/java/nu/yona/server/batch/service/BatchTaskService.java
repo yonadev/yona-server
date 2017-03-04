@@ -45,7 +45,7 @@ public class BatchTaskService
 	private Job activityAggregationJob;
 
 	@Scheduled(cron = "${yona.batchService.activityAggregationJobCronExpression}")
-	private void aggregateActivities()
+	public void aggregateActivities()
 	{
 		try
 		{
