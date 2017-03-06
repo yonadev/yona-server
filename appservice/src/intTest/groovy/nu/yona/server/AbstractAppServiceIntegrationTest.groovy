@@ -299,15 +299,18 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert response.responseData.page
 		assert response.responseData.page.size == expectedPageSize
 		assert response.responseData.page.totalElements == expectedTotalElements
-		assert response.responseData._embedded?."yona:weekActivityOverviews"?.size() == numberOfReportedGoals.size()
 		assert response.responseData._links?.self?.href != null
 
-		numberOfReportedGoals.eachWithIndex
-		{ numberOfGoals, weekIndex ->
-			assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex]?.date =~ /\d{4}\-W\d{2}/
-			assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex].timeZoneId == "Europe/Amsterdam"
-			assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex].weekActivities?.size() == numberOfGoals
-			// YD-203 assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex]._links?.self?.href
+		if(numberOfReportedGoals != null)
+		{
+			assert response.responseData._embedded?."yona:weekActivityOverviews"?.size() == numberOfReportedGoals.size()
+			numberOfReportedGoals.eachWithIndex
+			{ numberOfGoals, weekIndex ->
+				assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex]?.date =~ /\d{4}\-W\d{2}/
+				assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex].timeZoneId == "Europe/Amsterdam"
+				assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex].weekActivities?.size() == numberOfGoals
+				// YD-203 assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex]._links?.self?.href
+			}
 		}
 	}
 
@@ -392,7 +395,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	def assertWeekOverviews(User user, int weeksBack, expectedValuesInWeek, expectedTotalWeeks)
 	{
 		def responseWeekOverviews = appService.getWeekActivityOverviews(user)
-		assertWeekOverviewBasics(responseWeekOverviews, [3, expectedTotalWeeks], expectedTotalWeeks)
+		assertWeekOverviewBasics(responseWeekOverviews, null, expectedTotalWeeks)
 		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[weeksBack]
 		assertExpectedValuesPerDayPerGoal(expectedValuesInWeek,
 				{ shortDay, goal ->

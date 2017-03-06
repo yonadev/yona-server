@@ -30,7 +30,6 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Wed 15:00")
 		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Thu 11:30")
 
-		def expectedTotalDays = 1
 		richard = appService.reloadUser(richard)
 		Goal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal timeZoneGoalSocialRichard = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
@@ -72,22 +71,94 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 	def 'Aggregation is reset and repeated when posting new app activity within combine interval'()
 	{
 		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		reportAppActivity(richard, "NU.nl", "W-1 Mon 23:00", "W-1 Mon 23:49")
+		batchService.triggerAggregateActivities()
+
+		richard = appService.reloadUser(richard)
+		Goal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
+		def expectedValuesFirstAggregation = [
+			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 49, spread: [93:15, 94:15, 95:15, 96:4]]]],
+			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		assertDayOverviews(richard, 1, expectedValuesFirstAggregation)
+		assertWeekOverviews(richard, 1, expectedValuesFirstAggregation, 2)
 
 		when:
-		def response = batchService.triggerAggregateActivities()
+		reportAppActivity(richard, "NU.nl", "W-1 Mon 23:50", "W-1 Tue 00:05")
 
 		then:
+		def expectedValuesSecondAggregation = [
+			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 49, spread: [93:15, 94:15, 95:15, 96:15]]]],
+			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 5, spread: [1:5]]]],
+			"Wed" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		assertDayOverviews(richard, 1, expectedValuesSecondAggregation)
+		assertWeekOverviews(richard, 1, expectedValuesSecondAggregation, 2)
+
+		def response = batchService.triggerAggregateActivities()
 		response.status == 200
+		assertDayOverviews(richard, 1, expectedValuesSecondAggregation)
+		assertWeekOverviews(richard, 1, expectedValuesSecondAggregation, 2)
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
-	def 'Aggregation is reset and repeated when posting new app activity after a day'()
+	def 'Aggregation is reset and repeated when posting new app activity outside combine interval'()
 	{
 		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		reportAppActivity(richard, "NU.nl", "W-1 Mon 23:00", "W-1 Mon 23:05")
+		batchService.triggerAggregateActivities()
+
+		richard = appService.reloadUser(richard)
+		Goal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
+		def expectedValuesFirstAggregation = [
+			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 5, spread: [93:5]]]],
+			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		assertDayOverviews(richard, 1, expectedValuesFirstAggregation)
+		assertWeekOverviews(richard, 1, expectedValuesFirstAggregation, 2)
 
 		when:
-		def response = batchService.triggerAggregateActivities()
+		reportAppActivity(richard, "NU.nl", "W-1 Mon 23:50", "W-1 Mon 23:59")
 
 		then:
+		def expectedValuesSecondAggregation = [
+			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 14, spread: [93:5, 96:9]]]],
+			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		assertDayOverviews(richard, 1, expectedValuesSecondAggregation)
+		assertWeekOverviews(richard, 1, expectedValuesSecondAggregation, 2)
+
+		def response = batchService.triggerAggregateActivities()
 		response.status == 200
+		assertDayOverviews(richard, 1, expectedValuesSecondAggregation)
+		assertWeekOverviews(richard, 1, expectedValuesSecondAggregation, 2)
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 }
