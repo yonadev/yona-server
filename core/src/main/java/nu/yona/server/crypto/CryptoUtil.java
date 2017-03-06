@@ -98,7 +98,7 @@ public class CryptoUtil
 	{
 		try
 		{
-			verifyCryptoVariantNumber(cryptoVariantNumber, ciphertext);
+			assertValidCryptoVariantNumber(cryptoVariantNumber, ciphertext);
 			byte[] plaintext = new byte[cipher.getOutputSize(ciphertext.length)];
 			int bytesStored = cipher.doFinal(ciphertext, CRYPTO_VARIANT_NUMBER_LENGTH,
 					ciphertext.length - CRYPTO_VARIANT_NUMBER_LENGTH, plaintext, 0);
@@ -119,7 +119,7 @@ public class CryptoUtil
 		ciphertext[0] = cryptoVariantNumber;
 	}
 
-	private static void verifyCryptoVariantNumber(byte cryptoVariantNumber, byte[] ciphertext)
+	private static void assertValidCryptoVariantNumber(byte cryptoVariantNumber, byte[] ciphertext)
 	{
 		if (ciphertext[0] != cryptoVariantNumber)
 		{

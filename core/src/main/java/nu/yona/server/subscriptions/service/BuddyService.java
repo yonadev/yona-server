@@ -124,8 +124,7 @@ public class BuddyService
 	{
 		UserDto requestingUser = userService.getPrivateUser(idOfRequestingUser);
 		assertMobileNumberOfRequestingUserConfirmed(idOfRequestingUser);
-		validateBuddyFields(buddy);
-		verifyBuddyIsAcceptable(requestingUser, buddy);
+		assertValidBuddy(requestingUser, buddy);
 
 		boolean buddyUserExists = buddyUserExists(buddy);
 		if (!buddyUserExists)
@@ -167,17 +166,13 @@ public class BuddyService
 		requestingUser.assertMobileNumberConfirmed();
 	}
 
-	private void validateBuddyFields(BuddyDto buddy)
+	private void assertValidBuddy(UserDto requestingUser, BuddyDto buddy)
 	{
-		userService.validateUserFields(buddy.getUser(), true);
+		userService.assertValidUserFields(buddy.getUser(), true);
 		if (buddy.getSendingStatus() != Status.REQUESTED || buddy.getReceivingStatus() != Status.REQUESTED)
 		{
 			throw BuddyServiceException.onlyTwoWayBuddiesAllowed();
 		}
-	}
-
-	private void verifyBuddyIsAcceptable(UserDto requestingUser, BuddyDto buddy)
-	{
 		String buddyMobileNumber = buddy.getUser().getMobileNumber();
 		if (requestingUser.getMobileNumber().equals(buddyMobileNumber)) {
 			throw BuddyServiceException.cannotInviteSelf();

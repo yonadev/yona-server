@@ -68,11 +68,11 @@ public class TimeZoneGoalDto extends GoalDto
 		}
 		for (String zone : zones)
 		{
-			validateZone(zone);
+			assertValidZone(zone);
 		}
 	}
 
-	private void validateZone(String zone)
+	private void assertValidZone(String zone)
 	{
 		if (!zonePattern.matcher(zone).matches())
 		{
@@ -84,16 +84,16 @@ public class TimeZoneGoalDto extends GoalDto
 		int toHour = numbers[2];
 		int toMinute = numbers[3];
 
-		validateHour(zone, fromHour);
-		validateMinute(zone, fromMinute);
-		validateHour(zone, toHour);
-		validateMinute(zone, toMinute);
-		validateToBeyondFrom(zone, fromHour, fromMinute, toHour, toMinute);
-		validateNotBeyondTwentyFour(zone, fromHour, fromMinute);
-		validateNotBeyondTwentyFour(zone, toHour, toMinute);
+		assertValidHour(zone, fromHour);
+		assertValidMinute(zone, fromMinute);
+		assertValidHour(zone, toHour);
+		assertValidMinute(zone, toMinute);
+		assertToBeyondFrom(zone, fromHour, fromMinute, toHour, toMinute);
+		assertNotBeyondTwentyFour(zone, fromHour, fromMinute);
+		assertNotBeyondTwentyFour(zone, toHour, toMinute);
 	}
 
-	private void validateNotBeyondTwentyFour(String zone, int fromHour, int fromMinute)
+	private void assertNotBeyondTwentyFour(String zone, int fromHour, int fromMinute)
 	{
 		if (fromHour == 24 && fromMinute != 0)
 		{
@@ -101,7 +101,7 @@ public class TimeZoneGoalDto extends GoalDto
 		}
 	}
 
-	private void validateToBeyondFrom(String zone, int fromHour, int fromMinute, int toHour, int toMinute)
+	private void assertToBeyondFrom(String zone, int fromHour, int fromMinute, int toHour, int toMinute)
 	{
 		if (fromHour * 60 + fromMinute >= toHour * 60 + toMinute)
 		{
@@ -109,7 +109,7 @@ public class TimeZoneGoalDto extends GoalDto
 		}
 	}
 
-	private void validateHour(String zone, int hour)
+	private void assertValidHour(String zone, int hour)
 	{
 		if (hour > 24)
 		{
@@ -117,7 +117,7 @@ public class TimeZoneGoalDto extends GoalDto
 		}
 	}
 
-	private void validateMinute(String zone, int minute)
+	private void assertValidMinute(String zone, int minute)
 	{
 		if (minute % 15 != 0)
 		{

@@ -113,7 +113,7 @@ public class GoalService
 		User userEntity = userService.getUserEntityById(userId);
 		Goal existingGoal = getGoalEntity(userEntity, goalId);
 
-		verifyGoalUpdate(existingGoal, newGoalDto);
+		assertValidGoalUpdate(existingGoal, newGoalDto);
 		if (newGoalDto.getCreationTime().isPresent() && !newGoalDto.isGoalChanged(existingGoal))
 		{
 			// Tests update the creation time. Handle that as a special case.
@@ -135,7 +135,7 @@ public class GoalService
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getId(), userAnonymizedEntity);
 	}
 
-	private void verifyGoalUpdate(Goal existingGoal, GoalDto newGoalDto)
+	private void assertValidGoalUpdate(Goal existingGoal, GoalDto newGoalDto)
 	{
 		newGoalDto.validate();
 		GoalDto existingGoalDto = GoalDto.createInstance(existingGoal);

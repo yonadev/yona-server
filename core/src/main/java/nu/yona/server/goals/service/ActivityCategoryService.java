@@ -89,7 +89,7 @@ public class ActivityCategoryService
 	{
 		logger.info("Adding activity category '{}' with ID '{}'", activityCategoryDto.getName(Translator.EN_US_LOCALE),
 				activityCategoryDto.getId());
-		verifyNoDuplicateNames(Collections.emptySet(), activityCategoryDto.getLocalizableNameByLocale());
+		assertNoDuplicateNames(Collections.emptySet(), activityCategoryDto.getLocalizableNameByLocale());
 		return ActivityCategoryDto.createInstance(repository.save(activityCategoryDto.createActivityCategoryEntity()));
 	}
 
@@ -99,7 +99,7 @@ public class ActivityCategoryService
 	{
 		ActivityCategory originalEntity = getEntityById(id);
 		logger.info("Updating activity category '{}' with ID '{}'", getName(originalEntity), id);
-		verifyNoDuplicateNames(Collections.singleton(id), activityCategoryDto.getLocalizableNameByLocale());
+		assertNoDuplicateNames(Collections.singleton(id), activityCategoryDto.getLocalizableNameByLocale());
 		return ActivityCategoryDto.createInstance(updateActivityCategory(originalEntity, activityCategoryDto));
 	}
 
@@ -128,18 +128,18 @@ public class ActivityCategoryService
 		repository.delete(entity);
 	}
 
-	private void verifyNoDuplicateNames(Set<UUID> idsToSkip, Map<Locale, String> localizableName)
+	private void assertNoDuplicateNames(Set<UUID> idsToSkip, Map<Locale, String> localizableName)
 	{
 		Iterable<ActivityCategory> allCategories = repository.findAll();
 		List<ActivityCategory> categoriesToConsider = StreamSupport.stream(allCategories.spliterator(), false)
 				.filter(c -> !idsToSkip.contains(c.getId())).collect(Collectors.toList());
 		for (Entry<Locale, String> localeAndName : localizableName.entrySet())
 		{
-			verifyNoDuplicateNames(categoriesToConsider, localeAndName);
+			assertNoDuplicateNames(categoriesToConsider, localeAndName);
 		}
 	}
 
-	private void verifyNoDuplicateNames(List<ActivityCategory> categoriesToConsider, Entry<Locale, String> localeAndName)
+	private void assertNoDuplicateNames(List<ActivityCategory> categoriesToConsider, Entry<Locale, String> localeAndName)
 	{
 		if (categoriesToConsider.stream()
 				.anyMatch(c -> localeAndName.getValue().equals(c.getLocalizableName().get(localeAndName.getKey()))))

@@ -63,7 +63,7 @@ public class NewDeviceRequestController
 	{
 		try
 		{
-			userService.validateMobileNumber(mobileNumber);
+			userService.assertValidMobileNumber(mobileNumber);
 			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
 			checkPassword(password, userId);
 			newDeviceRequestService.setNewDeviceRequestForUser(userId, password.get(),
@@ -85,7 +85,7 @@ public class NewDeviceRequestController
 	{
 		try
 		{
-			userService.validateMobileNumber(mobileNumber);
+			userService.assertValidMobileNumber(mobileNumber);
 			UserDto user = userService.getUserByMobileNumber(mobileNumber);
 			return createNewDeviceRequestResponse(user,
 					newDeviceRequestService.getNewDeviceRequestForUser(user.getId(), newDeviceRequestPassword), HttpStatus.OK);
@@ -105,7 +105,7 @@ public class NewDeviceRequestController
 	{
 		try
 		{
-			userService.validateMobileNumber(mobileNumber);
+			userService.assertValidMobileNumber(mobileNumber);
 			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
 			checkPassword(password, userId);
 			newDeviceRequestService.clearNewDeviceRequestForUser(userId);

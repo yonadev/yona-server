@@ -23,7 +23,7 @@ public class WhiteListedNumberService
 	@Transactional
 	public void addWhiteListedNumber(String mobileNumber)
 	{
-		userService.validateMobileNumber(mobileNumber);
+		userService.assertValidMobileNumber(mobileNumber);
 
 		WhiteListedNumber.getRepository().save(WhiteListedNumber.createInstance(mobileNumber));
 	}
@@ -36,7 +36,7 @@ public class WhiteListedNumberService
 	}
 
 	@Transactional
-	public void verifyMobileNumberIsAllowed(String mobileNumber)
+	public void assertMobileNumberIsAllowed(String mobileNumber)
 	{
 		if (WhiteListedNumber.getRepository().findByMobileNumber(mobileNumber) == null)
 		{
