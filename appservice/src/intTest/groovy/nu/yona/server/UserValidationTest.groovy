@@ -20,10 +20,8 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 				"firstName":"John",
 				"lastName":"Doe",
 				"nickname":"JD",
-				"mobileNumber":"+${timestamp}",
-				"devices":[
-					"Galaxy mini"
-				]}"""
+				"mobileNumber":"+${timestamp}"
+				}"""
 	def password = "John Doe"
 
 	def 'AddUser - empty first name'()
