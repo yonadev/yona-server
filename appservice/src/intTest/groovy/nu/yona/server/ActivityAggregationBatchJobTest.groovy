@@ -35,14 +35,14 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		Goal timeZoneGoalSocialRichard = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
 		def expectedValuesRichardLastWeek = [
 			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 20, spread: [13 : 15, 14 : 5]]]],
-			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 25, spread: [35 : 15, 36 : 10]]]],
+			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Wed" : [
 				[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]],
-				[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [68 : 1]]]
+				[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: false, minutesBeyondGoal: 1, spread: [60 : 1]]]
 			],
 			"Thu" : [
 				[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]],
-				[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [48 : 1]]]
+				[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [46 : 1]]]
 			],
 			"Fri" : [
 				[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]],
@@ -52,16 +52,14 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 				[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]],
 				[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]
 			]]
-		assertDayOverviews(richard, 1, expectedValuesRichardLastWeek)
-		assertWeekOverviews(richard, 1, expectedValuesRichardLastWeek, 2)
+		assertActivityValues(richard, 1, expectedValuesRichardLastWeek, 2)
 
 		when:
 		def response = batchService.triggerAggregateActivities()
 
 		then:
 		response.status == 200
-		assertDayOverviews(richard, 1, expectedValuesRichardLastWeek)
-		assertWeekOverviews(richard, 1, expectedValuesRichardLastWeek, 2)
+		assertActivityValues(richard, 1, expectedValuesRichardLastWeek, 2)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -82,33 +80,30 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		richard = appService.reloadUser(richard)
 		Goal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 		def expectedValuesFirstAggregation = [
-			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 49, spread: [93:15, 94:15, 95:15, 96:4]]]],
+			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 49, spread: [92:15, 93:15, 94:15, 95:4]]]],
 			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Wed" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Thu" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Fri" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Sat" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		assertDayOverviews(richard, 1, expectedValuesFirstAggregation)
-		assertWeekOverviews(richard, 1, expectedValuesFirstAggregation, 2)
+		assertActivityValues(richard, 1, expectedValuesFirstAggregation, 2)
 
 		when:
 		reportAppActivity(richard, "NU.nl", "W-1 Mon 23:50", "W-1 Tue 00:05")
 
 		then:
 		def expectedValuesSecondAggregation = [
-			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 49, spread: [93:15, 94:15, 95:15, 96:15]]]],
-			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 5, spread: [1:5]]]],
+			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 59, spread: [92:15, 93:15, 94:15, 95:14]]]],
+			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 5, spread: [0:5]]]],
 			"Wed" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Thu" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Fri" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Sat" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		assertDayOverviews(richard, 1, expectedValuesSecondAggregation)
-		assertWeekOverviews(richard, 1, expectedValuesSecondAggregation, 2)
+		assertActivityValues(richard, 1, expectedValuesSecondAggregation, 2)
 
 		def response = batchService.triggerAggregateActivities()
 		response.status == 200
-		assertDayOverviews(richard, 1, expectedValuesSecondAggregation)
-		assertWeekOverviews(richard, 1, expectedValuesSecondAggregation, 2)
+		assertActivityValues(richard, 1, expectedValuesSecondAggregation, 2)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -129,33 +124,30 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		richard = appService.reloadUser(richard)
 		Goal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
 		def expectedValuesFirstAggregation = [
-			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 5, spread: [93:5]]]],
+			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 5, spread: [92:5]]]],
 			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Wed" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Thu" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Fri" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Sat" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		assertDayOverviews(richard, 1, expectedValuesFirstAggregation)
-		assertWeekOverviews(richard, 1, expectedValuesFirstAggregation, 2)
+		assertActivityValues(richard, 1, expectedValuesFirstAggregation, 2)
 
 		when:
 		reportAppActivity(richard, "NU.nl", "W-1 Mon 23:50", "W-1 Mon 23:59")
 
 		then:
 		def expectedValuesSecondAggregation = [
-			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 14, spread: [93:5, 96:9]]]],
+			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 14, spread: [92:5, 95:9]]]],
 			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Wed" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Thu" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Fri" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Sat" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
-		assertDayOverviews(richard, 1, expectedValuesSecondAggregation)
-		assertWeekOverviews(richard, 1, expectedValuesSecondAggregation, 2)
+		assertActivityValues(richard, 1, expectedValuesSecondAggregation, 2)
 
 		def response = batchService.triggerAggregateActivities()
 		response.status == 200
-		assertDayOverviews(richard, 1, expectedValuesSecondAggregation)
-		assertWeekOverviews(richard, 1, expectedValuesSecondAggregation, 2)
+		assertActivityValues(richard, 1, expectedValuesSecondAggregation, 2)
 
 		cleanup:
 		appService.deleteUser(richard)

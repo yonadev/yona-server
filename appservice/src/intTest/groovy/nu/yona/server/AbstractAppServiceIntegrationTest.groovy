@@ -6,7 +6,6 @@
  *******************************************************************************/
 package nu.yona.server
 
-import java.time.DayOfWeek
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -354,53 +353,41 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		expectedValuesEndOfWeek.find{it.goal.activityCategoryUrl == activityCategoryUrl}.goal
 	}
 
-	def assertDayOverviews(User user, int weeksBack, expectedValuesInWeek)
+	def assertActivityValues(User user, int weeksBack, expectedValuesInWeek, expectedTotalWeeks)
+	{
+		assertWeekActivityValues(user, weeksBack, expectedValuesInWeek, expectedTotalWeeks)
+		assertDayActivityValues(user, weeksBack, expectedValuesInWeek)
+	}
+
+	def assertWeekActivityValues(User user, int weeksBack, expectedValuesInWeek, expectedTotalWeeks)
+	{
+		def responseWeekOverviews = appService.getWeekActivityOverviews(user)
+		assertWeekOverviewBasics(responseWeekOverviews, null, expectedTotalWeeks)
+		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[weeksBack]
+		user.getGoals().each
+		{
+			def goal = it
+			assertWeekDetailForGoal(user, weekOverviewLastWeek, goal, expectedValuesInWeek)
+		}
+		return true
+	}
+
+	def assertDayActivityValues(User user, int weeksBack, expectedValuesInWeek)
 	{
 		int pageSize=(weeksBack+1)*7
 		def responseDayOverviewsAll = appService.getDayActivityOverviews(user, ["size": pageSize])
 		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
 		def expectedTotalDays = expectedValuesInWeek.size() + currentDayOfWeek + 1
 		assertDayOverviewBasics(responseDayOverviewsAll, expectedTotalDays, expectedTotalDays, pageSize)
-		assertExpectedValuesPerDayPerGoal(expectedValuesInWeek,
-				{ shortDay, goal ->
-					if(goal instanceof BudgetGoal)
-					{
-						assertDayOverviewForBudgetGoal(responseDayOverviewsAll, expectedValuesOnDayForGoal.goal, expectedValuesInWeek, weeksBack, shortDay)
-					}
-					else
-					{
-						assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, expectedValuesOnDayForGoal.goal, expectedValuesInWeek, weeksBack, shortDay)
-					}
-				})
-		return true
-	}
-
-	def assertExpectedValuesPerDayPerGoal(expectedValuesInWeek, perDayPerGoalAsserter)
-	{
-		for(DayOfWeek day : DayOfWeek.values())
+		expectedValuesInWeek.each
 		{
-			def shortDay = day.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
-			def expectedValuesOnDay = expectedValuesInWeek[day]
-			if(expectedValuesOnDay)
+			def day = it.key
+			it.value.each
 			{
-				for(def expectedValuesOnDayForGoal : expectedValuesOnDay)
-				{
-					def goal = expectedValuesOnDayForGoal.goal
-					perDayPerGoalAsserter(shortDay, goal)
-				}
+				def goal = it.goal
+				assertDayDetail(user, responseDayOverviewsAll, goal, expectedValuesInWeek, weeksBack, day)
 			}
 		}
-	}
-
-	def assertWeekOverviews(User user, int weeksBack, expectedValuesInWeek, expectedTotalWeeks)
-	{
-		def responseWeekOverviews = appService.getWeekActivityOverviews(user)
-		assertWeekOverviewBasics(responseWeekOverviews, null, expectedTotalWeeks)
-		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[weeksBack]
-		assertExpectedValuesPerDayPerGoal(expectedValuesInWeek,
-				{ shortDay, goal ->
-					assertDayInWeekOverviewForGoal(weekOverviewLastWeek, goal, expectedValuesInWeek, shortDay)
-				})
 		return true
 	}
 
@@ -453,6 +440,11 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		expectedValues.each { it.value.findAll{it.goal.url == goal.url}.each {it.data.spread.each { totalDurationMinutes += it.value }}}
 		assert weekActivityOverview.weekActivities
 		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goal.url}
+		if(!weekActivityForGoal)
+		{
+			//apparently this goal is not included
+			return
+		}
 		assert weekActivityForGoal?._links?."yona:weekDetails"?.href
 		def weekActivityDetailUrl = weekActivityForGoal?._links?."yona:weekDetails"?.href
 		def response = appService.getResourceWithPassword(weekActivityDetailUrl, user.password)
