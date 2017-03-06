@@ -686,7 +686,11 @@ public class UserService
 		return userRepository.save(retrievedEntitySet.userEntity);
 	}
 
-	private void validateUserFields(UserDto userResource)
+	private void validateUserFields(UserDto userResource) {
+		validateUserFields(userResource, false);
+	}
+
+	void validateUserFields(UserDto userResource, boolean nickNameIsOptional)
 	{
 		if (StringUtils.isBlank(userResource.getFirstName()))
 		{
@@ -698,7 +702,7 @@ public class UserService
 			throw InvalidDataException.blankLastName();
 		}
 
-		if (StringUtils.isBlank(userResource.getPrivateData().getNickname()))
+		if (!nickNameIsOptional && StringUtils.isBlank(userResource.getPrivateData().getNickname()))
 		{
 			throw InvalidDataException.blankNickname();
 		}

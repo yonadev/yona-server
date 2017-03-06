@@ -276,7 +276,7 @@ class AppService extends Service
 		assert processUrl == null // Processing happens automatically these days
 	}
 
-	def sendBuddyConnectRequest(sendingUser, receivingUser)
+	def sendBuddyConnectRequest(sendingUser, receivingUser, assertSuccess = true)
 	{
 		// Send the buddy request
 		def response = requestBuddy(sendingUser, """{
@@ -292,7 +292,9 @@ class AppService extends Service
 			"sendingStatus":"REQUESTED",
 			"receivingStatus":"REQUESTED"
 		}""", sendingUser.password)
-		assert response.status == 201
+		if (assertSuccess) {
+			assert response.status == 201
+		}
 		response
 	}
 

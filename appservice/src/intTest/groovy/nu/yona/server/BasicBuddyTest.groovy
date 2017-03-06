@@ -782,6 +782,41 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Try Richard request himself as buddy'()
+	{
+		given:
+		User richard = addRichard();
+
+		when:
+		def response = appService.sendBuddyConnectRequest(richard, richard, false)
+
+		then:
+		response.status == 400
+		response.responseData.code == "error.buddy.cannot.invite.self"
+		
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Try Richard request Bob as buddy twice'()
+	{
+		given:
+		User richard = addRichard();
+		User bob = addBob()
+		appService.sendBuddyConnectRequest(richard, bob)
+		
+		when:
+		def response = appService.sendBuddyConnectRequest(richard, bob, false)
+
+		then:
+		response.status == 400
+		response.responseData.code == "error.buddy.cannot.invite.existing.buddy"
+		
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
 	private void makeBuddies(User user, User buddy) {
 		appService.makeBuddies(user, buddy)
 		appService.getBuddies(user).size() == 1
