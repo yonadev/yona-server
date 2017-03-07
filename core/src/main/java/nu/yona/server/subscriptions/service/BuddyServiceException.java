@@ -54,4 +54,14 @@ public class BuddyServiceException extends YonaException
 	{
 		return new BuddyServiceException("error.buddy.request.must.contain.user.inside.embedded", rel);
 	}
+
+	public static BuddyServiceException cannotInviteSelf()
+	{
+		return new BuddyServiceException("error.buddy.cannot.invite.self");
+	}
+
+	public static BuddyServiceException cannotInviteExistingBuddy()
+	{
+		return new BuddyServiceException("error.buddy.cannot.invite.existing.buddy");
+	}
 }
