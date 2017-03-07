@@ -60,9 +60,17 @@ public class UserService
 	/** Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers */
 	private static Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
 
+	/** Holds the regex to validate a valid email address. Match the pattern a@b.c */
+	private static Pattern REGEX_EMAIL = Pattern.compile("^[A-Z0-9._-]+@[A-Z0-9.-]+\\.[A-Z0-9.-]+$", Pattern.CASE_INSENSITIVE);
+
 	private enum UserSignUp
 	{
 		INVITED, FREE
+	}
+
+	enum UserPurpose
+	{
+		USER, BUDDY
 	}
 
 	private static final Logger logger = LoggerFactory.getLogger(UserService.class);
@@ -171,7 +179,7 @@ public class UserService
 	@Transactional
 	public UserDto addUser(UserDto user, Optional<String> overwriteUserConfirmationCode)
 	{
-		assertValidUserFields(user);
+		assertValidUserFields(user, UserPurpose.USER);
 
 		// use a separate transaction because in the top transaction we insert a user with the same unique key
 		transactionHelper.executeInNewTransaction(
@@ -635,8 +643,8 @@ public class UserService
 		smsService.send(mobileNumber, templateName, templateParams);
 	}
 
-	private void assertValidConfirmationCode(User userEntity, ConfirmationCode confirmationCode, String userProvidedConfirmationCode,
-			Supplier<YonaException> noConfirmationCodeExceptionSupplier,
+	private void assertValidConfirmationCode(User userEntity, ConfirmationCode confirmationCode,
+			String userProvidedConfirmationCode, Supplier<YonaException> noConfirmationCodeExceptionSupplier,
 			Function<Integer, YonaException> invalidConfirmationCodeExceptionSupplier,
 			Supplier<YonaException> tooManyAttemptsExceptionSupplier)
 	{
@@ -686,11 +694,7 @@ public class UserService
 		return userRepository.save(retrievedEntitySet.userEntity);
 	}
 
-	private void assertValidUserFields(UserDto userResource) {
-		assertValidUserFields(userResource, false);
-	}
-
-	void assertValidUserFields(UserDto userResource, boolean nickNameIsOptional)
+	void assertValidUserFields(UserDto userResource, UserPurpose userPurpose)
 	{
 		if (StringUtils.isBlank(userResource.getFirstName()))
 		{
@@ -702,7 +706,7 @@ public class UserService
 			throw InvalidDataException.blankLastName();
 		}
 
-		if (!nickNameIsOptional && StringUtils.isBlank(userResource.getPrivateData().getNickname()))
+		if (userPurpose == UserPurpose.USER && StringUtils.isBlank(userResource.getPrivateData().getNickname()))
 		{
 			throw InvalidDataException.blankNickname();
 		}
@@ -713,6 +717,15 @@ public class UserService
 		}
 
 		assertValidMobileNumber(userResource.getMobileNumber());
+
+		if (userPurpose == UserPurpose.BUDDY)
+		{
+			if (StringUtils.isBlank(userResource.getEmailAddress()))
+			{
+				throw InvalidDataException.blankEmailAddress();
+			}
+			assertValidEmailAddress(userResource.getEmailAddress());
+		}
 	}
 
 	public void assertValidMobileNumber(String mobileNumber)
@@ -720,6 +733,14 @@ public class UserService
 		if (!REGEX_PHONE.matcher(mobileNumber).matches())
 		{
 			throw InvalidDataException.invalidMobileNumber(mobileNumber);
+		}
+	}
+
+	public void assertValidEmailAddress(String emailAddress)
+	{
+		if (!REGEX_EMAIL.matcher(emailAddress).matches())
+		{
+			throw InvalidDataException.invalidEmailAddress(emailAddress);
 		}
 	}
 

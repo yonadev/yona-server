@@ -21,6 +21,7 @@ class User
 	final String firstName
 	final String lastName
 	final String mobileNumber
+	String emailAddress
 	final String mobileNumberConfirmationUrl
 	final String resendMobileNumberConfirmationCodeUrl
 	final String postOpenAppEventUrl
