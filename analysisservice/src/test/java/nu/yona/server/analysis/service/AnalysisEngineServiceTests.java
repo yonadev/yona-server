@@ -16,6 +16,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -70,10 +71,9 @@ import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.LockPool;
 import nu.yona.server.util.TimeUtil;
+import nu.yona.server.util.TransactionHelper;
 
 @RunWith(MockitoJUnitRunner.class)
-@Ignore // TODO YD-385 The day activities are now not directly saved to a repository, so this test can't work. Any idea how we'll
-		// test this?
 public class AnalysisEngineServiceTests
 {
 	private final Map<String, Goal> goalMap = new HashMap<>();
@@ -98,6 +98,9 @@ public class AnalysisEngineServiceTests
 	private WeekActivityRepository mockWeekActivityRepository;
 	@Mock
 	private LockPool<UUID> userAnonymizedSynchronizer;
+	@Mock
+	private TransactionHelper transactionHelper;
+
 	@InjectMocks
 	private final AnalysisEngineService service = new AnalysisEngineService();
 
@@ -190,6 +193,16 @@ public class AnalysisEngineServiceTests
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, socialGoal.getId())).thenReturn(socialGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, shoppingGoal.getId())).thenReturn(shoppingGoal);
 
+		
+		doAnswer(new Answer<Void>() {
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable
+			{
+				invocation.getArgumentAt(0, Runnable.class).run();
+				return null;
+			}
+		}).when(transactionHelper).executeInNewTransaction(any(Runnable.class));
+
 		JUnitUtil.setUpRepositoryMock(mockDayActivityRepository);
 	}
 
@@ -215,10 +228,10 @@ public class AnalysisEngineServiceTests
 	}
 
 	/*
-	 * Tests that two conflict messages are generated when the conflict interval is passed.
+	 * Tests that a messages is sent when another conflict occurs after the interval
 	 */
 	@Test
-	public void conflictInterval()
+	public void messageSentWhenSecondConflictAfterConflictInterval()
 	{
 		// Normally there is one conflict message sent.
 		// Set a short conflict interval such that the conflict messages are not aggregated.
@@ -244,8 +257,8 @@ public class AnalysisEngineServiceTests
 		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test1", Optional.empty()));
 
 		// Verify that there is a new conflict message sent.
-		ArgumentCaptor<MessageDestinationDto> messageDestination = ArgumentCaptor.forClass(MessageDestinationDto.class);
-		verify(mockMessageService, times(1)).sendMessageAndFlushToDatabase(any(), messageDestination.capture());
+		ArgumentCaptor<MessageDestination> messageDestination = ArgumentCaptor.forClass(MessageDestination.class);
+		verify(mockMessageService, times(1)).sendMessage(any(), messageDestination.capture());
 		assertThat("Expect right message destination", messageDestination.getValue().getId(),
 				equalTo(anonMessageDestination.getId()));
 
@@ -253,10 +266,27 @@ public class AnalysisEngineServiceTests
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 	}
 
+	/*
+	 * Tests that a second conflict within the interval does not cause a message to be sent
+	 */
+	@Test
+	public void noMessageSentWhenSecondConflictWithinConflictInterval()
+	{
+		mockEarlierActivity(gamblingGoal, nowInAmsterdam());
+
+		Set<String> conflictCategories = new HashSet<>(Arrays.asList("lotto"));
+		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test1", Optional.empty()));
+
+		// Verify that there is a new conflict message sent.
+		ArgumentCaptor<MessageDestination> messageDestination = ArgumentCaptor.forClass(MessageDestination.class);
+		verify(mockMessageService, never()).sendMessage(any(), messageDestination.capture());
+	}
+
 	/**
 	 * Tests that a conflict message is created when analysis service is called with a matching category.
 	 */
 	@Test
+	@Ignore
 	public void messageCreatedOnMatch()
 	{
 		ZonedDateTime t = nowInAmsterdam();
@@ -294,6 +324,7 @@ public class AnalysisEngineServiceTests
 	 * Tests that a conflict message is created when analysis service is called with a not matching and a matching category.
 	 */
 	@Test
+	@Ignore
 	public void messageCreatedOnMatchOneCategoryOfMultiple()
 	{
 		// Execute the analysis engine service.
@@ -315,6 +346,7 @@ public class AnalysisEngineServiceTests
 	 * Tests that multiple conflict messages are created when analysis service is called with multiple matching categories.
 	 */
 	@Test
+	@Ignore
 	public void messagesCreatedOnMatchMultiple()
 	{
 		// Execute the analysis engine service.
@@ -348,6 +380,7 @@ public class AnalysisEngineServiceTests
 	 * Tests that a conflict message is updated when analysis service is called with a matching category after a short time.
 	 */
 	@Test
+	@Ignore
 	public void messageAggregation()
 	{
 		// Normally there is one conflict message sent.
@@ -394,6 +427,7 @@ public class AnalysisEngineServiceTests
 	 * Tests that no conflict messages are created when analysis service is called with non-matching category.
 	 */
 	@Test
+	@Ignore
 	public void noMessagesCreatedOnNoMatch()
 	{
 		// Execute the analysis engine service.
@@ -418,6 +452,7 @@ public class AnalysisEngineServiceTests
 	 * Tests that no conflict messages are created when analysis service is called with non-matching category.
 	 */
 	@Test
+	@Ignore
 	public void noMessagesCreatedOnTimeZoneGoal()
 	{
 		// Execute the analysis engine service.
@@ -444,6 +479,7 @@ public class AnalysisEngineServiceTests
 	 * Tests that no conflict messages are created when analysis service is called with non-matching category.
 	 */
 	@Test
+	@Ignore
 	public void noMessagesCreatedOnNonZeroBudgetGoal()
 	{
 		// Execute the analysis engine service.
@@ -455,6 +491,7 @@ public class AnalysisEngineServiceTests
 	}
 
 	@Test
+	@Ignore
 	public void activityOnNewDay()
 	{
 		ZonedDateTime today = ZonedDateTime.now(userAnonZoneId).truncatedTo(ChronoUnit.DAYS);
@@ -488,6 +525,7 @@ public class AnalysisEngineServiceTests
 	}
 
 	@Test
+	@Ignore
 	public void appActivityCompletelyPrecedingLastCachedActivity()
 	{
 		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
@@ -517,6 +555,7 @@ public class AnalysisEngineServiceTests
 	}
 
 	@Test
+	@Ignore
 	public void appActivityPrecedingAndExtendingLastCachedActivity()
 	{
 		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
@@ -546,6 +585,7 @@ public class AnalysisEngineServiceTests
 	}
 
 	@Test
+	@Ignore
 	public void appActivityPrecedingCachedDayActivity()
 	{
 		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
@@ -585,6 +625,7 @@ public class AnalysisEngineServiceTests
 	}
 
 	@Test
+	@Ignore
 	public void crossDayActivity()
 	{
 		ZonedDateTime startTime = ZonedDateTime.now(userAnonZoneId).minusDays(1);
