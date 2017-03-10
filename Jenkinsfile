@@ -3,11 +3,11 @@ pipeline {
 	stages {
 		stage('Build') {
 			agent { label 'yona' }
+			environment {
+				DOCKER_HUB = credentials('docker-hub')
+			}
 			steps {
-				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'docker-hub',
-								usernameVariable: 'DOCKER_HUB_USERNAME', passwordVariable: 'DOCKER_HUB_PASSWORD']]) {
-					sh './gradlew -PdockerHubUserName=$DOCKER_HUB_USERNAME -PdockerHubPassword="$DOCKER_HUB_PASSWORD" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage'
-				}
+				sh './gradlew -PdockerHubUserName=$DOCKER_HUB_USR -PdockerHubPassword="$DOCKER_HUB_PSW" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage'
 			}
 			post {
 				always {
@@ -17,11 +17,11 @@ pipeline {
 		}
 		stage('Setup test server') {
 			agent { label 'yona' }
+			environment {
+				YONA_DB = credentials('test-db')
+			}
 			steps {
-				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'test-db',
-								usernameVariable: 'YONA_DB_USERNAME', passwordVariable: 'YONA_DB_PASSWORD']]) {
-					sh 'scripts/install-test-server.sh $YONA_DB_USERNAME "$YONA_DB_PASSWORD" jdbc:mariadb://yonadbserver:3306/yona'
-				}
+				sh 'scripts/install-test-server.sh $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona'
 			}
 		}
 		stage('Run integration tests') {
@@ -37,11 +37,11 @@ pipeline {
 		}
 		stage('Tag revision on GitHub') {
 			agent { label 'yona' }
+			environment {
+				GIT = credentials('65325e52-5ec0-46a7-a937-f81f545f3c1b')
 			steps {
-				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: '65325e52-5ec0-46a7-a937-f81f545f3c1b', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD']]) {
-					sh('git tag -a build-$BUILD_NUMBER -m "Jenkins"')
-					sh('git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/yonadev/yona-server.git --tags')
-				}
+				sh('git tag -a build-$BUILD_NUMBER -m "Jenkins"')
+				sh('git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/yona-server.git --tags')
 			}
 		}
 		stage('Decide tag on Docker Hub') {
@@ -76,18 +76,18 @@ pipeline {
 		}
 		stage('Deploy to Mobiquity test server') {
 			agent { label 'mob-test' }
+			environment {
+				YONA_DB = credentials('test-db')
+			}
 			when {
 				environment name: 'DEPLOY_TO_MOB_TEST', value: 'yes'
 			}
 			steps {
-				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'test-db',
-								usernameVariable: 'YONA_DB_USERNAME', passwordVariable: 'YONA_DB_PASSWORD']]) {
-					sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/refresh-build.sh'
-					sh 'chmod +x refresh-build.sh'
-					sh 'wget -O wait-for-services.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
-					sh 'chmod +x wait-for-services.sh'
-					sh './refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USERNAME "$YONA_DB_PASSWORD" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/backup'
-				}
+				sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/refresh-build.sh'
+				sh 'chmod +x refresh-build.sh'
+				sh 'wget -O wait-for-services.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
+				sh 'chmod +x wait-for-services.sh'
+				sh './refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/backup'
 			}
 		}
 		stage('Decide deploy to acceptance test server') {
@@ -104,18 +104,18 @@ pipeline {
 		}
 		stage('Deploy to acceptance test server') {
 			agent { label 'acc-test' }
+			environment {
+				YONA_DB = credentials('test-db')
+			}
 			when {
 				environment name: 'DEPLOY_TO_ACC_TEST', value: 'yes'
 			}
 			steps {
-				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'test-db',
-								usernameVariable: 'YONA_DB_USERNAME', passwordVariable: 'YONA_DB_PASSWORD']]) {
-					sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/refresh-build.sh'
-					sh 'chmod +x refresh-build.sh'
-					sh 'wget -O wait-for-services.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
-					sh 'chmod +x wait-for-services.sh'
-					sh './refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USERNAME "$YONA_DB_PASSWORD" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/backup'
-				}
+				sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/refresh-build.sh'
+				sh 'chmod +x refresh-build.sh'
+				sh 'wget -O wait-for-services.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
+				sh 'chmod +x wait-for-services.sh'
+				sh './refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/backup'
 			}
 		}
 	}
