@@ -39,6 +39,7 @@ pipeline {
 			agent { label 'yona' }
 			environment {
 				GIT = credentials('65325e52-5ec0-46a7-a937-f81f545f3c1b')
+			}
 			steps {
 				sh('git tag -a build-$BUILD_NUMBER -m "Jenkins"')
 				sh('git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/yona-server.git --tags')
