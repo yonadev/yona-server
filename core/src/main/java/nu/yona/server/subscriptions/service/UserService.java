@@ -726,6 +726,13 @@ public class UserService
 			}
 			assertValidEmailAddress(userResource.getEmailAddress());
 		}
+		else
+		{
+			if (!StringUtils.isBlank(userResource.getEmailAddress()))
+			{
+				throw InvalidDataException.excessEmailAddress();
+			}
+		}
 	}
 
 	public void assertValidMobileNumber(String mobileNumber)

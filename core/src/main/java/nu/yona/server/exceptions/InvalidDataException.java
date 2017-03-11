@@ -80,4 +80,9 @@ public class InvalidDataException extends YonaException
 	{
 		return new InvalidDataException("error.user.email.address.invalid", emailAddress);
 	}
+
+	public static InvalidDataException excessEmailAddress()
+	{
+		return new InvalidDataException("error.user.email.address.not.supported");
+	}
 }
