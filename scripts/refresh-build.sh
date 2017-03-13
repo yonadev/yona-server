@@ -2,6 +2,7 @@
 set -e # Fail on error
 my_dir="$(dirname "$0")"
 
+export COMPOSE_PROJECT_NAME=yona
 export yonatag=build-$1
 export yona_db_user_name=$2
 export yona_db_password=$3
