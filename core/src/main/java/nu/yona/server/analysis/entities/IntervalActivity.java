@@ -151,7 +151,7 @@ public abstract class IntervalActivity extends EntityWithId
 
 	public void computeAggregates()
 	{
-		spread = spreadIntegersAsByteList(computeSpread());
+		spread = spreadIntegersAsByteArray(computeSpread());
 		totalActivityDurationMinutes = computeTotalActivityDurationMinutes();
 		aggregatesComputed = true;
 	}
@@ -198,7 +198,7 @@ public abstract class IntervalActivity extends EntityWithId
 		return integers;
 	}
 
-	private static byte[] spreadIntegersAsByteList(List<Integer> spread)
+	private static byte[] spreadIntegersAsByteArray(List<Integer> spread)
 	{
 		byte[] bytes = new byte[spread.size()];
 		for (int i = 0; i < spread.size(); i++)

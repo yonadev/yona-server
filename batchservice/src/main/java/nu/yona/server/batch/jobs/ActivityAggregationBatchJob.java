@@ -88,8 +88,8 @@ public class ActivityAggregationBatchJob
 
 			JpaPagingItemReader<DayActivity> reader = new JpaPagingItemReader<>();
 			reader.setQueryString(jpqlQuery);
-			reader.setParameterValues(
-					Collections.singletonMap("yesterday", ZonedDateTime.now(DEFAULT_TIME_ZONE).minusDays(1).toLocalDate()));
+			reader.setParameterValues(Collections.singletonMap("yesterday",
+					TimeUtil.getStartOfDay(DEFAULT_TIME_ZONE, ZonedDateTime.now(DEFAULT_TIME_ZONE).minusDays(1)).toLocalDate()));
 			reader.setEntityManagerFactory(entityManager.getEntityManagerFactory());
 			reader.setPageSize(DAY_ACTIVITY_CHUNK_SIZE);
 			reader.afterPropertiesSet();
@@ -137,7 +137,7 @@ public class ActivityAggregationBatchJob
 			JpaPagingItemReader<WeekActivity> reader = new JpaPagingItemReader<>();
 			reader.setQueryString(jpqlQuery);
 			reader.setParameterValues(Collections.singletonMap("lastWeek",
-					TimeUtil.getStartOfWeek(ZonedDateTime.now(DEFAULT_TIME_ZONE).toLocalDate()).minusWeeks(1)));
+					TimeUtil.getStartOfWeek(ZonedDateTime.now(DEFAULT_TIME_ZONE).minusWeeks(1).toLocalDate())));
 			reader.setEntityManagerFactory(entityManager.getEntityManagerFactory());
 			reader.setPageSize(WEEK_ACTIVITY_CHUNK_SIZE);
 			reader.afterPropertiesSet();
