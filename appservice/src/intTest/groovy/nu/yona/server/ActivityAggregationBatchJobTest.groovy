@@ -55,7 +55,7 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		assertActivityValues(richard, 1, expectedValuesRichardLastWeek, 2)
 
 		when:
-		def response = batchService.triggerAggregateActivities()
+		def response = batchService.triggerActivityAggregationBatchJob()
 
 		then:
 		response.status == 200
@@ -63,7 +63,7 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		response.responseData.writeCountPerStep?.aggregateDayActivities >= 10 //may aggregate existing activities from other tests too, if not run in isolation
 		assertActivityValues(richard, 1, expectedValuesRichardLastWeek, 2)
 
-		def secondAggregationResponse = batchService.triggerAggregateActivities()
+		def secondAggregationResponse = batchService.triggerActivityAggregationBatchJob()
 		secondAggregationResponse.status == 200
 		secondAggregationResponse.responseData.writeCountPerStep?.aggregateWeekActivities == 0
 		//do not assert about aggregateDayActivities; inactivity for past days of current week is suddenly added on second retrieval of week overview, one per loaded goal;
@@ -83,7 +83,7 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		reportAppActivity(richard, "NU.nl", "W-1 Mon 23:00", "W-1 Mon 23:49")
-		def firstAggregationResponse = batchService.triggerAggregateActivities()
+		def firstAggregationResponse = batchService.triggerActivityAggregationBatchJob()
 		assert firstAggregationResponse.status == 200
 		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateWeekActivities >= 1 //may aggregate existing activities from other tests too, if not run in isolation
 		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateDayActivities >= 1 //may aggregate existing activities from other tests too, if not run in isolation
@@ -112,7 +112,7 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 			"Sat" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
 		assertActivityValues(richard, 1, expectedValuesSecondAggregation, 2)
 
-		def response = batchService.triggerAggregateActivities()
+		def response = batchService.triggerActivityAggregationBatchJob()
 		response.status == 200
 		response.responseData.writeCountPerStep?.aggregateWeekActivities == 1
 		response.responseData.writeCountPerStep?.aggregateDayActivities == 1 + 5 + YonaServer.getCurrentDayOfWeek() //days are initialized with inactivity, side effect of retrieving and asserting activity
@@ -132,7 +132,7 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		reportAppActivity(richard, "NU.nl", "W-1 Mon 23:00", "W-1 Mon 23:05")
-		def firstAggregationResponse = batchService.triggerAggregateActivities()
+		def firstAggregationResponse = batchService.triggerActivityAggregationBatchJob()
 		assert firstAggregationResponse.status == 200
 		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateWeekActivities >= 1 //may aggregate existing activities from other tests too, if not run in isolation
 		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateDayActivities >= 1 //may aggregate existing activities from other tests too, if not run in isolation
@@ -161,7 +161,7 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 			"Sat" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
 		assertActivityValues(richard, 1, expectedValuesSecondAggregation, 2)
 
-		def response = batchService.triggerAggregateActivities()
+		def response = batchService.triggerActivityAggregationBatchJob()
 		response.status == 200
 		response.responseData.writeCountPerStep?.aggregateWeekActivities == 1
 		response.responseData.writeCountPerStep?.aggregateDayActivities == 1 + 5 + YonaServer.getCurrentDayOfWeek() //days are initialized with inactivity, side effect of retrieving and asserting activity

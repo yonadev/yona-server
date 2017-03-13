@@ -18,7 +18,7 @@ class BatchService extends Service
 	}
 
 
-	def triggerAggregateActivities()
+	def triggerActivityAggregationBatchJob()
 	{
 		yonaServer.postJson(ACTIVITY_AGGREGATION_TRIGGER_PATH, "{}")
 	}
