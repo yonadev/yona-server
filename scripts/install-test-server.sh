@@ -3,7 +3,7 @@ set -e # Fail on error
 my_dir="$(dirname "$0")"
 
 # Go to the home of the root user
-cd /root/docker-compose/yona
+pushd /root/docker-compose/yona
 
 export yonatag=latest
 
@@ -55,6 +55,9 @@ EOF
 
 echo "Starting the containers"
 docker-compose up -d
+
+# Return to workspace root folder
+popd
 
 echo "Waiting for the services to start"
 "$my_dir/wait-for-services.sh"
