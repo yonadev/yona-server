@@ -20,7 +20,8 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 	def userCreationJson = """{
 				"firstName":"John",
 				"lastName":"Doe",
-				"mobileNumber":"+${timestamp}"
+				"mobileNumber":"+${timestamp}",
+				"emailAddress":"john@doe.com"
 				}"""
 	def password = "John Doe"
 
@@ -96,10 +97,55 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 	
+	def 'AddBuddy - empty email address'()
+	{
+		given:
+		User richard = addRichard();
+		
+		when:
+		def object = jsonSlurper.parseText(userCreationJson)
+		object.remove('emailAddress')
+		def response = appService.sendBuddyConnectRequest(richard, object, false)
+
+		then:
+		response.status == 400
+		response.responseData.code == "error.user.email.address"
+		
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'AddBuddy - invalid email address'()
+	{
+		given:
+		User richard = addRichard();
+		
+		when:
+		def object = jsonSlurper.parseText(userCreationJson)
+		object.put('emailAddress', 'a@b')
+		def response1 = appService.sendBuddyConnectRequest(richard, object, false)
+		object.put('emailAddress', '@b.c')
+		def response2 = appService.sendBuddyConnectRequest(richard, object, false)
+		object.put('emailAddress', 'a@b@c.c')
+		def response3 = appService.sendBuddyConnectRequest(richard, object, false)
+
+		then:
+		response1.status == 400
+		response1.responseData.code == "error.user.email.address.invalid"
+		response2.status == 400
+		response2.responseData.code == "error.user.email.address.invalid"
+		response3.status == 400
+		response3.responseData.code == "error.user.email.address.invalid"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+	
 	def 'Try Richard request himself as buddy'()
 	{
 		given:
 		User richard = addRichard();
+		richard.emailAddress = "richard@quinn.com"
 
 		when:
 		def response = appService.sendBuddyConnectRequest(richard, richard, false)
@@ -117,6 +163,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard();
 		User bob = addBob()
+		bob.emailAddress = "bob@dunn.com"
 		appService.sendBuddyConnectRequest(richard, bob)
 		
 		when:

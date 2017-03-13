@@ -48,6 +48,7 @@ import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
 import nu.yona.server.subscriptions.entities.BuddyInfoChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.service.UserService.UserPurpose;
 import nu.yona.server.util.TransactionHelper;
 
 @Service
@@ -168,7 +169,7 @@ public class BuddyService
 
 	private void assertValidBuddy(UserDto requestingUser, BuddyDto buddy)
 	{
-		userService.assertValidUserFields(buddy.getUser(), true);
+		userService.assertValidUserFields(buddy.getUser(), UserPurpose.BUDDY);
 		if (buddy.getSendingStatus() != Status.REQUESTED || buddy.getReceivingStatus() != Status.REQUESTED)
 		{
 			throw BuddyServiceException.onlyTwoWayBuddiesAllowed();

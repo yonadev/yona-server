@@ -96,6 +96,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		appService.requestOverwriteUser(richard.mobileNumber)
 
@@ -140,6 +141,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def bob = addBob()
+		richard.emailAddress = "richard@quinn.com"
 		appService.sendBuddyConnectRequest(bob, richard)
 		appService.requestOverwriteUser(richard.mobileNumber)
 

@@ -51,6 +51,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		User bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 
 		when:
 		ZonedDateTime buddyRequestTime = YonaServer.now
@@ -83,6 +84,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		User bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 
 		when:
@@ -114,6 +116,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		User bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
 		def acceptUrl = connectRequestMessage.acceptUrl
@@ -155,6 +158,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		User bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
 		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
@@ -281,6 +285,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		User bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
 		assert appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password).status == 200
@@ -608,6 +613,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		User bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 
 		when:
@@ -631,6 +637,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		User bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
 		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
@@ -660,6 +667,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		User bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
 		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
@@ -694,8 +702,10 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
+		richard.emailAddress = "richard@quinn.com"
 		User bob = richardAndBob.bob
-
+		bob.emailAddress = "bob@dunn.net"
+		
 		when:
 		disconnectBuddy(richard, bob)
 

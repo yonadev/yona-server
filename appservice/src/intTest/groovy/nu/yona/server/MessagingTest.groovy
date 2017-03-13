@@ -116,6 +116,7 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		def messageUrl = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}[0]._links.self.href
 
@@ -139,6 +140,7 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
 		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
@@ -161,6 +163,7 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(bob).acceptUrl
 		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)

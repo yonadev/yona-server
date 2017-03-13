@@ -448,7 +448,8 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		appService.requestOverwriteUser(mobileNumberBob)
 		User bob = appService.addUser(this.&assertUserOverwriteResponseDetails, "B o b", "Bob Changed",
 				"Dunn Changed", "BD Changed", mobileNumberBob, ["overwriteUserConfirmationCode": "1234"])
-
+		bob.emailAddress = "bob@dunn.net"
+		
 		when:
 		appService.makeBuddies(richard, bob)
 		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
