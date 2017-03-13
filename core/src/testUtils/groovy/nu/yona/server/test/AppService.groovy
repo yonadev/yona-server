@@ -285,7 +285,7 @@ class AppService extends Service
 					"firstName":"${receivingUser.firstName}",
 					"lastName":"${receivingUser.lastName}",
 					"mobileNumber":"${receivingUser.mobileNumber}",
-					"emailAddress":"not@used.nu"
+					"emailAddress":"${receivingUser.emailAddress}"
 				}
 			},
 			"message":"Would you like to be my buddy?",

@@ -95,6 +95,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def richard = addRichard(false)
 		def bob = addBob(false)
+		bob.emailAddress = "bob@dunn.com"
 		appService.makeBuddies(richard, bob)
 		return ["richard" : appService.reloadUser(richard), "bob" : appService.reloadUser(bob)]
 	}
@@ -104,6 +105,8 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		def richard = addRichard(false)
 		def bob = addBob(false)
 		def bea = addBea(false)
+		bob.emailAddress = "bob@dunn.net"
+		bea.emailAddress = "bea@gmail.com"
 		appService.makeBuddies(richard, bob)
 		appService.makeBuddies(richard, bea)
 		return ["richard" : appService.reloadUser(richard), "bob" : appService.reloadUser(bob), "bea" : appService.reloadUser(bea)]
