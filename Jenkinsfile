@@ -1,16 +1,13 @@
 pipeline {
 	agent none
 	stages {
-		stage('Check-out sources') {
-			agent { label 'yona' }
-            checkout scm
-		}
 		stage('Build') {
 			agent { label 'yona' }
 			environment {
 				DOCKER_HUB = credentials('docker-hub')
 			}
 			steps {
+				checkout scm
 				sh './gradlew -PdockerHubUserName=$DOCKER_HUB_USR -PdockerHubPassword="$DOCKER_HUB_PSW" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage'
 			}
 			post {
