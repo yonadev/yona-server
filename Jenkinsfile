@@ -1,6 +1,10 @@
 pipeline {
 	agent none
 	stages {
+		stage('Check-out sources') {
+			agent { label 'yona' }
+            checkout scm
+		}
 		stage('Build') {
 			agent { label 'yona' }
 			steps {
