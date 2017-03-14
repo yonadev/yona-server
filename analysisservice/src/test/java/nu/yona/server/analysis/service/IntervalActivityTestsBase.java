@@ -10,6 +10,9 @@ import static org.junit.Assert.assertThat;
 import java.text.MessageFormat;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -54,45 +57,34 @@ public abstract class IntervalActivityTestsBase
 		// Set up UserAnonymized instance.
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
-		Set<Goal> goals = new HashSet<Goal>(Arrays.asList(budgetGoal));
+		Set<Goal> goals = new HashSet<>(Arrays.asList(budgetGoal));
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 	}
 
-	protected ZonedDateTime getDate(DayActivity d, String timeString)
+	protected ZonedDateTime getTimeOnDay(DayActivity dayActivity, String timeString)
 	{
-		int hourIndex = timeString.indexOf(':');
-		int hour = Integer.parseInt(timeString.substring(0, hourIndex));
-		int minuteIndex = timeString.indexOf(':', hourIndex + 1);
-		if (minuteIndex == -1)
-		{
-			int minute = Integer.parseInt(timeString.substring(hourIndex + 1));
-			return d.getStartTime().withHour(hour).withMinute(minute);
-		}
-		else
-		{
-			int minute = Integer.parseInt(timeString.substring(hourIndex + 1, minuteIndex));
-			int second = Integer.parseInt(timeString.substring(minuteIndex + 1));
-			return d.getStartTime().withHour(hour).withMinute(minute).withSecond(second);
-		}
+		TemporalAccessor time = DateTimeFormatter.ISO_LOCAL_TIME.parse(timeString);
+		return dayActivity.getStartTime().withHour(time.get(ChronoField.HOUR_OF_DAY))
+				.withMinute(time.get(ChronoField.MINUTE_OF_HOUR)).withSecond(time.get(ChronoField.SECOND_OF_MINUTE));
 	}
 
-	protected void addActivity(DayActivity d, String startTimeString, String endTimeString)
+	protected void addActivity(DayActivity dayActivity, String startTimeString, String endTimeString)
 	{
-		d.addActivity(Activity.createInstance(testZone, getDate(d, startTimeString).toLocalDateTime(),
-				getDate(d, endTimeString).toLocalDateTime()));
+		dayActivity.addActivity(Activity.createInstance(testZone, getTimeOnDay(dayActivity, startTimeString).toLocalDateTime(),
+				getTimeOnDay(dayActivity, endTimeString).toLocalDateTime()));
 	}
 
-	protected void assertSpreadItemsAndTotal(IntervalActivity d, String expectedSpreadItems,
+	protected void assertSpreadItemsAndTotal(IntervalActivity intervalActivity, String expectedSpreadItems,
 			int expectedTotalActivityDurationMinutes)
 	{
-		assertThat(d.areAggregatesComputed(), equalTo(false));
-		assertSpreadItems(d.getSpread(), expectedSpreadItems);
-		assertThat(d.getTotalActivityDurationMinutes(), equalTo(expectedTotalActivityDurationMinutes));
+		assertThat(intervalActivity.areAggregatesComputed(), equalTo(false));
+		assertSpreadItems(intervalActivity.getSpread(), expectedSpreadItems);
+		assertThat(intervalActivity.getTotalActivityDurationMinutes(), equalTo(expectedTotalActivityDurationMinutes));
 
-		d.computeAggregates();
-		assertThat(d.areAggregatesComputed(), equalTo(true));
-		assertSpreadItems(d.getSpread(), expectedSpreadItems);
-		assertThat(d.getTotalActivityDurationMinutes(), equalTo(expectedTotalActivityDurationMinutes));
+		intervalActivity.computeAggregates();
+		assertThat(intervalActivity.areAggregatesComputed(), equalTo(true));
+		assertSpreadItems(intervalActivity.getSpread(), expectedSpreadItems);
+		assertThat(intervalActivity.getTotalActivityDurationMinutes(), equalTo(expectedTotalActivityDurationMinutes));
 	}
 
 	protected void assertSpreadItems(List<Integer> actualSpread, String expectedSpreadItems)

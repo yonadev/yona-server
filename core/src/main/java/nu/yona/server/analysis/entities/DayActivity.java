@@ -95,10 +95,12 @@ public class DayActivity extends IntervalActivity
 	{
 		super.resetAggregatesComputed();
 
-		if (weekActivity != null)
+		if (weekActivity == null)
 		{
-			weekActivity.resetAggregatesComputed();
+			// Occurs in unit tests only
+			return;
 		}
+		weekActivity.resetAggregatesComputed();
 	}
 
 	public WeekActivity getWeekActivity()

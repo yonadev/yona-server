@@ -23,6 +23,8 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
+		// Trigger aggregation for any already existing activities
+		assert batchService.triggerActivityAggregationBatchJob().status == 200
 
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
@@ -59,15 +61,14 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 200
-		response.responseData.writeCountPerStep?.aggregateWeekActivities >= 2 //may aggregate existing activities from other tests too, if not run in isolation
-		response.responseData.writeCountPerStep?.aggregateDayActivities >= 10 //may aggregate existing activities from other tests too, if not run in isolation
+		response.responseData.writeCountPerStep?.aggregateWeekActivities == 2
+		response.responseData.writeCountPerStep?.aggregateDayActivities == 10
 		assertActivityValues(richard, 1, expectedValuesRichardLastWeek, 2)
 
 		def secondAggregationResponse = batchService.triggerActivityAggregationBatchJob()
 		secondAggregationResponse.status == 200
 		secondAggregationResponse.responseData.writeCountPerStep?.aggregateWeekActivities == 0
-		//do not assert about aggregateDayActivities; inactivity for past days of current week is suddenly added on second retrieval of week overview, one per loaded goal;
-		//may aggregate existing day activities from other tests too, if not run in isolation
+		// Do not assert aggregateDayActivities; inactivity for past days of current week is suddenly added on second retrieval of week overview, one per loaded goal.
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -80,13 +81,15 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
+		// Trigger aggregation for any already existing activities
+		assert batchService.triggerActivityAggregationBatchJob().status == 200
 
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		reportAppActivity(richard, "NU.nl", "W-1 Mon 23:00", "W-1 Mon 23:49")
 		def firstAggregationResponse = batchService.triggerActivityAggregationBatchJob()
 		assert firstAggregationResponse.status == 200
-		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateWeekActivities >= 1 //may aggregate existing activities from other tests too, if not run in isolation
-		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateDayActivities >= 1 //may aggregate existing activities from other tests too, if not run in isolation
+		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateWeekActivities == 1
+		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateDayActivities == 1
 
 		richard = appService.reloadUser(richard)
 		Goal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
@@ -129,13 +132,15 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
+		// Trigger aggregation for any already existing activities
+		assert batchService.triggerActivityAggregationBatchJob().status == 200
 
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		reportAppActivity(richard, "NU.nl", "W-1 Mon 23:00", "W-1 Mon 23:05")
 		def firstAggregationResponse = batchService.triggerActivityAggregationBatchJob()
 		assert firstAggregationResponse.status == 200
-		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateWeekActivities >= 1 //may aggregate existing activities from other tests too, if not run in isolation
-		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateDayActivities >= 1 //may aggregate existing activities from other tests too, if not run in isolation
+		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateWeekActivities == 1
+		assert firstAggregationResponse.responseData.writeCountPerStep?.aggregateDayActivities == 1
 
 		richard = appService.reloadUser(richard)
 		Goal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)

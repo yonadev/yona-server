@@ -84,10 +84,7 @@ public class Activity extends EntityWithId
 	{
 		this.endTime = endTime;
 
-		if (dayActivity != null)
-		{
-			dayActivity.resetAggregatesComputed();
-		}
+		dayActivity.resetAggregatesComputed();
 	}
 
 	public int getDurationMinutes()
