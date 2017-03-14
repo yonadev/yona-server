@@ -359,9 +359,9 @@ public class AnalysisEngineService
 		{
 			weekActivity = WeekActivity.createInstance(userAnonymizedEntity, matchingGoal, startOfWeek.getZone(),
 					startOfWeek.toLocalDate());
+			matchingGoal.addWeekActivity(weekActivity);
 		}
 		weekActivity.addDayActivity(dayActivity);
-		matchingGoal.addWeekActivity(weekActivity);
 
 		return dayActivity;
 	}
