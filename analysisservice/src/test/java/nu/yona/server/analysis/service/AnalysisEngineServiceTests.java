@@ -308,7 +308,10 @@ public class AnalysisEngineServiceTests
 		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
 
 		// Verify there is a an activity in a day activity inside a week activity
-		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonEntity);
+		ArgumentCaptor<UserAnonymized> userAnonymizedCaptor = ArgumentCaptor.forClass(UserAnonymized.class);
+		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonymizedCaptor.capture());
+		UserAnonymized userAnonymized = userAnonymizedCaptor.getValue();
+		assertThat("Expect right user set to activity", userAnonymized, equalTo(userAnonEntity));
 		List<WeekActivity> weekActivities = gamblingGoal.getWeekActivities();
 		assertThat("One week activity created", weekActivities.size(), equalTo(1));
 		List<DayActivity> dayActivities = weekActivities.get(0).getDayActivities();
@@ -467,7 +470,10 @@ public class AnalysisEngineServiceTests
 		verifyGoalConflictMessageSent(gamblingGoal);
 
 		// Verify there are now two day activities
-		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonEntity);
+		ArgumentCaptor<UserAnonymized> userAnonymizedCaptor = ArgumentCaptor.forClass(UserAnonymized.class);
+		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonymizedCaptor.capture());
+		UserAnonymized userAnonymized = userAnonymizedCaptor.getValue();
+		assertThat("Expect right user set to activity", userAnonymized, equalTo(userAnonEntity));
 		List<WeekActivity> weekActivities = gamblingGoal.getWeekActivities();
 		assertThat("One week activity created", weekActivities.size(), equalTo(1));
 		List<DayActivity> dayActivities = weekActivities.get(0).getDayActivities();
@@ -533,7 +539,10 @@ public class AnalysisEngineServiceTests
 		verify(mockDayActivityRepository, times(1)).findOne(userAnonId, now.toLocalDate(), gamblingGoal.getId());
 
 		// Verify that the day was updated
-		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonEntity);
+		ArgumentCaptor<UserAnonymized> userAnonymizedCaptor = ArgumentCaptor.forClass(UserAnonymized.class);
+		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonymizedCaptor.capture());
+		UserAnonymized userAnonymized = userAnonymizedCaptor.getValue();
+		assertThat("Expect right user set to activity", userAnonymized, equalTo(userAnonEntity));
 		List<WeekActivity> weekActivities = gamblingGoal.getWeekActivities();
 		assertThat("One week activity created", weekActivities.size(), equalTo(1));
 		List<DayActivity> dayActivities = weekActivities.get(0).getDayActivities();
@@ -570,7 +579,10 @@ public class AnalysisEngineServiceTests
 		verify(mockDayActivityRepository, times(1)).findOne(userAnonId, now.toLocalDate(), gamblingGoal.getId());
 
 		// Verify that the day was updated
-		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonEntity);
+		ArgumentCaptor<UserAnonymized> userAnonymizedCaptor = ArgumentCaptor.forClass(UserAnonymized.class);
+		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonymizedCaptor.capture());
+		UserAnonymized userAnonymized = userAnonymizedCaptor.getValue();
+		assertThat("Expect right user set to activity", userAnonymized, equalTo(userAnonEntity));
 		List<WeekActivity> weekActivities = gamblingGoal.getWeekActivities();
 		assertThat("One week activity created", weekActivities.size(), equalTo(1));
 		List<DayActivity> dayActivities = weekActivities.get(0).getDayActivities();
@@ -607,7 +619,10 @@ public class AnalysisEngineServiceTests
 		// Verify that a database lookup was done for yesterday
 		verify(mockDayActivityRepository, times(1)).findOne(userAnonId, yesterdayTime.toLocalDate(), gamblingGoal.getId());
 		// Verify that yesterday was inserted in the database
-		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonEntity);
+		ArgumentCaptor<UserAnonymized> userAnonymizedCaptor = ArgumentCaptor.forClass(UserAnonymized.class);
+		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonymizedCaptor.capture());
+		UserAnonymized userAnonymized = userAnonymizedCaptor.getValue();
+		assertThat("Expect right user set to activity", userAnonymized, equalTo(userAnonEntity));
 		List<WeekActivity> weekActivities = gamblingGoal.getWeekActivities();
 		assertThat("One week activity created", weekActivities.size(), equalTo(1));
 		List<DayActivity> dayActivities = weekActivities.get(0).getDayActivities();
@@ -660,7 +675,10 @@ public class AnalysisEngineServiceTests
 		ZonedDateTime endTime = ZonedDateTime.now(userAnonZoneId);
 		service.analyze(userAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
-		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonEntity);
+		ArgumentCaptor<UserAnonymized> userAnonymizedCaptor = ArgumentCaptor.forClass(UserAnonymized.class);
+		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonymizedCaptor.capture());
+		UserAnonymized userAnonymized = userAnonymizedCaptor.getValue();
+		assertThat("Expect right user set to activity", userAnonymized, equalTo(userAnonEntity));
 		List<WeekActivity> weekActivities = gamblingGoal.getWeekActivities();
 		assertThat("One week activity created", weekActivities.size(), equalTo(1));
 		List<DayActivity> dayActivities = weekActivities.get(0).getDayActivities();
@@ -708,7 +726,10 @@ public class AnalysisEngineServiceTests
 	private void verifyActivityUpdate(Goal... forGoals)
 	{
 		// Verify there is a an activity in a day activity inside a week activity
-		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonEntity);
+		ArgumentCaptor<UserAnonymized> userAnonymizedCaptor = ArgumentCaptor.forClass(UserAnonymized.class);
+		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonymizedCaptor.capture());
+		UserAnonymized userAnonymized = userAnonymizedCaptor.getValue();
+		assertThat("Expect right user set to activity", userAnonymized, equalTo(userAnonEntity));
 		for (Goal forGoal : forGoals)
 		{
 			List<WeekActivity> weekActivities = forGoal.getWeekActivities();

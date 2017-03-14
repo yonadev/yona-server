@@ -1332,6 +1332,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		User bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		richard = appService.reloadUser(richard)
 
@@ -1354,6 +1355,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		User bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
 		def acceptUrl = connectRequestMessage.acceptUrl
@@ -1379,6 +1381,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		User bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
 		def acceptUrl = connectRequestMessage.acceptUrl

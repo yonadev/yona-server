@@ -89,6 +89,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def bob = addBob()
+		richard.emailAddress = "richard@quinn.com"
 		appService.sendBuddyConnectRequest(bob, richard)
 
 		when:
@@ -112,9 +113,13 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		buddyConnectResponseMessage._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
 		buddyConnectResponseMessage._links."yona:process" == null // Processing happens automatically these days
 
+		when:
 		// Test whether Richard can be removed after he again established a buddy relationship with Bob
 		def newRichard = addRichard()
+		bob.emailAddress = "bob@dunn.net"
 		appService.makeBuddies(newRichard, bob)
+		
+		then:
 		appService.deleteUser(newRichard, "Sorry, going again").status == 200
 
 		cleanup:
@@ -126,6 +131,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 
 		when:

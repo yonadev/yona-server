@@ -2,6 +2,7 @@
 set -e # Fail on error
 my_dir="$(dirname "$0")"
 
+export COMPOSE_PROJECT_NAME=yona
 export yonatag=build-$1
 export yona_db_user_name=$2
 export yona_db_password=$3
@@ -19,7 +20,7 @@ EOF
 echo "Pulling new images, based on old compose file."
 echo "As the compose file rarely changes, this normally pulls everything needed"
 echo "The server is still running, so this reduces downtime"
-[[ -f docker-compose.yml ]] || wget https://raw.githubusercontent.com/yonadev/yona-server/master/docker-compose/yona/docker-compose.yml
+[[ -f docker-compose.yml ]] || wget https://raw.githubusercontent.com/yonadev/yona-server/$yonatag/docker-compose/yona/docker-compose.yml
 docker-compose pull
 docker pull yonadev/yona-mariadb-liquibase-update:$yonatag
 
@@ -34,7 +35,7 @@ docker-compose rm -f -v
 
 echo "Updating the docker-compose.yml file"
 rm -f docker-compose.yml
-wget https://raw.githubusercontent.com/yonadev/yona-server/master/docker-compose/yona/docker-compose.yml
+wget https://raw.githubusercontent.com/yonadev/yona-server/$yonatag/docker-compose/yona/docker-compose.yml
 
 echo "Pulling new images"
 docker-compose pull
@@ -53,4 +54,4 @@ echo "Waiting for the services to start"
 "$my_dir/wait-for-services.sh"
 
 echo "Loading the activity categories"
-curl https://raw.githubusercontent.com/yonadev/yona-server/master/dbinit/data/productionActivityCategories.json | curl -X PUT http://localhost:8080/activityCategories/ -d @- --header "Content-Type: application/json"
+curl https://raw.githubusercontent.com/yonadev/yona-server/$yonatag/dbinit/data/productionActivityCategories.json | curl -X PUT http://localhost:8080/activityCategories/ -d @- --header "Content-Type: application/json"

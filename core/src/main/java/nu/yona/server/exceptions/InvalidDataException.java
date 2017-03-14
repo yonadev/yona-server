@@ -70,4 +70,19 @@ public class InvalidDataException extends YonaException
 	{
 		return new InvalidDataException("error.missing.activity.category.link");
 	}
+
+	public static InvalidDataException blankEmailAddress()
+	{
+		return new InvalidDataException("error.user.email.address");
+	}
+
+	public static InvalidDataException invalidEmailAddress(String emailAddress)
+	{
+		return new InvalidDataException("error.user.email.address.invalid", emailAddress);
+	}
+
+	public static InvalidDataException excessEmailAddress()
+	{
+		return new InvalidDataException("error.user.email.address.not.supported");
+	}
 }
