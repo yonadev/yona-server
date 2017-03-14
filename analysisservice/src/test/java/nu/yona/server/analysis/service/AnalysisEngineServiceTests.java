@@ -246,7 +246,7 @@ public class AnalysisEngineServiceTests
 	}
 
 	/*
-	 * Tests that a messages is sent when another conflict occurs after the interval
+	 * Tests that a message is sent when another conflict occurs after the interval
 	 */
 	@Test
 	public void messageSentWhenSecondConflictAfterConflictInterval()
@@ -275,10 +275,7 @@ public class AnalysisEngineServiceTests
 		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test1", Optional.empty()));
 
 		// Verify that there is a new conflict message sent.
-		ArgumentCaptor<MessageDestination> messageDestination = ArgumentCaptor.forClass(MessageDestination.class);
-		verify(mockMessageService, times(1)).sendMessage(any(), messageDestination.capture());
-		assertThat("Expect right message destination", messageDestination.getValue().getId(),
-				equalTo(anonMessageDestination.getId()));
+		verifyGoalConflictMessageSent(gamblingGoal);
 
 		// Restore default properties.
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
@@ -295,9 +292,8 @@ public class AnalysisEngineServiceTests
 		Set<String> conflictCategories = new HashSet<>(Arrays.asList("lotto"));
 		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test1", Optional.empty()));
 
-		// Verify that there is a new conflict message sent.
-		ArgumentCaptor<MessageDestination> messageDestination = ArgumentCaptor.forClass(MessageDestination.class);
-		verify(mockMessageService, never()).sendMessage(any(), messageDestination.capture());
+		// Verify that there is no new conflict message sent.
+		verifyNoMessagesCreated();
 	}
 
 	/**
@@ -396,8 +392,7 @@ public class AnalysisEngineServiceTests
 		// Verify that the cache is used to check existing activity
 		verify(mockAnalysisEngineCacheService, times(3)).fetchLastActivityForUser(userAnonId, gamblingGoal.getId());
 		// Verify that there is no new conflict message sent.
-		ArgumentCaptor<MessageDestination> messageDestination = ArgumentCaptor.forClass(MessageDestination.class);
-		verify(mockMessageService, never()).sendMessage(any(), messageDestination.capture());
+		verifyNoMessagesCreated();
 		// Verify that the existing day activity was updated.
 		verifyActivityUpdate(gamblingGoal);
 		// Verify that the existing activity was updated in the cache.
@@ -755,7 +750,6 @@ public class AnalysisEngineServiceTests
 
 	private void verifyNoMessagesCreated()
 	{
-		// Verify that there is no conflict message sent.
 		verify(mockMessageService, never()).sendMessageAndFlushToDatabase(any(), eq(anonMessageDestination));
 	}
 
