@@ -86,6 +86,8 @@ public class WeekActivity extends IntervalActivity
 
 		dayActivity.setWeekActivity(this);
 		dayActivities.add(dayActivity);
+
+		this.resetAggregatesComputed();
 	}
 
 	public void removeAllDayActivities()

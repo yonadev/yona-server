@@ -23,6 +23,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -57,12 +58,14 @@ public class PinResetConfirmationCodeSenderBatchJob
 	private EntityManager entityManager;
 
 	@Autowired
+	@Qualifier("pinResetConfirmationCodeSenderJobReader")
 	private JpaPagingItemReader<User> reader;
 
 	@Autowired
+	@Qualifier("pinResetConfirmationCodeSenderJobProcessor")
 	private ItemProcessor<User, User> processor;
 
-	@Bean(destroyMethod = "")
+	@Bean(name = "pinResetConfirmationCodeSenderJobReader", destroyMethod = "")
 	@StepScope
 	public JpaPagingItemReader<User> reader(@Value("#{jobParameters[userId]}") String userId)
 	{
@@ -86,7 +89,7 @@ public class PinResetConfirmationCodeSenderBatchJob
 		}
 	}
 
-	@Bean
+	@Bean("pinResetConfirmationCodeSenderJobProcessor")
 	@StepScope
 	public ItemProcessor<User, User> processor(@Value("#{jobParameters[locale]}") String localeString)
 	{
@@ -106,8 +109,7 @@ public class PinResetConfirmationCodeSenderBatchJob
 		};
 	}
 
-	@Bean
-	public JpaItemWriter<User> writer()
+	private JpaItemWriter<User> writer()
 	{
 		JpaItemWriter<User> writer = new JpaItemWriter<>();
 		writer.setEntityManagerFactory(entityManager.getEntityManagerFactory());
@@ -115,11 +117,10 @@ public class PinResetConfirmationCodeSenderBatchJob
 		return writer;
 	}
 
-	@Bean
-	public Step step1()
+	private Step step1()
 	{
-		return stepBuilderFactory.get("step1").<User, User> chunk(CHUNK_SIZE).reader(reader).processor(processor)
-				.writer(writer()).build();
+		return stepBuilderFactory.get("step1").<User, User> chunk(CHUNK_SIZE).reader(reader).processor(processor).writer(writer())
+				.build();
 	}
 
 	@Bean("pinResetConfirmationCodeSenderJob")

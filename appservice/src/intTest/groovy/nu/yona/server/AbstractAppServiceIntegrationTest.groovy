@@ -301,15 +301,18 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert response.responseData.page
 		assert response.responseData.page.size == expectedPageSize
 		assert response.responseData.page.totalElements == expectedTotalElements
-		assert response.responseData._embedded?."yona:weekActivityOverviews"?.size() == numberOfReportedGoals.size()
 		assert response.responseData._links?.self?.href != null
 
-		numberOfReportedGoals.eachWithIndex
-		{ numberOfGoals, weekIndex ->
-			assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex]?.date =~ /\d{4}\-W\d{2}/
-			assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex].timeZoneId == "Europe/Amsterdam"
-			assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex].weekActivities?.size() == numberOfGoals
-			// YD-203 assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex]._links?.self?.href
+		if(numberOfReportedGoals != null)
+		{
+			assert response.responseData._embedded?."yona:weekActivityOverviews"?.size() == numberOfReportedGoals.size()
+			numberOfReportedGoals.eachWithIndex
+			{ numberOfGoals, weekIndex ->
+				assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex]?.date =~ /\d{4}\-W\d{2}/
+				assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex].timeZoneId == "Europe/Amsterdam"
+				assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex].weekActivities?.size() == numberOfGoals
+				// YD-203 assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex]._links?.self?.href
+			}
 		}
 	}
 
@@ -351,6 +354,44 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def expectedValuesEndOfWeek = (expectedValues.size() == 1) ? expectedValues[getCurrentShortDay()] : expectedValues["Sat"]
 		expectedValuesEndOfWeek.find{it.goal.activityCategoryUrl == activityCategoryUrl}.goal
+	}
+
+	def assertActivityValues(User user, int weeksBack, expectedValuesInWeek, expectedTotalWeeks)
+	{
+		assertWeekActivityValues(user, weeksBack, expectedValuesInWeek, expectedTotalWeeks)
+		assertDayActivityValues(user, weeksBack, expectedValuesInWeek)
+	}
+
+	def assertWeekActivityValues(User user, int weeksBack, expectedValuesInWeek, expectedTotalWeeks)
+	{
+		def responseWeekOverviews = appService.getWeekActivityOverviews(user)
+		assertWeekOverviewBasics(responseWeekOverviews, null, expectedTotalWeeks)
+		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[weeksBack]
+		user.getGoals().each
+		{
+			def goal = it
+			assertWeekDetailForGoal(user, weekOverviewLastWeek, goal, expectedValuesInWeek)
+		}
+		return true
+	}
+
+	def assertDayActivityValues(User user, int weeksBack, expectedValuesInWeek)
+	{
+		int pageSize=(weeksBack+1)*7
+		def responseDayOverviewsAll = appService.getDayActivityOverviews(user, ["size": pageSize])
+		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
+		def expectedTotalDays = expectedValuesInWeek.size() + currentDayOfWeek + 1
+		assertDayOverviewBasics(responseDayOverviewsAll, expectedTotalDays, expectedTotalDays, pageSize)
+		expectedValuesInWeek.each
+		{
+			def day = it.key
+			it.value.each
+			{
+				def goal = it.goal
+				assertDayDetail(user, responseDayOverviewsAll, goal, expectedValuesInWeek, weeksBack, day)
+			}
+		}
+		return true
 	}
 
 	private def assertDayOverviewForGoal(response, Goal goal, expectedValues, weeksBack, shortDay)
@@ -402,6 +443,11 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		expectedValues.each { it.value.findAll{it.goal.url == goal.url}.each {it.data.spread.each { totalDurationMinutes += it.value }}}
 		assert weekActivityOverview.weekActivities
 		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goal.url}
+		if(!weekActivityForGoal)
+		{
+			//apparently this goal is not included
+			return
+		}
 		assert weekActivityForGoal?._links?."yona:weekDetails"?.href
 		def weekActivityDetailUrl = weekActivityForGoal?._links?."yona:weekDetails"?.href
 		def response = appService.getResourceWithPassword(weekActivityDetailUrl, user.password)

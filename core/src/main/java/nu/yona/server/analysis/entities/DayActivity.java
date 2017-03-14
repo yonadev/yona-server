@@ -86,6 +86,21 @@ public class DayActivity extends IntervalActivity
 		activity.setDayActivity(this);
 		activity.setActivityCategory(getGoal().getActivityCategory());
 		this.activities.add(activity);
+
+		this.resetAggregatesComputed();
+	}
+
+	@Override
+	protected void resetAggregatesComputed()
+	{
+		super.resetAggregatesComputed();
+
+		if (weekActivity == null)
+		{
+			// Occurs in unit tests only
+			return;
+		}
+		weekActivity.resetAggregatesComputed();
 	}
 
 	public WeekActivity getWeekActivity()
@@ -179,6 +194,15 @@ public class DayActivity extends IntervalActivity
 	private int getSpreadIndex(ZonedDateTime atTime)
 	{
 		return (atTime.getHour() * 4) + (atTime.getMinute() / 15);
+	}
+
+	@Override
+	public void computeAggregates()
+	{
+		totalMinutesBeyondGoal = computeTotalMinutesBeyondGoal();
+		goalAccomplished = computeGoalAccomplished();
+
+		super.computeAggregates();
 	}
 
 	@Override
