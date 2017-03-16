@@ -62,7 +62,7 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 200
 		response.responseData.writeCountPerStep?.aggregateWeekActivities == 2
-		response.responseData.writeCountPerStep?.aggregateDayActivities == 10
+		response.responseData.writeCountPerStep?.aggregateDayActivities == 6 + 4 + YonaServer.getCurrentDayOfWeek() * 2
 		assertActivityValues(richard, 1, expectedValuesRichardLastWeek, 2)
 
 		def secondAggregationResponse = batchService.triggerActivityAggregationBatchJob()

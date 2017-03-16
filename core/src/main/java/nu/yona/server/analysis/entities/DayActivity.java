@@ -12,7 +12,6 @@ import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
@@ -29,7 +28,7 @@ public class DayActivity extends IntervalActivity
 {
 	public static DayActivityRepository getRepository()
 	{
-		return (DayActivityRepository) RepositoryProvider.getRepository(DayActivity.class, UUID.class);
+		return (DayActivityRepository) RepositoryProvider.getRepository(DayActivity.class, Long.class);
 	}
 
 	@ManyToOne

@@ -20,7 +20,7 @@ import org.springframework.stereotype.Repository;
 import nu.yona.server.goals.entities.Goal;
 
 @Repository
-public interface DayActivityRepository extends CrudRepository<DayActivity, UUID>
+public interface DayActivityRepository extends CrudRepository<DayActivity, Long>
 {
 	@Query("select a from DayActivity a"
 			+ " where a.userAnonymized.id = :userAnonymizedId and a.goal.id = :goalId order by a.startDate desc")
