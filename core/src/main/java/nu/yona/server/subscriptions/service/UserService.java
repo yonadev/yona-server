@@ -428,7 +428,7 @@ public class UserService
 		if (!originalUserEntity.isCreatedOnBuddyRequest())
 		{
 			// security check: should not be able to replace the password on an existing user
-			throw UserServiceException.usernotCreatedOnBuddyRequest(id);
+			throw UserServiceException.userNotCreatedOnBuddyRequest(id);
 		}
 
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
