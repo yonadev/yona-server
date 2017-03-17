@@ -4,10 +4,10 @@
  *******************************************************************************/
 package nu.yona.server.batch.jobs;
 
+import java.sql.Date;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.Date;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -98,9 +98,8 @@ public class ActivityAggregationBatchJob
 	@StepScope
 	public ItemReader<Long> dayActivityReader()
 	{
-		return intervalActivityIdReader(
-				Date.from(
-						TimeUtil.getStartOfDay(DEFAULT_TIME_ZONE, ZonedDateTime.now(DEFAULT_TIME_ZONE)).minusDays(1).toInstant()),
+		return intervalActivityIdReader(Date.valueOf(
+				TimeUtil.getStartOfDay(DEFAULT_TIME_ZONE, ZonedDateTime.now(DEFAULT_TIME_ZONE)).minusDays(1).toLocalDate()),
 				DayActivity.class, DAY_ACTIVITY_CHUNK_SIZE);
 	}
 
@@ -131,8 +130,8 @@ public class ActivityAggregationBatchJob
 	@StepScope
 	public ItemReader<Long> weekActivityReader()
 	{
-		return intervalActivityIdReader(Date
-				.from(TimeUtil.getStartOfWeek(DEFAULT_TIME_ZONE, ZonedDateTime.now(DEFAULT_TIME_ZONE)).minusWeeks(1).toInstant()),
+		return intervalActivityIdReader(Date.valueOf(
+				TimeUtil.getStartOfWeek(DEFAULT_TIME_ZONE, ZonedDateTime.now(DEFAULT_TIME_ZONE)).minusWeeks(1).toLocalDate()),
 				WeekActivity.class, WEEK_ACTIVITY_CHUNK_SIZE);
 	}
 
@@ -178,6 +177,8 @@ public class ActivityAggregationBatchJob
 			reader.setParameterValues(Collections.singletonMap("cutOffDate", cutOffDate));
 			reader.afterPropertiesSet();
 			reader.setSaveState(true);
+			logger.info("Reading nonaggregated {} entities with startDate <= {} in chunks of {}", activityClass.getSimpleName(),
+					cutOffDate, chunkSize);
 			return reader;
 		}
 		catch (Exception e)
