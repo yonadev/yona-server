@@ -17,7 +17,7 @@ import org.springframework.stereotype.Repository;
 import nu.yona.server.goals.entities.Goal;
 
 @Repository
-public interface WeekActivityRepository extends CrudRepository<WeekActivity, UUID>
+public interface WeekActivityRepository extends CrudRepository<WeekActivity, Long>
 {
 	@Query("select a from WeekActivity a"
 			+ " where a.userAnonymized.id = :userAnonymizedId and a.goal.id = :goalId and a.startDate = :startDate")
