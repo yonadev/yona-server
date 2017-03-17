@@ -50,6 +50,6 @@ public class AdminController
 	private ControllerLinkBuilder getSetOverwriteUserConfirmationCodeLinkBuilder()
 	{
 		AdminController methodOn = methodOn(AdminController.class);
-		return linkTo(methodOn.setOverwriteUserConfirmationCode(null, null));
+		return linkTo(methodOn.setOverwriteUserConfirmationCode("", null));
 	}
 }

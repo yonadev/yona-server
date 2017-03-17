@@ -201,7 +201,7 @@ public class UserController
 			try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 			{
 				// use DOS protection to prevent enumeration of all occupied mobile numbers
-				return dosProtectionService.executeAttempt(getUpdateUserLinkBuilder().toUri(), request,
+				return dosProtectionService.executeAttempt(getUpdateUserLinkBuilder(userId).toUri(), request,
 						yonaProperties.getSecurity().getMaxUpdateUserAttemptsPerTimeWindow(),
 						() -> updateUser(userId, userResource));
 			}
@@ -280,10 +280,10 @@ public class UserController
 		return linkTo(methodOn.addUser(Optional.empty(), null, null, null));
 	}
 
-	static ControllerLinkBuilder getUpdateUserLinkBuilder()
+	static ControllerLinkBuilder getUpdateUserLinkBuilder(UUID userId)
 	{
 		UserController methodOn = methodOn(UserController.class);
-		return linkTo(methodOn.updateUser(Optional.empty(), null, null, null, null));
+		return linkTo(methodOn.updateUser(Optional.empty(), null, userId, null, null));
 	}
 
 	static ControllerLinkBuilder getConfirmMobileNumberLinkBuilder(UUID userId)
