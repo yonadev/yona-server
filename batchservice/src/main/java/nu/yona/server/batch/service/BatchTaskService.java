@@ -58,6 +58,8 @@ public class BatchTaskService
 
 			JobParameters jobParameters = new JobParametersBuilder().addDate("uniqueInstanceId", new Date()).toJobParameters();
 			JobExecution jobExecution = launcher.run(activityAggregationJob, jobParameters);
+			jobExecution.getStepExecutions().forEach(e -> logger.info("Step {} read {} entities and wrote {}", e.getStepName(),
+					e.getReadCount(), e.getWriteCount()));
 			return ActivityAggregationBatchJobResultDto.createInstance(jobExecution);
 		}
 		catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
