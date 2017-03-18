@@ -79,6 +79,9 @@ public class WeekActivityDto extends IntervalActivityDto
 
 	public static String formatDate(LocalDate sundayDate)
 	{
+		if (sundayDate.getDayOfWeek() != DayOfWeek.SUNDAY)
+			throw new IllegalArgumentException("Passed date should be a Sunday");
+
 		// ISO treats Monday as first day of the week, so determine the week number based on the Monday rather than Sunday
 		LocalDate mondayDate = sundayDate.plusDays(1);
 		return ISO8601_WEEK_FORMATTER.format(mondayDate);
