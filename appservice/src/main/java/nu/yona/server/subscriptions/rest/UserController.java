@@ -176,6 +176,8 @@ public class UserController
 			@RequestParam(value = "overwriteUserConfirmationCode", required = false) String overwriteUserConfirmationCode,
 			@RequestBody UserDto user, HttpServletRequest request)
 	{
+		// use DOS protection to prevent confirmation code brute forcing,
+		// and to prevent enumeration of all occupied mobile numbers
 		return dosProtectionService.executeAttempt(getAddUserLinkBuilder().toUri(), request,
 				yonaProperties.getSecurity().getMaxCreateUserAttemptsPerTimeWindow(),
 				() -> addUser(password, Optional.ofNullable(overwriteUserConfirmationCode), user));

@@ -18,7 +18,6 @@ public class SecurityProperties
 	private boolean isDosProtectionEnabled = false;
 	private int maxCreateUserAttemptsPerTimeWindow = 1;
 	private int maxUpdateUserAttemptsPerTimeWindow = 1;
-	private int maxSetOverwriteUserConfirmationCodeAttemptsPerTimeWindow = 1;
 
 	/**
 	 * If true, Cross Origin Resource Sharing is allowed. This is necessary for Swagger UI.
@@ -133,16 +132,5 @@ public class SecurityProperties
 	public void setMaxUpdateUserAttemptsPerTimeWindow(int maxUpdateUserAttemptsPerTimeWindow)
 	{
 		this.maxUpdateUserAttemptsPerTimeWindow = maxUpdateUserAttemptsPerTimeWindow;
-	}
-
-	public int getMaxSetOverwriteUserConfirmationCodeAttemptsPerTimeWindow()
-	{
-		return maxSetOverwriteUserConfirmationCodeAttemptsPerTimeWindow;
-	}
-
-	public void setMaxSetOverwriteUserConfirmationCodeAttemptsPerTimeWindow(
-			int maxSetOverwriteUserConfirmationCodeAttemptsPerTimeWindow)
-	{
-		this.maxSetOverwriteUserConfirmationCodeAttemptsPerTimeWindow = maxSetOverwriteUserConfirmationCodeAttemptsPerTimeWindow;
 	}
 }
