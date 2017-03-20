@@ -167,16 +167,6 @@ public class UserService
 	}
 
 	@Transactional
-	public void clearOverwriteUserConfirmationCode(String mobileNumber)
-	{
-		User existingUserEntity = findUserByMobileNumber(mobileNumber);
-		existingUserEntity.setOverwriteUserConfirmationCode(null);
-		userRepository.save(existingUserEntity);
-		logger.info("User with mobile number '{}' and ID '{}' cleared the account overwrite confirmation code",
-				existingUserEntity.getMobileNumber(), existingUserEntity.getId());
-	}
-
-	@Transactional
 	public UserDto addUser(UserDto user, Optional<String> overwriteUserConfirmationCode)
 	{
 		assertValidUserFields(user, UserPurpose.USER);
