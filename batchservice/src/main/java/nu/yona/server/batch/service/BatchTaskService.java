@@ -20,8 +20,6 @@ import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableMap;
-
 import nu.yona.server.batch.client.PinResetConfirmationCodeSendRequestDto;
 import nu.yona.server.batch.quartz.SchedulingService;
 import nu.yona.server.batch.quartz.SchedulingService.ScheduleGroup;
@@ -75,8 +73,7 @@ public class BatchTaskService
 		logger.info("Received request to generate PIN reset confirmation code for user with ID {} at {}", request.getUserId(),
 				request.getExecutionTime());
 		schedulingService.schedule(ScheduleGroup.OTHER, JOB_NAME, JOB_NAME + " " + request.getUserId(),
-				ImmutableMap.of(PinResetConfirmationCodeSenderQuartzJob.USER_ID_KEY, request.getUserId().toString(),
-						PinResetConfirmationCodeSenderQuartzJob.LOCALE_STRING_KEY, request.getLocaleString()),
+				PinResetConfirmationCodeSenderQuartzJob.buildParameterMap(request.getUserId(), request.getLocaleString()),
 				TimeUtil.toDate(request.getExecutionTime()));
 	}
 }
