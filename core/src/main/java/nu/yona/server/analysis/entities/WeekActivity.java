@@ -13,7 +13,6 @@ import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -28,7 +27,7 @@ public class WeekActivity extends IntervalActivity
 {
 	public static WeekActivityRepository getRepository()
 	{
-		return (WeekActivityRepository) RepositoryProvider.getRepository(WeekActivity.class, UUID.class);
+		return (WeekActivityRepository) RepositoryProvider.getRepository(WeekActivity.class, Long.class);
 	}
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "weekActivity", orphanRemoval = true)
@@ -86,6 +85,8 @@ public class WeekActivity extends IntervalActivity
 
 		dayActivity.setWeekActivity(this);
 		dayActivities.add(dayActivity);
+
+		this.resetAggregatesComputed();
 	}
 
 	public void removeAllDayActivities()

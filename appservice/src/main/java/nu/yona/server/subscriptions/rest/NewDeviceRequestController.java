@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
@@ -63,7 +63,7 @@ public class NewDeviceRequestController
 	{
 		try
 		{
-			userService.validateMobileNumber(mobileNumber);
+			userService.assertValidMobileNumber(mobileNumber);
 			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
 			checkPassword(password, userId);
 			newDeviceRequestService.setNewDeviceRequestForUser(userId, password.get(),
@@ -71,6 +71,7 @@ public class NewDeviceRequestController
 		}
 		catch (UserServiceException e)
 		{
+			// prevent detecting whether a mobile number exists by throwing the same exception
 			logger.error("Caught UserServiceException. Mapping it to CryptoException", e);
 			throw CryptoException.decryptingData();
 		}
@@ -85,13 +86,14 @@ public class NewDeviceRequestController
 	{
 		try
 		{
-			userService.validateMobileNumber(mobileNumber);
+			userService.assertValidMobileNumber(mobileNumber);
 			UserDto user = userService.getUserByMobileNumber(mobileNumber);
 			return createNewDeviceRequestResponse(user,
 					newDeviceRequestService.getNewDeviceRequestForUser(user.getId(), newDeviceRequestPassword), HttpStatus.OK);
 		}
 		catch (UserServiceException e)
 		{
+			// prevent detecting whether a mobile number exists by throwing the same exception
 			logger.error("Caught UserServiceException. Mapping it to DeviceRequestException", e);
 			throw DeviceRequestException.noDeviceRequestPresent(mobileNumber);
 		}
@@ -105,13 +107,14 @@ public class NewDeviceRequestController
 	{
 		try
 		{
-			userService.validateMobileNumber(mobileNumber);
+			userService.assertValidMobileNumber(mobileNumber);
 			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
 			checkPassword(password, userId);
 			newDeviceRequestService.clearNewDeviceRequestForUser(userId);
 		}
 		catch (UserServiceException e)
 		{
+			// prevent detecting whether a mobile number exists by throwing the same exception
 			logger.error("Caught UserServiceException. Mapping it to CryptoException", e);
 			throw CryptoException.decryptingData();
 		}
@@ -128,8 +131,7 @@ public class NewDeviceRequestController
 	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(UserDto user,
 			NewDeviceRequestDto newDeviceRequest, HttpStatus statusCode)
 	{
-		return new ResponseEntity<>(
-				new NewDeviceRequestResourceAssembler(user).toResource(newDeviceRequest), statusCode);
+		return new ResponseEntity<>(new NewDeviceRequestResourceAssembler(user).toResource(newDeviceRequest), statusCode);
 	}
 
 	static ControllerLinkBuilder getNewDeviceRequestLinkBuilder(String mobileNumber)

@@ -54,7 +54,7 @@ public class PinResetConfirmationCodeSendRequestDto
 	// Jackson fails on LocalDateTime, so use Date to serialize
 	@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)
 	@JsonProperty("executionTime")
-	public Date getExecutionTimeAsUtilDate()
+	public Date getExecutionTimeAsDate()
 	{
 		return TimeUtil.toDate(executionTime);
 	}

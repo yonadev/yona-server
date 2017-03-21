@@ -48,6 +48,7 @@ import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
 import nu.yona.server.subscriptions.entities.BuddyInfoChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.service.UserService.UserPurpose;
 import nu.yona.server.util.TransactionHelper;
 
 @Service
@@ -122,7 +123,9 @@ public class BuddyService
 	public BuddyDto addBuddyToRequestingUser(UUID idOfRequestingUser, BuddyDto buddy,
 			BiFunction<UUID, String, String> inviteUrlGetter)
 	{
+		UserDto requestingUser = userService.getPrivateUser(idOfRequestingUser);
 		assertMobileNumberOfRequestingUserConfirmed(idOfRequestingUser);
+		assertValidBuddy(requestingUser, buddy);
 
 		boolean buddyUserExists = buddyUserExists(buddy);
 		if (!buddyUserExists)
@@ -132,7 +135,6 @@ public class BuddyService
 		BuddyDto savedBuddy = transactionHelper
 				.executeInNewTransaction(() -> handleBuddyRequestForExistingUser(idOfRequestingUser, buddy));
 
-		UserDto requestingUser = userService.getPrivateUser(idOfRequestingUser);
 		logger.info(
 				"User with mobile number '{}' and ID '{}' sent buddy connect message to {} user with mobile number '{}' and ID '{}' as buddy",
 				requestingUser.getMobileNumber(), requestingUser.getId(), (buddyUserExists) ? "new" : "existing",
@@ -163,6 +165,24 @@ public class BuddyService
 	{
 		UserDto requestingUser = userService.getPrivateUser(idOfRequestingUser);
 		requestingUser.assertMobileNumberConfirmed();
+	}
+
+	private void assertValidBuddy(UserDto requestingUser, BuddyDto buddy)
+	{
+		userService.assertValidUserFields(buddy.getUser(), UserPurpose.BUDDY);
+		if (buddy.getSendingStatus() != Status.REQUESTED || buddy.getReceivingStatus() != Status.REQUESTED)
+		{
+			throw BuddyServiceException.onlyTwoWayBuddiesAllowed();
+		}
+		String buddyMobileNumber = buddy.getUser().getMobileNumber();
+		if (requestingUser.getMobileNumber().equals(buddyMobileNumber)) {
+			throw BuddyServiceException.cannotInviteSelf();
+		}
+		if (getBuddies(requestingUser.getPrivateData().getBuddyIds()).stream().map(b -> b.getUser().getMobileNumber()).anyMatch(m -> m.equals(buddyMobileNumber)))
+		{
+			throw BuddyServiceException.cannotInviteExistingBuddy();
+		}
+
 	}
 
 	@Transactional
@@ -516,10 +536,6 @@ public class BuddyService
 		UserDto requestingUser = userService.getPrivateUser(idOfRequestingUser);
 		User buddyUserEntity = UserService.findUserByMobileNumber(buddy.getUser().getMobileNumber());
 		buddy.getUser().setUserId(buddyUserEntity.getId());
-		if (buddy.getSendingStatus() != Status.REQUESTED || buddy.getReceivingStatus() != Status.REQUESTED)
-		{
-			throw BuddyServiceException.onlyTwoWayBuddiesAllowed();
-		}
 		Buddy buddyEntity = buddy.createBuddyEntity(translator);
 		Buddy savedBuddyEntity = Buddy.getRepository().save(buddyEntity);
 		BuddyDto savedBuddy = BuddyDto.createInstance(savedBuddyEntity);

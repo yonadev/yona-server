@@ -40,6 +40,8 @@ if ERRORLEVEL 1 goto error
 curl %CURLOPT% http://localhost:8083/scheduler/jobs/ > nul
 if ERRORLEVEL 1 goto error
 
+if "%1"=="-keepDB" goto end
+
 echo.
 echo Load the activity categories
 echo.

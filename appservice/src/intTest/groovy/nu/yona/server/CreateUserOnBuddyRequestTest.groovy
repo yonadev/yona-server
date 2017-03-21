@@ -205,7 +205,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(updatedBob)
 	}
 
-	def 'Richard processes Bob\'s buddy acceptance'()
+	def 'Richard finds Bob\'s buddy acceptance'()
 	{
 		given:
 		def richard = addRichard()
@@ -223,12 +223,19 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], newPassword)
 
 		when:
-		def processUrl = appService.fetchBuddyConnectResponseMessage(richard).processUrl
-		def response = appService.postMessageActionWithPassword(processUrl, [ : ], richard.password)
+		def response = appService.getMessages(richard)
 
 		then:
 		response.status == 200
-		response.responseData.properties.status == "done"
+		def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "BuddyConnectResponseMessage" }
+		buddyConnectResponseMessages[0]._links?."yona:user"?.href == bob.url
+		buddyConnectResponseMessages[0]._embedded?."yona:user" == null
+		buddyConnectResponseMessages[0].nickname == newNickname
+		assertEquals(buddyConnectResponseMessages[0].creationTime, YonaServer.now)
+		buddyConnectResponseMessages[0].status == "ACCEPTED"
+		buddyConnectResponseMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
+		buddyConnectResponseMessages[0]._links."yona:process" == null // Processing happens automatically these days
 
 		def richardWithBuddy = appService.reloadUser(richard)
 		richardWithBuddy.buddies != null
@@ -422,11 +429,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		buddyConnectResponseMessage.message == "User account was deleted"
 		buddyConnectResponseMessage.nickname == "Bob Dunn"
 		buddyConnectResponseMessage._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
-		buddyConnectResponseMessage._links?."yona:process"?.href?.startsWith(getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}[0]._links.self.href)
-
-		def processUrl = buddyConnectResponseMessage._links."yona:process".href
-		def processBuddyConnectResponse = appService.postMessageActionWithPassword(processUrl, [:], richard.password)
-		processBuddyConnectResponse.status == 200
+		buddyConnectResponseMessage._links."yona:process" == null // Processing happens automatically these days
 
 		User richardAfterBobOverwrite = appService.reloadUser(richard)
 		richardAfterBobOverwrite.buddies.size() == 0
@@ -445,7 +448,8 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		appService.requestOverwriteUser(mobileNumberBob)
 		User bob = appService.addUser(this.&assertUserOverwriteResponseDetails, "B o b", "Bob Changed",
 				"Dunn Changed", "BD Changed", mobileNumberBob, ["overwriteUserConfirmationCode": "1234"])
-
+		bob.emailAddress = "bob@dunn.net"
+		
 		when:
 		appService.makeBuddies(richard, bob)
 		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")

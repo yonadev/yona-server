@@ -128,7 +128,8 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		User richard = addRichard()
-		appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password])
+		def responsePost = appService.yonaServer.postJson(richard.pinResetRequestUrl, [:], ["Yona-Password" : richard.password])
+		sleepTillMidOfPinResetCodeGenerationInterval(richard, responsePost.responseData.delay)
 
 		when:
 		def response = appService.yonaServer.postJson(richard.url + "/pinResetRequest/verify", """{"code" : "1234"}""", ["Yona-Password" : richard.password])
@@ -139,6 +140,14 @@ class PinResetRequestTest extends AbstractAppServiceIntegrationTest
 
 		cleanup:
 		appService.deleteUser(richard)
+	}
+
+	private void sleepTillMidOfPinResetCodeGenerationInterval(User user, def delayString)
+	{
+		long millis = Duration.parse(delayString).toMillis() / 2
+		println("$YonaServer.now: sleepTillMidOfPinResetCodeGenerationInterval: delayString=$delayString, user.url=$user.url, millis: $millis. Entering sleep")
+		sleep(millis)
+		println("$YonaServer.now: sleepTillMidOfPinResetCodeGenerationInterval: sleep completed")
 	}
 
 	def 'Clear pin reset request before verification'()

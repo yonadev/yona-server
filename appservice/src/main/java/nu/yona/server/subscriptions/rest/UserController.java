@@ -176,6 +176,8 @@ public class UserController
 			@RequestParam(value = "overwriteUserConfirmationCode", required = false) String overwriteUserConfirmationCode,
 			@RequestBody UserDto user, HttpServletRequest request)
 	{
+		// use DOS protection to prevent overwrite user confirmation code brute forcing,
+		// and to prevent enumeration of all occupied mobile numbers
 		return dosProtectionService.executeAttempt(getAddUserLinkBuilder().toUri(), request,
 				yonaProperties.getSecurity().getMaxCreateUserAttemptsPerTimeWindow(),
 				() -> addUser(password, Optional.ofNullable(overwriteUserConfirmationCode), user));
@@ -185,7 +187,7 @@ public class UserController
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr, @PathVariable UUID userId,
-			@RequestBody UserDto userResource)
+			@RequestBody UserDto userResource, HttpServletRequest request)
 	{
 		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
 		if (tempPassword.isPresent())
@@ -200,9 +202,17 @@ public class UserController
 		{
 			try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 			{
-				return createOkResponse(userService.updateUser(userId, userResource), true);
+				// use DOS protection to prevent enumeration of all occupied mobile numbers
+				return dosProtectionService.executeAttempt(getUpdateUserLinkBuilder(userId).toUri(), request,
+						yonaProperties.getSecurity().getMaxUpdateUserAttemptsPerTimeWindow(),
+						() -> updateUser(userId, userResource));
 			}
 		}
+	}
+
+	private HttpEntity<UserResource> updateUser(UUID userId, UserDto userResource)
+	{
+		return createOkResponse(userService.updateUser(userId, userResource), true);
 	}
 
 	@RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
@@ -272,6 +282,12 @@ public class UserController
 		return linkTo(methodOn.addUser(Optional.empty(), null, null, null));
 	}
 
+	static ControllerLinkBuilder getUpdateUserLinkBuilder(UUID userId)
+	{
+		UserController methodOn = methodOn(UserController.class);
+		return linkTo(methodOn.updateUser(Optional.empty(), null, userId, null, null));
+	}
+
 	static ControllerLinkBuilder getConfirmMobileNumberLinkBuilder(UUID userId)
 	{
 		UserController methodOn = methodOn(UserController.class);
@@ -320,7 +336,7 @@ public class UserController
 	static Link getUserSelfLinkWithTempPassword(UUID userId, String tempPassword)
 	{
 		ControllerLinkBuilder linkBuilder = linkTo(
-				methodOn(UserController.class).updateUser(Optional.empty(), tempPassword, userId, null));
+				methodOn(UserController.class).updateUser(Optional.empty(), tempPassword, userId, null, null));
 		return linkBuilder.withSelfRel();
 	}
 
@@ -542,9 +558,8 @@ public class UserController
 
 		private static void addEditLink(Resource<UserDto> userResource)
 		{
-			userResource.add(linkTo(
-					methodOn(UserController.class).updateUser(Optional.empty(), null, userResource.getContent().getId(), null))
-							.withRel(JsonRootRelProvider.EDIT_REL));
+			userResource.add(linkTo(methodOn(UserController.class).updateUser(Optional.empty(), null,
+					userResource.getContent().getId(), null, null)).withRel(JsonRootRelProvider.EDIT_REL));
 		}
 
 		private static void addConfirmMobileNumberLink(Resource<UserDto> userResource)

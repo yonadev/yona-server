@@ -81,7 +81,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		disconnectMessage.message == "User account was deleted"
 		disconnectMessage.nickname == richard.nickname
 		disconnectMessage._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
-		disconnectMessage._links?."yona:process"?.href?.startsWith(getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links.self.href)
+		disconnectMessage._links."yona:process" == null // Processing happens automatically these days
 
 		def buddies = appService.getBuddies(bob)
 		buddies.size() == 0
@@ -96,6 +96,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		appService.requestOverwriteUser(richard.mobileNumber)
 
@@ -140,6 +141,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def bob = addBob()
+		richard.emailAddress = "richard@quinn.com"
 		appService.sendBuddyConnectRequest(bob, richard)
 		appService.requestOverwriteUser(richard.mobileNumber)
 
@@ -171,13 +173,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		buddyConnectResponseMessage.message == "User account was deleted"
 		buddyConnectResponseMessage.nickname == "$richard.firstName $richard.lastName"
 		buddyConnectResponseMessage._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
-		buddyConnectResponseMessage._links?."yona:process"?.href?.startsWith(getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}[0]._links.self.href)
-
-		def response = appService.postMessageActionWithPassword(buddyConnectResponseMessages[0]._links."yona:process".href, [:], bob.password)
-		response.status == 200
-		response.responseData._embedded."yona:affectedMessages".size() == 1
-		response.responseData._embedded."yona:affectedMessages"[0]._links.self.href == buddyConnectResponseMessage._links.self.href
-		response.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
+		buddyConnectResponseMessage._links?."yona:process" == null // Processing happens automatically these days
 
 		cleanup:
 		appService.deleteUser(richardChanged)
@@ -225,7 +221,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		disconnectMessage.message == "User account was deleted"
 		disconnectMessage.nickname == richard.nickname
 		disconnectMessage._links.self.href.startsWith(YonaServer.stripQueryString(bob.messagesUrl))
-		disconnectMessage._links?."yona:process"?.href?.startsWith(getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}[0]._links.self.href)
+		disconnectMessage._links?."yona:process" == null // Processing happens automatically these days
 
 		def buddies = appService.getBuddies(bob)
 		buddies.size() == 0

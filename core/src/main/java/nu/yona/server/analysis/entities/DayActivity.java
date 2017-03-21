@@ -12,7 +12,6 @@ import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
@@ -29,7 +28,7 @@ public class DayActivity extends IntervalActivity
 {
 	public static DayActivityRepository getRepository()
 	{
-		return (DayActivityRepository) RepositoryProvider.getRepository(DayActivity.class, UUID.class);
+		return (DayActivityRepository) RepositoryProvider.getRepository(DayActivity.class, Long.class);
 	}
 
 	@ManyToOne
@@ -86,6 +85,21 @@ public class DayActivity extends IntervalActivity
 		activity.setDayActivity(this);
 		activity.setActivityCategory(getGoal().getActivityCategory());
 		this.activities.add(activity);
+
+		this.resetAggregatesComputed();
+	}
+
+	@Override
+	protected void resetAggregatesComputed()
+	{
+		super.resetAggregatesComputed();
+
+		if (weekActivity == null)
+		{
+			// Occurs in unit tests only
+			return;
+		}
+		weekActivity.resetAggregatesComputed();
 	}
 
 	public WeekActivity getWeekActivity()
@@ -179,6 +193,15 @@ public class DayActivity extends IntervalActivity
 	private int getSpreadIndex(ZonedDateTime atTime)
 	{
 		return (atTime.getHour() * 4) + (atTime.getMinute() / 15);
+	}
+
+	@Override
+	public void computeAggregates()
+	{
+		totalMinutesBeyondGoal = computeTotalMinutesBeyondGoal();
+		goalAccomplished = computeGoalAccomplished();
+
+		super.computeAggregates();
 	}
 
 	@Override

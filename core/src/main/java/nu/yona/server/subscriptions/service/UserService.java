@@ -60,9 +60,17 @@ public class UserService
 	/** Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers */
 	private static Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
 
+	/** Holds the regex to validate a valid email address. Match the pattern a@b.c */
+	private static Pattern REGEX_EMAIL = Pattern.compile("^[A-Z0-9._-]+@[A-Z0-9.-]+\\.[A-Z0-9.-]+$", Pattern.CASE_INSENSITIVE);
+
 	private enum UserSignUp
 	{
 		INVITED, FREE
+	}
+
+	enum UserPurpose
+	{
+		USER, BUDDY
 	}
 
 	private static final Logger logger = LoggerFactory.getLogger(UserService.class);
@@ -159,19 +167,9 @@ public class UserService
 	}
 
 	@Transactional
-	public void clearOverwriteUserConfirmationCode(String mobileNumber)
-	{
-		User existingUserEntity = findUserByMobileNumber(mobileNumber);
-		existingUserEntity.setOverwriteUserConfirmationCode(null);
-		userRepository.save(existingUserEntity);
-		logger.info("User with mobile number '{}' and ID '{}' cleared the account overwrite confirmation code",
-				existingUserEntity.getMobileNumber(), existingUserEntity.getId());
-	}
-
-	@Transactional
 	public UserDto addUser(UserDto user, Optional<String> overwriteUserConfirmationCode)
 	{
-		validateUserFields(user);
+		assertValidUserFields(user, UserPurpose.USER);
 
 		// use a separate transaction because in the top transaction we insert a user with the same unique key
 		transactionHelper.executeInNewTransaction(
@@ -232,12 +230,12 @@ public class UserService
 		}
 		else
 		{
-			verifyUserDoesNotExist(mobileNumber);
-			verifyUserIsAllowed(mobileNumber, UserSignUp.FREE);
+			assertUserDoesNotExist(mobileNumber);
+			assertUserIsAllowed(mobileNumber, UserSignUp.FREE);
 		}
 	}
 
-	private void verifyUserDoesNotExist(String mobileNumber)
+	private void assertUserDoesNotExist(String mobileNumber)
 	{
 		User existingUser = userRepository.findByMobileNumber(mobileNumber);
 		if (existingUser == null)
@@ -252,13 +250,13 @@ public class UserService
 		throw UserServiceException.userExists(mobileNumber);
 	}
 
-	private void verifyUserIsAllowed(String mobileNumber, UserSignUp origin)
+	private void assertUserIsAllowed(String mobileNumber, UserSignUp origin)
 	{
-		verifyBelowMaxUsers();
-		verifyWhiteList(mobileNumber, origin);
+		assertBelowMaxUsers();
+		assertWhiteList(mobileNumber, origin);
 	}
 
-	private void verifyBelowMaxUsers()
+	private void assertBelowMaxUsers()
 	{
 		int maxUsers = yonaProperties.getMaxUsers();
 		long currentNumberOfUsers = userRepository.count();
@@ -272,12 +270,12 @@ public class UserService
 		}
 	}
 
-	private void verifyWhiteList(String mobileNumber, UserSignUp origin)
+	private void assertWhiteList(String mobileNumber, UserSignUp origin)
 	{
 		if ((origin == UserSignUp.FREE && yonaProperties.isWhiteListActiveFreeSignUp())
 				|| (origin == UserSignUp.INVITED && yonaProperties.isWhiteListActiveInvitedUsers()))
 		{
-			whiteListedNumberService.verifyMobileNumberIsAllowed(mobileNumber);
+			whiteListedNumberService.assertMobileNumberIsAllowed(mobileNumber);
 		}
 	}
 
@@ -286,7 +284,7 @@ public class UserService
 		User existingUserEntity = findUserByMobileNumber(mobileNumber);
 		ConfirmationCode confirmationCode = existingUserEntity.getOverwriteUserConfirmationCode();
 
-		verifyConfirmationCode(existingUserEntity, confirmationCode, userProvidedConfirmationCode,
+		assertValidConfirmationCode(existingUserEntity, confirmationCode, userProvidedConfirmationCode,
 				() -> UserOverwriteConfirmationException.confirmationCodeNotSet(existingUserEntity.getMobileNumber()),
 				(r) -> UserOverwriteConfirmationException.confirmationCodeMismatch(existingUserEntity.getMobileNumber(),
 						userProvidedConfirmationCode, r),
@@ -306,7 +304,7 @@ public class UserService
 		User userEntity = getUserEntityById(userId);
 		ConfirmationCode confirmationCode = userEntity.getMobileNumberConfirmationCode();
 
-		verifyConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
+		assertValidConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
 				() -> MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()),
 				(r) -> MobileNumberConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
 						userProvidedConfirmationCode, r),
@@ -355,7 +353,7 @@ public class UserService
 	@Transactional
 	User addUserCreatedOnBuddyRequest(UserDto buddyUserResource)
 	{
-		verifyUserIsAllowed(buddyUserResource.getMobileNumber(), UserSignUp.INVITED);
+		assertUserIsAllowed(buddyUserResource.getMobileNumber(), UserSignUp.INVITED);
 		User newUser = User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
 				buddyUserResource.getPrivateData().getNickname(), buddyUserResource.getMobileNumber(),
 				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet());
@@ -374,7 +372,7 @@ public class UserService
 	{
 		User originalUserEntity = getUserEntityById(id);
 		UserDto originalUser = createUserDtoWithPrivateData(originalUserEntity);
-		validateUpdateRequest(user, originalUser, originalUserEntity);
+		assertValidUpdateRequest(user, originalUser, originalUserEntity);
 
 		User updatedUserEntity = user.updateUser(originalUserEntity);
 		Optional<ConfirmationCode> confirmationCode = Optional.empty();
@@ -395,7 +393,7 @@ public class UserService
 		return userDto;
 	}
 
-	private void validateUpdateRequest(UserDto user, UserDto originalUser, User originalUserEntity)
+	private void assertValidUpdateRequest(UserDto user, UserDto originalUser, User originalUserEntity)
 	{
 		if (originalUserEntity.isCreatedOnBuddyRequest())
 		{
@@ -404,7 +402,7 @@ public class UserService
 		}
 		if (isMobileNumberDifferent(user, originalUser))
 		{
-			verifyUserDoesNotExist(user.getMobileNumber());
+			assertUserDoesNotExist(user.getMobileNumber());
 		}
 	}
 
@@ -420,7 +418,7 @@ public class UserService
 		if (!originalUserEntity.isCreatedOnBuddyRequest())
 		{
 			// security check: should not be able to replace the password on an existing user
-			throw UserServiceException.usernotCreatedOnBuddyRequest(id);
+			throw UserServiceException.userNotCreatedOnBuddyRequest(id);
 		}
 
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
@@ -635,8 +633,8 @@ public class UserService
 		smsService.send(mobileNumber, templateName, templateParams);
 	}
 
-	private void verifyConfirmationCode(User userEntity, ConfirmationCode confirmationCode, String userProvidedConfirmationCode,
-			Supplier<YonaException> noConfirmationCodeExceptionSupplier,
+	private void assertValidConfirmationCode(User userEntity, ConfirmationCode confirmationCode,
+			String userProvidedConfirmationCode, Supplier<YonaException> noConfirmationCodeExceptionSupplier,
 			Function<Integer, YonaException> invalidConfirmationCodeExceptionSupplier,
 			Supplier<YonaException> tooManyAttemptsExceptionSupplier)
 	{
@@ -686,7 +684,7 @@ public class UserService
 		return userRepository.save(retrievedEntitySet.userEntity);
 	}
 
-	private void validateUserFields(UserDto userResource)
+	void assertValidUserFields(UserDto userResource, UserPurpose userPurpose)
 	{
 		if (StringUtils.isBlank(userResource.getFirstName()))
 		{
@@ -698,7 +696,7 @@ public class UserService
 			throw InvalidDataException.blankLastName();
 		}
 
-		if (StringUtils.isBlank(userResource.getPrivateData().getNickname()))
+		if (userPurpose == UserPurpose.USER && StringUtils.isBlank(userResource.getPrivateData().getNickname()))
 		{
 			throw InvalidDataException.blankNickname();
 		}
@@ -708,14 +706,38 @@ public class UserService
 			throw InvalidDataException.blankMobileNumber();
 		}
 
-		validateMobileNumber(userResource.getMobileNumber());
+		assertValidMobileNumber(userResource.getMobileNumber());
+
+		if (userPurpose == UserPurpose.BUDDY)
+		{
+			if (StringUtils.isBlank(userResource.getEmailAddress()))
+			{
+				throw InvalidDataException.blankEmailAddress();
+			}
+			assertValidEmailAddress(userResource.getEmailAddress());
+		}
+		else
+		{
+			if (!StringUtils.isBlank(userResource.getEmailAddress()))
+			{
+				throw InvalidDataException.excessEmailAddress();
+			}
+		}
 	}
 
-	public void validateMobileNumber(String mobileNumber)
+	public void assertValidMobileNumber(String mobileNumber)
 	{
 		if (!REGEX_PHONE.matcher(mobileNumber).matches())
 		{
 			throw InvalidDataException.invalidMobileNumber(mobileNumber);
+		}
+	}
+
+	public void assertValidEmailAddress(String emailAddress)
+	{
+		if (!REGEX_EMAIL.matcher(emailAddress).matches())
+		{
+			throw InvalidDataException.invalidEmailAddress(emailAddress);
 		}
 	}
 

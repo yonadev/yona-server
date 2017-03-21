@@ -104,11 +104,11 @@ public class AnalysisEngineService
 		ZonedDateTime correctedStartTime = correctTime(deviceTimeOffset, appActivity.getStartTime());
 		ZonedDateTime correctedEndTime = correctTime(deviceTimeOffset, appActivity.getEndTime());
 		String application = appActivity.getApplication();
-		validateTimes(userAnonymized, application, correctedStartTime, correctedEndTime);
+		assertValidTimes(userAnonymized, application, correctedStartTime, correctedEndTime);
 		return ActivityPayload.createInstance(userAnonymized, correctedStartTime, correctedEndTime, application);
 	}
 
-	private void validateTimes(UserAnonymizedDto userAnonymized, String application, ZonedDateTime correctedStartTime,
+	private void assertValidTimes(UserAnonymizedDto userAnonymized, String application, ZonedDateTime correctedStartTime,
 			ZonedDateTime correctedEndTime)
 	{
 		if (correctedEndTime.isBefore(correctedStartTime))
@@ -359,9 +359,9 @@ public class AnalysisEngineService
 		{
 			weekActivity = WeekActivity.createInstance(userAnonymizedEntity, matchingGoal, startOfWeek.getZone(),
 					startOfWeek.toLocalDate());
+			matchingGoal.addWeekActivity(weekActivity);
 		}
 		weekActivity.addDayActivity(dayActivity);
-		matchingGoal.addWeekActivity(weekActivity);
 
 		return dayActivity;
 	}

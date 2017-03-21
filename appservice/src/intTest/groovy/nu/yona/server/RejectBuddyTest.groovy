@@ -15,6 +15,7 @@ class RejectBuddyTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		def bob = addBob()
+		bob.emailAddress = "bob@dunn.net"
 		appService.sendBuddyConnectRequest(richard, bob)
 		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
 		def rejectUrl = connectRequestMessage.rejectUrl
@@ -38,13 +39,7 @@ class RejectBuddyTest extends AbstractAppServiceIntegrationTest
 		def processResult = appService.fetchBuddyConnectResponseMessage(richard)
 		processResult.status == "REJECTED"
 		processResult.message == rejectMessage
-
-		// Have the requesting user process the buddy connect response
-		def processResponse = appService.postMessageActionWithPassword(processResult.processUrl, [ : ], richard.password)
-		processResponse.status == 200
-		processResponse.responseData._embedded."yona:affectedMessages".size() == 1
-		processResponse.responseData._embedded."yona:affectedMessages"[0]._links.self.href == processResult.selfUrl
-		processResponse.responseData._embedded."yona:affectedMessages"[0]._links."yona:process" == null
+		processResult.processUrl == null // Processing happens automatically these days
 
 		// Verify that Bob is not in Richard's buddy list anymore
 		def buddiesRichard = appService.getBuddies(richard)

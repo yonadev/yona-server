@@ -43,7 +43,7 @@ public class UserServiceException extends YonaException
 		return new UserServiceException("error.user.exists", mobileNumber);
 	}
 
-	public static UserServiceException usernotCreatedOnBuddyRequest(UUID id)
+	public static UserServiceException userNotCreatedOnBuddyRequest(UUID id)
 	{
 		return new UserServiceException("error.user.not.created.on.buddy.request", id);
 	}
