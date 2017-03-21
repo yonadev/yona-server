@@ -40,7 +40,6 @@ import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
 import nu.yona.server.subscriptions.entities.Buddy;
-import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
@@ -175,10 +174,12 @@ public class BuddyService
 			throw BuddyServiceException.onlyTwoWayBuddiesAllowed();
 		}
 		String buddyMobileNumber = buddy.getUser().getMobileNumber();
-		if (requestingUser.getMobileNumber().equals(buddyMobileNumber)) {
+		if (requestingUser.getMobileNumber().equals(buddyMobileNumber))
+		{
 			throw BuddyServiceException.cannotInviteSelf();
 		}
-		if (getBuddies(requestingUser.getPrivateData().getBuddyIds()).stream().map(b -> b.getUser().getMobileNumber()).anyMatch(m -> m.equals(buddyMobileNumber)))
+		if (getBuddies(requestingUser.getPrivateData().getBuddyIds()).stream().map(b -> b.getUser().getMobileNumber())
+				.anyMatch(m -> m.equals(buddyMobileNumber)))
 		{
 			throw BuddyServiceException.cannotInviteExistingBuddy();
 		}
@@ -320,7 +321,7 @@ public class BuddyService
 		{
 			UUID buddyUserAnonymizedId = getUserAnonymizedIdForBuddy(requestingUserBuddy);
 			UserAnonymizedDto buddyUserAnonymized = userAnonymizedService.getUserAnonymized(buddyUserAnonymizedId);
-			disconnectBuddyIfConnected(buddyUserAnonymized, requestingUser.getUserAnonymizedId());
+			disconnectBuddyIfConnected(requestingUserBuddy, requestingUser.getUserAnonymizedId());
 			removeAnonymousMessagesSentByUser(buddyUserAnonymized, requestingUser.getUserAnonymizedId());
 			sendDropBuddyMessage(requestingUser, requestingUserBuddy, message, reason);
 		}
@@ -385,6 +386,7 @@ public class BuddyService
 		}
 		buddy.setUserAnonymizedId(userAnonymizedId);
 		buddy.setNickName(nickname);
+		Buddy.getRepository().save(buddy);
 	}
 
 	public Set<BuddyDto> getBuddies(Set<UUID> buddyIds)
@@ -450,14 +452,10 @@ public class BuddyService
 				senderUserAnonymizedId, senderNickname, responseMessage, buddyId, status), messageDestination);
 	}
 
-	private void disconnectBuddyIfConnected(UserAnonymizedDto buddyUserAnonymized, UUID userAnonymizedId)
+	private void disconnectBuddyIfConnected(Buddy requestingUserBuddy, UUID userAnonymizedId)
 	{
-		Optional<BuddyAnonymized> buddyAnonymized = buddyUserAnonymized.getBuddyAnonymized(userAnonymizedId);
-		buddyAnonymized.ifPresent(ba -> {
-			ba.setDisconnected();
-			BuddyAnonymized.getRepository().save(ba);
-		});
-		// Else: user who requested buddy relationship didn't process the accept message yet
+		requestingUserBuddy.setDisconnected();
+		Buddy.getRepository().save(requestingUserBuddy);
 	}
 
 	private void removeNamedMessagesSentByUser(User receivingUser, UUID sentByUserAnonymizedId)

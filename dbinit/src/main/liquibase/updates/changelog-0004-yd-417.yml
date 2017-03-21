@@ -1,0 +1,18 @@
+databaseChangeLog:
+- changeSet:
+    id: 1490127260476-1
+    author: avdijk (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: last_status_change_time
+            type: varchar(255)
+        tableName: buddies
+- changeSet:
+    id: 1490127260476-21
+    author: avdijk (generated)
+    changes:
+    - dropColumn:
+        columnName: last_status_change_time
+        tableName: buddies_anonymized

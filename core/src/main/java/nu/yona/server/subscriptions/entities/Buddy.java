@@ -16,11 +16,13 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
 
+import nu.yona.server.crypto.seckey.DateTimeFieldEncryptor;
 import nu.yona.server.crypto.seckey.StringFieldEncryptor;
 import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
+import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "BUDDIES")
@@ -47,6 +49,9 @@ public class Buddy extends EntityWithUuid
 	@Convert(converter = StringFieldEncryptor.class)
 	private String nickname;
 
+	@Convert(converter = DateTimeFieldEncryptor.class)
+	private LocalDateTime lastStatusChangeTime;
+
 	// Default constructor is required for JPA
 	public Buddy()
 	{
@@ -62,6 +67,8 @@ public class Buddy extends EntityWithUuid
 		this.userId = userId;
 		this.nickname = nickname;
 		this.buddyAnonymizedId = buddyAnonymizedId;
+
+		setLastStatusChangeTimeToNow();
 	}
 
 	public static Buddy createInstance(UUID buddyUserId, String nickname, Status sendingStatus, Status receivingStatus)
@@ -113,12 +120,20 @@ public class Buddy extends EntityWithUuid
 
 	public void setReceivingStatus(Status status)
 	{
-		getBuddyAnonymized().setReceivingStatus(status);
+		BuddyAnonymized buddyAnonymized = getBuddyAnonymized();
+		buddyAnonymized.setReceivingStatus(status);
+		BuddyAnonymized.getRepository().save(buddyAnonymized);
+
+		setLastStatusChangeTimeToNow();
 	}
 
 	public void setSendingStatus(Status status)
 	{
-		getBuddyAnonymized().setSendingStatus(status);
+		BuddyAnonymized buddyAnonymized = getBuddyAnonymized();
+		buddyAnonymized.setSendingStatus(status);
+		BuddyAnonymized.getRepository().save(buddyAnonymized);
+
+		setLastStatusChangeTimeToNow();
 	}
 
 	public Status getSendingStatus()
@@ -128,7 +143,12 @@ public class Buddy extends EntityWithUuid
 
 	public LocalDateTime getLastStatusChangeTime()
 	{
-		return getBuddyAnonymized().getLastStatusChangeTime();
+		return lastStatusChangeTime;
+	}
+
+	private void setLastStatusChangeTimeToNow()
+	{
+		lastStatusChangeTime = TimeUtil.utcNow();
 	}
 
 	public void setUserAnonymizedId(UUID userAnonymizedId)
@@ -142,5 +162,17 @@ public class Buddy extends EntityWithUuid
 	{
 		touchVersion++;
 		return this;
+	}
+
+	public void setDisconnected()
+	{
+		BuddyAnonymized buddyAnonymized = getBuddyAnonymized();
+		if (buddyAnonymized != null)
+		{
+			buddyAnonymized.setDisconnected();
+			BuddyAnonymized.getRepository().save(buddyAnonymized);
+			setLastStatusChangeTimeToNow();
+		}
+		// Else: user who requested buddy relationship didn't process the accept message yet
 	}
 }
