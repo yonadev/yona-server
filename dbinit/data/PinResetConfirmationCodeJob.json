@@ -1,0 +1,5 @@
+{
+   "name": "PinResetConfirmationCode",
+   "description": "Generates a PIN reset confirmation code",
+   "className": "nu.yona.server.batch.quartz.jobs.PinResetConfirmationCodeSenderQuartzJob"
+}

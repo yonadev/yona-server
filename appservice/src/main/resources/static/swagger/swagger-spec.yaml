@@ -2487,6 +2487,7 @@ definitions:
     description: The change applied to a goal
     enum:
     - GOAL_ADDED
+    - GOAL_CHANGED
     - GOAL_DELETED
   GoalConflictMessage:
     allOf:
