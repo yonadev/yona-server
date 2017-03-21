@@ -67,7 +67,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		gamblingGoals.size() == 1
 		gamblingGoals[0]."@type" == "BudgetGoal"
 		!gamblingGoals[0]._links.edit //mandatory goal
-		assertEquals(gamblingGoals[0].creationTime, creationTime)
+		assertEquals(gamblingGoals[0].creationTime, '20170101120000')
 		def newsGoals = filterGoals(response, NEWS_ACT_CAT_URL)
 		newsGoals.size() == 1
 		newsGoals[0]."@type" == "BudgetGoal"
