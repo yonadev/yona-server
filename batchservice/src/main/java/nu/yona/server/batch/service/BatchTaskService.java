@@ -17,7 +17,6 @@ import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.batch.client.PinResetConfirmationCodeSendRequestDto;
@@ -44,7 +43,6 @@ public class BatchTaskService
 	@Qualifier("activityAggregationJob")
 	private Job activityAggregationJob;
 
-	@Scheduled(cron = "${yona.batchService.activityAggregationJobCronExpression}")
 	public ActivityAggregationBatchJobResultDto aggregateActivities()
 	{
 		try
@@ -52,7 +50,7 @@ public class BatchTaskService
 			logger.info("Triggering activity aggregation");
 			SimpleJobLauncher launcher = new SimpleJobLauncher();
 			launcher.setJobRepository(jobRepository);
-			launcher.setTaskExecutor(new SyncTaskExecutor()); // NOTICE: executes the job synchronously on purpose
+			launcher.setTaskExecutor(new SyncTaskExecutor()); // NOTICE: executes the job synchronously, on purpose
 
 			JobParameters jobParameters = new JobParametersBuilder().addDate("uniqueInstanceId", new Date()).toJobParameters();
 			JobExecution jobExecution = launcher.run(activityAggregationJob, jobParameters);

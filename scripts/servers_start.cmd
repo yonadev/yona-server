@@ -51,8 +51,12 @@ if ERRORLEVEL 1 goto error
 echo.
 echo Load the Quartz jobs
 echo.
-curl -f -X POST --header "Content-Type: application/json" -d @dbinit/data/PinResetConfirmationCodeJob.json http://localhost:8083/scheduler/jobs/OTHER/
-if ERRORLEVEL 1 goto error
+curl -f -X PUT --header "Content-Type: application/json" -d @dbinit/data/QuartzOtherJobs.json http://localhost:8083/scheduler/jobs/OTHER/
+
+echo.
+echo Load the Quartz cron triggers
+echo.
+curl -f -X PUT --header "Content-Type: application/json" -d @dbinit/data/QuartzOtherCronTriggers.json http://localhost:8083/scheduler/triggers/cron/OTHER/
 
 echo.
 echo.

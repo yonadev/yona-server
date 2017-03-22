@@ -29,17 +29,17 @@ import nu.yona.server.rest.JsonRootRelProvider;
 @Controller
 @ExposesResourceFor(JobDto.class)
 @RequestMapping(value = "/scheduler/jobs", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class SchedulingController
+public class JobController
 {
 	@Autowired
-	private SchedulingService schedulingService;
+	private JobManagementService jobManagementService;
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<Resources<JobResource>> getAllJobs()
 	{
 		return new ResponseEntity<>(
-				createJobsCollectionResource(schedulingService.getAllJobs(), getAllJobsLinkBuilder().withSelfRel()),
+				createJobsCollectionResource(jobManagementService.getAllJobs(), getAllJobsLinkBuilder().withSelfRel()),
 				HttpStatus.OK);
 	}
 
@@ -47,7 +47,15 @@ public class SchedulingController
 	@ResponseBody
 	public HttpEntity<Resources<JobResource>> getJobsInGroup(@PathVariable String group)
 	{
-		return new ResponseEntity<>(createJobsCollectionResource(schedulingService.getJobsInGroup(group),
+		return new ResponseEntity<>(createJobsCollectionResource(jobManagementService.getJobsInGroup(group),
+				getJobsInGroupLinkBuilder(group).withSelfRel()), HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/{group}/", method = RequestMethod.PUT)
+	@ResponseBody
+	public HttpEntity<Resources<JobResource>> updateJobGroup(@PathVariable String group, @RequestBody Set<JobDto> jobs)
+	{
+		return new ResponseEntity<>(createJobsCollectionResource(jobManagementService.updateJobGroup(group, jobs),
 				getJobsInGroupLinkBuilder(group).withSelfRel()), HttpStatus.OK);
 	}
 
@@ -56,7 +64,7 @@ public class SchedulingController
 	@ResponseStatus(HttpStatus.OK)
 	public JobResource getJob(@PathVariable String group, @PathVariable String name)
 	{
-		return new JobResourceAssembler().toResource(schedulingService.getJob(name, group));
+		return new JobResourceAssembler().toResource(jobManagementService.getJob(name, group));
 	}
 
 	@RequestMapping(value = "/{group}/", method = RequestMethod.POST)
@@ -65,7 +73,7 @@ public class SchedulingController
 	public JobResource addJob(@PathVariable String group, @RequestBody JobDto job)
 	{
 		job.setGroup(group);
-		return new JobResourceAssembler().toResource(schedulingService.addJob(group, job));
+		return new JobResourceAssembler().toResource(jobManagementService.addJob(group, job));
 	}
 
 	private static Resources<JobResource> createJobsCollectionResource(Set<JobDto> allJobs, Link link)
@@ -75,19 +83,19 @@ public class SchedulingController
 
 	private static ControllerLinkBuilder getAllJobsLinkBuilder()
 	{
-		SchedulingController methodOn = methodOn(SchedulingController.class);
+		JobController methodOn = methodOn(JobController.class);
 		return linkTo(methodOn.getAllJobs());
 	}
 
 	private static ControllerLinkBuilder getJobsInGroupLinkBuilder(String group)
 	{
-		SchedulingController methodOn = methodOn(SchedulingController.class);
+		JobController methodOn = methodOn(JobController.class);
 		return linkTo(methodOn.getJobsInGroup(group));
 	}
 
 	static ControllerLinkBuilder getJobLinkBuilder(String group, String name)
 	{
-		SchedulingController methodOn = methodOn(SchedulingController.class);
+		JobController methodOn = methodOn(JobController.class);
 		return linkTo(methodOn.getJob(group, name));
 	}
 
@@ -103,7 +111,7 @@ public class SchedulingController
 	{
 		public JobResourceAssembler()
 		{
-			super(SchedulingController.class, JobResource.class);
+			super(JobController.class, JobResource.class);
 		}
 
 		@Override
@@ -133,7 +141,7 @@ public class SchedulingController
 
 		private ControllerLinkBuilder getLinkBuilder(Resource<JobDto> job)
 		{
-			return SchedulingController.getJobLinkBuilder(job.getContent().getGroup(), job.getContent().getName());
+			return JobController.getJobLinkBuilder(job.getContent().getGroup(), job.getContent().getName());
 		}
 	}
 

@@ -8,8 +8,6 @@ public class BatchServiceProperties
 {
 	private String serviceUrl = "http://localhost:8083";
 
-	private String activityAggregationJobCronExpression = "0 0 3 * * *";
-
 	public String getServiceUrl()
 	{
 		return serviceUrl;
@@ -18,15 +16,5 @@ public class BatchServiceProperties
 	public void setServiceUrl(String serviceUrl)
 	{
 		this.serviceUrl = serviceUrl;
-	}
-
-	public String getActivityAggregationJobCronExpression()
-	{
-		return activityAggregationJobCronExpression;
-	}
-
-	public void setActivityAggregationJobCronExpression(String activityAggregationJobCronExpression)
-	{
-		this.activityAggregationJobCronExpression = activityAggregationJobCronExpression;
 	}
 }
