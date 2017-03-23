@@ -7,6 +7,7 @@ package nu.yona.server.analysis.service;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 
 import org.junit.Test;
@@ -31,6 +32,22 @@ public class DayActivityTests extends IntervalActivityTestsBase
 		// pick a fixed test date 28 Feb 2017
 		return DayActivity.createInstance(userAnonEntity, goal, testZone,
 				ZonedDateTime.of(2017, 2, 28, 0, 0, 0, 0, testZone).toLocalDate());
+	}
+
+	@Test
+	public void testParseDayDate()
+	{
+		LocalDate parsedDate = DayActivityDto.parseDate("2016-01-11");
+
+		assertThat(parsedDate, equalTo(LocalDate.of(2016, 1, 11)));
+	}
+
+	@Test
+	public void testFormatDayDate()
+	{
+		String dayDate = DayActivityDto.formatDate(LocalDate.of(2016, 1, 11));
+
+		assertThat(dayDate, equalTo("2016-01-11"));
 	}
 
 	@Test

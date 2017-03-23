@@ -8,6 +8,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 
 import org.junit.Test;
@@ -31,10 +32,26 @@ public class WeekActivityTests extends IntervalActivityTestsBase
 	}
 
 	@Test
-	public void testParse()
+	public void testParseWeekDate()
 	{
-		assertThat(WeekActivityDto.parseDate("2016-W02").getDayOfWeek(), equalTo(DayOfWeek.SUNDAY));
-		assertThat(WeekActivityDto.parseDate("2016-W02").getYear(), equalTo(2016));
+		LocalDate parsedDate = WeekActivityDto.parseDate("2016-W02");
+
+		assertThat(parsedDate.getDayOfWeek(), equalTo(DayOfWeek.SUNDAY));
+		assertThat(parsedDate, equalTo(LocalDate.of(2016, 1, 10)));
+	}
+
+	@Test
+	public void testFormatWeekDate()
+	{
+		String weekDate = WeekActivityDto.formatDate(LocalDate.of(2016, 1, 10));
+
+		assertThat(weekDate, equalTo("2016-W02"));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testFormatWeekDateMondayThrows()
+	{
+		WeekActivityDto.formatDate(LocalDate.of(2016, 1, 11));
 	}
 
 	@Test
