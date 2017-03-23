@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2017 Stichting Yona Foundation
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server.batch.quartz;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
@@ -23,8 +30,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import nu.yona.server.rest.JsonRootRelProvider;
 
 @Controller
 @ExposesResourceFor(CronTriggerDto.class)
@@ -119,7 +124,6 @@ public class TriggerController
 		{
 			TriggerResource triggerResource = instantiateResource(trigger);
 			addSelfLink(triggerResource);
-			addEditLink(triggerResource);/* always editable */
 			return triggerResource;
 		}
 
@@ -132,11 +136,6 @@ public class TriggerController
 		private void addSelfLink(Resource<CronTriggerDto> trigger)
 		{
 			trigger.add(getLinkBuilder(trigger).withSelfRel());
-		}
-
-		private void addEditLink(Resource<CronTriggerDto> trigger)
-		{
-			trigger.add(getLinkBuilder(trigger).withRel(JsonRootRelProvider.EDIT_REL));
 		}
 
 		private ControllerLinkBuilder getLinkBuilder(Resource<CronTriggerDto> trigger)

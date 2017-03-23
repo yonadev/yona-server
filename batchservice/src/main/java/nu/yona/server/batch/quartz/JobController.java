@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2017 Stichting Yona Foundation
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server.batch.quartz;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
@@ -23,8 +30,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import nu.yona.server.rest.JsonRootRelProvider;
 
 @Controller
 @ExposesResourceFor(JobDto.class)
@@ -119,7 +124,6 @@ public class JobController
 		{
 			JobResource jobResource = instantiateResource(job);
 			addSelfLink(jobResource);
-			addEditLink(jobResource);/* always editable */
 			return jobResource;
 		}
 
@@ -132,11 +136,6 @@ public class JobController
 		private void addSelfLink(Resource<JobDto> job)
 		{
 			job.add(getLinkBuilder(job).withSelfRel());
-		}
-
-		private void addEditLink(Resource<JobDto> job)
-		{
-			job.add(getLinkBuilder(job).withRel(JsonRootRelProvider.EDIT_REL));
 		}
 
 		private ControllerLinkBuilder getLinkBuilder(Resource<JobDto> job)

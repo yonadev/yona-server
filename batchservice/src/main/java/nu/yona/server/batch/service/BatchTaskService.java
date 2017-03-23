@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2017 Stichting Yona Foundation
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server.batch.service;
 
 import java.util.Date;
@@ -29,7 +36,8 @@ import nu.yona.server.util.TimeUtil;
 @Service
 public class BatchTaskService
 {
-	private static final String JOB_NAME = "PinResetConfirmationCode";
+	private static final String PIN_RESET_CONFIRMMATION_CODE_JOB_NAME = "PinResetConfirmationCode";
+	private static final String PIN_RESET_CONFIRMMATION_CODE_TRIGGER_NAME = PIN_RESET_CONFIRMMATION_CODE_JOB_NAME;
 
 	private static final Logger logger = LoggerFactory.getLogger(BatchTaskService.class);
 
@@ -70,7 +78,8 @@ public class BatchTaskService
 	{
 		logger.info("Received request to generate PIN reset confirmation code for user with ID {} at {}", request.getUserId(),
 				request.getExecutionTime());
-		schedulingService.schedule(ScheduleGroup.OTHER, JOB_NAME, JOB_NAME + " " + request.getUserId(),
+		schedulingService.schedule(ScheduleGroup.OTHER, PIN_RESET_CONFIRMMATION_CODE_JOB_NAME,
+				PIN_RESET_CONFIRMMATION_CODE_TRIGGER_NAME + " " + request.getUserId(),
 				PinResetConfirmationCodeSenderQuartzJob.buildParameterMap(request.getUserId(), request.getLocaleString()),
 				TimeUtil.toDate(request.getExecutionTime()));
 	}
