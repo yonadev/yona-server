@@ -43,7 +43,7 @@ public class RestClientErrorHandler implements ResponseErrorHandler
 		yonaErrorResponse.ifPresent(yer -> {
 			throw UpstreamException.yonaException(getStatusCode(response), yer.getCode(), yer.getMessage());
 		});
-		throw UpstreamException.analysisEngineError(getStatusCode(response), convertStreamToString(response.getBody()));
+		throw UpstreamException.remoteServiceError(getStatusCode(response), convertStreamToString(response.getBody()));
 	}
 
 	@Override

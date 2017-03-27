@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.quartz;
 
@@ -25,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import nu.yona.server.exceptions.BatchException;
 import nu.yona.server.exceptions.YonaException;
 
 @Service
@@ -44,20 +42,30 @@ public class SchedulingService
 	{
 		try
 		{
-			JobDetail job = scheduler.getJobDetail(JobKey.jobKey(jobName, group.toString()));
 			TriggerKey triggerKey = TriggerKey.triggerKey(triggerName, group.toString());
 			if (scheduler.checkExists(triggerKey))
 			{
 				logger.warn("Trigger with key {} already exists, so skipping new trigger", triggerKey);
 				return;
 			}
-			Trigger trigger = newTrigger().forJob(job).withIdentity(triggerKey).usingJobData(new JobDataMap(jobData))
-					.startAt(date).withSchedule(simpleSchedule().withMisfireHandlingInstructionFireNow()).build();
+			Trigger trigger = newTrigger().forJob(getJob(group, jobName)).withIdentity(triggerKey)
+					.usingJobData(new JobDataMap(jobData)).startAt(date)
+					.withSchedule(simpleSchedule().withMisfireHandlingInstructionFireNow()).build();
 			scheduler.scheduleJob(trigger);
 		}
 		catch (SchedulerException e)
 		{
 			throw YonaException.unexpected(e);
 		}
+	}
+
+	private JobDetail getJob(ScheduleGroup group, String jobName) throws SchedulerException
+	{
+		JobDetail job = scheduler.getJobDetail(JobKey.jobKey(jobName, group.toString()));
+		if (job == null)
+		{
+			throw BatchException.jobNotFound(group.toString(), jobName);
+		}
+		return job;
 	}
 }
