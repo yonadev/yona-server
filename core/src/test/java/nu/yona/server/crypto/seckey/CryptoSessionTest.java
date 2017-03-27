@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.crypto.seckey;
 
@@ -19,9 +19,6 @@ import java.util.UUID;
 import org.junit.Test;
 
 import nu.yona.server.crypto.CryptoException;
-import nu.yona.server.crypto.seckey.CryptoSession;
-import nu.yona.server.crypto.seckey.SecretKeyUtil;
-import nu.yona.server.crypto.seckey.WrongPasswordException;
 
 public class CryptoSessionTest
 {
@@ -116,7 +113,11 @@ public class CryptoSessionTest
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
 		String ciphertext = encrypt(PASSWORD1, PLAINTEXT1, initializationVector, false);
 		assertThat(ciphertext, not(equalTo(PLAINTEXT1)));
-		decrypt(PASSWORD2, ciphertext, initializationVector);
+		String plaintext = decrypt(PASSWORD2, ciphertext, initializationVector);
+		// In rare cases, decryption with a wrong password doesn't throw but delivers rubbish.
+		// In such rare cases, compare the string and explicitly throw that exception.
+		assertThat(plaintext, not(equalTo(PLAINTEXT1)));
+		throw CryptoException.decryptingData();
 	}
 
 	@Test

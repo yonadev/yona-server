@@ -1,7 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2017 Stichting Yona Foundation
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server.batch.service;
 
 import java.util.Date;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,36 +23,34 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.batch.client.PinResetConfirmationCodeSendRequestDto;
+import nu.yona.server.batch.quartz.SchedulingService;
+import nu.yona.server.batch.quartz.SchedulingService.ScheduleGroup;
+import nu.yona.server.batch.quartz.jobs.PinResetConfirmationCodeSenderQuartzJob;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.util.TimeUtil;
 
 @Service
 public class BatchTaskService
 {
+	private static final String PIN_RESET_CONFIRMMATION_CODE_JOB_NAME = "PinResetConfirmationCode";
+	private static final String PIN_RESET_CONFIRMMATION_CODE_TRIGGER_NAME = PIN_RESET_CONFIRMMATION_CODE_JOB_NAME;
+
 	private static final Logger logger = LoggerFactory.getLogger(BatchTaskService.class);
 
 	@Autowired
-	private TaskScheduler scheduler;
+	private SchedulingService schedulingService;
 
 	@Autowired
 	private JobRepository jobRepository;
 
 	@Autowired
-	@Qualifier("pinResetConfirmationCodeSenderJob")
-	private Job pinResetConfirmationCodeSenderJob;
-
-	@Autowired
 	@Qualifier("activityAggregationJob")
 	private Job activityAggregationJob;
 
-	@Scheduled(cron = "${yona.batchService.activityAggregationJobCronExpression}")
 	public ActivityAggregationBatchJobResultDto aggregateActivities()
 	{
 		try
@@ -54,7 +58,7 @@ public class BatchTaskService
 			logger.info("Triggering activity aggregation");
 			SimpleJobLauncher launcher = new SimpleJobLauncher();
 			launcher.setJobRepository(jobRepository);
-			launcher.setTaskExecutor(new SyncTaskExecutor()); // NOTICE: executes the job synchronously on purpose
+			launcher.setTaskExecutor(new SyncTaskExecutor()); // NOTICE: executes the job synchronously, on purpose
 
 			JobParameters jobParameters = new JobParametersBuilder().addDate("uniqueInstanceId", new Date()).toJobParameters();
 			JobExecution jobExecution = launcher.run(activityAggregationJob, jobParameters);
@@ -74,28 +78,9 @@ public class BatchTaskService
 	{
 		logger.info("Received request to generate PIN reset confirmation code for user with ID {} at {}", request.getUserId(),
 				request.getExecutionTime());
-		scheduler.schedule(() -> generateAndSendPinResetConfirmationCode(request.getUserId(), request.getLocaleString()),
+		schedulingService.schedule(ScheduleGroup.OTHER, PIN_RESET_CONFIRMMATION_CODE_JOB_NAME,
+				PIN_RESET_CONFIRMMATION_CODE_TRIGGER_NAME + " " + request.getUserId(),
+				PinResetConfirmationCodeSenderQuartzJob.buildParameterMap(request.getUserId(), request.getLocaleString()),
 				TimeUtil.toDate(request.getExecutionTime()));
-	}
-
-	private void generateAndSendPinResetConfirmationCode(UUID userId, String localeString)
-	{
-		try
-		{
-			logger.info("Triggering generation of PIN reset confirmation code for user with ID {}", userId);
-			SimpleJobLauncher launcher = new SimpleJobLauncher();
-			launcher.setJobRepository(jobRepository);
-			launcher.setTaskExecutor(new SimpleAsyncTaskExecutor());
-
-			JobParameters jobParameters = new JobParametersBuilder().addString("userId", userId.toString())
-					.addString("locale", localeString).addDate("uniqueInstanceId", new Date()).toJobParameters();
-			launcher.run(pinResetConfirmationCodeSenderJob, jobParameters);
-		}
-		catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
-				| JobParametersInvalidException e)
-		{
-			logger.error("Unexpected exception", e);
-			throw YonaException.unexpected(e);
-		}
 	}
 }

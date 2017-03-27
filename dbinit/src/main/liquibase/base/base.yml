@@ -8,3 +8,6 @@ databaseChangeLog:
   - include:
       relativeToChangelogFile: true
       file: batch.yml
+  - include:
+      relativeToChangelogFile: true
+      file: quartz.yml

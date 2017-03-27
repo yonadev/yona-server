@@ -63,6 +63,17 @@ public class PinResetRequestService
 	}
 
 	@Transactional
+	public void sendPinResetConfirmationCode(UUID userId)
+	{
+		User user = userService.getUserEntityById(userId);
+		logger.info("Generating pin reset confirmation code for user with mobile number '{}' and ID '{}'", user.getMobileNumber(),
+				user.getId());
+		ConfirmationCode pinResetConfirmationCode = user.getPinResetConfirmationCode();
+		pinResetConfirmationCode.setConfirmationCode(userService.generateConfirmationCode());
+		sendConfirmationCodeTextMessage(user, pinResetConfirmationCode);
+	}
+
+	@Transactional
 	public void verifyPinResetConfirmationCode(UUID userId, String userProvidedConfirmationCode)
 	{
 		User userEntity = userService.getUserEntityById(userId);
@@ -108,7 +119,7 @@ public class PinResetRequestService
 		setConfirmationCode(userEntity, null);
 	}
 
-	public void sendConfirmationCodeTextMessage(User userEntity, ConfirmationCode confirmationCode)
+	private void sendConfirmationCodeTextMessage(User userEntity, ConfirmationCode confirmationCode)
 	{
 		userService.sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode,
 				SmsService.TemplateName_PinResetRequestConfirmation);

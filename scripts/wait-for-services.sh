@@ -26,3 +26,6 @@ waitTillGetWorks http://localhost:8081/relevantSmoothwallCategories/
 
 echo "Waiting for the app service to start"
 waitTillGetWorks http://localhost/activityCategories/
+
+echo "Waiting for the batch service to start"
+waitTillGetWorks http://localhost:8083/scheduler/jobs/

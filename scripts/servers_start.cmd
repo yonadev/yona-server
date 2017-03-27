@@ -37,6 +37,8 @@ curl %CURLOPT% http://localhost:8081/relevantSmoothwallCategories/ > nul
 if ERRORLEVEL 1 goto error
 curl %CURLOPT% http://localhost:8082/activityCategories/ > nul
 if ERRORLEVEL 1 goto error
+curl %CURLOPT% http://localhost:8083/scheduler/jobs/ > nul
+if ERRORLEVEL 1 goto error
 
 if "%1"=="-keepDB" goto end
 
@@ -45,6 +47,16 @@ echo Load the activity categories
 echo.
 curl -f -X PUT --header "Content-Type: application/json" -d @dbinit/data/activityCategories.json http://localhost:8080/activityCategories/
 if ERRORLEVEL 1 goto error
+
+echo.
+echo Load the Quartz jobs
+echo.
+curl -f -X PUT --header "Content-Type: application/json" -d @dbinit/data/QuartzOtherJobs.json http://localhost:8083/scheduler/jobs/OTHER/
+
+echo.
+echo Load the Quartz cron triggers
+echo.
+curl -f -X PUT --header "Content-Type: application/json" -d @dbinit/data/QuartzOtherCronTriggers.json http://localhost:8083/scheduler/triggers/cron/OTHER/
 
 echo.
 echo.

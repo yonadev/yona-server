@@ -45,6 +45,8 @@ task liquibaseGenerateChangeLogFromDB(type: JavaExec) {
 
 	args "--changeLogFile=${changeLogPath}/base/batch.yml"
 	args "--url=${databaseUrl}"
+	args "--username=${userName}"
+	args "--password=${password}"
 	args "--driver=${jdbcDriver}"
 	args "--logLevel=info"
 	args "generateChangeLog"

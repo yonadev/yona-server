@@ -1,0 +1,9 @@
+[
+	{
+		"name": "ActivityAggregationTrigger",
+		"description": "Triggers ActivityAggregation every day early in the morning",
+		"cronExpression": "0 0 3 ? * *",
+		"timeZone": "Europe/Amsterdam",
+		"jobName": "ActivityAggregation"
+	}
+]
