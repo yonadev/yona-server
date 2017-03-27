@@ -64,3 +64,9 @@ echo "Waiting for the services to start"
 
 echo "Loading the activity categories"
 curl https://raw.githubusercontent.com/yonadev/yona-server/master/dbinit/data/activityCategories.json | curl -X PUT http://localhost:8080/activityCategories/ -d @- --header "Content-Type: application/json"
+
+echo "Loading the Quartz jobs"
+curl https://raw.githubusercontent.com/yonadev/yona-server/master/dbinit/data/QuartzOtherJobs.json | curl -X PUT http://localhost:8083/scheduler/jobs/OTHER/ -d @- --header "Content-Type: application/json"
+
+echo "Loading the Quartz cron triggers"
+curl https://raw.githubusercontent.com/yonadev/yona-server/master/dbinit/data/QuartzOtherCronTriggers.json | curl -X PUT http://localhost:8083/scheduler/triggers/cron/OTHER/ -d @- --header "Content-Type: application/json"

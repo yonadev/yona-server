@@ -39,8 +39,8 @@ public class UpstreamException extends YonaException
 		return new UpstreamException(statusCode, messageId, message);
 	}
 
-	public static UpstreamException analysisEngineError(HttpStatus statusCode, String body)
+	public static UpstreamException remoteServiceError(HttpStatus statusCode, String body)
 	{
-		return new UpstreamException("error.from.analysengine", statusCode, body);
+		return new UpstreamException("error.from.remote.service", statusCode, body);
 	}
 }
