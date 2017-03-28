@@ -71,6 +71,7 @@ import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.messaging.rest.MessageController;
+import nu.yona.server.properties.AppleMobileConfigSigningProperties;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ErrorResponseDto;
@@ -146,27 +147,50 @@ public class UserController
 		return createOkResponse(userService.getPublicUser(userId), false);
 	}
 
+	@RequestMapping(value = "/{userId}/apple.mobileconfig", params = { "sign" }, method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<byte[]> getAppleMobileConfig(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@RequestParam(value = "sign", defaultValue = "false") String signStr, @PathVariable UUID userId)
+	{
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(new MediaType("application", "x-apple-aspen-config"));
+		boolean mustSign = Boolean.TRUE.toString().equals(signStr);
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return new ResponseEntity<>(getUserSpecificAppleMobileConfig(userService.getPrivateUser(userId), mustSign), headers,
+					HttpStatus.OK);
+		}
+	}
+
 	@RequestMapping(value = "/{userId}/apple.mobileconfig", method = RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity<byte[]> getAppleMobileConfig(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(new MediaType("application", "x-apple-aspen-config"));
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
-		{
-			return new ResponseEntity<>(getUserSpecificAppleMobileConfig(userService.getPrivateUser(userId)), headers,
-					HttpStatus.OK);
-		}
+		return getAppleMobileConfig(password, Boolean.FALSE.toString(), userId);
 	}
 
-	private byte[] getUserSpecificAppleMobileConfig(UserDto privateUser)
+	private byte[] getUserSpecificAppleMobileConfig(UserDto privateUser, boolean mustSign)
 	{
 		Context ctx = ThymeleafUtil.createContext();
 		ctx.setVariable("ldapUsername", privateUser.getPrivateData().getVpnProfile().getVpnLoginId().toString());
 		ctx.setVariable("ldapPassword", privateUser.getPrivateData().getVpnProfile().getVpnPassword());
 
-		return templateEngine.process("apple.mobileconfig.xml", ctx).getBytes(StandardCharsets.UTF_8);
+		return signIfRequested(mustSign, templateEngine.process("apple.mobileconfig.xml", ctx).getBytes(StandardCharsets.UTF_8));
+	}
+
+	private byte[] signIfRequested(boolean mustSign, byte[] unsignedMobileconfig)
+	{
+		if (mustSign)
+		{
+			AppleMobileConfigSigningProperties properties = yonaProperties.getSecurity().getAppleMobileConfigSigning();
+			String signingCertificateFile = properties.getSigningCertificateFile();
+			String signingKeyFile = properties.getSigningKeyFile();
+			String password = properties.getPassword();
+			return new Signer(signingCertificateFile, signingKeyFile, password).sign(unsignedMobileconfig);
+		}
+		return unsignedMobileconfig;
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)

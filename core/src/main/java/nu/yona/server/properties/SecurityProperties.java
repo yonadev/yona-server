@@ -6,8 +6,13 @@ package nu.yona.server.properties;
 
 import java.time.Duration;
 
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
+
 public class SecurityProperties
 {
+	@NestedConfigurationProperty
+	private final AppleMobileConfigSigningProperties appleMobileConfigSigning = new AppleMobileConfigSigningProperties();
+
 	private int confirmationCodeDigits = 4;
 	private int confirmationCodeMaxAttempts = 5;
 	private Duration newDeviceRequestExpirationTime = Duration.ofDays(1);
@@ -23,6 +28,11 @@ public class SecurityProperties
 	 * If true, Cross Origin Resource Sharing is allowed. This is necessary for Swagger UI.
 	 */
 	private boolean isCorsAllowed;
+
+	public AppleMobileConfigSigningProperties getAppleMobileConfigSigning()
+	{
+		return appleMobileConfigSigning;
+	}
 
 	public int getConfirmationCodeDigits()
 	{

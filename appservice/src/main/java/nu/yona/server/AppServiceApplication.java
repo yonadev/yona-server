@@ -4,6 +4,11 @@
  *******************************************************************************/
 package nu.yona.server;
 
+import java.security.Security;
+
+import javax.annotation.PostConstruct;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -27,6 +32,12 @@ public class AppServiceApplication
 	{
 		PropertyInitializer.initializePropertiesFromEnvironment();
 		SpringApplication.run(AppServiceApplication.class, args);
+	}
+
+	@PostConstruct
+	public void initialize()
+	{
+		Security.addProvider(new BouncyCastleProvider());
 	}
 
 	@Bean
