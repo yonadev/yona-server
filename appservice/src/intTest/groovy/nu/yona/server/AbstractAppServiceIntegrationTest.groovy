@@ -304,7 +304,6 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 			def response = appService.updateGoal(user, goal.url, goal)
 			assert response.status == 200
 		}
-		return appService.reloadUser(user)
 	}
 
 	void assertWeekOverviewBasics(response, numberOfReportedGoals, expectedTotalElements, expectedPageSize = 2)
