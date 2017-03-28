@@ -82,6 +82,11 @@ public class BuddyAnonymized extends EntityWithUuid
 		return sendingStatus;
 	}
 
+	/**
+	 * Do not call this method directly, it should be called from the Buddy entity to update the last status change time.
+	 * 
+	 * @param sendingStatus
+	 */
 	public void setSendingStatus(Status sendingStatus)
 	{
 		this.sendingStatus = sendingStatus;
@@ -92,6 +97,11 @@ public class BuddyAnonymized extends EntityWithUuid
 		return receivingStatus;
 	}
 
+	/**
+	 * Do not call this method directly, it should be called from the Buddy entity to update the last status change time.
+	 * 
+	 * @param sendingStatus
+	 */
 	public void setReceivingStatus(Status receivingStatus)
 	{
 		this.receivingStatus = receivingStatus;

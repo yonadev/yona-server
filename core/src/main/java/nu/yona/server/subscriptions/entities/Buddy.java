@@ -163,16 +163,4 @@ public class Buddy extends EntityWithUuid
 		touchVersion++;
 		return this;
 	}
-
-	public void setDisconnected()
-	{
-		BuddyAnonymized buddyAnonymized = getBuddyAnonymized();
-		if (buddyAnonymized != null)
-		{
-			buddyAnonymized.setDisconnected();
-			BuddyAnonymized.getRepository().save(buddyAnonymized);
-			setLastStatusChangeTimeToNow();
-		}
-		// Else: user who requested buddy relationship didn't process the accept message yet
-	}
 }

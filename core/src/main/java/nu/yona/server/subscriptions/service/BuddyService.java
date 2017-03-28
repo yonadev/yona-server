@@ -40,6 +40,7 @@ import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
 import nu.yona.server.subscriptions.entities.Buddy;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
@@ -321,7 +322,7 @@ public class BuddyService
 		{
 			UUID buddyUserAnonymizedId = getUserAnonymizedIdForBuddy(requestingUserBuddy);
 			UserAnonymizedDto buddyUserAnonymized = userAnonymizedService.getUserAnonymized(buddyUserAnonymizedId);
-			disconnectBuddyIfConnected(requestingUserBuddy, requestingUser.getUserAnonymizedId());
+			disconnectBuddyIfConnected(buddyUserAnonymized, requestingUser.getUserAnonymizedId());
 			removeAnonymousMessagesSentByUser(buddyUserAnonymized, requestingUser.getUserAnonymizedId());
 			sendDropBuddyMessage(requestingUser, requestingUserBuddy, message, reason);
 		}
@@ -452,10 +453,16 @@ public class BuddyService
 				senderUserAnonymizedId, senderNickname, responseMessage, buddyId, status), messageDestination);
 	}
 
-	private void disconnectBuddyIfConnected(Buddy requestingUserBuddy, UUID userAnonymizedId)
+	private void disconnectBuddyIfConnected(UserAnonymizedDto buddyUserAnonymized, UUID userAnonymizedId)
 	{
-		requestingUserBuddy.setDisconnected();
-		Buddy.getRepository().save(requestingUserBuddy);
+		Optional<BuddyAnonymized> buddyAnonymized = buddyUserAnonymized.getBuddyAnonymized(userAnonymizedId);
+		buddyAnonymized.ifPresent(ba -> {
+			ba.setDisconnected();
+			BuddyAnonymized.getRepository().save(ba);
+			// Notice: last status change time will not be set, as we are not able to reach the Buddy entity from here
+			// Buddy will be removed anyway the first time the other user logs in
+		});
+		// Else: user who requested buddy relationship didn't process the accept message yet
 	}
 
 	private void removeNamedMessagesSentByUser(User receivingUser, UUID sentByUserAnonymizedId)
