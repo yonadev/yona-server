@@ -22,6 +22,7 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
+		richard = setMandatoryGoalsToNow(richard)
 		User bob = richardAndBob.bob
 		// Trigger aggregation for any already existing activities
 		assert batchService.triggerActivityAggregationBatchJob().status == 200
@@ -80,6 +81,7 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
+		richard = setMandatoryGoalsToNow(richard)
 		User bob = richardAndBob.bob
 		// Trigger aggregation for any already existing activities
 		assert batchService.triggerActivityAggregationBatchJob().status == 200
@@ -131,6 +133,7 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
+		richard = setMandatoryGoalsToNow(richard)
 		User bob = richardAndBob.bob
 		// Trigger aggregation for any already existing activities
 		assert batchService.triggerActivityAggregationBatchJob().status == 200

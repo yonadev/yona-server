@@ -45,6 +45,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
+		setMandatoryGoalsToNow(richard)
 		Goal goal = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
 
 		when:
@@ -76,7 +77,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-
+		setMandatoryGoalsToNow(richard)
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-4 Mon 02:18")
 
 		richard = appService.reloadUser(richard)
@@ -131,7 +132,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
+		setMandatoryGoalsToNow(richard)
 		User bob = richardAndBob.bob
+		setMandatoryGoalsToNow(bob)
 
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
@@ -278,6 +281,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
+		setMandatoryGoalsToNow(richard)
 
 		reportNetworkActivity(richard, ["YouTube"], "http://www.youtube.com", "W-2 Fri 09:00") // Should be ignored, as there was no goal yet
 		TimeZoneGoal timeZoneGoalMultimediaBobBeforeUpdate = addTimeZoneGoal(richard, MULTIMEDIA_ACT_CAT_URL, ["20:00-22:00"], "W-1 Fri 14:00")
@@ -357,6 +361,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		User richard = addRichard()
+		setMandatoryGoalsToNow(richard)
 		def ZonedDateTime now = YonaServer.now
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		Goal budgetGoalGambling = richard.findActiveGoal(GAMBLING_ACT_CAT_URL)
@@ -413,6 +418,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		User richard = addRichard()
+		setMandatoryGoalsToNow(richard)
 		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
 		reportAppActivity(richard, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
 		reportAppActivities(richard, [createAppActivity("NU.nl", "W-1 Tue 08:45", "W-1 Tue 09:10"), createAppActivity("Facebook", "W-1 Tue 09:35", "W-1 Tue 10:10")])
@@ -576,6 +582,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		User richard = addRichard()
+		setMandatoryGoalsToNow(richard)
 		Goal budgetGoalMultimediaBeforeUpdate = addBudgetGoal(richard, MULTIMEDIA_ACT_CAT_URL, 60, "W-2 Tue 13:30")
 		updateBudgetGoal(richard, budgetGoalMultimediaBeforeUpdate, 81, "W-1 Mon 18:30")
 		richard = appService.reloadUser(richard)
@@ -666,7 +673,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
+		setMandatoryGoalsToNow(richard)
 		User bob = richardAndBob.bob
+		setMandatoryGoalsToNow(bob)
 
 		// Week -2
 		// Monday
@@ -936,7 +945,9 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
+		setMandatoryGoalsToNow(richard)
 		User bob = richardAndBob.bob
+		setMandatoryGoalsToNow(bob)
 
 		// Week -2
 		// Monday
