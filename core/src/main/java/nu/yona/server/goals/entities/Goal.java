@@ -98,6 +98,7 @@ public abstract class Goal extends EntityWithUuid implements Serializable
 		this.activityCategory = originalGoal.activityCategory;
 		this.creationTime = originalGoal.creationTime;
 		this.endTime = endTime;
+		this.previousInstanceOfThisGoal = originalGoal.previousInstanceOfThisGoal;
 	}
 
 	public void setUserAnonymized(UserAnonymized userAnonymized)
