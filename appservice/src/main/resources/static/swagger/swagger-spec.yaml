@@ -1897,13 +1897,14 @@ definitions:
   PrivateUserData:
     allOf:
       - $ref: '#/definitions/PrivateUserDataNoVPN'
-    properties:
-      yonaPassword:
-        type: string
-        description: The Yona password for subsequent requests
-        example: AES:128:YXNkZnNhZGZnMnrp1ORubw==
-      vpnProfile:
-        $ref: '#/definitions/VPNProfile'
+      - type: object
+        properties:
+          yonaPassword:
+            type: string
+            description: The Yona password for subsequent requests
+            example: AES:128:YXNkZnNhZGZnMnrp1ORubw==
+          vpnProfile:
+            $ref: '#/definitions/VPNProfile'
   PostPutUser:
     allOf:
       - $ref: '#/definitions/BaseUser'
@@ -1912,179 +1913,182 @@ definitions:
     allOf:
       - $ref: '#/definitions/BaseUser'
       - $ref: '#/definitions/PrivateUserData'
-    properties:
-      sslRootCertCN:
-        type: string
-        description: The CN of the SSL root certificate
-        example: "smoothwall003.yona"
-      creationTime:
-        type: string
-        format: dateTime
-        description: The creation time of this user
-        example: 2016-04-26T20:08:55.365+0200
-      appLastOpenedDate:
-        type: string
-        format: date
-        description: The date the user last opened the Yona app
-        example: 2016-04-26
-      lastMonitoredActivityDate:
-        type: string
-        format: date
-        description: The date of the last monitored activity
-        example: 2016-04-26
-      _embedded:
-        type: object
+      - type: object
         properties:
-          "yona:goals":
+          sslRootCertCN:
+            type: string
+            description: The CN of the SSL root certificate
+            example: "smoothwall003.yona"
+          creationTime:
+            type: string
+            format: dateTime
+            description: The creation time of this user
+            example: 2016-04-26T20:08:55.365+0200
+          appLastOpenedDate:
+            type: string
+            format: date
+            description: The date the user last opened the Yona app
+            example: 2016-04-26
+          lastMonitoredActivityDate:
+            type: string
+            format: date
+            description: The date of the last monitored activity
+            example: 2016-04-26
+          _embedded:
             type: object
-            description: The goals of this user. Private data.
             properties:
-              _embedded:
+              "yona:goals":
                 type: object
+                description: The goals of this user. Private data.
                 properties:
-                  "yona:goals":
-                    type: array
-                    items:
-                      $ref: "#/definitions/Goal"
-              _links:
-                allOf:
-                  - $ref: '#/definitions/SelfLink'
-                  - $ref: '#/definitions/EditLink'
-          "yona:buddies":
-            type: object
-            description: The buddies of this user. Private data.
-            properties:
-              _embedded:
+                  _embedded:
+                    type: object
+                    properties:
+                      "yona:goals":
+                        type: array
+                        items:
+                          $ref: "#/definitions/Goal"
+                  _links:
+                    allOf:
+                      - $ref: '#/definitions/SelfLink'
+                      - $ref: '#/definitions/EditLink'
+              "yona:buddies":
                 type: object
+                description: The buddies of this user. Private data.
                 properties:
-                  "yona:buddies":
-                    type: array
-                    items:
-                      $ref: "#/definitions/Buddy"
-              _links:
-                allOf:
-                  - $ref: '#/definitions/SelfLink'
-                  - $ref: '#/definitions/EditLink'
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/EditLink'
-          - $ref: '#/definitions/WeeklyActivityReportsLink'
-          - $ref: '#/definitions/DailyActivityReportsLink'
-          - $ref: '#/definitions/DailyActivityReportsWithBuddiesLink'
-          - $ref: '#/definitions/MessagesLink'
-        properties:
-          "yona:confirmMobileNumber":
-            type: object
-            required:
-              - href
-            properties:
-              href:
-                type: string
-                description: If this link is present, the mobile number of the user must be confirmed by posting the confirmation to this URL.
-          "yona:resendMobileNumberConfirmationCode":
-            type: object
-            required:
-              - href
-            properties:
-              href:
-                type: string
-                description: This link allows requesting a resend of the mobile number confirmation code.
-          "yona:postOpenAppEvent":
-            type: object
-            required:
-              - href
-            properties:
-              href:
-                type: string
-                description: This link allows posting to the server that the Yona app was opened.
-          "yona:requestPinReset":
-            type: object
-            required:
-              - href
-            properties:
-              href:
-                type: string
-                description: This link allows requesting a pin reset confirmation code.
-          "yona:verifyPinReset":
-            type: object
-            required:
-              - href
-            properties:
-              href:
-                type: string
-                description: This link allows verifying the pin reset confirmation code.
-          "yona:resendPinResetConfirmationCode":
-            type: object
-            required:
-              - href
-            properties:
-              href:
-                type: string
-                description: This link allows requesting a resend of a new pin reset confirmation code.
-          "yona:clearPinReset":
-            type: object
-            required:
-              - href
-            properties:
-              href:
-                type: string
-                description: This link allows clearing the pin reset confirmation code.
-          "yona:newDeviceRequest":
-            type: object
-            required:
-              - href
-            properties:
-              href:
-                type: string
-                description: Create, get or delete a "new device request" through this link
-          "yona:appActivity":
-            type: object
-            required:
-              - href
-            properties:
-              href:
-                type: string
-                description: Post new app activity data to this link
-          "yona:sslRootCert":
-            type: object
-            required:
-              - href
-            properties:
-              href:
-                type: string
-                description: Link to SSL root certificate file (available after confirming mobile number)
-          "yona:appleMobileConfig":
-            type: object
-            required:
-              - href
-            properties:
-              href:
-                type: string
-                description: Link to user-specific Apple .mobileconfig file (available after confirming mobile number)
-    required:
-      - _embedded
-      - _links
+                  _embedded:
+                    type: object
+                    properties:
+                      "yona:buddies":
+                        type: array
+                        items:
+                          $ref: "#/definitions/Buddy"
+                  _links:
+                    allOf:
+                      - $ref: '#/definitions/SelfLink'
+                      - $ref: '#/definitions/EditLink'
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/EditLink'
+              - $ref: '#/definitions/WeeklyActivityReportsLink'
+              - $ref: '#/definitions/DailyActivityReportsLink'
+              - $ref: '#/definitions/DailyActivityReportsWithBuddiesLink'
+              - $ref: '#/definitions/MessagesLink'
+              - type: object
+                properties:
+                  "yona:confirmMobileNumber":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: If this link is present, the mobile number of the user must be confirmed by posting the confirmation to this URL.
+                  "yona:resendMobileNumberConfirmationCode":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: This link allows requesting a resend of the mobile number confirmation code.
+                  "yona:postOpenAppEvent":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: This link allows posting to the server that the Yona app was opened.
+                  "yona:requestPinReset":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: This link allows requesting a pin reset confirmation code.
+                  "yona:verifyPinReset":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: This link allows verifying the pin reset confirmation code.
+                  "yona:resendPinResetConfirmationCode":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: This link allows requesting a resend of a new pin reset confirmation code.
+                  "yona:clearPinReset":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: This link allows clearing the pin reset confirmation code.
+                  "yona:newDeviceRequest":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: Create, get or delete a "new device request" through this link
+                  "yona:appActivity":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: Post new app activity data to this link
+                  "yona:sslRootCert":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: Link to SSL root certificate file (available after confirming mobile number)
+                  "yona:appleMobileConfig":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: Link to user-specific Apple .mobileconfig file (available after confirming mobile number)
+        required:
+          - _embedded
+          - _links
   UserWithOnlyPublicData:
     allOf:
       - $ref: '#/definitions/BaseUser'
-    properties:
-      creationTime:
-        type: string
-        format: dateTime
-        description: The creation time of this user
-        example: 2016-04-26T20:08:55.365+0200
-      appLastOpenedDate:
-        type: string
-        format: date
-        description: The date the user last opened the Yona app
-        example: 2016-04-26
-      _links:
-        allOf:
-          - $ref: '#/definitions/SelfLink'
-    required:
-      - _links
+      - type: object
+        properties:
+          creationTime:
+            type: string
+            format: dateTime
+            description: The creation time of this user
+            example: 2016-04-26T20:08:55.365+0200
+          appLastOpenedDate:
+            type: string
+            format: date
+            description: The date the user last opened the Yona app
+            example: 2016-04-26
+          _links:
+            allOf:
+              - $ref: '#/definitions/SelfLink'
+        required:
+          - _links
   ConfirmationCode:
     type: object
     properties:
@@ -2112,30 +2116,32 @@ definitions:
   BudgetGoal:
     allOf:
       - $ref: '#/definitions/PostPutGoal'
-    properties:
-      maxDurationMinutes:
-        type: integer
-        description: The budget (duration) for this goal in minutes
-        example: 0
-    required:
-      - maxDurationMinutes
+      - type: object
+        properties:
+          maxDurationMinutes:
+            type: integer
+            description: The budget (duration) for this goal in minutes
+            example: 0
+        required:
+          - maxDurationMinutes
   TimeZoneGoal:
     allOf:
       - $ref: '#/definitions/PostPutGoal'
-    properties:
-      zones:
-        type: array
-        items:
-          type: string
-          example: "8:00-17:00"
-        description: The zones for this goal
-      spreadCells:
-        type: array
-        items:
-          type: integer
-        description: This property cannot be passed in PUT/POST. An array with indexes of the spread that are within the goal boundaries, used to interpret the spread as defined in the day and week activity. 
-    required:
-      - zones
+      - type: object
+        properties:
+          zones:
+            type: array
+            items:
+              type: string
+              example: "8:00-17:00"
+            description: The zones for this goal
+          spreadCells:
+            type: array
+            items:
+              type: integer
+            description: This property cannot be passed in PUT/POST. An array with indexes of the spread that are within the goal boundaries, used to interpret the spread as defined in the day and week activity. 
+        required:
+          - zones
   Goal:
     type: object
     discriminator: "@type"
@@ -2194,93 +2200,94 @@ definitions:
   PostPutBuddyUser:
     allOf:
       - $ref: '#/definitions/BaseUser'
-    properties:
-      emailAddress:
-        type: string
-        format: email
-        description: E-mail address used to inform the buddy about the new buddy request
-        example: richard@quin.net
-    required:
-      - emailAddress
+      - type: object
+        properties:
+          emailAddress:
+            type: string
+            format: email
+            description: E-mail address used to inform the buddy about the new buddy request
+            example: richard@quin.net
+        required:
+          - emailAddress
   BaseBuddy:
     type: object
     properties:
       sendingStatus:
         $ref: '#/definitions/BuddyStatus'
-        example: REQUESTED
       receivingStatus:
         $ref: '#/definitions/BuddyStatus'
-        example: REQUESTED
     required:
       - sendingStatus
       - receivingStatus
   PostPutBuddy:
     allOf:
       - $ref: '#/definitions/BaseBuddy'
-    properties:
-      message:
-        type: string
-        description: A message to the buddy
-        example: Hi there, would you want to become my buddy?
-      _embedded:
-        type: object
+      - type: object
         properties:
-          "yona:user":
-              $ref: "#/definitions/PostPutBuddyUser"
+          message:
+            type: string
+            description: A message to the buddy
+            example: Hi there, would you want to become my buddy?
+          _embedded:
+            type: object
+            properties:
+              "yona:user":
+                  $ref: "#/definitions/PostPutBuddyUser"
+            required:
+              - "yona:user"
         required:
-          - "yona:user"
-    required:
-      - _embedded
+          - _embedded
   Buddy:
     allOf:
       - $ref: '#/definitions/BaseBuddy'
-    properties:
-      nickname:
-        type: string
-        description: The nickname of the buddy
-        example: RQ
-      lastStatusChangeTime:
-        type: string
-        format: dateTime
-        description: The time of the last status change (request/accept/reject) of this buddy
-        example: 2016-02-23T21:28:58.556+0000
-      lastMonitoredActivityDate:
-        type: string
-        format: date
-        description: The date of the last monitored activity of this buddy
-        example: 2016-04-26
-      _embedded:
-        type: object
+      - type: object
         properties:
-          "yona:goals":
+          nickname:
+            type: string
+            description: The nickname of the buddy
+            example: RQ
+          lastStatusChangeTime:
+            type: string
+            format: dateTime
+            description: The time of the last status change (request/accept/reject) of this buddy
+            example: 2016-02-23T21:28:58.556+0000
+          lastMonitoredActivityDate:
+            type: string
+            format: date
+            description: The date of the last monitored activity of this buddy
+            example: 2016-04-26
+          _embedded:
             type: object
-            description: The goals of this buddy.
             properties:
-              _embedded:
+              "yona:goals":
                 type: object
+                description: The goals of this buddy.
                 properties:
-                  "yona:goals":
-                    type: array
-                    items:
-                      $ref: "#/definitions/Goal"
-              _links:
-                allOf:
-                  - $ref: '#/definitions/SelfLink'
-          "yona:user":
-              $ref: "#/definitions/UserWithOnlyPublicData"
+                  _embedded:
+                    type: object
+                    properties:
+                      "yona:goals":
+                        type: array
+                        items:
+                          $ref: "#/definitions/Goal"
+                  _links:
+                    allOf:
+                      - $ref: '#/definitions/SelfLink'
+              "yona:user":
+                  $ref: "#/definitions/UserWithOnlyPublicData"
+            required:
+              - "yona:user"
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/EditLink'
+              - $ref: '#/definitions/WeeklyActivityReportsLink'
+              - $ref: '#/definitions/DailyActivityReportsLink'
         required:
-          - "yona:user"
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/EditLink'
-          - $ref: '#/definitions/WeeklyActivityReportsLink'
-          - $ref: '#/definitions/DailyActivityReportsLink'
-    required:
-      - lastStatusChangeTime
-      - _embedded
-      - _links
+          - lastStatusChangeTime
+          - _embedded
+          - _links
   NewDeviceRequest:
     type: object
     properties:
@@ -2357,123 +2364,129 @@ definitions:
   SystemMessage:
     allOf:
       - $ref: '#/definitions/Message'
-    properties:
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/EditLink'
-          - $ref: '#/definitions/MarkReadLink'
-          - $ref: '#/definitions/MarkUnreadLink'
-      message:
-        type: string
-        description: The message from the system administrator
-        example: On Monday, 7th of November from 12am-6am UTC we will restart our servers. You will not be able to use the Yona app in this window.
-    required:
-      - _links
-      - message      
+      - type: object
+        properties:
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/EditLink'
+              - $ref: '#/definitions/MarkReadLink'
+              - $ref: '#/definitions/MarkUnreadLink'
+          message:
+            type: string
+            description: The message from the system administrator
+            example: On Monday, 7th of November from 12am-6am UTC we will restart our servers. You will not be able to use the Yona app in this window.
+        required:
+          - _links
+          - message      
   BuddyMessage:
     allOf:
       - $ref: '#/definitions/Message'
-    properties:
-      nickname:
-        type: string
-        description: The nickname of the buddy
-        example: RQ
-      message:
-        type: string
-        description: The message from the buddy
-        example: Hi there, how are you doing?
-    required:
-      - nickname
-      - message
+      - type: object
+        properties:
+          nickname:
+            type: string
+            description: The nickname of the buddy
+            example: RQ
+          message:
+            type: string
+            description: The message from the buddy
+            example: Hi there, how are you doing?
+        required:
+          - nickname
+          - message
   BuddyMessageWithEmbeddedUser:
     allOf:
       - $ref: '#/definitions/BuddyMessage'
-    properties:
-      _embedded:
-        type: object
+      - type: object
         properties:
-          "yona:user":
-              $ref: "#/definitions/UserWithOnlyPublicData"
-        required:
-          - "yona:user"
+          _embedded:
+            type: object
+            properties:
+              "yona:user":
+                  $ref: "#/definitions/UserWithOnlyPublicData"
+            required:
+              - "yona:user"
   BuddyConnectRequestMessage:
     allOf:
       - $ref: '#/definitions/BuddyMessageWithEmbeddedUser'
-    properties:
-      status:
-        $ref: '#/definitions/BuddyStatus'
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/EditLink'
-          - $ref: '#/definitions/MarkReadLink'
-          - $ref: '#/definitions/MarkUnreadLink'
-          - $ref: '#/definitions/AcceptLink'
-          - $ref: '#/definitions/RejectLink'
-    required:
-      - status
-      - _links
+      - type: object
+        properties:
+          status:
+            $ref: '#/definitions/BuddyStatus'
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/EditLink'
+              - $ref: '#/definitions/MarkReadLink'
+              - $ref: '#/definitions/MarkUnreadLink'
+              - $ref: '#/definitions/AcceptLink'
+              - $ref: '#/definitions/RejectLink'
+        required:
+          - status
+          - _links
   BuddyConnectResponseMessage:
     allOf:
       - $ref: '#/definitions/BuddyMessage'
-    properties:
-      status:
-        $ref: '#/definitions/BuddyStatus'
-        example: ACCEPTED
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/UserLink'
-          - $ref: '#/definitions/BuddyLink'
-          - $ref: '#/definitions/EditLink'
-          - $ref: '#/definitions/MarkReadLink'
-          - $ref: '#/definitions/MarkUnreadLink'
-          - $ref: '#/definitions/ProcessLink'
-    required:
-      - status
-      - _links
+      - type: object
+        properties:
+          status:
+            $ref: '#/definitions/BuddyStatus'
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/UserLink'
+              - $ref: '#/definitions/BuddyLink'
+              - $ref: '#/definitions/EditLink'
+              - $ref: '#/definitions/MarkReadLink'
+              - $ref: '#/definitions/MarkUnreadLink'
+              - $ref: '#/definitions/ProcessLink'
+        required:
+          - status
+          - _links
   BuddyDisconnectMessage:
     allOf:
       - $ref: '#/definitions/BuddyMessageWithEmbeddedUser'
-    properties:
-      dropBuddyReason:
-        type: string
-        enum:
-          - USER_ACCOUNT_DELETED
-          - USER_REMOVED_BUDDY
-        description: The reason why this buddy is disconnected
-        example: USER_REMOVED_BUDDY
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/EditLink'
-          - $ref: '#/definitions/MarkReadLink'
-          - $ref: '#/definitions/MarkUnreadLink'
-          - $ref: '#/definitions/ProcessLink'
-    required:
-      - dropBuddyReason
-      - _links
+      - type: object
+        properties:
+          dropBuddyReason:
+            type: string
+            enum:
+              - USER_ACCOUNT_DELETED
+              - USER_REMOVED_BUDDY
+            description: The reason why this buddy is disconnected
+            example: USER_REMOVED_BUDDY
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/EditLink'
+              - $ref: '#/definitions/MarkReadLink'
+              - $ref: '#/definitions/MarkUnreadLink'
+              - $ref: '#/definitions/ProcessLink'
+        required:
+          - dropBuddyReason
+          - _links
   BuddyInfoChangeMessage:
     allOf:
       - $ref: '#/definitions/BuddyMessage'
-    properties:
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/EditLink'
-          - $ref: '#/definitions/UserLink'
-          - $ref: '#/definitions/BuddyLink'
-          - $ref: '#/definitions/MarkReadLink'
-          - $ref: '#/definitions/MarkUnreadLink'
-          - $ref: '#/definitions/ProcessLink'
-    required:
-      - _links
+      - type: object
+        properties:
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/EditLink'
+              - $ref: '#/definitions/UserLink'
+              - $ref: '#/definitions/BuddyLink'
+              - $ref: '#/definitions/MarkReadLink'
+              - $ref: '#/definitions/MarkUnreadLink'
+              - $ref: '#/definitions/ProcessLink'
+        required:
+          - _links
   GoalConflictStatus:
     type: string
     description: The status of this goal conflict message or disclosure request
@@ -2492,129 +2505,131 @@ definitions:
   GoalConflictMessage:
     allOf:
       - $ref: '#/definitions/Message'
-    properties:
-      nickname:
-        type: string
-        description: The nickname of the buddy
-        example: RQ
-      status:
-        $ref: '#/definitions/GoalConflictStatus'
-        example: ANNOUNCED
-      url:
-        type: string
-        description: The URL on which the goal conflict was detected
-        example: http://www.poker.com
-      activityStartTime:
-        type: string
-        format: dateTime
-        description: The start time of this activity
-        example: 2016-02-31T21:03:52.290+0000
-      activityEndTime:
-        type: string
-        format: dateTime
-        description: The end time of this activity
-        example: 2016-02-31T21:03:57.721+0000
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/EditLink'
-          - $ref: '#/definitions/MarkReadLink'
-          - $ref: '#/definitions/MarkUnreadLink'
-          - $ref: '#/definitions/BuddyLink'
-          - $ref: '#/definitions/ActivityCategoryLink'
-          - $ref: '#/definitions/DayDetailsLink'
+      - type: object
         properties:
-          "yona:requestDisclosure":
+          nickname:
+            type: string
+            description: The nickname of the buddy
+            example: RQ
+          status:
+            $ref: '#/definitions/GoalConflictStatus'
+          url:
+            type: string
+            description: The URL on which the goal conflict was detected
+            example: http://www.poker.com
+          activityStartTime:
+            type: string
+            format: dateTime
+            description: The start time of this activity
+            example: 2016-02-31T21:03:52.290+0000
+          activityEndTime:
+            type: string
+            format: dateTime
+            description: The end time of this activity
+            example: 2016-02-31T21:03:57.721+0000
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/EditLink'
+              - $ref: '#/definitions/MarkReadLink'
+              - $ref: '#/definitions/MarkUnreadLink'
+              - $ref: '#/definitions/BuddyLink'
+              - $ref: '#/definitions/ActivityCategoryLink'
+              - $ref: '#/definitions/DayDetailsLink'
             properties:
-              href:
-                type: string
-                description: Post a MessageAction with a message property to accept this disclosure request
-    required:
-      - nickname
-      - status
-      - url
-      - activityStartTime
-      - activityEndTime
-      - _links
+              "yona:requestDisclosure":
+                properties:
+                  href:
+                    type: string
+                    description: Post a MessageAction with a message property to accept this disclosure request
+        required:
+          - nickname
+          - status
+          - url
+          - activityStartTime
+          - activityEndTime
+          - _links
   GoalChangeMessage:
     allOf:
       - $ref: '#/definitions/Message'
-    properties:
-      change:
-        $ref: '#/definitions/GoalChange'
-        example: GOAL_ADDED
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/EditLink'
-          - $ref: '#/definitions/ActivityCategoryLink'
-          - $ref: '#/definitions/BuddyLink'
-    required:
-      - change
-      - _links
+      - type: object
+        properties:
+          change:
+            $ref: '#/definitions/GoalChange'
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/EditLink'
+              - $ref: '#/definitions/ActivityCategoryLink'
+              - $ref: '#/definitions/BuddyLink'
+        required:
+          - change
+          - _links
   DisclosureRequestMessage:
     allOf:
       - $ref: '#/definitions/BuddyMessage'
-    properties:
-      status:
-        $ref: '#/definitions/GoalConflictStatus'
-        example: DISCLOSURE_REQUESTED
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/UserLink'
-          - $ref: '#/definitions/EditLink'
-          - $ref: '#/definitions/MarkReadLink'
-          - $ref: '#/definitions/MarkUnreadLink'
-          - $ref: '#/definitions/RelatedLink'
-          - $ref: '#/definitions/AcceptLink'
-          - $ref: '#/definitions/RejectLink'
-          - $ref: '#/definitions/DayDetailsLink'
-    required:
-      - status
-      - _links
+      - type: object
+        properties:
+          status:
+            $ref: '#/definitions/GoalConflictStatus'
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/UserLink'
+              - $ref: '#/definitions/EditLink'
+              - $ref: '#/definitions/MarkReadLink'
+              - $ref: '#/definitions/MarkUnreadLink'
+              - $ref: '#/definitions/RelatedLink'
+              - $ref: '#/definitions/AcceptLink'
+              - $ref: '#/definitions/RejectLink'
+              - $ref: '#/definitions/DayDetailsLink'
+        required:
+          - status
+          - _links
   DisclosureResponseMessage:
     allOf:
       - $ref: '#/definitions/BuddyMessage'
-    properties:
-      status:
-        $ref: '#/definitions/GoalConflictStatus'
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/UserLink'
-          - $ref: '#/definitions/EditLink'
-          - $ref: '#/definitions/MarkReadLink'
-          - $ref: '#/definitions/MarkUnreadLink'
-          - $ref: '#/definitions/RelatedLink'
-          - $ref: '#/definitions/DayDetailsLink'
-    required:
-      - status
-      - _links
+      - type: object
+        properties:
+          status:
+            $ref: '#/definitions/GoalConflictStatus'
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/UserLink'
+              - $ref: '#/definitions/EditLink'
+              - $ref: '#/definitions/MarkReadLink'
+              - $ref: '#/definitions/MarkUnreadLink'
+              - $ref: '#/definitions/RelatedLink'
+              - $ref: '#/definitions/DayDetailsLink'
+        required:
+          - status
+          - _links
   ActivityCommentMessage:
     allOf:
       - $ref: '#/definitions/BuddyMessage'
-    properties:
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/UserLink'
-          - $ref: '#/definitions/BuddyLink'
-          - $ref: '#/definitions/EditLink'
-          - $ref: '#/definitions/MarkReadLink'
-          - $ref: '#/definitions/MarkUnreadLink'
-          - $ref: '#/definitions/DayDetailsLink'
-          - $ref: '#/definitions/WeekDetailsLink'
-          - $ref: '#/definitions/ReplyLink'
-          - $ref: '#/definitions/RepliedMessageLink'
-          - $ref: '#/definitions/ThreadHeadLink'
-    required:
-      - _links
+      - type: object
+        properties:
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/UserLink'
+              - $ref: '#/definitions/BuddyLink'
+              - $ref: '#/definitions/EditLink'
+              - $ref: '#/definitions/MarkReadLink'
+              - $ref: '#/definitions/MarkUnreadLink'
+              - $ref: '#/definitions/DayDetailsLink'
+              - $ref: '#/definitions/WeekDetailsLink'
+              - $ref: '#/definitions/ReplyLink'
+              - $ref: '#/definitions/RepliedMessageLink'
+              - $ref: '#/definitions/ThreadHeadLink'
+        required:
+          - _links
   PostPutActivityCommentMessage:
     type: object
     properties:
@@ -2627,27 +2642,28 @@ definitions:
   PagedWeekActivityOverviews:
     allOf:
       - $ref: '#/definitions/Page'
-    properties:
-      _embedded:
+      - type: object
         properties:
-          "yona:weekActivityOverviews":
-            type: array
-            items:
-              $ref: '#/definitions/WeekActivityOverview'
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/NextLink'
-          - $ref: '#/definitions/PrevLink'
-          - $ref: '#/definitions/FirstLink'
-          - $ref: '#/definitions/LastLink'
+          _embedded:
+            properties:
+              "yona:weekActivityOverviews":
+                type: array
+                items:
+                  $ref: '#/definitions/WeekActivityOverview'
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/NextLink'
+              - $ref: '#/definitions/PrevLink'
+              - $ref: '#/definitions/FirstLink'
+              - $ref: '#/definitions/LastLink'
+            required:
+              - self
         required:
-          - self
-    required:
-      - _links
-      - _embedded
-      - page
+          - _links
+          - _embedded
+          - page
   WeekActivityOverview:
     type: object
     properties:
@@ -2752,28 +2768,29 @@ definitions:
   PagedDayActivityOverviews:
     allOf:
       - $ref: '#/definitions/Page'
-    properties:
-      _embedded:
+      - type: object
         properties:
-          "yona:dayActivityOverviews":
-            type: array
-            items:
-              $ref: '#/definitions/DayActivityOverview'
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/NextLink'
-          - $ref: '#/definitions/PrevLink'
-          - $ref: '#/definitions/FirstLink'
-          - $ref: '#/definitions/LastLink'
+          _embedded:
+            properties:
+              "yona:dayActivityOverviews":
+                type: array
+                items:
+                  $ref: '#/definitions/DayActivityOverview'
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/NextLink'
+              - $ref: '#/definitions/PrevLink'
+              - $ref: '#/definitions/FirstLink'
+              - $ref: '#/definitions/LastLink'
+            required:
+              - curies
+              - self
         required:
-          - curies
-          - self
-    required:
-      - _embedded
-      - page
-      - _links
+          - _embedded
+          - page
+          - _links
   DayActivityOverview:
     type: object
     properties:
@@ -2821,94 +2838,98 @@ definitions:
   DayGoalActivityInWeek:
     allOf:
       - $ref: '#/definitions/DayGoalActivityBase'
-    properties:
-      _links:
-        allOf:
-          - $ref: '#/definitions/DayDetailsLink'
+      - type: object
+        properties:
+          _links:
+            allOf:
+              - $ref: '#/definitions/DayDetailsLink'
+            required:
+              - "yona:dayDetails"
         required:
-          - "yona:dayDetails"
-    required:
-      - _links
+          - _links
   DayGoalActivityOverview:
     allOf:
       - $ref: '#/definitions/DayGoalActivityBase'
-    properties:
-      spread:
-        type: array
-        items:
-          type: integer
-        description: Aggregates all activity on every quarter hour of the day (of which there are 96). This information is only included for time zone goals.
-      _links:
-        allOf:
-          - $ref: '#/definitions/GoalLink'
-          - $ref: '#/definitions/DayDetailsLink'
+      - type: object
+        properties:
+          spread:
+            type: array
+            items:
+              type: integer
+            description: Aggregates all activity on every quarter hour of the day (of which there are 96). This information is only included for time zone goals.
+          _links:
+            allOf:
+              - $ref: '#/definitions/GoalLink'
+              - $ref: '#/definitions/DayDetailsLink'
+            required:
+              - "yona:goal"
+              - "yona:dayDetails"
         required:
-          - "yona:goal"
-          - "yona:dayDetails"
-    required:
-      - _links
+          - _links
   DayGoalActivityDetail:
     allOf:
       - $ref: '#/definitions/DayGoalActivityBase'
-    properties:
-      date:
-        type: string
-        example: 2016-03-16
-        description: The day date in ISO 8601 format (yyyy-MM-dd).
-      timeZoneId:
-        type: string
-        description: The time zone identifier that the user had configured when this day started.
-        example: Europe/Amsterdam
-      spread:
-        type: array
-        items:
-          type: integer
-        description: Aggregates all activity on every quarter hour of the day (of which there are 96).
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/GoalLink'
-          - $ref: '#/definitions/AddCommentLink'
-          - $ref: '#/definitions/MessagesLink'
-          - $ref: '#/definitions/PrevLink'
-          - $ref: '#/definitions/NextLink'
+      - type: object
+        properties:
+          date:
+            type: string
+            example: 2016-03-16
+            description: The day date in ISO 8601 format (yyyy-MM-dd).
+          timeZoneId:
+            type: string
+            description: The time zone identifier that the user had configured when this day started.
+            example: Europe/Amsterdam
+          spread:
+            type: array
+            items:
+              type: integer
+            description: Aggregates all activity on every quarter hour of the day (of which there are 96).
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/GoalLink'
+              - $ref: '#/definitions/AddCommentLink'
+              - $ref: '#/definitions/MessagesLink'
+              - $ref: '#/definitions/PrevLink'
+              - $ref: '#/definitions/NextLink'
+            required:
+              - self
+              - "yona:goal"
+          # TODO: embedded messages
         required:
-          - self
-          - "yona:goal"
-      # TODO: embedded messages
-    required:
-      - date
-      - timeZoneId
-      - totalActivityDurationMinutes
-      - goalAccomplished
-      - totalMinutesBeyondGoal
-      - _links
+          - date
+          - timeZoneId
+          - totalActivityDurationMinutes
+          - goalAccomplished
+          - totalMinutesBeyondGoal
+          - _links
   PagedDayActivityOverviewsWithBuddies:
     allOf:
       - $ref: '#/definitions/Page'
-    properties:
-      _embedded:
+      - type: object
         properties:
-          "yona:dayActivityOverviews":
-            type: array
-            items:
-              $ref: '#/definitions/DayActivityOverviewWithBuddies'
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/NextLink'
-          - $ref: '#/definitions/PrevLink'
-          - $ref: '#/definitions/FirstLink'
-          - $ref: '#/definitions/LastLink'
+          _embedded:
+            properties:
+              "yona:dayActivityOverviews":
+                type: array
+                items:
+                  $ref: '#/definitions/DayActivityOverviewWithBuddies'
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/NextLink'
+              - $ref: '#/definitions/PrevLink'
+              - $ref: '#/definitions/FirstLink'
+              - $ref: '#/definitions/LastLink'
+            required:
+              - curies
+              - self
         required:
-          - curies
-          - self
-    required:
-      - _embedded
-      - page
-      - _links
+          - _embedded
+          - page
+          - _links
   DayActivityOverviewWithBuddies:
     type: object
     properties:
@@ -2951,48 +2972,50 @@ definitions:
   DayGoalActivityOverviewForUser:
     allOf:
       - $ref: '#/definitions/DayGoalActivityBase'
-    properties:
-      spread:
-        type: array
-        items:
-          type: integer
-        description: Aggregates all activity on every quarter hour of the day (of which there are 96). This information is only included for time zone goals.
-      _links:
-        allOf:
-          - $ref: '#/definitions/GoalLink'
-          - $ref: '#/definitions/DayDetailsLink'
-          - $ref: '#/definitions/UserLink'
-          - $ref: '#/definitions/BuddyLink'
+      - type: object
+        properties:
+          spread:
+            type: array
+            items:
+              type: integer
+            description: Aggregates all activity on every quarter hour of the day (of which there are 96). This information is only included for time zone goals.
+          _links:
+            allOf:
+              - $ref: '#/definitions/GoalLink'
+              - $ref: '#/definitions/DayDetailsLink'
+              - $ref: '#/definitions/UserLink'
+              - $ref: '#/definitions/BuddyLink'
+            required:
+              - "yona:goal"
+              - "yona:dayDetails"
+              - "yona:user"
         required:
-          - "yona:goal"
-          - "yona:dayDetails"
-          - "yona:user"
-    required:
-      - _links
+          - _links
   PagedMessages:
     allOf:
       - $ref: '#/definitions/Page'
-    properties:
-      _links:
-        allOf:
-          - $ref: '#/definitions/Curies'
-          - $ref: '#/definitions/SelfLink'
-          - $ref: '#/definitions/NextLink'
-          - $ref: '#/definitions/PrevLink'
-          - $ref: '#/definitions/FirstLink'
-          - $ref: '#/definitions/LastLink'
-        required:
-          - self
-      _embedded:
+      - type: object
         properties:
-          "yona:messages":
-            type: array
-            items:
-              $ref: '#/definitions/Message'
-    required:
-      - _links
-      - _embedded
-      - page
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/NextLink'
+              - $ref: '#/definitions/PrevLink'
+              - $ref: '#/definitions/FirstLink'
+              - $ref: '#/definitions/LastLink'
+            required:
+              - self
+          _embedded:
+            properties:
+              "yona:messages":
+                type: array
+                items:
+                  $ref: '#/definitions/Message'
+        required:
+          - _links
+          - _embedded
+          - page
   MessageAction:
     type: object
     properties:
@@ -3017,8 +3040,9 @@ definitions:
   ConfirmationError:
     allOf:
       - $ref: '#/definitions/Error'
-    properties:
-      remainingAttempts:
-        type: integer
-        description: The number of remaining attempts. Only available upon a failed confirmation attempt
-        example: 4
+      - type: object
+        properties:
+          remainingAttempts:
+            type: integer
+            description: The number of remaining attempts. Only available upon a failed confirmation attempt
+            example: 4
