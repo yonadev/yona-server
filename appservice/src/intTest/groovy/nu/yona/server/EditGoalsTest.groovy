@@ -384,7 +384,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].message == "Want to become a bit more social :)"
 		goalChangeMessages[0]._links.edit
 		goalChangeMessages[1].change == 'GOAL_ADDED'
-		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
+		goalChangeMessages[1]._links?."yona:buddy"?.href == bob.buddies[0].url
 
 		def richardMessagesResponse = appService.getMessages(richard)
 		richardMessagesResponse.responseData._embedded."yona:messages".findAll
@@ -443,6 +443,146 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 
 		def richardMessagesResponse = appService.getMessages(richard)
 		richardMessagesResponse.responseData._embedded."yona:messages".findAll
+				{ it."@type" == "GoalChangeMessage" }.size() == 0
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Update goal multilpe times'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		BudgetGoal addedGoal = addBudgetGoal(richard, SOCIAL_ACT_CAT_URL, 60, "W-1 Thu 18:00")
+		postFacebookActivityPastHour(richard)
+		BudgetGoal updatedGoal = BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 120)
+		bob = appService.reloadUser(bob)
+		def buddyRichardUrl = bob.buddies[0].url
+
+		// Change 1
+		when:
+		def response = appService.updateGoal(richard, addedGoal.url, updatedGoal, "Want to become a bit more social :)")
+
+		then:
+		response.status == 200
+		response.responseData.maxDurationMinutes == 120
+
+		def responseGoalsAfterUpdate = appService.getGoals(richard)
+		responseGoalsAfterUpdate.status == 200
+		responseGoalsAfterUpdate.responseData._embedded."yona:goals".size() == 4
+		findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).maxDurationMinutes == 120
+		assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
+
+		def allSocialGoals = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL)
+		allSocialGoals.size() == 2
+		def historyItem = allSocialGoals.find
+		{ it.historyItem }
+		historyItem.maxDurationMinutes == 60
+
+		def bobMessagesResponse = appService.getMessages(bob)
+		def goalChangeMessages = bobMessagesResponse.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "GoalChangeMessage" }
+		goalChangeMessages.size() == 2
+		goalChangeMessages[0].change == 'GOAL_CHANGED'
+		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
+		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
+		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._embedded?."yona:user" == null
+		goalChangeMessages[0].nickname == 'RQ'
+		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
+		goalChangeMessages[0].message == "Want to become a bit more social :)"
+		goalChangeMessages[0]._links.edit
+		goalChangeMessages[1].change == 'GOAL_ADDED'
+		goalChangeMessages[1]._links?."yona:buddy"?.href == bob.buddies[0].url
+
+		def richardMessagesResponse = appService.getMessages(richard)
+		richardMessagesResponse.responseData._embedded."yona:messages".findAll
+				{ it."@type" == "GoalChangeMessage" }.size() == 0
+
+		// Change 2
+		when:
+		BudgetGoal updatedGoal2 = BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 180)
+		def response2 = appService.updateGoal(richard, addedGoal.url, updatedGoal2, "Want to become even more social :)")
+
+		then:
+		response2.status == 200
+		response2.responseData.maxDurationMinutes == 180
+
+		def responseGoalsAfterUpdate2 = appService.getGoals(richard)
+		responseGoalsAfterUpdate2.status == 200
+		responseGoalsAfterUpdate2.responseData._embedded."yona:goals".size() == 5
+		findActiveGoal(responseGoalsAfterUpdate2, SOCIAL_ACT_CAT_URL).maxDurationMinutes == 180
+		assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
+
+		def allSocialGoals2 = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate2, SOCIAL_ACT_CAT_URL)
+		allSocialGoals2.size() == 3
+		def historyItem2 = allSocialGoals.find
+		{ it.historyItem }
+		historyItem2.maxDurationMinutes == 60
+
+		def bobMessagesResponse2 = appService.getMessages(bob)
+		def goalChangeMessages2 = bobMessagesResponse2.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "GoalChangeMessage" }
+		goalChangeMessages2.size() == 3
+		goalChangeMessages2[0].change == 'GOAL_CHANGED'
+		goalChangeMessages2[0]._links.related.href == SOCIAL_ACT_CAT_URL
+		goalChangeMessages2[0]._links?."yona:buddy"?.href == bob.buddies[0].url
+		goalChangeMessages2[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages2[0]._embedded?."yona:user" == null
+		goalChangeMessages2[0].nickname == 'RQ'
+		assertEquals(goalChangeMessages2[0].creationTime, YonaServer.now)
+		goalChangeMessages2[0].message == "Want to become even more social :)"
+		goalChangeMessages2[0]._links.edit
+		goalChangeMessages2[1].change == 'GOAL_CHANGED'
+		goalChangeMessages2[2].change == 'GOAL_ADDED'
+
+		def richardMessagesResponse2 = appService.getMessages(richard)
+		richardMessagesResponse2.responseData._embedded."yona:messages".findAll
+				{ it."@type" == "GoalChangeMessage" }.size() == 0
+
+		// Change 3
+		when:
+		BudgetGoal updatedGoal3 = BudgetGoal.createInstance(SOCIAL_ACT_CAT_URL, 240)
+		def response3 = appService.updateGoal(richard, addedGoal.url, updatedGoal3, "Want to become extremely social :)")
+
+		then:
+		response3.status == 200
+		response3.responseData.maxDurationMinutes == 240
+
+		def responseGoalsAfterUpdate3 = appService.getGoals(richard)
+		responseGoalsAfterUpdate3.status == 200
+		responseGoalsAfterUpdate3.responseData._embedded."yona:goals".size() == 6
+		findActiveGoal(responseGoalsAfterUpdate3, SOCIAL_ACT_CAT_URL).maxDurationMinutes == 240
+		assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
+
+		def allSocialGoals3 = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate3, SOCIAL_ACT_CAT_URL)
+		allSocialGoals3.size() == 4
+		def historyItem3 = allSocialGoals.find
+		{ it.historyItem }
+		historyItem3.maxDurationMinutes == 60
+
+		def bobMessagesResponse3 = appService.getMessages(bob)
+		def goalChangeMessages3 = bobMessagesResponse3.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "GoalChangeMessage" }
+		goalChangeMessages3.size() == 4
+		goalChangeMessages3[0].change == 'GOAL_CHANGED'
+		goalChangeMessages3[0]._links.related.href == SOCIAL_ACT_CAT_URL
+		goalChangeMessages3[0]._links?."yona:buddy"?.href == bob.buddies[0].url
+		goalChangeMessages3[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages3[0]._embedded?."yona:user" == null
+		goalChangeMessages3[0].nickname == 'RQ'
+		assertEquals(goalChangeMessages3[0].creationTime, YonaServer.now)
+		goalChangeMessages3[0].message == "Want to become extremely social :)"
+		goalChangeMessages3[0]._links.edit
+		goalChangeMessages3[1].change == 'GOAL_CHANGED'
+		goalChangeMessages3[2].change == 'GOAL_CHANGED'
+		goalChangeMessages3[3].change == 'GOAL_ADDED'
+
+		def richardMessagesResponse3 = appService.getMessages(richard)
+		richardMessagesResponse3.responseData._embedded."yona:messages".findAll
 				{ it."@type" == "GoalChangeMessage" }.size() == 0
 
 		cleanup:
