@@ -71,7 +71,6 @@ import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.messaging.rest.MessageController;
-import nu.yona.server.properties.AppleMobileConfigSigningProperties;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ErrorResponseDto;
@@ -115,6 +114,9 @@ public class UserController
 	@Autowired
 	@Qualifier("otherTemplateEngine")
 	private TemplateEngine templateEngine;
+
+	@Autowired
+	private Signer signer;
 
 	@RequestMapping(value = "/{userId}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
@@ -184,11 +186,7 @@ public class UserController
 	{
 		if (mustSign)
 		{
-			AppleMobileConfigSigningProperties properties = yonaProperties.getSecurity().getAppleMobileConfigSigning();
-			String signingCertificateFile = properties.getSigningCertificateFile();
-			String signingKeyFile = properties.getSigningKeyFile();
-			String password = properties.getPassword();
-			return new Signer(signingCertificateFile, signingKeyFile, password).sign(unsignedMobileconfig);
+			return signer.sign(unsignedMobileconfig);
 		}
 		return unsignedMobileconfig;
 	}
