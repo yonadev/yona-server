@@ -6,9 +6,59 @@ info:
 schemes:
   - https
   - http
+host: TheHostNameToBeReplaced
 basePath: /
 produces:
   - application/json
+parameters:
+  userID:
+    name: userID
+    in: path
+    description: The ID of the user
+    required: true
+    type: string
+  yonaPassword:
+    name: Yona-Password
+    in: header
+    description: The device password
+    required: true
+    type: string
+  goalID:
+    name: goalID
+    in: path
+    description: The ID of the goal
+    required: true
+    type: string
+  date:
+    name: date
+    in: path
+    description: The date of the day in ISO 8601 format (yyyy-MM-dd)
+    required: true
+    type: string
+  week:
+    name: week
+    in: path
+    description: The date of the week in ISO 8601 format (YYYY-'W'w)
+    required: true
+    type: string
+  buddyID:
+    name: buddyID
+    in: path
+    description: The ID of the buddy
+    required: true
+    type: string
+  messageID:
+      name: messageID
+      in: path
+      description: The ID of the message
+      required: true
+      type: string
+  mobileNumber:
+      name: mobileNumber
+      in: path
+      description: The mobile number of the user
+      required: true
+      type: string
 paths:
   /users/:
     post:
@@ -43,21 +93,12 @@ paths:
           schema:
             $ref: '#/definitions/ConfirmationError'
   '/users/{userID}':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
     get:
       summary: Get a user
       description: Fetches the user identified by the given ID
       parameters:
-        - name: Yona-Password
-          in: header
-          description: The device password
-          required: false
-          type: string
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/yonaPassword"
         - name: tempPassword
           in: query
           description: The temporary password that was included in the invitation e-mail when a user invited a non-Yona user as buddy
@@ -83,11 +124,8 @@ paths:
       summary: Update a user
       description: Fetches the user identified by the given ID
       parameters:
-        - name: Yona-Password
-          in: header
-          description: The device password
-          required: true
-          type: string
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/yonaPassword"
         - name: tempPassword
           in: query
           description: The temporary password that was included in the invitation e-mail when a user invited a non-Yona user as buddy
@@ -114,11 +152,8 @@ paths:
       summary: Delete a user
       description: Deletes the user with the given ID
       parameters:
-        - name: Yona-Password
-          in: header
-          description: The device password
-          required: true
-          type: string
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/yonaPassword"
         - name: message
           in: query
           description: A message of the user to their buddies, explaining why they unsubscribe from Yona
@@ -134,21 +169,12 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   '/users/{userID}/confirmMobileNumber':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     post:
       summary: Confirm mobile number
       description: Post the code to confirm the mobile number of the user. This number is sent to the user by SMS.
       parameters:
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/yonaPassword"
         - in: body
           name: body
           description: Message with confirmation code
@@ -167,20 +193,12 @@ paths:
           schema:
             $ref: '#/definitions/ConfirmationError'
   '/users/{userID}/resendMobileNumberConfirmationCode':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     post:
       summary: Request resend of a mobile number confirmation code
       description: Post an empty request to get a new mobile number confirmation code texted to the user
+      parameters:
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/yonaPassword"
       tags:
         - User
       responses:
@@ -191,20 +209,12 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   '/users/{userID}/openApp':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     post:
       summary: Inform the server that the user just opened the Yona app
       description: The server uses this to maintain the "last seen" information
+      parameters:
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/yonaPassword"
       tags:
         - User
       responses:
@@ -215,20 +225,12 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   '/users/{userID}/apple.mobileconfig':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get the Apple mobile config for this user
       description: Fetches the user-specific .mobileconfig file needed for iOS devices. Notice this contains VPN username and password.
+      parameters:
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/yonaPassword"
       tags:
         - User
       responses:
@@ -241,21 +243,12 @@ paths:
           schema:
             $ref: '#/definitions/Error'           
   '/users/{userID}/goals/':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     post:
       summary: Add a new goal
       description: Add a new goal to an existing user
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
         - name: message
           in: query
           description: A text message that will be sent to buddies to inform them about the new goal
@@ -281,6 +274,9 @@ paths:
     get:
       summary: Get all goals
       description: Fetches all goals of the user with the given ID
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
       tags:
         - Goal
       responses:
@@ -295,25 +291,13 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   '/users/{userID}/goals/{goalID}':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: goalID
-        in: path
-        description: The ID of the goal
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get a goal
       description: Fetches the goal identified by the given ID
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/goalID"
       tags:
         - Goal
       responses:
@@ -329,6 +313,9 @@ paths:
       summary: Update a goal
       description: Update an existing goal
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/goalID"
         - name: message
           in: query
           description: A text message that will be sent to buddies to inform them about the goal change
@@ -355,15 +342,13 @@ paths:
       summary: Delete goal
       description: Deletes this goal
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/goalID"
         - name: message
           in: query
           description: A text message that will be sent to buddies to inform them about the deletion of the goal
           required: false
-          type: string
-        - name: Yona-Password
-          in: header
-          description: The device password
-          required: true
           type: string
       tags:
         - Goal
@@ -375,21 +360,12 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   '/users/{userID}/appActivity/':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     post:
       summary: Report app activities
       description: Reports the usage of apps on the device
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
         - in: body
           name: body
           description: The app activity report
@@ -439,21 +415,12 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   '/users/{userID}/activity/days/':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get day activity overview
       description: Get network and app activity of the current day, pageable to yesterday and before
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
         - name: size
           in: query
           description: The number of elements to be fetched
@@ -474,30 +441,14 @@ paths:
           schema:
             $ref: '#/definitions/PagedDayActivityOverviews'
   '/users/{userID}/activity/days/{date}/details/{goalID}':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: date
-        in: path
-        description: The date of the day in ISO 8601 format (yyyy-MM-dd)
-        required: true
-        type: string
-      - name: goalID
-        in: path
-        description: The ID of the goal for which the activity was recorded
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get day activity detail
       description: Get day network and app activity for a specific goal on a specific day
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/date"
+        - $ref: "#/parameters/goalID"
       tags:
         - Activity
       responses:
@@ -506,31 +457,14 @@ paths:
           schema:
             $ref: '#/definitions/DayGoalActivityDetail'
   '/users/{userID}/activity/days/{date}/details/{goalID}/messages/':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: date
-        in: path
-        description: The date of the day in ISO 8601 format (yyyy-MM-dd)
-        required: true
-        type: string
-      - name: goalID
-        in: path
-        description: The ID of the goal for which the activity was recorded
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get messages
       description: Fetches all messages related to this activity
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/date"
+        - $ref: "#/parameters/goalID"
         - name: size
           in: query
           description: The number of elements to be fetched
@@ -552,21 +486,12 @@ paths:
           schema:
             $ref: '#/definitions/PagedMessages'
   '/users/{userID}/activity/weeks/':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get week activity overview
       description: Get network and app activity of the current week, pageable to the weeks before
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
         - name: size
           in: query
           description: The number of elements to be fetched
@@ -587,30 +512,14 @@ paths:
           schema:
             $ref: '#/definitions/PagedWeekActivityOverviews'
   '/users/{userID}/activity/weeks/{week}/details/{goalID}':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: week
-        in: path
-        description: The date of the week in ISO 8601 format (YYYY-'W'w)
-        required: true
-        type: string
-      - name: goalID
-        in: path
-        description: The ID of the goal for which the activity was recorded
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get week activity detail
       description: Get day network and app activity for a specific goal on a specific week
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/week"
+        - $ref: "#/parameters/goalID"
       tags:
         - Activity
       responses:
@@ -619,21 +528,12 @@ paths:
           schema:
             $ref: '#/definitions/WeekGoalActivityDetail'
   '/users/{userID}/activity/withBuddies/days/':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get day activity overview of user with buddies
       description: Get network and app activity of the current day of this user and their buddies, pageable to yesterday and before
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
         - name: size
           in: query
           description: The number of elements to be fetched
@@ -654,31 +554,14 @@ paths:
           schema:
             $ref: '#/definitions/PagedDayActivityOverviewsWithBuddies'
   '/users/{userID}/activity/weeks/{week}/details/{goalID}/messages/':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: week
-        in: path
-        description: The date of the week in ISO 8601 format (YYYY-'W'ww)
-        required: true
-        type: string
-      - name: goalID
-        in: path
-        description: The ID of the goal for which the activity was recorded
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get messages
       description: Fetches all messages related to this activity
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/week"
+        - $ref: "#/parameters/goalID"
         - name: size
           in: query
           description: The number of elements to be fetched
@@ -700,26 +583,13 @@ paths:
           schema:
             $ref: '#/definitions/PagedMessages'
   '/users/{userID}/buddies/{buddyID}/activity/days/':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: buddyID
-        in: path
-        description: The ID of the buddy
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get day activity overview
       description: Get network and app activity of the current day, pageable to yesterday and before
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/buddyID"
         - name: size
           in: query
           description: The number of elements to be fetched
@@ -740,21 +610,12 @@ paths:
           schema:
             $ref: '#/definitions/PagedDayActivityOverviews'
   '/users/{userID}/buddies/':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     post:
       summary: Add a new buddy
       description: Add a new buddy to an existing user
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
         - in: body
           name: body
           description: New buddy
@@ -775,6 +636,9 @@ paths:
     get:
       summary: Get all buddies
       description: Fetches all buddies of the user with the given ID
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
       tags:
         - Buddy
       responses:
@@ -789,25 +653,13 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   '/users/{userID}/buddies/{buddyID}':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: buddyID
-        in: path
-        description: The ID of the buddy
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get a buddy
       description: Fetches the buddy identified by the given ID
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/buddyID"
       tags:
         - Buddy
       responses:
@@ -822,6 +674,10 @@ paths:
     delete:
       summary: Delete buddy
       description: Deletes this buddy
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/buddyID"
       tags:
         - Buddy
       responses:
@@ -832,25 +688,13 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   '/users/{userID}/buddies/{buddyID}/goals/':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: buddyID
-        in: path
-        description: The ID of the buddy
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get all goals
       description: Fetches all goals of the buddy with the given ID
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/buddyID"
       tags:
         - Buddy
       responses:
@@ -865,30 +709,14 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   '/users/{userID}/buddies/{buddyID}/goals/{goalID}':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: buddyID
-        in: path
-        description: The ID of the buddy
-        required: true
-        type: string
-      - name: goalID
-        in: path
-        description: The ID of the goal
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get a goal
       description: Fetches the goal identified by the given ID
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/buddyID"
+        - $ref: "#/parameters/goalID"
       tags:
         - Buddy
       responses:
@@ -901,35 +729,15 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   '/users/{userID}/buddies/{buddyID}/activity/days/{date}/details/{goalID}':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: buddyID
-        in: path
-        description: The ID of the buddy
-        required: true
-        type: string
-      - name: date
-        in: path
-        description: The date of the day in ISO 8601 format (yyyy-MM-dd)
-        required: true
-        type: string
-      - name: goalID
-        in: path
-        description: The ID of the goal for which the activity was recorded
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get day activity detail
       description: Get day network and app activity for a specific goal on a specific day
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/buddyID"
+        - $ref: "#/parameters/date"
+        - $ref: "#/parameters/goalID"
       tags:
         - Activity
       responses:
@@ -938,36 +746,15 @@ paths:
           schema:
             $ref: '#/definitions/DayGoalActivityDetail'
   '/users/{userID}/buddies/{buddyID}/activity/days/{date}/details/{goalID}/messages/':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: buddyID
-        in: path
-        description: The ID of the buddy
-        required: true
-        type: string
-      - name: date
-        in: path
-        description: The date of the day in ISO 8601 format (yyyy-MM-dd)
-        required: true
-        type: string
-      - name: goalID
-        in: path
-        description: The ID of the goal for which the activity was recorded
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get messages
       description: Fetches all messages related to this activity
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/buddyID"
+        - $ref: "#/parameters/date"
+        - $ref: "#/parameters/goalID"
         - name: size
           in: query
           description: The number of elements to be fetched
@@ -992,6 +779,11 @@ paths:
       summary: Post new message
       description: Post a new message on this activity.
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/buddyID"
+        - $ref: "#/parameters/date"
+        - $ref: "#/parameters/goalID"
         - in: body
           name: body
           description: New message
@@ -1007,26 +799,13 @@ paths:
           schema:
             $ref: '#/definitions/Message'
   '/users/{userID}/buddies/{buddyID}/activity/weeks/':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: buddyID
-        in: path
-        description: The ID of the buddy
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get week activity overview
       description: Get network and app activity of the current week, pageable to the weeks before
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/buddyID"
         - name: size
           in: query
           description: The number of elements to be fetched
@@ -1047,35 +826,15 @@ paths:
           schema:
             $ref: '#/definitions/PagedWeekActivityOverviews'
   '/users/{userID}/buddies/{buddyID}/activity/weeks/{week}/details/{goalID}':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: buddyID
-        in: path
-        description: The ID of the buddy
-        required: true
-        type: string
-      - name: week
-        in: path
-        description: The date of the week in ISO 8601 format (YYYY-'W'ww)
-        required: true
-        type: string
-      - name: goalID
-        in: path
-        description: The ID of the goal for which the activity was recorded
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get week activity detail
       description: Get day network and app activity for a specific goal on a specific week
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/buddyID"
+        - $ref: "#/parameters/week"
+        - $ref: "#/parameters/goalID"
       tags:
         - Activity
       responses:
@@ -1084,36 +843,15 @@ paths:
           schema:
             $ref: '#/definitions/WeekGoalActivityDetail'
   '/users/{userID}/buddies/{buddyID}/activity/weeks/{week}/details/{goalID}/messages/':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: buddyID
-        in: path
-        description: The ID of the buddy
-        required: true
-        type: string
-      - name: week
-        in: path
-        description: The date of the week in ISO 8601 format (YYYY-'W'ww)
-        required: true
-        type: string
-      - name: goalID
-        in: path
-        description: The ID of the goal for which the activity was recorded
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get messages
       description: Fetches all messages related to this activity
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/buddyID"
+        - $ref: "#/parameters/week"
+        - $ref: "#/parameters/goalID"
         - name: size
           in: query
           description: The number of elements to be fetched
@@ -1138,6 +876,11 @@ paths:
       summary: Post new message
       description: Post a new message on this activity.
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/buddyID"
+        - $ref: "#/parameters/week"
+        - $ref: "#/parameters/goalID"
         - in: body
           name: body
           description: New message
@@ -1153,21 +896,12 @@ paths:
           schema:
             $ref: '#/definitions/Message'
   '/users/{userID}/messages/':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get messages
       description: Fetches all messages of the user with the given ID
       parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
         - name: onlyUnreadMessages
           in: query
           description: Pass true to only fetch messages with isRead == false
@@ -1194,25 +928,13 @@ paths:
           schema:
             $ref: '#/definitions/PagedMessages'
   '/users/{userID}/messages/{messageID}':
-    parameters:
-      - name: userID
-        in: path
-        description: The ID of the user
-        required: true
-        type: string
-      - name: messageID
-        in: path
-        description: The ID of the message
-        required: true
-        type: string
-      - name: Yona-Password
-        in: header
-        description: The device password
-        required: true
-        type: string
     get:
       summary: Get a message
       description: Fetches all messages of the user with the given ID
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/messageID"
       tags:
         - Message
       responses:
@@ -1233,24 +955,12 @@ paths:
       summary: Act on a message
       description: Perform the Process action on the message with the given ID
       parameters:
-        - name: userID
-          in: path
-          description: The ID of the user
-          required: true
-          type: string
-        - name: messageID
-          in: path
-          description: The ID of the message
-          required: true
-          type: string
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/messageID"
         - name: messageAction
           in: path
           description: The action to be performed on the message
-          required: true
-          type: string
-        - name: Yona-Password
-          in: header
-          description: The device password
           required: true
           type: string
         - in: body
@@ -1275,16 +985,8 @@ paths:
       summary: Request pin reset confirmation code
       description: Post an empty body to this URL to trigger the generation of a pin reset confirmation code
       parameters:
-        - name: userID
-          in: path
-          description: The ID of the user
-          required: true
-          type: string
-        - name: Yona-Password
-          in: header
-          description: The device password
-          required: true
-          type: string
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
       tags:
         - Pin reset
       responses:
@@ -1308,16 +1010,8 @@ paths:
       summary: Verify pin reset confirmation code
       description: Post the pin reset confirmation code here for verification
       parameters:
-        - name: userID
-          in: path
-          description: The ID of the user
-          required: true
-          type: string
-        - name: Yona-Password
-          in: header
-          description: The device password
-          required: true
-          type: string
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
         - in: body
           name: body
           description: Message with confirmation code
@@ -1338,16 +1032,8 @@ paths:
       summary: Request resend of a pin reset confirmation code
       description: Post an empty request to get a new pin reset confirmation code texted to the user
       parameters:
-        - name: userID
-          in: path
-          description: The ID of the user
-          required: true
-          type: string
-        - name: Yona-Password
-          in: header
-          description: The device password
-          required: true
-          type: string
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
       tags:
         - Pin reset
       responses:
@@ -1362,16 +1048,8 @@ paths:
       summary: Clear pin reset confirmation code
       description: Post an empty body to this URL to clear the pin reset confirmation code
       parameters:
-        - name: userID
-          in: path
-          description: The ID of the user
-          required: true
-          type: string
-        - name: Yona-Password
-          in: header
-          description: The device password
-          required: true
-          type: string
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
       tags:
         - Pin reset
       responses:
@@ -1382,21 +1060,12 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   '/newDeviceRequests/{mobileNumber}':
-    parameters:
-      - name: mobileNumber
-        in: path
-        description: The mobile number of the user
-        required: true
-        type: string
     put:
       summary: Request to add a new device
       description: This stores an encrypted copy of the users device key on the server, for a limited period of time.
       parameters:
-        - name: Yona-Password
-          in: header
-          description: The device password
-          required: true
-          type: string
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/mobileNumber"
         - in: body
           name: body
           description: Message with new device request password. The device password will be encrypted with this temporary password and stored for a limited period of time.
@@ -1422,6 +1091,7 @@ paths:
       summary: Get new device request
       description: If the new device request password is given, the returned resource contains the device password. The app can check the presence of a new device request by omitting the new device request password. In that case, a blank new device request is returned.
       parameters:
+        - $ref: "#/parameters/mobileNumber"
         - name: Yona-NewDeviceRequestPassword
           in: header
           description: The temporary password used to encrypt the device key
@@ -1442,11 +1112,8 @@ paths:
       summary: Delete new device request
       description: Deletes the new device request
       parameters:
-        - name: Yona-Password
-          in: header
-          description: The device password
-          required: true
-          type: string
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/mobileNumber"
       tags:
         - New device requests
       responses:
