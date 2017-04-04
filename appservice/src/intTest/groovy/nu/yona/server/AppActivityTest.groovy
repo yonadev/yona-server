@@ -205,7 +205,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		setMandatoryGoalsToNow(richard)
+		setCreationTimeOfMandatoryGoalsToNow(richard)
 		ZonedDateTime testStartTime = YonaServer.now
 		ZonedDateTime startTime = testStartTime.minusDays(1)
 		ZonedDateTime endTime = startTime.plusMinutes(15)
