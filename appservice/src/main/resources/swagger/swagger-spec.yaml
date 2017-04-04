@@ -98,7 +98,11 @@ paths:
       description: Fetches the user identified by the given ID
       parameters:
         - $ref: "#/parameters/userID"
-        - $ref: "#/parameters/yonaPassword"
+        - name: Yona-Password
+          in: header
+          description: The device password
+          required: false
+          type: string
         - name: tempPassword
           in: query
           description: The temporary password that was included in the invitation e-mail when a user invited a non-Yona user as buddy
@@ -945,6 +949,10 @@ paths:
     delete:
       summary: Delete a message
       description: Deletes the message with the given ID
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/messageID"
       tags:
         - Message
       responses:
