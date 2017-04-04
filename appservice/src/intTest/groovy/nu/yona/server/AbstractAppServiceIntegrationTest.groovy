@@ -297,7 +297,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	def setCreationTimeOfMandatoryGoalsToNow(User user)
 	{
-		def mandatoryGoals = user.goals.find { it.activityCategoryUrl == GAMBLING_ACT_CAT_URL }
+		def mandatoryGoals = user.goals.findAll { it.activityCategoryUrl == GAMBLING_ACT_CAT_URL }
 		mandatoryGoals.each
 		{ goal ->
 			goal.creationTime = YonaServer.now
