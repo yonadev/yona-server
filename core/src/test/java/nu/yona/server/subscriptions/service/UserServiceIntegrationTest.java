@@ -94,6 +94,15 @@ public class UserServiceIntegrationTest
 	}
 
 	/*
+	 * Test that a new user has the latest migration version.
+	 */
+	@Test
+	public void privateDataMigrationVersionSetToCurrentVersion()
+	{
+		assertThat(john.getPrivateDataMigrationVersion(), equalTo(MigratePrivateUserDataService.getCurrentVersion()));
+	}
+
+	/*
 	 * Test that the "last app opened date" is updated when the app was opened yesterday
 	 */
 	@Test

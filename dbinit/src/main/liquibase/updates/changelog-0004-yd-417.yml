@@ -10,9 +10,14 @@ databaseChangeLog:
             type: varchar(255)
         tableName: buddies
 - changeSet:
-    id: 1490127260476-21
+    id: 1491330640527-1
     author: avdijk (generated)
     changes:
-    - dropColumn:
-        columnName: last_status_change_time
-        tableName: buddies_anonymized
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: private_data_migration_version
+            type: integer
+        tableName: users        

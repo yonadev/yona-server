@@ -35,21 +35,19 @@ public class UserPrivateDto
 	private final UUID namedMessageSourceId;
 	private final UUID namedMessageDestinationId;
 	private final UUID anonymousMessageSourceId;
-	private final UUID anonymousMessageDestinationId;
 	private final Set<UUID> buddyIds;
 	private final Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper;
 
 	@JsonCreator
 	public UserPrivateDto(@JsonProperty("nickname") String nickname)
 	{
-		this(Optional.empty(), null, nickname, null, null, null, null, Collections.emptySet(), Collections.emptySet(), null, null,
+		this(Optional.empty(), null, nickname, null, null, null, Collections.emptySet(), Collections.emptySet(), null, null,
 				new VPNProfileDto(null));
 	}
 
 	UserPrivateDto(Optional<LocalDate> lastMonitoredActivityDate, String yonaPassword, String nickname, UUID namedMessageSourceId,
-			UUID namedMessageDestinationId, UUID anonymousMessageSourceId, UUID anonymousMessageDestinationId, Set<GoalDto> goals,
-			Set<UUID> buddyIds, Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper, UUID userAnonymizedId,
-			VPNProfileDto vpnProfile)
+			UUID namedMessageDestinationId, UUID anonymousMessageSourceId, Set<GoalDto> goals, Set<UUID> buddyIds,
+			Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper, UUID userAnonymizedId, VPNProfileDto vpnProfile)
 	{
 		Objects.requireNonNull(goals);
 		Objects.requireNonNull(buddyIds);
@@ -59,7 +57,6 @@ public class UserPrivateDto
 		this.namedMessageSourceId = namedMessageSourceId;
 		this.namedMessageDestinationId = namedMessageDestinationId;
 		this.anonymousMessageSourceId = anonymousMessageSourceId;
-		this.anonymousMessageDestinationId = anonymousMessageDestinationId;
 		this.goals = goals;
 		this.buddyIds = buddyIds;
 		this.buddyIdToDtoMapper = buddyIdToDtoMapper;
@@ -112,12 +109,6 @@ public class UserPrivateDto
 	public UUID getAnonymousMessageSourceId()
 	{
 		return anonymousMessageSourceId;
-	}
-
-	@JsonIgnore
-	public UUID getAnonymousMessageDestinationId()
-	{
-		return anonymousMessageDestinationId;
 	}
 
 	@JsonIgnore

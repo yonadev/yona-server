@@ -135,14 +135,14 @@ public class UserPrivate extends EntityWithUuid
 		buddies.removeIf(buddy -> buddy.getUserId().equals(userId));
 	}
 
-	public MessageSource getAnonymousMessageSource()
+	public UUID getAnonymousMessageSourceId()
 	{
-		return MessageSource.getRepository().findOne(anonymousMessageSourceId);
+		return anonymousMessageSourceId;
 	}
 
-	public MessageSource getNamedMessageSource()
+	public UUID getNamedMessageSourceId()
 	{
-		return MessageSource.getRepository().findOne(namedMessageSourceId);
+		return namedMessageSourceId;
 	}
 
 	public UUID getVpnLoginId()

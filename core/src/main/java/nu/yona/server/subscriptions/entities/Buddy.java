@@ -163,4 +163,13 @@ public class Buddy extends EntityWithUuid
 		touchVersion++;
 		return this;
 	}
+
+	/**
+	 * @deprecated only for use by migration step.
+	 */
+	@Deprecated
+	public void setLastStatusChangeTime(LocalDateTime lastStatusChangeTime)
+	{
+		this.lastStatusChangeTime = lastStatusChangeTime;
+	}
 }

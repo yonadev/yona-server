@@ -25,6 +25,7 @@ import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.subscriptions.service.MigratePrivateUserDataService;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
@@ -35,6 +36,8 @@ public class User extends EntityWithUuid
 	{
 		return (UserRepository) RepositoryProvider.getRepository(User.class, UUID.class);
 	}
+
+	private int privateDataMigrationVersion;
 
 	private String firstName;
 
@@ -75,7 +78,7 @@ public class User extends EntityWithUuid
 		super(null);
 	}
 
-	private User(UUID id, byte[] initializationVector, String firstName, String lastName, String mobileNumber,
+	public User(UUID id, byte[] initializationVector, String firstName, String lastName, String mobileNumber,
 			UserPrivate userPrivate, MessageDestination messageDestination)
 	{
 		super(id);
@@ -87,6 +90,7 @@ public class User extends EntityWithUuid
 		this.mobileNumber = mobileNumber;
 		this.setUserPrivate(userPrivate);
 		this.messageDestination = messageDestination;
+		this.privateDataMigrationVersion = MigratePrivateUserDataService.getCurrentVersion();
 	}
 
 	public static User createInstance(String firstName, String lastName, String nickname, String mobileNumber, String vpnPassword,
@@ -253,19 +257,14 @@ public class User extends EntityWithUuid
 		getUserPrivate().removeBuddyForUserId(fromUserId);
 	}
 
-	public MessageSource getNamedMessageSource()
+	public UUID getNamedMessageSourceId()
 	{
-		return getUserPrivate().getNamedMessageSource();
+		return getUserPrivate().getNamedMessageSourceId();
 	}
 
-	public MessageSource getAnonymousMessageSource()
+	public UUID getAnonymousMessageSourceId()
 	{
-		return getUserPrivate().getAnonymousMessageSource();
-	}
-
-	public MessageDestination getAnonymousMessageDestination()
-	{
-		return getAnonymousMessageSource().getDestination();
+		return getUserPrivate().getAnonymousMessageSourceId();
 	}
 
 	public Set<Buddy> getBuddies()
@@ -350,5 +349,15 @@ public class User extends EntityWithUuid
 	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
 	{
 		getUserPrivate().setLastMonitoredActivityDate(lastMonitoredActivityDate);
+	}
+
+	public int getPrivateDataMigrationVersion()
+	{
+		return privateDataMigrationVersion;
+	}
+
+	public void setPrivateDataMigrationVersion(int privateDataMigrationVersion)
+	{
+		this.privateDataMigrationVersion = privateDataMigrationVersion;
 	}
 }

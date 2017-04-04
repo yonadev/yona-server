@@ -114,6 +114,9 @@ public class UserService
 	@Autowired(required = false)
 	private WhiteListedNumberService whiteListedNumberService;
 
+	@Autowired(required = false)
+	private MigratePrivateUserDataService migratePrivateUserDataService;
+
 	@PostConstruct
 	private void onStart()
 	{
@@ -143,6 +146,7 @@ public class UserService
 	{
 		User user = getUserEntityById(id);
 		handleBuddyUsersRemovedWhileOffline(user);
+		migratePrivateUserDataService.upgrade(user);
 		return createUserDtoWithPrivateData(user);
 	}
 
@@ -151,6 +155,7 @@ public class UserService
 	{
 		User validatedUser = getValidatedUserbyId(id);
 		handleBuddyUsersRemovedWhileOffline(validatedUser);
+		migratePrivateUserDataService.upgrade(validatedUser);
 		return createUserDtoWithPrivateData(validatedUser);
 	}
 
@@ -453,8 +458,8 @@ public class UserService
 
 	private EncryptedUserData retrieveUserEncryptedDataInNewCryptoSession(User originalUserEntity)
 	{
-		MessageSource namedMessageSource = originalUserEntity.getNamedMessageSource();
-		MessageSource anonymousMessageSource = originalUserEntity.getAnonymousMessageSource();
+		MessageSource namedMessageSource = messageSourceRepository.findOne(originalUserEntity.getNamedMessageSourceId());
+		MessageSource anonymousMessageSource = messageSourceRepository.findOne(originalUserEntity.getAnonymousMessageSourceId());
 		EncryptedUserData userEncryptedData = new EncryptedUserData(originalUserEntity, namedMessageSource,
 				anonymousMessageSource);
 		userEncryptedData.loadLazyEncryptedData();
@@ -474,8 +479,8 @@ public class UserService
 
 		UUID vpnLoginId = userEntity.getVpnLoginId();
 		UUID userAnonymizedId = userEntity.getUserAnonymizedId();
-		MessageSource namedMessageSource = userEntity.getNamedMessageSource();
-		MessageSource anonymousMessageSource = userEntity.getAnonymousMessageSource();
+		MessageSource namedMessageSource = messageSourceRepository.findOne(userEntity.getNamedMessageSourceId());
+		MessageSource anonymousMessageSource = messageSourceRepository.findOne(userEntity.getAnonymousMessageSourceId());
 		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
 		userAnonymizedEntity.clearAnonymousDestination();
 		userAnonymizedEntity = userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
