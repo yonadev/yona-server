@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -164,12 +165,12 @@ public class MessageService
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		Message message = messageSource.getMessage(id);
 
-		deleteMessage(user, message, messageSource.getDestination());
+		deleteMessage(user, message);
 
 		return MessageActionDto.createInstanceActionDone();
 	}
 
-	private void deleteMessage(UserDto user, Message message, MessageDestination destination)
+	private void deleteMessage(UserDto user, Message message)
 	{
 		MessageDto messageDto = dtoManager.createInstance(user, message);
 		if (!messageDto.canBeDeleted())
@@ -177,8 +178,22 @@ public class MessageService
 			throw InvalidMessageActionException.unprocessedMessageCannotBeDeleted();
 		}
 
-		destination.remove(message);
-		MessageDestination.getRepository().save(destination);
+		deleteMessages(Collections.singleton(message));
+	}
+
+	private void deleteMessages(Collection<Message> messages)
+	{
+		Set<Message> messagesToBeDeleted = messages.stream().flatMap(m -> m.getMessagesToBeCascadinglyDeleted().stream())
+				.collect(Collectors.toSet());
+		messagesToBeDeleted.addAll(messages);
+		Set<MessageDestination> involvedMessageDestinations = messagesToBeDeleted.stream().map(Message::getMessageDestination)
+				.collect(Collectors.toSet());
+
+		messagesToBeDeleted.forEach(Message::prepareForDelete);
+		involvedMessageDestinations.forEach(d -> MessageDestination.getRepository().saveAndFlush(d));
+
+		messagesToBeDeleted.forEach(m -> m.getMessageDestination().remove(m));
+		involvedMessageDestinations.forEach(d -> MessageDestination.getRepository().save(d));
 	}
 
 	private MessageSource getNamedMessageSource(UserDto user)
@@ -288,12 +303,7 @@ public class MessageService
 		}
 
 		MessageDestination destinationEntity = MessageDestination.getRepository().findOne(destination.getId());
-		List<Message> messages = destinationEntity.getMessagesFromUser(sentByUserAnonymizedId);
-		// Thread head messages have a self-reference that prevents deletion. Clear all such references.
-		messages.stream().forEach(m -> m.clearThreadHeadSelfReference());
-		MessageDestination.getRepository().saveAndFlush(destinationEntity);
-		destinationEntity.remove(messages);
-		MessageDestination.getRepository().saveAndFlush(destinationEntity);
+		deleteMessages(destinationEntity.getMessagesFromUser(sentByUserAnonymizedId));
 	}
 
 	@Transactional
