@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,6 +36,7 @@ import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserAnonymizedRepository;
+import nu.yona.server.subscriptions.entities.UserPrivate;
 import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.TimeUtil;
@@ -87,19 +89,16 @@ public class UserServiceIntegrationTest
 
 		try (CryptoSession cryptoSession = CryptoSession.start(password))
 		{
-			john = User.createInstance("John", "Doe", "jd", "+31612345678", "topSecret", Collections.emptySet());
+			byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
+			MessageSource anonymousMessageSource = MessageSource.createInstance();
+			MessageSource namedMessageSource = MessageSource.createInstance();
+			UserPrivate userPrivate = UserPrivate.createInstance("jd", "topSecret", Collections.emptySet(),
+					anonymousMessageSource, namedMessageSource);
+			john = new User(UUID.randomUUID(), initializationVector, "John", "Doe", "+31612345678", userPrivate,
+					namedMessageSource.getDestination());
 		}
 
 		when(mockUserRepository.findOne(john.getId())).thenReturn(john);
-	}
-
-	/*
-	 * Test that a new user has the latest migration version.
-	 */
-	@Test
-	public void privateDataMigrationVersionSetToCurrentVersion()
-	{
-		assertThat(john.getPrivateDataMigrationVersion(), equalTo(MigratePrivateUserDataService.getCurrentVersion()));
 	}
 
 	/*

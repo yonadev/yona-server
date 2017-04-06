@@ -153,13 +153,6 @@ public class UserDto
 		return privateData;
 	}
 
-	User createUserEntity()
-	{
-		return User.createInstance(firstName, lastName, privateData.getNickname(), mobileNumber,
-				privateData.getVpnProfile().getVpnPassword(),
-				privateData.getGoals().stream().map(g -> g.createGoalEntity()).collect(Collectors.toSet()));
-	}
-
 	User updateUser(User originalUserEntity)
 	{
 		originalUserEntity.setFirstName(firstName);
