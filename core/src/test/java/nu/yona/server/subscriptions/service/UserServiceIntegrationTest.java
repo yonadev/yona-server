@@ -94,13 +94,17 @@ public class UserServiceIntegrationTest
 		repositoriesMap.put(UserAnonymized.class, mockUserAnonymizedRepository);
 		JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);
 
+		MessageSource anonymousMessageSource = MessageSource.createInstance();
+		UserAnonymized johnAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(),
+				Collections.emptySet());
+		UserAnonymized.getRepository().save(johnAnonymized);
+
 		try (CryptoSession cryptoSession = CryptoSession.start(password))
 		{
 			byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
-			MessageSource anonymousMessageSource = MessageSource.createInstance();
 			MessageSource namedMessageSource = MessageSource.createInstance();
-			UserPrivate userPrivate = UserPrivate.createInstance("jd", "topSecret", Collections.emptySet(),
-					anonymousMessageSource, namedMessageSource);
+			UserPrivate userPrivate = UserPrivate.createInstance("jd", "topSecret", johnAnonymized.getId(),
+					anonymousMessageSource.getId(), namedMessageSource);
 			john = new User(UUID.randomUUID(), initializationVector, "John", "Doe", "+31612345678", userPrivate,
 					namedMessageSource.getDestination());
 		}

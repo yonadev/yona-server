@@ -242,8 +242,10 @@ public class UserService
 		{
 			goals = user.getPrivateData().getGoals().stream().map(g -> g.createGoalEntity()).collect(Collectors.toSet());
 		}
-		UserPrivate userPrivate = UserPrivate.createInstance(user.getPrivateData().getNickname(), generatePassword(), goals,
-				anonymousMessageSource, namedMessageSource);
+		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
+		UserAnonymized.getRepository().save(userAnonymized);
+		UserPrivate userPrivate = UserPrivate.createInstance(user.getPrivateData().getNickname(), generatePassword(),
+				userAnonymized.getId(), anonymousMessageSource.getId(), namedMessageSource);
 		User userEntity = new User(UUID.randomUUID(), initializationVector, user.getFirstName(), user.getLastName(),
 				user.getMobileNumber(), userPrivate, namedMessageSource.getDestination());
 		addMandatoryGoals(userEntity);

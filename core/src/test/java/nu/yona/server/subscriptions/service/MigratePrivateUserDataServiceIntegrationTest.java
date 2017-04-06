@@ -13,10 +13,8 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import org.junit.After;
@@ -35,10 +33,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import nu.yona.server.Translator;
-import nu.yona.server.crypto.pubkey.PublicKeyUtil;
 import nu.yona.server.crypto.seckey.CryptoSession;
-import nu.yona.server.goals.entities.Goal;
-import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.subscriptions.entities.User;
@@ -125,26 +120,23 @@ public class MigratePrivateUserDataServiceIntegrationTest
 		repositoriesMap.put(UserAnonymized.class, mockUserAnonymizedRepository);
 		JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);
 
-		UUID johnAnonymizedId;
+		MessageSource anonymousMessageSource = MessageSource.createInstance();
+		UserAnonymized johnAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(),
+				Collections.emptySet());
+		UserAnonymized.getRepository().save(johnAnonymized);
+
 		try (CryptoSession cryptoSession = CryptoSession.start(password))
 		{
 			byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
-			MessageSource anonymousMessageSource = MessageSource.createInstance();
 			MessageSource namedMessageSource = MessageSource.createInstance();
-			UserPrivate userPrivate = UserPrivate.createInstance("jd", "topSecret", Collections.emptySet(),
-					anonymousMessageSource, namedMessageSource);
+			UserPrivate userPrivate = UserPrivate.createInstance("jd", "topSecret", johnAnonymized.getId(),
+					anonymousMessageSource.getId(), namedMessageSource);
 			john = new User(UUID.randomUUID(), initializationVector, "John", "Doe", "+31612345678", userPrivate,
 					namedMessageSource.getDestination());
-			johnAnonymizedId = john.getUserAnonymizedId();
 		}
 
-		MessageDestination anonMessageDestinationEntity = MessageDestination
-				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
-		Set<Goal> goals = new HashSet<>(Arrays.asList());
-		UserAnonymized johnAnonymized = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
-
 		when(mockUserRepository.findOne(john.getId())).thenReturn(john);
-		when(mockUserAnonymizedRepository.findOne(johnAnonymizedId)).thenReturn(johnAnonymized);
+		when(mockUserAnonymizedRepository.findOne(johnAnonymized.getId())).thenReturn(johnAnonymized);
 	}
 
 	@Test

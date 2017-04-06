@@ -7,7 +7,6 @@ package nu.yona.server.subscriptions.entities;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import java.util.Collections;
 import java.util.UUID;
 
 import org.junit.Before;
@@ -28,10 +27,8 @@ public class UserTest
 		try (CryptoSession cryptoSession = CryptoSession.start(password))
 		{
 			byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
-			MessageSource anonymousMessageSource = MessageSource.createInstance();
 			MessageSource namedMessageSource = MessageSource.createInstance();
-			UserPrivate userPrivate = UserPrivate.createInstance("jd", "topSecret", Collections.emptySet(),
-					anonymousMessageSource, namedMessageSource);
+			UserPrivate userPrivate = UserPrivate.createInstance("jd", "topSecret", null, null, namedMessageSource);
 			john = new User(UUID.randomUUID(), initializationVector, "John", "Doe", "+31612345678", userPrivate,
 					namedMessageSource.getDestination());
 		}
