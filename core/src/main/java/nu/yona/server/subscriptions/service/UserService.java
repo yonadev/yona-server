@@ -758,6 +758,11 @@ public class UserService
 				throw InvalidDataException.blankEmailAddress();
 			}
 			assertValidEmailAddress(userResource.getEmailAddress());
+
+			if (!userResource.getPrivateData().getGoals().isEmpty())
+			{
+				throw InvalidDataException.excessGoals();
+			}
 		}
 		else
 		{

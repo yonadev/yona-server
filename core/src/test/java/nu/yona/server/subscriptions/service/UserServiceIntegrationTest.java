@@ -11,9 +11,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.Before;
@@ -31,6 +34,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
+import nu.yona.server.exceptions.InvalidDataException;
+import nu.yona.server.goals.service.BudgetGoalDto;
+import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.subscriptions.entities.User;
@@ -38,6 +44,7 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserAnonymizedRepository;
 import nu.yona.server.subscriptions.entities.UserPrivate;
 import nu.yona.server.subscriptions.entities.UserRepository;
+import nu.yona.server.subscriptions.service.UserService.UserPurpose;
 import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.TimeUtil;
 
@@ -108,10 +115,10 @@ public class UserServiceIntegrationTest
 	public void postOpenAppEventNextDay()
 	{
 		john.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate().minusDays(1));
+
 		service.postOpenAppEvent(john.getId());
 
 		assertThat(john.getAppLastOpenedDate(), equalTo(TimeUtil.utcNow().toLocalDate()));
-
 		verify(mockUserRepository, times(1)).save(any(User.class));
 	}
 
@@ -122,8 +129,28 @@ public class UserServiceIntegrationTest
 	public void postOpenAppEventSameDay()
 	{
 		john.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
+
 		service.postOpenAppEvent(john.getId());
 
 		verify(mockUserRepository, times(0)).save(any(User.class));
+	}
+
+	@Test(expected = InvalidDataException.class)
+	public void assertValidUserFieldsUserWithGoalsBuddyThrows()
+	{
+		UserPrivateDto userPrivate = new UserPrivateDto(Optional.empty(), "password", "jd", null, null, null,
+				new HashSet<GoalDto>(Arrays.asList(new BudgetGoalDto(Optional.empty(), 1))), Collections.emptySet(), null, null,
+				null);
+		UserDto user = new UserDto("John", "Doe", "john@doe.net", "+31612345678", userPrivate);
+
+		service.assertValidUserFields(user, UserPurpose.BUDDY);
+	}
+
+	@Test
+	public void assertValidUserFieldsBuddyDoesNotThrow()
+	{
+		UserDto user = new UserDto("John", "Doe", "john@doe.net", "+31612345678", new UserPrivateDto("jd"));
+
+		service.assertValidUserFields(user, UserPurpose.BUDDY);
 	}
 }
