@@ -145,18 +145,29 @@ public class UserService
 	public UserDto getPrivateUser(UUID id)
 	{
 		User user = getUserEntityById(id);
-		handleBuddyUsersRemovedWhileOffline(user);
-		migratePrivateUserDataService.upgrade(user);
-		return createUserDtoWithPrivateData(user);
+		User updatedUser = handlePrivateDataActions(user);
+		return createUserDtoWithPrivateData(updatedUser);
 	}
 
 	@Transactional
 	public UserDto getPrivateValidatedUser(UUID id)
 	{
 		User validatedUser = getValidatedUserbyId(id);
-		handleBuddyUsersRemovedWhileOffline(validatedUser);
-		migratePrivateUserDataService.upgrade(validatedUser);
-		return createUserDtoWithPrivateData(validatedUser);
+		User updatedUser = handlePrivateDataActions(validatedUser);
+		return createUserDtoWithPrivateData(updatedUser);
+	}
+
+	private User handlePrivateDataActions(User user)
+	{
+		handleBuddyUsersRemovedWhileOffline(user);
+
+		if (!migratePrivateUserDataService.isUpToDate(user))
+		{
+			migratePrivateUserDataService.upgrade(user);
+			return userRepository.save(user);
+		}
+
+		return user;
 	}
 
 	@Transactional

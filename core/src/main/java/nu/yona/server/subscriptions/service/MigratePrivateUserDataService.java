@@ -41,6 +41,11 @@ public class MigratePrivateUserDataService
 		}
 	}
 
+	boolean isUpToDate(User userEntity)
+	{
+		return userEntity.getPrivateDataMigrationVersion() == getCurrentVersion();
+	}
+
 	private static MigrationStep getMigrationStepInstance(int toVersion)
 	{
 		Class<? extends MigrationStep> migrationStep = migrationSteps.get(toVersion - 1);
