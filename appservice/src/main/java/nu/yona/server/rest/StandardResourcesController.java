@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +23,8 @@ import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.util.ThymeleafUtil;
 
 @Controller
-@RequestMapping(value = "/.well-known/apple-app-site-association", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class AppleAppSiteAssociationController
+@RequestMapping(value = "", produces = { MediaType.APPLICATION_JSON_VALUE })
+public class StandardResourcesController
 {
 	@Autowired
 	private YonaProperties yonaProperties;
@@ -32,7 +33,7 @@ public class AppleAppSiteAssociationController
 	@Qualifier("otherTemplateEngine")
 	private TemplateEngine templateEngine;
 
-	@RequestMapping(value = "", method = RequestMethod.GET)
+	@RequestMapping(value = "/.well-known/apple-app-site-association", method = RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity<byte[]> getAppleAppSiteAssociation()
 	{
@@ -41,5 +42,19 @@ public class AppleAppSiteAssociationController
 
 		return new ResponseEntity<>(
 				templateEngine.process("apple-app-site-association.json", ctx).getBytes(StandardCharsets.UTF_8), HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/ssl/rootcert.cer", method = RequestMethod.GET, produces = { "application/pkix-cert" })
+	@ResponseBody
+	public FileSystemResource getSslRootCert()
+	{
+		return new FileSystemResource(yonaProperties.getSecurity().getSslRootCertFile());
+	}
+
+	@RequestMapping(value = "/vpn/profile.ovpn", method = RequestMethod.GET, produces = { "application/x-openvpn-profile" })
+	@ResponseBody
+	public FileSystemResource getOvpnProfile()
+	{
+		return new FileSystemResource(yonaProperties.getSecurity().getOvpnProfileFile());
 	}
 }

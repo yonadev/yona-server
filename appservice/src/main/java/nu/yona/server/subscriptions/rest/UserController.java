@@ -8,12 +8,7 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,6 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.annotation.PostConstruct;
 import javax.crypto.SecretKey;
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
@@ -31,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
@@ -77,6 +72,7 @@ import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ErrorResponseDto;
 import nu.yona.server.rest.GlobalExceptionMapping;
 import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.rest.StandardResourcesController;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDto;
@@ -90,8 +86,6 @@ import nu.yona.server.util.ThymeleafUtil;
 @RequestMapping(value = "/users", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class UserController
 {
-	private static final String SSL_ROOT_CERTIFICATE_PATH = "/ssl/rootcert.cer";
-
 	private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
 	@Autowired
@@ -113,8 +107,12 @@ public class UserController
 	private PinResetRequestController pinResetRequestController;
 
 	@Autowired
-	@Qualifier("otherTemplateEngine")
+	@Qualifier("appleMobileConfigTemplateEngine")
 	private TemplateEngine templateEngine;
+
+	@Autowired
+	@Qualifier("sslRootCertificate")
+	private X509Certificate sslRootCertificate;
 
 	@RequestMapping(value = "/{userId}", params = { "includePrivateData" }, method = RequestMethod.GET)
 	@ResponseBody
@@ -177,7 +175,7 @@ public class UserController
 		ctx.setVariable("ldapUsername", privateUser.getPrivateData().getVpnProfile().getVpnLoginId().toString());
 		ctx.setVariable("ldapPassword", privateUser.getPrivateData().getVpnProfile().getVpnPassword());
 
-		return signIfRequested(mustSign, templateEngine.process("apple.mobileconfig.xml", ctx).getBytes(StandardCharsets.UTF_8));
+		return signIfRequested(mustSign, templateEngine.process("apple.mobileconfig", ctx).getBytes(StandardCharsets.UTF_8));
 	}
 
 	private byte[] signIfRequested(boolean mustSign, byte[] unsignedMobileconfig)
@@ -409,14 +407,34 @@ public class UserController
 				.withRel(rel);
 	}
 
+	@PostConstruct
+	private void setSslRootCertificateCn()
+	{
+		try
+		{
+			LdapName name = new LdapName(sslRootCertificate.getIssuerX500Principal().getName());
+			UserResource.setSslRootCertificateCn(name.getRdn(0).getValue().toString());
+		}
+		catch (InvalidNameException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
+
 	static class UserResource extends Resource<UserDto>
 	{
 		private final CurieProvider curieProvider;
+		private static String sslRootCertificateCn;
 
 		public UserResource(CurieProvider curieProvider, UserDto user)
 		{
 			super(user);
 			this.curieProvider = curieProvider;
+		}
+
+		public static void setSslRootCertificateCn(String sslRootCertificateCn)
+		{
+			UserResource.sslRootCertificateCn = sslRootCertificateCn;
 		}
 
 		@JsonProperty("sslRootCertCN")
@@ -428,22 +446,7 @@ public class UserController
 				return Optional.empty();
 			}
 
-			return Optional.of(readCnFromCertificate(Paths.get("static", SSL_ROOT_CERTIFICATE_PATH).toString()));
-		}
-
-		private static String readCnFromCertificate(String certificateResourcePath)
-		{
-			try (InputStream certInputStream = new ClassPathResource(certificateResourcePath).getInputStream())
-			{
-				X509Certificate cert = (X509Certificate) CertificateFactory.getInstance("X.509")
-						.generateCertificate(certInputStream);
-				LdapName name = new LdapName(cert.getIssuerX500Principal().getName());
-				return name.getRdn(0).getValue().toString();
-			}
-			catch (IOException | CertificateException | InvalidNameException e)
-			{
-				throw YonaException.unexpected(e);
-			}
+			return Optional.of(sslRootCertificateCn);
 		}
 
 		@JsonProperty("_embedded")
@@ -558,9 +561,7 @@ public class UserController
 
 		private void addSslRootCertificateLink(Resource<UserDto> userResource)
 		{
-			userResource.add(new Link(
-					ServletUriComponentsBuilder.fromCurrentContextPath().path(SSL_ROOT_CERTIFICATE_PATH).build().toUriString(),
-					"sslRootCert"));
+			userResource.add(linkTo(methodOn(StandardResourcesController.class).getSslRootCert()).withRel("sslRootCert"));
 		}
 
 		@Override

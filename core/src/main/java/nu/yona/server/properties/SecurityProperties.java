@@ -23,6 +23,8 @@ public class SecurityProperties
 	private boolean isDosProtectionEnabled = false;
 	private int maxCreateUserAttemptsPerTimeWindow = 1;
 	private int maxUpdateUserAttemptsPerTimeWindow = 1;
+	private String sslRootCertFile;
+	private String ovpnProfileFile;
 
 	/**
 	 * If true, Cross Origin Resource Sharing is allowed. This is necessary for Swagger UI.
@@ -142,5 +144,25 @@ public class SecurityProperties
 	public void setMaxUpdateUserAttemptsPerTimeWindow(int maxUpdateUserAttemptsPerTimeWindow)
 	{
 		this.maxUpdateUserAttemptsPerTimeWindow = maxUpdateUserAttemptsPerTimeWindow;
+	}
+
+	public String getSslRootCertFile()
+	{
+		return this.sslRootCertFile;
+	}
+
+	public void setSslRootCertFile(String sslRootCertFile)
+	{
+		this.sslRootCertFile = sslRootCertFile;
+	}
+
+	public String getOvpnProfileFile()
+	{
+		return ovpnProfileFile;
+	}
+
+	public void setOvpnProfileFile(String ovpnProfileFile)
+	{
+		this.ovpnProfileFile = ovpnProfileFile;
 	}
 }
