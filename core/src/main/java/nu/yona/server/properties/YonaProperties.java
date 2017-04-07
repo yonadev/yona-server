@@ -37,6 +37,9 @@ public class YonaProperties
 	@NestedConfigurationProperty
 	private final BatchServiceProperties batchService = new BatchServiceProperties();
 
+	@NestedConfigurationProperty
+	private final AppleMobileConfigProperties appleMobileConfig = new AppleMobileConfigProperties();
+
 	private final Set<Locale> supportedLocales = new HashSet<>();
 
 	private Locale defaultLocale;
@@ -77,6 +80,11 @@ public class YonaProperties
 	public BatchServiceProperties getBatchService()
 	{
 		return batchService;
+	}
+
+	public AppleMobileConfigProperties getAppleMobileConfig()
+	{
+		return appleMobileConfig;
 	}
 
 	public void setDefaultLocale(String defaultLocale)

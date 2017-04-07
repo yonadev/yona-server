@@ -66,7 +66,7 @@ import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.messaging.rest.MessageController;
-import nu.yona.server.properties.AppleMobileConfigSigningProperties;
+import nu.yona.server.properties.AppleMobileConfigProperties;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ErrorResponseDto;
@@ -182,10 +182,10 @@ public class UserController
 	{
 		if (mustSign)
 		{
-			AppleMobileConfigSigningProperties properties = yonaProperties.getSecurity().getAppleMobileConfigSigning();
+			AppleMobileConfigProperties properties = yonaProperties.getAppleMobileConfig();
 			String signingCertificateFile = properties.getSigningCertificateFile();
 			String signingKeyFile = properties.getSigningKeyFile();
-			String password = properties.getPassword();
+			String password = properties.getSigningKeyPassword();
 			return new Signer(signingCertificateFile, signingKeyFile, password).sign(unsignedMobileconfig);
 		}
 		return unsignedMobileconfig;

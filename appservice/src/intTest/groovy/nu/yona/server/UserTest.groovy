@@ -297,8 +297,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		responseAppleMobileConfig.status == 200
 		responseAppleMobileConfig.contentType == "application/x-apple-aspen-config"
 		def appleMobileConfig = responseAppleMobileConfig.responseData.text
-		appleMobileConfig.contains(richard.vpnProfile.vpnLoginId)
-		appleMobileConfig.contains(richard.vpnProfile.vpnPassword)
+		appleMobileConfig.contains("<string>${richard.vpnProfile.vpnLoginId}\\n${richard.vpnProfile.vpnPassword}</string>")
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -310,12 +309,12 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 
 		when:
-		assert richard.appleMobileConfig
-		def responseAppleMobileConfig = appService.yonaServer.restClient.get(path: richard.sslRootCertUrl, headers: ["Yona-Password":richard.password])
+		assert richard.sslRootCertUrl
+		def responseSslRootCertUrl = appService.yonaServer.restClient.get(path: richard.sslRootCertUrl, headers: ["Yona-Password":richard.password])
 
 		then:
-		responseAppleMobileConfig.status == 200
-		responseAppleMobileConfig.contentType == "application/pkix-cert"
+		responseSslRootCertUrl.status == 200
+		responseSslRootCertUrl.contentType == "application/pkix-cert"
 
 		cleanup:
 		appService.deleteUser(richard)

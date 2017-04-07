@@ -88,7 +88,7 @@ public class AppServiceApplication
 	@Qualifier("appleMobileConfigTemplateEngine")
 	public TemplateEngine appleMobileConfigTemplateEngine()
 	{
-		String appleMobileConfigFile = yonaProperties.getSecurity().getAppleMobileConfigSigning().getAppleMobileConfigFile();
+		String appleMobileConfigFile = yonaProperties.getAppleMobileConfig().getAppleMobileConfigFile();
 		FileTemplateResolver templateResolver = new FileTemplateResolver();
 		templateResolver.setPrefix(new File(appleMobileConfigFile).getParent() + File.separator);
 		templateResolver.setSuffix(appleMobileConfigFile.substring(appleMobileConfigFile.lastIndexOf('.')));
