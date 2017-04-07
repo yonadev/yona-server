@@ -1,7 +1,7 @@
 export yonatag=build-$1
-export resources_source_folder=build-$2
+export resources_source_folder=$2
 
-[[ -d config ]] || mkdir resources
+[[ -d resources ]] || mkdir resources
 
 pushd resources
 echo "Copying base resources from GitHub"
