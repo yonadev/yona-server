@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e # Fail on error
-my_dir="$(dirname "$0")"
+my_dir=`readlink -f "$(dirname "$0")"`
 
 export COMPOSE_PROJECT_NAME=yona
 export yonatag=build-$1
