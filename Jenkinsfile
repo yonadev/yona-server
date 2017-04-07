@@ -22,7 +22,7 @@ pipeline {
 				YONA_DB = credentials('test-db')
 			}
 			steps {
-				sh 'scripts/install-test-server.sh $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona' /opt/ope-cloudbees/yona/resources
+				sh 'scripts/install-test-server.sh $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/resources'
 			}
 		}
 		stage('Run integration tests') {
