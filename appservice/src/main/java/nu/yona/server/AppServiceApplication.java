@@ -18,14 +18,11 @@ import java.security.cert.X509Certificate;
 import javax.annotation.PostConstruct;
 
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMDecryptorProvider;
 import org.bouncycastle.openssl.PEMEncryptedKeyPair;
 import org.bouncycastle.openssl.PEMException;
 import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.X509TrustedCertificateBlock;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
 import org.slf4j.Logger;
@@ -89,18 +86,22 @@ public class AppServiceApplication
 	@Qualifier("appleMobileConfigSigningCertificate")
 	public X509Certificate appleMobileConfigSigningCertificate()
 	{
-		try
+		AppleMobileConfigProperties properties = yonaProperties.getAppleMobileConfig();
+		if (!properties.isSigningEnabled())
 		{
-			AppleMobileConfigProperties properties = yonaProperties.getAppleMobileConfig();
-			if (!properties.isSigningEnabled())
-			{
-				logger.info("Apple mobile config signing certificate not loaded, as signing is disabled");
-				return null;
-			}
-			String signingCertificateFile = properties.getSigningCertificateFile();
-			return new JcaX509CertificateConverter().getCertificate(loadSignerCertificate(signingCertificateFile));
+			logger.info("Apple mobile config signing certificate not loaded, as signing is disabled");
+			return null;
 		}
-		catch (CertificateException e)
+		return loadCertificateFromFile(properties.getSigningCertificateFile());
+	}
+
+	private X509Certificate loadCertificateFromFile(String signingCertificateFile)
+	{
+		try (InputStream inStream = new FileInputStream(signingCertificateFile))
+		{
+			return (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(inStream);
+		}
+		catch (IOException | CertificateException e)
 		{
 			throw YonaException.unexpected(e);
 		}
@@ -123,18 +124,6 @@ public class AppServiceApplication
 			return new JcaPEMKeyConverter().getPrivateKey(loadPrivateKey(signingKeyFile, password));
 		}
 		catch (PEMException e)
-		{
-			throw YonaException.unexpected(e);
-		}
-	}
-
-	private X509CertificateHolder loadSignerCertificate(String fileName)
-	{
-		try (PEMParser parser = new PEMParser(new FileReader(fileName)))
-		{
-			return ((X509TrustedCertificateBlock) parser.readObject()).getCertificateHolder();
-		}
-		catch (IOException e)
 		{
 			throw YonaException.unexpected(e);
 		}
@@ -171,14 +160,6 @@ public class AppServiceApplication
 	@Qualifier("sslRootCertificate")
 	public X509Certificate sslRootCertificate()
 	{
-		String sslRootCertFile = yonaProperties.getSecurity().getSslRootCertFile();
-		try (InputStream inStream = new FileInputStream(sslRootCertFile))
-		{
-			return (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(inStream);
-		}
-		catch (IOException | CertificateException e)
-		{
-			throw YonaException.unexpected(e);
-		}
+		return loadCertificateFromFile(yonaProperties.getSecurity().getSslRootCertFile());
 	}
 }
