@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e # Fail on error
-my_dir="$(dirname "$0")"
+my_dir=`readlink -f "$(dirname "$0")"`
 
 export COMPOSE_PROJECT_NAME=yona
 export yonatag=build-$1
@@ -8,7 +8,8 @@ export yona_db_user_name=$2
 export yona_db_password=$3
 export yona_db_url=$4
 export config_file=$5
-export backup_dir=$6
+export resources_source_folder=$6
+export backup_dir=$7
 
 echo "Generating database connection environment file"
 cat << EOF > db_settings.env
@@ -46,6 +47,9 @@ docker run -i --rm --network yonanet --link mariadb:yonadbserver -e USER=$yona_d
 echo "Copying the config file"
 [[ -d config ]] || mkdir config
 cp $config_file config/application.properties
+
+echo "Copying the resouorces"
+"$my_dir/copy-resources.sh" $yonatag $resources_source_folder
 
 echo "Starting the containers again"
 docker-compose up -d

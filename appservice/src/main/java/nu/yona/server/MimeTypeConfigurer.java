@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server;
 
@@ -19,8 +16,7 @@ public class MimeTypeConfigurer implements EmbeddedServletContainerCustomizer
 	public void customize(ConfigurableEmbeddedServletContainer container)
 	{
 		MimeMappings mappings = new MimeMappings(MimeMappings.DEFAULT);
-		mappings.add("ovpn", "application/x-openvpn-profile"); // see vpn/profile.ovpn
-		mappings.add("cer", "application/pkix-cert"); // see ssl/rootcert.cer
+		mappings.add("cer", "application/pkix-cert"); // see resources/rootcert.cer
 		container.setMimeMappings(mappings);
 	}
 }

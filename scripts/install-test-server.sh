@@ -1,11 +1,15 @@
 #!/bin/bash
 set -e # Fail on error
-my_dir="$(dirname "$0")"
+my_dir=`readlink -f "$(dirname "$0")"`
+
+export yonatag=latest
+export yona_db_user_name=$1
+export yona_db_password=$2
+export yona_db_url=$3
+export resources_source_folder=$4
 
 # Go to the home of the root user
 pushd /root/docker-compose/yona
-
-export yonatag=latest
 
 echo "Stopping all Yona Docker containers"
 docker-compose stop
@@ -48,10 +52,13 @@ docker-compose pull
 
 echo "Generating database connection environment file"
 cat << EOF > db_settings.env
-YONA_DB_USER_NAME=$1
-YONA_DB_PASSWORD=$2
-YONA_DB_URL=$3
+YONA_DB_USER_NAME=$yona_db_user_name
+YONA_DB_PASSWORD=$yona_db_password
+YONA_DB_URL=$yona_db_url
 EOF
+
+echo "Copying the resouorces"
+"$my_dir/copy-resources.sh" master $resources_source_folder
 
 echo "Starting the containers"
 docker-compose up -d

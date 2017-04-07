@@ -14,6 +14,7 @@ services:
       - yonanet
     volumes:
       - ./config:/opt/app/config:ro
+      - ./resources:/opt/app/resources:ro
   
 ###########################################
 # Yona services

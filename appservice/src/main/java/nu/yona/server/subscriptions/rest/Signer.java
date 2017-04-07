@@ -16,6 +16,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.exceptions.YonaException;
@@ -23,10 +24,12 @@ import nu.yona.server.exceptions.YonaException;
 @Service
 public class Signer
 {
-	@Autowired
+	@Autowired()
+	@Qualifier("appleMobileConfigSigningCertificate")
 	X509Certificate signerCertificate;
 
 	@Autowired
+	@Qualifier("appleMobileConfigSignerKey")
 	PrivateKey signerKey;
 
 	public byte[] sign(byte[] unsignedMobileconfig)
