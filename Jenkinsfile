@@ -46,20 +46,8 @@ pipeline {
 				sh('git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/yona-server.git --tags')
 			}
 		}
-		stage('Decide tag on Docker Hub') {
-			agent none
-			steps {
-				script {
-					env.TAG_ON_DOCKER_HUB = input message: 'User input required',
-							parameters: [choice(name: 'Tag on Docker Hub', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy this build')]
-				}
-			}
-		}
 		stage('Tag on Docker Hub') {
 			agent { label 'yona' }
-			when {
-				environment name: 'TAG_ON_DOCKER_HUB', value: 'yes'
-			}
 			steps {
 				sh('scripts/retag-images.sh ${BUILD_NUMBER}')
 			}
