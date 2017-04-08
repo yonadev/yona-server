@@ -66,7 +66,6 @@ import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.messaging.rest.MessageController;
-import nu.yona.server.properties.AppleMobileConfigProperties;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ErrorResponseDto;
@@ -109,6 +108,9 @@ public class UserController
 	@Autowired
 	@Qualifier("appleMobileConfigTemplateEngine")
 	private TemplateEngine templateEngine;
+
+	@Autowired
+	private AppleMobileConfigSigner appleMobileConfigSigner;
 
 	@Autowired
 	@Qualifier("sslRootCertificate")
@@ -182,11 +184,7 @@ public class UserController
 	{
 		if (mustSign)
 		{
-			AppleMobileConfigProperties properties = yonaProperties.getAppleMobileConfig();
-			String signingCertificateFile = properties.getSigningCertificateFile();
-			String signingKeyFile = properties.getSigningKeyFile();
-			String password = properties.getSigningKeyPassword();
-			return new Signer(signingCertificateFile, signingKeyFile, password).sign(unsignedMobileconfig);
+			return appleMobileConfigSigner.sign(unsignedMobileconfig);
 		}
 		return unsignedMobileconfig;
 	}

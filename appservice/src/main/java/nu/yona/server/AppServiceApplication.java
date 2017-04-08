@@ -6,8 +6,10 @@ package nu.yona.server;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.PrivateKey;
 import java.security.Security;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -15,7 +17,16 @@ import java.security.cert.X509Certificate;
 
 import javax.annotation.PostConstruct;
 
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMDecryptorProvider;
+import org.bouncycastle.openssl.PEMEncryptedKeyPair;
+import org.bouncycastle.openssl.PEMException;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
@@ -30,6 +41,7 @@ import org.thymeleaf.spring4.SpringTemplateEngine;
 import org.thymeleaf.templateresolver.FileTemplateResolver;
 
 import nu.yona.server.exceptions.YonaException;
+import nu.yona.server.properties.AppleMobileConfigProperties;
 import nu.yona.server.properties.PropertyInitializer;
 import nu.yona.server.properties.YonaProperties;
 
@@ -37,6 +49,7 @@ import nu.yona.server.properties.YonaProperties;
 @EnableCaching
 public class AppServiceApplication
 {
+	private static final Logger logger = LoggerFactory.getLogger(AppServiceApplication.class);
 	@Autowired
 	private YonaProperties yonaProperties;
 
@@ -70,15 +83,60 @@ public class AppServiceApplication
 	}
 
 	@Bean
-	@Qualifier("sslRootCertificate")
-	public X509Certificate sslRootCertificate()
+	@Qualifier("appleMobileConfigSigningCertificate")
+	public X509Certificate appleMobileConfigSigningCertificate()
 	{
-		String sslRootCertFile = yonaProperties.getSecurity().getSslRootCertFile();
-		try (InputStream inStream = new FileInputStream(sslRootCertFile))
+		AppleMobileConfigProperties properties = yonaProperties.getAppleMobileConfig();
+		if (!properties.isSigningEnabled())
+		{
+			logger.info("Apple mobile config signing certificate not loaded, as signing is disabled");
+			return null;
+		}
+		return loadCertificateFromFile(properties.getSigningCertificateFile());
+	}
+
+	private X509Certificate loadCertificateFromFile(String signingCertificateFile)
+	{
+		try (InputStream inStream = new FileInputStream(signingCertificateFile))
 		{
 			return (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(inStream);
 		}
 		catch (IOException | CertificateException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
+
+	@Bean
+	@Qualifier("appleMobileConfigSignerKey")
+	public PrivateKey appleMobileConfigSignerKey()
+	{
+		try
+		{
+			AppleMobileConfigProperties properties = yonaProperties.getAppleMobileConfig();
+			if (!properties.isSigningEnabled())
+			{
+				logger.info("Apple mobile config signing key not loaded, as signing is disabled");
+				return null;
+			}
+			String signingKeyFile = properties.getSigningKeyFile();
+			String password = properties.getSigningKeyPassword();
+			return new JcaPEMKeyConverter().getPrivateKey(loadPrivateKey(signingKeyFile, password));
+		}
+		catch (PEMException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
+
+	private PrivateKeyInfo loadPrivateKey(String fileName, String password)
+	{
+		try (PEMParser parser = new PEMParser(new FileReader(fileName)))
+		{
+			PEMDecryptorProvider decryptionProv = new JcePEMDecryptorProviderBuilder().build(password.toCharArray());
+			return ((PEMEncryptedKeyPair) parser.readObject()).decryptKeyPair(decryptionProv).getPrivateKeyInfo();
+		}
+		catch (IOException e)
 		{
 			throw YonaException.unexpected(e);
 		}
@@ -96,5 +154,12 @@ public class AppServiceApplication
 		TemplateEngine templateEngine = new SpringTemplateEngine();
 		templateEngine.setTemplateResolver(templateResolver);
 		return templateEngine;
+	}
+
+	@Bean
+	@Qualifier("sslRootCertificate")
+	public X509Certificate sslRootCertificate()
+	{
+		return loadCertificateFromFile(yonaProperties.getSecurity().getSslRootCertFile());
 	}
 }
