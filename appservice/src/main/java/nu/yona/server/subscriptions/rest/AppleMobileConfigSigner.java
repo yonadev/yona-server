@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 import nu.yona.server.exceptions.YonaException;
 
 @Service
-public class Signer
+public class AppleMobileConfigSigner
 {
 	@Autowired()
 	@Qualifier("appleMobileConfigSigningCertificate")

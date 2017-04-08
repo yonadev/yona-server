@@ -110,7 +110,7 @@ public class UserController
 	private TemplateEngine templateEngine;
 
 	@Autowired
-	private Signer signer;
+	private AppleMobileConfigSigner appleMobileConfigSigner;
 
 	@Autowired
 	@Qualifier("sslRootCertificate")
@@ -184,7 +184,7 @@ public class UserController
 	{
 		if (mustSign)
 		{
-			return signer.sign(unsignedMobileconfig);
+			return appleMobileConfigSigner.sign(unsignedMobileconfig);
 		}
 		return unsignedMobileconfig;
 	}
