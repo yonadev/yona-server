@@ -60,7 +60,7 @@ docker {
 
 task buildDockerImage(type: DockerBuildImage, dependsOn: bootRepackage) {
 	inputDir = mkdir("build/docker")
-	tag = "${project.group}/${jar.baseName}"
+	tag = "${project.group}/${jar.baseName}:${project.ext.docker_tag}"
 	doFirst {
 		copy {
 			from bootRepackage
