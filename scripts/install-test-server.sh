@@ -2,11 +2,11 @@
 set -e # Fail on error
 my_dir=`readlink -f "$(dirname "$0")"`
 
-export yonatag=latest
-export yona_db_user_name=$1
-export yona_db_password=$2
-export yona_db_url=$3
-export resources_source_folder=$4
+export yonatag=build-$1
+export yona_db_user_name=$2
+export yona_db_password=$3
+export yona_db_url=$4
+export resources_source_folder=$5
 
 # Go to the home of the root user
 pushd /root/docker-compose/yona
@@ -36,7 +36,7 @@ echo "Waiting for MariaDB"
 docker run --rm --network yonanet --link mariadb:mariadb -e TARGETS=mariadb:3306 waisbrot/wait
 
 echo "Loading the Yona database schema"
-docker run --rm -i --network yonanet --link mariadb:yonadbserver -e USER=root -e PASSWORD=root -e URL=jdbc:mariadb://yonadbserver:3306/yona  yonadev/yona-mariadb-liquibase-update:latest
+docker run --rm -i --network yonanet --link mariadb:yonadbserver -e USER=root -e PASSWORD=root -e URL=jdbc:mariadb://yonadbserver:3306/yona  yonadev/yona-mariadb-liquibase-update:$yonatag
 
 # Return to Yona Docker compose folder
 popd
@@ -58,7 +58,7 @@ YONA_DB_URL=$yona_db_url
 EOF
 
 echo "Copying the resouorces"
-"$my_dir/copy-resources.sh" master $resources_source_folder
+"$my_dir/copy-resources.sh" $yonatag $resources_source_folder
 
 echo "Starting the containers"
 docker-compose up -d

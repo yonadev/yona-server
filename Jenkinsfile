@@ -22,7 +22,7 @@ pipeline {
 				YONA_DB = credentials('test-db')
 			}
 			steps {
-				sh 'scripts/install-test-server.sh $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/resources'
+				sh 'scripts/install-test-server.sh ${BUILD_NUMBER} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/resources'
 			}
 		}
 		stage('Run integration tests') {
@@ -46,17 +46,12 @@ pipeline {
 				sh('git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/yona-server.git --tags')
 			}
 		}
-		stage('Tag on Docker Hub') {
-			agent { label 'yona' }
-			steps {
-				sh('scripts/retag-images.sh ${BUILD_NUMBER}')
-			}
-		}
 		stage('Decide deploy to Mobiquity test server') {
 			agent none
 			steps {
 				script {
 					env.DEPLOY_TO_MOB_TEST = input message: 'User input required',
+							submitter: 'authenticated',
 							parameters: [choice(name: 'Deploy to Mobiquity test server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the Mobiquity test server')]
 				}
 			}
@@ -87,6 +82,7 @@ pipeline {
 			steps {
 				script {
 					env.DEPLOY_TO_ACC_TEST = input message: 'User input required',
+							submitter: 'authenticated',
 							parameters: [choice(name: 'Deploy to acceptance test server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the acceptance test server')]
 				}
 			}
