@@ -76,7 +76,7 @@ task buildDockerImage(type: DockerBuildImage, dependsOn: bootRepackage) {
 
 task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
 	imageName = "${project.group}/${jar.baseName}"
-	tag = project.ext.build_number
+	tag = project.ext.docker_tag
 }
 
 sourceSets {
