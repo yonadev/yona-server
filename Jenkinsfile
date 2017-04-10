@@ -54,9 +54,6 @@ pipeline {
 		}
 		stage('Decide deploy to Mobiquity test server') {
 			agent none
-			when {
-				environment name: 'TAG_ON_DOCKER_HUB', value: 'yes'
-			}
 			steps {
 				script {
 					env.DEPLOY_TO_MOB_TEST = input message: 'User input required',
