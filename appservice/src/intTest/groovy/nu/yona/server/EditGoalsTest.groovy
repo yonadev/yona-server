@@ -7,6 +7,7 @@
 package nu.yona.server
 
 import java.time.Duration
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 import groovy.json.*
@@ -67,7 +68,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		gamblingGoals.size() == 1
 		gamblingGoals[0]."@type" == "BudgetGoal"
 		!gamblingGoals[0]._links.edit //mandatory goal
-		assertEquals(gamblingGoals[0].creationTime, creationTime)
+		assertEquals(gamblingGoals[0].creationTime, ZonedDateTime.of(2017,1,1,12,0,0,0, ZoneOffset.UTC))
 		def newsGoals = filterGoals(response, NEWS_ACT_CAT_URL)
 		newsGoals.size() == 1
 		newsGoals[0]."@type" == "BudgetGoal"

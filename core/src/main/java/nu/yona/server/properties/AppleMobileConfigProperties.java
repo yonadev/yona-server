@@ -4,12 +4,23 @@
  *******************************************************************************/
 package nu.yona.server.properties;
 
-public class AppleMobileConfigSigningProperties
+public class AppleMobileConfigProperties
 {
+	private String appleMobileConfigFile;
 	private boolean isSigningEnabled;
 	private String signingCertificateFile;
 	private String signingKeyFile;
-	private String password;
+	private String signingKeyPassword;
+
+	public String getAppleMobileConfigFile()
+	{
+		return appleMobileConfigFile;
+	}
+
+	public void setAppleMobileConfigFile(String appleMobileConfigFile)
+	{
+		this.appleMobileConfigFile = appleMobileConfigFile;
+	}
 
 	public void setSigningEnabled(boolean isSigningEnabled)
 	{
@@ -41,14 +52,14 @@ public class AppleMobileConfigSigningProperties
 		this.signingKeyFile = signingKeyFile;
 	}
 
-	public String getPassword()
+	public String getSigningKeyPassword()
 	{
-		return password;
+		return signingKeyPassword;
 	}
 
-	public void setPassword(String password)
+	public void setSigningKeyPassword(String signingKeyPassword)
 	{
-		this.password = password;
+		this.signingKeyPassword = signingKeyPassword;
 	}
 
 }

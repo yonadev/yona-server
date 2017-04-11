@@ -175,10 +175,12 @@ public class BuddyService
 			throw BuddyServiceException.onlyTwoWayBuddiesAllowed();
 		}
 		String buddyMobileNumber = buddy.getUser().getMobileNumber();
-		if (requestingUser.getMobileNumber().equals(buddyMobileNumber)) {
+		if (requestingUser.getMobileNumber().equals(buddyMobileNumber))
+		{
 			throw BuddyServiceException.cannotInviteSelf();
 		}
-		if (getBuddies(requestingUser.getPrivateData().getBuddyIds()).stream().map(b -> b.getUser().getMobileNumber()).anyMatch(m -> m.equals(buddyMobileNumber)))
+		if (getBuddies(requestingUser.getPrivateData().getBuddyIds()).stream().map(b -> b.getUser().getMobileNumber())
+				.anyMatch(m -> m.equals(buddyMobileNumber)))
 		{
 			throw BuddyServiceException.cannotInviteExistingBuddy();
 		}
@@ -385,6 +387,7 @@ public class BuddyService
 		}
 		buddy.setUserAnonymizedId(userAnonymizedId);
 		buddy.setNickName(nickname);
+		Buddy.getRepository().save(buddy);
 	}
 
 	public Set<BuddyDto> getBuddies(Set<UUID> buddyIds)
@@ -456,6 +459,8 @@ public class BuddyService
 		buddyAnonymized.ifPresent(ba -> {
 			ba.setDisconnected();
 			BuddyAnonymized.getRepository().save(ba);
+			// Notice: last status change time will not be set, as we are not able to reach the Buddy entity from here
+			// Buddy will be removed anyway the first time the other user logs in
 		});
 		// Else: user who requested buddy relationship didn't process the accept message yet
 	}

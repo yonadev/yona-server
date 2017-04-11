@@ -24,7 +24,7 @@ import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
-import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
@@ -35,6 +35,8 @@ public class User extends EntityWithUuid
 	{
 		return (UserRepository) RepositoryProvider.getRepository(User.class, UUID.class);
 	}
+
+	private int privateDataMigrationVersion;
 
 	private String firstName;
 
@@ -75,7 +77,7 @@ public class User extends EntityWithUuid
 		super(null);
 	}
 
-	private User(UUID id, byte[] initializationVector, String firstName, String lastName, String mobileNumber,
+	public User(UUID id, byte[] initializationVector, String firstName, String lastName, String mobileNumber,
 			UserPrivate userPrivate, MessageDestination messageDestination)
 	{
 		super(id);
@@ -87,18 +89,7 @@ public class User extends EntityWithUuid
 		this.mobileNumber = mobileNumber;
 		this.setUserPrivate(userPrivate);
 		this.messageDestination = messageDestination;
-	}
-
-	public static User createInstance(String firstName, String lastName, String nickname, String mobileNumber, String vpnPassword,
-			Set<Goal> goals)
-	{
-		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
-		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		UserPrivate userPrivate = UserPrivate.createInstance(nickname, vpnPassword, goals, anonymousMessageSource,
-				namedMessageSource);
-		return new User(UUID.randomUUID(), initializationVector, firstName, lastName, mobileNumber, userPrivate,
-				namedMessageSource.getDestination());
+		this.privateDataMigrationVersion = PrivateUserDataMigrationService.getCurrentVersion();
 	}
 
 	public LocalDateTime getCreationTime()
@@ -253,19 +244,14 @@ public class User extends EntityWithUuid
 		getUserPrivate().removeBuddyForUserId(fromUserId);
 	}
 
-	public MessageSource getNamedMessageSource()
+	public UUID getNamedMessageSourceId()
 	{
-		return getUserPrivate().getNamedMessageSource();
+		return getUserPrivate().getNamedMessageSourceId();
 	}
 
-	public MessageSource getAnonymousMessageSource()
+	public UUID getAnonymousMessageSourceId()
 	{
-		return getUserPrivate().getAnonymousMessageSource();
-	}
-
-	public MessageDestination getAnonymousMessageDestination()
-	{
-		return getAnonymousMessageSource().getDestination();
+		return getUserPrivate().getAnonymousMessageSourceId();
 	}
 
 	public Set<Buddy> getBuddies()
@@ -350,5 +336,15 @@ public class User extends EntityWithUuid
 	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
 	{
 		getUserPrivate().setLastMonitoredActivityDate(lastMonitoredActivityDate);
+	}
+
+	public int getPrivateDataMigrationVersion()
+	{
+		return privateDataMigrationVersion;
+	}
+
+	public void setPrivateDataMigrationVersion(int privateDataMigrationVersion)
+	{
+		this.privateDataMigrationVersion = privateDataMigrationVersion;
 	}
 }

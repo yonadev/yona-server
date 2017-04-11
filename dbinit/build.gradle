@@ -34,7 +34,7 @@ docker {
 
 task buildDockerImage(type: DockerBuildImage) {
 	inputDir = mkdir("build/docker")
-	tag = "${project.group}/yona-mariadb-liquibase-update"
+	tag = "${project.group}/yona-mariadb-liquibase-update:${project.ext.docker_tag}"
 	doFirst {
 		copy {
 			from "src/main/liquibase"
@@ -50,7 +50,7 @@ task buildDockerImage(type: DockerBuildImage) {
 
 task pushDockerImage(type: DockerPushImage, dependsOn: buildDockerImage) {
 	imageName = "${project.group}/yona-mariadb-liquibase-update"
-	tag = "latest"
+	tag = project.ext.docker_tag
 }
 
 bootRun {

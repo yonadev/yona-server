@@ -51,13 +51,13 @@ public class UserDto
 	private UserDto(UUID id, LocalDateTime creationTime, LocalDate appLastOpenedDate,
 			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String yonaPassword,
 			String nickname, String mobileNumber, boolean isConfirmed, UUID namedMessageSourceId, UUID namedMessageDestinationId,
-			UUID anonymousMessageSourceId, UUID anonymousMessageDestinationId, Set<GoalDto> goals, Set<UUID> buddyIds,
+			UUID anonymousMessageSourceId, Set<GoalDto> goals, Set<UUID> buddyIds,
 			Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper, UUID userAnonymizedId, VPNProfileDto vpnProfile)
 	{
 		this(id, Optional.of(creationTime), appLastOpenedDate, firstName, lastName, null, mobileNumber, isConfirmed,
 				new UserPrivateDto(lastMonitoredActivityDate, yonaPassword, nickname, namedMessageSourceId,
-						namedMessageDestinationId, anonymousMessageSourceId, anonymousMessageDestinationId, goals, buddyIds,
-						buddyIdToDtoMapper, userAnonymizedId, vpnProfile));
+						namedMessageDestinationId, anonymousMessageSourceId, goals, buddyIds, buddyIdToDtoMapper,
+						userAnonymizedId, vpnProfile));
 	}
 
 	private UserDto(UUID id, LocalDateTime creationTime, LocalDate appLastOpenedDate, String firstName, String lastName,
@@ -153,13 +153,6 @@ public class UserDto
 		return privateData;
 	}
 
-	User createUserEntity()
-	{
-		return User.createInstance(firstName, lastName, privateData.getNickname(), mobileNumber,
-				privateData.getVpnProfile().getVpnPassword(),
-				privateData.getGoals().stream().map(g -> g.createGoalEntity()).collect(Collectors.toSet()));
-	}
-
 	User updateUser(User originalUserEntity)
 	{
 		originalUserEntity.setFirstName(firstName);
@@ -206,9 +199,8 @@ public class UserDto
 		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
 				userEntity.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
 				CryptoSession.getCurrent().getKeyString(), userEntity.getNickname(), userEntity.getMobileNumber(),
-				userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSource().getId(),
-				userEntity.getNamedMessageDestination().getId(), userEntity.getAnonymousMessageSource().getId(),
-				userEntity.getAnonymousMessageSource().getDestination().getId(),
+				userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSourceId(),
+				userEntity.getNamedMessageDestination().getId(), userEntity.getAnonymousMessageSourceId(),
 				UserAnonymizedDto.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), getBuddyIds(userEntity),
 				buddyIdToDtoMapper, userEntity.getUserAnonymizedId(), VPNProfileDto.createInstance(userEntity));
 	}

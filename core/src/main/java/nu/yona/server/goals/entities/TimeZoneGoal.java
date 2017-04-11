@@ -74,18 +74,6 @@ public class TimeZoneGoal extends Goal
 	}
 
 	@Override
-	public boolean isMandatory()
-	{
-		return false;
-	}
-
-	@Override
-	public boolean isNoGoGoal()
-	{
-		return false;
-	}
-
-	@Override
 	public boolean isGoalAccomplished(DayActivity dayActivity)
 	{
 		int[] spread = determineSpreadOutsideGoal(dayActivity);

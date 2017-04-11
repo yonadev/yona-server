@@ -49,6 +49,7 @@ import nu.yona.server.subscriptions.entities.BuddyRepository;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.entities.UserPrivate;
 import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 import nu.yona.server.util.TimeUtil;
@@ -114,6 +115,9 @@ public class UserService
 	@Autowired(required = false)
 	private WhiteListedNumberService whiteListedNumberService;
 
+	@Autowired(required = false)
+	private PrivateUserDataMigrationService privateUserDataMigrationService;
+
 	@PostConstruct
 	private void onStart()
 	{
@@ -142,16 +146,29 @@ public class UserService
 	public UserDto getPrivateUser(UUID id)
 	{
 		User user = getUserEntityById(id);
-		handleBuddyUsersRemovedWhileOffline(user);
-		return createUserDtoWithPrivateData(user);
+		User updatedUser = handlePrivateDataActions(user);
+		return createUserDtoWithPrivateData(updatedUser);
 	}
 
 	@Transactional
 	public UserDto getPrivateValidatedUser(UUID id)
 	{
 		User validatedUser = getValidatedUserbyId(id);
-		handleBuddyUsersRemovedWhileOffline(validatedUser);
-		return createUserDtoWithPrivateData(validatedUser);
+		User updatedUser = handlePrivateDataActions(validatedUser);
+		return createUserDtoWithPrivateData(updatedUser);
+	}
+
+	private User handlePrivateDataActions(User user)
+	{
+		handleBuddyUsersRemovedWhileOffline(user);
+
+		if (!privateUserDataMigrationService.isUpToDate(user))
+		{
+			privateUserDataMigrationService.upgrade(user);
+			return userRepository.save(user);
+		}
+
+		return user;
 	}
 
 	@Transactional
@@ -175,10 +192,7 @@ public class UserService
 		transactionHelper.executeInNewTransaction(
 				() -> handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode));
 
-		user.getPrivateData().getVpnProfile().setVpnPassword(generatePassword());
-
-		User userEntity = user.createUserEntity();
-		addMandatoryGoals(userEntity);
+		User userEntity = createUserEntity(user, UserSignUp.FREE);
 		Optional<ConfirmationCode> confirmationCode = Optional.empty();
 		if (overwriteUserConfirmationCode.isPresent())
 		{
@@ -202,6 +216,30 @@ public class UserService
 
 		logger.info("Added new user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getId());
 		return userDto;
+	}
+
+	private User createUserEntity(UserDto user, UserSignUp signUp)
+	{
+		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
+		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
+		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
+		Set<Goal> goals;
+		if (signUp == UserSignUp.INVITED)
+		{
+			goals = Collections.emptySet();
+		}
+		else
+		{
+			goals = user.getPrivateData().getGoals().stream().map(g -> g.createGoalEntity()).collect(Collectors.toSet());
+		}
+		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
+		UserAnonymized.getRepository().save(userAnonymized);
+		UserPrivate userPrivate = UserPrivate.createInstance(user.getPrivateData().getNickname(), generatePassword(),
+				userAnonymized.getId(), anonymousMessageSource.getId(), namedMessageSource);
+		User userEntity = new User(UUID.randomUUID(), initializationVector, user.getFirstName(), user.getLastName(),
+				user.getMobileNumber(), userPrivate, namedMessageSource.getDestination());
+		addMandatoryGoals(userEntity);
+		return userEntity;
 	}
 
 	UserDto createUserDtoWithPrivateData(User user)
@@ -354,10 +392,7 @@ public class UserService
 	User addUserCreatedOnBuddyRequest(UserDto buddyUserResource)
 	{
 		assertUserIsAllowed(buddyUserResource.getMobileNumber(), UserSignUp.INVITED);
-		User newUser = User.createInstance(buddyUserResource.getFirstName(), buddyUserResource.getLastName(),
-				buddyUserResource.getPrivateData().getNickname(), buddyUserResource.getMobileNumber(),
-				CryptoUtil.getRandomString(yonaProperties.getSecurity().getPasswordLength()), Collections.emptySet());
-		addMandatoryGoals(newUser);
+		User newUser = createUserEntity(buddyUserResource, UserSignUp.INVITED);
 		newUser.setIsCreatedOnBuddyRequest();
 		newUser.setMobileNumberConfirmationCode(createConfirmationCode());
 		User savedUser = userRepository.save(newUser);
@@ -443,8 +478,8 @@ public class UserService
 
 	private EncryptedUserData retrieveUserEncryptedDataInNewCryptoSession(User originalUserEntity)
 	{
-		MessageSource namedMessageSource = originalUserEntity.getNamedMessageSource();
-		MessageSource anonymousMessageSource = originalUserEntity.getAnonymousMessageSource();
+		MessageSource namedMessageSource = messageSourceRepository.findOne(originalUserEntity.getNamedMessageSourceId());
+		MessageSource anonymousMessageSource = messageSourceRepository.findOne(originalUserEntity.getAnonymousMessageSourceId());
 		EncryptedUserData userEncryptedData = new EncryptedUserData(originalUserEntity, namedMessageSource,
 				anonymousMessageSource);
 		userEncryptedData.loadLazyEncryptedData();
@@ -464,8 +499,8 @@ public class UserService
 
 		UUID vpnLoginId = userEntity.getVpnLoginId();
 		UUID userAnonymizedId = userEntity.getUserAnonymizedId();
-		MessageSource namedMessageSource = userEntity.getNamedMessageSource();
-		MessageSource anonymousMessageSource = userEntity.getAnonymousMessageSource();
+		MessageSource namedMessageSource = messageSourceRepository.findOne(userEntity.getNamedMessageSourceId());
+		MessageSource anonymousMessageSource = messageSourceRepository.findOne(userEntity.getAnonymousMessageSourceId());
 		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
 		userAnonymizedEntity.clearAnonymousDestination();
 		userAnonymizedEntity = userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
@@ -715,6 +750,11 @@ public class UserService
 				throw InvalidDataException.blankEmailAddress();
 			}
 			assertValidEmailAddress(userResource.getEmailAddress());
+
+			if (!userResource.getPrivateData().getGoals().isEmpty())
+			{
+				throw InvalidDataException.goalsNotSupported();
+			}
 		}
 		else
 		{

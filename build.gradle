@@ -33,6 +33,9 @@ subprojects {
 	apply plugin: "com.bmuschko.docker-remote-api"
 
 	project.ext {
+		build_number = System.getenv().BUILD_NUMBER ?: 0
+		docker_tag = "build-${build_number}"
+
 		version_jackson        = "2.8.5"
 		version_batch_core     = "3.0.7.RELEASE"
 		version_mariadb_client = "1.5.5"
@@ -70,7 +73,7 @@ subprojects {
 	springBoot {
 		buildInfo() {
 			additionalProperties = [
-				buildNumber : System.getenv().BUILD_NUMBER ?: 0
+				buildNumber : project.ext.build_number
 			]
 		}
 	}

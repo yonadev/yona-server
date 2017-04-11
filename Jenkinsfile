@@ -22,7 +22,7 @@ pipeline {
 				YONA_DB = credentials('test-db')
 			}
 			steps {
-				sh 'scripts/install-test-server.sh $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona'
+				sh 'scripts/install-test-server.sh ${BUILD_NUMBER} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/resources'
 			}
 		}
 		stage('Run integration tests') {
@@ -46,32 +46,12 @@ pipeline {
 				sh('git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/yona-server.git --tags')
 			}
 		}
-		stage('Decide tag on Docker Hub') {
-			agent none
-			steps {
-				script {
-					env.TAG_ON_DOCKER_HUB = input message: 'User input required',
-							parameters: [choice(name: 'Tag on Docker Hub', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy this build')]
-				}
-			}
-		}
-		stage('Tag on Docker Hub') {
-			agent { label 'yona' }
-			when {
-				environment name: 'TAG_ON_DOCKER_HUB', value: 'yes'
-			}
-			steps {
-				sh('scripts/retag-images.sh ${BUILD_NUMBER}')
-			}
-		}
 		stage('Decide deploy to Mobiquity test server') {
 			agent none
-			when {
-				environment name: 'TAG_ON_DOCKER_HUB', value: 'yes'
-			}
 			steps {
 				script {
 					env.DEPLOY_TO_MOB_TEST = input message: 'User input required',
+							submitter: 'authenticated',
 							parameters: [choice(name: 'Deploy to Mobiquity test server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the Mobiquity test server')]
 				}
 			}
@@ -87,9 +67,11 @@ pipeline {
 			steps {
 				sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/refresh-build.sh'
 				sh 'chmod +x refresh-build.sh'
+				sh 'wget -O copy-resources.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/copy-resources.sh'
+				sh 'chmod +x copy-resources.sh'
 				sh 'wget -O wait-for-services.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
 				sh 'chmod +x wait-for-services.sh'
-				sh './refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/backup'
+				sh './refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/resources /opt/ope-cloudbees/yona/backup'
 			}
 		}
 		stage('Decide deploy to acceptance test server') {
@@ -100,6 +82,7 @@ pipeline {
 			steps {
 				script {
 					env.DEPLOY_TO_ACC_TEST = input message: 'User input required',
+							submitter: 'authenticated',
 							parameters: [choice(name: 'Deploy to acceptance test server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the acceptance test server')]
 				}
 			}
@@ -115,9 +98,11 @@ pipeline {
 			steps {
 				sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/refresh-build.sh'
 				sh 'chmod +x refresh-build.sh'
+				sh 'wget -O copy-resources.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/copy-resources.sh'
+				sh 'chmod +x copy-resources.sh'
 				sh 'wget -O wait-for-services.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
 				sh 'chmod +x wait-for-services.sh'
-				sh './refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/backup'
+				sh './refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/resources /opt/ope-cloudbees/yona/backup'
 			}
 		}
 	}

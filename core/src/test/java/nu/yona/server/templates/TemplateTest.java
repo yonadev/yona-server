@@ -61,19 +61,6 @@ public class TemplateTest
 	}
 
 	@Test
-	public void testAppleMobileConfig()
-	{
-		Context ctx = ThymeleafUtil.createContext();
-		String ldapUsername = "DummyLdapUserName";
-		String ldapPassword = "DummyLdapPassword";
-		ctx.setVariable("ldapUsername", ldapUsername);
-		ctx.setVariable("ldapPassword", ldapPassword);
-
-		String result = otherTemplateEngine.process("apple.mobileconfig.xml", ctx);
-		assertThat(result, containsString("<string>" + ldapUsername + "\\n" + ldapPassword + "</string>"));
-	}
-
-	@Test
 	public void testSms()
 	{
 		String requestingUserFirstName = "john";

@@ -295,6 +295,17 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		dateTime.get(ChronoField.MINUTE_OF_DAY)/15
 	}
 
+	def setCreationTimeOfMandatoryGoalsToNow(User user)
+	{
+		def mandatoryGoals = user.goals.findAll { it.activityCategoryUrl == GAMBLING_ACT_CAT_URL }
+		mandatoryGoals.each
+		{ goal ->
+			goal.creationTime = YonaServer.now
+			def response = appService.updateGoal(user, goal.url, goal)
+			assert response.status == 200
+		}
+	}
+
 	void assertWeekOverviewBasics(response, numberOfReportedGoals, expectedTotalElements, expectedPageSize = 2)
 	{
 		assert response.status == 200

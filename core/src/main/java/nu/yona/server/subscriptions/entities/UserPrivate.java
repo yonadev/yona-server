@@ -25,7 +25,6 @@ import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.StringFieldEncryptor;
 import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
 import nu.yona.server.entities.EntityWithUuid;
-import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageSource;
 
 @Entity
@@ -84,12 +83,10 @@ public class UserPrivate extends EntityWithUuid
 		return DECRYPTION_CHECK_STRING + CryptoUtil.getRandomString(DECRYPTION_CHECK_STRING.length());
 	}
 
-	public static UserPrivate createInstance(String nickname, String vpnPassword, Set<Goal> goals,
-			MessageSource anonymousMessageSource, MessageSource namedMessageSource)
+	public static UserPrivate createInstance(String nickname, String vpnPassword, UUID userAnonymizedId,
+			UUID anonymousMessageSourceId, MessageSource namedMessageSource)
 	{
-		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
-		UserAnonymized.getRepository().save(userAnonymized);
-		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymized.getId(), vpnPassword, anonymousMessageSource.getId(),
+		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymizedId, vpnPassword, anonymousMessageSourceId,
 				namedMessageSource.getId());
 	}
 
@@ -135,14 +132,14 @@ public class UserPrivate extends EntityWithUuid
 		buddies.removeIf(buddy -> buddy.getUserId().equals(userId));
 	}
 
-	public MessageSource getAnonymousMessageSource()
+	public UUID getAnonymousMessageSourceId()
 	{
-		return MessageSource.getRepository().findOne(anonymousMessageSourceId);
+		return anonymousMessageSourceId;
 	}
 
-	public MessageSource getNamedMessageSource()
+	public UUID getNamedMessageSourceId()
 	{
-		return MessageSource.getRepository().findOne(namedMessageSourceId);
+		return namedMessageSourceId;
 	}
 
 	public UUID getVpnLoginId()

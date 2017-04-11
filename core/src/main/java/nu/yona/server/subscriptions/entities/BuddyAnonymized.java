@@ -17,7 +17,6 @@ import org.hibernate.annotations.Type;
 
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
-import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "BUDDIES_ANONYMIZED")
@@ -52,6 +51,10 @@ public class BuddyAnonymized extends EntityWithUuid
 	 */
 	private Status receivingStatus = Status.NOT_REQUESTED;
 
+	/**
+	 * @deprecated only for use by migration step.
+	 */
+	@Deprecated
 	private LocalDateTime lastStatusChangeTime;
 
 	// Default constructor is required for JPA
@@ -65,7 +68,6 @@ public class BuddyAnonymized extends EntityWithUuid
 		super(id);
 		this.sendingStatus = sendingStatus;
 		this.receivingStatus = receivingStatus;
-		setLastStatusChangeTimeToNow();
 	}
 
 	public static BuddyAnonymized createInstance(Status sendingStatus, Status receivingStatus)
@@ -87,14 +89,14 @@ public class BuddyAnonymized extends EntityWithUuid
 		return sendingStatus;
 	}
 
+	/**
+	 * Do not call this method directly, it should be called from the Buddy entity to update the last status change time.
+	 * 
+	 * @param sendingStatus
+	 */
 	public void setSendingStatus(Status sendingStatus)
 	{
-		if (this.sendingStatus == sendingStatus)
-		{
-			return;
-		}
 		this.sendingStatus = sendingStatus;
-		setLastStatusChangeTimeToNow();
 	}
 
 	public Status getReceivingStatus()
@@ -102,14 +104,14 @@ public class BuddyAnonymized extends EntityWithUuid
 		return receivingStatus;
 	}
 
+	/**
+	 * Do not call this method directly, it should be called from the Buddy entity to update the last status change time.
+	 * 
+	 * @param sendingStatus
+	 */
 	public void setReceivingStatus(Status receivingStatus)
 	{
-		if (this.receivingStatus == receivingStatus)
-		{
-			return;
-		}
 		this.receivingStatus = receivingStatus;
-		setLastStatusChangeTimeToNow();
 	}
 
 	public Optional<UUID> getUserAnonymizedId()
@@ -128,16 +130,23 @@ public class BuddyAnonymized extends EntityWithUuid
 		this.sendingStatus = Status.REJECTED;
 		this.receivingStatus = Status.REJECTED;
 		this.userAnonymizedId = null;
-		setLastStatusChangeTimeToNow();
 	}
 
+	/**
+	 * @deprecated only for use by migration step.
+	 */
+	@Deprecated
 	public LocalDateTime getLastStatusChangeTime()
 	{
 		return lastStatusChangeTime;
 	}
 
-	private void setLastStatusChangeTimeToNow()
+	/**
+	 * @deprecated only for use by migration step.
+	 */
+	@Deprecated
+	public void clearLastStatusChangeTime()
 	{
-		lastStatusChangeTime = TimeUtil.utcNow();
+		lastStatusChangeTime = null;
 	}
 }
