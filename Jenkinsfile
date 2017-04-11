@@ -16,6 +16,16 @@ pipeline {
 				}
 			}
 		}
+		stage('Tag revision on GitHub') {
+			agent { label 'yona' }
+			environment {
+				GIT = credentials('65325e52-5ec0-46a7-a937-f81f545f3c1b')
+			}
+			steps {
+				sh('git tag -a build-$BUILD_NUMBER -m "Jenkins"')
+				sh('git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/yona-server.git --tags')
+			}
+		}
 		stage('Setup test server') {
 			agent { label 'yona' }
 			environment {
@@ -34,16 +44,6 @@ pipeline {
 				always {
 					junit '**/build/test-results/*/*.xml'
 				}
-			}
-		}
-		stage('Tag revision on GitHub') {
-			agent { label 'yona' }
-			environment {
-				GIT = credentials('65325e52-5ec0-46a7-a937-f81f545f3c1b')
-			}
-			steps {
-				sh('git tag -a build-$BUILD_NUMBER -m "Jenkins"')
-				sh('git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/yona-server.git --tags')
 			}
 		}
 		stage('Decide deploy to Mobiquity test server') {
