@@ -86,7 +86,7 @@ public class InvalidDataException extends YonaException
 		return new InvalidDataException("error.user.email.address.not.supported");
 	}
 
-	public static InvalidDataException excessGoals()
+	public static InvalidDataException goalsNotSupported()
 	{
 		return new InvalidDataException("error.user.goals.not.supported");
 	}

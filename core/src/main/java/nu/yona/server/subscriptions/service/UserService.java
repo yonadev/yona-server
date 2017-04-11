@@ -763,7 +763,7 @@ public class UserService
 
 			if (!userResource.getPrivateData().getGoals().isEmpty())
 			{
-				throw InvalidDataException.excessGoals();
+				throw InvalidDataException.goalsNotSupported();
 			}
 		}
 		else

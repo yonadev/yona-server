@@ -20,4 +20,5 @@ databaseChangeLog:
               nullable: false
             name: private_data_migration_version
             type: integer
+            defaultValueNumeric: 0
         tableName: users        
