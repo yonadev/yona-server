@@ -54,7 +54,7 @@ class PrivateUserDataMigrationServiceIntegrationTestConfiguration
 {
 }
 
-class MockMigrationStep1 extends MigrationStep
+class MockMigrationStep1 implements MigrationStep
 {
 	@Override
 	public void upgrade(User userEntity)
@@ -63,7 +63,7 @@ class MockMigrationStep1 extends MigrationStep
 	}
 }
 
-class MockMigrationStep2 extends MigrationStep
+class MockMigrationStep2 implements MigrationStep
 {
 	@Override
 	public void upgrade(User userEntity)

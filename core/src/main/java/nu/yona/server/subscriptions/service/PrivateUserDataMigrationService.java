@@ -18,14 +18,9 @@ import nu.yona.server.subscriptions.service.migration.EncryptBuddyLastStatusChan
 @Service
 public class PrivateUserDataMigrationService
 {
-	public static abstract class MigrationStep
+	public interface MigrationStep
 	{
-		public MigrationStep()
-		{
-
-		}
-
-		public abstract void upgrade(User userEntity);
+		void upgrade(User userEntity);
 	}
 
 	private static List<Class<? extends MigrationStep>> migrationSteps = Arrays.asList(EncryptBuddyLastStatusChangeTime.class);

@@ -9,7 +9,7 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService;
 
-public class EncryptBuddyLastStatusChangeTime extends PrivateUserDataMigrationService.MigrationStep
+public class EncryptBuddyLastStatusChangeTime implements PrivateUserDataMigrationService.MigrationStep
 {
 	@Override
 	public void upgrade(User userEntity)
@@ -23,5 +23,6 @@ public class EncryptBuddyLastStatusChangeTime extends PrivateUserDataMigrationSe
 		BuddyAnonymized buddyAnonymized = buddy.getBuddyAnonymized();
 		buddy.setLastStatusChangeTime(buddyAnonymized.getLastStatusChangeTime());
 		buddyAnonymized.clearLastStatusChangeTime();
+		BuddyAnonymized.getRepository().save(buddyAnonymized);
 	}
 }
