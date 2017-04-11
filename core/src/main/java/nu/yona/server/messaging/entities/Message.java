@@ -6,11 +6,13 @@ package nu.yona.server.messaging.entities;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -41,13 +43,13 @@ public abstract class Message extends EntityWithId
 	@ManyToOne
 	private Message threadHeadMessage;
 
-	@OneToMany(mappedBy = "threadHeadMessage", cascade = CascadeType.REMOVE)
+	@OneToMany(mappedBy = "threadHeadMessage")
 	private final List<Message> messagesInThread;
 
 	@ManyToOne
 	private Message repliedMessage;
 
-	@OneToMany(mappedBy = "repliedMessage", cascade = CascadeType.REMOVE)
+	@OneToMany(mappedBy = "repliedMessage")
 	private final List<Message> replies;
 
 	@ManyToOne
@@ -128,7 +130,7 @@ public abstract class Message extends EntityWithId
 		this.threadHeadMessage = threadHeadMessage;
 	}
 
-	public void clearThreadHeadSelfReference()
+	protected void clearThreadHeadSelfReference()
 	{
 		if ((threadHeadMessage != null) && threadHeadMessage.getId() == getId())
 		{
@@ -167,7 +169,8 @@ public abstract class Message extends EntityWithId
 	 * <ul>
 	 * <li>If isSentItem == true, it is logically the target user</li>
 	 * <li>The sender of this message</li>
-	 * <li>In case of a system-originated message (e.g. a goal conflict message), it is the user for which this message is sent</li>
+	 * <li>In case of a system-originated message (e.g. a goal conflict message), it is the user for which this message is
+	 * sent</li>
 	 * </ul>
 	 * 
 	 * @return The ID of the related anonymized user. Might be null if that user was already deleted at the time this message was
@@ -176,6 +179,21 @@ public abstract class Message extends EntityWithId
 	public Optional<UUID> getRelatedUserAnonymizedId()
 	{
 		return Optional.ofNullable(relatedUserAnonymizedId);
+	}
+
+	public void prepareForDelete()
+	{
+		clearThreadHeadSelfReference();
+		threadHeadMessage = null;
+	}
+
+	public Set<Message> getMessagesToBeCascadinglyDeleted()
+	{
+		Set<Message> messagesToBeCascadinglyDeleted = new HashSet<>();
+		messagesToBeCascadinglyDeleted.addAll(replies);
+		messagesToBeCascadinglyDeleted.addAll(
+				replies.stream().flatMap(m -> m.getMessagesToBeCascadinglyDeleted().stream()).collect(Collectors.toSet()));
+		return messagesToBeCascadinglyDeleted;
 	}
 
 	protected abstract void encrypt();

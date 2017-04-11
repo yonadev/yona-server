@@ -4,9 +4,9 @@
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
+import java.util.Set;
 import java.util.UUID;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
@@ -21,13 +21,17 @@ public class ActivityCommentMessage extends BuddyMessage
 	private IntervalActivity intervalActivity;
 
 	/**
-	 * Buddy comment messages are always sent in pairs: a message to the buddy and a copy for the user. This property maintains
-	 * the relationship between the two.
+	 * Buddy comment messages are always sent in pairs: a message to the buddy and a copy for the user. This is one of the two
+	 * properties that maintain the relationship between the two messages.
 	 */
-	@OneToOne(mappedBy = "buddyMessage", cascade = CascadeType.REMOVE)
+	@OneToOne(mappedBy = "buddyMessage")
 	private ActivityCommentMessage senderCopyMessage;
 
-	@OneToOne(cascade = CascadeType.REMOVE)
+	/**
+	 * Buddy comment messages are always sent in pairs: a message to the buddy and a copy for the user. This is one of the two
+	 * properties that maintain the relationship between the two messages.
+	 */
+	@OneToOne
 	private ActivityCommentMessage buddyMessage;
 
 	private ActivityCommentMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
@@ -54,7 +58,7 @@ public class ActivityCommentMessage extends BuddyMessage
 	}
 
 	@Override
-	public void clearThreadHeadSelfReference()
+	protected void clearThreadHeadSelfReference()
 	{
 		Message threadHeadMessage = getThreadHeadMessage();
 		if (threadHeadMessage == null || threadHeadMessage.getId() != getId())
@@ -76,12 +80,51 @@ public class ActivityCommentMessage extends BuddyMessage
 	public void setBuddyMessage(ActivityCommentMessage message)
 	{
 		buddyMessage = message;
+		if (message == null)
+		{
+			return;
+		}
 		message.setSenderCopyMessage(this);
 	}
 
 	public IntervalActivity getIntervalActivity()
 	{
 		return intervalActivity;
+	}
+
+	/**
+	 * Helper to explicitly break the cyclic relationship between a buddy message and a sender copy message, to allow deleting
+	 * them. Otherwise, the foreign key constraint does not allow deletion of either one.
+	 */
+	@Override
+	public void prepareForDelete()
+	{
+		super.prepareForDelete();
+		buddyMessage = null;
+		senderCopyMessage = null;
+	}
+
+	@Override
+	public Set<Message> getMessagesToBeCascadinglyDeleted()
+	{
+		// The clean-up is done from the "sender copy side", to prevent recursion.
+		if (buddyMessage != null)
+		{
+			// This is the sender copy, so do the work
+			Set<Message> messagesToBeCascadinglyDeleted = getMessagesToBeCascadinglyDeletedForJustThisObject();
+			messagesToBeCascadinglyDeleted.addAll(buddyMessage.getMessagesToBeCascadinglyDeletedForJustThisObject());
+			messagesToBeCascadinglyDeleted.add(buddyMessage);
+			return messagesToBeCascadinglyDeleted;
+		}
+		// Delegate to the sender copy and add this
+		Set<Message> messagesToBeCascadinglyDeleted = senderCopyMessage.getMessagesToBeCascadinglyDeleted();
+		messagesToBeCascadinglyDeleted.add(senderCopyMessage);
+		return messagesToBeCascadinglyDeleted;
+	}
+
+	private Set<Message> getMessagesToBeCascadinglyDeletedForJustThisObject()
+	{
+		return super.getMessagesToBeCascadinglyDeleted();
 	}
 
 	public static ActivityCommentMessage createThreadHeadInstance(UUID senderUserId, UUID senderUserAnonymizedId,
