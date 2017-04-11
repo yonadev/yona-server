@@ -6,10 +6,9 @@ export resources_source_folder=$2
 pushd resources
 echo "Copying base resources from GitHub"
 wget https://raw.githubusercontent.com/yonadev/yona-server/$github_version/resources/apple.mobileconfig.xml
+wget https://raw.githubusercontent.com/yonadev/yona-server/$github_version/resources/dummy.p12
 wget https://raw.githubusercontent.com/yonadev/yona-server/$github_version/resources/profile.ovpn
 wget https://raw.githubusercontent.com/yonadev/yona-server/$github_version/resources/rootcert.cer
-wget https://raw.githubusercontent.com/yonadev/yona-server/$github_version/resources/smime.crt
-wget https://raw.githubusercontent.com/yonadev/yona-server/$github_version/resources/smime.key
 
 echo "Copying node-specific resources from $resources_source_folder"
 cp -r $resources_source_folder/* .

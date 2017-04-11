@@ -7,10 +7,9 @@ package nu.yona.server.properties;
 public class AppleMobileConfigProperties
 {
 	private String appleMobileConfigFile;
-	private boolean isSigningEnabled;
-	private String signingCertificateFile;
-	private String signingKeyFile;
-	private String signingKeyPassword;
+	private String signingKeyStoreFile;
+	private String signingKeyStorePassword;
+	private String signingAlias;
 
 	public String getAppleMobileConfigFile()
 	{
@@ -22,44 +21,34 @@ public class AppleMobileConfigProperties
 		this.appleMobileConfigFile = appleMobileConfigFile;
 	}
 
-	public void setSigningEnabled(boolean isSigningEnabled)
+	public String getSigningKeyStoreFile()
 	{
-		this.isSigningEnabled = isSigningEnabled;
+		return signingKeyStoreFile;
 	}
 
-	public boolean isSigningEnabled()
+	public void setSigningKeyStoreFile(String signingKeyStoreFile)
 	{
-		return isSigningEnabled;
+		this.signingKeyStoreFile = signingKeyStoreFile;
 	}
 
-	public String getSigningCertificateFile()
+	public String getSigningKeyStorePassword()
 	{
-		return signingCertificateFile;
+		return signingKeyStorePassword;
 	}
 
-	public void setSigningCertificateFile(String signingCertificateFile)
+	public void setSigningKeyStorePassword(String signingKeyStorePassword)
 	{
-		this.signingCertificateFile = signingCertificateFile;
+		this.signingKeyStorePassword = signingKeyStorePassword;
 	}
 
-	public String getSigningKeyFile()
+	public String getSigningAlias()
 	{
-		return signingKeyFile;
+		return signingAlias;
 	}
 
-	public void setSigningKeyFile(String signingKeyFile)
+	public void setSigningAlias(String signingAlias)
 	{
-		this.signingKeyFile = signingKeyFile;
-	}
-
-	public String getSigningKeyPassword()
-	{
-		return signingKeyPassword;
-	}
-
-	public void setSigningKeyPassword(String signingKeyPassword)
-	{
-		this.signingKeyPassword = signingKeyPassword;
+		this.signingAlias = signingAlias;
 	}
 
 }
