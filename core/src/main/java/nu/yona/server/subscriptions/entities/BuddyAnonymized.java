@@ -140,4 +140,13 @@ public class BuddyAnonymized extends EntityWithUuid
 	{
 		return lastStatusChangeTime;
 	}
+
+	/**
+	 * @deprecated only for use by migration step.
+	 */
+	@Deprecated
+	public void clearLastStatusChangeTime()
+	{
+		lastStatusChangeTime = null;
+	}
 }

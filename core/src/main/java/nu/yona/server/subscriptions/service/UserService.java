@@ -116,7 +116,7 @@ public class UserService
 	private WhiteListedNumberService whiteListedNumberService;
 
 	@Autowired(required = false)
-	private MigratePrivateUserDataService migratePrivateUserDataService;
+	private PrivateUserDataMigrationService privateUserDataMigrationService;
 
 	@PostConstruct
 	private void onStart()
@@ -162,9 +162,9 @@ public class UserService
 	{
 		handleBuddyUsersRemovedWhileOffline(user);
 
-		if (!migratePrivateUserDataService.isUpToDate(user))
+		if (!privateUserDataMigrationService.isUpToDate(user))
 		{
-			migratePrivateUserDataService.upgrade(user);
+			privateUserDataMigrationService.upgrade(user);
 			return userRepository.save(user);
 		}
 

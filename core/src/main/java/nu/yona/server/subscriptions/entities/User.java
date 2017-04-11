@@ -24,7 +24,7 @@ import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
-import nu.yona.server.subscriptions.service.MigratePrivateUserDataService;
+import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
@@ -89,7 +89,7 @@ public class User extends EntityWithUuid
 		this.mobileNumber = mobileNumber;
 		this.setUserPrivate(userPrivate);
 		this.messageDestination = messageDestination;
-		this.privateDataMigrationVersion = MigratePrivateUserDataService.getCurrentVersion();
+		this.privateDataMigrationVersion = PrivateUserDataMigrationService.getCurrentVersion();
 	}
 
 	public LocalDateTime getCreationTime()

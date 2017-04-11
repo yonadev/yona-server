@@ -16,7 +16,7 @@ import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.migration.EncryptBuddyLastStatusChangeTime;
 
 @Service
-public class MigratePrivateUserDataService
+public class PrivateUserDataMigrationService
 {
 	public static abstract class MigrationStep
 	{
@@ -33,11 +33,11 @@ public class MigratePrivateUserDataService
 	@Transactional
 	void upgrade(User userEntity)
 	{
-		int version = userEntity.getPrivateDataMigrationVersion();
-		for (int newVersion = version + 1; newVersion <= getCurrentVersion(); newVersion++)
+		int originalVersion = userEntity.getPrivateDataMigrationVersion();
+		for (int fromVersion = originalVersion; fromVersion < getCurrentVersion(); fromVersion++)
 		{
-			getMigrationStepInstance(newVersion).upgrade(userEntity);
-			userEntity.setPrivateDataMigrationVersion(newVersion);
+			getMigrationStepInstance(fromVersion).upgrade(userEntity);
+			userEntity.setPrivateDataMigrationVersion(fromVersion + 1);
 		}
 	}
 
@@ -46,9 +46,9 @@ public class MigratePrivateUserDataService
 		return userEntity.getPrivateDataMigrationVersion() == getCurrentVersion();
 	}
 
-	private static MigrationStep getMigrationStepInstance(int toVersion)
+	private static MigrationStep getMigrationStepInstance(int fromVersion)
 	{
-		Class<? extends MigrationStep> migrationStep = migrationSteps.get(toVersion - 1);
+		Class<? extends MigrationStep> migrationStep = migrationSteps.get(fromVersion);
 		try
 		{
 			return migrationStep.newInstance();

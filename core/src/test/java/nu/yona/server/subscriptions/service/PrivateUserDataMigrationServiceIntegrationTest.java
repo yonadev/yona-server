@@ -41,16 +41,16 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserAnonymizedRepository;
 import nu.yona.server.subscriptions.entities.UserPrivate;
 import nu.yona.server.subscriptions.entities.UserRepository;
-import nu.yona.server.subscriptions.service.MigratePrivateUserDataService.MigrationStep;
+import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService.MigrationStep;
 import nu.yona.server.test.util.JUnitUtil;
 
 @Configuration
 @ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.subscriptions.service",
 		"nu.yona.server.properties" }, includeFilters = {
 				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserService", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.MigratePrivateUserDataService", type = FilterType.REGEX),
+				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.PrivateUserDataMigrationService", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX) })
-class MigratePrivateUserDataServiceIntegrationTestConfiguration
+class PrivateUserDataMigrationServiceIntegrationTestConfiguration
 {
 }
 
@@ -73,8 +73,8 @@ class MockMigrationStep2 extends MigrationStep
 }
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { MigratePrivateUserDataServiceIntegrationTestConfiguration.class })
-public class MigratePrivateUserDataServiceIntegrationTest
+@ContextConfiguration(classes = { PrivateUserDataMigrationServiceIntegrationTestConfiguration.class })
+public class PrivateUserDataMigrationServiceIntegrationTest
 {
 	@MockBean
 	private UserRepository mockUserRepository;
@@ -98,14 +98,14 @@ public class MigratePrivateUserDataServiceIntegrationTest
 	{
 		LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
 
-		originalMigrationSteps = MigratePrivateUserDataService.getMigrationSteps();
-		MigratePrivateUserDataService.setMigrationSteps(Arrays.asList(MockMigrationStep1.class, MockMigrationStep2.class));
+		originalMigrationSteps = PrivateUserDataMigrationService.getMigrationSteps();
+		PrivateUserDataMigrationService.setMigrationSteps(Arrays.asList(MockMigrationStep1.class, MockMigrationStep2.class));
 	}
 
 	@After
 	public void teardownForAll()
 	{
-		MigratePrivateUserDataService.setMigrationSteps(originalMigrationSteps);
+		PrivateUserDataMigrationService.setMigrationSteps(originalMigrationSteps);
 	}
 
 	@Before
@@ -153,7 +153,7 @@ public class MigratePrivateUserDataServiceIntegrationTest
 		verify(mockUserRepository, times(1)).save(userCaptor.capture());
 		assertThat(userCaptor.getValue().getFirstName(), equalTo("Johnfoobar"));
 		assertThat(userCaptor.getValue().getPrivateDataMigrationVersion(),
-				equalTo(MigratePrivateUserDataService.getCurrentVersion()));
+				equalTo(PrivateUserDataMigrationService.getCurrentVersion()));
 	}
 
 	@Test
@@ -170,6 +170,6 @@ public class MigratePrivateUserDataServiceIntegrationTest
 		verify(mockUserRepository, times(1)).save(userCaptor.capture());
 		assertThat(userCaptor.getValue().getFirstName(), equalTo("Johnfoobar"));
 		assertThat(userCaptor.getValue().getPrivateDataMigrationVersion(),
-				equalTo(MigratePrivateUserDataService.getCurrentVersion()));
+				equalTo(PrivateUserDataMigrationService.getCurrentVersion()));
 	}
 }
