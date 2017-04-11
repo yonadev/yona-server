@@ -17,6 +17,7 @@ public class MimeTypeConfigurer implements EmbeddedServletContainerCustomizer
 	{
 		MimeMappings mappings = new MimeMappings(MimeMappings.DEFAULT);
 		mappings.add("cer", "application/pkix-cert"); // see resources/rootcert.cer
+		mappings.add("yaml", "text/yaml"); // Swagger spec
 		container.setMimeMappings(mappings);
 	}
 }
