@@ -42,4 +42,11 @@ public class AnalysisException extends YonaException
 		return new AnalysisException("error.analysis.invalid.app.activity.data.ends.in.future", userAnonymizedId, application,
 				endTime);
 	}
+
+	public static AnalysisException dayActivityNotFound(UUID userAnonymizedId, UUID goalId, ZonedDateTime activityStartTime,
+			ZonedDateTime registeredActivityStartTime, ZonedDateTime registeredActivityEndTime)
+	{
+		return new AnalysisException("error.analysis.cannot.find.day.activity", userAnonymizedId, goalId, activityStartTime,
+				registeredActivityStartTime, registeredActivityEndTime);
+	}
 }

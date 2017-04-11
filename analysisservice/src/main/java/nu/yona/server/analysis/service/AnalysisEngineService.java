@@ -297,6 +297,11 @@ public class AnalysisEngineService
 			GoalDto matchingGoal, ActivityDto lastRegisteredActivity)
 	{
 		DayActivity dayActivity = findExistingDayActivity(payload, matchingGoal.getGoalId());
+		if (dayActivity == null)
+		{
+			throw AnalysisException.dayActivityNotFound(payload.userAnonymized.getId(), matchingGoal.getGoalId(),
+					payload.startTime, lastRegisteredActivity.getStartTime(), lastRegisteredActivity.getEndTime());
+		}
 		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
 		Activity activity = dayActivity.getLastActivity();
 		activity.setEndTime(payload.endTime.toLocalDateTime());
@@ -314,7 +319,9 @@ public class AnalysisEngineService
 	private boolean shouldUpdateCache(ActivityDto lastRegisteredActivity, Activity newOrUpdatedActivity)
 	{
 		if (lastRegisteredActivity == null)
+		{
 			return true;
+		}
 
 		// do not update the cache if the new or updated activity occurs earlier than the last registered activity
 		return !newOrUpdatedActivity.getEndTime().atZone(newOrUpdatedActivity.getTimeZone())
