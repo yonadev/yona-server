@@ -50,6 +50,8 @@ public abstract class Goal extends EntityWithUuid implements Serializable
 
 	private static final long serialVersionUID = -3209852229834825712L;
 
+	protected static final LocalDateTime mandatoryGoalPresetCreationTime = LocalDateTime.of(2017, 1, 1, 12, 0);
+
 	@ManyToOne
 	@JoinColumn(name = "user_anonymized_id")
 	private UserAnonymized userAnonymized;
@@ -82,8 +84,17 @@ public abstract class Goal extends EntityWithUuid implements Serializable
 		{
 			throw new IllegalArgumentException("activityCategory cannot be null");
 		}
-		this.creationTime = creationTime;
+
 		this.activityCategory = activityCategory;
+
+		if (this.isMandatory())
+		{
+			this.creationTime = mandatoryGoalPresetCreationTime;
+		}
+		else
+		{
+			this.creationTime = creationTime;
+		}
 	}
 
 	protected Goal(UUID id, Goal originalGoal, LocalDateTime endTime)
@@ -192,9 +203,10 @@ public abstract class Goal extends EntityWithUuid implements Serializable
 
 	public abstract Goal cloneAsHistoryItem(LocalDateTime endTime);
 
-	public abstract boolean isMandatory();
-
-	public abstract boolean isNoGoGoal();
+	public boolean isMandatory()
+	{
+		return getActivityCategory().isMandatoryNoGo();
+	}
 
 	public abstract boolean isGoalAccomplished(DayActivity dayActivity);
 

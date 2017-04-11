@@ -55,18 +55,6 @@ public class BudgetGoal extends Goal
 	}
 
 	@Override
-	public boolean isMandatory()
-	{
-		return isNoGoGoal() && getActivityCategory().isMandatoryNoGo();
-	}
-
-	@Override
-	public boolean isNoGoGoal()
-	{
-		return maxDurationMinutes <= 0;
-	}
-
-	@Override
 	public boolean isGoalAccomplished(DayActivity dayActivity)
 	{
 		return dayActivity.getTotalActivityDurationMinutes() <= this.getMaxDurationMinutes();

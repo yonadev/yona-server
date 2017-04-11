@@ -6,10 +6,9 @@
  *******************************************************************************/
 package nu.yona.server.test
 
-import groovy.json.*
-
 import java.time.ZonedDateTime
 
+import groovy.json.*
 import nu.yona.server.YonaServer
 
 abstract class Goal
