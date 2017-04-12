@@ -80,10 +80,6 @@ public class ActivityCommentMessage extends BuddyMessage
 	public void setBuddyMessage(ActivityCommentMessage message)
 	{
 		buddyMessage = message;
-		if (message == null)
-		{
-			return;
-		}
 		message.setSenderCopyMessage(this);
 	}
 
