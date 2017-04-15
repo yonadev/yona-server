@@ -12,6 +12,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -29,6 +32,8 @@ import nu.yona.server.util.TimeUtil;
 @JsonRootName("buddy")
 public class BuddyDto
 {
+	private static final Logger logger = LoggerFactory.getLogger(BuddyDto.class);
+
 	public static final String USER_REL_NAME = "user";
 	public static final String GOALS_REL_NAME = "goals";
 
@@ -146,6 +151,11 @@ public class BuddyDto
 	@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)
 	public ZonedDateTime getLastStatusChangeTimeAsZonedDateTime()
 	{
+		if (lastStatusChangeTime == null)
+		{
+			logger.error("lastStatusChangeTime == null, returning 'now'. Buddy ID: {}", getId());
+			return TimeUtil.toUtcZonedDateTime(TimeUtil.utcNow());
+		}
 		return TimeUtil.toUtcZonedDateTime(lastStatusChangeTime);
 	}
 
