@@ -5,10 +5,13 @@
 package nu.yona.server.subscriptions.service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +26,7 @@ import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.messaging.service.SenderInfo;
 import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
+import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 
 @JsonRootName("buddyDisconnectMessage")
@@ -84,6 +88,7 @@ public class BuddyDisconnectMessageDto extends BuddyMessageEmbeddedUserDto
 	@Component
 	private static class Manager extends BuddyMessageDto.Manager
 	{
+		private static final Logger logger = LoggerFactory.getLogger(Manager.class);
 		@Autowired
 		private TheDtoManager theDtoFactory;
 
@@ -122,6 +127,13 @@ public class BuddyDisconnectMessageDto extends BuddyMessageEmbeddedUserDto
 			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getId(), messageEntity.getSenderUserId());
 
 			messageEntity = updateMessageStatusAsProcessed(messageEntity);
+
+			Optional<User> senderUser = messageEntity.getSenderUser();
+			String mobileNumber = senderUser.map(u -> u.getMobileNumber()).orElse("already deleted");
+			String id = senderUser.map(u -> u.getId().toString()).orElse("already deleted");
+			logger.info(
+					"User with mobile number '{}' and ID '{}' processed buddy disconnect message from user with mobile number '{}' and ID '{}'",
+					actingUser.getMobileNumber(), actingUser.getId(), mobileNumber, id);
 
 			return MessageActionDto.createInstanceActionDone(theDtoFactory.createInstance(actingUser, messageEntity));
 		}

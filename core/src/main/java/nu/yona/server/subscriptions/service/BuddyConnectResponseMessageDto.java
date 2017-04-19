@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -26,6 +27,7 @@ import nu.yona.server.messaging.service.MessageService.TheDtoManager;
 import nu.yona.server.messaging.service.SenderInfo;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
+import nu.yona.server.subscriptions.entities.User;
 
 @JsonRootName("buddyConnectResponseMessage")
 public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
@@ -139,9 +141,9 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 
 			connectResponseMessageEntity = updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
-			String mobileNumber = connectResponseMessageEntity.getSenderUser().map(u -> u.getMobileNumber())
-					.orElse("already deleted");
-			String id = connectResponseMessageEntity.getSenderUser().map(u -> u.getId().toString()).orElse("already deleted");
+			Optional<User> senderUser = connectResponseMessageEntity.getSenderUser();
+			String mobileNumber = senderUser.map(u -> u.getMobileNumber()).orElse("already deleted");
+			String id = senderUser.map(u -> u.getId().toString()).orElse("already deleted");
 			logger.info(
 					"User with mobile number '{}' and ID '{}' processed buddy connect response from user with mobile number '{}' and ID '{}'",
 					actingUser.getMobileNumber(), actingUser.getId(), mobileNumber, id);

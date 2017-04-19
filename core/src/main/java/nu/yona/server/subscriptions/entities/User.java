@@ -239,11 +239,6 @@ public class User extends EntityWithUuid
 		getUserPrivate().removeBuddy(buddy);
 	}
 
-	public void removeBuddiesFromUser(UUID fromUserId)
-	{
-		getUserPrivate().removeBuddyForUserId(fromUserId);
-	}
-
 	public UUID getNamedMessageSourceId()
 	{
 		return getUserPrivate().getNamedMessageSourceId();

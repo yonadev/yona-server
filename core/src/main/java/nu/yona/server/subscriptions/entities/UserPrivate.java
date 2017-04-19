@@ -127,11 +127,6 @@ public class UserPrivate extends EntityWithUuid
 		buddies.remove(buddy);
 	}
 
-	public void removeBuddyForUserId(UUID userId)
-	{
-		buddies.removeIf(buddy -> buddy.getUserId().equals(userId));
-	}
-
 	public UUID getAnonymousMessageSourceId()
 	{
 		return anonymousMessageSourceId;

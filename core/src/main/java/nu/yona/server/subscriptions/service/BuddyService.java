@@ -364,9 +364,8 @@ public class BuddyService
 	public void removeBuddyAfterBuddyRemovedConnection(UUID idOfRequestingUser, UUID relatedUserId)
 	{
 		User user = userService.getValidatedUserbyId(idOfRequestingUser);
-
-		user.removeBuddiesFromUser(relatedUserId);
-		User.getRepository().save(user);
+		user.getBuddies().stream().filter(b -> b.getUserId().equals(relatedUserId)).findFirst()
+				.ifPresent(b -> removeBuddy(user, b));
 	}
 
 	public void setBuddyAcceptedWithSecretUserInfo(UUID buddyId, UUID userAnonymizedId, String nickname)
