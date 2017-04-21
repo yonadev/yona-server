@@ -14,4 +14,6 @@ public interface UserRepository extends JpaRepository<User, UUID>
 	User findByMobileNumber(String mobileNumber);
 
 	int countByAppLastOpenedDateBetween(LocalDate startDate, LocalDate endDate);
+
+	int countByAppLastOpenedDateIsNull();
 }

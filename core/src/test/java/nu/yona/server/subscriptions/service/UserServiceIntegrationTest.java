@@ -122,7 +122,7 @@ public class UserServiceIntegrationTest
 
 		service.postOpenAppEvent(john.getId());
 
-		assertThat(john.getAppLastOpenedDate(), equalTo(TimeUtil.utcNow().toLocalDate()));
+		assertThat(john.getAppLastOpenedDate().get(), equalTo(TimeUtil.utcNow().toLocalDate()));
 		verify(mockUserRepository, times(1)).save(any(User.class));
 	}
 
