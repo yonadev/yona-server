@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
@@ -10,6 +10,8 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,7 +111,7 @@ public class PinResetRequestController
 	}
 
 	@ExceptionHandler(ConfirmationException.class)
-	private ResponseEntity<ErrorResponseDto> handleException(ConfirmationException e)
+	private ResponseEntity<ErrorResponseDto> handleException(ConfirmationException e, HttpServletRequest request)
 	{
 		if (e.getRemainingAttempts() >= 0)
 		{
@@ -118,7 +120,7 @@ public class PinResetRequestController
 			logger.error("Pin reset confirmation failed", e);
 			return new ResponseEntity<>(responseMessage, e.getStatusCode());
 		}
-		return globalExceptionMapping.handleYonaException(e);
+		return globalExceptionMapping.handleYonaException(e, request);
 	}
 
 	public void addLinks(UserResource userResource)

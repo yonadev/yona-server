@@ -4,8 +4,12 @@
  *******************************************************************************/
 package nu.yona.server.rest;
 
+import java.text.MessageFormat;
 import java.util.Locale;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -21,8 +25,6 @@ import nu.yona.server.exceptions.YonaException;
 
 /**
  * This class contains the mapping for the different exceptions and how they should be mapped to an http response
- * 
- * @author pgussow
  */
 @ControllerAdvice
 public class GlobalExceptionMapping
@@ -39,9 +41,9 @@ public class GlobalExceptionMapping
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ResponseBody
-	public ErrorResponseDto handleOtherException(Exception exception)
+	public ErrorResponseDto handleOtherException(Exception exception, HttpServletRequest request)
 	{
-		logUnhandledException("Request completed with unknown exception: ", exception);
+		logUnhandledException("Request {0} completed with unknown exception: {1}", buildRequestInfo(request), exception);
 
 		return new ErrorResponseDto(null, exception.getMessage());
 	}
@@ -54,26 +56,33 @@ public class GlobalExceptionMapping
 	 * @return The response object to return.
 	 */
 	@ExceptionHandler(YonaException.class)
-	public ResponseEntity<ErrorResponseDto> handleYonaException(YonaException exception)
+	public ResponseEntity<ErrorResponseDto> handleYonaException(YonaException exception, HttpServletRequest request)
 	{
-		logUnhandledException("Request completed with Yona exception: ", exception);
+		logUnhandledException("Request {0} completed with Yona exception: {1}", buildRequestInfo(request), exception);
 
 		ErrorResponseDto responseMessage = new ErrorResponseDto(exception.getMessageId(), exception.getMessage());
 
-		return new ResponseEntity<ErrorResponseDto>(responseMessage, exception.getStatusCode());
+		return new ResponseEntity<>(responseMessage, exception.getStatusCode());
 	}
 
-	private void logUnhandledException(String message, Exception exception)
+	private void logUnhandledException(String message, String requestInfo, Exception exception)
 	{
 		Locale currentLocale = LocaleContextHolder.getLocale();
 		try
 		{
 			LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
-			logger.error(message + exception.getMessage(), exception);
+			logger.error(MessageFormat.format(message, requestInfo, exception.getMessage()), exception);
 		}
 		finally
 		{
 			LocaleContextHolder.setLocale(currentLocale);
 		}
+	}
+
+	public static String buildRequestInfo(HttpServletRequest request)
+	{
+		String queryString = request.getQueryString();
+		String url = StringUtils.isBlank(queryString) ? request.getRequestURI() : request.getRequestURI() + "?" + queryString;
+		return MessageFormat.format("{0} on URL {1}", request.getMethod(), url);
 	}
 }

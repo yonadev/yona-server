@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.rest;
 
@@ -43,17 +40,7 @@ public class ErrorLoggingFilter implements Filter
 			return;
 		}
 
-		String queryString = request.getQueryString();
-		if (queryString == null)
-		{
-			logger.warn("Status {} returned from {} on URL {}", response.getStatus(), request.getMethod(),
-					request.getRequestURI());
-		}
-		else
-		{
-			logger.warn("Status {} returned from {} on URL {} with query string {}", response.getStatus(), request.getMethod(),
-					request.getRequestURI(), queryString);
-		}
+		logger.warn("Status {} returned from {}", response.getStatus(), GlobalExceptionMapping.buildRequestInfo(request));
 	}
 
 	@Override
