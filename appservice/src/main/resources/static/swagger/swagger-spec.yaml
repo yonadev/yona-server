@@ -3,9 +3,6 @@ info:
   title: Yona app service API
   description: The API of the service backing the Yona app
   version: 1.0.0
-schemes:
-  - https
-  - http
 produces:
   - application/json
 parameters:
