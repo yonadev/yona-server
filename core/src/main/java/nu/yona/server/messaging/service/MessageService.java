@@ -34,6 +34,7 @@ import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.SystemMessage;
+import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDto;
@@ -46,6 +47,9 @@ public class MessageService
 
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private BuddyService buddyService;
 
 	@Autowired
 	private UserAnonymizedService userAnonymizedService;
@@ -309,7 +313,7 @@ public class MessageService
 	@Transactional
 	public void broadcastMessageToBuddies(UserAnonymizedDto userAnonymized, Supplier<Message> messageSupplier)
 	{
-		userAnonymized.getBuddyDestinations().stream()
+		buddyService.getBuddyDestinations(userAnonymized)
 				.forEach(destination -> sendMessageAndFlushToDatabase(messageSupplier.get(), destination));
 	}
 
