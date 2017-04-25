@@ -83,7 +83,6 @@ public class User extends EntityWithUuid
 		super(id);
 		this.initializationVector = initializationVector;
 		this.creationTime = TimeUtil.utcNow();
-		this.appLastOpenedDate = this.creationTime.toLocalDate();
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.mobileNumber = mobileNumber;
@@ -97,9 +96,9 @@ public class User extends EntityWithUuid
 		return this.creationTime;
 	}
 
-	public LocalDate getAppLastOpenedDate()
+	public Optional<LocalDate> getAppLastOpenedDate()
 	{
-		return appLastOpenedDate;
+		return Optional.ofNullable(appLastOpenedDate);
 	}
 
 	public void setAppLastOpenedDate(LocalDate appLastOpenedDate)

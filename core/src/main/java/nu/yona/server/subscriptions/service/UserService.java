@@ -239,6 +239,11 @@ public class UserService
 		User userEntity = new User(UUID.randomUUID(), initializationVector, user.getFirstName(), user.getLastName(),
 				user.getMobileNumber(), userPrivate, namedMessageSource.getDestination());
 		addMandatoryGoals(userEntity);
+		if (signUp == UserSignUp.FREE)
+		{
+			// The user signs up through the app, so they apparently opened it now
+			userEntity.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
+		}
 		return userEntity;
 	}
 
@@ -381,7 +386,8 @@ public class UserService
 	{
 		User userEntity = getUserEntityById(userId);
 		LocalDate now = TimeUtil.utcNow().toLocalDate();
-		if (userEntity.getAppLastOpenedDate().isBefore(now))
+		Optional<LocalDate> appLastOpenedDate = userEntity.getAppLastOpenedDate();
+		if (!appLastOpenedDate.isPresent() || appLastOpenedDate.get().isBefore(now))
 		{
 			userEntity.setAppLastOpenedDate(now);
 			userRepository.save(userEntity);
@@ -715,6 +721,7 @@ public class UserService
 		messageSourceRepository.save(retrievedEntitySet.anonymousMessageSource.touch());
 		userResource.updateUser(retrievedEntitySet.userEntity);
 		retrievedEntitySet.userEntity.unsetIsCreatedOnBuddyRequest();
+		retrievedEntitySet.userEntity.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
 		retrievedEntitySet.userEntity.touch();
 		return userRepository.save(retrievedEntitySet.userEntity);
 	}

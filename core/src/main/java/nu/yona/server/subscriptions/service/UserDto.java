@@ -37,7 +37,7 @@ public class UserDto
 
 	private UUID id;
 	private final Optional<LocalDateTime> creationTime;
-	private final LocalDate appLastOpenedDate;
+	private final Optional<LocalDate> appLastOpenedDate;
 	private final String firstName;
 	private final String lastName;
 	private final String emailAddress;
@@ -48,7 +48,7 @@ public class UserDto
 	/*
 	 * Only intended for test purposes.
 	 */
-	private UserDto(UUID id, LocalDateTime creationTime, LocalDate appLastOpenedDate,
+	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate,
 			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String yonaPassword,
 			String nickname, String mobileNumber, boolean isConfirmed, UUID namedMessageSourceId, UUID namedMessageDestinationId,
 			UUID anonymousMessageSourceId, Set<GoalDto> goals, Set<UUID> buddyIds,
@@ -60,7 +60,7 @@ public class UserDto
 						userAnonymizedId, vpnProfile));
 	}
 
-	private UserDto(UUID id, LocalDateTime creationTime, LocalDate appLastOpenedDate, String firstName, String lastName,
+	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate, String firstName, String lastName,
 			String mobileNumber, boolean isConfirmed)
 	{
 		this(id, Optional.of(creationTime), appLastOpenedDate, firstName, lastName, null, mobileNumber, isConfirmed, null);
@@ -75,8 +75,9 @@ public class UserDto
 				privateData);
 	}
 
-	private UserDto(UUID id, Optional<LocalDateTime> creationTime, LocalDate appLastOpenedDate, String firstName, String lastName,
-			String emailAddress, String mobileNumber, boolean isMobileNumberConfirmed, UserPrivateDto privateData)
+	private UserDto(UUID id, Optional<LocalDateTime> creationTime, Optional<LocalDate> appLastOpenedDate, String firstName,
+			String lastName, String emailAddress, String mobileNumber, boolean isMobileNumberConfirmed,
+			UserPrivateDto privateData)
 	{
 		this.id = id;
 		this.appLastOpenedDate = appLastOpenedDate;
@@ -115,7 +116,8 @@ public class UserDto
 	}
 
 	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
-	public LocalDate getAppLastOpenedDate()
+	@JsonInclude(Include.NON_EMPTY)
+	public Optional<LocalDate> getAppLastOpenedDate()
 	{
 		return appLastOpenedDate;
 	}

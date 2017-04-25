@@ -62,7 +62,8 @@ public class DashboardController
 
 	private List<Integer> calculateAppOpenedCounts(List<HistoryInterval> intervals)
 	{
-		return calculateCounts(intervals, (i) -> userRepository.countByAppLastOpenedDateBetween(i.end, i.start), 0);
+		return calculateCounts(intervals, (i) -> userRepository.countByAppLastOpenedDateBetween(i.end, i.start),
+				userRepository.countByAppLastOpenedDateIsNull());
 	}
 
 	private List<Integer> calculateLastMonitoredActivityCounts(List<HistoryInterval> intervals)

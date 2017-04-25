@@ -145,7 +145,7 @@ class AppService extends Service
 		assertUserWithPrivateData(response.responseData)
 	}
 
-	def assertUserGetResponseDetailsWithPrivateDataIgnoreNickname(def response)
+	def assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest(def response)
 	{
 		assertResponseStatusSuccess(response)
 		assertUserWithPrivateData(response.responseData, true)
@@ -163,13 +163,13 @@ class AppService extends Service
 		assertVpnProfile(user)
 	}
 
-	def assertUserWithPrivateData(user, boolean ignoreNickname = false)
+	def assertUserWithPrivateData(user, boolean userCreatedOnBuddyRequest = false)
 	{
-		assertPublicUserData(user)
-		assertPrivateUserData(user, ignoreNickname)
+		assertPublicUserData(user, userCreatedOnBuddyRequest)
+		assertPrivateUserData(user, userCreatedOnBuddyRequest)
 	}
 
-	def assertPublicUserData(def user)
+	def assertPublicUserData(def user, boolean userCreatedOnBuddyRequest)
 	{
 		if (user instanceof User)
 		{
@@ -180,15 +180,15 @@ class AppService extends Service
 			assert user._links.self.href != null
 		}
 		assert user.creationTime != null
-		assert user.appLastOpenedDate != null
+		assert userCreatedOnBuddyRequest || user.appLastOpenedDate != null
 		assert user.firstName != null
 		assert user.lastName != null
 		assert user.mobileNumber ==~/^\+[0-9]+$/
 	}
 
-	def assertPrivateUserData(def user, boolean ignoreNickname)
+	def assertPrivateUserData(def user, boolean userCreatedOnBuddyRequest)
 	{
-		assert ignoreNickname || user.nickname != null
+		assert userCreatedOnBuddyRequest || user.nickname != null
 		boolean mobileNumberToBeConfirmed
 
 		/*
@@ -244,7 +244,7 @@ class AppService extends Service
 
 	def assertUserWithoutPrivateData(def user)
 	{
-		assertPublicUserData(user)
+		assertPublicUserData(user, false)
 		assert user.nickname == null
 		assert user.goals == null
 		assert user.vpnProfile == null

@@ -2,13 +2,13 @@
 <html>
 <head>
 <title>Dashboard</title>
-<script src="https://code.jquery.com/jquery-3.1.1.min.js"
+<script src="../third-party/jquery-3.1.1.min.js"
 	type="text/javascript"></script>
 <script
-	src="http://elycharts.com/sites/elycharts.com/repo/lib/raphael.js"
+	src="../third-party/raphael.min.js"
 	type="text/javascript"></script>
 <script
-	src="http://elycharts.com/sites/elycharts.com/repo/dist/elycharts.min.js"
+	src="../third-party/elycharts.min.js"
 	type="text/javascript"></script>
 <script type="text/javascript" th:inline="javascript">
 	$(function() {
@@ -37,7 +37,7 @@
 										"[[${lastMonitoredActivityCounts[5]}]] users" ],
 								serieLongBack : [
 										"[[${appOpenedCounts[6]}]] users",
-										"Long back: [[${lastMonitoredActivityCounts[6]}]] users" ],
+										"[[${lastMonitoredActivityCounts[6]}]] users" ],
 								serieNever : [
 										"[[${appOpenedCounts[7]}]] users",
 										"[[${lastMonitoredActivityCounts[7]}]] users" ]
