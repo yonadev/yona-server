@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -19,7 +20,6 @@ import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.messaging.service.MessageDestinationDto;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
-import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 public class UserAnonymizedDto implements Serializable
@@ -83,12 +83,9 @@ public class UserAnonymizedDto implements Serializable
 		return anonymousMessageDestination;
 	}
 
-	public Set<MessageDestinationDto> getBuddyDestinations()
+	public Set<UUID> getBuddyAnonymizedIds()
 	{
-		return buddyAnonymizedIds.stream().map(id -> BuddyAnonymized.getRepository().findOne(id))
-				.filter(ba -> ba.getSendingStatus() == Status.ACCEPTED)
-				.map(ba -> MessageDestinationDto.createInstance(ba.getUserAnonymized().getAnonymousDestination()))
-				.collect(Collectors.toSet());
+		return Collections.unmodifiableSet(buddyAnonymizedIds);
 	}
 
 	public Optional<BuddyAnonymized> getBuddyAnonymized(UUID fromUserAnonymizedId)
