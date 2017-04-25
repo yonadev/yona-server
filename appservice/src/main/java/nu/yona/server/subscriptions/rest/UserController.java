@@ -62,6 +62,7 @@ import nu.yona.server.analysis.rest.UserActivityController;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.exceptions.ConfirmationException;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.goals.service.GoalDto;
@@ -317,15 +318,27 @@ public class UserController
 	private HttpEntity<UserResource> addUser(Optional<String> password, Optional<String> overwriteUserConfirmationCode,
 			UserDto user)
 	{
-		if (password.isPresent())
-		{
-			logger.warn("Creating user with app-provided password");
-		}
+		checkAppProvidedPassword(password);
 		SecretKey secretKey = password.map(p -> CryptoSession.getSecretKey(password.get()))
 				.orElse(SecretKeyUtil.generateRandomSecretKey());
 		try (CryptoSession cryptoSession = CryptoSession.start(secretKey))
 		{
 			return createResponse(userService.addUser(user, overwriteUserConfirmationCode), true, HttpStatus.CREATED);
+		}
+	}
+
+	private void checkAppProvidedPassword(Optional<String> password)
+	{
+		if (password.isPresent())
+		{
+			if (yonaProperties.getSecurity().isAppProvidedPasswordEnabled())
+			{
+				logger.warn("Creating user with app-provided password");
+			}
+			else
+			{
+				throw InvalidDataException.appProvidedPasswordNotSupported();
+			}
 		}
 	}
 
