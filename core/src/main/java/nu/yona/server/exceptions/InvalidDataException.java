@@ -90,4 +90,9 @@ public class InvalidDataException extends YonaException
 	{
 		return new InvalidDataException("error.user.goals.not.supported");
 	}
+
+	public static InvalidDataException appProvidedPasswordNotSupported()
+	{
+		return new InvalidDataException("error.user.app.provided.password.not.supported");
+	}
 }

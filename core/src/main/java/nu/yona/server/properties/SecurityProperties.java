@@ -16,6 +16,7 @@ public class SecurityProperties
 	private int passwordLength = 32;
 	private Duration dosProtectionWindow = Duration.ofMinutes(5);
 	private boolean isDosProtectionEnabled = false;
+	private boolean isAppProvidedPasswordEnabled = false;
 	private int maxCreateUserAttemptsPerTimeWindow = 1;
 	private int maxUpdateUserAttemptsPerTimeWindow = 1;
 	private String sslRootCertFile;
@@ -154,5 +155,15 @@ public class SecurityProperties
 	public void setOvpnProfileFile(String ovpnProfileFile)
 	{
 		this.ovpnProfileFile = ovpnProfileFile;
+	}
+
+	public void setAppProvidedPasswordEnabled(boolean isAppProvidedPasswordEnabled)
+	{
+		this.isAppProvidedPasswordEnabled = isAppProvidedPasswordEnabled;
+	}
+
+	public boolean isAppProvidedPasswordEnabled()
+	{
+		return isAppProvidedPasswordEnabled;
 	}
 }
