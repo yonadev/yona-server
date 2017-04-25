@@ -284,7 +284,7 @@ public class UserController
 	}
 
 	@ExceptionHandler(ConfirmationException.class)
-	private ResponseEntity<ErrorResponseDto> handleException(ConfirmationException e)
+	private ResponseEntity<ErrorResponseDto> handleException(ConfirmationException e, HttpServletRequest request)
 	{
 		if (e.getRemainingAttempts() >= 0)
 		{
@@ -293,7 +293,7 @@ public class UserController
 			logger.error("Confirmation failed", e);
 			return new ResponseEntity<>(responseMessage, e.getStatusCode());
 		}
-		return globalExceptionMapping.handleYonaException(e);
+		return globalExceptionMapping.handleYonaException(e, request);
 	}
 
 	static ControllerLinkBuilder getAddUserLinkBuilder()
