@@ -12,7 +12,9 @@ pipeline {
 				sh './gradlew -PdockerHubUserName=$DOCKER_HUB_USR -PdockerHubPassword="$DOCKER_HUB_PSW" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage'
 				sh('git tag -a build-$BUILD_NUMBER -m "Jenkins"')
 				sh('git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/yona-server.git --tags')
-				env.BUILD_NUMBER_TO_DEPLOY = env.BUILD_NUMBER
+				script {
+					env.BUILD_NUMBER_TO_DEPLOY = env.BUILD_NUMBER
+				}
 			}
 			post {
 				always {
@@ -60,6 +62,7 @@ pipeline {
 				environment name: 'DEPLOY_TO_MOB_TEST', value: 'yes'
 			}
 			steps {
+				sh('export')
 				sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/refresh-build.sh'
 				sh 'chmod +x refresh-build.sh'
 				sh 'wget -O copy-resources.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/copy-resources.sh'
