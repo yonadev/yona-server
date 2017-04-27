@@ -62,7 +62,6 @@ pipeline {
 				environment name: 'DEPLOY_TO_MOB_TEST', value: 'yes'
 			}
 			steps {
-				sh('export')
 				sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/refresh-build.sh'
 				sh 'chmod +x refresh-build.sh'
 				sh 'wget -O copy-resources.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/copy-resources.sh'
