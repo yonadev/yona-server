@@ -394,6 +394,25 @@ public class BuddyService
 		return buddyIds.stream().map(id -> getBuddy(id)).collect(Collectors.toSet());
 	}
 
+	public Set<MessageDestinationDto> getBuddyDestinations(UserAnonymizedDto user)
+	{
+		Set<BuddyAnonymized> buddiesAnonymized = user.getBuddyAnonymizedIds().stream()
+				.map(id -> BuddyAnonymized.getRepository().findOne(id)).collect(Collectors.toSet());
+		return getBuddyDestinations(buddiesAnonymized).stream().map(d -> MessageDestinationDto.createInstance(d))
+				.collect(Collectors.toSet());
+	}
+
+	public Set<MessageDestination> getBuddyDestinations(UserAnonymized user)
+	{
+		return getBuddyDestinations(user.getBuddiesAnonymized());
+	}
+
+	private Set<MessageDestination> getBuddyDestinations(Set<BuddyAnonymized> buddiesAnonymized)
+	{
+		return buddiesAnonymized.stream().filter(ba -> ba.getSendingStatus() == Status.ACCEPTED)
+				.map(ba -> ba.getUserAnonymized().getAnonymousDestination()).collect(Collectors.toSet());
+	}
+
 	private Set<Buddy> getBuddyEntitiesOfUser(UUID forUserId)
 	{
 		UserDto user = userService.getPrivateUser(forUserId);

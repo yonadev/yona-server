@@ -21,6 +21,7 @@ import nu.yona.server.goals.entities.GoalChangeMessage;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDto;
@@ -32,6 +33,9 @@ public class GoalService
 {
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private BuddyService buddyService;
 
 	@Autowired
 	private UserAnonymizedService userAnonymizedService;
@@ -225,8 +229,7 @@ public class GoalService
 	private void deleteGoalConflictMessagesForGoal(UserAnonymized userAnonymizedEntity, Goal goalEntity)
 	{
 		userAnonymizedEntity.getAnonymousDestination().removeGoalConflictMessages(goalEntity);
-		userAnonymizedEntity.getBuddiesAnonymized()
-				.forEach(ba -> ba.getUserAnonymized().getAnonymousDestination().removeGoalConflictMessages(goalEntity));
+		buddyService.getBuddyDestinations(userAnonymizedEntity).forEach(d -> d.removeGoalConflictMessages(goalEntity));
 	}
 
 	private void broadcastGoalChangeMessage(User userEntity, ActivityCategory activityCategoryOfChangedGoal,

@@ -780,6 +780,41 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Removing goal is possible even after buddy disconnected'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		ZonedDateTime now = YonaServer.now
+		def postToAeResponse = analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
+		postToAeResponse.status == 200
+		def getMessagesRichardBeforeGoalDeleteResponse = appService.getMessages(richard)
+		getMessagesRichardBeforeGoalDeleteResponse.status == 200
+		getMessagesRichardBeforeGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage" }.size() == 1
+		def getMessagesBobBeforeGoalDeleteResponse = appService.getMessages(bob)
+		getMessagesBobBeforeGoalDeleteResponse.status == 200
+		getMessagesBobBeforeGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}.size() == 1
+
+		assert appService.removeBuddy(bob, bob.buddies[0], "Richard, as you know our ways parted, so I'll remove you as buddy.").status == 200
+
+		Goal newsGoal = richard.findActiveGoal(NEWS_ACT_CAT_URL)
+
+		when:
+		def response = appService.removeGoal(richard, newsGoal, "Don't want to monitor my social time anymore")
+
+		then:
+		response.status == 200
+
+		def getMessagesRichardAfterGoalDeleteResponse = appService.getMessages(richard)
+		getMessagesRichardAfterGoalDeleteResponse.status == 200
+		getMessagesRichardAfterGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage" }.size() == 0
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
 	def 'Validation: Try to remove mandatory goal'()
 	{
 		given:
