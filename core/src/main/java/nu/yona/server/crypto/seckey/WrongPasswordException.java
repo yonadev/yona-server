@@ -5,6 +5,7 @@
 package nu.yona.server.crypto.seckey;
 
 import nu.yona.server.exceptions.YonaException;
+import nu.yona.server.rest.Constants;
 
 public class WrongPasswordException extends YonaException
 {

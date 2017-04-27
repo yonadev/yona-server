@@ -54,7 +54,7 @@ public class DashboardController
 	private List<HistoryInterval> determineIntervals(List<Integer> intervalEndOffsets)
 	{
 		HistoryInterval.setNextStart(LocalDate.now());
-		List<HistoryInterval> intervals = intervalEndOffsets.stream().map(ieo -> HistoryInterval.nextInstance(ieo))
+		List<HistoryInterval> intervals = intervalEndOffsets.stream().map(HistoryInterval::nextInstance)
 				.collect(Collectors.toList());
 		intervals.add(HistoryInterval.nextInstance(LONG_AGO));
 		return intervals;
@@ -62,13 +62,13 @@ public class DashboardController
 
 	private List<Integer> calculateAppOpenedCounts(List<HistoryInterval> intervals)
 	{
-		return calculateCounts(intervals, (i) -> userRepository.countByAppLastOpenedDateBetween(i.end, i.start),
+		return calculateCounts(intervals, i -> userRepository.countByAppLastOpenedDateBetween(i.end, i.start),
 				userRepository.countByAppLastOpenedDateIsNull());
 	}
 
 	private List<Integer> calculateLastMonitoredActivityCounts(List<HistoryInterval> intervals)
 	{
-		return calculateCounts(intervals, (i) -> userAnonymizedRepository.countByLastMonitoredActivityDateBetween(i.end, i.start),
+		return calculateCounts(intervals, i -> userAnonymizedRepository.countByLastMonitoredActivityDateBetween(i.end, i.start),
 				userAnonymizedRepository.countByLastMonitoredActivityDateIsNull());
 	}
 
@@ -112,7 +112,7 @@ public class DashboardController
 
 		static HistoryInterval nextInstance(int endOffset)
 		{
-			LocalDate end = LocalDate.now().minusDays(endOffset - 1);
+			LocalDate end = LocalDate.now().minusDays(endOffset - 1L);
 			return nextInstance(end);
 		}
 
