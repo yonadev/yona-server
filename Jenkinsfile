@@ -11,7 +11,7 @@ pipeline {
 				checkout scm
 				sh './gradlew -PdockerHubUserName=$DOCKER_HUB_USR -PdockerHubPassword="$DOCKER_HUB_PSW" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage'
 				script {
-					def scannerHome = tool 'SonarQube Scanner 2.8';
+					def scannerHome = tool 'SonarQube scanner 3.0';
 					withSonarQubeEnv('Yona SonarQube server') {
 						sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectVersion=$BUILD_NUMBER"
 					}
