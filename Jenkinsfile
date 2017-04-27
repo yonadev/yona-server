@@ -32,7 +32,6 @@ pipeline {
 			agent { label 'yona' }
 			steps {
 				sh './gradlew -Pyona_appservice_url=http://185.3.209.132 -Pyona_adminservice_url=http://185.3.209.132:8080 -Pyona_analysisservice_url=http://185.3.209.132:8081 intTest'
-				checkpoint 'Build and tests done'
 			}
 			post {
 				always {
@@ -43,6 +42,7 @@ pipeline {
 		stage('Decide deploy to Mobiquity test server') {
 			agent none
 			steps {
+				checkpoint 'Build and tests done'
 				script {
 					env.DEPLOY_TO_MOB_TEST = input message: 'User input required',
 							submitter: 'authenticated',
@@ -66,7 +66,6 @@ pipeline {
 				sh 'wget -O wait-for-services.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
 				sh 'chmod +x wait-for-services.sh'
 				sh './refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/resources /opt/ope-cloudbees/yona/backup'
-				checkpoint 'Mobiquity test server deployed'
 			}
 		}
 		stage('Decide deploy to acceptance test server') {
@@ -75,6 +74,7 @@ pipeline {
 				environment name: 'DEPLOY_TO_MOB_TEST', value: 'yes'
 			}
 			steps {
+				checkpoint 'Mobiquity test server deployed'
 				script {
 					env.DEPLOY_TO_ACC_TEST = input message: 'User input required',
 							submitter: 'authenticated',
