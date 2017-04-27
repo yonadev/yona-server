@@ -5,25 +5,18 @@ pipeline {
 			agent { label 'yona' }
 			environment {
 				DOCKER_HUB = credentials('docker-hub')
+				GIT = credentials('65325e52-5ec0-46a7-a937-f81f545f3c1b')
 			}
 			steps {
 				checkout scm
 				sh './gradlew -PdockerHubUserName=$DOCKER_HUB_USR -PdockerHubPassword="$DOCKER_HUB_PSW" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage'
+				sh('git tag -a build-$BUILD_NUMBER -m "Jenkins"')
+				sh('git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/yona-server.git --tags')
 			}
 			post {
 				always {
 					junit '**/build/test-results/*/*.xml'
 				}
-			}
-		}
-		stage('Tag revision on GitHub') {
-			agent { label 'yona' }
-			environment {
-				GIT = credentials('65325e52-5ec0-46a7-a937-f81f545f3c1b')
-			}
-			steps {
-				sh('git tag -a build-$BUILD_NUMBER -m "Jenkins"')
-				sh('git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/yona-server.git --tags')
 			}
 		}
 		stage('Setup test server') {
@@ -39,6 +32,7 @@ pipeline {
 			agent { label 'yona' }
 			steps {
 				sh './gradlew -Pyona_appservice_url=http://185.3.209.132 -Pyona_adminservice_url=http://185.3.209.132:8080 -Pyona_analysisservice_url=http://185.3.209.132:8081 intTest'
+				checkpoint 'Build and tests done'
 			}
 			post {
 				always {
@@ -72,6 +66,7 @@ pipeline {
 				sh 'wget -O wait-for-services.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
 				sh 'chmod +x wait-for-services.sh'
 				sh './refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/resources /opt/ope-cloudbees/yona/backup'
+				checkpoint 'Mobiquity test server deployed'
 			}
 		}
 		stage('Decide deploy to acceptance test server') {
