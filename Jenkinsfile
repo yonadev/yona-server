@@ -12,6 +12,7 @@ pipeline {
 				sh './gradlew -PdockerHubUserName=$DOCKER_HUB_USR -PdockerHubPassword="$DOCKER_HUB_PSW" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage'
 				sh('git tag -a build-$BUILD_NUMBER -m "Jenkins"')
 				sh('git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/yona-server.git --tags')
+				env.BUILD_NUMBER_TO_DEPLOY = env.BUILD_NUMBER
 			}
 			post {
 				always {
@@ -25,7 +26,7 @@ pipeline {
 				YONA_DB = credentials('test-db')
 			}
 			steps {
-				sh 'scripts/install-test-server.sh ${BUILD_NUMBER} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/resources'
+				sh 'scripts/install-test-server.sh ${BUILD_NUMBER_TO_DEPLOY} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/resources'
 			}
 		}
 		stage('Run integration tests') {
@@ -65,7 +66,7 @@ pipeline {
 				sh 'chmod +x copy-resources.sh'
 				sh 'wget -O wait-for-services.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
 				sh 'chmod +x wait-for-services.sh'
-				sh './refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/resources /opt/ope-cloudbees/yona/backup'
+				sh './refresh-build.sh ${BUILD_NUMBER_TO_DEPLOY} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/resources /opt/ope-cloudbees/yona/backup'
 			}
 		}
 		stage('Decide deploy to acceptance test server') {
@@ -97,7 +98,7 @@ pipeline {
 				sh 'chmod +x copy-resources.sh'
 				sh 'wget -O wait-for-services.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
 				sh 'chmod +x wait-for-services.sh'
-				sh './refresh-build.sh ${BUILD_NUMBER} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/resources /opt/ope-cloudbees/yona/backup'
+				sh './refresh-build.sh ${BUILD_NUMBER_TO_DEPLOY} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/resources /opt/ope-cloudbees/yona/backup'
 			}
 		}
 	}
