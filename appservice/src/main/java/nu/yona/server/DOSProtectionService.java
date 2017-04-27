@@ -35,6 +35,7 @@ public class DOSProtectionService
 		attemptsCache = CacheBuilder.newBuilder()
 				.expireAfterWrite(yonaProperties.getSecurity().getDosProtectionWindow().getSeconds(), TimeUnit.SECONDS)
 				.build(new CacheLoader<String, Integer>() {
+					@Override
 					public Integer load(String key)
 					{
 						return 0;
@@ -60,11 +61,11 @@ public class DOSProtectionService
 			int delayFactor = attempts / expectedAttempts;
 			try
 			{
-				Thread.sleep(delayFactor * 5000);
+				Thread.sleep(delayFactor * 5000L);
 			}
 			catch (InterruptedException e)
 			{
-
+				Thread.currentThread().interrupt();
 			}
 		}
 	}
