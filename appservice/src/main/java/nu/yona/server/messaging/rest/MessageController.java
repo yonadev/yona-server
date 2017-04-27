@@ -329,7 +329,7 @@ public class MessageController
 		{
 			if (message.getSenderBuddyId().isPresent())
 			{
-				message.add(BuddyController.getBuddyLinkBuilder(goalIdMapping.getUserId(), message.getSenderBuddyId().get())
+				message.add(BuddyController.getBuddyLinkBuilder(goalIdMapping.getUserId(), getSenderBuddyId(message))
 						.withRel(BuddyController.BUDDY_LINK));
 			}
 		}
@@ -364,8 +364,7 @@ public class MessageController
 		{
 			String dateStr = DayActivityDto.formatDate(message.getGoalConflictStartTime());
 			message.add(BuddyActivityController.getBuddyDayActivityDetailLinkBuilder(goalIdMapping.getUserId(),
-					message.getSenderBuddyId().get(), dateStr, message.getGoalId())
-					.withRel(BuddyActivityController.DAY_DETAIL_LINK));
+					getSenderBuddyId(message), dateStr, message.getGoalId()).withRel(BuddyActivityController.DAY_DETAIL_LINK));
 		}
 
 		private void addDayActivityDetailLink(GoalConflictMessageDto message)
@@ -374,7 +373,7 @@ public class MessageController
 			if (message.isSentFromBuddy())
 			{
 				message.add(BuddyActivityController.getBuddyDayActivityDetailLinkBuilder(goalIdMapping.getUserId(),
-						message.getSenderBuddyId().get(), dateStr, message.getGoalId())
+						getSenderBuddyId(message), dateStr, message.getGoalId())
 						.withRel(BuddyActivityController.DAY_DETAIL_LINK));
 			}
 			else
@@ -385,19 +384,23 @@ public class MessageController
 			}
 		}
 
+		private UUID getSenderBuddyId(MessageDto message)
+		{
+			return message.getSenderBuddyId()
+					.orElseThrow(() -> new IllegalStateException("Sender buddy ID must be available in this context"));
+		}
+
 		private void embedBuddyUserIfAvailable(BuddyMessageEmbeddedUserDto buddyMessage)
 		{
-			buddyMessage.getSenderUser().ifPresent(user -> {
-				buddyMessage.setEmbeddedUser(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME),
-						new UserController.UserResourceAssembler(curieProvider, false).toResource(user));
-			});
+			buddyMessage.getSenderUser()
+					.ifPresent(user -> buddyMessage.setEmbeddedUser(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME),
+							new UserController.UserResourceAssembler(curieProvider, false).toResource(user)));
 		}
 
 		private void addUserLinkIfAvailable(BuddyMessageLinkedUserDto buddyMessage)
 		{
-			buddyMessage.getSenderUser().ifPresent(user -> {
-				buddyMessage.add(UserController.getPublicUserLink(BuddyDto.USER_REL_NAME, user.getId()));
-			});
+			buddyMessage.getSenderUser()
+					.ifPresent(user -> buddyMessage.add(UserController.getPublicUserLink(BuddyDto.USER_REL_NAME, user.getId())));
 		}
 
 		private void addActivityCommentMessageLinks(ActivityCommentMessageDto message)
