@@ -131,7 +131,7 @@ public class UserController
 		{
 			try (CryptoSession cryptoSession = CryptoSession.start(passwordToUse, () -> userService.canAccessPrivateData(userId)))
 			{
-				return createOkResponse(userService.getPrivateUser(userId), includePrivateData);
+				return createOkResponse(userService.getPrivateUser(userId, tempPassword.isPresent()), includePrivateData);
 			}
 		}
 		else
@@ -213,21 +213,35 @@ public class UserController
 		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
 		if (tempPassword.isPresent())
 		{
-			try (CryptoSession cryptoSession = CryptoSession.start(password, null))
-			{
-				return createOkResponse(userService.updateUserCreatedOnBuddyRequest(userId, tempPassword.get(), userResource),
-						true);
-			}
+			return updateUserCreatedOnBuddyRequest(password, userId, userResource, tempPassword.get());
 		}
 		else
 		{
-			try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
-			{
-				// use DOS protection to prevent enumeration of all occupied mobile numbers
-				return dosProtectionService.executeAttempt(getUpdateUserLinkBuilder(userId).toUri(), request,
-						yonaProperties.getSecurity().getMaxUpdateUserAttemptsPerTimeWindow(),
-						() -> updateUser(userId, userResource));
-			}
+			return updateUser(password, userId, userResource, request);
+		}
+	}
+
+	private HttpEntity<UserResource> updateUser(Optional<String> password, UUID userId, UserDto userResource,
+			HttpServletRequest request)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			// use DOS protection to prevent enumeration of all occupied mobile numbers
+			return dosProtectionService.executeAttempt(getUpdateUserLinkBuilder(userId).toUri(), request,
+					yonaProperties.getSecurity().getMaxUpdateUserAttemptsPerTimeWindow(), () -> updateUser(userId, userResource));
+		}
+	}
+
+	private HttpEntity<UserResource> updateUserCreatedOnBuddyRequest(Optional<String> password, UUID userId, UserDto userResource,
+			String tempPassword)
+	{
+		if (password.isPresent())
+		{
+			throw InvalidDataException.appProvidedPasswordNotSupported();
+		}
+		try (CryptoSession cryptoSession = CryptoSession.start(SecretKeyUtil.generateRandomSecretKey()))
+		{
+			return createOkResponse(userService.updateUserCreatedOnBuddyRequest(userId, tempPassword, userResource), true);
 		}
 	}
 

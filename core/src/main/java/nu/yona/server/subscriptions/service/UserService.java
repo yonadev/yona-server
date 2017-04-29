@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -145,9 +146,41 @@ public class UserService
 	@Transactional
 	public UserDto getPrivateUser(UUID id)
 	{
+		return getPrivateUser(id, (u) -> { // Nothing required here
+		});
+	}
+
+	@Transactional
+	public UserDto getPrivateUser(UUID id, boolean isCreatedOnBuddyRequest)
+	{
+		return getPrivateUser(id, u -> assertCreatedOnBuddyRequestStatus(u, isCreatedOnBuddyRequest));
+	}
+
+	private UserDto getPrivateUser(UUID id, Consumer<User> userStatusAsserter)
+	{
 		User user = getUserEntityById(id);
+		userStatusAsserter.accept(user);
 		User updatedUser = handlePrivateDataActions(user);
 		return createUserDtoWithPrivateData(updatedUser);
+	}
+
+	private void assertCreatedOnBuddyRequestStatus(User user, boolean isCreatedOnBuddyRequest)
+	{
+		if (isCreatedOnBuddyRequest == user.isCreatedOnBuddyRequest())
+		{
+			return;
+		}
+
+		// security check: the app should not mix the temp password and the regular one
+		if (user.isCreatedOnBuddyRequest())
+		{
+			throw UserServiceException.userCreatedOnBuddyRequest(user.getId());
+
+		}
+		else
+		{
+			throw UserServiceException.userNotCreatedOnBuddyRequest(user.getId());
+		}
 	}
 
 	@Transactional

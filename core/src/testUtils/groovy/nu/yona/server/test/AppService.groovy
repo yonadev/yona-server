@@ -99,9 +99,16 @@ class AppService extends Service
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
-	def updateUser(Closure asserter, User user, url = null)
+	def updateUser(Closure asserter, User user)
 	{
-		def response = updateUser((url) ?: user.url, user.convertToJson(), user.password)
+		def response = updateUser(user.url, user.convertToJson(), user.password)
+		asserter(response)
+		return (isSuccess(response)) ? new User(response.responseData) : null
+	}
+
+	def updateUserCreatedOnBuddyRequest(Closure asserter, User user, inviteUrl)
+	{
+		def response = updateUser(inviteUrl, user.convertToJson())
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
@@ -109,6 +116,11 @@ class AppService extends Service
 	def updateUser(userUrl, jsonString, password)
 	{
 		yonaServer.updateResourceWithPassword(yonaServer.stripQueryString(userUrl), jsonString, password, yonaServer.getQueryParams(userUrl))
+	}
+
+	def updateUser(userUrl, jsonString)
+	{
+		yonaServer.updateResource(yonaServer.stripQueryString(userUrl), jsonString, [:], yonaServer.getQueryParams(userUrl))
 	}
 
 	def deleteUser(User user, message = "")
@@ -198,6 +210,7 @@ class AppService extends Service
 		if (user instanceof User)
 		{
 			mobileNumberToBeConfirmed = ((boolean) user.mobileNumberConfirmationUrl)
+			assert user.password.startsWith("AES:128:")
 			assert mobileNumberToBeConfirmed ^ ((boolean) user.buddiesUrl)
 			assert mobileNumberToBeConfirmed ^ ((boolean) user.messagesUrl)
 			assert mobileNumberToBeConfirmed ^ ((boolean) user.newDeviceRequestUrl)
@@ -206,6 +219,7 @@ class AppService extends Service
 		else
 		{
 			mobileNumberToBeConfirmed = ((boolean) user._links?."yona:confirmMobileNumber"?.href)
+			assert user.yonaPassword.startsWith("AES:128:")
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._embedded?."yona:buddies"?._links?.self?.href)
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:messages")
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:newDeviceRequest")
