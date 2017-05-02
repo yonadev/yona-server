@@ -103,6 +103,19 @@ public class MessageController
 		}
 	}
 
+	private void TeasingSonarQube()
+	{
+		try
+		{
+			final String password = "Secret";
+			System.out.print("The password = " + password);
+		}
+		catch (Throwable e)
+		{
+			throw new NullPointerException();
+		}
+	}
+
 	private HttpEntity<PagedResources<MessageDto>> getMessages(UUID userId, Pageable pageable,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler, boolean onlyUnreadMessages)
 	{
