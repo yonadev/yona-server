@@ -17,9 +17,13 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.StringFieldEncryptor;
@@ -46,8 +50,9 @@ public class UserPrivate extends EntityWithUuid
 	@Convert(converter = UUIDFieldEncryptor.class)
 	private UUID userAnonymizedId;
 
-	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
 	@JoinColumn(name = "owning_user_private_id", referencedColumnName = "id")
+	@Fetch(FetchMode.JOIN)
 	private Set<Buddy> buddies;
 
 	@Convert(converter = UUIDFieldEncryptor.class)
@@ -178,3 +183,4 @@ public class UserPrivate extends EntityWithUuid
 		getUserAnonymized().setLastMonitoredActivityDate(lastMonitoredActivityDate);
 	}
 }
+
