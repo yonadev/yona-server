@@ -109,7 +109,7 @@ public class BuddyDto
 	public static BuddyDto createInstance(Buddy buddyEntity)
 	{
 		return new BuddyDto(buddyEntity.getId(), UserDto.createInstance(buddyEntity.getUser()), buddyEntity.getNickname(),
-				getBuddyUserAnonymizedId(buddyEntity), getlastMonitoredActivityDate(buddyEntity), buddyEntity.getSendingStatus(),
+				getBuddyUserAnonymizedId(buddyEntity), getLastMonitoredActivityDate(buddyEntity), buddyEntity.getSendingStatus(),
 				buddyEntity.getReceivingStatus(), buddyEntity.getLastStatusChangeTime());
 	}
 
@@ -118,7 +118,7 @@ public class BuddyDto
 		return BuddyService.canIncludePrivateData(buddyEntity) ? buddyEntity.getUserAnonymizedId() : Optional.empty();
 	}
 
-	private static Optional<LocalDate> getlastMonitoredActivityDate(Buddy buddyEntity)
+	private static Optional<LocalDate> getLastMonitoredActivityDate(Buddy buddyEntity)
 	{
 		return BuddyService.canIncludePrivateData(buddyEntity)
 				? buddyEntity.getBuddyAnonymized().getUserAnonymized().getLastMonitoredActivityDate() : Optional.empty();

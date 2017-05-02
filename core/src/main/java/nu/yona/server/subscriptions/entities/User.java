@@ -142,7 +142,7 @@ public class User extends EntityWithUuid
 		return getUserPrivate().getNickname();
 	}
 
-	public void setNickName(String nickname)
+	public void setNickname(String nickname)
 	{
 		getUserPrivate().setNickname(nickname);
 	}
@@ -196,11 +196,6 @@ public class User extends EntityWithUuid
 	private void setUserPrivate(UserPrivate userPrivate)
 	{
 		this.userPrivate = userPrivate;
-	}
-
-	public void setNickname(String nickname)
-	{
-		getUserPrivate().setNickname(nickname);
 	}
 
 	public Set<Goal> getGoals()
