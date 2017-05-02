@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
@@ -31,10 +32,10 @@ public class DayActivity extends IntervalActivity
 		return (DayActivityRepository) RepositoryProvider.getRepository(DayActivity.class, Long.class);
 	}
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	private WeekActivity weekActivity;
 
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "dayActivity")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "dayActivity", fetch = FetchType.LAZY)
 	private List<Activity> activities;
 
 	private boolean goalAccomplished;
