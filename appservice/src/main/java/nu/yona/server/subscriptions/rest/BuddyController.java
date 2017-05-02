@@ -145,8 +145,7 @@ public class BuddyController
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return new ResponseEntity<>(createAllGoalsCollectionResource(userId, buddyId, getGoals(userId, buddyId)),
-					HttpStatus.OK);
+			return new ResponseEntity<>(createAllGoalsCollectionResource(userId, buddyId, getGoals(buddyId)), HttpStatus.OK);
 		}
 	}
 
@@ -157,7 +156,7 @@ public class BuddyController
 		return goal.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForBuddy(userId, buddyId, goalId));
 	}
 
-	private Set<GoalDto> getGoals(UUID userId, UUID buddyId)
+	private Set<GoalDto> getGoals(UUID buddyId)
 	{
 		return buddyService.getBuddy(buddyId).getGoals();
 	}
@@ -209,7 +208,7 @@ public class BuddyController
 
 	public static Resources<GoalDto> createAllGoalsCollectionResource(UUID userId, UUID buddyId, Set<GoalDto> allGoalsOfUser)
 	{
-		return new Resources<>(new GoalResourceAssembler(true, (goalId) -> getGoalLinkBuilder(userId, buddyId, goalId))
+		return new Resources<>(new GoalResourceAssembler(true, goalId -> getGoalLinkBuilder(userId, buddyId, goalId))
 				.toResources(allGoalsOfUser), getAllGoalsLinkBuilder(userId, buddyId).withSelfRel());
 	}
 

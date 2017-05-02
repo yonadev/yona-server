@@ -102,7 +102,7 @@ public abstract class MessageDto extends PolymorphicDto
 	@JsonIgnore
 	public Optional<UUID> getSenderBuddyId()
 	{
-		return senderInfo.getBuddy().map(b -> b.getId());
+		return senderInfo.getBuddy().map(BuddyDto::getId);
 	}
 
 	@JsonProperty("creationTime")

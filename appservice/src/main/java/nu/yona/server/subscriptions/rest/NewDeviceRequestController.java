@@ -58,15 +58,15 @@ public class NewDeviceRequestController
 
 	@RequestMapping(value = "/{mobileNumber}", method = RequestMethod.PUT)
 	@ResponseStatus(HttpStatus.OK)
-	public void setNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+	public void setNewDeviceRequestForUser(@RequestHeader(value = Constants.PASSWORD_HEADER) String password,
 			@PathVariable String mobileNumber, @RequestBody NewDeviceRequestCreationDto newDeviceRequestCreation)
 	{
 		try
 		{
 			userService.assertValidMobileNumber(mobileNumber);
 			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
-			checkPassword(password, userId);
-			newDeviceRequestService.setNewDeviceRequestForUser(userId, password.get(),
+			checkPassword(Optional.of(password), userId);
+			newDeviceRequestService.setNewDeviceRequestForUser(userId, password,
 					newDeviceRequestCreation.getNewDeviceRequestPassword());
 		}
 		catch (UserServiceException e)
