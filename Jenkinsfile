@@ -13,7 +13,7 @@ pipeline {
 				script {
 					def scannerHome = tool 'SonarQube scanner 3.0';
 					withSonarQubeEnv('Yona SonarQube server') {
-						sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectVersion=`date "+'%B %Y'"`"
+						sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectVersion=`date \"+'%B %Y'\"`"
 					}
 				}
 				sh('git tag -a build-$BUILD_NUMBER -m "Jenkins"')
