@@ -146,7 +146,7 @@ public class UserService
 	@Transactional
 	public UserDto getPrivateUser(UUID id)
 	{
-		return getPrivateUser(id, (u) -> { // Nothing required here
+		return getPrivateUser(id, u -> { // Nothing required here
 		});
 	}
 
