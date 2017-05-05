@@ -142,7 +142,7 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 			connectResponseMessageEntity = updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
 			Optional<User> senderUser = connectResponseMessageEntity.getSenderUser();
-			String mobileNumber = senderUser.map(u -> u.getMobileNumber()).orElse("already deleted");
+			String mobileNumber = senderUser.map(User::getMobileNumber).orElse("already deleted");
 			String id = senderUser.map(u -> u.getId().toString()).orElse("already deleted");
 			logger.info(
 					"User with mobile number '{}' and ID '{}' processed buddy connect response from user with mobile number '{}' and ID '{}'",
