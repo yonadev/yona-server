@@ -398,7 +398,7 @@ public class BuddyService
 	{
 		Set<BuddyAnonymized> buddiesAnonymized = user.getBuddyAnonymizedIds().stream()
 				.map(id -> BuddyAnonymized.getRepository().findOne(id)).collect(Collectors.toSet());
-		return getBuddyDestinations(buddiesAnonymized).stream().map(d -> MessageDestinationDto.createInstance(d))
+		return getBuddyDestinations(buddiesAnonymized).stream().map(MessageDestinationDto::createInstance)
 				.collect(Collectors.toSet());
 	}
 
