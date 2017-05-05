@@ -11,10 +11,9 @@ pipeline {
 				checkout scm
 				sh './gradlew -PdockerHubUserName=$DOCKER_HUB_USR -PdockerHubPassword="$DOCKER_HUB_PSW" -PdockerUrl=unix:///var/run/docker.sock build pushDockerImage'
 				script {
-					def dateTag = new Date().format("MMM yyyy")
 					def scannerHome = tool 'SonarQube scanner 3.0';
 					withSonarQubeEnv('Yona SonarQube server') {
-						sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectVersion='${dateTag}' "
+						sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectVersion=build-$BUILD_NUMBER"
 					}
 				}
 				sh('git tag -a build-$BUILD_NUMBER -m "Jenkins"')
