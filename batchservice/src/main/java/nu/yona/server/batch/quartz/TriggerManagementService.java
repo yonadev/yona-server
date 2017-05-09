@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.quartz;
 
@@ -44,14 +41,14 @@ public class TriggerManagementService
 
 	public Set<CronTriggerDto> getAllTriggers()
 	{
-		return getTriggerGroupNames().stream().flatMap(gn -> getTriggerKeys(gn).stream()).map(tk -> getTrigger(tk))
-				.filter(t -> t instanceof CronTrigger).map(t -> CronTriggerDto.createInstance(t)).collect(toSet());
+		return getTriggerGroupNames().stream().flatMap(gn -> getTriggerKeys(gn).stream()).map(this::getTrigger)
+				.filter(t -> t instanceof CronTrigger).map(CronTriggerDto::createInstance).collect(toSet());
 	}
 
 	public Set<CronTriggerDto> getTriggersInGroup(String group)
 	{
-		return getTriggerKeys(group).stream().map(tk -> getTrigger(tk)).filter(t -> t instanceof CronTrigger)
-				.map(t -> CronTriggerDto.createInstance(t)).collect(toSet());
+		return getTriggerKeys(group).stream().map(this::getTrigger).filter(t -> t instanceof CronTrigger)
+				.map(CronTriggerDto::createInstance).collect(toSet());
 	}
 
 	public CronTriggerDto getTrigger(String name, String group)
@@ -92,7 +89,7 @@ public class TriggerManagementService
 	{
 		try
 		{
-			Set<String> trgNamesToBe = triggers.stream().map(t -> t.getName()).collect(toSet());
+			Set<String> trgNamesToBe = triggers.stream().map(CronTriggerDto::getName).collect(toSet());
 			Set<TriggerKey> existingTrgs = scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals(group));
 			Set<TriggerKey> keysOfTrgsToDelete = existingTrgs.stream().filter(tk -> !contains(trgNamesToBe, tk)).collect(toSet());
 			Set<CronTriggerDto> trgsToUpdate = triggers.stream().filter(t -> contains(existingTrgs, group, t)).collect(toSet());

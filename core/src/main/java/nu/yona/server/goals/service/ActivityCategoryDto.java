@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.context.i18n.LocaleContextHolder;
 
@@ -30,10 +31,12 @@ public class ActivityCategoryDto implements Serializable
 {
 	public static class AdminView
 	{
+		// Marker class, nothing is needed here
 	}
 
 	public static class AppView
 	{
+		// Marker class, nothing is needed here
 	}
 
 	private static final long serialVersionUID = 2498926948887006481L;
@@ -70,22 +73,13 @@ public class ActivityCategoryDto implements Serializable
 
 	private static Map<Locale, String> mapToLocaleMap(Map<String, String> localeStringMap)
 	{
-		Map<Locale, String> localeMap = new HashMap<>();
-		for (String languageTag : localeStringMap.keySet())
-		{
-			localeMap.put(Locale.forLanguageTag(languageTag), localeStringMap.get(languageTag));
-		}
-		return localeMap;
+		return localeStringMap.entrySet().stream()
+				.collect(Collectors.toMap(e -> Locale.forLanguageTag(e.getKey()), Map.Entry::getValue));
 	}
 
 	private static Map<String, String> mapToStringMap(Map<Locale, String> localeMap)
 	{
-		Map<String, String> localeStringMap = new HashMap<>();
-		for (Locale locale : localeMap.keySet())
-		{
-			localeStringMap.put(locale.toLanguageTag(), localeMap.get(locale));
-		}
-		return localeStringMap;
+		return localeMap.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toLanguageTag(), Map.Entry::getValue));
 	}
 
 	@JsonIgnore

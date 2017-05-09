@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.entities;
@@ -82,7 +82,7 @@ public class TimeZoneGoal extends Goal
 
 	private int[] determineSpreadOutsideGoal(DayActivity dayActivity)
 	{
-		int[] spread = dayActivity.getSpread().stream().mapToInt(i -> i.intValue()).toArray();
+		int[] spread = dayActivity.getSpread().stream().mapToInt(Integer::intValue).toArray();
 		getSpreadCellsIntStream().forEach(i -> spread[i] = 0);
 		return spread;
 	}
@@ -164,7 +164,7 @@ public class TimeZoneGoal extends Goal
 		return String.join(",", entityValue);
 	}
 
-	public static List<String> stringToList(String databaseValue)
+	private static List<String> stringToList(String databaseValue)
 	{
 		if (databaseValue == null)
 		{

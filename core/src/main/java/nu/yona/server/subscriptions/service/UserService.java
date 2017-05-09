@@ -40,11 +40,13 @@ import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
+import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
+import nu.yona.server.sms.SmsTemplate;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyRepository;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
@@ -60,10 +62,11 @@ import nu.yona.server.util.TransactionHelper;
 public class UserService
 {
 	/** Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers */
-	private static Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
+	private static final Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
 
 	/** Holds the regex to validate a valid email address. Match the pattern a@b.c */
-	private static Pattern REGEX_EMAIL = Pattern.compile("^[A-Z0-9._-]+@[A-Z0-9.-]+\\.[A-Z0-9.-]+$", Pattern.CASE_INSENSITIVE);
+	private static final Pattern REGEX_EMAIL = Pattern.compile("^[A-Z0-9._-]+@[A-Z0-9.-]+\\.[A-Z0-9.-]+$",
+			Pattern.CASE_INSENSITIVE);
 
 	private enum UserSignUp
 	{
@@ -211,7 +214,7 @@ public class UserService
 		ConfirmationCode confirmationCode = createConfirmationCode();
 		existingUserEntity.setOverwriteUserConfirmationCode(confirmationCode);
 		userRepository.save(existingUserEntity);
-		sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsService.TemplateName_OverwriteUserConfirmation);
+		sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsTemplate.OVERWRITE_USER_CONFIRMATION);
 		logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code",
 				existingUserEntity.getMobileNumber(), existingUserEntity.getId());
 	}
@@ -244,7 +247,7 @@ public class UserService
 		if (confirmationCode.isPresent())
 		{
 			sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode.get(),
-					SmsService.TemplateName_AddUserNumberConfirmation);
+					SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
 		}
 
 		logger.info("Added new user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getId());
@@ -263,7 +266,7 @@ public class UserService
 		}
 		else
 		{
-			goals = user.getPrivateData().getGoals().stream().map(g -> g.createGoalEntity()).collect(Collectors.toSet());
+			goals = user.getPrivateData().getGoals().stream().map(GoalDto::createGoalEntity).collect(Collectors.toSet());
 		}
 		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
 		UserAnonymized.getRepository().save(userAnonymized);
@@ -283,7 +286,7 @@ public class UserService
 	UserDto createUserDtoWithPrivateData(User user)
 	{
 		return UserDto.createInstanceWithPrivateData(user,
-				(buddyIds) -> buddyIds.stream().map((bid) -> buddyService.getBuddy(bid)).collect(Collectors.toSet()));
+				buddyIds -> buddyIds.stream().map(bid -> buddyService.getBuddy(bid)).collect(Collectors.toSet()));
 	}
 
 	private void addMandatoryGoals(User userEntity)
@@ -362,7 +365,7 @@ public class UserService
 
 		assertValidConfirmationCode(existingUserEntity, confirmationCode, userProvidedConfirmationCode,
 				() -> UserOverwriteConfirmationException.confirmationCodeNotSet(existingUserEntity.getMobileNumber()),
-				(r) -> UserOverwriteConfirmationException.confirmationCodeMismatch(existingUserEntity.getMobileNumber(),
+				r -> UserOverwriteConfirmationException.confirmationCodeMismatch(existingUserEntity.getMobileNumber(),
 						userProvidedConfirmationCode, r),
 				() -> UserOverwriteConfirmationException.tooManyAttempts(existingUserEntity.getMobileNumber()));
 
@@ -382,7 +385,7 @@ public class UserService
 
 		assertValidConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
 				() -> MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()),
-				(r) -> MobileNumberConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
+				r -> MobileNumberConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
 						userProvidedConfirmationCode, r),
 				() -> MobileNumberConfirmationException.tooManyAttempts(userEntity.getMobileNumber()));
 
@@ -409,8 +412,7 @@ public class UserService
 		ConfirmationCode confirmationCode = createConfirmationCode();
 		userEntity.setMobileNumberConfirmationCode(confirmationCode);
 		userRepository.save(userEntity);
-		sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode,
-				SmsService.TemplateName_AddUserNumberConfirmation);
+		sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode, SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
 		return null;
 	}
 
@@ -460,7 +462,7 @@ public class UserService
 		if (confirmationCode.isPresent())
 		{
 			sendConfirmationCodeTextMessage(updatedUserEntity.getMobileNumber(), confirmationCode.get(),
-					SmsService.TemplateName_ChangedUserNumberConfirmation);
+					SmsTemplate.CHANGED_USER_NUMBER_CONFIRMATION);
 		}
 		logger.info("Updated user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getId());
 		buddyService.broadcastUserInfoChangeToBuddies(savedUserEntity, originalUser);
@@ -498,7 +500,7 @@ public class UserService
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
 		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, userResource);
 		sendConfirmationCodeTextMessage(savedUserEntity.getMobileNumber(), savedUserEntity.getMobileNumberConfirmationCode(),
-				SmsService.TemplateName_AddUserNumberConfirmation);
+				SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
 		UserDto userDto = createUserDtoWithPrivateData(savedUserEntity);
 		logger.info("Updated user (created on buddy request) with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
 				userDto.getId());
@@ -555,7 +557,7 @@ public class UserService
 		deleteAllDayActivitiesWithTheirCommentMessages(allGoalsIncludingHistoryItems);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 
-		allGoalsIncludingHistoryItems.forEach(g -> g.removeAllWeekActivities());
+		allGoalsIncludingHistoryItems.forEach(Goal::removeAllWeekActivities);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 
 		userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
@@ -642,7 +644,7 @@ public class UserService
 
 	public static String getPassword(Optional<String> password)
 	{
-		return password.orElseThrow(() -> UserServiceException.missingPasswordHeader());
+		return password.orElseThrow(UserServiceException::missingPasswordHeader);
 	}
 
 	/**
@@ -700,11 +702,11 @@ public class UserService
 				? CryptoUtil.getRandomDigits(yonaProperties.getSecurity().getConfirmationCodeDigits()) : "1234";
 	}
 
-	public void sendConfirmationCodeTextMessage(String mobileNumber, ConfirmationCode confirmationCode, String templateName)
+	public void sendConfirmationCodeTextMessage(String mobileNumber, ConfirmationCode confirmationCode, SmsTemplate template)
 	{
 		Map<String, Object> templateParams = new HashMap<>();
 		templateParams.put("confirmationCode", confirmationCode.getConfirmationCode());
-		smsService.send(mobileNumber, templateName, templateParams);
+		smsService.send(mobileNumber, template, templateParams);
 	}
 
 	private void assertValidConfirmationCode(User userEntity, ConfirmationCode confirmationCode,

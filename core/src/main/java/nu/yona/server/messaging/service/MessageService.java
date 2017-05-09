@@ -260,15 +260,9 @@ public class MessageService
 		{
 			assert messageEntity != null;
 
-			for (Class<? extends Message> messageClass : managers.keySet())
-			{
-				if (messageClass.isInstance(messageEntity))
-				{
-					return managers.get(messageClass);
-				}
-			}
-
-			throw MessageServiceException.noDtoManagerRegistered(messageEntity.getClass());
+			return managers.entrySet().stream().filter(e -> e.getKey().isInstance(messageEntity)).findAny()
+					.map(Map.Entry::getValue)
+					.orElseThrow(() -> MessageServiceException.noDtoManagerRegistered(messageEntity.getClass()));
 		}
 	}
 

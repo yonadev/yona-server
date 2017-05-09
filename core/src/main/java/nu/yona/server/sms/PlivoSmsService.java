@@ -53,12 +53,12 @@ public class PlivoSmsService implements SmsService
 	private TemplateEngine templateEngine;
 
 	@Override
-	public void send(String phoneNumber, String messageTemplateName, Map<String, Object> templateParameters)
+	public void send(String phoneNumber, SmsTemplate messageTemplate, Map<String, Object> templateParameters)
 	{
 		Context ctx = ThymeleafUtil.createContext();
 		templateParameters.entrySet().stream().forEach(e -> ctx.setVariable(e.getKey(), e.getValue()));
 
-		String message = templateEngine.process(messageTemplateName + ".txt", ctx);
+		String message = templateEngine.process(messageTemplate.getName() + ".txt", ctx);
 		logger.info("Sending SMS to number '{}'. Message: {}", phoneNumber, message);
 
 		if (!yonaProperties.getSms().isEnabled())

@@ -88,8 +88,7 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 		return this.status == Status.DISCLOSURE_ACCEPTED || this.status == Status.DISCLOSURE_REJECTED;
 	}
 
-	public static DisclosureRequestMessageDto createInstance(UserDto actingUser, DisclosureRequestMessage messageEntity,
-			SenderInfo senderInfo)
+	public static DisclosureRequestMessageDto createInstance(DisclosureRequestMessage messageEntity, SenderInfo senderInfo)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
 		return new DisclosureRequestMessageDto(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
@@ -120,7 +119,7 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 		@Override
 		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
 		{
-			return DisclosureRequestMessageDto.createInstance(actingUser, (DisclosureRequestMessage) messageEntity,
+			return DisclosureRequestMessageDto.createInstance((DisclosureRequestMessage) messageEntity,
 					getSenderInfo(actingUser, messageEntity));
 		}
 
@@ -158,7 +157,7 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 		{
 			GoalConflictMessage targetGoalConflictMessage = disclosureRequestMessageEntity.getTargetGoalConflictMessage();
 			targetGoalConflictMessage.setStatus(status);
-			targetGoalConflictMessage = Message.getRepository().save(targetGoalConflictMessage);
+			Message.getRepository().save(targetGoalConflictMessage);
 
 			disclosureRequestMessageEntity = updateMessageStatus(disclosureRequestMessageEntity, status);
 
@@ -178,8 +177,11 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 		private void sendResponseMessageToRequestingUser(UserDto respondingUser, DisclosureRequestMessage requestMessageEntity,
 				String message)
 		{
-			MessageDestinationDto messageDestination = userAnonymizedService
-					.getUserAnonymized(requestMessageEntity.getRelatedUserAnonymizedId().get()).getAnonymousDestination();
+			MessageDestinationDto messageDestination = userAnonymizedService.getUserAnonymized(requestMessageEntity
+					.getRelatedUserAnonymizedId()
+					.orElseThrow(() -> new IllegalStateException(
+							"Message with ID " + requestMessageEntity.getId() + " does not have a related user anonymized ID")))
+					.getAnonymousDestination();
 			assert messageDestination != null;
 			messageService.sendMessageAndFlushToDatabase(DisclosureResponseMessage.createInstance(respondingUser.getId(),
 					respondingUser.getPrivateData().getUserAnonymizedId(), requestMessageEntity.getTargetGoalConflictMessage(),

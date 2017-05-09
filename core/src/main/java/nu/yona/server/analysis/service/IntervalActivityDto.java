@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
@@ -23,7 +23,7 @@ public abstract class IntervalActivityDto
 {
 	public enum LevelOfDetail
 	{
-		WeekOverview, WeekDetail, DayOverview, DayDetail
+		WEEK_OVERVIEW, WEEK_DETAIL, DAY_OVERVIEW, DAY_DETAIL
 	}
 
 	private final UUID goalId;
@@ -33,7 +33,8 @@ public abstract class IntervalActivityDto
 	private final List<Integer> spread;
 	private final Optional<Integer> totalActivityDurationMinutes;
 
-	private final boolean hasPrevious, hasNext;
+	private final boolean hasPrevious;
+	private final boolean hasNext;
 
 	protected IntervalActivityDto(UUID goalId, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
 			Optional<Integer> totalActivityDurationMinutes, boolean hasPrevious, boolean hasNext)

@@ -32,7 +32,7 @@ public class WhiteListedNumberService
 	public Set<String> getAllWhiteListedNumbers()
 	{
 		return StreamSupport.stream(WhiteListedNumber.getRepository().findAll().spliterator(), false)
-				.map(whiteListedNumberEntity -> whiteListedNumberEntity.getMobileNumber()).collect(Collectors.toSet());
+				.map(WhiteListedNumber::getMobileNumber).collect(Collectors.toSet());
 	}
 
 	@Transactional

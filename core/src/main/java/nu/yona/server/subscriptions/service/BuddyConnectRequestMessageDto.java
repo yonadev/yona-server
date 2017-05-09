@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -73,8 +73,7 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 		return this.status == Status.ACCEPTED || this.status == Status.REJECTED;
 	}
 
-	public static BuddyConnectRequestMessageDto createInstance(UserDto actingUser, BuddyConnectRequestMessage messageEntity,
-			SenderInfo senderInfo)
+	public static BuddyConnectRequestMessageDto createInstance(BuddyConnectRequestMessage messageEntity, SenderInfo senderInfo)
 	{
 
 		if (messageEntity == null)
@@ -111,7 +110,7 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 		@Override
 		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
 		{
-			return BuddyConnectRequestMessageDto.createInstance(actingUser, (BuddyConnectRequestMessage) messageEntity,
+			return BuddyConnectRequestMessageDto.createInstance((BuddyConnectRequestMessage) messageEntity,
 					getSenderInfo(actingUser, messageEntity));
 		}
 
@@ -163,7 +162,7 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 
 			sendResponseMessageToRequestingUser(actingUser, connectRequestMessageEntity, payload.getProperty("message"));
 
-			String mobileNumber = connectRequestMessageEntity.getSenderUser().map(u -> u.getMobileNumber())
+			String mobileNumber = connectRequestMessageEntity.getSenderUser().map(User::getMobileNumber)
 					.orElse("already deleted");
 			String id = connectRequestMessageEntity.getSenderUser().map(u -> u.getId().toString()).orElse("already deleted");
 			logger.info(

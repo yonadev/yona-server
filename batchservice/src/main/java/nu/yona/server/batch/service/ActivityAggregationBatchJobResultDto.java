@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.StepExecution;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 
@@ -29,6 +30,6 @@ public class ActivityAggregationBatchJobResultDto
 	static ActivityAggregationBatchJobResultDto createInstance(JobExecution jobExecution)
 	{
 		return new ActivityAggregationBatchJobResultDto(jobExecution.getStepExecutions().stream()
-				.collect(Collectors.toMap(se -> se.getStepName(), se -> se.getWriteCount())));
+				.collect(Collectors.toMap(StepExecution::getStepName, StepExecution::getWriteCount)));
 	}
 }

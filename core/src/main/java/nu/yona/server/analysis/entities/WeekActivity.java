@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
@@ -98,8 +98,7 @@ public class WeekActivity extends IntervalActivity
 	@Override
 	protected List<Integer> computeSpread()
 	{
-		return getDayActivities().stream().map(dayActivity -> dayActivity.getSpread()).reduce(getEmptySpread(),
-				(one, other) -> sumSpread(one, other));
+		return getDayActivities().stream().map(DayActivity::getSpread).reduce(getEmptySpread(), this::sumSpread);
 	}
 
 	private List<Integer> sumSpread(List<Integer> one, List<Integer> other)
@@ -115,8 +114,7 @@ public class WeekActivity extends IntervalActivity
 	@Override
 	protected int computeTotalActivityDurationMinutes()
 	{
-		return getDayActivities().stream().map(dayActivity -> dayActivity.getTotalActivityDurationMinutes()).reduce(0,
-				Integer::sum);
+		return getDayActivities().stream().map(DayActivity::getTotalActivityDurationMinutes).reduce(0, Integer::sum);
 	}
 
 	public static WeekActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfWeek)

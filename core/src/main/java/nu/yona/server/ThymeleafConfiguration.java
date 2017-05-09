@@ -83,7 +83,7 @@ public class ThymeleafConfiguration
 			templateResolver.setOrder(i++);
 			templateEngine.addTemplateResolver(templateResolver);
 		}
-		messageSource.ifPresent(ms -> templateEngine.setTemplateEngineMessageSource(ms));
+		messageSource.ifPresent(templateEngine::setTemplateEngineMessageSource);
 		return templateEngine;
 	}
 
@@ -99,7 +99,7 @@ public class ThymeleafConfiguration
 
 	private AbstractTemplateResolver emailTextTemplateResolver()
 	{
-		return templateResolver("emailSubjectTemplateResolver", EMAIL_TEMPLATES_FOLDER, ".txt", TemplateMode.TEXT);
+		return templateResolver("emailTextTemplateResolver", EMAIL_TEMPLATES_FOLDER, ".txt", TemplateMode.TEXT);
 	}
 
 	private AbstractTemplateResolver otherJsonTemplateResolver()
@@ -114,12 +114,12 @@ public class ThymeleafConfiguration
 
 	private AbstractTemplateResolver otherHtmlTemplateResolver()
 	{
-		return templateResolver("otherTextTemplateResolver", OTHER_TEMPLATES_FOLDER, ".html", TemplateMode.HTML);
+		return templateResolver("otherHtmlTemplateResolver", OTHER_TEMPLATES_FOLDER, ".html", TemplateMode.HTML);
 	}
 
 	private AbstractTemplateResolver otherXmlTemplateResolver()
 	{
-		return templateResolver("otherTextTemplateResolver", OTHER_TEMPLATES_FOLDER, ".xml", TemplateMode.XML);
+		return templateResolver("otherXmlTemplateResolver", OTHER_TEMPLATES_FOLDER, ".xml", TemplateMode.XML);
 	}
 
 	private AbstractTemplateResolver templateResolver(String name, String prefix, String suffix, TemplateMode templateMode)

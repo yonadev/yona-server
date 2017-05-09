@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
@@ -43,14 +40,14 @@ public class DayActivityOverviewDto<T> extends IntervalActivityOverviewDto
 
 	static DayActivityOverviewDto<DayActivityDto> createInstanceForUser(ZonedDateTime date, Set<DayActivityDto> dayActivities)
 	{
-		return new DayActivityOverviewDto<DayActivityDto>(date, dayActivities);
+		return new DayActivityOverviewDto<>(date, dayActivities);
 	}
 
 	public static DayActivityOverviewDto<DayActivityWithBuddiesDto> createInstanceForUserWithBuddies(ZonedDateTime date,
 			Set<DayActivityDto> dayActivities)
 	{
 		Map<UUID, List<DayActivityDto>> dayActivitiesByActivityCategoryId = dayActivities.stream()
-				.collect(Collectors.groupingBy(da -> da.getActivityCategoryId(), Collectors.toList()));
+				.collect(Collectors.groupingBy(DayActivityDto::getActivityCategoryId, Collectors.toList()));
 		Set<DayActivityWithBuddiesDto> dayActivityDtos = dayActivitiesByActivityCategoryId.entrySet().stream()
 				.map(e -> DayActivityWithBuddiesDto.createInstance(e.getKey(), e.getValue())).collect(Collectors.toSet());
 		return new DayActivityOverviewDto<>(date, dayActivityDtos);

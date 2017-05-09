@@ -39,6 +39,7 @@ import nu.yona.server.messaging.service.MessageDestinationDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.sms.SmsService;
+import nu.yona.server.sms.SmsTemplate;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
@@ -284,8 +285,7 @@ public class BuddyService
 				.filter(m -> m instanceof BuddyConnectResponseMessage).map(m -> (BuddyConnectResponseMessage) m);
 		Stream<BuddyConnectResponseMessage> messagesFromBuddy = buddyConnectResponseMessages
 				.filter(m -> buddy.getUserId().equals(getUserId(m).orElse(null)));
-		Optional<BuddyConnectResponseMessage> messageToBeProcessed = messagesFromBuddy.filter(m -> m.isProcessed() == false)
-				.findFirst();
+		Optional<BuddyConnectResponseMessage> messageToBeProcessed = messagesFromBuddy.filter(m -> !m.isProcessed()).findFirst();
 		messageToBeProcessed.ifPresent(
 				m -> connectResponseMessageHandler.handleAction_Process(user, m, new MessageActionDto(Collections.emptyMap())));
 		return messageToBeProcessed.isPresent();
@@ -299,7 +299,7 @@ public class BuddyService
 
 	private Optional<UUID> getUserId(BuddyConnectResponseMessage message)
 	{
-		return message.getSenderUser().map(u -> u.getId());
+		return message.getSenderUser().map(User::getId);
 	}
 
 	@Transactional
@@ -355,9 +355,8 @@ public class BuddyService
 
 	private UUID getUserAnonymizedIdForBuddy(Buddy buddy)
 	{
-		UUID buddyUserAnonymizedId = buddy.getUserAnonymizedId().orElseThrow(
+		return buddy.getUserAnonymizedId().orElseThrow(
 				() -> new IllegalStateException("Should have user anonymized ID when buddy relationship is established"));
-		return buddyUserAnonymizedId;
 	}
 
 	@Transactional
@@ -391,7 +390,7 @@ public class BuddyService
 
 	public Set<BuddyDto> getBuddies(Set<UUID> buddyIds)
 	{
-		return buddyIds.stream().map(id -> getBuddy(id)).collect(Collectors.toSet());
+		return buddyIds.stream().map(this::getBuddy).collect(Collectors.toSet());
 	}
 
 	public Set<MessageDestinationDto> getBuddyDestinations(UserAnonymizedDto user)
@@ -421,7 +420,7 @@ public class BuddyService
 
 	private Set<Buddy> getBuddyEntities(Set<UUID> buddyIds)
 	{
-		return buddyIds.stream().map(id -> getEntityById(id)).collect(Collectors.toSet());
+		return buddyIds.stream().map(this::getEntityById).collect(Collectors.toSet());
 	}
 
 	private void removeMessagesSentByBuddy(User user, Buddy buddy)
@@ -541,7 +540,7 @@ public class BuddyService
 			templateParams.put("emailAddress", buddyEmailAddress);
 			emailService.sendEmail(requestingUserName, new InternetAddress(buddyEmailAddress, buddyName), subjectTemplateName,
 					bodyTemplateName, templateParams);
-			smsService.send(buddyMobileNumber, SmsService.TemplateName_BuddyInvite, templateParams);
+			smsService.send(buddyMobileNumber, SmsTemplate.BUDDY_INVITE, templateParams);
 		}
 		catch (UnsupportedEncodingException e)
 		{
@@ -620,11 +619,11 @@ public class BuddyService
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(updatedUserEntity.getAnonymized()),
 				() -> BuddyInfoChangeMessage.createInstance(updatedUserEntity.getId(), updatedUserEntity.getUserAnonymizedId(),
-						originalUser.getPrivateData().getNickname(), getUserInfoChangeMessage(updatedUserEntity, originalUser),
+						originalUser.getPrivateData().getNickname(), getUserInfoChangeMessage(),
 						updatedUserEntity.getNickname()));
 	}
 
-	private String getUserInfoChangeMessage(User updatedUserEntity, UserDto originalUser)
+	private String getUserInfoChangeMessage()
 	{
 		return translator.getLocalizedMessage("message.buddy.user.info.changed");
 	}

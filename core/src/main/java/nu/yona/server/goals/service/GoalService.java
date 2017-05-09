@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
@@ -149,18 +149,18 @@ public class GoalService
 
 	private void updateGoal(User userEntity, Goal existingGoal, GoalDto newGoalDto, Optional<String> message)
 	{
-		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		LocalDateTime goalChangeTime = newGoalDto.getCreationTime().orElse(TimeUtil.utcNow());
-		cloneExistingGoalAsHistoryItem(userAnonymizedEntity, existingGoal, goalChangeTime);
+		cloneExistingGoalAsHistoryItem(existingGoal, goalChangeTime);
 		existingGoal.setCreationTime(goalChangeTime);
 		newGoalDto.updateGoalEntity(existingGoal);
+		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getId(), userAnonymizedEntity);
 
 		broadcastGoalChangeMessage(userEntity, existingGoal.getActivityCategory(), GoalChangeMessage.Change.GOAL_CHANGED,
 				message);
 	}
 
-	private void cloneExistingGoalAsHistoryItem(UserAnonymized userAnonymizedEntity, Goal existingGoal, LocalDateTime endTime)
+	private void cloneExistingGoalAsHistoryItem(Goal existingGoal, LocalDateTime endTime)
 	{
 		Goal historyGoal = existingGoal.cloneAsHistoryItem(endTime);
 		existingGoal.transferHistoryActivities(historyGoal);

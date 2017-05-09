@@ -275,14 +275,16 @@ public class CryptoSession implements AutoCloseable
 
 	private static String getPassword(Optional<String> password)
 	{
-		return password.orElseThrow(() -> WrongPasswordException.passwordHeaderNotProvided());
+		return password.orElseThrow(WrongPasswordException::passwordHeaderNotProvided);
 	}
 
+	@FunctionalInterface
 	public interface Executable<T>
 	{
 		T execute();
 	}
 
+	@FunctionalInterface
 	public interface VoidPredicate
 	{
 		boolean test();

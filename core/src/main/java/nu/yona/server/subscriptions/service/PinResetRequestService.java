@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import nu.yona.server.batch.client.BatchProxyService;
 import nu.yona.server.exceptions.PinResetRequestConfirmationException;
 import nu.yona.server.properties.YonaProperties;
-import nu.yona.server.sms.SmsService;
+import nu.yona.server.sms.SmsTemplate;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.util.TimeUtil;
@@ -122,7 +122,7 @@ public class PinResetRequestService
 	private void sendConfirmationCodeTextMessage(User userEntity, ConfirmationCode confirmationCode)
 	{
 		userService.sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode,
-				SmsService.TemplateName_PinResetRequestConfirmation);
+				SmsTemplate.PIN_RESET_REQUEST_CONFIRMATION);
 	}
 
 	private ConfirmationCode createConfirmationCode(Moment moment)

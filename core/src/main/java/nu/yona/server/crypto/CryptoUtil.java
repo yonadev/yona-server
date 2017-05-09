@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.crypto;
 
@@ -23,6 +20,12 @@ import org.apache.commons.lang.StringUtils;
 
 public class CryptoUtil
 {
+	public static final int CRYPTO_VARIANT_NUMBER_LENGTH = 1;
+
+	private CryptoUtil()
+	{
+		// No instances
+	}
 
 	public static String getRandomString(int length)
 	{
@@ -41,7 +44,7 @@ public class CryptoUtil
 	public static String getRandomDigits(int length)
 	{
 		SecureRandom random = CryptoUtil.getSecureRandomInstance();
-		return StringUtils.leftPad("" + random.nextInt((int) Math.pow(10, length)), length, '0');
+		return StringUtils.leftPad(Integer.toString(random.nextInt((int) Math.pow(10, length))), length, '0');
 	}
 
 	public static SecureRandom getSecureRandomInstance()
@@ -55,8 +58,6 @@ public class CryptoUtil
 			throw CryptoException.gettingRandomInstance(e);
 		}
 	}
-
-	public static final int CRYPTO_VARIANT_NUMBER_LENGTH = 1;
 
 	/**
 	 * Encrypts the given plaintext bytes.

@@ -43,7 +43,7 @@ public class SecretKeyUtil
 		{
 			return null;
 		}
-		return encryptBytes(plaintext.toString().getBytes(StandardCharsets.UTF_8));
+		return encryptBytes(plaintext.getBytes(StandardCharsets.UTF_8));
 	}
 
 	public static byte[] encryptLong(Long plaintext)

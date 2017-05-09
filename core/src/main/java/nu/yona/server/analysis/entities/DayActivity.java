@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
@@ -73,7 +73,7 @@ public class DayActivity extends IntervalActivity
 
 	public Activity getLastActivity()
 	{
-		if (this.activities.size() == 0)
+		if (this.activities.isEmpty())
 		{
 			return null;
 		}
@@ -147,9 +147,8 @@ public class DayActivity extends IntervalActivity
 
 	private List<Activity> getActivitiesSorted()
 	{
-		List<Activity> activitiesSortedOnStartTime = activities.stream()
-				.sorted((a1, a2) -> a1.getStartTime().compareTo(a2.getStartTime())).collect(Collectors.toList());
-		return activitiesSortedOnStartTime;
+		return activities.stream().sorted((a1, a2) -> a1.getStartTime().compareTo(a2.getStartTime()))
+				.collect(Collectors.toList());
 	}
 
 	private void addToSpread(List<Integer> spread, ZonedDateTime startTime, ZonedDateTime endTime)
@@ -208,7 +207,7 @@ public class DayActivity extends IntervalActivity
 	@Override
 	protected int computeTotalActivityDurationMinutes()
 	{
-		return activities.stream().map(activity -> activity.getDurationMinutes()).reduce(0, Integer::sum);
+		return activities.stream().map(Activity::getDurationMinutes).reduce(0, Integer::sum);
 	}
 
 	public int getTotalMinutesBeyondGoal()

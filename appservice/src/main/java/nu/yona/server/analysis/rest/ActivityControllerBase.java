@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.rest;
 
@@ -43,6 +43,7 @@ import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.messaging.rest.MessageController.MessageResourceAssembler;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.subscriptions.rest.BuddyController;
+import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.GoalIdMapping;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -172,7 +173,7 @@ abstract class ActivityControllerBase
 	private UUID determineBuddyId(GoalIdMapping goalIdMapping, ActivityCommentMessageDto message)
 	{
 		return goalIdMapping.getUser().getPrivateData().getBuddies().stream()
-				.filter(b -> b.getUser().getId().equals(message.getSenderUser().get().getId())).map(b -> b.getId()).findAny()
+				.filter(b -> b.getUser().getId().equals(message.getSenderUser().get().getId())).map(BuddyDto::getId).findAny()
 				.orElseThrow(() -> new IllegalArgumentException(
 						"User with ID " + message.getSenderUser().get().getId() + "is not a buddy"));
 	}
@@ -240,7 +241,7 @@ abstract class ActivityControllerBase
 		{
 			DayActivityResourceAssembler a = new DayActivityResourceAssembler(linkProvider, false, false);
 			return getContent().getDayActivities().entrySet().stream()
-					.collect(Collectors.toMap(e -> e.getKey(), e -> a.toResource(e.getValue())));
+					.collect(Collectors.toMap(Map.Entry::getKey, e -> a.toResource(e.getValue())));
 		}
 	}
 
@@ -300,8 +301,7 @@ abstract class ActivityControllerBase
 		@Override
 		public WeekActivityOverviewResource toResource(WeekActivityOverviewDto weekActivityOverview)
 		{
-			WeekActivityOverviewResource weekActivityOverviewResource = instantiateResource(weekActivityOverview);
-			return weekActivityOverviewResource;
+			return instantiateResource(weekActivityOverview);
 		}
 
 		@Override
@@ -482,8 +482,7 @@ abstract class ActivityControllerBase
 		@Override
 		public DayActivityOverviewResource toResource(DayActivityOverviewDto<DayActivityDto> dayActivityOverview)
 		{
-			DayActivityOverviewResource dayActivityOverviewResource = instantiateResource(dayActivityOverview);
-			return dayActivityOverviewResource;
+			return instantiateResource(dayActivityOverview);
 		}
 
 		@Override

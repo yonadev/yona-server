@@ -40,7 +40,7 @@ public abstract class BuddyMessageDto extends MessageDto
 	}
 
 	@Component
-	public static abstract class Manager extends MessageDto.Manager
+	public abstract static class Manager extends MessageDto.Manager
 	{
 		@Override
 		protected Optional<UUID> getSenderUserAnonymizedId(UserDto actingUser, Message messageEntity)

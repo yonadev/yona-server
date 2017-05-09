@@ -141,7 +141,7 @@ public abstract class MessageDto extends PolymorphicDto
 	public abstract boolean canBeDeleted();
 
 	@Component
-	protected static abstract class Manager implements DtoManager
+	protected abstract static class Manager implements DtoManager
 	{
 		@Autowired
 		private TheDtoManager theDtoFactory;

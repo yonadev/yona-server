@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.exceptions;
@@ -165,7 +165,7 @@ public abstract class ResourceBasedException extends RuntimeException
 
 	private String formAlternativeMessageText()
 	{
-		StringBuffer sb = new StringBuffer(messageId);
+		StringBuilder sb = new StringBuilder(messageId);
 		if ((parameters != null) && (parameters.length != 0))
 		{
 			sb.append("; parameters: ");
@@ -174,7 +174,7 @@ public abstract class ResourceBasedException extends RuntimeException
 		return sb.toString();
 	}
 
-	private void appendParametersText(StringBuffer sb)
+	private void appendParametersText(StringBuilder sb)
 	{
 		boolean isFirst = true;
 		for (Object parameter : parameters)

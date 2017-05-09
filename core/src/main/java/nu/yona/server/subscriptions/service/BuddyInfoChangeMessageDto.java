@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
@@ -66,8 +66,7 @@ public class BuddyInfoChangeMessageDto extends BuddyMessageLinkedUserDto
 		return this.isProcessed;
 	}
 
-	public static BuddyInfoChangeMessageDto createInstance(UserDto actingUser, BuddyInfoChangeMessage messageEntity,
-			SenderInfo senderInfo)
+	public static BuddyInfoChangeMessageDto createInstance(BuddyInfoChangeMessage messageEntity, SenderInfo senderInfo)
 	{
 		return new BuddyInfoChangeMessageDto(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				senderInfo, messageEntity.getMessage(), messageEntity.isProcessed());
@@ -91,7 +90,7 @@ public class BuddyInfoChangeMessageDto extends BuddyMessageLinkedUserDto
 		@Override
 		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
 		{
-			return BuddyInfoChangeMessageDto.createInstance(actingUser, (BuddyInfoChangeMessage) messageEntity,
+			return BuddyInfoChangeMessageDto.createInstance((BuddyInfoChangeMessage) messageEntity,
 					getSenderInfo(actingUser, messageEntity));
 		}
 

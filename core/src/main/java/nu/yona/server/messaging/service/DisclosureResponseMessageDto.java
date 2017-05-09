@@ -7,7 +7,6 @@ package nu.yona.server.messaging.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
@@ -48,13 +47,6 @@ public class DisclosureResponseMessageDto extends BuddyMessageLinkedUserDto
 		return "DisclosureResponseMessage";
 	}
 
-	@Override
-	public Set<String> getPossibleActions()
-	{
-		Set<String> possibleActions = super.getPossibleActions();
-		return possibleActions;
-	}
-
 	@JsonIgnore
 	public UUID getGoalId()
 	{
@@ -78,8 +70,7 @@ public class DisclosureResponseMessageDto extends BuddyMessageLinkedUserDto
 		return true;
 	}
 
-	public static DisclosureResponseMessageDto createInstance(UserDto actingUser, DisclosureResponseMessage messageEntity,
-			SenderInfo senderInfo)
+	public static DisclosureResponseMessageDto createInstance(DisclosureResponseMessage messageEntity, SenderInfo senderInfo)
 	{
 		GoalConflictMessage targetGoalConflictMessage = messageEntity.getTargetGoalConflictMessage();
 		return new DisclosureResponseMessageDto(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
@@ -103,7 +94,7 @@ public class DisclosureResponseMessageDto extends BuddyMessageLinkedUserDto
 		@Override
 		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
 		{
-			return DisclosureResponseMessageDto.createInstance(actingUser, (DisclosureResponseMessage) messageEntity,
+			return DisclosureResponseMessageDto.createInstance((DisclosureResponseMessage) messageEntity,
 					getSenderInfo(actingUser, messageEntity));
 		}
 

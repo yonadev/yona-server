@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2017 Stichting Yona Foundation
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
 import java.io.IOException;
@@ -71,8 +78,7 @@ public class AppleMobileConfigSigner
 			JcaSignerInfoGeneratorBuilder signerInfoGeneratorBuilder = new JcaSignerInfoGeneratorBuilder(
 					digestProviderBuilder.build());
 
-			SignerInfoGenerator signerInfoGenerator = signerInfoGeneratorBuilder.build(sha1Signer, signerCertificate);
-			return signerInfoGenerator;
+			return signerInfoGeneratorBuilder.build(sha1Signer, signerCertificate);
 		}
 		catch (CertificateException | OperatorCreationException e)
 		{

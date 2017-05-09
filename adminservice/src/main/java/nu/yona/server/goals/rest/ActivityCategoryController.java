@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.rest;
@@ -106,14 +106,13 @@ public class ActivityCategoryController
 
 	private HttpEntity<ActivityCategoryResource> createResponse(ActivityCategoryDto activityCategory, HttpStatus status)
 	{
-		return new ResponseEntity<ActivityCategoryResource>(new ActivityCategoryResourceAssembler().toResource(activityCategory),
-				status);
+		return new ResponseEntity<>(new ActivityCategoryResourceAssembler().toResource(activityCategory), status);
 	}
 
 	private HttpEntity<Resources<ActivityCategoryResource>> createOkResponse(Set<ActivityCategoryDto> activityCategories,
 			ControllerLinkBuilder controllerMethodLinkBuilder)
 	{
-		return new ResponseEntity<Resources<ActivityCategoryResource>>(
+		return new ResponseEntity<>(
 				wrapActivityCategoriesAsResourceList(activityCategories, controllerMethodLinkBuilder), HttpStatus.OK);
 	}
 

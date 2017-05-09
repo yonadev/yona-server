@@ -402,15 +402,14 @@ public class AnalysisEngineService
 	private Set<GoalDto> determineMatchingGoalsForUser(UserAnonymizedDto userAnonymized,
 			Set<ActivityCategoryDto> matchingActivityCategories, ZonedDateTime activityStartTime)
 	{
-		Set<UUID> matchingActivityCategoryIds = matchingActivityCategories.stream().map(ac -> ac.getId())
+		Set<UUID> matchingActivityCategoryIds = matchingActivityCategories.stream().map(ActivityCategoryDto::getId)
 				.collect(Collectors.toSet());
 		Set<GoalDto> goalsOfUser = userAnonymized.getGoals();
-		Set<GoalDto> matchingGoalsOfUser = goalsOfUser.stream().filter(g -> !g.isHistoryItem())
+		return goalsOfUser.stream().filter(g -> !g.isHistoryItem())
 				.filter(g -> matchingActivityCategoryIds.contains(g.getActivityCategoryId()))
 				.filter(g -> g.getCreationTime().get()
 						.isBefore(TimeUtil.toUtcLocalDateTime(activityStartTime.plus(DEVICE_TIME_INACCURACY_MARGIN))))
 				.collect(Collectors.toSet());
-		return matchingGoalsOfUser;
 	}
 
 	private static class ActivityPayload
