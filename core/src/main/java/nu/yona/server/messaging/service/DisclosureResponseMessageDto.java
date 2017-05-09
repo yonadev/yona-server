@@ -7,7 +7,6 @@ package nu.yona.server.messaging.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
@@ -46,12 +45,6 @@ public class DisclosureResponseMessageDto extends BuddyMessageLinkedUserDto
 	public String getType()
 	{
 		return "DisclosureResponseMessage";
-	}
-
-	@Override
-	public Set<String> getPossibleActions()
-	{
-		return super.getPossibleActions();
 	}
 
 	@JsonIgnore
