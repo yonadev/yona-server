@@ -99,8 +99,8 @@ public class YonaProperties
 
 	public void setSupportedLocales(String supportedLocales)
 	{
-		this.supportedLocales.addAll(Arrays.asList(supportedLocales.split(",")).stream().map(ls -> Locale.forLanguageTag(ls))
-				.collect(Collectors.toSet()));
+		this.supportedLocales.addAll(
+				Arrays.asList(supportedLocales.split(",")).stream().map(Locale::forLanguageTag).collect(Collectors.toSet()));
 	}
 
 	public Set<Locale> getSupportedLocales()

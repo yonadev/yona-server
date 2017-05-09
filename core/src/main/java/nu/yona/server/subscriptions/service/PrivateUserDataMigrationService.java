@@ -18,6 +18,7 @@ import nu.yona.server.subscriptions.service.migration.EncryptBuddyLastStatusChan
 @Service
 public class PrivateUserDataMigrationService
 {
+	@FunctionalInterface
 	public interface MigrationStep
 	{
 		void upgrade(User userEntity);

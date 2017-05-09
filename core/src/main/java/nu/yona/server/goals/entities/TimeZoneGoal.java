@@ -82,7 +82,7 @@ public class TimeZoneGoal extends Goal
 
 	private int[] determineSpreadOutsideGoal(DayActivity dayActivity)
 	{
-		int[] spread = dayActivity.getSpread().stream().mapToInt(i -> i.intValue()).toArray();
+		int[] spread = dayActivity.getSpread().stream().mapToInt(Integer::intValue).toArray();
 		getSpreadCellsIntStream().forEach(i -> spread[i] = 0);
 		return spread;
 	}
@@ -164,7 +164,7 @@ public class TimeZoneGoal extends Goal
 		return String.join(",", entityValue);
 	}
 
-	public static List<String> stringToList(String databaseValue)
+	private static List<String> stringToList(String databaseValue)
 	{
 		if (databaseValue == null)
 		{

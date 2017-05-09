@@ -66,8 +66,7 @@ public class BuddyInfoChangeMessageDto extends BuddyMessageLinkedUserDto
 		return this.isProcessed;
 	}
 
-	public static BuddyInfoChangeMessageDto createInstance(UserDto actingUser, BuddyInfoChangeMessage messageEntity,
-			SenderInfo senderInfo)
+	public static BuddyInfoChangeMessageDto createInstance(BuddyInfoChangeMessage messageEntity, SenderInfo senderInfo)
 	{
 		return new BuddyInfoChangeMessageDto(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				senderInfo, messageEntity.getMessage(), messageEntity.isProcessed());
@@ -91,7 +90,7 @@ public class BuddyInfoChangeMessageDto extends BuddyMessageLinkedUserDto
 		@Override
 		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
 		{
-			return BuddyInfoChangeMessageDto.createInstance(actingUser, (BuddyInfoChangeMessage) messageEntity,
+			return BuddyInfoChangeMessageDto.createInstance((BuddyInfoChangeMessage) messageEntity,
 					getSenderInfo(actingUser, messageEntity));
 		}
 

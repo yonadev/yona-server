@@ -149,18 +149,18 @@ public class GoalService
 
 	private void updateGoal(User userEntity, Goal existingGoal, GoalDto newGoalDto, Optional<String> message)
 	{
-		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		LocalDateTime goalChangeTime = newGoalDto.getCreationTime().orElse(TimeUtil.utcNow());
-		cloneExistingGoalAsHistoryItem(userAnonymizedEntity, existingGoal, goalChangeTime);
+		cloneExistingGoalAsHistoryItem(existingGoal, goalChangeTime);
 		existingGoal.setCreationTime(goalChangeTime);
 		newGoalDto.updateGoalEntity(existingGoal);
+		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getId(), userAnonymizedEntity);
 
 		broadcastGoalChangeMessage(userEntity, existingGoal.getActivityCategory(), GoalChangeMessage.Change.GOAL_CHANGED,
 				message);
 	}
 
-	private void cloneExistingGoalAsHistoryItem(UserAnonymized userAnonymizedEntity, Goal existingGoal, LocalDateTime endTime)
+	private void cloneExistingGoalAsHistoryItem(Goal existingGoal, LocalDateTime endTime)
 	{
 		Goal historyGoal = existingGoal.cloneAsHistoryItem(endTime);
 		existingGoal.transferHistoryActivities(historyGoal);

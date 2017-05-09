@@ -23,7 +23,7 @@ public abstract class IntervalActivityDto
 {
 	public enum LevelOfDetail
 	{
-		WeekOverview, WeekDetail, DayOverview, DayDetail
+		WEEK_OVERVIEW, WEEK_DETAIL, DAY_OVERVIEW, DAY_DETAIL
 	}
 
 	private final UUID goalId;
@@ -33,7 +33,8 @@ public abstract class IntervalActivityDto
 	private final List<Integer> spread;
 	private final Optional<Integer> totalActivityDurationMinutes;
 
-	private final boolean hasPrevious, hasNext;
+	private final boolean hasPrevious;
+	private final boolean hasNext;
 
 	protected IntervalActivityDto(UUID goalId, ZonedDateTime startTime, boolean shouldSerializeDate, List<Integer> spread,
 			Optional<Integer> totalActivityDurationMinutes, boolean hasPrevious, boolean hasNext)

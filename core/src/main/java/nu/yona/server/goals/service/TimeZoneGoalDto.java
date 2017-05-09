@@ -62,7 +62,7 @@ public class TimeZoneGoalDto extends GoalDto
 	@Override
 	public void validate()
 	{
-		if ((zones == null) || zones.size() == 0)
+		if ((zones == null) || zones.isEmpty())
 		{
 			throw GoalServiceException.timeZoneGoalAtLeastOneZoneRequired();
 		}

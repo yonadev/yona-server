@@ -275,8 +275,11 @@ public class User extends EntityWithUuid
 
 	public Buddy getBuddyByUserAnonymizedId(UUID relatedUserAnonymizedId)
 	{
-		return getBuddies().stream().filter(buddy -> buddy.getUserAnonymizedId().isPresent()
-				&& relatedUserAnonymizedId.equals(buddy.getUserAnonymizedId().get())).findAny().get();
+		return getBuddies().stream()
+				.filter(buddy -> buddy.getUserAnonymizedId().isPresent()
+						&& relatedUserAnonymizedId.equals(buddy.getUserAnonymizedId().get()))
+				.findAny().orElseThrow(() -> new IllegalStateException(
+						"Buddy for user anonymized ID " + relatedUserAnonymizedId + " not found"));
 	}
 
 	public void assertMobileNumberConfirmed()

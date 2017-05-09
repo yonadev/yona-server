@@ -16,11 +16,6 @@ public class BatchException extends YonaException
 		super(messageId, parameters);
 	}
 
-	private BatchException(Throwable t, String messageId, Object... parameters)
-	{
-		super(t, messageId, parameters);
-	}
-
 	public static BatchException jobNotFound(String groupName, String jobName)
 	{
 		return new BatchException("error.batch.job.not.found", groupName, jobName);

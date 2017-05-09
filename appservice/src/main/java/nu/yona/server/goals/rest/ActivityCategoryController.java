@@ -63,14 +63,13 @@ public class ActivityCategoryController
 
 	private HttpEntity<ActivityCategoryResource> createResponse(ActivityCategoryDto activityCategory, HttpStatus status)
 	{
-		return new ResponseEntity<ActivityCategoryResource>(new ActivityCategoryResourceAssembler().toResource(activityCategory),
-				status);
+		return new ResponseEntity<>(new ActivityCategoryResourceAssembler().toResource(activityCategory), status);
 	}
 
 	private HttpEntity<Resources<ActivityCategoryResource>> createOkResponse(Set<ActivityCategoryDto> activityCategories,
 			ControllerLinkBuilder controllerMethodLinkBuilder)
 	{
-		return new ResponseEntity<Resources<ActivityCategoryResource>>(
+		return new ResponseEntity<>(
 				wrapActivityCategoriesAsResourceList(activityCategories, controllerMethodLinkBuilder), HttpStatus.OK);
 	}
 

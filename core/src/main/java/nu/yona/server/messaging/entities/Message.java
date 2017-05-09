@@ -86,12 +86,12 @@ public abstract class Message extends EntityWithId
 
 	public void encryptMessage(Encryptor encryptor)
 	{
-		decryptionInfo = encryptor.executeInCryptoSession(() -> encrypt());
+		decryptionInfo = encryptor.executeInCryptoSession(this::encrypt);
 	}
 
 	public void decryptMessage(Decryptor decryptor)
 	{
-		decryptor.executeInCryptoSession(decryptionInfo, () -> decrypt());
+		decryptor.executeInCryptoSession(decryptionInfo, this::decrypt);
 	}
 
 	public MessageDestination getMessageDestination()

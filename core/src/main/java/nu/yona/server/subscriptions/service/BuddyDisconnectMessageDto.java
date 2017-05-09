@@ -78,8 +78,7 @@ public class BuddyDisconnectMessageDto extends BuddyMessageEmbeddedUserDto
 		return this.isProcessed;
 	}
 
-	public static BuddyDisconnectMessageDto createInstance(UserDto actingUser, BuddyDisconnectMessage messageEntity,
-			SenderInfo senderInfo)
+	public static BuddyDisconnectMessageDto createInstance(BuddyDisconnectMessage messageEntity, SenderInfo senderInfo)
 	{
 		return new BuddyDisconnectMessageDto(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				senderInfo, messageEntity.getMessage(), messageEntity.getReason(), messageEntity.isProcessed());
@@ -104,7 +103,7 @@ public class BuddyDisconnectMessageDto extends BuddyMessageEmbeddedUserDto
 		@Override
 		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
 		{
-			return BuddyDisconnectMessageDto.createInstance(actingUser, (BuddyDisconnectMessage) messageEntity,
+			return BuddyDisconnectMessageDto.createInstance((BuddyDisconnectMessage) messageEntity,
 					getSenderInfo(actingUser, messageEntity));
 		}
 
@@ -129,7 +128,7 @@ public class BuddyDisconnectMessageDto extends BuddyMessageEmbeddedUserDto
 			messageEntity = updateMessageStatusAsProcessed(messageEntity);
 
 			Optional<User> senderUser = messageEntity.getSenderUser();
-			String mobileNumber = senderUser.map(u -> u.getMobileNumber()).orElse("already deleted");
+			String mobileNumber = senderUser.map(User::getMobileNumber).orElse("already deleted");
 			String id = senderUser.map(u -> u.getId().toString()).orElse("already deleted");
 			logger.info(
 					"User with mobile number '{}' and ID '{}' processed buddy disconnect message from user with mobile number '{}' and ID '{}'",

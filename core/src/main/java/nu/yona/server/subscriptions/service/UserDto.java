@@ -26,6 +26,7 @@ import nu.yona.server.Constants;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.service.GoalDto;
+import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.util.TimeUtil;
 
@@ -175,7 +176,7 @@ public class UserDto
 	 */
 	public static Optional<UserDto> createInstance(Optional<User> userEntity)
 	{
-		return userEntity.map(ue -> createInstance(ue));
+		return userEntity.map(UserDto::createInstance);
 	}
 
 	/**
@@ -209,7 +210,7 @@ public class UserDto
 
 	private static Set<UUID> getBuddyIds(User userEntity)
 	{
-		return userEntity.getBuddies().stream().map(b -> b.getId()).collect(Collectors.toSet());
+		return userEntity.getBuddies().stream().map(Buddy::getId).collect(Collectors.toSet());
 	}
 
 	public void assertMobileNumberConfirmed()

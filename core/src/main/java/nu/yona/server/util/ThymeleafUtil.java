@@ -7,7 +7,7 @@ public class ThymeleafUtil
 {
 	private ThymeleafUtil()
 	{
-		// No instances;
+		// No instances
 	}
 
 	public static Context createContext()

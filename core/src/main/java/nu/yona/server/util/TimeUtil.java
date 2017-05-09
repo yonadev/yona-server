@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.util;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -16,7 +17,7 @@ public class TimeUtil
 {
 	private TimeUtil()
 	{
-		// No instances;
+		// No instances
 	}
 
 	public static LocalDateTime toUtcLocalDateTime(ZonedDateTime zonedDateTime)
@@ -62,15 +63,13 @@ public class TimeUtil
 
 	public static LocalDate getStartOfWeek(LocalDate date)
 	{
-		switch (date.getDayOfWeek())
+		if (date.getDayOfWeek() == DayOfWeek.SUNDAY)
 		{
-			case SUNDAY:
-				// take as the first day of week
-				return date;
-			default:
-				// MONDAY=1, etc.
-				return date.minusDays(date.getDayOfWeek().getValue());
+			// take as the first day of week
+			return date;
 		}
+
+		return date.minusDays(date.getDayOfWeek().getValue());
 	}
 
 }

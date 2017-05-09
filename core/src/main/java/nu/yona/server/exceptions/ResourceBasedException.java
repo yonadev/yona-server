@@ -165,7 +165,7 @@ public abstract class ResourceBasedException extends RuntimeException
 
 	private String formAlternativeMessageText()
 	{
-		StringBuffer sb = new StringBuffer(messageId);
+		StringBuilder sb = new StringBuilder(messageId);
 		if ((parameters != null) && (parameters.length != 0))
 		{
 			sb.append("; parameters: ");
@@ -174,7 +174,7 @@ public abstract class ResourceBasedException extends RuntimeException
 		return sb.toString();
 	}
 
-	private void appendParametersText(StringBuffer sb)
+	private void appendParametersText(StringBuilder sb)
 	{
 		boolean isFirst = true;
 		for (Object parameter : parameters)

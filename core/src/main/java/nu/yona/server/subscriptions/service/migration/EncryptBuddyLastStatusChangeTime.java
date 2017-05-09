@@ -14,7 +14,7 @@ public class EncryptBuddyLastStatusChangeTime implements PrivateUserDataMigratio
 	@Override
 	public void upgrade(User userEntity)
 	{
-		userEntity.getBuddies().forEach(buddy -> upgradeBuddy(buddy));
+		userEntity.getBuddies().forEach(this::upgradeBuddy);
 	}
 
 	@SuppressWarnings("deprecation")

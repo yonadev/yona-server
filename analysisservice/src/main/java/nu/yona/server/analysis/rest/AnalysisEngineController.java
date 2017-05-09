@@ -55,7 +55,7 @@ public class AnalysisEngineController
 	public HttpEntity<CategoriesResource> getRelevantSmoothwallCategories()
 	{
 		CategoriesDto categories = new CategoriesDto(analysisEngineService.getRelevantSmoothwallCategories());
-		return new ResponseEntity<CategoriesResource>(new CategoriesResource(categories), HttpStatus.OK);
+		return new ResponseEntity<>(new CategoriesResource(categories), HttpStatus.OK);
 	}
 
 	public static class CategoriesResource extends Resource<CategoriesDto>

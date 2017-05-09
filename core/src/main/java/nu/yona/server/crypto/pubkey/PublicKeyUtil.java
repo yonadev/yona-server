@@ -36,8 +36,7 @@ public final class PublicKeyUtil
 			KeyPairGenerator keyGen = KeyPairGenerator.getInstance(KEY_ALGORITHM);
 			SecureRandom random = CryptoUtil.getSecureRandomInstance();
 			keyGen.initialize(KEY_LENGTH_BITS, random);
-			KeyPair pair = keyGen.generateKeyPair();
-			return pair;
+			return keyGen.generateKeyPair();
 		}
 		catch (GeneralSecurityException e)
 		{

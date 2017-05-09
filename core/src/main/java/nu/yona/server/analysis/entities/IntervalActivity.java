@@ -210,6 +210,6 @@ public abstract class IntervalActivity extends EntityWithId
 
 	protected static List<Integer> getEmptySpread()
 	{
-		return new ArrayList<Integer>(Collections.nCopies(96, 0));
+		return new ArrayList<>(Collections.nCopies(96, 0));
 	}
 }

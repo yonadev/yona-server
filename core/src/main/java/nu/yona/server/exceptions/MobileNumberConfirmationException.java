@@ -16,11 +16,6 @@ public class MobileNumberConfirmationException extends ConfirmationException
 		super(messageId, parameters);
 	}
 
-	private MobileNumberConfirmationException(Throwable t, String messageId, Object... parameters)
-	{
-		super(t, messageId, parameters);
-	}
-
 	private MobileNumberConfirmationException(int remainingAttempts, String messageId, Object... parameters)
 	{
 		super(remainingAttempts, messageId, parameters);

@@ -71,8 +71,7 @@ public class AppleMobileConfigSigner
 			JcaSignerInfoGeneratorBuilder signerInfoGeneratorBuilder = new JcaSignerInfoGeneratorBuilder(
 					digestProviderBuilder.build());
 
-			SignerInfoGenerator signerInfoGenerator = signerInfoGeneratorBuilder.build(sha1Signer, signerCertificate);
-			return signerInfoGenerator;
+			return signerInfoGeneratorBuilder.build(sha1Signer, signerCertificate);
 		}
 		catch (CertificateException | OperatorCreationException e)
 		{

@@ -48,8 +48,8 @@ public class UserAnonymizedDto implements Serializable
 	public static UserAnonymizedDto createInstance(UserAnonymized entity)
 	{
 		return new UserAnonymizedDto(entity.getId(), entity.getLastMonitoredActivityDate(), getGoalsIncludingHistoryItems(entity),
-				MessageDestinationDto.createInstance(entity.getAnonymousDestination()), entity.getBuddiesAnonymized().stream()
-						.map(buddyAnonymized -> buddyAnonymized.getId()).collect(Collectors.toSet()));
+				MessageDestinationDto.createInstance(entity.getAnonymousDestination()),
+				entity.getBuddiesAnonymized().stream().map(BuddyAnonymized::getId).collect(Collectors.toSet()));
 	}
 
 	public UUID getId()
@@ -90,8 +90,8 @@ public class UserAnonymizedDto implements Serializable
 
 	public Optional<BuddyAnonymized> getBuddyAnonymized(UUID fromUserAnonymizedId)
 	{
-		return buddyAnonymizedIds.stream().map(id -> BuddyAnonymized.getRepository().findOne(id))
-				.filter(ba -> ba.getUserAnonymizedId().filter(id -> id.equals(fromUserAnonymizedId)).isPresent()).findAny();
+		return buddyAnonymizedIds.stream().map(bid -> BuddyAnonymized.getRepository().findOne(bid))
+				.filter(ba -> ba.getUserAnonymizedId().filter(uaid -> uaid.equals(fromUserAnonymizedId)).isPresent()).findAny();
 	}
 
 	public Optional<LocalDateTime> getOldestGoalCreationTime()
@@ -111,7 +111,7 @@ public class UserAnonymizedDto implements Serializable
 		Set<Goal> historyItems = getGoalHistoryItems(activeGoals);
 		Set<Goal> allGoals = new HashSet<>(activeGoals);
 		allGoals.addAll(historyItems);
-		return allGoals.stream().map(g -> GoalDto.createInstance(g)).collect(Collectors.toSet());
+		return allGoals.stream().map(GoalDto::createInstance).collect(Collectors.toSet());
 	}
 
 	private static Set<Goal> getGoalHistoryItems(Set<Goal> activeGoals)

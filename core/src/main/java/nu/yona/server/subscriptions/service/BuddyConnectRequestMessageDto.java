@@ -73,8 +73,7 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 		return this.status == Status.ACCEPTED || this.status == Status.REJECTED;
 	}
 
-	public static BuddyConnectRequestMessageDto createInstance(UserDto actingUser, BuddyConnectRequestMessage messageEntity,
-			SenderInfo senderInfo)
+	public static BuddyConnectRequestMessageDto createInstance(BuddyConnectRequestMessage messageEntity, SenderInfo senderInfo)
 	{
 
 		if (messageEntity == null)
@@ -111,7 +110,7 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 		@Override
 		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
 		{
-			return BuddyConnectRequestMessageDto.createInstance(actingUser, (BuddyConnectRequestMessage) messageEntity,
+			return BuddyConnectRequestMessageDto.createInstance((BuddyConnectRequestMessage) messageEntity,
 					getSenderInfo(actingUser, messageEntity));
 		}
 
@@ -163,7 +162,7 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 
 			sendResponseMessageToRequestingUser(actingUser, connectRequestMessageEntity, payload.getProperty("message"));
 
-			String mobileNumber = connectRequestMessageEntity.getSenderUser().map(u -> u.getMobileNumber())
+			String mobileNumber = connectRequestMessageEntity.getSenderUser().map(User::getMobileNumber)
 					.orElse("already deleted");
 			String id = connectRequestMessageEntity.getSenderUser().map(u -> u.getId().toString()).orElse("already deleted");
 			logger.info(

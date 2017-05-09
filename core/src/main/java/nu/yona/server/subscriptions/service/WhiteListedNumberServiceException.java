@@ -12,11 +12,6 @@ public class WhiteListedNumberServiceException extends YonaException
 {
 	private static final long serialVersionUID = 2543728671534987461L;
 
-	private WhiteListedNumberServiceException(String messageId, Object... parameters)
-	{
-		super(messageId, parameters);
-	}
-
 	private WhiteListedNumberServiceException(HttpStatus statusCode, String messageId, Object... parameters)
 	{
 		super(statusCode, messageId, parameters);

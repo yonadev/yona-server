@@ -95,7 +95,7 @@ public class InactivityManagementService
 		return createInactivity(userAnonymizedId, goalId,
 				() -> weekActivityRepository.findOne(userAnonymizedId, weekStartTime.toLocalDate(), goalId),
 				(ua, g) -> WeekActivity.createInstance(ua, g, weekStartTime.getZone(), weekStartTime.toLocalDate()),
-				(wa) -> wa.getGoal().addWeekActivity(wa));
+				wa -> wa.getGoal().addWeekActivity(wa));
 	}
 
 	private void createDayInactivity(UUID userAnonymizedId, WeekActivity weekActivity, IntervalInactivityDto dayInactivity)
@@ -105,10 +105,10 @@ public class InactivityManagementService
 						dayInactivity.getGoalId()),
 				(ua, g) -> DayActivity.createInstance(ua, g, dayInactivity.getStartTime().getZone(),
 						dayInactivity.getStartTime().toLocalDate()),
-				(da) -> weekActivity.addDayActivity(da));
+				da -> weekActivity.addDayActivity(da));
 	}
 
-	private <T, R> T createInactivity(UUID userAnonymizedId, UUID goalId, Supplier<T> existingActivityFinder,
+	private <T> T createInactivity(UUID userAnonymizedId, UUID goalId, Supplier<T> existingActivityFinder,
 			BiFunction<UserAnonymized, Goal, T> creator, Consumer<T> storer)
 	{
 		T existingActivity = existingActivityFinder.get();

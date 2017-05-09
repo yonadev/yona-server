@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.quartz;
 
@@ -42,13 +39,13 @@ public class JobManagementService
 
 	public Set<JobDto> getAllJobs()
 	{
-		return getJobGroupNames().stream().flatMap(gn -> getJobKeys(gn).stream()).map(jk -> getJobDetail(jk))
-				.map(jd -> JobDto.createInstance(jd)).collect(toSet());
+		return getJobGroupNames().stream().flatMap(gn -> getJobKeys(gn).stream()).map(this::getJobDetail)
+				.map(JobDto::createInstance).collect(toSet());
 	}
 
 	public Set<JobDto> getJobsInGroup(String group)
 	{
-		return getJobKeys(group).stream().map(jk -> getJobDetail(jk)).map(jd -> JobDto.createInstance(jd)).collect(toSet());
+		return getJobKeys(group).stream().map(this::getJobDetail).map(JobDto::createInstance).collect(toSet());
 	}
 
 	public JobDto getJob(String name, String group)
@@ -89,7 +86,7 @@ public class JobManagementService
 	{
 		try
 		{
-			Set<String> jobNamesToBe = jobs.stream().map(j -> j.getName()).collect(toSet());
+			Set<String> jobNamesToBe = jobs.stream().map(JobDto::getName).collect(toSet());
 			Set<JobKey> existingJobs = scheduler.getJobKeys(GroupMatcher.jobGroupEquals(group));
 			Set<JobKey> keysOfJobsToDelete = existingJobs.stream().filter(jk -> !contains(jobNamesToBe, jk)).collect(toSet());
 			Set<JobDto> jobsToUpdate = jobs.stream().filter(j -> contains(existingJobs, group, j)).collect(toSet());

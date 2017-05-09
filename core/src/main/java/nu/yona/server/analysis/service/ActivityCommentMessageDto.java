@@ -85,8 +85,7 @@ public class ActivityCommentMessageDto extends BuddyMessageLinkedUserDto
 		return repliedMessageId;
 	}
 
-	public static ActivityCommentMessageDto createInstance(UserDto actingUser, ActivityCommentMessage messageEntity,
-			SenderInfo senderInfo)
+	private static ActivityCommentMessageDto createInstance(ActivityCommentMessage messageEntity, SenderInfo senderInfo)
 	{
 		return new ActivityCommentMessageDto(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				senderInfo, messageEntity.getIntervalActivity().getId(), messageEntity.getThreadHeadMessage().getId(),
@@ -112,7 +111,7 @@ public class ActivityCommentMessageDto extends BuddyMessageLinkedUserDto
 		@Override
 		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
 		{
-			return ActivityCommentMessageDto.createInstance(actingUser, (ActivityCommentMessage) messageEntity,
+			return ActivityCommentMessageDto.createInstance((ActivityCommentMessage) messageEntity,
 					getSenderInfo(actingUser, messageEntity));
 		}
 

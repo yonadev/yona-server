@@ -16,11 +16,6 @@ public class MessageServiceException extends YonaException
 		super(messageId, parameters);
 	}
 
-	private MessageServiceException(Throwable t, String messageId, Object... parameters)
-	{
-		super(t, messageId, parameters);
-	}
-
 	public static MessageServiceException noDtoManagerRegistered(Class<? extends Message> clz)
 	{
 		return new MessageServiceException("error.message.no.dto.manager.registered", clz);

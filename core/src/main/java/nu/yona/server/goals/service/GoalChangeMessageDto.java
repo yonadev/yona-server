@@ -5,7 +5,6 @@
 package nu.yona.server.goals.service;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
@@ -61,19 +60,12 @@ public class GoalChangeMessageDto extends BuddyMessageLinkedUserDto
 	}
 
 	@Override
-	public Set<String> getPossibleActions()
-	{
-		Set<String> possibleActions = super.getPossibleActions();
-		return possibleActions;
-	}
-
-	@Override
 	public boolean canBeDeleted()
 	{
 		return true;
 	}
 
-	public static GoalChangeMessageDto createInstance(UserDto actingUser, GoalChangeMessage messageEntity, SenderInfo senderInfo)
+	public static GoalChangeMessageDto createInstance(GoalChangeMessage messageEntity, SenderInfo senderInfo)
 	{
 		return new GoalChangeMessageDto(messageEntity.getId(), messageEntity.getCreationTime(), messageEntity.isRead(),
 				senderInfo, messageEntity.getActivityCategoryOfChangedGoal().getId(), messageEntity.getChange(),
@@ -95,7 +87,7 @@ public class GoalChangeMessageDto extends BuddyMessageLinkedUserDto
 		@Override
 		public MessageDto createInstance(UserDto actingUser, Message messageEntity)
 		{
-			return GoalChangeMessageDto.createInstance(actingUser, (GoalChangeMessage) messageEntity,
+			return GoalChangeMessageDto.createInstance((GoalChangeMessage) messageEntity,
 					getSenderInfo(actingUser, messageEntity));
 		}
 

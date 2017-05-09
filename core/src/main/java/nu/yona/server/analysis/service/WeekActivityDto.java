@@ -91,7 +91,7 @@ public class WeekActivityDto extends IntervalActivityDto
 
 	static WeekActivityDto createInstance(WeekActivity weekActivity, LevelOfDetail levelOfDetail)
 	{
-		boolean includeDetail = levelOfDetail == LevelOfDetail.WeekDetail;
+		boolean includeDetail = levelOfDetail == LevelOfDetail.WEEK_DETAIL;
 		return new WeekActivityDto(weekActivity.getGoal().getId(), weekActivity.getStartTime(), includeDetail,
 				includeDetail ? weekActivity.getSpread() : Collections.emptyList(),
 				includeDetail ? Optional.of(weekActivity.getTotalActivityDurationMinutes()) : Optional.empty(),
@@ -105,7 +105,7 @@ public class WeekActivityDto extends IntervalActivityDto
 			LevelOfDetail levelOfDetail, Set<IntervalInactivityDto> missingInactivities)
 	{
 		missingInactivities.add(IntervalInactivityDto.createWeekInstance(userAnonymized.getId(), goal.getId(), startOfWeek));
-		boolean includeDetail = levelOfDetail == LevelOfDetail.WeekDetail;
+		boolean includeDetail = levelOfDetail == LevelOfDetail.WEEK_DETAIL;
 		WeekActivityDto weekActivity = new WeekActivityDto(goal.getId(), startOfWeek, includeDetail,
 				includeDetail ? DayActivityDto.createInactiveSpread() : Collections.emptyList(),
 				includeDetail ? Optional.of(0) : Optional.empty(), new HashMap<>(),

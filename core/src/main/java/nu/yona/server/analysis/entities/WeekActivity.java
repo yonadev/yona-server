@@ -98,8 +98,7 @@ public class WeekActivity extends IntervalActivity
 	@Override
 	protected List<Integer> computeSpread()
 	{
-		return getDayActivities().stream().map(dayActivity -> dayActivity.getSpread()).reduce(getEmptySpread(),
-				(one, other) -> sumSpread(one, other));
+		return getDayActivities().stream().map(DayActivity::getSpread).reduce(getEmptySpread(), this::sumSpread);
 	}
 
 	private List<Integer> sumSpread(List<Integer> one, List<Integer> other)
@@ -115,8 +114,7 @@ public class WeekActivity extends IntervalActivity
 	@Override
 	protected int computeTotalActivityDurationMinutes()
 	{
-		return getDayActivities().stream().map(dayActivity -> dayActivity.getTotalActivityDurationMinutes()).reduce(0,
-				Integer::sum);
+		return getDayActivities().stream().map(DayActivity::getTotalActivityDurationMinutes).reduce(0, Integer::sum);
 	}
 
 	public static WeekActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfWeek)

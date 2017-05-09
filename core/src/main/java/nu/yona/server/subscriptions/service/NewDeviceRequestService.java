@@ -43,7 +43,8 @@ public class NewDeviceRequestService
 
 		logger.info("User with mobile number '{}' and ID '{}' set a new device request", userEntity.getMobileNumber(),
 				userEntity.getId());
-		return NewDeviceRequestDto.createInstance(User.getRepository().save(userEntity).getNewDeviceRequest());
+		User.getRepository().save(userEntity);
+		return NewDeviceRequestDto.createInstanceWithoutPassword();
 	}
 
 	@Transactional
@@ -73,7 +74,7 @@ public class NewDeviceRequestService
 		{
 			logger.info("User with mobile number '{}' and ID '{}' verified the existence of new device request",
 					userEntity.getMobileNumber(), userEntity.getId());
-			return NewDeviceRequestDto.createInstance(userEntity.getNewDeviceRequest());
+			return NewDeviceRequestDto.createInstanceWithoutPassword();
 		}
 	}
 

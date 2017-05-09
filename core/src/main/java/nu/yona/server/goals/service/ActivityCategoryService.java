@@ -78,7 +78,7 @@ public class ActivityCategoryService
 	public Set<ActivityCategoryDto> getAllActivityCategories()
 	{
 		// Sort the collection to make it simpler to compare the activity categories
-		return StreamSupport.stream(repository.findAll().spliterator(), false).map(e -> ActivityCategoryDto.createInstance(e))
+		return StreamSupport.stream(repository.findAll().spliterator(), false).map(ActivityCategoryDto::createInstance)
 				.collect(Collectors.toCollection(() -> new TreeSet<>(
 						(Comparator<ActivityCategoryDto> & Serializable) (l, r) -> l.getName().compareTo(r.getName()))));
 	}
@@ -166,7 +166,7 @@ public class ActivityCategoryService
 
 	private Set<ActivityCategory> getAllActivityCategoryEntities()
 	{
-		Set<ActivityCategory> activityCategories = new HashSet<ActivityCategory>();
+		Set<ActivityCategory> activityCategories = new HashSet<>();
 		for (ActivityCategory activityCategory : repository.findAll())
 		{
 			activityCategories.add(activityCategory);
@@ -178,7 +178,7 @@ public class ActivityCategoryService
 			Set<ActivityCategory> activityCategoriesInRepository)
 	{
 		Map<UUID, ActivityCategory> activityCategoriesInRepositoryMap = activityCategoriesInRepository.stream()
-				.collect(Collectors.toMap(ac -> ac.getId(), ac -> ac));
+				.collect(Collectors.toMap(ActivityCategory::getId, ac -> ac));
 
 		for (ActivityCategoryDto activityCategoryDto : activityCategoryDtos)
 		{
@@ -212,10 +212,10 @@ public class ActivityCategoryService
 			Set<ActivityCategoryDto> activityCategoryDtos)
 	{
 		Map<UUID, ActivityCategoryDto> activityCategoryDtosMap = activityCategoryDtos.stream()
-				.collect(Collectors.toMap(ac -> ac.getId(), ac -> ac));
+				.collect(Collectors.toMap(ActivityCategoryDto::getId, ac -> ac));
 
 		activityCategoriesInRepository.stream().filter(ac -> !activityCategoryDtosMap.containsKey(ac.getId()))
-				.forEach(ac -> deleteActivityCategory(ac));
+				.forEach(this::deleteActivityCategory);
 	}
 
 	private String getName(ActivityCategory entity)
@@ -225,9 +225,9 @@ public class ActivityCategoryService
 
 	/**
 	 * This method calls flush on the activity category repository. It shouldn't be necessary to do this, but the implicit flush
-	 * (done just before JPA sends a query to the database) causes a
-	 * "java.sql.SQLException: invalid transaction state: read-only SQL-transaction". Explicit flushes prevent that issue. This
-	 * requires the repository to be a JpaRepository rather than a CrudRepository.
+	 * (done just before JPA sends a query to the database) causes a "java.sql.SQLException: invalid transaction state: read-only
+	 * SQL-transaction". Explicit flushes prevent that issue. This requires the repository to be a JpaRepository rather than a
+	 * CrudRepository.
 	 */
 	private void explicitlyFlushUpdatesToDatabase()
 	{

@@ -98,10 +98,10 @@ public class DayActivityDto extends IntervalActivityDto
 	static DayActivityDto createInstance(DayActivity dayActivity, LevelOfDetail levelOfDetail)
 	{
 		return new DayActivityDto(dayActivity.getGoal().getId(), dayActivity.getGoal().getActivityCategory().getId(),
-				dayActivity.getStartTime(), levelOfDetail == LevelOfDetail.DayDetail, getSpread(dayActivity, levelOfDetail),
+				dayActivity.getStartTime(), levelOfDetail == LevelOfDetail.DAY_DETAIL, getSpread(dayActivity, levelOfDetail),
 				dayActivity.getTotalActivityDurationMinutes(), dayActivity.isGoalAccomplished(),
 				dayActivity.getTotalMinutesBeyondGoal(),
-				levelOfDetail == LevelOfDetail.DayDetail ? getMessages(dayActivity) : Collections.emptySet(),
+				levelOfDetail == LevelOfDetail.DAY_DETAIL ? getMessages(dayActivity) : Collections.emptySet(),
 				dayActivity.hasPrevious(), dayActivity.hasNext());
 	}
 
@@ -110,15 +110,15 @@ public class DayActivityDto extends IntervalActivityDto
 	{
 		missingInactivities.add(IntervalInactivityDto.createDayInstance(userAnonymized.getId(), goal.getGoalId(), startTime));
 		return new DayActivityDto(goal.getGoalId(), goal.getActivityCategoryId(), startTime,
-				levelOfDetail == LevelOfDetail.DayDetail,
+				levelOfDetail == LevelOfDetail.DAY_DETAIL,
 				includeSpread(goal, levelOfDetail) ? createInactiveSpread() : Collections.emptyList(), 0, true, 0,
 				Collections.emptySet(), IntervalActivityDto.hasPrevious(goal, startTime, ChronoUnit.DAYS),
 				IntervalActivity.hasNext(startTime, ChronoUnit.DAYS));
 	}
 
-	static ArrayList<Integer> createInactiveSpread()
+	static List<Integer> createInactiveSpread()
 	{
-		return new ArrayList<Integer>(Collections.nCopies(96, 0));
+		return new ArrayList<>(Collections.nCopies(96, 0));
 	}
 
 	private static List<Integer> getSpread(DayActivity dayActivity, LevelOfDetail levelOfDetail)
@@ -144,7 +144,7 @@ public class DayActivityDto extends IntervalActivityDto
 
 	private static boolean includeSpread(boolean isTimeZoneGoal, LevelOfDetail levelOfDetail)
 	{
-		return levelOfDetail == LevelOfDetail.DayDetail || levelOfDetail == LevelOfDetail.DayOverview && isTimeZoneGoal;
+		return levelOfDetail == LevelOfDetail.DAY_DETAIL || levelOfDetail == LevelOfDetail.DAY_OVERVIEW && isTimeZoneGoal;
 	}
 
 	private static boolean isTimeZoneGoal(Goal goal)

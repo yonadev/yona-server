@@ -38,6 +38,7 @@ public class LockPool<T>
 		}
 		catch (InterruptedException e)
 		{
+			Thread.currentThread().interrupt();
 			throw YonaException.unexpected(e);
 		}
 	}

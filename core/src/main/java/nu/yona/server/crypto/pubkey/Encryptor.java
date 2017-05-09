@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.crypto.pubkey;
 
+@FunctionalInterface
 public interface Encryptor
 {
 	byte[] executeInCryptoSession(Runnable runnable);

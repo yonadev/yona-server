@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import nu.yona.server.batch.client.BatchProxyService;
 import nu.yona.server.exceptions.PinResetRequestConfirmationException;
 import nu.yona.server.properties.YonaProperties;
-import nu.yona.server.sms.SmsService;
+import nu.yona.server.sms.SmsTemplate;
 import nu.yona.server.subscriptions.entities.ConfirmationCode;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.util.TimeUtil;
@@ -122,7 +122,7 @@ public class PinResetRequestService
 	private void sendConfirmationCodeTextMessage(User userEntity, ConfirmationCode confirmationCode)
 	{
 		userService.sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode,
-				SmsService.TemplateName_PinResetRequestConfirmation);
+				SmsTemplate.PIN_RESET_REQUEST_CONFIRMATION);
 	}
 
 	private ConfirmationCode createConfirmationCode(Moment moment)

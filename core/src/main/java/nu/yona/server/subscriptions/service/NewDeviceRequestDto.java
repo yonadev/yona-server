@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.Optional;
+
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
@@ -11,21 +13,26 @@ import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 @JsonRootName("newDeviceRequest")
 public class NewDeviceRequestDto
 {
-	private String yonaPassword;
+	private final Optional<String> yonaPassword;
 
 	public NewDeviceRequestDto(String yonaPassword)
 	{
-		this.yonaPassword = yonaPassword;
+		this.yonaPassword = Optional.of(yonaPassword);
 	}
 
-	public String getYonaPassword()
+	public NewDeviceRequestDto()
+	{
+		this.yonaPassword = Optional.empty();
+	}
+
+	public Optional<String> getYonaPassword()
 	{
 		return yonaPassword;
 	}
 
-	public static NewDeviceRequestDto createInstance(NewDeviceRequest newDeviceRequestEntity)
+	public static NewDeviceRequestDto createInstanceWithoutPassword()
 	{
-		return new NewDeviceRequestDto(null);
+		return new NewDeviceRequestDto();
 	}
 
 	public static NewDeviceRequestDto createInstanceWithPassword(NewDeviceRequest newDeviceRequestEntity)
