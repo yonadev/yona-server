@@ -20,6 +20,8 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+import org.hibernate.annotations.BatchSize;
+
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
@@ -36,6 +38,8 @@ public class DayActivity extends IntervalActivity
 	private WeekActivity weekActivity;
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "dayActivity", fetch = FetchType.LAZY)
+	@BatchSize(size = 25) // When e.g. fetching a day or week overview, it is expected that only the last day is not aggregated,
+							// so you get 4 goals * 1 day = 4 activity collections to be joined
 	private List<Activity> activities;
 
 	private boolean goalAccomplished;
