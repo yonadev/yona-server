@@ -170,7 +170,13 @@ public class UserPrivate extends EntityWithUuid
 
 	public Set<Buddy> getBuddiesRelatedToRemovedUsers()
 	{
+		loadAllBuddyUsers();
 		return buddies.stream().filter(b -> b.getUser() == null).collect(Collectors.toSet());
+	}
+
+	private void loadAllBuddyUsers()
+	{
+		User.getRepository().findAll(buddies.stream().map(Buddy::getUserId).collect(Collectors.toList()));
 	}
 
 	public Optional<LocalDate> getLastMonitoredActivityDate()
@@ -183,4 +189,3 @@ public class UserPrivate extends EntityWithUuid
 		getUserAnonymized().setLastMonitoredActivityDate(lastMonitoredActivityDate);
 	}
 }
-

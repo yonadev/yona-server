@@ -33,7 +33,6 @@ public class UserPrivateDto
 	private final VPNProfileDto vpnProfile;
 	private final UUID userAnonymizedId;
 	private final UUID namedMessageSourceId;
-	private final UUID namedMessageDestinationId;
 	private final UUID anonymousMessageSourceId;
 	private final Set<UUID> buddyIds;
 	private final Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper;
@@ -41,12 +40,12 @@ public class UserPrivateDto
 	@JsonCreator
 	public UserPrivateDto(@JsonProperty("nickname") String nickname)
 	{
-		this(Optional.empty(), null, nickname, null, null, null, Collections.emptySet(), Collections.emptySet(), null, null,
+		this(Optional.empty(), null, nickname, null, null, Collections.emptySet(), Collections.emptySet(), null, null,
 				new VPNProfileDto(null));
 	}
 
 	UserPrivateDto(Optional<LocalDate> lastMonitoredActivityDate, String yonaPassword, String nickname, UUID namedMessageSourceId,
-			UUID namedMessageDestinationId, UUID anonymousMessageSourceId, Set<GoalDto> goals, Set<UUID> buddyIds,
+			UUID anonymousMessageSourceId, Set<GoalDto> goals, Set<UUID> buddyIds,
 			Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper, UUID userAnonymizedId, VPNProfileDto vpnProfile)
 	{
 		Objects.requireNonNull(goals);
@@ -55,7 +54,6 @@ public class UserPrivateDto
 		this.yonaPassword = yonaPassword;
 		this.nickname = nickname;
 		this.namedMessageSourceId = namedMessageSourceId;
-		this.namedMessageDestinationId = namedMessageDestinationId;
 		this.anonymousMessageSourceId = anonymousMessageSourceId;
 		this.goals = goals;
 		this.buddyIds = buddyIds;
@@ -97,12 +95,6 @@ public class UserPrivateDto
 	public UUID getNamedMessageSourceId()
 	{
 		return namedMessageSourceId;
-	}
-
-	@JsonIgnore
-	public UUID getNamedMessageDestinationId()
-	{
-		return namedMessageDestinationId;
 	}
 
 	@JsonIgnore

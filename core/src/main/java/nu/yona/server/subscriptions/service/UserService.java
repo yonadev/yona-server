@@ -285,8 +285,7 @@ public class UserService
 
 	UserDto createUserDtoWithPrivateData(User user)
 	{
-		return UserDto.createInstanceWithPrivateData(user,
-				buddyIds -> buddyIds.stream().map(bid -> buddyService.getBuddy(bid)).collect(Collectors.toSet()));
+		return UserDto.createInstanceWithPrivateData(user, buddyService::getBuddies);
 	}
 
 	private void addMandatoryGoals(User userEntity)
