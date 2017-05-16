@@ -51,14 +51,13 @@ public class UserDto
 	 */
 	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate,
 			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String yonaPassword,
-			String nickname, String mobileNumber, boolean isConfirmed, UUID namedMessageSourceId, UUID namedMessageDestinationId,
-			UUID anonymousMessageSourceId, Set<GoalDto> goals, Set<UUID> buddyIds,
-			Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper, UUID userAnonymizedId, VPNProfileDto vpnProfile)
+			String nickname, String mobileNumber, boolean isConfirmed, UUID namedMessageSourceId, UUID anonymousMessageSourceId,
+			Set<GoalDto> goals, Set<UUID> buddyIds, Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper, UUID userAnonymizedId,
+			VPNProfileDto vpnProfile)
 	{
 		this(id, Optional.of(creationTime), appLastOpenedDate, firstName, lastName, null, mobileNumber, isConfirmed,
 				new UserPrivateDto(lastMonitoredActivityDate, yonaPassword, nickname, namedMessageSourceId,
-						namedMessageDestinationId, anonymousMessageSourceId, goals, buddyIds, buddyIdToDtoMapper,
-						userAnonymizedId, vpnProfile));
+						anonymousMessageSourceId, goals, buddyIds, buddyIdToDtoMapper, userAnonymizedId, vpnProfile));
 	}
 
 	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate, String firstName, String lastName,
@@ -203,7 +202,7 @@ public class UserDto
 				userEntity.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
 				CryptoSession.getCurrent().getKeyString(), userEntity.getNickname(), userEntity.getMobileNumber(),
 				userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSourceId(),
-				userEntity.getNamedMessageDestination().getId(), userEntity.getAnonymousMessageSourceId(),
+				userEntity.getAnonymousMessageSourceId(),
 				UserAnonymizedDto.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), getBuddyIds(userEntity),
 				buddyIdToDtoMapper, userEntity.getUserAnonymizedId(), VPNProfileDto.createInstance(userEntity));
 	}

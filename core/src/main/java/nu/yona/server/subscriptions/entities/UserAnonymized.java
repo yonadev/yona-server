@@ -14,11 +14,13 @@ import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Where;
 
 import nu.yona.server.entities.EntityWithUuid;
@@ -37,12 +39,13 @@ public class UserAnonymized extends EntityWithUuid
 
 	private LocalDate lastMonitoredActivityDate;
 
-	@OneToOne
+	@OneToOne(fetch = FetchType.LAZY)
 	private MessageDestination anonymousDestination;
 
 	@OneToMany(mappedBy = "userAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Where(clause = "end_time is null") // The history items have the user anonymized ID set, so they would appear in this
 										// collection if not explicitly excluded
+	@BatchSize(size = 20)
 	private Set<Goal> goals;
 
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
