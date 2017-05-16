@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
@@ -42,6 +42,7 @@ import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
@@ -77,6 +78,9 @@ public class ActivityService
 
 	@Autowired(required = false)
 	private DayActivityRepository dayActivityRepository;
+
+	@Autowired(required = false)
+	private MessageRepository messageRepository;
 
 	@Autowired
 	private YonaProperties yonaProperties;
@@ -578,16 +582,22 @@ public class ActivityService
 	}
 
 	private ActivityCommentMessage createMessage(UserDto sendingUser, UUID relatedUserAnonymizedId,
-			IntervalActivity intervalActivityEntity, Optional<Message> repliedMessage, boolean isSentItem, String message)
+			IntervalActivity intervalActivityEntity, Optional<Message> repliedMessage, boolean isSentItem, String messageText)
 	{
+		ActivityCommentMessage message;
 		if (repliedMessage.isPresent())
 		{
-			return ActivityCommentMessage.createInstance(sendingUser.getId(), relatedUserAnonymizedId,
-					sendingUser.getPrivateData().getNickname(), intervalActivityEntity, isSentItem, message,
+			message = ActivityCommentMessage.createInstance(sendingUser.getId(), relatedUserAnonymizedId,
+					sendingUser.getPrivateData().getNickname(), intervalActivityEntity, isSentItem, messageText,
 					repliedMessage.get());
 		}
-		return ActivityCommentMessage.createThreadHeadInstance(sendingUser.getId(), relatedUserAnonymizedId,
-				sendingUser.getPrivateData().getNickname(), intervalActivityEntity, isSentItem, message);
+		else
+		{
+			message = ActivityCommentMessage.createThreadHeadInstance(sendingUser.getId(), relatedUserAnonymizedId,
+					sendingUser.getPrivateData().getNickname(), intervalActivityEntity, isSentItem, messageText);
+		}
+		messageRepository.save(message);
+		return message;
 	}
 
 	private <T extends IntervalActivityDto> T getMissingInactivity(UUID userId, LocalDate date, UUID goalId,
