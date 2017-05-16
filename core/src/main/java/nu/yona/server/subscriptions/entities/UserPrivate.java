@@ -170,11 +170,11 @@ public class UserPrivate extends EntityWithUuid
 
 	public Set<Buddy> getBuddiesRelatedToRemovedUsers()
 	{
-		loadAllBuddyUsers();
+		loadAllBuddyUsersAtOnce();
 		return buddies.stream().filter(b -> b.getUser() == null).collect(Collectors.toSet());
 	}
 
-	private void loadAllBuddyUsers()
+	private void loadAllBuddyUsersAtOnce()
 	{
 		User.getRepository().findAll(buddies.stream().map(Buddy::getUserId).collect(Collectors.toList()));
 	}

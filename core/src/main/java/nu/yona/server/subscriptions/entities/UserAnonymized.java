@@ -21,8 +21,6 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.Where;
 
 import nu.yona.server.entities.EntityWithUuid;
@@ -47,7 +45,6 @@ public class UserAnonymized extends EntityWithUuid
 	@OneToMany(mappedBy = "userAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Where(clause = "end_time is null") // The history items have the user anonymized ID set, so they would appear in this
 										// collection if not explicitly excluded
-	@Fetch(FetchMode.SELECT)
 	@BatchSize(size = 20)
 	private Set<Goal> goals;
 

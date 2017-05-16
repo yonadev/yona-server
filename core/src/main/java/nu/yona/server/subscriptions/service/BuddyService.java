@@ -395,18 +395,18 @@ public class BuddyService
 	public Set<BuddyDto> getBuddies(Set<UUID> buddyIds)
 	{
 		Set<Buddy> buddyEntities = getBuddyEntities(buddyIds);
-		loadAllBuddiesAnonymized(buddyEntities);
-		loadAllUsersAnonymized(buddyEntities);
+		loadAllBuddiesAnonymizedAtOnce(buddyEntities);
+		loadAllUsersAnonymizedAtOnce(buddyEntities);
 		return buddyEntities.stream().map(this::getBuddy).collect(Collectors.toSet());
 	}
 
-	private void loadAllUsersAnonymized(Set<Buddy> buddyEntities)
+	private void loadAllUsersAnonymizedAtOnce(Set<Buddy> buddyEntities)
 	{
 		UserAnonymized.getRepository().findAll(buddyEntities.stream().map(Buddy::getUserAnonymizedId).filter(Optional::isPresent)
 				.map(Optional::get).collect(Collectors.toList()));
 	}
 
-	private void loadAllBuddiesAnonymized(Set<Buddy> buddyEntities)
+	private void loadAllBuddiesAnonymizedAtOnce(Set<Buddy> buddyEntities)
 	{
 		BuddyAnonymized.getRepository()
 				.findAll(buddyEntities.stream().map(Buddy::getBuddyAnonymizedId).collect(Collectors.toList()));
