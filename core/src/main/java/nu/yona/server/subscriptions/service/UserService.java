@@ -290,7 +290,7 @@ public class UserService
 
 	private void addMandatoryGoals(User userEntity)
 	{
-		activityCategoryService.getAllActivityCategories().stream().filter(c -> c.isMandatoryNoGo())
+		activityCategoryService.getAllActivityCategories().stream().filter(ActivityCategoryDto::isMandatoryNoGo)
 				.forEach(c -> addNoGoGoal(userEntity, c));
 	}
 

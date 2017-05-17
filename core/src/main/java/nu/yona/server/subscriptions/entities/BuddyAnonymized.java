@@ -27,11 +27,6 @@ public class BuddyAnonymized extends EntityWithUuid
 		NOT_REQUESTED, REQUESTED, ACCEPTED, REJECTED
 	}
 
-	public static BuddyAnonymizedRepository getRepository()
-	{
-		return (BuddyAnonymizedRepository) RepositoryProvider.getRepository(BuddyAnonymized.class, UUID.class);
-	}
-
 	@Type(type = "uuid-char")
 	@Column(name = "owning_user_anonymized_id")
 	private UUID owningUserAnonymizedId;
@@ -68,6 +63,11 @@ public class BuddyAnonymized extends EntityWithUuid
 		super(id);
 		this.sendingStatus = sendingStatus;
 		this.receivingStatus = receivingStatus;
+	}
+
+	public static BuddyAnonymizedRepository getRepository()
+	{
+		return (BuddyAnonymizedRepository) RepositoryProvider.getRepository(BuddyAnonymized.class, UUID.class);
 	}
 
 	public static BuddyAnonymized createInstance(Status sendingStatus, Status receivingStatus)

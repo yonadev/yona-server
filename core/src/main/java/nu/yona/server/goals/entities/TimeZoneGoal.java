@@ -56,6 +56,16 @@ public class TimeZoneGoal extends Goal
 		this.spreadCells = Arrays.copyOf(originalGoal.spreadCells, originalGoal.spreadCells.length);
 	}
 
+	public static TimeZoneGoal createInstance(LocalDateTime creationTime, ActivityCategory activityCategory, List<String> zones)
+	{
+		return new TimeZoneGoal(UUID.randomUUID(), creationTime, activityCategory, zones, calculateSpreadCells(zones));
+	}
+
+	private static TimeZoneGoal createInstance(TimeZoneGoal originalGoal, LocalDateTime endTime)
+	{
+		return new TimeZoneGoal(UUID.randomUUID(), originalGoal, endTime);
+	}
+
 	public List<String> getZones()
 	{
 		return stringToList(zones);
@@ -111,11 +121,6 @@ public class TimeZoneGoal extends Goal
 		return bytes;
 	}
 
-	public static TimeZoneGoal createInstance(LocalDateTime creationTime, ActivityCategory activityCategory, List<String> zones)
-	{
-		return new TimeZoneGoal(UUID.randomUUID(), creationTime, activityCategory, zones, calculateSpreadCells(zones));
-	}
-
 	private static List<Integer> calculateSpreadCells(List<String> zones)
 	{
 		Set<Integer> spreadCells = new HashSet<>();
@@ -143,11 +148,6 @@ public class TimeZoneGoal extends Goal
 	{
 		TemporalAccessor begin = formatter.parse(timeString);
 		return begin.get(ChronoField.MINUTE_OF_DAY) / 15;
-	}
-
-	private static TimeZoneGoal createInstance(TimeZoneGoal originalGoal, LocalDateTime endTime)
-	{
-		return new TimeZoneGoal(UUID.randomUUID(), originalGoal, endTime);
 	}
 
 	public List<Integer> getSpreadCells()

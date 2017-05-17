@@ -32,6 +32,15 @@ public class DisclosureResponseMessage extends BuddyMessage
 		this.status = status;
 	}
 
+	public static DisclosureResponseMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId,
+			GoalConflictMessage targetGoalConflictMessage, Status status, String senderNickname, String message)
+	{
+		DisclosureResponseMessage disclosureResponseMessage = new DisclosureResponseMessage(senderUserId, senderUserAnonymizedId,
+				status, senderNickname, message);
+		targetGoalConflictMessage.addDisclosureResponse(disclosureResponseMessage);
+		return disclosureResponseMessage;
+	}
+
 	public GoalConflictMessage getTargetGoalConflictMessage()
 	{
 		return disclosureResponseTargetGoalConflictMessage;
@@ -45,14 +54,5 @@ public class DisclosureResponseMessage extends BuddyMessage
 	public Status getStatus()
 	{
 		return status;
-	}
-
-	public static DisclosureResponseMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId,
-			GoalConflictMessage targetGoalConflictMessage, Status status, String senderNickname, String message)
-	{
-		DisclosureResponseMessage disclosureResponseMessage = new DisclosureResponseMessage(senderUserId, senderUserAnonymizedId,
-				status, senderNickname, message);
-		targetGoalConflictMessage.addDisclosureResponse(disclosureResponseMessage);
-		return disclosureResponseMessage;
 	}
 }

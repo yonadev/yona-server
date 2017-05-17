@@ -33,11 +33,6 @@ import nu.yona.server.messaging.service.MessageNotFoundException;
 @Table(name = "MESSAGE_SOURCES")
 public class MessageSource extends EntityWithUuid
 {
-	public static MessageSourceRepository getRepository()
-	{
-		return (MessageSourceRepository) RepositoryProvider.getRepository(MessageSource.class, UUID.class);
-	}
-
 	@Convert(converter = ByteFieldEncryptor.class)
 	@Column(length = 1024)
 	private byte[] privateKeyBytes;
@@ -61,13 +56,9 @@ public class MessageSource extends EntityWithUuid
 		this.privateKeyBytes = toArrayWithTouchByte(privateKey);
 	}
 
-	private static byte[] toArrayWithTouchByte(PrivateKey privateKey)
+	public static MessageSourceRepository getRepository()
 	{
-		// Extract the private key bytes to the 1 position of an array. The 0 position is reserved to do the touch.
-		byte[] privateKeyBytes = PublicKeyUtil.privateKeyToBytes(privateKey);
-		byte[] extendedArray = new byte[privateKeyBytes.length + 1];
-		System.arraycopy(privateKeyBytes, 0, extendedArray, 1, privateKeyBytes.length);
-		return extendedArray;
+		return (MessageSourceRepository) RepositoryProvider.getRepository(MessageSource.class, UUID.class);
 	}
 
 	public static MessageSource createInstance()
@@ -76,6 +67,15 @@ public class MessageSource extends EntityWithUuid
 
 		MessageDestination messageDestination = MessageDestination.createInstance(pair.getPublic());
 		return new MessageSource(UUID.randomUUID(), pair.getPrivate(), messageDestination);
+	}
+
+	private static byte[] toArrayWithTouchByte(PrivateKey privateKey)
+	{
+		// Extract the private key bytes to the 1 position of an array. The 0 position is reserved to do the touch.
+		byte[] privateKeyBytes = PublicKeyUtil.privateKeyToBytes(privateKey);
+		byte[] extendedArray = new byte[privateKeyBytes.length + 1];
+		System.arraycopy(privateKeyBytes, 0, extendedArray, 1, privateKeyBytes.length);
+		return extendedArray;
 	}
 
 	public MessageDestination getDestination()

@@ -32,11 +32,6 @@ import nu.yona.server.messaging.entities.MessageDestination;
 @Table(name = "USERS_ANONYMIZED")
 public class UserAnonymized extends EntityWithUuid
 {
-	public static UserAnonymizedRepository getRepository()
-	{
-		return (UserAnonymizedRepository) RepositoryProvider.getRepository(UserAnonymized.class, UUID.class);
-	}
-
 	private LocalDate lastMonitoredActivityDate;
 
 	@OneToOne(fetch = FetchType.LAZY)
@@ -64,6 +59,16 @@ public class UserAnonymized extends EntityWithUuid
 		this.anonymousDestination = anonymousDestination;
 		this.goals = new HashSet<>(goals);
 		this.buddiesAnonymized = new HashSet<>();
+	}
+
+	public static UserAnonymizedRepository getRepository()
+	{
+		return (UserAnonymizedRepository) RepositoryProvider.getRepository(UserAnonymized.class, UUID.class);
+	}
+
+	public static UserAnonymized createInstance(MessageDestination anonymousDestination, Set<Goal> goals)
+	{
+		return new UserAnonymized(UUID.randomUUID(), anonymousDestination, goals);
 	}
 
 	public Optional<LocalDate> getLastMonitoredActivityDate()
@@ -107,11 +112,6 @@ public class UserAnonymized extends EntityWithUuid
 	{
 		// these are the same for performance
 		return getId();
-	}
-
-	public static UserAnonymized createInstance(MessageDestination anonymousDestination, Set<Goal> goals)
-	{
-		return new UserAnonymized(UUID.randomUUID(), anonymousDestination, goals);
 	}
 
 	public Set<BuddyAnonymized> getBuddiesAnonymized()

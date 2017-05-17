@@ -34,6 +34,11 @@ public class ConfirmationCode extends EntityWithUuid
 		this.confirmationCode = confirmationCode;
 	}
 
+	public static ConfirmationCode createInstance(String confirmationCode)
+	{
+		return new ConfirmationCode(UUID.randomUUID(), TimeUtil.utcNow(), confirmationCode);
+	}
+
 	public String getConfirmationCode()
 	{
 		return confirmationCode;
@@ -57,10 +62,5 @@ public class ConfirmationCode extends EntityWithUuid
 	public void incrementAttempts()
 	{
 		this.attempts++;
-	}
-
-	public static ConfirmationCode createInstance(String confirmationCode)
-	{
-		return new ConfirmationCode(UUID.randomUUID(), TimeUtil.utcNow(), confirmationCode);
 	}
 }

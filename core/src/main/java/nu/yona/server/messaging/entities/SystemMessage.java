@@ -25,6 +25,11 @@ public class SystemMessage extends Message
 		this.message = message;
 	}
 
+	public static SystemMessage createInstance(String message)
+	{
+		return new SystemMessage(message);
+	}
+
 	public String getMessage()
 	{
 		return message;
@@ -40,10 +45,5 @@ public class SystemMessage extends Message
 	protected void decrypt()
 	{
 		// Nothing to do here
-	}
-
-	public static SystemMessage createInstance(String message)
-	{
-		return new SystemMessage(message);
 	}
 }

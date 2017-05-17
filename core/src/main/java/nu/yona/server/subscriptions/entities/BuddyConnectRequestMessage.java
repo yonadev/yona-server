@@ -40,6 +40,13 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 		this.isRequestingReceiving = isRequestingReceiving;
 	}
 
+	public static BuddyConnectRequestMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
+			String message, UUID buddyId, boolean isRequestingSending, boolean isRequestingReceiving)
+	{
+		return new BuddyConnectRequestMessage(senderUserId, senderUserAnonymizedId, senderNickname, message, buddyId,
+				isRequestingSending, isRequestingReceiving);
+	}
+
 	public boolean requestingSending()
 	{
 		return isRequestingSending;
@@ -58,12 +65,5 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	public Status getStatus()
 	{
 		return this.status;
-	}
-
-	public static BuddyConnectRequestMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
-			String message, UUID buddyId, boolean isRequestingSending, boolean isRequestingReceiving)
-	{
-		return new BuddyConnectRequestMessage(senderUserId, senderUserAnonymizedId, senderNickname, message, buddyId,
-				isRequestingSending, isRequestingReceiving);
 	}
 }

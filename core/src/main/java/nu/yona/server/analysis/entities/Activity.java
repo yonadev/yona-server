@@ -45,6 +45,11 @@ public class Activity extends EntityWithId
 		this.endTime = endTime;
 	}
 
+	public static Activity createInstance(ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime)
+	{
+		return new Activity(timeZone, startTime, endTime);
+	}
+
 	public DayActivity getDayActivity()
 	{
 		return dayActivity;
@@ -100,10 +105,5 @@ public class Activity extends EntityWithId
 	public ActivityCategory getActivityCategory()
 	{
 		return activityCategory;
-	}
-
-	public static Activity createInstance(ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime)
-	{
-		return new Activity(timeZone, startTime, endTime);
 	}
 }
