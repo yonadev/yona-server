@@ -62,8 +62,8 @@ public class UserActivityController extends ActivityControllerBase
 			@PageableDefault(size = WEEKS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler)
 	{
-		return getWeekActivityOverviews(password, userId, pageable, pagedResourcesAssembler,
-				() -> activityService.getUserWeekActivityOverviews(userId, pageable), new UserActivityLinkProvider(userId));
+		return getWeekActivityOverviews(password, userId, pagedResourcesAssembler, () -> activityService.getUserWeekActivityOverviews(userId, pageable),
+				new UserActivityLinkProvider(userId));
 	}
 
 	@RequestMapping(value = DAY_OVERVIEWS_URI_FRAGMENT, method = RequestMethod.GET)
@@ -73,8 +73,8 @@ public class UserActivityController extends ActivityControllerBase
 			@PageableDefault(size = DAYS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler)
 	{
-		return getDayActivityOverviews(password, userId, pageable, pagedResourcesAssembler,
-				() -> activityService.getUserDayActivityOverviews(userId, pageable), new UserActivityLinkProvider(userId));
+		return getDayActivityOverviews(password, userId, pagedResourcesAssembler, () -> activityService.getUserDayActivityOverviews(userId, pageable),
+				new UserActivityLinkProvider(userId));
 	}
 
 	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_URI_FRAGMENT, method = RequestMethod.GET)
@@ -96,9 +96,8 @@ public class UserActivityController extends ActivityControllerBase
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
 		return getActivityDetailMessages(
-				password, userId, pageable, pagedResourcesAssembler, () -> activityService
-						.getUserWeekActivityDetailMessages(userId, WeekActivityDto.parseDate(dateStr), goalId, pageable),
-				new UserActivityLinkProvider(userId));
+				password, userId, pagedResourcesAssembler, () -> activityService
+						.getUserWeekActivityDetailMessages(userId, WeekActivityDto.parseDate(dateStr), goalId, pageable), new UserActivityLinkProvider(userId));
 	}
 
 	@RequestMapping(value = DAY_ACTIVITY_DETAIL_URI_FRAGMENT, method = RequestMethod.GET)
@@ -120,9 +119,8 @@ public class UserActivityController extends ActivityControllerBase
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
 		return getActivityDetailMessages(
-				password, userId, pageable, pagedResourcesAssembler, () -> activityService
-						.getUserDayActivityDetailMessages(userId, DayActivityDto.parseDate(dateStr), goalId, pageable),
-				new UserActivityLinkProvider(userId));
+				password, userId, pagedResourcesAssembler, () -> activityService
+						.getUserDayActivityDetailMessages(userId, DayActivityDto.parseDate(dateStr), goalId, pageable), new UserActivityLinkProvider(userId));
 	}
 
 	@RequestMapping(value = "/withBuddies/days/", method = RequestMethod.GET)
@@ -132,15 +130,14 @@ public class UserActivityController extends ActivityControllerBase
 			@PageableDefault(size = DAYS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityWithBuddiesDto>> pagedResourcesAssembler)
 	{
-		return getDayActivityOverviewsWithBuddies(password, userId, pageable, pagedResourcesAssembler,
-				() -> activityService.getUserDayActivityOverviewsWithBuddies(userId, pageable),
+		return getDayActivityOverviewsWithBuddies(password, userId, pagedResourcesAssembler, () -> activityService.getUserDayActivityOverviewsWithBuddies(userId, pageable),
 				new UserActivityLinkProvider(userId));
 	}
 
 	private HttpEntity<PagedResources<DayActivityOverviewWithBuddiesResource>> getDayActivityOverviewsWithBuddies(
-			Optional<String> password, UUID userId, Pageable pageable,
-			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityWithBuddiesDto>> pagedResourcesAssembler,
-			Supplier<Page<DayActivityOverviewDto<DayActivityWithBuddiesDto>>> activitySupplier, LinkProvider linkProvider)
+			Optional<String> password, UUID userId, PagedResourcesAssembler<DayActivityOverviewDto<DayActivityWithBuddiesDto>> pagedResourcesAssembler,
+			Supplier<Page<DayActivityOverviewDto<DayActivityWithBuddiesDto>>> activitySupplier,
+			LinkProvider linkProvider)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
