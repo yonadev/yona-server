@@ -267,8 +267,6 @@ abstract class ActivityControllerBase
 		{
 			super(dayActivity);
 		}
-
-		// TODO: embed messages if included on this detail level
 	}
 
 	static class DayActivityOverviewResource extends Resource<DayActivityOverviewDto<DayActivityDto>>
