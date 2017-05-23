@@ -50,7 +50,7 @@ public class PinResetRequestService
 				userEntity.getMobileNumber(), userId);
 		ConfirmationCode confirmationCode = createConfirmationCode(Moment.DELAYED);
 		setConfirmationCode(userEntity, confirmationCode);
-		if (confirmationCode.getConfirmationCode() == null)
+		if (confirmationCode.getCode() == null)
 		{
 			LocalDateTime executionTime = TimeUtil.utcNow()
 					.plus(yonaProperties.getSecurity().getPinResetRequestConfirmationCodeDelay());
@@ -69,7 +69,7 @@ public class PinResetRequestService
 		logger.info("Generating pin reset confirmation code for user with mobile number '{}' and ID '{}'", user.getMobileNumber(),
 				user.getId());
 		ConfirmationCode pinResetConfirmationCode = user.getPinResetConfirmationCode();
-		pinResetConfirmationCode.setConfirmationCode(userService.generateConfirmationCode());
+		pinResetConfirmationCode.setCode(userService.generateConfirmationCode());
 		sendConfirmationCodeTextMessage(user, pinResetConfirmationCode);
 	}
 
@@ -91,7 +91,7 @@ public class PinResetRequestService
 			throw PinResetRequestConfirmationException.tooManyAttempts(userEntity.getMobileNumber());
 		}
 
-		if (!userProvidedConfirmationCode.equals(confirmationCode.getConfirmationCode()))
+		if (!userProvidedConfirmationCode.equals(confirmationCode.getCode()))
 		{
 			userService.registerFailedAttempt(userEntity, confirmationCode);
 			throw PinResetRequestConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
