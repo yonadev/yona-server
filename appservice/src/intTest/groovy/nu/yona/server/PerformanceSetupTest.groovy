@@ -49,23 +49,14 @@ class PerformanceSetupTest extends AbstractAppServiceIntegrationTest
 		return buddyUsers
 	}
 
-	User createMainUser()
-	{
-		User richard = appService.addUser(appService.&assertUserCreationResponseDetails, "Richard", "Quinn", "RQ",
-				"+$timestamp")
-		richard = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, richard)
-		setGoals(richard)
-		return richard
-	}
-
 	User createBuddyUser(int index)
 	{
-		User bob = appService.addUser(appService.&assertUserCreationResponseDetails, "Bob" + index, "Dunn" + index, "BD" + index,
+		User buddyUser = appService.addUser(appService.&assertUserCreationResponseDetails, "Bob" + index, "Dunn" + index, "BD" + index,
 				"+$timestamp")
-		bob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bob)
-		setGoals(bob)
-		bob.emailAddress = "bob${index}@dunn.com"
-		return bob
+		buddyUser = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, buddyUser)
+		setGoals(buddyUser)
+		buddyUser.emailAddress = "bob${index}@dunn.com"
+		return buddyUser
 	}
 
 	void setGoals(User user)
