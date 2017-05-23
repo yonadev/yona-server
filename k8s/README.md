@@ -44,8 +44,8 @@ curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.19.0/minik
 ```
 #### KVM Driver for Minikube
 ```
-wget -O docker-machine-driver-kvm https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.10.0/docker-machine-driver-kvm-ubuntu16.04 && /
-chmod +x docker-machine-driver-kvm && /
+wget -O docker-machine-driver-kvm https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.10.0/docker-machine-driver-kvm-ubuntu16.04 && \
+chmod +x docker-machine-driver-kvm && \
 sudo mv docker-machine-driver-kvm /usr/local/bin
 ```
 #### Setup Minikube
