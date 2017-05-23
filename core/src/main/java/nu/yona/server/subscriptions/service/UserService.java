@@ -704,7 +704,7 @@ public class UserService
 	public void sendConfirmationCodeTextMessage(String mobileNumber, ConfirmationCode confirmationCode, SmsTemplate template)
 	{
 		Map<String, Object> templateParams = new HashMap<>();
-		templateParams.put("confirmationCode", confirmationCode.getConfirmationCode());
+		templateParams.put("confirmationCode", confirmationCode.getCode());
 		smsService.send(mobileNumber, template, templateParams);
 	}
 
@@ -724,7 +724,7 @@ public class UserService
 			throw tooManyAttemptsExceptionSupplier.get();
 		}
 
-		if (!confirmationCode.getConfirmationCode().equals(userProvidedConfirmationCode))
+		if (!confirmationCode.getCode().equals(userProvidedConfirmationCode))
 		{
 			registerFailedAttempt(userEntity, confirmationCode);
 			throw invalidConfirmationCodeExceptionSupplier.apply(remainingAttempts - 1);

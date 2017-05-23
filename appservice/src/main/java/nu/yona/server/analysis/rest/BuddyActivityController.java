@@ -59,8 +59,7 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PageableDefault(size = WEEKS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler)
 	{
-		return getWeekActivityOverviews(password, userId, pageable, pagedResourcesAssembler,
-				() -> activityService.getBuddyWeekActivityOverviews(buddyId, pageable),
+		return getWeekActivityOverviews(password, userId, pagedResourcesAssembler, () -> activityService.getBuddyWeekActivityOverviews(buddyId, pageable),
 				new BuddyActivityLinkProvider(userId, buddyId));
 	}
 
@@ -71,8 +70,7 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PageableDefault(size = DAYS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler)
 	{
-		return getDayActivityOverviews(password, userId, pageable, pagedResourcesAssembler,
-				() -> activityService.getBuddyDayActivityOverviews(buddyId, pageable),
+		return getDayActivityOverviews(password, userId, pagedResourcesAssembler, () -> activityService.getBuddyDayActivityOverviews(buddyId, pageable),
 				new BuddyActivityLinkProvider(userId, buddyId));
 	}
 
@@ -98,9 +96,8 @@ public class BuddyActivityController extends ActivityControllerBase
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
 		return getActivityDetailMessages(password,
-				userId, pageable, pagedResourcesAssembler, () -> activityService.getBuddyWeekActivityDetailMessages(userId,
-						buddyId, WeekActivityDto.parseDate(dateStr), goalId, pageable),
-				new BuddyActivityLinkProvider(userId, buddyId));
+				userId, pagedResourcesAssembler, () -> activityService.getBuddyWeekActivityDetailMessages(userId,
+						buddyId, WeekActivityDto.parseDate(dateStr), goalId, pageable), new BuddyActivityLinkProvider(userId, buddyId));
 	}
 
 	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.POST)
@@ -141,9 +138,8 @@ public class BuddyActivityController extends ActivityControllerBase
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
 		return getActivityDetailMessages(password,
-				userId, pageable, pagedResourcesAssembler, () -> activityService.getBuddyDayActivityDetailMessages(userId,
-						buddyId, DayActivityDto.parseDate(dateStr), goalId, pageable),
-				new BuddyActivityLinkProvider(userId, buddyId));
+				userId, pagedResourcesAssembler, () -> activityService.getBuddyDayActivityDetailMessages(userId,
+						buddyId, DayActivityDto.parseDate(dateStr), goalId, pageable), new BuddyActivityLinkProvider(userId, buddyId));
 	}
 
 	@RequestMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.POST)
