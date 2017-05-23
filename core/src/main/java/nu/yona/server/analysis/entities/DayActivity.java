@@ -20,6 +20,8 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+import org.hibernate.annotations.BatchSize;
+
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
@@ -27,15 +29,12 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 @Entity
 public class DayActivity extends IntervalActivity
 {
-	public static DayActivityRepository getRepository()
-	{
-		return (DayActivityRepository) RepositoryProvider.getRepository(DayActivity.class, Long.class);
-	}
-
 	@ManyToOne(fetch = FetchType.LAZY)
 	private WeekActivity weekActivity;
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "dayActivity", fetch = FetchType.LAZY)
+	@BatchSize(size = 25) // When e.g. fetching a day or week overview, it is expected that only the last day is not aggregated,
+							// so you get 4 goals * 1 day = 4 activity collections to be joined
 	private List<Activity> activities;
 
 	private boolean goalAccomplished;
@@ -52,6 +51,16 @@ public class DayActivity extends IntervalActivity
 		super(userAnonymized, goal, timeZone, startOfDay);
 
 		activities = new ArrayList<>();
+	}
+
+	public static DayActivityRepository getRepository()
+	{
+		return (DayActivityRepository) RepositoryProvider.getRepository(DayActivity.class, Long.class);
+	}
+
+	public static DayActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfDay)
+	{
+		return new DayActivity(userAnonymized, goal, timeZone, startOfDay);
 	}
 
 	@Override
@@ -238,10 +247,5 @@ public class DayActivity extends IntervalActivity
 	private boolean computeGoalAccomplished()
 	{
 		return this.getGoal().isGoalAccomplished(this);
-	}
-
-	public static DayActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfDay)
-	{
-		return new DayActivity(userAnonymized, goal, timeZone, startOfDay);
 	}
 }

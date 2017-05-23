@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -77,6 +77,9 @@ class MockMigrationStep2 implements MigrationStep
 public class PrivateUserDataMigrationServiceIntegrationTest
 {
 	@MockBean
+	private BuddyService buddyService;
+
+	@MockBean
 	private UserRepository mockUserRepository;
 
 	@MockBean
@@ -116,6 +119,7 @@ public class PrivateUserDataMigrationServiceIntegrationTest
 		JUnitUtil.setUpRepositoryMock(mockUserAnonymizedRepository);
 
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
+		repositoriesMap.put(User.class, mockUserRepository);
 		repositoriesMap.put(MessageSource.class, mockMessageSourceRepository);
 		repositoriesMap.put(UserAnonymized.class, mockUserAnonymizedRepository);
 		JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);

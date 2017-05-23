@@ -30,6 +30,15 @@ public class DisclosureRequestMessage extends BuddyMessage
 		this.status = Status.DISCLOSURE_REQUESTED;
 	}
 
+	public static Message createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname,
+			String message, GoalConflictMessage targetGoalConflictMessage)
+	{
+		DisclosureRequestMessage disclosureRequestMessage = new DisclosureRequestMessage(senderUserId, senderUserAnonymizedId,
+				senderUserNickname, message);
+		targetGoalConflictMessage.addDisclosureRequest(disclosureRequestMessage);
+		return disclosureRequestMessage;
+	}
+
 	public GoalConflictMessage getTargetGoalConflictMessage()
 	{
 		return disclosureRequestTargetGoalConflictMessage;
@@ -48,14 +57,5 @@ public class DisclosureRequestMessage extends BuddyMessage
 	public void setStatus(Status status)
 	{
 		this.status = status;
-	}
-
-	public static Message createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname,
-			String message, GoalConflictMessage targetGoalConflictMessage)
-	{
-		DisclosureRequestMessage disclosureRequestMessage = new DisclosureRequestMessage(senderUserId, senderUserAnonymizedId,
-				senderUserNickname, message);
-		targetGoalConflictMessage.addDisclosureRequest(disclosureRequestMessage);
-		return disclosureRequestMessage;
 	}
 }

@@ -30,6 +30,12 @@ public class BuddyDisconnectMessage extends BuddyMessage
 		super();
 	}
 
+	public static BuddyDisconnectMessage createInstance(UUID senderUserId, UUID senderAnonymizedUserId, String senderNickname,
+			String message, DropBuddyReason reason)
+	{
+		return new BuddyDisconnectMessage(senderUserId, senderAnonymizedUserId, senderNickname, message, reason);
+	}
+
 	public DropBuddyReason getReason()
 	{
 		return reason;
@@ -43,11 +49,5 @@ public class BuddyDisconnectMessage extends BuddyMessage
 	public void setProcessed()
 	{
 		this.isProcessed = true;
-	}
-
-	public static BuddyDisconnectMessage createInstance(UUID senderUserId, UUID senderAnonymizedUserId, String senderNickname,
-			String message, DropBuddyReason reason)
-	{
-		return new BuddyDisconnectMessage(senderUserId, senderAnonymizedUserId, senderNickname, message, reason);
 	}
 }

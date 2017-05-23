@@ -92,7 +92,11 @@ public class BuddyService
 
 	public BuddyDto getBuddy(UUID buddyId)
 	{
-		Buddy buddyEntity = getEntityById(buddyId);
+		return getBuddy(getEntityById(buddyId));
+	}
+
+	private BuddyDto getBuddy(Buddy buddyEntity)
+	{
 		BuddyDto result = BuddyDto.createInstance(buddyEntity);
 		if (canIncludePrivateData(buddyEntity))
 		{
@@ -390,7 +394,22 @@ public class BuddyService
 
 	public Set<BuddyDto> getBuddies(Set<UUID> buddyIds)
 	{
-		return buddyIds.stream().map(this::getBuddy).collect(Collectors.toSet());
+		Set<Buddy> buddyEntities = getBuddyEntities(buddyIds);
+		loadAllBuddiesAnonymizedAtOnce(buddyEntities);
+		loadAllUsersAnonymizedAtOnce(buddyEntities);
+		return buddyEntities.stream().map(this::getBuddy).collect(Collectors.toSet());
+	}
+
+	private void loadAllUsersAnonymizedAtOnce(Set<Buddy> buddyEntities)
+	{
+		UserAnonymized.getRepository().findAll(buddyEntities.stream().map(Buddy::getUserAnonymizedId).filter(Optional::isPresent)
+				.map(Optional::get).collect(Collectors.toList()));
+	}
+
+	private void loadAllBuddiesAnonymizedAtOnce(Set<Buddy> buddyEntities)
+	{
+		BuddyAnonymized.getRepository()
+				.findAll(buddyEntities.stream().map(Buddy::getBuddyAnonymizedId).collect(Collectors.toList()));
 	}
 
 	public Set<MessageDestinationDto> getBuddyDestinations(UserAnonymizedDto user)

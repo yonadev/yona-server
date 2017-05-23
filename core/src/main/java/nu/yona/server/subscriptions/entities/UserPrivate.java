@@ -83,16 +83,16 @@ public class UserPrivate extends EntityWithUuid
 		this.namedMessageSourceId = namedMessageSourceId;
 	}
 
-	private static String buildDecryptionCheck()
-	{
-		return DECRYPTION_CHECK_STRING + CryptoUtil.getRandomString(DECRYPTION_CHECK_STRING.length());
-	}
-
 	public static UserPrivate createInstance(String nickname, String vpnPassword, UUID userAnonymizedId,
 			UUID anonymousMessageSourceId, MessageSource namedMessageSource)
 	{
 		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymizedId, vpnPassword, anonymousMessageSourceId,
 				namedMessageSource.getId());
+	}
+
+	private static String buildDecryptionCheck()
+	{
+		return DECRYPTION_CHECK_STRING + CryptoUtil.getRandomString(DECRYPTION_CHECK_STRING.length());
 	}
 
 	public boolean isDecryptedProperly()
@@ -170,7 +170,13 @@ public class UserPrivate extends EntityWithUuid
 
 	public Set<Buddy> getBuddiesRelatedToRemovedUsers()
 	{
+		loadAllBuddyUsersAtOnce();
 		return buddies.stream().filter(b -> b.getUser() == null).collect(Collectors.toSet());
+	}
+
+	private void loadAllBuddyUsersAtOnce()
+	{
+		User.getRepository().findAll(buddies.stream().map(Buddy::getUserId).collect(Collectors.toList()));
 	}
 
 	public Optional<LocalDate> getLastMonitoredActivityDate()
@@ -183,4 +189,3 @@ public class UserPrivate extends EntityWithUuid
 		getUserAnonymized().setLastMonitoredActivityDate(lastMonitoredActivityDate);
 	}
 }
-

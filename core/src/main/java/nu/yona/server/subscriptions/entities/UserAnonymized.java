@@ -14,11 +14,13 @@ import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Where;
 
 import nu.yona.server.entities.EntityWithUuid;
@@ -30,19 +32,15 @@ import nu.yona.server.messaging.entities.MessageDestination;
 @Table(name = "USERS_ANONYMIZED")
 public class UserAnonymized extends EntityWithUuid
 {
-	public static UserAnonymizedRepository getRepository()
-	{
-		return (UserAnonymizedRepository) RepositoryProvider.getRepository(UserAnonymized.class, UUID.class);
-	}
-
 	private LocalDate lastMonitoredActivityDate;
 
-	@OneToOne
+	@OneToOne(fetch = FetchType.LAZY)
 	private MessageDestination anonymousDestination;
 
 	@OneToMany(mappedBy = "userAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Where(clause = "end_time is null") // The history items have the user anonymized ID set, so they would appear in this
 										// collection if not explicitly excluded
+	@BatchSize(size = 20)
 	private Set<Goal> goals;
 
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
@@ -61,6 +59,16 @@ public class UserAnonymized extends EntityWithUuid
 		this.anonymousDestination = anonymousDestination;
 		this.goals = new HashSet<>(goals);
 		this.buddiesAnonymized = new HashSet<>();
+	}
+
+	public static UserAnonymizedRepository getRepository()
+	{
+		return (UserAnonymizedRepository) RepositoryProvider.getRepository(UserAnonymized.class, UUID.class);
+	}
+
+	public static UserAnonymized createInstance(MessageDestination anonymousDestination, Set<Goal> goals)
+	{
+		return new UserAnonymized(UUID.randomUUID(), anonymousDestination, goals);
 	}
 
 	public Optional<LocalDate> getLastMonitoredActivityDate()
@@ -104,11 +112,6 @@ public class UserAnonymized extends EntityWithUuid
 	{
 		// these are the same for performance
 		return getId();
-	}
-
-	public static UserAnonymized createInstance(MessageDestination anonymousDestination, Set<Goal> goals)
-	{
-		return new UserAnonymized(UUID.randomUUID(), anonymousDestination, goals);
 	}
 
 	public Set<BuddyAnonymized> getBuddiesAnonymized()

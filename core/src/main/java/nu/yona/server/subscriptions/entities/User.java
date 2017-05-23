@@ -31,11 +31,6 @@ import nu.yona.server.util.TimeUtil;
 @Table(name = "USERS")
 public class User extends EntityWithUuid
 {
-	public static UserRepository getRepository()
-	{
-		return (UserRepository) RepositoryProvider.getRepository(User.class, UUID.class);
-	}
-
 	private int privateDataMigrationVersion;
 
 	private String firstName;
@@ -53,13 +48,13 @@ public class User extends EntityWithUuid
 
 	private boolean isCreatedOnBuddyRequest;
 
-	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
 	private ConfirmationCode mobileNumberConfirmationCode;
 
-	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
 	private ConfirmationCode overwriteUserConfirmationCode;
 
-	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
 	private ConfirmationCode pinResetConfirmationCode;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
@@ -68,7 +63,7 @@ public class User extends EntityWithUuid
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
 	private NewDeviceRequest newDeviceRequest;
 
-	@OneToOne
+	@OneToOne(fetch = FetchType.LAZY)
 	private MessageDestination messageDestination;
 
 	// Default constructor is required for JPA
@@ -89,6 +84,11 @@ public class User extends EntityWithUuid
 		this.setUserPrivate(userPrivate);
 		this.messageDestination = messageDestination;
 		this.privateDataMigrationVersion = PrivateUserDataMigrationService.getCurrentVersion();
+	}
+
+	public static UserRepository getRepository()
+	{
+		return (UserRepository) RepositoryProvider.getRepository(User.class, UUID.class);
 	}
 
 	public LocalDateTime getCreationTime()

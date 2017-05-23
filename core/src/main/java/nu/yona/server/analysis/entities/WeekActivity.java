@@ -18,6 +18,8 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 
+import org.hibernate.annotations.BatchSize;
+
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
@@ -25,12 +27,9 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 @Entity
 public class WeekActivity extends IntervalActivity
 {
-	public static WeekActivityRepository getRepository()
-	{
-		return (WeekActivityRepository) RepositoryProvider.getRepository(WeekActivity.class, Long.class);
-	}
-
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "weekActivity", orphanRemoval = true)
+	@BatchSize(size = 25) // When e.g. fetching a week overview with 3 weeks * 4 goals you already get 12 day collections to be
+							// joined
 	private final List<DayActivity> dayActivities = new ArrayList<>();
 
 	// Default constructor is required for JPA
@@ -42,6 +41,18 @@ public class WeekActivity extends IntervalActivity
 	private WeekActivity(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfWeek)
 	{
 		super(userAnonymized, goal, timeZone, startOfWeek);
+	}
+
+	public static WeekActivityRepository getRepository()
+	{
+		return (WeekActivityRepository) RepositoryProvider.getRepository(WeekActivity.class, Long.class);
+	}
+
+	public static WeekActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfWeek)
+	{
+		assert startOfWeek.getDayOfWeek() == DayOfWeek.SUNDAY : "Date " + startOfWeek
+				+ " is wrong. In Yona, Sunday is the first day of the week";
+		return new WeekActivity(userAnonymized, goal, timeZone, startOfWeek);
 	}
 
 	@Override
@@ -115,12 +126,5 @@ public class WeekActivity extends IntervalActivity
 	protected int computeTotalActivityDurationMinutes()
 	{
 		return getDayActivities().stream().map(DayActivity::getTotalActivityDurationMinutes).reduce(0, Integer::sum);
-	}
-
-	public static WeekActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfWeek)
-	{
-		assert startOfWeek.getDayOfWeek() == DayOfWeek.SUNDAY : "Date " + startOfWeek
-				+ " is wrong. In Yona, Sunday is the first day of the week";
-		return new WeekActivity(userAnonymized, goal, timeZone, startOfWeek);
 	}
 }

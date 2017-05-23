@@ -28,11 +28,6 @@ import nu.yona.server.util.TimeUtil;
 @Table(name = "BUDDIES")
 public class Buddy extends EntityWithUuid
 {
-	public static BuddyRepository getRepository()
-	{
-		return (BuddyRepository) RepositoryProvider.getRepository(Buddy.class, UUID.class);
-	}
-
 	@Type(type = "uuid-char")
 	@Column(name = "owning_user_private_id")
 	private UUID owningUserPrivateId;
@@ -69,6 +64,11 @@ public class Buddy extends EntityWithUuid
 		this.buddyAnonymizedId = buddyAnonymizedId;
 
 		setLastStatusChangeTimeToNow();
+	}
+
+	public static BuddyRepository getRepository()
+	{
+		return (BuddyRepository) RepositoryProvider.getRepository(Buddy.class, UUID.class);
 	}
 
 	public static Buddy createInstance(UUID buddyUserId, String nickname, Status sendingStatus, Status receivingStatus)

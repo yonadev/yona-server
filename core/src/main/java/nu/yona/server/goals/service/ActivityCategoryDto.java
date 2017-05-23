@@ -29,14 +29,14 @@ import nu.yona.server.goals.entities.ActivityCategory;
 @JsonRootName("activityCategory")
 public class ActivityCategoryDto implements Serializable
 {
-	public static class AdminView
+	public interface AdminView
 	{
-		// Marker class, nothing is needed here
+		// Marker, nothing is needed here
 	}
 
-	public static class AppView
+	public interface AppView
 	{
-		// Marker class, nothing is needed here
+		// Marker, nothing is needed here
 	}
 
 	private static final long serialVersionUID = 2498926948887006481L;

@@ -35,11 +35,6 @@ import nu.yona.server.goals.entities.Goal;
 @Table(name = "MESSAGE_DESTINATIONS")
 public class MessageDestination extends EntityWithUuid
 {
-	public static MessageDestinationRepository getRepository()
-	{
-		return (MessageDestinationRepository) RepositoryProvider.getRepository(MessageDestination.class, UUID.class);
-	}
-
 	@Column(length = 1024)
 	private byte[] publicKeyBytes;
 
@@ -61,6 +56,11 @@ public class MessageDestination extends EntityWithUuid
 		super(id);
 		this.publicKeyBytes = PublicKeyUtil.publicKeyToBytes(publicKey);
 		this.messages = new ArrayList<>();
+	}
+
+	public static MessageDestinationRepository getRepository()
+	{
+		return (MessageDestinationRepository) RepositoryProvider.getRepository(MessageDestination.class, UUID.class);
 	}
 
 	public static MessageDestination createInstance(PublicKey publicKey)
