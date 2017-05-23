@@ -1,0 +1,4 @@
+# Ignore any production values that might show up
+
+values_production.yaml
+charts/*

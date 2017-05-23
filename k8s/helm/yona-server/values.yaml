@@ -1,0 +1,170 @@
+# Default values for yona-server
+# This is a YAML-formatted file.
+# Declare name/value pairs to be passed into your templates.
+# name: value
+
+global:
+  release: 527
+  stage: develop
+
+#Attempt tries in seed/update contianer before exit.  Not k8s job retry
+#This just reduceds the 'failed' jobs spam in pod list until services
+#come online (5 second delay on curl, 2 on sql)
+seed_max_tries: 3
+
+vpn:
+  remote: "vpn.yona.local 443"
+  ca: |
+    MIICdDCCAd2gAwIBAgIJAKHlBds0knLfMA0GCSqGSIb3DQEBCwUAMDExEzARBgNV
+    BAMTCnlvbmEtZ3cwMDMxDTALBgNVBAoTBFlvbmExCzAJBgNVBAYTAk5MMB4XDTE1
+    MTAyNDE4NDAxNVoXDTIzMTAyMjE4NDAxNVowMTETMBEGA1UEAxMKeW9uYS1ndzAw
+    MzENMAsGA1UEChMEWW9uYTELMAkGA1UEBhMCTkwwgZ8wDQYJKoZIhvcNAQEBBQAD
+    gY0AMIGJAoGBAM9iCyAcl67qerg9IYbkFUDTxG73hhUTqglDA7GkDv0Q8AUK6sFN
+    gKgIKyQ4Qy4QuqVeunTwHP1LVlNk1rIu9QNKAxL90B8u5n7UO7B6ASkTokOd1aD0
+    jxN9FVJZPcejyqnr12R+uzBW3N1ZK87J/hS5aaKhDu535QN0yEZRO0LtAgMBAAGj
+    gZMwgZAwHQYDVR0OBBYEFD7+oDI0SxNHItX1CBsh79qZ7nLSMGEGA1UdIwRaMFiA
+    FD7+oDI0SxNHItX1CBsh79qZ7nLSoTWkMzAxMRMwEQYDVQQDEwp5b25hLWd3MDAz
+    MQ0wCwYDVQQKEwRZb25hMQswCQYDVQQGEwJOTIIJAKHlBds0knLfMAwGA1UdEwQF
+    MAMBAf8wDQYJKoZIhvcNAQELBQADgYEAx671Cv4urGpLGrH21bdGjR29qEUYGwU9
+    +qWWNiFHSiu+1928Ix1wun2NMKIDQWQ/zsCy/NtUhajK5lonvYVfsmcLCIqveAEV
+    k01xnwm210/pltMc43SOQDc8uc9wzMVo5az1+KRFqX6tNWX0YcKiMZJYIBLnW1LV
+    MQ9Zm4u00bA=
+  cert: |
+    MIIGEjCCA/qgAwIBAgIHBU0PyHQttjANBgkqhkiG9w0BAQsFADA6MRwwGgYDVQQD
+    ExN5b24tcHJvZC1zbW9vdGh3YWxsMQ0wCwYDVQQKEwRZb25hMQswCQYDVQQGEwJO
+    TDAiGA8yMDE3MDQxMzE3Mzc0NloYDzIwMjAwNDEyMTczNzQ2WjBaMTwwOgYDVQQD
+    EzNTbW9vdGh3YWxsLUhUVFBTLUludGVyY2VwdGlvbi1DZXJ0aWZpY2F0ZS1BdXRo
+    b3JpdHkxDTALBgNVBAoTBFlvbmExCzAJBgNVBAYTAk5MMIICIjANBgkqhkiG9w0B
+    AQEFAAOCAg8AMIICCgKCAgEA42T5i8BXNhgbJVdDv52T2MTHkYHw7XdTtLcuIFMy
+    /s2e5iAPSN3g+dBG4kJBG350l32A+P68t3F49/6QUpqZ3ABIJxhk9Ck+3ePIu+gs
+    AMu5/N2018i+WQOTrANFNhBHMRmiw5DzXXou2n1FvgZGU18cECmnyO3jpPLl4/Sx
+    vMh/C0i8Y32C1AbQDtvz2MXULFZZ3egMdbTJHO6OCrxj4JcPFNOZm2bvkT7UxsTo
+    GAdclmYHVMBE2hLJUaI0qDyJNGShVaTUuZQyvB/3xPtWUkly2eLqwcjWgrpyrY+V
+    +qsTAznXicc4BvCQrthqhbGYddQ1WfYOMN66Z+pxTMlIXd1ePLbqj/tw2ldP/jUn
+    WklnyU1yXyJkEpPL1M5PbPfBDl6VLdelkXm8GynsqyrhVVD1sW47iqK7Su4soko6
+    bH8BbQkYjYnZW+tVtreo8yuw7FHxKFA04/SYXvOxqNu0RxpM6vxLaOcjkMsyX6yt
+    c+QntKzU5S+8cdclFsDulc5J/vtBHEVrZAm+AnOEu8yX87+a1QLggK5Es7DBqtTb
+    jP5RzDVxNY4tJbP/4qs3LMaedMbqLjCMpVwhbYyNIM6gSJrLXKE0ghz/jl5URm/M
+    ZFOng9Y/GG6giV9axlzEXKN7jDqCWxFkCOzgpleHnoVTmAj7JbxA5GFQpR+aTYGJ
+    M7cCAwEAAaOB+DCB9TAiBgNVHREEGzAZgRdycXVpc3RAY2xvdWQtY29tcGFueS5u
+    bDAPBgNVHRMBAf8EBTADAQH/MG0GA1UdJQRmMGQGCCsGAQUFBwMDBggrBgEFBQcD
+    CQYIKwYBBQUHAwgGCCsGAQUFBwMCBggrBgEFBQcDAQYIKwYBBQUHAwIGCCsGAQUF
+    BwMBBggrBgEFBQcDAwYIKwYBBQUHAwkGCCsGAQUFBwMIMA8GA1UdDwEB/wQFAwMH
+    hgAwHQYDVR0OBBYEFMuOS62K+XeahPT6vtVgr6Gw3hbkMB8GA1UdIwQYMBaAFCyy
+    1LO35Ggmiprvf0ZhNgVuDHyeMA0GCSqGSIb3DQEBCwUAA4ICAQCUyoNeuFa5vFMj
+    JSdq9QzSx9rxQEj00q1xopkBD0V/2udiXuexCq2HnGgDKUivH2pVLvLGOAnKXXHy
+    7d4RBLpcWU4mf0yA/Q64Gqhy2hipCXJ+NaQ2ybwzBxNICKJ0cAU8r+PCBeyAlsin
+    vJU6CiAh4V/3hiVbNT3zH1ujEeQqBcKoKIOBdqR1Ig8wogT+FHBK96Dr/mZXnlad
+    3bQOVji1j+AjC5HFj3mMQNnCfPNDFUxdJQUW9xBmlNTs6FlL+6nOTH9xN2O/UwIn
+    683HQ+BBwKDpo2ZojTXExJFidRi0PuFTvWQXUxmWog7X/qg0iswNbrSQ2iCHYOUT
+    /+20Kn/33VorSYwvSzDyjj5hhlj0k/KbyW8mpdI7obkMqvBjAF5b0DRH6pbiVdgx
+    dbwFsujIuT6xmhbIE0zApLtivLDKEEYjPtcQutVub3uBM9MBR4xzlyMEZUg3u3AX
+    phaJWwa5pv7+1r0cs2v0vMmaAkQ4e7y3b9eOirlVfLbj7KZbiFQfyH5CAXs7rn1i
+    QF9oeF8melOnossMIxWKFQQ45Z/8Xq9LtLS4g4MRE5Pu82ILwIegTdZIcQVOP7Ca
+    J+wOSxwxq6pGz97r7I7EQp5v80M+CegK1yz5PAS+1UGQlAk6WMJ6IVR+JaliLKSl
+    C0v6fd/W//Zm+IsNeTIz1hIAA7PdAw==
+  tls_remote: "/C=NL/O=Yona/CN=yonauser"
+  tls_auth: |
+    #
+    # 2048 bit OpenVPN static key
+    #
+    -----BEGIN OpenVPN Static key V1-----
+    106a6773b0c019f61c954784ad67b852
+    74d82b712dd235e436950e17d019c2e8
+    a4205bb809af417d85952bfc0c921cf5
+    ec2547526584749ec079fe4e3ad5e0ec
+    9f20d0b6a25c6535c21101f98c3af8e3
+    44ad0e18bd04e96f2e4992fa1cbf7b23
+    2255c535385a194a176003aad54c38c8
+    62a3c98ede521f2a71e1fc8b348eb344
+    3bdfad46bfb885d3888e39a3b4187cf5
+    e6e6ef631f0b0ab3eb8210df58eeb379
+    1b51a2886ea5dcdfa18d19100142516d
+    a2a714cbca00d031371b6f972fc85e22
+    5dd16fb22bbfb2841b9f8dd01a991069
+    dddc18040c43776680f36a451a9c8e77
+    63e1f19b2cf2f13bc3443ec54299f179
+    0e653b2b4baa3765cbd533e906762224
+    -----END OpenVPN Static key V1-----
+
+email:
+  enabled: true
+  sender_address: noreply@example.com
+  smtp_protocol: smtp
+  smtp_host: smtp.example.com
+  smtp_port: 587
+  smtp_enable_auth: true
+  smtp_enable_start_tls: true
+  smtp_username: noreply@example.com
+  smtp_password: "password"
+  included_media_base_url: "https://app.dev.yona.nu/media/"
+
+ldap:
+  release: 527
+  enabled: true
+  org: "Yona Development"
+  domain: "example.local"
+  #url_override: "ldap://ldap.yona.svc.cluster.local:389"
+  dn: "dc=example,dc=local"
+  user_dn: "cn=admin,dc=example,dc=local"
+  user_password: "ldappassword"
+  config_password: "config"
+
+sms:
+  enabled: false
+  sender_number: Yona
+  plivo_url: "https://api.plivo.com/v1/Account/{0}/Message/"
+  plivo_auth_id: M1234123412341234123
+  plivo_auth_token: N123412341234123412341234123412341234123
+  
+apple:
+  enabled: false
+  keystore_file: apple/dummy.p12
+  keystore_password: DummyPwd
+  alias: dummy
+  host_path: /mount-9p
+
+mariadb:
+  mariadbRootPassword: 'develop'
+  mariadbUser: 'develop'
+  mariadbPassword: 'develop'
+  mariadbDatabase: 'yona'
+  persistence:
+    size: 2Gi
+  user: 'develop'
+  password: 'develop'
+  #url_override: "jdbc:mariadb://db.default.svc.cluster.local/yona"
+
+analysis:
+  #url_override: "http://analysis.default.svc.cluster.local"
+
+certs:
+  root: |
+    MIIFOjCCBCKgAwIBAgIHBUdVrZT5GTANBgkqhkiG9w0BAQsFADCBgjELMAkGA1UE
+    BhMCTkwxDjAMBgNVBAgMBVVuc2V0MQ4wDAYDVQQHDAVVbnNldDENMAsGA1UECgwE
+    WW9uYTEOMAwGA1UECwwFVW5zZXQxHjAcBgNVBAMMFXlvbi1wcm9kLXNtb290aHdh
+    bGwtMTEUMBIGCSqGSIb3DQEJARYFVW5zZXQwIhgPMjAxNzAxMzAyMDI5NTNaGA8y
+    MDIwMDEzMDIwMjk1M1owWjE8MDoGA1UEAxMzU21vb3Rod2FsbC1IVFRQUy1JbnRl
+    cmNlcHRpb24tQ2VydGlmaWNhdGUtQXV0aG9yaXR5MQ0wCwYDVQQKEwRZb25hMQsw
+    CQYDVQQGEwJOTDCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAONk+YvA
+    VzYYGyVXQ7+dk9jEx5GB8O13U7S3LiBTMv7NnuYgD0jd4PnQRuJCQRt+dJd9gPj+
+    vLdxePf+kFKamdwASCcYZPQpPt3jyLvoLADLufzdtNfIvlkDk6wDRTYQRzEZosOQ
+    8116Ltp9Rb4GRlNfHBApp8jt46Ty5eP0sbzIfwtIvGN9gtQG0A7b89jF1CxWWd3o
+    DHW0yRzujgq8Y+CXDxTTmZtm75E+1MbE6BgHXJZmB1TARNoSyVGiNKg8iTRkoVWk
+    1LmUMrwf98T7VlJJctni6sHI1oK6cq2PlfqrEwM514nHOAbwkK7YaoWxmHXUNVn2
+    DjDeumfqcUzJSF3dXjy26o/7cNpXT/41J1pJZ8lNcl8iZBKTy9TOT2z3wQ5elS3X
+    pZF5vBsp7Ksq4VVQ9bFuO4qiu0ruLKJKOmx/AW0JGI2J2VvrVba3qPMrsOxR8ShQ
+    NOP0mF7zsajbtEcaTOr8S2jnI5DLMl+srXPkJ7Ss1OUvvHHXJRbA7pXOSf77QRxF
+    a2QJvgJzhLvMl/O/mtUC4ICuRLOwwarU24z+Ucw1cTWOLSWz/+KrNyzGnnTG6i4w
+    jKVcIW2MjSDOoEiay1yhNIIc/45eVEZvzGRTp4PWPxhuoIlfWsZcxFyje4w6glsR
+    ZAjs4KZXh56FU5gI+yW8QORhUKUfmk2BiTO3AgMBAAGjgdcwgdQwIgYDVR0RBBsw
+    GYEXcnF1aXN0QGNsb3VkLWNvbXBhbnkubmwwDwYDVR0TAQH/BAUwAwEB/zBtBgNV
+    HSUEZjBkBggrBgEFBQcDAwYIKwYBBQUHAwkGCCsGAQUFBwMIBggrBgEFBQcDAgYI
+    KwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDAQYIKwYBBQUHAwMGCCsGAQUFBwMJ
+    BggrBgEFBQcDCDAPBgNVHQ8BAf8EBQMDB4YAMB0GA1UdDgQWBBTLjkutivl3moT0
+    +r7VYK+hsN4W5DANBgkqhkiG9w0BAQsFAAOCAQEAAN7vj3Zdp+++u3xzpPrpFT1J
+    rIkjzRHCmDjp05PwR4X8tmApo/gI/9qLayySKsk9d2VYwz4V9hiR1KdJxjeM3vzC
+    vfBJelY+fLPsCjrWiiUPMt02gDulfuelPBTFuegzU4Nicb5YAFx3ye+D7XwNQvh6
+    wUh2k/DSVs0Znu7iwSsLpvA8VXoib/UtXVa3LI4DioJJz6d8+44vSrE9ioo7O8a5
+    5ioNcj+k8Ck8j4SwxfZ5rICYnOds9SbAfwh6/2hVIOT35VT3hL0+PbfAagq11/1o
+    6dYwZbNruPFuReD+XDWMf+LeAdEjf51ajWmsXYsOula+7X9plkIri14Z8izIdw==

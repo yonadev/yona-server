@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ldap
+  labels:
+    app: ldap
+    stage: {{ .Values.global.stage | default "develop" }}
+spec:
+  type: NodePort
+  ports:
+  - name: "ldap"
+    port: 389
+    protocol: TCP
+    nodePort: 31389
+  selector:
+    app: ldap
+    stage: {{ .Values.global.stage | default "develop" }}

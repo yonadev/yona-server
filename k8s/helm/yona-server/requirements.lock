@@ -1,0 +1,17 @@
+dependencies:
+- condition: ""
+  enabled: false
+  import-values: null
+  name: mariadb
+  repository: https://kubernetes-charts.storage.googleapis.com
+  tags: null
+  version: 0.6.2
+- condition: ""
+  enabled: false
+  import-values: null
+  name: ldap
+  repository: file://../ldap
+  tags: null
+  version: 0.1.0
+digest: sha256:229578b8b5ff9e71eb492c02f4c5d425728f15c620d48bca57221021cb28ae78
+generated: 2017-05-20T23:23:57.056080621-07:00
