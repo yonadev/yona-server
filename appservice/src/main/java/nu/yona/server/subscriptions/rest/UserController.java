@@ -148,42 +148,32 @@ public class UserController
 		return createOkResponse(userService.getPublicUser(userId), false);
 	}
 
-	@RequestMapping(value = "/{userId}/apple.mobileconfig", params = { "sign" }, method = RequestMethod.GET)
-	@ResponseBody
-	public ResponseEntity<byte[]> getAppleMobileConfig(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@RequestParam(value = "sign", defaultValue = "false") String signStr, @PathVariable UUID userId)
-	{
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(new MediaType("application", "x-apple-aspen-config"));
-		boolean mustSign = Boolean.TRUE.toString().equals(signStr);
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
-		{
-			return new ResponseEntity<>(getUserSpecificAppleMobileConfig(userService.getPrivateUser(userId), mustSign), headers,
-					HttpStatus.OK);
-		}
-	}
-
 	@RequestMapping(value = "/{userId}/apple.mobileconfig", method = RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity<byte[]> getAppleMobileConfig(
 			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
-		return getAppleMobileConfig(password, Boolean.FALSE.toString(), userId);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(new MediaType("application", "x-apple-aspen-config"));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return new ResponseEntity<>(getUserSpecificAppleMobileConfig(userService.getPrivateUser(userId)), headers,
+					HttpStatus.OK);
+		}
 	}
 
-	private byte[] getUserSpecificAppleMobileConfig(UserDto privateUser, boolean mustSign)
+	private byte[] getUserSpecificAppleMobileConfig(UserDto privateUser)
 	{
 		Context ctx = ThymeleafUtil.createContext();
 		ctx.setVariable("ldapUsername", privateUser.getPrivateData().getVpnProfile().getVpnLoginId().toString());
 		ctx.setVariable("ldapPassword", privateUser.getPrivateData().getVpnProfile().getVpnPassword());
 
-		return signIfRequested(mustSign, templateEngine.process("apple.mobileconfig", ctx).getBytes(StandardCharsets.UTF_8));
+		return signIfEnabled(templateEngine.process("apple.mobileconfig", ctx).getBytes(StandardCharsets.UTF_8));
 	}
 
-	private byte[] signIfRequested(boolean mustSign, byte[] unsignedMobileconfig)
+	private byte[] signIfEnabled(byte[] unsignedMobileconfig)
 	{
-		if (mustSign)
+		if (yonaProperties.getAppleMobileConfig().isSigningEnabled())
 		{
 			return appleMobileConfigSigner.sign(unsignedMobileconfig);
 		}
