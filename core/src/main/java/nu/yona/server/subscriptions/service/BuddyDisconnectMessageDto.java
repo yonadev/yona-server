@@ -114,14 +114,13 @@ public class BuddyDisconnectMessageDto extends BuddyMessageEmbeddedUserDto
 			switch (action)
 			{
 				case PROCESS:
-					return handleAction_Process(actingUser, (BuddyDisconnectMessage) messageEntity, requestPayload);
+					return handleAction_Process(actingUser, (BuddyDisconnectMessage) messageEntity);
 				default:
 					return super.handleAction(actingUser, messageEntity, action, requestPayload);
 			}
 		}
 
-		private MessageActionDto handleAction_Process(UserDto actingUser, BuddyDisconnectMessage messageEntity,
-				MessageActionDto requestPayload)
+		private MessageActionDto handleAction_Process(UserDto actingUser, BuddyDisconnectMessage messageEntity)
 		{
 			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getId(), messageEntity.getSenderUserId());
 

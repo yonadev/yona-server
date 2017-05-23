@@ -101,14 +101,13 @@ public class BuddyInfoChangeMessageDto extends BuddyMessageLinkedUserDto
 			switch (action)
 			{
 				case PROCESS:
-					return handleAction_Process(actingUser, (BuddyInfoChangeMessage) messageEntity, requestPayload);
+					return handleAction_Process(actingUser, (BuddyInfoChangeMessage) messageEntity);
 				default:
 					return super.handleAction(actingUser, messageEntity, action, requestPayload);
 			}
 		}
 
-		private MessageActionDto handleAction_Process(UserDto actingUser, BuddyInfoChangeMessage messageEntity,
-				MessageActionDto requestPayload)
+		private MessageActionDto handleAction_Process(UserDto actingUser, BuddyInfoChangeMessage messageEntity)
 		{
 			if (messageEntity.getRelatedUserAnonymizedId().isPresent())
 			{

@@ -159,16 +159,15 @@ public abstract class MessageDto extends PolymorphicDto
 			switch (action)
 			{
 				case MARK_READ:
-					return handleAction_markReadUnread(actingUser, messageEntity, true, requestPayload);
+					return handleAction_markReadUnread(actingUser, messageEntity, true);
 				case MARK_UNREAD:
-					return handleAction_markReadUnread(actingUser, messageEntity, false, requestPayload);
+					return handleAction_markReadUnread(actingUser, messageEntity, false);
 				default:
 					throw MessageServiceException.actionNotSupported(action);
 			}
 		}
 
-		private MessageActionDto handleAction_markReadUnread(UserDto actingUser, Message messageEntity, boolean isRead,
-				MessageActionDto requestPayload)
+		private MessageActionDto handleAction_markReadUnread(UserDto actingUser, Message messageEntity, boolean isRead)
 		{
 			messageEntity.setRead(isRead);
 			Message savedMessageEntity = Message.getRepository().save(messageEntity);
