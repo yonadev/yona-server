@@ -15,11 +15,6 @@ import nu.yona.server.entities.RepositoryProvider;
 @Table(name = "WHITE_LISTED_NUMBER")
 public class WhiteListedNumber extends EntityWithId
 {
-	public static WhiteListedNumberRepository getRepository()
-	{
-		return (WhiteListedNumberRepository) RepositoryProvider.getRepository(WhiteListedNumber.class, Long.class);
-	}
-
 	@Column(unique = true)
 	private String mobileNumber;
 
@@ -32,6 +27,11 @@ public class WhiteListedNumber extends EntityWithId
 	private WhiteListedNumber(String mobileNumber)
 	{
 		this.mobileNumber = mobileNumber;
+	}
+
+	public static WhiteListedNumberRepository getRepository()
+	{
+		return (WhiteListedNumberRepository) RepositoryProvider.getRepository(WhiteListedNumber.class, Long.class);
 	}
 
 	public static WhiteListedNumber createInstance(String mobileNumber)

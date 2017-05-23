@@ -47,6 +47,33 @@ public class ActivityCommentMessage extends BuddyMessage
 		super();
 	}
 
+	public static ActivityCommentMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
+			IntervalActivity intervalActivity, boolean isSentItem, String message, Message repliedMessage)
+	{
+		ActivityCommentMessage activityCommentMessage = createInstance(senderUserId, senderUserAnonymizedId, senderNickname,
+				intervalActivity, isSentItem, message);
+		repliedMessage.addReply(activityCommentMessage);
+		repliedMessage.getThreadHeadMessage().addMessageToThread(activityCommentMessage);
+		return activityCommentMessage;
+	}
+
+	private static ActivityCommentMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
+			IntervalActivity intervalActivityEntity, boolean isSentItem, String message)
+	{
+		return new ActivityCommentMessage(senderUserId, senderUserAnonymizedId, senderNickname, intervalActivityEntity,
+				isSentItem, message);
+	}
+
+	public static ActivityCommentMessage createThreadHeadInstance(UUID senderUserId, UUID senderUserAnonymizedId,
+			String senderNickname, IntervalActivity intervalActivityEntity, boolean isSentItem, String message)
+	{
+		ActivityCommentMessage activityCommentMessage = createInstance(senderUserId, senderUserAnonymizedId, senderNickname,
+				intervalActivityEntity, isSentItem, message);
+		// This message is its own little thread
+		activityCommentMessage.setThreadHeadMessage(activityCommentMessage);
+		return activityCommentMessage;
+	}
+
 	public ActivityCommentMessage getSenderCopyMessage()
 	{
 		return this.senderCopyMessage;
@@ -121,32 +148,5 @@ public class ActivityCommentMessage extends BuddyMessage
 	private Set<Message> getMessagesToBeCascadinglyDeletedForJustThisObject()
 	{
 		return super.getMessagesToBeCascadinglyDeleted();
-	}
-
-	public static ActivityCommentMessage createThreadHeadInstance(UUID senderUserId, UUID senderUserAnonymizedId,
-			String senderNickname, IntervalActivity intervalActivityEntity, boolean isSentItem, String message)
-	{
-		ActivityCommentMessage activityCommentMessage = createInstance(senderUserId, senderUserAnonymizedId, senderNickname,
-				intervalActivityEntity, isSentItem, message);
-		// This message is its own little thread
-		activityCommentMessage.setThreadHeadMessage(activityCommentMessage);
-		return activityCommentMessage;
-	}
-
-	public static ActivityCommentMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
-			IntervalActivity intervalActivity, boolean isSentItem, String message, Message repliedMessage)
-	{
-		ActivityCommentMessage activityCommentMessage = createInstance(senderUserId, senderUserAnonymizedId, senderNickname,
-				intervalActivity, isSentItem, message);
-		repliedMessage.addReply(activityCommentMessage);
-		repliedMessage.getThreadHeadMessage().addMessageToThread(activityCommentMessage);
-		return activityCommentMessage;
-	}
-
-	private static ActivityCommentMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
-			IntervalActivity intervalActivityEntity, boolean isSentItem, String message)
-	{
-		return new ActivityCommentMessage(senderUserId, senderUserAnonymizedId, senderNickname, intervalActivityEntity,
-				isSentItem, message);
 	}
 }

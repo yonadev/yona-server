@@ -33,6 +33,12 @@ public class BuddyInfoChangeMessage extends BuddyMessage
 		super();
 	}
 
+	public static BuddyInfoChangeMessage createInstance(UUID senderUserId, UUID senderAnonymizedUserId, String senderNickname,
+			String message, String newNickname)
+	{
+		return new BuddyInfoChangeMessage(senderUserId, senderAnonymizedUserId, senderNickname, message, newNickname);
+	}
+
 	public String getNewNickname()
 	{
 		return newNickname;
@@ -60,11 +66,5 @@ public class BuddyInfoChangeMessage extends BuddyMessage
 	{
 		super.decrypt();
 		newNickname = SecretKeyUtil.decryptString(newNicknameCiphertext);
-	}
-
-	public static BuddyInfoChangeMessage createInstance(UUID senderUserId, UUID senderAnonymizedUserId, String senderNickname,
-			String message, String newNickname)
-	{
-		return new BuddyInfoChangeMessage(senderUserId, senderAnonymizedUserId, senderNickname, message, newNickname);
 	}
 }

@@ -10,6 +10,6 @@ public final class Constants
 
 	private Constants()
 	{
-		// No instances;
+		// No instances
 	}
 }

@@ -78,6 +78,25 @@ public class GoalConflictMessage extends Message
 		this.disclosureResponseMessages = new ArrayList<>();
 	}
 
+	public static GoalConflictMessage createInstanceForBuddy(UUID relatedUserAnonymizedId, GoalConflictMessage origin)
+	{
+		if (origin == null)
+		{
+			throw new IllegalArgumentException("origin cannot be null");
+		}
+	
+		GoalConflictMessage goalConflictMessage = new GoalConflictMessage(relatedUserAnonymizedId, origin.getActivity(),
+				origin.getGoal(), origin.getUrl(), Status.ANNOUNCED);
+		origin.addBuddyGoalConflictMessage(goalConflictMessage);
+		return goalConflictMessage;
+	}
+
+	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedId, Activity activity, Goal goal,
+			Optional<String> url)
+	{
+		return new GoalConflictMessage(relatedUserAnonymizedId, activity, goal, url, Status.ANNOUNCED);
+	}
+
 	public Activity getActivity()
 	{
 		return activity;
@@ -146,25 +165,6 @@ public class GoalConflictMessage extends Message
 	{
 		disclosureResponseMessages.add(disclosureResponseMessage);
 		disclosureResponseMessage.setTargetGoalConflictMessage(this);
-	}
-
-	public static GoalConflictMessage createInstanceForBuddy(UUID relatedUserAnonymizedId, GoalConflictMessage origin)
-	{
-		if (origin == null)
-		{
-			throw new IllegalArgumentException("origin cannot be null");
-		}
-
-		GoalConflictMessage goalConflictMessage = new GoalConflictMessage(relatedUserAnonymizedId, origin.getActivity(),
-				origin.getGoal(), origin.getUrl(), Status.ANNOUNCED);
-		origin.addBuddyGoalConflictMessage(goalConflictMessage);
-		return goalConflictMessage;
-	}
-
-	public static GoalConflictMessage createInstance(UUID relatedUserAnonymizedId, Activity activity, Goal goal,
-			Optional<String> url)
-	{
-		return new GoalConflictMessage(relatedUserAnonymizedId, activity, goal, url, Status.ANNOUNCED);
 	}
 
 	public boolean isUrlDisclosed()

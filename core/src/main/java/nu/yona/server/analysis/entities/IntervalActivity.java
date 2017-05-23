@@ -39,11 +39,6 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 // Due to an inconsistency between Liquibase and JPA, we have moved this to Liquibase (extra.yml)
 public abstract class IntervalActivity extends EntityWithId
 {
-	public static IntervalActivityRepository getIntervalActivityRepository()
-	{
-		return (IntervalActivityRepository) RepositoryProvider.getRepository(IntervalActivity.class, Long.class);
-	}
-
 	private static final Logger logger = LoggerFactory.getLogger(IntervalActivity.class);
 
 	public static final int SPREAD_COUNT = 96;
@@ -84,6 +79,11 @@ public abstract class IntervalActivity extends EntityWithId
 		this.goal = goal;
 		this.timeZone = timeZone;
 		this.startDate = startDate;
+	}
+
+	public static IntervalActivityRepository getIntervalActivityRepository()
+	{
+		return (IntervalActivityRepository) RepositoryProvider.getRepository(IntervalActivity.class, Long.class);
 	}
 
 	protected abstract TemporalUnit getTimeUnit();

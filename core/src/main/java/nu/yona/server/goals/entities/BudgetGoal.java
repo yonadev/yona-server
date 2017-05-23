@@ -38,6 +38,21 @@ public class BudgetGoal extends Goal
 		this.maxDurationMinutes = originalGoal.maxDurationMinutes;
 	}
 
+	public static BudgetGoal createNoGoInstance(LocalDateTime creationTime, ActivityCategory activityCategory)
+	{
+		return createInstance(creationTime, activityCategory, 0);
+	}
+
+	public static BudgetGoal createInstance(LocalDateTime creationTime, ActivityCategory activityCategory, int maxDurationMinutes)
+	{
+		return new BudgetGoal(UUID.randomUUID(), creationTime, activityCategory, maxDurationMinutes);
+	}
+
+	private static BudgetGoal createInstance(BudgetGoal originalGoal, LocalDateTime endTime)
+	{
+		return new BudgetGoal(UUID.randomUUID(), originalGoal, endTime);
+	}
+
 	public int getMaxDurationMinutes()
 	{
 		return maxDurationMinutes;
@@ -64,20 +79,5 @@ public class BudgetGoal extends Goal
 	public int computeTotalMinutesBeyondGoal(DayActivity dayActivity)
 	{
 		return Math.max(dayActivity.getTotalActivityDurationMinutes() - this.getMaxDurationMinutes(), 0);
-	}
-
-	public static BudgetGoal createNoGoInstance(LocalDateTime creationTime, ActivityCategory activityCategory)
-	{
-		return createInstance(creationTime, activityCategory, 0);
-	}
-
-	public static BudgetGoal createInstance(LocalDateTime creationTime, ActivityCategory activityCategory, int maxDurationMinutes)
-	{
-		return new BudgetGoal(UUID.randomUUID(), creationTime, activityCategory, maxDurationMinutes);
-	}
-
-	private static BudgetGoal createInstance(BudgetGoal originalGoal, LocalDateTime endTime)
-	{
-		return new BudgetGoal(UUID.randomUUID(), originalGoal, endTime);
 	}
 }

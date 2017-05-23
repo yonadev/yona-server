@@ -30,11 +30,6 @@ import nu.yona.server.util.TimeUtil;
 @Table(name = "MESSAGES")
 public abstract class Message extends EntityWithId
 {
-	public static MessageRepository getRepository()
-	{
-		return (MessageRepository) RepositoryProvider.getRepository(Message.class, Long.class);
-	}
-
 	private byte[] decryptionInfo;
 
 	@Type(type = "uuid-char")
@@ -82,6 +77,11 @@ public abstract class Message extends EntityWithId
 		this.isSentItem = isSentItem;
 		this.replies = new ArrayList<>();
 		this.messagesInThread = new ArrayList<>();
+	}
+
+	public static MessageRepository getRepository()
+	{
+		return (MessageRepository) RepositoryProvider.getRepository(Message.class, Long.class);
 	}
 
 	public void encryptMessage(Encryptor encryptor)

@@ -23,11 +23,6 @@ import nu.yona.server.entities.RepositoryProvider;
 @Table(name = "ACTIVITY_CATEGORIES")
 public class ActivityCategory extends EntityWithUuid
 {
-	public static ActivityCategoryRepository getRepository()
-	{
-		return (ActivityCategoryRepository) RepositoryProvider.getRepository(ActivityCategory.class, UUID.class);
-	}
-
 	@ElementCollection
 	private Map<Locale, String> localizableName;
 
@@ -57,6 +52,18 @@ public class ActivityCategory extends EntityWithUuid
 		setSmoothwallCategories(smoothwallCategories);
 		setApplications(applications);
 		setLocalizableDescription(localizableDescription);
+	}
+
+	public static ActivityCategoryRepository getRepository()
+	{
+		return (ActivityCategoryRepository) RepositoryProvider.getRepository(ActivityCategory.class, UUID.class);
+	}
+
+	public static ActivityCategory createInstance(UUID id, Map<Locale, String> localizableName, boolean mandatoryNoGo,
+			Set<String> smoothwallCategories, Set<String> applications, Map<Locale, String> localizableDescription)
+	{
+		return new ActivityCategory(id, localizableName, mandatoryNoGo, smoothwallCategories, applications,
+				localizableDescription);
 	}
 
 	public Map<Locale, String> getLocalizableName()
@@ -107,12 +114,5 @@ public class ActivityCategory extends EntityWithUuid
 	public final void setLocalizableDescription(Map<Locale, String> localizableDescription)
 	{
 		this.localizableDescription = new HashMap<>(localizableDescription);
-	}
-
-	public static ActivityCategory createInstance(UUID id, Map<Locale, String> localizableName, boolean mandatoryNoGo,
-			Set<String> smoothwallCategories, Set<String> applications, Map<Locale, String> localizableDescription)
-	{
-		return new ActivityCategory(id, localizableName, mandatoryNoGo, smoothwallCategories, applications,
-				localizableDescription);
 	}
 }

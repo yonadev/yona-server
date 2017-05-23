@@ -16,11 +16,6 @@ public class PinResetRequestConfirmationException extends ConfirmationException
 		super(messageId, parameters);
 	}
 
-	private PinResetRequestConfirmationException(Throwable t, String messageId, Object... parameters)
-	{
-		super(t, messageId, parameters);
-	}
-
 	private PinResetRequestConfirmationException(int remainingAttempts, String messageId, Object... parameters)
 	{
 		super(remainingAttempts, messageId, parameters);

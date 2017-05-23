@@ -83,16 +83,16 @@ public class UserPrivate extends EntityWithUuid
 		this.namedMessageSourceId = namedMessageSourceId;
 	}
 
-	private static String buildDecryptionCheck()
-	{
-		return DECRYPTION_CHECK_STRING + CryptoUtil.getRandomString(DECRYPTION_CHECK_STRING.length());
-	}
-
 	public static UserPrivate createInstance(String nickname, String vpnPassword, UUID userAnonymizedId,
 			UUID anonymousMessageSourceId, MessageSource namedMessageSource)
 	{
 		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymizedId, vpnPassword, anonymousMessageSourceId,
 				namedMessageSource.getId());
+	}
+
+	private static String buildDecryptionCheck()
+	{
+		return DECRYPTION_CHECK_STRING + CryptoUtil.getRandomString(DECRYPTION_CHECK_STRING.length());
 	}
 
 	public boolean isDecryptedProperly()

@@ -41,6 +41,13 @@ public class GoalChangeMessage extends BuddyMessage
 		this.change = change;
 	}
 
+	public static GoalChangeMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
+			ActivityCategory activityCategoryOfChangedGoal, Change change, String message)
+	{
+		return new GoalChangeMessage(senderUserId, senderUserAnonymizedId, senderNickname, activityCategoryOfChangedGoal, change,
+				message);
+	}
+
 	public ActivityCategory getActivityCategoryOfChangedGoal()
 	{
 		return activityCategoryOfChangedGoal;
@@ -49,12 +56,5 @@ public class GoalChangeMessage extends BuddyMessage
 	public Change getChange()
 	{
 		return change;
-	}
-
-	public static GoalChangeMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
-			ActivityCategory activityCategoryOfChangedGoal, Change change, String message)
-	{
-		return new GoalChangeMessage(senderUserId, senderUserAnonymizedId, senderNickname, activityCategoryOfChangedGoal, change,
-				message);
 	}
 }

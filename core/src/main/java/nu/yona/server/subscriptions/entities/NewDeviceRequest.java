@@ -29,11 +29,6 @@ import nu.yona.server.util.TimeUtil;
 @Table(name = "NEW_DEVICE_REQUESTS")
 public class NewDeviceRequest extends EntityWithUuid
 {
-	public static NewDeviceRequestRepository getRepository()
-	{
-		return (NewDeviceRequestRepository) RepositoryProvider.getRepository(NewDeviceRequest.class, UUID.class);
-	}
-
 	private static final String DECRYPTION_CHECK_STRING = "Decrypted properly#";
 
 	@Transient
@@ -62,6 +57,16 @@ public class NewDeviceRequest extends EntityWithUuid
 		this.decryptionCheck = buildDecryptionCheck();
 	}
 
+	public static NewDeviceRequestRepository getRepository()
+	{
+		return (NewDeviceRequestRepository) RepositoryProvider.getRepository(NewDeviceRequest.class, UUID.class);
+	}
+
+	public static NewDeviceRequest createInstance(String yonaPassword)
+	{
+		return new NewDeviceRequest(UUID.randomUUID(), yonaPassword, TimeUtil.utcNow());
+	}
+
 	public LocalDateTime getCreationTime()
 	{
 		return creationTime;
@@ -70,11 +75,6 @@ public class NewDeviceRequest extends EntityWithUuid
 	public String getYonaPassword()
 	{
 		return yonaPassword;
-	}
-
-	public static NewDeviceRequest createInstance(String yonaPassword)
-	{
-		return new NewDeviceRequest(UUID.randomUUID(), yonaPassword, TimeUtil.utcNow());
 	}
 
 	private static String buildDecryptionCheck()

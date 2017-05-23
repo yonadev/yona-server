@@ -43,11 +43,6 @@ import nu.yona.server.util.TimeUtil;
 @Table(name = "GOALS")
 public abstract class Goal extends EntityWithUuid implements Serializable
 {
-	public static GoalRepository getRepository()
-	{
-		return (GoalRepository) RepositoryProvider.getRepository(Goal.class, UUID.class);
-	}
-
 	private static final long serialVersionUID = -3209852229834825712L;
 
 	protected static final LocalDateTime mandatoryGoalPresetCreationTime = LocalDateTime.of(2017, 1, 1, 12, 0);
@@ -110,6 +105,11 @@ public abstract class Goal extends EntityWithUuid implements Serializable
 		this.creationTime = originalGoal.creationTime;
 		this.endTime = endTime;
 		this.previousInstanceOfThisGoal = originalGoal.previousInstanceOfThisGoal;
+	}
+
+	public static GoalRepository getRepository()
+	{
+		return (GoalRepository) RepositoryProvider.getRepository(Goal.class, UUID.class);
 	}
 
 	public void setUserAnonymized(UserAnonymized userAnonymized)

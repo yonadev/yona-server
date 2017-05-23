@@ -29,11 +29,6 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 @Entity
 public class DayActivity extends IntervalActivity
 {
-	public static DayActivityRepository getRepository()
-	{
-		return (DayActivityRepository) RepositoryProvider.getRepository(DayActivity.class, Long.class);
-	}
-
 	@ManyToOne(fetch = FetchType.LAZY)
 	private WeekActivity weekActivity;
 
@@ -56,6 +51,16 @@ public class DayActivity extends IntervalActivity
 		super(userAnonymized, goal, timeZone, startOfDay);
 
 		activities = new ArrayList<>();
+	}
+
+	public static DayActivityRepository getRepository()
+	{
+		return (DayActivityRepository) RepositoryProvider.getRepository(DayActivity.class, Long.class);
+	}
+
+	public static DayActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfDay)
+	{
+		return new DayActivity(userAnonymized, goal, timeZone, startOfDay);
 	}
 
 	@Override
@@ -242,10 +247,5 @@ public class DayActivity extends IntervalActivity
 	private boolean computeGoalAccomplished()
 	{
 		return this.getGoal().isGoalAccomplished(this);
-	}
-
-	public static DayActivity createInstance(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startOfDay)
-	{
-		return new DayActivity(userAnonymized, goal, timeZone, startOfDay);
 	}
 }
