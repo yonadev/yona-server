@@ -26,7 +26,6 @@ import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.TimeZoneGoalDto;
-import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 
 @JsonRootName("dayActivity")
@@ -36,19 +35,17 @@ public class DayActivityDto extends IntervalActivityDto
 
 	private final boolean goalAccomplished;
 	private final int totalMinutesBeyondGoal;
-	private final Set<MessageDto> messages;
 
 	private final UUID activityCategoryId;
 
 	private DayActivityDto(UUID goalId, UUID activityCategoryId, ZonedDateTime startTime, boolean shouldSerializeDate,
 			List<Integer> spread, int totalActivityDurationMinutes, boolean goalAccomplished, int totalMinutesBeyondGoal,
-			Set<MessageDto> messages, boolean hasPrevious, boolean hasNext)
+			boolean hasPrevious, boolean hasNext)
 	{
 		super(goalId, startTime, shouldSerializeDate, spread, Optional.of(totalActivityDurationMinutes), hasPrevious, hasNext);
 		this.activityCategoryId = activityCategoryId;
 		this.goalAccomplished = goalAccomplished;
 		this.totalMinutesBeyondGoal = totalMinutesBeyondGoal;
-		this.messages = messages;
 	}
 
 	@Override
@@ -79,12 +76,6 @@ public class DayActivityDto extends IntervalActivityDto
 		return totalMinutesBeyondGoal;
 	}
 
-	@JsonIgnore
-	public Set<MessageDto> getMessages()
-	{
-		return messages;
-	}
-
 	public static LocalDate parseDate(String iso8601)
 	{
 		return LocalDate.parse(iso8601, ISO8601_DAY_FORMATTER);
@@ -100,9 +91,7 @@ public class DayActivityDto extends IntervalActivityDto
 		return new DayActivityDto(dayActivity.getGoal().getId(), dayActivity.getGoal().getActivityCategory().getId(),
 				dayActivity.getStartTime(), levelOfDetail == LevelOfDetail.DAY_DETAIL, getSpread(dayActivity, levelOfDetail),
 				dayActivity.getTotalActivityDurationMinutes(), dayActivity.isGoalAccomplished(),
-				dayActivity.getTotalMinutesBeyondGoal(),
-				levelOfDetail == LevelOfDetail.DAY_DETAIL ? getMessages(dayActivity) : Collections.emptySet(),
-				dayActivity.hasPrevious(), dayActivity.hasNext());
+				dayActivity.getTotalMinutesBeyondGoal(), dayActivity.hasPrevious(), dayActivity.hasNext());
 	}
 
 	static DayActivityDto createInstanceInactivity(UserAnonymizedDto userAnonymized, GoalDto goal, ZonedDateTime startTime,
@@ -112,7 +101,7 @@ public class DayActivityDto extends IntervalActivityDto
 		return new DayActivityDto(goal.getGoalId(), goal.getActivityCategoryId(), startTime,
 				levelOfDetail == LevelOfDetail.DAY_DETAIL,
 				includeSpread(goal, levelOfDetail) ? createInactiveSpread() : Collections.emptyList(), 0, true, 0,
-				Collections.emptySet(), IntervalActivityDto.hasPrevious(goal, startTime, ChronoUnit.DAYS),
+				IntervalActivityDto.hasPrevious(goal, startTime, ChronoUnit.DAYS),
 				IntervalActivity.hasNext(startTime, ChronoUnit.DAYS));
 	}
 
@@ -124,11 +113,6 @@ public class DayActivityDto extends IntervalActivityDto
 	private static List<Integer> getSpread(DayActivity dayActivity, LevelOfDetail levelOfDetail)
 	{
 		return includeSpread(dayActivity.getGoal(), levelOfDetail) ? dayActivity.getSpread() : Collections.emptyList();
-	}
-
-	private static Set<MessageDto> getMessages(DayActivity dayActivity)
-	{
-		return Collections.emptySet();
 	}
 
 	private static boolean includeSpread(Goal goal, LevelOfDetail levelOfDetail)
