@@ -1,10 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
- * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.exceptions;
-
-import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -33,17 +31,27 @@ public abstract class ResourceBasedException extends RuntimeException
 	}
 
 	private static final long serialVersionUID = 8031973645020363969L;
-	private final String[] messageArgs;
+	/** Holds the parameters for the exception message. */
+	private final Object[] parameters;
+	/** Holds the message id. */
 	private final String messageId;
+	/** Holds the HTTP response code to be used. */
 	private final HttpStatus statusCode;
 	private static Translator translator;
 
-	protected ResourceBasedException(HttpStatus statusCode, String messageId, Object... messageArgs)
+	/**
+	 * Constructor.
+	 * 
+	 * @param statusCode The status code of the exception.
+	 * @param messageId The ID of the exception in the resource bundle
+	 * @param parameters The parameters for the message
+	 */
+	protected ResourceBasedException(HttpStatus statusCode, String messageId, Object... parameters)
 	{
 		super(messageId);
 
 		this.messageId = messageId;
-		this.messageArgs = serializeMessageArgs(messageArgs);
+		this.parameters = parameters;
 		this.statusCode = statusCode;
 	}
 
@@ -52,28 +60,44 @@ public abstract class ResourceBasedException extends RuntimeException
 		ResourceBasedException.translator = translator;
 	}
 
-	protected ResourceBasedException(String messageId, Object... messageArgs)
+	/**
+	 * Constructor.
+	 * 
+	 * @param messageId The ID of the exception in the resource bundle
+	 * @param parameters The parameters for the message
+	 */
+	protected ResourceBasedException(String messageId, Object... parameters)
 	{
-		this(HttpStatus.BAD_REQUEST, messageId, messageArgs);
+		this(HttpStatus.BAD_REQUEST, messageId, parameters);
 	}
 
-	protected ResourceBasedException(Throwable cause, String messageId, Object... messageArgs)
+	/**
+	 * Constructor.
+	 * 
+	 * @param t The cause exception
+	 * @param messageId The ID of the exception in the resource bundle
+	 * @param parameters The parameters for the message
+	 */
+	protected ResourceBasedException(Throwable t, String messageId, Object... parameters)
 	{
-		this(HttpStatus.BAD_REQUEST, cause, messageId, messageArgs);
+		this(HttpStatus.BAD_REQUEST, t, messageId, parameters);
 	}
 
-	protected ResourceBasedException(HttpStatus statusCode, Throwable cause, String messageId, Object... messageArgs)
+	/**
+	 * Constructor.
+	 * 
+	 * @param statusCode The status code of the exception.
+	 * @param t The cause exception
+	 * @param messageId The ID of the exception in the resource bundle
+	 * @param parameters The parameters for the message
+	 */
+	protected ResourceBasedException(HttpStatus statusCode, Throwable t, String messageId, Object... parameters)
 	{
-		super(messageId, cause);
+		super(messageId, t);
 
 		this.messageId = messageId;
-		this.messageArgs = serializeMessageArgs(messageArgs);
+		this.parameters = parameters;
 		this.statusCode = statusCode;
-	}
-
-	private String[] serializeMessageArgs(Object... messageArgs)
-	{
-		return Arrays.stream(messageArgs).map(arg -> arg.toString()).toArray(String[]::new);
 	}
 
 	@Override
@@ -93,11 +117,31 @@ public abstract class ResourceBasedException extends RuntimeException
 		return localizedMessage;
 	}
 
+	/**
+	 * This method gets the message id.
+	 * 
+	 * @return The message id.
+	 */
 	public String getMessageId()
 	{
 		return messageId;
 	}
 
+	/**
+	 * This method gets the parameters for the exception message.
+	 * 
+	 * @return The parameters for the exception message.
+	 */
+	public Object[] getParameters()
+	{
+		return parameters;
+	}
+
+	/**
+	 * This method gets the http response code to be used.
+	 * 
+	 * @return The http response code to be used.
+	 */
 	public HttpStatus getStatusCode()
 	{
 		return statusCode;
@@ -111,7 +155,7 @@ public abstract class ResourceBasedException extends RuntimeException
 		}
 		try
 		{
-			return translator.getLocalizedMessage(messageId, Arrays.copyOf(messageArgs, messageArgs.length, Object[].class));
+			return translator.getLocalizedMessage(messageId, parameters);
 		}
 		catch (Exception e)
 		{
@@ -122,7 +166,7 @@ public abstract class ResourceBasedException extends RuntimeException
 	private String formAlternativeMessageText()
 	{
 		StringBuilder sb = new StringBuilder(messageId);
-		if ((messageArgs != null) && (messageArgs.length != 0))
+		if ((parameters != null) && (parameters.length != 0))
 		{
 			sb.append("; parameters: ");
 			appendParametersText(sb);
@@ -133,7 +177,7 @@ public abstract class ResourceBasedException extends RuntimeException
 	private void appendParametersText(StringBuilder sb)
 	{
 		boolean isFirst = true;
-		for (Object parameter : messageArgs)
+		for (Object parameter : parameters)
 		{
 			if (!isFirst)
 			{
