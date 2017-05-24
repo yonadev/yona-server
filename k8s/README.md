@@ -189,10 +189,12 @@ kubectl logs -n yona 527-develop-liquibase-update-5p637
 #### Kube DNS not working
 On initial deploy, I have had some issues with the internal KubeDNS component.  As a result, the hostname for the various services (mariadb, ldap) are not being resolved and the liquibase container will never be able to connect.  If this happens, do the following:
 
-- Get the pod name for the kube-dns component ```
+- Get the pod name for the kube-dns component
+```
 kubectl get pod --all-namespaces -a | grep -i dns
 ```
-- Delete that pod.  The K8S system will deploy a new one ```
+- Delete that pod.  The K8S system will deploy a new one
+```
 kubectl -n kube-system delete pod kube-dns-268032401-g0kdt
 ```
 
