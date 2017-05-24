@@ -10,6 +10,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -155,20 +156,36 @@ public class UserController
 	{
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(new MediaType("application", "x-apple-aspen-config"));
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
-		{
-			return new ResponseEntity<>(getUserSpecificAppleMobileConfig(userService.getPrivateUser(userId)), headers,
-					HttpStatus.OK);
-		}
+		byte[] appleMobileConfig = getUserSpecificAppleMobileConfig(password, userId);
+		return new ResponseEntity<>(appleMobileConfig, headers, HttpStatus.OK);
 	}
 
-	private byte[] getUserSpecificAppleMobileConfig(UserDto privateUser)
+	/**
+	 * Returns the Apple Mobile Config in a base-64 encoded fashion. This is done because the iOS app currently cannot handle
+	 * binary responses.
+	 */
+	@RequestMapping(value = "/{userId}/apple.mobileconfig.base64", method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<String> getAppleMobileConfigBase64(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
 	{
-		Context ctx = ThymeleafUtil.createContext();
-		ctx.setVariable("ldapUsername", privateUser.getPrivateData().getVpnProfile().getVpnLoginId().toString());
-		ctx.setVariable("ldapPassword", privateUser.getPrivateData().getVpnProfile().getVpnPassword());
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(new MediaType("application", "base64"));
+		byte[] appleMobileConfig = getUserSpecificAppleMobileConfig(password, userId);
+		return new ResponseEntity<>(Base64.getEncoder().encodeToString(appleMobileConfig), headers, HttpStatus.OK);
+	}
 
-		return signIfEnabled(templateEngine.process("apple.mobileconfig", ctx).getBytes(StandardCharsets.UTF_8));
+	private byte[] getUserSpecificAppleMobileConfig(Optional<String> password, UUID userId)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			Context ctx = ThymeleafUtil.createContext();
+			UserDto privateUser = userService.getPrivateUser(userId);
+			ctx.setVariable("ldapUsername", privateUser.getPrivateData().getVpnProfile().getVpnLoginId().toString());
+			ctx.setVariable("ldapPassword", privateUser.getPrivateData().getVpnProfile().getVpnPassword());
+
+			return signIfEnabled(templateEngine.process("apple.mobileconfig", ctx).getBytes(StandardCharsets.UTF_8));
+		}
 	}
 
 	private byte[] signIfEnabled(byte[] unsignedMobileconfig)
@@ -562,6 +579,7 @@ public class UserController
 					pinResetRequestController.addLinks(userResource);
 					addSslRootCertificateLink(userResource);
 					addAppleMobileConfigLink(userResource);
+					addAppleMobileConfigBase64Link(userResource);
 				}
 			}
 			return userResource;
@@ -572,6 +590,12 @@ public class UserController
 			userResource.add(linkTo(
 					methodOn(UserController.class).getAppleMobileConfig(Optional.empty(), userResource.getContent().getId()))
 							.withRel("appleMobileConfig"));
+		}
+
+		private void addAppleMobileConfigBase64Link(UserResource userResource)
+		{
+			userResource.add(linkTo(methodOn(UserController.class).getAppleMobileConfigBase64(Optional.empty(),
+					userResource.getContent().getId())).withRel("appleMobileConfigBase64"));
 		}
 
 		private void addSslRootCertificateLink(Resource<UserDto> userResource)
