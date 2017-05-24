@@ -1,4 +1,4 @@
-#Yona K8S Deploy
+# Yona K8S Deploy
 This area has setup for a Kubernetes (K8S) deployment of the Youa server stack and supporting infrastructure.
 
 The deployment uses [Helm](https://github.com/kubernetes/helm) to template the release.  In the stock configuration here, it will create a full stack to be used on a local workstation for development / testing needs.
@@ -6,7 +6,7 @@ The deployment uses [Helm](https://github.com/kubernetes/helm) to template the r
 Locally we recommend the use of [MiniKube](https://kubernetes.io/docs/getting-started-guides/minikube/) for a local workstation setup of a single node Kubernetes environment.   Minikube will create a node using various virtualization technologies.  
 
 ----------
-##Linux Setup
+## Linux Setup
 Requirements:
 
  - ~10GB free space (more would be better)
@@ -101,7 +101,9 @@ kube-system   rs/tiller-deploy-1491950541   1         1         1         20h
 Create a persistent storage volume
 
  - Change to the yona-server/k8s in the Yona Server repository
- - Run the following command to create the volume.   It will create a 3GB space in the virtual machine to be used by persistent volume claims for the MariaDB and LDAP data. ```
+ - Run the following command to create the volume.   It will create a 3GB space in the virtual machine to be used by persistent volume claims for the MariaDB and LDAP data.
+ 
+```
 kubectl create -f 02_storage.yaml
 ```
 
@@ -187,10 +189,12 @@ kubectl logs -n yona 527-develop-liquibase-update-5p637
 #### Kube DNS not working
 On initial deploy, I have had some issues with the internal KubeDNS component.  As a result, the hostname for the various services (mariadb, ldap) are not being resolved and the liquibase container will never be able to connect.  If this happens, do the following:
 
-- Get the pod name for the kube-dns component ```
+- Get the pod name for the kube-dns component
+```
 kubectl get pod --all-namespaces -a | grep -i dns
 ```
-- Delete that pod.  The K8S system will deploy a new one ```
+- Delete that pod.  The K8S system will deploy a new one
+```
 kubectl -n kube-system delete pod kube-dns-268032401-g0kdt
 ```
 
