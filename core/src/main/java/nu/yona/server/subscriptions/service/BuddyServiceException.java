@@ -1,8 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
+
+import java.io.Serializable;
 
 import nu.yona.server.exceptions.YonaException;
 
@@ -10,12 +12,12 @@ public class BuddyServiceException extends YonaException
 {
 	private static final long serialVersionUID = 3301297701692886481L;
 
-	protected BuddyServiceException(String messageId, Object... parameters)
+	protected BuddyServiceException(String messageId, Serializable... parameters)
 	{
 		super(messageId, parameters);
 	}
 
-	protected BuddyServiceException(Throwable t, String messageId, Object... parameters)
+	protected BuddyServiceException(Throwable t, String messageId, Serializable... parameters)
 	{
 		super(t, messageId, parameters);
 	}

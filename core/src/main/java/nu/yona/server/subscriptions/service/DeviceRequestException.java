@@ -4,13 +4,15 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.io.Serializable;
+
 import nu.yona.server.exceptions.YonaException;
 
 public class DeviceRequestException extends YonaException
 {
 	private static final long serialVersionUID = -7070143633618007280L;
 
-	private DeviceRequestException(String messageId, Object... parameters)
+	private DeviceRequestException(String messageId, Serializable... parameters)
 	{
 		super(messageId, parameters);
 	}

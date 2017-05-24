@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -13,7 +14,7 @@ public class GoalServiceException extends YonaException
 {
 	private static final long serialVersionUID = -3190676140223118243L;
 
-	private GoalServiceException(String messageId, Object... parameters)
+	private GoalServiceException(String messageId, Serializable... parameters)
 	{
 		super(messageId, parameters);
 	}
