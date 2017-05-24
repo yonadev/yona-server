@@ -1,0 +1,49 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Values.global.stage | default "develop" }}-ldap
+  labels:
+    app: ldap
+    stage: {{ .Values.global.stage | default "develop" }}
+spec:
+  replicas: 1
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: ldap
+        stage: {{ .Values.global.stage | default "develop" }}
+    spec:
+      containers:
+        - name: ldap
+          image: 'osixia/openldap:1.1.8'
+          imagePullPolicy: IfNotPresent
+          env:       
+            - name: LDAP_ORGANIZATION
+              value: {{ .Values.org | default "Yona Development" | quote }}
+            - name: LDAP_DOMAIN
+              value: {{ .Values.domain | default "example.local" | quote }}
+            - name: LDAP_BASE_DN
+              value: {{ .Values.dn | default "dc=example,dc=local" | quote }}
+            - name: LDAP_ADMIN_PASSWORD
+              value: {{ .Values.user_password | default "ldappassword" | quote }}
+            - name: LDAP_CONFIG_PASSWORD
+              value: {{ .Values.config_password | default "config" | quote }}
+          ports:
+            - containerPort: 389
+          volumeMounts:
+            - name: ldapdata
+              mountPath: /var/lib/ldap
+            - name: sldapdata
+              mountPath: /etc/ldap/slapd.d
+      volumes:
+        - name: ldapdata
+          persistentVolumeClaim:
+            claimName: ldapdataclaim
+        - name: sldapdata
+          persistentVolumeClaim:
+            claimName: sldapdataclaim

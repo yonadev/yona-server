@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Values.global.stage | default "develop" }}-analysis
+  labels:
+    app: analysis
+    stage: {{ .Values.global.stage | default "develop" }}
+spec:
+  replicas: 1
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: analysis
+        stage: {{ .Values.global.stage | default "develop" }}
+    spec:
+      containers:
+        - name: analysis
+          image: 'yonadev/analysisservice:build-{{ .Values.global.release }}'
+          imagePullPolicy: Always
+          env:       
+            - name: YONA_DB_USER_NAME
+              value: {{ .Values.mariadb.mariadbUser | default "develop" | quote }}
+            - name: YONA_DB_PASSWORD
+              value: {{ .Values.mariadb.mariadbPassword | default "develop" | quote }}
+            - name: YONA_DB_URL
+            {{- if .Values.mariadb.url_override}}
+              value: {{ .Values.mariadb.url_override | quote }}
+            {{- else }}
+              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.mariadbDatabase }}"
+            {{- end }}
+          ports:
+            - containerPort: 8080
+            - containerPort: 9080
+          volumeMounts:
+            - name: config-volume
+              mountPath: /opt/app/config
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ .Values.global.release }}-{{ .Values.global.stage | default "develop" }}-springboot
+
+
+
