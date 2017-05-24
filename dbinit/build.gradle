@@ -43,6 +43,7 @@ task buildDockerImage(type: DockerBuildImage) {
 		}
 		copy {
 			from "src/main/docker/Dockerfile"
+			from "src/main/docker/update.sh"
 			into "$inputDir"
 		}
 	}
