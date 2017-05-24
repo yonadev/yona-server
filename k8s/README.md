@@ -68,9 +68,9 @@ It will setup your kubectl config (~/.kube/config) to point to the K8S api in th
 Once setup, use kubectl to confirm you have a node available, and kubectl can connect to it
 
 ```
-$ kubectl get nodes                                                                                 ✔ 0 
-NAME       STATUS    AGE
-minikube   Ready     1h
+$ kubectl get nodes 
+NAME       STATUS    AGE       VERSION
+minikube   Ready     1m        v1.6.0
 ```
 
 You can see a quick list of all the running components on a base K8S install :
@@ -149,6 +149,10 @@ global:
   release: 527
 ```
 
+#### Custom Liquibase (until production jenkins is using updated one)
+The liquibase update docker image has a pending pull request.  Until this is in the tree used by Jenkins to produce upstream docker images, the LDAP, Quartz, and Categories will not be properly seeded on start up.  
+This section is to be removed from the README once all images going forward will have the new setup.
+
 #### Deploy / Upgrade the chart
 Deploy the `yona-server` chart with the following :
 ```
@@ -167,6 +171,12 @@ kubectl get pods -n yona -a
 You will see various liquibase containers failing out due to some components not being ready right away - MariaDB, LDAP, etc.
 
 Eventually you will see a completed liquibase, and eventually the various components will be up.
+
+You can also use the -w command to watch the changes to pod status
+```
+kubectl get pods -n yona -w
+```
+With the above, once you see that liquibase-update has 'Completed' it is good to go.
  
 To view the Logs of any container, use the following command with the full pod name from the `get pods` command above
 
@@ -174,6 +184,7 @@ To view the Logs of any container, use the following command with the full pod n
 kubectl logs -n yona 527-develop-liquibase-update-5p637
 ```
 
+#### Kube DNS not working
 On initial deploy, I have had some issues with the internal KubeDNS component.  As a result, the hostname for the various services (mariadb, ldap) are not being resolved and the liquibase container will never be able to connect.  If this happens, do the following:
 
 - Get the pod name for the kube-dns component ```
@@ -195,4 +206,38 @@ helm delete yona; kubectl delete -n yona configmaps --all ; kubectl delete -n yo
 
 This will not remove the persistent volumes (mariadb and ldap), so those will be quicker to start up next time, and will already be seeded to the latest liquibase/batch/qwartz jobs
 
+### Accessing the cluster services
+
+Once everything is up, you probably want to test it.
+
+Get a list of the exposed services with the following :
+```
+$ minikube service list
+|-------------|----------------------|-----------------------------|
+|  NAMESPACE  |         NAME         |             URL             |
+|-------------|----------------------|-----------------------------|
+| default     | kubernetes           | No node port                |
+| kube-system | kube-dns             | No node port                |
+| kube-system | kubernetes-dashboard | http://192.168.42.170:30000 |
+| kube-system | tiller-deploy        | No node port                |
+| yona        | admin                | http://192.168.42.170:31001 |
+| yona        | admin-actuator       | http://192.168.42.170:31011 |
+| yona        | analysis             | http://192.168.42.170:31002 |
+| yona        | analysis-actuator    | http://192.168.42.170:31012 |
+| yona        | app                  | http://192.168.42.170:31003 |
+| yona        | app-actuator         | http://192.168.42.170:31013 |
+| yona        | batch                | http://192.168.42.170:31004 |
+| yona        | batch-actuator       | http://192.168.42.170:31014 |
+| yona        | ldap                 | http://192.168.42.170:31389 |
+| yona        | yona-mariadb         | No node port                |
+|-------------|----------------------|-----------------------------|
+
+```
+
+Test an API user create :
+```
+curl -v -H "Content-Type: application/json" -H "Accept-Language: en-US" -H "Yona-Password: spam1234" -d '{"firstName": "Teston", "lastName": "Blurbalback", "mobileNumber": "+15555551212", "nickname": "testonb"}' http://192.168.42.170:31003/users/ 
+```
+
+If you get a `Root exception is java.net.UnknownHostException: ldap.yona.svc.cluster.local` then chances are the internal DNS server might have an issue - See the 'Kube DNS not working section above'
 
