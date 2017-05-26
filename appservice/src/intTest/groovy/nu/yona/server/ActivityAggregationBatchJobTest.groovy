@@ -7,16 +7,11 @@
 package nu.yona.server
 
 import groovy.json.*
-import nu.yona.server.test.BatchService
 import nu.yona.server.test.Goal
 import nu.yona.server.test.User
-import spock.lang.Shared
 
 class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 {
-	@Shared
-	def BatchService batchService = new BatchService()
-
 	def 'Days and weeks in the past are aggregated once'()
 	{
 		given:
