@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.io.Serializable;
+
 import org.springframework.http.HttpStatus;
 
 import nu.yona.server.exceptions.YonaException;
@@ -12,7 +14,7 @@ public class WhiteListedNumberServiceException extends YonaException
 {
 	private static final long serialVersionUID = 2543728671534987461L;
 
-	private WhiteListedNumberServiceException(HttpStatus statusCode, String messageId, Object... parameters)
+	private WhiteListedNumberServiceException(HttpStatus statusCode, String messageId, Serializable... parameters)
 	{
 		super(statusCode, messageId, parameters);
 	}

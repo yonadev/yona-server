@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.exceptions;
 
+import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -14,7 +15,7 @@ public class AnalysisException extends YonaException
 {
 	private static final long serialVersionUID = -366842642655183778L;
 
-	private AnalysisException(String messageId, Object... parameters)
+	private AnalysisException(String messageId, Serializable... parameters)
 	{
 		super(messageId, parameters);
 	}

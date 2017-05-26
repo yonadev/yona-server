@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.exceptions;
 
+import java.io.Serializable;
+
 /**
  * This exception is to be used in case user overwrite confirmation code is wrong.
  */
@@ -11,12 +13,12 @@ public class UserOverwriteConfirmationException extends ConfirmationException
 {
 	private static final long serialVersionUID = -3653199898915579250L;
 
-	private UserOverwriteConfirmationException(String messageId, Object... parameters)
+	private UserOverwriteConfirmationException(String messageId, Serializable... parameters)
 	{
 		super(messageId, parameters);
 	}
 
-	private UserOverwriteConfirmationException(int remainingAttempts, String messageId, Object... parameters)
+	private UserOverwriteConfirmationException(int remainingAttempts, String messageId, Serializable... parameters)
 	{
 		super(remainingAttempts, messageId, parameters);
 	}

@@ -1,8 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.exceptions;
+
+import java.io.Serializable;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -31,13 +33,16 @@ public abstract class ResourceBasedException extends RuntimeException
 	}
 
 	private static final long serialVersionUID = 8031973645020363969L;
+
+	/** The translator is set upon initialization of the context */
+	private static Translator translator;
+
 	/** Holds the parameters for the exception message. */
-	private final Object[] parameters;
+	private final Serializable[] parameters;
 	/** Holds the message id. */
 	private final String messageId;
 	/** Holds the HTTP response code to be used. */
 	private final HttpStatus statusCode;
-	private static Translator translator;
 
 	/**
 	 * Constructor.
@@ -46,7 +51,7 @@ public abstract class ResourceBasedException extends RuntimeException
 	 * @param messageId The ID of the exception in the resource bundle
 	 * @param parameters The parameters for the message
 	 */
-	protected ResourceBasedException(HttpStatus statusCode, String messageId, Object... parameters)
+	protected ResourceBasedException(HttpStatus statusCode, String messageId, Serializable... parameters)
 	{
 		super(messageId);
 
@@ -55,18 +60,13 @@ public abstract class ResourceBasedException extends RuntimeException
 		this.statusCode = statusCode;
 	}
 
-	public static void setTranslator(Translator translator)
-	{
-		ResourceBasedException.translator = translator;
-	}
-
 	/**
 	 * Constructor.
 	 * 
 	 * @param messageId The ID of the exception in the resource bundle
 	 * @param parameters The parameters for the message
 	 */
-	protected ResourceBasedException(String messageId, Object... parameters)
+	protected ResourceBasedException(String messageId, Serializable... parameters)
 	{
 		this(HttpStatus.BAD_REQUEST, messageId, parameters);
 	}
@@ -78,7 +78,7 @@ public abstract class ResourceBasedException extends RuntimeException
 	 * @param messageId The ID of the exception in the resource bundle
 	 * @param parameters The parameters for the message
 	 */
-	protected ResourceBasedException(Throwable t, String messageId, Object... parameters)
+	protected ResourceBasedException(Throwable t, String messageId, Serializable... parameters)
 	{
 		this(HttpStatus.BAD_REQUEST, t, messageId, parameters);
 	}
@@ -91,13 +91,18 @@ public abstract class ResourceBasedException extends RuntimeException
 	 * @param messageId The ID of the exception in the resource bundle
 	 * @param parameters The parameters for the message
 	 */
-	protected ResourceBasedException(HttpStatus statusCode, Throwable t, String messageId, Object... parameters)
+	protected ResourceBasedException(HttpStatus statusCode, Throwable t, String messageId, Serializable... parameters)
 	{
 		super(messageId, t);
 
 		this.messageId = messageId;
 		this.parameters = parameters;
 		this.statusCode = statusCode;
+	}
+
+	public static void setTranslator(Translator translator)
+	{
+		ResourceBasedException.translator = translator;
 	}
 
 	@Override
@@ -128,19 +133,9 @@ public abstract class ResourceBasedException extends RuntimeException
 	}
 
 	/**
-	 * This method gets the parameters for the exception message.
+	 * This method gets the HTTP response code to be used.
 	 * 
-	 * @return The parameters for the exception message.
-	 */
-	public Object[] getParameters()
-	{
-		return parameters;
-	}
-
-	/**
-	 * This method gets the http response code to be used.
-	 * 
-	 * @return The http response code to be used.
+	 * @return The HTTP response code to be used.
 	 */
 	public HttpStatus getStatusCode()
 	{
@@ -155,7 +150,7 @@ public abstract class ResourceBasedException extends RuntimeException
 		}
 		try
 		{
-			return translator.getLocalizedMessage(messageId, parameters);
+			return translator.getLocalizedMessage(messageId, (Object[]) parameters);
 		}
 		catch (Exception e)
 		{

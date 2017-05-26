@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 import nu.yona.server.exceptions.YonaException;
@@ -13,7 +14,7 @@ public class UserServiceException extends YonaException
 {
 	private static final long serialVersionUID = -4519219401062670885L;
 
-	private UserServiceException(String messageId, Object... parameters)
+	private UserServiceException(String messageId, Serializable... parameters)
 	{
 		super(messageId, parameters);
 	}

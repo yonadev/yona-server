@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.exceptions;
 
+import java.io.Serializable;
+
 /**
  * This exception is to be used in case user overwrite confirmation code is wrong.
  */
@@ -11,12 +13,12 @@ public class PinResetRequestConfirmationException extends ConfirmationException
 {
 	private static final long serialVersionUID = -7971968001802595497L;
 
-	private PinResetRequestConfirmationException(String messageId, Object... parameters)
+	private PinResetRequestConfirmationException(String messageId, Serializable... parameters)
 	{
 		super(messageId, parameters);
 	}
 
-	private PinResetRequestConfirmationException(int remainingAttempts, String messageId, Object... parameters)
+	private PinResetRequestConfirmationException(int remainingAttempts, String messageId, Serializable... parameters)
 	{
 		super(remainingAttempts, messageId, parameters);
 	}
