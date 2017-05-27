@@ -1736,14 +1736,6 @@ definitions:
                       href:
                         type: string
                         description: Link to user-specific Apple .mobileconfig file (available after confirming mobile number)
-                  "yona:appleMobileConfigBase64":
-                    type: object
-                    required:
-                      - href
-                    properties:
-                      href:
-                        type: string
-                        description: Link to user-specific base-64 encoded Apple .mobileconfig file (available after confirming mobile number). This is link is added to work around the issue that the iOS Yona app currently cannot handle binary responses (which occur when the mobile config is signed)
         required:
           - _embedded
           - _links
