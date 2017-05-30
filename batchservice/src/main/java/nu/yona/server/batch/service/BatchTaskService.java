@@ -20,7 +20,9 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.batch.client.PinResetConfirmationCodeSendRequestDto;
@@ -57,8 +59,10 @@ public class BatchTaskService
 	{
 		logger.info("Triggering activity aggregation");
 		JobParameters jobParameters = new JobParametersBuilder().addDate("uniqueInstanceId", new Date()).toJobParameters();
-		// NOTICE: executes the job synchronously, on purpose
-		JobExecution jobExecution = launchSynchronously(activityAggregationJob, jobParameters);
+		// NOTICE: executes the job synchronously, on purpose, because the tests rely on this and this is normally not scheduled
+		// manually
+		// TODO: execute asynchronously instead, because we might want to trigger it manually sometimes in production
+		JobExecution jobExecution = launchImmediatelySynchronously(activityAggregationJob, jobParameters);
 		jobExecution.getStepExecutions().forEach(
 				e -> logger.info("Step {} read {} entities and wrote {}", e.getStepName(), e.getReadCount(), e.getWriteCount()));
 		return ActivityAggregationBatchJobResultDto.createInstance(jobExecution);
@@ -80,17 +84,27 @@ public class BatchTaskService
 
 		JobParameters jobParameters = new JobParametersBuilder().addDate("uniqueInstanceId", new Date())
 				.addString("messageText", request.getMessageText()).toJobParameters();
-		// NOTICE: executes the job synchronously, on purpose
-		launchSynchronously(sendSystemMessageJob, jobParameters);
+		launchImmediately(sendSystemMessageJob, jobParameters);
 	}
 
-	private JobExecution launchSynchronously(Job job, JobParameters jobParameters)
+	private JobExecution launchImmediately(Job job, JobParameters jobParameters)
+	{
+		return launchImmediately(new SimpleAsyncTaskExecutor(), job, jobParameters);
+	}
+
+	private JobExecution launchImmediatelySynchronously(Job job, JobParameters jobParameters)
+	{
+		// ONLY FOR TEST PURPOSES
+		return launchImmediately(new SyncTaskExecutor(), job, jobParameters);
+	}
+
+	private JobExecution launchImmediately(TaskExecutor taskExecutor, Job job, JobParameters jobParameters)
 	{
 		try
 		{
 			SimpleJobLauncher launcher = new SimpleJobLauncher();
 			launcher.setJobRepository(jobRepository);
-			launcher.setTaskExecutor(new SyncTaskExecutor());
+			launcher.setTaskExecutor(new SimpleAsyncTaskExecutor());
 			return launcher.run(job, jobParameters);
 		}
 		catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
