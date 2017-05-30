@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.global.release }}-{{ .Values.global.stage | default "develop" }}-liquibase-update
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+  #annotations:
+    #"helm.sh/hook": pre-install,pre-upgrade
+spec:
+  template:
+    metadata:
+      name: {{ .Values.global.stage | default "develop" }}-yona-liquibase-update
+    spec:
+      containers:
+        - name: liquibase
+          image: yonadev/yona-mariadb-liquibase-update:build-{{ .Values.global.release }}
+          imagePullPolicy: IfNotPresent
+          env:       
+            - name: USER
+              value: {{ .Values.mariadb.mariadbUser | default "develop" | quote }}
+            - name: PASSWORD
+              value: {{ .Values.mariadb.mariadbPassword | default "develop" | quote }}
+            - name: URL
+            {{- if .Values.mariadb.url_override}}
+              value: {{ .Values.mariadb.url_override | quote }}
+            {{- else }}
+              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.mariadbDatabase }}"
+            {{- end }}
+            - name: RELEASE
+              value: {{ .Values.global.release | quote }}
+            - name: MAX_TRIES
+              value: {{ .Values.seed_max_tries | default "3" | quote }}
+            {{- if .Values.ldap.enabled }}
+            - name: LDAP_URL
+              {{- if .Values.ldap.url_override}}
+              value: {{ .Values.ldap.url_override | quote }}
+              {{- else }}
+              value: "ldap://ldap.{{ .Release.Namespace }}.svc.cluster.local"
+              {{- end }}
+            - name: LDAP_DN
+              value: {{ .Values.ldap.dn | default "DC=example,DC=local" | quote }}
+            - name: LDAP_USER_DN
+              value: {{ .Values.ldap.user_dn | default "cn=admin,dc=example,dc=local" | quote }}
+            - name: LDAP_USER_PASSWORD
+              value: {{ .Values.ldap.user_password | default "password" | quote }}
+            {{- end }}
+      restartPolicy: Never

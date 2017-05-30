@@ -135,8 +135,8 @@ public class AnalysisEngineService
 	{
 		// We add a lock here because we further down in this class need to prevent conflicting updates to the DayActivity
 		// entities.
-		// The lock is added in this method (and not further down) so that we only have to lock once;
-		// because the lock is per user, it doesn't matter much that we block early.
+		// The lock is added in this method (and not further down) so that we only have to lock once.
+		// Because the lock is per user, it doesn't matter much that we block early.
 		try (LockPool<UUID>.Lock lock = userAnonymizedSynchronizer.lock(payload.userAnonymized.getId()))
 		{
 			transactionHelper.executeInNewTransaction(() -> {

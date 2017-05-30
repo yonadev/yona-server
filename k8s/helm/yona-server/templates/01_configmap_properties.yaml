@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.global.release }}-{{ .Values.global.stage | default "develop" }}-springboot
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+data:
+  application.properties: |
+    yona.security.pinResetRequestConfirmationCodeDelay = PT1M
+    yona.email.enabled={{ .Values.email.enabled | default "true" }}
+    yona.email.senderAddress={{ .Values.email.sender_address | default "noreply@example.com" }}
+    yona.email.smtp.protocol={{ .Values.email.smtp_protocol | default "smtp" }}
+    {{- if .Values.email.smtp_host}}
+    yona.email.smtp.host={{ .Values.email.smtp_host}}
+    {{- else }}
+    yona.email.smtp.host="smtp.{{ .Release.Namespace }}.svc.cluster.local" }}
+    {{- end }}
+    yona.email.smtp.port={{ .Values.email.smtp_port | default "587" }}
+    yona.email.smtp.enableAuth={{ .Values.email.smtp_enable_auth | default "true" }}
+    yona.email.smtp.enableStartTls={{ .Values.email.smtp_enable_start_tls | default "true" }}
+    yona.email.smtp.username={{ .Values.email.smtp_username | default "noreply@example.com" }}
+    yona.email.smtp.password={{ .Values.email.smtp_password | default "password" }}
+    yona.email.includedMediaBaseUrl={{ .Values.email.included_media_base_url | default "https://localhost/media/" }}
+    yona.ldap.enabled={{ .Values.ldap.enabled | default "true" }}
+    {{- if .Values.ldap.url_override}}
+    yona.ldap.url={{ .Values.ldap.url_override }}
+    {{- else }}
+    yona.ldap.url=ldap://ldap.{{ .Release.Namespace }}.svc.cluster.local
+    {{- end }}
+    yona.ldap.baseDn={{ .Values.ldap.dn | default "DC=example,DC=local" }}
+    yona.ldap.accessUserDn={{ .Values.ldap.user_dn | default "cn=admin,dc=example,dc=local" }}
+    yona.ldap.accessUserPassword={{ .Values.ldap.user_password | default "password" }}
+    yona.sms.enabled= {{ .Values.sms.enabled | default "false" }}
+    yona.sms.senderNumber = {{ .Values.sms.sender_number | default "Yona" }}
+    yona.sms.plivoUrl = {{ .Values.sms.plivo_url | default "https://api.plivo.com/v1/Account/{0}/Message/" }}
+    yona.sms.plivoAuthId = {{ .Values.sms.plivo_auth_id | default "authidocde" }}
+    yona.sms.plivoAuthToken = {{ .Values.sms.plivo_auth_token | default "authtoken" }}
+    yona.appleMobileConfig.signingEnabled = {{ .Values.apple.enabled | default "false" }}
+    yona.appleMobileConfig.signingKeyStoreFile = {{ .Values.apple.keystore_file | default "apple/dummy.p12" }}
+    yona.appleMobileConfig.signingKeyStorePassword = {{ .Values.apple.keystore_password | default "DummyPwd" }}
+    yona.appleMobileConfig.signingAlias = {{ .Values.apple.alias | default "dummy" }}
+

@@ -1,12 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.exceptions;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import java.io.Serializable;
 import java.util.Locale;
 
 import org.junit.AfterClass;
@@ -46,7 +47,7 @@ public class ResourceBasedExceptionTest
 
 	private static class TestException extends ResourceBasedException
 	{
-		protected TestException(String messageId, Object... parameters)
+		protected TestException(String messageId, Serializable... parameters)
 		{
 			super(messageId, parameters);
 		}
@@ -100,7 +101,7 @@ public class ResourceBasedExceptionTest
 		assertExceptionTranslation(expectedResult, messageId, "first", "second");
 	}
 
-	private void assertExceptionTranslation(String expectedResult, String messageId, Object... parameters)
+	private void assertExceptionTranslation(String expectedResult, String messageId, Serializable... parameters)
 	{
 		TestException exception = new TestException(messageId, parameters);
 		assertThat(exception.getMessage(), equalTo(expectedResult));

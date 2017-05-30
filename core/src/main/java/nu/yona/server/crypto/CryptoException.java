@@ -4,25 +4,27 @@
  *******************************************************************************/
 package nu.yona.server.crypto;
 
+import java.io.Serializable;
+
 import nu.yona.server.exceptions.YonaException;
 
 public class CryptoException extends YonaException
 {
 	private static final long serialVersionUID = -1379944976933747626L;
 
-	protected CryptoException(String messageId, Object... parameters)
+	protected CryptoException(String messageId, Serializable... parameters)
 	{
 		super(messageId, parameters);
 	}
 
-	public CryptoException(Throwable t, String messageId, Object... parameters)
+	public CryptoException(Throwable t, String messageId, Serializable... parameters)
 	{
 		super(t, messageId, parameters);
 	}
 
 	public static CryptoException noActiveCryptoSession(Thread thread)
 	{
-		return new CryptoException("error.no.active.crypto.session", thread);
+		return new CryptoException("error.no.active.crypto.session", thread.toString());
 	}
 
 	public static CryptoException gettingCipher(Throwable e, String name)

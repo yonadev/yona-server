@@ -1,11 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2016 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.exceptions;
+
+import java.io.Serializable;
 
 /**
  * This exception is to be used when email sending fails.
@@ -14,12 +13,12 @@ public class SmsException extends YonaException
 {
 	private static final long serialVersionUID = 1341422955591660135L;
 
-	private SmsException(String messageId, Object... parameters)
+	private SmsException(String messageId, Serializable... parameters)
 	{
 		super(messageId, parameters);
 	}
 
-	private SmsException(Throwable t, String messageId, Object... parameters)
+	private SmsException(Throwable t, String messageId, Serializable... parameters)
 	{
 		super(t, messageId, parameters);
 	}

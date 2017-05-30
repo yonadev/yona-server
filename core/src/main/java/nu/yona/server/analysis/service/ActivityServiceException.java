@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -13,7 +14,7 @@ public class ActivityServiceException extends YonaException
 {
 	private static final long serialVersionUID = -1363053667674820274L;
 
-	private ActivityServiceException(String messageId, Object... parameters)
+	private ActivityServiceException(String messageId, Serializable... parameters)
 	{
 		super(messageId, parameters);
 	}

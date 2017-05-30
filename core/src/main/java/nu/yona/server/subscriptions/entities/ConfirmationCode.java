@@ -7,6 +7,7 @@ package nu.yona.server.subscriptions.entities;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
@@ -18,7 +19,8 @@ import nu.yona.server.util.TimeUtil;
 public class ConfirmationCode extends EntityWithUuid
 {
 	private LocalDateTime creationTime;
-	private String confirmationCode;
+	@Column(name = "confirmationCode")
+	private String code;
 	private int attempts;
 
 	// Default constructor is required for JPA
@@ -31,7 +33,7 @@ public class ConfirmationCode extends EntityWithUuid
 	{
 		super(id);
 		this.creationTime = creationTime;
-		this.confirmationCode = confirmationCode;
+		this.code = confirmationCode;
 	}
 
 	public static ConfirmationCode createInstance(String confirmationCode)
@@ -39,14 +41,14 @@ public class ConfirmationCode extends EntityWithUuid
 		return new ConfirmationCode(UUID.randomUUID(), TimeUtil.utcNow(), confirmationCode);
 	}
 
-	public String getConfirmationCode()
+	public String getCode()
 	{
-		return confirmationCode;
+		return code;
 	}
 
-	public void setConfirmationCode(String confirmationCode)
+	public void setCode(String code)
 	{
-		this.confirmationCode = confirmationCode;
+		this.code = code;
 	}
 
 	public LocalDateTime getCreationTime()

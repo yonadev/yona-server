@@ -131,7 +131,7 @@ public class PinResetRequestController
 		{
 			addPinResetRequestLink(userResource);
 		}
-		else if (confirmationCode.getConfirmationCode() != null)
+		else if (confirmationCode.getCode() != null)
 		{
 			addVerifyPinResetLink(userResource);
 			addResendPinResetConfirmationCodeLink(userResource);

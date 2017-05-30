@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
+import java.io.Serializable;
+
 import org.springframework.http.HttpStatus;
 
 import nu.yona.server.exceptions.YonaException;
@@ -12,7 +14,7 @@ public class MessageNotFoundException extends YonaException
 {
 	private static final long serialVersionUID = -5889584804067081374L;
 
-	private MessageNotFoundException(HttpStatus statusCode, String messageId, Object... parameters)
+	private MessageNotFoundException(HttpStatus statusCode, String messageId, Serializable... parameters)
 	{
 		super(statusCode, messageId, parameters);
 	}

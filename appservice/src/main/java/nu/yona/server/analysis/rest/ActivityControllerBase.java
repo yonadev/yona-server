@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedResources;
@@ -84,8 +83,8 @@ abstract class ActivityControllerBase
 	protected static final String NEXT_REL = "next"; // IANA reserved, so will not be prefixed
 
 	protected HttpEntity<PagedResources<WeekActivityOverviewResource>> getWeekActivityOverviews(Optional<String> password,
-			UUID userId, Pageable pageable, PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler,
-			Supplier<Page<WeekActivityOverviewDto>> activitySupplier, LinkProvider linkProvider)
+			UUID userId, PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler, Supplier<Page<WeekActivityOverviewDto>> activitySupplier,
+			LinkProvider linkProvider)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
@@ -95,9 +94,9 @@ abstract class ActivityControllerBase
 	}
 
 	protected HttpEntity<PagedResources<DayActivityOverviewResource>> getDayActivityOverviews(Optional<String> password,
-			UUID userId, Pageable pageable,
-			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler,
-			Supplier<Page<DayActivityOverviewDto<DayActivityDto>>> activitySupplier, LinkProvider linkProvider)
+			UUID userId, PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler,
+			Supplier<Page<DayActivityOverviewDto<DayActivityDto>>> activitySupplier,
+			LinkProvider linkProvider)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
@@ -131,8 +130,8 @@ abstract class ActivityControllerBase
 	}
 
 	protected HttpEntity<PagedResources<MessageDto>> getActivityDetailMessages(Optional<String> password, UUID userId,
-			Pageable pageable, PagedResourcesAssembler<MessageDto> pagedResourcesAssembler,
-			Supplier<Page<MessageDto>> messageSupplier, LinkProvider linkProvider)
+			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler, Supplier<Page<MessageDto>> messageSupplier,
+			LinkProvider linkProvider)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
@@ -267,8 +266,6 @@ abstract class ActivityControllerBase
 		{
 			super(dayActivity);
 		}
-
-		// TODO: embed messages if included on this detail level
 	}
 
 	static class DayActivityOverviewResource extends Resource<DayActivityOverviewDto<DayActivityDto>>

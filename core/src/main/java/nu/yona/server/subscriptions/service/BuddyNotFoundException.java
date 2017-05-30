@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -14,7 +15,7 @@ public class BuddyNotFoundException extends YonaException
 {
 	private static final long serialVersionUID = -5211242495003355230L;
 
-	private BuddyNotFoundException(HttpStatus statusCode, String messageId, Object... parameters)
+	private BuddyNotFoundException(HttpStatus statusCode, String messageId, Serializable... parameters)
 	{
 		super(statusCode, messageId, parameters);
 	}

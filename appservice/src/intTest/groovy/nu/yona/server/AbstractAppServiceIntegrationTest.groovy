@@ -17,6 +17,7 @@ import nu.yona.server.test.AdminService
 import nu.yona.server.test.AnalysisService
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.AppService
+import nu.yona.server.test.BatchService
 import nu.yona.server.test.Buddy
 import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.Goal
@@ -35,6 +36,9 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	@Shared
 	def AdminService adminService = new AdminService()
+
+	@Shared
+	def BatchService batchService = new BatchService()
 
 	@Shared
 	private String baseTimestamp = createBaseTimestamp()

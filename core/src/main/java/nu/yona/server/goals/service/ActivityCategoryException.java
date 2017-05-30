@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
+import java.io.Serializable;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -15,12 +16,12 @@ public class ActivityCategoryException extends YonaException
 {
 	private static final long serialVersionUID = -5303422277177893152L;
 
-	protected ActivityCategoryException(String messageId, Object... parameters)
+	protected ActivityCategoryException(String messageId, Serializable... parameters)
 	{
 		super(messageId, parameters);
 	}
 
-	protected ActivityCategoryException(HttpStatus statusCode, String messageId, Object... parameters)
+	protected ActivityCategoryException(HttpStatus statusCode, String messageId, Serializable... parameters)
 	{
 		super(statusCode, messageId, parameters);
 	}
