@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.service;
 
@@ -27,6 +24,7 @@ import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.batch.client.PinResetConfirmationCodeSendRequestDto;
+import nu.yona.server.batch.client.SystemMessageSendRequestDto;
 import nu.yona.server.batch.quartz.SchedulingService;
 import nu.yona.server.batch.quartz.SchedulingService.ScheduleGroup;
 import nu.yona.server.batch.quartz.jobs.PinResetConfirmationCodeSenderQuartzJob;
@@ -51,27 +49,19 @@ public class BatchTaskService
 	@Qualifier("activityAggregationJob")
 	private Job activityAggregationJob;
 
+	@Autowired
+	@Qualifier("sendSystemMessageJob")
+	private Job sendSystemMessageJob;
+
 	public ActivityAggregationBatchJobResultDto aggregateActivities()
 	{
-		try
-		{
-			logger.info("Triggering activity aggregation");
-			SimpleJobLauncher launcher = new SimpleJobLauncher();
-			launcher.setJobRepository(jobRepository);
-			launcher.setTaskExecutor(new SyncTaskExecutor()); // NOTICE: executes the job synchronously, on purpose
-
-			JobParameters jobParameters = new JobParametersBuilder().addDate("uniqueInstanceId", new Date()).toJobParameters();
-			JobExecution jobExecution = launcher.run(activityAggregationJob, jobParameters);
-			jobExecution.getStepExecutions().forEach(e -> logger.info("Step {} read {} entities and wrote {}", e.getStepName(),
-					e.getReadCount(), e.getWriteCount()));
-			return ActivityAggregationBatchJobResultDto.createInstance(jobExecution);
-		}
-		catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
-				| JobParametersInvalidException e)
-		{
-			logger.error("Unexpected exception", e);
-			throw YonaException.unexpected(e);
-		}
+		logger.info("Triggering activity aggregation");
+		JobParameters jobParameters = new JobParametersBuilder().addDate("uniqueInstanceId", new Date()).toJobParameters();
+		// NOTICE: executes the job synchronously, on purpose
+		JobExecution jobExecution = launchSynchronously(activityAggregationJob, jobParameters);
+		jobExecution.getStepExecutions().forEach(
+				e -> logger.info("Step {} read {} entities and wrote {}", e.getStepName(), e.getReadCount(), e.getWriteCount()));
+		return ActivityAggregationBatchJobResultDto.createInstance(jobExecution);
 	}
 
 	public void requestPinResetConfirmationCode(PinResetConfirmationCodeSendRequestDto request)
@@ -82,5 +72,32 @@ public class BatchTaskService
 				PIN_RESET_CONFIRMMATION_CODE_TRIGGER_NAME + " " + request.getUserId(),
 				PinResetConfirmationCodeSenderQuartzJob.buildParameterMap(request.getUserId(), request.getLocaleString()),
 				TimeUtil.toDate(request.getExecutionTime()));
+	}
+
+	public void sendSystemMessage(SystemMessageSendRequestDto request)
+	{
+		logger.info("Received request to send system message with text {}", request.getMessageText());
+
+		JobParameters jobParameters = new JobParametersBuilder().addDate("uniqueInstanceId", new Date())
+				.addString("messageText", request.getMessageText()).toJobParameters();
+		// NOTICE: executes the job synchronously, on purpose
+		launchSynchronously(sendSystemMessageJob, jobParameters);
+	}
+
+	private JobExecution launchSynchronously(Job job, JobParameters jobParameters)
+	{
+		try
+		{
+			SimpleJobLauncher launcher = new SimpleJobLauncher();
+			launcher.setJobRepository(jobRepository);
+			launcher.setTaskExecutor(new SyncTaskExecutor());
+			return launcher.run(job, jobParameters);
+		}
+		catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
+				| JobParametersInvalidException e)
+		{
+			logger.error("Unexpected exception", e);
+			throw YonaException.unexpected(e);
+		}
 	}
 }

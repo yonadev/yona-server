@@ -25,6 +25,7 @@ import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.support.SqlPagingQueryProviderFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.stereotype.Component;
@@ -35,7 +36,7 @@ import nu.yona.server.messaging.entities.MessageDestinationRepository;
 import nu.yona.server.messaging.entities.SystemMessage;
 
 @Component
-public class SendSystemMessagesBatchJob
+public class SendSystemMessageBatchJob
 {
 	private static final Logger logger = LoggerFactory.getLogger(ActivityAggregationBatchJob.class);
 
@@ -51,8 +52,12 @@ public class SendSystemMessagesBatchJob
 	private EntityManager entityManager;
 
 	@Autowired
-	@Qualifier("sendSystemMessagesJobMessageDestinationReader")
-	private ItemReader<UUID> messageDestinationsReader;
+	@Qualifier("sendSystemMessageJobMessageDestinationReader")
+	private ItemReader<UUID> messageDestinationReader;
+
+	@Autowired
+	@Qualifier("sendSystemMessageJobMessageDestinationProcessor")
+	private ItemProcessor<UUID, MessageDestination> messageDestinationProcessor;
 
 	@Autowired
 	private DataSource dataSource;
@@ -60,7 +65,7 @@ public class SendSystemMessagesBatchJob
 	@Autowired
 	private MessageDestinationRepository messageDestinationRepository;
 
-	@Bean("sendSystemMessagesJob")
+	@Bean("sendSystemMessageJob")
 	public Job sendSystemMessagesBatchJob()
 	{
 		return jobBuilderFactory.get("sendSystemMessagesBatchJob").incrementer(new RunIdIncrementer()).flow(sendSystemMessages())
@@ -70,20 +75,25 @@ public class SendSystemMessagesBatchJob
 	private Step sendSystemMessages()
 	{
 		return stepBuilderFactory.get("sendSystemMessages").<UUID, MessageDestination> chunk(MESSAGE_DESTINATIONS_CHUNK_SIZE)
-				.reader(messageDestinationsReader).processor(messageDestinationProcessor()).writer(messageDestinationWriter())
+				.reader(messageDestinationReader).processor(messageDestinationProcessor).writer(messageDestinationWriter())
 				.build();
 	}
 
-	@Bean(name = "sendSystemMessagesJobMessageDestinationReader", destroyMethod = "")
+	@Bean(name = "sendSystemMessageJobMessageDestinationReader", destroyMethod = "")
 	@StepScope
 	public ItemReader<UUID> messageDestinationReader()
 	{
 		return messageDestinationIdReader();
 	}
 
+	@Bean(name = "sendSystemMessageJobMessageDestinationProcessor", destroyMethod = "")
+	@StepScope
 	private ItemProcessor<UUID, MessageDestination> messageDestinationProcessor()
 	{
 		return new ItemProcessor<UUID, MessageDestination>() {
+			@Value("#{jobParameters['messageText']}")
+			private String messageText;
+
 			@Override
 			public MessageDestination process(UUID messageDestinationId) throws Exception
 			{
@@ -114,13 +124,11 @@ public class SendSystemMessagesBatchJob
 			sqlPagingQueryProviderFactoryBean.setDataSource(dataSource);
 			sqlPagingQueryProviderFactoryBean.setSelectClause("select id");
 			sqlPagingQueryProviderFactoryBean.setFromClause("from message_destinations");
-			// sqlPagingQueryProviderFactoryBean.setWhereClause("where 1=1");
 			sqlPagingQueryProviderFactoryBean.setSortKey("id");
 			reader.setQueryProvider(sqlPagingQueryProviderFactoryBean.getObject());
 			reader.setDataSource(dataSource);
 			reader.setPageSize(MESSAGE_DESTINATIONS_CHUNK_SIZE);
 			reader.setRowMapper(SingleColumnRowMapper.newInstance(UUID.class));
-			// reader.setParameterValues(Collections.singletonMap("x", y));
 			reader.afterPropertiesSet();
 			reader.setSaveState(true);
 			logger.info("Reading message destinations in chunks of {}", MESSAGE_DESTINATIONS_CHUNK_SIZE);
