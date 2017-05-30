@@ -103,7 +103,7 @@ public class BatchTaskService
 		{
 			SimpleJobLauncher launcher = new SimpleJobLauncher();
 			launcher.setJobRepository(jobRepository);
-			launcher.setTaskExecutor(new SimpleAsyncTaskExecutor());
+			launcher.setTaskExecutor(taskExecutor);
 			return launcher.run(job, jobParameters);
 		}
 		catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException
