@@ -204,7 +204,7 @@ data:
             <key>resolv-retry</key>
             <string>infinite</string>
             <key>tls-auth</key>
-            <sring>-----BEGIN OpenVPN Static key V1-----
+            <string>-----BEGIN OpenVPN Static key V1-----
     \n106a6773b0c019f61c954784ad67b852
     \n74d82b712dd235e436950e17d019c2e8
     \na4205bb809af417d85952bfc0c921cf5
