@@ -4,6 +4,8 @@
  *******************************************************************************/
 package nu.yona.server.batch.jobs;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.UUID;
 
 import javax.persistence.EntityManager;
@@ -27,20 +29,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageDestinationRepository;
 import nu.yona.server.messaging.entities.SystemMessage;
+import nu.yona.server.subscriptions.service.UserAnonymizedDto;
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
 
 @Component
 public class SendSystemMessageBatchJob
 {
 	private static final Logger logger = LoggerFactory.getLogger(ActivityAggregationBatchJob.class);
 
-	private static final int MESSAGE_DESTINATIONS_CHUNK_SIZE = 50;
+	private static final int USERS_CHUNK_SIZE = 50;
 
 	@Autowired
 	private JobBuilderFactory jobBuilderFactory;
@@ -52,15 +56,18 @@ public class SendSystemMessageBatchJob
 	private EntityManager entityManager;
 
 	@Autowired
-	@Qualifier("sendSystemMessageJobMessageDestinationReader")
-	private ItemReader<UUID> messageDestinationReader;
+	@Qualifier("sendSystemMessageJobUserAnonymizedReader")
+	private ItemReader<UUID> userAnonymizedReader;
 
 	@Autowired
-	@Qualifier("sendSystemMessageJobMessageDestinationProcessor")
-	private ItemProcessor<UUID, MessageDestination> messageDestinationProcessor;
+	@Qualifier("sendSystemMessageJobUserAnonymizedProcessor")
+	private ItemProcessor<UUID, MessageDestination> userAnonymizedProcessor;
 
 	@Autowired
 	private DataSource dataSource;
+
+	@Autowired
+	private UserAnonymizedService userAnonymizedService;
 
 	@Autowired
 	private MessageDestinationRepository messageDestinationRepository;
@@ -74,35 +81,36 @@ public class SendSystemMessageBatchJob
 
 	private Step sendSystemMessages()
 	{
-		return stepBuilderFactory.get("sendSystemMessages").<UUID, MessageDestination> chunk(MESSAGE_DESTINATIONS_CHUNK_SIZE)
-				.reader(messageDestinationReader).processor(messageDestinationProcessor).writer(messageDestinationWriter())
-				.build();
+		return stepBuilderFactory.get("sendSystemMessages").<UUID, MessageDestination> chunk(USERS_CHUNK_SIZE)
+				.reader(userAnonymizedReader).processor(userAnonymizedProcessor).writer(messageDestinationWriter()).build();
 	}
 
-	@Bean(name = "sendSystemMessageJobMessageDestinationReader", destroyMethod = "")
+	@Bean(name = "sendSystemMessageJobUserAnonymizedReader", destroyMethod = "")
 	@StepScope
-	public ItemReader<UUID> messageDestinationReader()
+	public ItemReader<UUID> userAnonymizedReader()
 	{
-		return messageDestinationIdReader();
+		return userAnonymizedIdReader();
 	}
 
-	@Bean(name = "sendSystemMessageJobMessageDestinationProcessor", destroyMethod = "")
+	@Bean(name = "sendSystemMessageJobUserAnonymizedProcessor", destroyMethod = "")
 	@StepScope
-	private ItemProcessor<UUID, MessageDestination> messageDestinationProcessor()
+	private ItemProcessor<UUID, MessageDestination> userAnonymizedProcessor()
 	{
 		return new ItemProcessor<UUID, MessageDestination>() {
 			@Value("#{jobParameters['messageText']}")
 			private String messageText;
 
 			@Override
-			public MessageDestination process(UUID messageDestinationId) throws Exception
+			public MessageDestination process(UUID userAnonymizedId) throws Exception
 			{
-				logger.debug("Processing message destination with id {}", messageDestinationId);
-				MessageDestination destination = messageDestinationRepository.findOne(messageDestinationId);
+				logger.debug("Processing user anonymized with id {}", userAnonymizedId);
+				UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 
-				destination.send(SystemMessage.createInstance(messageText));
+				MessageDestination messageDestination = messageDestinationRepository
+						.findOne(userAnonymized.getAnonymousDestination().getId());
+				messageDestination.send(SystemMessage.createInstance(messageText));
 
-				return destination;
+				return messageDestination;
 			}
 		};
 	}
@@ -115,7 +123,7 @@ public class SendSystemMessageBatchJob
 		return writer;
 	}
 
-	private ItemReader<UUID> messageDestinationIdReader()
+	private ItemReader<UUID> userAnonymizedIdReader()
 	{
 		try
 		{
@@ -123,20 +131,33 @@ public class SendSystemMessageBatchJob
 			final SqlPagingQueryProviderFactoryBean sqlPagingQueryProviderFactoryBean = new SqlPagingQueryProviderFactoryBean();
 			sqlPagingQueryProviderFactoryBean.setDataSource(dataSource);
 			sqlPagingQueryProviderFactoryBean.setSelectClause("select id");
-			sqlPagingQueryProviderFactoryBean.setFromClause("from message_destinations");
+			sqlPagingQueryProviderFactoryBean.setFromClause("from users_anonymized");
 			sqlPagingQueryProviderFactoryBean.setSortKey("id");
 			reader.setQueryProvider(sqlPagingQueryProviderFactoryBean.getObject());
 			reader.setDataSource(dataSource);
-			reader.setPageSize(MESSAGE_DESTINATIONS_CHUNK_SIZE);
-			reader.setRowMapper(SingleColumnRowMapper.newInstance(UUID.class));
+			reader.setPageSize(USERS_CHUNK_SIZE);
+			reader.setRowMapper(singleUUIDColumnRowMapper());
 			reader.afterPropertiesSet();
 			reader.setSaveState(true);
-			logger.info("Reading message destinations in chunks of {}", MESSAGE_DESTINATIONS_CHUNK_SIZE);
+			logger.info("Reading users anonymized in chunks of {}", USERS_CHUNK_SIZE);
 			return reader;
 		}
 		catch (Exception e)
 		{
 			throw YonaException.unexpected(e);
 		}
+	}
+
+	private RowMapper<UUID> singleUUIDColumnRowMapper()
+	{
+		return new RowMapper<UUID>() {
+
+			@Override
+			public UUID mapRow(ResultSet rs, int rowNum) throws SQLException
+			{
+				return UUID.fromString(rs.getString(1));
+			}
+
+		};
 	}
 }

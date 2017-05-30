@@ -29,14 +29,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.IntervalActivity;
+import nu.yona.server.batch.client.BatchProxyService;
 import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.entities.MessageSource;
-import nu.yona.server.messaging.entities.SystemMessage;
 import nu.yona.server.subscriptions.service.BuddyService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
-import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -52,7 +51,7 @@ public class MessageService
 	private BuddyService buddyService;
 
 	@Autowired
-	private UserAnonymizedService userAnonymizedService;
+	private BatchProxyService batchProxyService;
 
 	@Autowired
 	private TheDtoManager dtoManager;
@@ -283,13 +282,7 @@ public class MessageService
 	@Transactional
 	public void broadcastSystemMessage(String messageText)
 	{
-		userAnonymizedService.getAllUsersAnonymized().forEach(userAnonymized -> sendSystemMessage(messageText, userAnonymized));
-	}
-
-	private void sendSystemMessage(String messageText, UserAnonymizedDto recipient)
-	{
-		SystemMessage systemMessage = SystemMessage.createInstance(messageText);
-		sendMessageToUserAnonymized(recipient, systemMessage);
+		batchProxyService.sendSystemMessage(messageText);
 	}
 
 	@Transactional
