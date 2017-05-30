@@ -29,7 +29,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.IntervalActivity;
-import nu.yona.server.batch.client.BatchProxyService;
 import nu.yona.server.exceptions.InvalidMessageActionException;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -49,9 +48,6 @@ public class MessageService
 
 	@Autowired
 	private BuddyService buddyService;
-
-	@Autowired
-	private BatchProxyService batchProxyService;
 
 	@Autowired
 	private TheDtoManager dtoManager;
@@ -277,12 +273,6 @@ public class MessageService
 	public void sendMessage(Message message, MessageDestination destinationEntity)
 	{
 		destinationEntity.send(message);
-	}
-
-	@Transactional
-	public void broadcastSystemMessage(String messageText)
-	{
-		batchProxyService.sendSystemMessage(messageText);
 	}
 
 	@Transactional
