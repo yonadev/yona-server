@@ -59,9 +59,8 @@ public class BatchTaskService
 	{
 		logger.info("Triggering activity aggregation");
 		JobParameters jobParameters = new JobParametersBuilder().addDate("uniqueInstanceId", new Date()).toJobParameters();
-		// NOTICE: executes the job synchronously, on purpose, because the tests rely on this and this is normally not scheduled
-		// manually
-		// TODO: execute asynchronously instead, because we might want to trigger it manually sometimes in production
+		// NOTICE: executes the job synchronously, on purpose, because the tests rely on this (they assert on job execution
+		// results) and this is normally not scheduled manually
 		JobExecution jobExecution = launchImmediatelySynchronously(activityAggregationJob, jobParameters);
 		jobExecution.getStepExecutions().forEach(
 				e -> logger.info("Step {} read {} entities and wrote {}", e.getStepName(), e.getReadCount(), e.getWriteCount()));
