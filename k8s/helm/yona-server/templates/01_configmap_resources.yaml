@@ -79,12 +79,12 @@ data:
         </dict>
         <dict>
           <key>Password</key>
-          <string>joepie</string>
+          <string>{{ .Values.vpn.user_cert_password }}</string>
           <key>PayloadCertificateFileName</key>
           <string>rquist@yona.noww.p12</string>
           <key>PayloadContent</key>
           <data>
-{{ .Values.vpn.ca | indent 12 }}
+{{ .Values.vpn.user_cert | indent 12 }}
           </data>
           <key>PayloadDescription</key>
           <string>Adds a PKCS#12-formatted certificate</string>
