@@ -183,6 +183,9 @@ mariadb:
 analysis:
   #url_override: "http://analysis.default.svc.cluster.local"
 
+batch:
+  #url_override: "http://analysis.default.svc.cluster.local"
+
 certs:
   root: |
     MIIFOjCCBCKgAwIBAgIHBUdVrZT5GTANBgkqhkiG9w0BAQsFADCBgjELMAkGA1UE
