@@ -11,6 +11,7 @@ metadata:
     "helm.sh/hook": pre-install,pre-upgrade
 data:
   application.properties: |
+    yona.maxUsers={{ .Values.app.max_users | default "100" }}
     yona.whiteListActiveFreeSignUp={{ .Values.app.whitelist.active_free_signup | default "false" }}
     yona.whiteListActiveInvitedUsers={{ .Values.app.whitelist.active_invited_users | default "false" }}
     yona.security.pinResetRequestConfirmationCodeDelay={{ .Values.app.security.pin_reset_request_confirmation_code_delay | default "PT1M" }}
