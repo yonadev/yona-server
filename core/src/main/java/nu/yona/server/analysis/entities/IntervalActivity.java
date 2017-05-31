@@ -16,14 +16,11 @@ import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,8 +43,6 @@ public abstract class IntervalActivity extends EntityWithId
 
 	public static final int SPREAD_COUNT = 96;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@Fetch(FetchMode.SELECT)
 	private UserAnonymized userAnonymized;
 
 	@ManyToOne
