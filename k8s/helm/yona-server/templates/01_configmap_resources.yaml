@@ -64,7 +64,7 @@ data:
           <string>Guardian CA Cert (4) (1).crt</string>
           <key>PayloadContent</key>
           <data>
-{{ .Values.vpn.cert | indent 12 -}}
+{{ .Values.certs.root | indent 12 -}}
           </data>
           <key>PayloadDescription</key>
           <string>Adds a CA root certificate</string>
@@ -81,12 +81,12 @@ data:
         </dict>
         <dict>
           <key>Password</key>
-          <string>{{ .Values.vpn.user_cert_password }}</string>
+          <string>{{ .Values.vpn.cert_password }}</string>
           <key>PayloadCertificateFileName</key>
           <string>yonauser.p12</string>
           <key>PayloadContent</key>
           <data>
-{{ .Values.vpn.user_cert | indent 12 -}}
+{{ .Values.vpn.cert | indent 12 -}}
           </data>
           <key>PayloadDescription</key>
           <string>Adds a PKCS#12-formatted certificate</string>
@@ -167,7 +167,7 @@ data:
             <key>auth-user-pass</key>
             <string th:text="${ldapUsername} +'\n' + ${ldapPassword}">To be replaced</string>
             <key>ca</key>
-            <string>-----BEGIN CERTIFICATE-----\n{{ .Values.vpn.cert | replace "\n" "" }}\n-----END CERTIFICATE-----</string>
+            <string>-----BEGIN CERTIFICATE-----\n{{ .Values.vpn.ca | replace "\n" "" }}\n-----END CERTIFICATE-----</string>
             <key>cipher</key>
             <string>AES-256-CBC</string>
             <key>client</key>
