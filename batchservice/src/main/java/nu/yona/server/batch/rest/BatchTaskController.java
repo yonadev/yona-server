@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.rest;
 
@@ -20,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.batch.client.PinResetConfirmationCodeSendRequestDto;
+import nu.yona.server.batch.client.SystemMessageSendRequestDto;
 import nu.yona.server.batch.service.ActivityAggregationBatchJobResultDto;
 import nu.yona.server.batch.service.BatchTaskService;
 
@@ -36,6 +34,13 @@ public class BatchTaskController
 			@RequestBody PinResetConfirmationCodeSendRequestDto pinResetConfirmationCodeSendRequest)
 	{
 		batchTaskService.requestPinResetConfirmationCode(pinResetConfirmationCodeSendRequest);
+	}
+
+	@RequestMapping(value = "/sendSystemMessage/", method = RequestMethod.POST)
+	@ResponseStatus(HttpStatus.OK)
+	public void sendSystemMessage(@RequestBody SystemMessageSendRequestDto systemMessageSendRequest)
+	{
+		batchTaskService.sendSystemMessage(systemMessageSendRequest);
 	}
 
 	// NOTICE: For integration test purposes. It executes the job synchronously.

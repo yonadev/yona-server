@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.batch.client;
 
@@ -36,6 +36,12 @@ public class BatchProxyService
 	{
 		restTemplate.postForEntity(buildBaseUrl() + "/sendPinResetConfirmationCode/",
 				new PinResetConfirmationCodeSendRequestDto(userId, executionTime), String.class);
+	}
+
+	public void sendSystemMessage(String messageText)
+	{
+		restTemplate.postForEntity(buildBaseUrl() + "/sendSystemMessage/", new SystemMessageSendRequestDto(messageText),
+				String.class);
 	}
 
 	private String buildBaseUrl()

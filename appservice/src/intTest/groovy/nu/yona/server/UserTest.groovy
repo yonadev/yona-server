@@ -6,8 +6,6 @@
  *******************************************************************************/
 package nu.yona.server
 
-import java.util.Base64
-
 import groovy.json.*
 import nu.yona.server.test.User
 
@@ -294,18 +292,12 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		when:
 		assert richard.appleMobileConfig
 		def responseAppleMobileConfig = appService.yonaServer.restClient.get(path: richard.appleMobileConfig, headers: ["Yona-Password":richard.password])
-		def responseAppleMobileConfigBase64 = appService.yonaServer.restClient.get(path: richard.appleMobileConfigBase64, headers: ["Yona-Password":richard.password])
 
 		then:
 		responseAppleMobileConfig.status == 200
 		responseAppleMobileConfig.contentType == "application/x-apple-aspen-config"
-		def appleMobileConfig = responseAppleMobileConfig.responseData.bytes
-		new String(appleMobileConfig, "UTF-8").contains("<string>${richard.vpnProfile.vpnLoginId}\\n${richard.vpnProfile.vpnPassword}</string>")
-		
-		responseAppleMobileConfigBase64.status == 200
-		responseAppleMobileConfigBase64.contentType == "application/base64"
-		def appleMobileConfigBase64 = responseAppleMobileConfigBase64.responseData.text
-		appleMobileConfig == Base64.getDecoder().decode(appleMobileConfigBase64)
+		def appleMobileConfig = responseAppleMobileConfig.responseData.text
+		appleMobileConfig.contains("<string>${richard.vpnProfile.vpnLoginId}\\n${richard.vpnProfile.vpnPassword}</string>")
 
 		cleanup:
 		appService.deleteUser(richard)

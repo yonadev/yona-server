@@ -18,6 +18,7 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		adminService.postSystemMessage("Hi there!")
+		sleepTillSystemMessagesAreSent()
 		def messagesRichard = appService.getMessages(richard)
 		def messagesBob = appService.getMessages(bob)
 
@@ -49,6 +50,7 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 		def bob = addBob()
 		adminService.postSystemMessage("Hi there!")
+		sleepTillSystemMessagesAreSent()
 		def systemMessagesBob = appService.getMessages(bob).responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}
 		assert systemMessagesBob.size() == 1
 		def messageDeleteUrl = systemMessagesBob[0]._links?.edit?.href
@@ -64,5 +66,10 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
+	}
+
+	private void sleepTillSystemMessagesAreSent()
+	{
+		sleep(2000)
 	}
 }

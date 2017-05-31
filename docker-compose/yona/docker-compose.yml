@@ -23,6 +23,8 @@ services:
     image: yonadev/adminservice:$yonatag
     restart: unless-stopped
     env_file: db_settings.env
+    environment:
+      - YONA_BATCH_SERVICE_SERVICE_URL=http://batchservice:8080    
     external_links:
       - mariadb:yonadbserver
     ports:

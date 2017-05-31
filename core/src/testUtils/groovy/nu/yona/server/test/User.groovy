@@ -46,7 +46,6 @@ class User
 	final String clearPinResetUrl
 	final String sslRootCertUrl
 	final String appleMobileConfig
-	final String appleMobileConfigBase64
 	final String sslRootCertCn
 	final String password
 
@@ -88,7 +87,6 @@ class User
 		this.clearPinResetUrl = json._links?."yona:clearPinReset"?.href
 		this.sslRootCertUrl = json._links?."yona:sslRootCert"?.href
 		this.appleMobileConfig = json._links?."yona:appleMobileConfig"?.href
-		this.appleMobileConfigBase64 = json._links?."yona:appleMobileConfigBase64"?.href
 		this.sslRootCertCn = json.sslRootCertCN
 	}
 
