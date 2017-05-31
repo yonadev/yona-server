@@ -161,6 +161,13 @@ public class AppServiceApplication
 	}
 
 	@Bean
+	@Qualifier("appleMobileConfigCaCertificate")
+	public X509Certificate appleMobileConfigCaCertificate()
+	{
+		return loadCertificateFromFile(yonaProperties.getAppleMobileConfig().getCaCertificateFile(), "Apple mobile config CA");
+	}
+
+	@Bean
 	@Qualifier("appleMobileConfigTemplateEngine")
 	public TemplateEngine appleMobileConfigTemplateEngine()
 	{
@@ -178,8 +185,12 @@ public class AppServiceApplication
 	@Qualifier("sslRootCertificate")
 	public X509Certificate sslRootCertificate()
 	{
-		String fileName = yonaProperties.getSecurity().getSslRootCertFile();
-		logger.info("Loading SSL root certificate from {}", fileName);
+		return loadCertificateFromFile(yonaProperties.getSecurity().getSslRootCertFile(), "SSL root");
+	}
+
+	private X509Certificate loadCertificateFromFile(String fileName, String description)
+	{
+		logger.info("Loading {} certificate from {}", description, fileName);
 		try (InputStream inStream = new FileInputStream(fileName))
 		{
 			return (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(inStream);
