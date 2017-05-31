@@ -19,3 +19,4 @@
 .project
 .idea/
 *.tmproj
+values_production.yaml
