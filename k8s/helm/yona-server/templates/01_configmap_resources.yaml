@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.global.release }}-{{ .Values.global.stage | default "develop" }}-resources
+  name: {{ .Values.global.build }}-{{ .Values.global.stage | default "develop" }}-resources
   labels:
     app: {{ template "fullname" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"

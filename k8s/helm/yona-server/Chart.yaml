@@ -1,7 +1,7 @@
 name: yona-server
 home: https://yona.nu/
-version: 0.0.2
-appVersion: 538
+version: 0.0.3
+appVersion: 539
 description: The Yona Server backs the Yona mobile app, providing user management, buddy relationship management, web traffic classification and buddy messaging
 sources:
   - https://github.com/yonadev/yona-server
