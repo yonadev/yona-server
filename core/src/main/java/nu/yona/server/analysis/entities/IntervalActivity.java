@@ -43,6 +43,7 @@ public abstract class IntervalActivity extends EntityWithId
 
 	public static final int SPREAD_COUNT = 96;
 
+	@ManyToOne
 	private UserAnonymized userAnonymized;
 
 	@ManyToOne
