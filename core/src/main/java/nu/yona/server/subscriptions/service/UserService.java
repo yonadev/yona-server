@@ -850,6 +850,6 @@ public class UserService
 
 	public UUID getUserAnonymizedId(UUID userId)
 	{
-		return getPrivateUser(userId).getPrivateData().getUserAnonymizedId();
+		return getUserEntityById(userId).getUserAnonymizedId();
 	}
 }

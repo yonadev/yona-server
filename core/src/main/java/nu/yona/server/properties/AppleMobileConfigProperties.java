@@ -11,6 +11,7 @@ public class AppleMobileConfigProperties
 	private String signingKeyStoreFile;
 	private String signingKeyStorePassword;
 	private String signingAlias;
+	private String caCertificateFile;
 
 	public String getAppleMobileConfigFile()
 	{
@@ -60,6 +61,16 @@ public class AppleMobileConfigProperties
 	public void setSigningAlias(String signingAlias)
 	{
 		this.signingAlias = signingAlias;
+	}
+
+	public String getCaCertificateFile()
+	{
+		return caCertificateFile;
+	}
+
+	public void setCaCertificateFile(String caCertificateFile)
+	{
+		this.caCertificateFile = caCertificateFile;
 	}
 
 }

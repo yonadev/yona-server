@@ -1,14 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
 import java.io.IOException;
 import java.security.PrivateKey;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
@@ -39,6 +37,10 @@ public class AppleMobileConfigSigner
 	@Qualifier("appleMobileConfigSignerKey")
 	PrivateKey signerKey;
 
+	@Autowired()
+	@Qualifier("appleMobileConfigCaCertificate")
+	X509Certificate caCertificate;
+
 	public byte[] sign(byte[] unsignedMobileconfig)
 	{
 		try
@@ -59,10 +61,23 @@ public class AppleMobileConfigSigner
 			SignerInfoGenerator signerInfoGenerator = createSignerInfoGenerator();
 			CMSSignedDataGenerator signedDataGenerator = new CMSSignedDataGenerator();
 			signedDataGenerator.addSignerInfoGenerator(signerInfoGenerator);
-			signedDataGenerator.addCertificate(new X509CertificateHolder(signerCertificate.getEncoded()));
+			signedDataGenerator.addCertificate(inHolder(signerCertificate));
+			signedDataGenerator.addCertificate(inHolder(caCertificate));
 			return signedDataGenerator;
 		}
-		catch (CertificateException | IOException | CMSException e)
+		catch (CMSException e)
+		{
+			throw YonaException.unexpected(e);
+		}
+	}
+
+	private X509CertificateHolder inHolder(X509Certificate certificate)
+	{
+		try
+		{
+			return new X509CertificateHolder(certificate.getEncoded());
+		}
+		catch (CertificateEncodingException | IOException e)
 		{
 			throw YonaException.unexpected(e);
 		}
