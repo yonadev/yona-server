@@ -4,7 +4,7 @@
 # name: value
 
 global:
-  release: 527
+  build: 539
   stage: develop
 
 #Attempt tries in seed/update contianer before exit.  Not k8s job retry
@@ -63,29 +63,74 @@ vpn:
     QF9oeF8melOnossMIxWKFQQ45Z/8Xq9LtLS4g4MRE5Pu82ILwIegTdZIcQVOP7Ca
     J+wOSxwxq6pGz97r7I7EQp5v80M+CegK1yz5PAS+1UGQlAk6WMJ6IVR+JaliLKSl
     C0v6fd/W//Zm+IsNeTIz1hIAA7PdAw==
+  user_cert: |
+    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
+    rVw8cebTOqYCAggA
+  user_cert_password: joepie
   tls_remote: "/C=NL/O=Yona/CN=yonauser"
-  tls_auth: |
-    #
-    # 2048 bit OpenVPN static key
-    #
-    -----BEGIN OpenVPN Static key V1-----
-    106a6773b0c019f61c954784ad67b852
-    74d82b712dd235e436950e17d019c2e8
-    a4205bb809af417d85952bfc0c921cf5
-    ec2547526584749ec079fe4e3ad5e0ec
-    9f20d0b6a25c6535c21101f98c3af8e3
-    44ad0e18bd04e96f2e4992fa1cbf7b23
-    2255c535385a194a176003aad54c38c8
-    62a3c98ede521f2a71e1fc8b348eb344
-    3bdfad46bfb885d3888e39a3b4187cf5
-    e6e6ef631f0b0ab3eb8210df58eeb379
-    1b51a2886ea5dcdfa18d19100142516d
-    a2a714cbca00d031371b6f972fc85e22
-    5dd16fb22bbfb2841b9f8dd01a991069
-    dddc18040c43776680f36a451a9c8e77
-    63e1f19b2cf2f13bc3443ec54299f179
-    0e653b2b4baa3765cbd533e906762224
-    -----END OpenVPN Static key V1-----
+  tls_auth: 106a6773b0c019f61c954784ad67b85274d82b712dd235e436950e17d019c2e8a4205bb809af417d85952bfc0c921cf5ec2547526584749ec079fe4e3ad5e0ec9f20d0b6a25c6535c21101f98c3af8e344ad0e18bd04e96f2e4992fa1cbf7b232255c535385a194a176003aad54c38c862a3c98ede521f2a71e1fc8b348eb3443bdfad46bfb885d3888e39a3b4187cf5e6e6ef631f0b0ab3eb8210df58eeb3791b51a2886ea5dcdfa18d19100142516da2a714cbca00d031371b6f972fc85e225dd16fb22bbfb2841b9f8dd01a991069dddc18040c43776680f36a451a9c8e7763e1f19b2cf2f13bc3443ec54299f1790e653b2b4baa3765cbd533e906762224
 
 email:
   enabled: true
@@ -125,17 +170,34 @@ apple:
   host_path: /mount-9p
 
 mariadb:
-  mariadbRootPassword: 'develop'
-  mariadbUser: 'develop'
-  mariadbPassword: 'develop'
-  mariadbDatabase: 'yona'
+  mariadbRootPassword: develop
+  mariadbUser: develop
+  mariadbPassword: develop
+  mariadbDatabase: yona
   persistence:
     size: 2Gi
-  user: 'develop'
-  password: 'develop'
+  user: develop
+  password: develop
+  #nameOverride: develop
   #url_override: "jdbc:mariadb://db.default.svc.cluster.local/yona"
 
 analysis:
+  #url_override: "http://analysis.default.svc.cluster.local"
+  update_skip_window: PT1M
+
+app:
+  whitelist:
+    active_free_signup: false
+    active_invited_users: false
+  security:
+    pin_reset_request_confirmation_code_delay: PT10S
+    dos_protection_enabled: false
+    dos_protection_window: PT5M
+    max_create_user_attempts_per_time_window: 2
+    max_update_user_attempts_per_time_window: 2
+    app_provided_password_enabled: false
+
+batch:
   #url_override: "http://analysis.default.svc.cluster.local"
 
 certs:

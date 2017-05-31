@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.global.release }}-{{ .Values.global.stage | default "develop" }}-resources
+  name: {{ .Values.global.build }}-{{ .Values.global.stage | default "develop" }}-resources
   labels:
     app: {{ template "fullname" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
@@ -18,7 +18,7 @@ data:
     persist-key
     persist-tun
     <ca>
-{{ .Values.vpn.ca | indent 4 }}
+{{ .Values.vpn.ca | indent 4 -}}
     </ca>
     auth-user-pass
     cipher AES-256-CBC
@@ -30,12 +30,14 @@ data:
     proto tcp-client
     tls-remote {{ .Values.vpn.tls_remote }}
     <tls-auth>
-{{ .Values.vpn.tls_auth | indent 4 }}
+    -----BEGIN OpenVPN Static key V1-----
+{{ .Values.vpn.tls_auth | indent 4 -}}
+    -----END OpenVPN Static key V1-----
     </tls-auth>
     key-direction 1
   rootcert.cer: |
     -----BEGIN CERTIFICATE-----
-{{ .Values.certs.root | indent 4 }}
+{{ .Values.certs.root | indent 4 -}}
     -----END CERTIFICATE-----
   apple.mobileconfig.xml: |
     <?xml version="1.0" encoding="UTF-8"?>
@@ -62,7 +64,7 @@ data:
           <string>Guardian CA Cert (4) (1).crt</string>
           <key>PayloadContent</key>
           <data>
-{{ .Values.vpn.cert | indent 12 }}
+{{ .Values.vpn.cert | indent 12 -}}
           </data>
           <key>PayloadDescription</key>
           <string>Adds a CA root certificate</string>
@@ -79,17 +81,17 @@ data:
         </dict>
         <dict>
           <key>Password</key>
-          <string>joepie</string>
+          <string>{{ .Values.vpn.user_cert_password }}</string>
           <key>PayloadCertificateFileName</key>
-          <string>rquist@yona.noww.p12</string>
+          <string>yonauser.p12</string>
           <key>PayloadContent</key>
           <data>
-{{ .Values.vpn.ca | indent 12 }}
+{{ .Values.vpn.user_cert | indent 12 -}}
           </data>
           <key>PayloadDescription</key>
           <string>Adds a PKCS#12-formatted certificate</string>
           <key>PayloadDisplayName</key>
-          <string>rquist@yona.noww.p12</string>
+          <string>YonaVPNCertificate</string>
           <key>PayloadIdentifier</key>
           <string>com.apple.security.pkcs12.768377CF-8C95-44DA-8C9F-45DAA86997C2</string>
           <key>PayloadType</key>
@@ -165,22 +167,7 @@ data:
             <key>auth-user-pass</key>
             <string th:text="${ldapUsername} +'\n' + ${ldapPassword}">To be replaced</string>
             <key>ca</key>
-            <string>-----BEGIN CERTIFICATE-----
-    \nMIICejCCAeOgAwIBAgIJALvSluFMBlfjMA0GCSqGSIb3DQEBCwUAMDMxFTATBgNV
-    \nBAMTDHlvbi1wcm9kLXZwbjENMAsGA1UEChMEWW9uYTELMAkGA1UEBhMCTkwwHhcN
-    \nMTcwMTMwMjA1MzQ5WhcNMzIwMTI3MjA1MzQ5WjAzMRUwEwYDVQQDEwx5b24tcHJv
-    \nZC12cG4xDTALBgNVBAoTBFlvbmExCzAJBgNVBAYTAk5MMIGfMA0GCSqGSIb3DQEB
-    \nAQUAA4GNADCBiQKBgQDoqq9sR/eKzBiwDp9SQM0LXjdBmtEczrqG9Pzjf7KW72Dy
-    \ntkCyH399Zwbb5VM4+2lgxeMeAtAnFXwCqdF9Pq8tdzc7eUVt0t4OnOlu2wqk2q2C
-    \njoMmUd6mXdYBcvluLY9Up2DYmhhUKd3g4F9YNNtofTaV5Q2aXXk2vyNXmx4VHwID
-    \nAQABo4GVMIGSMB0GA1UdDgQWBBQAlv8YoNPNL6YkSMsIkaYGMVfAejBjBgNVHSME
-    \nXDBagBQAlv8YoNPNL6YkSMsIkaYGMVfAeqE3pDUwMzEVMBMGA1UEAxMMeW9uLXBy
-    \nb2QtdnBuMQ0wCwYDVQQKEwRZb25hMQswCQYDVQQGEwJOTIIJALvSluFMBlfjMAwG
-    \nA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQADgYEArx5MXvv0bJ3XfF6xL+0qeX2u
-    \n0YX/bJgzL6Et4TpkYqxn0nYnLV7QJz1ViKgc6NYrZAeikjXIyU1oa7Q34EhPBR12
-    \n1KZmTXq17kRFCiq2l1iatDhpgcCUZA2fpySm1SFZ8PJVINx+KeMpHMLilvmyBFdT
-    \nq6hFhyS35ydZaGNoLC0=
-    \n-----END CERTIFICATE-----</string>
+            <string>-----BEGIN CERTIFICATE-----\n{{ .Values.vpn.cert | replace "\n" "" }}\n-----END CERTIFICATE-----</string>
             <key>cipher</key>
             <string>AES-256-CBC</string>
             <key>client</key>
@@ -200,28 +187,11 @@ data:
             <key>proto</key>
             <string>tcp-client</string>
             <key>remote</key>
-            <string>vpn.prd.yona.nu 443</string>
+            <string>{{ .Values.vpn.remote }}</string>
             <key>resolv-retry</key>
             <string>infinite</string>
             <key>tls-auth</key>
-            <sring>-----BEGIN OpenVPN Static key V1-----
-    \n106a6773b0c019f61c954784ad67b852
-    \n74d82b712dd235e436950e17d019c2e8
-    \na4205bb809af417d85952bfc0c921cf5
-    \nec2547526584749ec079fe4e3ad5e0ec
-    \n9f20d0b6a25c6535c21101f98c3af8e3
-    \n44ad0e18bd04e96f2e4992fa1cbf7b23
-    \n2255c535385a194a176003aad54c38c8
-    \n62a3c98ede521f2a71e1fc8b348eb344
-    \n3bdfad46bfb885d3888e39a3b4187cf5
-    \ne6e6ef631f0b0ab3eb8210df58eeb379
-    \n1b51a2886ea5dcdfa18d19100142516d
-    \na2a714cbca00d031371b6f972fc85e22
-    \n5dd16fb22bbfb2841b9f8dd01a991069
-    \ndddc18040c43776680f36a451a9c8e77
-    \n63e1f19b2cf2f13bc3443ec54299f179
-    \n0e653b2b4baa3765cbd533e906762224
-    \n-----END OpenVPN Static key V1-----</string>
+            <string>-----BEGIN OpenVPN Static key V1-----\n{{ .Values.vpn.tls_auth }}\n-----END OpenVPN Static key V1-----</string>
             <key>tls-remote</key>
             <string>"/C=NL/O=Yona/CN=yonauser"</string>
             <key>verb</key>
@@ -247,5 +217,3 @@ data:
       <integer>1</integer>
     </dict>
     </plist>
-        
-

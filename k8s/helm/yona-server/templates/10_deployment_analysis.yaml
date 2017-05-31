@@ -5,6 +5,10 @@ metadata:
   labels:
     app: analysis
     stage: {{ .Values.global.stage | default "develop" }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    build: "{{ .Values.global.build }}"
 spec:
   replicas: 1
   strategy: 
@@ -20,7 +24,7 @@ spec:
     spec:
       containers:
         - name: analysis
-          image: 'yonadev/analysisservice:build-{{ .Values.global.release }}'
+          image: 'yonadev/analysisservice:build-{{ .Values.global.build }}'
           imagePullPolicy: Always
           env:       
             - name: YONA_DB_USER_NAME
@@ -42,7 +46,7 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ .Values.global.release }}-{{ .Values.global.stage | default "develop" }}-springboot
+            name: {{ .Values.global.build }}-{{ .Values.global.stage | default "develop" }}-springboot
 
 
 

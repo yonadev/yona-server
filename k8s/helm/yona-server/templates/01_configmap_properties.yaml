@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.global.release }}-{{ .Values.global.stage | default "develop" }}-springboot
+  name: {{ .Values.global.build }}-{{ .Values.global.stage | default "develop" }}-springboot
   labels:
     app: {{ template "fullname" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
@@ -11,7 +11,15 @@ metadata:
     "helm.sh/hook": pre-install,pre-upgrade
 data:
   application.properties: |
-    yona.security.pinResetRequestConfirmationCodeDelay = PT1M
+    yona.whiteListActiveFreeSignUp={{ .Values.app.whitelist.active_free_signup | default "false" }}
+    yona.whiteListActiveInvitedUsers={{ .Values.app.whitelist.active_invited_users | default "false" }}
+    yona.security.pinResetRequestConfirmationCodeDelay={{ .Values.app.security.pin_reset_request_confirmation_code_delay | default "PT1M" }}
+    yona.security.dosProtectionEnabled={{ .Values.app.security.dos_protection_enabled | default "false" }}
+    yona.security.dosProtectionWindow={{ .Values.app.security.dos_protection_window | default "PT5M" }}
+    yona.security.maxCreateUserAttemptsPerTimeWindow={{ .Values.app.security.max_create_user_attempts_per_time_window | default "2" }}
+    yona.security.maxUpdateUserAttemptsPerTimeWindow={{ .Values.app.security.max_update_user_attempts_per_time_window | default "2" }}
+    yona.security.appProvidedPasswordEnabled={{ .Values.app.security.app_provided_password_enabled| default "false" }}
+    yona.analysisservice.updateSkipWindow={{ .Values.analysis.update_skip_window | default "PT1M" }}
     yona.email.enabled={{ .Values.email.enabled | default "true" }}
     yona.email.senderAddress={{ .Values.email.sender_address | default "noreply@example.com" }}
     yona.email.smtp.protocol={{ .Values.email.smtp_protocol | default "smtp" }}

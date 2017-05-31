@@ -5,6 +5,10 @@ metadata:
   labels:
     app: admin
     stage: {{ .Values.global.stage | default "develop" }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    build: "{{ .Values.global.build }}"
 spec:
   replicas: 1
   strategy: 
@@ -20,7 +24,7 @@ spec:
     spec:
       containers:
         - name: admin
-          image: 'yonadev/adminservice:build-{{ .Values.global.release }}'
+          image: 'yonadev/adminservice:build-{{ .Values.global.build }}'
           imagePullPolicy: Always
           env:       
             - name: YONA_DB_USER_NAME
@@ -32,6 +36,12 @@ spec:
               value: {{ .Values.mariadb.url_override | quote }}
             {{- else }}
               value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.mariadbDatabase }}"
+            {{- end }}
+            - name: YONA_BATCH_SERVICE_SERVICE_URL
+            {{- if .Values.batch }}
+              value: {{ .Values.batch.url_override | quote }}
+            {{- else }}
+              value: "http://batch.{{ .Release.Namespace }}.svc.cluster.local"
             {{- end }}
           ports:
             - containerPort: 8080
@@ -46,10 +56,10 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ .Values.global.release }}-{{ .Values.global.stage | default "develop" }}-springboot
+            name: {{ .Values.global.build }}-{{ .Values.global.stage | default "develop" }}-springboot
         - name: profile-resources
           configMap:
-            name: {{ .Values.global.release }}-{{ .Values.global.stage | default "develop" }}-resources
+            name: {{ .Values.global.build }}-{{ .Values.global.stage | default "develop" }}-resources
         - name: apple-resources
           hostPath:
             path: /opt/yona/resources/apple
