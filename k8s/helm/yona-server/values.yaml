@@ -4,7 +4,7 @@
 # name: value
 
 global:
-  release: 527
+  release: 538
   stage: develop
 
 #Attempt tries in seed/update contianer before exit.  Not k8s job retry
@@ -130,29 +130,7 @@ vpn:
     rVw8cebTOqYCAggA
   user_cert_password: joepie
   tls_remote: "/C=NL/O=Yona/CN=yonauser"
-  tls_auth: |
-    #
-    # 2048 bit OpenVPN static key
-    #
-    -----BEGIN OpenVPN Static key V1-----
-    106a6773b0c019f61c954784ad67b852
-    74d82b712dd235e436950e17d019c2e8
-    a4205bb809af417d85952bfc0c921cf5
-    ec2547526584749ec079fe4e3ad5e0ec
-    9f20d0b6a25c6535c21101f98c3af8e3
-    44ad0e18bd04e96f2e4992fa1cbf7b23
-    2255c535385a194a176003aad54c38c8
-    62a3c98ede521f2a71e1fc8b348eb344
-    3bdfad46bfb885d3888e39a3b4187cf5
-    e6e6ef631f0b0ab3eb8210df58eeb379
-    1b51a2886ea5dcdfa18d19100142516d
-    a2a714cbca00d031371b6f972fc85e22
-    5dd16fb22bbfb2841b9f8dd01a991069
-    dddc18040c43776680f36a451a9c8e77
-    63e1f19b2cf2f13bc3443ec54299f179
-    0e653b2b4baa3765cbd533e906762224
-    -----END OpenVPN Static key V1-----
-
+  tls_auth: 106a6773b0c019f61c954784ad67b85274d82b712dd235e436950e17d019c2e8a4205bb809af417d85952bfc0c921cf5ec2547526584749ec079fe4e3ad5e0ec9f20d0b6a25c6535c21101f98c3af8e344ad0e18bd04e96f2e4992fa1cbf7b232255c535385a194a176003aad54c38c862a3c98ede521f2a71e1fc8b348eb3443bdfad46bfb885d3888e39a3b4187cf5e6e6ef631f0b0ab3eb8210df58eeb3791b51a2886ea5dcdfa18d19100142516da2a714cbca00d031371b6f972fc85e225dd16fb22bbfb2841b9f8dd01a991069dddc18040c43776680f36a451a9c8e7763e1f19b2cf2f13bc3443ec54299f1790e653b2b4baa3765cbd533e906762224
 email:
   enabled: true
   sender_address: noreply@example.com
@@ -191,14 +169,15 @@ apple:
   host_path: /mount-9p
 
 mariadb:
-  mariadbRootPassword: 'develop'
-  mariadbUser: 'develop'
-  mariadbPassword: 'develop'
-  mariadbDatabase: 'yona'
+  mariadbRootPassword: develop
+  mariadbUser: develop
+  mariadbPassword: develop
+  mariadbDatabase: yona
   persistence:
     size: 2Gi
-  user: 'develop'
-  password: 'develop'
+  user: develop
+  password: develop
+  #nameOverride: develop
   #url_override: "jdbc:mariadb://db.default.svc.cluster.local/yona"
 
 analysis:
