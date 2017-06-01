@@ -52,5 +52,6 @@ data:
     yona.appleMobileConfig.signingEnabled = {{ .Values.apple.enabled | default "false" }}
     yona.appleMobileConfig.signingKeyStoreFile = {{ .Values.apple.keystore_file | default "apple/dummy.p12" }}
     yona.appleMobileConfig.signingKeyStorePassword = {{ .Values.apple.keystore_password | default "DummyPwd" }}
+    yona.appleMobileConfig.caCertificateFile={{ .Values.apple.ca_certificate_file | default "apple/AppleWWDRCA.cer" }}
     yona.appleMobileConfig.signingAlias = {{ .Values.apple.alias | default "dummy" }}
 
