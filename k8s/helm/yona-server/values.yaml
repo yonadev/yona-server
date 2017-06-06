@@ -7,7 +7,7 @@ support_infrastructure:
   enabled: true
 
 global:
-  build: 539
+  build: 543
   stage: develop
 
 #Attempt tries in seed/update contianer before exit.  Not k8s job retry
@@ -114,7 +114,6 @@ email:
   included_media_base_url: "https://app.dev.yona.nu/media/"
 
 ldap:
-  release: 527
   enabled: true
   org: "Yona Development"
   domain: "example.local"
