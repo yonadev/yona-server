@@ -7,7 +7,9 @@ package nu.yona.server.properties;
 public class SmsProperties
 {
 	private boolean isEnabled = false;
-	private String senderNumber = "";
+	private String defaultSenderNumber = "";
+	private String alphaSenderId = "";
+	private String alphaSenderSupportingCountryCallingCodes = "";
 	private String plivoUrl = "https://api.plivo.com/v1/Account/{0}/Message/";
 	private String plivoAuthId = "";
 	private String plivoAuthToken = "";
@@ -22,14 +24,34 @@ public class SmsProperties
 		this.isEnabled = isEnabled;
 	}
 
-	public String getSenderNumber()
+	public String getDefaultSenderNumber()
 	{
-		return senderNumber;
+		return defaultSenderNumber;
 	}
 
-	public void setSenderNumber(String senderNumber)
+	public void setDefaultSenderNumber(String senderNumber)
 	{
-		this.senderNumber = senderNumber;
+		this.defaultSenderNumber = senderNumber;
+	}
+
+	public String getAlphaSenderId()
+	{
+		return alphaSenderId;
+	}
+
+	public void setAlphaSenderId(String alphaSenderId)
+	{
+		this.alphaSenderId = alphaSenderId;
+	}
+
+	public String getAlphaSenderSupportingCountryCallingCodes()
+	{
+		return alphaSenderSupportingCountryCallingCodes;
+	}
+
+	public void setAlphaSenderSupportingCountryCallingCodes(String alphaSenderSupportingPrefixes)
+	{
+		this.alphaSenderSupportingCountryCallingCodes = alphaSenderSupportingPrefixes;
 	}
 
 	public String getPlivoUrl()
