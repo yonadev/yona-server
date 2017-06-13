@@ -46,6 +46,9 @@ data:
     yona.ldap.accessUserPassword={{ .Values.ldap.user_password | default "password" }}
     yona.sms.enabled= {{ .Values.sms.enabled | default "false" }}
     yona.sms.senderNumber = {{ .Values.sms.sender_number | default "Yona" }}
+    yona.sms.defaultSenderNumber = {{ .Values.sms.sender_number | default "Yona" }}
+    yona.sms.alphaSenderId = {{ .Values.sms.senderId | default "Yona" }}
+    yona.sms.alphaSenderSupportingCountryCallingCodes = {{ .Values.sms.sender_supporting_country_calling_codes | default "+31" | quote }}
     yona.sms.plivoUrl = {{ .Values.sms.plivo_url | default "https://api.plivo.com/v1/Account/{0}/Message/" }}
     yona.sms.plivoAuthId = {{ .Values.sms.plivo_auth_id | default "authidocde" }}
     yona.sms.plivoAuthToken = {{ .Values.sms.plivo_auth_token | default "authtoken" }}
