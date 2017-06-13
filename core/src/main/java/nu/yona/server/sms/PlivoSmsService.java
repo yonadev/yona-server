@@ -121,7 +121,7 @@ public class PlivoSmsService implements SmsService
 		try
 		{
 			Map<String, Object> requestMessage = new HashMap<>();
-			requestMessage.put("src", yonaProperties.getSms().getSenderNumber());
+			requestMessage.put("src", determineSender(phoneNumber));
 			requestMessage.put("dst", phoneNumber);
 			requestMessage.put("text", message);
 
@@ -131,6 +131,18 @@ public class PlivoSmsService implements SmsService
 		{
 			throw SmsException.smsSendingFailed(e);
 		}
+	}
+
+	String determineSender(String targetPhoneNumber)
+	{
+		for (String prefix : yonaProperties.getSms().getAlphaSenderSupportingCountryCallingCodes().split("\\s"))
+		{
+			if (targetPhoneNumber.startsWith(prefix))
+			{
+				return yonaProperties.getSms().getAlphaSenderId();
+			}
+		}
+		return yonaProperties.getSms().getDefaultSenderNumber();
 	}
 
 	private HttpPost createHttpRequest(String jsonStr)
