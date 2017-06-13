@@ -18,7 +18,9 @@ data:
     persist-key
     persist-tun
     <ca>
-{{ .Values.vpn.ca | indent 4 -}}
+    -----BEGIN CERTIFICATE-----
+{{ .Values.vpn.ca | indent 4 }}
+    -----END CERTIFICATE-----
     </ca>
     auth-user-pass
     cipher AES-256-CBC
@@ -28,10 +30,14 @@ data:
     nobind
     remote {{ .Values.vpn.remote }}
     proto tcp-client
-    tls-remote {{ .Values.vpn.tls_remote }}
+    verify-x509-name '{{ .Values.vpn.tls_remote }}' subject
     <tls-auth>
+    #
+    # 2048 bit OpenVPN static key
+    #
+    #
     -----BEGIN OpenVPN Static key V1-----
-{{ .Values.vpn.tls_auth | indent 4 -}}
+{{ .Values.vpn.tls_auth | indent 4 }}
     -----END OpenVPN Static key V1-----
     </tls-auth>
     key-direction 1
@@ -192,8 +198,8 @@ data:
             <string>infinite</string>
             <key>tls-auth</key>
             <string>-----BEGIN OpenVPN Static key V1-----\n{{ .Values.vpn.tls_auth }}\n-----END OpenVPN Static key V1-----</string>
-            <key>tls-remote</key>
-            <string>"/C=NL/O=Yona/CN=yonauser"</string>
+            <key>verify-x509-name</key>
+            <string>{{ .Values.vpn.tls_remote }} subject</string>
             <key>verb</key>
             <string>3</string>
             <key>vpn-on-demand</key>
