@@ -4,25 +4,21 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
 import nu.yona.server.properties.SmsProperties;
 import nu.yona.server.properties.YonaProperties;
 
-@RunWith(Parameterized.class)
+@RunWith(JUnitParamsRunner.class)
 public class PlivoSmsServiceTest
 {
 	private static final String TEST_ALPHA_ID = "TestId";
@@ -31,19 +27,6 @@ public class PlivoSmsServiceTest
 
 	@Rule
 	public MockitoRule rule = MockitoJUnit.rule();
-
-	@Parameters
-	public static Collection<Object[]> data()
-	{
-		return Arrays.asList(new Object[][] { { "+31000000000", TEST_ALPHA_ID }, { "+32111111111", TEST_DEFAULT_NUMBER },
-				{ "+49222222222", TEST_ALPHA_ID } });
-	}
-
-	@Parameter // first data value (0) is default
-	public String targetPhoneNumber;
-
-	@Parameter(1)
-	public String expectedSender;
 
 	@Mock
 	private YonaProperties mockYonaProperties;
@@ -62,7 +45,8 @@ public class PlivoSmsServiceTest
 	}
 
 	@Test
-	public void test()
+	@Parameters({ "+31000000000, " + TEST_ALPHA_ID, "+32111111111, " + TEST_DEFAULT_NUMBER, "+49222222222, " + TEST_ALPHA_ID })
+	public void testDetermineSender(String targetPhoneNumber, String expectedSender)
 	{
 		assertThat(smsService.determineSender(targetPhoneNumber), equalTo(expectedSender));
 	}
