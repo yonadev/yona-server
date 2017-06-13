@@ -69,7 +69,7 @@ public class PlivoSmsService implements SmsService
 
 		try (CloseableHttpClient httpClient = HttpClientBuilder.create().build())
 		{
-			String requestMessageStr = createRequestJson(phoneNumber, message);
+			String requestMessageStr = createRequestJson(phoneNumber.replace("+", ""), message);
 			HttpPost httpRequest = createHttpRequest(requestMessageStr);
 			HttpClientContext httpClientContext = createHttpClientContext();
 			HttpResponse httpResponse = httpClient.execute(httpRequest, httpClientContext);
@@ -122,7 +122,7 @@ public class PlivoSmsService implements SmsService
 		{
 			Map<String, Object> requestMessage = new HashMap<>();
 			requestMessage.put("src", determineSender(phoneNumber));
-			requestMessage.put("dst", phoneNumber.replace("+", ""));
+			requestMessage.put("dst", phoneNumber);
 			requestMessage.put("text", message);
 
 			return new ObjectMapper().writeValueAsString(requestMessage);
