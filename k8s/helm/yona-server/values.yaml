@@ -4,7 +4,6 @@
 # name: value
 
 global:
-  build: 539
   stage: develop
 
 #Attempt tries in seed/update contianer before exit.  Not k8s job retry

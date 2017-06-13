@@ -8,7 +8,7 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
-    build: "{{ .Values.global.build }}"
+    build: "{{ .Chart.AppVersion }}"
 spec:
   replicas: 1
   strategy: 
@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: batch
-          image: 'yonadev/batchservice:build-{{ .Values.global.build }}'
+          image: 'yonadev/batchservice:build-{{ .Chart.AppVersion }}'
           imagePullPolicy: Always
           env:       
             - name: YONA_DB_USER_NAME
@@ -46,7 +46,7 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ .Values.global.build }}-{{ .Values.global.stage | default "develop" }}-springboot
+            name: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-springboot
 
 
 

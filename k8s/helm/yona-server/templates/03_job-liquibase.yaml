@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ .Values.global.build }}-{{ .Values.global.stage | default "develop" }}-liquibase-update
+  name: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-liquibase-update
   labels:
     app: {{ template "fullname" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: liquibase
-          image: yonadev/yona-mariadb-liquibase-update:build-{{ .Values.global.build }}
+          image: yonadev/yona-mariadb-liquibase-update:build-{{ .Chart.AppVersion }}
           imagePullPolicy: IfNotPresent
           env:       
             - name: USER
@@ -30,7 +30,7 @@ spec:
               value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.mariadbDatabase }}"
             {{- end }}
             - name: RELEASE
-              value: {{ .Values.global.build | quote }}
+              value: {{ .Chart.AppVersion | quote }}
             - name: MAX_TRIES
               value: {{ .Values.seed_max_tries | default "3" | quote }}
             {{- if .Values.ldap.enabled }}
