@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
@@ -14,12 +14,15 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.BatchSize;
+
 import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.ZoneIdAttributeConverter;
 import nu.yona.server.goals.entities.ActivityCategory;
 
 @Entity
 @Table(name = "ACTIVITIES")
+@BatchSize(size = 100)
 public class Activity extends EntityWithId
 {
 	@Convert(converter = ZoneIdAttributeConverter.class)

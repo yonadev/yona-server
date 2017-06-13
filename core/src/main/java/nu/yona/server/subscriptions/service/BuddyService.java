@@ -620,9 +620,9 @@ public class BuddyService
 		}
 	}
 
-	public Optional<BuddyDto> getBuddyOfUserByUserAnonymizedId(UUID forUserId, UUID userAnonymizedId)
+	public Optional<BuddyDto> getBuddyOfUserByUserAnonymizedId(UserPrivateDto forUser, UUID userAnonymizedId)
 	{
-		Set<BuddyDto> buddies = getBuddiesOfUser(forUserId);
+		Set<BuddyDto> buddies = getBuddies(forUser.getBuddyIds());
 		for (BuddyDto buddy : buddies)
 		{
 			if (buddy.getUserAnonymizedId().filter(id -> id.equals(userAnonymizedId)).isPresent())

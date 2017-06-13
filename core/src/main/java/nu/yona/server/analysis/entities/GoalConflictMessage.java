@@ -16,6 +16,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 
+import org.hibernate.annotations.BatchSize;
+
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.DisclosureRequestMessage;
@@ -23,6 +25,7 @@ import nu.yona.server.messaging.entities.DisclosureResponseMessage;
 import nu.yona.server.messaging.entities.Message;
 
 @Entity
+@BatchSize(size = 25)
 public class GoalConflictMessage extends Message
 {
 	public enum Status
@@ -42,6 +45,7 @@ public class GoalConflictMessage extends Message
 
 	@ManyToOne
 	private Activity activity;
+
 	@ManyToOne
 	private Goal goal;
 	private Status status;
@@ -84,7 +88,7 @@ public class GoalConflictMessage extends Message
 		{
 			throw new IllegalArgumentException("origin cannot be null");
 		}
-	
+
 		GoalConflictMessage goalConflictMessage = new GoalConflictMessage(relatedUserAnonymizedId, origin.getActivity(),
 				origin.getGoal(), origin.getUrl(), Status.ANNOUNCED);
 		origin.addBuddyGoalConflictMessage(goalConflictMessage);
