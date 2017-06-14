@@ -7,11 +7,10 @@ Locally we recommend the use of [MiniKube](https://kubernetes.io/docs/getting-st
 
 ----------
 ## Windows Setup
-Windows setup has not been well tested
-See [here](https://rominirani.com/tutorial-getting-started-with-kubernetes-on-your-windows-laptop-with-minikube-3269b54a226) for an external guide on setting it up, and then refer to the Linux documentation below once you have minikube up and running.
 
-[Docker Toolbox](https://www.docker.com/products/docker-toolbox) is a nice one stop program to set a bunch of components up - Virtualbox, Git for Windows, iso for the dockerboot container, the docker command, etc.. This system uses Virtualbox as the hypervisor, and has resulted in a working Minikube and Helm deploy.
+See http://wiki.yona.nu/display/DEV/Running+Yona+with+Kubernetes
 
+If you don't have Windows Pro edition, would like to continue to be able to use VirtualBox on your workstation for other reasons, consider using [Docker Toolbox](https://www.docker.com/products/docker-toolbox) as one stop program to set a bunch of components up - Virtualbox, Git for Windows, iso for the dockerboot container, the docker command, etc.. This system uses Virtualbox as the hypervisor, and has resulted in a working Minikube and Helm deploy.
 The Docker Toolbox has been depricated in favor of Docker for Windows that uses HyperV instead of Virtualbox.  It is possible that this setup (Docker for Windows) has issues - it has not been validated, and so far looks like it is not a working setup.
 
 ## Linux Setup
