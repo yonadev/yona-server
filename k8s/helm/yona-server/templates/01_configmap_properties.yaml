@@ -47,7 +47,7 @@ data:
     yona.sms.enabled= {{ .Values.sms.enabled | default "false" }}
     yona.sms.defaultSenderNumber = {{ .Values.sms.default_sender_number | default "+12312312312" }}
     yona.sms.alphaSenderId = {{ .Values.sms.alpha_sender_id | default "Yona" }}
-    yona.sms.alphaSenderSupportingCountryCallingCodes = {{ .Values.sms.alpha_sender_supporting_country_calling_codes | default "+31 +49 +33" | quote}}
+    yona.sms.alphaSenderSupportingCountryCallingCodes = {{ .Values.sms.alpha_sender_supporting_country_calling_codes | default "+31 +49 +33" }}
     yona.sms.plivoUrl = {{ .Values.sms.plivo_url | default "https://api.plivo.com/v1/Account/{0}/Message/" }}
     yona.sms.plivoAuthId = {{ .Values.sms.plivo_auth_id | default "authidocde" }}
     yona.sms.plivoAuthToken = {{ .Values.sms.plivo_auth_token | default "authtoken" }}
