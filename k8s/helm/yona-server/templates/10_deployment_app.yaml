@@ -43,6 +43,12 @@ spec:
             {{- else }}
               value: "http://analysis.{{ .Release.Namespace }}.svc.cluster.local"
             {{- end }}
+            - name: YONA_BATCH_SERVICE_SERVICE_URL
+            {{- if .Values.batch.url_override }}
+              value: {{ .Values.batch.url_override | quote }}
+            {{- else }}
+              value: "http://batch.{{ .Release.Namespace }}.svc.cluster.local"
+            {{- end }}
           ports:
             - containerPort: 8080
             - containerPort: 9080
