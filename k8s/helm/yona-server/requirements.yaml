@@ -2,7 +2,8 @@ dependencies:
   - name: mariadb
     version: 0.6.3
     repository:  "https://kubernetes-charts.storage.googleapis.com"
+    condition: support_infrastructure.enabled
   - name: ldap
     version: 0.1.0
     repository:  "file://../ldap"
- 
+    condition: support_infrastructure.enabled
