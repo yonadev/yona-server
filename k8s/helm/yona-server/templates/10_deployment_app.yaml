@@ -38,13 +38,13 @@ spec:
               value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.mariadbDatabase }}"
             {{- end }}
             - name: YONA_ANALYSIS_SERVICE_SERVICE_URL
-            {{- if .Values.analysis }}
+            {{- if hasKey .Values.analysis "url_override" }}
               value: {{ .Values.analysis.url_override | quote }}
             {{- else }}
               value: "http://analysis.{{ .Release.Namespace }}.svc.cluster.local"
             {{- end }}
             - name: YONA_BATCH_SERVICE_SERVICE_URL
-            {{- if .Values.batch }}
+            {{- if .Values.batch.url_override }}
               value: {{ .Values.batch.url_override | quote }}
             {{- else }}
               value: "http://batch.{{ .Release.Namespace }}.svc.cluster.local"

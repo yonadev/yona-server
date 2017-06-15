@@ -28,11 +28,9 @@ data:
     nobind
     remote {{ .Values.vpn.remote }}
     proto tcp-client
-    tls-remote {{ .Values.vpn.tls_remote }}
+    verify-x509-name '{{ .Values.vpn.tls_remote }}' subject
     <tls-auth>
-    -----BEGIN OpenVPN Static key V1-----
 {{ .Values.vpn.tls_auth | indent 4 -}}
-    -----END OpenVPN Static key V1-----
     </tls-auth>
     key-direction 1
   rootcert.cer: |
@@ -64,7 +62,7 @@ data:
           <string>Guardian CA Cert (4) (1).crt</string>
           <key>PayloadContent</key>
           <data>
-{{ .Values.vpn.cert | indent 12 -}}
+{{ .Values.certs.root | indent 10 -}}
           </data>
           <key>PayloadDescription</key>
           <string>Adds a CA root certificate</string>
@@ -81,12 +79,12 @@ data:
         </dict>
         <dict>
           <key>Password</key>
-          <string>{{ .Values.vpn.user_cert_password }}</string>
+          <string>{{ .Values.vpn.cert_password }}</string>
           <key>PayloadCertificateFileName</key>
           <string>yonauser.p12</string>
           <key>PayloadContent</key>
           <data>
-{{ .Values.vpn.user_cert | indent 12 -}}
+{{ .Values.vpn.cert | indent 10 -}}
           </data>
           <key>PayloadDescription</key>
           <string>Adds a PKCS#12-formatted certificate</string>
@@ -167,7 +165,7 @@ data:
             <key>auth-user-pass</key>
             <string th:text="${ldapUsername} +'\n' + ${ldapPassword}">To be replaced</string>
             <key>ca</key>
-            <string>-----BEGIN CERTIFICATE-----\n{{ .Values.vpn.cert | replace "\n" "" }}\n-----END CERTIFICATE-----</string>
+            <string>{{ .Values.vpn.ca | replace "\n" "\\n" -}}</string>
             <key>cipher</key>
             <string>AES-256-CBC</string>
             <key>client</key>
@@ -191,9 +189,9 @@ data:
             <key>resolv-retry</key>
             <string>infinite</string>
             <key>tls-auth</key>
-            <string>-----BEGIN OpenVPN Static key V1-----\n{{ .Values.vpn.tls_auth }}\n-----END OpenVPN Static key V1-----</string>
-            <key>tls-remote</key>
-            <string>"/C=NL/O=Yona/CN=yonauser"</string>
+            <string>{{ .Values.vpn.tls_auth | replace "\n" "\\n" -}}</string>
+            <key>verify-x509-name</key>
+            <string>{{ .Values.vpn.tls_remote }} subject</string>
             <key>verb</key>
             <string>3</string>
             <key>vpn-on-demand</key>
