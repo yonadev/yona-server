@@ -7,7 +7,7 @@ support_infrastructure:
   enabled: true
 
 global:
-  build: 543
+
   stage: develop
 
 #Attempt tries in seed/update contianer before exit.  Not k8s job retry

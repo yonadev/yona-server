@@ -5,5 +5,5 @@ dependencies:
     condition: support_infrastructure.enabled
   - name: ldap
     version: 0.1.0
-    repository:  "file://../ldap"
+    repository:  "https://yonadev.github.io/helm-charts"
     condition: support_infrastructure.enabled
