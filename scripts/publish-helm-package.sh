@@ -18,7 +18,7 @@ rm -rf build
 mkdir build
 cp -r $CHART build
 pushd build
-sed --in-place s/543/$BUILD_NUMBER/ $CHART/Chart.yaml
+sed --in-place s/_ReplaceWithBuildNumber_/$BUILD_NUMBER/ $CHART/Chart.yaml
 helm dependency update --home $HELM_DIR/.helm --verify $CHART
 helm package --home $HELM_DIR/.helm -d $PACKAGE_DIR --version $VERSION $CHART
 popd
