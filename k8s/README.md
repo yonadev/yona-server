@@ -237,14 +237,14 @@ $ minikube service list
 | kube-system | kube-dns             | No node port                |
 | kube-system | kubernetes-dashboard | http://192.168.42.170:30000 |
 | kube-system | tiller-deploy        | No node port                |
-| yona        | admin                | http://192.168.42.170:31001 |
-| yona        | admin-actuator       | http://192.168.42.170:31011 |
-| yona        | analysis             | http://192.168.42.170:31002 |
-| yona        | analysis-actuator    | http://192.168.42.170:31012 |
-| yona        | app                  | http://192.168.42.170:31003 |
-| yona        | app-actuator         | http://192.168.42.170:31013 |
-| yona        | batch                | http://192.168.42.170:31004 |
-| yona        | batch-actuator       | http://192.168.42.170:31014 |
+| yona        | admin                | http://192.168.42.170:31000 |
+| yona        | admin-actuator       | http://192.168.42.170:31010 |
+| yona        | analysis             | http://192.168.42.170:31001 |
+| yona        | analysis-actuator    | http://192.168.42.170:31011 |
+| yona        | app                  | http://192.168.42.170:31002 |
+| yona        | app-actuator         | http://192.168.42.170:31012 |
+| yona        | batch                | http://192.168.42.170:31003 |
+| yona        | batch-actuator       | http://192.168.42.170:31013 |
 | yona        | ldap                 | http://192.168.42.170:31389 |
 | yona        | yona-mariadb         | No node port                |
 |-------------|----------------------|-----------------------------|
