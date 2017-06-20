@@ -10,8 +10,6 @@ import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -26,7 +24,6 @@ import nu.yona.server.Constants;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.service.GoalDto;
-import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.util.TimeUtil;
 
@@ -52,12 +49,11 @@ public class UserDto
 	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate,
 			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String yonaPassword,
 			String nickname, String mobileNumber, boolean isConfirmed, UUID namedMessageSourceId, UUID anonymousMessageSourceId,
-			Set<GoalDto> goals, Set<UUID> buddyIds, Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper, UUID userAnonymizedId,
-			VPNProfileDto vpnProfile)
+			Set<GoalDto> goals, Set<BuddyDto> buddies, UUID userAnonymizedId, VPNProfileDto vpnProfile)
 	{
 		this(id, Optional.of(creationTime), appLastOpenedDate, firstName, lastName, null, mobileNumber, isConfirmed,
 				new UserPrivateDto(lastMonitoredActivityDate, yonaPassword, nickname, namedMessageSourceId,
-						anonymousMessageSourceId, goals, buddyIds, buddyIdToDtoMapper, userAnonymizedId, vpnProfile));
+						anonymousMessageSourceId, goals, buddies, userAnonymizedId, vpnProfile));
 	}
 
 	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate, String firstName, String lastName,
@@ -196,20 +192,15 @@ public class UserDto
 				userEntity.isMobileNumberConfirmed());
 	}
 
-	static UserDto createInstanceWithPrivateData(User userEntity, Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper)
+	static UserDto createInstanceWithPrivateData(User userEntity, Set<BuddyDto> buddies)
 	{
 		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
 				userEntity.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
 				CryptoSession.getCurrent().getKeyString(), userEntity.getNickname(), userEntity.getMobileNumber(),
 				userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSourceId(),
 				userEntity.getAnonymousMessageSourceId(),
-				UserAnonymizedDto.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), getBuddyIds(userEntity),
-				buddyIdToDtoMapper, userEntity.getUserAnonymizedId(), VPNProfileDto.createInstance(userEntity));
-	}
-
-	private static Set<UUID> getBuddyIds(User userEntity)
-	{
-		return userEntity.getBuddies().stream().map(Buddy::getId).collect(Collectors.toSet());
+				UserAnonymizedDto.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), buddies,
+				userEntity.getUserAnonymizedId(), VPNProfileDto.createInstance(userEntity));
 	}
 
 	public void assertMobileNumberConfirmed()

@@ -115,7 +115,7 @@ public class BuddyService
 	public Set<BuddyDto> getBuddiesOfUser(UUID forUserId)
 	{
 		UserDto user = userService.getPrivateUser(forUserId);
-		return getBuddies(user.getPrivateData().getBuddyIds());
+		return user.getPrivateData().getBuddies();
 	}
 
 	public Set<BuddyDto> getBuddiesOfUserThatAcceptedSending(UUID forUserId)
@@ -184,7 +184,7 @@ public class BuddyService
 		{
 			throw BuddyServiceException.cannotInviteSelf();
 		}
-		if (getBuddies(requestingUser.getPrivateData().getBuddyIds()).stream().map(b -> b.getUser().getMobileNumber())
+		if (requestingUser.getPrivateData().getBuddies().stream().map(b -> b.getUser().getMobileNumber())
 				.anyMatch(m -> m.equals(buddyMobileNumber)))
 		{
 			throw BuddyServiceException.cannotInviteExistingBuddy();
@@ -392,9 +392,8 @@ public class BuddyService
 		Buddy.getRepository().save(buddy);
 	}
 
-	public Set<BuddyDto> getBuddies(Set<UUID> buddyIds)
+	Set<BuddyDto> getBuddies(Set<Buddy> buddyEntities)
 	{
-		Set<Buddy> buddyEntities = getBuddyEntities(buddyIds);
 		loadAllBuddiesAnonymizedAtOnce(buddyEntities);
 		loadAllUsersAnonymizedAtOnce(buddyEntities);
 		return buddyEntities.stream().map(this::getBuddy).collect(Collectors.toSet());
@@ -622,7 +621,7 @@ public class BuddyService
 
 	public Optional<BuddyDto> getBuddyOfUserByUserAnonymizedId(UserPrivateDto forUser, UUID userAnonymizedId)
 	{
-		Set<BuddyDto> buddies = getBuddies(forUser.getBuddyIds());
+		Set<BuddyDto> buddies = forUser.getBuddies();
 		for (BuddyDto buddy : buddies)
 		{
 			if (buddy.getUserAnonymizedId().filter(id -> id.equals(userAnonymizedId)).isPresent())

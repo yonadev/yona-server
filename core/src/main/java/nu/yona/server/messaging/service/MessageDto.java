@@ -186,8 +186,6 @@ public abstract class MessageDto extends PolymorphicDto
 					return createSenderInfoForSelf(actingUser);
 				}
 
-				// Note: actingUser may be out of sync here, because the message action may have changed its state
-				// so retrieve afresh from buddy service
 				Optional<BuddyDto> buddy = buddyService.getBuddyOfUserByUserAnonymizedId(actingUser.getPrivateData(),
 						senderUserAnonymizedId.get());
 				if (buddy.isPresent())
