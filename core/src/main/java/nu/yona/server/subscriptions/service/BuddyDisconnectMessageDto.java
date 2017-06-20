@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -94,6 +94,9 @@ public class BuddyDisconnectMessageDto extends BuddyMessageEmbeddedUserDto
 		@Autowired
 		private BuddyService buddyService;
 
+		@Autowired
+		private UserService userService;
+
 		@PostConstruct
 		private void init()
 		{
@@ -124,6 +127,7 @@ public class BuddyDisconnectMessageDto extends BuddyMessageEmbeddedUserDto
 				MessageActionDto requestPayload)
 		{
 			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getId(), messageEntity.getSenderUserId());
+			UserDto actingUserAfterUpdate = userService.getPrivateUser(actingUser.getId());
 
 			messageEntity = updateMessageStatusAsProcessed(messageEntity);
 
@@ -134,7 +138,7 @@ public class BuddyDisconnectMessageDto extends BuddyMessageEmbeddedUserDto
 					"User with mobile number '{}' and ID '{}' processed buddy disconnect message from user with mobile number '{}' and ID '{}'",
 					actingUser.getMobileNumber(), actingUser.getId(), mobileNumber, id);
 
-			return MessageActionDto.createInstanceActionDone(theDtoFactory.createInstance(actingUser, messageEntity));
+			return MessageActionDto.createInstanceActionDone(theDtoFactory.createInstance(actingUserAfterUpdate, messageEntity));
 		}
 
 		private BuddyDisconnectMessage updateMessageStatusAsProcessed(BuddyDisconnectMessage messageEntity)

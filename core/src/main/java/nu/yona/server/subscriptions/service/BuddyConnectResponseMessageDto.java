@@ -95,6 +95,9 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 		@Autowired
 		private BuddyService buddyService;
 
+		@Autowired
+		private UserService userService;
+
 		@PostConstruct
 		private void init()
 		{
@@ -137,6 +140,7 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 						connectResponseMessageEntity.getRelatedUserAnonymizedId().get(),
 						connectResponseMessageEntity.getSenderNickname());
 			}
+			UserDto actingUserAfterUpdate = userService.getPrivateUser(actingUser.getId());
 
 			connectResponseMessageEntity = updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
@@ -148,7 +152,7 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 					actingUser.getMobileNumber(), actingUser.getId(), mobileNumber, id);
 
 			return MessageActionDto
-					.createInstanceActionDone(theDtoFactory.createInstance(actingUser, connectResponseMessageEntity));
+					.createInstanceActionDone(theDtoFactory.createInstance(actingUserAfterUpdate, connectResponseMessageEntity));
 		}
 
 		private BuddyConnectResponseMessage updateMessageStatusAsProcessed(
