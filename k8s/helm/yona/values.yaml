@@ -148,7 +148,7 @@ ldap:
 
 sms:
   enabled: false
-  default_sender_number: +17184169858
+  default_sender_number: "+17184169858"
   alpha_sender_id: Yona
   alpha_sender_supporting_country_calling_codes: +31 +49 +33
   plivo_url: "https://api.plivo.com/v1/Account/{0}/Message/"
