@@ -41,7 +41,7 @@ spec:
             {{- if .Values.batch.url_override }}
               value: {{ .Values.batch.url_override | quote }}
             {{- else }}
-              value: "http://batch.{{ .Release.Namespace }}.svc.cluster.local"
+              value: "http://batch.{{ .Release.Namespace }}.svc.cluster.local:8080"
             {{- end }}
           ports:
             - containerPort: 8080
