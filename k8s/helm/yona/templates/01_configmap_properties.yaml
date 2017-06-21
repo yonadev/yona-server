@@ -12,16 +12,16 @@ metadata:
 data:
   application.properties: |
     yona.maxUsers={{ .Values.app.max_users | default "100" }}
-    yona.whiteListActiveFreeSignUp={{ .Values.app.whitelist.active_free_signup | default "false" }}
-    yona.whiteListActiveInvitedUsers={{ .Values.app.whitelist.active_invited_users | default "false" }}
+    yona.whiteListActiveFreeSignUp={{ required "True or False required for app.whitelist.active_free_signup" .Values.app.whitelist.active_free_signup }}
+    yona.whiteListActiveInvitedUsers={{ required "True or False required for app.whitelist.active_invited_users" .Values.app.whitelist.active_invited_users }}
     yona.security.pinResetRequestConfirmationCodeDelay={{ .Values.app.security.pin_reset_request_confirmation_code_delay | default "PT1M" }}
-    yona.security.dosProtectionEnabled={{ .Values.app.security.dos_protection_enabled | default "false" }}
+    yona.security.dosProtectionEnabled={{ required "True or False required for app.security.dos_protection_enabled" .Values.app.security.dos_protection_enabled  }}
     yona.security.dosProtectionWindow={{ .Values.app.security.dos_protection_window | default "PT5M" }}
     yona.security.maxCreateUserAttemptsPerTimeWindow={{ .Values.app.security.max_create_user_attempts_per_time_window | default "2" }}
     yona.security.maxUpdateUserAttemptsPerTimeWindow={{ .Values.app.security.max_update_user_attempts_per_time_window | default "2" }}
-    yona.security.appProvidedPasswordEnabled={{ .Values.app.security.app_provided_password_enabled| default "false" }}
+    yona.security.appProvidedPasswordEnabled={{ required "True or False required for app.security.app_provided_password_enabled" .Values.app.security.app_provided_password_enabled }}
     yona.analysisservice.updateSkipWindow={{ .Values.analysis.update_skip_window | default "PT1M" }}
-    yona.email.enabled={{ .Values.email.enabled | default "true" }}
+    yona.email.enabled={{ required "True or False required for email.enabled" .Values.email.enabled }}
     yona.email.senderAddress={{ .Values.email.sender_address | default "noreply@example.com" }}
     yona.email.smtp.protocol={{ .Values.email.smtp_protocol | default "smtp" }}
     {{- if .Values.email.smtp_host}}
@@ -30,12 +30,12 @@ data:
     yona.email.smtp.host="smtp.{{ .Release.Namespace }}.svc.cluster.local" }}
     {{- end }}
     yona.email.smtp.port={{ .Values.email.smtp_port | default "587" }}
-    yona.email.smtp.enableAuth={{ .Values.email.smtp_enable_auth | default "true" }}
-    yona.email.smtp.enableStartTls={{ .Values.email.smtp_enable_start_tls | default "true" }}
+    yona.email.smtp.enableAuth={{ required "True or False required for email.smtp_enable_auth" .Values.email.smtp_enable_auth }}
+    yona.email.smtp.enableStartTls={{ required "True or False required for email.smtp_enable_start_tls" .Values.email.smtp_enable_start_tls }}
     yona.email.smtp.username={{ .Values.email.smtp_username | default "noreply@example.com" }}
     yona.email.smtp.password={{ .Values.email.smtp_password | default "password" }}
     yona.email.includedMediaBaseUrl={{ .Values.email.included_media_base_url | default "https://localhost/media/" }}
-    yona.ldap.enabled={{ .Values.ldap.enabled | default "true" }}
+    yona.ldap.enabled={{ required "True or False required for ldap.enabled" .Values.ldap.enabled }}
     {{- if .Values.ldap.url_override}}
     yona.ldap.url={{ .Values.ldap.url_override }}
     {{- else }}
@@ -44,14 +44,14 @@ data:
     yona.ldap.baseDn={{ .Values.ldap.dn | default "DC=example,DC=local" }}
     yona.ldap.accessUserDn={{ .Values.ldap.user_dn | default "cn=admin,dc=example,dc=local" }}
     yona.ldap.accessUserPassword={{ .Values.ldap.user_password | default "password" }}
-    yona.sms.enabled= {{ .Values.sms.enabled | default "false" }}
+    yona.sms.enabled= {{ required "True or False required for sms.enabled" .Values.sms.enabled }}
     yona.sms.defaultSenderNumber = {{ .Values.sms.default_sender_number | default "+12312312312" }}
     yona.sms.alphaSenderId = {{ .Values.sms.alpha_sender_id | default "Yona" }}
     yona.sms.alphaSenderSupportingCountryCallingCodes = {{ .Values.sms.alpha_sender_supporting_country_calling_codes | default "+31 +49 +33" }}
     yona.sms.plivoUrl = {{ .Values.sms.plivo_url | default "https://api.plivo.com/v1/Account/{0}/Message/" }}
     yona.sms.plivoAuthId = {{ .Values.sms.plivo_auth_id | default "authidocde" }}
     yona.sms.plivoAuthToken = {{ .Values.sms.plivo_auth_token | default "authtoken" }}
-    yona.appleMobileConfig.signingEnabled = {{ .Values.apple.enabled | default "false" }}
+    yona.appleMobileConfig.signingEnabled = {{ required "True or False required for apple.enabled" .Values.apple.enabled }}
     yona.appleMobileConfig.signingKeyStoreFile = {{ .Values.apple.keystore_file | default "apple/dummy.p12" }}
     yona.appleMobileConfig.signingKeyStorePassword = {{ .Values.apple.keystore_password | default "DummyPwd" }}
     yona.appleMobileConfig.caCertificateFile={{ .Values.apple.ca_certificate_file | default "apple/AppleWWDRCA.cer" }}
