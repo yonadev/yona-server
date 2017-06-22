@@ -101,7 +101,8 @@ task intTest(type:Test){
 	systemProperties = [
 		"yona.adminservice.url": project.ext.yona_adminservice_url,
 		"yona.analysisservice.url": project.ext.yona_analysisservice_url,
-		"yona.appservice.url": project.ext.yona_appservice_url
+		"yona.appservice.url": project.ext.yona_appservice_url,
+		"yona.batchservice.url": project.ext.yona_batchservice_url
 	]
 }
 

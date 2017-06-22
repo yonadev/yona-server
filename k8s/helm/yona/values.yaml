@@ -10,9 +10,9 @@ global:
 
   stage: develop
 
-#Attempt tries in seed/update contianer before exit.  Not k8s job retry
-#This just reduceds the 'failed' jobs spam in pod list until services
-#come online (5 second delay on curl, 2 on sql)
+# Attempt tries in seed/update container before exit.  Not k8s job retry
+# This just reduces the 'failed' jobs spam in pod list until services
+# come online (5 second delay on curl, 2 on sql)
 seed_max_tries: 3
 
 vpn:
@@ -125,7 +125,7 @@ vpn:
     -----END OpenVPN Static key V1-----
 
 email:
-  enabled: true
+  enabled: false
   sender_address: noreply@example.com
   smtp_protocol: smtp
   smtp_host: smtp.example.com
@@ -191,7 +191,7 @@ app:
     dos_protection_window: PT5M
     max_create_user_attempts_per_time_window: 2
     max_update_user_attempts_per_time_window: 2
-    app_provided_password_enabled: false
+    app_provided_password_enabled: true
 
 batch:
   enabled: true
