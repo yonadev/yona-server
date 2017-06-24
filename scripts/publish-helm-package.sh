@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 BUILD_NUMBER=$1
 VERSION=$2
