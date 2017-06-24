@@ -3,7 +3,7 @@ set -e # Fail on error
 
 function waitTillGetWorks() {
 	n=0
-	until [ $n -ge 24 ]
+	until [ $n -ge 60 ]
 	do
 		curl -f $1 && echo && break
 		n=$[$n+1]
@@ -21,10 +21,10 @@ function waitTillGetWorks() {
 # Temporarily use different ports for k8s and Docker compose ports
 if [ "$1" == "k8s" ]
 then
-ADMIN_SVC_PORT=31001
-ANALYSIS_SVC_PORT=31002
-APP_SVC_PORT=31003
-BATCH_SVC_PORT=31004
+ADMIN_SVC_PORT=31000
+ANALYSIS_SVC_PORT=31001
+APP_SVC_PORT=31002
+BATCH_SVC_PORT=31003
 else
 ADMIN_SVC_PORT=8080
 ANALYSIS_SVC_PORT=8081

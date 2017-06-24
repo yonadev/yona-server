@@ -40,6 +40,7 @@ pipeline {
 				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
 			}
 			steps {
+				sh 'helm delete yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all; true'
 				sh 'scripts/wipe-database.sh'
 				sh 'helm repo update'
 				sh 'helm upgrade --install --namespace yona --set mariadb.mariadbUser=$YONA_DB_USR --set mariadb.mariadbPassword="$YONA_DB_PSW" --values /opt/ope-cloudbees/yona/k8s/helm/values.yaml --version 1.2.$BUILD_NUMBER yona yona/yona'
