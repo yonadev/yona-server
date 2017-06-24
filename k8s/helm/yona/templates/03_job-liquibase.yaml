@@ -47,4 +47,6 @@ spec:
             - name: LDAP_USER_PASSWORD
               value: {{ .Values.ldap.user_password | default "password" | quote }}
             {{- end }}
+            - name: ACT_CATEGORIES_JSON_FILE
+              value: {{ .Values.admin.act_categories_json_file | default "productionActivityCategories.json" | quote }}
       restartPolicy: Never

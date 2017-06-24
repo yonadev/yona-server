@@ -176,6 +176,9 @@ mariadb:
   #nameOverride: develop
   #url_override: "jdbc:mariadb://db.default.svc.cluster.local/yona"
 
+admin:
+  act_categories_json_file : productionActivityCategories.json
+
 analysis:
   #url_override: "http://analysis.default.svc.cluster.local"
   update_skip_window: PT1M

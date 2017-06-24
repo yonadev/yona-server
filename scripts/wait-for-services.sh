@@ -18,14 +18,28 @@ function waitTillGetWorks() {
 	return 0
 }
 
+# Temporarily use different ports for k8s and Docker compose ports
+if [ $1 -eq k8s ]
+then
+ADMIN_SVC_PORT=31001
+ANALYSIS_SVC_PORT=31002
+APP_SVC_PORT=31003
+BATCH_SVC_PORT=31004
+else
+ADMIN_SVC_PORT=8080
+ANALYSIS_SVC_PORT=8081
+APP_SVC_PORT=80
+BATCH_SVC_PORT=8082
+fi
+
 echo "Waiting for the admin service to start"
-waitTillGetWorks http://localhost:8080/activityCategories/
+waitTillGetWorks http://localhost:$ADMIN_SVC_PORT/activityCategories/
 
 echo "Waiting for the analysis service to start"
-waitTillGetWorks http://localhost:8081/relevantSmoothwallCategories/
+waitTillGetWorks http://localhost:$ANALYSIS_SVC_PORT/relevantSmoothwallCategories/
 
 echo "Waiting for the app service to start"
-waitTillGetWorks http://localhost/activityCategories/
+waitTillGetWorks http://localhost:$APP_SVC_PORT/activityCategories/
 
 echo "Waiting for the batch service to start"
-waitTillGetWorks http://localhost:8083/scheduler/jobs/
+waitTillGetWorks http://localhost:$BATCH_SVC_PORT/scheduler/jobs/

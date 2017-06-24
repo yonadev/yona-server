@@ -38,13 +38,15 @@ pipeline {
 				YONA_DB = credentials('test-db')
 			}
 			steps {
-				sh 'scripts/install-test-server.sh ${BUILD_NUMBER_TO_DEPLOY} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/resources'
+				sh 'scripts/wipe-database.sh'
+				sh 'helm upgrade --install --namespace yona --set mariadb.mariadbUser=$YONA_DB_USR --set mariadb.mariadbPassword="$YONA_DB_PSW" --values /opt/ope-cloudbees/yona/k8s/helm/values.yaml yona yona/yona'
+				sh 'scripts/wait-for-services.sh k8s'
 			}
 		}
 		stage('Run integration tests') {
 			agent { label 'yona' }
 			steps {
-				sh './gradlew -Pyona_adminservice_url=http://185.3.209.132:8080 -Pyona_analysisservice_url=http://185.3.209.132:8081 -Pyona_appservice_url=http://185.3.209.132 -Pyona_batchservice_url=http://185.3.209.132:8083 intTest'
+				sh './gradlew -Pyona_adminservice_url=http://185.3.209.132:31000 -Pyona_analysisservice_url=http://185.3.209.132:31001 -Pyona_appservice_url=http://185.3.209.132:31002 -Pyona_batchservice_url=http://185.3.209.132:31003 intTest'
 			}
 			post {
 				always {

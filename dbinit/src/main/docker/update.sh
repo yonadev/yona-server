@@ -173,7 +173,7 @@ if [ -n "${RELEASE}" ]; then
 
   # Apply Categories
   echo "Applying Categories"
-  apply_external_json "productionActivityCategories.json" "http://admin.yona.svc.cluster.local:8080/activityCategories/"
+  apply_external_json ${ACT_CATEGORIES_JSON_FILE} "http://admin.yona.svc.cluster.local:8080/activityCategories/"
   if [ $? -eq 1 ]; then
     exit $ERROR_EXIT_CODE
   fi
