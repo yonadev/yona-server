@@ -39,7 +39,8 @@ pipeline {
 			}
 			steps {
 				sh 'scripts/wipe-database.sh'
-				sh 'helm upgrade --install --namespace yona --set mariadb.mariadbUser=$YONA_DB_USR --set mariadb.mariadbPassword="$YONA_DB_PSW" --values /opt/ope-cloudbees/yona/k8s/helm/values.yaml yona yona/yona'
+				sh 'helm repo update'
+				sh 'helm upgrade --install --namespace yona --set mariadb.mariadbUser=$YONA_DB_USR --set mariadb.mariadbPassword="$YONA_DB_PSW" --values /opt/ope-cloudbees/yona/k8s/helm/values.yaml --version 1.2.$BUILD_NUMBER yona yona/yona'
 				sh 'scripts/wait-for-services.sh k8s'
 			}
 		}
