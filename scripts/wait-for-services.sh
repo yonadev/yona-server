@@ -33,13 +33,13 @@ BATCH_SVC_PORT=8082
 fi
 
 echo "Waiting for the admin service to start"
-waitTillGetWorks http://localhost:$ADMIN_SVC_PORT/activityCategories/
+waitTillGetWorks http://127.0.0.1:$ADMIN_SVC_PORT/activityCategories/
 
 echo "Waiting for the analysis service to start"
-waitTillGetWorks http://localhost:$ANALYSIS_SVC_PORT/relevantSmoothwallCategories/
+waitTillGetWorks http://127.0.0.1:$ANALYSIS_SVC_PORT/relevantSmoothwallCategories/
 
 echo "Waiting for the app service to start"
-waitTillGetWorks http://localhost:$APP_SVC_PORT/activityCategories/
+waitTillGetWorks http://127.0.0.1:$APP_SVC_PORT/activityCategories/
 
 echo "Waiting for the batch service to start"
-waitTillGetWorks http://localhost:$BATCH_SVC_PORT/scheduler/jobs/
+waitTillGetWorks http://127.0.0.1:$BATCH_SVC_PORT/scheduler/jobs/
