@@ -19,7 +19,7 @@ function waitTillGetWorks() {
 }
 
 # Temporarily use different ports for k8s and Docker compose ports
-if [ $1 -eq k8s ]
+if [ "$1" == "k8s" ]
 then
 ADMIN_SVC_PORT=31001
 ANALYSIS_SVC_PORT=31002
