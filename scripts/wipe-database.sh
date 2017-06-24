@@ -20,7 +20,7 @@ echo "Starting MariaDB"
 docker-compose up -d
 
 echo "Waiting for MariaDB"
-docker run --rm --network yonanet --link mariadb:mariadb -e TARGETS=mariadb:3306 waisbrot/wait
+docker run --rm --network yonanet --link mariadb:mariadb -e TARGETS=mariadb:3306 -e TIMEOUT=60 waisbrot/wait
 
 # Return to Yona Docker compose folder
 popd
