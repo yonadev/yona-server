@@ -37,6 +37,7 @@ pipeline {
 			environment {
 				YONA_DB = credentials('test-db')
 				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
+				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
 			}
 			steps {
 				sh 'scripts/wipe-database.sh'
