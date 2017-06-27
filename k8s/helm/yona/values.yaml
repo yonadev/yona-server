@@ -170,6 +170,7 @@ mariadb:
   mariadbPassword: develop
   mariadbDatabase: yona
   persistence:
+    storageClass: yona-default
     size: 2Gi
   user: develop
   password: develop
