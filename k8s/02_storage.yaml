@@ -6,9 +6,11 @@ metadata:
   labels:
     type: local
 spec:
+  storageClassName: yona-default
+  persistentVolumeReclaimPolicy: Recycle
   capacity:
     storage: 3Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/data/pv0001"
+    path: "/data/yona-persistentvolumes/pv0001"

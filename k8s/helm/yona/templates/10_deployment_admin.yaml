@@ -49,17 +49,7 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: /opt/app/config
-            - name: profile-resources
-              mountPath: /opt/app/resources
-            - name: apple-resources
-              mountPath: /opt/app/apple
       volumes:
         - name: config-volume
           configMap:
             name: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-springboot
-        - name: profile-resources
-          configMap:
-            name: {{ .Chart.AppVersion }}-{{ .Values.global.stage | default "develop" }}-resources
-        - name: apple-resources
-          hostPath:
-            path: /opt/yona/resources/apple
