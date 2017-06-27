@@ -140,19 +140,25 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 						connectResponseMessageEntity.getRelatedUserAnonymizedId().get(),
 						connectResponseMessageEntity.getSenderNickname());
 			}
-			UserDto actingUserAfterUpdate = userService.getPrivateUser(actingUser.getId());
+			// refresh after actions
+			actingUser = userService.getPrivateUser(actingUser.getId());
 
 			connectResponseMessageEntity = updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
+			logHandledAction_Process(actingUser, connectResponseMessageEntity);
+
+			return MessageActionDto
+					.createInstanceActionDone(theDtoFactory.createInstance(actingUser, connectResponseMessageEntity));
+		}
+
+		private void logHandledAction_Process(UserDto actingUser, BuddyConnectResponseMessage connectResponseMessageEntity)
+		{
 			Optional<User> senderUser = connectResponseMessageEntity.getSenderUser();
 			String mobileNumber = senderUser.map(User::getMobileNumber).orElse("already deleted");
 			String id = senderUser.map(u -> u.getId().toString()).orElse("already deleted");
 			logger.info(
 					"User with mobile number '{}' and ID '{}' processed buddy connect response from user with mobile number '{}' and ID '{}'",
 					actingUser.getMobileNumber(), actingUser.getId(), mobileNumber, id);
-
-			return MessageActionDto
-					.createInstanceActionDone(theDtoFactory.createInstance(actingUserAfterUpdate, connectResponseMessageEntity));
 		}
 
 		private BuddyConnectResponseMessage updateMessageStatusAsProcessed(

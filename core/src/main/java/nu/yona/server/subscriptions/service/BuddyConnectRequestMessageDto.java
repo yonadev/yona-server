@@ -147,12 +147,17 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 
 			sendResponseMessageToRequestingUser(actingUser, connectRequestMessageEntity, payload.getProperty("message"));
 
-			logger.info(
-					"User with mobile number '{}' and ID '{}' accepted buddy connect request from user with mobile number '{}' and ID '{}'",
-					actingUser.getMobileNumber(), actingUser.getId(), senderUser.getMobileNumber(), senderUser.getId());
+			logHandledAction_Accept(actingUser, senderUser);
 
 			return MessageActionDto
 					.createInstanceActionDone(theDtoFactory.createInstance(actingUser, connectRequestMessageEntity));
+		}
+
+		private void logHandledAction_Accept(UserDto actingUser, User senderUser)
+		{
+			logger.info(
+					"User with mobile number '{}' and ID '{}' accepted buddy connect request from user with mobile number '{}' and ID '{}'",
+					actingUser.getMobileNumber(), actingUser.getId(), senderUser.getMobileNumber(), senderUser.getId());
 		}
 
 		private MessageActionDto handleAction_Reject(UserDto actingUser, BuddyConnectRequestMessage connectRequestMessageEntity,
@@ -162,15 +167,20 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 
 			sendResponseMessageToRequestingUser(actingUser, connectRequestMessageEntity, payload.getProperty("message"));
 
+			logHandledAction_Reject(actingUser, connectRequestMessageEntity);
+
+			return MessageActionDto
+					.createInstanceActionDone(theDtoFactory.createInstance(actingUser, connectRequestMessageEntity));
+		}
+
+		private void logHandledAction_Reject(UserDto actingUser, BuddyConnectRequestMessage connectRequestMessageEntity)
+		{
 			String mobileNumber = connectRequestMessageEntity.getSenderUser().map(User::getMobileNumber)
 					.orElse("already deleted");
 			String id = connectRequestMessageEntity.getSenderUser().map(u -> u.getId().toString()).orElse("already deleted");
 			logger.info(
 					"User with mobile number '{}' and ID '{}' rejected buddy connect request from user with mobile number '{}' and ID '{}'",
 					actingUser.getMobileNumber(), actingUser.getId(), mobileNumber, id);
-
-			return MessageActionDto
-					.createInstanceActionDone(theDtoFactory.createInstance(actingUser, connectRequestMessageEntity));
 		}
 
 		private BuddyConnectRequestMessage updateMessageStatusAsAccepted(BuddyConnectRequestMessage connectRequestMessageEntity)

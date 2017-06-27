@@ -392,7 +392,7 @@ public class BuddyService
 		Buddy.getRepository().save(buddy);
 	}
 
-	Set<BuddyDto> getBuddies(Set<Buddy> buddyEntities)
+	Set<BuddyDto> getBuddyDtos(Set<Buddy> buddyEntities)
 	{
 		loadAllBuddiesAnonymizedAtOnce(buddyEntities);
 		loadAllUsersAnonymizedAtOnce(buddyEntities);
@@ -619,9 +619,9 @@ public class BuddyService
 		}
 	}
 
-	public Optional<BuddyDto> getBuddyOfUserByUserAnonymizedId(UserPrivateDto forUser, UUID userAnonymizedId)
+	public Optional<BuddyDto> getBuddyOfUserByUserAnonymizedId(UserPrivateDto user, UUID userAnonymizedId)
 	{
-		Set<BuddyDto> buddies = forUser.getBuddies();
+		Set<BuddyDto> buddies = user.getBuddies();
 		for (BuddyDto buddy : buddies)
 		{
 			if (buddy.getUserAnonymizedId().filter(id -> id.equals(userAnonymizedId)).isPresent())

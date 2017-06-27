@@ -127,18 +127,24 @@ public class BuddyDisconnectMessageDto extends BuddyMessageEmbeddedUserDto
 				MessageActionDto requestPayload)
 		{
 			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getId(), messageEntity.getSenderUserId());
-			UserDto actingUserAfterUpdate = userService.getPrivateUser(actingUser.getId());
+			// refresh after actions
+			actingUser = userService.getPrivateUser(actingUser.getId());
 
 			messageEntity = updateMessageStatusAsProcessed(messageEntity);
 
+			logHandledAction_Process(actingUser, messageEntity);
+
+			return MessageActionDto.createInstanceActionDone(theDtoFactory.createInstance(actingUser, messageEntity));
+		}
+
+		private void logHandledAction_Process(UserDto actingUser, BuddyDisconnectMessage messageEntity)
+		{
 			Optional<User> senderUser = messageEntity.getSenderUser();
 			String mobileNumber = senderUser.map(User::getMobileNumber).orElse("already deleted");
 			String id = senderUser.map(u -> u.getId().toString()).orElse("already deleted");
 			logger.info(
 					"User with mobile number '{}' and ID '{}' processed buddy disconnect message from user with mobile number '{}' and ID '{}'",
 					actingUser.getMobileNumber(), actingUser.getId(), mobileNumber, id);
-
-			return MessageActionDto.createInstanceActionDone(theDtoFactory.createInstance(actingUserAfterUpdate, messageEntity));
 		}
 
 		private BuddyDisconnectMessage updateMessageStatusAsProcessed(BuddyDisconnectMessage messageEntity)
