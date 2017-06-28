@@ -14,7 +14,7 @@ function waitTillGetWorks() {
 	done
 	if [ $n -ge $iterations ] 
 	then
-		echo Failed to get URL $1 within timeout ($duration seconds)
+		echo "Failed to get URL $1 within timeout ($duration seconds)"
 		return 1
 	fi
 
