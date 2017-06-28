@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -94,6 +94,9 @@ public class BuddyDisconnectMessageDto extends BuddyMessageEmbeddedUserDto
 		@Autowired
 		private BuddyService buddyService;
 
+		@Autowired
+		private UserService userService;
+
 		@PostConstruct
 		private void init()
 		{
@@ -124,17 +127,24 @@ public class BuddyDisconnectMessageDto extends BuddyMessageEmbeddedUserDto
 				MessageActionDto requestPayload)
 		{
 			buddyService.removeBuddyAfterBuddyRemovedConnection(actingUser.getId(), messageEntity.getSenderUserId());
+			// refresh after actions
+			actingUser = userService.getPrivateUser(actingUser.getId());
 
 			messageEntity = updateMessageStatusAsProcessed(messageEntity);
 
+			logHandledAction_Process(actingUser, messageEntity);
+
+			return MessageActionDto.createInstanceActionDone(theDtoFactory.createInstance(actingUser, messageEntity));
+		}
+
+		private void logHandledAction_Process(UserDto actingUser, BuddyDisconnectMessage messageEntity)
+		{
 			Optional<User> senderUser = messageEntity.getSenderUser();
 			String mobileNumber = senderUser.map(User::getMobileNumber).orElse("already deleted");
 			String id = senderUser.map(u -> u.getId().toString()).orElse("already deleted");
 			logger.info(
 					"User with mobile number '{}' and ID '{}' processed buddy disconnect message from user with mobile number '{}' and ID '{}'",
 					actingUser.getMobileNumber(), actingUser.getId(), mobileNumber, id);
-
-			return MessageActionDto.createInstanceActionDone(theDtoFactory.createInstance(actingUser, messageEntity));
 		}
 
 		private BuddyDisconnectMessage updateMessageStatusAsProcessed(BuddyDisconnectMessage messageEntity)
