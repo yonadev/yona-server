@@ -77,13 +77,9 @@ pipeline {
 				environment name: 'DEPLOY_TO_MOB_TEST', value: 'yes'
 			}
 			steps {
-				sh 'wget -O refresh-build.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/refresh-build.sh'
-				sh 'chmod +x refresh-build.sh'
-				sh 'wget -O copy-resources.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/copy-resources.sh'
-				sh 'chmod +x copy-resources.sh'
-				sh 'wget -O wait-for-services.sh https://raw.githubusercontent.com/yonadev/yona-server/master/scripts/wait-for-services.sh'
-				sh 'chmod +x wait-for-services.sh'
-				sh './refresh-build.sh ${BUILD_NUMBER_TO_DEPLOY} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/resources /opt/ope-cloudbees/yona/backup'
+				sh 'helm repo update'
+				sh 'helm upgrade --install --namespace yona --set mariadb.mariadbUser=$YONA_DB_USR --set mariadb.mariadbPassword="$YONA_DB_PSW" --values /opt/ope-cloudbees/yona/k8s/helm/values.yaml --version 1.2.$BUILD_NUMBER yona yona/yona'
+				sh 'scripts/wait-for-services.sh k8s'
 			}
 		}
 		stage('Decide deploy to acceptance test server') {

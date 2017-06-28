@@ -2,16 +2,19 @@
 set -e # Fail on error
 
 function waitTillGetWorks() {
+	duration=600
+	sleepTime=5
+	iterations=$[$duration / $sleepTime]
 	n=0
-	until [ $n -ge 60 ]
+	until [ $n -ge $iterations ]
 	do
 		curl -f $1 && echo && break
-		n=$[$n+1]
+		n=$[$n + 1]
 		sleep 5
 	done
-	if [ $n -ge 24 ] 
+	if [ $n -ge $iterations ] 
 	then
-		echo Failed to get URL $1 within timeout
+		echo Failed to get URL $1 within timeout ($duration seconds)
 		return 1
 	fi
 
