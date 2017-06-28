@@ -40,20 +40,15 @@ then
 		return 1
 	fi
 else
-	ADMIN_SVC_PORT=8080
-	ANALYSIS_SVC_PORT=8081
-	APP_SVC_PORT=80
-	BATCH_SVC_PORT=8082
-
 	echo "Waiting for the admin service to start"
-	waitTillGetWorks http://127.0.0.1:$ADMIN_SVC_PORT/activityCategories/
+	waitTillGetWorks http://127.0.0.1:8080/activityCategories/
 
 	echo "Waiting for the analysis service to start"
-	waitTillGetWorks http://127.0.0.1:$ANALYSIS_SVC_PORT/relevantSmoothwallCategories/
+	waitTillGetWorks http://127.0.0.1:8081/relevantSmoothwallCategories/
 
 	echo "Waiting for the app service to start"
-	waitTillGetWorks http://127.0.0.1:$APP_SVC_PORT/activityCategories/
+	waitTillGetWorks http://127.0.0.1/activityCategories/
 
 	echo "Waiting for the batch service to start"
-	waitTillGetWorks http://127.0.0.1:$BATCH_SVC_PORT/scheduler/jobs/
+	waitTillGetWorks http://127.0.0.1:8083/scheduler/jobs/
 fi
