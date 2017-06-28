@@ -72,6 +72,8 @@ pipeline {
 			agent { label 'mob-test' }
 			environment {
 				YONA_DB = credentials('test-db')
+				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
+				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
 			}
 			when {
 				environment name: 'DEPLOY_TO_MOB_TEST', value: 'yes'
@@ -100,6 +102,8 @@ pipeline {
 			agent { label 'acc-test' }
 			environment {
 				YONA_DB = credentials('test-db')
+				HELM_HOME = "/opt/ope-cloudbees/yona/k8s/helm/.helm"
+				KUBECONFIG = "/opt/ope-cloudbees/yona/k8s/admin.conf"
 			}
 			when {
 				environment name: 'DEPLOY_TO_ACC_TEST', value: 'yes'
