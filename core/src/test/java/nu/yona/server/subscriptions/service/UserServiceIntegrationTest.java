@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -143,8 +143,7 @@ public class UserServiceIntegrationTest
 	public void assertValidUserFieldsUserWithGoalsBuddyThrows()
 	{
 		UserPrivateDto userPrivate = new UserPrivateDto(Optional.empty(), "password", "jd", null, null,
-				new HashSet<GoalDto>(Arrays.asList(new BudgetGoalDto(Optional.empty(), 1))), Collections.emptySet(), null, null,
-				null);
+				new HashSet<GoalDto>(Arrays.asList(new BudgetGoalDto(Optional.empty(), 1))), Collections.emptySet(), null, null);
 		UserDto user = new UserDto("John", "Doe", "john@doe.net", "+31612345678", userPrivate);
 
 		service.assertValidUserFields(user, UserPurpose.BUDDY);

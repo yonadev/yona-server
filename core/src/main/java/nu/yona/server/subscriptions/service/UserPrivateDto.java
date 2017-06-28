@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -34,30 +34,28 @@ public class UserPrivateDto
 	private final UUID userAnonymizedId;
 	private final UUID namedMessageSourceId;
 	private final UUID anonymousMessageSourceId;
-	private final Set<UUID> buddyIds;
-	private final Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper;
+	private final Set<BuddyDto> buddies;
 
 	@JsonCreator
 	public UserPrivateDto(@JsonProperty("nickname") String nickname)
 	{
-		this(Optional.empty(), null, nickname, null, null, Collections.emptySet(), Collections.emptySet(), null, null,
+		this(Optional.empty(), null, nickname, null, null, Collections.emptySet(), Collections.emptySet(), null,
 				new VPNProfileDto(null));
 	}
 
 	UserPrivateDto(Optional<LocalDate> lastMonitoredActivityDate, String yonaPassword, String nickname, UUID namedMessageSourceId,
-			UUID anonymousMessageSourceId, Set<GoalDto> goals, Set<UUID> buddyIds,
-			Function<Set<UUID>, Set<BuddyDto>> buddyIdToDtoMapper, UUID userAnonymizedId, VPNProfileDto vpnProfile)
+			UUID anonymousMessageSourceId, Set<GoalDto> goals, Set<BuddyDto> buddies, UUID userAnonymizedId,
+			VPNProfileDto vpnProfile)
 	{
 		Objects.requireNonNull(goals);
-		Objects.requireNonNull(buddyIds);
+		Objects.requireNonNull(buddies);
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 		this.yonaPassword = yonaPassword;
 		this.nickname = nickname;
 		this.namedMessageSourceId = namedMessageSourceId;
 		this.anonymousMessageSourceId = anonymousMessageSourceId;
 		this.goals = goals;
-		this.buddyIds = buddyIds;
-		this.buddyIdToDtoMapper = buddyIdToDtoMapper;
+		this.buddies = buddies;
 		this.userAnonymizedId = userAnonymizedId;
 		this.vpnProfile = vpnProfile;
 	}
@@ -106,13 +104,13 @@ public class UserPrivateDto
 	@JsonIgnore
 	public Set<UUID> getBuddyIds()
 	{
-		return Collections.unmodifiableSet(buddyIds);
+		return buddies.stream().map(buddy -> buddy.getId()).collect(Collectors.toSet());
 	}
 
 	@JsonIgnore
 	public Set<BuddyDto> getBuddies()
 	{
-		return buddyIdToDtoMapper.apply(buddyIds);
+		return Collections.unmodifiableSet(buddies);
 	}
 
 	@JsonIgnore
