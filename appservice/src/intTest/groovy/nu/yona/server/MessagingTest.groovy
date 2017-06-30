@@ -34,7 +34,8 @@ class MessagingTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		allMessagesResponse.status == 200
-		allMessagesResponse.responseData._links.self.href == richard.messagesUrl
+		allMessagesResponse.responseData._links.self.href.startsWith(richard.messagesUrl)
+		allMessagesResponse.responseData._links.self.href.contains("page=0")
 		allMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}.size() == 1
 		allMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}.size() == 3
 		allMessagesResponse.responseData._embedded."yona:messages".size() == 4
