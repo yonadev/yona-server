@@ -60,11 +60,6 @@ paths:
       summary: Add a new user
       description: Registers a new user
       parameters:
-        - name: Yona-Password
-          in: header
-          description: The device password
-          required: false
-          type: string
         - name: overwriteUserConfirmationCode
           in: query
           description: Pass the confirmation code here when trying to overwrite the account in case of a device loss

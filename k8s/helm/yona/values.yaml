@@ -195,7 +195,6 @@ app:
     dos_protection_window: PT5M
     max_create_user_attempts_per_time_window: 2
     max_update_user_attempts_per_time_window: 2
-    app_provided_password_enabled: true
 
 batch:
   enabled: true

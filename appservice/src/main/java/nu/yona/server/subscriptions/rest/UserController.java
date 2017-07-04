@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
-import javax.crypto.SecretKey;
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.servlet.http.HttpServletRequest;
@@ -183,7 +182,7 @@ public class UserController
 	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.CREATED)
-	public HttpEntity<UserResource> addUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+	public HttpEntity<UserResource> addUser(
 			@RequestParam(value = "overwriteUserConfirmationCode", required = false) String overwriteUserConfirmationCode,
 			@RequestBody UserDto user, HttpServletRequest request)
 	{
@@ -191,7 +190,7 @@ public class UserController
 		// and to prevent enumeration of all occupied mobile numbers
 		return dosProtectionService.executeAttempt(getAddUserLinkBuilder().toUri(), request,
 				yonaProperties.getSecurity().getMaxCreateUserAttemptsPerTimeWindow(),
-				() -> addUser(password, Optional.ofNullable(overwriteUserConfirmationCode), user));
+				() -> addUser(Optional.ofNullable(overwriteUserConfirmationCode), user));
 	}
 
 	@RequestMapping(value = "/{userId}", method = RequestMethod.PUT)
@@ -304,7 +303,7 @@ public class UserController
 	static ControllerLinkBuilder getAddUserLinkBuilder()
 	{
 		UserController methodOn = methodOn(UserController.class);
-		return linkTo(methodOn.addUser(Optional.empty(), null, null, null));
+		return linkTo(methodOn.addUser(null, null, null));
 	}
 
 	static ControllerLinkBuilder getUpdateUserLinkBuilder(UUID userId)
@@ -319,30 +318,11 @@ public class UserController
 		return linkTo(methodOn.confirmMobileNumber(Optional.empty(), userId, null));
 	}
 
-	private HttpEntity<UserResource> addUser(Optional<String> password, Optional<String> overwriteUserConfirmationCode,
-			UserDto user)
+	private HttpEntity<UserResource> addUser(Optional<String> overwriteUserConfirmationCode, UserDto user)
 	{
-		checkAppProvidedPassword(password);
-		SecretKey secretKey = password.map(p -> CryptoSession.getSecretKey(password.get()))
-				.orElse(SecretKeyUtil.generateRandomSecretKey());
-		try (CryptoSession cryptoSession = CryptoSession.start(secretKey))
+		try (CryptoSession cryptoSession = CryptoSession.start(SecretKeyUtil.generateRandomSecretKey()))
 		{
 			return createResponse(userService.addUser(user, overwriteUserConfirmationCode), true, HttpStatus.CREATED);
-		}
-	}
-
-	private void checkAppProvidedPassword(Optional<String> password)
-	{
-		if (password.isPresent())
-		{
-			if (yonaProperties.getSecurity().isAppProvidedPasswordEnabled())
-			{
-				logger.warn("Creating user with app-provided password");
-			}
-			else
-			{
-				throw InvalidDataException.appProvidedPasswordNotSupported();
-			}
 		}
 	}
 

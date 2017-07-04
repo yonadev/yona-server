@@ -22,14 +22,13 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 				"nickname":"JD",
 				"mobileNumber":"+${timestamp}"
 				}"""
-	def password = "John Doe"
 
 	def 'AddUser - empty first name'()
 	{
 		when:
 		def object = jsonSlurper.parseText(userCreationJson)
 		object.remove('firstName')
-		def response = appService.addUser(object, password)
+		def response = appService.addUser(object)
 
 		then:
 		response.status == 400
@@ -41,7 +40,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		when:
 		def object = jsonSlurper.parseText(userCreationJson)
 		object.remove('lastName')
-		def response = appService.addUser(object, password)
+		def response = appService.addUser(object)
 
 		then:
 		response.status == 400
@@ -53,7 +52,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		when:
 		def object = jsonSlurper.parseText(userCreationJson)
 		object.remove('nickname')
-		def response = appService.addUser(object, password)
+		def response = appService.addUser(object)
 
 		then:
 		response.status == 400
@@ -65,7 +64,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		when:
 		def object = jsonSlurper.parseText(userCreationJson)
 		object.remove('mobileNumber')
-		def response = appService.addUser(object, password)
+		def response = appService.addUser(object)
 
 		then:
 		response.status == 400
@@ -77,7 +76,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		when:
 		def object = jsonSlurper.parseText(userCreationJson)
 		object.put('mobileNumber', '++55 5 ')
-		def response = appService.addUser(object, password)
+		def response = appService.addUser(object)
 
 		then:
 		response.status == 400

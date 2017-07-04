@@ -16,7 +16,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	def 'Richard cannot create a buddy request before confirming his own mobile number'()
 	{
 		given:
-		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "R i c h a r d", "Richard", "Quinn", "RQ",
+		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "Richard", "Quinn", "RQ",
 				"+$timestamp")
 
 		when:
@@ -301,7 +301,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		sendBuddyRequestForBob(richard, mobileNumberBob)
 
 		when:
-		def john = appService.addUser(this.&assertUserCreationFailedBecauseOfDuplicate, "J o h n", "John", "Doe", "JD",
+		def john = appService.addUser(this.&assertUserCreationFailedBecauseOfDuplicate, "John", "Doe", "JD",
 				mobileNumberBob)
 
 		then:
@@ -423,7 +423,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 200
 
-		User bob = appService.addUser(this.&assertUserOverwriteResponseDetails, "B o b", "Bob Changed",
+		User bob = appService.addUser(this.&assertUserOverwriteResponseDetails, "Bob Changed",
 				"Dunn Changed", "BD Changed", mobileNumberBob, ["overwriteUserConfirmationCode": "1234"])
 		bob
 		bob.firstName == "Bob Changed"
@@ -466,7 +466,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def mobileNumberBob = "+$timestamp"
 		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 		appService.requestOverwriteUser(mobileNumberBob)
-		User bob = appService.addUser(this.&assertUserOverwriteResponseDetails, "B o b", "Bob Changed",
+		User bob = appService.addUser(this.&assertUserOverwriteResponseDetails, "Bob Changed",
 				"Dunn Changed", "BD Changed", mobileNumberBob, ["overwriteUserConfirmationCode": "1234"])
 		bob.emailAddress = "bob@dunn.net"
 

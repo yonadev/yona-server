@@ -14,7 +14,6 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	final def firstName = "John"
 	final def lastName = "Doe"
 	final def nickname = "JD"
-	def password = "J o h n   D o e"
 
 	def 'Create John Doe'()
 	{
@@ -388,7 +387,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 	private User createJohnDoe(def ts)
 	{
-		appService.addUser(appService.&assertUserCreationResponseDetails, password, firstName, lastName, nickname,
+		appService.addUser(appService.&assertUserCreationResponseDetails, firstName, lastName, nickname,
 				"+$ts")
 	}
 
