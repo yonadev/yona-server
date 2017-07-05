@@ -17,7 +17,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 
 		when:
-		def duplicateUser = appService.addUser(this.&userExistsAsserter, "A n o t h e r", "The", "Next", "TN",
+		def duplicateUser = appService.addUser(this.&userExistsAsserter, "The", "Next", "TN",
 				"$richard.mobileNumber")
 
 		then:
@@ -58,7 +58,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.requestOverwriteUser(richard.mobileNumber)
 
 		when:
-		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "ChangedPassword", "${richard.firstName}Changed",
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": "1234"])
 
@@ -101,7 +101,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.requestOverwriteUser(richard.mobileNumber)
 
 		when:
-		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "ChangedPassword", "${richard.firstName}Changed",
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": "1234"])
 
@@ -146,7 +146,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.requestOverwriteUser(richard.mobileNumber)
 
 		when:
-		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "ChangedPassword", "${richard.firstName}Changed",
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": "1234"])
 
@@ -189,7 +189,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.requestOverwriteUser(richard.mobileNumber)
 
 		when:
-		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "ChangedPassword", "${richard.firstName}Changed",
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": "1234"])
 
@@ -239,7 +239,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
 		appService.requestOverwriteUser(richard.mobileNumber)
-		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "ChangedPassword", "${richard.firstName}Changed",
+		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": "1234"])
 
@@ -267,7 +267,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		assert appService.requestOverwriteUser(richard.mobileNumber).status == 200
 
 		when:
-		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "ChangedPassword", "${richard.firstName}Changed",
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": "1234"])
 
@@ -294,19 +294,19 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 						"nickname":"JD",
 						"mobileNumber":"${userCreationMobileNumber}"}"""
 
-		def userAddResponse = appService.addUser(userCreationJson, "Password")
+		def userAddResponse = appService.addUser(userCreationJson)
 		def overwriteRequestResponse = appService.requestOverwriteUser(userCreationMobileNumber)
 		def userUrl = YonaServer.stripQueryString(userAddResponse.responseData._links.self.href)
 
 		when:
-		def response1TimeWrong = appService.addUser(userCreationJson, "New password", ["overwriteUserConfirmationCode": "12341"])
+		def response1TimeWrong = appService.addUser(userCreationJson, ["overwriteUserConfirmationCode": "12341"])
 		response1TimeWrong.responseData.remainingAttempts == 4
-		appService.addUser(userCreationJson, "New password", ["overwriteUserConfirmationCode": "12342"])
-		appService.addUser(userCreationJson, "New password", ["overwriteUserConfirmationCode": "12343"])
-		def response4TimesWrong = appService.addUser(userCreationJson, "New password", ["overwriteUserConfirmationCode": "12344"])
-		def response5TimesWrong = appService.addUser(userCreationJson, "New password", ["overwriteUserConfirmationCode": "12345"])
-		def response6TimesWrong = appService.addUser(userCreationJson, "New password", ["overwriteUserConfirmationCode": "12346"])
-		def response7thTimeRight = appService.addUser(userCreationJson, "New password", ["overwriteUserConfirmationCode": "1234"])
+		appService.addUser(userCreationJson, ["overwriteUserConfirmationCode": "12342"])
+		appService.addUser(userCreationJson, ["overwriteUserConfirmationCode": "12343"])
+		def response4TimesWrong = appService.addUser(userCreationJson, ["overwriteUserConfirmationCode": "12344"])
+		def response5TimesWrong = appService.addUser(userCreationJson, ["overwriteUserConfirmationCode": "12345"])
+		def response6TimesWrong = appService.addUser(userCreationJson, ["overwriteUserConfirmationCode": "12346"])
+		def response7thTimeRight = appService.addUser(userCreationJson, ["overwriteUserConfirmationCode": "1234"])
 
 		then:
 		userAddResponse.status == 201

@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.properties;
 
@@ -16,7 +16,6 @@ public class SecurityProperties
 	private int passwordLength = 32;
 	private Duration dosProtectionWindow = Duration.ofMinutes(5);
 	private boolean isDosProtectionEnabled = false;
-	private boolean isAppProvidedPasswordEnabled = false;
 	private int maxCreateUserAttemptsPerTimeWindow = 1;
 	private int maxUpdateUserAttemptsPerTimeWindow = 1;
 	private String sslRootCertFile;
@@ -155,15 +154,5 @@ public class SecurityProperties
 	public void setOvpnProfileFile(String ovpnProfileFile)
 	{
 		this.ovpnProfileFile = ovpnProfileFile;
-	}
-
-	public void setAppProvidedPasswordEnabled(boolean isAppProvidedPasswordEnabled)
-	{
-		this.isAppProvidedPasswordEnabled = isAppProvidedPasswordEnabled;
-	}
-
-	public boolean isAppProvidedPasswordEnabled()
-	{
-		return isAppProvidedPasswordEnabled;
 	}
 }

@@ -40,20 +40,7 @@ class AppService extends Service
 
 	def addUser(jsonString, parameters = [:])
 	{
-		yonaServer.createResource(USERS_PATH, jsonString, parameters)
-	}
-
-	def addUser(Closure asserter, String password, firstName, lastName, nickname, mobileNumber, parameters = [:])
-	{
-		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber)
-		def response = addUser(jsonStr, password, parameters)
-		asserter(response)
-		return (isSuccess(response)) ? new User(response.responseData) : null
-	}
-
-	def addUser(jsonString, String password, parameters = [:])
-	{
-		yonaServer.createResourceWithPassword(USERS_PATH, jsonString, password, parameters)
+		yonaServer.createResource(USERS_PATH, jsonString, [:], parameters)
 	}
 
 	def getUser(Closure asserter, userUrl, boolean includePrivateData, password = null)

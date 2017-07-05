@@ -19,7 +19,6 @@ data:
     yona.security.dosProtectionWindow={{ .Values.app.security.dos_protection_window | default "PT5M" }}
     yona.security.maxCreateUserAttemptsPerTimeWindow={{ .Values.app.security.max_create_user_attempts_per_time_window | default "2" }}
     yona.security.maxUpdateUserAttemptsPerTimeWindow={{ .Values.app.security.max_update_user_attempts_per_time_window | default "2" }}
-    yona.security.appProvidedPasswordEnabled={{ required "True or False required for app.security.app_provided_password_enabled" .Values.app.security.app_provided_password_enabled }}
     yona.analysisservice.updateSkipWindow={{ .Values.analysis.update_skip_window | default "PT1M" }}
     yona.email.enabled={{ required "True or False required for email.enabled" .Values.email.enabled }}
     yona.email.senderAddress={{ .Values.email.sender_address | default "noreply@example.com" }}

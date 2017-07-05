@@ -32,7 +32,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard, "Goodbye friends! I deinstalled the Internet")
 
 		when:
-		def newRichard = appService.addUser(appService.&assertUserCreationResponseDetails, richard.password, richard.firstName, richard.lastName,
+		def newRichard = appService.addUser(appService.&assertUserCreationResponseDetails, richard.firstName, richard.lastName,
 				richard.nickname, richard.mobileNumber)
 
 		then:
@@ -118,7 +118,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def newRichard = addRichard()
 		bob.emailAddress = "bob@dunn.net"
 		appService.makeBuddies(newRichard, bob)
-		
+
 		then:
 		appService.deleteUser(newRichard, "Sorry, going again").status == 200
 
