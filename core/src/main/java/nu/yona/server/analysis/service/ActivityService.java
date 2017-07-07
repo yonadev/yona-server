@@ -224,12 +224,14 @@ public class ActivityService
 		Interval interval = getInterval(getCurrentDayDate(userAnonymized), pageable, ChronoUnit.DAYS);
 		Set<BuddyDto> buddies = buddyService.getBuddiesOfUserThatAcceptedSending(userId);
 		Set<UUID> userAnonymizedIds = buddies.stream().map(this::getBuddyUserAnonymizedId).collect(Collectors.toSet());
-		Set<UUID> activityCategoryIds = buddies.stream().map(BuddyDto::getGoals).flatMap(Set::stream)
-				.map(GoalDto::getActivityCategoryId).collect(Collectors.toSet());
 		userAnonymizedIds.add(userAnonymizedId);
+		// Goals of the user should only be included in the withBuddies list when at least one buddy has a goal in that category
+		Set<UUID> activityCategoryIdsUsedByBuddies = buddies.stream().map(BuddyDto::getGoals).flatMap(Set::stream)
+				.map(GoalDto::getActivityCategoryId).collect(Collectors.toSet());
 
 		Map<ZonedDateTime, Set<DayActivityDto>> dayActivityDtosByZonedDate = executeAndCreateInactivityEntries(
-				mia -> getDayActivitiesForUserAnonymizedIdsInInterval(userAnonymizedIds, activityCategoryIds, interval, mia));
+				mia -> getDayActivitiesForUserAnonymizedIdsInInterval(userAnonymizedIds, activityCategoryIdsUsedByBuddies,
+						interval, mia));
 		List<DayActivityOverviewDto<DayActivityWithBuddiesDto>> dayActivityOverviews = dayActivityEntitiesToOverviewsUserWithBuddies(
 				dayActivityDtosByZonedDate);
 		return new PageImpl<>(dayActivityOverviews, pageable, getTotalPageableItems(buddies, ChronoUnit.DAYS));

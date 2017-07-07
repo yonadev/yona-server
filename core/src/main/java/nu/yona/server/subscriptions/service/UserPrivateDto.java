@@ -104,7 +104,7 @@ public class UserPrivateDto
 	@JsonIgnore
 	public Set<UUID> getBuddyIds()
 	{
-		return buddies.stream().map(buddy -> buddy.getId()).collect(Collectors.toSet());
+		return buddies.stream().map(BuddyDto::getId).collect(Collectors.toSet());
 	}
 
 	@JsonIgnore

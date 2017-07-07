@@ -1223,7 +1223,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Richard and Bob have different goals'()
+	def 'Richard\'s goals are only included when a buddy has that goal too'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
