@@ -2,7 +2,7 @@
  * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
-package nu.yona.server.analysis.service;
+package nu.yona.server.analysis.entities;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -82,7 +82,6 @@ public abstract class IntervalActivityTestsBase
 		assertThat(intervalActivity.getTotalActivityDurationMinutes(), equalTo(expectedTotalActivityDurationMinutes));
 
 		intervalActivity.computeAggregates();
-		assertThat(intervalActivity.areAggregatesComputed(), equalTo(true));
 		assertSpreadItems(intervalActivity.getSpread(), expectedSpreadItems);
 		assertThat(intervalActivity.getTotalActivityDurationMinutes(), equalTo(expectedTotalActivityDurationMinutes));
 	}
