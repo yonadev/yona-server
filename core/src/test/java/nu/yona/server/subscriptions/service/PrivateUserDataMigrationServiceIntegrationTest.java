@@ -144,7 +144,7 @@ public class PrivateUserDataMigrationServiceIntegrationTest
 	}
 
 	@Test
-	public void getPrivateUserMigratesToCurrentVersion()
+	public void getPrivateUser_twoVersionsBehind_migratesToCurrentVersion()
 	{
 		john.setPrivateDataMigrationVersion(0);
 
@@ -161,7 +161,7 @@ public class PrivateUserDataMigrationServiceIntegrationTest
 	}
 
 	@Test
-	public void getPrivateValidatedUserMigratesToCurrentVersion()
+	public void getPrivateValidatedUser_twoVersionsBehind_migratesToCurrentVersion()
 	{
 		john.setPrivateDataMigrationVersion(0);
 
