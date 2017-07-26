@@ -45,10 +45,15 @@ public class PlivoSmsServiceTest
 	}
 
 	@Test
-	@Parameters({ "+31000000000, " + TEST_ALPHA_ID, "+32111111111, " + TEST_DEFAULT_NUMBER, "+49222222222, " + TEST_ALPHA_ID })
-	public void testDetermineSender(String targetPhoneNumber, String expectedSender)
+	@Parameters({ "+31000000000", "+49222222222" })
+	public void determineSender_targetPhoneNumberInAlphaSenderSupportingCountries_returnsAlphaId(String targetPhoneNumber)
 	{
-		assertThat(smsService.determineSender(targetPhoneNumber), equalTo(expectedSender));
+		assertThat(smsService.determineSender(targetPhoneNumber), equalTo(TEST_ALPHA_ID));
 	}
 
+	@Test
+	public void determineSender_targetPhoneNumberNotInAlphaSenderSupportingCountries_returnsDefaultNumber()
+	{
+		assertThat(smsService.determineSender("+32111111111"), equalTo(TEST_DEFAULT_NUMBER));
+	}
 }

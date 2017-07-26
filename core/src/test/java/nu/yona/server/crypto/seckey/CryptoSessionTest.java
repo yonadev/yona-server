@@ -30,13 +30,13 @@ public class CryptoSessionTest
 	private static final String PLAINTEXT2 = "Two";
 
 	@Test(expected = CryptoException.class)
-	public void testNoCurrentSession()
+	public void getCurrent_noCurrentSession_throws()
 	{
 		CryptoSession.getCurrent();
 	}
 
 	@Test(expected = WrongPasswordException.class)
-	public void testExecuteEmptyPassword()
+	public void start_emptyPassword_throws()
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(Optional.empty(), () -> true))
 		{
@@ -121,7 +121,7 @@ public class CryptoSessionTest
 	}
 
 	@Test
-	public void testInvalidPasswordWhileCheckerSaysOk()
+	public void start_passwordCheckerSaysOk_doesNotThrow()
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsOk))
 		{
@@ -130,7 +130,7 @@ public class CryptoSessionTest
 	}
 
 	@Test(expected = CryptoException.class)
-	public void testInvalidPasswordWhileCheckerSaysNotOk()
+	public void start_passwordCheckerSaysNotOk_throws()
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsNotOk))
 		{

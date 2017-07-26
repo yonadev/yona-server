@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
@@ -33,36 +33,27 @@ public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 	@Autowired
 	private ActivityCategoryService service;
 
-	/*
-	 * Tests the method to get all categories.
-	 */
 	@Test
-	public void getAllActivityCategories()
+	public void getAllActivityCategories_default_returnsDefinedActivityCategories()
 	{
 		assertGetAllActivityCategoriesResult("Get all", "gambling", "news");
 	}
 
-	private void assertGetAllActivityCategoriesResult(String reason, String... names)
-	{
-		assertThat(reason, service.getAllActivityCategories().stream().map(a -> a.getName()).collect(Collectors.toSet()),
-				containsInAnyOrder(names));
-	}
-
-	/*
-	 * Tests the method to get a category.
-	 */
 	@Test
-	public void getActivityCategory()
+	public void getActivityCategory_default_rightResult()
 	{
 		assertThat(service.getActivityCategory(gambling.getId()).getName(), equalTo("gambling"));
 		assertThat(service.getActivityCategory(news.getId()).getName(), equalTo("news"));
 	}
 
-	/*
-	 * Tests import.
-	 */
+	@Test(expected = ActivityCategoryException.class)
+	public void getActivityCategory_unknownId_throws()
+	{
+		service.getActivityCategory(UUID.randomUUID());
+	}
+
 	@Test
-	public void importActivityCategories()
+	public void updateActivityCategorySet_modifiedActivityCategories_setIsUpdatedCorrectly()
 	{
 		assertGetAllActivityCategoriesResult("Initial", "gambling", "news");
 
@@ -85,5 +76,11 @@ public class ActivityCategoryServiceTest extends ActivityCategoryServiceTestBase
 		// 1 deleted
 		verify(getMockRepository(), times(1)).delete(matchActivityCategory.capture());
 		assertThat(matchActivityCategory.getValue().getLocalizableName().get(Translator.EN_US_LOCALE), equalTo("gambling"));
+	}
+
+	private void assertGetAllActivityCategoriesResult(String reason, String... names)
+	{
+		assertThat(reason, service.getAllActivityCategories().stream().map(a -> a.getName()).collect(Collectors.toSet()),
+				containsInAnyOrder(names));
 	}
 }
