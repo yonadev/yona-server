@@ -8,6 +8,9 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
@@ -18,6 +21,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
+import javax.imageio.ImageIO;
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.servlet.http.HttpServletRequest;
@@ -47,6 +51,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -237,6 +242,31 @@ public class UserController
 	private HttpEntity<UserResource> updateUser(UUID userId, UserDto userResource)
 	{
 		return createOkResponse(userService.updateUser(userId, userResource), true);
+	}
+
+	@RequestMapping(value = "/photo", method = RequestMethod.POST)
+	public void updateUserPhoto(@RequestParam("file") MultipartFile file)
+	{
+		getPngBytes(file);
+	}
+
+	private byte[] getPngBytes(MultipartFile file)
+	{
+		try
+		{
+			BufferedImage image = ImageIO.read(file.getInputStream());
+			if (image == null)
+			{
+				throw InvalidDataException.notSupportedPhotoFileType();
+			}
+			ByteArrayOutputStream pngBytes = new ByteArrayOutputStream();
+			ImageIO.write(image, "png", pngBytes);
+			return pngBytes.toByteArray();
+		}
+		catch (IOException e)
+		{
+			throw YonaException.unexpected(e);
+		}
 	}
 
 	@RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
