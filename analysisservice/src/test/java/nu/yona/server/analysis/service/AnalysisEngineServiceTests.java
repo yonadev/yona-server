@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -235,21 +236,16 @@ public class AnalysisEngineServiceTests
 				.collect(Collectors.toSet());
 	}
 
-	/*
-	 * Tests the method to get all relevant categories.
-	 */
 	@Test
-	public void getRelevantSmoothwallCategories()
+	public void getRelevantSmoothwallCategories_default_containsExpectedItems()
 	{
-		assertThat(service.getRelevantSmoothwallCategories(),
-				containsInAnyOrder("poker", "lotto", "refdag", "bbc", "games", "social", "webshop"));
+		Set<String> result = service.getRelevantSmoothwallCategories();
+
+		assertThat(result, containsInAnyOrder("poker", "lotto", "refdag", "bbc", "games", "social", "webshop"));
 	}
 
-	/*
-	 * Tests that a message is sent when another conflict occurs after the interval
-	 */
 	@Test
-	public void messageSentWhenSecondConflictAfterConflictInterval()
+	public void analyze_secondConflictAfterConflictInterval_goalConflictMessageCreated()
 	{
 		// Normally there is one conflict message sent.
 		// Set a short conflict interval such that the conflict messages are not aggregated.
@@ -271,97 +267,60 @@ public class AnalysisEngineServiceTests
 
 		}
 
-		Set<String> conflictCategories = new HashSet<>(Arrays.asList("lotto"));
-		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test1", Optional.empty()));
+		service.analyze(userAnonId, createNetworkActivityForCategories("lotto"));
 
-		// Verify that there is a new conflict message sent.
 		verifyGoalConflictMessageSent(gamblingGoal);
 
 		// Restore default properties.
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 	}
 
-	/*
-	 * Tests that a second conflict within the interval does not cause a message to be sent
-	 */
 	@Test
-	public void noMessageSentWhenSecondConflictWithinConflictInterval()
+	public void analyze_secondConflictWithinConflictInterval_noGoalConflictMessagesCreated()
 	{
 		mockExistingActivity(gamblingGoal, nowInAmsterdam());
 
-		Set<String> conflictCategories = new HashSet<>(Arrays.asList("lotto"));
-		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test1", Optional.empty()));
+		service.analyze(userAnonId, createNetworkActivityForCategories("lotto"));
 
-		// Verify that there is no new conflict message sent.
 		verifyNoMessagesCreated();
 	}
 
-	/**
-	 * Tests that a conflict message is created when analysis service is called with a matching category.
-	 */
 	@Test
-	public void messageCreatedOnMatch()
+	public void analyze_matchingCategory_activityUpdateWithCorrectTimesAndGoalConflictMessageCreated()
 	{
 		ZonedDateTime t = nowInAmsterdam();
-		// Execute the analysis engine service.
-		Set<String> conflictCategories = new HashSet<>(Arrays.asList("lotto"));
-		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
 
-		// Verify there is a an activity in a day activity inside a week activity
-		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonEntity);
-		List<WeekActivity> weekActivities = gamblingGoal.getWeekActivities();
-		assertThat("One week activity created", weekActivities.size(), equalTo(1));
-		List<DayActivity> dayActivities = weekActivities.get(0).getDayActivities();
-		assertThat("One day activity created", dayActivities.size(), equalTo(1));
-		List<Activity> activities = dayActivities.get(0).getActivities();
-		assertThat("One activity created", activities.size(), equalTo(1));
-		Activity activity = activities.get(0);
+		service.analyze(userAnonId, createNetworkActivityForCategories("lotto"));
+
+		List<Activity> resultActivities = verifyActivityUpdate(gamblingGoal);
+		Activity activity = resultActivities.get(0);
 		assertThat("Expect start time set just about time of analysis", activity.getStartTimeAsZonedDateTime(),
 				greaterThanOrEqualTo(t));
 		assertThat("Expect end time set just about time of analysis", activity.getEndTimeAsZonedDateTime(),
 				greaterThanOrEqualTo(t));
-		assertThat("Expect right goal set to activity", activity.getActivityCategory(),
-				equalTo(gamblingGoal.getActivityCategory()));
-
-		// Verify that there is an activity cached
-		verify(mockAnalysisEngineCacheService).updateLastActivityForUser(eq(userAnonId), eq(gamblingGoal.getId()), any());
-
 		verifyGoalConflictMessageSent(gamblingGoal);
 	}
 
-	/**
-	 * Tests that a conflict message is created when analysis service is called with a not matching and a matching category.
-	 */
 	@Test
-	public void messageCreatedOnMatchOneCategoryOfMultiple()
+	public void analyze_matchOneCategoryOfMultiple_oneActivityUpdateAndGoalConflictMessageCreated()
 	{
-		// Execute the analysis engine service.
-		Set<String> conflictCategories = new HashSet<>(Arrays.asList("refdag", "lotto"));
-		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonId, createNetworkActivityForCategories("refdag", "lotto"));
 
 		verifyActivityUpdate(gamblingGoal);
 		verifyGoalConflictMessageSent(gamblingGoal);
 	}
 
-	/**
-	 * Tests that multiple conflict messages are created when analysis service is called with multiple matching categories.
-	 */
 	@Test
-	public void messagesCreatedOnMatchMultiple()
+	public void analyze_multipleMatchingCategories_multipleActivityUpdatesAndGoalConflictMessagesCreated()
 	{
-		// Execute the analysis engine service.
-		Set<String> conflictCategories = new HashSet<>(Arrays.asList("lotto", "games"));
-		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonId, createNetworkActivityForCategories("lotto", "games"));
 
 		verifyActivityUpdate(gamblingGoal, gamingGoal);
 		verifyGoalConflictMessageSent(gamblingGoal, gamingGoal);
 	}
 
-	/**
-	 * Tests that a conflict message is updated when analysis service is called with a matching category after a short time.
-	 */
 	@Test
-	public void messageAggregation()
+	public void analyze_multipleFollowingCallsWithinConflictInterval_activityUpdatedButNoNewGoalConflictMessagesCreated()
 	{
 		// Normally there is one conflict message sent.
 		// Set update skip window to 0 such that the conflict messages are aggregated immediately.
@@ -373,18 +332,12 @@ public class AnalysisEngineServiceTests
 		DayActivity dayActivity = mockExistingActivity(gamblingGoal, t);
 		Activity existingActivityEntity = dayActivity.getLastActivity();
 
-		// Execute the analysis engine service.
-		Set<String> conflictCategories1 = new HashSet<>(Arrays.asList("lotto"));
-		Set<String> conflictCategories2 = new HashSet<>(Arrays.asList("poker"));
-		Set<String> conflictCategoriesNotMatching1 = new HashSet<>(Arrays.asList("refdag"));
-		service.analyze(userAnonId,
-				new NetworkActivityDto(conflictCategoriesNotMatching1, "http://localhost/test", Optional.empty()));
-		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories1, "http://localhost/test1", Optional.empty()));
-		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories2, "http://localhost/test2", Optional.empty()));
-		service.analyze(userAnonId,
-				new NetworkActivityDto(conflictCategoriesNotMatching1, "http://localhost/test3", Optional.empty()));
+		service.analyze(userAnonId, createNetworkActivityForCategories("refdag"));
+		service.analyze(userAnonId, createNetworkActivityForCategories("lotto"));
+		service.analyze(userAnonId, createNetworkActivityForCategories("poker"));
+		service.analyze(userAnonId, createNetworkActivityForCategories("refdag"));
 		ZonedDateTime t2 = nowInAmsterdam();
-		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories2, "http://localhost/test4", Optional.empty()));
+		service.analyze(userAnonId, createNetworkActivityForCategories("poker"));
 
 		// Verify that the cache is used to check existing activity
 		verify(mockAnalysisEngineCacheService, times(3)).fetchLastActivityForUser(userAnonId, gamblingGoal.getId());
@@ -403,17 +356,11 @@ public class AnalysisEngineServiceTests
 		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 	}
 
-	/**
-	 * Tests that no conflict messages are created when analysis service is called with non-matching category.
-	 */
 	@Test
-	public void noMessagesCreatedOnNoMatch()
+	public void analyze_noMatchingCategory_noActivityUpdateAndNoGoalConflictMessagesCreated()
 	{
-		// Execute the analysis engine service.
-		Set<String> conflictCategories = new HashSet<>(Arrays.asList("refdag"));
-		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonId, createNetworkActivityForCategories("refdag"));
 
-		// Verify that there was no attempted activity update.
 		verify(mockAnalysisEngineCacheService, never()).fetchLastActivityForUser(eq(userAnonId), any());
 		verify(mockDayActivityRepository, never()).save(any(DayActivity.class));
 		verify(mockAnalysisEngineCacheService, never()).updateLastActivityForUser(any(), any(), any());
@@ -421,36 +368,26 @@ public class AnalysisEngineServiceTests
 		verifyNoMessagesCreated();
 	}
 
-	/**
-	 * Tests that no conflict messages are created when analysis service is called with non-matching category.
-	 */
 	@Test
-	public void noMessagesCreatedOnTimeZoneGoal()
+	public void analyze_matchTimeZoneGoalCategory_activityUpdateButNoGoalConflictMessagesCreated()
 	{
-		// Execute the analysis engine service.
-		Set<String> conflictCategories = new HashSet<>(Arrays.asList("webshop"));
-		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonId, createNetworkActivityForCategories("webshop"));
 
 		verifyActivityUpdate(shoppingGoal);
 		verifyNoMessagesCreated();
 	}
 
-	/**
-	 * Tests that no conflict messages are created when analysis service is called with non-matching category.
-	 */
 	@Test
-	public void noMessagesCreatedOnNonZeroBudgetGoal()
+	public void analyze_matchNonZeroBudgetGoalCategory_activityUpdateButNoGoalConflictMessagesCreated()
 	{
-		// Execute the analysis engine service.
-		Set<String> conflictCategories = new HashSet<>(Arrays.asList("social"));
-		service.analyze(userAnonId, new NetworkActivityDto(conflictCategories, "http://localhost/test", Optional.empty()));
+		service.analyze(userAnonId, createNetworkActivityForCategories("social"));
 
 		verifyActivityUpdate(socialGoal);
 		verifyNoMessagesCreated();
 	}
 
 	@Test
-	public void activityOnNewDay()
+	public void analyze_appActivityOnNewDay_newDayActivityAndGoalConflictMessageCreated()
 	{
 		ZonedDateTime today = ZonedDateTime.now(userAnonZoneId).truncatedTo(ChronoUnit.DAYS);
 		// mock earlier activity at yesterday 23:59:58,
@@ -461,9 +398,9 @@ public class AnalysisEngineServiceTests
 
 		ZonedDateTime startTime = today.withHour(0).withMinute(0).withSecond(1);
 		ZonedDateTime endTime = today.withHour(0).withMinute(10);
+
 		service.analyze(userAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
-		// Verify that there is a new conflict message sent.
 		verifyGoalConflictMessageSent(gamblingGoal);
 
 		// Verify there are now two day activities
@@ -510,11 +447,10 @@ public class AnalysisEngineServiceTests
 		// Verify that there is an activity cached
 		verify(mockAnalysisEngineCacheService, atLeastOnce()).updateLastActivityForUser(eq(userAnonId), eq(gamblingGoal.getId()),
 				any());
-
 	}
 
 	@Test
-	public void appActivityCompletelyPrecedingLastCachedActivity()
+	public void analyze_appActivityCompletelyPrecedingLastCachedActivity_existingActivityUpdatedAndGoalConflictMessageCreated()
 	{
 		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
 		ZonedDateTime existingActivityTime = now;
@@ -524,9 +460,9 @@ public class AnalysisEngineServiceTests
 
 		ZonedDateTime startTime = now.minusMinutes(10);
 		ZonedDateTime endTime = now.minusSeconds(15);
+
 		service.analyze(userAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
-		// Verify that there is a new conflict message sent.
 		verifyGoalConflictMessageSent(gamblingGoal);
 
 		// Verify that a database lookup was done finding the existing DayActivity to update
@@ -551,7 +487,7 @@ public class AnalysisEngineServiceTests
 	}
 
 	@Test
-	public void appActivityPrecedingAndExtendingLastCachedActivity()
+	public void analyze_appActivityPrecedingAndExtendingLastCachedActivity_existingActivityUpdatedAndGoalConflictMessageCreated()
 	{
 		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
 		ZonedDateTime existingActivityTime = now.minusSeconds(15);
@@ -561,9 +497,9 @@ public class AnalysisEngineServiceTests
 
 		ZonedDateTime startTime = now.minusMinutes(10);
 		ZonedDateTime endTime = now;
+
 		service.analyze(userAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
-		// Verify that there is a new conflict message sent.
 		verifyGoalConflictMessageSent(gamblingGoal);
 
 		// Verify that a database lookup was done finding the existing DayActivity to update
@@ -588,7 +524,7 @@ public class AnalysisEngineServiceTests
 	}
 
 	@Test
-	public void appActivityPrecedingCachedDayActivity()
+	public void analyze_appActivityPrecedingCachedDayActivity_newDayActivityAndGoalConflictMessageCreated()
 	{
 		ZonedDateTime now = ZonedDateTime.now(userAnonZoneId);
 		ZonedDateTime today = now.truncatedTo(ChronoUnit.DAYS);
@@ -599,9 +535,9 @@ public class AnalysisEngineServiceTests
 
 		ZonedDateTime startTime = yesterdayTime;
 		ZonedDateTime endTime = yesterdayTime.plusMinutes(10);
+
 		service.analyze(userAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
-		// Verify that there is a new conflict message sent.
 		verifyGoalConflictMessageSent(gamblingGoal);
 
 		// Verify that a database lookup was done for yesterday
@@ -654,10 +590,11 @@ public class AnalysisEngineServiceTests
 	}
 
 	@Test
-	public void crossDayActivity()
+	public void analyze_crossDayAppActivity_twoDayActivitiesCreated()
 	{
 		ZonedDateTime startTime = ZonedDateTime.now(userAnonZoneId).minusDays(1);
 		ZonedDateTime endTime = ZonedDateTime.now(userAnonZoneId);
+
 		service.analyze(userAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
 		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonEntity);
@@ -690,6 +627,12 @@ public class AnalysisEngineServiceTests
 		assertThat(nextPart.getEndTime(), equalTo(endTime.toLocalDateTime()));
 	}
 
+	private NetworkActivityDto createNetworkActivityForCategories(String... conflictCategories)
+	{
+		return new NetworkActivityDto(new HashSet<String>(Arrays.asList(conflictCategories)), "http://localhost/test1",
+				Optional.empty());
+	}
+
 	private void verifyGoalConflictMessageSent(Goal... forGoals)
 	{
 		ArgumentCaptor<GoalConflictMessage> messageCaptor = ArgumentCaptor.forClass(GoalConflictMessage.class);
@@ -705,8 +648,9 @@ public class AnalysisEngineServiceTests
 				containsInAnyOrder(Arrays.stream(forGoals).map(Goal::getId).collect(Collectors.toList()).toArray()));
 	}
 
-	private void verifyActivityUpdate(Goal... forGoals)
+	private List<Activity> verifyActivityUpdate(Goal... forGoals)
 	{
+		List<Activity> resultActivities = new ArrayList<Activity>();
 		// Verify there is a an activity in a day activity inside a week activity
 		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonEntity);
 		for (Goal forGoal : forGoals)
@@ -720,11 +664,14 @@ public class AnalysisEngineServiceTests
 			Activity activity = activities.get(0);
 			assertThat("Expect right goal set to activity", activity.getActivityCategory(),
 					equalTo(forGoal.getActivityCategory()));
+			resultActivities.add(activity);
 
 			// Verify that there is an activity cached
 			verify(mockAnalysisEngineCacheService, atLeastOnce()).updateLastActivityForUser(eq(userAnonId), eq(forGoal.getId()),
 					any());
 		}
+
+		return resultActivities;
 	}
 
 	private void verifyNoMessagesCreated()
