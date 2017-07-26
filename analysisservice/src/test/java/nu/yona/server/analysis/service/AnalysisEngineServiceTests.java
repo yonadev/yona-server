@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -629,8 +630,8 @@ public class AnalysisEngineServiceTests
 
 	private NetworkActivityDto createNetworkActivityForCategories(String... conflictCategories)
 	{
-		return new NetworkActivityDto(new HashSet<String>(Arrays.asList(conflictCategories)), "http://localhost/test1",
-				Optional.empty());
+		return new NetworkActivityDto(new HashSet<String>(Arrays.asList(conflictCategories)),
+				"http://localhost/test" + new Random().nextInt(), Optional.empty());
 	}
 
 	private void verifyGoalConflictMessageSent(Goal... forGoals)
