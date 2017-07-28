@@ -30,6 +30,7 @@ public class ThymeleafConfiguration
 	public ResourceBundleMessageSource smsMessageSource()
 	{
 		final ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+		messageSource.setFallbackToSystemLocale(false);
 		messageSource.setBasename("templates.sms.messages");
 		return messageSource;
 	}
@@ -38,6 +39,7 @@ public class ThymeleafConfiguration
 	public ResourceBundleMessageSource emailMessageSource()
 	{
 		final ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+		messageSource.setFallbackToSystemLocale(false);
 		messageSource.setBasename("templates.email.messages");
 		return messageSource;
 	}

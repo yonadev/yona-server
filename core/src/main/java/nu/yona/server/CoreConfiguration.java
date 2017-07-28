@@ -75,7 +75,8 @@ public class CoreConfiguration extends CachingConfigurerSupport
 	public ReloadableResourceBundleMessageSource messageSource()
 	{
 		ReloadableResourceBundleMessageSource messageBundle = new ReloadableResourceBundleMessageSource();
-
+		
+		messageBundle.setFallbackToSystemLocale(false);
 		messageBundle.setBasename("classpath:messages/messages");
 		messageBundle.setDefaultEncoding("UTF-8");
 

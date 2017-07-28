@@ -74,7 +74,7 @@ public class ResourceBasedExceptionTest
 	{
 		String messageId = "error.invalid.request";
 		String expectedResult = "Invalid request";
-		
+
 		assertExceptionTranslation(expectedResult, messageId);
 	}
 
@@ -83,7 +83,7 @@ public class ResourceBasedExceptionTest
 	{
 		String messageId = "non.existing.message.id";
 		String expectedResult = messageId;
-		
+
 		assertExceptionTranslation(expectedResult, messageId);
 	}
 
@@ -92,7 +92,7 @@ public class ResourceBasedExceptionTest
 	{
 		String messageId = "error.sms.sending.failed.httpStatus";
 		String expectedResult = "Unexpected status code received from SMS service: first. Message: second";
-		
+
 		assertExceptionTranslation(expectedResult, messageId, "first", "second");
 	}
 
@@ -101,6 +101,7 @@ public class ResourceBasedExceptionTest
 	{
 		String messageId = "non.existing.message.id";
 		String expectedResult = messageId + "; parameters: \"first\", \"second\"";
+
 		assertExceptionTranslation(expectedResult, messageId, "first", "second");
 	}
 
