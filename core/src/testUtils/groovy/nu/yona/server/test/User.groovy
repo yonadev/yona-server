@@ -10,9 +10,11 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 
 import groovy.json.*
+import groovy.transform.ToString
 import net.sf.json.groovy.JsonSlurper
 import nu.yona.server.YonaServer
 
+@ToString(includeNames=true)
 class User
 {
 	final ZonedDateTime creationTime

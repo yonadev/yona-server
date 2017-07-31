@@ -9,8 +9,10 @@ package nu.yona.server.test
 import java.time.LocalDate
 
 import groovy.json.*
+import groovy.transform.ToString
 import nu.yona.server.YonaServer
 
+@ToString(includeNames=true)
 class Buddy
 {
 	final String nickname

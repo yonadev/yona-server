@@ -15,7 +15,6 @@ import java.time.temporal.IsoFields
 
 import groovy.json.*
 import nu.yona.server.test.AppActivity
-import nu.yona.server.test.Buddy
 import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
@@ -1157,7 +1156,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		richard.buddies[0].dailyActivityReportsUrl == null
 		richard.buddies[0].weeklyActivityReportsUrl == null
 		responseDayOverviewsWithBuddies.status == 200
-		responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[0].dayActivities.find{ it._links."yona:activityCategory"?.href == GAMBLING_ACT_CAT_URL}.dayActivitiesForUsers.size() == 1
+		responseDayOverviewsWithBuddies.responseData?._embedded == null // Richard doesn't know Bob's goals yet
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -1183,7 +1182,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		richard.buddies[0].dailyActivityReportsUrl == null
 		richard.buddies[0].weeklyActivityReportsUrl == null
 		responseDayOverviewsWithBuddies.status == 200
-		responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[0].dayActivities.find{ it._links."yona:activityCategory"?.href == GAMBLING_ACT_CAT_URL}.dayActivitiesForUsers.size() == 1
+		responseDayOverviewsWithBuddies.responseData?._embedded == null // Richard doesn't know Bob's goals yet
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -1224,6 +1223,117 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Richard\'s goals are only included when a buddy has that goal too'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		setCreationTimeOfMandatoryGoalsToNow(richard)
+		User bob = richardAndBob.bob
+		setCreationTimeOfMandatoryGoalsToNow(bob)
+
+		BudgetGoal budgetGoalNewsRichard = richard.findActiveGoal(NEWS_ACT_CAT_URL)
+		BudgetGoal budgetGoalNewsBob = richard.buddies[0].goals.find{ it.activityCategoryUrl == NEWS_ACT_CAT_URL }
+
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-2 Mon 02:18")
+		setGoalCreationTime(bob, NEWS_ACT_CAT_URL, "W-2 Mon 02:18")
+
+		TimeZoneGoal timeZoneGoalSocialRichard = addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["11:00-12:00"], "W-2 Thu 13:55")
+		addTimeZoneGoal(bob, MULTIMEDIA_ACT_CAT_URL, ["20:00-22:00"], "W-2 Thu 13:55")
+
+		richard = appService.reloadUser(richard)
+		bob= appService.reloadUser(bob)
+
+		TimeZoneGoal timeZoneGoalMultimediaBob = richard.buddies[0].goals.find{ it.activityCategoryUrl == MULTIMEDIA_ACT_CAT_URL }
+		assert timeZoneGoalMultimediaBob
+
+		def expectedValuesRichardWeekBeforeLastWeek = [
+			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesBobWeekBeforeLastWeek = [
+			"Mon" : [[goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Tue" : [[goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesWithBuddiesWeekBeforeLastWeek = [[ user : richard, expectedValues: expectedValuesRichardWeekBeforeLastWeek], [ user : richard.buddies[0].user, expectedValues: expectedValuesBobWeekBeforeLastWeek]]
+
+		def expectedValuesRichardLastWeek = [
+			"Sun" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesBobLastWeek = [
+			"Sun" : [[goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Mon" : [[goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Tue" : [[goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Wed" : [[goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Thu" : [[goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Fri" : [[goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
+			"Sat" : [[goal:budgetGoalNewsBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalMultimediaBob, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]]]
+		def expectedValuesWithBuddiesLastWeek = [[ user : richard, expectedValues: expectedValuesRichardLastWeek], [ user : richard.buddies[0].user, expectedValues: expectedValuesBobLastWeek]]
+
+		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
+		def expectedTotalDays = 6 + 7 + currentDayOfWeek + 1
+		def expectedTotalWeeks = 3
+
+		when:
+		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(richard, ["size": 21])
+
+		then:
+
+		assertDayOverviewWithBuddiesBasics(responseDayOverviewsWithBuddies, expectedTotalDays, expectedTotalDays, 21)
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Mon")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Tue")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Wed")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Sat")
+
+		def thu2 = responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[YonaServer.relativeDateStringToDaysOffset(2, "Thu")]
+		thu2.dayActivities.find{it._links."yona:activityCategory".href == SOCIAL_ACT_CAT_URL} == null // Richard has social but none of his buddies has it, so it's not included
+		thu2.dayActivities.find{it._links."yona:activityCategory".href == MULTIMEDIA_ACT_CAT_URL} != null // Buddy has multimedia, so it's included, though Richard doesn't have it
+		thu2.dayActivities.find{it._links."yona:activityCategory".href == MULTIMEDIA_ACT_CAT_URL}.dayActivitiesForUsers.size() == 1 // Only Bob
+
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesWeekBeforeLastWeek, 2, "Sat")
+
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sun")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Mon")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Tue")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Wed")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, NEWS_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sat")
+
+		def mon1 = responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[YonaServer.relativeDateStringToDaysOffset(1, "Mon")]
+		mon1.dayActivities.find{it._links."yona:activityCategory".href == SOCIAL_ACT_CAT_URL} == null // Nobody has social, so it's not included
+		mon1.dayActivities.find{it._links."yona:activityCategory".href == MULTIMEDIA_ACT_CAT_URL} != null // Buddy has multimedia, so it's included
+		mon1.dayActivities.find{it._links."yona:activityCategory".href == MULTIMEDIA_ACT_CAT_URL}.dayActivitiesForUsers.size() == 1 // Only Bob
+
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sun")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Mon")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Tue")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Wed")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Thu")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Fri")
+		assertDayOverviewWithBuddies(responseDayOverviewsWithBuddies, richard, MULTIMEDIA_ACT_CAT_URL, expectedValuesWithBuddiesLastWeek, 1, "Sat")
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+
+	}
+
 	def 'Richard retrieves buddy activity info before he processed Bob\'s disconnect'()
 	{
 		given:
@@ -1238,7 +1348,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		responseDayOverviewsWithBuddies.status == 200
-		responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[0].dayActivities.find{ it._links."yona:activityCategory"?.href == GAMBLING_ACT_CAT_URL}.dayActivitiesForUsers.size() == 1
+		responseDayOverviewsWithBuddies.responseData?._embedded == null // Richard doesn't know Bob's goals anymore
 
 		cleanup:
 		appService.deleteUser(richard)

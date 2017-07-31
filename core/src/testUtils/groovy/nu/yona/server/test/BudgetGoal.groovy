@@ -6,10 +6,12 @@
  *******************************************************************************/
 package nu.yona.server.test
 
-import groovy.json.*
-
 import java.time.ZonedDateTime
 
+import groovy.json.*
+import groovy.transform.ToString
+
+@ToString(includeSuper=true, includeNames=true)
 class BudgetGoal extends Goal
 {
 	final int maxDurationMinutes
