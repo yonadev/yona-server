@@ -529,7 +529,7 @@ paths:
   '/users/{userID}/activity/withBuddies/days/':
     get:
       summary: Get day activity overview of user with buddies
-      description: Get network and app activity of the current day of this user and their buddies, pageable to yesterday and before
+      description: Get network and app activity of the buddies of this user for the current day, pageable to yesterday and before. The user's own activities are included if any buddy shares the same goal.
       parameters:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
