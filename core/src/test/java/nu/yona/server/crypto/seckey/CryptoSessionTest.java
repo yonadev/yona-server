@@ -16,17 +16,34 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import junitparams.JUnitParamsRunner;
+import junitparams.NamedParameters;
+import junitparams.Parameters;
 import nu.yona.server.crypto.CryptoException;
 
+@RunWith(JUnitParamsRunner.class)
 public class CryptoSessionTest
 {
-
 	private static final int INITIALIZATION_VECTOR_LENGTH = 16;
 	private static final String PASSWORD1 = "secret";
 	private static final String PASSWORD2 = "easy";
 	private static final String PLAINTEXT1 = "One";
 	private static final String PLAINTEXT2 = "Two";
+
+	@NamedParameters("plaintextCases")
+	private static String[] getPlaintextCases()
+	{
+		return new String[] { PLAINTEXT1, createVeryLongPlaintext() };
+	}
+
+	private static String createVeryLongPlaintext()
+	{
+		char[] chars = new char[2500];
+		Arrays.fill(chars, 'a');
+		return String.valueOf(chars);
+	}
 
 	@Test(expected = CryptoException.class)
 	public void getCurrent_noCurrentSession_throws()
@@ -43,26 +60,28 @@ public class CryptoSessionTest
 	}
 
 	@Test
-	public void encrypt_default_returnsBase64EncryptedDataWithCryptoVariantNumberAsFirstByte()
+	@Parameters(named = "plaintextCases")
+	public void encrypt_default_returnsBase64EncryptedDataWithCryptoVariantNumberAsFirstByte(String plaintext)
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
 
-		String ciphertext = encrypt(PASSWORD1, PLAINTEXT1, initializationVector, false);
+		String ciphertext = encrypt(PASSWORD1, plaintext, initializationVector, false);
 
-		assertThat(ciphertext, not(equalTo(PLAINTEXT1)));
+		assertThat(ciphertext, not(equalTo(plaintext)));
 		byte[] ciphertextBytes = Base64.getDecoder().decode(ciphertext);
 		assertThat(ciphertextBytes[0], equalTo(CryptoSession.CURRENT_CRYPTO_VARIANT_NUMBER));
 	}
 
 	@Test
-	public void decrypt_validPassword_returnsDecryptedData()
+	@Parameters(named = "plaintextCases")
+	public void decrypt_validPassword_returnsDecryptedData(String plaintext)
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
-		String ciphertext = encrypt(PASSWORD1, PLAINTEXT1, initializationVector, false);
+		String ciphertext = encrypt(PASSWORD1, plaintext, initializationVector, false);
 
-		String plaintext = decrypt(PASSWORD1, ciphertext, initializationVector);
+		String result = decrypt(PASSWORD1, ciphertext, initializationVector);
 
-		assertThat(plaintext, equalTo(PLAINTEXT1));
+		assertThat(result, equalTo(plaintext));
 	}
 
 	@Test(expected = CryptoException.class)
@@ -73,19 +92,6 @@ public class CryptoSessionTest
 		ciphertext[0] = 13; // Unsupported crypto variant number
 
 		decrypt(PASSWORD1, Base64.getEncoder().encodeToString(ciphertext), initializationVector);
-	}
-
-	@Test
-	public void testLongPlaintext()
-	{
-		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
-		char[] chars = new char[2500];
-		Arrays.fill(chars, 'a');
-		String longPlainText = String.valueOf(chars);
-		String ciphertext = encrypt(PASSWORD1, longPlainText, initializationVector, false);
-		assertThat(ciphertext, not(equalTo(longPlainText)));
-		String plaintext = decrypt(PASSWORD1, ciphertext, initializationVector);
-		assertThat(plaintext, equalTo(longPlainText));
 	}
 
 	@Test
