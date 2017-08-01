@@ -70,7 +70,7 @@ public class ThymeleafConfigurationTest
 	}
 
 	@Test
-	public void smsTemplateEngine_processBuddyInvitationDefault_rightResult()
+	public void smsTemplateEngine_processBuddyInvitationDefault_defaultTemplateFoundAndExpanded()
 	{
 		String requestingUserFirstName = "john";
 		String emailAddress = "a@b.c";
@@ -81,7 +81,7 @@ public class ThymeleafConfigurationTest
 	}
 
 	@Test
-	public void smsTemplateEngine_processBuddyInvitationDutch_rightResult()
+	public void smsTemplateEngine_processBuddyInvitationDutch_dutchTemplateFoundAndExpanded()
 	{
 		String requestingUserFirstName = "john";
 		String emailAddress = "a@b.c";
@@ -102,7 +102,7 @@ public class ThymeleafConfigurationTest
 	}
 
 	@Test
-	public void emailTemplateEngine_processBuddyInvitationSubjectDefault_rightResult()
+	public void emailTemplateEngine_processBuddyInvitationSubjectDefault_defaultTemplateFoundAndExpanded()
 	{
 		String result = buildEmailSubject(Optional.empty());
 
@@ -110,7 +110,7 @@ public class ThymeleafConfigurationTest
 	}
 
 	@Test
-	public void emailTemplateEngine_processBuddyInvitationSubjectDutch_rightResult()
+	public void emailTemplateEngine_processBuddyInvitationSubjectDutch_dutchTemplateFoundAndExpanded()
 	{
 		String result = buildEmailSubject(Optional.of(Locale.forLanguageTag("nl-NL")));
 
@@ -126,7 +126,7 @@ public class ThymeleafConfigurationTest
 	}
 
 	@Test
-	public void emailTemplateEngine_processBuddyInvitationBodyDefault_rightResult()
+	public void emailTemplateEngine_processBuddyInvitationBodyDefault_defaultTemplateFoundAndExpanded()
 	{
 		String buddyFirstName = "Richard";
 		String buddyLastName = "Quin";
@@ -141,15 +141,16 @@ public class ThymeleafConfigurationTest
 				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber, requestingUserNickname);
 
 		assertThat(result, containsString(MessageFormat.format("<a href=\"{0}\"", inviteUrl)));
-		assertThat(result, containsString(MessageFormat.format(
-				"<strong>Important</strong>: Verify if the invitation is really from {0} {1} and check the mobile number: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
-				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber)));
+		assertThat(result,
+				containsString(MessageFormat.format(
+						"<strong>Important</strong>: Verify if the invitation is really from {0} {1} and check the mobile number: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
+						requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber)));
 		assertThat(result, containsString("Open the app and &ldquo;join&rdquo;."));
 		assertThat(result, containsString("https://app.prd.yona.nu/media/img/en_US/header.jpg"));
 	}
 
 	@Test
-	public void emailTemplateEngine_processBuddyInvitationBodyDutch_rightResult()
+	public void emailTemplateEngine_processBuddyInvitationBodyDutch_dutchTemplateFoundAndExpanded()
 	{
 		String buddyFirstName = "Richard";
 		String buddyLastName = "Quin";
@@ -165,9 +166,10 @@ public class ThymeleafConfigurationTest
 				requestingUserNickname);
 
 		assertThat(result, containsString(MessageFormat.format("<a href=\"{0}\"", inviteUrl)));
-		assertThat(result, containsString(MessageFormat.format(
-				"<strong>Belangrijk</strong>: Let op of de uitnodiging werkelijk van {0} {1} komt en check het mobiele nummer: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
-				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber)));
+		assertThat(result,
+				containsString(MessageFormat.format(
+						"<strong>Belangrijk</strong>: Let op of de uitnodiging werkelijk van {0} {1} komt en check het mobiele nummer: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
+						requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber)));
 		assertThat(result, containsString("https://app.prd.yona.nu/media/img/nl_NL/header.jpg"));
 	}
 

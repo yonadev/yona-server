@@ -14,7 +14,7 @@ import org.junit.Test;
 public class DayActivityDtoTests
 {
 	@Test
-	public void parseDate_default_returnsRightResult()
+	public void parseDate_iso8601DateFormat_returnsParsedDate()
 	{
 		LocalDate parsedDate = DayActivityDto.parseDate("2016-01-11");
 
@@ -22,7 +22,7 @@ public class DayActivityDtoTests
 	}
 
 	@Test
-	public void formatDate_default_returnsRightResult()
+	public void formatDate_default_returnsInIso8601DateFormat()
 	{
 		String dayDate = DayActivityDto.formatDate(LocalDate.of(2016, 1, 11));
 
