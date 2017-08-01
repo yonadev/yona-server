@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
@@ -31,9 +31,10 @@ public interface DayActivityRepository extends CrudRepository<DayActivity, Long>
 	DayActivity findOne(@Param("userAnonymizedId") UUID userAnonymizedId, @Param("startDate") LocalDate startDate,
 			@Param("goalId") UUID goalId);
 
-	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedId and a.startDate >= :dateFrom and a.startDate <= :dateUntil order by a.startDate desc")
+	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedId and a.goal.id in :relevantGoalIds and a.startDate >= :dateFrom and a.startDate <= :dateUntil order by a.startDate desc")
 	List<DayActivity> findAllActivitiesForUserInIntervalEndIncluded(@Param("userAnonymizedId") UUID userAnonymizedId,
-			@Param("dateFrom") LocalDate dateFrom, @Param("dateUntil") LocalDate dateUntil);
+			@Param("relevantGoalIds") Set<UUID> relevantGoalIds, @Param("dateFrom") LocalDate dateFrom,
+			@Param("dateUntil") LocalDate dateUntil);
 
 	@Query("select a from DayActivity a where a.userAnonymized.id = :userAnonymizedId and a.goal.id in :goalIds and a.startDate >= :dateFrom and a.startDate < :dateUntil order by a.startDate desc")
 	List<DayActivity> findActivitiesForUserAndGoalsInIntervalEndExcluded(@Param("userAnonymizedId") UUID userAnonymizedId,

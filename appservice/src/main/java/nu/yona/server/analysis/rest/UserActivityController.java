@@ -123,6 +123,12 @@ public class UserActivityController extends ActivityControllerBase
 						.getUserDayActivityDetailMessages(userId, DayActivityDto.parseDate(dateStr), goalId, pageable), new UserActivityLinkProvider(userId));
 	}
 
+	/**
+	 * Get network and app activity of the buddies of this user for the current day, pageable to yesterday and before. The user's
+	 * own activities are included if any buddy shares the same goal. Note that the name is slightly confusing, as the name
+	 * suggests that the user activities are supplemented with the buddy activities, while in reality, the buddy activities are
+	 * supplemented with the user activities. The name is retained because it reflects the external API (URL).
+	 */
 	@RequestMapping(value = "/withBuddies/days/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<PagedResources<DayActivityOverviewWithBuddiesResource>> getDayActivityOverviewsWithBuddies(

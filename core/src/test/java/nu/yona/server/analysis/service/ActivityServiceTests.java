@@ -24,6 +24,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.junit.Before;
@@ -174,14 +175,15 @@ public class ActivityServiceTests
 				yesterday.plusHours(20).plusMinutes(58).toLocalDateTime(),
 				yesterday.plusHours(21).plusMinutes(00).toLocalDateTime());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
-		when(mockDayActivityRepository.findAllActivitiesForUserInIntervalEndIncluded(userAnonId, today.minusDays(2).toLocalDate(),
-				today.toLocalDate())).thenReturn(Arrays.asList(yesterdayRecordedActivity));
+		Set<UUID> relevantGoalIds = userAnonEntity.getGoals().stream().map(Goal::getId).collect(Collectors.toSet());
+		when(mockDayActivityRepository.findAllActivitiesForUserInIntervalEndIncluded(userAnonId, relevantGoalIds,
+				today.minusDays(2).toLocalDate(), today.toLocalDate())).thenReturn(Arrays.asList(yesterdayRecordedActivity));
 
 		Page<DayActivityOverviewDto<DayActivityDto>> dayOverviews = service.getUserDayActivityOverviews(userId,
 				new PageRequest(0, 3));
 
 		// assert that the right retrieve from database was done
-		verify(mockDayActivityRepository, times(1)).findAllActivitiesForUserInIntervalEndIncluded(userAnonId,
+		verify(mockDayActivityRepository, times(1)).findAllActivitiesForUserInIntervalEndIncluded(userAnonId, relevantGoalIds,
 				today.minusDays(2).toLocalDate(), today.toLocalDate());
 
 		// because the gambling goal was added with creation date two weeks ago, there are multiple days, equal to the limit of

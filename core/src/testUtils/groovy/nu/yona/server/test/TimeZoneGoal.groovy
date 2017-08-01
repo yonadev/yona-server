@@ -6,12 +6,13 @@
  *******************************************************************************/
 package nu.yona.server.test
 
-import groovy.json.*
-
 import java.time.ZonedDateTime
 
+import groovy.json.*
+import groovy.transform.ToString
 import nu.yona.server.YonaServer
 
+@ToString(includeSuper=true, includeNames=true)
 class TimeZoneGoal extends Goal
 {
 	final String[] zones
