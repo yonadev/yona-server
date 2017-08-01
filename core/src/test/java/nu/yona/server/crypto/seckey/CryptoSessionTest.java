@@ -6,7 +6,6 @@ package nu.yona.server.crypto.seckey;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -64,21 +63,6 @@ public class CryptoSessionTest
 		String plaintext = decrypt(PASSWORD1, ciphertext, initializationVector);
 
 		assertThat(plaintext, equalTo(PLAINTEXT1));
-	}
-
-	@Test
-	public void testUuid()
-	{
-		UUID uuid = UUID.randomUUID();
-		DataContainer dataContainer = new DataContainer();
-		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), () -> true))
-		{
-			CryptoSession.getCurrent().generateInitializationVector(); // Not used
-			dataContainer.ciphertext = SecretKeyUtil.encryptUuid(uuid);
-			dataContainer.uuid = SecretKeyUtil.decryptUuid(dataContainer.ciphertext);
-		}
-		assertThat(dataContainer.ciphertext.length, greaterThan(16));
-		assertThat(uuid, equalTo(dataContainer.uuid));
 	}
 
 	@Test(expected = CryptoException.class)
