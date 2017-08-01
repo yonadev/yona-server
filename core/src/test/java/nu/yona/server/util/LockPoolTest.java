@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.util;
 
@@ -25,7 +22,7 @@ public class LockPoolTest
 	private final AtomicInteger freeLockId = new AtomicInteger(0);
 
 	@Test
-	public void testLockingNonReentrant()
+	public void lock_accessSameLockIdConcurrently_isNotExecutedConcurrently()
 	{
 		final int numThreads = 10;
 		final int iterations = 100;
@@ -33,7 +30,7 @@ public class LockPoolTest
 	}
 
 	@Test
-	public void testLockingReentrant()
+	public void lock_reentrantAccess_isNotBlocked()
 	{
 		final int numThreads = 10;
 		final int iterations = 100;
@@ -41,11 +38,11 @@ public class LockPoolTest
 	}
 
 	@Test
-	public void testConcurrencyDifferentKeys()
+	public void lock_accessFreeLockIdsConcurrently_immediateAccess()
 	{
 		final int numThreads = 10;
 		final int iterations = 5;
-		assertThat(testConcurrently(numThreads, iterations, this::attempImmediateAccessRandomId), equalTo(false));
+		assertThat(testConcurrently(numThreads, iterations, this::attempImmediateAccessFreeLockId), equalTo(false));
 	}
 
 	private boolean testConcurrently(int numThreads, int iterations, AccessAttempt accessAttempt)
@@ -104,7 +101,7 @@ public class LockPoolTest
 		}
 	}
 
-	private void attempImmediateAccessRandomId(LockPool<Integer> lockPool, AtomicBoolean concurrencyIndicator,
+	private void attempImmediateAccessFreeLockId(LockPool<Integer> lockPool, AtomicBoolean concurrencyIndicator,
 			AtomicBoolean failureIndicator)
 	{
 		int lockId = freeLockId.incrementAndGet();
