@@ -44,12 +44,25 @@ public class CryptoSessionTest
 	}
 
 	@Test
-	public void testValidPassword()
+	public void encrypt_default_returnsBase64EncryptedDataWithCryptoVariantNumberAsFirstByte()
+	{
+		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
+
+		String ciphertext = encrypt(PASSWORD1, PLAINTEXT1, initializationVector, false);
+
+		assertThat(ciphertext, not(equalTo(PLAINTEXT1)));
+		byte[] ciphertextBytes = Base64.getDecoder().decode(ciphertext);
+		assertThat(ciphertextBytes[0], equalTo(CryptoSession.CURRENT_CRYPTO_VARIANT_NUMBER));
+	}
+
+	@Test
+	public void decrypt_validPassword_returnsDecryptedData()
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
 		String ciphertext = encrypt(PASSWORD1, PLAINTEXT1, initializationVector, false);
-		assertThat(ciphertext, not(equalTo(PLAINTEXT1)));
+
 		String plaintext = decrypt(PASSWORD1, ciphertext, initializationVector);
+
 		assertThat(plaintext, equalTo(PLAINTEXT1));
 	}
 
@@ -69,13 +82,12 @@ public class CryptoSessionTest
 	}
 
 	@Test(expected = CryptoException.class)
-	public void testCryptoVariantNumber()
+	public void decrypt_invalidCryptoVariantNumber_throws()
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
 		byte[] ciphertext = Base64.getDecoder().decode(encrypt(PASSWORD1, PLAINTEXT1, initializationVector, false));
-		assertThat(ciphertext[0], equalTo(CryptoSession.CURRENT_CRYPTO_VARIANT_NUMBER));
-
 		ciphertext[0] = 13; // Unsupported crypto variant number
+
 		decrypt(PASSWORD1, Base64.getEncoder().encodeToString(ciphertext), initializationVector);
 	}
 
@@ -108,12 +120,13 @@ public class CryptoSessionTest
 	}
 
 	@Test(expected = CryptoException.class)
-	public void testInvalidPassword()
+	public void decrypt_invalidPassword_throws()
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
 		String ciphertext = encrypt(PASSWORD1, PLAINTEXT1, initializationVector, false);
-		assertThat(ciphertext, not(equalTo(PLAINTEXT1)));
+
 		String plaintext = decrypt(PASSWORD2, ciphertext, initializationVector);
+
 		// In rare cases, decryption with a wrong password doesn't throw but delivers rubbish.
 		// In such rare cases, compare the string and explicitly throw that exception.
 		assertThat(plaintext, not(equalTo(PLAINTEXT1)));
