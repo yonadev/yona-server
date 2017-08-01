@@ -53,13 +53,13 @@ import nu.yona.server.util.TimeUtil;
 		"nu.yona.server.properties" }, includeFilters = {
 				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserService", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX) })
-class UserServiceIntegrationTestConfiguration
+class UserServiceTestConfiguration
 {
 }
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { UserServiceIntegrationTestConfiguration.class })
-public class UserServiceIntegrationTest
+@ContextConfiguration(classes = { UserServiceTestConfiguration.class })
+public class UserServiceTest
 {
 	@MockBean
 	private UserRepository mockUserRepository;
