@@ -46,68 +46,94 @@ public class DayActivityTests extends IntervalActivityTestsBase
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_insideOneSpreadItem_rightResults()
+	public void getSpreadGetTotalActivityDurationMinutes_lessThanAMinute_ignored()
 	{
 		DayActivity d = createDayActivity();
-		addActivity(d, "19:55", "19:59");
+		addActivity(d, "20:05:11", "20:06:08");
 
-		assertSpreadItemsAndTotal(d, "78=0,79=4,80=0", 4);
+		assertSpreadItemsAndTotal(d, "79=0,80=0,81=0", 0);
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_spanTwoSpreadItems_rightResults()
+	public void getSpreadGetTotalActivityDurationMinutes_moreThanAMinute_roundedDownToMinutes()
 	{
 		DayActivity d = createDayActivity();
-		addActivity(d, "19:55", "20:01");
+		addActivity(d, "19:55:08", "19:59:03");
+
+		assertSpreadItemsAndTotal(d, "78=0,79=3,80=0", 3);
+	}
+
+	@Test
+	public void getSpreadGetTotalActivityDurationMinutes_spanTwoSpreadItems_resultsInBothSpreadItems()
+	{
+		DayActivity d = createDayActivity();
+		addActivity(d, "19:55:00", "20:01:00");
 
 		assertSpreadItemsAndTotal(d, "78=0,79=5,80=1,81=0", 6);
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_spanTwoSpreadItemsStartEdge_rightResults()
+	public void getSpreadGetTotalActivityDurationMinutes_startEdge_isIncluded()
 	{
 		DayActivity d = createDayActivity();
-		addActivity(d, "19:45", "20:01");
+		addActivity(d, "19:45:00", "19:50:00");
 
-		assertSpreadItemsAndTotal(d, "78=0,79=15,80=1,81=0", 16);
+		assertSpreadItemsAndTotal(d, "78=0,79=5,80=0", 5);
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_spanTwoSpreadItemsEndEdge_rightResults()
+	public void getSpreadGetTotalActivityDurationMinutes_endEdge_isNotIncluded()
 	{
 		DayActivity d = createDayActivity();
-		addActivity(d, "19:55", "20:15");
+		addActivity(d, "19:55:00", "19:59:59");
 
-		assertSpreadItemsAndTotal(d, "78=0,79=5,80=15,81=0", 20);
+		assertSpreadItemsAndTotal(d, "78=0,79=4,80=0", 4);
+	}
+
+	public void getSpreadGetTotalActivityDurationMinutes_startEdgeOfNextSpreadItem_isIncluded()
+	{
+		DayActivity d = createDayActivity();
+		addActivity(d, "19:55:00", "20:00:00");
+
+		assertSpreadItemsAndTotal(d, "78=0,79=5,80=0", 5);
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_insideOneSpreadItemStartEndEdge_rightResults()
+	public void getSpreadGetTotalActivityDurationMinutes_spanTwoSpreadItemsSecondItemLessThanAMinute_ignoredInSecondItem()
 	{
 		DayActivity d = createDayActivity();
-		addActivity(d, "19:45", "19:59:59");
+		addActivity(d, "20:05:08", "20:15:03");
 
-		assertSpreadItemsAndTotal(d, "78=0,79=14,80=0", 14);
+		assertSpreadItemsAndTotal(d, "79=0,80=10,81=0", 9);
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_spanThreeSpreadItems_rightResults()
+	public void getSpreadGetTotalActivityDurationMinutes_spanTwoSpreadItemsFirstItemLessThanAMinute_upgradedToOneMinuteInFirstItem()
 	{
 		DayActivity d = createDayActivity();
-		addActivity(d, "19:55", "20:16");
+		addActivity(d, "19:59:59", "20:05:03");
+
+		assertSpreadItemsAndTotal(d, "78=0,79=1,80=5,81=0", 5);
+	}
+
+	@Test
+	public void getSpreadGetTotalActivityDurationMinutes_spanThreeSpreadItems_resultsInAllThreeSpreadItems()
+	{
+		DayActivity d = createDayActivity();
+		addActivity(d, "19:55:00", "20:16:00");
 
 		assertSpreadItemsAndTotal(d, "78=0,79=5,80=15,81=1,82=0", 21);
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_multipleActivitiesOverlappingUnsorted_rightResults()
+	public void getSpreadGetTotalActivityDurationMinutes_multipleActivitiesOverlappingUnsorted_countsOverlappingActivitiesTwiceInTotalButNotInSpread()
 	{
 		DayActivity d = createDayActivity();
-		addActivity(d, "19:48", "19:50");
-		addActivity(d, "19:46", "19:59");
-		addActivity(d, "20:01", "20:17");
+		addActivity(d, "19:48:00", "19:50:00");
+		addActivity(d, "19:46:00", "19:59:00");
+		addActivity(d, "20:01:00", "20:17:00");
 
-		assertSpreadItemsAndTotal(d, "78=0,79=13,80=14,81=2,82=0", 31); // overlapping activities are counted twice in total count
+		assertSpreadItemsAndTotal(d, "78=0,79=13,80=14,81=2,82=0", 31);
 	}
 
 	@Test

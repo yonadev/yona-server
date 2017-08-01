@@ -27,7 +27,7 @@ public class WeekActivityTests extends IntervalActivityTestsBase
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_default_returnsRightResults()
+	public void getSpreadGetTotalActivityDurationMinutes_default_sumsSpreadsOfDayActivities()
 	{
 		WeekActivity w = createWeekActivity();
 		DayActivity d1 = createDayActivity(w, 0);
