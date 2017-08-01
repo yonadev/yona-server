@@ -18,7 +18,7 @@ public class SecretKeyUtilTest
 	private static final String PASSWORD1 = "secret";
 
 	@Test
-	public void encrypUuid_defailt_returnsCiphertext()
+	public void encryptUuid_default_returnsCiphertext()
 	{
 		UUID uuid = UUID.randomUUID();
 		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), () -> true))
