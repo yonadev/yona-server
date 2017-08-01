@@ -6,7 +6,6 @@ package nu.yona.server.crypto.seckey;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -17,26 +16,42 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import junitparams.JUnitParamsRunner;
+import junitparams.NamedParameters;
+import junitparams.Parameters;
 import nu.yona.server.crypto.CryptoException;
 
+@RunWith(JUnitParamsRunner.class)
 public class CryptoSessionTest
 {
-
 	private static final int INITIALIZATION_VECTOR_LENGTH = 16;
 	private static final String PASSWORD1 = "secret";
 	private static final String PASSWORD2 = "easy";
 	private static final String PLAINTEXT1 = "One";
-	private static final String PLAINTEXT2 = "Two";
+
+	@NamedParameters("plaintextCases")
+	private static String[] getPlaintextCases()
+	{
+		return new String[] { PLAINTEXT1, createVeryLongPlaintext() };
+	}
+
+	private static String createVeryLongPlaintext()
+	{
+		char[] chars = new char[2500];
+		Arrays.fill(chars, 'a');
+		return String.valueOf(chars);
+	}
 
 	@Test(expected = CryptoException.class)
-	public void testNoCurrentSession()
+	public void getCurrent_noCurrentSession_throws()
 	{
 		CryptoSession.getCurrent();
 	}
 
 	@Test(expected = WrongPasswordException.class)
-	public void testExecuteEmptyPassword()
+	public void start_emptyPassword_throws()
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(Optional.empty(), () -> true))
 		{
@@ -44,76 +59,48 @@ public class CryptoSessionTest
 	}
 
 	@Test
-	public void testValidPassword()
+	@Parameters(named = "plaintextCases")
+	public void encrypt_default_returnsBase64EncryptedDataWithCryptoVariantNumberAsFirstByte(String plaintext)
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
-		String ciphertext = encrypt(PASSWORD1, PLAINTEXT1, initializationVector, false);
-		assertThat(ciphertext, not(equalTo(PLAINTEXT1)));
-		String plaintext = decrypt(PASSWORD1, ciphertext, initializationVector);
-		assertThat(plaintext, equalTo(PLAINTEXT1));
+
+		String ciphertext = encrypt(PASSWORD1, plaintext, initializationVector);
+
+		assertThat(ciphertext, not(equalTo(plaintext)));
+		byte[] ciphertextBytes = Base64.getDecoder().decode(ciphertext);
+		assertThat(ciphertextBytes[0], equalTo(CryptoSession.CURRENT_CRYPTO_VARIANT_NUMBER));
 	}
 
 	@Test
-	public void testUuid()
+	@Parameters(named = "plaintextCases")
+	public void decrypt_validPassword_returnsDecryptedData(String plaintext)
 	{
-		UUID uuid = UUID.randomUUID();
-		DataContainer dataContainer = new DataContainer();
-		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), () -> true))
-		{
-			CryptoSession.getCurrent().generateInitializationVector(); // Not used
-			dataContainer.ciphertext = SecretKeyUtil.encryptUuid(uuid);
-			dataContainer.uuid = SecretKeyUtil.decryptUuid(dataContainer.ciphertext);
-		}
-		assertThat(dataContainer.ciphertext.length, greaterThan(16));
-		assertThat(uuid, equalTo(dataContainer.uuid));
+		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
+		String ciphertext = encrypt(PASSWORD1, plaintext, initializationVector);
+
+		String result = decrypt(PASSWORD1, ciphertext, initializationVector);
+
+		assertThat(result, equalTo(plaintext));
 	}
 
 	@Test(expected = CryptoException.class)
-	public void testCryptoVariantNumber()
+	public void decrypt_invalidCryptoVariantNumber_throws()
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
-		byte[] ciphertext = Base64.getDecoder().decode(encrypt(PASSWORD1, PLAINTEXT1, initializationVector, false));
-		assertThat(ciphertext[0], equalTo(CryptoSession.CURRENT_CRYPTO_VARIANT_NUMBER));
-
+		byte[] ciphertext = Base64.getDecoder().decode(encrypt(PASSWORD1, PLAINTEXT1, initializationVector));
 		ciphertext[0] = 13; // Unsupported crypto variant number
+
 		decrypt(PASSWORD1, Base64.getEncoder().encodeToString(ciphertext), initializationVector);
 	}
 
-	@Test
-	public void testLongPlaintext()
-	{
-		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
-		char[] chars = new char[2500];
-		Arrays.fill(chars, 'a');
-		String longPlainText = String.valueOf(chars);
-		String ciphertext = encrypt(PASSWORD1, longPlainText, initializationVector, false);
-		assertThat(ciphertext, not(equalTo(longPlainText)));
-		String plaintext = decrypt(PASSWORD1, ciphertext, initializationVector);
-		assertThat(plaintext, equalTo(longPlainText));
-	}
-
-	@Test
-	public void testInitializationVectorReuse()
-	{
-		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
-		String ciphertext1 = encrypt(PASSWORD1, PLAINTEXT1, initializationVector, false);
-		assertThat(ciphertext1, not(equalTo(PLAINTEXT1)));
-		String ciphertext2 = encrypt(PASSWORD1, PLAINTEXT2, initializationVector, true);
-		assertThat(ciphertext2, not(equalTo(PLAINTEXT2)));
-
-		String plaintext1 = decrypt(PASSWORD1, ciphertext1, initializationVector);
-		assertThat(plaintext1, equalTo(PLAINTEXT1));
-		String plaintext2 = decrypt(PASSWORD1, ciphertext2, initializationVector);
-		assertThat(plaintext2, equalTo(PLAINTEXT2));
-	}
-
 	@Test(expected = CryptoException.class)
-	public void testInvalidPassword()
+	public void decrypt_invalidPassword_throws()
 	{
 		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
-		String ciphertext = encrypt(PASSWORD1, PLAINTEXT1, initializationVector, false);
-		assertThat(ciphertext, not(equalTo(PLAINTEXT1)));
+		String ciphertext = encrypt(PASSWORD1, PLAINTEXT1, initializationVector);
+
 		String plaintext = decrypt(PASSWORD2, ciphertext, initializationVector);
+
 		// In rare cases, decryption with a wrong password doesn't throw but delivers rubbish.
 		// In such rare cases, compare the string and explicitly throw that exception.
 		assertThat(plaintext, not(equalTo(PLAINTEXT1)));
@@ -121,7 +108,7 @@ public class CryptoSessionTest
 	}
 
 	@Test
-	public void testInvalidPasswordWhileCheckerSaysOk()
+	public void start_passwordCheckerSaysOk_doesNotThrow()
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsOk))
 		{
@@ -130,7 +117,7 @@ public class CryptoSessionTest
 	}
 
 	@Test(expected = CryptoException.class)
-	public void testInvalidPasswordWhileCheckerSaysNotOk()
+	public void start_passwordCheckerSaysNotOk_throws()
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(PASSWORD1), CryptoSessionTest::passwordIsNotOk))
 		{
@@ -140,17 +127,7 @@ public class CryptoSessionTest
 
 	private static boolean passwordIsOk()
 	{
-		testEncryptDecryptInCurrentSession();
 		return true;
-	}
-
-	private static void testEncryptDecryptInCurrentSession()
-	{
-		byte[] initializationVector = new byte[INITIALIZATION_VECTOR_LENGTH];
-		String ciphertext = encryptInCurrentSession(PLAINTEXT1, initializationVector, false);
-		assertThat(ciphertext, not(equalTo(PLAINTEXT1)));
-		String plaintext = decryptInCurrentSession(ciphertext, null);
-		assertThat(plaintext, equalTo(PLAINTEXT1));
 	}
 
 	private static boolean passwordIsNotOk()
@@ -158,11 +135,14 @@ public class CryptoSessionTest
 		return false;
 	}
 
-	private static String encrypt(String password, String plaintext, byte[] initializationVector, boolean ivIsInput)
+	private static String encrypt(String password, String plaintext, byte[] initializationVector)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password))
 		{
-			return encryptInCurrentSession(plaintext, initializationVector, ivIsInput);
+			System.arraycopy(CryptoSession.getCurrent().generateInitializationVector(), 0, initializationVector, 0,
+					initializationVector.length);
+
+			return encryptInCurrentSession(plaintext, initializationVector);
 		}
 	}
 
@@ -170,30 +150,19 @@ public class CryptoSessionTest
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password))
 		{
+			CryptoSession.getCurrent().setInitializationVector(initializationVector);
+
 			return decryptInCurrentSession(ciphertext, initializationVector);
 		}
 	}
 
-	private static String encryptInCurrentSession(String plaintext, byte[] initializationVector, boolean ivIsInput)
+	private static String encryptInCurrentSession(String plaintext, byte[] initializationVector)
 	{
-		if (ivIsInput)
-		{
-			CryptoSession.getCurrent().setInitializationVector(initializationVector);
-		}
-		else
-		{
-			System.arraycopy(CryptoSession.getCurrent().generateInitializationVector(), 0, initializationVector, 0,
-					initializationVector.length);
-		}
 		return Base64.getEncoder().encodeToString(CryptoSession.getCurrent().encrypt(plaintext.getBytes(StandardCharsets.UTF_8)));
 	}
 
 	private static String decryptInCurrentSession(String ciphertext, byte[] initializationVector)
 	{
-		if (initializationVector != null)
-		{
-			CryptoSession.getCurrent().setInitializationVector(initializationVector);
-		}
 		return new String(CryptoSession.getCurrent().decrypt(Base64.getDecoder().decode(ciphertext)));
 	}
 
