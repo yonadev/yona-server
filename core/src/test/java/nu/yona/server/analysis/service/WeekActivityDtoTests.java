@@ -15,7 +15,7 @@ import org.junit.Test;
 public class WeekActivityDtoTests
 {
 	@Test
-	public void parseDate_default_rightResult()
+	public void parseDate_iso8601DateFormat_returnsDateOfFirstDayOfWeek()
 	{
 		LocalDate parsedDate = WeekActivityDto.parseDate("2016-W02");
 
@@ -24,7 +24,7 @@ public class WeekActivityDtoTests
 	}
 
 	@Test
-	public void formatDate_default_rightResult()
+	public void formatDate_default_returnsInIso8601WeekDateFormat()
 	{
 		String weekDate = WeekActivityDto.formatDate(LocalDate.of(2016, 1, 10));
 
@@ -32,7 +32,7 @@ public class WeekActivityDtoTests
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void formatDate_dateMonday_throws()
+	public void formatDate_dateOnNonFirstDayOfWeek_throws()
 	{
 		WeekActivityDto.formatDate(LocalDate.of(2016, 1, 11));
 	}

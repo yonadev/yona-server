@@ -107,7 +107,7 @@ public class ActivityCategoryServiceTest
 	}
 
 	@Test
-	public void getActivityCategory_default_rightResult()
+	public void getActivityCategory_existingId_returnsCorrectActivityCategory()
 	{
 		assertThat(service.getActivityCategory(gambling.getId()).getName(), equalTo("gambling"));
 		assertThat(service.getActivityCategory(news.getId()).getName(), equalTo("news"));
