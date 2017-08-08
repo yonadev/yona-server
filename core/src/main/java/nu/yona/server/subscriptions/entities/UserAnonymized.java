@@ -15,7 +15,6 @@ import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -43,8 +42,10 @@ public class UserAnonymized extends EntityWithUuid
 	@BatchSize(size = 20)
 	private Set<Goal> goals;
 
-	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-	@JoinColumn(name = "owning_user_anonymized_id", referencedColumnName = "id")
+	/**
+	 * The BuddyAnonymized entities owned by this user
+	 */
+	@OneToMany(mappedBy = "owningUserAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<BuddyAnonymized> buddiesAnonymized;
 
 	// Default constructor is required for JPA
@@ -100,12 +101,14 @@ public class UserAnonymized extends EntityWithUuid
 	public void addBuddyAnonymized(BuddyAnonymized buddyAnonimized)
 	{
 		buddiesAnonymized.add(buddyAnonimized);
+		buddyAnonimized.setOwningUserAnonymized(this);
 	}
 
 	public void removeBuddyAnonymized(BuddyAnonymized buddyAnonimized)
 	{
 		boolean removed = buddiesAnonymized.remove(buddyAnonimized);
 		assert removed;
+		buddyAnonimized.clearOwningUserAnonymized();
 	}
 
 	public UUID getVpnLoginId()
