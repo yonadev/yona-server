@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -29,6 +30,7 @@ public class Activity extends EntityWithId
 	private ZoneId timeZone;
 	private LocalDateTime startTime;
 	private LocalDateTime endTime;
+	private Optional<String> app;
 
 	@ManyToOne
 	private DayActivity dayActivity;
@@ -41,16 +43,17 @@ public class Activity extends EntityWithId
 	{
 	}
 
-	public Activity(ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime)
+	public Activity(ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime, Optional<String> app)
 	{
 		this.timeZone = timeZone;
 		this.startTime = startTime;
 		this.endTime = endTime;
+		this.app = app;
 	}
 
-	public static Activity createInstance(ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime)
+	public static Activity createInstance(ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime, Optional<String> app)
 	{
-		return new Activity(timeZone, startTime, endTime);
+		return new Activity(timeZone, startTime, endTime, app);
 	}
 
 	public DayActivity getDayActivity()
@@ -108,5 +111,10 @@ public class Activity extends EntityWithId
 	public ActivityCategory getActivityCategory()
 	{
 		return activityCategory;
+	}
+
+	public Optional<String> getApp()
+	{
+		return app;
 	}
 }

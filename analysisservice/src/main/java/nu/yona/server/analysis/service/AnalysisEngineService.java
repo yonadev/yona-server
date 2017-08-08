@@ -236,12 +236,22 @@ public class AnalysisEngineService
 			return false;
 		}
 
+		if (isRelatedToDifferentApp(payload, lastRegisteredActivity))
+		{
+			return false;
+		}
+
 		if (isOnNewDay(payload, lastRegisteredActivity))
 		{
 			return false;
 		}
 
 		return true;
+	}
+
+	private boolean isRelatedToDifferentApp(ActivityPayload payload, ActivityDto lastRegisteredActivity)
+	{
+		return !payload.application.equals(lastRegisteredActivity.getApp());
 	}
 
 	private boolean isOnNewDay(ActivityPayload payload, ActivityDto lastRegisteredActivity)
@@ -338,7 +348,7 @@ public class AnalysisEngineService
 
 		ZonedDateTime endTime = ensureMinimumDurationOneMinute(payload);
 		Activity activity = Activity.createInstance(payload.startTime.getZone(), payload.startTime.toLocalDateTime(),
-				endTime.toLocalDateTime());
+				endTime.toLocalDateTime(), payload.application);
 		dayActivity.addActivity(activity);
 		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
 		return dayActivity.getLastActivity();
