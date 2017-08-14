@@ -63,6 +63,17 @@ public class BuddyActivityController extends ActivityControllerBase
 				new BuddyActivityLinkProvider(userId, buddyId));
 	}
 
+	@RequestMapping(value = WEEK_ACTIVITY_OVERVIEW_URI_FRAGMENT, method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<WeekActivityOverviewResource> getBuddyWeekActivityOverview(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
+			@PathVariable UUID buddyId,
+			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
+	{
+		return getWeekActivityOverview(password, userId, dateStr, (date) -> activityService.getBuddyWeekActivityOverview(buddyId, date),
+				new BuddyActivityLinkProvider(userId, buddyId));
+	}
+
 	@RequestMapping(value = DAY_OVERVIEWS_URI_FRAGMENT, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<PagedResources<DayActivityOverviewResource>> getBuddyDayActivityOverviews(
@@ -71,6 +82,17 @@ public class BuddyActivityController extends ActivityControllerBase
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler)
 	{
 		return getDayActivityOverviews(password, userId, pagedResourcesAssembler, () -> activityService.getBuddyDayActivityOverviews(buddyId, pageable),
+				new BuddyActivityLinkProvider(userId, buddyId));
+	}
+
+	@RequestMapping(value = DAY_OVERVIEW_URI_FRAGMENT, method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<DayActivityOverviewResource> getBuddyDayActivityOverview(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
+			@PathVariable UUID buddyId,
+			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
+	{
+		return getDayActivityOverview(password, userId, dateStr, (date) -> activityService.getBuddyDayActivityOverview(buddyId, date),
 				new BuddyActivityLinkProvider(userId, buddyId));
 	}
 
@@ -178,6 +200,18 @@ public class BuddyActivityController extends ActivityControllerBase
 		return linkTo(methodOn.getBuddyWeekActivityOverviews(null, userId, buddyId, null, null));
 	}
 
+	public static ControllerLinkBuilder getBuddyWeekActivityOverviewLinkBuilder(UUID userId, UUID buddyId, String dateStr)
+	{
+		BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
+		return linkTo(methodOn.getBuddyWeekActivityOverview(null, userId, buddyId, dateStr));
+	}
+
+	public static ControllerLinkBuilder getBuddyDayActivityOverviewLinkBuilder(UUID userId, UUID buddyId, String dateStr)
+	{
+		BuddyActivityController methodOn = methodOn(BuddyActivityController.class);
+		return linkTo(methodOn.getBuddyDayActivityOverview(null, userId, buddyId, dateStr));
+	}
+
 	public static ControllerLinkBuilder getBuddyDayActivityDetailLinkBuilder(UUID userId, UUID buddyId, String dateStr,
 			UUID goalId)
 	{
@@ -194,6 +228,18 @@ public class BuddyActivityController extends ActivityControllerBase
 		{
 			this.userId = userId;
 			this.buddyId = buddyId;
+		}
+
+		@Override
+		public ControllerLinkBuilder getWeekActivityOverviewLinkBuilder(String dateStr)
+		{
+			return getBuddyWeekActivityOverviewLinkBuilder(userId, buddyId, dateStr);
+		}
+
+		@Override
+		public ControllerLinkBuilder getDayActivityOverviewLinkBuilder(String dateStr)
+		{
+			return getBuddyDayActivityOverviewLinkBuilder(userId, buddyId, dateStr);
 		}
 
 		@Override

@@ -8,9 +8,11 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.springframework.data.domain.Page;
@@ -66,6 +68,16 @@ public class UserActivityController extends ActivityControllerBase
 				new UserActivityLinkProvider(userId));
 	}
 
+	@RequestMapping(value = WEEK_ACTIVITY_OVERVIEW_URI_FRAGMENT, method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<WeekActivityOverviewResource> getUserWeekActivityOverview(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
+			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
+	{
+		return getWeekActivityOverview(password, userId, dateStr, (date) -> activityService.getUserWeekActivityOverview(userId, date),
+				new UserActivityLinkProvider(userId));
+	}
+
 	@RequestMapping(value = DAY_OVERVIEWS_URI_FRAGMENT, method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<PagedResources<DayActivityOverviewResource>> getUserDayActivityOverviews(
@@ -74,6 +86,16 @@ public class UserActivityController extends ActivityControllerBase
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler)
 	{
 		return getDayActivityOverviews(password, userId, pagedResourcesAssembler, () -> activityService.getUserDayActivityOverviews(userId, pageable),
+				new UserActivityLinkProvider(userId));
+	}
+
+	@RequestMapping(value = DAY_OVERVIEW_URI_FRAGMENT, method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<DayActivityOverviewResource> getUserDayActivityOverview(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
+			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
+	{
+		return getDayActivityOverview(password, userId, dateStr, (date) -> activityService.getUserDayActivityOverview(userId, date),
 				new UserActivityLinkProvider(userId));
 	}
 
@@ -157,7 +179,42 @@ public class UserActivityController extends ActivityControllerBase
 	{
 		GoalIdMapping goalIdMapping = GoalIdMapping.createInstance(userService.getPrivateUser(userId));
 		return new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
-				new DayActivityOverviewWithBuddiesResourceAssembler(goalIdMapping)), HttpStatus.OK);
+				new DayActivityOverviewWithBuddiesResourceAssembler(userId, goalIdMapping)), HttpStatus.OK);
+	}
+
+	/**
+	 * Get network and app activity of the buddies of this user for the given day. The user's
+	 * own activities are included if any buddy shares the same goal. Note that the name is slightly confusing, as the name
+	 * suggests that the user activities are supplemented with the buddy activities, while in reality, the buddy activities are
+	 * supplemented with the user activities. The name is retained because it reflects the external API (URL).
+	 */
+	@RequestMapping(value = "/withBuddies/days/{date}", method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<DayActivityOverviewWithBuddiesResource> getDayActivityOverviewWithBuddies(
+			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
+			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
+	{
+		return getDayActivityOverviewWithBuddies(password, userId, dateStr, (date) -> activityService.getUserDayActivityOverviewWithBuddies(userId, date),
+				new UserActivityLinkProvider(userId));
+	}
+
+	private HttpEntity<DayActivityOverviewWithBuddiesResource> getDayActivityOverviewWithBuddies(
+			Optional<String> password, UUID userId, String dateStr,
+			Function<LocalDate, DayActivityOverviewDto<DayActivityWithBuddiesDto>> activitySupplier,
+			LinkProvider linkProvider)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return getDayActivityOverviewWithBuddies(userId, dateStr, activitySupplier);
+		}
+	}
+
+	private ResponseEntity<DayActivityOverviewWithBuddiesResource> getDayActivityOverviewWithBuddies(UUID userId, String dateStr,
+			Function<LocalDate, DayActivityOverviewDto<DayActivityWithBuddiesDto>> activitySupplier)
+	{
+		LocalDate date = DayActivityDto.parseDate(dateStr);
+		GoalIdMapping goalIdMapping = GoalIdMapping.createInstance(userService.getPrivateUser(userId));
+		return new ResponseEntity<>(new DayActivityOverviewWithBuddiesResourceAssembler(userId, goalIdMapping).toResource(activitySupplier.apply(date)), HttpStatus.OK);
 	}
 
 	@Override
@@ -185,6 +242,24 @@ public class UserActivityController extends ActivityControllerBase
 		return linkTo(methodOn.getUserWeekActivityOverviews(null, userId, null, null));
 	}
 
+	public static ControllerLinkBuilder getUserWeekActivityOverviewLinkBuilder(UUID userId, String dateStr)
+	{
+		UserActivityController methodOn = methodOn(UserActivityController.class);
+		return linkTo(methodOn.getUserWeekActivityOverview(null, userId, dateStr));
+	}
+
+	public static ControllerLinkBuilder getUserDayActivityOverviewLinkBuilder(UUID userId, String dateStr)
+	{
+		UserActivityController methodOn = methodOn(UserActivityController.class);
+		return linkTo(methodOn.getUserDayActivityOverview(null, userId, dateStr));
+	}
+
+	public static ControllerLinkBuilder getDayActivityOverviewWithBuddiesLinkBuilder(UUID userId, String dateStr)
+	{
+		UserActivityController methodOn = methodOn(UserActivityController.class);
+		return linkTo(methodOn.getDayActivityOverviewWithBuddies(null, userId, dateStr));
+	}
+
 	public static ControllerLinkBuilder getUserDayActivityDetailLinkBuilder(UUID userId, String dateStr, UUID goalId)
 	{
 		UserActivityController methodOn = methodOn(UserActivityController.class);
@@ -198,6 +273,18 @@ public class UserActivityController extends ActivityControllerBase
 		public UserActivityLinkProvider(UUID userId)
 		{
 			this.userId = userId;
+		}
+
+		@Override
+		public ControllerLinkBuilder getWeekActivityOverviewLinkBuilder(String dateStr)
+		{
+			return UserActivityController.getUserWeekActivityOverviewLinkBuilder(userId, dateStr);
+		}
+
+		@Override
+		public ControllerLinkBuilder getDayActivityOverviewLinkBuilder(String dateStr)
+		{
+			return UserActivityController.getUserDayActivityOverviewLinkBuilder(userId, dateStr);
 		}
 
 		@Override
@@ -268,10 +355,12 @@ public class UserActivityController extends ActivityControllerBase
 			ResourceAssemblerSupport<DayActivityOverviewDto<DayActivityWithBuddiesDto>, DayActivityOverviewWithBuddiesResource>
 	{
 		private final GoalIdMapping goalIdMapping;
+		private final UUID userId;
 
-		public DayActivityOverviewWithBuddiesResourceAssembler(GoalIdMapping goalIdMapping)
+		public DayActivityOverviewWithBuddiesResourceAssembler(UUID userId, GoalIdMapping goalIdMapping)
 		{
 			super(ActivityControllerBase.class, DayActivityOverviewWithBuddiesResource.class);
+			this.userId = userId;
 			this.goalIdMapping = goalIdMapping;
 		}
 
@@ -279,7 +368,9 @@ public class UserActivityController extends ActivityControllerBase
 		public DayActivityOverviewWithBuddiesResource toResource(
 				DayActivityOverviewDto<DayActivityWithBuddiesDto> dayActivityOverview)
 		{
-			return instantiateResource(dayActivityOverview);
+			DayActivityOverviewWithBuddiesResource resource = instantiateResource(dayActivityOverview);
+			addSelfLink(resource);
+			return resource;
 		}
 
 		@Override
@@ -287,6 +378,11 @@ public class UserActivityController extends ActivityControllerBase
 				DayActivityOverviewDto<DayActivityWithBuddiesDto> dayActivityOverview)
 		{
 			return new DayActivityOverviewWithBuddiesResource(goalIdMapping, dayActivityOverview);
+		}
+
+		private void addSelfLink(Resource<DayActivityOverviewDto<DayActivityWithBuddiesDto>> resource) {
+			resource.add(UserActivityController.getDayActivityOverviewWithBuddiesLinkBuilder(userId, resource.getContent().getDateStr())
+					.withSelfRel());
 		}
 	}
 
