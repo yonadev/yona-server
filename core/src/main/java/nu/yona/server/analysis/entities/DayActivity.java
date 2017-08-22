@@ -170,7 +170,11 @@ public class DayActivity extends IntervalActivity
 		for (int spreadItemIndex = spreadStartIndex; spreadItemIndex <= spreadEndIndex; spreadItemIndex++)
 		{
 			if (spreadItemIndex > 95)
+			{
+				// if the activity ends at 00:00, this is counted as spread index 96
+				// also, if the day has more than 24 hours, we ignore those extra hours in the spread
 				break;
+			}
 
 			int durationInSpreadItem = getDurationInSpreadItem(startTime, endTime, spreadStartIndex, spreadEndIndex,
 					spreadItemIndex);
