@@ -159,10 +159,9 @@ public class ActivityService
 						missingInactivities),
 				(g, wa) -> createAndSaveInactivityDays(userAnonymized,
 						userAnonymized.getGoalsForActivityCategory(g.getActivityCategory()), wa, missingInactivities));
-		List<WeekActivityOverviewDto> weekActivityOverviews = weekActivityDtosByZonedDate.entrySet().stream()
+		return weekActivityDtosByZonedDate.entrySet().stream()
 				.sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 				.map(e -> WeekActivityOverviewDto.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList());
-		return weekActivityOverviews;
 	}
 
 	private WeekActivityOverviewDto getWeekActivityOverview(UUID userAnonymizedId, LocalDate date,
@@ -280,9 +279,8 @@ public class ActivityService
 		Map<ZonedDateTime, Set<DayActivityDto>> dayActivityDtosByZonedDate = executeAndCreateInactivityEntries(
 				mia -> getDayActivitiesForUserAnonymizedIdsInInterval(userAnonymizedIds, activityCategoryIdsUsedByBuddies,
 						interval, mia));
-		List<DayActivityOverviewDto<DayActivityWithBuddiesDto>> dayActivityOverviews = dayActivityEntitiesToOverviewsUserWithBuddies(
+		return dayActivityEntitiesToOverviewsUserWithBuddies(
 				dayActivityDtosByZonedDate);
-		return dayActivityOverviews;
 	}
 
 	@Transactional
@@ -373,8 +371,7 @@ public class ActivityService
 	{
 		Map<ZonedDateTime, Set<DayActivityDto>> dayActivitiesByZonedDate = getDayActivities(userAnonymized, interval,
 				missingInactivities);
-		List<DayActivityOverviewDto<DayActivityDto>> dayActivityOverviews = dayActivityDtosToOverviews(dayActivitiesByZonedDate);
-		return dayActivityOverviews;
+		return dayActivityDtosToOverviews(dayActivitiesByZonedDate);
 	}
 
 	private Map<ZonedDateTime, Set<DayActivityDto>> getDayActivities(UserAnonymizedDto userAnonymized, Interval interval,
