@@ -81,10 +81,8 @@ abstract class ActivityControllerBase
 	protected static final int WEEKS_DEFAULT_PAGE_SIZE = 2;
 	protected static final int DAYS_DEFAULT_PAGE_SIZE = 3;
 	protected static final int MESSAGES_DEFAULT_PAGE_SIZE = 4;
-	protected static final String PREV_REL = "prev"; // IANA reserved, so will
-														// not be prefixed
-	protected static final String NEXT_REL = "next"; // IANA reserved, so will
-														// not be prefixed
+	protected static final String PREV_REL = "prev"; // IANA reserved, so will not be prefixed
+	protected static final String NEXT_REL = "next"; // IANA reserved, so will not be prefixed
 
 	protected HttpEntity<PagedResources<WeekActivityOverviewResource>> getWeekActivityOverviews(Optional<String> password,
 			UUID userId, PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler,
