@@ -75,7 +75,7 @@ public class UserActivityController extends ActivityControllerBase
 			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
 	{
 		return getWeekActivityOverview(password, userId, dateStr,
-				(date) -> activityService.getUserWeekActivityOverview(userId, date), new UserActivityLinkProvider(userId));
+				date -> activityService.getUserWeekActivityOverview(userId, date), new UserActivityLinkProvider(userId));
 	}
 
 	@RequestMapping(value = DAY_OVERVIEWS_URI_FRAGMENT, method = RequestMethod.GET)
@@ -95,8 +95,8 @@ public class UserActivityController extends ActivityControllerBase
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
 			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
 	{
-		return getDayActivityOverview(password, userId, dateStr,
-				(date) -> activityService.getUserDayActivityOverview(userId, date), new UserActivityLinkProvider(userId));
+		return getDayActivityOverview(password, userId, dateStr, date -> activityService.getUserDayActivityOverview(userId, date),
+				new UserActivityLinkProvider(userId));
 	}
 
 	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_URI_FRAGMENT, method = RequestMethod.GET)
@@ -159,14 +159,13 @@ public class UserActivityController extends ActivityControllerBase
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityWithBuddiesDto>> pagedResourcesAssembler)
 	{
 		return getDayActivityOverviewsWithBuddies(password, userId, pagedResourcesAssembler,
-				() -> activityService.getUserDayActivityOverviewsWithBuddies(userId, pageable),
-				new UserActivityLinkProvider(userId));
+				() -> activityService.getUserDayActivityOverviewsWithBuddies(userId, pageable));
 	}
 
 	private HttpEntity<PagedResources<DayActivityOverviewWithBuddiesResource>> getDayActivityOverviewsWithBuddies(
 			Optional<String> password, UUID userId,
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityWithBuddiesDto>> pagedResourcesAssembler,
-			Supplier<Page<DayActivityOverviewDto<DayActivityWithBuddiesDto>>> activitySupplier, LinkProvider linkProvider)
+			Supplier<Page<DayActivityOverviewDto<DayActivityWithBuddiesDto>>> activitySupplier)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
@@ -196,13 +195,11 @@ public class UserActivityController extends ActivityControllerBase
 			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
 	{
 		return getDayActivityOverviewWithBuddies(password, userId, dateStr,
-				(date) -> activityService.getUserDayActivityOverviewWithBuddies(userId, date),
-				new UserActivityLinkProvider(userId));
+				date -> activityService.getUserDayActivityOverviewWithBuddies(userId, date));
 	}
 
 	private HttpEntity<DayActivityOverviewWithBuddiesResource> getDayActivityOverviewWithBuddies(Optional<String> password,
-			UUID userId, String dateStr, Function<LocalDate, DayActivityOverviewDto<DayActivityWithBuddiesDto>> activitySupplier,
-			LinkProvider linkProvider)
+			UUID userId, String dateStr, Function<LocalDate, DayActivityOverviewDto<DayActivityWithBuddiesDto>> activitySupplier)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
@@ -235,7 +232,7 @@ public class UserActivityController extends ActivityControllerBase
 	public static ControllerLinkBuilder getDayActivityOverviewsWithBuddiesLinkBuilder(UUID userId)
 	{
 		UserActivityController methodOn = methodOn(UserActivityController.class);
-		return linkTo(methodOn.getDayActivityOverviewsWithBuddies(null, userId, null, null));
+		return linkTo(methodOn.getDayActivityOverviewsWithBuddies(null, userId, (Pageable) null, null));
 	}
 
 	public static ControllerLinkBuilder getUserWeekActivityOverviewsLinkBuilder(UUID userId)

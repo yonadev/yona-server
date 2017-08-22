@@ -71,7 +71,7 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
 	{
 		return getWeekActivityOverview(password, userId, dateStr,
-				(date) -> activityService.getBuddyWeekActivityOverview(buddyId, date),
+				date -> activityService.getBuddyWeekActivityOverview(buddyId, date),
 				new BuddyActivityLinkProvider(userId, buddyId));
 	}
 
@@ -94,7 +94,7 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
 	{
 		return getDayActivityOverview(password, userId, dateStr,
-				(date) -> activityService.getBuddyDayActivityOverview(buddyId, date),
+				date -> activityService.getBuddyDayActivityOverview(buddyId, date),
 				new BuddyActivityLinkProvider(userId, buddyId));
 	}
 
