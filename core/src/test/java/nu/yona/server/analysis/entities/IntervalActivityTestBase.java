@@ -35,7 +35,7 @@ import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.util.TimeUtil;
 
-public abstract class IntervalActivityTestsBase
+public abstract class IntervalActivityTestBase
 {
 	protected ZoneId testZone;
 

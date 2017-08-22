@@ -11,7 +11,7 @@ import java.time.LocalDate;
 
 import org.junit.Test;
 
-public class DayActivityDtoTests
+public class DayActivityDtoTest
 {
 	@Test
 	public void parseDate_iso8601DateFormat_returnsParsedDate()
