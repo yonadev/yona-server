@@ -85,7 +85,11 @@ public class Buddy extends EntityWithUuid
 
 	public BuddyAnonymized getBuddyAnonymized()
 	{
-		return BuddyAnonymized.getRepository().findOne(buddyAnonymizedId);
+		BuddyAnonymized buddyAnonymized = BuddyAnonymized.getRepository().findOne(buddyAnonymizedId);
+		assert buddyAnonymized != null : "Buddy with ID " + getId() + " cannot find buddy anonymized with ID "
+				+ buddyAnonymizedId;
+
+		return buddyAnonymized;
 	}
 
 	public String getNickname()
