@@ -217,6 +217,22 @@ public class AnalysisEngineService
 				.compareTo(yonaProperties.getAnalysisService().getUpdateSkipWindow()) >= 0;
 	}
 
+	private boolean shouldSendNewGoalConflictMessageForNewConflictingActivity(ActivityPayload payload,
+			ActivityDto lastRegisteredActivity)
+	{
+		if (lastRegisteredActivity == null)
+		{
+			return true;
+		}
+
+		if (isBeyondCombineIntervalWithLastRegisteredActivity(payload, lastRegisteredActivity))
+		{
+			return true;
+		}
+
+		return false;
+	}
+
 	private boolean canCombineWithLastRegisteredActivity(ActivityPayload payload, ActivityDto lastRegisteredActivity)
 	{
 		if (lastRegisteredActivity == null)
@@ -236,17 +252,27 @@ public class AnalysisEngineService
 			return false;
 		}
 
-		if (isRelatedToDifferentApp(payload, lastRegisteredActivity))
-		{
-			return false;
-		}
-
 		if (isOnNewDay(payload, lastRegisteredActivity))
 		{
 			return false;
 		}
 
+		if (isRelatedToDifferentApp(payload, lastRegisteredActivity))
+		{
+			return false;
+		}
+
+		if (isRelatedToSameAppButInterrupted(payload, lastRegisteredActivity))
+		{
+			return false;
+		}
+
 		return true;
+	}
+
+	private boolean isRelatedToSameAppButInterrupted(ActivityPayload payload, ActivityDto lastRegisteredActivity)
+	{
+		return payload.application.isPresent() && !payload.startTime.equals(lastRegisteredActivity.getEndTime());
 	}
 
 	private boolean isRelatedToDifferentApp(ActivityPayload payload, ActivityDto lastRegisteredActivity)
@@ -279,7 +305,7 @@ public class AnalysisEngineService
 
 	private boolean isCrossDayActivity(ActivityPayload payload)
 	{
-		return TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.endTime).isAfter(payload.startTime);
+		return TimeUtil.getEndOfDay(payload.userAnonymized.getTimeZone(), payload.startTime).isBefore(payload.endTime);
 	}
 
 	private void addActivity(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload, GoalDto matchingGoal,
@@ -296,7 +322,8 @@ public class AnalysisEngineService
 
 		// Save first, so the activity is available when saving the message
 		userAnonymizedService.updateUserAnonymized(userAnonymizedHolder.getEntity());
-		if (matchingGoal.isNoGoGoal())
+		if (matchingGoal.isNoGoGoal()
+				&& shouldSendNewGoalConflictMessageForNewConflictingActivity(payload, lastRegisteredActivity))
 		{
 			sendConflictMessageToAllDestinationsOfUser(userAnonymizedHolder.getEntity(), payload, addedActivity,
 					matchingGoalEntity);

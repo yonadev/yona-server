@@ -30,7 +30,7 @@ public class Activity extends EntityWithId
 	private ZoneId timeZone;
 	private LocalDateTime startTime;
 	private LocalDateTime endTime;
-	private Optional<String> app;
+	private String app;
 
 	@ManyToOne
 	private DayActivity dayActivity;
@@ -48,7 +48,7 @@ public class Activity extends EntityWithId
 		this.timeZone = timeZone;
 		this.startTime = startTime;
 		this.endTime = endTime;
-		this.app = app;
+		this.app = app.orElse(null);
 	}
 
 	public static Activity createInstance(ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime, Optional<String> app)
@@ -115,6 +115,6 @@ public class Activity extends EntityWithId
 
 	public Optional<String> getApp()
 	{
-		return app;
+		return Optional.ofNullable(app);
 	}
 }

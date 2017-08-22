@@ -1,9 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -168,6 +169,9 @@ public class DayActivity extends IntervalActivity
 		int spreadEndIndex = getSpreadIndex(endTime);
 		for (int spreadItemIndex = spreadStartIndex; spreadItemIndex <= spreadEndIndex; spreadItemIndex++)
 		{
+			if (spreadItemIndex > 95)
+				break;
+
 			int durationInSpreadItem = getDurationInSpreadItem(startTime, endTime, spreadStartIndex, spreadEndIndex,
 					spreadItemIndex);
 			spread.set(spreadItemIndex, spread.get(spreadItemIndex) + durationInSpreadItem);
@@ -201,7 +205,7 @@ public class DayActivity extends IntervalActivity
 
 	private int getSpreadIndex(ZonedDateTime atTime)
 	{
-		return (atTime.getHour() * 4) + (atTime.getMinute() / 15);
+		return (int) (Duration.between(getStartTime(), atTime).toMinutes() / 15);
 	}
 
 	@Override
