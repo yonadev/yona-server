@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.rest;
 
@@ -59,7 +59,8 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PageableDefault(size = WEEKS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler)
 	{
-		return getWeekActivityOverviews(password, userId, pagedResourcesAssembler, () -> activityService.getBuddyWeekActivityOverviews(buddyId, pageable),
+		return getWeekActivityOverviews(password, userId, pagedResourcesAssembler,
+				() -> activityService.getBuddyWeekActivityOverviews(buddyId, pageable),
 				new BuddyActivityLinkProvider(userId, buddyId));
 	}
 
@@ -67,10 +68,10 @@ public class BuddyActivityController extends ActivityControllerBase
 	@ResponseBody
 	public HttpEntity<WeekActivityOverviewResource> getBuddyWeekActivityOverview(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
-			@PathVariable UUID buddyId,
-			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
+			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
 	{
-		return getWeekActivityOverview(password, userId, dateStr, (date) -> activityService.getBuddyWeekActivityOverview(buddyId, date),
+		return getWeekActivityOverview(password, userId, dateStr,
+				(date) -> activityService.getBuddyWeekActivityOverview(buddyId, date),
 				new BuddyActivityLinkProvider(userId, buddyId));
 	}
 
@@ -81,7 +82,8 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PathVariable UUID buddyId, @PageableDefault(size = DAYS_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler)
 	{
-		return getDayActivityOverviews(password, userId, pagedResourcesAssembler, () -> activityService.getBuddyDayActivityOverviews(buddyId, pageable),
+		return getDayActivityOverviews(password, userId, pagedResourcesAssembler,
+				() -> activityService.getBuddyDayActivityOverviews(buddyId, pageable),
 				new BuddyActivityLinkProvider(userId, buddyId));
 	}
 
@@ -89,10 +91,10 @@ public class BuddyActivityController extends ActivityControllerBase
 	@ResponseBody
 	public HttpEntity<DayActivityOverviewResource> getBuddyDayActivityOverview(
 			@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
-			@PathVariable UUID buddyId,
-			@PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
+			@PathVariable UUID buddyId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr)
 	{
-		return getDayActivityOverview(password, userId, dateStr, (date) -> activityService.getBuddyDayActivityOverview(buddyId, date),
+		return getDayActivityOverview(password, userId, dateStr,
+				(date) -> activityService.getBuddyDayActivityOverview(buddyId, date),
 				new BuddyActivityLinkProvider(userId, buddyId));
 	}
 
@@ -117,9 +119,10 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
-		return getActivityDetailMessages(password,
-				userId, pagedResourcesAssembler, () -> activityService.getBuddyWeekActivityDetailMessages(userId,
-						buddyId, WeekActivityDto.parseDate(dateStr), goalId, pageable), new BuddyActivityLinkProvider(userId, buddyId));
+		return getActivityDetailMessages(
+				password, userId, pagedResourcesAssembler, () -> activityService.getBuddyWeekActivityDetailMessages(userId,
+						buddyId, WeekActivityDto.parseDate(dateStr), goalId, pageable),
+				new BuddyActivityLinkProvider(userId, buddyId));
 	}
 
 	@RequestMapping(value = WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.POST)
@@ -159,9 +162,10 @@ public class BuddyActivityController extends ActivityControllerBase
 			@PageableDefault(size = MESSAGES_DEFAULT_PAGE_SIZE) Pageable pageable,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
-		return getActivityDetailMessages(password,
-				userId, pagedResourcesAssembler, () -> activityService.getBuddyDayActivityDetailMessages(userId,
-						buddyId, DayActivityDto.parseDate(dateStr), goalId, pageable), new BuddyActivityLinkProvider(userId, buddyId));
+		return getActivityDetailMessages(
+				password, userId, pagedResourcesAssembler, () -> activityService.getBuddyDayActivityDetailMessages(userId,
+						buddyId, DayActivityDto.parseDate(dateStr), goalId, pageable),
+				new BuddyActivityLinkProvider(userId, buddyId));
 	}
 
 	@RequestMapping(value = DAY_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT, method = RequestMethod.POST)
