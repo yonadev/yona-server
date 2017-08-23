@@ -18,14 +18,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import org.junit.Before;
 
-import nu.yona.server.analysis.entities.Activity;
-import nu.yona.server.analysis.entities.DayActivity;
-import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.crypto.pubkey.PublicKeyUtil;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
@@ -71,7 +69,7 @@ public abstract class IntervalActivityTestsBase
 	protected void addActivity(DayActivity dayActivity, String startTimeString, String endTimeString)
 	{
 		dayActivity.addActivity(Activity.createInstance(testZone, getTimeOnDay(dayActivity, startTimeString).toLocalDateTime(),
-				getTimeOnDay(dayActivity, endTimeString).toLocalDateTime()));
+				getTimeOnDay(dayActivity, endTimeString).toLocalDateTime(), Optional.empty()));
 	}
 
 	protected void assertSpreadItemsAndTotal(IntervalActivity intervalActivity, String expectedSpreadItems,

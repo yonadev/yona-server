@@ -71,7 +71,7 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Aggregation is reset and repeated when posting new app activity within combine interval'()
+	def 'Aggregation is reset and repeated when posting new continuing app activity'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
@@ -100,11 +100,11 @@ class ActivityAggregationBatchJobTest extends AbstractAppServiceIntegrationTest
 		assertActivityValues(richard, 1, expectedValuesFirstAggregation, 2)
 
 		when:
-		reportAppActivity(richard, "NU.nl", "W-1 Mon 23:50", "W-1 Tue 00:05")
+		reportAppActivity(richard, "NU.nl", "W-1 Mon 23:49", "W-1 Tue 00:05")
 
 		then:
 		def expectedValuesSecondAggregation = [
-			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 59, spread: [92:15, 93:15, 94:15, 95:14]]]],
+			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 60, spread: [92:15, 93:15, 94:15, 95:15]]]],
 			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 5, spread: [0:5]]]],
 			"Wed" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],
 			"Thu" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]]],

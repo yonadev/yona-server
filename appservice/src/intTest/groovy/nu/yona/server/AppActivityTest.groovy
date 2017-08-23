@@ -186,7 +186,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		goalConflictMessagesRichard.size() == 1
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
 		assertEquals(goalConflictMessagesRichard[0].activityStartTime, startTime)
-		assertEquals(goalConflictMessagesRichard[0].activityEndTime, endTime1)
+		assertEquals(goalConflictMessagesRichard[0].activityEndTime, endTime)
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
@@ -194,7 +194,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		goalConflictMessagesBob.size() == 1
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
 		assertEquals(goalConflictMessagesRichard[0].activityStartTime, startTime)
-		assertEquals(goalConflictMessagesRichard[0].activityEndTime, endTime1)
+		assertEquals(goalConflictMessagesRichard[0].activityEndTime, endTime)
 
 		cleanup:
 		appService.deleteUser(richard)
