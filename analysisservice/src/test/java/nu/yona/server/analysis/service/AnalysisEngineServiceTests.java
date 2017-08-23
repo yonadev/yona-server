@@ -525,7 +525,7 @@ public class AnalysisEngineServiceTests
 	}
 
 	@Test
-	public void analyze_appActivityPrecedingCachedDayActivity_newDayActivityButNoNewGoalConflictMessageCreated()
+	public void analyze_appActivityPreviousDayPrecedingCachedDayActivity_newDayActivityButNoNewGoalConflictMessageCreated()
 	{
 		ZonedDateTime now = now();
 		ZonedDateTime today = now.truncatedTo(ChronoUnit.DAYS);
@@ -679,10 +679,11 @@ public class AnalysisEngineServiceTests
 	public void analyze_appActivitySameAppWithinConflictIntervalContinuous_activityRecordMergedAndNoNewGoalConflictMessageCreated()
 	{
 		ZonedDateTime now = now();
-		DayActivity existingDayActivity = mockExistingActivity(gamblingGoal, now.minusMinutes(10), now.minusMinutes(5),
+		ZonedDateTime existingActivityEndTime = now.minusMinutes(5);
+		DayActivity existingDayActivity = mockExistingActivity(gamblingGoal, now.minusMinutes(10), existingActivityEndTime,
 				"Lotto App");
 
-		service.analyze(userAnonId, createSingleAppActivity("Lotto App", now.minusMinutes(5), now.minusMinutes(2)));
+		service.analyze(userAnonId, createSingleAppActivity("Lotto App", existingActivityEndTime, now.minusMinutes(2)));
 
 		verifyNoGoalConflictMessagesCreated();
 		List<Activity> activities = existingDayActivity.getActivities();
@@ -695,10 +696,12 @@ public class AnalysisEngineServiceTests
 	public void analyze_appActivitySameAppWithinConflictIntervalButNotContinuous_activityRecordNotMergedButNoNewGoalConflictMessageCreated()
 	{
 		ZonedDateTime now = now();
+		ZonedDateTime existingActivityEndTime = now.minusMinutes(5);
 		DayActivity existingDayActivity = mockExistingActivity(gamblingGoal, now.minusMinutes(10), now.minusMinutes(5),
 				"Lotto App");
 
-		service.analyze(userAnonId, createSingleAppActivity("Lotto App", now.minusMinutes(4), now.minusMinutes(2)));
+		service.analyze(userAnonId,
+				createSingleAppActivity("Lotto App", existingActivityEndTime.plusSeconds(1), now.minusMinutes(2)));
 
 		verifyNoGoalConflictMessagesCreated();
 		List<Activity> activities = existingDayActivity.getActivities();

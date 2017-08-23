@@ -262,7 +262,7 @@ public class AnalysisEngineService
 			return false;
 		}
 
-		if (isRelatedToSameAppButInterrupted(payload, lastRegisteredActivity))
+		if (isInterruptedAppActivity(payload, lastRegisteredActivity))
 		{
 			return false;
 		}
@@ -270,7 +270,7 @@ public class AnalysisEngineService
 		return true;
 	}
 
-	private boolean isRelatedToSameAppButInterrupted(ActivityPayload payload, ActivityDto lastRegisteredActivity)
+	private boolean isInterruptedAppActivity(ActivityPayload payload, ActivityDto lastRegisteredActivity)
 	{
 		return payload.application.isPresent() && !payload.startTime.equals(lastRegisteredActivity.getEndTime());
 	}
