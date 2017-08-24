@@ -11,7 +11,7 @@ import java.time.ZonedDateTime;
 
 import org.junit.Test;
 
-public class WeekActivityTests extends IntervalActivityTestsBase
+public class WeekActivityTest extends IntervalActivityTestBase
 {
 	private WeekActivity createWeekActivity()
 	{

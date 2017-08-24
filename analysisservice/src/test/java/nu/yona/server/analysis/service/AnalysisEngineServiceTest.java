@@ -79,7 +79,7 @@ import nu.yona.server.util.TimeUtil;
 import nu.yona.server.util.TransactionHelper;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AnalysisEngineServiceTests
+public class AnalysisEngineServiceTest
 {
 	private final Map<String, Goal> goalMap = new HashMap<>();
 

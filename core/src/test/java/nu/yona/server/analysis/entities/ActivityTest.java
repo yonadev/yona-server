@@ -25,7 +25,7 @@ import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 
 @RunWith(JUnitParamsRunner.class)
-public class ActivityTests
+public class ActivityTest
 {
 	@Test
 	public void setEndTime_afterComputeAggregates_resetsAreAggregatesComputed()
@@ -43,6 +43,7 @@ public class ActivityTests
 	@Test
 	@Parameters({ "00:00:00, 00:00:59, 0", "00:00, 00:01:59.999, 1", "01:00, 01:05, 5", "01:00:01, 01:05, 4",
 			"01:00, 01:04:59, 4", "01:00, 02:01, 61" })
+	// Note that the analysis service will never create activities shorter than one minute
 	public void getDurationMinutes_various_returnsTotalMinutes(String startTimeString, String endTimeString,
 			int expectedTotalMinutes)
 	{

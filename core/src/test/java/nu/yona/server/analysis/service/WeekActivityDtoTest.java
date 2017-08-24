@@ -12,7 +12,7 @@ import java.time.LocalDate;
 
 import org.junit.Test;
 
-public class WeekActivityDtoTests
+public class WeekActivityDtoTest
 {
 	@Test
 	public void parseDate_iso8601DateFormat_returnsDateOfFirstDayOfWeek()

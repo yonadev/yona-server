@@ -14,7 +14,7 @@ import org.junit.Test;
 
 import nu.yona.server.goals.entities.Goal;
 
-public class DayActivityTests extends IntervalActivityTestsBase
+public class DayActivityTest extends IntervalActivityTestBase
 {
 	private DayActivity createDayActivity()
 	{
