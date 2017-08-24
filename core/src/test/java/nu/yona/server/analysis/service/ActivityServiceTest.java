@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -173,7 +174,7 @@ public class ActivityServiceTest
 				yesterday.toLocalDate());
 		Activity recordedActivity = Activity.createInstance(userAnonZone,
 				yesterday.plusHours(20).plusMinutes(58).toLocalDateTime(),
-				yesterday.plusHours(21).plusMinutes(00).toLocalDateTime());
+				yesterday.plusHours(21).plusMinutes(00).toLocalDateTime(), Optional.empty());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
 		Set<UUID> relevantGoalIds = userAnonEntity.getGoals().stream().map(Goal::getId).collect(Collectors.toSet());
 		when(mockDayActivityRepository.findAllActivitiesForUserInIntervalEndIncluded(userAnonId, relevantGoalIds,
@@ -223,7 +224,7 @@ public class ActivityServiceTest
 				saturdayStartOfDay.toLocalDate());
 		Activity recordedActivity = Activity.createInstance(userAnonZone,
 				saturdayStartOfDay.plusHours(19).plusMinutes(10).toLocalDateTime(),
-				saturdayStartOfDay.plusHours(19).plusMinutes(55).toLocalDateTime());
+				saturdayStartOfDay.plusHours(19).plusMinutes(55).toLocalDateTime(), Optional.empty());
 		previousWeekSaturdayRecordedActivity.addActivity(recordedActivity);
 		previousWeekRecordedActivity.addDayActivity(DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
 				getWeekStartTime(today).minusDays(7).toLocalDate()));
@@ -380,7 +381,7 @@ public class ActivityServiceTest
 		ZonedDateTime activityEndTime = yesterday.withHour(activityEndTimeOnDay.getHour())
 				.withMinute(activityEndTimeOnDay.getMinute()).withSecond(activityEndTimeOnDay.getSecond());
 		Activity recordedActivity = Activity.createInstance(userAnonZone, activityStartTime.toLocalDateTime(),
-				activityEndTime.toLocalDateTime());
+				activityEndTime.toLocalDateTime(), Optional.empty());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
 		when(mockDayActivityRepository.findOne(userAnonId, yesterday.toLocalDate(), gamblingGoal.getId()))
 				.thenReturn(yesterdayRecordedActivity);

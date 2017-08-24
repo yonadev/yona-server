@@ -8,6 +8,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 import org.junit.Test;
 
@@ -52,6 +53,16 @@ public class DayActivityTest extends IntervalActivityTestBase
 		addActivity(d, "20:05:11", "20:06:08");
 
 		assertSpreadItemsAndTotal(d, "79=0,80=0,81=0", 0);
+	}
+
+	@Test
+	public void getSpreadGetTotalActivityDurationMinutes_endOfDayIncluded_includesEndOfDay()
+	{
+		DayActivity d = createDayActivity();
+		d.addActivity(Activity.createInstance(testZone, getTimeOnDay(d, "23:50").toLocalDateTime(),
+				d.getStartTime().plusDays(1).toLocalDateTime(), Optional.empty()));
+
+		assertSpreadItemsAndTotal(d, "95=10", 10);
 	}
 
 	@Test
@@ -134,18 +145,6 @@ public class DayActivityTest extends IntervalActivityTestBase
 		addActivity(d, "20:01:00", "20:17:00");
 
 		assertSpreadItemsAndTotal(d, "78=0,79=13,80=14,81=2,82=0", 31);
-	}
-
-	@Test
-	public void setEndTime_afterComputeAggregates_resetsAreAggregatesComputed()
-	{
-		DayActivity d = createDayActivity();
-		addActivity(d, "19:55", "19:59");
-		d.computeAggregates();
-
-		d.getLastActivity().setEndTime(d.getLastActivity().getEndTime().plusMinutes(5));
-
-		assertThat(d.areAggregatesComputed(), equalTo(false));
 	}
 
 	@Test

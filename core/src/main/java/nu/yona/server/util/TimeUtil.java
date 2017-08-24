@@ -52,7 +52,7 @@ public class TimeUtil
 
 	public static ZonedDateTime getEndOfDay(ZoneId zoneId, ZonedDateTime time)
 	{
-		return getStartOfDay(zoneId, time).withHour(23).withMinute(59).withSecond(59);
+		return getStartOfDay(zoneId, time).plusDays(1);
 	}
 
 	public static ZonedDateTime getStartOfWeek(ZoneId zoneId, ZonedDateTime time)
