@@ -693,6 +693,24 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
+	public void analyze_appActivityOverlappingSameApp_activityRecordMergedAndNoNewGoalConflictMessageCreated()
+	{
+		ZonedDateTime now = now();
+		ZonedDateTime existingActivityEndTime = now.minusMinutes(5);
+		DayActivity existingDayActivity = mockExistingActivity(gamblingGoal, now.minusMinutes(10), existingActivityEndTime,
+				"Lotto App");
+
+		service.analyze(userAnonId,
+				createSingleAppActivity("Lotto App", existingActivityEndTime.minusSeconds(30), now.minusMinutes(2)));
+
+		verifyNoGoalConflictMessagesCreated();
+		List<Activity> activities = existingDayActivity.getActivities();
+		assertThat(activities.size(), equalTo(1));
+		assertThat(activities.get(0).getApp(), equalTo(Optional.of("Lotto App")));
+		assertThat(activities.get(0).getDurationMinutes(), equalTo(8));
+	}
+
+	@Test
 	public void analyze_appActivitySameAppWithinConflictIntervalButNotContinuous_activityRecordNotMergedButNoNewGoalConflictMessageCreated()
 	{
 		ZonedDateTime now = now();
@@ -712,7 +730,7 @@ public class AnalysisEngineServiceTest
 
 	private NetworkActivityDto createNetworkActivityForCategories(String... conflictCategories)
 	{
-		return new NetworkActivityDto(new HashSet<String>(Arrays.asList(conflictCategories)),
+		return new NetworkActivityDto(new HashSet<>(Arrays.asList(conflictCategories)),
 				"http://localhost/test" + new Random().nextInt(), Optional.empty());
 	}
 
@@ -733,7 +751,7 @@ public class AnalysisEngineServiceTest
 
 	private List<Activity> verifyActivityUpdate(Goal... forGoals)
 	{
-		List<Activity> resultActivities = new ArrayList<Activity>();
+		List<Activity> resultActivities = new ArrayList<>();
 		// Verify there is a an activity in a day activity inside a week activity
 		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonEntity);
 		for (Goal forGoal : forGoals)

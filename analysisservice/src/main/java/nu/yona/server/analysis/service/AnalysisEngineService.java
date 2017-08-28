@@ -272,7 +272,7 @@ public class AnalysisEngineService
 
 	private boolean isInterruptedAppActivity(ActivityPayload payload, ActivityDto lastRegisteredActivity)
 	{
-		return payload.application.isPresent() && !payload.startTime.equals(lastRegisteredActivity.getEndTime());
+		return payload.application.isPresent() && payload.startTime.isAfter(lastRegisteredActivity.getEndTime());
 	}
 
 	private boolean isRelatedToDifferentApp(ActivityPayload payload, ActivityDto lastRegisteredActivity)
