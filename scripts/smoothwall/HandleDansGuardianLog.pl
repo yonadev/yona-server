@@ -140,6 +140,21 @@ sub handle_records_from_file {
 	close INPUT_FILE;
 }
 
+BEGIN {
+	#Fork
+	my $pidFile = '/var/run/HandleDansGuardianLog.pid';
+	my $pid = fork;
+	if ($pid) # parent: save PID
+	{
+		open PIDFILE, ">$pidFile" or die "can't open $pidFile: $!\n";
+	    print PIDFILE $pid;
+	    close PIDFILE;
+	    exit 0;
+	}
+}
+
+open STDOUT, '>', "/var/log/HandleDansGuardianLog.log";
+
 $| = 1; # Make STDOUT unbuffered
 GetOptions ('analysisEngineURL=s' => \$analysis_engine_url,
 	'categoriesRefreshInterval=i' => \$categories_refresh_interval)
