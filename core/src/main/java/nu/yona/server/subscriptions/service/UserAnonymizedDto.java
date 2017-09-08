@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -19,7 +19,6 @@ import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.messaging.service.MessageDestinationDto;
-import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 public class UserAnonymizedDto implements Serializable
@@ -31,25 +30,26 @@ public class UserAnonymizedDto implements Serializable
 	private final LocalDate lastMonitoredActivityDate;
 	private final Set<GoalDto> goals;
 	private final MessageDestinationDto anonymousMessageDestination;
-	private final Set<UUID> buddyAnonymizedIds;
+	private final Set<BuddyAnonymizedDto> buddiesAnonymized;
 
 	private static final ZoneId DEFAULT_TIME_ZONE = ZoneId.of("Europe/Amsterdam");
 
 	public UserAnonymizedDto(UUID id, Optional<LocalDate> lastMonitoredActivityDate, Set<GoalDto> goals,
-			MessageDestinationDto anonymousMessageDestination, Set<UUID> buddyAnonymizedIds)
+			MessageDestinationDto anonymousMessageDestination, Set<BuddyAnonymizedDto> buddyAnonymized)
 	{
 		this.id = id;
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate.orElse(null);
 		this.goals = new HashSet<>(goals);
 		this.anonymousMessageDestination = anonymousMessageDestination;
-		this.buddyAnonymizedIds = buddyAnonymizedIds;
+		this.buddiesAnonymized = buddyAnonymized;
 	}
 
 	public static UserAnonymizedDto createInstance(UserAnonymized entity)
 	{
 		return new UserAnonymizedDto(entity.getId(), entity.getLastMonitoredActivityDate(), getGoalsIncludingHistoryItems(entity),
-				MessageDestinationDto.createInstance(entity.getAnonymousDestination()),
-				entity.getBuddiesAnonymized().stream().map(BuddyAnonymized::getId).collect(Collectors.toSet()));
+				(entity.getAnonymousDestination() == null) ? null
+						: MessageDestinationDto.createInstance(entity.getAnonymousDestination()),
+				entity.getBuddiesAnonymized().stream().map(BuddyAnonymizedDto::createInstance).collect(Collectors.toSet()));
 	}
 
 	public UUID getId()
@@ -83,15 +83,15 @@ public class UserAnonymizedDto implements Serializable
 		return anonymousMessageDestination;
 	}
 
-	public Set<UUID> getBuddyAnonymizedIds()
+	public Set<BuddyAnonymizedDto> getBuddiesAnonymized()
 	{
-		return Collections.unmodifiableSet(buddyAnonymizedIds);
+		return Collections.unmodifiableSet(buddiesAnonymized);
 	}
 
-	public Optional<BuddyAnonymized> getBuddyAnonymized(UUID fromUserAnonymizedId)
+	public Optional<BuddyAnonymizedDto> getBuddyAnonymized(UUID fromUserAnonymizedId)
 	{
-		return buddyAnonymizedIds.stream().map(bid -> BuddyAnonymized.getRepository().findOne(bid))
-				.filter(ba -> ba.getUserAnonymizedId().filter(uaid -> uaid.equals(fromUserAnonymizedId)).isPresent()).findAny();
+		return buddiesAnonymized.stream().filter(ba -> ba.getUserAnonymizedId().equals(Optional.of(fromUserAnonymizedId)))
+				.findFirst();
 	}
 
 	public Optional<LocalDateTime> getOldestGoalCreationTime()
@@ -130,6 +130,6 @@ public class UserAnonymizedDto implements Serializable
 
 	public boolean hasAnyBuddies()
 	{
-		return !buddyAnonymizedIds.isEmpty();
+		return !buddiesAnonymized.isEmpty();
 	}
 }

@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
@@ -104,7 +104,7 @@ public class GoalService
 
 		Goal goalEntity = goal.createGoalEntity();
 		userAnonymizedEntity.addGoal(goalEntity);
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getId(), userAnonymizedEntity);
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 
 		broadcastGoalChangeMessage(userEntity, goalEntity.getActivityCategory(), GoalChangeMessage.Change.GOAL_ADDED, message);
 
@@ -136,7 +136,7 @@ public class GoalService
 	{
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		existingGoal.setCreationTime(newGoalDto.getCreationTime().get());
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getId(), userAnonymizedEntity);
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 	}
 
 	private void assertValidGoalUpdate(Goal existingGoal, GoalDto newGoalDto)
@@ -154,7 +154,7 @@ public class GoalService
 		existingGoal.setCreationTime(goalChangeTime);
 		newGoalDto.updateGoalEntity(existingGoal);
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getId(), userAnonymizedEntity);
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 
 		broadcastGoalChangeMessage(userEntity, existingGoal.getActivityCategory(), GoalChangeMessage.Change.GOAL_CHANGED,
 				message);
@@ -210,7 +210,7 @@ public class GoalService
 		ActivityCategory activityCategoryOfChangedGoal = goalEntity.getActivityCategory();
 		userAnonymizedEntity.removeGoal(goalEntity);
 		deleteGoalAndRelatedEntities(userAnonymizedEntity, goalEntity);
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity.getId(), userAnonymizedEntity);
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 
 		broadcastGoalChangeMessage(userEntity, activityCategoryOfChangedGoal, GoalChangeMessage.Change.GOAL_DELETED, message);
 	}
