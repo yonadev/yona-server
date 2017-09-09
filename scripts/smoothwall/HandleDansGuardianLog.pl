@@ -141,15 +141,19 @@ sub handle_records_from_file {
 }
 
 BEGIN {
-	#Fork
+	# On a production like server, this program is running as a daemon
+	# and since we want to start it with an /etc/init.d or systemd script
+	# it is helpfull to have a pid registered and also background the process.
+	# The following does this.  This is only one method to deal with this.
+
 	my $pidFile = '/var/run/HandleDansGuardianLog.pid';
 	my $pid = fork;
 	if ($pid) # parent: save PID
 	{
 		open PIDFILE, ">$pidFile" or die "can't open $pidFile: $!\n";
-	    print PIDFILE $pid;
-	    close PIDFILE;
-	    exit 0;
+		print PIDFILE $pid;
+		close PIDFILE;
+		exit 0;
 	}
 }
 
