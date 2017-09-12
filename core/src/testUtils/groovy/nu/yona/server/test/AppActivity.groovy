@@ -29,8 +29,8 @@ class AppActivity
 
 		String getJson()
 		{
-			def startTimeString = YonaServer.toIsoDateString(startTime)
-			def endTimeString = YonaServer.toIsoDateString(endTime)
+			def startTimeString = YonaServer.toIsoDateTimeString(startTime)
+			def endTimeString = YonaServer.toIsoDateTimeString(endTime)
 			"""{
 				"application":"$application",
 				"startTime":"$startTimeString",
@@ -54,7 +54,7 @@ class AppActivity
 
 	String getJson()
 	{
-		def deviceDateTimeString = YonaServer.toIsoDateString(deviceDateTime)
+		def deviceDateTimeString = YonaServer.toIsoDateTimeString(deviceDateTime)
 		def activitiesString = buildActivitiesString(activities)
 		"""{
 			"deviceDateTime":"$deviceDateTimeString",

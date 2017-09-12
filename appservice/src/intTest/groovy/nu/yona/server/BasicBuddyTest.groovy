@@ -366,7 +366,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		dayActivityDetailUrlRichard
 		def dayActivityDetailRichard = appService.getResourceWithPassword(dayActivityDetailUrlRichard, richard.password)
 		dayActivityDetailRichard.status == 200
-		dayActivityDetailRichard.responseData.date == YonaServer.toIsoDayString(goalConflictTime)
+		dayActivityDetailRichard.responseData.date == YonaServer.toIsoDateString(goalConflictTime)
 		dayActivityDetailRichard.responseData._links."yona:goal".href == goalBuddyBob.url
 
 		def getMessagesBobResponse = appService.getMessages(bob)
@@ -381,7 +381,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		dayActivityDetailUrlBob
 		def dayActivityDetailBob = appService.getResourceWithPassword(dayActivityDetailUrlBob, bob.password)
 		dayActivityDetailBob.status == 200
-		dayActivityDetailBob.responseData.date == YonaServer.toIsoDayString(goalConflictTime)
+		dayActivityDetailBob.responseData.date == YonaServer.toIsoDateString(goalConflictTime)
 		dayActivityDetailBob.responseData._links."yona:goal".href == goalBob.url
 
 		cleanup:

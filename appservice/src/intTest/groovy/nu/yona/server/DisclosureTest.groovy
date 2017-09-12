@@ -84,7 +84,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		dayDetailsUrlRichard
 		def dayActivityDetailRichard = appService.getResourceWithPassword(dayDetailsUrlRichard, richard.password)
 		dayActivityDetailRichard.status == 200
-		dayActivityDetailRichard.responseData.date == YonaServer.toIsoDayString(YonaServer.now)
+		dayActivityDetailRichard.responseData.date == YonaServer.toIsoDateString(YonaServer.now)
 		dayActivityDetailRichard.responseData._links."yona:goal".href == goalRichard.url
 
 		assertMarkReadUnread(richard, disclosureRequestMessages[0])
@@ -154,7 +154,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		dayDetailsUrl
 		def dayActivityDetail = appService.getResourceWithPassword(dayDetailsUrl, bob.password)
 		dayActivityDetail.status == 200
-		dayActivityDetail.responseData.date == YonaServer.toIsoDayString(YonaServer.now)
+		dayActivityDetail.responseData.date == YonaServer.toIsoDateString(YonaServer.now)
 		dayActivityDetail.responseData._links."yona:goal".href == goalBuddyRichard.url
 
 		assertMarkReadUnread(bob, disclosureResponseMessage)
