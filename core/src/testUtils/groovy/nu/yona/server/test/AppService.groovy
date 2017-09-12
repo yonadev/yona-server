@@ -585,6 +585,53 @@ class AppService extends Service
 		yonaServer.createResourceWithPassword(user.appActivityUrl, appActivity.getJson(), user.password)
 	}
 
+	void setEnableStatistics(def enable)
+	{
+		def response = yonaServer.createResource("/hibernateStatistics/enable/", "{}", [:], ["enable" : enable])
+		assert response.status == 200 : "Ensure the server stats are enabled (run with -Dyona.enableHibernateStatsAllowed=true)"
+	}
+
+	void resetStatistics()
+	{
+		def response = getResource("/hibernateStatistics/", [:], ["reset" : "true"])
+		assert response.status == 200
+	}
+
+	void clearCaches()
+	{
+		def response = yonaServer.createResource("/hibernateStatistics/clearCaches/", "{}", [:], [:])
+		assert response.status == 200
+	}
+
+	def getStatistics()
+	{
+		def response = getResource("/hibernateStatistics/", [:], ["reset" : "false"])
+		assert response.status == 200
+		response.responseData
+	}
+
+	void storeStatistics(def statistics, def heading)
+	{
+		def file = new File("build/reports/tests/intTest/" + heading + ".md")
+		file << "# $heading\n\n"
+		def statNames = (statistics[statistics.keySet().first()].keySet().findAll{ it != "startTime" } as List).sort()
+		storeRow(file, ["Operation"]+ statNamesToHeadingNames(statNames))
+		storeRow(file, ["---"]* (statNames.size() + 1))
+		statistics.each{ k, v -> storeRow(file, [k]+ statNames.collect{v[it]}) }
+	}
+
+	def statNamesToHeadingNames(def statNames)
+	{
+		statNames = statNames*.minus("Count")
+		statNames*.uncapitalize()
+		statNames.collect{ it.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])")*.uncapitalize().join(" ")}*.capitalize()
+	}
+	private storeRow(def file, def cells)
+	{
+		cells.each{ file << "| $it"}
+		file << "\n"
+	}
+
 	def createResourceWithPassword(path, jsonString, password, parameters = [:])
 	{
 		yonaServer.createResource(path, jsonString, ["Yona-Password": password], parameters)

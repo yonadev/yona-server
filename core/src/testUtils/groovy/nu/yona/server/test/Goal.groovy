@@ -29,6 +29,11 @@ abstract class Goal
 
 	def abstract convertToJsonString()
 
+	def getId()
+	{
+		url[-36..-1]
+	}
+
 	static def fromJson(def json)
 	{
 		if(json["@type"] == "BudgetGoal")
@@ -60,7 +65,7 @@ abstract class Goal
 
 	protected def buildCreationTimeString()
 	{
-		def creationTimeString = (creationTime) ? YonaServer.toIsoDateString(creationTime) : null
+		def creationTimeString = (creationTime) ? YonaServer.toIsoDateTimeString(creationTime) : null
 		(creationTimeString) ? """"creationTime" : "$creationTimeString",""" : ""
 	}
 }

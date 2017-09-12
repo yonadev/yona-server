@@ -21,9 +21,9 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		ZonedDateTime testStartTime = YonaServer.now
 		ZonedDateTime startTime = testStartTime.minus(Duration.ofHours(1))
 		ZonedDateTime endTime = testStartTime
-		def nowString = YonaServer.toIsoDateString(testStartTime)
-		def startTimeString = YonaServer.toIsoDateString(startTime)
-		def endTimeString = YonaServer.toIsoDateString(endTime)
+		def nowString = YonaServer.toIsoDateTimeString(testStartTime)
+		def startTimeString = YonaServer.toIsoDateTimeString(startTime)
+		def endTimeString = YonaServer.toIsoDateTimeString(endTime)
 
 		when:
 		def response = appService.createResourceWithPassword(richard.appActivityUrl, """{

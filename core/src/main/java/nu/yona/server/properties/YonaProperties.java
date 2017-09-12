@@ -52,6 +52,8 @@ public class YonaProperties
 
 	private boolean isWhiteListActiveInvitedUsers;
 
+	private boolean isEnableHibernateStatsAllowed;
+
 	public AnalysisServiceProperties getAnalysisService()
 	{
 		return analysisService;
@@ -146,5 +148,15 @@ public class YonaProperties
 	public boolean isWhiteListActiveInvitedUsers()
 	{
 		return isWhiteListActiveInvitedUsers;
+	}
+
+	public boolean isEnableHibernateStatsAllowed()
+	{
+		return isEnableHibernateStatsAllowed;
+	}
+
+	public void setEnableHibernateStatsAllowed(boolean isEnableHibernateStatsAllowed)
+	{
+		this.isEnableHibernateStatsAllowed = isEnableHibernateStatsAllowed;
 	}
 }
