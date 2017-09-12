@@ -69,4 +69,10 @@ public class UserAnonymizedService
 	{
 		userAnonymizedRepository.delete(userAnonymizedId);
 	}
+
+	@CacheEvict(allEntries = true)
+	public void clearCache()
+	{
+		// Nothing to do here. The annotation ensures the cache is cleared
+	}
 }

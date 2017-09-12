@@ -1,0 +1,9 @@
+/var/log/HandleDansGuardianLog.log {
+  compress
+  copytruncate
+  delaycompress
+  missingok
+  notifempty
+  daily
+  rotate 14
+}
