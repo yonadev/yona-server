@@ -159,8 +159,7 @@ public class ActivityService
 						missingInactivities),
 				(g, wa) -> createAndSaveInactivityDays(userAnonymized,
 						userAnonymized.getGoalsForActivityCategory(g.getActivityCategory()), wa, missingInactivities));
-		return weekActivityDtosByZonedDate.entrySet().stream()
-				.sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
+		return weekActivityDtosByZonedDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 				.map(e -> WeekActivityOverviewDto.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList());
 	}
 
@@ -168,7 +167,7 @@ public class ActivityService
 			Set<IntervalInactivityDto> missingInactivities)
 	{
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
-		Interval interval = new Interval(date.minusWeeks(1), date);
+		Interval interval = Interval.createWeekInterval(date);
 
 		List<WeekActivityOverviewDto> weekActivityOverviews = getWeekActivityOverviews(userAnonymizedId, missingInactivities,
 				userAnonymized, interval);
@@ -279,15 +278,14 @@ public class ActivityService
 		Map<ZonedDateTime, Set<DayActivityDto>> dayActivityDtosByZonedDate = executeAndCreateInactivityEntries(
 				mia -> getDayActivitiesForUserAnonymizedIdsInInterval(userAnonymizedIds, activityCategoryIdsUsedByBuddies,
 						interval, mia));
-		return dayActivityEntitiesToOverviewsUserWithBuddies(
-				dayActivityDtosByZonedDate);
+		return dayActivityEntitiesToOverviewsUserWithBuddies(dayActivityDtosByZonedDate);
 	}
 
 	@Transactional
 	public DayActivityOverviewDto<DayActivityWithBuddiesDto> getUserDayActivityOverviewWithBuddies(UUID userId, LocalDate date)
 	{
 		UUID userAnonymizedId = userService.getUserAnonymizedId(userId);
-		Interval interval = new Interval(date.minusDays(1), date);
+		Interval interval = Interval.createDayInterval(date);
 		Set<BuddyDto> buddies = buddyService.getBuddiesOfUserThatAcceptedSending(userId);
 
 		List<DayActivityOverviewDto<DayActivityWithBuddiesDto>> dayActivityOverviews = getUserDayActivityOverviewsWithBuddies(
@@ -358,7 +356,7 @@ public class ActivityService
 			Set<IntervalInactivityDto> missingInactivities)
 	{
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
-		Interval interval = new Interval(date.minusDays(1), date);
+		Interval interval = Interval.createDayInterval(date);
 
 		List<DayActivityOverviewDto<DayActivityDto>> dayActivityOverviews = getDayActivityOverviews(missingInactivities,
 				userAnonymized, interval);
@@ -434,12 +432,11 @@ public class ActivityService
 	private Map<LocalDate, Set<DayActivity>> getDayActivitiesGroupedByDate(UUID userAnonymizedId, Set<GoalDto> relevantGoals,
 			Interval interval)
 	{
-		List<DayActivity> dayActivityEntities = findAllActivitiesForUserInIntervalEndIncluded(userAnonymizedId, relevantGoals,
-				interval);
+		List<DayActivity> dayActivityEntities = findAllActivitiesForUserInInterval(userAnonymizedId, relevantGoals, interval);
 		return dayActivityEntities.stream().collect(Collectors.groupingBy(IntervalActivity::getStartDate, Collectors.toSet()));
 	}
 
-	private List<DayActivity> findAllActivitiesForUserInIntervalEndIncluded(UUID userAnonymizedId, Set<GoalDto> relevantGoals,
+	private List<DayActivity> findAllActivitiesForUserInInterval(UUID userAnonymizedId, Set<GoalDto> relevantGoals,
 			Interval interval)
 	{
 		if (relevantGoals.isEmpty())
@@ -448,15 +445,15 @@ public class ActivityService
 			// repository with an empty list
 			return Collections.emptyList();
 		}
-		return dayActivityRepository.findAllActivitiesForUserInIntervalEndIncluded(userAnonymizedId,
+		return dayActivityRepository.findAllActivitiesForUserInInterval(userAnonymizedId,
 				relevantGoals.stream().map(GoalDto::getGoalId).collect(Collectors.toSet()), interval.startDate, interval.endDate);
 	}
 
 	private Interval getInterval(LocalDate currentUnitDate, Pageable pageable, ChronoUnit timeUnit)
 	{
-		LocalDate endDate = currentUnitDate.minus(pageable.getOffset(), timeUnit);
-		LocalDate startDate = endDate.minus(pageable.getPageSize() - 1L, timeUnit);
-		return new Interval(startDate, endDate);
+		LocalDate startDate = currentUnitDate.minus(pageable.getOffset() + pageable.getPageSize() - 1L, timeUnit);
+		LocalDate endDate = currentUnitDate.minus(pageable.getOffset() - 1L, timeUnit);
+		return Interval.createInterval(startDate, endDate);
 	}
 
 	private LocalDate getCurrentWeekDate(UserAnonymizedDto userAnonymized)
@@ -481,8 +478,7 @@ public class ActivityService
 			UserAnonymizedDto userAnonymized, BiFunction<Goal, ZonedDateTime, T> inactivityEntitySupplier,
 			BiConsumer<Goal, T> existingEntityInactivityCompletor)
 	{
-		for (LocalDate date = interval.startDate; date.isBefore(interval.endDate)
-				|| date.isEqual(interval.endDate); date = date.plus(1, timeUnit))
+		for (LocalDate date = interval.startDate; date.isBefore(interval.endDate); date = date.plus(1, timeUnit))
 		{
 			ZonedDateTime dateAtStartOfInterval = date.atStartOfDay(userAnonymized.getTimeZone());
 
@@ -740,15 +736,54 @@ public class ActivityService
 				Optional.of(repliedMessage), Optional.of(repliedMessage.getSenderCopyMessage()), message);
 	}
 
-	private class Interval
+	/**
+	 * A time interval represents a period of time between two dates. Intervals are inclusive of the start date and exclusive of
+	 * the end. The end date is always greater than or equal to the start date. Interval is thread-safe and immutable.
+	 */
+	private static class Interval
 	{
 		public final LocalDate startDate;
 		public final LocalDate endDate;
 
-		public Interval(LocalDate startDate, LocalDate endDate)
+		/**
+		 * Creates an interval that includes the given startDate and excludes the given endDate
+		 */
+		private Interval(LocalDate startDate, LocalDate endDate)
 		{
+			assert startDate.isBefore(endDate) || startDate.equals(endDate);
+
 			this.startDate = startDate;
 			this.endDate = endDate;
+		}
+
+		/**
+		 * Creates an interval that includes the given startDate and excludes the given endDate
+		 */
+		static Interval createInterval(LocalDate startDate, LocalDate endDate)
+		{
+			return new Interval(startDate, endDate);
+		}
+
+		/**
+		 * Creates an interval for just the given day
+		 */
+		static Interval createDayInterval(LocalDate date)
+		{
+			return new Interval(date, date.plusDays(1));
+		}
+
+		/**
+		 * Creates an interval that spans a week from the given date
+		 */
+		static Interval createWeekInterval(LocalDate date)
+		{
+			return new Interval(date, date.plusWeeks(1));
+		}
+
+		@Override
+		public String toString()
+		{
+			return startDate + " <= d < " + endDate;
 		}
 	}
 }

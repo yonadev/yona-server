@@ -177,15 +177,16 @@ public class ActivityServiceTest
 				yesterday.plusHours(21).plusMinutes(00).toLocalDateTime(), Optional.empty());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
 		Set<UUID> relevantGoalIds = userAnonEntity.getGoals().stream().map(Goal::getId).collect(Collectors.toSet());
-		when(mockDayActivityRepository.findAllActivitiesForUserInIntervalEndIncluded(userAnonId, relevantGoalIds,
-				today.minusDays(2).toLocalDate(), today.toLocalDate())).thenReturn(Arrays.asList(yesterdayRecordedActivity));
+		when(mockDayActivityRepository.findAllActivitiesForUserInInterval(userAnonId, relevantGoalIds,
+				today.minusDays(2).toLocalDate(), today.plusDays(1).toLocalDate()))
+						.thenReturn(Arrays.asList(yesterdayRecordedActivity));
 
 		Page<DayActivityOverviewDto<DayActivityDto>> dayOverviews = service.getUserDayActivityOverviews(userId,
 				new PageRequest(0, 3));
 
 		// assert that the right retrieve from database was done
-		verify(mockDayActivityRepository, times(1)).findAllActivitiesForUserInIntervalEndIncluded(userAnonId, relevantGoalIds,
-				today.minusDays(2).toLocalDate(), today.toLocalDate());
+		verify(mockDayActivityRepository, times(1)).findAllActivitiesForUserInInterval(userAnonId, relevantGoalIds,
+				today.minusDays(2).toLocalDate(), today.plusDays(1).toLocalDate());
 
 		// because the gambling goal was added with creation date two weeks ago, there are multiple days, equal to the limit of
 		// our page request = 3
@@ -241,13 +242,14 @@ public class ActivityServiceTest
 		previousWeekRecordedActivity.addDayActivity(previousWeekSaturdayRecordedActivity);
 
 		when(mockWeekActivityRepository.findAll(userAnonId, getWeekStartTime(today.minusWeeks(4)).toLocalDate(),
-				getWeekStartTime(today).toLocalDate())).thenReturn(new HashSet<>(Arrays.asList(previousWeekRecordedActivity)));
+				getWeekStartTime(today).plusWeeks(1).toLocalDate()))
+						.thenReturn(new HashSet<>(Arrays.asList(previousWeekRecordedActivity)));
 
 		Page<WeekActivityOverviewDto> weekOverviews = service.getUserWeekActivityOverviews(userId, new PageRequest(0, 5));
 
 		// assert that the right retrieve from database was done
 		verify(mockWeekActivityRepository, times(1)).findAll(userAnonId, getWeekStartTime(today.minusWeeks(4)).toLocalDate(),
-				getWeekStartTime(today).toLocalDate());
+				getWeekStartTime(today).plusWeeks(1).toLocalDate());
 
 		// because the gambling goal was added with creation date two weeks ago, there are multiple weeks
 		assertThat(weekOverviews.getNumberOfElements(), equalTo(3));
