@@ -1,9 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
+import nu.yona.server.subscriptions.entities.NewDeviceRequestRepository;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.util.TimeUtil;
 
@@ -27,6 +29,9 @@ public class NewDeviceRequestService
 
 	@Autowired
 	private UserService userService;
+
+	@Autowired(required = false)
+	private NewDeviceRequestRepository newDeviceRequestRepository;
 
 	@Autowired
 	private YonaProperties yonaProperties;
@@ -93,9 +98,20 @@ public class NewDeviceRequestService
 		}
 	}
 
+	@Transactional
+	public void deleteAllExpiredRequests()
+	{
+		newDeviceRequestRepository.deleteAllOlderThan(TimeUtil.utcNow().minus(getExpirationTime()));
+	}
+
+	private Duration getExpirationTime()
+	{
+		return yonaProperties.getSecurity().getNewDeviceRequestExpirationTime();
+	}
+
 	private boolean isExpired(NewDeviceRequest newDeviceRequestEntity)
 	{
 		LocalDateTime creationTime = newDeviceRequestEntity.getCreationTime();
-		return creationTime.plus(yonaProperties.getSecurity().getNewDeviceRequestExpirationTime()).isBefore(TimeUtil.utcNow());
+		return creationTime.plus(getExpirationTime()).isBefore(TimeUtil.utcNow());
 	}
 }
