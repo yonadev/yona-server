@@ -177,7 +177,7 @@ public class ActivityServiceTest
 				yesterday.plusHours(21).plusMinutes(00).toLocalDateTime(), Optional.empty());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
 		Set<UUID> relevantGoalIds = userAnonEntity.getGoals().stream().map(Goal::getId).collect(Collectors.toSet());
-		when(mockDayActivityRepository.findAllActivitiesForUserInInterval(userAnonId, relevantGoalIds,
+		when(mockDayActivityRepository.findAll(userAnonId, relevantGoalIds,
 				today.minusDays(2).toLocalDate(), today.plusDays(1).toLocalDate()))
 						.thenReturn(Arrays.asList(yesterdayRecordedActivity));
 
@@ -185,7 +185,7 @@ public class ActivityServiceTest
 				new PageRequest(0, 3));
 
 		// assert that the right retrieve from database was done
-		verify(mockDayActivityRepository, times(1)).findAllActivitiesForUserInInterval(userAnonId, relevantGoalIds,
+		verify(mockDayActivityRepository, times(1)).findAll(userAnonId, relevantGoalIds,
 				today.minusDays(2).toLocalDate(), today.plusDays(1).toLocalDate());
 
 		// because the gambling goal was added with creation date two weeks ago, there are multiple days, equal to the limit of

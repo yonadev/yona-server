@@ -445,7 +445,7 @@ public class ActivityService
 			// repository with an empty list
 			return Collections.emptyList();
 		}
-		return dayActivityRepository.findAllActivitiesForUserInInterval(userAnonymizedId,
+		return dayActivityRepository.findAll(userAnonymizedId,
 				relevantGoals.stream().map(GoalDto::getGoalId).collect(Collectors.toSet()), interval.startDate, interval.endDate);
 	}
 
