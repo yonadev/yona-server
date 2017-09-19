@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server;
 
@@ -12,6 +12,8 @@ import java.util.function.Supplier;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,8 @@ import nu.yona.server.properties.YonaProperties;
 @Service
 public class DOSProtectionService
 {
+	private static final Logger logger = LoggerFactory.getLogger(DOSProtectionService.class);
+
 	@Autowired
 	private YonaProperties yonaProperties;
 
@@ -48,20 +52,22 @@ public class DOSProtectionService
 		if (yonaProperties.getSecurity().isDosProtectionEnabled())
 		{
 			int attempts = increaseAttempts(uri, request);
-			executeDelay(expectedAttempts, attempts);
+			delayIfBeyondExpectedAttempts(expectedAttempts, attempts);
 		}
 
 		return attempt.get();
 	}
 
-	private void executeDelay(int expectedAttempts, int attempts)
+	private void delayIfBeyondExpectedAttempts(int expectedAttempts, int attempts)
 	{
 		if (attempts > expectedAttempts)
 		{
 			int delayFactor = attempts / expectedAttempts;
 			try
 			{
-				Thread.sleep(delayFactor * 5000L);
+				long delaySeconds = delayFactor * 5L;
+				logger.warn("Potential DOS attack. Introducing a delay of {} seconds", delaySeconds);
+				Thread.sleep(delaySeconds * 1000L);
 			}
 			catch (InterruptedException e)
 			{
