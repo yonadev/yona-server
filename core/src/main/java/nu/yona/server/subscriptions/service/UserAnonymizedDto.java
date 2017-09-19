@@ -35,13 +35,13 @@ public class UserAnonymizedDto implements Serializable
 	private static final ZoneId DEFAULT_TIME_ZONE = ZoneId.of("Europe/Amsterdam");
 
 	public UserAnonymizedDto(UUID id, Optional<LocalDate> lastMonitoredActivityDate, Set<GoalDto> goals,
-			MessageDestinationDto anonymousMessageDestination, Set<BuddyAnonymizedDto> buddyAnonymized)
+			MessageDestinationDto anonymousMessageDestination, Set<BuddyAnonymizedDto> buddiesAnonymized)
 	{
 		this.id = id;
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate.orElse(null);
 		this.goals = new HashSet<>(goals);
 		this.anonymousMessageDestination = anonymousMessageDestination;
-		this.buddiesAnonymized = buddyAnonymized;
+		this.buddiesAnonymized = buddiesAnonymized;
 	}
 
 	public static UserAnonymizedDto createInstance(UserAnonymized entity)

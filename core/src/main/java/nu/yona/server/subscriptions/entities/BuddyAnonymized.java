@@ -19,6 +19,11 @@ import org.hibernate.annotations.Type;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 
+/**
+ * This class captures the anonymized information of a buddy. <br/>
+ * NOTE: The data of a BuddyAnonymized is cached as part of UserAnonymized, so for any update to a BuddyAnonymized,
+ * UserAnonymizedService.updateUserAnonymized must be called.
+ */
 @Entity
 @Table(name = "BUDDIES_ANONYMIZED")
 public class BuddyAnonymized extends EntityWithUuid
