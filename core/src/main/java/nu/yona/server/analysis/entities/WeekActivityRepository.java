@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
@@ -29,7 +29,7 @@ public interface WeekActivityRepository extends CrudRepository<WeekActivity, Lon
 	WeekActivity findOne(@Param("userAnonymizedId") UUID userAnonymizedId, @Param("startDate") LocalDate startDate,
 			@Param("goalId") UUID goalId);
 
-	@Query("select a from WeekActivity a where a.userAnonymized.id = :userAnonymizedId and a.startDate >= :dateFrom and a.startDate <= :dateUntil order by a.startDate desc")
+	@Query("select a from WeekActivity a where a.userAnonymized.id = :userAnonymizedId and a.startDate >= :dateFrom and a.startDate < :dateUntil order by a.startDate desc")
 	Set<WeekActivity> findAll(@Param("userAnonymizedId") UUID userAnonymizedId, @Param("dateFrom") LocalDate dateFrom,
 			@Param("dateUntil") LocalDate dateUntil);
 
