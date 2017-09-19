@@ -34,11 +34,8 @@ public class UserTest
 		}
 	}
 
-	/*
-	 * Test that a new user has the latest migration version.
-	 */
 	@Test
-	public void privateDataMigrationVersionSetToCurrentVersion()
+	public void getPrivateDataMigrationVersion_newUser_returnsCurrentVersion()
 	{
 		assertThat(john.getPrivateDataMigrationVersion(), equalTo(PrivateUserDataMigrationService.getCurrentVersion()));
 	}

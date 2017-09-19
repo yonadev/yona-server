@@ -21,9 +21,9 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		ZonedDateTime testStartTime = YonaServer.now
 		ZonedDateTime startTime = testStartTime.minus(Duration.ofHours(1))
 		ZonedDateTime endTime = testStartTime
-		def nowString = YonaServer.toIsoDateString(testStartTime)
-		def startTimeString = YonaServer.toIsoDateString(startTime)
-		def endTimeString = YonaServer.toIsoDateString(endTime)
+		def nowString = YonaServer.toIsoDateTimeString(testStartTime)
+		def startTimeString = YonaServer.toIsoDateTimeString(startTime)
+		def endTimeString = YonaServer.toIsoDateTimeString(endTime)
 
 		when:
 		def response = appService.createResourceWithPassword(richard.appActivityUrl, """{
@@ -186,7 +186,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		goalConflictMessagesRichard.size() == 1
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
 		assertEquals(goalConflictMessagesRichard[0].activityStartTime, startTime)
-		assertEquals(goalConflictMessagesRichard[0].activityEndTime, endTime1)
+		assertEquals(goalConflictMessagesRichard[0].activityEndTime, endTime)
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
@@ -194,7 +194,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		goalConflictMessagesBob.size() == 1
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
 		assertEquals(goalConflictMessagesRichard[0].activityStartTime, startTime)
-		assertEquals(goalConflictMessagesRichard[0].activityEndTime, endTime1)
+		assertEquals(goalConflictMessagesRichard[0].activityEndTime, endTime)
 
 		cleanup:
 		appService.deleteUser(richard)

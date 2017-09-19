@@ -53,13 +53,13 @@ import nu.yona.server.util.TimeUtil;
 		"nu.yona.server.properties" }, includeFilters = {
 				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserService", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX) })
-class UserServiceIntegrationTestConfiguration
+class UserServiceTestConfiguration
 {
 }
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { UserServiceIntegrationTestConfiguration.class })
-public class UserServiceIntegrationTest
+@ContextConfiguration(classes = { UserServiceTestConfiguration.class })
+public class UserServiceTest
 {
 	@MockBean
 	private UserRepository mockUserRepository;
@@ -112,11 +112,8 @@ public class UserServiceIntegrationTest
 		when(mockUserRepository.findOne(john.getId())).thenReturn(john);
 	}
 
-	/*
-	 * Test that the "last app opened date" is updated when the app was opened yesterday
-	 */
 	@Test
-	public void postOpenAppEventNextDay()
+	public void postOpenAppEvent_appLastOpenedDateOnEarlierDay_appLastOpenedDateUpdated()
 	{
 		john.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate().minusDays(1));
 
@@ -126,11 +123,8 @@ public class UserServiceIntegrationTest
 		verify(mockUserRepository, times(1)).save(any(User.class));
 	}
 
-	/*
-	 * Test that the "last app opened date" is NOT updated twice on the same day
-	 */
 	@Test
-	public void postOpenAppEventSameDay()
+	public void postOpenAppEvent_appLastOpenedDateOnSameDay_notUpdated()
 	{
 		john.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
 
@@ -140,7 +134,7 @@ public class UserServiceIntegrationTest
 	}
 
 	@Test(expected = InvalidDataException.class)
-	public void assertValidUserFieldsUserWithGoalsBuddyThrows()
+	public void assertValidUserFields_buddyWithSetGoals_throws()
 	{
 		UserPrivateDto userPrivate = new UserPrivateDto(Optional.empty(), "password", "jd", null, null,
 				new HashSet<GoalDto>(Arrays.asList(new BudgetGoalDto(Optional.empty(), 1))), Collections.emptySet(), null, null);
@@ -150,7 +144,7 @@ public class UserServiceIntegrationTest
 	}
 
 	@Test
-	public void assertValidUserFieldsBuddyDoesNotThrow()
+	public void assertValidUserFields_buddyWithAllowedFields_doesNotThrow()
 	{
 		UserDto user = new UserDto("John", "Doe", "john@doe.net", "+31612345678", new UserPrivateDto("jd"));
 

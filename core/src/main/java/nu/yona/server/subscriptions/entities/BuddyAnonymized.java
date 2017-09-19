@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
@@ -18,6 +19,11 @@ import org.hibernate.annotations.Type;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 
+/**
+ * This class captures the anonymized information of a buddy. <br/>
+ * NOTE: The data of a BuddyAnonymized is cached as part of UserAnonymized, so for any update to a BuddyAnonymized,
+ * UserAnonymizedService.updateUserAnonymized must be called.
+ */
 @Entity
 @Table(name = "BUDDIES_ANONYMIZED")
 public class BuddyAnonymized extends EntityWithUuid
@@ -27,11 +33,18 @@ public class BuddyAnonymized extends EntityWithUuid
 		NOT_REQUESTED, REQUESTED, ACCEPTED, REJECTED
 	}
 
-	@Type(type = "uuid-char")
-	@Column(name = "owning_user_anonymized_id")
-	private UUID owningUserAnonymizedId;
+	/**
+	 * The anonymized user owning this buddy anonymized entity.
+	 */
+	@ManyToOne
+	private UserAnonymized owningUserAnonymized;
 
+	/**
+	 * The anonymized user of the buddy. This is kept as UUID rather than an entity, as the ID is still needed even if the entity
+	 * has been deleted, to clean up the messages sent by this user.
+	 */
 	@Type(type = "uuid-char")
+	@Column(name = "user_anonymized_id")
 	private UUID userAnonymizedId;
 
 	/*
@@ -112,6 +125,16 @@ public class BuddyAnonymized extends EntityWithUuid
 	public void setReceivingStatus(Status receivingStatus)
 	{
 		this.receivingStatus = receivingStatus;
+	}
+
+	public void setOwningUserAnonymized(UserAnonymized owningUserAnonymized)
+	{
+		this.owningUserAnonymized = owningUserAnonymized;
+	}
+
+	public void clearOwningUserAnonymized()
+	{
+		this.owningUserAnonymized = null;
 	}
 
 	public Optional<UUID> getUserAnonymizedId()

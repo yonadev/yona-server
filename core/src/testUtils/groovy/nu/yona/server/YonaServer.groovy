@@ -192,14 +192,19 @@ class YonaServer
 		LocalDate.parse((String) dateTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 	}
 
-	static String toIsoDayString(ZonedDateTime dateTime)
+	static String toIsoDateString(ZonedDateTime dateTime)
 	{
 		DateTimeFormatter.ofPattern("yyyy-MM-dd").format(dateTime)
 	}
 
-	static String toIsoDateString(ZonedDateTime dateTime)
+	static String toIsoDateTimeString(ZonedDateTime dateTime)
 	{
 		DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(dateTime)
+	}
+
+	static String toIsoWeekDateString(ZonedDateTime dateTime)
+	{
+		DateTimeFormatter.ofPattern("YYYY-'W'w").format(dateTime)
 	}
 
 	static def relativeDateTimeStringToZonedDateTime(relativeDateTimeString)

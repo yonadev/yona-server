@@ -410,8 +410,8 @@ paths:
             $ref: '#/definitions/Error'
   '/users/{userID}/activity/days/':
     get:
-      summary: Get day activity overview
-      description: Get network and app activity of the current day, pageable to yesterday and before
+      summary: Get a page of day activity overviews
+      description: Get a page of network and app activity overviews, starting with the current day, pageable to yesterday and before
       parameters:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
@@ -434,6 +434,21 @@ paths:
           description: Activity of this user.
           schema:
             $ref: '#/definitions/PagedDayActivityOverviews'
+  '/users/{userID}/activity/days/{date}':
+    get:
+      summary: Get a day activity overview
+      description: Get network and app activity of the given day
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/date"
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of this user.
+          schema:
+            $ref: '#/definitions/DayActivityOverview'
   '/users/{userID}/activity/days/{date}/details/{goalID}':
     get:
       summary: Get day activity detail
@@ -481,8 +496,8 @@ paths:
             $ref: '#/definitions/PagedMessages'
   '/users/{userID}/activity/weeks/':
     get:
-      summary: Get week activity overview
-      description: Get network and app activity of the current week, pageable to the weeks before
+      summary: Get a page of week activity overviews
+      description: Get a page of network and app activity overviews, starting with the current week, pageable to the weeks before
       parameters:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
@@ -505,6 +520,21 @@ paths:
           description: Activity of this user.
           schema:
             $ref: '#/definitions/PagedWeekActivityOverviews'
+  '/users/{userID}/activity/weeks/{week}':
+    get:
+      summary: Get a week activity overview
+      description: Get network and app activity of the given week
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/week"
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of this user.
+          schema:
+            $ref: '#/definitions/WeekActivityOverview'
   '/users/{userID}/activity/weeks/{week}/details/{goalID}':
     get:
       summary: Get week activity detail
@@ -523,8 +553,8 @@ paths:
             $ref: '#/definitions/WeekGoalActivityDetail'
   '/users/{userID}/activity/withBuddies/days/':
     get:
-      summary: Get day activity overview of user with buddies
-      description: Get network and app activity of the current day of this user and their buddies, pageable to yesterday and before
+      summary: Get a page of day activity overviews of user with buddies
+      description: Get a page of network and app activity overviews, starting with the current day, pageable to yesterday and before. The user's own activities are included if any buddy shares the same goal.
       parameters:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
@@ -547,6 +577,21 @@ paths:
           description: Activity of this user and their buddies.
           schema:
             $ref: '#/definitions/PagedDayActivityOverviewsWithBuddies'
+  '/users/{userID}/activity/withBuddies/days/{date}':
+    get:
+      summary: Get a day activity overview of user with buddies
+      description: Get network and app activity of the buddies of this user for the given day, pageable to yesterday and before. The user's own activities are included if any buddy shares the same goal.
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/date"
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of this user and their buddies.
+          schema:
+            $ref: '#/definitions/DayActivityOverviewWithBuddies'
   '/users/{userID}/activity/weeks/{week}/details/{goalID}/messages/':
     get:
       summary: Get messages
@@ -603,6 +648,22 @@ paths:
           description: Activity of the buddy.
           schema:
             $ref: '#/definitions/PagedDayActivityOverviews'
+  '/users/{userID}/buddies/{buddyID}/activity/days/{date}':
+    get:
+      summary: Get a day activity overview
+      description: Get network and app activity of the specified day
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/buddyID"
+        - $ref: "#/parameters/date"
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of this user.
+          schema:
+            $ref: '#/definitions/DayActivityOverview'
   '/users/{userID}/buddies/':
     post:
       summary: Add a new buddy
@@ -819,6 +880,22 @@ paths:
           description: Activity of the buddy.
           schema:
             $ref: '#/definitions/PagedWeekActivityOverviews'
+  '/users/{userID}/buddies/{buddyID}/activity/weeks/{week}':
+    get:
+      summary: Get a week activity overview
+      description: Get network and app activity of the specified week
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/buddyID"
+        - $ref: "#/parameters/week"
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Activity of the buddy.
+          schema:
+            $ref: '#/definitions/WeekActivityOverview'
   '/users/{userID}/buddies/{buddyID}/activity/weeks/{week}/details/{goalID}':
     get:
       summary: Get week activity detail
@@ -2348,7 +2425,6 @@ definitions:
         allOf:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
-        description: The self link is currently not returned from the server. See YD-203
     required:
       - _links
       - date
@@ -2476,7 +2552,6 @@ definitions:
         allOf:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
-        description: The self link is currently not returned from the server. See YD-203
     required:
       - date
       - dayActivities
@@ -2615,7 +2690,6 @@ definitions:
         allOf:
           - $ref: '#/definitions/Curies'
           - $ref: '#/definitions/SelfLink'
-        description: The self link is currently not returned from the server. See YD-203
     required:
       - date
       - dayActivities

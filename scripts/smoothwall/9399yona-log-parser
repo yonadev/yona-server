@@ -1,0 +1,4 @@
+#!/bin/sh
+. /etc/rc.d/header
+/etc/init.d/yona-log-parser start
+showstatus $?

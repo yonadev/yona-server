@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.Activity;
+import nu.yona.server.analysis.entities.ActivityRepository;
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
@@ -30,6 +31,7 @@ import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
+import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
@@ -58,6 +60,10 @@ public class AnalysisEngineService
 	private GoalService goalService;
 	@Autowired
 	private MessageService messageService;
+	@Autowired(required = false)
+	private MessageRepository messageRepository;
+	@Autowired(required = false)
+	private ActivityRepository activityRepository;
 	@Autowired(required = false)
 	private DayActivityRepository dayActivityRepository;
 	@Autowired(required = false)
@@ -217,6 +223,22 @@ public class AnalysisEngineService
 				.compareTo(yonaProperties.getAnalysisService().getUpdateSkipWindow()) >= 0;
 	}
 
+	private boolean shouldSendNewGoalConflictMessageForNewConflictingActivity(ActivityPayload payload,
+			ActivityDto lastRegisteredActivity)
+	{
+		if (lastRegisteredActivity == null)
+		{
+			return true;
+		}
+
+		if (isBeyondCombineIntervalWithLastRegisteredActivity(payload, lastRegisteredActivity))
+		{
+			return true;
+		}
+
+		return false;
+	}
+
 	private boolean canCombineWithLastRegisteredActivity(ActivityPayload payload, ActivityDto lastRegisteredActivity)
 	{
 		if (lastRegisteredActivity == null)
@@ -241,7 +263,27 @@ public class AnalysisEngineService
 			return false;
 		}
 
+		if (isRelatedToDifferentApp(payload, lastRegisteredActivity))
+		{
+			return false;
+		}
+
+		if (isInterruptedAppActivity(payload, lastRegisteredActivity))
+		{
+			return false;
+		}
+
 		return true;
+	}
+
+	private boolean isInterruptedAppActivity(ActivityPayload payload, ActivityDto lastRegisteredActivity)
+	{
+		return payload.application.isPresent() && payload.startTime.isAfter(lastRegisteredActivity.getEndTime());
+	}
+
+	private boolean isRelatedToDifferentApp(ActivityPayload payload, ActivityDto lastRegisteredActivity)
+	{
+		return !payload.application.equals(lastRegisteredActivity.getApp());
 	}
 
 	private boolean isOnNewDay(ActivityPayload payload, ActivityDto lastRegisteredActivity)
@@ -269,7 +311,7 @@ public class AnalysisEngineService
 
 	private boolean isCrossDayActivity(ActivityPayload payload)
 	{
-		return TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.endTime).isAfter(payload.startTime);
+		return TimeUtil.getEndOfDay(payload.userAnonymized.getTimeZone(), payload.startTime).isBefore(payload.endTime);
 	}
 
 	private void addActivity(UserAnonymizedEntityHolder userAnonymizedHolder, ActivityPayload payload, GoalDto matchingGoal,
@@ -286,7 +328,8 @@ public class AnalysisEngineService
 
 		// Save first, so the activity is available when saving the message
 		userAnonymizedService.updateUserAnonymized(userAnonymizedHolder.getEntity());
-		if (matchingGoal.isNoGoGoal())
+		if (matchingGoal.isNoGoGoal()
+				&& shouldSendNewGoalConflictMessageForNewConflictingActivity(payload, lastRegisteredActivity))
 		{
 			sendConflictMessageToAllDestinationsOfUser(userAnonymizedHolder.getEntity(), payload, addedActivity,
 					matchingGoalEntity);
@@ -338,7 +381,8 @@ public class AnalysisEngineService
 
 		ZonedDateTime endTime = ensureMinimumDurationOneMinute(payload);
 		Activity activity = Activity.createInstance(payload.startTime.getZone(), payload.startTime.toLocalDateTime(),
-				endTime.toLocalDateTime());
+				endTime.toLocalDateTime(), payload.application);
+		activity = activityRepository.save(activity);
 		dayActivity.addActivity(activity);
 		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
 		return dayActivity.getLastActivity();
@@ -358,6 +402,7 @@ public class AnalysisEngineService
 	{
 		DayActivity dayActivity = DayActivity.createInstance(userAnonymizedEntity, matchingGoal, payload.startTime.getZone(),
 				TimeUtil.getStartOfDay(payload.userAnonymized.getTimeZone(), payload.startTime).toLocalDate());
+		dayActivityRepository.save(dayActivity);
 
 		ZonedDateTime startOfWeek = TimeUtil.getStartOfWeek(payload.userAnonymized.getTimeZone(), payload.startTime);
 		WeekActivity weekActivity = weekActivityRepository.findOne(payload.userAnonymized.getId(), matchingGoal.getId(),
@@ -389,14 +434,22 @@ public class AnalysisEngineService
 	private void sendConflictMessageToAllDestinationsOfUser(UserAnonymized userAnonymized, ActivityPayload payload,
 			Activity activity, Goal matchingGoal)
 	{
-		GoalConflictMessage selfGoalConflictMessage = GoalConflictMessage.createInstance(payload.userAnonymized.getId(), activity,
-				matchingGoal, payload.url);
+		GoalConflictMessage selfGoalConflictMessage = messageRepository
+				.save(GoalConflictMessage.createInstance(payload.userAnonymized.getId(), activity, matchingGoal, payload.url));
 		messageService.sendMessage(selfGoalConflictMessage, userAnonymized.getAnonymousDestination());
 		// Save the messages, so the other messages can reference it
 		userAnonymizedService.updateUserAnonymized(userAnonymized);
 
 		messageService.broadcastMessageToBuddies(payload.userAnonymized,
-				() -> GoalConflictMessage.createInstanceForBuddy(payload.userAnonymized.getId(), selfGoalConflictMessage));
+				() -> createAndSaveBuddyGoalConflictMessage(payload, selfGoalConflictMessage));
+	}
+
+	private GoalConflictMessage createAndSaveBuddyGoalConflictMessage(ActivityPayload payload,
+			GoalConflictMessage selfGoalConflictMessage)
+	{
+		GoalConflictMessage message = GoalConflictMessage.createInstanceForBuddy(payload.userAnonymized.getId(),
+				selfGoalConflictMessage);
+		return messageRepository.save(message);
 	}
 
 	private Set<GoalDto> determineMatchingGoalsForUser(UserAnonymizedDto userAnonymized,

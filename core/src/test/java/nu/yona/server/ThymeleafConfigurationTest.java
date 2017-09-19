@@ -2,7 +2,7 @@
  * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
-package nu.yona.server.templates;
+package nu.yona.server;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -12,7 +12,8 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Optional;
 
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,14 +24,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import nu.yona.server.ThymeleafConfiguration;
-import nu.yona.server.Translator;
 import nu.yona.server.util.ThymeleafUtil;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { ThymeleafConfiguration.class })
-public class TemplateTest
+public class ThymeleafConfigurationTest
 {
+	private static Locale originalLocale;
+
 	@Autowired
 	@Qualifier("smsTemplateEngine")
 	private TemplateEngine smsTemplateEngine;
@@ -43,43 +44,51 @@ public class TemplateTest
 	@Qualifier("otherTemplateEngine")
 	private TemplateEngine otherTemplateEngine;
 
-	@Before
-	public void setUp()
+	@BeforeClass
+	public static void setUp()
 	{
+		originalLocale = LocaleContextHolder.getLocale();
 		LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
 	}
 
+	@AfterClass
+	public static void tearDown()
+	{
+		LocaleContextHolder.setLocale(originalLocale);
+	}
+
 	@Test
-	public void testAppleAppSiteAssociation()
+	public void otherTemplateEngine_processAppleAppSiteAssociationJson_containsCorrectlyFormattedAppId()
 	{
 		Context ctx = ThymeleafUtil.createContext();
 		String testAppleAppId = "ADummyTestId";
 		ctx.setVariable("appleAppId", testAppleAppId);
 
 		String result = otherTemplateEngine.process("apple-app-site-association.json", ctx);
+
 		assertThat(result, containsString("\"appID\": \"" + testAppleAppId + "\","));
 	}
 
 	@Test
-	public void testSms()
+	public void smsTemplateEngine_processBuddyInvitationDefault_defaultTemplateFoundAndExpanded()
 	{
 		String requestingUserFirstName = "john";
 		String emailAddress = "a@b.c";
+
 		String result = buildSms(Optional.empty(), requestingUserFirstName, emailAddress);
-		String expectedResult = MessageFormat.format("You have been invited to Yona by {0}. Please check your email at {1}!",
-				requestingUserFirstName, emailAddress);
-		assertThat(result, equalTo(expectedResult));
+
+		assertThat(result, equalTo("You have been invited to Yona by john. Please check your email at a@b.c!"));
 	}
 
 	@Test
-	public void testDutchSms()
+	public void smsTemplateEngine_processBuddyInvitationDutch_dutchTemplateFoundAndExpanded()
 	{
 		String requestingUserFirstName = "john";
 		String emailAddress = "a@b.c";
+
 		String result = buildSms(Optional.of(Locale.forLanguageTag("nl-NL")), requestingUserFirstName, emailAddress);
-		String expectedResult = MessageFormat.format("{0} heeft je uitgenodigd voor Yona. Zie je mail op {1}!",
-				requestingUserFirstName, emailAddress);
-		assertThat(result, equalTo(expectedResult));
+
+		assertThat(result, equalTo("john heeft je uitgenodigd voor Yona. Zie je mail op a@b.c!"));
 	}
 
 	private String buildSms(Optional<Locale> locale, String requestingUserFirstName, String emailAddress)
@@ -93,19 +102,19 @@ public class TemplateTest
 	}
 
 	@Test
-	public void testEmailSubject()
+	public void emailTemplateEngine_processBuddyInvitationSubjectDefault_defaultTemplateFoundAndExpanded()
 	{
 		String result = buildEmailSubject(Optional.empty());
-		String expectedResult = "Become my friend on Yona!";
-		assertThat(result, equalTo(expectedResult));
+
+		assertThat(result, equalTo("Become my friend on Yona!"));
 	}
 
 	@Test
-	public void testDutchEmailSubject()
+	public void emailTemplateEngine_processBuddyInvitationSubjectDutch_dutchTemplateFoundAndExpanded()
 	{
 		String result = buildEmailSubject(Optional.of(Locale.forLanguageTag("nl-NL")));
-		String expectedResult = "Word vriend op Yona!";
-		assertThat(result, equalTo(expectedResult));
+
+		assertThat(result, equalTo("Word vriend op Yona!"));
 	}
 
 	private String buildEmailSubject(Optional<Locale> locale)
@@ -117,7 +126,7 @@ public class TemplateTest
 	}
 
 	@Test
-	public void testEmailBody()
+	public void emailTemplateEngine_processBuddyInvitationBodyDefault_defaultTemplateFoundAndExpanded()
 	{
 		String buddyFirstName = "Richard";
 		String buddyLastName = "Quin";
@@ -127,24 +136,21 @@ public class TemplateTest
 		String requestingUserLastName = "Dunn";
 		String requestingUserMobileNumber = "+31687654321";
 		String requestingUserNickname = "BD";
+
 		String result = buildEmailBuddy(Optional.empty(), buddyFirstName, buddyLastName, inviteUrl, personalInvitationMessage,
 				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber, requestingUserNickname);
 
-		String expectedLinkFragment = MessageFormat.format("<a href=\"{0}\"", inviteUrl);
-		assertThat(result, containsString(expectedLinkFragment));
-
-		String expectedWarningLine = MessageFormat.format(
-				"<strong>Important</strong>: Verify if the invitation is really from {0} {1} and check the mobile number: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
-				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber);
-		assertThat(result, containsString(expectedWarningLine));
+		assertThat(result, containsString(MessageFormat.format("<a href=\"{0}\"", inviteUrl)));
+		assertThat(result,
+				containsString(MessageFormat.format(
+						"<strong>Important</strong>: Verify if the invitation is really from {0} {1} and check the mobile number: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
+						requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber)));
 		assertThat(result, containsString("Open the app and &ldquo;join&rdquo;."));
-
-		String expectedHeaderImageUrl = "https://app.prd.yona.nu/media/img/en_US/header.jpg";
-		assertThat(result, containsString(expectedHeaderImageUrl));
+		assertThat(result, containsString("https://app.prd.yona.nu/media/img/en_US/header.jpg"));
 	}
 
 	@Test
-	public void testDutchEmailBody()
+	public void emailTemplateEngine_processBuddyInvitationBodyDutch_dutchTemplateFoundAndExpanded()
 	{
 		String buddyFirstName = "Richard";
 		String buddyLastName = "Quin";
@@ -154,20 +160,17 @@ public class TemplateTest
 		String requestingUserLastName = "Dunn";
 		String requestingUserMobileNumber = "+31687654321";
 		String requestingUserNickname = "BD";
+
 		String result = buildEmailBuddy(Optional.of(Locale.forLanguageTag("nl-NL")), buddyFirstName, buddyLastName, inviteUrl,
 				personalInvitationMessage, requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber,
 				requestingUserNickname);
 
-		String expectedLinkFragment = MessageFormat.format("<a href=\"{0}\"", inviteUrl);
-		assertThat(result, containsString(expectedLinkFragment));
-
-		String expectedWarningLine = MessageFormat.format(
-				"<strong>Belangrijk</strong>: Let op of de uitnodiging werkelijk van {0} {1} komt en check het mobiele nummer: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
-				requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber);
-		assertThat(result, containsString(expectedWarningLine));
-
-		String expectedHeaderImageUrl = "https://app.prd.yona.nu/media/img/nl_NL/header.jpg";
-		assertThat(result, containsString(expectedHeaderImageUrl));
+		assertThat(result, containsString(MessageFormat.format("<a href=\"{0}\"", inviteUrl)));
+		assertThat(result,
+				containsString(MessageFormat.format(
+						"<strong>Belangrijk</strong>: Let op of de uitnodiging werkelijk van {0} {1} komt en check het mobiele nummer: <a href=\"tel:{2}\" style=\"color: #2678bf; text-decoration: none;\">{2}</a>.",
+						requestingUserFirstName, requestingUserLastName, requestingUserMobileNumber)));
+		assertThat(result, containsString("https://app.prd.yona.nu/media/img/nl_NL/header.jpg"));
 	}
 
 	private String buildEmailBuddy(Optional<Locale> locale, String buddyFirstName, String buddyLastName, String inviteUrl,
@@ -183,8 +186,8 @@ public class TemplateTest
 		ctx.setVariable("requestingUserLastName", requestingUserLastName);
 		ctx.setVariable("requestingUserMobileNumber", requestingUserMobileNumber);
 		ctx.setVariable("requestingUserNickname", requestingUserNickname);
-		locale.ifPresent(l -> ctx.setLocale(l));
 		ctx.setVariable("includedMediaBaseUrl", "https://app.prd.yona.nu/media/");
+		locale.ifPresent(l -> ctx.setLocale(l));
 
 		return emailTemplateEngine.process("buddy-invitation-body.html", ctx);
 	}

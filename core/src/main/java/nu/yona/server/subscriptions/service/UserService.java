@@ -229,17 +229,7 @@ public class UserService
 				() -> handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode));
 
 		User userEntity = createUserEntity(user, UserSignUp.FREE);
-		Optional<ConfirmationCode> confirmationCode = Optional.empty();
-		if (overwriteUserConfirmationCode.isPresent())
-		{
-			// no need to confirm again
-			userEntity.markMobileNumberConfirmed();
-		}
-		else
-		{
-			confirmationCode = Optional.of(createConfirmationCode());
-			userEntity.setMobileNumberConfirmationCode(confirmationCode.get());
-		}
+		Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNeeded(overwriteUserConfirmationCode, userEntity);
 		userEntity = userRepository.save(userEntity);
 		ldapUserService.createVpnAccount(userEntity.getUserAnonymizedId().toString(), userEntity.getVpnPassword());
 
@@ -281,6 +271,21 @@ public class UserService
 			userEntity.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
 		}
 		return userEntity;
+	}
+
+	private Optional<ConfirmationCode> createConfirmationCodeIfNeeded(Optional<String> overwriteUserConfirmationCode,
+			User userEntity)
+	{
+		if (overwriteUserConfirmationCode.isPresent())
+		{
+			// no need to confirm again
+			userEntity.markMobileNumberConfirmed();
+			return Optional.empty();
+		}
+
+		Optional<ConfirmationCode> confirmationCode = Optional.of(createConfirmationCode());
+		userEntity.setMobileNumberConfirmationCode(confirmationCode.get());
+		return confirmationCode;
 	}
 
 	UserDto createUserDtoWithPrivateData(User user)
@@ -450,12 +455,8 @@ public class UserService
 		assertValidUpdateRequest(user, originalUser, originalUserEntity);
 
 		User updatedUserEntity = user.updateUser(originalUserEntity);
-		Optional<ConfirmationCode> confirmationCode = Optional.empty();
-		if (isMobileNumberDifferent(user, originalUser))
-		{
-			confirmationCode = Optional.of(createConfirmationCode());
-			updatedUserEntity.setMobileNumberConfirmationCode(confirmationCode.get());
-		}
+		Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNumberUpdated(user, originalUser,
+				updatedUserEntity);
 		User savedUserEntity = userRepository.save(updatedUserEntity);
 		UserDto userDto = createUserDtoWithPrivateData(savedUserEntity);
 		if (confirmationCode.isPresent())
@@ -479,6 +480,18 @@ public class UserService
 		{
 			assertUserDoesNotExist(user.getMobileNumber());
 		}
+	}
+
+	private Optional<ConfirmationCode> createConfirmationCodeIfNumberUpdated(UserDto user, UserDto originalUser,
+			User updatedUserEntity)
+	{
+		if (isMobileNumberDifferent(user, originalUser))
+		{
+			Optional<ConfirmationCode> confirmationCode = Optional.of(createConfirmationCode());
+			updatedUserEntity.setMobileNumberConfirmationCode(confirmationCode.get());
+			return confirmationCode;
+		}
+		return Optional.empty();
 	}
 
 	private boolean isMobileNumberDifferent(UserDto user, UserDto originalUser)
@@ -543,7 +556,7 @@ public class UserService
 		MessageSource anonymousMessageSource = messageSourceRepository.findOne(userEntity.getAnonymousMessageSourceId());
 		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
 		userAnonymizedEntity.clearAnonymousDestination();
-		userAnonymizedEntity = userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 		userEntity.clearNamedMessageDestination();
 		User updatedUserEntity = userRepository.saveAndFlush(userEntity);
 
@@ -623,7 +636,7 @@ public class UserService
 
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		userAnonymizedEntity.addBuddyAnonymized(buddyEntity.getBuddyAnonymized());
-		userAnonymizedService.updateUserAnonymized(userEntity.getUserAnonymizedId(), userAnonymizedEntity);
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 	}
 
 	public String generatePassword()

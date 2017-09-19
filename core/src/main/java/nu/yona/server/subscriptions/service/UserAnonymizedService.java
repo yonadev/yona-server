@@ -50,22 +50,29 @@ public class UserAnonymizedService
 		return userAnonymizedRepository.findOne(userAnonymizedId);
 	}
 
-	@CachePut(key = "#userAnonymizedId")
-	public UserAnonymizedDto updateUserAnonymized(UUID userAnonymizedId, UserAnonymized entity)
+	@CachePut(key = "#userAnonymized.id")
+	public UserAnonymizedDto updateUserAnonymized(UserAnonymized userAnonymized)
 	{
-		UserAnonymized savedEntity = userAnonymizedRepository.save(entity);
+		UserAnonymized savedEntity = userAnonymizedRepository.save(userAnonymized);
 		return UserAnonymizedDto.createInstance(savedEntity);
 	}
 
-	@CacheEvict(key = "#userAnonymizedId")
-	public UserAnonymized updateUserAnonymized(UserAnonymized entity)
+	@CachePut(key = "#userAnonymizedId")
+	public UserAnonymizedDto updateUserAnonymized(UUID userAnonymizedId)
 	{
-		return userAnonymizedRepository.saveAndFlush(entity);
+		UserAnonymized savedEntity = userAnonymizedRepository.save(userAnonymizedRepository.findOne(userAnonymizedId));
+		return UserAnonymizedDto.createInstance(savedEntity);
 	}
 
 	@CacheEvict(key = "#userAnonymizedId")
 	public void deleteUserAnonymized(UUID userAnonymizedId)
 	{
 		userAnonymizedRepository.delete(userAnonymizedId);
+	}
+
+	@CacheEvict(allEntries = true)
+	public void clearCache()
+	{
+		// Nothing to do here. The annotation ensures the cache is cleared
 	}
 }

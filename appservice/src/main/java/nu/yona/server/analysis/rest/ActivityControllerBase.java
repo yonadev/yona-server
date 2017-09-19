@@ -69,7 +69,9 @@ abstract class ActivityControllerBase
 	private MessageController messageController;
 
 	protected static final String WEEK_ACTIVITY_OVERVIEWS_URI_FRAGMENT = "/weeks/";
+	protected static final String WEEK_ACTIVITY_OVERVIEW_URI_FRAGMENT = "/weeks/{date}";
 	protected static final String DAY_OVERVIEWS_URI_FRAGMENT = "/days/";
+	protected static final String DAY_OVERVIEW_URI_FRAGMENT = "/days/{date}";
 	protected static final String WEEK_ACTIVITY_DETAIL_URI_FRAGMENT = "/weeks/{date}/details/{goalId}";
 	protected static final String WEEK_ACTIVITY_DETAIL_MESSAGES_URI_FRAGMENT = WEEK_ACTIVITY_DETAIL_URI_FRAGMENT + "/messages/";
 	protected static final String DAY_ACTIVITY_DETAIL_URI_FRAGMENT = "/days/{date}/details/{goalId}";
@@ -83,8 +85,8 @@ abstract class ActivityControllerBase
 	protected static final String NEXT_REL = "next"; // IANA reserved, so will not be prefixed
 
 	protected HttpEntity<PagedResources<WeekActivityOverviewResource>> getWeekActivityOverviews(Optional<String> password,
-			UUID userId, PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler, Supplier<Page<WeekActivityOverviewDto>> activitySupplier,
-			LinkProvider linkProvider)
+			UUID userId, PagedResourcesAssembler<WeekActivityOverviewDto> pagedResourcesAssembler,
+			Supplier<Page<WeekActivityOverviewDto>> activitySupplier, LinkProvider linkProvider)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
@@ -93,15 +95,39 @@ abstract class ActivityControllerBase
 		}
 	}
 
+	protected HttpEntity<WeekActivityOverviewResource> getWeekActivityOverview(Optional<String> password, UUID userId,
+			String dateStr, Function<LocalDate, WeekActivityOverviewDto> activitySupplier, LinkProvider linkProvider)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			LocalDate date = WeekActivityDto.parseDate(dateStr);
+			return new ResponseEntity<>(
+					new WeekActivityOverviewResourceAssembler(linkProvider).toResource(activitySupplier.apply(date)),
+					HttpStatus.OK);
+		}
+	}
+
 	protected HttpEntity<PagedResources<DayActivityOverviewResource>> getDayActivityOverviews(Optional<String> password,
 			UUID userId, PagedResourcesAssembler<DayActivityOverviewDto<DayActivityDto>> pagedResourcesAssembler,
-			Supplier<Page<DayActivityOverviewDto<DayActivityDto>>> activitySupplier,
-			LinkProvider linkProvider)
+			Supplier<Page<DayActivityOverviewDto<DayActivityDto>>> activitySupplier, LinkProvider linkProvider)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			return new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
 					new DayActivityOverviewResourceAssembler(linkProvider)), HttpStatus.OK);
+		}
+	}
+
+	protected HttpEntity<DayActivityOverviewResource> getDayActivityOverview(Optional<String> password, UUID userId,
+			String dateStr, Function<LocalDate, DayActivityOverviewDto<DayActivityDto>> activitySupplier,
+			LinkProvider linkProvider)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			LocalDate date = DayActivityDto.parseDate(dateStr);
+			return new ResponseEntity<>(
+					new DayActivityOverviewResourceAssembler(linkProvider).toResource(activitySupplier.apply(date)),
+					HttpStatus.OK);
 		}
 	}
 
@@ -210,6 +236,10 @@ abstract class ActivityControllerBase
 
 	interface LinkProvider
 	{
+		public ControllerLinkBuilder getWeekActivityOverviewLinkBuilder(String dateStr);
+
+		public ControllerLinkBuilder getDayActivityOverviewLinkBuilder(String dateStr);
+
 		public ControllerLinkBuilder getDayActivityDetailLinkBuilder(String dateStr, UUID goalId);
 
 		public ControllerLinkBuilder getWeekActivityDetailLinkBuilder(String dateStr, UUID goalId);
@@ -298,13 +328,20 @@ abstract class ActivityControllerBase
 		@Override
 		public WeekActivityOverviewResource toResource(WeekActivityOverviewDto weekActivityOverview)
 		{
-			return instantiateResource(weekActivityOverview);
+			WeekActivityOverviewResource resource = instantiateResource(weekActivityOverview);
+			addSelfLink(resource);
+			return resource;
 		}
 
 		@Override
 		protected WeekActivityOverviewResource instantiateResource(WeekActivityOverviewDto weekActivityOverview)
 		{
 			return new WeekActivityOverviewResource(linkProvider, weekActivityOverview);
+		}
+
+		private void addSelfLink(Resource<WeekActivityOverviewDto> resource)
+		{
+			resource.add(linkProvider.getWeekActivityOverviewLinkBuilder(resource.getContent().getDateStr()).withSelfRel());
 		}
 	}
 
@@ -479,13 +516,20 @@ abstract class ActivityControllerBase
 		@Override
 		public DayActivityOverviewResource toResource(DayActivityOverviewDto<DayActivityDto> dayActivityOverview)
 		{
-			return instantiateResource(dayActivityOverview);
+			DayActivityOverviewResource resource = instantiateResource(dayActivityOverview);
+			addSelfLink(resource);
+			return resource;
 		}
 
 		@Override
 		protected DayActivityOverviewResource instantiateResource(DayActivityOverviewDto<DayActivityDto> dayActivityOverview)
 		{
 			return new DayActivityOverviewResource(linkProvider, dayActivityOverview);
+		}
+
+		private void addSelfLink(Resource<DayActivityOverviewDto<DayActivityDto>> resource)
+		{
+			resource.add(linkProvider.getDayActivityOverviewLinkBuilder(resource.getContent().getDateStr()).withSelfRel());
 		}
 	}
 }

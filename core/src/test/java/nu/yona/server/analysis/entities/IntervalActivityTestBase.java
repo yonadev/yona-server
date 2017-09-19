@@ -2,7 +2,7 @@
  * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
-package nu.yona.server.analysis.service;
+package nu.yona.server.analysis.entities;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -18,14 +18,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import org.junit.Before;
 
-import nu.yona.server.analysis.entities.Activity;
-import nu.yona.server.analysis.entities.DayActivity;
-import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.crypto.pubkey.PublicKeyUtil;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
@@ -35,7 +33,7 @@ import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.util.TimeUtil;
 
-public abstract class IntervalActivityTestsBase
+public abstract class IntervalActivityTestBase
 {
 	protected ZoneId testZone;
 
@@ -71,7 +69,7 @@ public abstract class IntervalActivityTestsBase
 	protected void addActivity(DayActivity dayActivity, String startTimeString, String endTimeString)
 	{
 		dayActivity.addActivity(Activity.createInstance(testZone, getTimeOnDay(dayActivity, startTimeString).toLocalDateTime(),
-				getTimeOnDay(dayActivity, endTimeString).toLocalDateTime()));
+				getTimeOnDay(dayActivity, endTimeString).toLocalDateTime(), Optional.empty()));
 	}
 
 	protected void assertSpreadItemsAndTotal(IntervalActivity intervalActivity, String expectedSpreadItems,
@@ -82,7 +80,6 @@ public abstract class IntervalActivityTestsBase
 		assertThat(intervalActivity.getTotalActivityDurationMinutes(), equalTo(expectedTotalActivityDurationMinutes));
 
 		intervalActivity.computeAggregates();
-		assertThat(intervalActivity.areAggregatesComputed(), equalTo(true));
 		assertSpreadItems(intervalActivity.getSpread(), expectedSpreadItems);
 		assertThat(intervalActivity.getTotalActivityDurationMinutes(), equalTo(expectedTotalActivityDurationMinutes));
 	}

@@ -326,7 +326,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 				assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex]?.date =~ /\d{4}\-W\d{2}/
 				assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex].timeZoneId == "Europe/Amsterdam"
 				assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex].weekActivities?.size() == numberOfGoals
-				// YD-203 assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex]._links?.self?.href
+				assert response.responseData._embedded."yona:weekActivityOverviews"[weekIndex]._links?.self?.href
 			}
 		}
 	}
@@ -417,7 +417,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert dayActivityOverview?.date =~ /\d{4}\-\d{2}\-\d{2}/
 		assert dayActivityOverview.timeZoneId == "Europe/Amsterdam"
 		assert dayActivityOverview.dayActivities?.size() == expectedValues[shortDay].size()
-		// YD-203 assert dayActivityOverview._links?.self?.href
+		assert dayActivityOverview._links?.self?.href
 		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
 		assert dayActivityForGoal.totalActivityDurationMinutes == calculateExpectedDurationFromSpread(calculateExpectedDurationFromSpread(expectedDataForDayAndGoal.spread))
 		assert dayActivityForGoal.goalAccomplished == expectedDataForDayAndGoal.goalAccomplished
@@ -544,6 +544,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 			assert dayActivityOverview.dayActivities.find{ it._links."yona:activityCategory"?.href == activityCategoryUrl} == null
 		} else {
 			assert dayActivityOverview.dayActivities.find{ it._links."yona:activityCategory"?.href == activityCategoryUrl}
+			assert dayActivityOverview._links?.self?.href
 			def dayActivitiesForCategory = dayActivityOverview.dayActivities.find{ it._links."yona:activityCategory".href == activityCategoryUrl}
 			assert dayActivitiesForCategory._links.size() == 1
 			assert dayActivitiesForCategory.dayActivitiesForUsers.size() == expectedUsersWithGoalInThisCategory

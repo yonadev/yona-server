@@ -2,21 +2,16 @@
  * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
-package nu.yona.server.analysis.service;
+package nu.yona.server.analysis.entities;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.ZonedDateTime;
 
 import org.junit.Test;
 
-import nu.yona.server.analysis.entities.DayActivity;
-import nu.yona.server.analysis.entities.WeekActivity;
-
-public class WeekActivityTests extends IntervalActivityTestsBase
+public class WeekActivityTest extends IntervalActivityTestBase
 {
 	private WeekActivity createWeekActivity()
 	{
@@ -32,30 +27,7 @@ public class WeekActivityTests extends IntervalActivityTestsBase
 	}
 
 	@Test
-	public void testParseWeekDate()
-	{
-		LocalDate parsedDate = WeekActivityDto.parseDate("2016-W02");
-
-		assertThat(parsedDate.getDayOfWeek(), equalTo(DayOfWeek.SUNDAY));
-		assertThat(parsedDate, equalTo(LocalDate.of(2016, 1, 10)));
-	}
-
-	@Test
-	public void testFormatWeekDate()
-	{
-		String weekDate = WeekActivityDto.formatDate(LocalDate.of(2016, 1, 10));
-
-		assertThat(weekDate, equalTo("2016-W02"));
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testFormatWeekDateMondayThrows()
-	{
-		WeekActivityDto.formatDate(LocalDate.of(2016, 1, 11));
-	}
-
-	@Test
-	public void testSpreadAndTotal()
+	public void getSpreadGetTotalActivityDurationMinutes_default_sumsSpreadsOfDayActivities()
 	{
 		WeekActivity w = createWeekActivity();
 		DayActivity d1 = createDayActivity(w, 0);
@@ -70,7 +42,7 @@ public class WeekActivityTests extends IntervalActivityTestsBase
 	}
 
 	@Test
-	public void testResetAggregatesComputedRecomputesSpreadAggregates()
+	public void getSpreadGetTotalActivityDurationMinutes_afterComputeAggregatesAddActivity_returnsRecomputedResults()
 	{
 		WeekActivity w = createWeekActivity();
 		DayActivity d1 = createDayActivity(w, 0);
@@ -78,36 +50,19 @@ public class WeekActivityTests extends IntervalActivityTestsBase
 		w.addDayActivity(d1);
 		d1.computeAggregates();
 		w.computeAggregates();
-
 		addActivity(d1, "20:05", "20:07");
 
 		assertSpreadItemsAndTotal(w, "78=0,79=4,80=2,81=0", 6);
 	}
 
 	@Test
-	public void testResetAggregatesComputedDayActivityResetsAggregatesComputed()
-	{
-		WeekActivity w = createWeekActivity();
-		DayActivity d1 = createDayActivity(w, 0);
-		w.addDayActivity(d1);
-		d1.computeAggregates();
-		w.computeAggregates();
-		assertThat(w.areAggregatesComputed(), equalTo(true));
-
-		addActivity(d1, "20:05", "20:07");
-
-		assertThat(w.areAggregatesComputed(), equalTo(false));
-	}
-
-	@Test
-	public void testAddDayActivityResetAggregatesComputed()
+	public void addDayActivity_afterComputeAggregates_resetsAreAggregatesComputed()
 	{
 		WeekActivity w = createWeekActivity();
 		w.computeAggregates();
-		assertThat(w.areAggregatesComputed(), equalTo(true));
-
 		DayActivity d1 = createDayActivity(w, 0);
 		addActivity(d1, "20:05", "20:07");
+
 		w.addDayActivity(d1);
 
 		assertThat(w.areAggregatesComputed(), equalTo(false));

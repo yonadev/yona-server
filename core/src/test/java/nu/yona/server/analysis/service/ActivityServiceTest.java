@@ -22,8 +22,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.junit.Before;
@@ -60,7 +62,7 @@ import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.TimeUtil;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ActivityServiceTests
+public class ActivityServiceTest
 {
 	private final Map<String, Goal> goalMap = new HashMap<>();
 
@@ -161,7 +163,7 @@ public class ActivityServiceTests
 	}
 
 	@Test
-	public void dayActivityOverview()
+	public void getUserDayActivityOverviews_activityPresent_resultsWithActivity()
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 		ZonedDateTime yesterday = today.minusDays(1);
@@ -172,16 +174,17 @@ public class ActivityServiceTests
 				yesterday.toLocalDate());
 		Activity recordedActivity = Activity.createInstance(userAnonZone,
 				yesterday.plusHours(20).plusMinutes(58).toLocalDateTime(),
-				yesterday.plusHours(21).plusMinutes(00).toLocalDateTime());
+				yesterday.plusHours(21).plusMinutes(00).toLocalDateTime(), Optional.empty());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
-		when(mockDayActivityRepository.findAllActivitiesForUserInIntervalEndIncluded(userAnonId, today.minusDays(2).toLocalDate(),
-				today.toLocalDate())).thenReturn(Arrays.asList(yesterdayRecordedActivity));
+		Set<UUID> relevantGoalIds = userAnonEntity.getGoals().stream().map(Goal::getId).collect(Collectors.toSet());
+		when(mockDayActivityRepository.findAllActivitiesForUserInIntervalEndIncluded(userAnonId, relevantGoalIds,
+				today.minusDays(2).toLocalDate(), today.toLocalDate())).thenReturn(Arrays.asList(yesterdayRecordedActivity));
 
 		Page<DayActivityOverviewDto<DayActivityDto>> dayOverviews = service.getUserDayActivityOverviews(userId,
 				new PageRequest(0, 3));
 
 		// assert that the right retrieve from database was done
-		verify(mockDayActivityRepository, times(1)).findAllActivitiesForUserInIntervalEndIncluded(userAnonId,
+		verify(mockDayActivityRepository, times(1)).findAllActivitiesForUserInIntervalEndIncluded(userAnonId, relevantGoalIds,
 				today.minusDays(2).toLocalDate(), today.toLocalDate());
 
 		// because the gambling goal was added with creation date two weeks ago, there are multiple days, equal to the limit of
@@ -208,7 +211,7 @@ public class ActivityServiceTests
 	}
 
 	@Test
-	public void weekActivityOverview()
+	public void getUserWeekActivityOverviews_activityPresent_resultsWithActivity()
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 
@@ -221,7 +224,7 @@ public class ActivityServiceTests
 				saturdayStartOfDay.toLocalDate());
 		Activity recordedActivity = Activity.createInstance(userAnonZone,
 				saturdayStartOfDay.plusHours(19).plusMinutes(10).toLocalDateTime(),
-				saturdayStartOfDay.plusHours(19).plusMinutes(55).toLocalDateTime());
+				saturdayStartOfDay.plusHours(19).plusMinutes(55).toLocalDateTime(), Optional.empty());
 		previousWeekSaturdayRecordedActivity.addActivity(recordedActivity);
 		previousWeekRecordedActivity.addDayActivity(DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
 				getWeekStartTime(today).minusDays(7).toLocalDate()));
@@ -289,12 +292,13 @@ public class ActivityServiceTests
 	}
 
 	@Test
-	public void dayActivityOverviewInactivity()
+	public void getUserDayActivityOverviews_noActivityPresent_resultsWithInactivity()
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 
 		Page<DayActivityOverviewDto<DayActivityDto>> inactivityDayOverviews = service.getUserDayActivityOverviews(userId,
 				new PageRequest(0, 3));
+
 		// because the gambling goal was added with creation date two weeks ago, there are multiple days
 		assertThat(inactivityDayOverviews.getNumberOfElements(), equalTo(3));
 		// the other goals were created today, so get the most recent (first) element
@@ -308,10 +312,11 @@ public class ActivityServiceTests
 	}
 
 	@Test
-	public void weekActivityOverviewInactivity()
+	public void getUserWeekActivityOverviews_noActivityPresent_resultsWithInactivity()
 	{
 		Page<WeekActivityOverviewDto> inactivityWeekOverviews = service.getUserWeekActivityOverviews(userId,
 				new PageRequest(0, 5));
+
 		// because the gambling goal was added with creation date two weeks ago, there are multiple weeks
 		assertThat(inactivityWeekOverviews.getNumberOfElements(), equalTo(3));
 		// the other goals were created today, so get the most recent (first) element
@@ -327,12 +332,13 @@ public class ActivityServiceTests
 	}
 
 	@Test
-	public void dayActivityDetailInactivity()
+	public void getUserDayActivityDetail_noActivityPresent_resultWithInactivity()
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 
 		DayActivityDto inactivityDay = service.getUserDayActivityDetail(userId, LocalDate.now(userAnonZone),
 				gamblingGoal.getId());
+
 		assertThat(inactivityDay.getSpread().size(), equalTo(96));
 		assertThat(inactivityDay.getStartTime(), equalTo(today));
 		assertThat(inactivityDay.getTimeZoneId(), equalTo(userAnonZone.getId()));
@@ -341,10 +347,11 @@ public class ActivityServiceTests
 	}
 
 	@Test
-	public void weekActivityDetailInactivity()
+	public void getUserWeekActivityDetail_noActivityPresent_resultWithInactivity()
 	{
 		WeekActivityDto inactivityWeek = service.getUserWeekActivityDetail(userId, getWeekStartDate(LocalDate.now(userAnonZone)),
 				gamblingGoal.getId());
+
 		assertThat(inactivityWeek.getSpread().size(), equalTo(96));
 		assertThat(inactivityWeek.getStartTime(), equalTo(getWeekStartTime(ZonedDateTime.now(userAnonZone))));
 		assertThat(inactivityWeek.getTimeZoneId(), equalTo(userAnonZone.getId()));
@@ -352,63 +359,21 @@ public class ActivityServiceTests
 	}
 
 	@Test
-	public void spreadShortDurationInMiddleOfCell()
-	{
-		int hour = 20;
-		int[] expectedSpread = getEmptySpread();
-		expectedSpread[hour * 4] = 1;
-		// An activity duration of less than 1 minute is always upgraded to 1 minute. See
-		// AnalysisEngineService.ensureMinimumDurationOneMinute.
-		assertSpread("20:05:08", "20:06:11", expectedSpread);
-	}
-
-	@Test
-	public void spreadShortDurationInNextCellLessThanOneMinute()
-	{
-		int hour = 20;
-		int[] expectedSpread = getEmptySpread();
-		expectedSpread[hour * 4] = 10;
-		expectedSpread[hour * 4 + 1] = 0; // Less than one minute is ignored in next cell.
-		assertSpread("20:05:08", "20:15:03", expectedSpread);
-	}
-
-	@Test
-	public void spreadShortDurationInNextCell()
-	{
-		int hour = 20;
-		int[] expectedSpread = getEmptySpread();
-		expectedSpread[hour * 4] = 10;
-		expectedSpread[hour * 4 + 1] = 1; // More than one minute is rounded down to minutes.
-		assertSpread("20:05:08", "20:16:03", expectedSpread);
-	}
-
-	@Test
-	public void spreadShortDurationInPreviousCell()
-	{
-		int hour = 20;
-		int[] expectedSpread = getEmptySpread();
-		expectedSpread[hour * 4] = 1;
-		expectedSpread[hour * 4 + 1] = 6;
-		assertSpread("20:14:57", "20:21:00", expectedSpread);
-	}
-
-	private int[] getEmptySpread()
-	{
-		int[] expectedSpread = new int[96];
-		Arrays.fill(expectedSpread, 0);
-		return expectedSpread;
-	}
-
-	private void assertSpread(String activityStartTimeStr, String activityEndTimeStr, int[] expectedSpread)
+	public void getUserDayActivityDetail_activityPresent_resultWithActivity()
 	{
 		ZonedDateTime today = getDayStartTime(ZonedDateTime.now(userAnonZone));
 		ZonedDateTime yesterday = today.minusDays(1);
 
-		LocalTime activityStartTimeOnDay = LocalTime.parse(activityStartTimeStr);
-		LocalTime activityEndTimeOnDay = LocalTime.parse(activityEndTimeStr);
+		LocalTime activityStartTimeOnDay = LocalTime.parse("20:14:57");
+		LocalTime activityEndTimeOnDay = LocalTime.parse("20:21:00");
+
+		int hour = 20;
+		int[] expectedSpread = getEmptySpread();
+		expectedSpread[hour * 4] = 1;
+		expectedSpread[hour * 4 + 1] = 6;
 
 		// gambling goal was created 2 weeks ago, see above
-		// mock some activity on yesterday 20:58-21:00
+		// mock some activity on yesterday
 		DayActivity yesterdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
 				yesterday.toLocalDate());
 		ZonedDateTime activityStartTime = yesterday.withHour(activityStartTimeOnDay.getHour())
@@ -416,14 +381,22 @@ public class ActivityServiceTests
 		ZonedDateTime activityEndTime = yesterday.withHour(activityEndTimeOnDay.getHour())
 				.withMinute(activityEndTimeOnDay.getMinute()).withSecond(activityEndTimeOnDay.getSecond());
 		Activity recordedActivity = Activity.createInstance(userAnonZone, activityStartTime.toLocalDateTime(),
-				activityEndTime.toLocalDateTime());
+				activityEndTime.toLocalDateTime(), Optional.empty());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
 		when(mockDayActivityRepository.findOne(userAnonId, yesterday.toLocalDate(), gamblingGoal.getId()))
 				.thenReturn(yesterdayRecordedActivity);
 
 		DayActivityDto activityDay = service.getUserDayActivityDetail(userId, yesterday.toLocalDate(), gamblingGoal.getId());
+
 		verify(mockDayActivityRepository, times(1)).findOne(userAnonId, yesterday.toLocalDate(), gamblingGoal.getId());
 		assertThat(activityDay.getSpread(), equalTo(Arrays.asList(ArrayUtils.toObject((expectedSpread)))));
+	}
+
+	private int[] getEmptySpread()
+	{
+		int[] expectedSpread = new int[96];
+		Arrays.fill(expectedSpread, 0);
+		return expectedSpread;
 	}
 
 	private ZonedDateTime getWeekStartTime(ZonedDateTime dateTime)
