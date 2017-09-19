@@ -556,7 +556,7 @@ public class UserService
 		MessageSource anonymousMessageSource = messageSourceRepository.findOne(userEntity.getAnonymousMessageSourceId());
 		UserAnonymized userAnonymizedEntity = userAnonymizedService.getUserAnonymizedEntity(userAnonymizedId);
 		userAnonymizedEntity.clearAnonymousDestination();
-		userAnonymizedEntity = userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 		userEntity.clearNamedMessageDestination();
 		User updatedUserEntity = userRepository.saveAndFlush(userEntity);
 
@@ -636,7 +636,7 @@ public class UserService
 
 		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
 		userAnonymizedEntity.addBuddyAnonymized(buddyEntity.getBuddyAnonymized());
-		userAnonymizedService.updateUserAnonymized(userEntity.getUserAnonymizedId(), userAnonymizedEntity);
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 	}
 
 	public String generatePassword()

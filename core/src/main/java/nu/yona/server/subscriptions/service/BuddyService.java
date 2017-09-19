@@ -43,6 +43,7 @@ import nu.yona.server.sms.SmsTemplate;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
+import nu.yona.server.subscriptions.entities.BuddyAnonymizedRepository;
 import nu.yona.server.subscriptions.entities.BuddyConnectRequestMessage;
 import nu.yona.server.subscriptions.entities.BuddyConnectResponseMessage;
 import nu.yona.server.subscriptions.entities.BuddyDisconnectMessage;
@@ -78,6 +79,9 @@ public class BuddyService
 
 	@Autowired
 	private UserAnonymizedService userAnonymizedService;
+
+	@Autowired(required = false)
+	private BuddyAnonymizedRepository buddyAnonymizedRepository;
 
 	@Autowired
 	private BuddyConnectResponseMessageDto.Manager connectResponseMessageHandler;
@@ -232,7 +236,7 @@ public class BuddyService
 
 		UserAnonymized userAnonymizedEntity = user.getAnonymized();
 		userAnonymizedEntity.removeBuddyAnonymized(buddy.getBuddyAnonymized());
-		userAnonymizedService.updateUserAnonymized(user.getUserAnonymizedId(), userAnonymizedEntity);
+		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 	}
 
 	@Transactional
@@ -371,7 +375,8 @@ public class BuddyService
 				.ifPresent(b -> removeBuddy(user, b));
 	}
 
-	public void setBuddyAcceptedWithSecretUserInfo(UUID buddyId, UUID userAnonymizedId, String nickname)
+	public void setBuddyAcceptedWithSecretUserInfo(UUID actingUserAnonymizedId, UUID buddyId, UUID userAnonymizedId,
+			String nickname)
 	{
 		Buddy buddy = Buddy.getRepository().findOne(buddyId);
 		if (buddy == null)
@@ -390,6 +395,7 @@ public class BuddyService
 		buddy.setUserAnonymizedId(userAnonymizedId);
 		buddy.setNickName(nickname);
 		Buddy.getRepository().save(buddy);
+		userAnonymizedService.updateUserAnonymized(userAnonymizedService.getUserAnonymizedEntity(actingUserAnonymizedId));
 	}
 
 	Set<BuddyDto> getBuddyDtos(Set<Buddy> buddyEntities)
@@ -407,27 +413,21 @@ public class BuddyService
 
 	private void loadAllBuddiesAnonymizedAtOnce(Set<Buddy> buddyEntities)
 	{
-		BuddyAnonymized.getRepository()
-				.findAll(buddyEntities.stream().map(Buddy::getBuddyAnonymizedId).collect(Collectors.toList()));
+		buddyAnonymizedRepository.findAll(buddyEntities.stream().map(Buddy::getBuddyAnonymizedId).collect(Collectors.toList()));
 	}
 
 	public Set<MessageDestinationDto> getBuddyDestinations(UserAnonymizedDto user)
 	{
-		Set<BuddyAnonymized> buddiesAnonymized = user.getBuddyAnonymizedIds().stream()
-				.map(id -> BuddyAnonymized.getRepository().findOne(id)).collect(Collectors.toSet());
-		return getBuddyDestinations(buddiesAnonymized).stream().map(MessageDestinationDto::createInstance)
-				.collect(Collectors.toSet());
+		return user.getBuddiesAnonymized().stream().filter(ba -> ba.getSendingStatus() == Status.ACCEPTED)
+				.map(BuddyAnonymizedDto::getUserAnonymizedId).filter(Optional::isPresent).map(Optional::get)
+				.map(buaid -> userAnonymizedService.getUserAnonymized(buaid).getAnonymousDestination())
+				.collect(Collectors.toSet()).stream().collect(Collectors.toSet());
 	}
 
 	public Set<MessageDestination> getBuddyDestinations(UserAnonymized user)
 	{
-		return getBuddyDestinations(user.getBuddiesAnonymized());
-	}
-
-	private Set<MessageDestination> getBuddyDestinations(Set<BuddyAnonymized> buddiesAnonymized)
-	{
-		return buddiesAnonymized.stream().filter(ba -> ba.getSendingStatus() == Status.ACCEPTED)
-				.map(ba -> ba.getUserAnonymized().getAnonymousDestination()).collect(Collectors.toSet());
+		return user.getBuddiesAnonymized().stream().filter(ba -> ba.getSendingStatus() == Status.ACCEPTED)
+				.map(BuddyAnonymized::getUserAnonymized).map(UserAnonymized::getAnonymousDestination).collect(Collectors.toSet());
 	}
 
 	private Set<Buddy> getBuddyEntitiesOfUser(UUID forUserId)
@@ -490,10 +490,10 @@ public class BuddyService
 
 	private void disconnectBuddyIfConnected(UserAnonymizedDto buddyUserAnonymized, UUID userAnonymizedId)
 	{
-		Optional<BuddyAnonymized> buddyAnonymized = buddyUserAnonymized.getBuddyAnonymized(userAnonymizedId);
-		buddyAnonymized.ifPresent(ba -> {
-			ba.setDisconnected();
-			BuddyAnonymized.getRepository().save(ba);
+		Optional<BuddyAnonymizedDto> buddyAnonymized = buddyUserAnonymized.getBuddyAnonymized(userAnonymizedId);
+		buddyAnonymized.map(ba -> buddyAnonymizedRepository.findOne(ba.getId())).ifPresent(bae -> {
+			bae.setDisconnected();
+			userAnonymizedService.updateUserAnonymized(buddyUserAnonymized.getId());
 			// Notice: last status change time will not be set, as we are not able to reach the Buddy entity from here
 			// Buddy will be removed anyway the first time the other user logs in
 		});
