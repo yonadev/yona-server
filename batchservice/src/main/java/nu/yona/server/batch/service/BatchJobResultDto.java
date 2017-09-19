@@ -12,12 +12,12 @@ import org.springframework.batch.core.StepExecution;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 
-@JsonRootName("activityAggregationBatchJobResult")
-public class ActivityAggregationBatchJobResultDto
+@JsonRootName("batchJobResult")
+public class BatchJobResultDto
 {
 	private final Map<String, Integer> writeCountPerStep;
 
-	public ActivityAggregationBatchJobResultDto(Map<String, Integer> writeCountPerStep)
+	public BatchJobResultDto(Map<String, Integer> writeCountPerStep)
 	{
 		this.writeCountPerStep = writeCountPerStep;
 	}
@@ -27,9 +27,9 @@ public class ActivityAggregationBatchJobResultDto
 		return writeCountPerStep;
 	}
 
-	static ActivityAggregationBatchJobResultDto createInstance(JobExecution jobExecution)
+	static BatchJobResultDto createInstance(JobExecution jobExecution)
 	{
-		return new ActivityAggregationBatchJobResultDto(jobExecution.getStepExecutions().stream()
+		return new BatchJobResultDto(jobExecution.getStepExecutions().stream()
 				.collect(Collectors.toMap(StepExecution::getStepName, StepExecution::getWriteCount)));
 	}
 }

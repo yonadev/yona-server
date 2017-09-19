@@ -1,4 +1,11 @@
 #!/bin/bash
+#*******************************************************************************
+# Copyright (c) 2017 Stichting Yona Foundation
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+#*******************************************************************************
 
 # Note - We are running under K8S as an init job.
 # If we exit non zero we will be rescheduled until success

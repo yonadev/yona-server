@@ -55,7 +55,7 @@ public class BatchTaskService
 	@Qualifier("sendSystemMessageJob")
 	private Job sendSystemMessageJob;
 
-	public ActivityAggregationBatchJobResultDto aggregateActivities()
+	public BatchJobResultDto aggregateActivities()
 	{
 		logger.info("Triggering activity aggregation");
 		JobParameters jobParameters = new JobParametersBuilder().addDate("uniqueInstanceId", new Date()).toJobParameters();
@@ -64,7 +64,7 @@ public class BatchTaskService
 		JobExecution jobExecution = launchImmediatelySynchronously(activityAggregationJob, jobParameters);
 		jobExecution.getStepExecutions().forEach(
 				e -> logger.info("Step {} read {} entities and wrote {}", e.getStepName(), e.getReadCount(), e.getWriteCount()));
-		return ActivityAggregationBatchJobResultDto.createInstance(jobExecution);
+		return BatchJobResultDto.createInstance(jobExecution);
 	}
 
 	public void requestPinResetConfirmationCode(PinResetConfirmationCodeSendRequestDto request)
