@@ -48,8 +48,8 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
-		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
-		analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl")
+		assert analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com").status == 200
+		assert analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl").status == 200
 
 		when:
 		def message = "Goodbye friends! I deinstalled the Internet"
@@ -164,7 +164,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		Goal budgetGoalNewsBuddyBob = richard.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
 		//insert some messages
 		//goal conflict
-		analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl")
+		assert analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl").status == 200
 		//goal change
 		appService.addGoal(appService.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
 		//activity comment at activity of Richard
@@ -183,13 +183,13 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard, message)
 
 		then:
-		analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
-		analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl")
+		assert analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com").status == 200
+		assert analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl").status == 400 // User deleted
 
 		def getMessagesResponse = appService.getMessages(bob)
 		getMessagesResponse.status == 200
 		getMessagesResponse.responseData._embedded
-		getMessagesResponse.responseData._embedded."yona:messages".size() == 2
+		getMessagesResponse.responseData._embedded."yona:messages".size() == 2 // User removal + own goal conflict
 
 		def buddyDisconnectMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}
 		buddyDisconnectMessages.size() == 1

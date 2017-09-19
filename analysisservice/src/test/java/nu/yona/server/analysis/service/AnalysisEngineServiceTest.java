@@ -52,6 +52,7 @@ import org.mockito.stubbing.Answer;
 
 import nu.yona.server.Translator;
 import nu.yona.server.analysis.entities.Activity;
+import nu.yona.server.analysis.entities.ActivityRepository;
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
@@ -66,6 +67,7 @@ import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.goals.service.GoalService;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.messaging.service.MessageDestinationDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.AnalysisServiceProperties;
@@ -97,6 +99,10 @@ public class AnalysisEngineServiceTest
 	private YonaProperties mockYonaProperties;
 	@Mock
 	private ActivityCacheService mockAnalysisEngineCacheService;
+	@Mock
+	private MessageRepository mockMessageRepository;
+	@Mock
+	private ActivityRepository mockActivityRepository;
 	@Mock
 	private DayActivityRepository mockDayActivityRepository;
 	@Mock
@@ -224,6 +230,8 @@ public class AnalysisEngineServiceTest
 					}
 				});
 
+		JUnitUtil.setUpRepositoryMock(mockMessageRepository);
+		JUnitUtil.setUpRepositoryMock(mockActivityRepository);
 		JUnitUtil.setUpRepositoryMock(mockDayActivityRepository);
 	}
 
