@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.analysis.entities.Activity;
+import nu.yona.server.analysis.entities.ActivityRepository;
 import nu.yona.server.analysis.entities.DayActivity;
 import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
@@ -30,6 +31,7 @@ import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
+import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
@@ -58,6 +60,10 @@ public class AnalysisEngineService
 	private GoalService goalService;
 	@Autowired
 	private MessageService messageService;
+	@Autowired(required = false)
+	private MessageRepository messageRepository;
+	@Autowired(required = false)
+	private ActivityRepository activityRepository;
 	@Autowired(required = false)
 	private DayActivityRepository dayActivityRepository;
 	@Autowired(required = false)
@@ -376,6 +382,7 @@ public class AnalysisEngineService
 		ZonedDateTime endTime = ensureMinimumDurationOneMinute(payload);
 		Activity activity = Activity.createInstance(payload.startTime.getZone(), payload.startTime.toLocalDateTime(),
 				endTime.toLocalDateTime(), payload.application);
+		activity = activityRepository.save(activity);
 		dayActivity.addActivity(activity);
 		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
 		return dayActivity.getLastActivity();
@@ -427,14 +434,22 @@ public class AnalysisEngineService
 	private void sendConflictMessageToAllDestinationsOfUser(UserAnonymized userAnonymized, ActivityPayload payload,
 			Activity activity, Goal matchingGoal)
 	{
-		GoalConflictMessage selfGoalConflictMessage = GoalConflictMessage.createInstance(payload.userAnonymized.getId(), activity,
-				matchingGoal, payload.url);
+		GoalConflictMessage selfGoalConflictMessage = messageRepository
+				.save(GoalConflictMessage.createInstance(payload.userAnonymized.getId(), activity, matchingGoal, payload.url));
 		messageService.sendMessage(selfGoalConflictMessage, userAnonymized.getAnonymousDestination());
 		// Save the messages, so the other messages can reference it
 		userAnonymizedService.updateUserAnonymized(userAnonymized);
 
 		messageService.broadcastMessageToBuddies(payload.userAnonymized,
-				() -> GoalConflictMessage.createInstanceForBuddy(payload.userAnonymized.getId(), selfGoalConflictMessage));
+				() -> createAndSaveBuddyGoalConflictMessage(payload, selfGoalConflictMessage));
+	}
+
+	private GoalConflictMessage createAndSaveBuddyGoalConflictMessage(ActivityPayload payload,
+			GoalConflictMessage selfGoalConflictMessage)
+	{
+		GoalConflictMessage message = GoalConflictMessage.createInstanceForBuddy(payload.userAnonymized.getId(),
+				selfGoalConflictMessage);
+		return messageRepository.save(message);
 	}
 
 	private Set<GoalDto> determineMatchingGoalsForUser(UserAnonymizedDto userAnonymized,
