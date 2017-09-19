@@ -159,8 +159,7 @@ public class ActivityService
 						missingInactivities),
 				(g, wa) -> createAndSaveInactivityDays(userAnonymized,
 						userAnonymized.getGoalsForActivityCategory(g.getActivityCategory()), wa, missingInactivities));
-		return weekActivityDtosByZonedDate.entrySet().stream()
-				.sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
+		return weekActivityDtosByZonedDate.entrySet().stream().sorted((e1, e2) -> e2.getKey().compareTo(e1.getKey()))
 				.map(e -> WeekActivityOverviewDto.createInstance(e.getKey(), e.getValue())).collect(Collectors.toList());
 	}
 
@@ -279,8 +278,7 @@ public class ActivityService
 		Map<ZonedDateTime, Set<DayActivityDto>> dayActivityDtosByZonedDate = executeAndCreateInactivityEntries(
 				mia -> getDayActivitiesForUserAnonymizedIdsInInterval(userAnonymizedIds, activityCategoryIdsUsedByBuddies,
 						interval, mia));
-		return dayActivityEntitiesToOverviewsUserWithBuddies(
-				dayActivityDtosByZonedDate);
+		return dayActivityEntitiesToOverviewsUserWithBuddies(dayActivityDtosByZonedDate);
 	}
 
 	@Transactional
