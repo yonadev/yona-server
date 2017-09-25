@@ -59,6 +59,11 @@ public class AppActivityController
 	@Autowired
 	private AnalysisEngineProxyService analysisEngineProxyService;
 
+	private enum MessageType
+	{
+		ERROR, WARNING
+	}
+
 	/*
 	 * Adds app activity registered by the Yona app. This request is delegated to the analysis engine service.
 	 * @param password User password, validated before adding the activity.
@@ -70,27 +75,44 @@ public class AppActivityController
 	public ResponseEntity<Void> addAppActivity(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @RequestBody AppActivityDto appActivities)
 	{
+		if (appActivities.getActivities().length > yonaProperties.getAnalysisService().getAppActivityCountIgnoreThreshold())
+		{
+			logLongAppActivityBatch(MessageType.ERROR, userId, appActivities);
+			return new ResponseEntity<>(HttpStatus.OK);
+		}
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			UUID userAnonymizedId = userService.getPrivateUser(userId).getPrivateData().getUserAnonymizedId();
-			logIfManyActivities(userId, appActivities);
+			if (appActivities.getActivities().length > yonaProperties.getAnalysisService().getAppActivityCountLoggingThreshold())
+			{
+				logLongAppActivityBatch(MessageType.WARNING, userId, appActivities);
+			}
 			analysisEngineProxyService.analyzeAppActivity(userAnonymizedId, appActivities);
 			return new ResponseEntity<>(HttpStatus.OK);
 		}
 	}
 
-	private void logIfManyActivities(UUID userId, AppActivityDto appActivities)
+	private void logLongAppActivityBatch(MessageType messageType, UUID userId, AppActivityDto appActivities)
 	{
 		int numAppActivities = appActivities.getActivities().length;
-		if (numAppActivities > yonaProperties.getAnalysisService().getAppActivityCountLoggingThreshold())
+		List<Activity> appActivityCollection = Arrays.asList(appActivities.getActivities());
+		Comparator<? super Activity> comparator = (a, b) -> a.getStartTime().compareTo(b.getStartTime());
+		ZonedDateTime minStartTime = Collections.min(appActivityCollection, comparator).getStartTime();
+		ZonedDateTime maxStartTime = Collections.max(appActivityCollection, comparator).getStartTime();
+		switch (messageType)
 		{
-			List<Activity> appActivityCollection = Arrays.asList(appActivities.getActivities());
-			Comparator<? super Activity> comparator = (a, b) -> a.getStartTime().compareTo(b.getStartTime());
-			ZonedDateTime minStartTime = Collections.min(appActivityCollection, comparator).getStartTime();
-			ZonedDateTime maxStartTime = Collections.max(appActivityCollection, comparator).getStartTime();
-			logger.warn(
-					"User with ID {} posts many ({}) app activities, with start dates ranging from {} to {} (device time: {})",
-					userId, numAppActivities, minStartTime, maxStartTime, appActivities.getDeviceDateTime());
+			case ERROR:
+				logger.error(
+						"User with ID {} posts too many ({}) app activities, with start dates ranging from {} to {} (device time: {}). App activities ignored.",
+						userId, numAppActivities, minStartTime, maxStartTime, appActivities.getDeviceDateTime());
+				break;
+			case WARNING:
+				logger.warn(
+						"User with ID {} posts many ({}) app activities, with start dates ranging from {} to {} (device time: {})",
+						userId, numAppActivities, minStartTime, maxStartTime, appActivities.getDeviceDateTime());
+				break;
+			default:
+				throw new IllegalStateException("Unsupported message type: " + messageType);
 		}
 	}
 
