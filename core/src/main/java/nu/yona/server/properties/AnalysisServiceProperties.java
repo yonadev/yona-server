@@ -12,6 +12,7 @@ public class AnalysisServiceProperties
 	private Duration updateSkipWindow = Duration.ofSeconds(5);
 	private Duration activityMemory = Duration.ofDays(490);
 	private String serviceUrl = "http://localhost:8081";
+	private int appActivityCountLoggingThreshold = 10;
 
 	public Duration getActivityMemory()
 	{
@@ -51,5 +52,15 @@ public class AnalysisServiceProperties
 	public void setServiceUrl(String serviceUrl)
 	{
 		this.serviceUrl = serviceUrl;
+	}
+
+	public int getAppActivityCountLoggingThreshold()
+	{
+		return appActivityCountLoggingThreshold;
+	}
+
+	public void setAppActivityCountLoggingThreshold(int appActivityCountLoggingThreshold)
+	{
+		this.appActivityCountLoggingThreshold = appActivityCountLoggingThreshold;
 	}
 }

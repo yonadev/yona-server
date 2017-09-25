@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.rest;
 
@@ -8,9 +8,16 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
+import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
@@ -27,8 +34,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import nu.yona.server.analysis.service.AnalysisEngineProxyService;
 import nu.yona.server.analysis.service.AppActivityDto;
+import nu.yona.server.analysis.service.AppActivityDto.Activity;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.YonaException;
+import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.service.UserService;
 
 /*
@@ -39,6 +48,11 @@ import nu.yona.server.subscriptions.service.UserService;
 @RequestMapping(value = "/users/{userId}/appActivity", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class AppActivityController
 {
+	private static final Logger logger = LoggerFactory.getLogger(AppActivityController.class);
+
+	@Autowired
+	private YonaProperties yonaProperties;
+
 	@Autowired
 	private UserService userService;
 
@@ -59,8 +73,24 @@ public class AppActivityController
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			UUID userAnonymizedId = userService.getPrivateUser(userId).getPrivateData().getUserAnonymizedId();
+			logIfManyActivities(userId, appActivities);
 			analysisEngineProxyService.analyzeAppActivity(userAnonymizedId, appActivities);
 			return new ResponseEntity<>(HttpStatus.OK);
+		}
+	}
+
+	private void logIfManyActivities(UUID userId, AppActivityDto appActivities)
+	{
+		int numAppActivities = appActivities.getActivities().length;
+		if (numAppActivities > yonaProperties.getAnalysisService().getAppActivityCountLoggingThreshold())
+		{
+			List<Activity> appActivityCollection = Arrays.asList(appActivities.getActivities());
+			Comparator<? super Activity> comparator = (a, b) -> a.getStartTime().compareTo(b.getStartTime());
+			ZonedDateTime minStartTime = Collections.min(appActivityCollection, comparator).getStartTime();
+			ZonedDateTime maxStartTime = Collections.max(appActivityCollection, comparator).getStartTime();
+			logger.warn(
+					"User with ID {} posts many ({}) app activities, with start dates ranging from {} to {} (device time: {})",
+					userId, numAppActivities, minStartTime, maxStartTime, appActivities.getDeviceDateTime());
 		}
 	}
 
