@@ -5,9 +5,15 @@
 package nu.yona.server.subscriptions.entities;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import nu.yona.server.analysis.entities.WeekActivity;
 
 public interface UserRepository extends JpaRepository<User, UUID>
 {
@@ -16,4 +22,11 @@ public interface UserRepository extends JpaRepository<User, UUID>
 	int countByAppLastOpenedDateBetween(LocalDate startDate, LocalDate endDate);
 
 	int countByAppLastOpenedDateIsNull();
+
+	@Query("select a from WeekActivity a where a.userAnonymized.id = :userAnonymizedId and a.startDate >= :dateFrom and a.startDate < :dateUntil order by a.startDate desc")
+	Set<WeekActivity> findAll(@Param("userAnonymizedId") UUID userAnonymizedId, @Param("dateFrom") LocalDate dateFrom,
+			@Param("dateUntil") LocalDate dateUntil);
+
+	@Query("select u from User u where u.newDeviceRequest != null and u.newDeviceRequest.creationTime < :cuttOffDate")
+	Set<User> findAllWithExpiredNewDeviceRequests(@Param("cuttOffDate") LocalDateTime cuttOffDate);
 }
