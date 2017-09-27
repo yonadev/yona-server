@@ -81,6 +81,7 @@ import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDto;
 import nu.yona.server.subscriptions.service.UserDto;
+import nu.yona.server.subscriptions.service.UserPhotoDto;
 import nu.yona.server.subscriptions.service.UserService;
 import nu.yona.server.subscriptions.service.VPNProfileDto;
 import nu.yona.server.util.ThymeleafUtil;
@@ -189,10 +190,11 @@ public class UserController
 	@ResponseStatus(HttpStatus.CREATED)
 	public HttpEntity<UserResource> addUser(
 			@RequestParam(value = "overwriteUserConfirmationCode", required = false) String overwriteUserConfirmationCode,
-			@RequestBody UserDto user, HttpServletRequest request)
+			@RequestBody UserDto user, @RequestParam(name = "file") MultipartFile userPhoto, HttpServletRequest request)
 	{
 		// use DOS protection to prevent overwrite user confirmation code brute forcing,
 		// and to prevent enumeration of all occupied mobile numbers
+		user.setUploadedUserPhoto(createUserPhotoDto(userPhoto));
 		return dosProtectionService.executeAttempt(getAddUserLinkBuilder().toUri(), request,
 				yonaProperties.getSecurity().getMaxCreateUserAttemptsPerTimeWindow(),
 				() -> addUser(Optional.ofNullable(overwriteUserConfirmationCode), user));
@@ -202,9 +204,10 @@ public class UserController
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr, @PathVariable UUID userId,
-			@RequestBody UserDto userResource, HttpServletRequest request)
+			@RequestBody UserDto userResource, @RequestParam(name = "file") MultipartFile userPhoto, HttpServletRequest request)
 	{
 		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
+		userResource.setUploadedUserPhoto(createUserPhotoDto(userPhoto));
 		if (tempPassword.isPresent())
 		{
 			return updateUserCreatedOnBuddyRequest(password, userId, userResource, tempPassword.get());
@@ -212,6 +215,30 @@ public class UserController
 		else
 		{
 			return updateUser(password, userId, userResource, request);
+		}
+	}
+
+	private UserPhotoDto createUserPhotoDto(MultipartFile userPhoto)
+	{
+		return UserPhotoDto.createUnsavedInstance(getPngBytes(userPhoto));
+	}
+
+	private byte[] getPngBytes(MultipartFile file)
+	{
+		try
+		{
+			BufferedImage image = ImageIO.read(file.getInputStream());
+			if (image == null)
+			{
+				throw InvalidDataException.notSupportedPhotoFileType();
+			}
+			ByteArrayOutputStream pngBytes = new ByteArrayOutputStream();
+			ImageIO.write(image, "png", pngBytes);
+			return pngBytes.toByteArray();
+		}
+		catch (IOException e)
+		{
+			throw YonaException.unexpected(e);
 		}
 	}
 
@@ -242,31 +269,6 @@ public class UserController
 	private HttpEntity<UserResource> updateUser(UUID userId, UserDto userResource)
 	{
 		return createOkResponse(userService.updateUser(userId, userResource), true);
-	}
-
-	@RequestMapping(value = "/photo", method = RequestMethod.POST)
-	public void updateUserPhoto(@RequestParam("file") MultipartFile file)
-	{
-		getPngBytes(file);
-	}
-
-	private byte[] getPngBytes(MultipartFile file)
-	{
-		try
-		{
-			BufferedImage image = ImageIO.read(file.getInputStream());
-			if (image == null)
-			{
-				throw InvalidDataException.notSupportedPhotoFileType();
-			}
-			ByteArrayOutputStream pngBytes = new ByteArrayOutputStream();
-			ImageIO.write(image, "png", pngBytes);
-			return pngBytes.toByteArray();
-		}
-		catch (IOException e)
-		{
-			throw YonaException.unexpected(e);
-		}
 	}
 
 	@RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
@@ -333,13 +335,13 @@ public class UserController
 	static ControllerLinkBuilder getAddUserLinkBuilder()
 	{
 		UserController methodOn = methodOn(UserController.class);
-		return linkTo(methodOn.addUser(null, null, null));
+		return linkTo(methodOn.addUser(null, null, null, null));
 	}
 
 	static ControllerLinkBuilder getUpdateUserLinkBuilder(UUID userId)
 	{
 		UserController methodOn = methodOn(UserController.class);
-		return linkTo(methodOn.updateUser(Optional.empty(), null, userId, null, null));
+		return linkTo(methodOn.updateUser(Optional.empty(), null, userId, null, null, null));
 	}
 
 	static ControllerLinkBuilder getConfirmMobileNumberLinkBuilder(UUID userId)
@@ -383,7 +385,7 @@ public class UserController
 	static Link getUserSelfLinkWithTempPassword(UUID userId, String tempPassword)
 	{
 		ControllerLinkBuilder linkBuilder = linkTo(
-				methodOn(UserController.class).updateUser(Optional.empty(), tempPassword, userId, null, null));
+				methodOn(UserController.class).updateUser(Optional.empty(), tempPassword, userId, null, null, null));
 		return linkBuilder.withSelfRel();
 	}
 
@@ -609,7 +611,7 @@ public class UserController
 		private static void addEditLink(Resource<UserDto> userResource)
 		{
 			userResource.add(linkTo(methodOn(UserController.class).updateUser(Optional.empty(), null,
-					userResource.getContent().getId(), null, null)).withRel(JsonRootRelProvider.EDIT_REL));
+					userResource.getContent().getId(), null, null, null)).withRel(JsonRootRelProvider.EDIT_REL));
 		}
 
 		private static void addConfirmMobileNumberLink(Resource<UserDto> userResource)

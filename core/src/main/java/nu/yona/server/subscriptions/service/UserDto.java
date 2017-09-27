@@ -210,4 +210,9 @@ public class UserDto
 			throw MobileNumberConfirmationException.notConfirmed(mobileNumber);
 		}
 	}
+
+	public void setUploadedUserPhoto(UserPhotoDto uploadedUserPhoto)
+	{
+		privateData.setUploadedUserPhoto(uploadedUserPhoto);
+	}
 }

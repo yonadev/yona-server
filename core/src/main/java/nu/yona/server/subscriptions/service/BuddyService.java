@@ -637,8 +637,8 @@ public class BuddyService
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(updatedUserEntity.getAnonymized()),
 				() -> BuddyInfoChangeMessage.createInstance(updatedUserEntity.getId(), updatedUserEntity.getUserAnonymizedId(),
-						originalUser.getPrivateData().getNickname(), getUserInfoChangeMessage(),
-						updatedUserEntity.getNickname()));
+						originalUser.getPrivateData().getNickname(), getUserInfoChangeMessage(), updatedUserEntity.getNickname(),
+						updatedUserEntity.getUserPhotoId()));
 	}
 
 	private String getUserInfoChangeMessage()
@@ -647,12 +647,14 @@ public class BuddyService
 	}
 
 	@Transactional
-	public void updateBuddyUserInfo(UUID idOfRequestingUser, UUID relatedUserAnonymizedId, String buddyNickname)
+	public void updateBuddyUserInfo(UUID idOfRequestingUser, UUID relatedUserAnonymizedId, String buddyNickname,
+			UUID buddyUserPhotoId)
 	{
 		User user = userService.getValidatedUserbyId(idOfRequestingUser);
 
 		Buddy buddy = user.getBuddyByUserAnonymizedId(relatedUserAnonymizedId);
 		buddy.setNickName(buddyNickname);
+		buddy.setUserPhotoId(buddyUserPhotoId);
 		Buddy.getRepository().save(buddy);
 	}
 }

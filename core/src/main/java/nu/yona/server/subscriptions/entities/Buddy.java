@@ -47,6 +47,9 @@ public class Buddy extends EntityWithUuid
 	@Convert(converter = DateTimeFieldEncryptor.class)
 	private LocalDateTime lastStatusChangeTime;
 
+	@Convert(converter = UUIDFieldEncryptor.class)
+	private UUID userPhotoId;
+
 	// Default constructor is required for JPA
 	public Buddy()
 	{
@@ -100,6 +103,11 @@ public class Buddy extends EntityWithUuid
 	public void setNickName(String nickname)
 	{
 		this.nickname = nickname;
+	}
+
+	public void setUserPhotoId(UUID userPhotoId)
+	{
+		this.userPhotoId = userPhotoId;
 	}
 
 	public UUID getUserId()

@@ -64,6 +64,9 @@ public class UserPrivate extends EntityWithUuid
 	@Convert(converter = StringFieldEncryptor.class)
 	private String vpnPassword;
 
+	@Convert(converter = UUIDFieldEncryptor.class)
+	private UUID userPhotoId;
+
 	// Default constructor is required for JPA
 	public UserPrivate()
 	{
@@ -187,5 +190,10 @@ public class UserPrivate extends EntityWithUuid
 	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
 	{
 		getUserAnonymized().setLastMonitoredActivityDate(lastMonitoredActivityDate);
+	}
+
+	public UUID getUserPhotoId()
+	{
+		return userPhotoId;
 	}
 }

@@ -35,6 +35,7 @@ public class UserPrivateDto
 	private final UUID namedMessageSourceId;
 	private final UUID anonymousMessageSourceId;
 	private final Set<BuddyDto> buddies;
+	private UserPhotoDto uploadedUserPhoto;
 
 	@JsonCreator
 	public UserPrivateDto(@JsonProperty("nickname") String nickname)
@@ -117,5 +118,16 @@ public class UserPrivateDto
 	public UUID getUserAnonymizedId()
 	{
 		return userAnonymizedId;
+	}
+
+	public void setUploadedUserPhoto(UserPhotoDto uploadedUserPhoto)
+	{
+		this.uploadedUserPhoto = uploadedUserPhoto;
+	}
+
+	@JsonIgnore
+	public UserPhotoDto getUserPhoto()
+	{
+		return uploadedUserPhoto;
 	}
 }
