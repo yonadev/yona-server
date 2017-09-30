@@ -137,14 +137,14 @@ public class DayActivityTest extends IntervalActivityTestBase
 	}
 
 	@Test
-	public void getSpreadGetTotalActivityDurationMinutes_multipleActivitiesOverlappingUnsorted_countsOverlappingActivitiesTwiceInTotalButNotInSpread()
+	public void getSpreadGetTotalActivityDurationMinutes_multipleActivitiesOverlappingUnsorted_countsOverlappingActivitiesOnce()
 	{
 		DayActivity d = createDayActivity();
 		addActivity(d, "19:48:00", "19:50:00");
 		addActivity(d, "19:46:00", "19:59:00");
 		addActivity(d, "20:01:00", "20:17:00");
 
-		assertSpreadItemsAndTotal(d, "78=0,79=13,80=14,81=2,82=0", 31);
+		assertSpreadItemsAndTotal(d, "78=0,79=13,80=14,81=2,82=0", 29);
 	}
 
 	@Test
