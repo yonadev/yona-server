@@ -13,7 +13,7 @@ public class AnalysisServiceProperties
 	private Duration activityMemory = Duration.ofDays(490);
 	private String serviceUrl = "http://localhost:8081";
 	private int appActivityCountLoggingThreshold = 10;
-	private final int appActivityCountIgnoreThreshold = 100;
+	private int appActivityCountIgnoreThreshold = 100;
 
 	public Duration getActivityMemory()
 	{
@@ -68,5 +68,10 @@ public class AnalysisServiceProperties
 	public int getAppActivityCountIgnoreThreshold()
 	{
 		return appActivityCountIgnoreThreshold;
+	}
+
+	public void setAppActivityCountIgnoreThreshold(int appActivityCountIgnoreThreshold)
+	{
+		this.appActivityCountIgnoreThreshold = appActivityCountIgnoreThreshold;
 	}
 }
