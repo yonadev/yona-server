@@ -11,6 +11,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.eq;
@@ -462,20 +463,22 @@ public class AnalysisEngineServiceTest
 	public void analyze_appActivityCompletelyPrecedingLastCachedActivity_existingActivityUpdatedButNoNewGoalConflictMessagesCreated()
 	{
 		ZonedDateTime now = now();
-		ZonedDateTime existingActivityTime = now;
+		ZonedDateTime existingActivityStartTime = now.minusMinutes(4);
+		ZonedDateTime existingActivityEndTime = existingActivityStartTime.plusMinutes(2);
 
-		DayActivity existingDayActivity = mockExistingActivity(gamblingGoal, existingActivityTime);
+		DayActivity existingDayActivity = mockExistingActivity(gamblingGoal, existingActivityStartTime, existingActivityEndTime,
+				"Poker App");
 		Activity existingActivity = existingDayActivity.getLastActivity();
 
 		ZonedDateTime startTime = now.minusMinutes(10);
-		ZonedDateTime endTime = now.minusSeconds(15);
+		ZonedDateTime endTime = startTime.plusMinutes(5);
 
 		service.analyze(userAnonId, createSingleAppActivity("Poker App", startTime, endTime));
 
 		verifyNoGoalConflictMessagesCreated();
 
 		// Verify that a database lookup was done finding the existing DayActivity to update
-		verify(mockDayActivityRepository, times(1)).findOne(userAnonId, now.toLocalDate(), gamblingGoal.getId());
+		verify(mockDayActivityRepository, atLeastOnce()).findOne(userAnonId, now.toLocalDate(), gamblingGoal.getId());
 
 		// Verify that the day was updated
 		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonEntity);
@@ -489,20 +492,75 @@ public class AnalysisEngineServiceTest
 		verify(mockAnalysisEngineCacheService, never()).updateLastActivityForUser(eq(userAnonId), eq(gamblingGoal.getId()),
 				any());
 
-		assertThat("Expect a new activity added (merge is quite complicated so has not been implemented yet)",
-				dayActivity.getLastActivity(), not(equalTo(existingActivity)));
-		assertThat("Expect right activity start time", dayActivity.getLastActivity().getStartTime(),
-				equalTo(startTime.toLocalDateTime()));
+		assertThat("Expect last activity unchanged", dayActivity.getLastActivity(), equalTo(existingActivity));
+		assertThat("Expect unchanged start time for last activity", dayActivity.getLastActivity().getStartTime(),
+				equalTo(existingActivityStartTime.toLocalDateTime()));
+		assertThat("Expect unchanged end time", dayActivity.getLastActivity().getEndTime(),
+				equalTo(existingActivityEndTime.toLocalDateTime()));
+		assertThat("Expect two activities on day", dayActivity.getActivities().size(), equalTo(2));
+		Optional<Activity> addedActivity = dayActivity.getActivities().stream().filter(
+				a -> a.getStartTime().equals(startTime.toLocalDateTime()) && a.getEndTime().equals(endTime.toLocalDateTime()))
+				.findFirst();
+		assertTrue("Expect that new activity is added", addedActivity.isPresent());
 	}
 
 	@Test
-	public void analyze_appActivityPrecedingAndExtendingLastCachedActivity_existingActivityUpdatedButNoNewGoalConflictMessagesCreated()
+	public void analyze_appActivityCompletelyPrecedingLastCachedActivityOverlappingExistingActivity_existingActivityUpdatedButNoNewGoalConflictMessagesCreated()
 	{
 		ZonedDateTime now = now();
-		ZonedDateTime existingActivityTime = now.minusSeconds(15);
+		ZonedDateTime existingActivityTimeStartTime = now.minusMinutes(20);
+		ZonedDateTime existingActivityTimeEndTime = existingActivityTimeStartTime.plusMinutes(10);
 
-		DayActivity existingDayActivity = mockExistingActivity(gamblingGoal, existingActivityTime);
-		Activity existingActivity = existingDayActivity.getLastActivity();
+		Activity existingActivityOne = createActivity(existingActivityTimeStartTime, existingActivityTimeEndTime, "Poker App");
+		Activity existingActivityTwo = createActivity(now, now, "Poker App");
+		mockExistingActivities(gamblingGoal, existingActivityOne, existingActivityTwo);
+
+		when(mockActivityRepository.findOverlapping(any(DayActivity.class), any(UUID.class), any(String.class),
+				any(LocalDateTime.class), any(LocalDateTime.class))).thenAnswer(new Answer<Activity>() {
+					@Override
+					public Activity answer(InvocationOnMock invocation) throws Throwable
+					{
+						return existingActivityOne;
+					}
+				});
+
+		// Test an activity
+		ZonedDateTime startTime = existingActivityTimeStartTime.plusMinutes(5);
+		ZonedDateTime endTime = startTime.plusMinutes(7);
+
+		service.analyze(userAnonId, createSingleAppActivity("Poker App", startTime, endTime));
+
+		verifyNoGoalConflictMessagesCreated();
+
+		// Verify that a database lookup was done finding the existing DayActivity to update
+		verify(mockDayActivityRepository, atLeastOnce()).findOne(userAnonId, now.toLocalDate(), gamblingGoal.getId());
+
+		// Verify that the day was updated
+		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonEntity);
+		List<WeekActivity> weekActivities = gamblingGoal.getWeekActivities();
+		assertThat("One week activity created", weekActivities.size(), equalTo(1));
+		List<DayActivity> dayActivities = weekActivities.get(0).getDayActivities();
+		assertThat("One day activity created", dayActivities.size(), equalTo(1));
+		DayActivity dayActivity = dayActivities.get(0);
+
+		// Verify that the activity was not updated. An existing old activity should be updated, not the cache
+		verify(mockAnalysisEngineCacheService, never()).updateLastActivityForUser(eq(userAnonId), eq(gamblingGoal.getId()),
+				any());
+
+		assertThat("Expect last activity unchanged", dayActivity.getLastActivity(), equalTo(existingActivityTwo));
+		assertThat("Expect right activity start time", existingActivityOne.getStartTime(),
+				equalTo(existingActivityTimeStartTime.toLocalDateTime()));
+		assertThat("Expect right activity end time", existingActivityOne.getEndTime(), equalTo(endTime.toLocalDateTime()));
+	}
+
+	@Test
+	public void analyze_appActivityOverlappingLastCachedActivityBeginAndEnd_existingActivityUpdatedButNoNewGoalConflictMessagesCreated()
+	{
+		ZonedDateTime now = now();
+		ZonedDateTime existingActivityStartTime = now.minusMinutes(5);
+		ZonedDateTime existingActivityEndTime = now.minusSeconds(15);
+
+		mockExistingActivity(gamblingGoal, existingActivityStartTime, existingActivityEndTime, "Poker App");
 
 		ZonedDateTime startTime = now.minusMinutes(10);
 		ZonedDateTime endTime = now;
@@ -526,10 +584,47 @@ public class AnalysisEngineServiceTest
 		verify(mockAnalysisEngineCacheService, times(1)).updateLastActivityForUser(eq(userAnonId), eq(gamblingGoal.getId()),
 				any());
 
-		assertThat("Expect a new activity added (merge is quite complicated so has not been implemented yet)",
-				dayActivity.getLastActivity(), not(equalTo(existingActivity)));
 		assertThat("Expect right activity start time", dayActivity.getLastActivity().getStartTime(),
 				equalTo(startTime.toLocalDateTime()));
+		assertThat("Expect right activity end time", dayActivity.getLastActivity().getEndTime(),
+				equalTo(endTime.toLocalDateTime()));
+	}
+
+	@Test
+	public void analyze_appActivityOverlappingLastCachedActivityBeginOnly_existingActivityUpdatedButNoNewGoalConflictMessagesCreated()
+	{
+		ZonedDateTime now = now();
+		ZonedDateTime existingActivityStartTime = now.minusMinutes(5);
+		ZonedDateTime existingActivityEndTime = now.minusSeconds(15);
+
+		mockExistingActivity(gamblingGoal, existingActivityStartTime, existingActivityEndTime, "Poker App");
+
+		ZonedDateTime startTime = now.minusMinutes(10);
+		ZonedDateTime endTime = existingActivityEndTime.minusMinutes(2);
+
+		service.analyze(userAnonId, createSingleAppActivity("Poker App", startTime, endTime));
+
+		verifyNoGoalConflictMessagesCreated();
+
+		// Verify that a database lookup was done finding the existing DayActivity to update
+		verify(mockDayActivityRepository, times(1)).findOne(userAnonId, now.toLocalDate(), gamblingGoal.getId());
+
+		// Verify that the day was updated
+		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonEntity);
+		List<WeekActivity> weekActivities = gamblingGoal.getWeekActivities();
+		assertThat("One week activity created", weekActivities.size(), equalTo(1));
+		List<DayActivity> dayActivities = weekActivities.get(0).getDayActivities();
+		assertThat("One day activity created", dayActivities.size(), equalTo(1));
+		DayActivity dayActivity = dayActivities.get(0);
+
+		// Verify that the activity was updated in the cache, because the end time is after the existing cached item
+		verify(mockAnalysisEngineCacheService, times(1)).updateLastActivityForUser(eq(userAnonId), eq(gamblingGoal.getId()),
+				any());
+
+		assertThat("Expect right activity start time", dayActivity.getLastActivity().getStartTime(),
+				equalTo(startTime.toLocalDateTime()));
+		assertThat("Expect right activity end time", dayActivity.getLastActivity().getEndTime(),
+				equalTo(existingActivityEndTime.toLocalDateTime()));
 	}
 
 	@Test
@@ -550,7 +645,7 @@ public class AnalysisEngineServiceTest
 		verifyNoGoalConflictMessagesCreated();
 
 		// Verify that a database lookup was done for yesterday
-		verify(mockDayActivityRepository, times(1)).findOne(userAnonId, yesterdayTime.toLocalDate(), gamblingGoal.getId());
+		verify(mockDayActivityRepository, atLeastOnce()).findOne(userAnonId, yesterdayTime.toLocalDate(), gamblingGoal.getId());
 		// Verify that yesterday was inserted in the database
 		verify(mockUserAnonymizedService, atLeastOnce()).updateUserAnonymized(userAnonEntity);
 		List<WeekActivity> weekActivities = gamblingGoal.getWeekActivities();
@@ -795,22 +890,21 @@ public class AnalysisEngineServiceTest
 
 	private DayActivity mockExistingActivity(Goal forGoal, ZonedDateTime activityTime)
 	{
-		return mockExistingActivity(forGoal, activityTime, activityTime, Optional.empty());
+		return mockExistingActivities(forGoal, createActivity(activityTime, activityTime));
 	}
 
 	private DayActivity mockExistingActivity(Goal forGoal, ZonedDateTime startTime, ZonedDateTime endTime, String app)
 	{
-		return mockExistingActivity(forGoal, startTime, endTime, Optional.of(app));
+		return mockExistingActivities(forGoal, createActivity(startTime, endTime, app));
 	}
 
-	private DayActivity mockExistingActivity(Goal forGoal, ZonedDateTime startTime, ZonedDateTime endTime, Optional<String> app)
+	private DayActivity mockExistingActivities(Goal forGoal, Activity... activities)
 	{
+		LocalDateTime startTime = activities[0].getStartTime();
 		DayActivity dayActivity = DayActivity.createInstance(userAnonEntity, forGoal, userAnonZoneId,
 				startTime.truncatedTo(ChronoUnit.DAYS).toLocalDate());
-		Activity existingActivityEntity = Activity.createInstance(userAnonZoneId, startTime.toLocalDateTime(),
-				endTime.toLocalDateTime(), app);
-		dayActivity.addActivity(existingActivityEntity);
-		ActivityDto existingActivity = ActivityDto.createInstance(existingActivityEntity);
+		Arrays.asList(activities).forEach(a -> dayActivity.addActivity(a));
+		ActivityDto existingActivity = ActivityDto.createInstance(activities[activities.length - 1]);
 		when(mockDayActivityRepository.findOne(userAnonId, dayActivity.getStartDate(), forGoal.getId())).thenReturn(dayActivity);
 		when(mockAnalysisEngineCacheService.fetchLastActivityForUser(userAnonId, forGoal.getId())).thenReturn(existingActivity);
 		WeekActivity weekActivity = WeekActivity.createInstance(userAnonEntity, forGoal, userAnonZoneId,
@@ -818,6 +912,16 @@ public class AnalysisEngineServiceTest
 		weekActivity.addDayActivity(dayActivity);
 		forGoal.addWeekActivity(weekActivity);
 		return dayActivity;
+	}
+
+	private Activity createActivity(ZonedDateTime startTime, ZonedDateTime endTime)
+	{
+		return Activity.createInstance(userAnonZoneId, startTime.toLocalDateTime(), endTime.toLocalDateTime(), Optional.empty());
+	}
+
+	private Activity createActivity(ZonedDateTime startTime, ZonedDateTime endTime, String app)
+	{
+		return Activity.createInstance(userAnonZoneId, startTime.toLocalDateTime(), endTime.toLocalDateTime(), Optional.of(app));
 	}
 
 	private AppActivityDto createSingleAppActivity(String app, ZonedDateTime startTime, ZonedDateTime endTime)

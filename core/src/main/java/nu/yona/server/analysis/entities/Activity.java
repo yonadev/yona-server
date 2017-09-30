@@ -81,6 +81,13 @@ public class Activity extends EntityWithId
 		return startTime.atZone(timeZone);
 	}
 
+	public void setStartTime(LocalDateTime startTime)
+	{
+		this.startTime = startTime;
+
+		dayActivity.resetAggregatesComputed();
+	}
+
 	public LocalDateTime getEndTime()
 	{
 		return endTime;

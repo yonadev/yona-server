@@ -83,12 +83,7 @@ public class DayActivity extends IntervalActivity
 
 	public Activity getLastActivity()
 	{
-		if (this.activities.isEmpty())
-		{
-			return null;
-		}
-
-		return this.activities.get(this.activities.size() - 1);
+		return this.activities.stream().max((a, b) -> a.getEndTime().compareTo(b.getEndTime())).orElse(null);
 	}
 
 	public void addActivity(Activity activity)

@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server.test
 
+import java.time.ZonedDateTime
+
 import groovy.json.*
 import nu.yona.server.YonaServer
 
@@ -459,6 +461,12 @@ class AppService extends Service
 		def dayActivityOverview = responseDayOverviewsAll.responseData._embedded."yona:dayActivityOverviews"[dayOffset]
 		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
 		return getDayDetailsForDayFromOverviewItem(user, dayActivityForGoal)
+	}
+
+	def getDayDetails(User user, String activityCategoryUrl, ZonedDateTime date) {
+		def goal = user.findActiveGoal(activityCategoryUrl)
+		def url = user.url + "/activity/days/" + YonaServer.toIsoDateString(date) + "/details/" + goal.getId()
+		getResourceWithPassword(url, user.password)
 	}
 
 	def getWeekDetailsFromOverview(responseWeekOverviewsAll, User user, Goal goal, int weeksBack) {
