@@ -515,7 +515,7 @@ public class AnalysisEngineServiceTest
 		Activity existingActivityTwo = createActivity(now, now, "Poker App");
 		mockExistingActivities(gamblingGoal, existingActivityOne, existingActivityTwo);
 
-		when(mockActivityRepository.findOverlapping(any(DayActivity.class), any(UUID.class), any(String.class),
+		when(mockActivityRepository.findOverlappingOfSameApp(any(DayActivity.class), any(UUID.class), any(String.class),
 				any(LocalDateTime.class), any(LocalDateTime.class))).thenAnswer(new Answer<Activity>() {
 					@Override
 					public Activity answer(InvocationOnMock invocation) throws Throwable
@@ -554,7 +554,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivityOverlappingLastCachedActivityBeginAndEnd_existingActivityUpdatedButNoNewGoalConflictMessagesCreated()
+	public void analyze_appActivityOverlappingLastCachedActivityBeginAndEnd_lastCachedActivityUpdatedButNoNewGoalConflictMessagesCreated()
 	{
 		ZonedDateTime now = now();
 		ZonedDateTime existingActivityStartTime = now.minusMinutes(5);
@@ -591,7 +591,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivityOverlappingLastCachedActivityBeginOnly_existingActivityUpdatedButNoNewGoalConflictMessagesCreated()
+	public void analyze_appActivityOverlappingLastCachedActivityBeginOnly_lastCachedActivityUpdatedButNoNewGoalConflictMessagesCreated()
 	{
 		ZonedDateTime now = now();
 		ZonedDateTime existingActivityStartTime = now.minusMinutes(5);

@@ -206,7 +206,7 @@ public class AnalysisEngineService
 		Optional<ActivityDto> lastRegisteredActivity = getLastRegisteredActivity(payload, matchingGoal);
 		if (precedesLastRegisteredActivity(payload, lastRegisteredActivity))
 		{
-			Optional<Activity> overlappingActivity = findOverlappingActivity(payload, matchingGoal);
+			Optional<Activity> overlappingActivity = findOverlappingActivitySameApp(payload, matchingGoal);
 			if (overlappingActivity.isPresent())
 			{
 				updateTimeExistingActivity(userAnonymizedHolder, payload, overlappingActivity.get());
@@ -225,17 +225,18 @@ public class AnalysisEngineService
 			}
 			return;
 		}
+
 		addActivity(userAnonymizedHolder, payload, matchingGoal, lastRegisteredActivity);
 	}
 
-	private Optional<Activity> findOverlappingActivity(ActivityPayload payload, GoalDto matchingGoal)
+	private Optional<Activity> findOverlappingActivitySameApp(ActivityPayload payload, GoalDto matchingGoal)
 	{
 		Optional<DayActivity> dayActivity = findExistingDayActivity(payload, matchingGoal.getGoalId());
 		if (!dayActivity.isPresent())
 		{
 			return Optional.empty();
 		}
-		return Optional.ofNullable(activityRepository.findOverlapping(dayActivity.get(), matchingGoal.getActivityCategoryId(),
+		return Optional.ofNullable(activityRepository.findOverlappingOfSameApp(dayActivity.get(), matchingGoal.getActivityCategoryId(),
 				payload.application.orElse(null), payload.startTime.toLocalDateTime(), payload.endTime.toLocalDateTime()));
 	}
 
@@ -413,8 +414,7 @@ public class AnalysisEngineService
 		}
 
 		// do not update the cache if the new or updated activity occurs earlier than the last registered activity
-		return !newOrUpdatedActivity.getEndTime().atZone(newOrUpdatedActivity.getTimeZone())
-				.isBefore(lastRegisteredActivity.get().getEndTime());
+		return !newOrUpdatedActivity.getEndTimeAsZonedDateTime().isBefore(lastRegisteredActivity.get().getEndTime());
 	}
 
 	private Activity createNewActivity(UserAnonymized userAnonymized, ActivityPayload payload, Goal matchingGoal)

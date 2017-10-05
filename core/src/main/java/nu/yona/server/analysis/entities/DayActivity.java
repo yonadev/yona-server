@@ -46,7 +46,7 @@ public class DayActivity extends IntervalActivity
 	private int totalMinutesBeyondGoal;
 
 	@Transient
-	private List<ActivityInterval> activityIntervals;
+	private List<ActivityInterval> nonoverlappingActivityIntervals;
 
 	// Default constructor is required for JPA
 	public DayActivity()
@@ -129,7 +129,7 @@ public class DayActivity extends IntervalActivity
 	protected List<Integer> computeSpread()
 	{
 		List<Integer> result = getEmptySpread();
-		getActivityIntervals().forEach(ai -> addToSpread(result, ai.startTime, ai.endTime));
+		getNonoverlappingActivityIntervals().forEach(ai -> addToSpread(result, ai.startTime, ai.endTime));
 		return result;
 	}
 
@@ -187,27 +187,30 @@ public class DayActivity extends IntervalActivity
 	@Override
 	public void computeAggregates()
 	{
-		activityIntervals = null; // Ensure blank slate
+		nonoverlappingActivityIntervals = null; // Ensure blank slate
 		totalMinutesBeyondGoal = computeTotalMinutesBeyondGoal();
 		goalAccomplished = computeGoalAccomplished();
 
 		super.computeAggregates();
-		activityIntervals = null; // Free up memory
+		nonoverlappingActivityIntervals = null; // Free up memory
 	}
 
-	private List<ActivityInterval> getActivityIntervals()
+	private List<ActivityInterval> getNonoverlappingActivityIntervals()
 	{
-		if (activityIntervals == null)
+		if (nonoverlappingActivityIntervals == null)
 		{
 			List<Activity> sortedActivities = activities.stream()
 					.sorted((a1, a2) -> a1.getStartTime().compareTo(a2.getStartTime())).collect(Collectors.toList());
-			activityIntervals = determineNonoverlappingActivityIntervals(sortedActivities);
+			nonoverlappingActivityIntervals = determineNonoverlappingActivityIntervals(sortedActivities);
 		}
-		return activityIntervals;
+		return nonoverlappingActivityIntervals;
 	}
 
 	private static List<ActivityInterval> determineNonoverlappingActivityIntervals(List<Activity> sortedActivities)
 	{
+		// activities of different apps in the same activity category may overlap
+		// or network activity and app activity may overlap
+
 		List<ActivityInterval> result = new ArrayList<>(sortedActivities.size());
 		ZonedDateTime previousEndTime = ZonedDateTime.of(LocalDateTime.MIN, ZoneOffset.UTC);
 		for (Activity activity : sortedActivities)
@@ -227,7 +230,7 @@ public class DayActivity extends IntervalActivity
 	@Override
 	protected int computeTotalActivityDurationMinutes()
 	{
-		return getActivityIntervals().stream().map(ActivityInterval::getDurationMinutes).reduce(0, Integer::sum);
+		return getNonoverlappingActivityIntervals().stream().map(ActivityInterval::getDurationMinutes).reduce(0, Integer::sum);
 	}
 
 	public int getTotalMinutesBeyondGoal()

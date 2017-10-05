@@ -20,6 +20,6 @@ public interface ActivityRepository extends CrudRepository<Activity, Long>
 			+ " ((:startTime >= a.startTime and :startTime <= a.endTime) or" // New activity started during existing activity
 			+ " (:endTime >= a.startTime and :endTime <= a.endTime) or" // New activity ended during existing activity
 			+ " (a.startTime >= :startTime and a.endTime <= :endTime))") // Existing activity occurred during new activity
-	Activity findOverlapping(@Param("dayActivity") DayActivity dayActivity, @Param("activityCategoryId") UUID activityCategoryId,
+	Activity findOverlappingOfSameApp(@Param("dayActivity") DayActivity dayActivity, @Param("activityCategoryId") UUID activityCategoryId,
 			@Param("app") String app, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 }
