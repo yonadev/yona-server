@@ -164,7 +164,13 @@ public class User extends EntityWithUuid
 
 	public void setNewDeviceRequest(NewDeviceRequest newDeviceRequest)
 	{
+		Objects.requireNonNull(newDeviceRequest, "Use clearNewDeviceRequest to clear the request");
 		this.newDeviceRequest = newDeviceRequest;
+	}
+
+	public void clearNewDeviceRequest()
+	{
+		newDeviceRequest = null;
 	}
 
 	public boolean isMobileNumberConfirmed()

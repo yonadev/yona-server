@@ -7,6 +7,7 @@ package nu.yona.server.subscriptions.service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.transaction.Transactional;
@@ -18,8 +19,8 @@ import org.springframework.stereotype.Service;
 
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
-import nu.yona.server.subscriptions.entities.NewDeviceRequestRepository;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.util.TimeUtil;
 
 @Service
@@ -31,7 +32,7 @@ public class NewDeviceRequestService
 	private UserService userService;
 
 	@Autowired(required = false)
-	private NewDeviceRequestRepository newDeviceRequestRepository;
+	private UserRepository userRepository;
 
 	@Autowired
 	private YonaProperties yonaProperties;
@@ -86,22 +87,28 @@ public class NewDeviceRequestService
 	@Transactional
 	public void clearNewDeviceRequestForUser(UUID userId)
 	{
-		User userEntity = userService.getValidatedUserbyId(userId);
+		User user = userService.getValidatedUserbyId(userId);
 
-		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
+		NewDeviceRequest existingNewDeviceRequestEntity = user.getNewDeviceRequest();
 		if (existingNewDeviceRequestEntity != null)
 		{
-			logger.info("User with mobile number '{}' and ID '{}' cleared the new device request", userEntity.getMobileNumber(),
-					userEntity.getId());
-			userEntity.setNewDeviceRequest(null);
-			User.getRepository().save(userEntity);
+			removeNewDeviceRequest(user, "User with mobile number '{}' and ID '{}' cleared the new device request");
 		}
 	}
 
 	@Transactional
 	public void deleteAllExpiredRequests()
 	{
-		newDeviceRequestRepository.deleteAllOlderThan(TimeUtil.utcNow().minus(getExpirationTime()));
+		Set<User> users = userRepository.findAllWithExpiredNewDeviceRequests(TimeUtil.utcNow().minus(getExpirationTime()));
+		users.forEach(u -> removeNewDeviceRequest(u,
+				"New device request for user with mobile number '{}' and ID '{}' was cleared as it was expired"));
+	}
+
+	private void removeNewDeviceRequest(User user, String logMessage)
+	{
+		logger.info(logMessage, user.getMobileNumber(), user.getId());
+		user.clearNewDeviceRequest();
+		userRepository.save(user);
 	}
 
 	private Duration getExpirationTime()
