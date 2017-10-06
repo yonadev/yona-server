@@ -61,7 +61,8 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		getMessagesRichardResponse.status == 200
 		ZonedDateTime goalConflictTime = YonaServer.now
-		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesRichard.size() == 1
 		goalConflictMessagesRichard[0].nickname == "RQ (me)"
 		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
@@ -69,7 +70,8 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
-		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
+		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesBob.size() == 1
 		goalConflictMessagesBob[0].nickname == richard.nickname
 		assertEquals(goalConflictMessagesBob[0].creationTime, goalConflictTime)
@@ -311,6 +313,60 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		getMessagesRichardResponse.status == 200
 		getMessagesRichardResponse.responseData._embedded?."yona:messages"?.findAll{ it."@type" == "GoalConflictMessage"}?.size()
 		// Don't poke into the messages. The app activity spans many days and we only support activities spanning at most two days
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Overlapping network and app activity is counted only once'()
+	{
+		given:
+		def richard = addRichard()
+		String goalCreationTimeStr = "W-1 Mon 02:18"
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, goalCreationTimeStr)
+		ZonedDateTime goalCreationTime = YonaServer.relativeDateTimeStringToZonedDateTime(goalCreationTimeStr)
+		ZonedDateTime appActStartTime = goalCreationTime.plusHours(1)
+		ZonedDateTime appActEndTime = appActStartTime.plusMinutes(20)
+		def appActivity = new AppActivity.Activity("Poker App", appActStartTime, appActEndTime)
+		ZonedDateTime netActStartTime = appActStartTime.plusMinutes(10)
+
+		when:
+		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com", netActStartTime)
+		assert appService.postAppActivityToAnalysisEngine(richard, new AppActivity([appActivity].toArray())).status == 200
+
+		then:
+		def response = appService.getDayDetails(richard, GAMBLING_ACT_CAT_URL, appActStartTime)
+		assert response.status == 200
+		assert response.responseData.totalActivityDurationMinutes == Duration.between(appActStartTime, appActEndTime).toMinutes()
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Duplicate app activity reported out of sequence is counted only once'()
+	{
+		given:
+		def richard = addRichard()
+		String goalCreationTimeStr = "W-1 Mon 02:18"
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, goalCreationTimeStr)
+		ZonedDateTime goalCreationTime = YonaServer.relativeDateTimeStringToZonedDateTime(goalCreationTimeStr)
+		ZonedDateTime appActOneStartTime = goalCreationTime.plusHours(1)
+		ZonedDateTime appActOneEndTime = appActOneStartTime.plusMinutes(20)
+		ZonedDateTime appActTwoStartTime = appActOneStartTime.plusMinutes(5)
+		ZonedDateTime appActTwoEndTime = appActTwoStartTime.plusMinutes(20)
+		def appActOne = new AppActivity.Activity("Poker App", appActOneStartTime, appActOneEndTime)
+		def appActTwo = new AppActivity.Activity("Poker App", appActTwoStartTime, appActTwoEndTime)
+		ZonedDateTime netActStartTime = goalCreationTime.plusHours(2)
+		int netActDuration = 1 // Default duration for a network activity
+
+		when:
+		analysisService.postToAnalysisEngine(richard, ["Gambling"], "http://www.poker.com", netActStartTime)
+		assert appService.postAppActivityToAnalysisEngine(richard, new AppActivity([appActOne, appActTwo, appActOne].toArray())).status == 200
+
+		then:
+		def response = appService.getDayDetails(richard, GAMBLING_ACT_CAT_URL, appActOneStartTime)
+		assert response.status == 200
+		assert response.responseData.totalActivityDurationMinutes == Duration.between(appActOneStartTime, appActTwoEndTime).toMinutes() + netActDuration
 
 		cleanup:
 		appService.deleteUser(richard)

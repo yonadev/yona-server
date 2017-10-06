@@ -6,7 +6,9 @@ package nu.yona.server.analysis.entities;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
@@ -20,12 +22,14 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.BatchSize;
 
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.util.TimeUtil;
 
 @Entity
 public class DayActivity extends IntervalActivity
@@ -40,6 +44,9 @@ public class DayActivity extends IntervalActivity
 
 	private boolean goalAccomplished;
 	private int totalMinutesBeyondGoal;
+
+	@Transient
+	private List<ActivityInterval> nonoverlappingActivityIntervals;
 
 	// Default constructor is required for JPA
 	public DayActivity()
@@ -83,12 +90,7 @@ public class DayActivity extends IntervalActivity
 
 	public Activity getLastActivity()
 	{
-		if (this.activities.isEmpty())
-		{
-			return null;
-		}
-
-		return this.activities.get(this.activities.size() - 1);
+		return this.activities.stream().max((a, b) -> a.getEndTime().compareTo(b.getEndTime())).orElse(null);
 	}
 
 	public void addActivity(Activity activity)
@@ -126,39 +128,9 @@ public class DayActivity extends IntervalActivity
 	@Override
 	protected List<Integer> computeSpread()
 	{
-		// assumption:
-		// - activities are not always sorted
-		// - activities may overlap
 		List<Integer> result = getEmptySpread();
-		List<Activity> activitiesSorted = getActivitiesSorted();
-		for (int i = 0; i < activitiesSorted.size(); i++)
-		{
-			Activity activity = activitiesSorted.get(i);
-
-			// continue until no overlap
-			ZonedDateTime activityBlockEndTime = activity.getEndTimeAsZonedDateTime();
-			while (i + 1 < activitiesSorted.size()
-					&& activitiesSorted.get(i + 1).getStartTimeAsZonedDateTime().isBefore(activityBlockEndTime))
-			{
-				// overlapping
-				ZonedDateTime activityEndTime = activitiesSorted.get(i + 1).getEndTimeAsZonedDateTime();
-				if (activityEndTime.isAfter(activityBlockEndTime))
-				{
-					// extend the block
-					activityBlockEndTime = activityEndTime;
-				}
-				i++;
-			}
-
-			addToSpread(result, activity.getStartTimeAsZonedDateTime(), activityBlockEndTime);
-		}
+		getNonoverlappingActivityIntervals().forEach(ai -> addToSpread(result, ai.startTime, ai.endTime));
 		return result;
-	}
-
-	private List<Activity> getActivitiesSorted()
-	{
-		return activities.stream().sorted((a1, a2) -> a1.getStartTime().compareTo(a2.getStartTime()))
-				.collect(Collectors.toList());
 	}
 
 	private void addToSpread(List<Integer> spread, ZonedDateTime startTime, ZonedDateTime endTime)
@@ -215,16 +187,50 @@ public class DayActivity extends IntervalActivity
 	@Override
 	public void computeAggregates()
 	{
+		nonoverlappingActivityIntervals = null; // Ensure blank slate
 		totalMinutesBeyondGoal = computeTotalMinutesBeyondGoal();
 		goalAccomplished = computeGoalAccomplished();
 
 		super.computeAggregates();
+		nonoverlappingActivityIntervals = null; // Free up memory
+	}
+
+	private List<ActivityInterval> getNonoverlappingActivityIntervals()
+	{
+		if (nonoverlappingActivityIntervals == null)
+		{
+			List<Activity> sortedActivities = activities.stream()
+					.sorted((a1, a2) -> a1.getStartTime().compareTo(a2.getStartTime())).collect(Collectors.toList());
+			nonoverlappingActivityIntervals = determineNonoverlappingActivityIntervals(sortedActivities);
+		}
+		return nonoverlappingActivityIntervals;
+	}
+
+	private static List<ActivityInterval> determineNonoverlappingActivityIntervals(List<Activity> sortedActivities)
+	{
+		// activities of different apps in the same activity category may overlap
+		// or network activity and app activity may overlap
+
+		List<ActivityInterval> result = new ArrayList<>(sortedActivities.size());
+		ZonedDateTime previousEndTime = ZonedDateTime.of(LocalDateTime.MIN, ZoneOffset.UTC);
+		for (Activity activity : sortedActivities)
+		{
+			ZonedDateTime startTime = TimeUtil.max(previousEndTime, activity.getStartTimeAsZonedDateTime());
+			if (!startTime.isBefore(activity.getEndTimeAsZonedDateTime()))
+			{
+				// Activity fully overlaps previous one
+				continue;
+			}
+			result.add(new ActivityInterval(startTime, activity.getEndTimeAsZonedDateTime()));
+			previousEndTime = activity.getEndTimeAsZonedDateTime();
+		}
+		return result;
 	}
 
 	@Override
 	protected int computeTotalActivityDurationMinutes()
 	{
-		return activities.stream().map(Activity::getDurationMinutes).reduce(0, Integer::sum);
+		return getNonoverlappingActivityIntervals().stream().map(ActivityInterval::getDurationMinutes).reduce(0, Integer::sum);
 	}
 
 	public int getTotalMinutesBeyondGoal()
@@ -255,5 +261,23 @@ public class DayActivity extends IntervalActivity
 	private boolean computeGoalAccomplished()
 	{
 		return this.getGoal().isGoalAccomplished(this);
+	}
+
+	private static class ActivityInterval
+	{
+		private final ZonedDateTime startTime;
+		private final ZonedDateTime endTime;
+
+		ActivityInterval(ZonedDateTime startTime, ZonedDateTime endTime)
+		{
+			assert !startTime.isAfter(endTime);
+			this.startTime = startTime;
+			this.endTime = endTime;
+		}
+
+		int getDurationMinutes()
+		{
+			return (int) Duration.between(startTime, endTime).toMinutes();
+		}
 	}
 }
