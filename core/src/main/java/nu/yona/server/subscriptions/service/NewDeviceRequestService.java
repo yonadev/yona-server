@@ -97,11 +97,12 @@ public class NewDeviceRequestService
 	}
 
 	@Transactional
-	public void deleteAllExpiredRequests()
+	public int deleteAllExpiredRequests()
 	{
 		Set<User> users = userRepository.findAllWithExpiredNewDeviceRequests(TimeUtil.utcNow().minus(getExpirationTime()));
 		users.forEach(u -> removeNewDeviceRequest(u,
-				"New device request for user with mobile number '{}' and ID '{}' was cleared as it was expired"));
+				"New device request for user with mobile number '{}' and ID '{}' was cleared because it was expired"));
+		return users.size();
 	}
 
 	private void removeNewDeviceRequest(User user, String logMessage)
