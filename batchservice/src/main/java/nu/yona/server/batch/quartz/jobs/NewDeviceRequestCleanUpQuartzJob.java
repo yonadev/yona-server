@@ -24,6 +24,7 @@ public class NewDeviceRequestCleanUpQuartzJob implements org.quartz.Job
 	public void execute(JobExecutionContext context)
 	{
 		logger.info("Deleting all expired new device requests");
-		newDeviceRequestService.deleteAllExpiredRequests();
+		int count = newDeviceRequestService.deleteAllExpiredRequests();
+		logger.info("Deleted {} expired new device requests", count);
 	}
 }
