@@ -91,7 +91,7 @@ configurations {
 
 task intTest(type:Test){
 	description = "Run integration tests (located in src/intTest/...)."
-	testClassesDir = project.sourceSets.intTest.output.classesDir
+	testClassesDirs = project.sourceSets.intTest.output.classesDirs
 	classpath = project.sourceSets.intTest.runtimeClasspath
 
 	systemProperties = System.getProperties()
