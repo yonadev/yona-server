@@ -184,7 +184,7 @@ public class MessageController
 	{
 		ControllerLinkBuilder linkBuilder = linkTo(
 				methodOn(MessageController.class).getMessages(Optional.empty(), null, userId, null, null));
-		return linkBuilder.withRel("messages");
+		return linkBuilder.withRel("messages").expand();
 	}
 
 	private UserActivityController getUserActivityController()

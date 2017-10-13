@@ -25,8 +25,8 @@ configurations {
 dependencies {
 	compile project(":core")
 	runtime "org.mariadb.jdbc:mariadb-java-client:$project.ext.version_mariadb_client"
-	runtime "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$project.ext.version_jackson"
-	runtime "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$project.ext.version_jackson"
+	runtime "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+	runtime "com.fasterxml.jackson.datatype:jackson-datatype-jdk8"
 	providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
 
 	testCompile project(path: ":core", configuration: "testUtils")
@@ -95,7 +95,7 @@ configurations {
 
 task intTest(type:Test){
 	description = "Run integration tests (located in src/intTest/...)."
-	testClassesDir = project.sourceSets.intTest.output.classesDir
+	testClassesDirs = project.sourceSets.intTest.output.classesDirs
 	classpath = project.sourceSets.intTest.runtimeClasspath
 
 	systemProperties = [

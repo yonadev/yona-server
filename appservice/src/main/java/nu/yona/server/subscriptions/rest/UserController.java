@@ -85,6 +85,9 @@ import nu.yona.server.util.ThymeleafUtil;
 @RequestMapping(value = "/users", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class UserController
 {
+	private static final String INCLUDE_PRIVATE_DATA_PARAM = "includePrivateData";
+	private static final String TEMP_PASSWORD_PARAM = "tempPassword";
+
 	private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
 	@Autowired
@@ -116,11 +119,11 @@ public class UserController
 	@Qualifier("sslRootCertificate")
 	private X509Certificate sslRootCertificate;
 
-	@RequestMapping(value = "/{userId}", params = { "includePrivateData" }, method = RequestMethod.GET)
+	@RequestMapping(value = "/{userId}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<UserResource> getUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr,
-			@RequestParam(value = "includePrivateData", defaultValue = "false") String includePrivateDataStr,
+			@RequestParam(value = TEMP_PASSWORD_PARAM, required = false) String tempPasswordStr,
+			@RequestParam(value = INCLUDE_PRIVATE_DATA_PARAM, required = false, defaultValue = "false") String includePrivateDataStr,
 			@PathVariable UUID userId)
 	{
 		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
@@ -135,16 +138,8 @@ public class UserController
 		}
 		else
 		{
-			return getPublicUser(passwordToUse, userId);
+			return createOkResponse(userService.getPublicUser(userId), false);
 		}
-	}
-
-	@RequestMapping(value = "/{userId}", method = RequestMethod.GET)
-	@ResponseBody
-	public HttpEntity<UserResource> getPublicUser(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId)
-	{
-		return createOkResponse(userService.getPublicUser(userId), false);
 	}
 
 	@RequestMapping(value = "/{userId}/apple.mobileconfig", method = RequestMethod.GET)
@@ -196,7 +191,7 @@ public class UserController
 	@RequestMapping(value = "/{userId}", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr, @PathVariable UUID userId,
+			@RequestParam(value = TEMP_PASSWORD_PARAM, required = false) String tempPasswordStr, @PathVariable UUID userId,
 			@RequestBody UserDto userResource, HttpServletRequest request)
 	{
 		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
@@ -377,29 +372,20 @@ public class UserController
 		return linkBuilder.withRel("postOpenAppEvent");
 	}
 
-	private static Link getUserSelfLink(UUID userId, boolean includePrivateData)
+	private static Link getUserLink(String rel, UUID userId, boolean includePrivateData)
 	{
-		ControllerLinkBuilder linkBuilder;
-		if (includePrivateData)
-		{
-			linkBuilder = linkTo(methodOn(UserController.class).getUser(Optional.empty(), null, Boolean.TRUE.toString(), userId));
-		}
-		else
-		{
-			linkBuilder = linkTo(methodOn(UserController.class).getPublicUser(Optional.empty(), userId));
-		}
-		return linkBuilder.withSelfRel();
+		return linkTo(methodOn(UserController.class).getUser(Optional.empty(), null,
+				(includePrivateData) ? Boolean.TRUE.toString() : null, userId)).withRel(rel).expand(Collections.singletonMap(TEMP_PASSWORD_PARAM, null));
 	}
 
 	public static Link getPublicUserLink(String rel, UUID userId)
 	{
-		return linkTo(methodOn(UserController.class).getPublicUser(Optional.empty(), userId)).withRel(rel);
+		return getUserLink(rel, userId, false);
 	}
 
 	public static Link getPrivateUserLink(String rel, UUID userId)
 	{
-		return linkTo(methodOn(UserController.class).getUser(Optional.empty(), null, Boolean.TRUE.toString(), userId))
-				.withRel(rel);
+		return getUserLink(rel, userId, true);
 	}
 
 	@PostConstruct
@@ -573,13 +559,13 @@ public class UserController
 				return;
 			}
 
-			userResource.add(UserController.getUserSelfLink(userResource.getContent().getId(), includePrivateData));
+			userResource.add(UserController.getUserLink(Link.REL_SELF, userResource.getContent().getId(), includePrivateData));
 		}
 
 		private static void addEditLink(Resource<UserDto> userResource)
 		{
 			userResource.add(linkTo(methodOn(UserController.class).updateUser(Optional.empty(), null,
-					userResource.getContent().getId(), null, null)).withRel(JsonRootRelProvider.EDIT_REL));
+					userResource.getContent().getId(), null, null)).withRel(JsonRootRelProvider.EDIT_REL).expand());
 		}
 
 		private static void addConfirmMobileNumberLink(Resource<UserDto> userResource)

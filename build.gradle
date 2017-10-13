@@ -8,10 +8,10 @@ plugins {
 	id "java"
 	id "eclipse"
 	id "groovy"
-	id "io.spring.dependency-management" version "0.6.1.RELEASE"
-	id "org.springframework.boot" version "1.4.7.RELEASE" apply false
-	id "net.researchgate.release" version "2.4.0"
-	id "com.bmuschko.docker-remote-api" version "3.0.3" apply false
+	id "io.spring.dependency-management" version "1.0.3.RELEASE"
+	id "org.springframework.boot" version "1.5.7.RELEASE" apply false
+	id "net.researchgate.release" version "2.6.0"
+	id "com.bmuschko.docker-remote-api" version "3.0.11" apply false
 }
 
 description = "Yona server"
@@ -36,7 +36,6 @@ subprojects {
 		build_number = System.getenv().BUILD_NUMBER ?: 0
 		docker_tag = "build-${build_number}"
 
-		version_jackson        = "2.8.5"
 		version_batch_core     = "3.0.7.RELEASE"
 		version_mariadb_client = "1.5.5"
 
@@ -88,5 +87,5 @@ eclipse {
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = "3.3"
+	gradleVersion = "4.2.1"
 }
