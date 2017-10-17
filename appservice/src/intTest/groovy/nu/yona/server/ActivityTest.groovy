@@ -1252,6 +1252,43 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Richard\'s can see his raw activities'()
+	{
+		given:
+		def richard = addRichard()
+
+		setGoalCreationTime(richard, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		richard = appService.reloadUser(richard)
+
+		def app = "NU.nl"
+		def appActStartTime = "W-1 Wed 03:15"
+		def appActEndTime = "W-1 Wed 03:35"
+		reportAppActivity(richard, app, appActStartTime, appActEndTime)
+		def netActStartTime = "W-1 Wed 15:00"
+		reportNetworkActivity(richard, ["News"], "http://rd.nl", netActStartTime)
+
+		def goalId = richard.findActiveGoal(NEWS_ACT_CAT_URL).getId()
+		def lastWednesdayDate = YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Wed 09:00"))
+		def detailsUrl = richard.url + "/activity/days/$lastWednesdayDate/details/$goalId"
+		assert appService.getResourceWithPassword(detailsUrl, richard.password).status == 200
+
+		when:
+		def response = appService.getResourceWithPassword(detailsUrl + "/raw/", richard.password)
+
+		then:
+		response.status == 200
+		response.responseData._embedded."yona:activities".size == 2
+		response.responseData._embedded."yona:activities"[0].startTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(appActStartTime))
+		response.responseData._embedded."yona:activities"[0].endTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(appActEndTime))
+		response.responseData._embedded."yona:activities"[0].app == app
+		response.responseData._embedded."yona:activities"[1].startTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(netActStartTime))
+		response.responseData._embedded."yona:activities"[1].endTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(netActStartTime).plusMinutes(1))
+		response.responseData._embedded."yona:activities"[1].app == ""
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def 'Richard\'s goals are only included when a buddy has that goal too'()
 	{
 		given:
