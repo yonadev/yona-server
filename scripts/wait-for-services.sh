@@ -30,7 +30,7 @@ then
 	n=0
 	until [ $n -ge $iterations ]
 	do
-		kubectl get pods -a --selector=job-name=${BUILD_NUMBER}-develop-liquibase-update -o jsonpath='{.items[*].status.phase}' | grep Succeeded && echo && break
+		kubectl get pods -a --selector=job-name=${BUILD_NUMBER_TO_DEPLOY}-develop-liquibase-update -o jsonpath='{.items[*].status.phase}' | grep Succeeded && echo && break
 		n=$[$n + 1]
 		sleep $sleepTime
 	done
