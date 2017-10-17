@@ -36,7 +36,6 @@ public class UserPrivateDto
 	private final UUID namedMessageSourceId;
 	private final UUID anonymousMessageSourceId;
 	private final Set<BuddyDto> buddies;
-	private Optional<UserPhotoDto> uploadedUserPhoto;
 
 	@JsonCreator
 	public UserPrivateDto(@JsonProperty("nickname") String nickname)
@@ -126,16 +125,5 @@ public class UserPrivateDto
 	public UUID getUserAnonymizedId()
 	{
 		return userAnonymizedId;
-	}
-
-	public void setUploadedUserPhoto(UserPhotoDto uploadedUserPhoto)
-	{
-		this.uploadedUserPhoto = Optional.of(uploadedUserPhoto);
-	}
-
-	@JsonIgnore
-	public Optional<UserPhotoDto> getUploadedUserPhoto()
-	{
-		return uploadedUserPhoto;
 	}
 }

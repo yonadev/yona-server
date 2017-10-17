@@ -29,6 +29,7 @@ class User
 	final String postOpenAppEventUrl
 	final boolean hasPrivateData
 	final String nickname
+	final String userPhotoUrl
 	final List<Goal> goals
 	final List<Buddy> buddies
 	final VPNProfile vpnProfile
@@ -68,6 +69,7 @@ class User
 			this.lastMonitoredActivityDate = (json.lastMonitoredActivityDate) ? YonaServer.parseIsoDateString(json.lastMonitoredActivityDate) : null
 			this.password = json.yonaPassword
 			this.nickname = json.nickname
+			this.userPhotoUrl = json._links?."yona:userPhoto"?.href
 
 			this.buddies = (json._embedded?."yona:buddies"?._embedded) ? json._embedded."yona:buddies"._embedded."yona:buddies".collect{new Buddy(it)} : []
 			this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJson(it)} : []
@@ -94,17 +96,21 @@ class User
 
 	def convertToJson()
 	{
-		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber)
+		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, password, nickname, userPhotoUrl, mobileNumber)
 
 		return new JsonSlurper().parseText(jsonStr)
 	}
 
-	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber)
+	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, userPhotoUrl, mobileNumber)
 	{
-		def selfLinkString = (url) ? """"_links":{"self":{"href":"$url"}},""" : ""
+		def selfLinkString = (url) ? """"self":{"href":"$url"},""" : ""
+		def userPhotoLinkString = (userPhotoUrl) ? """"userPhoto":{"href":"$userPhotoUrl"},""" : ""
 		def passwordString = (password) ? """"yonaPassword":"${password}",""" : ""
 		def json = """{
-				$selfLinkString
+				"_links":{
+					$selfLinkString
+					$userPhotoLinkString
+				},
 				"firstName":"${firstName}",
 				"lastName":"${lastName}",
 				$passwordString
@@ -119,9 +125,9 @@ class User
 		goals.find{ it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
 	}
 
-	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber)
+	static String makeUserJsonString(firstName, lastName, nickname, userPhotoId, mobileNumber)
 	{
-		makeUserJsonStringInternal(null, firstName, lastName, null, nickname, mobileNumber)
+		makeUserJsonStringInternal(null, firstName, lastName, null, nickname, userPhotoId, mobileNumber)
 	}
 }
 

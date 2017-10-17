@@ -106,6 +106,9 @@ public abstract class BuddyMessage extends Message
 		senderUserPhotoId = Optional.ofNullable(SecretKeyUtil.decryptUuid(senderUserPhotoIdCiphertext));
 	}
 
+	/*
+	 * Structure to pass some information about the buddy that sent the message.
+	 */
 	public static class BuddyInfoParameters
 	{
 		public final Optional<UUID> userPhotoId;
