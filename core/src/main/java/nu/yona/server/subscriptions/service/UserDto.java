@@ -43,16 +43,14 @@ public class UserDto
 	private final boolean isMobileNumberConfirmed;
 	private final UserPrivateDto privateData;
 
-	/*
-	 * Only intended for test purposes.
-	 */
 	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate,
 			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String yonaPassword,
-			String nickname, String mobileNumber, boolean isConfirmed, UUID namedMessageSourceId, UUID anonymousMessageSourceId,
-			Set<GoalDto> goals, Set<BuddyDto> buddies, UUID userAnonymizedId, VPNProfileDto vpnProfile)
+			String nickname, Optional<UUID> userPhotoId, String mobileNumber, boolean isConfirmed, UUID namedMessageSourceId,
+			UUID anonymousMessageSourceId, Set<GoalDto> goals, Set<BuddyDto> buddies, UUID userAnonymizedId,
+			VPNProfileDto vpnProfile)
 	{
 		this(id, Optional.of(creationTime), appLastOpenedDate, firstName, lastName, null, mobileNumber, isConfirmed,
-				new UserPrivateDto(lastMonitoredActivityDate, yonaPassword, nickname, namedMessageSourceId,
+				new UserPrivateDto(lastMonitoredActivityDate, yonaPassword, nickname, userPhotoId, namedMessageSourceId,
 						anonymousMessageSourceId, goals, buddies, userAnonymizedId, vpnProfile));
 	}
 
@@ -196,8 +194,8 @@ public class UserDto
 	{
 		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
 				userEntity.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
-				CryptoSession.getCurrent().getKeyString(), userEntity.getNickname(), userEntity.getMobileNumber(),
-				userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSourceId(),
+				CryptoSession.getCurrent().getKeyString(), userEntity.getNickname(), userEntity.getUserPhotoId(),
+				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSourceId(),
 				userEntity.getAnonymousMessageSourceId(),
 				UserAnonymizedDto.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), buddies,
 				userEntity.getUserAnonymizedId(), VPNProfileDto.createInstance(userEntity));

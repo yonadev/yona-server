@@ -136,7 +136,7 @@ public class UserServiceTest
 	@Test(expected = InvalidDataException.class)
 	public void assertValidUserFields_buddyWithSetGoals_throws()
 	{
-		UserPrivateDto userPrivate = new UserPrivateDto(Optional.empty(), "password", "jd", null, null,
+		UserPrivateDto userPrivate = new UserPrivateDto(Optional.empty(), "password", "jd", Optional.empty(), null, null,
 				new HashSet<GoalDto>(Arrays.asList(new BudgetGoalDto(Optional.empty(), 1))), Collections.emptySet(), null, null);
 		UserDto user = new UserDto("John", "Doe", "john@doe.net", "+31612345678", userPrivate);
 

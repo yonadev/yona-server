@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.BuddyMessageDto;
 import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDto;
@@ -198,8 +199,9 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 		private void sendResponseMessageToRequestingUser(UserDto respondingUser,
 				BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage)
 		{
-			buddyService.sendBuddyConnectResponseMessage(respondingUser.getId(),
-					respondingUser.getPrivateData().getUserAnonymizedId(), respondingUser.getPrivateData().getNickname(),
+			buddyService.sendBuddyConnectResponseMessage(
+					new BuddyInfoParameters(respondingUser.getId(), respondingUser.getPrivateData().getUserAnonymizedId(),
+							respondingUser.getPrivateData().getNickname(), respondingUser.getPrivateData().getUserPhotoId()),
 					connectRequestMessageEntity.getRelatedUserAnonymizedId().get(), connectRequestMessageEntity.getBuddyId(),
 					connectRequestMessageEntity.getStatus(), responseMessage);
 		}

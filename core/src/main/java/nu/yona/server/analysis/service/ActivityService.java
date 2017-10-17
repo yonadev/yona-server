@@ -41,6 +41,7 @@ import nu.yona.server.analysis.service.IntervalActivityDto.LevelOfDetail;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
+import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageRepository;
 import nu.yona.server.messaging.service.MessageDto;
@@ -703,16 +704,17 @@ public class ActivityService
 			IntervalActivity intervalActivityEntity, Optional<Message> repliedMessage, boolean isSentItem, String messageText)
 	{
 		ActivityCommentMessage message;
+		BuddyInfoParameters buddyInfoParameters = new BuddyInfoParameters(sendingUser.getId(), relatedUserAnonymizedId,
+				sendingUser.getPrivateData().getNickname(), sendingUser.getPrivateData().getUserPhotoId());
 		if (repliedMessage.isPresent())
 		{
-			message = ActivityCommentMessage.createInstance(sendingUser.getId(), relatedUserAnonymizedId,
-					sendingUser.getPrivateData().getNickname(), intervalActivityEntity, isSentItem, messageText,
+			message = ActivityCommentMessage.createInstance(buddyInfoParameters, intervalActivityEntity, isSentItem, messageText,
 					repliedMessage.get());
 		}
 		else
 		{
-			message = ActivityCommentMessage.createThreadHeadInstance(sendingUser.getId(), relatedUserAnonymizedId,
-					sendingUser.getPrivateData().getNickname(), intervalActivityEntity, isSentItem, messageText);
+			message = ActivityCommentMessage.createThreadHeadInstance(buddyInfoParameters, intervalActivityEntity, isSentItem,
+					messageText);
 		}
 		messageRepository.save(message);
 		return message;

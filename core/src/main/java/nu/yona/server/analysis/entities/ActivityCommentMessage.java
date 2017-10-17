@@ -5,7 +5,6 @@
 package nu.yona.server.analysis.entities;
 
 import java.util.Set;
-import java.util.UUID;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
@@ -34,10 +33,10 @@ public class ActivityCommentMessage extends BuddyMessage
 	@OneToOne
 	private ActivityCommentMessage buddyMessage;
 
-	private ActivityCommentMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
-			IntervalActivity intervalActivityEntity, boolean isSentItem, String message)
+	private ActivityCommentMessage(BuddyInfoParameters buddyInfoParameters, IntervalActivity intervalActivityEntity,
+			boolean isSentItem, String message)
 	{
-		super(senderUserId, senderUserAnonymizedId, senderNickname, isSentItem, message);
+		super(buddyInfoParameters, isSentItem, message);
 		this.intervalActivity = intervalActivityEntity;
 	}
 
@@ -47,28 +46,27 @@ public class ActivityCommentMessage extends BuddyMessage
 		super();
 	}
 
-	public static ActivityCommentMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
+	public static ActivityCommentMessage createInstance(BuddyInfoParameters buddyInfoParameters,
 			IntervalActivity intervalActivity, boolean isSentItem, String message, Message repliedMessage)
 	{
-		ActivityCommentMessage activityCommentMessage = createInstance(senderUserId, senderUserAnonymizedId, senderNickname,
-				intervalActivity, isSentItem, message);
+		ActivityCommentMessage activityCommentMessage = createInstance(buddyInfoParameters, intervalActivity, isSentItem,
+				message);
 		repliedMessage.addReply(activityCommentMessage);
 		repliedMessage.getThreadHeadMessage().addMessageToThread(activityCommentMessage);
 		return activityCommentMessage;
 	}
 
-	private static ActivityCommentMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
+	private static ActivityCommentMessage createInstance(BuddyInfoParameters buddyInfoParameters,
 			IntervalActivity intervalActivityEntity, boolean isSentItem, String message)
 	{
-		return new ActivityCommentMessage(senderUserId, senderUserAnonymizedId, senderNickname, intervalActivityEntity,
-				isSentItem, message);
+		return new ActivityCommentMessage(buddyInfoParameters, intervalActivityEntity, isSentItem, message);
 	}
 
-	public static ActivityCommentMessage createThreadHeadInstance(UUID senderUserId, UUID senderUserAnonymizedId,
-			String senderNickname, IntervalActivity intervalActivityEntity, boolean isSentItem, String message)
+	public static ActivityCommentMessage createThreadHeadInstance(BuddyInfoParameters buddyInfoParameters,
+			IntervalActivity intervalActivityEntity, boolean isSentItem, String message)
 	{
-		ActivityCommentMessage activityCommentMessage = createInstance(senderUserId, senderUserAnonymizedId, senderNickname,
-				intervalActivityEntity, isSentItem, message);
+		ActivityCommentMessage activityCommentMessage = createInstance(buddyInfoParameters, intervalActivityEntity, isSentItem,
+				message);
 		// This message is its own little thread
 		activityCommentMessage.setThreadHeadMessage(activityCommentMessage);
 		return activityCommentMessage;

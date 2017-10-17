@@ -58,7 +58,8 @@ public abstract class BuddyMessageDto extends MessageDto
 		{
 			// The buddy entity does not contain the user anonymized ID yet
 			BuddyMessage buddyMessageEntity = (BuddyMessage) messageEntity;
-			return createSenderInfoForDetachedBuddy(buddyMessageEntity.getSenderUser(), buddyMessageEntity.getSenderNickname());
+			return createSenderInfoForDetachedBuddy(buddyMessageEntity.getSenderUser(), buddyMessageEntity.getSenderNickname(),
+					buddyMessageEntity.getSenderUserPhotoId());
 		}
 	}
 }

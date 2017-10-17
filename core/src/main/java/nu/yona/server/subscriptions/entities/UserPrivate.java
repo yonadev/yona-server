@@ -192,8 +192,8 @@ public class UserPrivate extends EntityWithUuid
 		getUserAnonymized().setLastMonitoredActivityDate(lastMonitoredActivityDate);
 	}
 
-	public UUID getUserPhotoId()
+	public Optional<UUID> getUserPhotoId()
 	{
-		return userPhotoId;
+		return Optional.ofNullable(userPhotoId);
 	}
 }

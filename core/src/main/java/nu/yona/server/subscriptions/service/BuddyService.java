@@ -32,6 +32,7 @@ import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
+import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
 import nu.yona.server.messaging.service.MessageActionDto;
@@ -347,16 +348,19 @@ public class BuddyService
 
 			// Send message to "self", to notify the user about the removed buddy user
 			UUID buddyUserAnonymizedId = getUserAnonymizedIdForBuddy(buddy);
-			sendDropBuddyMessage(null, buddyUserAnonymizedId, buddy.getNickname(), Optional.empty(),
-					DropBuddyReason.USER_ACCOUNT_DELETED, user.getNamedMessageDestination());
+			sendDropBuddyMessage(
+					new BuddyInfoParameters(null, buddyUserAnonymizedId, buddy.getNickname(), buddy.getUserPhotoId()),
+					Optional.empty(), DropBuddyReason.USER_ACCOUNT_DELETED, user.getNamedMessageDestination());
 		}
 		else if (buddy.getSendingStatus() != Status.REJECTED && buddy.getReceivingStatus() != Status.REJECTED)
 		{
 			// Buddy request was not accepted or rejected yet
 			// Send message to "self", as if the requested user declined the buddy request
 			UUID buddyUserAnonymizedId = buddy.getUserAnonymizedId().orElse(null); //
-			sendBuddyConnectResponseMessage(null, buddyUserAnonymizedId, buddy.getNickname(), user.getUserAnonymizedId(),
-					buddy.getId(), Status.REJECTED, getDropBuddyMessage(DropBuddyReason.USER_ACCOUNT_DELETED, Optional.empty()));
+			sendBuddyConnectResponseMessage(
+					new BuddyInfoParameters(null, buddyUserAnonymizedId, buddy.getNickname(), buddy.getUserPhotoId()),
+					user.getUserAnonymizedId(), buddy.getId(), Status.REJECTED,
+					getDropBuddyMessage(DropBuddyReason.USER_ACCOUNT_DELETED, Optional.empty()));
 		}
 		removeBuddy(user, buddy);
 	}
@@ -466,26 +470,30 @@ public class BuddyService
 	private void sendDropBuddyMessage(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
 			DropBuddyReason reason)
 	{
-		sendDropBuddyMessage(requestingUser.getId(), requestingUser.getUserAnonymizedId(), requestingUser.getNickname(), message,
-				reason, requestingUserBuddy.getUser().getNamedMessageDestination());
+		sendDropBuddyMessage(
+				new BuddyInfoParameters(requestingUser.getId(), requestingUser.getUserAnonymizedId(),
+						requestingUser.getNickname(), requestingUser.getUserPhotoId()),
+				message, reason, requestingUserBuddy.getUser().getNamedMessageDestination());
 	}
 
-	private void sendDropBuddyMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
-			Optional<String> message, DropBuddyReason reason, MessageDestination messageDestination)
+	private void sendDropBuddyMessage(BuddyInfoParameters buddyInfoParameters, Optional<String> message, DropBuddyReason reason,
+			MessageDestination messageDestination)
 	{
 		MessageDestinationDto messageDestinationDto = MessageDestinationDto.createInstance(messageDestination);
-		messageService.sendMessageAndFlushToDatabase(BuddyDisconnectMessage.createInstance(senderUserId, senderUserAnonymizedId,
-				senderNickname, getDropBuddyMessage(reason, message), reason), messageDestinationDto);
+		messageService.sendMessageAndFlushToDatabase(
+				BuddyDisconnectMessage.createInstance(buddyInfoParameters, getDropBuddyMessage(reason, message), reason),
+				messageDestinationDto);
 	}
 
-	void sendBuddyConnectResponseMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
-			UUID receiverUserAnonymizedId, UUID buddyId, Status status, String responseMessage)
+	void sendBuddyConnectResponseMessage(BuddyInfoParameters buddyInfoParameters, UUID receiverUserAnonymizedId, UUID buddyId,
+			Status status, String responseMessage)
 	{
 		MessageDestinationDto messageDestination = userAnonymizedService.getUserAnonymized(receiverUserAnonymizedId)
 				.getAnonymousDestination();
 		assert messageDestination != null;
-		messageService.sendMessageAndFlushToDatabase(BuddyConnectResponseMessage.createInstance(senderUserId,
-				senderUserAnonymizedId, senderNickname, responseMessage, buddyId, status), messageDestination);
+		messageService.sendMessageAndFlushToDatabase(
+				BuddyConnectResponseMessage.createInstance(buddyInfoParameters, responseMessage, buddyId, status),
+				messageDestination);
 	}
 
 	private void disconnectBuddyIfConnected(UserAnonymizedDto buddyUserAnonymized, UUID userAnonymizedId)
@@ -584,8 +592,9 @@ public class BuddyService
 		boolean isRequestingSending = buddy.getReceivingStatus() == Status.REQUESTED;
 		boolean isRequestingReceiving = buddy.getSendingStatus() == Status.REQUESTED;
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
-		messageService.sendMessageAndFlushToDatabase(BuddyConnectRequestMessage.createInstance(requestingUser.getId(),
-				requestingUser.getPrivateData().getUserAnonymizedId(), requestingUser.getPrivateData().getNickname(),
+		messageService.sendMessageAndFlushToDatabase(BuddyConnectRequestMessage.createInstance(
+				new BuddyInfoParameters(requestingUser.getId(), requestingUser.getPrivateData().getUserAnonymizedId(),
+						requestingUser.getPrivateData().getNickname(), requestingUser.getPrivateData().getUserPhotoId()),
 				buddy.getPersonalInvitationMessage(), savedBuddyEntity.getId(), isRequestingSending, isRequestingReceiving),
 				MessageDestinationDto.createInstance(messageDestination));
 
@@ -636,9 +645,10 @@ public class BuddyService
 	void broadcastUserInfoChangeToBuddies(User updatedUserEntity, UserDto originalUser)
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(updatedUserEntity.getAnonymized()),
-				() -> BuddyInfoChangeMessage.createInstance(updatedUserEntity.getId(), updatedUserEntity.getUserAnonymizedId(),
-						originalUser.getPrivateData().getNickname(), getUserInfoChangeMessage(), updatedUserEntity.getNickname(),
-						updatedUserEntity.getUserPhotoId()));
+				() -> BuddyInfoChangeMessage.createInstance(
+						new BuddyInfoParameters(updatedUserEntity.getId(), updatedUserEntity.getUserAnonymizedId(),
+								originalUser.getPrivateData().getNickname(), originalUser.getPrivateData().getUserPhotoId()),
+						getUserInfoChangeMessage(), updatedUserEntity.getNickname(), updatedUserEntity.getUserPhotoId()));
 	}
 
 	private String getUserInfoChangeMessage()
@@ -648,7 +658,7 @@ public class BuddyService
 
 	@Transactional
 	public void updateBuddyUserInfo(UUID idOfRequestingUser, UUID relatedUserAnonymizedId, String buddyNickname,
-			UUID buddyUserPhotoId)
+			Optional<UUID> buddyUserPhotoId)
 	{
 		User user = userService.getValidatedUserbyId(idOfRequestingUser);
 

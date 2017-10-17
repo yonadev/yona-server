@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
+import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.DisclosureRequestMessage;
 import nu.yona.server.messaging.entities.DisclosureResponseMessage;
 import nu.yona.server.messaging.entities.Message;
@@ -183,9 +184,10 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 							"Message with ID " + requestMessageEntity.getId() + " does not have a related user anonymized ID")))
 					.getAnonymousDestination();
 			assert messageDestination != null;
-			messageService.sendMessageAndFlushToDatabase(DisclosureResponseMessage.createInstance(respondingUser.getId(),
-					respondingUser.getPrivateData().getUserAnonymizedId(), requestMessageEntity.getTargetGoalConflictMessage(),
-					requestMessageEntity.getStatus(), respondingUser.getPrivateData().getNickname(), message),
+			messageService.sendMessageAndFlushToDatabase(DisclosureResponseMessage.createInstance(
+					new BuddyInfoParameters(respondingUser.getId(), respondingUser.getPrivateData().getUserAnonymizedId(),
+							respondingUser.getPrivateData().getNickname(), respondingUser.getPrivateData().getUserPhotoId()),
+					requestMessageEntity.getTargetGoalConflictMessage(), requestMessageEntity.getStatus(), message),
 					messageDestination);
 		}
 	}

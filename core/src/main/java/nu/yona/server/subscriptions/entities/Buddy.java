@@ -100,14 +100,19 @@ public class Buddy extends EntityWithUuid
 		return nickname;
 	}
 
+	public Optional<UUID> getUserPhotoId()
+	{
+		return Optional.ofNullable(userPhotoId);
+	}
+
 	public void setNickName(String nickname)
 	{
 		this.nickname = nickname;
 	}
 
-	public void setUserPhotoId(UUID userPhotoId)
+	public void setUserPhotoId(Optional<UUID> userPhotoId)
 	{
-		this.userPhotoId = userPhotoId;
+		this.userPhotoId = userPhotoId.orElse(null);
 	}
 
 	public UUID getUserId()

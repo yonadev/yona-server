@@ -4,8 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import java.util.UUID;
-
 import javax.persistence.Entity;
 
 import nu.yona.server.messaging.entities.BuddyMessage;
@@ -17,10 +15,9 @@ public class BuddyDisconnectMessage extends BuddyMessage
 	private boolean isProcessed;
 	private DropBuddyReason reason;
 
-	public BuddyDisconnectMessage(UUID senderUserId, UUID senderAnonymizedUserId, String senderNickname, String message,
-			DropBuddyReason reason)
+	public BuddyDisconnectMessage(BuddyInfoParameters buddyInfoParameters, String message, DropBuddyReason reason)
 	{
-		super(senderUserId, senderAnonymizedUserId, senderNickname, message);
+		super(buddyInfoParameters, message);
 		this.reason = reason;
 	}
 
@@ -30,10 +27,10 @@ public class BuddyDisconnectMessage extends BuddyMessage
 		super();
 	}
 
-	public static BuddyDisconnectMessage createInstance(UUID senderUserId, UUID senderAnonymizedUserId, String senderNickname,
-			String message, DropBuddyReason reason)
+	public static BuddyDisconnectMessage createInstance(BuddyInfoParameters buddyInfoParameters, String message,
+			DropBuddyReason reason)
 	{
-		return new BuddyDisconnectMessage(senderUserId, senderAnonymizedUserId, senderNickname, message, reason);
+		return new BuddyDisconnectMessage(buddyInfoParameters, message, reason);
 	}
 
 	public DropBuddyReason getReason()

@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -19,14 +20,14 @@ public class BuddyInfoChangeMessage extends BuddyMessage
 	private String newNickname;
 	private byte[] newNicknameCiphertext;
 	@Transient
-	private UUID newUserPhotoId;
+	private Optional<UUID> newUserPhotoId;
 	private byte[] newUserPhotoIdCiphertext;
 	private boolean isProcessed;
 
-	public BuddyInfoChangeMessage(UUID senderUserId, UUID senderAnonymizedUserId, String senderNickname, String message,
-			String newNickname, UUID newUserPhotoId)
+	public BuddyInfoChangeMessage(BuddyInfoParameters buddyInfoParameters, String message, String newNickname,
+			Optional<UUID> newUserPhotoId)
 	{
-		super(senderUserId, senderAnonymizedUserId, senderNickname, message);
+		super(buddyInfoParameters, message);
 		this.newNickname = newNickname;
 		this.newUserPhotoId = newUserPhotoId;
 	}
@@ -37,11 +38,10 @@ public class BuddyInfoChangeMessage extends BuddyMessage
 		super();
 	}
 
-	public static BuddyInfoChangeMessage createInstance(UUID senderUserId, UUID senderAnonymizedUserId, String senderNickname,
-			String message, String newNickname, UUID newUserPhotoId)
+	public static BuddyInfoChangeMessage createInstance(BuddyInfoParameters buddyInfoParameters, String message,
+			String newNickname, Optional<UUID> newUserPhotoId)
 	{
-		return new BuddyInfoChangeMessage(senderUserId, senderAnonymizedUserId, senderNickname, message, newNickname,
-				newUserPhotoId);
+		return new BuddyInfoChangeMessage(buddyInfoParameters, message, newNickname, newUserPhotoId);
 	}
 
 	public String getNewNickname()
@@ -49,7 +49,7 @@ public class BuddyInfoChangeMessage extends BuddyMessage
 		return newNickname;
 	}
 
-	public UUID getNewUserPhotoId()
+	public Optional<UUID> getNewUserPhotoId()
 	{
 		return newUserPhotoId;
 	}
@@ -69,7 +69,7 @@ public class BuddyInfoChangeMessage extends BuddyMessage
 	{
 		super.encrypt();
 		newNicknameCiphertext = SecretKeyUtil.encryptString(newNickname);
-		newUserPhotoIdCiphertext = SecretKeyUtil.encryptUuid(newUserPhotoId);
+		newUserPhotoIdCiphertext = SecretKeyUtil.encryptUuid(newUserPhotoId.orElse(null));
 	}
 
 	@Override
@@ -77,6 +77,6 @@ public class BuddyInfoChangeMessage extends BuddyMessage
 	{
 		super.decrypt();
 		newNickname = SecretKeyUtil.decryptString(newNicknameCiphertext);
-		newUserPhotoId = SecretKeyUtil.decryptUuid(newUserPhotoIdCiphertext);
+		newUserPhotoId = Optional.ofNullable(SecretKeyUtil.decryptUuid(newUserPhotoIdCiphertext));
 	}
 }

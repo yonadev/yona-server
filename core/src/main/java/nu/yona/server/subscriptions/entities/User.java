@@ -340,7 +340,7 @@ public class User extends EntityWithUuid
 		this.privateDataMigrationVersion = privateDataMigrationVersion;
 	}
 
-	public UUID getUserPhotoId()
+	public Optional<UUID> getUserPhotoId()
 	{
 		return getUserPrivate().getUserPhotoId();
 	}

@@ -28,23 +28,27 @@ public abstract class BuddyMessage extends Message
 	private String senderNickname;
 	private byte[] senderNicknameCiphertext;
 
+	@Transient
+	private Optional<UUID> senderUserPhotoId;
+	private byte[] senderUserPhotoIdCiphertext;
+
 	// Default constructor is required for JPA
 	protected BuddyMessage()
 	{
 		super(null);
 	}
 
-	protected BuddyMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname, String message)
+	protected BuddyMessage(BuddyInfoParameters buddyInfoParameters, String message)
 	{
-		this(senderUserId, senderUserAnonymizedId, senderUserNickname, false, message);
+		this(buddyInfoParameters, false, message);
 	}
 
-	protected BuddyMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname, boolean isSentItem,
-			String message)
+	protected BuddyMessage(BuddyInfoParameters buddyInfoParameters, boolean isSentItem, String message)
 	{
-		super(senderUserAnonymizedId, isSentItem);
-		this.senderUserId = senderUserId;
-		this.senderNickname = senderUserNickname;
+		super(buddyInfoParameters.userAnonymizedId, isSentItem);
+		this.senderUserId = buddyInfoParameters.userId;
+		this.senderNickname = buddyInfoParameters.nickname;
+		this.senderUserPhotoId = buddyInfoParameters.userPhotoId;
 		this.message = message;
 	}
 
@@ -79,12 +83,18 @@ public abstract class BuddyMessage extends Message
 		return senderNickname;
 	}
 
+	public Optional<UUID> getSenderUserPhotoId()
+	{
+		return senderUserPhotoId;
+	}
+
 	@Override
 	public void encrypt()
 	{
 		senderUserIdCiphertext = SecretKeyUtil.encryptUuid(senderUserId);
 		messageCiphertext = SecretKeyUtil.encryptString(message);
 		senderNicknameCiphertext = SecretKeyUtil.encryptString(senderNickname);
+		senderUserPhotoIdCiphertext = SecretKeyUtil.encryptUuid(senderUserPhotoId.orElse(null));
 	}
 
 	@Override
@@ -93,5 +103,22 @@ public abstract class BuddyMessage extends Message
 		senderUserId = SecretKeyUtil.decryptUuid(senderUserIdCiphertext);
 		message = SecretKeyUtil.decryptString(messageCiphertext);
 		senderNickname = SecretKeyUtil.decryptString(senderNicknameCiphertext);
+		senderUserPhotoId = Optional.ofNullable(SecretKeyUtil.decryptUuid(senderUserPhotoIdCiphertext));
+	}
+
+	public static class BuddyInfoParameters
+	{
+		public final Optional<UUID> userPhotoId;
+		public final UUID userAnonymizedId;
+		public final UUID userId;
+		public final String nickname;
+
+		public BuddyInfoParameters(UUID userId, UUID userAnonymizedId, String nickname, Optional<UUID> userPhotoId)
+		{
+			this.userId = userId;
+			this.userAnonymizedId = userAnonymizedId;
+			this.nickname = nickname;
+			this.userPhotoId = userPhotoId;
+		}
 	}
 }

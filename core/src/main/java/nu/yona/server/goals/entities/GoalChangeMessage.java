@@ -4,8 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.goals.entities;
 
-import java.util.UUID;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
@@ -32,20 +30,19 @@ public class GoalChangeMessage extends BuddyMessage
 		super();
 	}
 
-	protected GoalChangeMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
-			ActivityCategory activityCategoryOfChangedGoal, Change change, String message)
+	protected GoalChangeMessage(BuddyInfoParameters buddyInfoParameters, ActivityCategory activityCategoryOfChangedGoal,
+			Change change, String message)
 	{
-		super(senderUserId, senderUserAnonymizedId, senderNickname, message);
+		super(buddyInfoParameters, message);
 
 		this.activityCategoryOfChangedGoal = activityCategoryOfChangedGoal;
 		this.change = change;
 	}
 
-	public static GoalChangeMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
+	public static GoalChangeMessage createInstance(BuddyInfoParameters buddyInfoParameters,
 			ActivityCategory activityCategoryOfChangedGoal, Change change, String message)
 	{
-		return new GoalChangeMessage(senderUserId, senderUserAnonymizedId, senderNickname, activityCategoryOfChangedGoal, change,
-				message);
+		return new GoalChangeMessage(buddyInfoParameters, activityCategoryOfChangedGoal, change, message);
 	}
 
 	public ActivityCategory getActivityCategoryOfChangedGoal()

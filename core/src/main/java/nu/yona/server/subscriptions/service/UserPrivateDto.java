@@ -29,30 +29,32 @@ public class UserPrivateDto
 	private final Optional<LocalDate> lastMonitoredActivityDate;
 	private final String yonaPassword;
 	private final String nickname;
+	private final Optional<UUID> userPhotoId;
 	private final Set<GoalDto> goals;
 	private final VPNProfileDto vpnProfile;
 	private final UUID userAnonymizedId;
 	private final UUID namedMessageSourceId;
 	private final UUID anonymousMessageSourceId;
 	private final Set<BuddyDto> buddies;
-	private UserPhotoDto uploadedUserPhoto;
+	private Optional<UserPhotoDto> uploadedUserPhoto;
 
 	@JsonCreator
 	public UserPrivateDto(@JsonProperty("nickname") String nickname)
 	{
-		this(Optional.empty(), null, nickname, null, null, Collections.emptySet(), Collections.emptySet(), null,
+		this(Optional.empty(), null, nickname, Optional.empty(), null, null, Collections.emptySet(), Collections.emptySet(), null,
 				new VPNProfileDto(null));
 	}
 
-	UserPrivateDto(Optional<LocalDate> lastMonitoredActivityDate, String yonaPassword, String nickname, UUID namedMessageSourceId,
-			UUID anonymousMessageSourceId, Set<GoalDto> goals, Set<BuddyDto> buddies, UUID userAnonymizedId,
-			VPNProfileDto vpnProfile)
+	UserPrivateDto(Optional<LocalDate> lastMonitoredActivityDate, String yonaPassword, String nickname,
+			Optional<UUID> userPhotoId, UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goals,
+			Set<BuddyDto> buddies, UUID userAnonymizedId, VPNProfileDto vpnProfile)
 	{
 		Objects.requireNonNull(goals);
 		Objects.requireNonNull(buddies);
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 		this.yonaPassword = yonaPassword;
 		this.nickname = nickname;
+		this.userPhotoId = userPhotoId;
 		this.namedMessageSourceId = namedMessageSourceId;
 		this.anonymousMessageSourceId = anonymousMessageSourceId;
 		this.goals = goals;
@@ -76,6 +78,12 @@ public class UserPrivateDto
 	public String getNickname()
 	{
 		return nickname;
+	}
+
+	@JsonIgnore
+	public Optional<UUID> getUserPhotoId()
+	{
+		return userPhotoId;
 	}
 
 	@JsonIgnore
@@ -122,11 +130,11 @@ public class UserPrivateDto
 
 	public void setUploadedUserPhoto(UserPhotoDto uploadedUserPhoto)
 	{
-		this.uploadedUserPhoto = uploadedUserPhoto;
+		this.uploadedUserPhoto = Optional.of(uploadedUserPhoto);
 	}
 
 	@JsonIgnore
-	public UserPhotoDto getUserPhoto()
+	public Optional<UserPhotoDto> getUploadedUserPhoto()
 	{
 		return uploadedUserPhoto;
 	}
