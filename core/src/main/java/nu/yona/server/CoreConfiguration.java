@@ -6,8 +6,6 @@ package nu.yona.server;
 
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -50,8 +48,6 @@ import nu.yona.server.rest.RestClientErrorHandler;
 @Configuration
 public class CoreConfiguration extends CachingConfigurerSupport
 {
-	private static final Logger logger = LoggerFactory.getLogger(CoreConfiguration.class);
-
 	@Autowired
 	private YonaProperties yonaProperties;
 
