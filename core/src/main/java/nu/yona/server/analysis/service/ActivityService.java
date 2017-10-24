@@ -637,10 +637,10 @@ public class ActivityService
 		return messageService.getActivityRelatedMessages(userId, dayActivityEntity, pageable);
 	}
 
-	@FunctionalInterface
-	static interface ActivitySupplier
+	public List<ActivityDto> getRawActivities(UUID userId, LocalDate date, UUID goalId)
 	{
-		IntervalActivity get(BuddyDto buddy, LocalDate date, UUID goalId);
+		return dayActivityRepository.findOne(userService.getUserAnonymizedId(userId), date, goalId).getActivities().stream()
+				.map(ActivityDto::createInstance).collect(Collectors.toList());
 	}
 
 	@Transactional
@@ -734,6 +734,12 @@ public class ActivityService
 		UUID targetUserAnonymizedId = repliedMessage.getRelatedUserAnonymizedId().get();
 		return sendMessagePair(sendingUser, targetUserAnonymizedId, repliedMessage.getIntervalActivity(),
 				Optional.of(repliedMessage), Optional.of(repliedMessage.getSenderCopyMessage()), message);
+	}
+
+	@FunctionalInterface
+	static interface ActivitySupplier
+	{
+		IntervalActivity get(BuddyDto buddy, LocalDate date, UUID goalId);
 	}
 
 	/**
