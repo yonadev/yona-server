@@ -1,0 +1,8 @@
+databaseChangeLog:
+- changeSet:
+    id: 1508911058000-1
+    author: Bert (Manually created)
+    changes:
+    - dropColumn:
+        columnName: last_status_change_time
+        tableName: buddies_anonymized
