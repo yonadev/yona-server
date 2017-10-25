@@ -86,7 +86,6 @@ class ActivityCategoriesTest extends Specification
 		def appServiceGetResponse = appService.getAllActivityCategories()
 		appServiceGetResponse.responseData._embedded."yona:activityCategories".size() == numOfCategoriesInAppServiceBeforeAdd + 1
 		def programmingCategory = findActivityCategoryByName(appServiceGetResponse, englishName)
-		programmingCategory?.applications as Set == apps
 		programmingCategory.description == englishDescription
 
 		cleanup:
@@ -139,7 +138,6 @@ class ActivityCategoriesTest extends Specification
 
 		def chessCategory = findActivityCategoryByName(appService.getAllActivityCategories(), englishName)
 		chessCategory._links.self.href == programmingCategory._links.self.href
-		chessCategory.applications as Set == apps
 		chessCategory.description == englishDescription
 
 		cleanup:

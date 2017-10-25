@@ -25,9 +25,8 @@ class ActivityCategoriesTest extends AbstractAppServiceIntegrationTest
 		{
 			it._links.self.href == GAMBLING_ACT_CAT_URL
 		}
-		gamblingCategory.keySet() == ["_links", "applications", "name", "description"] as Set
+		gamblingCategory.keySet() == ["_links", "name", "description"] as Set
 		gamblingCategory.name == "Gambling"
-		gamblingCategory.applications as Set == ["Lotto App", "Poker App"] as Set
 		gamblingCategory.description == "This challenge includes apps and sites like Poker and Blackjack"
 	}
 }

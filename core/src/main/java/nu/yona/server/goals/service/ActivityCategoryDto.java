@@ -130,7 +130,7 @@ public class ActivityCategoryDto implements Serializable
 		return Collections.unmodifiableSet(smoothwallCategories);
 	}
 
-	@JsonView({ AdminView.class, AppView.class })
+	@JsonView({ AdminView.class })
 	public Set<String> getApplications()
 	{
 		return Collections.unmodifiableSet(applications);
