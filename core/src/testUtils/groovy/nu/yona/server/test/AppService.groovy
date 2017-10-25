@@ -595,7 +595,7 @@ class AppService extends Service
 
 	void setEnableStatistics(def enable)
 	{
-		yonaServer.enableStatistics(enable)
+		yonaServer.setEnableStatistics(enable)
 	}
 
 	void resetStatistics()

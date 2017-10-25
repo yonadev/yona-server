@@ -47,7 +47,7 @@ class AnalysisService extends Service
 
 	void setEnableStatistics(def enable)
 	{
-		yonaServer.enableStatistics(enable)
+		yonaServer.setEnableStatistics(enable)
 	}
 
 	def getResource(path, headers = [:], parameters = [:])
