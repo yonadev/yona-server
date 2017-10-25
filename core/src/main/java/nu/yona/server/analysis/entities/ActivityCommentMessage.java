@@ -1,20 +1,27 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+
+import org.hibernate.annotations.BatchSize;
 
 import nu.yona.server.messaging.entities.BuddyMessage;
 import nu.yona.server.messaging.entities.Message;
 
 @Entity
+@BatchSize(size = 100)
 public class ActivityCommentMessage extends BuddyMessage
 {
 	@ManyToOne
@@ -22,16 +29,18 @@ public class ActivityCommentMessage extends BuddyMessage
 
 	/**
 	 * Buddy comment messages are always sent in pairs: a message to the buddy and a copy for the user. This is one of the two
-	 * properties that maintain the relationship between the two messages.
+	 * properties that maintain the relationship between the two messages.<br/>
+	 * NOTE: this field is defined as a OneToMany/List, as a technical trick to implement lazy loading. Practically, it's a
+	 * OneToOne relationship. This trick delivers a considerable performance benefit.
 	 */
-	@OneToOne(mappedBy = "buddyMessage")
-	private ActivityCommentMessage senderCopyMessage;
+	@OneToMany(mappedBy = "buddyMessage", fetch = FetchType.LAZY)
+	private List<ActivityCommentMessage> senderCopyMessageList;
 
 	/**
 	 * Buddy comment messages are always sent in pairs: a message to the buddy and a copy for the user. This is one of the two
 	 * properties that maintain the relationship between the two messages.
 	 */
-	@OneToOne
+	@OneToOne(fetch = FetchType.LAZY)
 	private ActivityCommentMessage buddyMessage;
 
 	private ActivityCommentMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderNickname,
@@ -76,12 +85,20 @@ public class ActivityCommentMessage extends BuddyMessage
 
 	public ActivityCommentMessage getSenderCopyMessage()
 	{
-		return this.senderCopyMessage;
+		return (this.senderCopyMessageList == null || this.senderCopyMessageList.isEmpty()) ? null
+				: this.senderCopyMessageList.get(0);
 	}
 
 	private void setSenderCopyMessage(ActivityCommentMessage senderCopyMessage)
 	{
-		this.senderCopyMessage = senderCopyMessage;
+		if (this.senderCopyMessageList == null)
+		{
+			this.senderCopyMessageList = Arrays.asList(senderCopyMessage);
+		}
+		else
+		{
+			this.senderCopyMessageList.set(0, senderCopyMessage);
+		}
 	}
 
 	@Override
@@ -94,6 +111,7 @@ public class ActivityCommentMessage extends BuddyMessage
 			return;
 		}
 		super.clearThreadHeadSelfReference();
+		ActivityCommentMessage senderCopyMessage = getSenderCopyMessage();
 		if (senderCopyMessage != null)
 		{
 			senderCopyMessage.clearThreadHeadSelfReference();
@@ -124,7 +142,7 @@ public class ActivityCommentMessage extends BuddyMessage
 	{
 		super.prepareForDelete();
 		buddyMessage = null;
-		senderCopyMessage = null;
+		senderCopyMessageList = null;
 	}
 
 	@Override
@@ -140,6 +158,7 @@ public class ActivityCommentMessage extends BuddyMessage
 			return messagesToBeCascadinglyDeleted;
 		}
 		// Delegate to the sender copy and add this
+		ActivityCommentMessage senderCopyMessage = getSenderCopyMessage();
 		Set<Message> messagesToBeCascadinglyDeleted = senderCopyMessage.getMessagesToBeCascadinglyDeleted();
 		messagesToBeCascadinglyDeleted.add(senderCopyMessage);
 		return messagesToBeCascadinglyDeleted;
