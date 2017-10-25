@@ -44,10 +44,10 @@ class AnalysisService extends Service
 	{
 		yonaServer.postJson(USER_ANONYMIZED_PATH + vpnLoginId + "/networkActivity/", jsonString)
 	}
+
 	void setEnableStatistics(def enable)
 	{
-		def response = yonaServer.createResource("/hibernateStatistics/enable/", "{}", [:], ["enable" : enable])
-		assert response.status == 200 : "Ensure the server stats are enabled (run with -Dyona.enableHibernateStatsAllowed=true)"
+		yonaServer.enableStatistics(enable)
 	}
 
 	def getResource(path, headers = [:], parameters = [:])

@@ -142,6 +142,12 @@ class YonaServer
 		}
 	}
 
+	void setEnableStatistics(def enable)
+	{
+		def response = createResource("/hibernateStatistics/enable/", "{}", [:], ["enable" : enable])
+		assert response.status == 200 : "Ensure the server stats are enabled (run with -Dyona.enableHibernateStatsAllowed=true)"
+	}
+
 	static def stripQueryString(url)
 	{
 		url - ~/\?.*/

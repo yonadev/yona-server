@@ -595,8 +595,7 @@ class AppService extends Service
 
 	void setEnableStatistics(def enable)
 	{
-		def response = yonaServer.createResource("/hibernateStatistics/enable/", "{}", [:], ["enable" : enable])
-		assert response.status == 200 : "Ensure the server stats are enabled (run with -Dyona.enableHibernateStatsAllowed=true)"
+		yonaServer.enableStatistics(enable)
 	}
 
 	void resetStatistics()
