@@ -35,6 +35,7 @@ import org.thymeleaf.context.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.SmsException;
 import nu.yona.server.properties.SmsProperties;
 import nu.yona.server.properties.YonaProperties;
@@ -79,6 +80,19 @@ public class PlivoSmsService implements SmsService
 			String httpResponseBody = EntityUtils.toString(entity);
 			if (httpResponseCode != HttpStatus.SC_ACCEPTED)
 			{
+				// @formatter:off
+				/*
+				 *  In case of an invalid number, the server returns this body:
+				 *  {
+				 *    "api_id": "d37761b4-b555-11e7-8bc8-065f6a74a84a",
+				 *    "error": "'31612345' is not a valid phone number."
+				 *  }
+				 */
+				// @formatter:on
+				if (httpResponseBody != null && httpResponseBody.contains("is not a valid phone number"))
+				{
+					throw InvalidDataException.invalidMobileNumber(phoneNumber);
+				}
 				throw SmsException.smsSendingFailed(httpResponseCode, httpResponseBody);
 			}
 		}
