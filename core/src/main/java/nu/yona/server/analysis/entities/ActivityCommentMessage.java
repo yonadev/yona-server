@@ -34,7 +34,7 @@ public class ActivityCommentMessage extends BuddyMessage
 	 * OneToOne relationship. This trick delivers a considerable performance benefit.
 	 */
 	@OneToMany(mappedBy = "buddyMessage", fetch = FetchType.LAZY)
-	private List<ActivityCommentMessage> senderCopyMessageList;
+	private List<ActivityCommentMessage> senderCopyMessageHolder;
 
 	/**
 	 * Buddy comment messages are always sent in pairs: a message to the buddy and a copy for the user. This is one of the two
@@ -85,20 +85,28 @@ public class ActivityCommentMessage extends BuddyMessage
 
 	public ActivityCommentMessage getSenderCopyMessage()
 	{
-		return (this.senderCopyMessageList == null || this.senderCopyMessageList.isEmpty()) ? null
-				: this.senderCopyMessageList.get(0);
+		return getFromHolder(this.senderCopyMessageHolder);
 	}
 
 	private void setSenderCopyMessage(ActivityCommentMessage senderCopyMessage)
 	{
-		if (this.senderCopyMessageList == null)
+		this.senderCopyMessageHolder = setToHolder(this.senderCopyMessageHolder, senderCopyMessage);
+	}
+
+	private static <T> T getFromHolder(List<T> holder)
+	{
+		return (holder == null || holder.isEmpty()) ? null : holder.get(0);
+	}
+
+	private static <T> List<T> setToHolder(List<T> holder, T value)
+	{
+		if (holder == null)
 		{
-			this.senderCopyMessageList = Arrays.asList(senderCopyMessage);
+			return Arrays.asList(value);
 		}
-		else
-		{
-			this.senderCopyMessageList.set(0, senderCopyMessage);
-		}
+
+		holder.set(0, value);
+		return holder;
 	}
 
 	@Override
@@ -142,7 +150,7 @@ public class ActivityCommentMessage extends BuddyMessage
 	{
 		super.prepareForDelete();
 		buddyMessage = null;
-		senderCopyMessageList = null;
+		senderCopyMessageHolder = null;
 	}
 
 	@Override
