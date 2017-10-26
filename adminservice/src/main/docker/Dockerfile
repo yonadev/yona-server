@@ -1,4 +1,4 @@
-FROM openjdk:8
+FROM openjdk:8-jre-alpine
 
 WORKDIR /opt/app
 
@@ -8,6 +8,6 @@ VOLUME /tmp
 
 ADD adminservice.jar app.jar
 
-RUN bash -c 'touch /app.jar'
+RUN sh -c 'touch /app.jar'
 
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/urandom","-jar","app.jar", "--management.port=9080"]

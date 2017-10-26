@@ -21,6 +21,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.analysis.service.ActivityCommentMessageDto;
+import nu.yona.server.analysis.service.ActivityDto;
 import nu.yona.server.analysis.service.DayActivityDto;
 import nu.yona.server.analysis.service.DayActivityOverviewDto;
 import nu.yona.server.analysis.service.DayActivityWithBuddiesDto;
@@ -143,6 +145,19 @@ public class UserActivityController extends ActivityControllerBase
 		return getActivityDetailMessages(password, userId, pagedResourcesAssembler, () -> activityService
 				.getUserDayActivityDetailMessages(userId, DayActivityDto.parseDate(dateStr), goalId, pageable),
 				new UserActivityLinkProvider(userId));
+	}
+
+	@RequestMapping(value = DAY_ACTIVITY_DETAIL_URI_FRAGMENT + "/raw/", method = RequestMethod.GET)
+	@ResponseBody
+	public HttpEntity<ActivitiesResource> getRawActivities(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userId, @PathVariable(value = DATE_PATH_VARIABLE) String dateStr,
+			@PathVariable(value = GOAL_PATH_VARIABLE) UUID goalId)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return new ResponseEntity<>(new ActivitiesResourceAssembler(userId, dateStr, goalId).toResource(
+					activityService.getRawActivities(userId, DayActivityDto.parseDate(dateStr), goalId)), HttpStatus.OK);
+		}
 	}
 
 	/**
@@ -263,6 +278,12 @@ public class UserActivityController extends ActivityControllerBase
 	{
 		UserActivityController methodOn = methodOn(UserActivityController.class);
 		return linkTo(methodOn.getUserDayActivityDetail(null, userId, dateStr, goalId));
+	}
+
+	static ControllerLinkBuilder getRawActivitiesLinkBuilder(UUID userId, String dateStr, UUID goalId)
+	{
+		UserActivityController methodOn = methodOn(UserActivityController.class);
+		return linkTo(methodOn.getRawActivities(null, userId, dateStr, goalId));
 	}
 
 	static final class UserActivityLinkProvider implements LinkProvider
@@ -521,6 +542,49 @@ public class UserActivityController extends ActivityControllerBase
 		private void addBuddyLink(UUID userId, UUID buddyId, ActivityForOneUserResource dayActivityResource)
 		{
 			dayActivityResource.add(BuddyController.getBuddyLinkBuilder(userId, buddyId).withRel(BuddyController.BUDDY_LINK));
+		}
+	}
+
+	public static class ActivitiesResource extends Resources<ActivityDto>
+	{
+		public ActivitiesResource(List<ActivityDto> rawActivities)
+		{
+			super(rawActivities);
+		}
+
+	}
+
+	public static class ActivitiesResourceAssembler extends ResourceAssemblerSupport<List<ActivityDto>, ActivitiesResource>
+	{
+		private final UUID userId;
+		private final String dateStr;
+		private final UUID goalId;
+
+		public ActivitiesResourceAssembler(UUID userId, String dateStr, UUID goalId)
+		{
+			super(UserActivityController.class, ActivitiesResource.class);
+			this.userId = userId;
+			this.dateStr = dateStr;
+			this.goalId = goalId;
+		}
+
+		@Override
+		public ActivitiesResource toResource(List<ActivityDto> rawActivities)
+		{
+			ActivitiesResource resource = instantiateResource(rawActivities);
+			addSelfLink(resource);
+			return resource;
+		}
+
+		@Override
+		protected ActivitiesResource instantiateResource(List<ActivityDto> rawActivities)
+		{
+			return new ActivitiesResource(rawActivities);
+		}
+
+		private void addSelfLink(ActivitiesResource resource)
+		{
+			resource.add(getRawActivitiesLinkBuilder(userId, dateStr, goalId).withSelfRel());
 		}
 	}
 }

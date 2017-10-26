@@ -4,14 +4,18 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import nu.yona.server.Constants;
 import nu.yona.server.analysis.entities.Activity;
@@ -54,9 +58,20 @@ public class ActivityDto
 		return new ActivityDto(activity.getStartTimeAsZonedDateTime(), activity.getEndTimeAsZonedDateTime(), activity.getApp());
 	}
 
-	@JsonIgnore
+	@JsonSerialize(using = EmptyOptionalAsEmptyStringSerializer.class)
 	public Optional<String> getApp()
 	{
 		return app;
+	}
+
+	public static class EmptyOptionalAsEmptyStringSerializer extends JsonSerializer<Optional<String>>
+	{
+
+		@Override
+		public void serialize(Optional<String> app, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
+				throws IOException
+		{
+			jsonGenerator.writeObject(app.orElse(""));
+		}
 	}
 }
