@@ -50,27 +50,18 @@ class AnalysisService extends Service
 		yonaServer.setEnableStatistics(enable)
 	}
 
-	def getResource(path, headers = [:], parameters = [:])
-	{
-		yonaServer.getResource(path, headers, parameters)
-	}
-
 	void resetStatistics()
 	{
-		def response = getResource("/hibernateStatistics/", [:], ["reset" : "true"])
-		assert response.status == 200
+		yonaServer.resetStatistics()
 	}
 
 	void clearCaches()
 	{
-		def response = yonaServer.createResource("/hibernateStatistics/clearCaches/", "{}", [:], [:])
-		assert response.status == 200
+		yonaServer.clearCaches()
 	}
 
 	def getStatistics()
 	{
-		def response = getResource("/hibernateStatistics/", [:], ["reset" : "false"])
-		assert response.status == 200
-		response.responseData
+		yonaServer.getStatistics()
 	}
 }
