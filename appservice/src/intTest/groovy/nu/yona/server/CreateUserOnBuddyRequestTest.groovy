@@ -17,10 +17,10 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = appService.addUser(appService.&assertUserCreationResponseDetails, "Richard", "Quinn", "RQ",
-				"+$timestamp")
+				makeMobileNumber(timestamp))
 
 		when:
-		def response = sendBuddyRequestForBob(richard, "+$timestamp")
+		def response = sendBuddyRequestForBob(richard, makeMobileNumber(timestamp))
 
 		then:
 		response.status == 400
@@ -36,7 +36,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 
 		when:
-		def response = sendBuddyRequestForBob(richard, "+$timestamp")
+		def response = sendBuddyRequestForBob(richard, makeMobileNumber(timestamp))
 
 		then:
 		response.status == 201
@@ -53,7 +53,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def mobileNumberBob = "+$timestamp"
+		def mobileNumberBob = makeMobileNumber(timestamp)
 		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 
 		when:
@@ -74,7 +74,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def mobileNumberBob = "+$timestamp"
+		def mobileNumberBob = makeMobileNumber(timestamp)
 		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 		def bob = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
 
@@ -116,7 +116,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def mobileNumberBob = "+$timestamp"
+		def mobileNumberBob = makeMobileNumber(timestamp)
 		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 		def bob = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
 		def newNickname = "Bobby"
@@ -145,7 +145,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def mobileNumberBob = "+$timestamp"
+		def mobileNumberBob = makeMobileNumber(timestamp)
 		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 		def bob = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
 		def newNickname = "Bobby"
@@ -176,7 +176,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def mobileNumberBob = "+$timestamp"
+		def mobileNumberBob = makeMobileNumber(timestamp)
 		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 		def bob = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
 		def newNickname = "Bobby"
@@ -209,7 +209,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def mobileNumberBob = "+$timestamp"
+		def mobileNumberBob = makeMobileNumber(timestamp)
 		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 		def bob = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
 		def newNickname = "Bobby"
@@ -253,7 +253,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def mobileNumberBob = "+$timestamp"
+		def mobileNumberBob = makeMobileNumber(timestamp)
 		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 		def bob = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
 		def newNickname = "Bobby"
@@ -297,7 +297,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def mobileNumberBob = "+$timestamp"
+		def mobileNumberBob = makeMobileNumber(timestamp)
 		sendBuddyRequestForBob(richard, mobileNumberBob)
 
 		when:
@@ -316,7 +316,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, "+$timestamp"))
+		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, makeMobileNumber(timestamp)))
 
 		when:
 		def response = appService.getResource(YonaServer.stripQueryString(inviteUrl), [:], ["tempPassword": "hack", "includePrivateData": "true"])
@@ -334,14 +334,14 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, "+$timestamp"))
+		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, makeMobileNumber(timestamp)))
 
 		when:
 		def response = appService.updateResource(YonaServer.stripQueryString(inviteUrl), """{
 				"firstName":"Richard",
 				"lastName":"Quin",
 				"nickname":"RQ",
-				"mobileNumber":"+$timestamp"
+				"mobileNumber":"${makeMobileNumber(timestamp)}"
 			}""", [:], ["tempPassword": "hack"])
 
 		then:
@@ -373,7 +373,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def mobileNumberBob = "+$timestamp"
+		def mobileNumberBob = makeMobileNumber(timestamp)
 		def responseAddBuddy = sendBuddyRequestForBob(richard, mobileNumberBob)
 		def bobUrl = responseAddBuddy.responseData._embedded."yona:user"._links.self.href
 
@@ -399,7 +399,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 				"firstName":"Richard",
 				"lastName":"Quin",
 				"nickname":"RQ",
-				"mobileNumber":"+$timestamp"
+				"mobileNumber":"${makeMobileNumber(timestamp)}"
 			}""", [:], ["tempPassword": "hack"])
 
 		then:
@@ -414,7 +414,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def mobileNumberBob = "+$timestamp"
+		def mobileNumberBob = makeMobileNumber(timestamp)
 		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 
 		when:
@@ -463,7 +463,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		def richard = addRichard()
-		def mobileNumberBob = "+$timestamp"
+		def mobileNumberBob = makeMobileNumber(timestamp)
 		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
 		appService.requestOverwriteUser(mobileNumberBob)
 		User bob = appService.addUser(this.&assertUserOverwriteResponseDetails, "Bob Changed",
