@@ -51,7 +51,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 	def cleanupSpec()
 	{
 		appService.setEnableStatistics(false)
-		appService.storeStatistics(statistics, "HibernateStatsTest")
+		YonaServer.storeStatistics(statistics, "HibernateStatsTest")
 		buddyUsers.each{ appService.deleteUser(it) }
 		appService.deleteUser(richard)
 	}
