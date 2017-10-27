@@ -44,24 +44,4 @@ class AnalysisService extends Service
 	{
 		yonaServer.postJson(USER_ANONYMIZED_PATH + vpnLoginId + "/networkActivity/", jsonString)
 	}
-
-	void setEnableStatistics(def enable)
-	{
-		yonaServer.setEnableStatistics(enable)
-	}
-
-	void resetStatistics()
-	{
-		yonaServer.resetStatistics()
-	}
-
-	void clearCaches()
-	{
-		yonaServer.clearCaches()
-	}
-
-	def getStatistics()
-	{
-		yonaServer.getStatistics()
-	}
 }

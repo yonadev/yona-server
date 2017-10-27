@@ -263,11 +263,6 @@ class AppService extends Service
 		assert response.status >= 200 && response.status < 300
 	}
 
-	def isSuccess(def response)
-	{
-		response.status >= 200 && response.status < 300
-	}
-
 	void makeBuddies(User requestingUser, User respondingUser)
 	{
 		sendBuddyConnectRequest(requestingUser, respondingUser)
@@ -591,51 +586,6 @@ class AppService extends Service
 	def postAppActivityToAnalysisEngine(User user, def appActivity)
 	{
 		yonaServer.createResourceWithPassword(user.appActivityUrl, appActivity.getJson(), user.password)
-	}
-
-	void setEnableStatistics(def enable)
-	{
-		yonaServer.setEnableStatistics(enable)
-	}
-
-	void resetStatistics()
-	{
-		yonaServer.resetStatistics()
-	}
-
-	void clearCaches()
-	{
-		yonaServer.clearCaches()
-	}
-
-	def getStatistics()
-	{
-		yonaServer.getStatistics()
-	}
-
-	def createResourceWithPassword(path, jsonString, password, parameters = [:])
-	{
-		yonaServer.createResource(path, jsonString, ["Yona-Password": password], parameters)
-	}
-
-	def deleteResourceWithPassword(path, password, parameters = [:])
-	{
-		yonaServer.deleteResourceWithPassword(path, password, parameters)
-	}
-
-	def getResourceWithPassword(path, password, parameters = [:])
-	{
-		yonaServer.getResourceWithPassword(path, password, parameters)
-	}
-
-	def getResource(path, headers = [:], parameters = [:])
-	{
-		yonaServer.getResource(path, headers, parameters)
-	}
-
-	def updateResource(path, jsonString, headers = [:], parameters = [:])
-	{
-		yonaServer.updateResource(path, jsonString, headers, parameters)
 	}
 
 	def composeActivityCategoryUrl(def activityCategoryId) {
