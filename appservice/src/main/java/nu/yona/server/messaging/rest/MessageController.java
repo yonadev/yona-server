@@ -67,6 +67,7 @@ import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDto;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDto;
 import nu.yona.server.subscriptions.service.GoalIdMapping;
+import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
@@ -106,10 +107,11 @@ public class MessageController
 	private HttpEntity<PagedResources<MessageDto>> getMessages(UUID userId, Pageable pageable,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler, boolean onlyUnreadMessages)
 	{
-		messageService.prepareMessageCollection(userId);
-		Page<MessageDto> messages = messageService.getReceivedMessages(userId, onlyUnreadMessages, pageable);
+		UserDto user = userService.getPrivateValidatedUser(userId);
+		user = messageService.prepareMessageCollection(user);
+		Page<MessageDto> messages = messageService.getReceivedMessages(user, onlyUnreadMessages, pageable);
 		return createOkResponse(pagedResourcesAssembler.toResource(messages,
-				new MessageResourceAssembler(curieProvider, createGoalIdMapping(userId), this)));
+				new MessageResourceAssembler(curieProvider, createGoalIdMapping(user), this)));
 	}
 
 	@RequestMapping(value = "/{messageId}", method = RequestMethod.GET)
@@ -119,13 +121,14 @@ public class MessageController
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return createOkResponse(toMessageResource(createGoalIdMapping(userId), messageService.getMessage(userId, messageId)));
+			UserDto user = userService.getPrivateValidatedUser(userId);
+			return createOkResponse(toMessageResource(createGoalIdMapping(user), messageService.getMessage(user, messageId)));
 		}
 	}
 
-	private GoalIdMapping createGoalIdMapping(UUID userId)
+	private GoalIdMapping createGoalIdMapping(UserDto user)
 	{
-		return GoalIdMapping.createInstance(userService.getPrivateUser(userId));
+		return GoalIdMapping.createInstance(user);
 	}
 
 	public MessageDto toMessageResource(GoalIdMapping goalIdMapping, MessageDto message)
@@ -141,8 +144,10 @@ public class MessageController
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
+			UserDto user = userService.getPrivateValidatedUser(userId);
+
 			return createOkResponse(new MessageActionResource(curieProvider,
-					messageService.handleMessageAction(userId, id, action, requestPayload), createGoalIdMapping(userId), this));
+					messageService.handleMessageAction(user, id, action, requestPayload), createGoalIdMapping(user), this));
 		}
 	}
 
@@ -154,8 +159,9 @@ public class MessageController
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return createOkResponse(new MessageActionResource(curieProvider, messageService.deleteMessage(userId, messageId),
-					createGoalIdMapping(userId), this));
+			UserDto user = userService.getPrivateValidatedUser(userId);
+			return createOkResponse(new MessageActionResource(curieProvider, messageService.deleteMessage(user, messageId),
+					createGoalIdMapping(user), this));
 		}
 	}
 
