@@ -186,6 +186,7 @@ analysis:
 
 app:
   max_users: 100
+  enable_hibernate_stats_allowed: false
   whitelist:
     active_free_signup: false
     active_invited_users: false
