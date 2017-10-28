@@ -53,9 +53,8 @@ public class MessageService
 	private TheDtoManager dtoManager;
 
 	@Transactional
-	public Page<MessageDto> getReceivedMessages(UUID userId, boolean onlyUnreadMessages, Pageable pageable)
+	public Page<MessageDto> getReceivedMessages(UserDto user, boolean onlyUnreadMessages, Pageable pageable)
 	{
-		UserDto user = userService.getPrivateValidatedUser(userId);
 		return wrapMessagesAsDtos(user, getReceivedMessageEntities(user, onlyUnreadMessages, pageable), pageable);
 	}
 
@@ -82,13 +81,13 @@ public class MessageService
 
 	// handle in a separate transaction to limit exceptions caused by concurrent calls to this method
 	@Transactional
-	public void prepareMessageCollection(UUID userId)
+	public UserDto prepareMessageCollection(UserDto user)
 	{
-		UserDto user = userService.getPrivateValidatedUser(userId);
 		try
 		{
 			tryTransferDirectMessagesToAnonymousDestination(user);
 			tryProcessUnprocessedMessages(user);
+			return userService.getPrivateUser(user.getId()); // Message processing might change the user
 		}
 		catch (DataIntegrityViolationException e)
 		{
@@ -100,6 +99,7 @@ public class MessageService
 						"The direct messages of user with mobile number '" + user.getMobileNumber() + "' and ID '" + user.getId()
 								+ "' were apparently concurrently moved to the anonymous messages while handling another request.",
 						e);
+				return user;
 			}
 			else
 			{
@@ -134,33 +134,27 @@ public class MessageService
 		MessageActionDto emptyPayload = new MessageActionDto(Collections.emptyMap());
 		for (long id : idsOfUnprocessedMessages)
 		{
-			handleMessageAction(user.getId(), id, "process", emptyPayload);
+			handleMessageAction(user, id, "process", emptyPayload);
 		}
 	}
 
 	@Transactional
-	public MessageDto getMessage(UUID userId, long messageId)
+	public MessageDto getMessage(UserDto user, long messageId)
 	{
-		UserDto user = userService.getPrivateValidatedUser(userId);
-
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return dtoManager.createInstance(user, messageSource.getMessage(messageId));
 	}
 
 	@Transactional
-	public MessageActionDto handleMessageAction(UUID userId, long id, String action, MessageActionDto requestPayload)
+	public MessageActionDto handleMessageAction(UserDto user, long id, String action, MessageActionDto requestPayload)
 	{
-		UserDto user = userService.getPrivateValidatedUser(userId);
-
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		return dtoManager.handleAction(user, messageSource.getMessage(id), action, requestPayload);
 	}
 
 	@Transactional
-	public MessageActionDto deleteMessage(UUID userId, long id)
+	public MessageActionDto deleteMessage(UserDto user, long id)
 	{
-		UserDto user = userService.getPrivateValidatedUser(userId);
-
 		MessageSource messageSource = getAnonymousMessageSource(user);
 		Message message = messageSource.getMessage(id);
 
