@@ -543,7 +543,7 @@ public class ActivityService
 	{
 		BuddyDto buddy = buddyService.getBuddy(buddyId);
 		return executeAndCreateInactivityEntries(
-				mia -> getWeekActivityDetail(buddy.getUser().getId(), getBuddyUserAnonymizedId(buddy), date, goalId, mia));
+				mia -> getWeekActivityDetail(buddy.getUser().getUserId(), getBuddyUserAnonymizedId(buddy), date, goalId, mia));
 	}
 
 	private WeekActivityDto getWeekActivityDetail(UUID userId, UUID userAnonymizedId, LocalDate date, UUID goalId,
@@ -594,7 +594,7 @@ public class ActivityService
 	{
 		BuddyDto buddy = buddyService.getBuddy(buddyId);
 		return executeAndCreateInactivityEntries(
-				mia -> getDayActivityDetail(buddy.getUser().getId(), getBuddyUserAnonymizedId(buddy), date, goalId, mia));
+				mia -> getDayActivityDetail(buddy.getUser().getUserId(), getBuddyUserAnonymizedId(buddy), date, goalId, mia));
 	}
 
 	private DayActivityDto getDayActivityDetail(UUID userId, UUID userAnonymizedId, LocalDate date, UUID goalId,
@@ -704,7 +704,7 @@ public class ActivityService
 			IntervalActivity intervalActivityEntity, Optional<Message> repliedMessage, boolean isSentItem, String messageText)
 	{
 		ActivityCommentMessage message;
-		BuddyInfoParameters buddyInfoParameters = new BuddyInfoParameters(sendingUser.getId(), relatedUserAnonymizedId,
+		BuddyInfoParameters buddyInfoParameters = new BuddyInfoParameters(sendingUser.getUserId(), relatedUserAnonymizedId,
 				sendingUser.getPrivateData().getNickname(), sendingUser.getPrivateData().getUserPhotoId());
 		if (repliedMessage.isPresent())
 		{

@@ -29,7 +29,7 @@ public class UserPrivateDto
 	private final Optional<LocalDate> lastMonitoredActivityDate;
 	private final String yonaPassword;
 	private final String nickname;
-	private final Optional<UUID> userPhotoId;
+	private Optional<UUID> userPhotoId;
 	private final Set<GoalDto> goals;
 	private final VPNProfileDto vpnProfile;
 	private final UUID userAnonymizedId;
@@ -125,5 +125,10 @@ public class UserPrivateDto
 	public UUID getUserAnonymizedId()
 	{
 		return userAnonymizedId;
+	}
+
+	public void setUserPhotoId(Optional<UUID> userPhotoId)
+	{
+		this.userPhotoId = userPhotoId;
 	}
 }

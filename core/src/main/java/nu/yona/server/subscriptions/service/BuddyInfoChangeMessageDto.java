@@ -112,7 +112,7 @@ public class BuddyInfoChangeMessageDto extends BuddyMessageLinkedUserDto
 		{
 			if (messageEntity.getRelatedUserAnonymizedId().isPresent())
 			{
-				buddyService.updateBuddyUserInfo(actingUser.getId(), messageEntity.getRelatedUserAnonymizedId().get(),
+				buddyService.updateBuddyUserInfo(actingUser.getUserId(), messageEntity.getRelatedUserAnonymizedId().get(),
 						messageEntity.getNewNickname(), messageEntity.getNewUserPhotoId());
 			}
 

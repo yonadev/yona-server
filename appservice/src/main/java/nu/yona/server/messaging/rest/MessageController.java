@@ -400,7 +400,7 @@ public class MessageController
 		private void addUserLinkIfAvailable(BuddyMessageLinkedUserDto buddyMessage)
 		{
 			buddyMessage.getSenderUser()
-					.ifPresent(user -> buddyMessage.add(UserController.getPublicUserLink(BuddyDto.USER_REL_NAME, user.getId())));
+					.ifPresent(user -> buddyMessage.add(UserController.getPublicUserLink(BuddyDto.USER_REL_NAME, user.getUserId())));
 		}
 
 		private void addActivityCommentMessageLinks(ActivityCommentMessageDto message)

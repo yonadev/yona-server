@@ -211,13 +211,13 @@ public abstract class MessageDto extends PolymorphicDto
 
 		private SenderInfo createSenderInfoForSelf(UserDto actingUser)
 		{
-			return senderInfoFactory.createInstanceForSelf(actingUser.getId(), actingUser.getPrivateData().getNickname(),
+			return senderInfoFactory.createInstanceForSelf(actingUser.getUserId(), actingUser.getPrivateData().getNickname(),
 					actingUser.getPrivateData().getUserPhotoId());
 		}
 
 		private SenderInfo createSenderInfoForBuddy(BuddyDto buddy)
 		{
-			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getId(), buddy.getNickname(), buddy.getUserPhotoId(),
+			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getUserId(), buddy.getNickname(), buddy.getUserPhotoId(),
 					buddy.getId());
 		}
 

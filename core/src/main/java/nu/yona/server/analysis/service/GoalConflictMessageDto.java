@@ -184,7 +184,7 @@ public class GoalConflictMessageDto extends MessageDto
 			MessageDestinationDto messageDestination = userAnonymizedService
 					.getUserAnonymized(messageEntity.getRelatedUserAnonymizedId().get()).getAnonymousDestination();
 			messageService.sendMessageAndFlushToDatabase(DisclosureRequestMessage.createInstance(
-					new BuddyInfoParameters(actingUser.getId(), actingUser.getPrivateData().getUserAnonymizedId(),
+					new BuddyInfoParameters(actingUser.getUserId(), actingUser.getPrivateData().getUserAnonymizedId(),
 							actingUser.getPrivateData().getNickname(), actingUser.getPrivateData().getUserPhotoId()),
 					requestPayload.getProperty("message"), messageEntity), messageDestination);
 

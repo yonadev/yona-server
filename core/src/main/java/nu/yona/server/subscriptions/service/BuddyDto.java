@@ -100,7 +100,7 @@ public class BuddyDto
 
 	Buddy createBuddyEntity(Translator translator)
 	{
-		return Buddy.createInstance(user.getId(), determineTempNickname(translator), getSendingStatus(), getReceivingStatus());
+		return Buddy.createInstance(user.getUserId(), determineTempNickname(translator), getSendingStatus(), getReceivingStatus());
 	}
 
 	private String determineTempNickname(Translator translator)

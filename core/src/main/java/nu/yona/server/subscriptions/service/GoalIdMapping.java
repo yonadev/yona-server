@@ -32,7 +32,7 @@ public class GoalIdMapping
 
 	public UUID getUserId()
 	{
-		return user.getId();
+		return user.getUserId();
 	}
 
 	public boolean isUserGoal(UUID goalId)

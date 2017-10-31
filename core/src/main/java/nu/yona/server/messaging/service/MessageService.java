@@ -97,7 +97,7 @@ public class MessageService
 				// Ignore and proceed. Another concurrent thread has transferred the messages.
 				// We avoid a lock here because that limits scaling this service horizontally.
 				logger.info(
-						"The direct messages of user with mobile number '" + user.getMobileNumber() + "' and ID '" + user.getId()
+						"The direct messages of user with mobile number '" + user.getMobileNumber() + "' and ID '" + user.getUserId()
 								+ "' were apparently concurrently moved to the anonymous messages while handling another request.",
 						e);
 			}
@@ -134,7 +134,7 @@ public class MessageService
 		MessageActionDto emptyPayload = new MessageActionDto(Collections.emptyMap());
 		for (long id : idsOfUnprocessedMessages)
 		{
-			handleMessageAction(user.getId(), id, "process", emptyPayload);
+			handleMessageAction(user.getUserId(), id, "process", emptyPayload);
 		}
 	}
 

@@ -147,8 +147,8 @@ public class BuddyService
 
 		logger.info(
 				"User with mobile number '{}' and ID '{}' sent buddy connect message to {} user with mobile number '{}' and ID '{}' as buddy",
-				requestingUser.getMobileNumber(), requestingUser.getId(), (buddyUserExists) ? "new" : "existing",
-				buddy.getUser().getMobileNumber(), buddy.getUser().getId());
+				requestingUser.getMobileNumber(), requestingUser.getUserId(), (buddyUserExists) ? "new" : "existing",
+				buddy.getUser().getMobileNumber(), buddy.getUser().getUserId());
 
 		return savedBuddy;
 	}
@@ -279,7 +279,7 @@ public class BuddyService
 		UserDto user = userService.createUserDtoWithPrivateData(userEntity);
 		do
 		{
-			messagePage = messageService.getReceivedMessageEntitiesSinceDate(user.getId(), buddy.getLastStatusChangeTime(),
+			messagePage = messageService.getReceivedMessageEntitiesSinceDate(user.getUserId(), buddy.getLastStatusChangeTime(),
 					new PageRequest(page++, pageSize));
 
 			messageFound = processPossiblePendingBuddyResponseMessage(user, buddy, messagePage);
@@ -593,7 +593,7 @@ public class BuddyService
 		boolean isRequestingReceiving = buddy.getSendingStatus() == Status.REQUESTED;
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
 		messageService.sendMessageAndFlushToDatabase(BuddyConnectRequestMessage.createInstance(
-				new BuddyInfoParameters(requestingUser.getId(), requestingUser.getPrivateData().getUserAnonymizedId(),
+				new BuddyInfoParameters(requestingUser.getUserId(), requestingUser.getPrivateData().getUserAnonymizedId(),
 						requestingUser.getPrivateData().getNickname(), requestingUser.getPrivateData().getUserPhotoId()),
 				buddy.getPersonalInvitationMessage(), savedBuddyEntity.getId(), isRequestingSending, isRequestingReceiving),
 				MessageDestinationDto.createInstance(messageDestination));

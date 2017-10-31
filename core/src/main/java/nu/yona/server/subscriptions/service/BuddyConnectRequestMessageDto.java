@@ -158,7 +158,7 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 		{
 			logger.info(
 					"User with mobile number '{}' and ID '{}' accepted buddy connect request from user with mobile number '{}' and ID '{}'",
-					actingUser.getMobileNumber(), actingUser.getId(), senderUser.getMobileNumber(), senderUser.getId());
+					actingUser.getMobileNumber(), actingUser.getUserId(), senderUser.getMobileNumber(), senderUser.getId());
 		}
 
 		private MessageActionDto handleAction_Reject(UserDto actingUser, BuddyConnectRequestMessage connectRequestMessageEntity,
@@ -181,7 +181,7 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 			String id = connectRequestMessageEntity.getSenderUser().map(u -> u.getId().toString()).orElse("already deleted");
 			logger.info(
 					"User with mobile number '{}' and ID '{}' rejected buddy connect request from user with mobile number '{}' and ID '{}'",
-					actingUser.getMobileNumber(), actingUser.getId(), mobileNumber, id);
+					actingUser.getMobileNumber(), actingUser.getUserId(), mobileNumber, id);
 		}
 
 		private BuddyConnectRequestMessage updateMessageStatusAsAccepted(BuddyConnectRequestMessage connectRequestMessageEntity)
@@ -200,7 +200,7 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 				BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage)
 		{
 			buddyService.sendBuddyConnectResponseMessage(
-					new BuddyInfoParameters(respondingUser.getId(), respondingUser.getPrivateData().getUserAnonymizedId(),
+					new BuddyInfoParameters(respondingUser.getUserId(), respondingUser.getPrivateData().getUserAnonymizedId(),
 							respondingUser.getPrivateData().getNickname(), respondingUser.getPrivateData().getUserPhotoId()),
 					connectRequestMessageEntity.getRelatedUserAnonymizedId().get(), connectRequestMessageEntity.getBuddyId(),
 					connectRequestMessageEntity.getStatus(), responseMessage);
