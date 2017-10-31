@@ -6,27 +6,40 @@
  *******************************************************************************/
 package nu.yona.server
 
+import org.apache.http.HttpEntity
 import org.apache.http.entity.mime.MultipartEntityBuilder
 import org.apache.http.entity.mime.content.InputStreamBody
+import org.codehaus.groovy.runtime.MethodClosure
 
 import groovy.json.*
 import nu.yona.server.test.User
+import spock.lang.IgnoreRest
 
 class UserPhotoTest extends AbstractAppServiceIntegrationTest
 {
 	def 'User uploads user photo'()
 	{
+		given:
+		appService.yonaServer.restClient.encoder.putAt("multipart/form-data", new MethodClosure(this, 'encodeMultipartEntity'))
+		def multipartEntity = MultipartEntityBuilder.create()
+				.addPart("file", new InputStreamBody(new ByteArrayInputStream(Base64.getDecoder().decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")), "image/gif", "MyPhoto.png"))
+				.build()
+
 		when:
-		MultipartEntityBuilder multiPartContent = new MultipartEntityBuilder()
-		multiPartContent.addPart("file", new InputStreamBody(multipartImageFile.inputStream, multipartImageFile.contentType, multipartImageFile.originalFilename))
-		def response = appService.yonaServer.restClient.post(path: "/userPhotos/", contentType:"multipart/form-data", body: multiPartContent)
+		def response = appService.yonaServer.restClient.post(path: "/userPhotos/", requestContentType :"multipart/form-data", body: multipartEntity)
 
 		then:
 		response.status == 201
 		response.contentType == "application/json"
-		response.responseData._links.self.href != null
+		response.responseData?._links?.self?.href != null
 	}
 
+	def encodeMultipartEntity(HttpEntity entity)
+	{
+		return entity
+	}
+
+	@IgnoreRest
 	def 'User downloads user photo'()
 	{
 		given:
@@ -38,6 +51,9 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 200
 		response.contentType == "image/png"
+
+		cleanup:
+		appService.deleteUser(richard)
 	}
 
 	def 'User adds user photo on create'()
@@ -46,9 +62,10 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def userPhotoUrl = "TODO"
 
 		when:
-		def richard = appService.addUser(User.makeUserJsonString("Richard", "Quinn", "RQ", userPhotoUrl, "+$timestamp"))
+		def response = appService.addUser(User.makeUserJsonString("Richard", "Quinn", "RQ", userPhotoUrl, "+$timestamp"))
 
 		then:
+		def richard = new User(response.responseData)
 		richard.userPhotoUrl == userPhotoUrl
 
 		cleanup:
@@ -108,13 +125,18 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def addRichardWithPhoto()
+	def 'After delete of user, user photo is also deleted'()
 	{
-		def richard = addRichard()
-		def userPhotoUrl = "TODO"
-		def richardJsonWithPhoto = richard.convertToJson()
-		richardJsonWithPhoto._links."yona:userPhoto" = userPhotoUrl
-		return appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(richardJsonWithPhoto))
+		given:
+		def richard = addRichardWithPhoto()
+		def richardPhotoUrl = richard.userPhotoUrl
+		appService.deleteUser(richard)
+
+		when:
+		def response = appService.yonaServer.restClient.get(path: richardPhotoUrl)
+
+		then:
+		response.status == 404
 	}
 
 	def 'Buddy updates user photo which causes buddy info change message and user photo update on process'()
@@ -151,5 +173,14 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
+	}
+
+	def addRichardWithPhoto()
+	{
+		def richard = addRichard()
+		def userPhotoUrl = "TODO"
+		def richardJsonWithPhoto = richard.convertToJson()
+		richardJsonWithPhoto._links."yona:userPhoto" = ["href": userPhotoUrl]
+		return appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(richardJsonWithPhoto))
 	}
 }

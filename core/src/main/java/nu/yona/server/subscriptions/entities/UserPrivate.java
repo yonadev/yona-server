@@ -196,4 +196,9 @@ public class UserPrivate extends EntityWithUuid
 	{
 		return Optional.ofNullable(userPhotoId);
 	}
+
+	public void setUserPhotoId(Optional<UUID> userPhotoId)
+	{
+		this.userPhotoId = userPhotoId.orElse(null);
+	}
 }

@@ -104,7 +104,7 @@ class User
 	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, userPhotoUrl, mobileNumber)
 	{
 		def selfLinkString = (url) ? """"self":{"href":"$url"},""" : ""
-		def userPhotoLinkString = (userPhotoUrl) ? """"userPhoto":{"href":"$userPhotoUrl"},""" : ""
+		def userPhotoLinkString = (userPhotoUrl) ? """"yona:userPhoto":{"href":"$userPhotoUrl"},""" : ""
 		def passwordString = (password) ? """"yonaPassword":"${password}",""" : ""
 		def json = """{
 				"_links":{

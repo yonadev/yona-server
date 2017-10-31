@@ -344,4 +344,9 @@ public class User extends EntityWithUuid
 	{
 		return getUserPrivate().getUserPhotoId();
 	}
+
+	public void setUserPhotoId(Optional<UUID> userPhotoId)
+	{
+		getUserPrivate().setUserPhotoId(userPhotoId);
+	}
 }

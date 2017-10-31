@@ -542,9 +542,20 @@ public class UserController
 					pinResetRequestController.addLinks(userResource);
 					addSslRootCertificateLink(userResource);
 					addAppleMobileConfigLink(userResource);
+					addUserPhotoLink(userResource);
 				}
 			}
 			return userResource;
+		}
+
+		private void addUserPhotoLink(UserResource userResource)
+		{
+			Optional<UUID> userPhotoId = userResource.getContent().getPrivateData().getUserPhotoId();
+			if (userPhotoId.isPresent())
+			{
+				userResource
+						.add(linkTo(methodOn(UserPhotoController.class).getUserPhoto(userPhotoId.get())).withRel("userPhoto"));
+			}
 		}
 
 		private void addAppleMobileConfigLink(UserResource userResource)
