@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -58,12 +57,6 @@ public class BuddyAnonymized extends EntityWithUuid
 	 * other side.
 	 */
 	private Status receivingStatus = Status.NOT_REQUESTED;
-
-	/**
-	 * @deprecated only for use by migration step.
-	 */
-	@Deprecated
-	private LocalDateTime lastStatusChangeTime;
 
 	// Default constructor is required for JPA
 	public BuddyAnonymized()
@@ -153,23 +146,5 @@ public class BuddyAnonymized extends EntityWithUuid
 		this.sendingStatus = Status.REJECTED;
 		this.receivingStatus = Status.REJECTED;
 		this.userAnonymizedId = null;
-	}
-
-	/**
-	 * @deprecated only for use by migration step.
-	 */
-	@Deprecated
-	public LocalDateTime getLastStatusChangeTime()
-	{
-		return lastStatusChangeTime;
-	}
-
-	/**
-	 * @deprecated only for use by migration step.
-	 */
-	@Deprecated
-	public void clearLastStatusChangeTime()
-	{
-		lastStatusChangeTime = null;
 	}
 }
