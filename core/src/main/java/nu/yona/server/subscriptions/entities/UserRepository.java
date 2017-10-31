@@ -21,6 +21,12 @@ public interface UserRepository extends JpaRepository<User, UUID>
 
 	int countByAppLastOpenedDateIsNull();
 
+	int countByMobileNumberConfirmationCodeIsNull();
+
+	int countByMobileNumberConfirmationCodeIsNotNull();
+
+	int countByMobileNumberConfirmationCodeIsNotNullAndIsCreatedOnBuddyRequest(boolean isCreatedOnBuddyRequest);
+
 	@Query("select u from User u where u.newDeviceRequest != null and u.newDeviceRequest.creationTime < :cuttOffDate")
 	Set<User> findAllWithExpiredNewDeviceRequests(@Param("cuttOffDate") LocalDateTime cuttOffDate);
 }
