@@ -60,6 +60,8 @@ import nu.yona.server.analysis.rest.AppActivityController;
 import nu.yona.server.analysis.rest.UserActivityController;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
+import nu.yona.server.device.rest.DeviceController;
+import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
@@ -375,7 +377,8 @@ public class UserController
 	private static Link getUserLink(String rel, UUID userId, boolean includePrivateData)
 	{
 		return linkTo(methodOn(UserController.class).getUser(Optional.empty(), null,
-				(includePrivateData) ? Boolean.TRUE.toString() : null, userId)).withRel(rel).expand(Collections.singletonMap(TEMP_PASSWORD_PARAM, null));
+				(includePrivateData) ? Boolean.TRUE.toString() : null, userId)).withRel(rel)
+						.expand(Collections.singletonMap(TEMP_PASSWORD_PARAM, null));
 	}
 
 	public static Link getPublicUserLink(String rel, UUID userId)
@@ -439,14 +442,19 @@ public class UserController
 				return Collections.emptyMap();
 			}
 
-			Set<BuddyDto> buddies = getContent().getPrivateData().getBuddies();
 			HashMap<String, Object> result = new HashMap<>();
+
+			Set<BuddyDto> buddies = getContent().getPrivateData().getBuddies();
 			result.put(curieProvider.getNamespacedRelFor(UserDto.BUDDIES_REL_NAME),
 					BuddyController.createAllBuddiesCollectionResource(curieProvider, getContent().getId(), buddies));
 
 			Set<GoalDto> goals = getContent().getPrivateData().getGoals();
 			result.put(curieProvider.getNamespacedRelFor(UserDto.GOALS_REL_NAME),
 					GoalController.createAllGoalsCollectionResource(getContent().getId(), goals));
+
+			Set<DeviceBaseDto> devices = getContent().getDevices();
+			result.put(curieProvider.getNamespacedRelFor(UserDto.DEVICES_REL_NAME),
+					DeviceController.createAllDevicesCollectionResource(curieProvider, getContent().getId(), devices));
 
 			return result;
 		}

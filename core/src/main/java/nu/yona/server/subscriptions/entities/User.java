@@ -19,6 +19,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import nu.yona.server.crypto.seckey.CryptoSession;
+import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
@@ -264,9 +265,10 @@ public class User extends EntityWithUuid
 		return getUserPrivate().getUserAnonymized();
 	}
 
-	public void touch()
+	public User touch()
 	{
 		getUserPrivate().touch();
+		return this;
 	}
 
 	public void loadFully()
@@ -344,5 +346,20 @@ public class User extends EntityWithUuid
 	public void setPrivateDataMigrationVersion(int privateDataMigrationVersion)
 	{
 		this.privateDataMigrationVersion = privateDataMigrationVersion;
+	}
+
+	public Set<UserDevice> getDevices()
+	{
+		return getUserPrivate().getDevices();
+	}
+
+	public void addDevice(UserDevice device)
+	{
+		getUserPrivate().addDevice(device);
+	}
+
+	public void removeDevice(UserDevice device)
+	{
+		getUserPrivate().removeDevice(device);
 	}
 }

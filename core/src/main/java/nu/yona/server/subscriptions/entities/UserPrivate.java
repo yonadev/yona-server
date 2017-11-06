@@ -14,7 +14,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -28,18 +27,15 @@ import org.hibernate.annotations.FetchMode;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.StringFieldEncryptor;
 import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
-import nu.yona.server.entities.EntityWithUuid;
+import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.messaging.entities.MessageSource;
 
 @Entity
 @Table(name = "USERS_PRIVATE")
-public class UserPrivate extends EntityWithUuid
+public class UserPrivate extends EntityWithUuidAndTouchVersion
 {
 
 	private static final String DECRYPTION_CHECK_STRING = "Decrypted properly#";
-
-	@Column(nullable = true)
-	private int touchVersion;
 
 	@Convert(converter = StringFieldEncryptor.class)
 	private String decryptionCheck;
@@ -64,6 +60,11 @@ public class UserPrivate extends EntityWithUuid
 	@Convert(converter = StringFieldEncryptor.class)
 	private String vpnPassword;
 
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+	@JoinColumn(name = "user_private_id", referencedColumnName = "id")
+	@Fetch(FetchMode.JOIN)
+	private Set<UserDevice> devices;
+
 	// Default constructor is required for JPA
 	public UserPrivate()
 	{
@@ -81,6 +82,7 @@ public class UserPrivate extends EntityWithUuid
 		this.buddies = new HashSet<>();
 		this.anonymousMessageSourceId = anonymousMessageSourceId;
 		this.namedMessageSourceId = namedMessageSourceId;
+		this.devices = new HashSet<>();
 	}
 
 	public static UserPrivate createInstance(String nickname, String vpnPassword, UUID userAnonymizedId,
@@ -158,9 +160,11 @@ public class UserPrivate extends EntityWithUuid
 		return decryptionCheck != null;
 	}
 
-	public void touch()
+	@Override
+	public UserPrivate touch()
 	{
-		touchVersion++;
+		super.touch();
+		return this;
 	}
 
 	public UUID getUserAnonymizedId()
@@ -187,5 +191,20 @@ public class UserPrivate extends EntityWithUuid
 	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
 	{
 		getUserAnonymized().setLastMonitoredActivityDate(lastMonitoredActivityDate);
+	}
+
+	public Set<UserDevice> getDevices()
+	{
+		return Collections.unmodifiableSet(devices);
+	}
+
+	public void addDevice(UserDevice device)
+	{
+		devices.add(device);
+	}
+
+	public void removeDevice(UserDevice device)
+	{
+		devices.remove(device);
 	}
 }

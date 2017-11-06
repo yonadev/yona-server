@@ -22,6 +22,7 @@ import javax.persistence.Table;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Where;
 
+import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
@@ -47,6 +48,9 @@ public class UserAnonymized extends EntityWithUuid
 	 */
 	@OneToMany(mappedBy = "owningUserAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<BuddyAnonymized> buddiesAnonymized;
+
+	@OneToMany(mappedBy = "userAnonymized", cascade = CascadeType.ALL, orphanRemoval = true)
+	private Set<DeviceAnonymized> devicesAnonymized;
 
 	// Default constructor is required for JPA
 	public UserAnonymized()
@@ -111,12 +115,6 @@ public class UserAnonymized extends EntityWithUuid
 		buddyAnonimized.clearOwningUserAnonymized();
 	}
 
-	public UUID getVpnLoginId()
-	{
-		// these are the same for performance
-		return getId();
-	}
-
 	public Set<BuddyAnonymized> getBuddiesAnonymized()
 	{
 		return buddiesAnonymized;
@@ -134,5 +132,23 @@ public class UserAnonymized extends EntityWithUuid
 		{
 			throw new IllegalArgumentException("Goal was not found");
 		}
+	}
+
+	public void addDeviceAnonymized(DeviceAnonymized deviceAnonimized)
+	{
+		devicesAnonymized.add(deviceAnonimized);
+		deviceAnonimized.setUserAnonymized(this);
+	}
+
+	public void removeDeviceAnonymized(DeviceAnonymized deviceAnonimized)
+	{
+		boolean removed = devicesAnonymized.remove(deviceAnonimized);
+		assert removed;
+		deviceAnonimized.clearUserAnonymized();
+	}
+
+	public Set<DeviceAnonymized> getDevicesAnonymized()
+	{
+		return devicesAnonymized;
 	}
 }
