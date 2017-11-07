@@ -64,7 +64,7 @@ public class NewDeviceRequestController
 		try
 		{
 			userService.assertValidMobileNumber(mobileNumber);
-			UUID userId = userService.getUserByMobileNumber(mobileNumber).getUserId();
+			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
 			checkPassword(Optional.of(password), userId);
 			newDeviceRequestService.setNewDeviceRequestForUser(userId, password,
 					newDeviceRequestCreation.getNewDeviceRequestPassword());
@@ -89,7 +89,7 @@ public class NewDeviceRequestController
 			userService.assertValidMobileNumber(mobileNumber);
 			UserDto user = userService.getUserByMobileNumber(mobileNumber);
 			return createNewDeviceRequestResponse(user,
-					newDeviceRequestService.getNewDeviceRequestForUser(user.getUserId(), newDeviceRequestPassword), HttpStatus.OK);
+					newDeviceRequestService.getNewDeviceRequestForUser(user.getId(), newDeviceRequestPassword), HttpStatus.OK);
 		}
 		catch (UserServiceException e)
 		{
@@ -108,7 +108,7 @@ public class NewDeviceRequestController
 		try
 		{
 			userService.assertValidMobileNumber(mobileNumber);
-			UUID userId = userService.getUserByMobileNumber(mobileNumber).getUserId();
+			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
 			checkPassword(password, userId);
 			newDeviceRequestService.clearNewDeviceRequestForUser(userId);
 		}
@@ -189,7 +189,7 @@ public class NewDeviceRequestController
 
 		private void addUserLink(Resource<NewDeviceRequestDto> newDeviceRequestResource)
 		{
-			newDeviceRequestResource.add(UserController.getPrivateUserLink(BuddyDto.USER_REL_NAME, user.getUserId()));
+			newDeviceRequestResource.add(UserController.getPrivateUserLink(BuddyDto.USER_REL_NAME, user.getId()));
 		}
 	}
 }

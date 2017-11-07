@@ -240,7 +240,7 @@ public class UserService
 					SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
 		}
 
-		logger.info("Added new user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getUserId());
+		logger.info("Added new user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getId());
 		return userDto;
 	}
 
@@ -464,7 +464,7 @@ public class UserService
 			sendConfirmationCodeTextMessage(updatedUserEntity.getMobileNumber(), confirmationCode.get(),
 					SmsTemplate.CHANGED_USER_NUMBER_CONFIRMATION);
 		}
-		logger.info("Updated user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getUserId());
+		logger.info("Updated user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getId());
 		buddyService.broadcastUserInfoChangeToBuddies(savedUserEntity, originalUser);
 		return userDto;
 	}
@@ -474,7 +474,7 @@ public class UserService
 		if (originalUserEntity.isCreatedOnBuddyRequest())
 		{
 			// security check: should not be able to update a user created on buddy request with its temp password
-			throw UserServiceException.cannotUpdateBecauseCreatedOnBuddyRequest(user.getUserId());
+			throw UserServiceException.cannotUpdateBecauseCreatedOnBuddyRequest(user.getId());
 		}
 		if (isMobileNumberDifferent(user, originalUser))
 		{
@@ -515,7 +515,7 @@ public class UserService
 				SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
 		UserDto userDto = createUserDtoWithPrivateData(savedUserEntity);
 		logger.info("Updated user (created on buddy request) with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
-				userDto.getUserId());
+				userDto.getId());
 		return userDto;
 	}
 
@@ -617,7 +617,7 @@ public class UserService
 	@Transactional
 	public void addBuddy(UserDto user, BuddyDto buddy)
 	{
-		if (user == null || user.getUserId() == null)
+		if (user == null || user.getId() == null)
 		{
 			throw InvalidDataException.emptyUserId();
 		}
@@ -627,7 +627,7 @@ public class UserService
 			throw InvalidDataException.emptyBuddyId();
 		}
 
-		User userEntity = getUserEntityById(user.getUserId());
+		User userEntity = getUserEntityById(user.getId());
 		userEntity.assertMobileNumberConfirmed();
 
 		Buddy buddyEntity = buddyRepository.findOne(buddy.getId());

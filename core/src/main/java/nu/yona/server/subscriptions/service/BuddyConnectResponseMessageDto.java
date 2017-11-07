@@ -132,7 +132,7 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 
 			if (connectResponseMessageEntity.getStatus() == Status.REJECTED)
 			{
-				buddyService.removeBuddyAfterConnectRejection(actingUser.getUserId(), connectResponseMessageEntity.getBuddyId());
+				buddyService.removeBuddyAfterConnectRejection(actingUser.getId(), connectResponseMessageEntity.getBuddyId());
 			}
 			else
 			{
@@ -142,7 +142,7 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 						connectResponseMessageEntity.getSenderNickname());
 			}
 			// refresh after actions
-			actingUser = userService.getPrivateUser(actingUser.getUserId());
+			actingUser = userService.getPrivateUser(actingUser.getId());
 
 			connectResponseMessageEntity = updateMessageStatusAsProcessed(connectResponseMessageEntity);
 
@@ -159,7 +159,7 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 			String id = senderUser.map(u -> u.getId().toString()).orElse("already deleted");
 			logger.info(
 					"User with mobile number '{}' and ID '{}' processed buddy connect response from user with mobile number '{}' and ID '{}'",
-					actingUser.getMobileNumber(), actingUser.getUserId(), mobileNumber, id);
+					actingUser.getMobileNumber(), actingUser.getId(), mobileNumber, id);
 		}
 
 		private BuddyConnectResponseMessage updateMessageStatusAsProcessed(

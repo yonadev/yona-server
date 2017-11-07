@@ -125,7 +125,7 @@ public class PinResetRequestController
 
 	public void addLinks(UserResource userResource)
 	{
-		ConfirmationCode confirmationCode = userService.getUserEntityById(userResource.getContent().getUserId())
+		ConfirmationCode confirmationCode = userService.getUserEntityById(userResource.getContent().getId())
 				.getPinResetConfirmationCode();
 		if (confirmationCode == null || pinResetRequestService.isExpired(confirmationCode))
 		{
@@ -142,28 +142,28 @@ public class PinResetRequestController
 	private void addPinResetRequestLink(UserResource userResource)
 	{
 		PinResetRequestController methodOn = methodOn(PinResetRequestController.class);
-		ResponseEntity<ConfirmationCodeDelayDto> method = methodOn.requestPinReset(null, userResource.getContent().getUserId());
+		ResponseEntity<ConfirmationCodeDelayDto> method = methodOn.requestPinReset(null, userResource.getContent().getId());
 		addLink(userResource, method, "yona:requestPinReset");
 	}
 
 	private void addVerifyPinResetLink(UserResource userResource)
 	{
 		PinResetRequestController methodOn = methodOn(PinResetRequestController.class);
-		ResponseEntity<Void> method = methodOn.verifyPinResetConfirmationCode(null, userResource.getContent().getUserId(), null);
+		ResponseEntity<Void> method = methodOn.verifyPinResetConfirmationCode(null, userResource.getContent().getId(), null);
 		addLink(userResource, method, "yona:verifyPinReset");
 	}
 
 	private void addResendPinResetConfirmationCodeLink(UserResource userResource)
 	{
 		PinResetRequestController methodOn = methodOn(PinResetRequestController.class);
-		ResponseEntity<Void> method = methodOn.resendPinResetConfirmationCode(null, userResource.getContent().getUserId());
+		ResponseEntity<Void> method = methodOn.resendPinResetConfirmationCode(null, userResource.getContent().getId());
 		addLink(userResource, method, "yona:resendPinResetConfirmationCode");
 	}
 
 	private void addClearPinResetLink(UserResource userResource)
 	{
 		PinResetRequestController methodOn = methodOn(PinResetRequestController.class);
-		ResponseEntity<Void> method = methodOn.clearPinResetRequest(null, userResource.getContent().getUserId());
+		ResponseEntity<Void> method = methodOn.clearPinResetRequest(null, userResource.getContent().getId());
 		addLink(userResource, method, "yona:clearPinReset");
 	}
 

@@ -11,9 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.ResourceSupport;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -31,12 +28,12 @@ import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.util.TimeUtil;
 
 @JsonRootName("user")
-public class UserDto extends ResourceSupport
+public class UserDto
 {
 	public static final String BUDDIES_REL_NAME = "buddies";
 	public static final String GOALS_REL_NAME = "goals";
 
-	private UUID userId;
+	private UUID id;
 	private final Optional<LocalDateTime> creationTime;
 	private final Optional<LocalDate> appLastOpenedDate;
 	private final String firstName;
@@ -76,7 +73,7 @@ public class UserDto extends ResourceSupport
 			String lastName, String emailAddress, String mobileNumber, boolean isMobileNumberConfirmed,
 			UserPrivateDto privateData)
 	{
-		this.userId = id;
+		this.id = id;
 		this.appLastOpenedDate = appLastOpenedDate;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -88,15 +85,15 @@ public class UserDto extends ResourceSupport
 	}
 
 	@JsonIgnore
-	public UUID getUserId()
+	public UUID getId()
 	{
-		return userId;
+		return id;
 	}
 
 	@JsonIgnore
 	public void setUserId(UUID id)
 	{
-		this.userId = id;
+		this.id = id;
 	}
 
 	@JsonProperty("creationTime")
@@ -211,16 +208,5 @@ public class UserDto extends ResourceSupport
 		{
 			throw MobileNumberConfirmationException.notConfirmed(mobileNumber);
 		}
-	}
-
-	public void setUserPhotoId(Optional<UUID> userPhotoId)
-	{
-		privateData.setUserPhotoId(userPhotoId);
-	}
-
-	public Link getLink(String namespacedRelFor)
-	{
-		// TODO Auto-generated method stub
-		return null;
 	}
 }

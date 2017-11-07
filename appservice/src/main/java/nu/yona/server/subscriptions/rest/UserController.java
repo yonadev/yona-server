@@ -186,7 +186,6 @@ public class UserController
 			@RequestParam(value = "overwriteUserConfirmationCode", required = false) String overwriteUserConfirmationCode,
 			@RequestBody UserDto user, HttpServletRequest request)
 	{
-		setUserPhotoId(user);
 		// use DOS protection to prevent overwrite user confirmation code brute forcing,
 		// and to prevent enumeration of all occupied mobile numbers
 		return dosProtectionService.executeAttempt(getAddUserLinkBuilder().toUri(), request,
@@ -200,7 +199,6 @@ public class UserController
 			@RequestParam(value = "tempPassword", required = false) String tempPasswordStr, @PathVariable UUID userId,
 			@RequestBody UserDto userResource, HttpServletRequest request)
 	{
-		setUserPhotoId(userResource);
 		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
 		if (tempPassword.isPresent())
 		{
@@ -239,25 +237,6 @@ public class UserController
 	private HttpEntity<UserResource> updateUser(UUID userId, UserDto userResource)
 	{
 		return createOkResponse(userService.updateUser(userId, userResource), true);
-	}
-
-	private void setUserPhotoId(UserDto user)
-	{
-		Link userPhotoLink = user.getLink(curieProvider.getNamespacedRelFor("userPhoto"));
-		if (userPhotoLink != null)
-		{
-			UUID userPhotoId = determineUserPhotoId(userPhotoLink.getHref());
-			user.setUserPhotoId(Optional.of(userPhotoId));
-		}
-		else
-		{
-			user.setUserPhotoId(Optional.empty());
-		}
-	}
-
-	private static UUID determineUserPhotoId(String userPhotoUrl)
-	{
-		return UUID.fromString(userPhotoUrl.substring(userPhotoUrl.lastIndexOf('/') + 1));
 	}
 
 	@RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
@@ -477,11 +456,11 @@ public class UserController
 			Set<BuddyDto> buddies = getContent().getPrivateData().getBuddies();
 			HashMap<String, Object> result = new HashMap<>();
 			result.put(curieProvider.getNamespacedRelFor(UserDto.BUDDIES_REL_NAME),
-					BuddyController.createAllBuddiesCollectionResource(curieProvider, getContent().getUserId(), buddies));
+					BuddyController.createAllBuddiesCollectionResource(curieProvider, getContent().getId(), buddies));
 
 			Set<GoalDto> goals = getContent().getPrivateData().getGoals();
 			result.put(curieProvider.getNamespacedRelFor(UserDto.GOALS_REL_NAME),
-					GoalController.createAllGoalsCollectionResource(getContent().getUserId(), goals));
+					GoalController.createAllGoalsCollectionResource(getContent().getId(), goals));
 
 			return result;
 		}
@@ -582,7 +561,7 @@ public class UserController
 		private void addAppleMobileConfigLink(UserResource userResource)
 		{
 			userResource.add(linkTo(
-					methodOn(UserController.class).getAppleMobileConfig(Optional.empty(), userResource.getContent().getUserId()))
+					methodOn(UserController.class).getAppleMobileConfig(Optional.empty(), userResource.getContent().getId()))
 							.withRel("appleMobileConfig"));
 		}
 
@@ -599,58 +578,58 @@ public class UserController
 
 		private static void addSelfLink(Resource<UserDto> userResource, boolean includePrivateData)
 		{
-			if (userResource.getContent().getUserId() == null)
+			if (userResource.getContent().getId() == null)
 			{
 				// removed user
 				return;
 			}
 
-			userResource.add(UserController.getUserSelfLink(userResource.getContent().getUserId(), includePrivateData));
+			userResource.add(UserController.getUserSelfLink(userResource.getContent().getId(), includePrivateData));
 		}
 
 		private static void addEditLink(Resource<UserDto> userResource)
 		{
 			userResource.add(linkTo(methodOn(UserController.class).updateUser(Optional.empty(), null,
-					userResource.getContent().getUserId(), null, null)).withRel(JsonRootRelProvider.EDIT_REL));
+					userResource.getContent().getId(), null, null)).withRel(JsonRootRelProvider.EDIT_REL));
 		}
 
 		private static void addConfirmMobileNumberLink(Resource<UserDto> userResource)
 		{
-			userResource.add(UserController.getConfirmMobileLink(userResource.getContent().getUserId()));
+			userResource.add(UserController.getConfirmMobileLink(userResource.getContent().getId()));
 		}
 
 		private static void addResendMobileNumberConfirmationLink(Resource<UserDto> userResource)
 		{
-			userResource.add(UserController.getResendMobileNumberConfirmationLink(userResource.getContent().getUserId()));
+			userResource.add(UserController.getResendMobileNumberConfirmationLink(userResource.getContent().getId()));
 		}
 
 		private static void addPostOpenAppEventLink(Resource<UserDto> userResource)
 		{
-			userResource.add(UserController.getPostOpenAppEventLink(userResource.getContent().getUserId()));
+			userResource.add(UserController.getPostOpenAppEventLink(userResource.getContent().getId()));
 		}
 
 		private void addWeekActivityOverviewsLink(UserResource userResource)
 		{
-			userResource.add(UserActivityController.getUserWeekActivityOverviewsLinkBuilder(userResource.getContent().getUserId())
+			userResource.add(UserActivityController.getUserWeekActivityOverviewsLinkBuilder(userResource.getContent().getId())
 					.withRel(UserActivityController.WEEK_OVERVIEW_LINK));
 		}
 
 		private void addDayActivityOverviewsLink(UserResource userResource)
 		{
-			userResource.add(UserActivityController.getUserDayActivityOverviewsLinkBuilder(userResource.getContent().getUserId())
+			userResource.add(UserActivityController.getUserDayActivityOverviewsLinkBuilder(userResource.getContent().getId())
 					.withRel(UserActivityController.DAY_OVERVIEW_LINK));
 		}
 
 		private void addDayActivityOverviewsWithBuddiesLink(UserResource userResource)
 		{
-			userResource.add(
-					UserActivityController.getDayActivityOverviewsWithBuddiesLinkBuilder(userResource.getContent().getUserId())
+			userResource
+					.add(UserActivityController.getDayActivityOverviewsWithBuddiesLinkBuilder(userResource.getContent().getId())
 							.withRel("dailyActivityReportsWithBuddies"));
 		}
 
 		private void addMessagesLink(UserResource userResource)
 		{
-			userResource.add(MessageController.getMessagesLink(userResource.getContent().getUserId()));
+			userResource.add(MessageController.getMessagesLink(userResource.getContent().getId()));
 		}
 
 		private void addNewDeviceRequestLink(UserResource userResource)
@@ -661,7 +640,7 @@ public class UserController
 
 		private void addAppActivityLink(UserResource userResource)
 		{
-			userResource.add(AppActivityController.getAppActivityLink(userResource.getContent().getUserId()));
+			userResource.add(AppActivityController.getAppActivityLink(userResource.getContent().getId()));
 		}
 	}
 }
