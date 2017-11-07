@@ -5,7 +5,6 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +15,7 @@ import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -30,6 +27,7 @@ import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.rest.DeviceController.DeviceResource;
 import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.device.service.DeviceService;
+import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.service.UserService;
@@ -37,16 +35,16 @@ import nu.yona.server.subscriptions.service.UserService;
 @Controller
 @ExposesResourceFor(DeviceResource.class)
 @RequestMapping(value = "/users/{userId}/devices", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class DeviceController
+public class DeviceController extends ControllerBase
 {
+	@Autowired
+	protected CurieProvider curieProvider;
+
 	@Autowired
 	private DeviceService deviceService;
 
 	@Autowired
 	private UserService userService;
-
-	@Autowired
-	private CurieProvider curieProvider;
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
@@ -55,9 +53,8 @@ public class DeviceController
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return new ResponseEntity<>(
-					createAllDevicesCollectionResource(curieProvider, userId, deviceService.getDevicesOfUser(userId)),
-					HttpStatus.OK);
+			return createOkResponse(deviceService.getDevicesOfUser(userId), createResourceAssembler(userId),
+					getAllDevicesLinkBuilder(userId));
 		}
 	}
 
@@ -68,29 +65,16 @@ public class DeviceController
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-
-			return createOkResponse(userId, deviceService.getDevice(deviceId));
+			return createOkResponse(deviceService.getDevice(deviceId), createResourceAssembler(userId));
 		}
 	}
 
-	private HttpEntity<DeviceResource> createOkResponse(UUID userId, DeviceBaseDto device)
+	private DeviceResourceAssembler createResourceAssembler(UUID userId)
 	{
-		return createResponse(userId, device, HttpStatus.OK);
+		return new DeviceResourceAssembler(curieProvider, userId);
 	}
 
-	private HttpEntity<DeviceResource> createResponse(UUID userId, DeviceBaseDto device, HttpStatus status)
-	{
-		return new ResponseEntity<>(new DeviceResourceAssembler(curieProvider, userId).toResource(device), status);
-	}
-
-	public static Resources<DeviceResource> createAllDevicesCollectionResource(CurieProvider curieProvider, UUID userId,
-			Set<DeviceBaseDto> allBuddiesOfUser)
-	{
-		return new Resources<>(new DeviceResourceAssembler(curieProvider, userId).toResources(allBuddiesOfUser),
-				getAllDevicesLinkBuilder(userId).withSelfRel());
-	}
-
-	static ControllerLinkBuilder getAllDevicesLinkBuilder(UUID userId)
+	public static ControllerLinkBuilder getAllDevicesLinkBuilder(UUID userId)
 	{
 		DeviceController methodOn = methodOn(DeviceController.class);
 		return linkTo(methodOn.getAllDevices(null, userId));
@@ -102,20 +86,20 @@ public class DeviceController
 		return linkTo(methodOn.getDevice(Optional.empty(), userId, deviceId));
 	}
 
-	static class DeviceResource extends Resource<DeviceBaseDto>
+	public static class DeviceResource extends Resource<DeviceBaseDto>
 	{
 		private final CurieProvider curieProvider;
 		private final UUID userId;
 
-		public DeviceResource(CurieProvider curieProvider, UUID userId, DeviceBaseDto buddy)
+		public DeviceResource(CurieProvider curieProvider, UUID userId, DeviceBaseDto device)
 		{
-			super(buddy);
+			super(device);
 			this.curieProvider = curieProvider;
 			this.userId = userId;
 		}
 	}
 
-	static class DeviceResourceAssembler extends ResourceAssemblerSupport<DeviceBaseDto, DeviceResource>
+	public static class DeviceResourceAssembler extends ResourceAssemblerSupport<DeviceBaseDto, DeviceResource>
 	{
 		private final UUID userId;
 		private final CurieProvider curieProvider;

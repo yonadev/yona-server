@@ -18,9 +18,7 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -134,10 +132,8 @@ public class BuddyActivityController extends ActivityControllerBase
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return new ResponseEntity<>(
-					messageController.toMessageResource(createGoalIdMapping(userId), activityService
-							.addMessageToWeekActivity(userId, buddyId, WeekActivityDto.parseDate(dateStr), goalId, newMessage)),
-					HttpStatus.OK);
+			return messageController.createOkResponse(createGoalIdMapping(userId), activityService
+					.addMessageToWeekActivity(userId, buddyId, WeekActivityDto.parseDate(dateStr), goalId, newMessage));
 		}
 	}
 
@@ -177,10 +173,8 @@ public class BuddyActivityController extends ActivityControllerBase
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return new ResponseEntity<>(
-					messageController.toMessageResource(createGoalIdMapping(userId), activityService
-							.addMessageToDayActivity(userId, buddyId, DayActivityDto.parseDate(dateStr), goalId, newMessage)),
-					HttpStatus.OK);
+			return messageController.createOkResponse(createGoalIdMapping(userId), activityService.addMessageToDayActivity(userId,
+					buddyId, DayActivityDto.parseDate(dateStr), goalId, newMessage));
 		}
 	}
 

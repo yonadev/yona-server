@@ -38,13 +38,14 @@ import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
+import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(GoalDto.class)
 @RequestMapping(value = "/users/{userId}/goals", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class GoalController
+public class GoalController extends ControllerBase
 {
 	private static final String ACTIVITY_CATEGORY_REL = "activityCategory";
 
@@ -76,7 +77,7 @@ public class GoalController
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return createResponse(userId, goalService.getGoalForUserId(userId, goalId), HttpStatus.OK);
+			return createOkResponse(goalService.getGoalForUserId(userId, goalId), createResourceAssembler(userId));
 		}
 	}
 
@@ -89,7 +90,8 @@ public class GoalController
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			setActivityCategoryId(goal);
-			return createResponse(userId, goalService.addGoal(userId, goal, Optional.ofNullable(messageStr)), HttpStatus.CREATED);
+			return createResponse(goalService.addGoal(userId, goal, Optional.ofNullable(messageStr)), HttpStatus.CREATED,
+					createResourceAssembler(userId));
 		}
 	}
 
@@ -102,8 +104,8 @@ public class GoalController
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			setActivityCategoryId(goal);
-			return createResponse(userId, goalService.updateGoal(userId, goalId, goal, Optional.ofNullable(messageStr)),
-					HttpStatus.OK);
+			return createOkResponse(goalService.updateGoal(userId, goalId, goal, Optional.ofNullable(messageStr)),
+					createResourceAssembler(userId));
 		}
 	}
 
@@ -119,6 +121,11 @@ public class GoalController
 		}
 	}
 
+	private GoalResourceAssembler createResourceAssembler(UUID userId)
+	{
+		return new GoalResourceAssembler(userId);
+	}
+
 	public static Resources<GoalDto> createAllGoalsCollectionResource(UUID userId, Set<GoalDto> allGoalsOfUser)
 	{
 		return new Resources<>(new GoalResourceAssembler(userId).toResources(allGoalsOfUser),
@@ -129,11 +136,6 @@ public class GoalController
 	{
 		GoalController methodOn = methodOn(GoalController.class);
 		return linkTo(methodOn.getAllGoals(null, userId));
-	}
-
-	private HttpEntity<GoalDto> createResponse(UUID userId, GoalDto goal, HttpStatus status)
-	{
-		return new ResponseEntity<>(new GoalResourceAssembler(userId).toResource(goal), status);
 	}
 
 	private void setActivityCategoryId(GoalDto goal)
