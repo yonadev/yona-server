@@ -388,14 +388,14 @@ class UserTest extends AbstractAppServiceIntegrationTest
 	private User createJohnDoe(def ts)
 	{
 		appService.addUser(appService.&assertUserCreationResponseDetails, firstName, lastName, nickname,
-				"+$ts")
+				makeMobileNumber(ts))
 	}
 
 	private void testUser(User user, includePrivateData, mobileNumberConfirmed, timestamp)
 	{
 		assert user.firstName == "John"
 		assert user.lastName == "Doe"
-		assert user.mobileNumber == "+${timestamp}"
+		assert user.mobileNumber == makeMobileNumber(timestamp)
 		assertEquals(user.creationTime, YonaServer.now)
 		assertEquals(user.appLastOpenedDate, YonaServer.now.toLocalDate())
 

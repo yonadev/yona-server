@@ -20,7 +20,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 	def userCreationJson = """{
 				"firstName":"John",
 				"lastName":"Doe",
-				"mobileNumber":"+${timestamp}",
+				"mobileNumber":"${makeMobileNumber(timestamp)}",
 				"emailAddress":"john@doe.com"
 				}"""
 	def password = "John Doe"
@@ -28,8 +28,8 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 	def 'AddBuddy - empty first name'()
 	{
 		given:
-		User richard = addRichard();
-		
+		User richard = addRichard()
+
 		when:
 		def object = jsonSlurper.parseText(userCreationJson)
 		object.remove('firstName')
@@ -38,7 +38,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 400
 		response.responseData.code == "error.user.firstname"
-		
+
 		cleanup:
 		appService.deleteUser(richard)
 	}
@@ -46,8 +46,8 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 	def 'AddBuddy - empty last name'()
 	{
 		given:
-		User richard = addRichard();
-		
+		User richard = addRichard()
+
 		when:
 		def object = jsonSlurper.parseText(userCreationJson)
 		object.remove('lastName')
@@ -56,7 +56,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 400
 		response.responseData.code == "error.user.lastname"
-		
+
 		cleanup:
 		appService.deleteUser(richard)
 	}
@@ -64,8 +64,8 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 	def 'AddBuddy - empty mobile number'()
 	{
 		given:
-		User richard = addRichard();
-		
+		User richard = addRichard()
+
 		when:
 		def object = jsonSlurper.parseText(userCreationJson)
 		object.remove('mobileNumber')
@@ -74,7 +74,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 400
 		response.responseData.code == "error.user.mobile.number"
-		
+
 		cleanup:
 		appService.deleteUser(richard)
 	}
@@ -82,8 +82,8 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 	def 'AddBuddy - invalid mobile number'()
 	{
 		given:
-		User richard = addRichard();
-		
+		User richard = addRichard()
+
 		when:
 		def object = jsonSlurper.parseText(userCreationJson)
 		object.put('mobileNumber', '++55 5 ')
@@ -92,16 +92,16 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 400
 		response.responseData.code == "error.user.mobile.number.invalid"
-		
+
 		cleanup:
 		appService.deleteUser(richard)
 	}
-	
+
 	def 'AddBuddy - empty email address'()
 	{
 		given:
-		User richard = addRichard();
-		
+		User richard = addRichard()
+
 		when:
 		def object = jsonSlurper.parseText(userCreationJson)
 		object.remove('emailAddress')
@@ -110,7 +110,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 400
 		response.responseData.code == "error.user.email.address"
-		
+
 		cleanup:
 		appService.deleteUser(richard)
 	}
@@ -118,8 +118,8 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 	def 'AddBuddy - invalid email address'()
 	{
 		given:
-		User richard = addRichard();
-		
+		User richard = addRichard()
+
 		when:
 		def object = jsonSlurper.parseText(userCreationJson)
 		object.put('emailAddress', 'a@b')
@@ -140,11 +140,11 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 	}
-	
+
 	def 'Try Richard request himself as buddy'()
 	{
 		given:
-		User richard = addRichard();
+		User richard = addRichard()
 		richard.emailAddress = "richard@quinn.com"
 
 		when:
@@ -153,7 +153,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 400
 		response.responseData.code == "error.buddy.cannot.invite.self"
-		
+
 		cleanup:
 		appService.deleteUser(richard)
 	}
@@ -161,21 +161,20 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 	def 'Try Richard request Bob as buddy twice'()
 	{
 		given:
-		User richard = addRichard();
+		User richard = addRichard()
 		User bob = addBob()
 		bob.emailAddress = "bob@dunn.com"
 		appService.sendBuddyConnectRequest(richard, bob)
-		
+
 		when:
 		def response = appService.sendBuddyConnectRequest(richard, bob, false)
 
 		then:
 		response.status == 400
 		response.responseData.code == "error.buddy.cannot.invite.existing.buddy"
-		
+
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
 	}
-
 }

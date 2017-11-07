@@ -287,7 +287,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 	def 'Hacking attempt: Brute force overwrite user overwrite confirmation'()
 	{
 		given:
-		def userCreationMobileNumber = "+${timestamp}99"
+		def userCreationMobileNumber = makeMobileNumber("${timestamp}99")
 		def userCreationJson = """{
 						"firstName":"John",
 						"lastName":"Doe",

@@ -37,6 +37,7 @@ dependencies {
 	compile "org.springframework.security:spring-security-web:4.0.3.RELEASE"
 	compile "com.google.guava:guava:18.0"
 	compile "com.hazelcast:hazelcast-spring"
+	compile "com.googlecode.libphonenumber:libphonenumber:8.8.4"
 	
 	compile "org.codehaus.groovy:groovy-all:2.4.7"
 	compile "org.codehaus.groovy.modules.http-builder:http-builder:0.7.1"
