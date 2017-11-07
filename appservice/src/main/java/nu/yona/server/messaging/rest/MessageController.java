@@ -53,6 +53,7 @@ import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.rest.ActivityCategoryController;
 import nu.yona.server.goals.service.GoalChangeMessageDto;
+import nu.yona.server.messaging.service.BuddyMessageDto;
 import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDto;
 import nu.yona.server.messaging.service.BuddyMessageLinkedUserDto;
 import nu.yona.server.messaging.service.DisclosureRequestMessageDto;
@@ -63,6 +64,7 @@ import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.rest.UserController;
+import nu.yona.server.subscriptions.rest.UserPhotoController;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDto;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDto;
@@ -295,6 +297,10 @@ public class MessageController
 			{
 				addSenderBuddyLinkIfAvailable(message);
 			}
+			if (message instanceof BuddyMessageDto)
+			{
+				addSenderUserPhotoLinkIfAvailable((BuddyMessageDto) message);
+			}
 			if (message instanceof GoalConflictMessageDto)
 			{
 				addGoalConflictMessageLinks((GoalConflictMessageDto) message);
@@ -331,6 +337,15 @@ public class MessageController
 			{
 				message.add(BuddyController.getBuddyLinkBuilder(goalIdMapping.getUserId(), getSenderBuddyId(message))
 						.withRel(BuddyController.BUDDY_LINK));
+			}
+		}
+
+		private void addSenderUserPhotoLinkIfAvailable(BuddyMessageDto message)
+		{
+			if (message.getSenderUserPhotoId().isPresent())
+			{
+				message.add(
+						UserPhotoController.getUserPhotoLinkBuilder(message.getSenderUserPhotoId().get()).withRel("userPhoto"));
 			}
 		}
 

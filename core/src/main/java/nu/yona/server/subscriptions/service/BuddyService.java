@@ -647,7 +647,7 @@ public class BuddyService
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(updatedUserEntity.getAnonymized()),
 				() -> BuddyInfoChangeMessage.createInstance(
 						new BuddyInfoParameters(updatedUserEntity.getId(), updatedUserEntity.getUserAnonymizedId(),
-								originalUser.getPrivateData().getNickname(), originalUser.getPrivateData().getUserPhotoId()),
+								originalUser.getPrivateData().getNickname(), updatedUserEntity.getUserPhotoId()),
 						getUserInfoChangeMessage(), updatedUserEntity.getNickname(), updatedUserEntity.getUserPhotoId()));
 	}
 

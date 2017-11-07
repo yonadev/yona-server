@@ -24,16 +24,16 @@ public final class SenderInfo
 {
 	private final Optional<UserDto> user;
 	private final String nickname;
-	private final Optional<UUID> userPhoto;
+	private final Optional<UUID> userPhotoId;
 	private final boolean isBuddy;
 	private final Optional<BuddyDto> buddy;
 
-	private SenderInfo(Optional<UserDto> user, String nickname, Optional<UUID> userPhoto, boolean isBuddy,
+	private SenderInfo(Optional<UserDto> user, String nickname, Optional<UUID> userPhotoId, boolean isBuddy,
 			Optional<BuddyDto> buddy)
 	{
 		this.user = user;
 		this.nickname = nickname;
-		this.userPhoto = userPhoto;
+		this.userPhotoId = userPhotoId;
 		this.isBuddy = isBuddy;
 		this.buddy = buddy;
 	}
@@ -43,9 +43,9 @@ public final class SenderInfo
 		return nickname;
 	}
 
-	public Optional<UUID> getUserPhoto()
+	public Optional<UUID> getUserPhotoId()
 	{
-		return userPhoto;
+		return userPhotoId;
 	}
 
 	public boolean isBuddy()

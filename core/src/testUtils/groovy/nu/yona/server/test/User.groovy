@@ -30,6 +30,7 @@ class User
 	final boolean hasPrivateData
 	final String nickname
 	final String userPhotoUrl
+	final String editUserPhotoUrl
 	final List<Goal> goals
 	final List<Buddy> buddies
 	final VPNProfile vpnProfile
@@ -70,6 +71,7 @@ class User
 			this.password = json.yonaPassword
 			this.nickname = json.nickname
 			this.userPhotoUrl = json._links?."yona:userPhoto"?.href
+			this.editUserPhotoUrl = json._links?."yona:editUserPhoto"?.href
 
 			this.buddies = (json._embedded?."yona:buddies"?._embedded) ? json._embedded."yona:buddies"._embedded."yona:buddies".collect{new Buddy(it)} : []
 			this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJson(it)} : []

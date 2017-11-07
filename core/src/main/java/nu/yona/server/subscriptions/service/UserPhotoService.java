@@ -4,10 +4,12 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import nu.yona.server.subscriptions.entities.UserPhoto;
 import nu.yona.server.subscriptions.entities.UserPhotoRepository;
@@ -16,13 +18,20 @@ import nu.yona.server.subscriptions.entities.UserPhotoRepository;
 public class UserPhotoService
 {
 	@Autowired
+	private UserService userService;
+
+	@Autowired
 	private UserPhotoRepository userPhotoRepository;
 
-	public UserPhotoDto addUserPhoto(UserPhotoDto unsavedInstance)
+	@Transactional
+	public UserPhotoDto addUserPhoto(UUID userId, UserPhotoDto unsavedInstance)
 	{
-		return UserPhotoDto.createInstance(userPhotoRepository.save(UserPhoto.createInstance(unsavedInstance.getPngBytes())));
+		UserPhoto userPhoto = userPhotoRepository.save(UserPhoto.createInstance(unsavedInstance.getPngBytes()));
+		userService.updateUserPhoto(userId, Optional.of(userPhoto.getId()));
+		return UserPhotoDto.createInstance(userPhoto);
 	}
 
+	@Transactional
 	public UserPhotoDto getUserPhoto(UUID userPhotoId)
 	{
 		UserPhoto userPhoto = userPhotoRepository.findOne(userPhotoId);
@@ -31,5 +40,11 @@ public class UserPhotoService
 			throw UserPhotoServiceException.notFoundById(userPhotoId);
 		}
 		return UserPhotoDto.createInstance(userPhoto);
+	}
+
+	@Transactional
+	public void removeUserPhoto(UUID userId)
+	{
+		userService.updateUserPhoto(userId, Optional.empty());
 	}
 }

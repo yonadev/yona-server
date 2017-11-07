@@ -100,6 +100,12 @@ public abstract class MessageDto extends PolymorphicDto
 	}
 
 	@JsonIgnore
+	public Optional<UUID> getSenderUserPhotoId()
+	{
+		return senderInfo.getUserPhotoId();
+	}
+
+	@JsonIgnore
 	public Optional<UUID> getSenderBuddyId()
 	{
 		return senderInfo.getBuddy().map(BuddyDto::getId);

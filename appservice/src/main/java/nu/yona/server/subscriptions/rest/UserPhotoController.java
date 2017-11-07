@@ -10,6 +10,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.imageio.ImageIO;
@@ -24,44 +25,68 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
+import nu.yona.server.rest.Constants;
 import nu.yona.server.subscriptions.rest.UserPhotoController.UserPhotoResource;
 import nu.yona.server.subscriptions.service.UserPhotoDto;
 import nu.yona.server.subscriptions.service.UserPhotoService;
+import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
 @ExposesResourceFor(UserPhotoResource.class)
-@RequestMapping(value = "/userPhotos", produces = { MediaType.APPLICATION_JSON_VALUE })
+@RequestMapping(value = "/", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class UserPhotoController
 {
 	@Autowired
+	private UserService userService;
+
+	@Autowired
 	private UserPhotoService userPhotoService;
 
-	@RequestMapping(value = "/{userPhotoId}", method = RequestMethod.GET, produces = { MediaType.IMAGE_PNG_VALUE })
+	@RequestMapping(value = "/userPhotos/{userPhotoId}", method = RequestMethod.GET, produces = { MediaType.IMAGE_PNG_VALUE })
 	@ResponseBody
 	public ResponseEntity<byte[]> getUserPhoto(@PathVariable UUID userPhotoId)
 	{
 		return new ResponseEntity<>(userPhotoService.getUserPhoto(userPhotoId).getPngBytes(), HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/", method = RequestMethod.POST, consumes = "multipart/form-data")
+	@RequestMapping(value = "/users/{userId}/photo", method = RequestMethod.PUT, consumes = "multipart/form-data")
 	@ResponseBody
-	public ResponseEntity<UserPhotoResource> uploadUserPhoto(@RequestParam("file") MultipartFile userPhoto)
+	public ResponseEntity<UserPhotoResource> uploadUserPhoto(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@RequestParam(value = "file", required = false) MultipartFile userPhoto, @PathVariable UUID userId)
 	{
-		return createUserPhotoUploadResponse(
-				userPhotoService.addUserPhoto(UserPhotoDto.createUnsavedInstance(getPngBytes(userPhoto))));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return createUserPhotoUploadResponse(
+					userPhotoService.addUserPhoto(userId, UserPhotoDto.createUnsavedInstance(getPngBytes(userPhoto))));
+		}
+	}
+
+	@RequestMapping(value = "/users/{userId}/photo", method = RequestMethod.DELETE)
+	@ResponseBody
+	public ResponseEntity<Void> removeUserPhoto(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userId)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			userPhotoService.removeUserPhoto(userId);
+			return new ResponseEntity<Void>(HttpStatus.OK);
+		}
 	}
 
 	private ResponseEntity<UserPhotoResource> createUserPhotoUploadResponse(UserPhotoDto userPhoto)
 	{
-		return new ResponseEntity<>(new UserPhotoResourceAssembler().toResource(userPhoto), HttpStatus.CREATED);
+		return new ResponseEntity<>(new UserPhotoResourceAssembler().toResource(userPhoto), HttpStatus.OK);
 	}
 
 	private static byte[] getPngBytes(MultipartFile file)
@@ -83,7 +108,7 @@ public class UserPhotoController
 		}
 	}
 
-	private static ControllerLinkBuilder getUserPhotoLinkBuilder(UUID userPhotoId)
+	public static ControllerLinkBuilder getUserPhotoLinkBuilder(UUID userPhotoId)
 	{
 		return linkTo(methodOn(UserPhotoController.class).getUserPhoto(userPhotoId));
 	}
