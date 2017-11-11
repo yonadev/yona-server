@@ -13,10 +13,24 @@ import nu.yona.server.YonaServer
 
 class AppService extends Service
 {
-	final ACTIVITY_CATEGORIES_PATH = "/activityCategories/"
-	final NEW_DEVICE_REQUESTS_PATH = "/newDeviceRequests/"
-	final USERS_PATH = "/users/"
-	final OVERWRITE_USER_REQUEST_PATH = "/admin/requestUserOverwrite/"
+	static final ACTIVITY_CATEGORIES_PATH = "/activityCategories/"
+	static final NEW_DEVICE_REQUESTS_PATH = "/newDeviceRequests/"
+	static final USERS_PATH = "/users/"
+	static final OVERWRITE_USER_REQUEST_PATH = "/admin/requestUserOverwrite/"
+
+	static final PUBLIC_USER_PROPERTIES_APP_NOT_OPENED = ["firstName", "lastName", "mobileNumber", "creationTime", "_links"] as Set
+	static final PUBLIC_USER_PROPERTIES_APP_OPENED = PUBLIC_USER_PROPERTIES_APP_NOT_OPENED + ["appLastOpenedDate"] as Set
+	static final PRIVATE_USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST = PUBLIC_USER_PROPERTIES_APP_NOT_OPENED + ["nickname", "yonaPassword"] as Set
+	static final PRIVATE_USER_PROPERTIES_NUM_TO_BE_CONFIRMED = PRIVATE_USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST + ["appLastOpenedDate"] as Set
+	static final PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY = PRIVATE_USER_PROPERTIES_NUM_TO_BE_CONFIRMED + ["vpnProfile", "sslRootCertCN", "_embedded"] as Set
+	static final PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_AFTER_ACTIVITY = PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY + ["lastMonitoredActivityDate"] as Set
+	static final PRIVATE_USER_COMMON_LINKS = ["self", "curies"] as Set
+	static final PRIVATE_USER_LINKS_NUM_TO_BE_CONFIRMED = PRIVATE_USER_COMMON_LINKS + ["yona:confirmMobileNumber", "yona:resendMobileNumberConfirmationCode", "edit"] as Set
+	static final PRIVATE_USER_LINKS_NUM_CONFIRMED = PRIVATE_USER_COMMON_LINKS + ["edit", "yona:postOpenAppEvent", "yona:messages", "yona:dailyActivityReports", "yona:weeklyActivityReports", "yona:dailyActivityReportsWithBuddies", "yona:newDeviceRequest", "yona:appActivity", "yona:sslRootCert", "yona:appleMobileConfig"] as Set
+	static final PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_NOT_REQUESTED = PRIVATE_USER_LINKS_NUM_CONFIRMED + ["yona:requestPinReset"] as Set
+	static final PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_NOT_GENERATED = PRIVATE_USER_LINKS_NUM_CONFIRMED
+	static final PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_AND_GENERATED = PRIVATE_USER_LINKS_NUM_CONFIRMED + ["yona:verifyPinReset", "yona:resendPinResetConfirmationCode", "yona:clearPinReset"] as Set
+	static final PRIVATE_USER_EMBEDDED = ["yona:devices", "yona:goals", "yona:buddies"] as Set
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
 
@@ -72,18 +86,32 @@ class AppService extends Service
 		}
 	}
 
-	def reloadUser(User user)
+	def reloadUser(User user, Closure asserter = null)
 	{
 		def response
 		if (user.hasPrivateData)
 		{
 			response = yonaServer.getResourceWithPassword(yonaServer.stripQueryString(user.url), user.password, yonaServer.getQueryParams(user.url) + ["includePrivateData": "true"])
-			assertUserGetResponseDetailsWithPrivateData(response)
+			if (asserter)
+			{
+				asserter(response)
+			}
+			else
+			{
+				assertUserGetResponseDetailsWithPrivateData(response)
+			}
 		}
 		else
 		{
 			response = yonaServer.getResourceWithPassword(user.url, user.password)
-			assertUserGetResponseDetailsWithoutPrivateData(response)
+			if (asserter)
+			{
+				asserter(response)
+			}
+			else
+			{
+				assertUserGetResponseDetailsWithoutPrivateData(response)
+			}
 		}
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
@@ -131,46 +159,59 @@ class AppService extends Service
 	def assertUserCreationResponseDetails(def response)
 	{
 		assertResponseStatusCreated(response)
-		assertUserWithPrivateData(response.responseData)
+		assertUserWithPrivateData(response.responseData, false)
 	}
 
 	def assertUserUpdateResponseDetails(def response)
 	{
 		assert response.status == 200
-		assertUserWithPrivateData(response.responseData)
+		assertUserWithPrivateData(response.responseData, false)
 	}
 
 	def assertUserGetResponseDetailsWithPrivateData(def response)
 	{
 		assertResponseStatusSuccess(response)
-		assertUserWithPrivateData(response.responseData)
+		assertUserWithPrivateData(response.responseData, false)
+	}
+
+	def assertUserGetResponseDetailsWithPrivateDataPinResetRequestedNotGenerated(def response)
+	{
+		assertResponseStatusSuccess(response)
+		assertUserWithPrivateData(response.responseData, true)
+		assert response.responseData.keySet() == PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY
+		assert response.responseData._links.keySet() == PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_NOT_GENERATED
+		assert response.responseData._embedded.keySet() == PRIVATE_USER_EMBEDDED
+	}
+
+	def assertUserGetResponseDetailsWithPrivateDataPinResetRequestedAndGenerated(def response)
+	{
+		assertResponseStatusSuccess(response)
+		assertUserWithPrivateData(response.responseData, true)
+		assert response.responseData.keySet() == PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY
+		assert response.responseData._links.keySet() == PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_AND_GENERATED
+		assert response.responseData._embedded.keySet() == PRIVATE_USER_EMBEDDED
 	}
 
 	def assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest(def response)
 	{
 		assertResponseStatusSuccess(response)
-		assertUserWithPrivateData(response.responseData, true)
+		assertUserWithPrivateData(response.responseData, true, true)
+		assert response.responseData.keySet() == PRIVATE_USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST
 	}
 
 	def assertUserGetResponseDetailsWithoutPrivateData(def response)
 	{
 		assertResponseStatusSuccess(response)
-		assertUserWithoutPrivateData(response.responseData)
+		assertPublicUserData(response.responseData, false, false)
 	}
 
-	def assertUserWithPublicDataAndVpnProfile(user)
+	def assertUserWithPrivateData(user, boolean skipPropertySetAssertion = true, boolean userCreatedOnBuddyRequest = false)
 	{
-		assertPublicUserData(user)
-		assertVpnProfile(user)
+		assertPublicUserData(user, true, userCreatedOnBuddyRequest)
+		assertPrivateUserData(user, skipPropertySetAssertion, userCreatedOnBuddyRequest)
 	}
 
-	def assertUserWithPrivateData(user, boolean userCreatedOnBuddyRequest = false)
-	{
-		assertPublicUserData(user, userCreatedOnBuddyRequest)
-		assertPrivateUserData(user, userCreatedOnBuddyRequest)
-	}
-
-	def assertPublicUserData(def user, boolean userCreatedOnBuddyRequest)
+	def assertPublicUserData(def user, boolean skipPropertySetAssertion = true, boolean userCreatedOnBuddyRequest)
 	{
 		if (user instanceof User)
 		{
@@ -179,6 +220,7 @@ class AppService extends Service
 		else
 		{
 			assert user._links.self.href != null
+			assert skipPropertySetAssertion || user.keySet() == PUBLIC_USER_PROPERTIES_APP_NOT_OPENED || user.keySet() == PUBLIC_USER_PROPERTIES_APP_OPENED
 		}
 		assert user.creationTime != null
 		assert userCreatedOnBuddyRequest || user.appLastOpenedDate != null
@@ -187,7 +229,7 @@ class AppService extends Service
 		assert user.mobileNumber ==~/^\+[0-9]+$/
 	}
 
-	def assertPrivateUserData(def user, boolean userCreatedOnBuddyRequest)
+	def assertPrivateUserData(def user, boolean skipPropertySetAssertion = true, boolean userCreatedOnBuddyRequest)
 	{
 		assert userCreatedOnBuddyRequest || user.nickname != null
 		boolean mobileNumberToBeConfirmed
@@ -213,6 +255,9 @@ class AppService extends Service
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:messages")
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:newDeviceRequest")
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:appActivity")
+			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user.keySet() == PRIVATE_USER_PROPERTIES_NUM_TO_BE_CONFIRMED : (user.keySet() == PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY || user.keySet() == PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_AFTER_ACTIVITY))
+			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user._links.keySet() == PRIVATE_USER_LINKS_NUM_TO_BE_CONFIRMED : user._links.keySet() == PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_NOT_REQUESTED)
+			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? true : user._embedded.keySet() == PRIVATE_USER_EMBEDDED)
 		}
 
 		if (!mobileNumberToBeConfirmed)
@@ -243,14 +288,6 @@ class AppService extends Service
 		{
 			assert user.vpnProfile._links."yona:ovpnProfile".href
 		}
-	}
-
-	def assertUserWithoutPrivateData(def user)
-	{
-		assertPublicUserData(user, false)
-		assert user.nickname == null
-		assert user.goals == null
-		assert user.vpnProfile == null
 	}
 
 	def assertResponseStatusCreated(def response)
