@@ -24,12 +24,14 @@ class AppService extends Service
 	static final PRIVATE_USER_PROPERTIES_NUM_TO_BE_CONFIRMED = PRIVATE_USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST + ["appLastOpenedDate"] as Set
 	static final PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY = PRIVATE_USER_PROPERTIES_NUM_TO_BE_CONFIRMED + ["vpnProfile", "sslRootCertCN", "_embedded"] as Set
 	static final PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_AFTER_ACTIVITY = PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY + ["lastMonitoredActivityDate"] as Set
+	static final BUDDY_USER_PROPERTIES = PUBLIC_USER_PROPERTIES_APP_OPENED
 	static final PRIVATE_USER_COMMON_LINKS = ["self", "curies"] as Set
 	static final PRIVATE_USER_LINKS_NUM_TO_BE_CONFIRMED = PRIVATE_USER_COMMON_LINKS + ["yona:confirmMobileNumber", "yona:resendMobileNumberConfirmationCode", "edit"] as Set
 	static final PRIVATE_USER_LINKS_NUM_CONFIRMED = PRIVATE_USER_COMMON_LINKS + ["edit", "yona:postOpenAppEvent", "yona:messages", "yona:dailyActivityReports", "yona:weeklyActivityReports", "yona:dailyActivityReportsWithBuddies", "yona:newDeviceRequest", "yona:appActivity", "yona:sslRootCert", "yona:appleMobileConfig"] as Set
 	static final PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_NOT_REQUESTED = PRIVATE_USER_LINKS_NUM_CONFIRMED + ["yona:requestPinReset"] as Set
 	static final PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_NOT_GENERATED = PRIVATE_USER_LINKS_NUM_CONFIRMED
 	static final PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_REQUESTED_AND_GENERATED = PRIVATE_USER_LINKS_NUM_CONFIRMED + ["yona:verifyPinReset", "yona:resendPinResetConfirmationCode", "yona:clearPinReset"] as Set
+	static final BUDDY_USER_LINKS =  ["self"] as Set
 	static final PRIVATE_USER_EMBEDDED = ["yona:devices", "yona:goals", "yona:buddies"] as Set
 
 	JsonSlurper jsonSlurper = new JsonSlurper()
@@ -71,6 +73,7 @@ class AppService extends Service
 			response = yonaServer.getResourceWithPassword(userUrl, password)
 		}
 		asserter(response)
+		assertBuddyUsers(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
@@ -100,6 +103,7 @@ class AppService extends Service
 			{
 				assertUserGetResponseDetailsWithPrivateData(response)
 			}
+			assertBuddyUsers(response)
 		}
 		else
 		{
@@ -120,6 +124,7 @@ class AppService extends Service
 	{
 		def response = updateUser(user.url, user.convertToJson(), user.password)
 		asserter(response)
+		assertBuddyUsers(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null
 	}
 
@@ -298,6 +303,18 @@ class AppService extends Service
 	def assertResponseStatusSuccess(def response)
 	{
 		assert response.status >= 200 && response.status < 300
+	}
+
+	private assertBuddyUsers(response)
+	{
+		response.responseData._embedded?."yona:buddies"?._embedded?."yona:buddies".each{assertBuddyUser(it._embedded."yona:user")}
+	}
+
+	def assertBuddyUser(def buddyUser)
+	{
+		assert buddyUser.keySet() == BUDDY_USER_PROPERTIES
+		assert buddyUser._links.keySet() == BUDDY_USER_LINKS
+		assert buddyUser._embedded == null
 	}
 
 	void makeBuddies(User requestingUser, User respondingUser)
