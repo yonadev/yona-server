@@ -31,7 +31,11 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		then:
 		response.status == 200
 		response.contentType == "application/json"
-		response.responseData?._links?.self?.href != null
+		def newUserPhotoUrl = response.responseData?._links?.self?.href
+		newUserPhotoUrl != null
+
+		def richardAfterUpdate = appService.reloadUser(richard)
+		richardAfterUpdate.userPhotoUrl == newUserPhotoUrl
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -54,36 +58,43 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'After user photo update, the previous user photo is still retrievable'()
+	def 'User updates user photo; the previous photo is still retrievable'()
 	{
 		given:
 		def richard = addRichard()
 		def previousUserPhotoUrl = uploadUserPhoto(richard)
 
 		when:
-		uploadUserPhoto(richard)
+		def newUserPhotoUrl = uploadUserPhoto(richard)
 
 		then:
-		def response = appService.yonaServer.restClient.get(path: previousUserPhotoUrl)
-		response.status == 200
+		def richardAfterUpdate = appService.reloadUser(richard)
+		richardAfterUpdate.userPhotoUrl == newUserPhotoUrl
+
+		def retrievePreviousPhotoResponse = appService.yonaServer.restClient.get(path: previousUserPhotoUrl)
+		retrievePreviousPhotoResponse.status == 200
 
 		cleanup:
 		appService.deleteUser(richard)
 	}
 
-
-	def 'After user photo delete, the previous user photo is still retrievable'()
+	def 'User deletes user photo; the previous photo is still retrievable'()
 	{
 		given:
 		def richard = addRichard()
 		def previousUserPhotoUrl = uploadUserPhoto(richard)
 
 		when:
-		appService.yonaServer.restClient.delete(path: richard.editUserPhotoUrl)
+		def response = appService.yonaServer.deleteResourceWithPassword(richard.editUserPhotoUrl, richard.password)
 
 		then:
-		def response = appService.yonaServer.restClient.get(path: previousUserPhotoUrl)
 		response.status == 200
+
+		def richardAfterUpdate = appService.reloadUser(richard)
+		richardAfterUpdate.userPhotoUrl == null
+
+		def retrievePreviousPhotoResponse = appService.yonaServer.restClient.get(path: previousUserPhotoUrl)
+		retrievePreviousPhotoResponse.status == 200
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -199,14 +210,14 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		uploadUserPhoto(bob)
+
+		then:
 		User bobAfterUpdate = appService.reloadUser(bob)
+		bobAfterUpdate.userPhotoUrl != bob.userPhotoUrl
+
 		def richardMessagesAfterUpdate = appService.getMessages(richard)
 		assert richardMessagesAfterUpdate.status == 200
 		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
-
-		then:
-		bobAfterUpdate.userPhotoUrl != bob.userPhotoUrl
-
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
 		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
@@ -218,6 +229,44 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 
 		User richardAfterProcess = appService.reloadUser(richard)
 		richardAfterProcess.buddies[0].userPhotoUrl == bobAfterUpdate.userPhotoUrl
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Buddy deletes user photo which causes buddy info change message and user photo delete on process'()
+	{
+		given:
+		User richard = addRichard()
+		User bob = addBob()
+		def richardPhotoUrl = uploadUserPhoto(richard)
+		bob.emailAddress = "bob@dunn.com"
+		uploadUserPhoto(bob)
+		appService.makeBuddies(richard, bob)
+		richard = appService.reloadUser(richard)
+
+		when:
+		appService.yonaServer.deleteResourceWithPassword(bob.editUserPhotoUrl, bob.password)
+
+		then:
+		User bobAfterUpdate = appService.reloadUser(bob)
+		bobAfterUpdate.userPhotoUrl == null
+
+		def richardMessagesAfterUpdate = appService.getMessages(richard)
+		assert richardMessagesAfterUpdate.status == 200
+		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
+		buddyInfoUpdateMessages.size() == 1
+		buddyInfoUpdateMessages[0]._links.self != null
+		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
+		buddyInfoUpdateMessages[0]._links."yona:user".href == bob.url
+		buddyInfoUpdateMessages[0]._links."yona:buddy".href == richard.buddies[0].url
+		buddyInfoUpdateMessages[0]._links."yona:userPhoto"?.href == null
+		buddyInfoUpdateMessages[0].nickname == "BD"
+		buddyInfoUpdateMessages[0].message == "User changed personal info"
+
+		User richardAfterProcess = appService.reloadUser(richard)
+		richardAfterProcess.buddies[0].userPhotoUrl == null
 
 		cleanup:
 		appService.deleteUser(richard)
