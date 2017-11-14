@@ -32,7 +32,7 @@ class AppService extends Service
 
 	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, parameters = [:])
 	{
-		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, null, mobileNumber)
+		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber)
 		def response = addUser(jsonStr, parameters)
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null

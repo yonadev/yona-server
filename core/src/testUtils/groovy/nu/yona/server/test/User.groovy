@@ -98,20 +98,18 @@ class User
 
 	def convertToJson()
 	{
-		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, password, nickname, userPhotoUrl, mobileNumber)
+		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber)
 
 		return new JsonSlurper().parseText(jsonStr)
 	}
 
-	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, userPhotoUrl, mobileNumber)
+	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber)
 	{
 		def selfLinkString = (url) ? """"self":{"href":"$url"},""" : ""
-		def userPhotoLinkString = (userPhotoUrl) ? """"yona:userPhoto":{"href":"$userPhotoUrl"},""" : ""
 		def passwordString = (password) ? """"yonaPassword":"${password}",""" : ""
 		def json = """{
 				"_links":{
 					$selfLinkString
-					$userPhotoLinkString
 				},
 				"firstName":"${firstName}",
 				"lastName":"${lastName}",
@@ -127,9 +125,9 @@ class User
 		goals.find{ it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
 	}
 
-	static String makeUserJsonString(firstName, lastName, nickname, userPhotoId, mobileNumber)
+	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber)
 	{
-		makeUserJsonStringInternal(null, firstName, lastName, null, nickname, userPhotoId, mobileNumber)
+		makeUserJsonStringInternal(null, firstName, lastName, null, nickname, mobileNumber)
 	}
 }
 
