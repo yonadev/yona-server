@@ -375,7 +375,8 @@ public class UserController
 	private static Link getUserLink(String rel, UUID userId, boolean includePrivateData)
 	{
 		return linkTo(methodOn(UserController.class).getUser(Optional.empty(), null,
-				(includePrivateData) ? Boolean.TRUE.toString() : null, userId)).withRel(rel).expand(Collections.singletonMap(TEMP_PASSWORD_PARAM, null));
+				(includePrivateData) ? Boolean.TRUE.toString() : null, userId)).withRel(rel)
+						.expand(Collections.singletonMap(TEMP_PASSWORD_PARAM, null));
 	}
 
 	public static Link getPublicUserLink(String rel, UUID userId)
@@ -538,7 +539,7 @@ public class UserController
 		private void addEditUserPhotoLink(UserResource userResource)
 		{
 			userResource.add(linkTo(methodOn(UserPhotoController.class).uploadUserPhoto(Optional.empty(), null,
-					userResource.getContent().getId())).withRel("editUserPhoto"));
+					userResource.getContent().getId())).withRel("editUserPhoto").expand());
 		}
 
 		private void addUserPhotoLink(UserResource userResource)
