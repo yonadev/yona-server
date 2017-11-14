@@ -32,11 +32,9 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		response.status == 200
 		response.contentType == "application/json"
 		response.responseData?._links?.self?.href != null
-	}
 
-	def encodeMultipartEntity(HttpEntity entity)
-	{
-		return entity
+		cleanup:
+		appService.deleteUser(richard)
 	}
 
 	def 'Download user photo'()
@@ -73,6 +71,53 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		{
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Before buddy connect, user photo is already present in buddy request message and is retrievable'()
+	{
+		given:
+		User richard = addRichard()
+		User bob = addBob()
+		def richardPhotoUrl = uploadUserPhoto(richard)
+
+		when:
+		bob.emailAddress = "bob@dunn.net"
+		appService.sendBuddyConnectRequest(richard, bob)
+
+		then:
+		def bobMessages = appService.getMessages(bob)
+		def bobMessagesFromRichard = bobMessages.responseData._embedded?."yona:messages".findAll{ it."nickname" == "RQ"}
+		bobMessagesFromRichard.each
+		{
+			it._links?."yona:userPhoto"?.href == richardPhotoUrl
+		}
+		def response = appService.yonaServer.restClient.get(path: richardPhotoUrl)
+		response.status == 200
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'After user photo update, the previous user photo is still retrievable'()
+	{
+		given:
+		def richard = addRichard()
+		def previousUserPhotoUrl = uploadUserPhoto(richard)
+
+		when:
+		uploadUserPhoto(richard)
+
+		then:
+		def response = appService.yonaServer.restClient.get(path: previousUserPhotoUrl)
+		response.status == 200
+
+		cleanup:
+		appService.deleteUser(richard)
 	}
 
 	def 'After buddy disconnect, user photo is still present in buddy messages and is still retrievable'()
@@ -96,6 +141,10 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		}
 		def response = appService.yonaServer.restClient.get(path: richardPhotoUrl)
 		response.status == 200
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
 	def 'After delete of user, user photo is still present in buddy messages and is still retrievable'()
@@ -118,6 +167,9 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		}
 		def response = appService.yonaServer.restClient.get(path: richardPhotoUrl)
 		response.status == 200
+
+		cleanup:
+		appService.deleteUser(bob)
 	}
 
 	def 'Buddy updates user photo which causes buddy info change message and user photo update on process'()
@@ -162,5 +214,10 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 				.build()
 		def response = appService.yonaServer.restClient.put(path: user.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": user.password], body: multipartEntity)
 		response.responseData?._links?.self?.href
+	}
+
+	def encodeMultipartEntity(HttpEntity entity)
+	{
+		return entity
 	}
 }
