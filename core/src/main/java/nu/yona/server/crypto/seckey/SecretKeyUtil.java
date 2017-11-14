@@ -131,7 +131,8 @@ public class SecretKeyUtil
 		{
 			return null;
 		}
-		return LocalDateTime.parse(new String(decryptBytes(ciphertext), StandardCharsets.UTF_8));
+		return LocalDateTime.parse(new String(decryptBytes(ciphertext), StandardCharsets.UTF_8),
+				DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 	}
 
 	public static LocalDate decryptDate(byte[] ciphertext)
@@ -140,7 +141,7 @@ public class SecretKeyUtil
 		{
 			return null;
 		}
-		return LocalDate.parse(new String(decryptBytes(ciphertext), StandardCharsets.UTF_8));
+		return LocalDate.parse(new String(decryptBytes(ciphertext), StandardCharsets.UTF_8), DateTimeFormatter.ISO_LOCAL_DATE);
 	}
 
 	public static SecretKey generateRandomSecretKey()

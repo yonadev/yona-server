@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server.device.entities;
 
 import java.time.LocalDate;
@@ -37,9 +41,7 @@ public class UserDevice extends DeviceBase
 	public UserDevice(UUID id, UUID userPrivateId, String name)
 	{
 		super(id, name);
-		Objects.requireNonNull(userPrivateId);
-		Objects.requireNonNull(name);
-		this.userPrivateId = userPrivateId;
+		this.userPrivateId = Objects.requireNonNull(userPrivateId);
 		this.registrationTime = LocalDateTime.now();
 		this.appLastOpenedDate = LocalDate.now(); // The user registers this device, so the app is open now
 	}
@@ -51,8 +53,7 @@ public class UserDevice extends DeviceBase
 
 	public void setRegistrationTime(LocalDateTime registrationTime)
 	{
-		Objects.requireNonNull(registrationTime);
-		this.registrationTime = registrationTime;
+		this.registrationTime = Objects.requireNonNull(registrationTime);
 	}
 
 	public LocalDate getAppLastOpenedDate()
@@ -62,7 +63,6 @@ public class UserDevice extends DeviceBase
 
 	public void setAppLastOpenedDate(LocalDate appLastOpenedDate)
 	{
-		Objects.requireNonNull(appLastOpenedDate);
-		this.appLastOpenedDate = appLastOpenedDate;
+		this.appLastOpenedDate = Objects.requireNonNull(appLastOpenedDate);
 	}
 }

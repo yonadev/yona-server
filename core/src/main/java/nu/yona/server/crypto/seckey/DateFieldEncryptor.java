@@ -16,12 +16,7 @@ public class DateFieldEncryptor implements AttributeConverter<LocalDate, String>
 	@Override
 	public String convertToDatabaseColumn(LocalDate attribute)
 	{
-		String retVal = (attribute == null) ? null : Base64.getEncoder().encodeToString(SecretKeyUtil.encryptDate(attribute));
-		if (retVal == null)
-		{
-			throw new IllegalStateException("YD-441: lastStatusChangeTime cannot be null. Input value: " + attribute);
-		}
-		return retVal;
+		return (attribute == null) ? null : Base64.getEncoder().encodeToString(SecretKeyUtil.encryptDate(attribute));
 	}
 
 	@Override

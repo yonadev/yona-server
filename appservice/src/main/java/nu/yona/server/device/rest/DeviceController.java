@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2017 Stichting Yona Foundation
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server.device.rest;
 
 import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
@@ -29,7 +36,6 @@ import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
-import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
@@ -58,7 +64,7 @@ public class DeviceController extends ControllerBase
 		}
 	}
 
-	@RequestMapping(value = "/{buddyId}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{deviceId}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<DeviceResource> getDevice(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId, @PathVariable UUID deviceId)
@@ -106,7 +112,7 @@ public class DeviceController extends ControllerBase
 
 		public DeviceResourceAssembler(CurieProvider curieProvider, UUID userId)
 		{
-			super(BuddyController.class, DeviceResource.class);
+			super(DeviceController.class, DeviceResource.class);
 			this.curieProvider = curieProvider;
 			this.userId = userId;
 		}
@@ -122,24 +128,24 @@ public class DeviceController extends ControllerBase
 		}
 
 		@Override
-		protected DeviceResource instantiateResource(DeviceBaseDto buddy)
+		protected DeviceResource instantiateResource(DeviceBaseDto device)
 		{
-			return new DeviceResource(curieProvider, userId, buddy);
+			return new DeviceResource(curieProvider, userId, device);
 		}
 
-		private ControllerLinkBuilder getSelfLinkBuilder(UUID buddyId)
+		private ControllerLinkBuilder getSelfLinkBuilder(UUID deviceId)
 		{
-			return getDeviceLinkBuilder(userId, buddyId);
+			return getDeviceLinkBuilder(userId, deviceId);
 		}
 
-		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, DeviceResource buddyResource)
+		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, DeviceResource deviceResource)
 		{
-			buddyResource.add(selfLinkBuilder.withSelfRel());
+			deviceResource.add(selfLinkBuilder.withSelfRel());
 		}
 
-		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, DeviceResource buddyResource)
+		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, DeviceResource deviceResource)
 		{
-			buddyResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
+			deviceResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
 		}
 	}
 }

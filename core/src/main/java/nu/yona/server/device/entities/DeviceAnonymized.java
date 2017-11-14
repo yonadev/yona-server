@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *******************************************************************************/
 package nu.yona.server.device.entities;
 
 import java.time.LocalDate;
@@ -32,8 +36,7 @@ public abstract class DeviceAnonymized extends EntityWithUuid
 	protected DeviceAnonymized(UUID id, UserAnonymized userAnonymized, int deviceId)
 	{
 		super(id);
-		Objects.requireNonNull(userAnonymized);
-		this.userAnonymized = userAnonymized;
+		this.userAnonymized = Objects.requireNonNull(userAnonymized);
 		this.deviceId = deviceId;
 	}
 
@@ -64,8 +67,7 @@ public abstract class DeviceAnonymized extends EntityWithUuid
 
 	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
 	{
-		Objects.requireNonNull(lastMonitoredActivityDate);
-		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
+		this.lastMonitoredActivityDate = Objects.requireNonNull(lastMonitoredActivityDate);
 	}
 
 	public String getVpnLoginId()
