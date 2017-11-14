@@ -53,7 +53,6 @@ import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.rest.ActivityCategoryController;
 import nu.yona.server.goals.service.GoalChangeMessageDto;
-import nu.yona.server.messaging.service.BuddyMessageDto;
 import nu.yona.server.messaging.service.BuddyMessageEmbeddedUserDto;
 import nu.yona.server.messaging.service.BuddyMessageLinkedUserDto;
 import nu.yona.server.messaging.service.DisclosureRequestMessageDto;
@@ -247,6 +246,7 @@ public class MessageController
 			addSelfLink(selfLinkBuilder, message);
 			addActionLinks(selfLinkBuilder, message);
 			addRelatedMessageLink(message, message);
+			addSenderUserPhotoLinkIfAvailable(message);
 			if (message.canBeDeleted())
 			{
 				addEditLink(selfLinkBuilder, message);
@@ -297,10 +297,6 @@ public class MessageController
 			{
 				addSenderBuddyLinkIfAvailable(message);
 			}
-			if (message instanceof BuddyMessageDto)
-			{
-				addSenderUserPhotoLinkIfAvailable((BuddyMessageDto) message);
-			}
 			if (message instanceof GoalConflictMessageDto)
 			{
 				addGoalConflictMessageLinks((GoalConflictMessageDto) message);
@@ -340,7 +336,7 @@ public class MessageController
 			}
 		}
 
-		private void addSenderUserPhotoLinkIfAvailable(BuddyMessageDto message)
+		private void addSenderUserPhotoLinkIfAvailable(MessageDto message)
 		{
 			if (message.getSenderUserPhotoId().isPresent())
 			{

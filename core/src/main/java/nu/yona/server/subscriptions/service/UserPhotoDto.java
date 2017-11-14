@@ -6,8 +6,12 @@ package nu.yona.server.subscriptions.service;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonRootName;
+
 import nu.yona.server.subscriptions.entities.UserPhoto;
 
+@JsonRootName("userPhoto")
 public class UserPhotoDto
 {
 	private final byte[] pngBytes;
@@ -24,11 +28,13 @@ public class UserPhotoDto
 		return new UserPhotoDto(entity.getId(), entity.getPngBytes());
 	}
 
+	@JsonIgnore
 	public UUID getId()
 	{
 		return id;
 	}
 
+	@JsonIgnore
 	public byte[] getPngBytes()
 	{
 		return pngBytes;

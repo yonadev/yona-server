@@ -54,6 +54,41 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
+	def 'After user photo update, the previous user photo is still retrievable'()
+	{
+		given:
+		def richard = addRichard()
+		def previousUserPhotoUrl = uploadUserPhoto(richard)
+
+		when:
+		uploadUserPhoto(richard)
+
+		then:
+		def response = appService.yonaServer.restClient.get(path: previousUserPhotoUrl)
+		response.status == 200
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+
+	def 'After user photo delete, the previous user photo is still retrievable'()
+	{
+		given:
+		def richard = addRichard()
+		def previousUserPhotoUrl = uploadUserPhoto(richard)
+
+		when:
+		appService.yonaServer.restClient.delete(path: richard.editUserPhotoUrl)
+
+		then:
+		def response = appService.yonaServer.restClient.get(path: previousUserPhotoUrl)
+		response.status == 200
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def 'User photo is present on buddy messages'()
 	{
 		given:
@@ -101,23 +136,6 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
-	}
-
-	def 'After user photo update, the previous user photo is still retrievable'()
-	{
-		given:
-		def richard = addRichard()
-		def previousUserPhotoUrl = uploadUserPhoto(richard)
-
-		when:
-		uploadUserPhoto(richard)
-
-		then:
-		def response = appService.yonaServer.restClient.get(path: previousUserPhotoUrl)
-		response.status == 200
-
-		cleanup:
-		appService.deleteUser(richard)
 	}
 
 	def 'After buddy disconnect, user photo is still present in buddy messages and is still retrievable'()
