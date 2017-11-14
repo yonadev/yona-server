@@ -7,6 +7,7 @@ package nu.yona.server.crypto.seckey;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -75,6 +76,15 @@ public class SecretKeyUtil
 		return encryptBytes(plaintext.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).getBytes(StandardCharsets.UTF_8));
 	}
 
+	public static byte[] encryptDate(LocalDate plaintext)
+	{
+		if (plaintext == null)
+		{
+			return null;
+		}
+		return encryptBytes(plaintext.format(DateTimeFormatter.ISO_LOCAL_DATE).getBytes(StandardCharsets.UTF_8));
+	}
+
 	public static UUID decryptUuid(byte[] ciphertext)
 	{
 		if (ciphertext == null)
@@ -121,7 +131,17 @@ public class SecretKeyUtil
 		{
 			return null;
 		}
-		return LocalDateTime.parse(new String(decryptBytes(ciphertext), StandardCharsets.UTF_8));
+		return LocalDateTime.parse(new String(decryptBytes(ciphertext), StandardCharsets.UTF_8),
+				DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+	}
+
+	public static LocalDate decryptDate(byte[] ciphertext)
+	{
+		if (ciphertext == null)
+		{
+			return null;
+		}
+		return LocalDate.parse(new String(decryptBytes(ciphertext), StandardCharsets.UTF_8), DateTimeFormatter.ISO_LOCAL_DATE);
 	}
 
 	public static SecretKey generateRandomSecretKey()

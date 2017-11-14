@@ -20,12 +20,9 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -39,17 +36,18 @@ import nu.yona.server.analysis.service.WeekActivityDto;
 import nu.yona.server.analysis.service.WeekActivityOverviewDto;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.messaging.rest.MessageController;
-import nu.yona.server.messaging.rest.MessageController.MessageResourceAssembler;
 import nu.yona.server.messaging.service.MessageDto;
+import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.GoalIdMapping;
+import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 
 /*
  * Activity controller base class.
  */
-abstract class ActivityControllerBase
+abstract class ActivityControllerBase extends ControllerBase
 {
 	public static final String DAY_DETAIL_LINK = "dayDetails";
 	public static final String WEEK_DETAIL_LINK = "weekDetails";
@@ -61,9 +59,6 @@ abstract class ActivityControllerBase
 
 	@Autowired
 	protected UserService userService;
-
-	@Autowired
-	private CurieProvider curieProvider;
 
 	@Autowired
 	private MessageController messageController;
@@ -90,8 +85,8 @@ abstract class ActivityControllerBase
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
-					new WeekActivityOverviewResourceAssembler(linkProvider)), HttpStatus.OK);
+			return createOkResponse(activitySupplier.get(), pagedResourcesAssembler,
+					createWeekActivityOverviewResourceAssembler(linkProvider));
 		}
 	}
 
@@ -101,9 +96,7 @@ abstract class ActivityControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			LocalDate date = WeekActivityDto.parseDate(dateStr);
-			return new ResponseEntity<>(
-					new WeekActivityOverviewResourceAssembler(linkProvider).toResource(activitySupplier.apply(date)),
-					HttpStatus.OK);
+			return createOkResponse(activitySupplier.apply(date), createWeekActivityOverviewResourceAssembler(linkProvider));
 		}
 	}
 
@@ -113,8 +106,8 @@ abstract class ActivityControllerBase
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return new ResponseEntity<>(pagedResourcesAssembler.toResource(activitySupplier.get(),
-					new DayActivityOverviewResourceAssembler(linkProvider)), HttpStatus.OK);
+			return createOkResponse(activitySupplier.get(), pagedResourcesAssembler,
+					createDayActivityOverviewResourceAssembler(linkProvider));
 		}
 	}
 
@@ -125,9 +118,7 @@ abstract class ActivityControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			LocalDate date = DayActivityDto.parseDate(dateStr);
-			return new ResponseEntity<>(
-					new DayActivityOverviewResourceAssembler(linkProvider).toResource(activitySupplier.apply(date)),
-					HttpStatus.OK);
+			return createOkResponse(activitySupplier.apply(date), createDayActivityOverviewResourceAssembler(linkProvider));
 		}
 	}
 
@@ -137,9 +128,7 @@ abstract class ActivityControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			LocalDate date = WeekActivityDto.parseDate(dateStr);
-			return new ResponseEntity<>(
-					new WeekActivityResourceAssembler(linkProvider, true).toResource(activitySupplier.apply(date)),
-					HttpStatus.OK);
+			return createOkResponse(activitySupplier.apply(date), createWeekActivityResourceAssembler(linkProvider));
 		}
 	}
 
@@ -149,9 +138,7 @@ abstract class ActivityControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			LocalDate date = DayActivityDto.parseDate(dateStr);
-			return new ResponseEntity<>(
-					new DayActivityResourceAssembler(linkProvider, true, true).toResource(activitySupplier.apply(date)),
-					HttpStatus.OK);
+			return createOkResponse(activitySupplier.apply(date), createDayActivityResourceAssembler(linkProvider));
 		}
 	}
 
@@ -161,11 +148,29 @@ abstract class ActivityControllerBase
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return new ResponseEntity<>(
-					pagedResourcesAssembler.toResource(messageSupplier.get(),
-							new MessageResourceAssembler(curieProvider, createGoalIdMapping(userId), messageController)),
-					HttpStatus.OK);
+			UserDto user = userService.getPrivateValidatedUser(userId);
+			return messageController.createOkResponse(user, messageSupplier.get(), pagedResourcesAssembler);
 		}
+	}
+
+	private WeekActivityOverviewResourceAssembler createWeekActivityOverviewResourceAssembler(LinkProvider linkProvider)
+	{
+		return new WeekActivityOverviewResourceAssembler(linkProvider);
+	}
+
+	private DayActivityOverviewResourceAssembler createDayActivityOverviewResourceAssembler(LinkProvider linkProvider)
+	{
+		return new DayActivityOverviewResourceAssembler(linkProvider);
+	}
+
+	private WeekActivityResourceAssembler createWeekActivityResourceAssembler(LinkProvider linkProvider)
+	{
+		return new WeekActivityResourceAssembler(linkProvider, true);
+	}
+
+	private DayActivityResourceAssembler createDayActivityResourceAssembler(LinkProvider linkProvider)
+	{
+		return new DayActivityResourceAssembler(linkProvider, true, true);
 	}
 
 	protected GoalIdMapping createGoalIdMapping(UUID userId)

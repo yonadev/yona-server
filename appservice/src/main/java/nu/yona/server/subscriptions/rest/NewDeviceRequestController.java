@@ -20,7 +20,6 @@ import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +32,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import nu.yona.server.crypto.CryptoException;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.rest.Constants;
+import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.NewDeviceRequestController.NewDeviceRequestResource;
 import nu.yona.server.subscriptions.service.BuddyDto;
@@ -46,7 +46,7 @@ import nu.yona.server.subscriptions.service.UserServiceException;
 @Controller
 @ExposesResourceFor(NewDeviceRequestResource.class)
 @RequestMapping(value = "/newDeviceRequests", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class NewDeviceRequestController
+public class NewDeviceRequestController extends ControllerBase
 {
 	private static final Logger logger = LoggerFactory.getLogger(NewDeviceRequestController.class);
 
@@ -88,8 +88,8 @@ public class NewDeviceRequestController
 		{
 			userService.assertValidMobileNumber(mobileNumber);
 			UserDto user = userService.getUserByMobileNumber(mobileNumber);
-			return createNewDeviceRequestResponse(user,
-					newDeviceRequestService.getNewDeviceRequestForUser(user.getId(), newDeviceRequestPassword), HttpStatus.OK);
+			return createOkResponse(newDeviceRequestService.getNewDeviceRequestForUser(user.getId(), newDeviceRequestPassword),
+					createResourceAssembler(user));
 		}
 		catch (UserServiceException e)
 		{
@@ -128,10 +128,9 @@ public class NewDeviceRequestController
 		}
 	}
 
-	private HttpEntity<NewDeviceRequestResource> createNewDeviceRequestResponse(UserDto user,
-			NewDeviceRequestDto newDeviceRequest, HttpStatus statusCode)
+	private NewDeviceRequestResourceAssembler createResourceAssembler(UserDto user)
 	{
-		return new ResponseEntity<>(new NewDeviceRequestResourceAssembler(user).toResource(newDeviceRequest), statusCode);
+		return new NewDeviceRequestResourceAssembler(user);
 	}
 
 	static ControllerLinkBuilder getNewDeviceRequestLinkBuilder(String mobileNumber)

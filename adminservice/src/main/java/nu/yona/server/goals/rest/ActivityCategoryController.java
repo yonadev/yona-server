@@ -19,7 +19,6 @@ import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,11 +32,12 @@ import com.fasterxml.jackson.annotation.JsonView;
 import nu.yona.server.goals.rest.ActivityCategoryController.ActivityCategoryResource;
 import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
+import nu.yona.server.rest.ControllerBase;
 
 @Controller
 @ExposesResourceFor(ActivityCategoryResource.class)
 @RequestMapping(value = "/activityCategories", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class ActivityCategoryController
+public class ActivityCategoryController extends ControllerBase
 {
 	@Autowired
 	private ActivityCategoryService activityCategoryService;
@@ -47,7 +47,7 @@ public class ActivityCategoryController
 	@JsonView(ActivityCategoryDto.AdminView.class)
 	public HttpEntity<ActivityCategoryResource> getActivityCategory(@PathVariable UUID id)
 	{
-		return createOkResponse(activityCategoryService.getActivityCategory(id));
+		return createOkResponse(activityCategoryService.getActivityCategory(id), createResourceAssembler());
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
@@ -55,7 +55,8 @@ public class ActivityCategoryController
 	@JsonView(ActivityCategoryDto.AdminView.class)
 	public HttpEntity<Resources<ActivityCategoryResource>> getAllActivityCategories()
 	{
-		return createOkResponse(activityCategoryService.getAllActivityCategories(), getAllActivityCategoriesLinkBuilder());
+		return createOkResponse(activityCategoryService.getAllActivityCategories(), createResourceAssembler(),
+				getAllActivityCategoriesLinkBuilder());
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)
@@ -64,7 +65,7 @@ public class ActivityCategoryController
 	public HttpEntity<ActivityCategoryResource> addActivityCategory(@RequestBody ActivityCategoryDto activityCategory)
 	{
 		activityCategory.setId(UUID.randomUUID());
-		return createOkResponse(activityCategoryService.addActivityCategory(activityCategory));
+		return createOkResponse(activityCategoryService.addActivityCategory(activityCategory), createResourceAssembler());
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
@@ -73,7 +74,7 @@ public class ActivityCategoryController
 	public HttpEntity<ActivityCategoryResource> updateActivityCategory(@PathVariable UUID id,
 			@RequestBody ActivityCategoryDto activityCategory)
 	{
-		return createOkResponse(activityCategoryService.updateActivityCategory(id, activityCategory));
+		return createOkResponse(activityCategoryService.updateActivityCategory(id, activityCategory), createResourceAssembler());
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.PUT)
@@ -83,7 +84,8 @@ public class ActivityCategoryController
 			@RequestBody Set<ActivityCategoryDto> activityCategorySet)
 	{
 		activityCategoryService.updateActivityCategorySet(activityCategorySet);
-		return createOkResponse(activityCategoryService.getAllActivityCategories(), getAllActivityCategoriesLinkBuilder());
+		return createOkResponse(activityCategoryService.getAllActivityCategories(), createResourceAssembler(),
+				getAllActivityCategoriesLinkBuilder());
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
@@ -93,34 +95,15 @@ public class ActivityCategoryController
 		activityCategoryService.deleteActivityCategory(id);
 	}
 
+	private ActivityCategoryResourceAssembler createResourceAssembler()
+	{
+		return new ActivityCategoryResourceAssembler();
+	}
+
 	static ControllerLinkBuilder getAllActivityCategoriesLinkBuilder()
 	{
 		ActivityCategoryController methodOn = methodOn(ActivityCategoryController.class);
 		return linkTo(methodOn.getAllActivityCategories());
-	}
-
-	private HttpEntity<ActivityCategoryResource> createOkResponse(ActivityCategoryDto activityCategory)
-	{
-		return createResponse(activityCategory, HttpStatus.OK);
-	}
-
-	private HttpEntity<ActivityCategoryResource> createResponse(ActivityCategoryDto activityCategory, HttpStatus status)
-	{
-		return new ResponseEntity<>(new ActivityCategoryResourceAssembler().toResource(activityCategory), status);
-	}
-
-	private HttpEntity<Resources<ActivityCategoryResource>> createOkResponse(Set<ActivityCategoryDto> activityCategories,
-			ControllerLinkBuilder controllerMethodLinkBuilder)
-	{
-		return new ResponseEntity<>(
-				wrapActivityCategoriesAsResourceList(activityCategories, controllerMethodLinkBuilder), HttpStatus.OK);
-	}
-
-	private Resources<ActivityCategoryResource> wrapActivityCategoriesAsResourceList(Set<ActivityCategoryDto> activityCategories,
-			ControllerLinkBuilder controllerMethodLinkBuilder)
-	{
-		return new Resources<>(new ActivityCategoryResourceAssembler().toResources(activityCategories),
-				controllerMethodLinkBuilder.withSelfRel());
 	}
 
 	public static class ActivityCategoryResource extends Resource<ActivityCategoryDto>
