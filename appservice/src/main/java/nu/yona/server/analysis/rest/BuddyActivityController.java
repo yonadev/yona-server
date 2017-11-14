@@ -132,7 +132,7 @@ public class BuddyActivityController extends ActivityControllerBase
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return messageController.createOkResponse(createGoalIdMapping(userId), activityService
+			return messageController.createOkResponse(userService.getPrivateUser(userId), activityService
 					.addMessageToWeekActivity(userId, buddyId, WeekActivityDto.parseDate(dateStr), goalId, newMessage));
 		}
 	}
@@ -173,8 +173,8 @@ public class BuddyActivityController extends ActivityControllerBase
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return messageController.createOkResponse(createGoalIdMapping(userId), activityService.addMessageToDayActivity(userId,
-					buddyId, DayActivityDto.parseDate(dateStr), goalId, newMessage));
+			return messageController.createOkResponse(userService.getPrivateUser(userId), activityService
+					.addMessageToDayActivity(userId, buddyId, DayActivityDto.parseDate(dateStr), goalId, newMessage));
 		}
 	}
 

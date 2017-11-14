@@ -110,7 +110,7 @@ public class MessageController extends ControllerBase
 	{
 		UserDto user = messageService.prepareMessageCollection(userService.getPrivateValidatedUser(userId));
 		Page<MessageDto> messages = messageService.getReceivedMessages(user, onlyUnreadMessages, pageable);
-		return createOkResponse(pagedResourcesAssembler, user, messages);
+		return createOkResponse(user, messages, pagedResourcesAssembler);
 	}
 
 	@RequestMapping(value = "/{messageId}", method = RequestMethod.GET)
@@ -121,7 +121,7 @@ public class MessageController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			UserDto user = userService.getPrivateValidatedUser(userId);
-			return createOkResponse(createGoalIdMapping(user), messageService.getMessage(user, messageId));
+			return createOkResponse(user, messageService.getMessage(user, messageId));
 		}
 	}
 
@@ -130,13 +130,13 @@ public class MessageController extends ControllerBase
 		return GoalIdMapping.createInstance(user);
 	}
 
-	public HttpEntity<MessageDto> createOkResponse(GoalIdMapping goalIdMapping, MessageDto message)
+	public HttpEntity<MessageDto> createOkResponse(UserDto user, MessageDto message)
 	{
-		return createOkResponse(message, createResourceAssembler(goalIdMapping));
+		return createOkResponse(message, createResourceAssembler(createGoalIdMapping(user)));
 	}
 
-	public HttpEntity<PagedResources<MessageDto>> createOkResponse(PagedResourcesAssembler<MessageDto> pagedResourcesAssembler,
-			UserDto user, Page<MessageDto> messages)
+	public HttpEntity<PagedResources<MessageDto>> createOkResponse(UserDto user,
+			Page<MessageDto> messages, PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
 		return createOkResponse(messages, pagedResourcesAssembler, createResourceAssembler(createGoalIdMapping(user)));
 	}
