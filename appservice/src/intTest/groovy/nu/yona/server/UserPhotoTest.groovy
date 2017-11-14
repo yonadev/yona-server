@@ -13,7 +13,6 @@ import org.codehaus.groovy.runtime.MethodClosure
 
 import groovy.json.*
 import nu.yona.server.test.User
-import spock.lang.IgnoreRest
 
 class UserPhotoTest extends AbstractAppServiceIntegrationTest
 {
@@ -57,39 +56,70 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'User photo is present on buddy request message'()
-	{
-		//TODO
-	}
-
-	def 'User photo is present on buddy disconnect message'()
-	{
-		//TODO
-	}
-
 	def 'User photo is present on buddy messages'()
 	{
-		//TODO
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+
+		when:
+		def richardPhotoUrl = uploadUserPhoto(richard)
+
+		then:
+		def bobMessages = appService.getMessages(bob)
+		def bobMessagesFromRichard = bobMessages.responseData._embedded?."yona:messages".findAll{ it."nickname" == "RQ"}
+		bobMessagesFromRichard.each
+		{
+			it._links?."yona:userPhoto"?.href == richardPhotoUrl
+		}
 	}
 
-	def 'After delete of user, user photo is still present in buddy messages'()
+	def 'After buddy disconnect, user photo is still present in buddy messages and is still retrievable'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		def buddy = appService.getBuddies(richard)[0]
+		def richardPhotoUrl = uploadUserPhoto(richard)
+
+		when:
+		appService.removeBuddy(richard, buddy, "Bob, as you know our ways parted, so I'll remove you as buddy.")
+
+		then:
+		def bobMessages = appService.getMessages(bob)
+		def bobMessagesFromRichard = bobMessages.responseData._embedded?."yona:messages".findAll{ it."nickname" == "RQ"}
+		bobMessagesFromRichard.each
+		{
+			it._links?."yona:userPhoto"?.href == richardPhotoUrl
+		}
+		def response = appService.yonaServer.restClient.get(path: richardPhotoUrl)
+		response.status == 200
+	}
+
+	def 'After delete of user, user photo is still present in buddy messages and is still retrievable'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
 		def richardPhotoUrl = uploadUserPhoto(richard)
-		appService.deleteUser(richard)
 
 		when:
-		//TODO: retrieve buddy messages
-		def response = appService.yonaServer.restClient.get(path: richardPhotoUrl)
+		appService.deleteUser(richard)
 
 		then:
+		def bobMessages = appService.getMessages(bob)
+		def bobMessagesFromRichard = bobMessages.responseData._embedded?."yona:messages".findAll{ it."nickname" == "RQ"}
+		bobMessagesFromRichard.each
+		{
+			it._links?."yona:userPhoto"?.href == richardPhotoUrl
+		}
+		def response = appService.yonaServer.restClient.get(path: richardPhotoUrl)
 		response.status == 200
 	}
 
-	@IgnoreRest
 	def 'Buddy updates user photo which causes buddy info change message and user photo update on process'()
 	{
 		given:

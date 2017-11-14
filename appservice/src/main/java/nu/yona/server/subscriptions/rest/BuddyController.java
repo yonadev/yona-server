@@ -301,6 +301,7 @@ public class BuddyController
 			ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(buddy.getId());
 			addSelfLink(selfLinkBuilder, buddyResource);
 			addEditLink(selfLinkBuilder, buddyResource);
+			addUserPhotoLink(buddyResource);
 			if (buddy.getSendingStatus() == Status.ACCEPTED)
 			{
 				addDayActivityOverviewsLink(buddyResource);
@@ -328,6 +329,16 @@ public class BuddyController
 		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
 		{
 			buddyResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
+		}
+
+		private void addUserPhotoLink(BuddyResource buddyResource)
+		{
+			Optional<UUID> userPhotoId = buddyResource.getContent().getUserPhotoId();
+			if (userPhotoId.isPresent())
+			{
+				buddyResource
+						.add(linkTo(methodOn(UserPhotoController.class).getUserPhoto(userPhotoId.get())).withRel("userPhoto"));
+			}
 		}
 
 		private void addWeekActivityOverviewsLink(BuddyResource buddyResource)
