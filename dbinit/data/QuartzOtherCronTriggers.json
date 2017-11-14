@@ -5,5 +5,12 @@
 		"cronExpression": "0 0 3 ? * *",
 		"timeZone": "Europe/Amsterdam",
 		"jobName": "ActivityAggregation"
+	},
+	{
+		"name": "NewDeviceRequestCleanUpTrigger",
+		"description": "Triggers NewDeviceRequestCleanUp every night",
+		"cronExpression": "0 0 2 ? * *",
+		"timeZone": "Europe/Amsterdam",
+		"jobName": "NewDeviceRequestCleanUp"
 	}
 ]

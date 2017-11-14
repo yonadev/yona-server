@@ -6,10 +6,9 @@
  *******************************************************************************/
 package nu.yona.server.test
 
-import groovy.json.*
-
 import java.time.ZonedDateTime
 
+import groovy.json.*
 import nu.yona.server.YonaServer
 
 class AnalysisService extends Service
@@ -40,6 +39,7 @@ class AnalysisService extends Service
 					"url":"$url"
 				}""")
 	}
+
 	def postToAnalysisEngine(String vpnLoginId, jsonString)
 	{
 		yonaServer.postJson(USER_ANONYMIZED_PATH + vpnLoginId + "/networkActivity/", jsonString)

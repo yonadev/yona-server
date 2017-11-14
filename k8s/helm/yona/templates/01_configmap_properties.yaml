@@ -12,6 +12,7 @@ metadata:
 data:
   application.properties: |
     yona.maxUsers={{ .Values.app.max_users | default "100" }}
+    yona.enableHibernateStatsAllowed={{ .Values.app.enable_hibernate_stats_allowed| default "false" }}
     yona.whiteListActiveFreeSignUp={{ required "True or False required for app.whitelist.active_free_signup" .Values.app.whitelist.active_free_signup }}
     yona.whiteListActiveInvitedUsers={{ required "True or False required for app.whitelist.active_invited_users" .Values.app.whitelist.active_invited_users }}
     yona.security.pinResetRequestConfirmationCodeDelay={{ .Values.app.security.pin_reset_request_confirmation_code_delay | default "PT1M" }}

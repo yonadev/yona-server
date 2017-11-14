@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.batch.client.PinResetConfirmationCodeSendRequestDto;
 import nu.yona.server.batch.client.SystemMessageSendRequestDto;
-import nu.yona.server.batch.service.ActivityAggregationBatchJobResultDto;
+import nu.yona.server.batch.service.BatchJobResultDto;
 import nu.yona.server.batch.service.BatchTaskService;
 
 @Controller
@@ -46,7 +46,7 @@ public class BatchTaskController
 	// NOTICE: For integration test purposes. It executes the job synchronously.
 	@RequestMapping(value = "/aggregateActivities/", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.OK)
-	public HttpEntity<Resource<ActivityAggregationBatchJobResultDto>> aggregateActivities()
+	public HttpEntity<Resource<BatchJobResultDto>> aggregateActivities()
 	{
 		return new ResponseEntity<>(new Resource<>(batchTaskService.aggregateActivities()), HttpStatus.OK);
 	}

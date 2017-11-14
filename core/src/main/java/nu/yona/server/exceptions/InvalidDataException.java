@@ -50,6 +50,11 @@ public class InvalidDataException extends YonaException
 		return new InvalidDataException("error.user.mobile.number.invalid", mobileNumber);
 	}
 
+	public static InvalidDataException notAMobileNumber(String number, String classification)
+	{
+		return new InvalidDataException("error.user.mobile.number.not.mobile", number, classification);
+	}
+
 	public static InvalidDataException emptyUserId()
 	{
 		return new InvalidDataException("error.missing.user.id");

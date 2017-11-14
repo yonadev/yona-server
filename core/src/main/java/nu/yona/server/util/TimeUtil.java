@@ -72,4 +72,8 @@ public class TimeUtil
 		return date.minusDays(date.getDayOfWeek().getValue());
 	}
 
+	public static ZonedDateTime max(ZonedDateTime a, ZonedDateTime b)
+	{
+		return a.compareTo(b) > 0 ? a : b;
+	}
 }

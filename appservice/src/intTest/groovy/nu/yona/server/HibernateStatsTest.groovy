@@ -51,7 +51,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 	def cleanupSpec()
 	{
 		appService.setEnableStatistics(false)
-		appService.storeStatistics(statistics, "HibernateStatsTest")
+		YonaServer.storeStatistics(statistics, "HibernateStatsTest")
 		buddyUsers.each{ appService.deleteUser(it) }
 		appService.deleteUser(richard)
 	}
@@ -319,7 +319,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 	User createBuddyUser(int index)
 	{
 		User buddyUser = appService.addUser(appService.&assertUserCreationResponseDetails, "Bob" + index, "Dunn" + index, "BD" + index,
-				"+$timestamp")
+				makeMobileNumber(timestamp))
 		buddyUser = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, buddyUser)
 		setGoals(buddyUser)
 		buddyUser.emailAddress = "bob${index}@dunn.com"

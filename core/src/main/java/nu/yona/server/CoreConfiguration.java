@@ -6,10 +6,9 @@ package nu.yona.server;
 
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
@@ -49,8 +48,6 @@ import nu.yona.server.rest.RestClientErrorHandler;
 @Configuration
 public class CoreConfiguration extends CachingConfigurerSupport
 {
-	private static final Logger logger = LoggerFactory.getLogger(CoreConfiguration.class);
-
 	@Autowired
 	private YonaProperties yonaProperties;
 
@@ -75,7 +72,7 @@ public class CoreConfiguration extends CachingConfigurerSupport
 	public ReloadableResourceBundleMessageSource messageSource()
 	{
 		ReloadableResourceBundleMessageSource messageBundle = new ReloadableResourceBundleMessageSource();
-		
+
 		messageBundle.setFallbackToSystemLocale(false);
 		messageBundle.setBasename("classpath:messages/messages");
 		messageBundle.setDefaultEncoding("UTF-8");
@@ -84,13 +81,9 @@ public class CoreConfiguration extends CachingConfigurerSupport
 	}
 
 	@Bean
+	@ConditionalOnProperty("yona.ldap.enabled")
 	public LdapTemplate ldapTemplate()
 	{
-		if (!yonaProperties.getLdap().isEnabled())
-		{
-			logger.info("Skipping LDAP initialization, as it's not enabled.");
-			return null;
-		}
 		LdapContextSource contextSource = new LdapContextSource();
 		contextSource.setUrl(yonaProperties.getLdap().getUrl());
 		contextSource.setBase(yonaProperties.getLdap().getBaseDn());

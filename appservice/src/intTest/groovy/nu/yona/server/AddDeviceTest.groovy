@@ -48,7 +48,7 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def responseWrongNewDeviceRequestPassword = appService.getNewDeviceRequest(richard.mobileNumber, "wrong temp password")
-		def responseWrongMobileNumber = appService.getNewDeviceRequest("+31690609181", "wrong temp password")
+		def responseWrongMobileNumber = appService.getNewDeviceRequest("+31610609189", "wrong temp password")
 		def responseNoNewDeviceRequestWrongPassword = appService.getNewDeviceRequest(bob.mobileNumber, "wrong temp password")
 		def responseNoNewDeviceRequestNoPassword = appService.getNewDeviceRequest(bob.mobileNumber)
 
@@ -78,7 +78,7 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def responseWrongPassword = appService.setNewDeviceRequest(richard.mobileNumber, "foo", "Some password")
-		def responseWrongMobileNumber = appService.setNewDeviceRequest("+31690609181", "foo", "Some password")
+		def responseWrongMobileNumber = appService.setNewDeviceRequest("+31610609189", "foo", "Some password")
 
 		then:
 		responseWrongPassword.status == 400
@@ -146,7 +146,7 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 
 		when:
 		def responseWrongPassword = appService.clearNewDeviceRequest(richard.mobileNumber, "foo")
-		def responseWrongMobileNumber = appService.clearNewDeviceRequest("+31690609181", "foo")
+		def responseWrongMobileNumber = appService.clearNewDeviceRequest("+31610609189", "foo")
 
 		then:
 		responseWrongPassword.status == 400

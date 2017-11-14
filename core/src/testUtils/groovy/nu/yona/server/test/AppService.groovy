@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server.test
 
+import java.time.ZonedDateTime
+
 import groovy.json.*
 import nu.yona.server.YonaServer
 
@@ -261,11 +263,6 @@ class AppService extends Service
 		assert response.status >= 200 && response.status < 300
 	}
 
-	def isSuccess(def response)
-	{
-		response.status >= 200 && response.status < 300
-	}
-
 	void makeBuddies(User requestingUser, User respondingUser)
 	{
 		sendBuddyConnectRequest(requestingUser, respondingUser)
@@ -461,6 +458,12 @@ class AppService extends Service
 		return getDayDetailsForDayFromOverviewItem(user, dayActivityForGoal)
 	}
 
+	def getDayDetails(User user, String activityCategoryUrl, ZonedDateTime date) {
+		def goal = user.findActiveGoal(activityCategoryUrl)
+		def url = user.url + "/activity/days/" + YonaServer.toIsoDateString(date) + "/details/" + goal.getId()
+		getResourceWithPassword(url, user.password)
+	}
+
 	def getWeekDetailsFromOverview(responseWeekOverviewsAll, User user, Goal goal, int weeksBack) {
 		def weekActivityOverview = responseWeekOverviewsAll.responseData._embedded."yona:weekActivityOverviews"[weeksBack]
 		def weekActivityForGoal = weekActivityOverview.weekActivities.find{ it._links."yona:goal".href == goal.url}
@@ -583,78 +586,6 @@ class AppService extends Service
 	def postAppActivityToAnalysisEngine(User user, def appActivity)
 	{
 		yonaServer.createResourceWithPassword(user.appActivityUrl, appActivity.getJson(), user.password)
-	}
-
-	void setEnableStatistics(def enable)
-	{
-		def response = yonaServer.createResource("/hibernateStatistics/enable/", "{}", [:], ["enable" : enable])
-		assert response.status == 200 : "Ensure the server stats are enabled (run with -Dyona.enableHibernateStatsAllowed=true)"
-	}
-
-	void resetStatistics()
-	{
-		def response = getResource("/hibernateStatistics/", [:], ["reset" : "true"])
-		assert response.status == 200
-	}
-
-	void clearCaches()
-	{
-		def response = yonaServer.createResource("/hibernateStatistics/clearCaches/", "{}", [:], [:])
-		assert response.status == 200
-	}
-
-	def getStatistics()
-	{
-		def response = getResource("/hibernateStatistics/", [:], ["reset" : "false"])
-		assert response.status == 200
-		response.responseData
-	}
-
-	void storeStatistics(def statistics, def heading)
-	{
-		def file = new File("build/reports/tests/intTest/" + heading + ".md")
-		file << "# $heading\n\n"
-		def statNames = (statistics[statistics.keySet().first()].keySet().findAll{ it != "startTime" } as List).sort()
-		storeRow(file, ["Operation"]+ statNamesToHeadingNames(statNames))
-		storeRow(file, ["---"]* (statNames.size() + 1))
-		statistics.each{ k, v -> storeRow(file, [k]+ statNames.collect{v[it]}) }
-	}
-
-	def statNamesToHeadingNames(def statNames)
-	{
-		statNames = statNames*.minus("Count")
-		statNames*.uncapitalize()
-		statNames.collect{ it.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])")*.uncapitalize().join(" ")}*.capitalize()
-	}
-	private storeRow(def file, def cells)
-	{
-		cells.each{ file << "| $it"}
-		file << "\n"
-	}
-
-	def createResourceWithPassword(path, jsonString, password, parameters = [:])
-	{
-		yonaServer.createResource(path, jsonString, ["Yona-Password": password], parameters)
-	}
-
-	def deleteResourceWithPassword(path, password, parameters = [:])
-	{
-		yonaServer.deleteResourceWithPassword(path, password, parameters)
-	}
-
-	def getResourceWithPassword(path, password, parameters = [:])
-	{
-		yonaServer.getResourceWithPassword(path, password, parameters)
-	}
-
-	def getResource(path, headers = [:], parameters = [:])
-	{
-		yonaServer.getResource(path, headers, parameters)
-	}
-
-	def updateResource(path, jsonString, headers = [:], parameters = [:])
-	{
-		yonaServer.updateResource(path, jsonString, headers, parameters)
 	}
 
 	def composeActivityCategoryUrl(def activityCategoryId) {

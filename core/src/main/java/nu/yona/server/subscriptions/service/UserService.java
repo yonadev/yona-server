@@ -28,6 +28,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberType;
+
 import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.CryptoSession;
@@ -838,6 +842,24 @@ public class UserService
 		if (!REGEX_PHONE.matcher(mobileNumber).matches())
 		{
 			throw InvalidDataException.invalidMobileNumber(mobileNumber);
+		}
+		assertNumberIsMobile(mobileNumber);
+	}
+
+	private void assertNumberIsMobile(String mobileNumber)
+	{
+		try
+		{
+			PhoneNumberUtil util = PhoneNumberUtil.getInstance();
+			PhoneNumberType numberType = util.getNumberType(util.parse(mobileNumber, null));
+			if ((numberType != PhoneNumberType.MOBILE) && (numberType != PhoneNumberType.FIXED_LINE_OR_MOBILE))
+			{
+				throw InvalidDataException.notAMobileNumber(mobileNumber, numberType.toString());
+			}
+		}
+		catch (NumberParseException e)
+		{
+			throw YonaException.unexpected(e);
 		}
 	}
 

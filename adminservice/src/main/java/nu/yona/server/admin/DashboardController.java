@@ -43,6 +43,12 @@ public class DashboardController
 		List<Integer> appOpenedCounts = calculateAppOpenedCounts(intervals);
 		List<Integer> lastMonitoredActivityCounts = calculateLastMonitoredActivityCounts(intervals);
 		model.addAttribute("totalNumOfUsers", userRepository.count());
+		model.addAttribute("numOfUsersWithConfirmedNumbers", userRepository.countByMobileNumberConfirmationCodeIsNull());
+		model.addAttribute("numOfUsersWithUnconfirmedNumbers", userRepository.countByMobileNumberConfirmationCodeIsNotNull());
+		model.addAttribute("numOfUsersWithUnconfirmedNumbersInvitedOnBuddyRequest",
+				userRepository.countByMobileNumberConfirmationCodeIsNotNullAndIsCreatedOnBuddyRequest(true));
+		model.addAttribute("numOfUsersWithUnconfirmedNumbersFreeSignUp",
+				userRepository.countByMobileNumberConfirmationCodeIsNotNullAndIsCreatedOnBuddyRequest(false));
 		model.addAttribute("appOpenedCounts", appOpenedCounts);
 		model.addAttribute("appOpenedPercentages", absoluteValuesToPercentages(appOpenedCounts));
 		model.addAttribute("lastMonitoredActivityCounts", lastMonitoredActivityCounts);

@@ -441,7 +441,7 @@ paths:
                     application:
                       type: string
                       description: The name of the app
-                      example: Facebook
+                      example: com.google.android.youtube
                     startTime:
                       type: string
                       format: dateTime
@@ -554,6 +554,22 @@ paths:
           description: Messages related to this activity.
           schema:
             $ref: '#/definitions/PagedMessages'
+  '/users/{userID}/activity/days/{date}/details/{goalID}/raw/':
+    get:
+      summary: Get the raw activities
+      description: Fetches the raw activities that form the basis for the statistics calculation
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/date"
+        - $ref: "#/parameters/goalID"
+      tags:
+        - Activity
+      responses:
+        '200':
+          description: Raw activities
+          schema:
+            $ref: '#/definitions/RawActivities'
   '/users/{userID}/activity/weeks/':
     get:
       summary: Get a page of week activity overviews
@@ -2830,6 +2846,46 @@ definitions:
               - "yona:user"
         required:
           - _links
+  RawActivities:
+    allOf:
+      - type: object
+        properties:
+          _embedded:
+            properties:
+              "yona:activities":
+                type: array
+                items:
+                  $ref: '#/definitions/Activity'
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+            required:
+              - self
+        required:
+          - _links
+          - _embedded
+  Activity:
+    type: object
+    properties:
+      startTime:
+        type: string
+        format: dateTime
+        description: The time activity started
+        example: 2016-02-31T21:03:52.290+0000
+      endTime:
+        type: string
+        format: dateTime
+        description: The time activity ended
+        example: 2016-02-31T21:28:02.290+0000
+      app:
+        type: string
+        description: The app that was used, or an empty string in case of network activity
+        example: com.google.android.youtube
+    required:
+      - startTime
+      - endTime
+      - app
   PagedMessages:
     allOf:
       - $ref: '#/definitions/Page'

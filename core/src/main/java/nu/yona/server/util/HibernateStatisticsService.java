@@ -12,6 +12,8 @@ import javax.persistence.PersistenceException;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -24,6 +26,8 @@ import nu.yona.server.subscriptions.service.UserAnonymizedService;
 @Service
 public class HibernateStatisticsService
 {
+	private static final Logger logger = LoggerFactory.getLogger(HibernateStatisticsService.class);
+
 	@Autowired
 	private ApplicationContext applicationContext;
 
@@ -81,8 +85,9 @@ public class HibernateStatisticsService
 		{
 			return this.applicationContext.getBean(EntityManagerFactory.class).unwrap(SessionFactory.class);
 		}
-		catch (NoSuchBeanDefinitionException ex)
+		catch (NoSuchBeanDefinitionException e)
 		{
+			logger.error("Cannot get entity manager bean", e);
 			return null;
 		}
 	}
@@ -93,8 +98,9 @@ public class HibernateStatisticsService
 		{
 			return Optional.ofNullable(sessionFactory.getStatistics());
 		}
-		catch (PersistenceException pe)
+		catch (PersistenceException e)
 		{
+			logger.error("Cannot get statistics", e);
 			return Optional.empty();
 		}
 	}

@@ -1,11 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.transaction.Transactional;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.NewDeviceRequest;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.util.TimeUtil;
 
 @Service
@@ -27,6 +30,9 @@ public class NewDeviceRequestService
 
 	@Autowired
 	private UserService userService;
+
+	@Autowired(required = false)
+	private UserRepository userRepository;
 
 	@Autowired
 	private YonaProperties yonaProperties;
@@ -81,21 +87,39 @@ public class NewDeviceRequestService
 	@Transactional
 	public void clearNewDeviceRequestForUser(UUID userId)
 	{
-		User userEntity = userService.getValidatedUserbyId(userId);
+		User user = userService.getValidatedUserbyId(userId);
 
-		NewDeviceRequest existingNewDeviceRequestEntity = userEntity.getNewDeviceRequest();
+		NewDeviceRequest existingNewDeviceRequestEntity = user.getNewDeviceRequest();
 		if (existingNewDeviceRequestEntity != null)
 		{
-			logger.info("User with mobile number '{}' and ID '{}' cleared the new device request", userEntity.getMobileNumber(),
-					userEntity.getId());
-			userEntity.setNewDeviceRequest(null);
-			User.getRepository().save(userEntity);
+			removeNewDeviceRequest(user, "User with mobile number '{}' and ID '{}' cleared the new device request");
 		}
+	}
+
+	@Transactional
+	public int deleteAllExpiredRequests()
+	{
+		Set<User> users = userRepository.findAllWithExpiredNewDeviceRequests(TimeUtil.utcNow().minus(getExpirationTime()));
+		users.forEach(u -> removeNewDeviceRequest(u,
+				"New device request for user with mobile number '{}' and ID '{}' was cleared because it was expired"));
+		return users.size();
+	}
+
+	private void removeNewDeviceRequest(User user, String logMessage)
+	{
+		logger.info(logMessage, user.getMobileNumber(), user.getId());
+		user.clearNewDeviceRequest();
+		userRepository.save(user);
+	}
+
+	private Duration getExpirationTime()
+	{
+		return yonaProperties.getSecurity().getNewDeviceRequestExpirationTime();
 	}
 
 	private boolean isExpired(NewDeviceRequest newDeviceRequestEntity)
 	{
 		LocalDateTime creationTime = newDeviceRequestEntity.getCreationTime();
-		return creationTime.plus(yonaProperties.getSecurity().getNewDeviceRequestExpirationTime()).isBefore(TimeUtil.utcNow());
+		return creationTime.plus(getExpirationTime()).isBefore(TimeUtil.utcNow());
 	}
 }
