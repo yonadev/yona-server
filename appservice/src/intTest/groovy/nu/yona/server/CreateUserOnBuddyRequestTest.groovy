@@ -125,7 +125,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		updatedBobJson.yonaPassword = newPassword
 		updatedBobJson.nickname = newNickname
 		User updatedBob = appService.updateUserCreatedOnBuddyRequest(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson), inviteUrl)
-		def bobFromGetAfterUpdate = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, bob.url, true, updatedBob.password)
+		def bobFromGetAfterUpdate = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateData, bob.url, true, updatedBob.password)
 
 		when:
 		def againChangedNickname = "Robert"
@@ -315,7 +315,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	def 'Hacking attempt: Try to get Bob with an invalid temp password'()
 	{
 		given:
-		def richard = addRichard()
+		User richard = addRichard()
 		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, makeMobileNumber(timestamp)))
 
 		when:

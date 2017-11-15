@@ -22,4 +22,7 @@ databaseChangeLog:
       file: changelog-0006-yd-484.yml
   - include:
       relativeToChangelogFile: true
-      file: changelog-0007-yd-326.yml
+      file: changelog-0007-yd-495.yml  
+  - include:
+      relativeToChangelogFile: true
+      file: changelog-0008-yd-326.yml

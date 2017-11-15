@@ -19,21 +19,17 @@ import org.hibernate.annotations.Type;
 import nu.yona.server.crypto.seckey.DateTimeFieldEncryptor;
 import nu.yona.server.crypto.seckey.StringFieldEncryptor;
 import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
-import nu.yona.server.entities.EntityWithUuid;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "BUDDIES")
-public class Buddy extends EntityWithUuid
+public class Buddy extends EntityWithUuidAndTouchVersion
 {
 	@Type(type = "uuid-char")
 	@Column(name = "owning_user_private_id")
 	private UUID owningUserPrivateId;
-
-	@Column(nullable = true)
-	private int touchVersion;
 
 	@Convert(converter = UUIDFieldEncryptor.class)
 	private UUID userId;
@@ -175,9 +171,10 @@ public class Buddy extends EntityWithUuid
 		BuddyAnonymized.getRepository().save(buddyAnonymized);
 	}
 
+	@Override
 	public Buddy touch()
 	{
-		touchVersion++;
+		super.touch();
 		return this;
 	}
 

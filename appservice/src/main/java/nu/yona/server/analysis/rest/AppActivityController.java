@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -38,6 +37,7 @@ import nu.yona.server.analysis.service.AppActivityDto.Activity;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
+import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.subscriptions.service.UserService;
 
 /*
@@ -46,7 +46,7 @@ import nu.yona.server.subscriptions.service.UserService;
  */
 @Controller
 @RequestMapping(value = "/users/{userId}/appActivity", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class AppActivityController
+public class AppActivityController extends ControllerBase
 {
 	private static final Logger logger = LoggerFactory.getLogger(AppActivityController.class);
 
@@ -78,7 +78,7 @@ public class AppActivityController
 		if (appActivities.getActivities().length > yonaProperties.getAnalysisService().getAppActivityCountIgnoreThreshold())
 		{
 			logLongAppActivityBatch(MessageType.ERROR, userId, appActivities);
-			return new ResponseEntity<>(HttpStatus.OK);
+			return createOkResponse();
 		}
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
@@ -88,7 +88,7 @@ public class AppActivityController
 				logLongAppActivityBatch(MessageType.WARNING, userId, appActivities);
 			}
 			analysisEngineProxyService.analyzeAppActivity(userAnonymizedId, appActivities);
-			return new ResponseEntity<>(HttpStatus.OK);
+			return createOkResponse();
 		}
 	}
 

@@ -7,7 +7,6 @@ package nu.yona.server.goals.rest;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +16,7 @@ import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,11 +28,12 @@ import com.fasterxml.jackson.annotation.JsonView;
 import nu.yona.server.goals.rest.ActivityCategoryController.ActivityCategoryResource;
 import nu.yona.server.goals.service.ActivityCategoryDto;
 import nu.yona.server.goals.service.ActivityCategoryService;
+import nu.yona.server.rest.ControllerBase;
 
 @Controller
 @ExposesResourceFor(ActivityCategoryResource.class)
 @RequestMapping(value = "/activityCategories", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class ActivityCategoryController
+public class ActivityCategoryController extends ControllerBase
 {
 	@Autowired
 	private ActivityCategoryService activityCategoryService;
@@ -45,7 +43,7 @@ public class ActivityCategoryController
 	@JsonView(ActivityCategoryDto.AppView.class)
 	public HttpEntity<ActivityCategoryResource> getActivityCategory(@PathVariable UUID id)
 	{
-		return createOkResponse(activityCategoryService.getActivityCategory(id));
+		return createOkResponse(activityCategoryService.getActivityCategory(id), createResourceAssembler());
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
@@ -53,31 +51,13 @@ public class ActivityCategoryController
 	@JsonView(ActivityCategoryDto.AppView.class)
 	public HttpEntity<Resources<ActivityCategoryResource>> getAllActivityCategories()
 	{
-		return createOkResponse(activityCategoryService.getAllActivityCategories(), getAllActivityCategoriesLinkBuilder());
+		return createOkResponse(activityCategoryService.getAllActivityCategories(), createResourceAssembler(),
+				getAllActivityCategoriesLinkBuilder());
 	}
 
-	private HttpEntity<ActivityCategoryResource> createOkResponse(ActivityCategoryDto activityCategory)
+	private ActivityCategoryResourceAssembler createResourceAssembler()
 	{
-		return createResponse(activityCategory, HttpStatus.OK);
-	}
-
-	private HttpEntity<ActivityCategoryResource> createResponse(ActivityCategoryDto activityCategory, HttpStatus status)
-	{
-		return new ResponseEntity<>(new ActivityCategoryResourceAssembler().toResource(activityCategory), status);
-	}
-
-	private HttpEntity<Resources<ActivityCategoryResource>> createOkResponse(Set<ActivityCategoryDto> activityCategories,
-			ControllerLinkBuilder controllerMethodLinkBuilder)
-	{
-		return new ResponseEntity<>(
-				wrapActivityCategoriesAsResourceList(activityCategories, controllerMethodLinkBuilder), HttpStatus.OK);
-	}
-
-	private Resources<ActivityCategoryResource> wrapActivityCategoriesAsResourceList(Set<ActivityCategoryDto> activityCategories,
-			ControllerLinkBuilder controllerMethodLinkBuilder)
-	{
-		return new Resources<>(new ActivityCategoryResourceAssembler().toResources(activityCategories),
-				controllerMethodLinkBuilder.withSelfRel());
+		return new ActivityCategoryResourceAssembler();
 	}
 
 	static ControllerLinkBuilder getAllActivityCategoriesLinkBuilder()

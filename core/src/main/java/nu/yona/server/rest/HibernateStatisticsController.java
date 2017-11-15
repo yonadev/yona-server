@@ -21,7 +21,7 @@ import nu.yona.server.util.HibernateStatisticsService;
 
 @Controller
 @RequestMapping(value = "hibernateStatistics", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class HibernateStatisticsController
+public class HibernateStatisticsController extends ControllerBase
 {
 	@Autowired
 	private YonaProperties yonaProperties;
@@ -31,16 +31,16 @@ public class HibernateStatisticsController
 
 	@RequestMapping(value = "/enable/", params = { "enable" }, method = RequestMethod.POST)
 	@ResponseBody
-	public ResponseEntity<byte[]> enable(@RequestParam(value = "enable", defaultValue = "false") String enableStr)
+	public ResponseEntity<Void> enable(@RequestParam(value = "enable", defaultValue = "false") String enableStr)
 	{
 		if (!yonaProperties.isEnableHibernateStatsAllowed())
 		{
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			return createResponse(HttpStatus.NOT_FOUND);
 		}
 
 		hibernateStatisticsService.setEnabled(Boolean.TRUE.toString().equals(enableStr));
 
-		return new ResponseEntity<>(HttpStatus.OK);
+		return createOkResponse();
 	}
 
 	@RequestMapping(value = "/", params = { "reset" }, method = RequestMethod.GET)
@@ -50,11 +50,11 @@ public class HibernateStatisticsController
 	{
 		if (!hibernateStatisticsService.isStatisticsEnabled())
 		{
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			return createResponse(HttpStatus.NOT_FOUND);
 		}
 
-		ResponseEntity<StatisticsResource> responseEntity = new ResponseEntity<>(
-				new StatisticsResourceAssembler().toResource(hibernateStatisticsService.getStatistics()), HttpStatus.OK);
+		ResponseEntity<StatisticsResource> responseEntity = createOkResponse(hibernateStatisticsService.getStatistics(),
+				createResourceAssembler());
 		if (Boolean.TRUE.toString().equals(resetStr))
 		{
 			hibernateStatisticsService.resetStatistics();
@@ -64,16 +64,21 @@ public class HibernateStatisticsController
 
 	@RequestMapping(value = "/clearCaches/", method = RequestMethod.POST)
 	@ResponseBody
-	public ResponseEntity<byte[]> clearCaches()
+	public ResponseEntity<Void> clearCaches()
 	{
 		if (!hibernateStatisticsService.isStatisticsEnabled())
 		{
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			return createResponse(HttpStatus.NOT_FOUND);
 		}
 
 		hibernateStatisticsService.clearAllUserDataCaches();
 
-		return new ResponseEntity<>(HttpStatus.OK);
+		return createOkResponse();
+	}
+
+	private StatisticsResourceAssembler createResourceAssembler()
+	{
+		return new StatisticsResourceAssembler();
 	}
 
 	public static class StatisticsResource extends Resource<HibernateStatisticsService.StatisticsDto>

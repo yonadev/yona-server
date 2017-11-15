@@ -34,7 +34,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def newUserPhotoUrl = response.responseData?._links?.self?.href
 		newUserPhotoUrl != null
 
-		def richardAfterUpdate = appService.reloadUser(richard)
+		def richardAfterUpdate = appService.reloadUser(richard, appService.&assertUserGetResponseDetailsWithPrivateDataWithUserPhoto)
 		richardAfterUpdate.userPhotoUrl == newUserPhotoUrl
 
 		cleanup:
@@ -68,7 +68,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def newUserPhotoUrl = uploadUserPhoto(richard)
 
 		then:
-		def richardAfterUpdate = appService.reloadUser(richard)
+		def richardAfterUpdate = appService.reloadUser(richard, appService.&assertUserGetResponseDetailsWithPrivateDataWithUserPhoto)
 		richardAfterUpdate.userPhotoUrl == newUserPhotoUrl
 
 		def retrievePreviousPhotoResponse = appService.yonaServer.restClient.get(path: previousUserPhotoUrl)
@@ -212,7 +212,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		uploadUserPhoto(bob)
 
 		then:
-		User bobAfterUpdate = appService.reloadUser(bob)
+		User bobAfterUpdate = appService.reloadUser(bob, appService.&assertUserGetResponseDetailsWithPrivateDataWithUserPhoto)
 		bobAfterUpdate.userPhotoUrl != bob.userPhotoUrl
 
 		def richardMessagesAfterUpdate = appService.getMessages(richard)
@@ -244,7 +244,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		bob.emailAddress = "bob@dunn.com"
 		uploadUserPhoto(bob)
 		appService.makeBuddies(richard, bob)
-		richard = appService.reloadUser(richard)
+		richard = appService.reloadUser(richard, appService.&assertUserGetResponseDetailsWithPrivateDataWithUserPhoto)
 
 		when:
 		appService.yonaServer.deleteResourceWithPassword(bob.editUserPhotoUrl, bob.password)
@@ -265,7 +265,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		buddyInfoUpdateMessages[0].nickname == "BD"
 		buddyInfoUpdateMessages[0].message == "User changed personal info"
 
-		User richardAfterProcess = appService.reloadUser(richard)
+		User richardAfterProcess = appService.reloadUser(richard, appService.&assertUserGetResponseDetailsWithPrivateDataWithUserPhoto)
 		richardAfterProcess.buddies[0].userPhotoUrl == null
 
 		cleanup:

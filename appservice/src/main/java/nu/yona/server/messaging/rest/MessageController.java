@@ -60,6 +60,7 @@ import nu.yona.server.messaging.service.DisclosureResponseMessageDto;
 import nu.yona.server.messaging.service.MessageActionDto;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
+import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.rest.UserController;
@@ -74,7 +75,7 @@ import nu.yona.server.subscriptions.service.UserService;
 @Controller
 @ExposesResourceFor(MessageDto.class)
 @RequestMapping(value = "/users/{userId}/messages", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class MessageController
+public class MessageController extends ControllerBase
 {
 	@Autowired
 	private MessageService messageService;
@@ -108,11 +109,9 @@ public class MessageController
 	private HttpEntity<PagedResources<MessageDto>> getMessages(UUID userId, Pageable pageable,
 			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler, boolean onlyUnreadMessages)
 	{
-		UserDto user = userService.getPrivateValidatedUser(userId);
-		user = messageService.prepareMessageCollection(user);
+		UserDto user = messageService.prepareMessageCollection(userService.getPrivateValidatedUser(userId));
 		Page<MessageDto> messages = messageService.getReceivedMessages(user, onlyUnreadMessages, pageable);
-		return createOkResponse(pagedResourcesAssembler.toResource(messages,
-				new MessageResourceAssembler(curieProvider, createGoalIdMapping(user), this)));
+		return createOkResponse(user, messages, pagedResourcesAssembler);
 	}
 
 	@RequestMapping(value = "/{messageId}", method = RequestMethod.GET)
@@ -123,7 +122,7 @@ public class MessageController
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			UserDto user = userService.getPrivateValidatedUser(userId);
-			return createOkResponse(toMessageResource(createGoalIdMapping(user), messageService.getMessage(user, messageId)));
+			return createOkResponse(user, messageService.getMessage(user, messageId));
 		}
 	}
 
@@ -132,9 +131,15 @@ public class MessageController
 		return GoalIdMapping.createInstance(user);
 	}
 
-	public MessageDto toMessageResource(GoalIdMapping goalIdMapping, MessageDto message)
+	public HttpEntity<MessageDto> createOkResponse(UserDto user, MessageDto message)
 	{
-		return new MessageResourceAssembler(curieProvider, goalIdMapping, this).toResource(message);
+		return createOkResponse(message, createResourceAssembler(createGoalIdMapping(user)));
+	}
+
+	public HttpEntity<PagedResources<MessageDto>> createOkResponse(UserDto user,
+			Page<MessageDto> messages, PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
+	{
+		return createOkResponse(messages, pagedResourcesAssembler, createResourceAssembler(createGoalIdMapping(user)));
 	}
 
 	@RequestMapping(value = "/{id}/{action}", method = RequestMethod.POST)
@@ -166,19 +171,14 @@ public class MessageController
 		}
 	}
 
-	private HttpEntity<PagedResources<MessageDto>> createOkResponse(PagedResources<MessageDto> messages)
-	{
-		return new ResponseEntity<>(messages, HttpStatus.OK);
-	}
-
-	private HttpEntity<MessageDto> createOkResponse(MessageDto message)
-	{
-		return new ResponseEntity<>(message, HttpStatus.OK);
-	}
-
 	private HttpEntity<MessageActionResource> createOkResponse(MessageActionResource messageAction)
 	{
 		return new ResponseEntity<>(messageAction, HttpStatus.OK);
+	}
+
+	private MessageResourceAssembler createResourceAssembler(GoalIdMapping goalIdMapping)
+	{
+		return new MessageResourceAssembler(curieProvider, goalIdMapping, this);
 	}
 
 	public static ControllerLinkBuilder getAnonymousMessageLinkBuilder(UUID userId, long messageId)
@@ -228,7 +228,7 @@ public class MessageController
 		}
 	}
 
-	public static class MessageResourceAssembler extends ResourceAssemblerSupport<MessageDto, MessageDto>
+	private static class MessageResourceAssembler extends ResourceAssemblerSupport<MessageDto, MessageDto>
 	{
 		private final GoalIdMapping goalIdMapping;
 		private final CurieProvider curieProvider;

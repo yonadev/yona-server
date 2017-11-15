@@ -60,6 +60,9 @@ import nu.yona.server.analysis.rest.AppActivityController;
 import nu.yona.server.analysis.rest.UserActivityController;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
+import nu.yona.server.device.rest.DeviceController;
+import nu.yona.server.device.rest.DeviceController.DeviceResourceAssembler;
+import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
@@ -68,6 +71,7 @@ import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.messaging.rest.MessageController;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
+import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.ErrorResponseDto;
 import nu.yona.server.rest.GlobalExceptionMapping;
 import nu.yona.server.rest.JsonRootRelProvider;
@@ -83,7 +87,7 @@ import nu.yona.server.util.ThymeleafUtil;
 @Controller
 @ExposesResourceFor(UserResource.class)
 @RequestMapping(value = "/users", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class UserController
+public class UserController extends ControllerBase
 {
 	private static final String INCLUDE_PRIVATE_DATA_PARAM = "includePrivateData";
 	private static final String TEMP_PASSWORD_PARAM = "tempPassword";
@@ -133,12 +137,13 @@ public class UserController
 		{
 			try (CryptoSession cryptoSession = CryptoSession.start(passwordToUse, () -> userService.canAccessPrivateData(userId)))
 			{
-				return createOkResponse(userService.getPrivateUser(userId, tempPassword.isPresent()), includePrivateData);
+				return createOkResponse(userService.getPrivateUser(userId, tempPassword.isPresent()),
+						createResourceAssembler(includePrivateData));
 			}
 		}
 		else
 		{
-			return createOkResponse(userService.getPublicUser(userId), false);
+			return createOkResponse(userService.getPublicUser(userId), createResourceAssembler(false));
 		}
 	}
 
@@ -225,13 +230,14 @@ public class UserController
 		}
 		try (CryptoSession cryptoSession = CryptoSession.start(SecretKeyUtil.generateRandomSecretKey()))
 		{
-			return createOkResponse(userService.updateUserCreatedOnBuddyRequest(userId, tempPassword, userResource), true);
+			return createOkResponse(userService.updateUserCreatedOnBuddyRequest(userId, tempPassword, userResource),
+					createResourceAssembler(true));
 		}
 	}
 
 	private HttpEntity<UserResource> updateUser(UUID userId, UserDto userResource)
 	{
-		return createOkResponse(userService.updateUser(userId, userResource), true);
+		return createOkResponse(userService.updateUser(userId, userResource), createResourceAssembler(true));
 	}
 
 	@RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
@@ -254,7 +260,8 @@ public class UserController
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return createOkResponse(userService.confirmMobileNumber(userId, mobileNumberConfirmation.getCode()), true);
+			return createOkResponse(userService.confirmMobileNumber(userId, mobileNumberConfirmation.getCode()),
+					createResourceAssembler(true));
 		}
 	}
 
@@ -266,7 +273,7 @@ public class UserController
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			userService.resendMobileNumberConfirmationCode(userId);
-			return new ResponseEntity<>(HttpStatus.OK);
+			return createOkResponse();
 		}
 	}
 
@@ -278,7 +285,7 @@ public class UserController
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			userService.postOpenAppEvent(userId);
-			return new ResponseEntity<>(HttpStatus.OK);
+			return createOkResponse();
 		}
 	}
 
@@ -317,7 +324,8 @@ public class UserController
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(SecretKeyUtil.generateRandomSecretKey()))
 		{
-			return createResponse(userService.addUser(user, overwriteUserConfirmationCode), true, HttpStatus.CREATED);
+			return createResponse(userService.addUser(user, overwriteUserConfirmationCode), HttpStatus.CREATED,
+					createResourceAssembler(true));
 		}
 	}
 
@@ -334,15 +342,9 @@ public class UserController
 		return Optional.empty();
 	}
 
-	private HttpEntity<UserResource> createResponse(UserDto user, boolean includePrivateData, HttpStatus status)
+	private UserResourceAssembler createResourceAssembler(boolean includePrivateData)
 	{
-		return new ResponseEntity<>(
-				new UserResourceAssembler(curieProvider, pinResetRequestController, includePrivateData).toResource(user), status);
-	}
-
-	private HttpEntity<UserResource> createOkResponse(UserDto user, boolean includePrivateData)
-	{
-		return createResponse(user, includePrivateData, HttpStatus.OK);
+		return new UserResourceAssembler(curieProvider, pinResetRequestController, includePrivateData);
 	}
 
 	static Link getUserSelfLinkWithTempPassword(UUID userId, String tempPassword)
@@ -440,16 +442,27 @@ public class UserController
 				return Collections.emptyMap();
 			}
 
-			Set<BuddyDto> buddies = getContent().getPrivateData().getBuddies();
 			HashMap<String, Object> result = new HashMap<>();
+
+			Set<BuddyDto> buddies = getContent().getPrivateData().getBuddies();
+			UUID userId = getContent().getId();
 			result.put(curieProvider.getNamespacedRelFor(UserDto.BUDDIES_REL_NAME),
-					BuddyController.createAllBuddiesCollectionResource(curieProvider, getContent().getId(), buddies));
+					BuddyController.createAllBuddiesCollectionResource(curieProvider, userId, buddies));
 
 			Set<GoalDto> goals = getContent().getPrivateData().getGoals();
 			result.put(curieProvider.getNamespacedRelFor(UserDto.GOALS_REL_NAME),
-					GoalController.createAllGoalsCollectionResource(getContent().getId(), goals));
+					GoalController.createAllGoalsCollectionResource(userId, goals));
+
+			Set<DeviceBaseDto> devices = getContent().getDevices();
+			result.put(curieProvider.getNamespacedRelFor(UserDto.DEVICES_REL_NAME), ControllerBase.createCollectionResource(
+					devices, createDeviceResourceAssembler(userId), DeviceController.getAllDevicesLinkBuilder(userId)));
 
 			return result;
+		}
+
+		private DeviceResourceAssembler createDeviceResourceAssembler(UUID userId)
+		{
+			return new DeviceResourceAssembler(curieProvider, userId);
 		}
 
 		private boolean includeLinksAndEmbeddedData()

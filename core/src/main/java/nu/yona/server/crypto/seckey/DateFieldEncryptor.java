@@ -4,23 +4,23 @@
  *******************************************************************************/
 package nu.yona.server.crypto.seckey;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Base64;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 @Converter
-public class DateTimeFieldEncryptor implements AttributeConverter<LocalDateTime, String>
+public class DateFieldEncryptor implements AttributeConverter<LocalDate, String>
 {
 	@Override
-	public String convertToDatabaseColumn(LocalDateTime attribute)
+	public String convertToDatabaseColumn(LocalDate attribute)
 	{
-		return (attribute == null) ? null : Base64.getEncoder().encodeToString(SecretKeyUtil.encryptDateTime(attribute));
+		return (attribute == null) ? null : Base64.getEncoder().encodeToString(SecretKeyUtil.encryptDate(attribute));
 	}
 
 	@Override
-	public LocalDateTime convertToEntityAttribute(String dbData)
+	public LocalDate convertToEntityAttribute(String dbData)
 	{
 		try
 		{
@@ -29,7 +29,7 @@ public class DateTimeFieldEncryptor implements AttributeConverter<LocalDateTime,
 				return null;
 			}
 
-			return SecretKeyUtil.decryptDateTime(Base64.getDecoder().decode(dbData));
+			return SecretKeyUtil.decryptDate(Base64.getDecoder().decode(dbData));
 		}
 		catch (RuntimeException ex)
 		{

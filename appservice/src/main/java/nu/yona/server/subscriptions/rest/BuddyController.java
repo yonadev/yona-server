@@ -44,6 +44,7 @@ import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.goals.rest.GoalController.GoalResourceAssembler;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalServiceException;
+import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.rest.BuddyController.BuddyResource;
@@ -57,7 +58,7 @@ import nu.yona.server.util.TimeUtil;
 @Controller
 @ExposesResourceFor(BuddyResource.class)
 @RequestMapping(value = "/users/{userId}/buddies", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class BuddyController
+public class BuddyController extends ControllerBase
 {
 	public static final String BUDDY_LINK = "buddy";
 
@@ -98,7 +99,7 @@ public class BuddyController
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 
-			return createOkResponse(userId, buddyService.getBuddy(buddyId));
+			return createOkResponse(buddyService.getBuddy(buddyId), createResourceAssembler(userId));
 		}
 	}
 
@@ -109,9 +110,8 @@ public class BuddyController
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return createResponse(userId,
-					buddyService.addBuddyToRequestingUser(userId, convertToBuddy(postPutBuddy), this::getInviteUrl),
-					HttpStatus.CREATED);
+			return createResponse(buddyService.addBuddyToRequestingUser(userId, convertToBuddy(postPutBuddy), this::getInviteUrl),
+					HttpStatus.CREATED, createResourceAssembler(userId));
 		}
 	}
 
@@ -134,7 +134,7 @@ public class BuddyController
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return createResponse(userId, getGoal(userId, buddyId, goalId), HttpStatus.OK);
+			return createOkResponse(getGoal(userId, buddyId, goalId), new GoalResourceAssembler(userId));
 		}
 	}
 
@@ -191,19 +191,9 @@ public class BuddyController
 		return UserController.getUserSelfLinkWithTempPassword(newUserId, tempPassword).getHref();
 	}
 
-	private HttpEntity<BuddyResource> createOkResponse(UUID userId, BuddyDto buddy)
+	private BuddyResourceAssembler createResourceAssembler(UUID userId)
 	{
-		return createResponse(userId, buddy, HttpStatus.OK);
-	}
-
-	private HttpEntity<BuddyResource> createResponse(UUID userId, BuddyDto buddy, HttpStatus status)
-	{
-		return new ResponseEntity<>(new BuddyResourceAssembler(curieProvider, userId).toResource(buddy), status);
-	}
-
-	private HttpEntity<GoalDto> createResponse(UUID userId, GoalDto goal, HttpStatus status)
-	{
-		return new ResponseEntity<>(new GoalResourceAssembler(userId).toResource(goal), status);
+		return new BuddyResourceAssembler(curieProvider, userId);
 	}
 
 	public static Resources<GoalDto> createAllGoalsCollectionResource(UUID userId, UUID buddyId, Set<GoalDto> allGoalsOfUser)
