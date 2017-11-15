@@ -18,6 +18,18 @@ parameters:
     description: The device password
     required: true
     type: string
+  yonaPasswordOptional:
+    name: Yona-Password
+    in: header
+    description: The device password
+    required: false
+    type: string
+  tempPassword:
+    name: tempPassword
+    in: query
+    description: The temporary password that was included in the invitation e-mail when a user invited a non-Yona user as buddy
+    required: false
+    type: string
   goalID:
     name: goalID
     in: path
@@ -88,26 +100,18 @@ paths:
       description: Fetches the user identified by the given ID
       parameters:
         - $ref: "#/parameters/userID"
-        - name: Yona-Password
-          in: header
-          description: The device password
+        - $ref: "#/parameters/yonaPasswordOptional"
+        - $ref: "#/parameters/tempPassword"
+        - name: requestingUserId
+          in: query
+          description: The user ID of the user GETting this user entity. Either equal to the ID of the user being fetched or the user ID of one of their buddies.
           required: false
           type: string
-        - name: tempPassword
-          in: query
-          description: The temporary password that was included in the invitation e-mail when a user invited a non-Yona user as buddy
-          required: false
-          type: string
-        - name: includePrivateData
-          in: query
-          description: Pass true to fetch the private data of the user
-          required: false
-          type: boolean
       tags:
         - User
       responses:
         '200':
-          description: The requested user. The set of returned properties depends on the query parameter includePrivateData.
+          description: The requested user. The set of returned properties depends on the query parameter requestingUserId.
           schema:
             $ref: '#/definitions/UserWithPrivateData'
         default:
@@ -119,12 +123,8 @@ paths:
       description: Fetches the user identified by the given ID
       parameters:
         - $ref: "#/parameters/userID"
-        - $ref: "#/parameters/yonaPassword"
-        - name: tempPassword
-          in: query
-          description: The temporary password that was included in the invitation e-mail when a user invited a non-Yona user as buddy
-          required: false
-          type: string
+        - $ref: "#/parameters/yonaPasswordOptional"
+        - $ref: "#/parameters/tempPassword"
         - in: body
           name: body
           description: New user

@@ -108,9 +108,10 @@ public class BuddyDto
 
 	public static BuddyDto createInstance(Buddy buddyEntity)
 	{
-		return new BuddyDto(buddyEntity.getId(), UserDto.createInstance(buddyEntity.getUser()), buddyEntity.getNickname(),
-				getBuddyUserAnonymizedId(buddyEntity), getLastMonitoredActivityDate(buddyEntity), buddyEntity.getSendingStatus(),
-				buddyEntity.getReceivingStatus(), buddyEntity.getLastStatusChangeTime());
+		return new BuddyDto(buddyEntity.getId(),
+				UserDto.createInstanceWithBuddyData(buddyEntity.getUser(), BuddyUserPrivateDataDto.createInstance(buddyEntity)),
+				buddyEntity.getNickname(), getBuddyUserAnonymizedId(buddyEntity), getLastMonitoredActivityDate(buddyEntity),
+				buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus(), buddyEntity.getLastStatusChangeTime());
 	}
 
 	private static Optional<UUID> getBuddyUserAnonymizedId(Buddy buddyEntity)

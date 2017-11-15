@@ -202,7 +202,7 @@ abstract class ActivityControllerBase extends ControllerBase
 
 	private UUID determineBuddyId(GoalIdMapping goalIdMapping, ActivityCommentMessageDto message)
 	{
-		return goalIdMapping.getUser().getPrivateData().getBuddies().stream()
+		return goalIdMapping.getUser().getOwnPrivateData().getBuddies().stream()
 				.filter(b -> b.getUser().getId().equals(message.getSenderUser().get().getId())).map(BuddyDto::getId).findAny()
 				.orElseThrow(() -> new IllegalArgumentException(
 						"User with ID " + message.getSenderUser().get().getId() + "is not a buddy"));

@@ -400,7 +400,7 @@ public class MessageController extends ControllerBase
 		{
 			buddyMessage.getSenderUser()
 					.ifPresent(user -> buddyMessage.setEmbeddedUser(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME),
-							new UserController.UserResourceAssembler(curieProvider, false).toResource(user)));
+							new UserController.UserResourceAssembler(curieProvider).toResource(user)));
 		}
 
 		private void addUserLinkIfAvailable(BuddyMessageLinkedUserDto buddyMessage)

@@ -319,7 +319,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, makeMobileNumber(timestamp)))
 
 		when:
-		def response = appService.getResource(YonaServer.stripQueryString(inviteUrl), [:], ["tempPassword": "hack", "includePrivateData": "true"])
+		def response = appService.getResource(YonaServer.stripQueryString(inviteUrl), [:], ["tempPassword": "hack", "requestingUserId": richard.getId()])
 
 		then:
 		response.status == 400
@@ -359,7 +359,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 
 		when:
-		def response = appService.getResource(richard.url, [:], ["tempPassword": richard.password, "includePrivateData": "true"])
+		def response = appService.getResource(richard.url, [:], ["tempPassword": richard.password, "requestingUserId": richard.getId()])
 
 		then:
 		response.status == 400
@@ -536,6 +536,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 	String buildInviteUrl(def response)
 	{
+		println "URL from response = " + response.responseData._embedded."yona:user"._links.self.href
 		response.responseData._embedded."yona:user"._links.self.href + "?tempPassword=" + dummyTempPassword
 	}
 }

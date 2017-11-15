@@ -18,18 +18,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.Constants;
+import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.goals.service.GoalDto;
 
-@JsonRootName("userPrivate")
-public class UserPrivateDto
+public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 {
 	private final Optional<LocalDate> lastMonitoredActivityDate;
 	private final String yonaPassword;
-	private final String nickname;
-	private final Set<GoalDto> goals;
 	private final VPNProfileDto vpnProfile;
 	private final UUID userAnonymizedId;
 	private final UUID namedMessageSourceId;
@@ -37,24 +34,23 @@ public class UserPrivateDto
 	private final Set<BuddyDto> buddies;
 
 	@JsonCreator
-	public UserPrivateDto(@JsonProperty("nickname") String nickname)
+	public OwnUserPrivateDataDto(@JsonProperty("nickname") String nickname)
 	{
 		this(Optional.empty(), null, nickname, null, null, Collections.emptySet(), Collections.emptySet(), null,
-				new VPNProfileDto(null));
+				new VPNProfileDto(null), Collections.emptySet());
 	}
 
-	UserPrivateDto(Optional<LocalDate> lastMonitoredActivityDate, String yonaPassword, String nickname, UUID namedMessageSourceId,
-			UUID anonymousMessageSourceId, Set<GoalDto> goals, Set<BuddyDto> buddies, UUID userAnonymizedId,
-			VPNProfileDto vpnProfile)
+	OwnUserPrivateDataDto(Optional<LocalDate> lastMonitoredActivityDate, String yonaPassword, String nickname,
+			UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goals, Set<BuddyDto> buddies,
+			UUID userAnonymizedId, VPNProfileDto vpnProfile, Set<DeviceBaseDto> devices)
 	{
+		super(nickname, goals, devices);
 		Objects.requireNonNull(goals);
 		Objects.requireNonNull(buddies);
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 		this.yonaPassword = yonaPassword;
-		this.nickname = nickname;
 		this.namedMessageSourceId = namedMessageSourceId;
 		this.anonymousMessageSourceId = anonymousMessageSourceId;
-		this.goals = goals;
 		this.buddies = buddies;
 		this.userAnonymizedId = userAnonymizedId;
 		this.vpnProfile = vpnProfile;
@@ -70,17 +66,6 @@ public class UserPrivateDto
 	public String getYonaPassword()
 	{
 		return yonaPassword;
-	}
-
-	public String getNickname()
-	{
-		return nickname;
-	}
-
-	@JsonIgnore
-	public Set<GoalDto> getGoals()
-	{
-		return Collections.unmodifiableSet(goals);
 	}
 
 	@JsonIgnore

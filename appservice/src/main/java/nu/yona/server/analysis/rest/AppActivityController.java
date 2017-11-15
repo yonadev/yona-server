@@ -82,7 +82,7 @@ public class AppActivityController extends ControllerBase
 		}
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			UUID userAnonymizedId = userService.getPrivateUser(userId).getPrivateData().getUserAnonymizedId();
+			UUID userAnonymizedId = userService.getPrivateUser(userId).getOwnPrivateData().getUserAnonymizedId();
 			if (appActivities.getActivities().length > yonaProperties.getAnalysisService().getAppActivityCountLoggingThreshold())
 			{
 				logLongAppActivityBatch(MessageType.WARNING, userId, appActivities);

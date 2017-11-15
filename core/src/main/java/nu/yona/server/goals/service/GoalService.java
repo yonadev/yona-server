@@ -46,7 +46,7 @@ public class GoalService
 	public Set<GoalDto> getGoalsOfUser(UUID forUserId)
 	{
 		UserDto user = userService.getPrivateUser(forUserId);
-		return user.getPrivateData().getGoals();
+		return user.getOwnPrivateData().getGoals();
 	}
 
 	public GoalDto getGoalForUserId(UUID userId, UUID goalId)

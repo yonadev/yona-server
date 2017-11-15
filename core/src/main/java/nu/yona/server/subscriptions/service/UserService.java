@@ -260,11 +260,11 @@ public class UserService
 		}
 		else
 		{
-			goals = user.getPrivateData().getGoals().stream().map(GoalDto::createGoalEntity).collect(Collectors.toSet());
+			goals = user.getOwnPrivateData().getGoals().stream().map(GoalDto::createGoalEntity).collect(Collectors.toSet());
 		}
 		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
 		UserAnonymized.getRepository().save(userAnonymized);
-		UserPrivate userPrivate = UserPrivate.createInstance(user.getPrivateData().getNickname(), generatePassword(),
+		UserPrivate userPrivate = UserPrivate.createInstance(user.getOwnPrivateData().getNickname(), generatePassword(),
 				userAnonymized.getId(), anonymousMessageSource.getId(), namedMessageSource);
 		User userEntity = new User(UUID.randomUUID(), initializationVector, user.getFirstName(), user.getLastName(),
 				user.getMobileNumber(), userPrivate, namedMessageSource.getDestination());
@@ -789,7 +789,7 @@ public class UserService
 			throw InvalidDataException.blankLastName();
 		}
 
-		if (userPurpose == UserPurpose.USER && StringUtils.isBlank(userResource.getPrivateData().getNickname()))
+		if (userPurpose == UserPurpose.USER && StringUtils.isBlank(userResource.getOwnPrivateData().getNickname()))
 		{
 			throw InvalidDataException.blankNickname();
 		}
@@ -809,7 +809,7 @@ public class UserService
 			}
 			assertValidEmailAddress(userResource.getEmailAddress());
 
-			if (!userResource.getPrivateData().getGoals().isEmpty())
+			if (!userResource.getOwnPrivateData().getGoals().isEmpty())
 			{
 				throw InvalidDataException.goalsNotSupported();
 			}

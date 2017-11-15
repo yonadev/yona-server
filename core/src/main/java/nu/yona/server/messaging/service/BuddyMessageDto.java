@@ -48,7 +48,7 @@ public abstract class BuddyMessageDto extends MessageDto
 			BuddyMessage buddyMessageEntity = (BuddyMessage) messageEntity;
 			if (actingUser.getId().equals(buddyMessageEntity.getSenderUserId()))
 			{
-				return Optional.of(actingUser.getPrivateData().getUserAnonymizedId());
+				return Optional.of(actingUser.getOwnPrivateData().getUserAnonymizedId());
 			}
 			return messageEntity.getRelatedUserAnonymizedId();
 		}

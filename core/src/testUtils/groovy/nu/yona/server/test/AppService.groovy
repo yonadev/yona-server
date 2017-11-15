@@ -18,13 +18,16 @@ class AppService extends Service
 	static final USERS_PATH = "/users/"
 	static final OVERWRITE_USER_REQUEST_PATH = "/admin/requestUserOverwrite/"
 
+	static final UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}'
+
+
 	static final PUBLIC_USER_PROPERTIES_APP_NOT_OPENED = ["firstName", "lastName", "mobileNumber", "creationTime", "_links"] as Set
 	static final PUBLIC_USER_PROPERTIES_APP_OPENED = PUBLIC_USER_PROPERTIES_APP_NOT_OPENED + ["appLastOpenedDate"] as Set
 	static final PRIVATE_USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST = PUBLIC_USER_PROPERTIES_APP_NOT_OPENED + ["nickname", "yonaPassword"] as Set
 	static final PRIVATE_USER_PROPERTIES_NUM_TO_BE_CONFIRMED = PRIVATE_USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST + ["appLastOpenedDate"] as Set
 	static final PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY = PRIVATE_USER_PROPERTIES_NUM_TO_BE_CONFIRMED + ["vpnProfile", "sslRootCertCN", "_embedded"] as Set
 	static final PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_AFTER_ACTIVITY = PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY + ["lastMonitoredActivityDate"] as Set
-	static final BUDDY_USER_PROPERTIES = PUBLIC_USER_PROPERTIES_APP_OPENED
+	static final BUDDY_USER_PROPERTIES = PUBLIC_USER_PROPERTIES_APP_OPENED + ["nickname"] as Set
 	static final PRIVATE_USER_COMMON_LINKS = ["self", "curies"] as Set
 	static final PRIVATE_USER_LINKS_NUM_TO_BE_CONFIRMED = PRIVATE_USER_COMMON_LINKS + ["yona:confirmMobileNumber", "yona:resendMobileNumberConfirmationCode", "edit"] as Set
 	static final PRIVATE_USER_LINKS_NUM_CONFIRMED = PRIVATE_USER_COMMON_LINKS + ["edit", "yona:postOpenAppEvent", "yona:messages", "yona:dailyActivityReports", "yona:weeklyActivityReports", "yona:dailyActivityReportsWithBuddies", "yona:newDeviceRequest", "yona:appActivity", "yona:sslRootCert", "yona:appleMobileConfig"] as Set
@@ -66,7 +69,7 @@ class AppService extends Service
 		def response
 		if (includePrivateData)
 		{
-			response = yonaServer.getResourceWithPassword(yonaServer.stripQueryString(userUrl), password, yonaServer.getQueryParams(userUrl) + ["includePrivateData": "true"])
+			response = yonaServer.getResourceWithPassword(YonaServer.stripQueryString(userUrl), password, yonaServer.getQueryParams(userUrl) + ["requestingUserId": User.getIdFromUrl(userUrl)])
 		}
 		else
 		{
@@ -81,7 +84,7 @@ class AppService extends Service
 	{
 		if (includePrivateData)
 		{
-			yonaServer.getResourceWithPassword(yonaServer.stripQueryString(userUrl), password, yonaServer.getQueryParams(userUrl) + ["includePrivateData": "true"])
+			yonaServer.getResourceWithPassword(YonaServer.stripQueryString(userUrl), password, yonaServer.getQueryParams(userUrl) + ["requestingUserId": User.getIdFromUrl(userUrl)])
 		}
 		else
 		{
@@ -94,7 +97,7 @@ class AppService extends Service
 		def response
 		if (user.hasPrivateData)
 		{
-			response = yonaServer.getResourceWithPassword(yonaServer.stripQueryString(user.url), user.password, yonaServer.getQueryParams(user.url) + ["includePrivateData": "true"])
+			response = yonaServer.getResourceWithPassword(YonaServer.stripQueryString(user.url), user.password, yonaServer.getQueryParams(user.url) + ["requestingUserId": user.getId()])
 			if (asserter)
 			{
 				asserter(response)
@@ -137,12 +140,12 @@ class AppService extends Service
 
 	def updateUser(userUrl, jsonString, password)
 	{
-		yonaServer.updateResourceWithPassword(yonaServer.stripQueryString(userUrl), jsonString, password, yonaServer.getQueryParams(userUrl))
+		yonaServer.updateResourceWithPassword(YonaServer.stripQueryString(userUrl), jsonString, password, yonaServer.getQueryParams(userUrl))
 	}
 
 	def updateUser(userUrl, jsonString)
 	{
-		yonaServer.updateResource(yonaServer.stripQueryString(userUrl), jsonString, [:], yonaServer.getQueryParams(userUrl))
+		yonaServer.updateResource(YonaServer.stripQueryString(userUrl), jsonString, [:], yonaServer.getQueryParams(userUrl))
 	}
 
 	def deleteUser(User user, message = "")
@@ -263,6 +266,7 @@ class AppService extends Service
 			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user.keySet() == PRIVATE_USER_PROPERTIES_NUM_TO_BE_CONFIRMED : (user.keySet() == PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY || user.keySet() == PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_AFTER_ACTIVITY))
 			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user._links.keySet() == PRIVATE_USER_LINKS_NUM_TO_BE_CONFIRMED : user._links.keySet() == PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_NOT_REQUESTED)
 			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? true : user._embedded.keySet() == PRIVATE_USER_EMBEDDED)
+			assert skipPropertySetAssertion || user._links.self.href ==~/(?i)^.*\/$UUID_PATTERN\?requestingUserId=$UUID_PATTERN$/
 		}
 
 		if (!mobileNumberToBeConfirmed)
@@ -273,16 +277,15 @@ class AppService extends Service
 
 	def assertVpnProfile(def user)
 	{
-		def vpnLoginIdPattern = '(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
 		if (user instanceof User)
 		{
 			// The User Groovy object follows the new camel casing pattern: Id with lowercase d
-			assert user.vpnProfile.vpnLoginId ==~ /$vpnLoginIdPattern/
+			assert user.vpnProfile.vpnLoginId ==~ /(?i)^$UUID_PATTERN$/
 		}
 		else
 		{
 			// For backward compatibility, the JSON still has the old camel casing pattern: ID with uppercase D
-			assert user.vpnProfile.vpnLoginID ==~ /$vpnLoginIdPattern/
+			assert user.vpnProfile.vpnLoginID ==~ /(?i)^$UUID_PATTERN$/
 		}
 		assert user.vpnProfile.vpnPassword.length() == 32
 		if (user instanceof User)
@@ -295,14 +298,19 @@ class AppService extends Service
 		}
 	}
 
-	def assertResponseStatusCreated(def response)
+	void assertResponseStatusCreated(def response)
 	{
-		assert response.status == 201
+		assertResponseStatus(response, 201)
 	}
 
-	def assertResponseStatusSuccess(def response)
+	void assertResponseStatus(def response, int status)
 	{
-		assert response.status >= 200 && response.status < 300
+		assert response.status == status, "Invalid status: $response.status (expecting $status). Response: $response.data"
+	}
+
+	void assertResponseStatusSuccess(def response)
+	{
+		assert response.status >= 200 && response.status < 300, "Invalid status: $response.status (expecting 2xx). Response: $response.data"
 	}
 
 	private assertBuddyUsers(response)
@@ -345,7 +353,7 @@ class AppService extends Service
 			"receivingStatus":"REQUESTED"
 		}""", sendingUser.password)
 		if (assertSuccess) {
-			assert response.status == 201
+			assertResponseStatusCreated(response)
 		}
 		response
 	}

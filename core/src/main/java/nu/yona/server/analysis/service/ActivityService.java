@@ -678,7 +678,7 @@ public class ActivityService
 	private MessageDto sendMessagePair(UserDto sendingUser, UUID targetUserAnonymizedId, IntervalActivity intervalActivityEntity,
 			Optional<Message> repliedMessageOfSelf, Optional<Message> repliedMessageOfBuddy, String message)
 	{
-		UUID sendingUserAnonymizedId = sendingUser.getPrivateData().getUserAnonymizedId();
+		UUID sendingUserAnonymizedId = sendingUser.getOwnPrivateData().getUserAnonymizedId();
 		ActivityCommentMessage messageToBuddy = createMessage(sendingUser, sendingUserAnonymizedId, intervalActivityEntity,
 				repliedMessageOfBuddy, false, message);
 		ActivityCommentMessage messageToSelf = createMessage(sendingUser, targetUserAnonymizedId, intervalActivityEntity,
@@ -704,13 +704,13 @@ public class ActivityService
 		if (repliedMessage.isPresent())
 		{
 			message = ActivityCommentMessage.createInstance(sendingUser.getId(), relatedUserAnonymizedId,
-					sendingUser.getPrivateData().getNickname(), intervalActivityEntity, isSentItem, messageText,
+					sendingUser.getOwnPrivateData().getNickname(), intervalActivityEntity, isSentItem, messageText,
 					repliedMessage.get());
 		}
 		else
 		{
 			message = ActivityCommentMessage.createThreadHeadInstance(sendingUser.getId(), relatedUserAnonymizedId,
-					sendingUser.getPrivateData().getNickname(), intervalActivityEntity, isSentItem, messageText);
+					sendingUser.getOwnPrivateData().getNickname(), intervalActivityEntity, isSentItem, messageText);
 		}
 		messageRepository.save(message);
 		return message;

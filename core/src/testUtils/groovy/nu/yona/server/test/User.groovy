@@ -114,6 +114,21 @@ class User
 		return json
 	}
 
+	def getId()
+	{
+		getIdFromUrl(url)
+	}
+
+	static def getIdFromUrl(def url)
+	{
+		def queryStringStart = url.indexOf('?')
+		if (queryStringStart == -1)
+		{
+			return url[-36..-1]
+		}
+		return url[queryStringStart-36..queryStringStart-1]
+	}
+
 	def findActiveGoal(def activityCategoryUrl)
 	{
 		goals.find{ it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
