@@ -137,8 +137,7 @@ public class BuddyAnonymized extends EntityWithUuid
 
 	public void setUserAnonymizedId(UUID userAnonymizedId)
 	{
-		Objects.requireNonNull(userAnonymizedId);
-		this.userAnonymizedId = userAnonymizedId;
+		this.userAnonymizedId = Objects.requireNonNull(userAnonymizedId);
 	}
 
 	public void setDisconnected()

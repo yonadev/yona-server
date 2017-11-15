@@ -45,13 +45,12 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 			UUID userAnonymizedId, VPNProfileDto vpnProfile, Set<DeviceBaseDto> devices)
 	{
 		super(nickname, goals, devices);
-		Objects.requireNonNull(goals);
-		Objects.requireNonNull(buddies);
+
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 		this.yonaPassword = yonaPassword;
 		this.namedMessageSourceId = namedMessageSourceId;
 		this.anonymousMessageSourceId = anonymousMessageSourceId;
-		this.buddies = buddies;
+		this.buddies = Objects.requireNonNull(buddies);
 		this.userAnonymizedId = userAnonymizedId;
 		this.vpnProfile = vpnProfile;
 	}

@@ -83,8 +83,7 @@ public class UserAnonymized extends EntityWithUuid
 
 	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
 	{
-		Objects.requireNonNull(lastMonitoredActivityDate);
-		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
+		this.lastMonitoredActivityDate = Objects.requireNonNull(lastMonitoredActivityDate);
 	}
 
 	public Set<Goal> getGoals()

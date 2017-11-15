@@ -18,9 +18,8 @@ public class UserPrivateDataBaseDto
 	protected UserPrivateDataBaseDto(String nickname, Set<GoalDto> goals, Set<DeviceBaseDto> devices)
 	{
 		this.devices = devices;
-		Objects.requireNonNull(goals);
 		this.nickname = nickname;
-		this.goals = goals;
+		this.goals = Objects.requireNonNull(goals);
 	}
 
 	public String getNickname()

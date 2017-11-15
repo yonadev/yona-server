@@ -104,8 +104,7 @@ public class User extends EntityWithUuid
 
 	public void setAppLastOpenedDate(LocalDate appLastOpenedDate)
 	{
-		Objects.requireNonNull(appLastOpenedDate);
-		this.appLastOpenedDate = appLastOpenedDate;
+		this.appLastOpenedDate = Objects.requireNonNull(appLastOpenedDate);
 	}
 
 	public boolean isCreatedOnBuddyRequest()
@@ -165,8 +164,7 @@ public class User extends EntityWithUuid
 
 	public void setNewDeviceRequest(NewDeviceRequest newDeviceRequest)
 	{
-		Objects.requireNonNull(newDeviceRequest, "Use clearNewDeviceRequest to clear the request");
-		this.newDeviceRequest = newDeviceRequest;
+		this.newDeviceRequest = Objects.requireNonNull(newDeviceRequest, "Use clearNewDeviceRequest to clear the request");
 	}
 
 	public void clearNewDeviceRequest()

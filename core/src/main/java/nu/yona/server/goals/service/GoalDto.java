@@ -45,7 +45,6 @@ public abstract class GoalDto extends PolymorphicDto implements Serializable
 	protected GoalDto(UUID id, Optional<LocalDateTime> creationTime, Optional<LocalDateTime> endTime, UUID activityCategoryId,
 			boolean mandatory)
 	{
-		Objects.requireNonNull(creationTime);
 		this.id = id;
 		this.setActivityCategoryId(activityCategoryId);
 		this.mandatory = mandatory;
@@ -53,7 +52,7 @@ public abstract class GoalDto extends PolymorphicDto implements Serializable
 		// not using Optional as field here because of implementing Serializable
 		// see
 		// http://stackoverflow.com/questions/24547673/why-java-util-optional-is-not-serializable-how-to-serialize-the-object-with-suc
-		this.creationTime = creationTime.orElse(null);
+		this.creationTime = Objects.requireNonNull(creationTime).orElse(null);
 		this.endTime = endTime.orElse(null);
 	}
 

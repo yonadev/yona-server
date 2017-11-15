@@ -71,14 +71,10 @@ public abstract class IntervalActivity extends EntityWithId
 
 	protected IntervalActivity(UserAnonymized userAnonymized, Goal goal, ZoneId timeZone, LocalDate startDate)
 	{
-		Objects.requireNonNull(userAnonymized);
-		Objects.requireNonNull(goal);
-		Objects.requireNonNull(timeZone);
-		Objects.requireNonNull(startDate);
-		this.userAnonymized = userAnonymized;
-		this.goal = goal;
-		this.timeZone = timeZone;
-		this.startDate = startDate;
+		this.userAnonymized = Objects.requireNonNull(userAnonymized);
+		this.goal = Objects.requireNonNull(goal);
+		this.timeZone = Objects.requireNonNull(timeZone);
+		this.startDate = Objects.requireNonNull(startDate);
 	}
 
 	public static IntervalActivityRepository getIntervalActivityRepository()

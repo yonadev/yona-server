@@ -52,12 +52,9 @@ public class Buddy extends EntityWithUuidAndTouchVersion
 	private Buddy(UUID id, UUID userId, String nickname, UUID buddyAnonymizedId)
 	{
 		super(id);
-		Objects.requireNonNull(userId);
-		Objects.requireNonNull(nickname);
-		Objects.requireNonNull(buddyAnonymizedId);
-		this.userId = userId;
-		this.nickname = nickname;
-		this.buddyAnonymizedId = buddyAnonymizedId;
+		this.userId = Objects.requireNonNull(userId);
+		this.nickname = Objects.requireNonNull(nickname);
+		this.buddyAnonymizedId = Objects.requireNonNull(buddyAnonymizedId);
 
 		setLastStatusChangeTimeToNow();
 	}
