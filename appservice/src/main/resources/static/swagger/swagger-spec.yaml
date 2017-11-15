@@ -252,7 +252,7 @@ paths:
         - User photo
       responses:
         '200':
-          description: The user is deleted.
+          description: The user photo is deleted.
         default:
           description: Unexpected error
           schema:
