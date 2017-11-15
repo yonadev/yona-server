@@ -1,0 +1,23 @@
+databaseChangeLog:
+- changeSet:
+    id: 1510773473625-1
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: owning_buddy_id
+            type: varchar(255)
+        tableName: buddy_devices
+- changeSet:
+    id: 1510773473625-2
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: owning_buddy_id
+        baseTableName: buddy_devices
+        constraintName: FKhue14dflrmi0xfot2jojcgiiv
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: buddies
