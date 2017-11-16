@@ -16,13 +16,19 @@ import nu.yona.server.test.User
 
 class UserPhotoTest extends AbstractAppServiceIntegrationTest
 {
-	def 'User uploads user photo'()
+	static final EXAMPLE_PNG_DATA_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAABIAAAAVCAYAAABLy77vAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAlSURBVDhPY/j98dl/auBRgwjjUYMI41GDCONRgwjjUYMI4Wf/AVx5oubiBf17AAAAAElFTkSuQmCC"
+
+	def setupSpec()
+	{
+		appService.yonaServer.restClient.encoder.putAt("multipart/form-data", new MethodClosure(this, 'encodeMultipartEntity'))
+	}
+
+	def 'Richard uploads his photo; the new URL is returned and is set on the user properties'()
 	{
 		given:
 		def richard = addRichard()
-		appService.yonaServer.restClient.encoder.putAt("multipart/form-data", new MethodClosure(this, 'encodeMultipartEntity'))
 		def multipartEntity = MultipartEntityBuilder.create()
-				.addPart("file", new InputStreamBody(new ByteArrayInputStream(Base64.getDecoder().decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")), "image/gif", "MyPhoto.png"))
+				.addPart("file", new InputStreamBody(new ByteArrayInputStream(Base64.getDecoder().decode(EXAMPLE_PNG_DATA_BASE64)), "image/png", "MyPhoto.png"))
 				.build()
 
 		when:
@@ -34,14 +40,14 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def newUserPhotoUrl = response.responseData?._links?.self?.href
 		newUserPhotoUrl != null
 
-		def richardAfterUpdate = appService.reloadUser(richard, appService.&assertUserGetResponseDetailsWithPrivateDataWithUserPhoto)
+		def richardAfterUpdate = appService.reloadUser(richard)
 		richardAfterUpdate.userPhotoUrl == newUserPhotoUrl
 
 		cleanup:
 		appService.deleteUser(richard)
 	}
 
-	def 'Download user photo'()
+	def 'The photo of Richard can be downloaded'()
 	{
 		given:
 		def richard = addRichard()
@@ -58,31 +64,36 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'User updates user photo; the previous photo is still retrievable'()
+	def 'Richard updates his photo; it is still retrievable but not linked to him'()
 	{
 		given:
 		def richard = addRichard()
-		def previousUserPhotoUrl = uploadUserPhoto(richard)
+		def userPhotoUrlBefore = uploadUserPhoto(richard)
 
 		when:
 		def newUserPhotoUrl = uploadUserPhoto(richard)
 
 		then:
-		def richardAfterUpdate = appService.reloadUser(richard, appService.&assertUserGetResponseDetailsWithPrivateDataWithUserPhoto)
+		newUserPhotoUrl != userPhotoUrlBefore
+
+		def richardAfterUpdate = appService.reloadUser(richard)
 		richardAfterUpdate.userPhotoUrl == newUserPhotoUrl
 
-		def retrievePreviousPhotoResponse = appService.yonaServer.restClient.get(path: previousUserPhotoUrl)
-		retrievePreviousPhotoResponse.status == 200
+		def retrievePhotoBeforeResponse = appService.yonaServer.restClient.get(path: userPhotoUrlBefore)
+		retrievePhotoBeforeResponse.status == 200
+
+		def retrieveNewPhotoResponse = appService.yonaServer.restClient.get(path: newUserPhotoUrl)
+		retrieveNewPhotoResponse.status == 200
 
 		cleanup:
 		appService.deleteUser(richard)
 	}
 
-	def 'User deletes user photo; the previous photo is still retrievable'()
+	def 'Richard deletes his photo; it is still retrievable but not linked to him'()
 	{
 		given:
 		def richard = addRichard()
-		def previousUserPhotoUrl = uploadUserPhoto(richard)
+		def userPhotoUrlBefore = uploadUserPhoto(richard)
 
 		when:
 		def response = appService.yonaServer.deleteResourceWithPassword(richard.editUserPhotoUrl, richard.password)
@@ -93,14 +104,14 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def richardAfterUpdate = appService.reloadUser(richard)
 		richardAfterUpdate.userPhotoUrl == null
 
-		def retrievePreviousPhotoResponse = appService.yonaServer.restClient.get(path: previousUserPhotoUrl)
-		retrievePreviousPhotoResponse.status == 200
+		def retrievePhotoBeforeResponse = appService.yonaServer.restClient.get(path: userPhotoUrlBefore)
+		retrievePhotoBeforeResponse.status == 200
 
 		cleanup:
 		appService.deleteUser(richard)
 	}
 
-	def 'User photo is present on buddy messages'()
+	def 'Bob can see the photo of Richard on the messages of Richard'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
@@ -123,7 +134,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Before buddy connect, user photo is already present in buddy request message and is retrievable'()
+	def 'Bob can see the photo of Richard in the buddy request message before accepting the request'()
 	{
 		given:
 		User richard = addRichard()
@@ -149,7 +160,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'After buddy disconnect, user photo is still present in buddy messages and is still retrievable'()
+	def 'Richard disconnects Bob as buddy; Bob can still see the photo of Richard on the messages of Richard'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
@@ -176,7 +187,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'After delete of user, user photo is still present in buddy messages and is still retrievable'()
+	def 'Richard is deleted; Bob can still see the photo of Richard on the messages of Richard'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
@@ -201,7 +212,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Buddy updates user photo which causes buddy info change message and user photo update on process'()
+	def 'Richard updates his photo which causes buddy info change message to Bob and user photo update on process'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
@@ -209,75 +220,107 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		User bob = richardAndBob.bob
 
 		when:
-		uploadUserPhoto(bob)
+		def newUserPhotoUrl = uploadUserPhoto(richard)
 
 		then:
-		User bobAfterUpdate = appService.reloadUser(bob, appService.&assertUserGetResponseDetailsWithPrivateDataWithUserPhoto)
-		bobAfterUpdate.userPhotoUrl != bob.userPhotoUrl
-
-		def richardMessagesAfterUpdate = appService.getMessages(richard)
-		assert richardMessagesAfterUpdate.status == 200
-		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
+		def bobMessagesAfterUpdate = appService.getMessages(bob)
+		assert bobMessagesAfterUpdate.status == 200
+		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
 		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
-		buddyInfoUpdateMessages[0]._links."yona:user".href == bob.url
-		buddyInfoUpdateMessages[0]._links."yona:buddy".href == richard.buddies[0].url
-		buddyInfoUpdateMessages[0]._links."yona:userPhoto".href == bobAfterUpdate.userPhotoUrl
-		buddyInfoUpdateMessages[0].nickname == "BD"
+		buddyInfoUpdateMessages[0]._links."yona:user".href == richard.url
+		buddyInfoUpdateMessages[0]._links."yona:buddy".href == bob.buddies[0].url
+		buddyInfoUpdateMessages[0]._links."yona:userPhoto".href == newUserPhotoUrl
+		buddyInfoUpdateMessages[0].nickname == "RQ"
 		buddyInfoUpdateMessages[0].message == "User changed personal info"
 
-		User richardAfterProcess = appService.reloadUser(richard)
-		richardAfterProcess.buddies[0].userPhotoUrl == bobAfterUpdate.userPhotoUrl
+		User bobAfterProcess = appService.reloadUser(bob)
+		bobAfterProcess.buddies[0].userPhotoUrl == newUserPhotoUrl
 
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
 	}
 
-	def 'Buddy deletes user photo which causes buddy info change message and user photo delete on process'()
+	def 'Richard deletes his photo which causes buddy info change message to Bob and user photo delete on process'()
 	{
 		given:
 		User richard = addRichard()
 		User bob = addBob()
-		def richardPhotoUrl = uploadUserPhoto(richard)
 		bob.emailAddress = "bob@dunn.com"
-		uploadUserPhoto(bob)
+		uploadUserPhoto(richard)
 		appService.makeBuddies(richard, bob)
-		richard = appService.reloadUser(richard, appService.&assertUserGetResponseDetailsWithPrivateDataWithUserPhoto)
+		bob = appService.reloadUser(bob)
 
 		when:
-		appService.yonaServer.deleteResourceWithPassword(bob.editUserPhotoUrl, bob.password)
+		appService.yonaServer.deleteResourceWithPassword(richard.editUserPhotoUrl, richard.password)
 
 		then:
-		User bobAfterUpdate = appService.reloadUser(bob)
-		bobAfterUpdate.userPhotoUrl == null
-
-		def richardMessagesAfterUpdate = appService.getMessages(richard)
-		assert richardMessagesAfterUpdate.status == 200
-		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
+		def bobMessagesAfterUpdate = appService.getMessages(bob)
+		assert bobMessagesAfterUpdate.status == 200
+		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
 		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
-		buddyInfoUpdateMessages[0]._links."yona:user".href == bob.url
-		buddyInfoUpdateMessages[0]._links."yona:buddy".href == richard.buddies[0].url
+		buddyInfoUpdateMessages[0]._links."yona:user".href == richard.url
+		buddyInfoUpdateMessages[0]._links."yona:buddy".href == bob.buddies[0].url
 		buddyInfoUpdateMessages[0]._links."yona:userPhoto"?.href == null
-		buddyInfoUpdateMessages[0].nickname == "BD"
+		buddyInfoUpdateMessages[0].nickname == "RQ"
 		buddyInfoUpdateMessages[0].message == "User changed personal info"
 
-		User richardAfterProcess = appService.reloadUser(richard, appService.&assertUserGetResponseDetailsWithPrivateDataWithUserPhoto)
-		richardAfterProcess.buddies[0].userPhotoUrl == null
+		User bobAfterProcess = appService.reloadUser(bob)
+		bobAfterProcess.buddies[0].userPhotoUrl == null
 
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
 	}
 
+	def 'Harry cannot update photo of Richard with a wrong password'()
+	{
+		given:
+		def richard = addRichard()
+
+		when:
+		def multipartEntity = MultipartEntityBuilder.create()
+				.addPart("file", new InputStreamBody(new ByteArrayInputStream(Base64.getDecoder().decode(EXAMPLE_PNG_DATA_BASE64)), "image/png", "MyPhoto.png"))
+				.build()
+		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": "Wrong password"], body: multipartEntity)
+
+		then:
+		response.status == 400
+
+		def richardAfterUpdate = appService.reloadUser(richard)
+		richardAfterUpdate.userPhotoUrl == null
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Harry cannot delete photo of Richard with a wrong password'()
+	{
+		given:
+		def richard = addRichard()
+		def userPhotoUrlBefore = uploadUserPhoto(richard)
+
+		when:
+		def response = appService.yonaServer.deleteResourceWithPassword(richard.editUserPhotoUrl, "Wrong password")
+
+		then:
+		response.status == 400
+
+		def richardAfterUpdate = appService.reloadUser(richard)
+		richardAfterUpdate.userPhotoUrl == userPhotoUrlBefore
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def uploadUserPhoto(User user)
 	{
-		appService.yonaServer.restClient.encoder.putAt("multipart/form-data", new MethodClosure(this, 'encodeMultipartEntity'))
 		def multipartEntity = MultipartEntityBuilder.create()
-				.addPart("file", new InputStreamBody(new ByteArrayInputStream(Base64.getDecoder().decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")), "image/gif", "MyPhoto.png"))
+				.addPart("file", new InputStreamBody(new ByteArrayInputStream(Base64.getDecoder().decode(EXAMPLE_PNG_DATA_BASE64)), "image/png", "MyPhoto.png"))
 				.build()
 		def response = appService.yonaServer.restClient.put(path: user.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": user.password], body: multipartEntity)
 		response.responseData?._links?.self?.href
