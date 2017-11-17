@@ -277,7 +277,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Harry cannot update photo of Richard with a wrong password'()
+	def 'Hacking attempt: Cannot update photo of Richard with a wrong password'()
 	{
 		given:
 		def richard = addRichard()
@@ -290,6 +290,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 400
+		response.responseData.code == "error.decrypting.data"
 
 		def richardAfterUpdate = appService.reloadUser(richard)
 		richardAfterUpdate.userPhotoUrl == null
@@ -298,7 +299,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Harry cannot delete photo of Richard with a wrong password'()
+	def 'Hacking attempt: Cannot delete photo of Richard with a wrong password'()
 	{
 		given:
 		def richard = addRichard()
@@ -309,6 +310,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 400
+		response.responseData.code == "error.decrypting.data"
 
 		def richardAfterUpdate = appService.reloadUser(richard)
 		richardAfterUpdate.userPhotoUrl == userPhotoUrlBefore
