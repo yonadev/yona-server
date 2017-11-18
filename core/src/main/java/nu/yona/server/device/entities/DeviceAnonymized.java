@@ -20,12 +20,19 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 @Table(name = "DEVICES_ANONYMIZED")
 public abstract class DeviceAnonymized extends EntityWithUuid
 {
-	private int deviceId;
-
-	private LocalDate lastMonitoredActivityDate;
+	enum OperatingSystem
+	{
+		UNKNOWN, ANDROID, IOS
+	}
 
 	@ManyToOne
 	private UserAnonymized userAnonymized;
+
+	private int deviceId;
+
+	private OperatingSystem operatingSystem;
+
+	private LocalDate lastMonitoredActivityDate;
 
 	// Default constructor is required for JPA
 	protected DeviceAnonymized()
@@ -33,11 +40,12 @@ public abstract class DeviceAnonymized extends EntityWithUuid
 		super(null);
 	}
 
-	protected DeviceAnonymized(UUID id, UserAnonymized userAnonymized, int deviceId)
+	protected DeviceAnonymized(UUID id, UserAnonymized userAnonymized, int deviceId, OperatingSystem operatingSystem)
 	{
 		super(id);
 		this.userAnonymized = Objects.requireNonNull(userAnonymized);
 		this.deviceId = deviceId;
+		this.operatingSystem = operatingSystem;
 	}
 
 	public UserAnonymized getUserAnonymized()
@@ -58,6 +66,11 @@ public abstract class DeviceAnonymized extends EntityWithUuid
 	public int getDeviceId()
 	{
 		return deviceId;
+	}
+
+	public OperatingSystem getOperatingSystem()
+	{
+		return operatingSystem;
 	}
 
 	public Optional<LocalDate> getLastMonitoredActivityDate()

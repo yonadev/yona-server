@@ -21,3 +21,13 @@ databaseChangeLog:
         initiallyDeferred: false
         referencedColumnNames: id
         referencedTableName: buddies
+- changeSet:
+    id: 1511015869727-1
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: operating_system
+            type: integer
+        tableName: devices_anonymized
