@@ -1,7 +1,7 @@
 databaseChangeLog:
 - changeSet:
     id: 1508867617816-1
-    author: avdijk (generated)
+    author: avdijk (manual)
     changes:
     - createTable:
         columns:
@@ -12,7 +12,7 @@ databaseChangeLog:
             type: VARCHAR(255)
         - column:
             name: png_bytes
-            type: TINYBLOB
+            type: MEDIUMBLOB
         tableName: user_photo
 - changeSet:
     id: 1508867617816-2

@@ -184,10 +184,9 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 							"Message with ID " + requestMessageEntity.getId() + " does not have a related user anonymized ID")))
 					.getAnonymousDestination();
 			assert messageDestination != null;
-			messageService.sendMessageAndFlushToDatabase(DisclosureResponseMessage.createInstance(
-					new BuddyInfoParameters(respondingUser.getId(), respondingUser.getPrivateData().getUserAnonymizedId(),
-							respondingUser.getPrivateData().getNickname(), respondingUser.getPrivateData().getUserPhotoId()),
-					requestMessageEntity.getTargetGoalConflictMessage(), requestMessageEntity.getStatus(), message),
+			messageService.sendMessageAndFlushToDatabase(
+					DisclosureResponseMessage.createInstance(BuddyInfoParameters.createInstance(respondingUser),
+							requestMessageEntity.getTargetGoalConflictMessage(), requestMessageEntity.getStatus(), message),
 					messageDestination);
 		}
 	}

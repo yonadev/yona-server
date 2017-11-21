@@ -199,9 +199,7 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 		private void sendResponseMessageToRequestingUser(UserDto respondingUser,
 				BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage)
 		{
-			buddyService.sendBuddyConnectResponseMessage(
-					new BuddyInfoParameters(respondingUser.getId(), respondingUser.getPrivateData().getUserAnonymizedId(),
-							respondingUser.getPrivateData().getNickname(), respondingUser.getPrivateData().getUserPhotoId()),
+			buddyService.sendBuddyConnectResponseMessage(BuddyInfoParameters.createInstance(respondingUser),
 					connectRequestMessageEntity.getRelatedUserAnonymizedId().get(), connectRequestMessageEntity.getBuddyId(),
 					connectRequestMessageEntity.getStatus(), responseMessage);
 		}

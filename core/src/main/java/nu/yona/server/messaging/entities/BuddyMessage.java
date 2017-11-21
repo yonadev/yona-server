@@ -11,7 +11,9 @@ import javax.persistence.Entity;
 import javax.persistence.Transient;
 
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
+import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.subscriptions.service.UserDto;
 
 @Entity
 public abstract class BuddyMessage extends Message
@@ -45,7 +47,7 @@ public abstract class BuddyMessage extends Message
 
 	protected BuddyMessage(BuddyInfoParameters buddyInfoParameters, boolean isSentItem, String message)
 	{
-		super(buddyInfoParameters.userAnonymizedId, isSentItem);
+		super(buddyInfoParameters.relatedUserAnonymizedId, isSentItem);
 		this.senderUserId = buddyInfoParameters.userId;
 		this.senderNickname = buddyInfoParameters.nickname;
 		this.senderUserPhotoId = buddyInfoParameters.userPhotoId;
@@ -111,17 +113,47 @@ public abstract class BuddyMessage extends Message
 	 */
 	public static class BuddyInfoParameters
 	{
-		public final Optional<UUID> userPhotoId;
-		public final UUID userAnonymizedId;
+		public final UUID relatedUserAnonymizedId;
+
 		public final UUID userId;
 		public final String nickname;
+		public final Optional<UUID> userPhotoId;
 
-		public BuddyInfoParameters(UUID userId, UUID userAnonymizedId, String nickname, Optional<UUID> userPhotoId)
+		private BuddyInfoParameters(UUID relatedUserAnonymizedId, UUID userId, String nickname, Optional<UUID> userPhotoId)
 		{
+			this.relatedUserAnonymizedId = relatedUserAnonymizedId;
+
 			this.userId = userId;
-			this.userAnonymizedId = userAnonymizedId;
 			this.nickname = nickname;
 			this.userPhotoId = userPhotoId;
+		}
+
+		public static BuddyInfoParameters createInstance(UserDto userWithPrivateData)
+		{
+			return createInstance(userWithPrivateData, userWithPrivateData.getPrivateData().getUserAnonymizedId());
+		}
+
+		public static BuddyInfoParameters createInstance(UserDto userWithPrivateData, UUID relatedUserAnonymizedId)
+		{
+			return new BuddyInfoParameters(relatedUserAnonymizedId, userWithPrivateData.getId(),
+					userWithPrivateData.getPrivateData().getNickname(), userWithPrivateData.getPrivateData().getUserPhotoId());
+		}
+
+		public static BuddyInfoParameters createInstance(User userEntity)
+		{
+			return new BuddyInfoParameters(userEntity.getUserAnonymizedId(), userEntity.getId(), userEntity.getNickname(),
+					userEntity.getUserPhotoId());
+		}
+
+		public static BuddyInfoParameters createInstance(User userEntity, String nickname)
+		{
+			return new BuddyInfoParameters(userEntity.getUserAnonymizedId(), userEntity.getId(), nickname,
+					userEntity.getUserPhotoId());
+		}
+
+		public static BuddyInfoParameters createInstance(Buddy buddy, UUID buddyUserAnonymizedId)
+		{
+			return new BuddyInfoParameters(buddyUserAnonymizedId, null, buddy.getNickname(), buddy.getUserPhotoId());
 		}
 	}
 }

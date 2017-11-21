@@ -1,9 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
- * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -15,21 +16,16 @@ import nu.yona.server.subscriptions.entities.UserPhoto;
 public class UserPhotoDto
 {
 	private final byte[] pngBytes;
-	private final UUID id;
+	private final Optional<UUID> id;
 
-	private UserPhotoDto(UUID id, byte[] pngBytes)
+	private UserPhotoDto(Optional<UUID> id, byte[] pngBytes)
 	{
 		this.id = id;
 		this.pngBytes = pngBytes;
 	}
 
-	static UserPhotoDto createInstance(UserPhoto entity)
-	{
-		return new UserPhotoDto(entity.getId(), entity.getPngBytes());
-	}
-
 	@JsonIgnore
-	public UUID getId()
+	public Optional<UUID> getId()
 	{
 		return id;
 	}
@@ -40,8 +36,13 @@ public class UserPhotoDto
 		return pngBytes;
 	}
 
-	public static UserPhotoDto createUnsavedInstance(byte[] pngBytes)
+	public static UserPhotoDto createInstance(byte[] pngBytes)
 	{
-		return new UserPhotoDto(null, pngBytes);
+		return new UserPhotoDto(Optional.empty(), pngBytes);
+	}
+
+	static UserPhotoDto createInstance(UserPhoto entity)
+	{
+		return new UserPhotoDto(Optional.of(entity.getId()), entity.getPngBytes());
 	}
 }

@@ -136,8 +136,8 @@ public class MessageController extends ControllerBase
 		return createOkResponse(message, createResourceAssembler(createGoalIdMapping(user)));
 	}
 
-	public HttpEntity<PagedResources<MessageDto>> createOkResponse(UserDto user,
-			Page<MessageDto> messages, PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
+	public HttpEntity<PagedResources<MessageDto>> createOkResponse(UserDto user, Page<MessageDto> messages,
+			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
 		return createOkResponse(messages, pagedResourcesAssembler, createResourceAssembler(createGoalIdMapping(user)));
 	}
@@ -344,11 +344,8 @@ public class MessageController extends ControllerBase
 
 		private void addSenderUserPhotoLinkIfAvailable(MessageDto message)
 		{
-			if (message.getSenderUserPhotoId().isPresent())
-			{
-				message.add(
-						UserPhotoController.getUserPhotoLinkBuilder(message.getSenderUserPhotoId().get()).withRel("userPhoto"));
-			}
+			message.getSenderUserPhotoId().ifPresent(
+					userPhotoId -> message.add(UserPhotoController.getUserPhotoLinkBuilder(userPhotoId).withRel("userPhoto")));
 		}
 
 		private void addRelatedActivityCategoryLink(GoalChangeMessageDto message)

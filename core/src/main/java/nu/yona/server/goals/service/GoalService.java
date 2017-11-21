@@ -236,11 +236,8 @@ public class GoalService
 	private void broadcastGoalChangeMessage(User userEntity, ActivityCategory activityCategoryOfChangedGoal,
 			GoalChangeMessage.Change change, Optional<String> message)
 	{
-		messageService
-				.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
-						() -> GoalChangeMessage.createInstance(
-								new BuddyInfoParameters(userEntity.getId(), userEntity.getUserAnonymizedId(),
-										userEntity.getNickname(), userEntity.getUserPhotoId()),
-								activityCategoryOfChangedGoal, change, message.orElse(null)));
+		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
+				() -> GoalChangeMessage.createInstance(BuddyInfoParameters.createInstance(userEntity),
+						activityCategoryOfChangedGoal, change, message.orElse(null)));
 	}
 }

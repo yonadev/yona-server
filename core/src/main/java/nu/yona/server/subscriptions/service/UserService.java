@@ -481,8 +481,16 @@ public class UserService
 		userEntity.setUserPhotoId(userPhotoId);
 		User savedUserEntity = userRepository.save(userEntity);
 		UserDto userDto = createUserDtoWithPrivateData(savedUserEntity);
-		logger.info("Updated user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
-				userDto.getId());
+		if (userPhotoId.isPresent())
+		{
+			logger.info("Updated user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
+					userDto.getId());
+		}
+		else
+		{
+			logger.info("Deleted user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
+					userDto.getId());
+		}
 		buddyService.broadcastUserInfoChangeToBuddies(savedUserEntity, originalUser);
 		return userDto;
 	}

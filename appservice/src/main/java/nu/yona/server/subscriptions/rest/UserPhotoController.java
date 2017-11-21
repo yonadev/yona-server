@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
- * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
 
@@ -10,10 +10,12 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Optional;
 import java.util.UUID;
 
 import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
@@ -24,18 +26,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
 
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.rest.Constants;
+import nu.yona.server.rest.ControllerBase;
+import nu.yona.server.rest.ErrorResponseDto;
 import nu.yona.server.subscriptions.rest.UserPhotoController.UserPhotoResource;
 import nu.yona.server.subscriptions.service.UserPhotoDto;
 import nu.yona.server.subscriptions.service.UserPhotoService;
@@ -44,7 +51,7 @@ import nu.yona.server.subscriptions.service.UserService;
 @Controller
 @ExposesResourceFor(UserPhotoResource.class)
 @RequestMapping(value = "/", produces = { MediaType.APPLICATION_JSON_VALUE })
-public class UserPhotoController
+public class UserPhotoController extends ControllerBase
 {
 	@Autowired
 	private UserService userService;
@@ -67,36 +74,38 @@ public class UserPhotoController
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return createUserPhotoUploadResponse(
-					userPhotoService.addUserPhoto(userId, UserPhotoDto.createUnsavedInstance(getPngBytes(userPhoto))));
+			return createOkResponse(userPhotoService.addUserPhoto(userId, UserPhotoDto.createInstance(getPngBytes(userPhoto))),
+					new UserPhotoResourceAssembler());
 		}
 	}
 
-	@RequestMapping(value = "/users/{userId}/photo", method = RequestMethod.DELETE)
+	@ExceptionHandler(MultipartException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
-	public ResponseEntity<Void> removeUserPhoto(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+	public ErrorResponseDto handleMultipartException(HttpServletRequest request, Throwable exception)
+	{
+		return new ErrorResponseDto(null, exception.getMessage());
+	}
+
+	@RequestMapping(value = "/users/{userId}/photo", method = RequestMethod.DELETE)
+	@ResponseStatus(HttpStatus.OK)
+	public void removeUserPhoto(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@PathVariable UUID userId)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			userPhotoService.removeUserPhoto(userId);
-			return new ResponseEntity<Void>(HttpStatus.OK);
 		}
-	}
-
-	private ResponseEntity<UserPhotoResource> createUserPhotoUploadResponse(UserPhotoDto userPhoto)
-	{
-		return new ResponseEntity<>(new UserPhotoResourceAssembler().toResource(userPhoto), HttpStatus.OK);
 	}
 
 	private static byte[] getPngBytes(MultipartFile file)
 	{
-		try
+		try (InputStream inStream = file.getInputStream())
 		{
-			BufferedImage image = ImageIO.read(file.getInputStream());
+			BufferedImage image = ImageIO.read(inStream);
 			if (image == null)
 			{
-				throw InvalidDataException.notSupportedPhotoFileType();
+				throw InvalidDataException.unsupportedPhotoFileType();
 			}
 			ByteArrayOutputStream pngBytes = new ByteArrayOutputStream();
 			ImageIO.write(image, "png", pngBytes);
@@ -132,7 +141,7 @@ public class UserPhotoController
 		public UserPhotoResource toResource(UserPhotoDto userPhoto)
 		{
 			UserPhotoResource userPhotoResource = instantiateResource(userPhoto);
-			addSelfLink(userPhotoResource);
+			addPhotoLink(userPhotoResource);
 			return userPhotoResource;
 		}
 
@@ -142,10 +151,10 @@ public class UserPhotoController
 			return new UserPhotoResource(userPhoto);
 		}
 
-		private void addSelfLink(Resource<UserPhotoDto> userPhotoResource)
+		private void addPhotoLink(Resource<UserPhotoDto> userPhotoResource)
 		{
-			userPhotoResource
-					.add(UserPhotoController.getUserPhotoLinkBuilder(userPhotoResource.getContent().getId()).withSelfRel());
+			userPhotoResource.add(UserPhotoController.getUserPhotoLinkBuilder(userPhotoResource.getContent().getId().get())
+					.withRel("yona:userPhoto"));
 		}
 	}
 }

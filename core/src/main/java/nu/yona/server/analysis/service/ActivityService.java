@@ -702,8 +702,7 @@ public class ActivityService
 			IntervalActivity intervalActivityEntity, Optional<Message> repliedMessage, boolean isSentItem, String messageText)
 	{
 		ActivityCommentMessage message;
-		BuddyInfoParameters buddyInfoParameters = new BuddyInfoParameters(sendingUser.getId(), relatedUserAnonymizedId,
-				sendingUser.getPrivateData().getNickname(), sendingUser.getPrivateData().getUserPhotoId());
+		BuddyInfoParameters buddyInfoParameters = BuddyInfoParameters.createInstance(sendingUser, relatedUserAnonymizedId);
 		if (repliedMessage.isPresent())
 		{
 			message = ActivityCommentMessage.createInstance(buddyInfoParameters, intervalActivityEntity, isSentItem, messageText,

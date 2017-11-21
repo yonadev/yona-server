@@ -348,17 +348,15 @@ public class BuddyService
 
 			// Send message to "self", to notify the user about the removed buddy user
 			UUID buddyUserAnonymizedId = getUserAnonymizedIdForBuddy(buddy);
-			sendDropBuddyMessage(
-					new BuddyInfoParameters(null, buddyUserAnonymizedId, buddy.getNickname(), buddy.getUserPhotoId()),
-					Optional.empty(), DropBuddyReason.USER_ACCOUNT_DELETED, user.getNamedMessageDestination());
+			sendDropBuddyMessage(BuddyInfoParameters.createInstance(buddy, buddyUserAnonymizedId), Optional.empty(),
+					DropBuddyReason.USER_ACCOUNT_DELETED, user.getNamedMessageDestination());
 		}
 		else if (buddy.getSendingStatus() != Status.REJECTED && buddy.getReceivingStatus() != Status.REJECTED)
 		{
 			// Buddy request was not accepted or rejected yet
 			// Send message to "self", as if the requested user declined the buddy request
 			UUID buddyUserAnonymizedId = buddy.getUserAnonymizedId().orElse(null); //
-			sendBuddyConnectResponseMessage(
-					new BuddyInfoParameters(null, buddyUserAnonymizedId, buddy.getNickname(), buddy.getUserPhotoId()),
+			sendBuddyConnectResponseMessage(BuddyInfoParameters.createInstance(buddy, buddyUserAnonymizedId),
 					user.getUserAnonymizedId(), buddy.getId(), Status.REJECTED,
 					getDropBuddyMessage(DropBuddyReason.USER_ACCOUNT_DELETED, Optional.empty()));
 		}
@@ -470,10 +468,8 @@ public class BuddyService
 	private void sendDropBuddyMessage(User requestingUser, Buddy requestingUserBuddy, Optional<String> message,
 			DropBuddyReason reason)
 	{
-		sendDropBuddyMessage(
-				new BuddyInfoParameters(requestingUser.getId(), requestingUser.getUserAnonymizedId(),
-						requestingUser.getNickname(), requestingUser.getUserPhotoId()),
-				message, reason, requestingUserBuddy.getUser().getNamedMessageDestination());
+		sendDropBuddyMessage(BuddyInfoParameters.createInstance(requestingUser), message, reason,
+				requestingUserBuddy.getUser().getNamedMessageDestination());
 	}
 
 	private void sendDropBuddyMessage(BuddyInfoParameters buddyInfoParameters, Optional<String> message, DropBuddyReason reason,
@@ -592,10 +588,10 @@ public class BuddyService
 		boolean isRequestingSending = buddy.getReceivingStatus() == Status.REQUESTED;
 		boolean isRequestingReceiving = buddy.getSendingStatus() == Status.REQUESTED;
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
-		messageService.sendMessageAndFlushToDatabase(BuddyConnectRequestMessage.createInstance(
-				new BuddyInfoParameters(requestingUser.getId(), requestingUser.getPrivateData().getUserAnonymizedId(),
-						requestingUser.getPrivateData().getNickname(), requestingUser.getPrivateData().getUserPhotoId()),
-				buddy.getPersonalInvitationMessage(), savedBuddyEntity.getId(), isRequestingSending, isRequestingReceiving),
+		messageService.sendMessageAndFlushToDatabase(
+				BuddyConnectRequestMessage.createInstance(BuddyInfoParameters.createInstance(requestingUser),
+						buddy.getPersonalInvitationMessage(), savedBuddyEntity.getId(), isRequestingSending,
+						isRequestingReceiving),
 				MessageDestinationDto.createInstance(messageDestination));
 
 		return savedBuddy;
@@ -646,8 +642,7 @@ public class BuddyService
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(updatedUserEntity.getAnonymized()),
 				() -> BuddyInfoChangeMessage.createInstance(
-						new BuddyInfoParameters(updatedUserEntity.getId(), updatedUserEntity.getUserAnonymizedId(),
-								originalUser.getPrivateData().getNickname(), updatedUserEntity.getUserPhotoId()),
+						BuddyInfoParameters.createInstance(updatedUserEntity, originalUser.getPrivateData().getNickname()),
 						getUserInfoChangeMessage(), updatedUserEntity.getNickname(), updatedUserEntity.getUserPhotoId()));
 	}
 

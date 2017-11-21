@@ -183,10 +183,10 @@ public class GoalConflictMessageDto extends MessageDto
 
 			MessageDestinationDto messageDestination = userAnonymizedService
 					.getUserAnonymized(messageEntity.getRelatedUserAnonymizedId().get()).getAnonymousDestination();
-			messageService.sendMessageAndFlushToDatabase(DisclosureRequestMessage.createInstance(
-					new BuddyInfoParameters(actingUser.getId(), actingUser.getPrivateData().getUserAnonymizedId(),
-							actingUser.getPrivateData().getNickname(), actingUser.getPrivateData().getUserPhotoId()),
-					requestPayload.getProperty("message"), messageEntity), messageDestination);
+			messageService.sendMessageAndFlushToDatabase(
+					DisclosureRequestMessage.createInstance(BuddyInfoParameters.createInstance(actingUser),
+							requestPayload.getProperty("message"), messageEntity),
+					messageDestination);
 
 			return MessageActionDto.createInstanceActionDone(theDtoFactory.createInstance(actingUser, messageEntity));
 		}

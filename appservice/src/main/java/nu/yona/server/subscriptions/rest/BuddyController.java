@@ -323,12 +323,8 @@ public class BuddyController extends ControllerBase
 
 		private void addUserPhotoLink(BuddyResource buddyResource)
 		{
-			Optional<UUID> userPhotoId = buddyResource.getContent().getUserPhotoId();
-			if (userPhotoId.isPresent())
-			{
-				buddyResource
-						.add(linkTo(methodOn(UserPhotoController.class).getUserPhoto(userPhotoId.get())).withRel("userPhoto"));
-			}
+			buddyResource.getContent().getUserPhotoId().ifPresent(userPhotoId -> buddyResource
+					.add(linkTo(methodOn(UserPhotoController.class).getUserPhoto(userPhotoId)).withRel("userPhoto")));
 		}
 
 		private void addWeekActivityOverviewsLink(BuddyResource buddyResource)

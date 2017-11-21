@@ -557,12 +557,8 @@ public class UserController extends ControllerBase
 
 		private void addUserPhotoLink(UserResource userResource)
 		{
-			Optional<UUID> userPhotoId = userResource.getContent().getPrivateData().getUserPhotoId();
-			if (userPhotoId.isPresent())
-			{
-				userResource
-						.add(linkTo(methodOn(UserPhotoController.class).getUserPhoto(userPhotoId.get())).withRel("userPhoto"));
-			}
+			userResource.getContent().getPrivateData().getUserPhotoId().ifPresent(userPhotoId -> userResource
+					.add(linkTo(methodOn(UserPhotoController.class).getUserPhoto(userPhotoId)).withRel("userPhoto")));
 		}
 
 		private void addAppleMobileConfigLink(UserResource userResource)

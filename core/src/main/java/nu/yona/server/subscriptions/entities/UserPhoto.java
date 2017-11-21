@@ -6,6 +6,7 @@ package nu.yona.server.subscriptions.entities;
 
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
@@ -15,6 +16,7 @@ import nu.yona.server.entities.EntityWithUuid;
 @Table(name = "USER_PHOTO")
 public class UserPhoto extends EntityWithUuid
 {
+	@Column(length = 128000)
 	private byte[] pngBytes;
 
 	// Default constructor is required for JPA

@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
- * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
@@ -24,11 +24,11 @@ public class UserPhotoService
 	private UserPhotoRepository userPhotoRepository;
 
 	@Transactional
-	public UserPhotoDto addUserPhoto(UUID userId, UserPhotoDto unsavedInstance)
+	public UserPhotoDto addUserPhoto(UUID userId, UserPhotoDto userPhoto)
 	{
-		UserPhoto userPhoto = userPhotoRepository.save(UserPhoto.createInstance(unsavedInstance.getPngBytes()));
-		userService.updateUserPhoto(userId, Optional.of(userPhoto.getId()));
-		return UserPhotoDto.createInstance(userPhoto);
+		UserPhoto userPhotoEntity = userPhotoRepository.save(UserPhoto.createInstance(userPhoto.getPngBytes()));
+		userService.updateUserPhoto(userId, Optional.of(userPhotoEntity.getId()));
+		return UserPhotoDto.createInstance(userPhotoEntity);
 	}
 
 	@Transactional
