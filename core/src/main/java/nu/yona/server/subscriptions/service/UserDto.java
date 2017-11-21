@@ -7,13 +7,13 @@ package nu.yona.server.subscriptions.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -26,7 +26,6 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import nu.yona.server.Constants;
 import nu.yona.server.crypto.seckey.CryptoSession;
-import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.service.GoalDto;
@@ -57,7 +56,7 @@ public class UserDto
 			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String yonaPassword,
 			String nickname, String mobileNumber, boolean isConfirmed, UUID namedMessageSourceId, UUID anonymousMessageSourceId,
 			Set<GoalDto> goals, Set<BuddyDto> buddies, UUID userAnonymizedId, VPNProfileDto vpnProfile,
-			Set<DeviceBaseDto> devices)
+			Set<UserDeviceDto> devices)
 	{
 		this(id, Optional.of(creationTime), appLastOpenedDate, firstName, lastName, null, mobileNumber, isConfirmed,
 				new OwnUserPrivateDataDto(lastMonitoredActivityDate, yonaPassword, nickname, namedMessageSourceId,
@@ -76,7 +75,7 @@ public class UserDto
 			@JsonProperty("nickname") String nickname)
 	{
 		this(null, Optional.empty(), null, firstName, lastName, emailAddress, mobileNumber, false /* default value, ignored */,
-				new OwnUserPrivateDataDto(nickname));
+				new OwnUserPrivateDataDto(nickname, Collections.emptySet()));
 	}
 
 	private UserDto(UUID id, Optional<LocalDateTime> creationTime, Optional<LocalDate> appLastOpenedDate, String firstName,
@@ -84,26 +83,14 @@ public class UserDto
 			UserPrivateDataBaseDto privateData)
 	{
 		this.id = id;
+		this.creationTime = creationTime;
 		this.appLastOpenedDate = appLastOpenedDate;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.emailAddress = emailAddress;
 		this.mobileNumber = mobileNumber;
-		this.creationTime = creationTime;
 		this.isMobileNumberConfirmed = isMobileNumberConfirmed;
 		this.privateData = privateData;
-	}
-
-	@JsonAnySetter
-	public void ignored(String name, Object value)
-	{
-		switch (name)
-		{
-			case "_links":
-			case "yonaPassword":
-				return;
-		}
-		throw new IllegalArgumentException("Property '" + name + "' is unsupported. Value: " + value);
 	}
 
 	@JsonIgnore
@@ -254,6 +241,13 @@ public class UserDto
 		return new UserDto(userEntity.getId(), Optional.of(userEntity.getCreationTime()), userEntity.getAppLastOpenedDate(),
 				userEntity.getFirstName(), userEntity.getLastName(), null, userEntity.getMobileNumber(),
 				userEntity.isMobileNumberConfirmed(), buddyData);
+	}
+
+	public static UserDto createInstance(String firstName, String lastName, String mobileNumber, String nickname,
+			Optional<UserDeviceDto> device)
+	{
+		OwnUserPrivateDataDto privateData = new OwnUserPrivateDataDto(nickname, device.map(Collections::singleton).orElse(Collections.emptySet()));
+		return new UserDto(null, Optional.empty(), Optional.empty(), firstName, lastName, null, mobileNumber, false, privateData);
 	}
 
 	public void assertMobileNumberConfirmed()

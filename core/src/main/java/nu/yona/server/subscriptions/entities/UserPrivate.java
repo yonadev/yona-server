@@ -200,10 +200,12 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 	public void addDevice(UserDevice device)
 	{
 		devices.add(device);
+		device.setUserPrivateId(getId());
 	}
 
 	public void removeDevice(UserDevice device)
 	{
 		devices.remove(device);
+		device.clearUserPrivateId();
 	}
 }

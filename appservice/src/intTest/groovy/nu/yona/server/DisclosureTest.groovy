@@ -7,6 +7,7 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.AppService
 import nu.yona.server.test.Goal
 
 class DisclosureTest extends AbstractAppServiceIntegrationTest
@@ -74,7 +75,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureRequestMessages.size() == 1
 		disclosureRequestMessages[0].status == "DISCLOSURE_REQUESTED"
 		disclosureRequestMessages[0].message == requestMessageText
-		assertEquals(disclosureRequestMessages[0].creationTime, YonaServer.now)
+		AppService.assertEquals(disclosureRequestMessages[0].creationTime, YonaServer.now)
 		disclosureRequestMessages[0]._links?."yona:user"?.href== bob.url
 		disclosureRequestMessages[0]._links?.related?.href == getRichardMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}[0]._links.self.href
 		disclosureRequestMessages[0]._links."yona:accept"?.href
@@ -145,7 +146,7 @@ class DisclosureTest extends AbstractAppServiceIntegrationTest
 		disclosureResponseMessage.status == "DISCLOSURE_ACCEPTED"
 		disclosureResponseMessage.message == responseMessageText
 		disclosureResponseMessage.nickname == richard.nickname
-		assertEquals(disclosureResponseMessage.creationTime, YonaServer.now)
+		AppService.assertEquals(disclosureResponseMessage.creationTime, YonaServer.now)
 		disclosureResponseMessage._links?.related?.href == goalConflictMessages[0]._links.self.href
 		disclosureResponseMessage._links?."yona:user"?.href == richard.url
 		disclosureResponseMessage._embedded?."yona:user" == null

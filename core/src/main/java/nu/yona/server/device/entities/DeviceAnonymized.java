@@ -14,13 +14,14 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import nu.yona.server.entities.EntityWithUuid;
+import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @Entity
 @Table(name = "DEVICES_ANONYMIZED")
-public abstract class DeviceAnonymized extends EntityWithUuid
+public class DeviceAnonymized extends EntityWithUuid
 {
-	enum OperatingSystem
+	public enum OperatingSystem
 	{
 		UNKNOWN, ANDROID, IOS
 	}
@@ -40,12 +41,16 @@ public abstract class DeviceAnonymized extends EntityWithUuid
 		super(null);
 	}
 
-	protected DeviceAnonymized(UUID id, UserAnonymized userAnonymized, int deviceId, OperatingSystem operatingSystem)
+	public DeviceAnonymized(UUID id, int deviceId, OperatingSystem operatingSystem)
 	{
 		super(id);
-		this.userAnonymized = Objects.requireNonNull(userAnonymized);
 		this.deviceId = deviceId;
 		this.operatingSystem = operatingSystem;
+	}
+
+	public static DeviceAnonymizedRepository getRepository()
+	{
+		return (DeviceAnonymizedRepository) RepositoryProvider.getRepository(DeviceAnonymized.class, UUID.class);
 	}
 
 	public UserAnonymized getUserAnonymized()
@@ -55,7 +60,7 @@ public abstract class DeviceAnonymized extends EntityWithUuid
 
 	public void setUserAnonymized(UserAnonymized userAnonymized)
 	{
-		this.userAnonymized = userAnonymized;
+		this.userAnonymized = Objects.requireNonNull(userAnonymized);
 	}
 
 	public void clearUserAnonymized()

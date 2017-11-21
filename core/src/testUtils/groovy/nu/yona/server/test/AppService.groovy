@@ -6,7 +6,9 @@
  *******************************************************************************/
 package nu.yona.server.test
 
+import java.time.LocalDate
 import java.time.ZonedDateTime
+import java.time.Duration
 
 import groovy.json.*
 import nu.yona.server.YonaServer
@@ -54,6 +56,14 @@ class AppService extends Service
 	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, parameters = [:])
 	{
 		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber)
+		def response = addUser(jsonStr, parameters)
+		asserter(response)
+		return (isSuccess(response)) ? new User(response.responseData) : null
+	}
+
+	def addUser(Closure asserter, firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem, parameters = [:])
+	{
+		def jsonStr = User.makeUserJsonString(firstName, lastName, nickname, mobileNumber, deviceName, deviceOperatingSystem)
 		def response = addUser(jsonStr, parameters)
 		asserter(response)
 		return (isSuccess(response)) ? new User(response.responseData) : null
@@ -260,13 +270,18 @@ class AppService extends Service
 			mobileNumberToBeConfirmed = ((boolean) user._links?."yona:confirmMobileNumber"?.href)
 			assert user.yonaPassword.startsWith("AES:128:")
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._embedded?."yona:buddies"?._links?.self?.href)
+			assert mobileNumberToBeConfirmed ^ ((boolean) user._embedded?."yona:goals"?._links?.self?.href)
+			assert mobileNumberToBeConfirmed ^ ((boolean) user._embedded?."yona:devices"?._links?.self?.href)
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:messages")
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:newDeviceRequest")
 			assert mobileNumberToBeConfirmed ^ ((boolean) user._links?."yona:appActivity")
 			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user.keySet() == PRIVATE_USER_PROPERTIES_NUM_TO_BE_CONFIRMED : (user.keySet() == PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_BEFORE_ACTIVITY || user.keySet() == PRIVATE_USER_PROPERTIES_NUM_CONFIRMED_AFTER_ACTIVITY))
 			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user._links.keySet() == PRIVATE_USER_LINKS_NUM_TO_BE_CONFIRMED : user._links.keySet() == PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_NOT_REQUESTED)
-			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? true : user._embedded.keySet() == PRIVATE_USER_EMBEDDED)
+			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user._embedded == null : user._embedded.keySet() == PRIVATE_USER_EMBEDDED)
 			assert skipPropertySetAssertion || user._links.self.href ==~/(?i)^.*\/$UUID_PATTERN\?requestingUserId=$UUID_PATTERN$/
+			if (!mobileNumberToBeConfirmed) {
+				assertDefaultOwnDevice(user._embedded."yona:devices"._embedded."yona:devices"[0])
+			}
 		}
 
 		if (!mobileNumberToBeConfirmed)
@@ -298,17 +313,73 @@ class AppService extends Service
 		}
 	}
 
-	void assertResponseStatusCreated(def response)
+	void assertDefaultOwnDevice(def device)
+	{
+		if (device instanceof Device)
+		{
+			assert device.name == "First device"
+			assert device.operatingSystem == "UNKNOWN" 
+		}
+		else
+		{
+			assert device.keySet() == ["name", "operatingSystem", "registrationTime", "appLastOpenedDate", "vpnConnected", "_links"] as Set
+			assert device._links.keySet() == ["self", "edit"] as Set
+			assert device.name == "First device"
+			assert device.operatingSystem == "UNKNOWN"
+			assertDateTimeFormat(device.registrationTime)
+			assertDateFormat(device.appLastOpenedDate)
+			assert device.vpnConnected == true || device.vpnConnected == false
+		}
+	}
+
+	static void assertEquals(String dateTimeString, ZonedDateTime comparisonDateTime, int epsilonSeconds = 10)
+	{
+		// Example date/time string: 2016-02-23T21:28:58.556+0000
+		ZonedDateTime dateTime = YonaServer.parseIsoDateTimeString(dateTimeString)
+		assertEquals(dateTime, comparisonDateTime, epsilonSeconds)
+	}
+
+	static void assertEquals(ZonedDateTime dateTime, ZonedDateTime comparisonDateTime, int epsilonSeconds = 10)
+	{
+		int epsilonMilliseconds = epsilonSeconds * 1000
+
+		assert dateTime.isAfter(comparisonDateTime.minus(Duration.ofMillis(epsilonMilliseconds)))
+		assert dateTime.isBefore(comparisonDateTime.plus(Duration.ofMillis(epsilonMilliseconds)))
+	}
+
+	static void assertDateTimeFormat(dateTimeString)
+	{
+		assert dateTimeString ==~ /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}\+\d{4}/
+	}
+
+	static void assertEquals(String dateTimeString, LocalDate comparisonDate)
+	{
+		// Example date string: 2016-02-23
+		ZonedDateTime date = YonaServer.parseIsoDateString(dateTimeString)
+		assertEquals(date, comparisonDate)
+	}
+
+	static void assertEquals(LocalDate date, LocalDate comparisonDate)
+	{
+		assert date == comparisonDate
+	}
+
+	static void assertDateFormat(dateTimeString)
+	{
+		assert dateTimeString ==~ /[0-9]{4}-[0-9]{2}-[0-9]{2}/
+	}
+
+	static void assertResponseStatusCreated(def response)
 	{
 		assertResponseStatus(response, 201)
 	}
 
-	void assertResponseStatus(def response, int status)
+	static void assertResponseStatus(def response, int status)
 	{
 		assert response.status == status, "Invalid status: $response.status (expecting $status). Response: $response.data"
 	}
 
-	void assertResponseStatusSuccess(def response)
+	static void assertResponseStatusSuccess(def response)
 	{
 		assert response.status >= 200 && response.status < 300, "Invalid status: $response.status (expecting 2xx). Response: $response.data"
 	}

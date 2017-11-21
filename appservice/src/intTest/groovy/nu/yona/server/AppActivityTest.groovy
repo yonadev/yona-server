@@ -11,6 +11,7 @@ import java.time.ZonedDateTime
 
 import groovy.json.*
 import nu.yona.server.test.AppActivity
+import nu.yona.server.test.AppService
 
 class AppActivityTest extends AbstractAppServiceIntegrationTest
 {
@@ -65,7 +66,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		{ it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesRichard.size() == 1
 		goalConflictMessagesRichard[0].nickname == "RQ (me)"
-		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
+		AppService.assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
 		goalConflictMessagesRichard[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 
 		def getMessagesBobResponse = appService.getMessages(bob)
@@ -74,9 +75,9 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		{ it."@type" == "GoalConflictMessage" }
 		goalConflictMessagesBob.size() == 1
 		goalConflictMessagesBob[0].nickname == richard.nickname
-		assertEquals(goalConflictMessagesBob[0].creationTime, goalConflictTime)
-		assertEquals(goalConflictMessagesBob[0].activityStartTime, startTime)
-		assertEquals(goalConflictMessagesBob[0].activityEndTime, endTime)
+		AppService.assertEquals(goalConflictMessagesBob[0].creationTime, goalConflictTime)
+		AppService.assertEquals(goalConflictMessagesBob[0].activityStartTime, startTime)
+		AppService.assertEquals(goalConflictMessagesBob[0].activityEndTime, endTime)
 		goalConflictMessagesBob[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 
 		cleanup:
@@ -110,7 +111,7 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessagesRichard.size() == 1
 		goalConflictMessagesRichard[0].nickname == "RQ (me)"
-		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
+		AppService.assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
 		goalConflictMessagesRichard[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 
 		def getMessagesBobResponse = appService.getMessages(bob)
@@ -118,9 +119,9 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessagesBob.size() == 1
 		goalConflictMessagesBob[0].nickname == richard.nickname
-		assertEquals(goalConflictMessagesBob[0].creationTime, goalConflictTime)
-		assertEquals(goalConflictMessagesBob[0].activityStartTime, startTime)
-		assertEquals(goalConflictMessagesBob[0].activityEndTime, endTime)
+		AppService.assertEquals(goalConflictMessagesBob[0].creationTime, goalConflictTime)
+		AppService.assertEquals(goalConflictMessagesBob[0].activityStartTime, startTime)
+		AppService.assertEquals(goalConflictMessagesBob[0].activityEndTime, endTime)
 		goalConflictMessagesBob[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
 
 		cleanup:
@@ -186,17 +187,17 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 		ZonedDateTime goalConflictTime = YonaServer.now
 		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessagesRichard.size() == 1
-		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
-		assertEquals(goalConflictMessagesRichard[0].activityStartTime, startTime)
-		assertEquals(goalConflictMessagesRichard[0].activityEndTime, endTime)
+		AppService.assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
+		AppService.assertEquals(goalConflictMessagesRichard[0].activityStartTime, startTime)
+		AppService.assertEquals(goalConflictMessagesRichard[0].activityEndTime, endTime)
 
 		def getMessagesBobResponse = appService.getMessages(bob)
 		getMessagesBobResponse.status == 200
 		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
 		goalConflictMessagesBob.size() == 1
-		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
-		assertEquals(goalConflictMessagesRichard[0].activityStartTime, startTime)
-		assertEquals(goalConflictMessagesRichard[0].activityEndTime, endTime)
+		AppService.assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
+		AppService.assertEquals(goalConflictMessagesRichard[0].activityStartTime, startTime)
+		AppService.assertEquals(goalConflictMessagesRichard[0].activityEndTime, endTime)
 
 		cleanup:
 		appService.deleteUser(richard)

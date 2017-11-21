@@ -51,18 +51,21 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.DOSProtectionService;
+import nu.yona.server.Translator;
 import nu.yona.server.analysis.rest.AppActivityController;
 import nu.yona.server.analysis.rest.UserActivityController;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
+import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.rest.DeviceController;
-import nu.yona.server.device.rest.DeviceController.DeviceResourceAssembler;
 import nu.yona.server.device.service.DeviceBaseDto;
+import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
@@ -136,6 +139,9 @@ public class UserController extends ControllerBase
 	@Autowired
 	@Qualifier("sslRootCertificate")
 	private X509Certificate sslRootCertificate;
+
+	@Autowired
+	private Translator translator;
 
 	@RequestMapping(value = "/{userId}", method = RequestMethod.GET)
 	@ResponseBody
@@ -218,8 +224,9 @@ public class UserController extends ControllerBase
 	@ResponseStatus(HttpStatus.CREATED)
 	public HttpEntity<UserResource> addUser(
 			@RequestParam(value = "overwriteUserConfirmationCode", required = false) String overwriteUserConfirmationCode,
-			@RequestBody UserDto user, HttpServletRequest request)
+			@RequestBody PostPutUserDto postPutUser, HttpServletRequest request)
 	{
+		UserDto user = convertToUser(postPutUser);
 		// use DOS protection to prevent overwrite user confirmation code brute forcing,
 		// and to prevent enumeration of all occupied mobile numbers
 		return dosProtectionService.executeAttempt(getAddUserLinkBuilder().toUri(), request,
@@ -227,51 +234,69 @@ public class UserController extends ControllerBase
 				() -> addUser(Optional.ofNullable(overwriteUserConfirmationCode), user));
 	}
 
+	private UserDto convertToUser(PostPutUserDto postPutUser)
+	{
+		return UserDto.createInstance(postPutUser.firstName, postPutUser.lastName, postPutUser.mobileNumber, postPutUser.nickname,
+				postPutUser.getDevice());
+	}
+
 	@RequestMapping(value = "/{userId}", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<UserResource> updateUser(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
 			@RequestParam(value = TEMP_PASSWORD_PARAM, required = false) String tempPasswordStr, @PathVariable UUID userId,
-			@RequestBody UserDto userResource, HttpServletRequest request)
+			@RequestBody PostPutUserDto postPutUser, HttpServletRequest request)
 	{
+		UserDto user = convertToUser(postPutUser);
 		Optional<String> tempPassword = Optional.ofNullable(tempPasswordStr);
 		if (tempPassword.isPresent())
 		{
-			return updateUserCreatedOnBuddyRequest(password, userId, userResource, tempPassword.get());
+			return updateUserCreatedOnBuddyRequest(password, userId, user, tempPassword.get());
 		}
 		else
 		{
-			return updateUser(password, userId, userResource, request);
+			return updateUser(password, userId, user, request);
 		}
 	}
 
-	private HttpEntity<UserResource> updateUser(Optional<String> password, UUID userId, UserDto userResource,
-			HttpServletRequest request)
+	private HttpEntity<UserResource> updateUser(Optional<String> password, UUID userId, UserDto user, HttpServletRequest request)
 	{
+		assert user.getOwnPrivateData().getDevices()
+				.isEmpty() : "Embedding devices in an update request is only allowed when updating a user created on buddy request";
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			// use DOS protection to prevent enumeration of all occupied mobile numbers
 			return dosProtectionService.executeAttempt(getUpdateUserLinkBuilder(userId).toUri(), request,
-					yonaProperties.getSecurity().getMaxUpdateUserAttemptsPerTimeWindow(), () -> updateUser(userId, userResource));
+					yonaProperties.getSecurity().getMaxUpdateUserAttemptsPerTimeWindow(), () -> updateUser(userId, user));
 		}
 	}
 
-	private HttpEntity<UserResource> updateUserCreatedOnBuddyRequest(Optional<String> password, UUID userId, UserDto userResource,
+	private HttpEntity<UserResource> updateUserCreatedOnBuddyRequest(Optional<String> password, UUID userId, UserDto user,
 			String tempPassword)
 	{
 		if (password.isPresent())
 		{
 			throw InvalidDataException.appProvidedPasswordNotSupported();
 		}
+		addDefaultDeviceIfNotProvided(user);
 		try (CryptoSession cryptoSession = CryptoSession.start(SecretKeyUtil.generateRandomSecretKey()))
 		{
-			return createOkResponse(userService.updateUserCreatedOnBuddyRequest(userId, tempPassword, userResource),
+			return createOkResponse(userService.updateUserCreatedOnBuddyRequest(userId, tempPassword, user),
 					createResourceAssembler(userId));
 		}
 	}
 
-	private HttpEntity<UserResource> updateUser(UUID userId, UserDto userResource)
+	private void addDefaultDeviceIfNotProvided(UserDto user)
 	{
-		return createOkResponse(userService.updateUser(userId, userResource), createResourceAssembler(userId));
+		Set<DeviceBaseDto> devices = user.getOwnPrivateData().getDevices();
+		if (devices.isEmpty())
+		{
+			devices.add(new UserDeviceDto(translator.getLocalizedMessage("default.device.name"), OperatingSystem.UNKNOWN));
+		}
+	}
+
+	private HttpEntity<UserResource> updateUser(UUID userId, UserDto user)
+	{
+		return createOkResponse(userService.updateUser(userId, user), createResourceAssembler(userId));
 	}
 
 	@RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
@@ -356,6 +381,7 @@ public class UserController extends ControllerBase
 
 	private HttpEntity<UserResource> addUser(Optional<String> overwriteUserConfirmationCode, UserDto user)
 	{
+		addDefaultDeviceIfNotProvided(user);
 		try (CryptoSession cryptoSession = CryptoSession.start(SecretKeyUtil.generateRandomSecretKey()))
 		{
 			UserDto createdUser = userService.addUser(user, overwriteUserConfirmationCode);
@@ -444,6 +470,37 @@ public class UserController extends ControllerBase
 		}
 	}
 
+	static class PostPutUserDto
+	{
+		private final String firstName;
+		private final String lastName;
+		private final String mobileNumber;
+		private final String nickname;
+		private final String deviceName;
+		private final String deviceOperatingSystem;
+
+		@JsonCreator
+		public PostPutUserDto(@JsonProperty("firstName") String firstName, @JsonProperty("lastName") String lastName,
+				@JsonProperty("mobileNumber") String mobileNumber, @JsonProperty("nickname") String nickname,
+				@JsonProperty(value = "deviceName", required = false) String deviceName,
+				@JsonProperty(value = "deviceOperatingSystem", required = false) String deviceOperatingSystem,
+				@JsonProperty("_links") Object ignored1, @JsonProperty("yonaPassword") Object ignored2)
+		{
+			this.firstName = firstName;
+			this.lastName = lastName;
+			this.mobileNumber = mobileNumber;
+			this.nickname = nickname;
+			this.deviceName = deviceName;
+			this.deviceOperatingSystem = deviceOperatingSystem;
+		}
+
+		Optional<UserDeviceDto> getDevice()
+		{
+			return (deviceName == null) ? Optional.empty()
+					: Optional.of(UserDeviceDto.createPostPutInstance(deviceName, deviceOperatingSystem));
+		}
+	}
+
 	static class UserResource extends Resource<UserDto>
 	{
 		private final CurieProvider curieProvider;
@@ -493,15 +550,10 @@ public class UserController extends ControllerBase
 					GoalController.createAllGoalsCollectionResource(userId, goals));
 
 			Set<DeviceBaseDto> devices = getContent().getOwnPrivateData().getDevices();
-			result.put(curieProvider.getNamespacedRelFor(UserDto.DEVICES_REL_NAME), ControllerBase.createCollectionResource(
-					devices, createDeviceResourceAssembler(userId), DeviceController.getAllDevicesLinkBuilder(userId)));
+			result.put(curieProvider.getNamespacedRelFor(UserDto.DEVICES_REL_NAME),
+					DeviceController.createAllDevicesCollectionResource(curieProvider, userId, devices));
 
 			return result;
-		}
-
-		private DeviceResourceAssembler createDeviceResourceAssembler(UUID userId)
-		{
-			return new DeviceResourceAssembler(curieProvider, userId);
 		}
 
 		private boolean includeLinksAndEmbeddedData()

@@ -18,7 +18,7 @@ import nu.yona.server.subscriptions.entities.Buddy;
 public class BuddyDevice extends DeviceBase
 {
 	/**
-	 * The anonymized user owning this buddy anonymized entity.
+	 * The buddy owning this buddy device entity.
 	 */
 	@ManyToOne
 	private Buddy owningBuddy;
@@ -28,9 +28,9 @@ public class BuddyDevice extends DeviceBase
 	{
 	}
 
-	public BuddyDevice(UUID id, String name)
+	public BuddyDevice(UUID id, String name, UUID deviceAnonymizedId)
 	{
-		super(id, name);
+		super(id, name, deviceAnonymizedId);
 	}
 
 	public static BuddyDeviceRepository getRepository()

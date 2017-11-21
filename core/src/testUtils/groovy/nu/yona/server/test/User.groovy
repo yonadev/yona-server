@@ -24,6 +24,8 @@ class User
 	final String lastName
 	final String mobileNumber
 	String emailAddress
+	String deviceName
+	String deviceOperatingSystem
 	final String mobileNumberConfirmationUrl
 	final String resendMobileNumberConfirmationCodeUrl
 	final String postOpenAppEventUrl
@@ -31,6 +33,7 @@ class User
 	final String nickname
 	final List<Goal> goals
 	final List<Buddy> buddies
+	final List<Device> devices
 	final VPNProfile vpnProfile
 	final String url
 	final String editUrl
@@ -71,6 +74,7 @@ class User
 
 			this.buddies = (json._embedded?."yona:buddies"?._embedded) ? json._embedded."yona:buddies"._embedded."yona:buddies".collect{new Buddy(it)} : []
 			this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJson(it)} : []
+			this.devices = (json._embedded?."yona:devices"?._embedded) ? json._embedded."yona:devices"._embedded."yona:devices".collect{new Device(it)} : []
 			this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
 		}
 		this.url = YonaServer.stripQueryString(json._links.self.href)
@@ -94,16 +98,18 @@ class User
 
 	def convertToJson()
 	{
-		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber)
+		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName, deviceOperatingSystem)
 
 		return new JsonSlurper().parseText(jsonStr)
 	}
 
-	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber)
+	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN")
 	{
+		def devicePropertiesString = (deviceName) ? """"deviceName":"$deviceName", "deviceOperatingSystem":"$deviceOperatingSystem",""" : ""
 		def selfLinkString = (url) ? """"_links":{"self":{"href":"$url"}},""" : ""
 		def passwordString = (password) ? """"yonaPassword":"${password}",""" : ""
 		def json = """{
+				$devicePropertiesString
 				$selfLinkString
 				"firstName":"${firstName}",
 				"lastName":"${lastName}",
@@ -134,9 +140,9 @@ class User
 		goals.find{ it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
 	}
 
-	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber)
+	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN")
 	{
-		makeUserJsonStringInternal(null, firstName, lastName, null, nickname, mobileNumber)
+		makeUserJsonStringInternal(null, firstName, lastName, null, nickname, mobileNumber, deviceName, deviceOperatingSystem)
 	}
 }
 

@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.rest;
 
@@ -12,6 +9,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,6 +88,13 @@ public class DeviceController extends ControllerBase
 	{
 		DeviceController methodOn = methodOn(DeviceController.class);
 		return linkTo(methodOn.getDevice(Optional.empty(), userId, deviceId));
+	}
+
+	public static Resources<DeviceResource> createAllDevicesCollectionResource(CurieProvider curieProvider, UUID userId,
+			Set<DeviceBaseDto> devices)
+	{
+		return new Resources<>(new DeviceResourceAssembler(curieProvider, userId).toResources(devices),
+				DeviceController.getAllDevicesLinkBuilder(userId).withSelfRel());
 	}
 
 	public static class DeviceResource extends Resource<DeviceBaseDto>

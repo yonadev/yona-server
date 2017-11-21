@@ -7,6 +7,7 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.AppService
 import nu.yona.server.test.User
 
 class UserTest extends AbstractAppServiceIntegrationTest
@@ -80,6 +81,82 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.assertResponseStatus(response, 200)
 		def getUserResponse = appService.getUser(john.url, false)
 		getUserResponse.status == 400 || getUserResponse.status == 404
+	}
+
+	def 'Create John Doe with an Android device'()
+	{
+		given:
+		def ts = timestamp
+
+		when:
+		def johnAsCreated = createJohnDoe(ts, "My S8", "ANDROID")
+
+		then:
+		def johnAfterNumberConfirmation = appService.confirmMobileNumber(
+				{
+					AppService.assertResponseStatusSuccess(it)
+					assert it.responseData._embedded."yona:devices"._embedded."yona:devices".size == 1
+					assert it.responseData._embedded."yona:devices"._embedded."yona:devices"[0].name == "My S8"
+					assert it.responseData._embedded."yona:devices"._embedded."yona:devices"[0].operatingSystem == "ANDROID"
+				}, johnAsCreated)
+
+		cleanup:
+		appService.deleteUser(johnAsCreated)
+	}
+
+	def 'Create John Doe with an iOS device'()
+	{
+		given:
+		def ts = timestamp
+
+		when:
+		def johnAsCreated = createJohnDoe(ts, "iPhone X", "IOS")
+
+		then:
+		def johnAfterNumberConfirmation = appService.confirmMobileNumber(
+				{
+					AppService.assertResponseStatusSuccess(it)
+					assert it.responseData._embedded."yona:devices"._embedded."yona:devices".size == 1
+					assert it.responseData._embedded."yona:devices"._embedded."yona:devices"[0].name == "iPhone X"
+					assert it.responseData._embedded."yona:devices"._embedded."yona:devices"[0].operatingSystem == "IOS"
+				}, johnAsCreated)
+
+		cleanup:
+		appService.deleteUser(johnAsCreated)
+	}
+
+	def 'Try to create John Doe with an unsupported device operating system'()
+	{
+		given:
+		def ts = timestamp
+
+		when:
+		def johnAsCreated = appService.addUser(
+				{
+					AppService.assertResponseStatus(it, 400)
+					assert it.responseData.code == "error.device.unknown.operating.system"
+				}, "John", "Doe", "JD",
+				makeMobileNumber(ts), "My Raspberry", "RASPBIAN")
+
+		then:
+		assert johnAsCreated == null // Creation failed
+	}
+
+	def 'Try to create John Doe with device operating system UNKNOWN'()
+	{
+		given:
+		def ts = timestamp
+
+		when:
+		def johnAsCreated = appService.addUser(
+				{
+					AppService.assertResponseStatus(it, 400)
+					assert it.responseData.code == "error.device.unknown.operating.system"
+				}, "John", "Doe", "JD",
+				makeMobileNumber(ts), "First device", "UNKNOWN")
+
+		then:
+		assert johnAsCreated == null // Creation failed
 	}
 
 	def 'Hacking attempt: Brute force mobile number confirmation code'()
@@ -246,7 +323,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.assertResponseStatus(userUpdateResponse, 200)
 		userUpdateResponse.responseData._links?."yona:confirmMobileNumber"?.href == null
 		userUpdateResponse.responseData.nickname == newNickname
-		assertDateTimeFormat(userUpdateResponse.responseData.creationTime)
+		AppService.assertDateTimeFormat(userUpdateResponse.responseData.creationTime)
 
 		cleanup:
 		appService.deleteUser(john)
@@ -269,7 +346,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.assertResponseStatus(userUpdateResponse, 200)
 		userUpdateResponse.responseData._links?."yona:confirmMobileNumber"?.href != null
 		userUpdateResponse.responseData.mobileNumber == newMobileNumber
-		assertDateTimeFormat(userUpdateResponse.responseData.creationTime)
+		AppService.assertDateTimeFormat(userUpdateResponse.responseData.creationTime)
 
 		cleanup:
 		appService.deleteUser(john)
@@ -420,10 +497,10 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${code}" } """, user.password)
 	}
 
-	private User createJohnDoe(def ts)
+	private User createJohnDoe(ts, deviceName = null, deviceOperatingSystem = "UNKNOWN")
 	{
 		appService.addUser(appService.&assertUserCreationResponseDetails, firstName, lastName, nickname,
-				makeMobileNumber(ts))
+				makeMobileNumber(ts), deviceName, deviceOperatingSystem)
 	}
 
 	private void testUser(User user, includePrivateData, mobileNumberConfirmed, timestamp)
@@ -431,8 +508,8 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		assert user.firstName == "John"
 		assert user.lastName == "Doe"
 		assert user.mobileNumber == makeMobileNumber(timestamp)
-		assertEquals(user.creationTime, YonaServer.now)
-		assertEquals(user.appLastOpenedDate, YonaServer.now.toLocalDate())
+		AppService.assertEquals(user.creationTime, YonaServer.now)
+		AppService.assertEquals(user.appLastOpenedDate, YonaServer.now.toLocalDate())
 
 		if (includePrivateData)
 		{
@@ -448,8 +525,10 @@ class UserTest extends AbstractAppServiceIntegrationTest
 				assert user.vpnProfile.vpnPassword.length() == 32
 				assert user.vpnProfile.ovpnProfileUrl
 
-				assert user.goals.size() == 1 //mandatory goal added
+				assert user.goals.size() == 1 // Mandatory goal added
 				assert user.goals[0].activityCategoryUrl == GAMBLING_ACT_CAT_URL
+				assert user.devices.size() == 1 // Default device
+				assert user.devices[0].name == "First device"
 			}
 			else
 			{

@@ -94,4 +94,8 @@ public class InvalidDataException extends YonaException
 	{
 		return new InvalidDataException("error.user.app.provided.password.not.supported");
 	}
+
+	public static InvalidDataException invalidOperatingSystem(String operatingSystem) {
+		return new InvalidDataException("error.device.unknown.operating.system", operatingSystem);
+	}
 }

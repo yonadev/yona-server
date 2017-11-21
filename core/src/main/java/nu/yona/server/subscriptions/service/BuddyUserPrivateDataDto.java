@@ -8,8 +8,6 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonRootName;
-
 import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.subscriptions.entities.Buddy;

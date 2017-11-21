@@ -1624,6 +1624,48 @@ definitions:
           - totalElements
           - totalPages
           - number
+  DeviceOperatingSystem:
+    type: string
+    description: The operating system of the device running the Yona app
+    enum:
+    - ANDROID
+    - IOS
+    - UNKNOWN
+  DeviceBase:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Name of the device running the Yona app
+        example: My S8
+      isVpnConnected:
+        type: boolean
+        description: True when the VPN is connected on this device; false otherwise
+        example: true
+  UserDevice:
+    allOf:
+      - $ref: '#/definitions/DeviceBase'
+      - type: object
+        properties:
+          operatingSystem:
+            $ref: '#/definitions/DeviceOperatingSystem'
+            description: The operating system of the device running the Yona app
+            example: ANDROID
+          registrationTime:
+            type: string
+            format: dateTime
+            description: The time this device was registered
+            example: 2017-11-21T19:09:22+0000
+          appLastOpenedDate:
+            type: string
+            format: date
+            description: The date the Yona app was last opened on this device
+            example: 2017-11-21
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/EditLink'
   BaseUser:
     type: object
     properties:
@@ -1639,34 +1681,37 @@ definitions:
         type: string
         description: 'Mobile number, unique among all users.'
         example: "+31612345678"
+      nickname:
+        type: string
+        description: Nickname known among buddies.
+        example: RQ
     required:
     - firstName
     - lastName
     - mobileNumber
-  PrivateUserDataNoVPN:
-    type: object
-    properties:
-      nickname:
-        type: string
-        description: Nickname known among buddies. Private data.
-        example: RQ
-    required:
     - nickname
   PrivateUserData:
-    allOf:
-      - $ref: '#/definitions/PrivateUserDataNoVPN'
-      - type: object
-        properties:
-          yonaPassword:
-            type: string
-            description: The Yona password for subsequent requests
-            example: AES:128:YXNkZnNhZGZnMnrp1ORubw==
-          vpnProfile:
-            $ref: '#/definitions/VPNProfile'
+    type: object
+    properties:
+      yonaPassword:
+        type: string
+        description: The Yona password for subsequent requests
+        example: AES:128:YXNkZnNhZGZnMnrp1ORubw==
+      vpnProfile:
+        $ref: '#/definitions/VPNProfile'
   PostPutUser:
     allOf:
       - $ref: '#/definitions/BaseUser'
-      - $ref: '#/definitions/PrivateUserDataNoVPN'
+      - type: object
+        properties:
+          deviceName:
+            type: string
+            description: The name of the device on which the user signs up for Yona. Not supported for a regular user update.
+            example: My S8
+          deviceOperatingSystem:
+            $ref: '#/definitions/DeviceOperatingSystem'
+            description: The operating system of the device on which the user signs up for Yona. The value UNKNOWN is not supported in this context. Not supported for a regular user update.
+            example: ANDROID
   UserWithPrivateData:
     allOf:
       - $ref: '#/definitions/BaseUser'
@@ -1721,6 +1766,21 @@ definitions:
                         type: array
                         items:
                           $ref: "#/definitions/Buddy"
+                  _links:
+                    allOf:
+                      - $ref: '#/definitions/SelfLink'
+                      - $ref: '#/definitions/EditLink'
+              "yona:devices":
+                type: object
+                description: The devices of this user.
+                properties:
+                  _embedded:
+                    type: object
+                    properties:
+                      "yona:devices":
+                        type: array
+                        items:
+                          $ref: "#/definitions/UserDevice"
                   _links:
                     allOf:
                       - $ref: '#/definitions/SelfLink'

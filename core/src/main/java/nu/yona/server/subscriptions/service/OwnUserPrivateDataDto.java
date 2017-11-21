@@ -6,21 +6,20 @@ package nu.yona.server.subscriptions.service;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.Constants;
-import nu.yona.server.device.service.DeviceBaseDto;
+import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.goals.service.GoalDto;
 
 public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
@@ -33,18 +32,17 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 	private final UUID anonymousMessageSourceId;
 	private final Set<BuddyDto> buddies;
 
-	@JsonCreator
-	public OwnUserPrivateDataDto(@JsonProperty("nickname") String nickname)
+	OwnUserPrivateDataDto(String nickname, Set<UserDeviceDto> devices)
 	{
 		this(Optional.empty(), null, nickname, null, null, Collections.emptySet(), Collections.emptySet(), null,
-				new VPNProfileDto(null), Collections.emptySet());
+				new VPNProfileDto(null), devices);
 	}
 
 	OwnUserPrivateDataDto(Optional<LocalDate> lastMonitoredActivityDate, String yonaPassword, String nickname,
 			UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goals, Set<BuddyDto> buddies,
-			UUID userAnonymizedId, VPNProfileDto vpnProfile, Set<DeviceBaseDto> devices)
+			UUID userAnonymizedId, VPNProfileDto vpnProfile, Set<UserDeviceDto> devices)
 	{
-		super(nickname, goals, devices);
+		super(nickname, goals, new HashSet<>(devices));
 
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 		this.yonaPassword = yonaPassword;

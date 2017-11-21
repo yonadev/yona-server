@@ -35,6 +35,11 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberType;
 import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.CryptoSession;
+import nu.yona.server.device.entities.DeviceAnonymized;
+import nu.yona.server.device.entities.DeviceAnonymizedRepository;
+import nu.yona.server.device.entities.UserDevice;
+import nu.yona.server.device.entities.UserDeviceRepository;
+import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.exceptions.UserOverwriteConfirmationException;
@@ -65,10 +70,14 @@ import nu.yona.server.util.TransactionHelper;
 @Service
 public class UserService
 {
-	/** Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers */
+	/**
+	 * Holds the regex to validate a valid phone number. Start with a '+' sign followed by only numbers
+	 */
 	private static final Pattern REGEX_PHONE = Pattern.compile("^\\+[1-9][0-9]+$");
 
-	/** Holds the regex to validate a valid email address. Match the pattern a@b.c */
+	/**
+	 * Holds the regex to validate a valid email address. Match the pattern a@b.c
+	 */
 	private static final Pattern REGEX_EMAIL = Pattern.compile("^[A-Z0-9._-]+@[A-Z0-9.-]+\\.[A-Z0-9.-]+$",
 			Pattern.CASE_INSENSITIVE);
 
@@ -95,6 +104,12 @@ public class UserService
 
 	@Autowired(required = false)
 	private ActivityCategoryRepository activityCategoryRepository;
+
+	@Autowired(required = false)
+	private UserDeviceRepository userDeviceRepository;
+
+	@Autowired(required = false)
+	private DeviceAnonymizedRepository deviceAnonymizedRepository;
 
 	@Autowired(required = false)
 	private LDAPUserService ldapUserService;
@@ -226,6 +241,7 @@ public class UserService
 	@Transactional
 	public UserDto addUser(UserDto user, Optional<String> overwriteUserConfirmationCode)
 	{
+		assert user.getPrivateData().getDevices().size() == 1;
 		assertValidUserFields(user, UserPurpose.USER);
 
 		// use a separate transaction because in the top transaction we insert a user with the same unique key
@@ -233,6 +249,7 @@ public class UserService
 				() -> handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode));
 
 		User userEntity = createUserEntity(user, UserSignUp.FREE);
+		addDevicesToEntity(user, userEntity);
 		Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNeeded(overwriteUserConfirmationCode, userEntity);
 		userEntity = userRepository.save(userEntity);
 		ldapUserService.createVpnAccount(userEntity.getUserAnonymizedId().toString(), userEntity.getVpnPassword());
@@ -253,15 +270,7 @@ public class UserService
 		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
 		MessageSource anonymousMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
 		MessageSource namedMessageSource = MessageSource.getRepository().save(MessageSource.createInstance());
-		Set<Goal> goals;
-		if (signUp == UserSignUp.INVITED)
-		{
-			goals = Collections.emptySet();
-		}
-		else
-		{
-			goals = user.getOwnPrivateData().getGoals().stream().map(GoalDto::createGoalEntity).collect(Collectors.toSet());
-		}
+		Set<Goal> goals = buildGoalsSet(user, signUp);
 		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
 		UserAnonymized.getRepository().save(userAnonymized);
 		UserPrivate userPrivate = UserPrivate.createInstance(user.getOwnPrivateData().getNickname(), generatePassword(),
@@ -275,6 +284,33 @@ public class UserService
 			userEntity.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
 		}
 		return userEntity;
+	}
+
+	private void addDevicesToEntity(UserDto userDto, User userEntity)
+	{
+		userDto.getOwnPrivateData().getDevices().stream().map(d -> (UserDeviceDto) d).map(d -> createUserDeviceEntity(d, 0))
+				.forEach(d -> userEntity.addDevice(d));
+	}
+
+	private Set<Goal> buildGoalsSet(UserDto user, UserSignUp signUp)
+	{
+		Set<Goal> goals;
+		if (signUp == UserSignUp.INVITED)
+		{
+			goals = Collections.emptySet();
+		}
+		else
+		{
+			goals = user.getOwnPrivateData().getGoals().stream().map(GoalDto::createGoalEntity).collect(Collectors.toSet());
+		}
+		return goals;
+	}
+
+	private UserDevice createUserDeviceEntity(UserDeviceDto deviceDto, int deviceId)
+	{
+		DeviceAnonymized deviceAnonymized = new DeviceAnonymized(UUID.randomUUID(), deviceId, deviceDto.getOperatingSystem());
+		deviceAnonymizedRepository.save(deviceAnonymized);
+		return userDeviceRepository.save(new UserDevice(UUID.randomUUID(), deviceDto.getName(), deviceAnonymized.getId()));
 	}
 
 	private Optional<ConfirmationCode> createConfirmationCodeIfNeeded(Optional<String> overwriteUserConfirmationCode,
@@ -504,7 +540,7 @@ public class UserService
 	}
 
 	@Transactional
-	public UserDto updateUserCreatedOnBuddyRequest(UUID id, String tempPassword, UserDto userResource)
+	public UserDto updateUserCreatedOnBuddyRequest(UUID id, String tempPassword, UserDto user)
 	{
 		User originalUserEntity = getUserEntityById(id);
 		if (!originalUserEntity.isCreatedOnBuddyRequest())
@@ -514,7 +550,7 @@ public class UserService
 		}
 
 		EncryptedUserData retrievedEntitySet = retrieveUserEncryptedData(originalUserEntity, tempPassword);
-		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, userResource);
+		User savedUserEntity = saveUserEncryptedDataWithNewPassword(retrievedEntitySet, user);
 		sendConfirmationCodeTextMessage(savedUserEntity.getMobileNumber(), savedUserEntity.getMobileNumberConfirmationCode(),
 				SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
 		UserDto userDto = createUserDtoWithPrivateData(savedUserEntity);
@@ -715,7 +751,8 @@ public class UserService
 	public String generateConfirmationCode()
 	{
 		return (yonaProperties.getSms().isEnabled())
-				? CryptoUtil.getRandomDigits(yonaProperties.getSecurity().getConfirmationCodeDigits()) : "1234";
+				? CryptoUtil.getRandomDigits(yonaProperties.getSecurity().getConfirmationCodeDigits())
+				: "1234";
 	}
 
 	public void sendConfirmationCodeTextMessage(String mobileNumber, ConfirmationCode confirmationCode, SmsTemplate template)
@@ -762,17 +799,19 @@ public class UserService
 		});
 	}
 
-	private User saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDto userResource)
+	private User saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDto user)
 	{
+		assert user.getPrivateData().getDevices().size() == 1;
 		// touch and save all user related data containing encryption
 		// see architecture overview for which classes contain encrypted data
 		// (this could also be achieved with very complex reflection)
 		retrievedEntitySet.userEntity.getBuddies().forEach(buddy -> buddyRepository.save(buddy.touch()));
 		messageSourceRepository.save(retrievedEntitySet.namedMessageSource.touch());
 		messageSourceRepository.save(retrievedEntitySet.anonymousMessageSource.touch());
-		userResource.updateUser(retrievedEntitySet.userEntity);
+		user.updateUser(retrievedEntitySet.userEntity);
 		retrievedEntitySet.userEntity.unsetIsCreatedOnBuddyRequest();
 		retrievedEntitySet.userEntity.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
+		addDevicesToEntity(user, retrievedEntitySet.userEntity);
 		retrievedEntitySet.userEntity.touch();
 		return userRepository.save(retrievedEntitySet.userEntity);
 	}

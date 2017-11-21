@@ -7,6 +7,7 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.AppService
 import nu.yona.server.test.User
 
 class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
@@ -101,6 +102,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		bobFromGetAfterUpdate.mobileNumber == bob.mobileNumber
 		bobFromGetAfterUpdate.nickname == newNickname
 		bobFromGetAfterUpdate.goals.size() == 0 // Mobile number not confirmed yet
+		bobFromGetAfterUpdate.devices.size() == 0 // Mobile number not confirmed yet
 		bobFromGetAfterUpdate.url
 
 		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(bobFromGetAfterUpdate.url + "/messages/", bobFromGetAfterUpdate.password)
@@ -110,6 +112,122 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(updatedBob)
+	}
+
+	def 'Bob adjusts data, including his Android device'()
+	{
+		given:
+		def richard = addRichard()
+		def mobileNumberBob = makeMobileNumber(timestamp)
+		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
+		def bob = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
+
+		when:
+		def newNickname = "Bobby"
+		def updatedBobJson = bob.convertToJson()
+		updatedBobJson.nickname = newNickname
+		User bobToBeUpdated = new User(updatedBobJson)
+		bobToBeUpdated.deviceName = "My S8"
+		bobToBeUpdated.deviceOperatingSystem = "ANDROID"
+		User updatedBob = appService.updateUserCreatedOnBuddyRequest(appService.&assertUserUpdateResponseDetails, bobToBeUpdated, inviteUrl)
+
+		then:
+		updatedBob.devices.size() == 0 // Mobile number not confirmed yet
+		
+		def bobWithConfirmedNumber = appService.confirmMobileNumber({ AppService.assertResponseStatusSuccess(it)}, updatedBob)
+		bobWithConfirmedNumber.devices.size() == 1
+		bobWithConfirmedNumber.devices[0].name == "My S8"
+		bobWithConfirmedNumber.devices[0].operatingSystem == "ANDROID"
+		
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(updatedBob)
+	}
+
+	def 'Bob adjusts data, including his iOS device'()
+	{
+		given:
+		def richard = addRichard()
+		def mobileNumberBob = makeMobileNumber(timestamp)
+		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
+		def bob = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
+
+		when:
+		def newNickname = "Bobby"
+		def updatedBobJson = bob.convertToJson()
+		updatedBobJson.nickname = newNickname
+		User bobToBeUpdated = new User(updatedBobJson)
+		bobToBeUpdated.deviceName = "My iPhone X"
+		bobToBeUpdated.deviceOperatingSystem = "IOS"
+		User updatedBob = appService.updateUserCreatedOnBuddyRequest(appService.&assertUserUpdateResponseDetails, bobToBeUpdated, inviteUrl)
+
+		then:
+		updatedBob.devices.size() == 0 // Mobile number not confirmed yet
+		
+		def bobWithConfirmedNumber = appService.confirmMobileNumber({ AppService.assertResponseStatusSuccess(it)}, updatedBob)
+		bobWithConfirmedNumber.devices.size() == 1
+		bobWithConfirmedNumber.devices[0].name == "My iPhone X"
+		bobWithConfirmedNumber.devices[0].operatingSystem == "IOS"
+		
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(updatedBob)
+	}
+
+	def 'Try: Bob adjusts data, including his device with an unsupported operating system'()
+	{
+		given:
+		def richard = addRichard()
+		def mobileNumberBob = makeMobileNumber(timestamp)
+		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
+		def bob = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
+
+		when:
+		def newNickname = "Bobby"
+		def updatedBobJson = bob.convertToJson()
+		updatedBobJson.nickname = newNickname
+		User bobToBeUpdated = new User(updatedBobJson)
+		bobToBeUpdated.deviceName = "My Raspberry"
+		bobToBeUpdated.deviceOperatingSystem = "RASPBIAN"
+		User updatedBob = appService.updateUserCreatedOnBuddyRequest({
+			AppService.assertResponseStatus(it, 400)
+			assert it.responseData.code == "error.device.unknown.operating.system"
+		}, bobToBeUpdated, inviteUrl)
+
+		then:
+		updatedBob == null // Update failed
+				
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Try: Bob adjusts data, including his device with operating system UNKNOWN'()
+	{
+		given:
+		def richard = addRichard()
+		def mobileNumberBob = makeMobileNumber(timestamp)
+		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
+		def bob = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
+
+		when:
+		def newNickname = "Bobby"
+		def updatedBobJson = bob.convertToJson()
+		updatedBobJson.nickname = newNickname
+		User bobToBeUpdated = new User(updatedBobJson)
+		bobToBeUpdated.deviceName = "First device"
+		bobToBeUpdated.deviceOperatingSystem = "UNKNOWN"
+		User updatedBob = appService.updateUserCreatedOnBuddyRequest({
+			AppService.assertResponseStatus(it, 400)
+			assert it.responseData.code == "error.device.unknown.operating.system"
+		}, bobToBeUpdated, inviteUrl)
+
+		then:
+		updatedBob == null // Update failed
+				
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
 	def 'Bob updates his user information saved with the device password'()
@@ -232,7 +350,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		buddyConnectResponseMessages[0]._links?."yona:user"?.href == bob.url
 		buddyConnectResponseMessages[0]._embedded?."yona:user" == null
 		buddyConnectResponseMessages[0].nickname == newNickname
-		assertEquals(buddyConnectResponseMessages[0].creationTime, YonaServer.now)
+		AppService.assertEquals(buddyConnectResponseMessages[0].creationTime, YonaServer.now)
 		buddyConnectResponseMessages[0].status == "ACCEPTED"
 		buddyConnectResponseMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
 		buddyConnectResponseMessages[0]._links."yona:process" == null // Processing happens automatically these days

@@ -37,10 +37,11 @@ public abstract class DeviceBase extends EntityWithUuidAndTouchVersion
 		super(null);
 	}
 
-	protected DeviceBase(UUID id, String name)
+	protected DeviceBase(UUID id, String name, UUID deviceAnonymizedId)
 	{
 		super(id);
 		this.name = Objects.requireNonNull(name);
+		this.deviceAnonymizedId = Objects.requireNonNull(deviceAnonymizedId);
 	}
 
 	public String getName()
@@ -68,9 +69,9 @@ public abstract class DeviceBase extends EntityWithUuidAndTouchVersion
 		return deviceAnonymizedId;
 	}
 
-	public void setDeviceAnonymizedId(UUID deviceAnonymizedId)
+	public DeviceAnonymized getDeviceAnonymized()
 	{
-		this.deviceAnonymizedId = deviceAnonymizedId;
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized.getRepository().findOne(deviceAnonymizedId);
+		return Objects.requireNonNull(deviceAnonymized, "DeviceAnonymized with ID " + deviceAnonymizedId + " not found");
 	}
-
 }
