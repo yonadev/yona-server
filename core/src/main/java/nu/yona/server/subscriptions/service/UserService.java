@@ -612,6 +612,8 @@ public class UserService
 		allGoalsIncludingHistoryItems.forEach(Goal::removeAllWeekActivities);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 
+		deleteDevicesAnonymized(updatedUserEntity);
+
 		userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
 		userRepository.delete(updatedUserEntity);
 
@@ -635,6 +637,11 @@ public class UserService
 		List<IntervalActivity> allWeekActivities = allGoalsIncludingHistoryItems.stream()
 				.flatMap(g -> g.getWeekActivities().stream()).collect(Collectors.toList());
 		messageService.deleteMessagesForIntervalActivities(allWeekActivities);
+	}
+
+	private void deleteDevicesAnonymized(User userEntity)
+	{
+		userEntity.getDevices().stream().forEach(d -> deviceAnonymizedRepository.delete(d.getDeviceAnonymized()));
 	}
 
 	private Set<Goal> getAllGoalsIncludingHistoryItems(User userEntity)
