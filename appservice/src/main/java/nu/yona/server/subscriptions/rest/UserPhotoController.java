@@ -43,6 +43,7 @@ import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.ErrorResponseDto;
+import nu.yona.server.rest.GlobalExceptionMapping;
 import nu.yona.server.subscriptions.rest.UserPhotoController.UserPhotoResource;
 import nu.yona.server.subscriptions.service.UserPhotoDto;
 import nu.yona.server.subscriptions.service.UserPhotoService;
@@ -58,6 +59,9 @@ public class UserPhotoController extends ControllerBase
 
 	@Autowired
 	private UserPhotoService userPhotoService;
+
+	@Autowired
+	private GlobalExceptionMapping globalExceptionMapping;
 
 	@RequestMapping(value = "/userPhotos/{userPhotoId}", method = RequestMethod.GET, produces = { MediaType.IMAGE_PNG_VALUE })
 	@ResponseBody
@@ -82,9 +86,9 @@ public class UserPhotoController extends ControllerBase
 	@ExceptionHandler(MultipartException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
-	public ErrorResponseDto handleMultipartException(HttpServletRequest request, Throwable exception)
+	public ErrorResponseDto handleMultipartException(Exception exception, HttpServletRequest request)
 	{
-		return new ErrorResponseDto(null, exception.getMessage());
+		return globalExceptionMapping.handleOtherException(exception, request);
 	}
 
 	@RequestMapping(value = "/users/{userId}/photo", method = RequestMethod.DELETE)

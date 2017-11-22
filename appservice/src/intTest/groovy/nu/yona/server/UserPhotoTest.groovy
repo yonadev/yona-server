@@ -113,9 +113,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		response.status == 400
-		// TODO: return a proper code
-		// "Could not parse multipart servlet request; nested exception is java.lang.IllegalStateException: org.apache.tomcat.util.http.fileupload.FileUploadBase$FileSizeLimitExceededException: The field file exceeds its maximum permitted size of 131072 bytes."
-		response.responseData.code == null
+		response.responseData.code == null // As the app should take care for uploading a resized photo, this is not a user error, so it does not need to have a code
 
 		cleanup:
 		appService.deleteUser(richard)
