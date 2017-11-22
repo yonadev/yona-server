@@ -35,6 +35,7 @@ import nu.yona.server.exceptions.EmailException;
 import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
+import nu.yona.server.messaging.service.BuddyMessageDto;
 import nu.yona.server.messaging.service.MessageActionDto;
 import nu.yona.server.messaging.service.MessageDestinationDto;
 import nu.yona.server.messaging.service.MessageService;
@@ -589,7 +590,7 @@ public class BuddyService
 		boolean isRequestingReceiving = buddy.getSendingStatus() == Status.REQUESTED;
 		MessageDestination messageDestination = buddyUserEntity.getNamedMessageDestination();
 		messageService.sendMessageAndFlushToDatabase(
-				BuddyConnectRequestMessage.createInstance(BuddyInfoParameters.createInstance(requestingUser),
+				BuddyConnectRequestMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(requestingUser),
 						buddy.getPersonalInvitationMessage(), savedBuddyEntity.getId(), isRequestingSending,
 						isRequestingReceiving),
 				MessageDestinationDto.createInstance(messageDestination));

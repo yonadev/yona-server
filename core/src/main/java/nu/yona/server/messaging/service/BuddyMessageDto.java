@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.BuddyMessage;
+import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.subscriptions.service.UserDto;
 
@@ -37,6 +38,17 @@ public abstract class BuddyMessageDto extends MessageDto
 	public String getMessage()
 	{
 		return message;
+	}
+
+	public static BuddyInfoParameters createBuddyInfoParametersInstance(UserDto userWithPrivateData)
+	{
+		return createBuddyInfoParametersInstance(userWithPrivateData, userWithPrivateData.getPrivateData().getUserAnonymizedId());
+	}
+
+	public static BuddyInfoParameters createBuddyInfoParametersInstance(UserDto userWithPrivateData, UUID relatedUserAnonymizedId)
+	{
+		return new BuddyInfoParameters(relatedUserAnonymizedId, userWithPrivateData.getId(),
+				userWithPrivateData.getPrivateData().getNickname(), userWithPrivateData.getPrivateData().getUserPhotoId());
 	}
 
 	@Component

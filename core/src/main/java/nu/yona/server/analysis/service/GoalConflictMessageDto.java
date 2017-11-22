@@ -23,9 +23,9 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import nu.yona.server.Constants;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
-import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.DisclosureRequestMessage;
 import nu.yona.server.messaging.entities.Message;
+import nu.yona.server.messaging.service.BuddyMessageDto;
 import nu.yona.server.messaging.service.MessageActionDto;
 import nu.yona.server.messaging.service.MessageDestinationDto;
 import nu.yona.server.messaging.service.MessageDto;
@@ -184,7 +184,7 @@ public class GoalConflictMessageDto extends MessageDto
 			MessageDestinationDto messageDestination = userAnonymizedService
 					.getUserAnonymized(messageEntity.getRelatedUserAnonymizedId().get()).getAnonymousDestination();
 			messageService.sendMessageAndFlushToDatabase(
-					DisclosureRequestMessage.createInstance(BuddyInfoParameters.createInstance(actingUser),
+					DisclosureRequestMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(actingUser),
 							requestPayload.getProperty("message"), messageEntity),
 					messageDestination);
 

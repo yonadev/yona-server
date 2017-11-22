@@ -158,7 +158,7 @@ public class UserPhotoController extends ControllerBase
 		private void addPhotoLink(Resource<UserPhotoDto> userPhotoResource)
 		{
 			userPhotoResource.add(UserPhotoController.getUserPhotoLinkBuilder(userPhotoResource.getContent().getId().get())
-					.withRel("yona:userPhoto"));
+					.withRel("userPhoto"));
 		}
 	}
 }

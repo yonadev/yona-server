@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.GoalConflictMessage.Status;
-import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.DisclosureRequestMessage;
 import nu.yona.server.messaging.entities.DisclosureResponseMessage;
 import nu.yona.server.messaging.entities.Message;
@@ -185,7 +184,7 @@ public class DisclosureRequestMessageDto extends BuddyMessageLinkedUserDto
 					.getAnonymousDestination();
 			assert messageDestination != null;
 			messageService.sendMessageAndFlushToDatabase(
-					DisclosureResponseMessage.createInstance(BuddyInfoParameters.createInstance(respondingUser),
+					DisclosureResponseMessage.createInstance(BuddyMessageDto.createBuddyInfoParametersInstance(respondingUser),
 							requestMessageEntity.getTargetGoalConflictMessage(), requestMessageEntity.getStatus(), message),
 					messageDestination);
 		}

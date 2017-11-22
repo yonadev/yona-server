@@ -13,7 +13,6 @@ import javax.persistence.Transient;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.User;
-import nu.yona.server.subscriptions.service.UserDto;
 
 @Entity
 public abstract class BuddyMessage extends Message
@@ -119,24 +118,13 @@ public abstract class BuddyMessage extends Message
 		public final String nickname;
 		public final Optional<UUID> userPhotoId;
 
-		private BuddyInfoParameters(UUID relatedUserAnonymizedId, UUID userId, String nickname, Optional<UUID> userPhotoId)
+		public BuddyInfoParameters(UUID relatedUserAnonymizedId, UUID userId, String nickname, Optional<UUID> userPhotoId)
 		{
 			this.relatedUserAnonymizedId = relatedUserAnonymizedId;
 
 			this.userId = userId;
 			this.nickname = nickname;
 			this.userPhotoId = userPhotoId;
-		}
-
-		public static BuddyInfoParameters createInstance(UserDto userWithPrivateData)
-		{
-			return createInstance(userWithPrivateData, userWithPrivateData.getPrivateData().getUserAnonymizedId());
-		}
-
-		public static BuddyInfoParameters createInstance(UserDto userWithPrivateData, UUID relatedUserAnonymizedId)
-		{
-			return new BuddyInfoParameters(relatedUserAnonymizedId, userWithPrivateData.getId(),
-					userWithPrivateData.getPrivateData().getNickname(), userWithPrivateData.getPrivateData().getUserPhotoId());
 		}
 
 		public static BuddyInfoParameters createInstance(User userEntity)
