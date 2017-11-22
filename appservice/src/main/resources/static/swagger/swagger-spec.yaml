@@ -218,6 +218,66 @@ paths:
           description: Action failed
           schema:
             $ref: '#/definitions/Error'
+  '/users/{userID}/photo':
+    put:
+      summary: Upload a user photo
+      description: Adds or replaces the user photo for this user. A multipart/form-data request is expected with a "file" field containing an image. The image is expected to be resized already.
+      consumes: 
+        - multipart/form-data
+      parameters:
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/yonaPassword"
+        - in: formData
+          name: file
+          type: file
+          description: The image to upload. It should be resized already.
+      tags:
+        - User photo
+      responses:
+        '200':
+          description: The user photo added
+          schema:
+            $ref: '#/definitions/UserPhoto'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Remove a user photo
+      description: Removes the photo association of this user. It is still downloadable for some time.
+      parameters:
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/yonaPassword"
+      tags:
+        - User photo
+      responses:
+        '200':
+          description: The user photo is deleted.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'               
+  '/userPhotos/{userPhotoID}':
+    get:
+      summary: Get the user photo
+      description: Fetches the user photo by ID.
+      parameters:
+        - name: userPhotoID
+          in: path
+          description: The ID of the user photo
+          required: true
+          type: string
+      tags:
+        - User photo
+      responses:
+        '200':
+          description: The user photo in image/png format
+          schema:
+            type: file
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error' 
   '/users/{userID}/apple.mobileconfig':
     get:
       summary: Get the Apple mobile config for this user
@@ -1322,6 +1382,28 @@ definitions:
           href:
             type: string
             description: Through this link, this resource can be edited or deleted. Note that this link is not always present. Certain resources can never be edited. Some others can only be edited or deleted in a specific state. Unprocessed messages for example cannot be deleted.
+  UserPhotoLink:
+    type: object
+    properties:
+      edit:
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Link to download user photo in image/png format.
+  EditUserPhotoLink:
+    type: object
+    properties:
+      edit:
+        type: object
+        required:
+          - href
+        properties:
+          href:
+            type: string
+            description: Refers to the URL to upload/delete an image          
   MessagesLink:
     type: object
     properties:
@@ -1794,6 +1876,8 @@ definitions:
               - $ref: '#/definitions/DailyActivityReportsLink'
               - $ref: '#/definitions/DailyActivityReportsWithBuddiesLink'
               - $ref: '#/definitions/MessagesLink'
+              - $ref: '#/definitions/UserPhotoLink'
+              - $ref: '#/definitions/EditUserPhotoLink'
               - type: object
                 properties:
                   "yona:confirmMobileNumber":
@@ -1915,6 +1999,15 @@ definitions:
         example: 1234
     required:
       - code
+  UserPhoto:
+    type: object
+    properties:
+      _links:
+        allOf:
+          - $ref: '#/definitions/Curies'
+          - $ref: '#/definitions/SelfLink'
+    required:
+      - _links
   PostPutGoal:
     type: object
     discriminator: "@type"
@@ -2102,6 +2195,7 @@ definitions:
               - $ref: '#/definitions/EditLink'
               - $ref: '#/definitions/WeeklyActivityReportsLink'
               - $ref: '#/definitions/DailyActivityReportsLink'
+              - $ref: '#/definitions/UserPhotoLink'
         required:
           - lastStatusChangeTime
           - _embedded
@@ -2166,6 +2260,15 @@ definitions:
         - DisclosureResponseMessage
         - ActivityCommentMessage
         - SystemMessage
+      _links:
+         allOf:
+           - $ref: '#/definitions/Curies'
+           - $ref: '#/definitions/SelfLink'
+           - $ref: '#/definitions/UserPhotoLink'
+      nickname:
+        type: string
+        description: The nickname of the buddy, or a self or system sender placeholder
+        example: RQ
       creationTime:
         type: string
         format: dateTime
@@ -2178,6 +2281,8 @@ definitions:
         example: false
     required:
       - "@type"
+      - _links
+      - nickname
       - creationTime
   SystemMessage:
     allOf:
@@ -2203,16 +2308,11 @@ definitions:
       - $ref: '#/definitions/Message'
       - type: object
         properties:
-          nickname:
-            type: string
-            description: The nickname of the buddy
-            example: RQ
           message:
             type: string
             description: The message from the buddy
             example: Hi there, how are you doing?
         required:
-          - nickname
           - message
   BuddyMessageWithEmbeddedUser:
     allOf:

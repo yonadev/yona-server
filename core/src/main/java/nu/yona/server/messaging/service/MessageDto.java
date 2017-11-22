@@ -100,6 +100,12 @@ public abstract class MessageDto extends PolymorphicDto
 	}
 
 	@JsonIgnore
+	public Optional<UUID> getSenderUserPhotoId()
+	{
+		return senderInfo.getUserPhotoId();
+	}
+
+	@JsonIgnore
 	public Optional<UUID> getSenderBuddyId()
 	{
 		return senderInfo.getBuddy().map(BuddyDto::getId);
@@ -211,17 +217,20 @@ public abstract class MessageDto extends PolymorphicDto
 
 		private SenderInfo createSenderInfoForSelf(UserDto actingUser)
 		{
-			return senderInfoFactory.createInstanceForSelf(actingUser.getId(), actingUser.getOwnPrivateData().getNickname());
+			return senderInfoFactory.createInstanceForSelf(actingUser.getId(), actingUser.getOwnPrivateData().getNickname(),
+					actingUser.getOwnPrivateData().getUserPhotoId());
 		}
 
 		private SenderInfo createSenderInfoForBuddy(BuddyDto buddy)
 		{
-			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getId(), buddy.getNickname(), buddy.getId());
+			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getId(), buddy.getNickname(), buddy.getUserPhotoId(),
+					buddy.getId());
 		}
 
-		protected SenderInfo createSenderInfoForDetachedBuddy(Optional<User> userEntity, String nickname)
+		protected SenderInfo createSenderInfoForDetachedBuddy(Optional<User> userEntity, String nickname,
+				Optional<UUID> userPhoto)
 		{
-			return senderInfoFactory.createInstanceForDetachedBuddy(UserDto.createInstance(userEntity), nickname);
+			return senderInfoFactory.createInstanceForDetachedBuddy(UserDto.createInstance(userEntity), nickname, userPhoto);
 		}
 
 		protected SenderInfo createSenderInfoForSystem()

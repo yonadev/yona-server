@@ -11,6 +11,7 @@ import javax.persistence.Entity;
 import javax.persistence.Transient;
 
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
+import nu.yona.server.subscriptions.entities.Buddy;
 import nu.yona.server.subscriptions.entities.User;
 
 @Entity
@@ -28,23 +29,27 @@ public abstract class BuddyMessage extends Message
 	private String senderNickname;
 	private byte[] senderNicknameCiphertext;
 
+	@Transient
+	private Optional<UUID> senderUserPhotoId;
+	private byte[] senderUserPhotoIdCiphertext;
+
 	// Default constructor is required for JPA
 	protected BuddyMessage()
 	{
 		super(null);
 	}
 
-	protected BuddyMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname, String message)
+	protected BuddyMessage(BuddyInfoParameters buddyInfoParameters, String message)
 	{
-		this(senderUserId, senderUserAnonymizedId, senderUserNickname, false, message);
+		this(buddyInfoParameters, false, message);
 	}
 
-	protected BuddyMessage(UUID senderUserId, UUID senderUserAnonymizedId, String senderUserNickname, boolean isSentItem,
-			String message)
+	protected BuddyMessage(BuddyInfoParameters buddyInfoParameters, boolean isSentItem, String message)
 	{
-		super(senderUserAnonymizedId, isSentItem);
-		this.senderUserId = senderUserId;
-		this.senderNickname = senderUserNickname;
+		super(buddyInfoParameters.relatedUserAnonymizedId, isSentItem);
+		this.senderUserId = buddyInfoParameters.userId;
+		this.senderNickname = buddyInfoParameters.nickname;
+		this.senderUserPhotoId = buddyInfoParameters.userPhotoId;
 		this.message = message;
 	}
 
@@ -79,12 +84,18 @@ public abstract class BuddyMessage extends Message
 		return senderNickname;
 	}
 
+	public Optional<UUID> getSenderUserPhotoId()
+	{
+		return senderUserPhotoId;
+	}
+
 	@Override
 	public void encrypt()
 	{
 		senderUserIdCiphertext = SecretKeyUtil.encryptUuid(senderUserId);
 		messageCiphertext = SecretKeyUtil.encryptString(message);
 		senderNicknameCiphertext = SecretKeyUtil.encryptString(senderNickname);
+		senderUserPhotoIdCiphertext = SecretKeyUtil.encryptUuid(senderUserPhotoId.orElse(null));
 	}
 
 	@Override
@@ -93,5 +104,44 @@ public abstract class BuddyMessage extends Message
 		senderUserId = SecretKeyUtil.decryptUuid(senderUserIdCiphertext);
 		message = SecretKeyUtil.decryptString(messageCiphertext);
 		senderNickname = SecretKeyUtil.decryptString(senderNicknameCiphertext);
+		senderUserPhotoId = Optional.ofNullable(SecretKeyUtil.decryptUuid(senderUserPhotoIdCiphertext));
+	}
+
+	/*
+	 * Structure to pass some information about the buddy that sent the message.
+	 */
+	public static class BuddyInfoParameters
+	{
+		public final UUID relatedUserAnonymizedId;
+
+		public final UUID userId;
+		public final String nickname;
+		public final Optional<UUID> userPhotoId;
+
+		public BuddyInfoParameters(UUID relatedUserAnonymizedId, UUID userId, String nickname, Optional<UUID> userPhotoId)
+		{
+			this.relatedUserAnonymizedId = relatedUserAnonymizedId;
+
+			this.userId = userId;
+			this.nickname = nickname;
+			this.userPhotoId = userPhotoId;
+		}
+
+		public static BuddyInfoParameters createInstance(User userEntity)
+		{
+			return new BuddyInfoParameters(userEntity.getUserAnonymizedId(), userEntity.getId(), userEntity.getNickname(),
+					userEntity.getUserPhotoId());
+		}
+
+		public static BuddyInfoParameters createInstance(User userEntity, String nickname)
+		{
+			return new BuddyInfoParameters(userEntity.getUserAnonymizedId(), userEntity.getId(), nickname,
+					userEntity.getUserPhotoId());
+		}
+
+		public static BuddyInfoParameters createInstance(Buddy buddy, UUID buddyUserAnonymizedId)
+		{
+			return new BuddyInfoParameters(buddyUserAnonymizedId, null, buddy.getNickname(), buddy.getUserPhotoId());
+		}
 	}
 }

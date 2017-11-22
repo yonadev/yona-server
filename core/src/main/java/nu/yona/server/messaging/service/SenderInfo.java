@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
 
@@ -24,13 +24,16 @@ public final class SenderInfo
 {
 	private final Optional<UserDto> user;
 	private final String nickname;
+	private final Optional<UUID> userPhotoId;
 	private final boolean isBuddy;
 	private final Optional<BuddyDto> buddy;
 
-	private SenderInfo(Optional<UserDto> user, String nickname, boolean isBuddy, Optional<BuddyDto> buddy)
+	private SenderInfo(Optional<UserDto> user, String nickname, Optional<UUID> userPhotoId, boolean isBuddy,
+			Optional<BuddyDto> buddy)
 	{
 		this.user = user;
 		this.nickname = nickname;
+		this.userPhotoId = userPhotoId;
 		this.isBuddy = isBuddy;
 		this.buddy = buddy;
 	}
@@ -38,6 +41,11 @@ public final class SenderInfo
 	public String getNickname()
 	{
 		return nickname;
+	}
+
+	public Optional<UUID> getUserPhotoId()
+	{
+		return userPhotoId;
 	}
 
 	public boolean isBuddy()
@@ -67,27 +75,28 @@ public final class SenderInfo
 		@Autowired
 		private Translator translator;
 
-		public SenderInfo createInstanceForBuddy(UUID userId, String nickname, UUID buddyId)
+		public SenderInfo createInstanceForBuddy(UUID userId, String nickname, Optional<UUID> userPhoto, UUID buddyId)
 		{
-			return new SenderInfo(Optional.of(userService.getPublicUser(userId)), nickname, true,
+			return new SenderInfo(Optional.of(userService.getPublicUser(userId)), nickname, userPhoto, true,
 					Optional.of(buddyService.getBuddy(buddyId)));
 		}
 
-		public SenderInfo createInstanceForDetachedBuddy(Optional<UserDto> user, String nickname)
+		public SenderInfo createInstanceForDetachedBuddy(Optional<UserDto> user, String nickname, Optional<UUID> userPhoto)
 		{
-			return new SenderInfo(user, nickname, true, Optional.empty());
+			return new SenderInfo(user, nickname, userPhoto, true, Optional.empty());
 		}
 
-		public SenderInfo createInstanceForSelf(UUID userId, String nickname)
+		public SenderInfo createInstanceForSelf(UUID userId, String nickname, Optional<UUID> userPhoto)
 		{
 			String selfNickname = translator.getLocalizedMessage("message.self.nickname", nickname);
-			return new SenderInfo(Optional.of(userService.getPrivateUser(userId)), selfNickname, false, Optional.empty());
+			return new SenderInfo(Optional.of(userService.getPrivateUser(userId)), selfNickname, userPhoto, false,
+					Optional.empty());
 		}
 
 		public SenderInfo createInstanceForSystem()
 		{
 			String systemNickname = translator.getLocalizedMessage("message.system.nickname");
-			return new SenderInfo(Optional.empty(), systemNickname, false, Optional.empty());
+			return new SenderInfo(Optional.empty(), systemNickname, Optional.empty(), false, Optional.empty());
 		}
 	}
 }

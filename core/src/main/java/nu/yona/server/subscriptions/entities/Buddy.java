@@ -48,6 +48,9 @@ public class Buddy extends EntityWithUuidAndTouchVersion
 	@Convert(converter = DateTimeFieldEncryptor.class)
 	private LocalDateTime lastStatusChangeTime;
 
+	@Convert(converter = UUIDFieldEncryptor.class)
+	private UUID userPhotoId;
+
 	/**
 	 * The BuddyAnonymized entities owned by this user
 	 */
@@ -105,6 +108,16 @@ public class Buddy extends EntityWithUuidAndTouchVersion
 	public void setNickName(String nickname)
 	{
 		this.nickname = nickname;
+	}
+
+	public Optional<UUID> getUserPhotoId()
+	{
+		return Optional.ofNullable(userPhotoId);
+	}
+
+	public void setUserPhotoId(Optional<UUID> userPhotoId)
+	{
+		this.userPhotoId = userPhotoId.orElse(null);
 	}
 
 	public UUID getUserId()

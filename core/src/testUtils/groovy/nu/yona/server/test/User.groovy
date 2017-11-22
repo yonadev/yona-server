@@ -31,6 +31,8 @@ class User
 	final String postOpenAppEventUrl
 	final boolean hasPrivateData
 	final String nickname
+	final String userPhotoUrl
+	final String editUserPhotoUrl
 	final List<Goal> goals
 	final List<Buddy> buddies
 	final List<Device> devices
@@ -71,6 +73,8 @@ class User
 			this.lastMonitoredActivityDate = (json.lastMonitoredActivityDate) ? YonaServer.parseIsoDateString(json.lastMonitoredActivityDate) : null
 			this.password = json.yonaPassword
 			this.nickname = json.nickname
+			this.userPhotoUrl = json._links?."yona:userPhoto"?.href
+			this.editUserPhotoUrl = json._links?."yona:editUserPhoto"?.href
 
 			this.buddies = (json._embedded?."yona:buddies"?._embedded) ? json._embedded."yona:buddies"._embedded."yona:buddies".collect{new Buddy(it)} : []
 			this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJson(it)} : []
@@ -106,11 +110,13 @@ class User
 	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN")
 	{
 		def devicePropertiesString = (deviceName) ? """"deviceName":"$deviceName", "deviceOperatingSystem":"$deviceOperatingSystem",""" : ""
-		def selfLinkString = (url) ? """"_links":{"self":{"href":"$url"}},""" : ""
+		def selfLinkString = (url) ? """"self":{"href":"$url"},""" : ""
 		def passwordString = (password) ? """"yonaPassword":"${password}",""" : ""
 		def json = """{
+				"_links":{
+					$selfLinkString
+				},
 				$devicePropertiesString
-				$selfLinkString
 				"firstName":"${firstName}",
 				"lastName":"${lastName}",
 				$passwordString

@@ -49,17 +49,14 @@ public class UserDto
 	private final boolean isMobileNumberConfirmed;
 	private final UserPrivateDataBaseDto privateData;
 
-	/*
-	 * Only intended for test purposes.
-	 */
 	private UserDto(UUID id, LocalDateTime creationTime, Optional<LocalDate> appLastOpenedDate,
 			Optional<LocalDate> lastMonitoredActivityDate, String firstName, String lastName, String yonaPassword,
-			String nickname, String mobileNumber, boolean isConfirmed, UUID namedMessageSourceId, UUID anonymousMessageSourceId,
-			Set<GoalDto> goals, Set<BuddyDto> buddies, UUID userAnonymizedId, VPNProfileDto vpnProfile,
-			Set<UserDeviceDto> devices)
+			String nickname, Optional<UUID> userPhotoId, String mobileNumber, boolean isConfirmed, UUID namedMessageSourceId,
+			UUID anonymousMessageSourceId, Set<GoalDto> goals, Set<BuddyDto> buddies, UUID userAnonymizedId,
+			VPNProfileDto vpnProfile, Set<UserDeviceDto> devices)
 	{
 		this(id, Optional.of(creationTime), appLastOpenedDate, firstName, lastName, null, mobileNumber, isConfirmed,
-				new OwnUserPrivateDataDto(lastMonitoredActivityDate, yonaPassword, nickname, namedMessageSourceId,
+				new OwnUserPrivateDataDto(lastMonitoredActivityDate, yonaPassword, nickname, userPhotoId, namedMessageSourceId,
 						anonymousMessageSourceId, goals, buddies, userAnonymizedId, vpnProfile, devices));
 	}
 
@@ -191,6 +188,7 @@ public class UserDto
 		originalUserEntity.setLastName(lastName);
 		originalUserEntity.setMobileNumber(mobileNumber);
 		originalUserEntity.setNickname(privateData.getNickname());
+		originalUserEntity.setUserPhotoId(((OwnUserPrivateDataDto) privateData).getUserPhotoId());
 
 		return originalUserEntity;
 	}
@@ -228,8 +226,8 @@ public class UserDto
 	{
 		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
 				userEntity.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),
-				CryptoSession.getCurrent().getKeyString(), userEntity.getNickname(), userEntity.getMobileNumber(),
-				userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSourceId(),
+				CryptoSession.getCurrent().getKeyString(), userEntity.getNickname(), userEntity.getUserPhotoId(),
+				userEntity.getMobileNumber(), userEntity.isMobileNumberConfirmed(), userEntity.getNamedMessageSourceId(),
 				userEntity.getAnonymousMessageSourceId(),
 				UserAnonymizedDto.getGoalsIncludingHistoryItems(userEntity.getAnonymized()), buddies,
 				userEntity.getUserAnonymizedId(), VPNProfileDto.createInstance(userEntity),
@@ -246,7 +244,8 @@ public class UserDto
 	public static UserDto createInstance(String firstName, String lastName, String mobileNumber, String nickname,
 			Optional<UserDeviceDto> device)
 	{
-		OwnUserPrivateDataDto privateData = new OwnUserPrivateDataDto(nickname, device.map(Collections::singleton).orElse(Collections.emptySet()));
+		OwnUserPrivateDataDto privateData = new OwnUserPrivateDataDto(nickname,
+				device.map(Collections::singleton).orElse(Collections.emptySet()));
 		return new UserDto(null, Optional.empty(), Optional.empty(), firstName, lastName, null, mobileNumber, false, privateData);
 	}
 

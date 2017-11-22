@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.messaging.entities.BuddyMessage;
+import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.subscriptions.service.UserDto;
 
@@ -39,6 +40,18 @@ public abstract class BuddyMessageDto extends MessageDto
 		return message;
 	}
 
+	public static BuddyInfoParameters createBuddyInfoParametersInstance(UserDto userWithPrivateData)
+	{
+		return createBuddyInfoParametersInstance(userWithPrivateData,
+				userWithPrivateData.getOwnPrivateData().getUserAnonymizedId());
+	}
+
+	public static BuddyInfoParameters createBuddyInfoParametersInstance(UserDto userWithPrivateData, UUID relatedUserAnonymizedId)
+	{
+		return new BuddyInfoParameters(relatedUserAnonymizedId, userWithPrivateData.getId(),
+				userWithPrivateData.getPrivateData().getNickname(), userWithPrivateData.getOwnPrivateData().getUserPhotoId());
+	}
+
 	@Component
 	public abstract static class Manager extends MessageDto.Manager
 	{
@@ -58,7 +71,8 @@ public abstract class BuddyMessageDto extends MessageDto
 		{
 			// The buddy entity does not contain the user anonymized ID yet
 			BuddyMessage buddyMessageEntity = (BuddyMessage) messageEntity;
-			return createSenderInfoForDetachedBuddy(buddyMessageEntity.getSenderUser(), buddyMessageEntity.getSenderNickname());
+			return createSenderInfoForDetachedBuddy(buddyMessageEntity.getSenderUser(), buddyMessageEntity.getSenderNickname(),
+					buddyMessageEntity.getSenderUserPhotoId());
 		}
 	}
 }

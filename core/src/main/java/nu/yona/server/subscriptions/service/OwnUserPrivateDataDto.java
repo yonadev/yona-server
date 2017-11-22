@@ -26,6 +26,7 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 {
 	private final Optional<LocalDate> lastMonitoredActivityDate;
 	private final String yonaPassword;
+	private final Optional<UUID> userPhotoId;
 	private final VPNProfileDto vpnProfile;
 	private final UUID userAnonymizedId;
 	private final UUID namedMessageSourceId;
@@ -34,18 +35,19 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 
 	OwnUserPrivateDataDto(String nickname, Set<UserDeviceDto> devices)
 	{
-		this(Optional.empty(), null, nickname, null, null, Collections.emptySet(), Collections.emptySet(), null,
+		this(Optional.empty(), null, nickname, Optional.empty(), null, null, Collections.emptySet(), Collections.emptySet(), null,
 				new VPNProfileDto(null), devices);
 	}
 
 	OwnUserPrivateDataDto(Optional<LocalDate> lastMonitoredActivityDate, String yonaPassword, String nickname,
-			UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goals, Set<BuddyDto> buddies,
-			UUID userAnonymizedId, VPNProfileDto vpnProfile, Set<UserDeviceDto> devices)
+			Optional<UUID> userPhotoId, UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goals,
+			Set<BuddyDto> buddies, UUID userAnonymizedId, VPNProfileDto vpnProfile, Set<UserDeviceDto> devices)
 	{
 		super(nickname, goals, new HashSet<>(devices));
 
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 		this.yonaPassword = yonaPassword;
+		this.userPhotoId = userPhotoId;
 		this.namedMessageSourceId = namedMessageSourceId;
 		this.anonymousMessageSourceId = anonymousMessageSourceId;
 		this.buddies = Objects.requireNonNull(buddies);
@@ -63,6 +65,12 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 	public String getYonaPassword()
 	{
 		return yonaPassword;
+	}
+
+	@JsonIgnore
+	public Optional<UUID> getUserPhotoId()
+	{
+		return userPhotoId;
 	}
 
 	@JsonIgnore

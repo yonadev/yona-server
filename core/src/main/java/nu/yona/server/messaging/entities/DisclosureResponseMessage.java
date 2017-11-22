@@ -1,10 +1,8 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.entities;
-
-import java.util.UUID;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
@@ -25,18 +23,16 @@ public class DisclosureResponseMessage extends BuddyMessage
 
 	}
 
-	private DisclosureResponseMessage(UUID senderUserId, UUID senderUserAnonymizedId, Status status, String senderNickname,
-			String message)
+	private DisclosureResponseMessage(BuddyInfoParameters buddyInfoParameters, Status status, String message)
 	{
-		super(senderUserId, senderUserAnonymizedId, senderNickname, message);
+		super(buddyInfoParameters, message);
 		this.status = status;
 	}
 
-	public static DisclosureResponseMessage createInstance(UUID senderUserId, UUID senderUserAnonymizedId,
-			GoalConflictMessage targetGoalConflictMessage, Status status, String senderNickname, String message)
+	public static DisclosureResponseMessage createInstance(BuddyInfoParameters buddyInfoParameters,
+			GoalConflictMessage targetGoalConflictMessage, Status status, String message)
 	{
-		DisclosureResponseMessage disclosureResponseMessage = new DisclosureResponseMessage(senderUserId, senderUserAnonymizedId,
-				status, senderNickname, message);
+		DisclosureResponseMessage disclosureResponseMessage = new DisclosureResponseMessage(buddyInfoParameters, status, message);
 		targetGoalConflictMessage.addDisclosureResponse(disclosureResponseMessage);
 		return disclosureResponseMessage;
 	}

@@ -644,9 +644,23 @@ public class UserController extends ControllerBase
 					pinResetRequestController.get().addLinks(userResource);
 					addSslRootCertificateLink(userResource);
 					addAppleMobileConfigLink(userResource);
+					addEditUserPhotoLink(userResource);
+					addUserPhotoLink(userResource);
 				}
 			}
 			return userResource;
+		}
+
+		private void addEditUserPhotoLink(UserResource userResource)
+		{
+			userResource.add(linkTo(methodOn(UserPhotoController.class).uploadUserPhoto(Optional.empty(), null,
+					userResource.getContent().getId())).withRel("editUserPhoto").expand());
+		}
+
+		private void addUserPhotoLink(UserResource userResource)
+		{
+			userResource.getContent().getOwnPrivateData().getUserPhotoId().ifPresent(userPhotoId -> userResource
+					.add(linkTo(methodOn(UserPhotoController.class).getUserPhoto(userPhotoId)).withRel("userPhoto")));
 		}
 
 		private void addAppleMobileConfigLink(UserResource userResource)

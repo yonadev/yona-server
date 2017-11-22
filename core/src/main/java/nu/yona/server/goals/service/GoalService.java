@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.entities.GoalChangeMessage;
+import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
@@ -236,7 +237,7 @@ public class GoalService
 			GoalChangeMessage.Change change, Optional<String> message)
 	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
-				() -> GoalChangeMessage.createInstance(userEntity.getId(), userEntity.getUserAnonymizedId(),
-						userEntity.getNickname(), activityCategoryOfChangedGoal, change, message.orElse(null)));
+				() -> GoalChangeMessage.createInstance(BuddyInfoParameters.createInstance(userEntity),
+						activityCategoryOfChangedGoal, change, message.orElse(null)));
 	}
 }
