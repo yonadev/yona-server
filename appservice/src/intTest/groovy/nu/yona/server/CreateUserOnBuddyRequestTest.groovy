@@ -568,6 +568,6 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 	String buildInviteUrl(def response)
 	{
 		println "URL from response = " + response.responseData._embedded."yona:user"._links.self.href
-		response.responseData._embedded."yona:user"._links.self.href + "?tempPassword=" + dummyTempPassword
+		YonaServer.stripQueryString(response.responseData._embedded."yona:user"._links.self.href) + "?tempPassword=" + dummyTempPassword
 	}
 }

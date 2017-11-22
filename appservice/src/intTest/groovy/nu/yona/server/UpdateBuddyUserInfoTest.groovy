@@ -40,6 +40,7 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 
 		User richardAfterProcess = appService.reloadUser(richard)
 		richardAfterProcess.buddies[0].nickname == "Bobby"
+		richardAfterProcess.buddies[0].user.nickname == "Bobby"
 
 		cleanup:
 		appService.deleteUser(richard)

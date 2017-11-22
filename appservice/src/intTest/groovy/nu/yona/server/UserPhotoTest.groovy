@@ -308,7 +308,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		buddyInfoUpdateMessages[0].message == "User changed personal info"
 
 		User bobAfterProcess = appService.reloadUser(bob)
-		bobAfterProcess.buddies[0].userPhotoUrl == newUserPhotoUrl
+		bobAfterProcess.buddies[0].user.userPhotoUrl == newUserPhotoUrl
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -342,7 +342,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		buddyInfoUpdateMessages[0].message == "User changed personal info"
 
 		User bobAfterProcess = appService.reloadUser(bob)
-		bobAfterProcess.buddies[0].userPhotoUrl == null
+		bobAfterProcess.buddies[0].user.userPhotoUrl == null
 
 		cleanup:
 		appService.deleteUser(richard)

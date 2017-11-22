@@ -26,7 +26,6 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 {
 	private final Optional<LocalDate> lastMonitoredActivityDate;
 	private final String yonaPassword;
-	private final Optional<UUID> userPhotoId;
 	private final VPNProfileDto vpnProfile;
 	private final UUID userAnonymizedId;
 	private final UUID namedMessageSourceId;
@@ -43,11 +42,10 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 			Optional<UUID> userPhotoId, UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goals,
 			Set<BuddyDto> buddies, UUID userAnonymizedId, VPNProfileDto vpnProfile, Set<UserDeviceDto> devices)
 	{
-		super(nickname, goals, new HashSet<>(devices));
+		super(nickname, userPhotoId, goals, new HashSet<>(devices));
 
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 		this.yonaPassword = yonaPassword;
-		this.userPhotoId = userPhotoId;
 		this.namedMessageSourceId = namedMessageSourceId;
 		this.anonymousMessageSourceId = anonymousMessageSourceId;
 		this.buddies = Objects.requireNonNull(buddies);
@@ -65,12 +63,6 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 	public String getYonaPassword()
 	{
 		return yonaPassword;
-	}
-
-	@JsonIgnore
-	public Optional<UUID> getUserPhotoId()
-	{
-		return userPhotoId;
 	}
 
 	@JsonIgnore

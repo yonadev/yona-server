@@ -190,12 +190,15 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		buddies[0].sendingStatus == "ACCEPTED"
 		buddies[0].receivingStatus == "ACCEPTED"
 		buddies[0].url == buddyConnectResponseMessages[0]._links."yona:buddy".href
+		buddies[0].user.nickname == bob.nickname
 
 		def richardWithBuddy = appService.reloadUser(richard)
 		richardWithBuddy.buddies != null
 		richardWithBuddy.buddies.size() == 1
 		richardWithBuddy.buddies[0].user.firstName == bob.firstName
+		richardWithBuddy.buddies[0].user.nickname == bob.nickname
 		richardWithBuddy.buddies[0].goals.size() == 2
+		richardWithBuddy.buddies[0].nickname == bob.nickname
 		richardWithBuddy.buddies[0].sendingStatus == "ACCEPTED"
 		richardWithBuddy.buddies[0].receivingStatus == "ACCEPTED"
 		AppService.assertDateTimeFormat(richardWithBuddy.buddies[0].lastStatusChangeTime)
@@ -706,7 +709,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		richard.emailAddress = "richard@quinn.com"
 		User bob = richardAndBob.bob
 		bob.emailAddress = "bob@dunn.net"
-		
+
 		when:
 		disconnectBuddy(richard, bob)
 

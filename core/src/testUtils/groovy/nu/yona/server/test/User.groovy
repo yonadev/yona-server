@@ -63,6 +63,9 @@ class User
 		this.firstName = json.firstName
 		this.lastName = json.lastName
 		this.mobileNumber = json.mobileNumber
+		this.nickname = json.nickname
+		this.userPhotoUrl = json._links?."yona:userPhoto"?.href
+		this.editUserPhotoUrl = json._links?."yona:editUserPhoto"?.href
 		this.mobileNumberConfirmationUrl = json._links?."yona:confirmMobileNumber"?.href
 		this.resendMobileNumberConfirmationCodeUrl = json._links?."yona:resendMobileNumberConfirmationCode"?.href
 		this.postOpenAppEventUrl = json._links?."yona:postOpenAppEvent"?.href
@@ -72,9 +75,6 @@ class User
 			// Private data is available
 			this.lastMonitoredActivityDate = (json.lastMonitoredActivityDate) ? YonaServer.parseIsoDateString(json.lastMonitoredActivityDate) : null
 			this.password = json.yonaPassword
-			this.nickname = json.nickname
-			this.userPhotoUrl = json._links?."yona:userPhoto"?.href
-			this.editUserPhotoUrl = json._links?."yona:editUserPhoto"?.href
 
 			this.buddies = (json._embedded?."yona:buddies"?._embedded) ? json._embedded."yona:buddies"._embedded."yona:buddies".collect{new Buddy(it)} : []
 			this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJson(it)} : []

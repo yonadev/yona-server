@@ -6,7 +6,9 @@ package nu.yona.server.subscriptions.service;
 
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.goals.service.GoalDto;
@@ -15,9 +17,9 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 
 public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 {
-	BuddyUserPrivateDataDto(String nickname, Set<GoalDto> goals, Set<DeviceBaseDto> devices)
+	BuddyUserPrivateDataDto(String nickname, Optional<UUID> userPhotoId, Set<GoalDto> goals, Set<DeviceBaseDto> devices)
 	{
-		super(nickname, goals, devices);
+		super(nickname, userPhotoId, goals, devices);
 	}
 
 	static BuddyUserPrivateDataDto createInstance(Buddy buddyEntity)
@@ -36,6 +38,6 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 			goals = Collections.emptySet();
 			devices = Collections.emptySet();
 		}
-		return new BuddyUserPrivateDataDto(buddyEntity.getNickname(), goals, devices);
+		return new BuddyUserPrivateDataDto(buddyEntity.getNickname(), buddyEntity.getUserPhotoId(), goals, devices);
 	}
 }

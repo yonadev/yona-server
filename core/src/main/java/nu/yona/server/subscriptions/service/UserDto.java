@@ -168,7 +168,7 @@ public class UserDto
 			return (OwnUserPrivateDataDto) privateData;
 		}
 		throw new IllegalStateException("Cannot fetch own user private data. Private data "
-				+ ((privateData == null) ? "is null" : " is of type " + privateData.getClass().getName()));
+				+ ((privateData == null) ? "is null" : "is of type " + privateData.getClass().getName()));
 	}
 
 	@JsonIgnore
@@ -188,7 +188,7 @@ public class UserDto
 		originalUserEntity.setLastName(lastName);
 		originalUserEntity.setMobileNumber(mobileNumber);
 		originalUserEntity.setNickname(privateData.getNickname());
-		originalUserEntity.setUserPhotoId(((OwnUserPrivateDataDto) privateData).getUserPhotoId());
+		originalUserEntity.setUserPhotoId(privateData.getUserPhotoId());
 
 		return originalUserEntity;
 	}
@@ -244,7 +244,7 @@ public class UserDto
 	public static UserDto createInstance(String firstName, String lastName, String mobileNumber, String nickname,
 			Optional<UserDeviceDto> device)
 	{
-		OwnUserPrivateDataDto privateData = new OwnUserPrivateDataDto(nickname,
+		UserPrivateDataBaseDto privateData = new OwnUserPrivateDataDto(nickname,
 				device.map(Collections::singleton).orElse(Collections.emptySet()));
 		return new UserDto(null, Optional.empty(), Optional.empty(), firstName, lastName, null, mobileNumber, false, privateData);
 	}

@@ -2195,7 +2195,6 @@ definitions:
               - $ref: '#/definitions/EditLink'
               - $ref: '#/definitions/WeeklyActivityReportsLink'
               - $ref: '#/definitions/DailyActivityReportsLink'
-              - $ref: '#/definitions/UserPhotoLink'
         required:
           - lastStatusChangeTime
           - _embedded

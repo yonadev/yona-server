@@ -597,22 +597,29 @@ public class UserController extends ControllerBase
 		private final Optional<UUID> requestingUserId;
 		private final CurieProvider curieProvider;
 		private final Optional<PinResetRequestController> pinResetRequestController;
+		private boolean includeAllLinks;
 
 		public UserResourceAssembler(CurieProvider curieProvider)
 		{
-			this(curieProvider, Optional.empty(), Optional.empty());
+			this(false, curieProvider, Optional.empty(), Optional.empty());
+		}
+
+		public UserResourceAssembler(CurieProvider curieProvider, UUID requestingUserId)
+		{
+			this(false, curieProvider, Optional.empty(), Optional.of(requestingUserId));
 		}
 
 		public UserResourceAssembler(CurieProvider curieProvider, PinResetRequestController pinResetRequestController,
 				UUID requestingUserId)
 		{
-			this(curieProvider, Optional.of(pinResetRequestController), Optional.of(requestingUserId));
+			this(true, curieProvider, Optional.of(pinResetRequestController), Optional.of(requestingUserId));
 		}
 
-		private UserResourceAssembler(CurieProvider curieProvider, Optional<PinResetRequestController> pinResetRequestController,
-				Optional<UUID> requestingUserId)
+		private UserResourceAssembler(boolean includeAllLinks, CurieProvider curieProvider,
+				Optional<PinResetRequestController> pinResetRequestController, Optional<UUID> requestingUserId)
 		{
 			super(UserController.class, UserResource.class);
+			this.includeAllLinks = includeAllLinks;
 			this.curieProvider = curieProvider;
 			this.pinResetRequestController = pinResetRequestController;
 			this.requestingUserId = requestingUserId;
@@ -623,13 +630,11 @@ public class UserController extends ControllerBase
 		{
 			UserResource userResource = instantiateResource(user);
 			addSelfLink(userResource, requestingUserId);
-			if (requestingUserId.isPresent() && !user.isMobileNumberConfirmed())
+			if (isBuddyUser(user))
 			{
-				// The mobile number is not yet confirmed, so we can add the link
-				addConfirmMobileNumberLink(userResource);
-				addResendMobileNumberConfirmationLink(userResource);
+				addUserPhotoLink(userResource);
 			}
-			if (requestingUserId.isPresent())
+			else if (isOwnUser(user) && includeAllLinks)
 			{
 				addEditLink(userResource);
 				if (user.isMobileNumberConfirmed())
@@ -647,8 +652,23 @@ public class UserController extends ControllerBase
 					addEditUserPhotoLink(userResource);
 					addUserPhotoLink(userResource);
 				}
+				else
+				{
+					addConfirmMobileNumberLink(userResource);
+					addResendMobileNumberConfirmationLink(userResource);
+				}
 			}
 			return userResource;
+		}
+
+		private boolean isOwnUser(UserDto user)
+		{
+			return requestingUserId.map(ruid -> ruid.equals(user.getId())).orElse(false);
+		}
+
+		private boolean isBuddyUser(UserDto user)
+		{
+			return requestingUserId.map(ruid -> !ruid.equals(user.getId())).orElse(false);
 		}
 
 		private void addEditUserPhotoLink(UserResource userResource)
@@ -659,7 +679,7 @@ public class UserController extends ControllerBase
 
 		private void addUserPhotoLink(UserResource userResource)
 		{
-			userResource.getContent().getOwnPrivateData().getUserPhotoId().ifPresent(userPhotoId -> userResource
+			userResource.getContent().getPrivateData().getUserPhotoId().ifPresent(userPhotoId -> userResource
 					.add(linkTo(methodOn(UserPhotoController.class).getUserPhoto(userPhotoId)).withRel("userPhoto")));
 		}
 

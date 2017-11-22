@@ -16,7 +16,6 @@ import nu.yona.server.YonaServer
 class Buddy
 {
 	final String nickname
-	final String userPhotoUrl
 	final String receivingStatus
 	final String sendingStatus
 	final String lastStatusChangeTime
@@ -30,7 +29,6 @@ class Buddy
 	Buddy(def json)
 	{
 		this.nickname = json.nickname
-		this.userPhotoUrl = json._links?."yona:userPhoto"?.href
 		this.receivingStatus = json.receivingStatus
 		this.sendingStatus = json.sendingStatus
 		this.lastStatusChangeTime = json.lastStatusChangeTime

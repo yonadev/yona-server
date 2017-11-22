@@ -262,7 +262,7 @@ public class BuddyController extends ControllerBase
 
 			HashMap<String, Object> result = new HashMap<>();
 			result.put(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME),
-					new UserController.UserResourceAssembler(curieProvider).toResource(getContent().getUser()));
+					new UserController.UserResourceAssembler(curieProvider, userId).toResource(getContent().getUser()));
 			if (getContent().getUser() != null && getContent().getGoals() != null)
 			{
 				result.put(curieProvider.getNamespacedRelFor(BuddyDto.GOALS_REL_NAME),
@@ -291,7 +291,6 @@ public class BuddyController extends ControllerBase
 			ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(buddy.getId());
 			addSelfLink(selfLinkBuilder, buddyResource);
 			addEditLink(selfLinkBuilder, buddyResource);
-			addUserPhotoLink(buddyResource);
 			if (buddy.getSendingStatus() == Status.ACCEPTED)
 			{
 				addDayActivityOverviewsLink(buddyResource);
@@ -319,12 +318,6 @@ public class BuddyController extends ControllerBase
 		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
 		{
 			buddyResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
-		}
-
-		private void addUserPhotoLink(BuddyResource buddyResource)
-		{
-			buddyResource.getContent().getUserPhotoId().ifPresent(userPhotoId -> buddyResource
-					.add(linkTo(methodOn(UserPhotoController.class).getUserPhoto(userPhotoId)).withRel("userPhoto")));
 		}
 
 		private void addWeekActivityOverviewsLink(BuddyResource buddyResource)

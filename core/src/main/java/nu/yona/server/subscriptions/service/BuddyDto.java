@@ -41,7 +41,6 @@ public class BuddyDto
 	private final UserDto user;
 	private final String personalInvitationMessage;
 	private final String nickname;
-	private final Optional<UUID> userPhotoId;
 	private final Optional<UUID> userAnonymizedId;
 	private final Optional<LocalDate> lastMonitoredActivityDate;
 	private final Status sendingStatus;
@@ -49,30 +48,29 @@ public class BuddyDto
 	private Set<GoalDto> goals = Collections.emptySet();
 	private final LocalDateTime lastStatusChangeTime;
 
-	public BuddyDto(UUID id, UserDto user, String nickname, Optional<UUID> userPhotoId, Optional<UUID> userAnonymizedId,
+	public BuddyDto(UUID id, UserDto user, String nickname, Optional<UUID> userAnonymizedId,
 			Optional<LocalDate> lastMonitoredActivityDate, Status sendingStatus, Status receivingStatus,
 			LocalDateTime lastStatusChangeTime)
 	{
-		this(id, user, null, nickname, userPhotoId, userAnonymizedId, lastMonitoredActivityDate, sendingStatus, receivingStatus,
+		this(id, user, null, nickname, userAnonymizedId, lastMonitoredActivityDate, sendingStatus, receivingStatus,
 				lastStatusChangeTime);
 	}
 
 	public BuddyDto(UserDto user, String personalInvitationMessage, Status sendingStatus, Status receivingStatus,
 			LocalDateTime lastStatusChangeTime)
 	{
-		this(null, user, personalInvitationMessage, null, Optional.empty(), null, sendingStatus, receivingStatus,
+		this(null, user, personalInvitationMessage, null, Optional.empty(), Optional.empty(), sendingStatus, receivingStatus,
 				lastStatusChangeTime);
 	}
 
-	private BuddyDto(UUID id, UserDto user, String personalInvitationMessage, String nickname, Optional<UUID> userPhotoId,
-			Optional<UUID> userAnonymizedId, Optional<LocalDate> lastMonitoredActivityDate, Status sendingStatus,
-			Status receivingStatus, LocalDateTime lastStatusChangeTime)
+	private BuddyDto(UUID id, UserDto user, String personalInvitationMessage, String nickname, Optional<UUID> userAnonymizedId,
+			Optional<LocalDate> lastMonitoredActivityDate, Status sendingStatus, Status receivingStatus,
+			LocalDateTime lastStatusChangeTime)
 	{
 		this.id = id;
 		this.user = user;
 		this.personalInvitationMessage = personalInvitationMessage;
 		this.nickname = nickname;
-		this.userPhotoId = userPhotoId;
 		this.userAnonymizedId = userAnonymizedId;
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 		this.sendingStatus = sendingStatus;
@@ -113,9 +111,8 @@ public class BuddyDto
 	{
 		return new BuddyDto(buddyEntity.getId(),
 				UserDto.createInstanceWithBuddyData(buddyEntity.getUser(), BuddyUserPrivateDataDto.createInstance(buddyEntity)),
-				buddyEntity.getNickname(), buddyEntity.getUserPhotoId(), getBuddyUserAnonymizedId(buddyEntity),
-				getLastMonitoredActivityDate(buddyEntity), buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus(),
-				buddyEntity.getLastStatusChangeTime());
+				buddyEntity.getNickname(), getBuddyUserAnonymizedId(buddyEntity), getLastMonitoredActivityDate(buddyEntity),
+				buddyEntity.getSendingStatus(), buddyEntity.getReceivingStatus(), buddyEntity.getLastStatusChangeTime());
 	}
 
 	private static Optional<UUID> getBuddyUserAnonymizedId(Buddy buddyEntity)
@@ -134,12 +131,6 @@ public class BuddyDto
 	public String getNickname()
 	{
 		return nickname;
-	}
-
-	@JsonIgnore
-	public Optional<UUID> getUserPhotoId()
-	{
-		return userPhotoId;
 	}
 
 	@JsonFormat(pattern = Constants.ISO_DATE_PATTERN)
