@@ -415,8 +415,8 @@ public class UserController extends ControllerBase
 	static Link getUserSelfLinkWithTempPassword(UUID userId, String tempPassword)
 	{
 		ControllerLinkBuilder linkBuilder = linkTo(
-				methodOn(UserController.class).updateUser(Optional.empty(), tempPassword, userId, null, null));
-		return linkBuilder.withSelfRel();
+				methodOn(UserController.class).getUser(Optional.empty(), tempPassword, userId.toString(), null, userId));
+		return linkBuilder.withSelfRel().expand(OMITTED_PARAMS);
 	}
 
 	private static Link getConfirmMobileLink(UUID userId)
