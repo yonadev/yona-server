@@ -43,6 +43,9 @@ public class Buddy extends EntityWithUuidAndTouchVersion
 	@Convert(converter = DateTimeFieldEncryptor.class)
 	private LocalDateTime lastStatusChangeTime;
 
+	@Convert(converter = UUIDFieldEncryptor.class)
+	private UUID userPhotoId;
+
 	// Default constructor is required for JPA
 	public Buddy()
 	{
@@ -93,9 +96,19 @@ public class Buddy extends EntityWithUuidAndTouchVersion
 		return nickname;
 	}
 
+	public Optional<UUID> getUserPhotoId()
+	{
+		return Optional.ofNullable(userPhotoId);
+	}
+
 	public void setNickName(String nickname)
 	{
 		this.nickname = nickname;
+	}
+
+	public void setUserPhotoId(Optional<UUID> userPhotoId)
+	{
+		this.userPhotoId = userPhotoId.orElse(null);
 	}
 
 	public UUID getUserId()

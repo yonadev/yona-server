@@ -348,6 +348,16 @@ public class User extends EntityWithUuid
 		this.privateDataMigrationVersion = privateDataMigrationVersion;
 	}
 
+	public Optional<UUID> getUserPhotoId()
+	{
+		return getUserPrivate().getUserPhotoId();
+	}
+
+	public void setUserPhotoId(Optional<UUID> userPhotoId)
+	{
+		getUserPrivate().setUserPhotoId(userPhotoId);
+	}
+
 	public Set<UserDevice> getDevices()
 	{
 		return getUserPrivate().getDevices();

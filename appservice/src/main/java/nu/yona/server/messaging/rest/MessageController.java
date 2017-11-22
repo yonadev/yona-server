@@ -64,6 +64,7 @@ import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.rest.UserController;
+import nu.yona.server.subscriptions.rest.UserPhotoController;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDto;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDto;
@@ -135,8 +136,8 @@ public class MessageController extends ControllerBase
 		return createOkResponse(message, createResourceAssembler(createGoalIdMapping(user)));
 	}
 
-	public HttpEntity<PagedResources<MessageDto>> createOkResponse(UserDto user,
-			Page<MessageDto> messages, PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
+	public HttpEntity<PagedResources<MessageDto>> createOkResponse(UserDto user, Page<MessageDto> messages,
+			PagedResourcesAssembler<MessageDto> pagedResourcesAssembler)
 	{
 		return createOkResponse(messages, pagedResourcesAssembler, createResourceAssembler(createGoalIdMapping(user)));
 	}
@@ -251,6 +252,7 @@ public class MessageController extends ControllerBase
 			addSelfLink(selfLinkBuilder, message);
 			addActionLinks(selfLinkBuilder, message);
 			addRelatedMessageLink(message, message);
+			addSenderUserPhotoLinkIfAvailable(message);
 			if (message.canBeDeleted())
 			{
 				addEditLink(selfLinkBuilder, message);
@@ -338,6 +340,12 @@ public class MessageController extends ControllerBase
 				message.add(BuddyController.getBuddyLinkBuilder(goalIdMapping.getUserId(), getSenderBuddyId(message))
 						.withRel(BuddyController.BUDDY_LINK));
 			}
+		}
+
+		private void addSenderUserPhotoLinkIfAvailable(MessageDto message)
+		{
+			message.getSenderUserPhotoId().ifPresent(
+					userPhotoId -> message.add(UserPhotoController.getUserPhotoLinkBuilder(userPhotoId).withRel("userPhoto")));
 		}
 
 		private void addRelatedActivityCategoryLink(GoalChangeMessageDto message)

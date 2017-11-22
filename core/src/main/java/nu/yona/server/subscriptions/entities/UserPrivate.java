@@ -60,6 +60,9 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 	@Convert(converter = StringFieldEncryptor.class)
 	private String vpnPassword;
 
+	@Convert(converter = UUIDFieldEncryptor.class)
+	private UUID userPhotoId;
+
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
 	@JoinColumn(name = "user_private_id", referencedColumnName = "id")
 	@Fetch(FetchMode.JOIN)
@@ -191,6 +194,16 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
 	{
 		getUserAnonymized().setLastMonitoredActivityDate(lastMonitoredActivityDate);
+	}
+
+	public Optional<UUID> getUserPhotoId()
+	{
+		return Optional.ofNullable(userPhotoId);
+	}
+
+	public void setUserPhotoId(Optional<UUID> userPhotoId)
+	{
+		this.userPhotoId = userPhotoId.orElse(null);
 	}
 
 	public Set<UserDevice> getDevices()

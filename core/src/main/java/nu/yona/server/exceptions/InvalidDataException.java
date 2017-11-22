@@ -94,4 +94,9 @@ public class InvalidDataException extends YonaException
 	{
 		return new InvalidDataException("error.user.app.provided.password.not.supported");
 	}
+
+	public static InvalidDataException unsupportedPhotoFileType()
+	{
+		return new InvalidDataException("error.user.photo.invalid.file.type");
+	}
 }

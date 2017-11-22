@@ -462,13 +462,35 @@ public class UserService
 		Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNumberUpdated(user, originalUser,
 				updatedUserEntity);
 		User savedUserEntity = userRepository.save(updatedUserEntity);
-		UserDto userDto = createUserDtoWithPrivateData(savedUserEntity);
 		if (confirmationCode.isPresent())
 		{
 			sendConfirmationCodeTextMessage(updatedUserEntity.getMobileNumber(), confirmationCode.get(),
 					SmsTemplate.CHANGED_USER_NUMBER_CONFIRMATION);
 		}
+		UserDto userDto = createUserDtoWithPrivateData(savedUserEntity);
 		logger.info("Updated user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getId());
+		buddyService.broadcastUserInfoChangeToBuddies(savedUserEntity, originalUser);
+		return userDto;
+	}
+
+	@Transactional
+	public UserDto updateUserPhoto(UUID id, Optional<UUID> userPhotoId)
+	{
+		User userEntity = getUserEntityById(id);
+		UserDto originalUser = createUserDtoWithPrivateData(userEntity);
+		userEntity.setUserPhotoId(userPhotoId);
+		User savedUserEntity = userRepository.save(userEntity);
+		UserDto userDto = createUserDtoWithPrivateData(savedUserEntity);
+		if (userPhotoId.isPresent())
+		{
+			logger.info("Updated user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
+					userDto.getId());
+		}
+		else
+		{
+			logger.info("Deleted user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
+					userDto.getId());
+		}
 		buddyService.broadcastUserInfoChangeToBuddies(savedUserEntity, originalUser);
 		return userDto;
 	}

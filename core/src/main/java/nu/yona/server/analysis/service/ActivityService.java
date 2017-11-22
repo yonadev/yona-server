@@ -41,8 +41,10 @@ import nu.yona.server.analysis.service.IntervalActivityDto.LevelOfDetail;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.goals.service.GoalService;
+import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageRepository;
+import nu.yona.server.messaging.service.BuddyMessageDto;
 import nu.yona.server.messaging.service.MessageDto;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.properties.YonaProperties;
@@ -210,7 +212,8 @@ public class ActivityService
 		long activityMemoryDays = yonaProperties.getAnalysisService().getActivityMemory().toDays();
 		Optional<LocalDateTime> oldestGoalCreationTime = userAnonymized.getOldestGoalCreationTime();
 		long activityRecordedDays = oldestGoalCreationTime.isPresent()
-				? (Duration.between(oldestGoalCreationTime.get(), TimeUtil.utcNow()).toDays() + 1) : 0;
+				? (Duration.between(oldestGoalCreationTime.get(), TimeUtil.utcNow()).toDays() + 1)
+				: 0;
 		long totalDays = Math.min(activityRecordedDays, activityMemoryDays);
 		switch (timeUnit)
 		{
@@ -701,16 +704,17 @@ public class ActivityService
 			IntervalActivity intervalActivityEntity, Optional<Message> repliedMessage, boolean isSentItem, String messageText)
 	{
 		ActivityCommentMessage message;
+		BuddyInfoParameters buddyInfoParameters = BuddyMessageDto.createBuddyInfoParametersInstance(sendingUser,
+				relatedUserAnonymizedId);
 		if (repliedMessage.isPresent())
 		{
-			message = ActivityCommentMessage.createInstance(sendingUser.getId(), relatedUserAnonymizedId,
-					sendingUser.getPrivateData().getNickname(), intervalActivityEntity, isSentItem, messageText,
+			message = ActivityCommentMessage.createInstance(buddyInfoParameters, intervalActivityEntity, isSentItem, messageText,
 					repliedMessage.get());
 		}
 		else
 		{
-			message = ActivityCommentMessage.createThreadHeadInstance(sendingUser.getId(), relatedUserAnonymizedId,
-					sendingUser.getPrivateData().getNickname(), intervalActivityEntity, isSentItem, messageText);
+			message = ActivityCommentMessage.createThreadHeadInstance(buddyInfoParameters, intervalActivityEntity, isSentItem,
+					messageText);
 		}
 		messageRepository.save(message);
 		return message;
