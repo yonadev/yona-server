@@ -92,13 +92,11 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def johnAsCreated = createJohnDoe(ts, "My S8", "ANDROID")
 
 		then:
-		def johnAfterNumberConfirmation = appService.confirmMobileNumber(
-				{
-					AppService.assertResponseStatusSuccess(it)
-					assert it.responseData._embedded."yona:devices"._embedded."yona:devices".size == 1
-					assert it.responseData._embedded."yona:devices"._embedded."yona:devices"[0].name == "My S8"
-					assert it.responseData._embedded."yona:devices"._embedded."yona:devices"[0].operatingSystem == "ANDROID"
-				}, johnAsCreated)
+		def johnAfterNumberConfirmation = appService.confirmMobileNumber(AppService.&assertResponseStatusSuccess, johnAsCreated)
+
+		johnAfterNumberConfirmation.devices.size == 1
+		johnAfterNumberConfirmation.devices[0].name == "My S8"
+		johnAfterNumberConfirmation.devices[0].operatingSystem == "ANDROID"
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)
@@ -110,16 +108,14 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def ts = timestamp
 
 		when:
-		def johnAsCreated = createJohnDoe(ts, "iPhone X", "IOS")
+		def johnAsCreated = createJohnDoe(ts, "My iPhone X", "IOS")
 
 		then:
-		def johnAfterNumberConfirmation = appService.confirmMobileNumber(
-				{
-					AppService.assertResponseStatusSuccess(it)
-					assert it.responseData._embedded."yona:devices"._embedded."yona:devices".size == 1
-					assert it.responseData._embedded."yona:devices"._embedded."yona:devices"[0].name == "iPhone X"
-					assert it.responseData._embedded."yona:devices"._embedded."yona:devices"[0].operatingSystem == "IOS"
-				}, johnAsCreated)
+		def johnAfterNumberConfirmation = appService.confirmMobileNumber(AppService.&assertResponseStatusSuccess, johnAsCreated)
+
+		johnAfterNumberConfirmation.devices.size == 1
+		johnAfterNumberConfirmation.devices[0].name == "My iPhone X"
+		johnAfterNumberConfirmation.devices[0].operatingSystem == "IOS"
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)
