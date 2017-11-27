@@ -4,8 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.util.Collections;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -24,10 +22,10 @@ public class UserPrivateDataBaseDto
 
 	protected UserPrivateDataBaseDto(String nickname, Optional<UUID> userPhotoId, Set<GoalDto> goals, Set<DeviceBaseDto> devices)
 	{
-		this.devices = devices;
 		this.nickname = nickname;
 		this.userPhotoId = userPhotoId;
-		this.goals = Objects.requireNonNull(goals);
+		this.goals = goals;
+		this.devices = devices;
 	}
 
 	public String getNickname()
@@ -38,7 +36,7 @@ public class UserPrivateDataBaseDto
 	@JsonIgnore
 	public Set<GoalDto> getGoals()
 	{
-		return Collections.unmodifiableSet(goals);
+		return goals;
 	}
 
 	@JsonIgnore

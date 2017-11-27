@@ -31,3 +31,33 @@ databaseChangeLog:
             name: operating_system
             type: integer
         tableName: devices_anonymized
+- changeSet:
+    id: 1511605336931-1
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: device_anonymized_ids_ciphertext
+            type: blob
+        tableName: messages
+- changeSet:
+    id: 1511605336931-2
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: device_names_ciphertext
+            type: tinyblob
+        tableName: messages
+- changeSet:
+    id: 1511605336931-3
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: device_vpn_connection_statuses_ciphertext
+            type: tinyblob
+        tableName: messages

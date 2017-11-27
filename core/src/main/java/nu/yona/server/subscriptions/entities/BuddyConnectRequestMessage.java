@@ -4,10 +4,12 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.util.Set;
 import java.util.UUID;
 
 import javax.persistence.Entity;
 
+import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.service.BuddyServiceException;
 
@@ -26,9 +28,9 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	}
 
 	private BuddyConnectRequestMessage(BuddyInfoParameters buddyInfoParameters, String message, UUID buddyId,
-			boolean isRequestingSending, boolean isRequestingReceiving)
+			Set<UserDevice> devices, boolean isRequestingSending, boolean isRequestingReceiving)
 	{
-		super(buddyInfoParameters, message, buddyId);
+		super(buddyInfoParameters, message, buddyId, devices);
 
 		if (buddyInfoParameters.userId == null)
 		{
@@ -41,9 +43,10 @@ public class BuddyConnectRequestMessage extends BuddyConnectMessage
 	}
 
 	public static BuddyConnectRequestMessage createInstance(BuddyInfoParameters buddyInfoParameters, String message, UUID buddyId,
-			boolean isRequestingSending, boolean isRequestingReceiving)
+			Set<UserDevice> devices, boolean isRequestingSending, boolean isRequestingReceiving)
 	{
-		return new BuddyConnectRequestMessage(buddyInfoParameters, message, buddyId, isRequestingSending, isRequestingReceiving);
+		return new BuddyConnectRequestMessage(buddyInfoParameters, message, buddyId, devices, isRequestingSending,
+				isRequestingReceiving);
 	}
 
 	public boolean requestingSending()

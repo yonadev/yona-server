@@ -4,12 +4,13 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import nu.yona.server.device.service.BuddyDeviceDto;
 import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.subscriptions.entities.Buddy;
@@ -31,12 +32,12 @@ public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 		if (buddyEntity.getSendingStatus() == Status.ACCEPTED)
 		{
 			goals = UserAnonymizedDto.getGoalsIncludingHistoryItems(buddyEntity.getBuddyAnonymized().getUserAnonymized());
-			devices = null; // TODO buddyEntity.getDevices();
+			devices = buddyEntity.getDevices().stream().map(BuddyDeviceDto::createInstance).collect(Collectors.toSet());
 		}
 		else
 		{
-			goals = Collections.emptySet();
-			devices = Collections.emptySet();
+			goals = null;
+			devices = null;
 		}
 		return new BuddyUserPrivateDataDto(buddyEntity.getNickname(), buddyEntity.getUserPhotoId(), goals, devices);
 	}

@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.Constants;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
+import nu.yona.server.device.entities.DeviceBase;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.util.TimeUtil;
@@ -74,7 +75,16 @@ public class UserDeviceDto extends DeviceBaseDto
 
 	public static UserDeviceDto createPostPutInstance(String name, String operatingSystemStr)
 	{
+		assertValidName(name);
 		return new UserDeviceDto(name, parsePostPutOperatingSystem(operatingSystemStr));
+	}
+
+	private static void assertValidName(String name)
+	{
+		if (name.length() > DeviceBase.MAX_NAME_LENGTH || name.contains(DeviceBase.DEVICE_NAMES_SEPARATOR))
+		{
+			throw InvalidDataException.invalidDeviceName(name, DeviceBase.MAX_NAME_LENGTH, DeviceBase.DEVICE_NAMES_SEPARATOR);
+		}
 	}
 
 	private static OperatingSystem parsePostPutOperatingSystem(String operatingSystemStr)

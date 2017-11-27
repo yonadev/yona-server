@@ -28,9 +28,9 @@ public class BuddyDevice extends DeviceBase
 	{
 	}
 
-	public BuddyDevice(UUID id, String name, UUID deviceAnonymizedId)
+	public BuddyDevice(UUID id, String name, UUID deviceAnonymizedId, Boolean isVpnConnected)
 	{
-		super(id, name, deviceAnonymizedId);
+		super(id, name, deviceAnonymizedId, isVpnConnected);
 	}
 
 	public static BuddyDeviceRepository getRepository()

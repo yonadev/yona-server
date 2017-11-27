@@ -136,10 +136,7 @@ public class BuddyConnectResponseMessageDto extends BuddyMessageLinkedUserDto
 			}
 			else
 			{
-				buddyService.setBuddyAcceptedWithSecretUserInfo(actingUser.getOwnPrivateData().getUserAnonymizedId(),
-						connectResponseMessageEntity.getBuddyId(),
-						connectResponseMessageEntity.getRelatedUserAnonymizedId().get(),
-						connectResponseMessageEntity.getSenderNickname());
+				buddyService.setBuddyAcceptedWithSecretUserInfo(actingUser, connectResponseMessageEntity);
 			}
 			// refresh after actions
 			actingUser = userService.getPrivateUser(actingUser.getId());

@@ -68,8 +68,10 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		richardWithBuddy.buddies != null
 		richardWithBuddy.buddies.size() == 1
 		richardWithBuddy.buddies[0].user.firstName == bob.firstName
-		//goals should not be embedded before accept
+		// goals and devices should not be embedded before accept
 		richardWithBuddy.buddies[0].goals == null
+		richardWithBuddy.buddies[0].user.goals == null
+		richardWithBuddy.buddies[0].user.devices == null
 		richardWithBuddy.buddies[0].sendingStatus == "REQUESTED"
 		richardWithBuddy.buddies[0].receivingStatus == "REQUESTED"
 		AppService.assertDateTimeFormat(richardWithBuddy.buddies[0].lastStatusChangeTime)
@@ -209,7 +211,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Richard and Bob can see each other\'s goals'()
+	def 'Richard and Bob can see each other\'s information'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
@@ -222,7 +224,11 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		buddiesRichard[0].goals.size() == 2
+		buddiesRichard[0].user.goals.size() == 2
+		buddiesRichard[0].user.devices.size() == 1
 		buddiesBob[0].goals.size() == 2
+		buddiesBob[0].user.goals.size() == 2
+		buddiesBob[0].user.devices.size() == 1
 
 		buddiesRichard[0].goals.each
 		{

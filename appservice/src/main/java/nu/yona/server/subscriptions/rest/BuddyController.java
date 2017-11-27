@@ -261,8 +261,8 @@ public class BuddyController extends ControllerBase
 			}
 
 			HashMap<String, Object> result = new HashMap<>();
-			result.put(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME),
-					new UserController.UserResourceAssembler(curieProvider, userId).toResource(getContent().getUser()));
+			result.put(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME), UserController.UserResourceAssembler
+					.createInstanceForBuddy(curieProvider, userId).toResource(getContent().getUser()));
 			if (getContent().getUser() != null && getContent().getGoals() != null)
 			{
 				result.put(curieProvider.getNamespacedRelFor(BuddyDto.GOALS_REL_NAME),

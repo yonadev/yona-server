@@ -83,78 +83,6 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		getUserResponse.status == 400 || getUserResponse.status == 404
 	}
 
-	def 'Create John Doe with an Android device'()
-	{
-		given:
-		def ts = timestamp
-
-		when:
-		def johnAsCreated = createJohnDoe(ts, "My S8", "ANDROID")
-
-		then:
-		def johnAfterNumberConfirmation = appService.confirmMobileNumber(AppService.&assertResponseStatusSuccess, johnAsCreated)
-
-		johnAfterNumberConfirmation.devices.size == 1
-		johnAfterNumberConfirmation.devices[0].name == "My S8"
-		johnAfterNumberConfirmation.devices[0].operatingSystem == "ANDROID"
-
-		cleanup:
-		appService.deleteUser(johnAsCreated)
-	}
-
-	def 'Create John Doe with an iOS device'()
-	{
-		given:
-		def ts = timestamp
-
-		when:
-		def johnAsCreated = createJohnDoe(ts, "My iPhone X", "IOS")
-
-		then:
-		def johnAfterNumberConfirmation = appService.confirmMobileNumber(AppService.&assertResponseStatusSuccess, johnAsCreated)
-
-		johnAfterNumberConfirmation.devices.size == 1
-		johnAfterNumberConfirmation.devices[0].name == "My iPhone X"
-		johnAfterNumberConfirmation.devices[0].operatingSystem == "IOS"
-
-		cleanup:
-		appService.deleteUser(johnAsCreated)
-	}
-
-	def 'Try to create John Doe with an unsupported device operating system'()
-	{
-		given:
-		def ts = timestamp
-
-		when:
-		def johnAsCreated = appService.addUser(
-				{
-					AppService.assertResponseStatus(it, 400)
-					assert it.responseData.code == "error.device.unknown.operating.system"
-				}, "John", "Doe", "JD",
-				makeMobileNumber(ts), "My Raspberry", "RASPBIAN")
-
-		then:
-		assert johnAsCreated == null // Creation failed
-	}
-
-	def 'Try to create John Doe with device operating system UNKNOWN'()
-	{
-		given:
-		def ts = timestamp
-
-		when:
-		def johnAsCreated = appService.addUser(
-				{
-					AppService.assertResponseStatus(it, 400)
-					assert it.responseData.code == "error.device.unknown.operating.system"
-				}, "John", "Doe", "JD",
-				makeMobileNumber(ts), "First device", "UNKNOWN")
-
-		then:
-		assert johnAsCreated == null // Creation failed
-	}
-
 	def 'Hacking attempt: Brute force mobile number confirmation code'()
 	{
 		given:
@@ -493,10 +421,10 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${code}" } """, user.password)
 	}
 
-	private User createJohnDoe(ts, deviceName = null, deviceOperatingSystem = "UNKNOWN")
+	private User createJohnDoe(ts)
 	{
 		appService.addUser(appService.&assertUserCreationResponseDetails, firstName, lastName, nickname,
-				makeMobileNumber(ts), deviceName, deviceOperatingSystem)
+				makeMobileNumber(ts))
 	}
 
 	private void testUser(User user, includePrivateData, mobileNumberConfirmed, timestamp)
@@ -514,7 +442,6 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 			assert user.buddies != null
 			assert user.buddies.size() == 0
-			assert user.goals != null
 			if (mobileNumberConfirmed)
 			{
 				assert user.vpnProfile.vpnLoginId ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
@@ -528,7 +455,8 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			}
 			else
 			{
-				assert user.goals.size() == 0
+				assert user.goals == null
+				assert user.devices == null
 			}
 		}
 		else

@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 import javax.annotation.PostConstruct;
 import javax.naming.InvalidNameException;
@@ -82,7 +83,6 @@ import nu.yona.server.rest.StandardResourcesController;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyService;
-import nu.yona.server.subscriptions.service.BuddyUserPrivateDataDto;
 import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
@@ -177,14 +177,16 @@ public class UserController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.canAccessPrivateData(requestingUserId)))
 		{
-			return createOkResponse(requestingUserId.equals(userId) ? userService.getPrivateUser(userId, isCreatedOnBuddyRequest)
-					: buddyService.getUserOfBuddy(requestingUserId, userId), createResourceAssembler(requestingUserId));
+			return createOkResponse(
+					requestingUserId.equals(userId) ? userService.getPrivateUser(userId, isCreatedOnBuddyRequest)
+							: buddyService.getUserOfBuddy(requestingUserId, userId),
+					createResourceAssemblerForOwnUser(requestingUserId));
 		}
 	}
 
 	private HttpEntity<UserResource> getPublicUser(UUID userId)
 	{
-		return createOkResponse(userService.getPublicUser(userId), createResourceAssembler());
+		return createOkResponse(userService.getPublicUser(userId), createResourceAssemblerForPublicUser());
 	}
 
 	@RequestMapping(value = "/{userId}/apple.mobileconfig", method = RequestMethod.GET)
@@ -281,7 +283,7 @@ public class UserController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(SecretKeyUtil.generateRandomSecretKey()))
 		{
 			return createOkResponse(userService.updateUserCreatedOnBuddyRequest(userId, tempPassword, user),
-					createResourceAssembler(userId));
+					createResourceAssemblerForOwnUser(userId));
 		}
 	}
 
@@ -296,7 +298,7 @@ public class UserController extends ControllerBase
 
 	private HttpEntity<UserResource> updateUser(UUID userId, UserDto user)
 	{
-		return createOkResponse(userService.updateUser(userId, user), createResourceAssembler(userId));
+		return createOkResponse(userService.updateUser(userId, user), createResourceAssemblerForOwnUser(userId));
 	}
 
 	@RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
@@ -320,7 +322,7 @@ public class UserController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			return createOkResponse(userService.confirmMobileNumber(userId, mobileNumberConfirmation.getCode()),
-					createResourceAssembler(userId));
+					createResourceAssemblerForOwnUser(userId));
 		}
 	}
 
@@ -385,7 +387,7 @@ public class UserController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(SecretKeyUtil.generateRandomSecretKey()))
 		{
 			UserDto createdUser = userService.addUser(user, overwriteUserConfirmationCode);
-			return createResponse(createdUser, HttpStatus.CREATED, createResourceAssembler(createdUser.getId()));
+			return createResponse(createdUser, HttpStatus.CREATED, createResourceAssemblerForOwnUser(createdUser.getId()));
 		}
 	}
 
@@ -402,14 +404,14 @@ public class UserController extends ControllerBase
 		return Optional.empty();
 	}
 
-	private UserResourceAssembler createResourceAssembler(UUID requestingUserId)
+	private UserResourceAssembler createResourceAssemblerForOwnUser(UUID requestingUserId)
 	{
-		return new UserResourceAssembler(curieProvider, pinResetRequestController, requestingUserId);
+		return UserResourceAssembler.createInstanceForOwnUser(curieProvider, requestingUserId, pinResetRequestController);
 	}
 
-	private UserResourceAssembler createResourceAssembler()
+	private UserResourceAssembler createResourceAssemblerForPublicUser()
 	{
-		return new UserResourceAssembler(curieProvider);
+		return UserResourceAssembler.createPublicUserInstance(curieProvider);
 	}
 
 	static Link getUserSelfLinkWithTempPassword(UUID userId, String tempPassword)
@@ -501,15 +503,35 @@ public class UserController extends ControllerBase
 		}
 	}
 
+	enum Purpose
+	{
+		MINIMAL(u -> false, u -> false, u -> false), BUDDY_USER(u -> true, u -> false, u -> false), OWN_USER(
+				u -> u.isMobileNumberConfirmed(), u -> !u.isMobileNumberConfirmed(), u -> u.isMobileNumberConfirmed());
+
+		final Function<UserDto, Boolean> includeGeneralContent;
+		final Function<UserDto, Boolean> includeOwnUserNumNotConfirmedContent;
+		final Function<UserDto, Boolean> includeOwnUserNumConfirmedContent;
+
+		Purpose(Function<UserDto, Boolean> includeGeneralContent, Function<UserDto, Boolean> includeOwnUserNumNotConfirmedContent,
+				Function<UserDto, Boolean> includeOwnUserNumConfirmedContent)
+		{
+			this.includeGeneralContent = includeGeneralContent;
+			this.includeOwnUserNumNotConfirmedContent = includeOwnUserNumNotConfirmedContent;
+			this.includeOwnUserNumConfirmedContent = includeOwnUserNumConfirmedContent;
+		}
+	}
+
 	static class UserResource extends Resource<UserDto>
 	{
 		private final CurieProvider curieProvider;
 		private static String sslRootCertificateCn;
+		private Purpose purpose;
 
-		public UserResource(CurieProvider curieProvider, UserDto user)
+		public UserResource(CurieProvider curieProvider, Purpose purpose, UserDto user)
 		{
 			super(user);
 			this.curieProvider = curieProvider;
+			this.purpose = purpose;
 		}
 
 		public static void setSslRootCertificateCn(String sslRootCertificateCn)
@@ -521,61 +543,56 @@ public class UserController extends ControllerBase
 		@JsonInclude(Include.NON_EMPTY)
 		public Optional<String> getSslRootCertCn()
 		{
-			if (!includeLinksAndEmbeddedData() || isForBuddy())
+			if (purpose.includeOwnUserNumConfirmedContent.apply(getContent()))
 			{
-				return Optional.empty();
+				return Optional.of(sslRootCertificateCn);
 			}
+			return Optional.empty();
 
-			return Optional.of(sslRootCertificateCn);
 		}
 
 		@JsonProperty("_embedded")
 		@JsonInclude(Include.NON_EMPTY)
 		public Map<String, Object> getEmbeddedResources()
 		{
-			if (!includeLinksAndEmbeddedData() || isForBuddy())
+			UUID userId = getContent().getId();
+			HashMap<String, Object> result = new HashMap<>();
+			if (purpose.includeGeneralContent.apply(getContent()))
 			{
-				return Collections.emptyMap();
+				Set<DeviceBaseDto> devices = getContent().getPrivateData().getDevices();
+				if (devices != null)
+				{
+					result.put(curieProvider.getNamespacedRelFor(UserDto.DEVICES_REL_NAME),
+							DeviceController.createAllDevicesCollectionResource(curieProvider, userId, devices));
+				}
+
+				Set<GoalDto> goals = getContent().getPrivateData().getGoals();
+				if (goals != null)
+				{
+					result.put(curieProvider.getNamespacedRelFor(UserDto.GOALS_REL_NAME),
+							GoalController.createAllGoalsCollectionResource(userId, goals));
+				}
+			}
+			if (purpose.includeOwnUserNumConfirmedContent.apply(getContent()))
+			{
+				Set<BuddyDto> buddies = getContent().getOwnPrivateData().getBuddies();
+				result.put(curieProvider.getNamespacedRelFor(UserDto.BUDDIES_REL_NAME),
+						BuddyController.createAllBuddiesCollectionResource(curieProvider, userId, buddies));
 			}
 
-			HashMap<String, Object> result = new HashMap<>();
-
-			Set<BuddyDto> buddies = getContent().getOwnPrivateData().getBuddies();
-			UUID userId = getContent().getId();
-			result.put(curieProvider.getNamespacedRelFor(UserDto.BUDDIES_REL_NAME),
-					BuddyController.createAllBuddiesCollectionResource(curieProvider, userId, buddies));
-
-			Set<GoalDto> goals = getContent().getOwnPrivateData().getGoals();
-			result.put(curieProvider.getNamespacedRelFor(UserDto.GOALS_REL_NAME),
-					GoalController.createAllGoalsCollectionResource(userId, goals));
-
-			Set<DeviceBaseDto> devices = getContent().getOwnPrivateData().getDevices();
-			result.put(curieProvider.getNamespacedRelFor(UserDto.DEVICES_REL_NAME),
-					DeviceController.createAllDevicesCollectionResource(curieProvider, userId, devices));
-
 			return result;
-		}
-
-		private boolean includeLinksAndEmbeddedData()
-		{
-			return (getContent().getPrivateData() != null) && getContent().isMobileNumberConfirmed();
-		}
-
-		private boolean isForBuddy()
-		{
-			return (getContent().getPrivateData() instanceof BuddyUserPrivateDataDto);
 		}
 
 		@JsonInclude(Include.NON_EMPTY)
 		public Resource<VPNProfileDto> getVpnProfile()
 		{
-			if (!includeLinksAndEmbeddedData() || isForBuddy())
+			if (purpose.includeOwnUserNumConfirmedContent.apply(getContent()))
 			{
-				return null;
+				Resource<VPNProfileDto> vpnProfileResource = new Resource<>(getContent().getOwnPrivateData().getVpnProfile());
+				addOvpnProfileLink(vpnProfileResource);
+				return vpnProfileResource;
 			}
-			Resource<VPNProfileDto> vpnProfileResource = new Resource<>(getContent().getOwnPrivateData().getVpnProfile());
-			addOvpnProfileLink(vpnProfileResource);
-			return vpnProfileResource;
+			return null;
 		}
 
 		private void addOvpnProfileLink(Resource<VPNProfileDto> vpnProfileResource)
@@ -594,32 +611,16 @@ public class UserController extends ControllerBase
 
 	public static class UserResourceAssembler extends ResourceAssemblerSupport<UserDto, UserResource>
 	{
-		private final Optional<UUID> requestingUserId;
 		private final CurieProvider curieProvider;
+		private final Optional<UUID> requestingUserId;
 		private final Optional<PinResetRequestController> pinResetRequestController;
-		private boolean includeAllLinks;
+		private final Purpose purpose;
 
-		public UserResourceAssembler(CurieProvider curieProvider)
-		{
-			this(false, curieProvider, Optional.empty(), Optional.empty());
-		}
-
-		public UserResourceAssembler(CurieProvider curieProvider, UUID requestingUserId)
-		{
-			this(false, curieProvider, Optional.empty(), Optional.of(requestingUserId));
-		}
-
-		public UserResourceAssembler(CurieProvider curieProvider, PinResetRequestController pinResetRequestController,
-				UUID requestingUserId)
-		{
-			this(true, curieProvider, Optional.of(pinResetRequestController), Optional.of(requestingUserId));
-		}
-
-		private UserResourceAssembler(boolean includeAllLinks, CurieProvider curieProvider,
-				Optional<PinResetRequestController> pinResetRequestController, Optional<UUID> requestingUserId)
+		private UserResourceAssembler(Purpose purpose, CurieProvider curieProvider, Optional<UUID> requestingUserId,
+				Optional<PinResetRequestController> pinResetRequestController)
 		{
 			super(UserController.class, UserResource.class);
-			this.includeAllLinks = includeAllLinks;
+			this.purpose = purpose;
 			this.curieProvider = curieProvider;
 			this.pinResetRequestController = pinResetRequestController;
 			this.requestingUserId = requestingUserId;
@@ -629,46 +630,33 @@ public class UserController extends ControllerBase
 		public UserResource toResource(UserDto user)
 		{
 			UserResource userResource = instantiateResource(user);
-			addSelfLink(userResource, requestingUserId);
-			if (isBuddyUser(user))
+			addSelfLink(userResource);
+			if (purpose.includeGeneralContent.apply(user))
 			{
-				addUserPhotoLink(userResource);
+				addUserPhotoLinkIfPhotoPresent(userResource);
 			}
-			else if (isOwnUser(user) && includeAllLinks)
+			if (purpose.includeOwnUserNumNotConfirmedContent.apply(user))
 			{
 				addEditLink(userResource);
-				if (user.isMobileNumberConfirmed())
-				{
-					addPostOpenAppEventLink(userResource);
-					addMessagesLink(userResource);
-					addDayActivityOverviewsLink(userResource);
-					addWeekActivityOverviewsLink(userResource);
-					addDayActivityOverviewsWithBuddiesLink(userResource);
-					addNewDeviceRequestLink(userResource);
-					addAppActivityLink(userResource);
-					pinResetRequestController.get().addLinks(userResource);
-					addSslRootCertificateLink(userResource);
-					addAppleMobileConfigLink(userResource);
-					addEditUserPhotoLink(userResource);
-					addUserPhotoLink(userResource);
-				}
-				else
-				{
-					addConfirmMobileNumberLink(userResource);
-					addResendMobileNumberConfirmationLink(userResource);
-				}
+				addConfirmMobileNumberLink(userResource);
+				addResendMobileNumberConfirmationLink(userResource);
+			}
+			if (purpose.includeOwnUserNumConfirmedContent.apply(user))
+			{
+				addEditLink(userResource);
+				addPostOpenAppEventLink(userResource);
+				addMessagesLink(userResource);
+				addDayActivityOverviewsLink(userResource);
+				addWeekActivityOverviewsLink(userResource);
+				addDayActivityOverviewsWithBuddiesLink(userResource);
+				addNewDeviceRequestLink(userResource);
+				addAppActivityLink(userResource);
+				pinResetRequestController.get().addLinks(userResource);
+				addSslRootCertificateLink(userResource);
+				addAppleMobileConfigLink(userResource);
+				addEditUserPhotoLink(userResource);
 			}
 			return userResource;
-		}
-
-		private boolean isOwnUser(UserDto user)
-		{
-			return requestingUserId.map(ruid -> ruid.equals(user.getId())).orElse(false);
-		}
-
-		private boolean isBuddyUser(UserDto user)
-		{
-			return requestingUserId.map(ruid -> !ruid.equals(user.getId())).orElse(false);
 		}
 
 		private void addEditUserPhotoLink(UserResource userResource)
@@ -677,7 +665,7 @@ public class UserController extends ControllerBase
 					userResource.getContent().getId())).withRel("editUserPhoto").expand());
 		}
 
-		private void addUserPhotoLink(UserResource userResource)
+		private void addUserPhotoLinkIfPhotoPresent(UserResource userResource)
 		{
 			userResource.getContent().getPrivateData().getUserPhotoId().ifPresent(userPhotoId -> userResource
 					.add(linkTo(methodOn(UserPhotoController.class).getUserPhoto(userPhotoId)).withRel("userPhoto")));
@@ -698,10 +686,10 @@ public class UserController extends ControllerBase
 		@Override
 		protected UserResource instantiateResource(UserDto user)
 		{
-			return new UserResource(curieProvider, user);
+			return new UserResource(curieProvider, purpose, user);
 		}
 
-		private static void addSelfLink(Resource<UserDto> userResource, Optional<UUID> requestingUserId)
+		private void addSelfLink(Resource<UserDto> userResource)
 		{
 			if (userResource.getContent().getId() == null)
 			{
@@ -766,6 +754,28 @@ public class UserController extends ControllerBase
 		private void addAppActivityLink(UserResource userResource)
 		{
 			userResource.add(AppActivityController.getAppActivityLink(userResource.getContent().getId()));
+		}
+
+		public static UserResourceAssembler createPublicUserInstance(CurieProvider curieProvider)
+		{
+			return new UserResourceAssembler(Purpose.MINIMAL, curieProvider, Optional.empty(), Optional.empty());
+		}
+
+		public static UserResourceAssembler createMinimalInstance(CurieProvider curieProvider, UUID requestingUserId)
+		{
+			return new UserResourceAssembler(Purpose.MINIMAL, curieProvider, Optional.of(requestingUserId), Optional.empty());
+		}
+
+		public static UserResourceAssembler createInstanceForBuddy(CurieProvider curieProvider, UUID requestingUserId)
+		{
+			return new UserResourceAssembler(Purpose.BUDDY_USER, curieProvider, Optional.of(requestingUserId), Optional.empty());
+		}
+
+		public static UserResourceAssembler createInstanceForOwnUser(CurieProvider curieProvider, UUID requestingUserId,
+				PinResetRequestController pinResetRequestController)
+		{
+			return new UserResourceAssembler(Purpose.OWN_USER, curieProvider, Optional.of(requestingUserId),
+					Optional.of(pinResetRequestController));
 		}
 	}
 }

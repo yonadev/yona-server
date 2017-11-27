@@ -100,6 +100,13 @@ public class InvalidDataException extends YonaException
 		return new InvalidDataException("error.user.photo.invalid.file.type");
 	}
 
-	public static InvalidDataException invalidOperatingSystem(String operatingSystem) {
+	public static InvalidDataException invalidOperatingSystem(String operatingSystem)
+	{
 		return new InvalidDataException("error.device.unknown.operating.system", operatingSystem);
-	}}
+	}
+
+	public static InvalidDataException invalidDeviceName(String name, int maxLength, String deviceNamesSeparator)
+	{
+		return new InvalidDataException("error.device.invalid.device.name", name, maxLength, deviceNamesSeparator);
+	}
+}

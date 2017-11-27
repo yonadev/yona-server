@@ -101,6 +101,9 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 		@Autowired
 		private BuddyService buddyService;
 
+		@Autowired
+		private UserService userService;
+
 		@PostConstruct
 		private void init()
 		{
@@ -134,20 +137,13 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 		private MessageActionDto handleAction_Accept(UserDto actingUser, BuddyConnectRequestMessage connectRequestMessageEntity,
 				MessageActionDto payload)
 		{
-			if (!connectRequestMessageEntity.getSenderUser().isPresent())
-			{
-				throw UserServiceException.notFoundById(connectRequestMessageEntity.getSenderUserId());
-			}
-			User senderUser = connectRequestMessageEntity.getSenderUser().get();
-			buddyService.addBuddyToAcceptingUser(actingUser, senderUser.getId(), connectRequestMessageEntity.getSenderNickname(),
-					connectRequestMessageEntity.getRelatedUserAnonymizedId().get(),
-					connectRequestMessageEntity.requestingSending(), connectRequestMessageEntity.requestingReceiving());
+			buddyService.addBuddyToAcceptingUser(actingUser, connectRequestMessageEntity);
 
 			connectRequestMessageEntity = updateMessageStatusAsAccepted(connectRequestMessageEntity);
 
 			sendResponseMessageToRequestingUser(actingUser, connectRequestMessageEntity, payload.getProperty("message"));
 
-			logHandledAction_Accept(actingUser, senderUser);
+			logHandledAction_Accept(actingUser, connectRequestMessageEntity.getSenderUser().get());
 
 			return MessageActionDto
 					.createInstanceActionDone(theDtoFactory.createInstance(actingUser, connectRequestMessageEntity));
@@ -198,9 +194,10 @@ public class BuddyConnectRequestMessageDto extends BuddyMessageEmbeddedUserDto
 		private void sendResponseMessageToRequestingUser(UserDto respondingUser,
 				BuddyConnectRequestMessage connectRequestMessageEntity, String responseMessage)
 		{
+			User respondingUserEntity = userService.getUserEntityById(respondingUser.getId());
 			buddyService.sendBuddyConnectResponseMessage(BuddyMessageDto.createBuddyInfoParametersInstance(respondingUser),
 					connectRequestMessageEntity.getRelatedUserAnonymizedId().get(), connectRequestMessageEntity.getBuddyId(),
-					connectRequestMessageEntity.getStatus(), responseMessage);
+					respondingUserEntity.getDevices(), connectRequestMessageEntity.getStatus(), responseMessage);
 		}
 	}
 }

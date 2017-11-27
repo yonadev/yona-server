@@ -101,8 +101,8 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		bobFromGetAfterUpdate.lastName == bob.lastName
 		bobFromGetAfterUpdate.mobileNumber == bob.mobileNumber
 		bobFromGetAfterUpdate.nickname == newNickname
-		bobFromGetAfterUpdate.goals.size() == 0 // Mobile number not confirmed yet
-		bobFromGetAfterUpdate.devices.size() == 0 // Mobile number not confirmed yet
+		bobFromGetAfterUpdate.goals == null // Mobile number not confirmed yet
+		bobFromGetAfterUpdate.devices == null // Mobile number not confirmed yet
 		bobFromGetAfterUpdate.url
 
 		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(bobFromGetAfterUpdate.url + "/messages/", bobFromGetAfterUpdate.password)
@@ -131,7 +131,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		User updatedBob = appService.updateUserCreatedOnBuddyRequest(appService.&assertUserUpdateResponseDetails, bobToBeUpdated, inviteUrl)
 
 		then:
-		updatedBob.devices.size() == 0 // Mobile number not confirmed yet
+		updatedBob.devices == null // Mobile number not confirmed yet
 
 		def bobWithConfirmedNumber = appService.confirmMobileNumber({ AppService.assertResponseStatusSuccess(it)}, updatedBob)
 		bobWithConfirmedNumber.devices.size() == 1
