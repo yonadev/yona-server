@@ -1718,7 +1718,7 @@ definitions:
     properties:
       name:
         type: string
-        description: Name of the device running the Yona app
+        description: Name of the device running the Yona app. The name must be at most 20 characters and should not contain a colon
         example: My S8
       isVpnConnected:
         type: boolean

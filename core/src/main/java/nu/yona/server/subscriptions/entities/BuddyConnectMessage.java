@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -22,6 +23,7 @@ import nu.yona.server.messaging.entities.BuddyMessage;
 @Entity
 public abstract class BuddyConnectMessage extends BuddyMessage
 {
+	private static final String SEPARATOR = DeviceBase.DEVICE_NAMES_SEPARATOR;
 	private static final int UUID_LENGTH = 36;
 	private static final int BOOLEAN_LENGTH = 5;
 	private static final int MAX_NUM_OF_DEVICES = 10;
@@ -56,29 +58,25 @@ public abstract class BuddyConnectMessage extends BuddyMessage
 	{
 		super(buddyInfoParameters, message);
 		this.buddyId = buddyId;
-		List<UserDevice> sortedDevices = devices.stream()
-				.sorted((d1, d2) -> d1.getDeviceAnonymizedId().compareTo(d2.getDeviceAnonymizedId()))
-				.collect(Collectors.toList());
-		this.deviceNames = buildDeviceNamesString(sortedDevices);
-		this.deviceAnonymizedIds = buildDeviceAnonymizedIdsString(sortedDevices);
-		this.deviceVpnConnectionStatuses = buildDeviceVpnConnectionStatusesString(sortedDevices);
+		List<UserDevice> orderedDevices = new ArrayList<>(devices);
+		this.deviceNames = buildDeviceNamesString(orderedDevices);
+		this.deviceAnonymizedIds = buildDeviceAnonymizedIdsString(orderedDevices);
+		this.deviceVpnConnectionStatuses = buildDeviceVpnConnectionStatusesString(orderedDevices);
 	}
 
 	private String buildDeviceNamesString(List<UserDevice> devices)
 	{
-		return devices.stream().map(UserDevice::getName).collect(Collectors.joining(DeviceBase.DEVICE_NAMES_SEPARATOR));
+		return devices.stream().map(UserDevice::getName).collect(Collectors.joining(SEPARATOR));
 	}
 
 	private String buildDeviceAnonymizedIdsString(List<UserDevice> devices)
 	{
-		return devices.stream().map(UserDevice::getDeviceAnonymizedId).map(UUID::toString)
-				.collect(Collectors.joining(DeviceBase.DEVICE_NAMES_SEPARATOR));
+		return devices.stream().map(UserDevice::getDeviceAnonymizedId).map(UUID::toString).collect(Collectors.joining(SEPARATOR));
 	}
 
 	private String buildDeviceVpnConnectionStatusesString(List<UserDevice> devices)
 	{
-		return devices.stream().map(d -> Boolean.toString(d.isVpnConnected()))
-				.collect(Collectors.joining(DeviceBase.DEVICE_NAMES_SEPARATOR));
+		return devices.stream().map(d -> Boolean.toString(d.isVpnConnected())).collect(Collectors.joining(SEPARATOR));
 	}
 
 	public UUID getBuddyId()
@@ -88,18 +86,17 @@ public abstract class BuddyConnectMessage extends BuddyMessage
 
 	public List<String> getDeviceNames()
 	{
-		return Arrays.stream(deviceNames.split(DeviceBase.DEVICE_NAMES_SEPARATOR)).collect(Collectors.toList());
+		return Arrays.stream(deviceNames.split(SEPARATOR)).collect(Collectors.toList());
 	}
 
 	public List<UUID> getDeviceAnonymizedIds()
 	{
-		return Arrays.stream(deviceAnonymizedIds.split(DeviceBase.DEVICE_NAMES_SEPARATOR)).map(UUID::fromString)
-				.collect(Collectors.toList());
+		return Arrays.stream(deviceAnonymizedIds.split(SEPARATOR)).map(UUID::fromString).collect(Collectors.toList());
 	}
 
 	public List<Boolean> getDeviceVpnConnectionStatuses()
 	{
-		return Arrays.stream(deviceVpnConnectionStatuses.split(DeviceBase.DEVICE_NAMES_SEPARATOR)).map(Boolean::parseBoolean)
+		return Arrays.stream(deviceVpnConnectionStatuses.split(SEPARATOR)).map(Boolean::parseBoolean)
 				.collect(Collectors.toList());
 	}
 

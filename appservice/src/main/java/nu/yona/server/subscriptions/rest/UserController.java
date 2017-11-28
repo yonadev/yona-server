@@ -517,7 +517,7 @@ public class UserController extends ControllerBase
 		}
 	}
 
-	enum Purpose
+	enum UserResourceRepresentation
 	{
 		MINIMAL(u -> false, u -> false, u -> false), BUDDY_USER(u -> true, u -> false, u -> false), OWN_USER(
 				u -> u.isMobileNumberConfirmed(), u -> !u.isMobileNumberConfirmed(), u -> u.isMobileNumberConfirmed());
@@ -526,7 +526,7 @@ public class UserController extends ControllerBase
 		final Function<UserDto, Boolean> includeOwnUserNumNotConfirmedContent;
 		final Function<UserDto, Boolean> includeOwnUserNumConfirmedContent;
 
-		Purpose(Function<UserDto, Boolean> includeGeneralContent, Function<UserDto, Boolean> includeOwnUserNumNotConfirmedContent,
+		UserResourceRepresentation(Function<UserDto, Boolean> includeGeneralContent, Function<UserDto, Boolean> includeOwnUserNumNotConfirmedContent,
 				Function<UserDto, Boolean> includeOwnUserNumConfirmedContent)
 		{
 			this.includeGeneralContent = includeGeneralContent;
@@ -539,13 +539,13 @@ public class UserController extends ControllerBase
 	{
 		private final CurieProvider curieProvider;
 		private static String sslRootCertificateCn;
-		private Purpose purpose;
+		private UserResourceRepresentation representation;
 
-		public UserResource(CurieProvider curieProvider, Purpose purpose, UserDto user)
+		public UserResource(CurieProvider curieProvider, UserResourceRepresentation representation, UserDto user)
 		{
 			super(user);
 			this.curieProvider = curieProvider;
-			this.purpose = purpose;
+			this.representation = representation;
 		}
 
 		public static void setSslRootCertificateCn(String sslRootCertificateCn)
@@ -557,7 +557,7 @@ public class UserController extends ControllerBase
 		@JsonInclude(Include.NON_EMPTY)
 		public Optional<String> getSslRootCertCn()
 		{
-			if (purpose.includeOwnUserNumConfirmedContent.apply(getContent()))
+			if (representation.includeOwnUserNumConfirmedContent.apply(getContent()))
 			{
 				return Optional.of(sslRootCertificateCn);
 			}
@@ -571,7 +571,7 @@ public class UserController extends ControllerBase
 		{
 			UUID userId = getContent().getId();
 			HashMap<String, Object> result = new HashMap<>();
-			if (purpose.includeGeneralContent.apply(getContent()))
+			if (representation.includeGeneralContent.apply(getContent()))
 			{
 				Optional<Set<DeviceBaseDto>> devices = getContent().getPrivateData().getDevices();
 				devices.ifPresent(d -> result.put(curieProvider.getNamespacedRelFor(UserDto.DEVICES_REL_NAME),
@@ -581,7 +581,7 @@ public class UserController extends ControllerBase
 				goals.ifPresent(g -> result.put(curieProvider.getNamespacedRelFor(UserDto.GOALS_REL_NAME),
 						GoalController.createAllGoalsCollectionResource(userId, g)));
 			}
-			if (purpose.includeOwnUserNumConfirmedContent.apply(getContent()))
+			if (representation.includeOwnUserNumConfirmedContent.apply(getContent()))
 			{
 				Set<BuddyDto> buddies = getContent().getOwnPrivateData().getBuddies();
 				result.put(curieProvider.getNamespacedRelFor(UserDto.BUDDIES_REL_NAME),
@@ -594,7 +594,7 @@ public class UserController extends ControllerBase
 		@JsonInclude(Include.NON_EMPTY)
 		public Resource<VPNProfileDto> getVpnProfile()
 		{
-			if (purpose.includeOwnUserNumConfirmedContent.apply(getContent()))
+			if (representation.includeOwnUserNumConfirmedContent.apply(getContent()))
 			{
 				Resource<VPNProfileDto> vpnProfileResource = new Resource<>(getContent().getOwnPrivateData().getVpnProfile());
 				addOvpnProfileLink(vpnProfileResource);
@@ -622,13 +622,13 @@ public class UserController extends ControllerBase
 		private final CurieProvider curieProvider;
 		private final Optional<UUID> requestingUserId;
 		private final Optional<PinResetRequestController> pinResetRequestController;
-		private final Purpose purpose;
+		private final UserResourceRepresentation representation;
 
-		private UserResourceAssembler(Purpose purpose, CurieProvider curieProvider, Optional<UUID> requestingUserId,
+		private UserResourceAssembler(UserResourceRepresentation representation, CurieProvider curieProvider, Optional<UUID> requestingUserId,
 				Optional<PinResetRequestController> pinResetRequestController)
 		{
 			super(UserController.class, UserResource.class);
-			this.purpose = purpose;
+			this.representation = representation;
 			this.curieProvider = curieProvider;
 			this.pinResetRequestController = pinResetRequestController;
 			this.requestingUserId = requestingUserId;
@@ -639,17 +639,17 @@ public class UserController extends ControllerBase
 		{
 			UserResource userResource = instantiateResource(user);
 			addSelfLink(userResource);
-			if (purpose.includeGeneralContent.apply(user))
+			if (representation.includeGeneralContent.apply(user))
 			{
 				addUserPhotoLinkIfPhotoPresent(userResource);
 			}
-			if (purpose.includeOwnUserNumNotConfirmedContent.apply(user))
+			if (representation.includeOwnUserNumNotConfirmedContent.apply(user))
 			{
 				addEditLink(userResource);
 				addConfirmMobileNumberLink(userResource);
 				addResendMobileNumberConfirmationLink(userResource);
 			}
-			if (purpose.includeOwnUserNumConfirmedContent.apply(user))
+			if (representation.includeOwnUserNumConfirmedContent.apply(user))
 			{
 				addEditLink(userResource);
 				addPostOpenAppEventLink(userResource);
@@ -694,7 +694,7 @@ public class UserController extends ControllerBase
 		@Override
 		protected UserResource instantiateResource(UserDto user)
 		{
-			return new UserResource(curieProvider, purpose, user);
+			return new UserResource(curieProvider, representation, user);
 		}
 
 		private void addSelfLink(Resource<UserDto> userResource)
@@ -766,23 +766,23 @@ public class UserController extends ControllerBase
 
 		public static UserResourceAssembler createPublicUserInstance(CurieProvider curieProvider)
 		{
-			return new UserResourceAssembler(Purpose.MINIMAL, curieProvider, Optional.empty(), Optional.empty());
+			return new UserResourceAssembler(UserResourceRepresentation.MINIMAL, curieProvider, Optional.empty(), Optional.empty());
 		}
 
 		public static UserResourceAssembler createMinimalInstance(CurieProvider curieProvider, UUID requestingUserId)
 		{
-			return new UserResourceAssembler(Purpose.MINIMAL, curieProvider, Optional.of(requestingUserId), Optional.empty());
+			return new UserResourceAssembler(UserResourceRepresentation.MINIMAL, curieProvider, Optional.of(requestingUserId), Optional.empty());
 		}
 
 		public static UserResourceAssembler createInstanceForBuddy(CurieProvider curieProvider, UUID requestingUserId)
 		{
-			return new UserResourceAssembler(Purpose.BUDDY_USER, curieProvider, Optional.of(requestingUserId), Optional.empty());
+			return new UserResourceAssembler(UserResourceRepresentation.BUDDY_USER, curieProvider, Optional.of(requestingUserId), Optional.empty());
 		}
 
 		public static UserResourceAssembler createInstanceForOwnUser(CurieProvider curieProvider, UUID requestingUserId,
 				PinResetRequestController pinResetRequestController)
 		{
-			return new UserResourceAssembler(Purpose.OWN_USER, curieProvider, Optional.of(requestingUserId),
+			return new UserResourceAssembler(UserResourceRepresentation.OWN_USER, curieProvider, Optional.of(requestingUserId),
 					Optional.of(pinResetRequestController));
 		}
 	}
