@@ -18,27 +18,28 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 
 public class BuddyUserPrivateDataDto extends UserPrivateDataBaseDto
 {
+	BuddyUserPrivateDataDto(String nickname, Optional<UUID> userPhotoId)
+	{
+		super(nickname, userPhotoId, Optional.empty(), Optional.empty());
+	}
+
 	BuddyUserPrivateDataDto(String nickname, Optional<UUID> userPhotoId, Set<GoalDto> goals, Set<DeviceBaseDto> devices)
 	{
-		super(nickname, userPhotoId, goals, devices);
+		super(nickname, userPhotoId, Optional.of(goals), Optional.of(devices));
 	}
 
 	static BuddyUserPrivateDataDto createInstance(Buddy buddyEntity)
 	{
 		Objects.requireNonNull(buddyEntity, "buddyEntity cannot be null");
 
-		Set<GoalDto> goals;
-		Set<DeviceBaseDto> devices;
 		if (buddyEntity.getSendingStatus() == Status.ACCEPTED)
 		{
-			goals = UserAnonymizedDto.getGoalsIncludingHistoryItems(buddyEntity.getBuddyAnonymized().getUserAnonymized());
-			devices = buddyEntity.getDevices().stream().map(BuddyDeviceDto::createInstance).collect(Collectors.toSet());
+			Set<GoalDto> goals = UserAnonymizedDto
+					.getGoalsIncludingHistoryItems(buddyEntity.getBuddyAnonymized().getUserAnonymized());
+			Set<DeviceBaseDto> devices = buddyEntity.getDevices().stream().map(BuddyDeviceDto::createInstance)
+					.collect(Collectors.toSet());
+			return new BuddyUserPrivateDataDto(buddyEntity.getNickname(), buddyEntity.getUserPhotoId(), goals, devices);
 		}
-		else
-		{
-			goals = null;
-			devices = null;
-		}
-		return new BuddyUserPrivateDataDto(buddyEntity.getNickname(), buddyEntity.getUserPhotoId(), goals, devices);
+		return new BuddyUserPrivateDataDto(buddyEntity.getNickname(), buddyEntity.getUserPhotoId());
 	}
 }

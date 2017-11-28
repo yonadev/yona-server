@@ -556,7 +556,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		if (sender instanceof Buddy)
 		{
 			assert message._links?."yona:buddy"?.href == sender.url
-			assert message._links?."yona:reply"?.href.startsWith(user.url)
+			assert message._links?."yona:reply"?.href.startsWith(YonaServer.stripQueryString(user.url))
 		} else
 		{
 			assert message._links?."yona:user"?.href == sender.url

@@ -36,6 +36,7 @@ import nu.yona.server.device.entities.BuddyDevice;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
+import nu.yona.server.goals.service.GoalDto;
 import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.entities.MessageDestination;
@@ -112,14 +113,14 @@ public class BuddyService
 
 	private BuddyDto getBuddy(Buddy buddyEntity)
 	{
-		BuddyDto result = BuddyDto.createInstance(buddyEntity);
 		if (canIncludePrivateData(buddyEntity))
 		{
 			UUID buddyUserAnonymizedId = getUserAnonymizedIdForBuddy(buddyEntity);
-			result.setGoals(userAnonymizedService.getUserAnonymized(buddyUserAnonymizedId).getGoals().stream()
-					.collect(Collectors.toSet()));
+			Set<GoalDto> goals = userAnonymizedService.getUserAnonymized(buddyUserAnonymizedId).getGoals().stream()
+					.collect(Collectors.toSet());
+			return BuddyDto.createInstance(buddyEntity, goals);
 		}
-		return result;
+		return BuddyDto.createInstance(buddyEntity);
 	}
 
 	static boolean canIncludePrivateData(Buddy buddyEntity)
@@ -701,7 +702,7 @@ public class BuddyService
 	public UserDto getUserOfBuddy(UUID userId, UUID buddyUserId)
 	{
 		User userEntity = userService.getUserEntityById(userId);
-		Buddy buddy = userEntity.getBuddies().stream().filter(b -> b.getUserId().equals(userId)).findAny()
+		Buddy buddy = userEntity.getBuddies().stream().filter(b -> b.getUserId().equals(buddyUserId)).findAny()
 				.orElseThrow(() -> BuddyNotFoundException.notFoundForUser(userId, buddyUserId));
 		return UserDto.createInstanceWithBuddyData(userEntity, BuddyUserPrivateDataDto.createInstance(buddy));
 	}

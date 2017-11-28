@@ -105,6 +105,20 @@ class AppService extends Service
 		}
 	}
 
+	def getUser(Closure asserter, userUrl, password)
+	{
+		def response = yonaServer.getResourceWithPassword(userUrl, password)
+		asserter(response)
+		return (isSuccess(response)) ? new User(response.responseData) : null
+	}
+
+	def getUser(Closure asserter, userUrl)
+	{
+		def response = yonaServer.getResource(userUrl)
+		asserter(response)
+		return (isSuccess(response)) ? new User(response.responseData) : null
+	}
+
 	def reloadUser(User user, Closure asserter = null)
 	{
 		def response
@@ -230,6 +244,12 @@ class AppService extends Service
 	{
 		assertPublicUserData(user, true, userCreatedOnBuddyRequest)
 		assertPrivateUserData(user, skipPropertySetAssertion, userCreatedOnBuddyRequest)
+	}
+
+	def assertUserGetResponseDetailsWithBuddyData(def response)
+	{
+		assertResponseStatusSuccess(response)
+		assertBuddyUser(response.responseData)
 	}
 
 	def assertPublicUserData(def user, boolean skipPropertySetAssertion = true, boolean userCreatedOnBuddyRequest)
@@ -597,7 +617,7 @@ class AppService extends Service
 
 	def getDayDetails(User user, String activityCategoryUrl, ZonedDateTime date) {
 		def goal = user.findActiveGoal(activityCategoryUrl)
-		def url = user.url + "/activity/days/" + YonaServer.toIsoDateString(date) + "/details/" + goal.getId()
+		def url = YonaServer.stripQueryString(user.url) + "/activity/days/" + YonaServer.toIsoDateString(date) + "/details/" + goal.getId()
 		getResourceWithPassword(url, user.password)
 	}
 

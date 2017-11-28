@@ -6,8 +6,6 @@
  *******************************************************************************/
 package nu.yona.server
 
-import java.time.Duration
-import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.TextStyle
 import java.time.temporal.ChronoField
@@ -547,7 +545,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		if (userToAssert == actingUser)
 		{
 			dayActivityOverviewForUser = dayActivitiesForCategory.dayActivitiesForUsers.find{it._links."yona:user"?.href?.startsWith(userToAssert.url)}
-			dayDetailsUrlPrefix = userToAssert.url
+			dayDetailsUrlPrefix = YonaServer.stripQueryString(userToAssert.url)
 			assert dayActivityOverviewForUser._links."yona:buddy" == null
 			assert userToAssert.goals.find{it.url == expectedValuesForDayAndActivityCategory.goal.url} // Test the test data
 		}

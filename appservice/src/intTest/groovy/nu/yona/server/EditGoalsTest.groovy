@@ -105,7 +105,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_ADDED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
 		AppService.assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
@@ -154,7 +154,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_ADDED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
 		AppService.assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
@@ -379,7 +379,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_CHANGED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
 		AppService.assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
@@ -435,7 +435,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_CHANGED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
 		AppService.assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
@@ -491,7 +491,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_CHANGED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
 		AppService.assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
@@ -532,7 +532,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages2[0].change == 'GOAL_CHANGED'
 		goalChangeMessages2[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages2[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages2[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages2[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages2[0]._embedded?."yona:user" == null
 		goalChangeMessages2[0].nickname == 'RQ'
 		AppService.assertEquals(goalChangeMessages2[0].creationTime, YonaServer.now)
@@ -573,7 +573,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages3[0].change == 'GOAL_CHANGED'
 		goalChangeMessages3[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages3[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages3[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages3[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages3[0]._embedded?."yona:user" == null
 		goalChangeMessages3[0].nickname == 'RQ'
 		AppService.assertEquals(goalChangeMessages3[0].creationTime, YonaServer.now)
@@ -729,7 +729,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_DELETED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
 		AppService.assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)

@@ -177,10 +177,14 @@ public class UserController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password,
 				() -> userService.canAccessPrivateData(requestingUserId)))
 		{
-			return createOkResponse(
-					requestingUserId.equals(userId) ? userService.getPrivateUser(userId, isCreatedOnBuddyRequest)
-							: buddyService.getUserOfBuddy(requestingUserId, userId),
-					createResourceAssemblerForOwnUser(requestingUserId));
+			boolean isForOwnUser = requestingUserId.equals(userId);
+			if (isForOwnUser)
+			{
+				return createOkResponse(userService.getPrivateUser(userId, isCreatedOnBuddyRequest),
+						createResourceAssemblerForOwnUser(requestingUserId));
+			}
+			return createOkResponse(buddyService.getUserOfBuddy(requestingUserId, userId),
+					createResourceAssemblerForBuddy(requestingUserId));
 		}
 	}
 
@@ -262,7 +266,7 @@ public class UserController extends ControllerBase
 
 	private HttpEntity<UserResource> updateUser(Optional<String> password, UUID userId, UserDto user, HttpServletRequest request)
 	{
-		assert user.getOwnPrivateData().getDevices()
+		assert !user.getOwnPrivateData().getDevices().orElse(Collections.emptySet())
 				.isEmpty() : "Embedding devices in an update request is only allowed when updating a user created on buddy request";
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
@@ -289,7 +293,7 @@ public class UserController extends ControllerBase
 
 	private void addDefaultDeviceIfNotProvided(UserDto user)
 	{
-		Set<DeviceBaseDto> devices = user.getOwnPrivateData().getDevices();
+		Set<DeviceBaseDto> devices = user.getOwnPrivateData().getDevices().orElse(Collections.emptySet());
 		if (devices.isEmpty())
 		{
 			devices.add(new UserDeviceDto(translator.getLocalizedMessage("default.device.name"), OperatingSystem.UNKNOWN));
@@ -409,6 +413,11 @@ public class UserController extends ControllerBase
 		return UserResourceAssembler.createInstanceForOwnUser(curieProvider, requestingUserId, pinResetRequestController);
 	}
 
+	private UserResourceAssembler createResourceAssemblerForBuddy(UUID requestingUserId)
+	{
+		return UserResourceAssembler.createInstanceForBuddy(curieProvider, requestingUserId);
+	}
+
 	private UserResourceAssembler createResourceAssemblerForPublicUser()
 	{
 		return UserResourceAssembler.createPublicUserInstance(curieProvider);
@@ -456,6 +465,11 @@ public class UserController extends ControllerBase
 	public static Link getPrivateUserLink(String rel, UUID userId)
 	{
 		return getUserLink(rel, userId, Optional.of(userId));
+	}
+
+	public static Link getBuddyUserLink(String rel, UUID userId, UUID requestingUserId)
+	{
+		return getUserLink(rel, userId, Optional.of(requestingUserId));
 	}
 
 	@PostConstruct
@@ -559,19 +573,13 @@ public class UserController extends ControllerBase
 			HashMap<String, Object> result = new HashMap<>();
 			if (purpose.includeGeneralContent.apply(getContent()))
 			{
-				Set<DeviceBaseDto> devices = getContent().getPrivateData().getDevices();
-				if (devices != null)
-				{
-					result.put(curieProvider.getNamespacedRelFor(UserDto.DEVICES_REL_NAME),
-							DeviceController.createAllDevicesCollectionResource(curieProvider, userId, devices));
-				}
+				Optional<Set<DeviceBaseDto>> devices = getContent().getPrivateData().getDevices();
+				devices.ifPresent(d -> result.put(curieProvider.getNamespacedRelFor(UserDto.DEVICES_REL_NAME),
+						DeviceController.createAllDevicesCollectionResource(curieProvider, userId, d)));
 
-				Set<GoalDto> goals = getContent().getPrivateData().getGoals();
-				if (goals != null)
-				{
-					result.put(curieProvider.getNamespacedRelFor(UserDto.GOALS_REL_NAME),
-							GoalController.createAllGoalsCollectionResource(userId, goals));
-				}
+				Optional<Set<GoalDto>> goals = getContent().getPrivateData().getGoals();
+				goals.ifPresent(g -> result.put(curieProvider.getNamespacedRelFor(UserDto.GOALS_REL_NAME),
+						GoalController.createAllGoalsCollectionResource(userId, g)));
 			}
 			if (purpose.includeOwnUserNumConfirmedContent.apply(getContent()))
 			{

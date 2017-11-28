@@ -32,7 +32,7 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		getWithPasswordResponseAfter.responseData._links.self.href == richard.newDeviceRequestUrl
 		getWithPasswordResponseAfter.responseData._links.edit.href == richard.newDeviceRequestUrl
 		getWithPasswordResponseAfter.responseData._links."yona:user".href
-		YonaServer.stripQueryString(getWithPasswordResponseAfter.responseData._links."yona:user".href) == richard.url
+		YonaServer.stripQueryString(getWithPasswordResponseAfter.responseData._links."yona:user".href) == YonaServer.stripQueryString(richard.url)
 
 		cleanup:
 		appService.deleteUser(richard)

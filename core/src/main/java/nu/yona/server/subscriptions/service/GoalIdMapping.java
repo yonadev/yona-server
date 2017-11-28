@@ -1,9 +1,10 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -52,10 +53,11 @@ public class GoalIdMapping
 
 	public static GoalIdMapping createInstance(UserDto user)
 	{
-		Set<UUID> userGoalIds = user.getOwnPrivateData().getGoals().stream().map(GoalDto::getGoalId).collect(Collectors.toSet());
+		Set<UUID> userGoalIds = user.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).stream()
+				.map(GoalDto::getGoalId).collect(Collectors.toSet());
 		Map<UUID, UUID> goalIdToBuddyIdmapping = new HashMap<>();
-		user.getOwnPrivateData().getBuddies()
-				.forEach(b -> b.getGoals().forEach(g -> goalIdToBuddyIdmapping.put(g.getGoalId(), b.getId())));
+		user.getOwnPrivateData().getBuddies().forEach(b -> b.getGoals().orElse(Collections.emptySet())
+				.forEach(g -> goalIdToBuddyIdmapping.put(g.getGoalId(), b.getId())));
 		return new GoalIdMapping(user, userGoalIds, goalIdToBuddyIdmapping);
 	}
 }

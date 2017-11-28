@@ -17,10 +17,11 @@ public class UserPrivateDataBaseDto
 {
 	private final String nickname;
 	protected final Optional<UUID> userPhotoId;
-	private final Set<GoalDto> goals;
-	private final Set<DeviceBaseDto> devices;
+	private final Optional<Set<GoalDto>> goals;
+	private final Optional<Set<DeviceBaseDto>> devices;
 
-	protected UserPrivateDataBaseDto(String nickname, Optional<UUID> userPhotoId, Set<GoalDto> goals, Set<DeviceBaseDto> devices)
+	protected UserPrivateDataBaseDto(String nickname, Optional<UUID> userPhotoId, Optional<Set<GoalDto>> goals,
+			Optional<Set<DeviceBaseDto>> devices)
 	{
 		this.nickname = nickname;
 		this.userPhotoId = userPhotoId;
@@ -34,13 +35,13 @@ public class UserPrivateDataBaseDto
 	}
 
 	@JsonIgnore
-	public Set<GoalDto> getGoals()
+	public Optional<Set<GoalDto>> getGoals()
 	{
 		return goals;
 	}
 
 	@JsonIgnore
-	public Set<DeviceBaseDto> getDevices()
+	public Optional<Set<DeviceBaseDto>> getDevices()
 	{
 		return devices;
 	}

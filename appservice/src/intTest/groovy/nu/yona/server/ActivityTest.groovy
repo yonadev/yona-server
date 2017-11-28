@@ -1269,7 +1269,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		def goalId = richard.findActiveGoal(NEWS_ACT_CAT_URL).getId()
 		def lastWednesdayDate = YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Wed 09:00"))
-		def detailsUrl = richard.url + "/activity/days/$lastWednesdayDate/details/$goalId"
+		def detailsUrl = YonaServer.stripQueryString(richard.url) + "/activity/days/$lastWednesdayDate/details/$goalId"
 		assert appService.getResourceWithPassword(detailsUrl, richard.password).status == 200
 
 		when:

@@ -5,6 +5,7 @@
 package nu.yona.server.goals.service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -47,7 +48,7 @@ public class GoalService
 	public Set<GoalDto> getGoalsOfUser(UUID forUserId)
 	{
 		UserDto user = userService.getPrivateUser(forUserId);
-		return user.getOwnPrivateData().getGoals();
+		return user.getOwnPrivateData().getGoals().orElse(Collections.emptySet());
 	}
 
 	public GoalDto getGoalForUserId(UUID userId, UUID goalId)

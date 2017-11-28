@@ -42,7 +42,7 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 			Optional<UUID> userPhotoId, UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goals,
 			Set<BuddyDto> buddies, UUID userAnonymizedId, VPNProfileDto vpnProfile, Set<UserDeviceDto> devices)
 	{
-		super(nickname, userPhotoId, goals, new HashSet<>(devices));
+		super(nickname, userPhotoId, Optional.of(goals), Optional.of(new HashSet<>(devices)));
 
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate;
 		this.yonaPassword = yonaPassword;

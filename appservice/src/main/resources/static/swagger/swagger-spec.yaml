@@ -1802,12 +1802,12 @@ definitions:
         properties:
           sslRootCertCN:
             type: string
-            description: The CN of the SSL root certificate
+            description: The CN of the SSL root certificate. Not available for buddies.
             example: "smoothwall003.yona"
           creationTime:
             type: string
             format: dateTime
-            description: The creation time of this user
+            description: The creation time of this user. Not available for buddies.
             example: 2016-04-26T20:08:55.365+0200
           appLastOpenedDate:
             type: string
@@ -1817,14 +1817,14 @@ definitions:
           lastMonitoredActivityDate:
             type: string
             format: date
-            description: The date of the last monitored activity
+            description: The date of the last monitored activity.  Not available for buddies.
             example: 2016-04-26
           _embedded:
             type: object
             properties:
               "yona:goals":
                 type: object
-                description: The goals of this user. Private data.
+                description: The goals of this user.
                 properties:
                   _embedded:
                     type: object
@@ -1839,7 +1839,7 @@ definitions:
                       - $ref: '#/definitions/EditLink'
               "yona:buddies":
                 type: object
-                description: The buddies of this user. Private data.
+                description: The buddies of this user.
                 properties:
                   _embedded:
                     type: object
@@ -2153,10 +2153,6 @@ definitions:
       - $ref: '#/definitions/BaseBuddy'
       - type: object
         properties:
-          nickname:
-            type: string
-            description: The nickname of the buddy
-            example: RQ
           lastStatusChangeTime:
             type: string
             format: dateTime
@@ -2170,20 +2166,6 @@ definitions:
           _embedded:
             type: object
             properties:
-              "yona:goals":
-                type: object
-                description: The goals of this buddy.
-                properties:
-                  _embedded:
-                    type: object
-                    properties:
-                      "yona:goals":
-                        type: array
-                        items:
-                          $ref: "#/definitions/Goal"
-                  _links:
-                    allOf:
-                      - $ref: '#/definitions/SelfLink'
               "yona:user":
                   $ref: "#/definitions/UserWithOnlyPublicData"
             required:

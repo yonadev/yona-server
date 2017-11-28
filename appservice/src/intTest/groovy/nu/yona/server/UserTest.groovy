@@ -26,11 +26,12 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		testUser(john, true, false, ts)
+		def baseUserUrl = YonaServer.stripQueryString(john.url)
 		// The below assert checks the path fragment. If it fails, the Swagger spec needs to be updated too
-		john.mobileNumberConfirmationUrl == john.url + "/confirmMobileNumber"
-		john.resendMobileNumberConfirmationCodeUrl == john.url + "/resendMobileNumberConfirmationCode"
+		john.mobileNumberConfirmationUrl == baseUserUrl + "/confirmMobileNumber"
+		john.resendMobileNumberConfirmationCodeUrl == baseUserUrl + "/resendMobileNumberConfirmationCode"
 
-		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(john.url + "/messages/", john.password)
+		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(baseUserUrl + "/messages/", john.password)
 		getMessagesResponse.status == 400
 		getMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
 
@@ -52,17 +53,18 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		testUser(john, true, true, ts)
 		john.mobileNumberConfirmationUrl == null
 
+		def baseUserUrl = YonaServer.stripQueryString(john.url)
 		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
-		john.postOpenAppEventUrl == john.url + "/openApp"
-		john.buddiesUrl == john.url + "/buddies/"
-		john.goalsUrl == john.url + "/goals/"
-		john.messagesUrl == john.url + "/messages/"
+		john.postOpenAppEventUrl == baseUserUrl + "/openApp"
+		john.buddiesUrl == baseUserUrl + "/buddies/"
+		john.goalsUrl == baseUserUrl + "/goals/"
+		john.messagesUrl == baseUserUrl + "/messages/"
 		john.newDeviceRequestUrl == appService.url + "/newDeviceRequests/" + john.mobileNumber
-		john.appActivityUrl == john.url + "/appActivity/"
-		john.pinResetRequestUrl == john.url + "/pinResetRequest/request"
-		john.dailyActivityReportsUrl == john.url + "/activity/days/"
-		john.dailyActivityReportsWithBuddiesUrl == john.url + "/activity/withBuddies/days/"
-		john.weeklyActivityReportsUrl == john.url + "/activity/weeks/"
+		john.appActivityUrl == baseUserUrl + "/appActivity/"
+		john.pinResetRequestUrl == baseUserUrl + "/pinResetRequest/request"
+		john.dailyActivityReportsUrl == baseUserUrl + "/activity/days/"
+		john.dailyActivityReportsWithBuddiesUrl == baseUserUrl + "/activity/withBuddies/days/"
+		john.weeklyActivityReportsUrl == baseUserUrl + "/activity/weeks/"
 
 		cleanup:
 		appService.deleteUser(johnAfterNumberConfirmation)
@@ -221,7 +223,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		def johnAsCreated = createJohnDoe(ts)
 
 		when:
-		def john = appService.getUser(appService.&assertUserGetResponseDetailsWithoutPrivateData, johnAsCreated.url, false, johnAsCreated.password)
+		def john = appService.getUser(appService.&assertUserGetResponseDetailsWithoutPrivateData, YonaServer.stripQueryString(johnAsCreated.url))
 
 		then:
 		testUser(john, false, false, ts)

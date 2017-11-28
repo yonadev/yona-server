@@ -241,7 +241,7 @@ public class UserService
 	@Transactional
 	public UserDto addUser(UserDto user, Optional<String> overwriteUserConfirmationCode)
 	{
-		assert user.getPrivateData().getDevices().size() == 1;
+		assert user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1;
 		assertValidUserFields(user, UserPurpose.USER);
 
 		// use a separate transaction because in the top transaction we insert a user with the same unique key
@@ -288,8 +288,8 @@ public class UserService
 
 	private void addDevicesToEntity(UserDto userDto, User userEntity)
 	{
-		userDto.getOwnPrivateData().getDevices().stream().map(d -> (UserDeviceDto) d).map(d -> createUserDeviceEntity(d, 0))
-				.forEach(d -> userEntity.addDevice(d));
+		userDto.getOwnPrivateData().getDevices().orElse(Collections.emptySet()).stream().map(d -> (UserDeviceDto) d)
+				.map(d -> createUserDeviceEntity(d, 0)).forEach(d -> userEntity.addDevice(d));
 	}
 
 	private Set<Goal> buildGoalsSet(UserDto user, UserSignUp signUp)
@@ -301,7 +301,8 @@ public class UserService
 		}
 		else
 		{
-			goals = user.getOwnPrivateData().getGoals().stream().map(GoalDto::createGoalEntity).collect(Collectors.toSet());
+			goals = user.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).stream().map(GoalDto::createGoalEntity)
+					.collect(Collectors.toSet());
 		}
 		return goals;
 	}
@@ -830,7 +831,7 @@ public class UserService
 
 	private User saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDto user)
 	{
-		assert user.getPrivateData().getDevices().size() == 1;
+		assert user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1;
 		// touch and save all user related data containing encryption
 		// see architecture overview for which classes contain encrypted data
 		// (this could also be achieved with very complex reflection)
@@ -877,7 +878,7 @@ public class UserService
 			}
 			assertValidEmailAddress(userResource.getEmailAddress());
 
-			if (!userResource.getOwnPrivateData().getGoals().isEmpty())
+			if (!userResource.getOwnPrivateData().getGoals().orElse(Collections.emptySet()).isEmpty())
 			{
 				throw InvalidDataException.goalsNotSupported();
 			}
