@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import groovy.json.*
 
 /**
@@ -31,7 +33,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.addUser(object)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.user.firstname"
 	}
 
@@ -43,7 +45,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.addUser(object)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.user.lastname"
 	}
 
@@ -55,7 +57,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.addUser(object)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.user.nickname"
 	}
 
@@ -67,7 +69,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.addUser(object)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.user.mobile.number"
 	}
 
@@ -79,7 +81,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.addUser(object)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.user.mobile.number.invalid"
 	}
 
@@ -91,7 +93,7 @@ class UserValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.addUser(object)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.user.mobile.number.not.mobile"
 	}
 }

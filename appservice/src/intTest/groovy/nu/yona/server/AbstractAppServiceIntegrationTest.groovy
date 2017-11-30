@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import java.time.ZonedDateTime
 import java.time.format.TextStyle
 import java.time.temporal.ChronoField
@@ -18,6 +20,7 @@ import nu.yona.server.test.AppService
 import nu.yona.server.test.BatchService
 import nu.yona.server.test.Buddy
 import nu.yona.server.test.BudgetGoal
+import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
 import nu.yona.server.test.User
@@ -67,29 +70,29 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	User addRichard(boolean reload = true)
 	{
-		User richard = appService.addUser(appService.&assertUserCreationResponseDetails, "Richard", "Quinn", "RQ",
+		User richard = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Richard", "Quinn", "RQ",
 				makeMobileNumber(timestamp))
-		richard = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, richard)
+		richard = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, richard)
 		def response = appService.addGoal(richard, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
-		assert response.status == 201
+		assertResponseStatusCreated(response)
 		return reload ? appService.reloadUser(richard) : richard
 	}
 
 	User addBob(boolean reload = true)
 	{
-		User bob = appService.addUser(appService.&assertUserCreationResponseDetails, "Bob", "Dunn", "BD",
+		User bob = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Bob", "Dunn", "BD",
 				makeMobileNumber(timestamp))
-		bob = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bob)
+		bob = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, bob)
 		def response = appService.addGoal(bob, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
-		assert response.status == 201
+		assertResponseStatusCreated(response)
 		return reload? appService.reloadUser(bob) : bob
 	}
 
 	User addBea(boolean reload = true)
 	{
-		User bea = appService.addUser(appService.&assertUserCreationResponseDetails, "Bea", "Dundee", "BDD",
+		User bea = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Bea", "Dundee", "BDD",
 				makeMobileNumber(timestamp))
-		bea = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, bea)
+		bea = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, bea)
 		return reload? appService.reloadUser(bea) : bea
 	}
 
@@ -137,25 +140,25 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert message._links?."yona:markRead"?.href?.startsWith(messageUrl)
 
 		def responseMarkRead = appService.postMessageActionWithPassword(message._links."yona:markRead".href, [ : ], user.password)
-		assert responseMarkRead.status == 200
+		assertResponseStatusOk(responseMarkRead)
 		assert responseMarkRead.responseData._embedded?."yona:affectedMessages"[0]?.isRead == true
 		assert responseMarkRead.responseData._embedded?."yona:affectedMessages"[0]?._links?.self?.href == messageUrl
 		assert responseMarkRead.responseData._embedded?."yona:affectedMessages"[0]?._links?."yona:markUnread"?.href.startsWith(messageUrl)
 
 		def responseGetAfterMarkRead = appService.getResourceWithPassword(messageUrl, user.password)
-		assert responseGetAfterMarkRead.status == 200
+		assertResponseStatusOk(responseGetAfterMarkRead)
 		assert responseGetAfterMarkRead.responseData.isRead == true
 		assert responseGetAfterMarkRead.responseData._links?.self?.href == messageUrl
 		assert responseGetAfterMarkRead.responseData._links?."yona:markUnread"?.href.startsWith(messageUrl)
 
 		def responseMarkUnread = appService.postMessageActionWithPassword(responseGetAfterMarkRead.responseData._links?."yona:markUnread"?.href, [ : ], user.password)
-		assert responseMarkUnread.status == 200
+		assertResponseStatusOk(responseMarkUnread)
 		assert responseMarkUnread.responseData._embedded?."yona:affectedMessages"[0]?.isRead == false
 		assert responseMarkUnread.responseData._embedded?."yona:affectedMessages"[0]?._links?.self?.href == messageUrl
 		assert responseMarkUnread.responseData._embedded?."yona:affectedMessages"[0]?._links?."yona:markRead"?.href.startsWith(messageUrl)
 
 		def responseGetAfterMarkUnread = appService.getResourceWithPassword(messageUrl, user.password)
-		assert responseGetAfterMarkUnread.status == 200
+		assertResponseStatusOk(responseGetAfterMarkUnread)
 		assert responseGetAfterMarkUnread.responseData.isRead == false
 		assert responseGetAfterMarkUnread.responseData._links?.self?.href == messageUrl
 		assert responseGetAfterMarkUnread.responseData._links?."yona:markRead"?.href.startsWith(messageUrl)
@@ -168,7 +171,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	def findGoalsIncludingHistoryItems(def response, def activityCategoryUrl)
 	{
-		assert response.status == 200
+		assertResponseStatusOk(response)
 		response.responseData._embedded."yona:goals".findAll{ it._links."yona:activityCategory".href == activityCategoryUrl }
 	}
 
@@ -178,7 +181,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		Goal goal = user.findActiveGoal(activityCategoryUrl)
 		goal.creationTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
 		def response = appService.updateGoal(user, goal.url, goal)
-		assert response.status == 200
+		assertResponseStatusOk(response)
 	}
 
 	TimeZoneGoal addTimeZoneGoal(User user, activityCategoryUrl, zones, relativeCreationDateTimeString)
@@ -189,18 +192,18 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	TimeZoneGoal addTimeZoneGoal(User user, activityCategoryUrl, zones, ZonedDateTime creationTime = YonaServer.now)
 	{
-		appService.addGoal(appService.&assertResponseStatusCreated, user, TimeZoneGoal.createInstance(creationTime, activityCategoryUrl, zones.toArray()))
+		appService.addGoal(CommonAssertions.&assertResponseStatusCreated, user, TimeZoneGoal.createInstance(creationTime, activityCategoryUrl, zones.toArray()))
 	}
 
 	TimeZoneGoal updateTimeZoneGoal(User user, TimeZoneGoal updatedGoal, zones, relativeCreationDateTimeString)
 	{
 		ZonedDateTime updateTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
-		appService.updateGoal(appService.&assertResponseStatusSuccess, user, updatedGoal.editUrl, TimeZoneGoal.createInstance(updatedGoal, updateTime, zones.toArray()))
+		appService.updateGoal(CommonAssertions.&assertResponseStatusSuccess, user, updatedGoal.editUrl, TimeZoneGoal.createInstance(updatedGoal, updateTime, zones.toArray()))
 	}
 
 	TimeZoneGoal updateTimeZoneGoal(User user, TimeZoneGoal updatedGoal, zones)
 	{
-		appService.updateGoal(appService.&assertResponseStatusSuccess, user, updatedGoal.editUrl, TimeZoneGoal.createInstance(updatedGoal, YonaServer.now, zones.toArray()))
+		appService.updateGoal(CommonAssertions.&assertResponseStatusSuccess, user, updatedGoal.editUrl, TimeZoneGoal.createInstance(updatedGoal, YonaServer.now, zones.toArray()))
 	}
 
 	BudgetGoal addBudgetGoal(User user, activityCategoryUrl, int maxDurationMinutes, relativeCreationDateTimeString)
@@ -211,18 +214,18 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	BudgetGoal addBudgetGoal(User user, activityCategoryUrl, int maxDurationMinutes, ZonedDateTime creationTime = YonaServer.now)
 	{
-		appService.addGoal(appService.&assertResponseStatusCreated, user, BudgetGoal.createInstance(creationTime, activityCategoryUrl, maxDurationMinutes))
+		appService.addGoal(CommonAssertions.&assertResponseStatusCreated, user, BudgetGoal.createInstance(creationTime, activityCategoryUrl, maxDurationMinutes))
 	}
 
 	BudgetGoal updateBudgetGoal(User user, BudgetGoal updatedGoal, int maxDurationMinutes, relativeCreationDateTimeString)
 	{
 		ZonedDateTime updateTime = YonaServer.relativeDateTimeStringToZonedDateTime(relativeCreationDateTimeString)
-		appService.updateGoal(appService.&assertResponseStatusSuccess, user, updatedGoal.editUrl, BudgetGoal.createInstance(updatedGoal, updateTime, maxDurationMinutes))
+		appService.updateGoal(CommonAssertions.&assertResponseStatusSuccess, user, updatedGoal.editUrl, BudgetGoal.createInstance(updatedGoal, updateTime, maxDurationMinutes))
 	}
 
 	BudgetGoal updateBudgetGoal(User user, BudgetGoal updatedGoal, int maxDurationMinutes)
 	{
-		appService.updateGoal(appService.&assertResponseStatusSuccess, user, updatedGoal.editUrl, BudgetGoal.createInstance(updatedGoal, YonaServer.now, maxDurationMinutes))
+		appService.updateGoal(CommonAssertions.&assertResponseStatusSuccess, user, updatedGoal.editUrl, BudgetGoal.createInstance(updatedGoal, YonaServer.now, maxDurationMinutes))
 	}
 
 	void reportAppActivity(User user, def appName, def relativeStartDateTimeString, relativeEndDateTimeString)
@@ -242,7 +245,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		appActivities.collect
 		{
 			def response = appService.postAppActivityToAnalysisEngine(user, it)
-			assert response.status == 200
+			assertResponseStatusOk(response)
 		}
 	}
 	void reportNetworkActivity(User user, def categories, def url)
@@ -252,7 +255,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	void reportNetworkActivity(User user, def categories, def url, relativeDateTimeString)
 	{
 		def response = analysisService.postToAnalysisEngine(user, categories, url, YonaServer.relativeDateTimeStringToZonedDateTime(relativeDateTimeString))
-		assert response.status == 200
+		assertResponseStatusOk(response)
 	}
 
 	def getCurrentShortDay(ZonedDateTime dateTime = YonaServer.now)
@@ -272,13 +275,13 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		{ goal ->
 			goal.creationTime = YonaServer.now
 			def response = appService.updateGoal(user, goal.url, goal)
-			assert response.status == 200
+			assertResponseStatusOk(response)
 		}
 	}
 
 	void assertWeekOverviewBasics(response, numberOfReportedGoals, expectedTotalElements, expectedPageSize = 2)
 	{
-		assert response.status == 200
+		assertResponseStatusOk(response)
 		assert response.responseData.page
 		assert response.responseData.page.size == expectedPageSize
 		assert response.responseData.page.totalElements == expectedTotalElements
@@ -410,7 +413,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	void assertDayOverviewBasics(response, expectedSize, expectedTotalElements, expectedPageSize = 3)
 	{
-		assert response.status == 200
+		assertResponseStatusOk(response)
 		assert response.responseData._embedded?."yona:dayActivityOverviews"?.size() == expectedSize
 		assert response.responseData.page
 		assert response.responseData.page.size == expectedPageSize
@@ -432,7 +435,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert weekActivityForGoal?._links?."yona:weekDetails"?.href
 		def weekActivityDetailUrl = weekActivityForGoal?._links?."yona:weekDetails"?.href
 		def response = appService.getResourceWithPassword(weekActivityDetailUrl, user.password)
-		assert response.status == 200
+		assertResponseStatusOk(response)
 		assert response.responseData.spread?.size() == 96
 		def expectedSpread = (0..95).collect { 0 }
 		expectedValues.each { it.value.findAll{it.goal.url == goal.url}.each {it.data.spread.each { expectedSpread[it.key] += it.value }}}
@@ -473,7 +476,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		assert dayActivityForGoal?._links?."yona:dayDetails"?.href
 		def dayActivityDetailUrl =  dayActivityForGoal?._links?."yona:dayDetails"?.href
 		def response = appService.getResourceWithPassword(dayActivityDetailUrl, user.password)
-		assert response.status == 200
+		assertResponseStatusOk(response)
 		assert response.responseData.spread?.size() == 96
 		assert response.responseData.totalActivityDurationMinutes ==  calculateExpectedDurationFromSpread(calculateExpectedDurationFromSpread(expectedDataForDayAndGoal.spread))
 		assert response.responseData.goalAccomplished == expectedDataForDayAndGoal.goalAccomplished
@@ -485,7 +488,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 
 	void assertDayOverviewWithBuddiesBasics(response, expectedSize, expectedTotalElements, expectedPageSize = 3)
 	{
-		assert response.status == 200
+		assertResponseStatusOk(response)
 		if(expectedSize == 0)
 		{
 			assert response.responseData._embedded?."yona:dayActivityOverviews" == null

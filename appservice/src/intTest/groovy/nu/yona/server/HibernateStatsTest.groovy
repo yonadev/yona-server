@@ -6,11 +6,14 @@
  *******************************************************************************/
 package nu.yona.server
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import java.time.LocalDate
 import java.time.format.TextStyle
 
 import groovy.json.*
 import nu.yona.server.test.BudgetGoal
+import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.User
 import spock.lang.IgnoreIf
 import spock.lang.Shared
@@ -41,7 +44,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		buddyUsers.each { generateActivities(it) }
 		richard = appService.reloadUser(richard)
 		generateCommentThreadOnYesterdaysNewsActivity(richard, buddyUsers)
-		assert batchService.triggerActivityAggregationBatchJob().status == 200
+		assertResponseStatusOk(batchService.triggerActivityAggregationBatchJob())
 		assert richard.getBuddies().size() == numBuddies
 		println "Test user URL: $richard.url, password: $richard.password"
 
@@ -63,7 +66,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		appService.clearCaches()
 
 		when:
-		appService.getUser(appService.&assertUserGetResponseDetailsWithoutPrivateData, richard.url, false, null)
+		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, richard.url, false, null)
 
 		then:
 		captureStatistics("GetUserWithoutPrivateDataFirst")
@@ -73,11 +76,11 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		appService.clearCaches()
-		appService.getUser(appService.&assertUserGetResponseDetailsWithoutPrivateData, richard.url, false, null)
+		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, richard.url, false, null)
 		appService.resetStatistics()
 
 		when:
-		appService.getUser(appService.&assertUserGetResponseDetailsWithoutPrivateData, richard.url, false, null)
+		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, richard.url, false, null)
 
 		then:
 		captureStatistics("GetUserWithoutPrivateDataSecond")
@@ -121,7 +124,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.getMessages(richard)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		captureStatistics("GetMessagesFirst")
 	}
 
@@ -130,14 +133,14 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		given:
 		appService.clearCaches()
 		appService.reloadUser(richard)
-		assert appService.getMessages(richard).status == 200
+		assertResponseStatusOk(appService.getMessages(richard))
 		appService.resetStatistics()
 
 		when:
 		def response = appService.getMessages(richard)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		captureStatistics("GetMessagesSecond")
 	}
 
@@ -152,7 +155,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.getDayActivityOverviews(richard)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		captureStatistics("GetDayActivityOverviewsFirst")
 	}
 
@@ -161,14 +164,14 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		given:
 		appService.clearCaches()
 		appService.reloadUser(richard)
-		assert appService.getDayActivityOverviews(richard).status == 200
+		assertResponseStatusOk(appService.getDayActivityOverviews(richard))
 		appService.resetStatistics()
 
 		when:
 		def response = appService.getDayActivityOverviews(richard)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		captureStatistics("GetDayActivityOverviewsSecond")
 	}
 
@@ -183,7 +186,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.getWeekActivityOverviews(richard)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		captureStatistics("GetWeekActivityOverviewsFirst")
 	}
 
@@ -192,14 +195,14 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		given:
 		appService.clearCaches()
 		appService.reloadUser(richard)
-		assert appService.getWeekActivityOverviews(richard).status == 200
+		assertResponseStatusOk(appService.getWeekActivityOverviews(richard))
 		appService.resetStatistics()
 
 		when:
 		def response = appService.getWeekActivityOverviews(richard)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		captureStatistics("GetWeekActivityOverviewsSecond")
 	}
 
@@ -214,7 +217,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.getDayActivityOverviewsWithBuddies(richard)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		captureStatistics("GetDayActivityOverviewsWithBuddiesFirst")
 	}
 
@@ -223,14 +226,14 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		given:
 		appService.clearCaches()
 		appService.reloadUser(richard)
-		assert appService.getDayActivityOverviewsWithBuddies(richard).status == 200
+		assertResponseStatusOk(appService.getDayActivityOverviewsWithBuddies(richard))
 		appService.resetStatistics()
 
 		when:
 		def response = appService.getDayActivityOverviewsWithBuddies(richard)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		captureStatistics("GetDayActivityOverviewsWithBuddiesSecond")
 	}
 
@@ -247,7 +250,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.getResourceWithPassword(richard.url + "/activity/days/$lastFridayDate/details/$goalId", richard.password)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		captureStatistics("GetDayActivityDetailsLastFridayFirst")
 	}
 
@@ -258,14 +261,14 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		appService.reloadUser(richard)
 		def goalId = richard.findActiveGoal(GAMBLING_ACT_CAT_URL).getId()
 		def lastFridayDate = YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Fri 09:00"))
-		assert appService.getResourceWithPassword(richard.url + "/activity/days/$lastFridayDate/details/$goalId", richard.password).status == 200
+		assertResponseStatusOk(appService.getResourceWithPassword(richard.url + "/activity/days/$lastFridayDate/details/$goalId", richard.password))
 		appService.resetStatistics()
 
 		when:
 		def response = appService.getResourceWithPassword(richard.url + "/activity/days/$lastFridayDate/details/$goalId", richard.password)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		captureStatistics("GetDayActivityDetailsLastFridaySecond")
 	}
 
@@ -282,7 +285,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		def response = appService.getResourceWithPassword(richard.url + "/activity/weeks/$lastWeek/details/$goalId", richard.password)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		captureStatistics("GetDayActivityDetailsLastFridayFirst")
 	}
 
@@ -293,14 +296,14 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		appService.reloadUser(richard)
 		def goalId = richard.findActiveGoal(GAMBLING_ACT_CAT_URL).getId()
 		def lastWeek = YonaServer.toIsoWeekDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Fri 09:00"))
-		assert appService.getResourceWithPassword(richard.url + "/activity/weeks/$lastWeek/details/$goalId", richard.password).status == 200
+		assertResponseStatusOk(appService.getResourceWithPassword(richard.url + "/activity/weeks/$lastWeek/details/$goalId", richard.password))
 		appService.resetStatistics()
 
 		when:
 		def response = appService.getResourceWithPassword(richard.url + "/activity/weeks/$lastWeek/details/$goalId", richard.password)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		captureStatistics("GetDayActivityDetailsLastFridaySecond")
 	}
 
@@ -318,9 +321,9 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 
 	User createBuddyUser(int index)
 	{
-		User buddyUser = appService.addUser(appService.&assertUserCreationResponseDetails, "Bob" + index, "Dunn" + index, "BD" + index,
+		User buddyUser = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Bob" + index, "Dunn" + index, "BD" + index,
 				makeMobileNumber(timestamp))
-		buddyUser = appService.confirmMobileNumber(appService.&assertResponseStatusSuccess, buddyUser)
+		buddyUser = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, buddyUser)
 		setGoals(buddyUser)
 		buddyUser.emailAddress = "bob${index}@dunn.com"
 		return buddyUser

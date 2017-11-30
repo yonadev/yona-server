@@ -8,6 +8,8 @@ package nu.yona.server
 
 import groovy.json.*
 import nu.yona.server.test.AppService
+import static nu.yona.server.test.CommonAssertions.*
+import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.User
 
 class DeviceTest extends AbstractAppServiceIntegrationTest
@@ -21,7 +23,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def johnAsCreated = createJohnDoe(ts, "My S8", "ANDROID")
 
 		then:
-		def johnAfterNumberConfirmation = appService.confirmMobileNumber(AppService.&assertResponseStatusSuccess, johnAsCreated)
+		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, johnAsCreated)
 
 		johnAfterNumberConfirmation.devices.size == 1
 		johnAfterNumberConfirmation.devices[0].name == "My S8"
@@ -40,7 +42,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def johnAsCreated = createJohnDoe(ts, "My iPhone X", "IOS")
 
 		then:
-		def johnAfterNumberConfirmation = appService.confirmMobileNumber(AppService.&assertResponseStatusSuccess, johnAsCreated)
+		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, johnAsCreated)
 
 		johnAfterNumberConfirmation.devices.size == 1
 		johnAfterNumberConfirmation.devices[0].name == "My iPhone X"
@@ -59,7 +61,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		def johnAsCreated = createJohnDoe(ts, "01234567890123456789", "IOS")
 
 		then:
-		def johnAfterNumberConfirmation = appService.confirmMobileNumber(AppService.&assertResponseStatusSuccess, johnAsCreated)
+		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, johnAsCreated)
 
 		johnAfterNumberConfirmation.devices.size == 1
 		johnAfterNumberConfirmation.devices[0].name == "01234567890123456789"
@@ -77,7 +79,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		when:
 		def johnAsCreated = appService.addUser(
 				{
-					AppService.assertResponseStatus(it, 400)
+					assertResponseStatus(it, 400)
 					assert it.responseData.code == "error.device.unknown.operating.system"
 				}, "John", "Doe", "JD",
 				makeMobileNumber(ts), "My Raspberry", "RASPBIAN")
@@ -94,7 +96,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		when:
 		def johnAsCreated = appService.addUser(
 				{
-					AppService.assertResponseStatus(it, 400)
+					assertResponseStatus(it, 400)
 					assert it.responseData.code == "error.device.unknown.operating.system"
 				}, "John", "Doe", "JD",
 				makeMobileNumber(ts), "First device", "UNKNOWN")
@@ -111,7 +113,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		when:
 		def johnAsCreated = appService.addUser(
 				{
-					AppService.assertResponseStatus(it, 400)
+					assertResponseStatus(it, 400)
 					assert it.responseData.code == "error.device.invalid.device.name"
 				}, "John", "Doe", "JD",
 				makeMobileNumber(ts), "012345678901234567891", "IOS")
@@ -128,7 +130,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		when:
 		def johnAsCreated = appService.addUser(
 				{
-					AppService.assertResponseStatus(it, 400)
+					assertResponseStatus(it, 400)
 					assert it.responseData.code == "error.device.invalid.device.name"
 				}, "John", "Doe", "JD",
 				makeMobileNumber(ts), "some:thing", "IOS")
@@ -139,7 +141,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 
 	private User createJohnDoe(ts, deviceName, deviceOperatingSystem)
 	{
-		appService.addUser(appService.&assertUserCreationResponseDetails, "John", "Doe", "JD",
+		appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "John", "Doe", "JD",
 				makeMobileNumber(ts), deviceName, deviceOperatingSystem)
 	}
 }

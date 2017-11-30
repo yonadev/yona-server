@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import org.apache.http.HttpEntity
 import org.apache.http.entity.mime.MultipartEntityBuilder
 import org.apache.http.entity.mime.content.InputStreamBody
@@ -38,7 +40,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": richard.password], body: multipartEntity)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		response.contentType == "application/json"
 		def newUserPhotoUrl = response.responseData?._links?."yona:userPhoto"?.href
 		newUserPhotoUrl != null
@@ -62,13 +64,13 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": richard.password], body: multipartEntity)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		response.contentType == "application/json"
 		def newUserPhotoUrl = response.responseData?._links?."yona:userPhoto"?.href
 		newUserPhotoUrl != null
 
 		def downloadResponse = appService.yonaServer.restClient.get(path: newUserPhotoUrl)
-		downloadResponse.status == 200
+		assertResponseStatusOk(downloadResponse)
 		downloadResponse.contentType == "image/png"
 
 		cleanup:
@@ -87,13 +89,13 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": richard.password], body: multipartEntity)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		response.contentType == "application/json"
 		def newUserPhotoUrl = response.responseData?._links?."yona:userPhoto"?.href
 		newUserPhotoUrl != null
 
 		def downloadResponse = appService.yonaServer.restClient.get(path: newUserPhotoUrl)
-		downloadResponse.status == 200
+		assertResponseStatusOk(downloadResponse)
 		downloadResponse.contentType == "image/png"
 
 		cleanup:
@@ -112,7 +114,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": richard.password], body: multipartEntity)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == null // As the app should take care for uploading a resized photo, this is not a user error, so it does not need to have a code
 
 		cleanup:
@@ -129,7 +131,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def response = appService.yonaServer.restClient.get(path: userPhotoUrl)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		response.contentType == "image/png"
 
 		cleanup:
@@ -152,10 +154,10 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		richardAfterUpdate.userPhotoUrl == newUserPhotoUrl
 
 		def retrievePhotoBeforeResponse = appService.yonaServer.restClient.get(path: userPhotoUrlBefore)
-		retrievePhotoBeforeResponse.status == 200
+		assertResponseStatusOk(retrievePhotoBeforeResponse)
 
 		def retrieveNewPhotoResponse = appService.yonaServer.restClient.get(path: newUserPhotoUrl)
-		retrieveNewPhotoResponse.status == 200
+		assertResponseStatusOk(retrieveNewPhotoResponse)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -171,13 +173,13 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def response = appService.yonaServer.deleteResourceWithPassword(richard.editUserPhotoUrl, richard.password)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 
 		def richardAfterUpdate = appService.reloadUser(richard)
 		richardAfterUpdate.userPhotoUrl == null
 
 		def retrievePhotoBeforeResponse = appService.yonaServer.restClient.get(path: userPhotoUrlBefore)
-		retrievePhotoBeforeResponse.status == 200
+		assertResponseStatusOk(retrievePhotoBeforeResponse)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -225,7 +227,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
 		def response = appService.yonaServer.restClient.get(path: richardPhotoUrl)
-		response.status == 200
+		assertResponseStatusOk(response)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -252,7 +254,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
 		def response = appService.yonaServer.restClient.get(path: richardPhotoUrl)
-		response.status == 200
+		assertResponseStatusOk(response)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -278,7 +280,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 			it._links?."yona:userPhoto"?.href == richardPhotoUrl
 		}
 		def response = appService.yonaServer.restClient.get(path: richardPhotoUrl)
-		response.status == 200
+		assertResponseStatusOk(response)
 
 		cleanup:
 		appService.deleteUser(bob)
@@ -296,7 +298,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
-		assert bobMessagesAfterUpdate.status == 200
+		assertResponseStatusOk(bobMessagesAfterUpdate)
 		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
@@ -330,7 +332,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
-		assert bobMessagesAfterUpdate.status == 200
+		assertResponseStatusOk(bobMessagesAfterUpdate)
 		def buddyInfoUpdateMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
@@ -361,7 +363,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def response = appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": "Wrong password"], body: multipartEntity)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.decrypting.data"
 
 		def richardAfterUpdate = appService.reloadUser(richard)
@@ -381,7 +383,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		def response = appService.yonaServer.deleteResourceWithPassword(richard.editUserPhotoUrl, "Wrong password")
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.decrypting.data"
 
 		def richardAfterUpdate = appService.reloadUser(richard)
