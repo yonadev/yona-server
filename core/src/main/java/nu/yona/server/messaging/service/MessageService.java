@@ -191,12 +191,12 @@ public class MessageService
 
 	private MessageSource getNamedMessageSource(UserDto user)
 	{
-		return MessageSource.getRepository().findOne(user.getPrivateData().getNamedMessageSourceId());
+		return MessageSource.getRepository().findOne(user.getOwnPrivateData().getNamedMessageSourceId());
 	}
 
 	private MessageSource getAnonymousMessageSource(UserDto user)
 	{
-		return MessageSource.getRepository().findOne(user.getPrivateData().getAnonymousMessageSourceId());
+		return MessageSource.getRepository().findOne(user.getOwnPrivateData().getAnonymousMessageSourceId());
 	}
 
 	private Page<MessageDto> wrapMessagesAsDtos(UserDto user, Page<? extends Message> messageEntities, Pageable pageable)

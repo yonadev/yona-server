@@ -6,8 +6,6 @@
  *******************************************************************************/
 package nu.yona.server
 
-import java.time.Duration
-import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.TextStyle
 import java.time.temporal.ChronoField
@@ -130,43 +128,6 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	static String makeMobileNumber(String timestamp)
 	{
 		"+3161" + timestamp[-7..-1]
-	}
-
-	void assertEquals(String dateTimeString, ZonedDateTime comparisonDateTime, int epsilonSeconds = 10)
-	{
-		// Example date/time string: 2016-02-23T21:28:58.556+0000
-		ZonedDateTime dateTime = YonaServer.parseIsoDateTimeString(dateTimeString)
-		assertEquals(dateTime, comparisonDateTime, epsilonSeconds)
-	}
-
-	void assertEquals(ZonedDateTime dateTime, ZonedDateTime comparisonDateTime, int epsilonSeconds = 10)
-	{
-		int epsilonMilliseconds = epsilonSeconds * 1000
-
-		assert dateTime.isAfter(comparisonDateTime.minus(Duration.ofMillis(epsilonMilliseconds)))
-		assert dateTime.isBefore(comparisonDateTime.plus(Duration.ofMillis(epsilonMilliseconds)))
-	}
-
-	void assertDateTimeFormat(dateTimeString)
-	{
-		assert dateTimeString ==~ /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}\+\d{4}/
-	}
-
-	void assertEquals(String dateTimeString, LocalDate comparisonDate)
-	{
-		// Example date string: 2016-02-23
-		ZonedDateTime date = YonaServer.parseIsoDateString(dateTimeString)
-		assertEquals(date, comparisonDate)
-	}
-
-	void assertEquals(LocalDate date, LocalDate comparisonDate)
-	{
-		assert date == comparisonDate
-	}
-
-	void assertDateFormat(dateTimeString)
-	{
-		assert dateTimeString ==~ /[0-9]{4}-[0-9]{2}-[0-9]{2}/
 	}
 
 	void assertMarkReadUnread(User user, message)
@@ -584,7 +545,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 		if (userToAssert == actingUser)
 		{
 			dayActivityOverviewForUser = dayActivitiesForCategory.dayActivitiesForUsers.find{it._links."yona:user"?.href?.startsWith(userToAssert.url)}
-			dayDetailsUrlPrefix = userToAssert.url
+			dayDetailsUrlPrefix = YonaServer.stripQueryString(userToAssert.url)
 			assert dayActivityOverviewForUser._links."yona:buddy" == null
 			assert userToAssert.goals.find{it.url == expectedValuesForDayAndActivityCategory.goal.url} // Test the test data
 		}

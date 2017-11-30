@@ -7,6 +7,7 @@
 package nu.yona.server
 
 import groovy.json.*
+import nu.yona.server.test.AppService
 import nu.yona.server.test.User
 
 class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
@@ -42,7 +43,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		response.status == 201
 		response.responseData._embedded."yona:user".firstName == "Bob"
 		response.responseData._links."yona:user" == null
-		response.responseData._links.self.href.startsWith(richard.url)
+		response.responseData._links.self.href.startsWith(YonaServer.stripQueryString(richard.url))
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -100,12 +101,42 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		bobFromGetAfterUpdate.lastName == bob.lastName
 		bobFromGetAfterUpdate.mobileNumber == bob.mobileNumber
 		bobFromGetAfterUpdate.nickname == newNickname
-		bobFromGetAfterUpdate.goals.size() == 0 // Mobile number not confirmed yet
+		bobFromGetAfterUpdate.goals == null // Mobile number not confirmed yet
+		bobFromGetAfterUpdate.devices == null // Mobile number not confirmed yet
 		bobFromGetAfterUpdate.url
 
-		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(bobFromGetAfterUpdate.url + "/messages/", bobFromGetAfterUpdate.password)
+		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(YonaServer.stripQueryString(bobFromGetAfterUpdate.url) + "/messages/", bobFromGetAfterUpdate.password)
 		getMessagesResponse.status == 400
 		getMessagesResponse.responseData.code == "error.mobile.number.not.confirmed"
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(updatedBob)
+	}
+
+	def 'Bob adjusts data, including his Android device'()
+	{
+		given:
+		def richard = addRichard()
+		def mobileNumberBob = makeMobileNumber(timestamp)
+		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, mobileNumberBob))
+		def bob = appService.getUser(appService.&assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest, inviteUrl, true, null)
+
+		when:
+		def updatedBobJson = bob.convertToJson()
+		updatedBobJson.nickname = "Bobby"
+		User bobToBeUpdated = new User(updatedBobJson)
+		bobToBeUpdated.deviceName = "My S8"
+		bobToBeUpdated.deviceOperatingSystem = "ANDROID"
+		User updatedBob = appService.updateUserCreatedOnBuddyRequest(appService.&assertUserUpdateResponseDetails, bobToBeUpdated, inviteUrl)
+
+		then:
+		updatedBob.devices == null // Mobile number not confirmed yet
+
+		def bobWithConfirmedNumber = appService.confirmMobileNumber({ AppService.assertResponseStatusSuccess(it)}, updatedBob)
+		bobWithConfirmedNumber.devices.size() == 1
+		bobWithConfirmedNumber.devices[0].name == "My S8"
+		bobWithConfirmedNumber.devices[0].operatingSystem == "ANDROID"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -229,10 +260,10 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		response.status == 200
 		def buddyConnectResponseMessages = response.responseData._embedded."yona:messages".findAll
 		{ it."@type" == "BuddyConnectResponseMessage" }
-		buddyConnectResponseMessages[0]._links?."yona:user"?.href == bob.url
+		buddyConnectResponseMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(bob.url))
 		buddyConnectResponseMessages[0]._embedded?."yona:user" == null
 		buddyConnectResponseMessages[0].nickname == newNickname
-		assertEquals(buddyConnectResponseMessages[0].creationTime, YonaServer.now)
+		AppService.assertEquals(buddyConnectResponseMessages[0].creationTime, YonaServer.now)
 		buddyConnectResponseMessages[0].status == "ACCEPTED"
 		buddyConnectResponseMessages[0]._links.self.href.startsWith(YonaServer.stripQueryString(richard.messagesUrl))
 		buddyConnectResponseMessages[0]._links."yona:process" == null // Processing happens automatically these days
@@ -319,7 +350,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def inviteUrl = buildInviteUrl(sendBuddyRequestForBob(richard, makeMobileNumber(timestamp)))
 
 		when:
-		def response = appService.getResource(YonaServer.stripQueryString(inviteUrl), [:], ["tempPassword": "hack", "includePrivateData": "true"])
+		def response = appService.getResource(YonaServer.stripQueryString(inviteUrl), [:], ["tempPassword": "hack", "requestingUserId": richard.getId()])
 
 		then:
 		response.status == 400
@@ -359,7 +390,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 
 		when:
-		def response = appService.getResource(richard.url, [:], ["tempPassword": richard.password, "includePrivateData": "true"])
+		def response = appService.getResource(richard.url, [:], ["tempPassword": richard.password, "requestingUserId": richard.getId()])
 
 		then:
 		response.status == 400
@@ -395,7 +426,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def richard = addRichard()
 
 		when:
-		def response = appService.updateResource(richard.url, """{
+		def response = appService.updateResource(YonaServer.stripQueryString(richard.url), """{
 				"firstName":"Richard",
 				"lastName":"Quin",
 				"nickname":"RQ",
@@ -519,7 +550,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 	def sendBuddyRequestForBob(User user, String mobileNumber)
 	{
-		appService.yonaServer.createResourceWithPassword(user.url + "/buddies/", """{
+		appService.yonaServer.createResourceWithPassword(YonaServer.stripQueryString(user.url) + "/buddies/", """{
 			"_embedded":{
 				"yona:user":{
 					"firstName":"Bob",
@@ -536,6 +567,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 	String buildInviteUrl(def response)
 	{
-		response.responseData._embedded."yona:user"._links.self.href + "?tempPassword=" + dummyTempPassword
+		println "URL from response = " + response.responseData._embedded."yona:user"._links.self.href
+		YonaServer.stripQueryString(response.responseData._embedded."yona:user"._links.self.href) + "?tempPassword=" + dummyTempPassword
 	}
 }

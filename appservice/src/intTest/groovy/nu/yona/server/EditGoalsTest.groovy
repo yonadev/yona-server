@@ -12,6 +12,7 @@ import java.time.ZonedDateTime
 
 import groovy.json.*
 import nu.yona.server.test.AppActivity
+import nu.yona.server.test.AppService
 import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
@@ -68,12 +69,12 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		gamblingGoals.size() == 1
 		gamblingGoals[0]."@type" == "BudgetGoal"
 		!gamblingGoals[0]._links.edit //mandatory goal
-		assertEquals(gamblingGoals[0].creationTime, ZonedDateTime.of(2017,1,1,12,0,0,0, ZoneOffset.UTC))
+		AppService.assertEquals(gamblingGoals[0].creationTime, ZonedDateTime.of(2017,1,1,12,0,0,0, ZoneOffset.UTC))
 		def newsGoals = filterGoals(response, NEWS_ACT_CAT_URL)
 		newsGoals.size() == 1
 		newsGoals[0]."@type" == "BudgetGoal"
 		newsGoals[0]._links.edit.href
-		assertEquals(newsGoals[0].creationTime, creationTime)
+		AppService.assertEquals(newsGoals[0].creationTime, creationTime)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -104,10 +105,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_ADDED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
-		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
+		AppService.assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Going to monitor my social time!"
 		goalChangeMessages[0]._links.edit
 
@@ -153,10 +154,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_ADDED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
-		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
+		AppService.assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Going to restrict my social time!"
 		goalChangeMessages[0]._links.edit
 
@@ -363,7 +364,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		responseGoalsAfterUpdate.status == 200
 		responseGoalsAfterUpdate.responseData._embedded."yona:goals".size() == 4
 		findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).maxDurationMinutes == 120
-		assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
+		AppService.assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
 
 		def allSocialGoals = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL)
 		allSocialGoals.size() == 2
@@ -378,10 +379,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_CHANGED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
-		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
+		AppService.assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Want to become a bit more social :)"
 		goalChangeMessages[0]._links.edit
 		goalChangeMessages[1].change == 'GOAL_ADDED'
@@ -434,10 +435,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_CHANGED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
-		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
+		AppService.assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Will be social in the evening too"
 		goalChangeMessages[0]._links.edit
 		goalChangeMessages[1].change == 'GOAL_ADDED'
@@ -475,7 +476,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		responseGoalsAfterUpdate.status == 200
 		responseGoalsAfterUpdate.responseData._embedded."yona:goals".size() == 4
 		findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).maxDurationMinutes == 120
-		assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
+		AppService.assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
 
 		def allSocialGoals = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL)
 		allSocialGoals.size() == 2
@@ -490,10 +491,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_CHANGED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
-		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
+		AppService.assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Want to become a bit more social :)"
 		goalChangeMessages[0]._links.edit
 		goalChangeMessages[1].change == 'GOAL_ADDED'
@@ -516,7 +517,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		responseGoalsAfterUpdate2.status == 200
 		responseGoalsAfterUpdate2.responseData._embedded."yona:goals".size() == 5
 		findActiveGoal(responseGoalsAfterUpdate2, SOCIAL_ACT_CAT_URL).maxDurationMinutes == 180
-		assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
+		AppService.assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
 
 		def allSocialGoals2 = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate2, SOCIAL_ACT_CAT_URL)
 		allSocialGoals2.size() == 3
@@ -531,10 +532,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages2[0].change == 'GOAL_CHANGED'
 		goalChangeMessages2[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages2[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages2[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages2[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages2[0]._embedded?."yona:user" == null
 		goalChangeMessages2[0].nickname == 'RQ'
-		assertEquals(goalChangeMessages2[0].creationTime, YonaServer.now)
+		AppService.assertEquals(goalChangeMessages2[0].creationTime, YonaServer.now)
 		goalChangeMessages2[0].message == "Want to become even more social :)"
 		goalChangeMessages2[0]._links.edit
 		goalChangeMessages2[1].change == 'GOAL_CHANGED'
@@ -557,7 +558,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		responseGoalsAfterUpdate3.status == 200
 		responseGoalsAfterUpdate3.responseData._embedded."yona:goals".size() == 6
 		findActiveGoal(responseGoalsAfterUpdate3, SOCIAL_ACT_CAT_URL).maxDurationMinutes == 240
-		assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
+		AppService.assertEquals(findActiveGoal(responseGoalsAfterUpdate, SOCIAL_ACT_CAT_URL).creationTime, YonaServer.now)
 
 		def allSocialGoals3 = findGoalsIncludingHistoryItems(responseGoalsAfterUpdate3, SOCIAL_ACT_CAT_URL)
 		allSocialGoals3.size() == 4
@@ -572,10 +573,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages3[0].change == 'GOAL_CHANGED'
 		goalChangeMessages3[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages3[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages3[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages3[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages3[0]._embedded?."yona:user" == null
 		goalChangeMessages3[0].nickname == 'RQ'
-		assertEquals(goalChangeMessages3[0].creationTime, YonaServer.now)
+		AppService.assertEquals(goalChangeMessages3[0].creationTime, YonaServer.now)
 		goalChangeMessages3[0].message == "Want to become extremely social :)"
 		goalChangeMessages3[0]._links.edit
 		goalChangeMessages3[1].change == 'GOAL_CHANGED'
@@ -728,10 +729,10 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		goalChangeMessages[0].change == 'GOAL_DELETED'
 		goalChangeMessages[0]._links.related.href == SOCIAL_ACT_CAT_URL
 		goalChangeMessages[0]._links?."yona:buddy"?.href == bob.buddies[0].url
-		goalChangeMessages[0]._links?."yona:user"?.href == richard.url
+		goalChangeMessages[0]._links?."yona:user"?.href.startsWith(YonaServer.stripQueryString(richard.url))
 		goalChangeMessages[0]._embedded?."yona:user" == null
 		goalChangeMessages[0].nickname == 'RQ'
-		assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
+		AppService.assertEquals(goalChangeMessages[0].creationTime, YonaServer.now)
 		goalChangeMessages[0].message == "Don't want to monitor my social time anymore"
 		goalChangeMessages[0]._links.edit
 		goalChangeMessages[1].change == 'GOAL_ADDED'

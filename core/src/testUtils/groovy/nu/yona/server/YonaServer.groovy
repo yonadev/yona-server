@@ -38,7 +38,7 @@ class YonaServer
 
 	def static getTimeStamp()
 	{
-		def formatter = DateTimeFormatter.ofPattern("yyyyMMddhhmmss")
+		def formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssS")
 		formatter.format(now)
 	}
 

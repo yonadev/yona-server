@@ -152,13 +152,14 @@ public class BuddyController extends ControllerBase
 	private GoalDto getGoal(UUID userId, UUID buddyId, UUID goalId)
 	{
 		BuddyDto buddy = buddyService.getBuddy(buddyId);
-		Optional<GoalDto> goal = buddy.getGoals().stream().filter(g -> g.getGoalId().equals(goalId)).findAny();
+		Optional<GoalDto> goal = buddy.getGoals().orElse(Collections.emptySet()).stream()
+				.filter(g -> g.getGoalId().equals(goalId)).findAny();
 		return goal.orElseThrow(() -> GoalServiceException.goalNotFoundByIdForBuddy(userId, buddyId, goalId));
 	}
 
 	private Set<GoalDto> getGoals(UUID buddyId)
 	{
-		return buddyService.getBuddy(buddyId).getGoals();
+		return buddyService.getBuddy(buddyId).getGoals().orElse(Collections.emptySet());
 	}
 
 	private BuddyDto convertToBuddy(PostPutBuddyDto postPutBuddy)
@@ -261,13 +262,12 @@ public class BuddyController extends ControllerBase
 			}
 
 			HashMap<String, Object> result = new HashMap<>();
-			result.put(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME),
-					new UserController.UserResourceAssembler(curieProvider, false).toResource(getContent().getUser()));
-			if (getContent().getUser() != null && getContent().getGoals() != null)
-			{
-				result.put(curieProvider.getNamespacedRelFor(BuddyDto.GOALS_REL_NAME),
-						BuddyController.createAllGoalsCollectionResource(userId, getContent().getId(), getContent().getGoals()));
-			}
+			result.put(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME), UserController.UserResourceAssembler
+					.createInstanceForBuddy(curieProvider, userId).toResource(getContent().getUser()));
+
+			Optional<Set<GoalDto>> goals = getContent().getGoals();
+			goals.ifPresent(g -> result.put(curieProvider.getNamespacedRelFor(BuddyDto.GOALS_REL_NAME),
+					BuddyController.createAllGoalsCollectionResource(userId, getContent().getId(), g)));
 			return result;
 		}
 	}
@@ -291,7 +291,6 @@ public class BuddyController extends ControllerBase
 			ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(buddy.getId());
 			addSelfLink(selfLinkBuilder, buddyResource);
 			addEditLink(selfLinkBuilder, buddyResource);
-			addUserPhotoLink(buddyResource);
 			if (buddy.getSendingStatus() == Status.ACCEPTED)
 			{
 				addDayActivityOverviewsLink(buddyResource);
@@ -319,12 +318,6 @@ public class BuddyController extends ControllerBase
 		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, BuddyResource buddyResource)
 		{
 			buddyResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
-		}
-
-		private void addUserPhotoLink(BuddyResource buddyResource)
-		{
-			buddyResource.getContent().getUserPhotoId().ifPresent(userPhotoId -> buddyResource
-					.add(linkTo(methodOn(UserPhotoController.class).getUserPhoto(userPhotoId)).withRel("userPhoto")));
 		}
 
 		private void addWeekActivityOverviewsLink(BuddyResource buddyResource)

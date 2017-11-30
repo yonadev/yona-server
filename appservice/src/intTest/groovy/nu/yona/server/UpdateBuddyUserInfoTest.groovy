@@ -33,13 +33,13 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
 		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
-		buddyInfoUpdateMessages[0]._links."yona:user".href == bob.url
 		buddyInfoUpdateMessages[0]._links."yona:buddy".href == richard.buddies[0].url
 		buddyInfoUpdateMessages[0].nickname == "Bobby"
 		buddyInfoUpdateMessages[0].message == "User changed personal info"
 
 		User richardAfterProcess = appService.reloadUser(richard)
 		richardAfterProcess.buddies[0].nickname == "Bobby"
+		richardAfterProcess.buddies[0].user.nickname == "Bobby"
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -66,7 +66,7 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
 		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
-		buddyInfoUpdateMessages[0]._links."yona:user".href == bob.url
+		buddyInfoUpdateMessages[0]._links."yona:user".href.startsWith(YonaServer.stripQueryString(bob.url))
 		buddyInfoUpdateMessages[0]._links."yona:buddy".href == richard.buddies[0].url
 		buddyInfoUpdateMessages[0].nickname == "BD"
 		buddyInfoUpdateMessages[0].message == "User changed personal info"

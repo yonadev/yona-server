@@ -4,9 +4,12 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.entities;
 
+import java.util.Set;
 import java.util.UUID;
 
 import javax.persistence.Entity;
+
+import nu.yona.server.device.entities.UserDevice;
 
 @Entity
 public class BuddyConnectResponseMessage extends BuddyConnectMessage
@@ -21,16 +24,16 @@ public class BuddyConnectResponseMessage extends BuddyConnectMessage
 	}
 
 	private BuddyConnectResponseMessage(BuddyInfoParameters buddyInfoParameters, String message, UUID buddyId,
-			BuddyAnonymized.Status status)
+			Set<UserDevice> devices, BuddyAnonymized.Status status)
 	{
-		super(buddyInfoParameters, message, buddyId);
+		super(buddyInfoParameters, message, buddyId, devices);
 		this.status = status;
 	}
 
 	public static BuddyConnectResponseMessage createInstance(BuddyInfoParameters buddyInfoParameters, String message,
-			UUID buddyId, BuddyAnonymized.Status status)
+			UUID buddyId, Set<UserDevice> devices, BuddyAnonymized.Status status)
 	{
-		return new BuddyConnectResponseMessage(buddyInfoParameters, message, buddyId, status);
+		return new BuddyConnectResponseMessage(buddyInfoParameters, message, buddyId, devices, status);
 	}
 
 	public BuddyAnonymized.Status getStatus()

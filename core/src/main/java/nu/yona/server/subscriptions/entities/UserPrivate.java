@@ -118,8 +118,7 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 	UserAnonymized getUserAnonymized()
 	{
 		UserAnonymized userAnonymized = UserAnonymized.getRepository().findOne(userAnonymizedId);
-		Objects.requireNonNull(userAnonymized, "UserAnonymized with ID " + userAnonymizedId + " not found");
-		return userAnonymized;
+		return Objects.requireNonNull(userAnonymized, "UserAnonymized with ID " + userAnonymizedId + " not found");
 	}
 
 	public Set<Buddy> getBuddies()
@@ -214,10 +213,12 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 	public void addDevice(UserDevice device)
 	{
 		devices.add(device);
+		device.setUserPrivateId(getId());
 	}
 
 	public void removeDevice(UserDevice device)
 	{
 		devices.remove(device);
+		device.clearUserPrivateId();
 	}
 }

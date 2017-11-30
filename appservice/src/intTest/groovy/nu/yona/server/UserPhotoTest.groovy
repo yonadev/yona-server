@@ -301,14 +301,14 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
 		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
-		buddyInfoUpdateMessages[0]._links."yona:user".href == richard.url
+		buddyInfoUpdateMessages[0]._links."yona:user".href.startsWith(YonaServer.stripQueryString(richard.url))
 		buddyInfoUpdateMessages[0]._links."yona:buddy".href == bob.buddies[0].url
 		buddyInfoUpdateMessages[0]._links."yona:userPhoto".href == newUserPhotoUrl
 		buddyInfoUpdateMessages[0].nickname == "RQ"
 		buddyInfoUpdateMessages[0].message == "User changed personal info"
 
 		User bobAfterProcess = appService.reloadUser(bob)
-		bobAfterProcess.buddies[0].userPhotoUrl == newUserPhotoUrl
+		bobAfterProcess.buddies[0].user.userPhotoUrl == newUserPhotoUrl
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -335,14 +335,14 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		buddyInfoUpdateMessages.size() == 1
 		buddyInfoUpdateMessages[0]._links.self != null
 		buddyInfoUpdateMessages[0]._links."yona:process" == null // Processing happens automatically these days
-		buddyInfoUpdateMessages[0]._links."yona:user".href == richard.url
+		buddyInfoUpdateMessages[0]._links."yona:user".href.startsWith(YonaServer.stripQueryString(richard.url))
 		buddyInfoUpdateMessages[0]._links."yona:buddy".href == bob.buddies[0].url
 		buddyInfoUpdateMessages[0]._links."yona:userPhoto"?.href == null
 		buddyInfoUpdateMessages[0].nickname == "RQ"
 		buddyInfoUpdateMessages[0].message == "User changed personal info"
 
 		User bobAfterProcess = appService.reloadUser(bob)
-		bobAfterProcess.buddies[0].userPhotoUrl == null
+		bobAfterProcess.buddies[0].user.userPhotoUrl == null
 
 		cleanup:
 		appService.deleteUser(richard)

@@ -5,13 +5,17 @@
 package nu.yona.server.subscriptions.entities;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
@@ -19,6 +23,7 @@ import org.hibernate.annotations.Type;
 import nu.yona.server.crypto.seckey.DateTimeFieldEncryptor;
 import nu.yona.server.crypto.seckey.StringFieldEncryptor;
 import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
+import nu.yona.server.device.entities.BuddyDevice;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.util.TimeUtil;
@@ -46,6 +51,12 @@ public class Buddy extends EntityWithUuidAndTouchVersion
 	@Convert(converter = UUIDFieldEncryptor.class)
 	private UUID userPhotoId;
 
+	/**
+	 * The BuddyAnonymized entities owned by this user
+	 */
+	@OneToMany(mappedBy = "owningBuddy", cascade = CascadeType.ALL, orphanRemoval = true)
+	private Set<BuddyDevice> devices;
+
 	// Default constructor is required for JPA
 	public Buddy()
 	{
@@ -55,12 +66,10 @@ public class Buddy extends EntityWithUuidAndTouchVersion
 	private Buddy(UUID id, UUID userId, String nickname, UUID buddyAnonymizedId)
 	{
 		super(id);
-		Objects.requireNonNull(userId);
-		Objects.requireNonNull(nickname);
-		Objects.requireNonNull(buddyAnonymizedId);
-		this.userId = userId;
-		this.nickname = nickname;
-		this.buddyAnonymizedId = buddyAnonymizedId;
+		this.userId = Objects.requireNonNull(userId);
+		this.nickname = Objects.requireNonNull(nickname);
+		this.buddyAnonymizedId = Objects.requireNonNull(buddyAnonymizedId);
+		this.devices = new HashSet<>();
 
 		setLastStatusChangeTimeToNow();
 	}
@@ -96,14 +105,14 @@ public class Buddy extends EntityWithUuidAndTouchVersion
 		return nickname;
 	}
 
-	public Optional<UUID> getUserPhotoId()
-	{
-		return Optional.ofNullable(userPhotoId);
-	}
-
 	public void setNickName(String nickname)
 	{
 		this.nickname = nickname;
+	}
+
+	public Optional<UUID> getUserPhotoId()
+	{
+		return Optional.ofNullable(userPhotoId);
 	}
 
 	public void setUserPhotoId(Optional<UUID> userPhotoId)
@@ -185,5 +194,23 @@ public class Buddy extends EntityWithUuidAndTouchVersion
 	public void setLastStatusChangeTime(LocalDateTime lastStatusChangeTime)
 	{
 		this.lastStatusChangeTime = lastStatusChangeTime;
+	}
+
+	public void addDevice(BuddyDevice device)
+	{
+		devices.add(device);
+		device.setOwningBuddy(this);
+	}
+
+	public void removeDevice(BuddyDevice device)
+	{
+		boolean removed = devices.remove(device);
+		assert removed;
+		device.clearOwningBuddy();
+	}
+
+	public Set<BuddyDevice> getDevices()
+	{
+		return devices;
 	}
 }

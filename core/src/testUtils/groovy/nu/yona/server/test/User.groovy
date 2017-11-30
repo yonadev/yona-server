@@ -24,6 +24,8 @@ class User
 	final String lastName
 	final String mobileNumber
 	String emailAddress
+	String deviceName
+	String deviceOperatingSystem
 	final String mobileNumberConfirmationUrl
 	final String resendMobileNumberConfirmationCodeUrl
 	final String postOpenAppEventUrl
@@ -33,6 +35,7 @@ class User
 	final String editUserPhotoUrl
 	final List<Goal> goals
 	final List<Buddy> buddies
+	final List<Device> devices
 	final VPNProfile vpnProfile
 	final String url
 	final String editUrl
@@ -60,6 +63,9 @@ class User
 		this.firstName = json.firstName
 		this.lastName = json.lastName
 		this.mobileNumber = json.mobileNumber
+		this.nickname = json.nickname
+		this.userPhotoUrl = json._links?."yona:userPhoto"?.href
+		this.editUserPhotoUrl = json._links?."yona:editUserPhoto"?.href
 		this.mobileNumberConfirmationUrl = json._links?."yona:confirmMobileNumber"?.href
 		this.resendMobileNumberConfirmationCodeUrl = json._links?."yona:resendMobileNumberConfirmationCode"?.href
 		this.postOpenAppEventUrl = json._links?."yona:postOpenAppEvent"?.href
@@ -69,15 +75,13 @@ class User
 			// Private data is available
 			this.lastMonitoredActivityDate = (json.lastMonitoredActivityDate) ? YonaServer.parseIsoDateString(json.lastMonitoredActivityDate) : null
 			this.password = json.yonaPassword
-			this.nickname = json.nickname
-			this.userPhotoUrl = json._links?."yona:userPhoto"?.href
-			this.editUserPhotoUrl = json._links?."yona:editUserPhoto"?.href
 
 			this.buddies = (json._embedded?."yona:buddies"?._embedded) ? json._embedded."yona:buddies"._embedded."yona:buddies".collect{new Buddy(it)} : []
-			this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJson(it)} : []
 			this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
 		}
-		this.url = YonaServer.stripQueryString(json._links.self.href)
+		this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJson(it)} : null
+		this.devices = (json._embedded?."yona:devices"?._embedded) ? json._embedded."yona:devices"._embedded."yona:devices".collect{new Device(it)} : null
+		this.url = json._links.self.href
 		this.editUrl = json._links?.edit?.href
 		this.buddiesUrl = json._embedded?."yona:buddies"?._links?.self?.href
 		this.goalsUrl = json._embedded?."yona:goals"?._links?.self?.href
@@ -98,19 +102,21 @@ class User
 
 	def convertToJson()
 	{
-		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber)
+		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName, deviceOperatingSystem)
 
 		return new JsonSlurper().parseText(jsonStr)
 	}
 
-	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber)
+	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN")
 	{
+		def devicePropertiesString = (deviceName) ? """"deviceName":"$deviceName", "deviceOperatingSystem":"$deviceOperatingSystem",""" : ""
 		def selfLinkString = (url) ? """"self":{"href":"$url"},""" : ""
 		def passwordString = (password) ? """"yonaPassword":"${password}",""" : ""
 		def json = """{
 				"_links":{
 					$selfLinkString
 				},
+				$devicePropertiesString
 				"firstName":"${firstName}",
 				"lastName":"${lastName}",
 				$passwordString
@@ -120,14 +126,29 @@ class User
 		return json
 	}
 
+	def getId()
+	{
+		getIdFromUrl(url)
+	}
+
+	static def getIdFromUrl(def url)
+	{
+		def queryStringStart = url.indexOf('?')
+		if (queryStringStart == -1)
+		{
+			return url[-36..-1]
+		}
+		return url[queryStringStart-36..queryStringStart-1]
+	}
+
 	def findActiveGoal(def activityCategoryUrl)
 	{
 		goals.find{ it.activityCategoryUrl == activityCategoryUrl && !it.historyItem }
 	}
 
-	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber)
+	static String makeUserJsonString(firstName, lastName, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN")
 	{
-		makeUserJsonStringInternal(null, firstName, lastName, null, nickname, mobileNumber)
+		makeUserJsonStringInternal(null, firstName, lastName, null, nickname, mobileNumber, deviceName, deviceOperatingSystem)
 	}
 }
 

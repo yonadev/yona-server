@@ -38,12 +38,26 @@ public class UserDevice extends DeviceBase
 	{
 	}
 
-	public UserDevice(UUID id, UUID userPrivateId, String name)
+	public UserDevice(UUID id, String name, UUID deviceAnonymizedId)
 	{
-		super(id, name);
-		this.userPrivateId = Objects.requireNonNull(userPrivateId);
+		super(id, name, deviceAnonymizedId, true); // Consider the VPN to be connected by default
 		this.registrationTime = LocalDateTime.now();
 		this.appLastOpenedDate = LocalDate.now(); // The user registers this device, so the app is open now
+	}
+
+	public UUID getUserPrivateId()
+	{
+		return userPrivateId;
+	}
+
+	public void setUserPrivateId(UUID userPrivateId)
+	{
+		this.userPrivateId = userPrivateId;
+	}
+
+	public void clearUserPrivateId()
+	{
+		userPrivateId = null;
 	}
 
 	public LocalDateTime getRegistrationTime()

@@ -64,6 +64,7 @@ import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
 import nu.yona.server.subscriptions.rest.BuddyController;
 import nu.yona.server.subscriptions.rest.UserController;
+import nu.yona.server.subscriptions.rest.UserController.UserResourceAssembler;
 import nu.yona.server.subscriptions.rest.UserPhotoController;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDto;
 import nu.yona.server.subscriptions.service.BuddyDto;
@@ -408,13 +409,23 @@ public class MessageController extends ControllerBase
 		{
 			buddyMessage.getSenderUser()
 					.ifPresent(user -> buddyMessage.setEmbeddedUser(curieProvider.getNamespacedRelFor(BuddyDto.USER_REL_NAME),
-							new UserController.UserResourceAssembler(curieProvider, false).toResource(user)));
+							createResourceAssembler(user).toResource(user)));
+		}
+
+		private UserResourceAssembler createResourceAssembler(UserDto user)
+		{
+			if (goalIdMapping.getUser().getOwnPrivateData().getBuddies().stream().map(b -> b.getUser().getId())
+					.anyMatch(id -> id.equals(user.getId())))
+			{
+				return UserController.UserResourceAssembler.createMinimalInstance(curieProvider, goalIdMapping.getUserId());
+			}
+			return UserController.UserResourceAssembler.createPublicUserInstance(curieProvider);
 		}
 
 		private void addUserLinkIfAvailable(BuddyMessageLinkedUserDto buddyMessage)
 		{
-			buddyMessage.getSenderUser()
-					.ifPresent(user -> buddyMessage.add(UserController.getPublicUserLink(BuddyDto.USER_REL_NAME, user.getId())));
+			buddyMessage.getSenderUser().ifPresent(user -> buddyMessage
+					.add(UserController.getBuddyUserLink(BuddyDto.USER_REL_NAME, user.getId(), goalIdMapping.getUserId())));
 		}
 
 		private void addActivityCommentMessageLinks(ActivityCommentMessageDto message)

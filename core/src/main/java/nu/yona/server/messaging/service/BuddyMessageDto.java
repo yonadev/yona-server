@@ -42,13 +42,14 @@ public abstract class BuddyMessageDto extends MessageDto
 
 	public static BuddyInfoParameters createBuddyInfoParametersInstance(UserDto userWithPrivateData)
 	{
-		return createBuddyInfoParametersInstance(userWithPrivateData, userWithPrivateData.getPrivateData().getUserAnonymizedId());
+		return createBuddyInfoParametersInstance(userWithPrivateData,
+				userWithPrivateData.getOwnPrivateData().getUserAnonymizedId());
 	}
 
 	public static BuddyInfoParameters createBuddyInfoParametersInstance(UserDto userWithPrivateData, UUID relatedUserAnonymizedId)
 	{
 		return new BuddyInfoParameters(relatedUserAnonymizedId, userWithPrivateData.getId(),
-				userWithPrivateData.getPrivateData().getNickname(), userWithPrivateData.getPrivateData().getUserPhotoId());
+				userWithPrivateData.getPrivateData().getNickname(), userWithPrivateData.getOwnPrivateData().getUserPhotoId());
 	}
 
 	@Component
@@ -60,7 +61,7 @@ public abstract class BuddyMessageDto extends MessageDto
 			BuddyMessage buddyMessageEntity = (BuddyMessage) messageEntity;
 			if (actingUser.getId().equals(buddyMessageEntity.getSenderUserId()))
 			{
-				return Optional.of(actingUser.getPrivateData().getUserAnonymizedId());
+				return Optional.of(actingUser.getOwnPrivateData().getUserAnonymizedId());
 			}
 			return messageEntity.getRelatedUserAnonymizedId();
 		}

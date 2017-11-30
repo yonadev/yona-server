@@ -187,12 +187,12 @@ public abstract class MessageDto extends PolymorphicDto
 			Optional<UUID> senderUserAnonymizedId = getSenderUserAnonymizedId(actingUser, messageEntity);
 			if (senderUserAnonymizedId.isPresent())
 			{
-				if (actingUser.getPrivateData().getUserAnonymizedId().equals(senderUserAnonymizedId.get()))
+				if (actingUser.getOwnPrivateData().getUserAnonymizedId().equals(senderUserAnonymizedId.get()))
 				{
 					return createSenderInfoForSelf(actingUser);
 				}
 
-				Optional<BuddyDto> buddy = buddyService.getBuddyOfUserByUserAnonymizedId(actingUser.getPrivateData(),
+				Optional<BuddyDto> buddy = buddyService.getBuddyOfUserByUserAnonymizedId(actingUser.getOwnPrivateData(),
 						senderUserAnonymizedId.get());
 				if (buddy.isPresent())
 				{
@@ -217,14 +217,14 @@ public abstract class MessageDto extends PolymorphicDto
 
 		private SenderInfo createSenderInfoForSelf(UserDto actingUser)
 		{
-			return senderInfoFactory.createInstanceForSelf(actingUser.getId(), actingUser.getPrivateData().getNickname(),
-					actingUser.getPrivateData().getUserPhotoId());
+			return senderInfoFactory.createInstanceForSelf(actingUser.getId(), actingUser.getOwnPrivateData().getNickname(),
+					actingUser.getOwnPrivateData().getUserPhotoId());
 		}
 
 		private SenderInfo createSenderInfoForBuddy(BuddyDto buddy)
 		{
-			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getId(), buddy.getNickname(), buddy.getUserPhotoId(),
-					buddy.getId());
+			return senderInfoFactory.createInstanceForBuddy(buddy.getUser().getId(), buddy.getNickname(),
+					buddy.getUser().getPrivateData().getUserPhotoId(), buddy.getId());
 		}
 
 		protected SenderInfo createSenderInfoForDetachedBuddy(Optional<User> userEntity, String nickname,

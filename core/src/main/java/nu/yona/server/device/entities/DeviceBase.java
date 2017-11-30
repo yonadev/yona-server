@@ -22,6 +22,9 @@ import nu.yona.server.subscriptions.entities.EntityWithUuidAndTouchVersion;
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class DeviceBase extends EntityWithUuidAndTouchVersion
 {
+	public static final int MAX_NAME_LENGTH = 20;
+	public static final String DEVICE_NAMES_SEPARATOR = ":";
+
 	@Convert(converter = StringFieldEncryptor.class)
 	private String name;
 
@@ -37,10 +40,12 @@ public abstract class DeviceBase extends EntityWithUuidAndTouchVersion
 		super(null);
 	}
 
-	protected DeviceBase(UUID id, String name)
+	protected DeviceBase(UUID id, String name, UUID deviceAnonymizedId, boolean isVpnConnected)
 	{
 		super(id);
 		this.name = Objects.requireNonNull(name);
+		this.deviceAnonymizedId = Objects.requireNonNull(deviceAnonymizedId);
+		this.isVpnConnected = isVpnConnected;
 	}
 
 	public String getName()
@@ -68,9 +73,9 @@ public abstract class DeviceBase extends EntityWithUuidAndTouchVersion
 		return deviceAnonymizedId;
 	}
 
-	public void setDeviceAnonymizedId(UUID deviceAnonymizedId)
+	public DeviceAnonymized getDeviceAnonymized()
 	{
-		this.deviceAnonymizedId = deviceAnonymizedId;
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized.getRepository().findOne(deviceAnonymizedId);
+		return Objects.requireNonNull(deviceAnonymized, "DeviceAnonymized with ID " + deviceAnonymizedId + " not found");
 	}
-
 }

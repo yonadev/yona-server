@@ -161,8 +161,8 @@ public abstract class Goal extends EntityWithUuid implements Serializable
 
 	public void addWeekActivity(WeekActivity weekActivity)
 	{
-		Objects.requireNonNull(weekActivity);
-		weekActivities.add(weekActivity);
+		
+		weekActivities.add(Objects.requireNonNull(weekActivity));
 	}
 
 	public void setWeekActivities(List<WeekActivity> weekActivities)

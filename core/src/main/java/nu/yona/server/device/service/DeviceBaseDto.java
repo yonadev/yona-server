@@ -9,6 +9,8 @@ package nu.yona.server.device.service;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public abstract class DeviceBaseDto
 {
 	private final UUID id;
@@ -22,6 +24,7 @@ public abstract class DeviceBaseDto
 		this.isVpnConnected = isVpnConnected;
 	}
 
+	@JsonIgnore
 	public UUID getId()
 	{
 		return id;
