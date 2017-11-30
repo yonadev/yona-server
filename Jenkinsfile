@@ -118,5 +118,29 @@ pipeline {
 				sh './refresh-build.sh ${BUILD_NUMBER_TO_DEPLOY} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/resources /opt/ope-cloudbees/yona/backup'
 			}
 		}
+		stage('Decide deploy to beta server') {
+			agent none
+			when {
+				environment name: 'DEPLOY_TO_ACC_TEST', value: 'yes'
+					 }
+			steps {
+				checkpoint 'Acceptance test server deployed'
+				script {
+					env.DEPLOY_TO_BETA = input message: 'User input required',
+					submitter: 'authenticated',
+					parameters: [choice(name: 'Deploy to Beta server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the beta server')]
+				}
+			}
+		}
+		stage('Deploy to Beta server') {
+			agent { label 'beta' }
+			when {
+				environment name: 'DEPLOY_TO_BETA', value: 'yes'
+			}
+			steps {
+				sh 'helm repo add yona https://yonadev.github.io/helm-charts'
+				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
+			}
+		}
 	}
 }
