@@ -6,14 +6,18 @@ package nu.yona.server.subscriptions.entities;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
+
+import org.apache.commons.lang.StringUtils;
 
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
 import nu.yona.server.device.entities.DeviceBase;
@@ -23,6 +27,7 @@ import nu.yona.server.messaging.entities.BuddyMessage;
 @Entity
 public abstract class BuddyConnectMessage extends BuddyMessage
 {
+	private static final List<String> EMPTY_STRING_LIST = Collections.emptyList();
 	private static final String SEPARATOR = DeviceBase.DEVICE_NAMES_SEPARATOR;
 	private static final int UUID_LENGTH = 36;
 	private static final int BOOLEAN_LENGTH = 5;
@@ -86,18 +91,22 @@ public abstract class BuddyConnectMessage extends BuddyMessage
 
 	public List<String> getDeviceNames()
 	{
-		return Arrays.stream(deviceNames.split(SEPARATOR)).collect(Collectors.toList());
+		return splitString(deviceNames).collect(Collectors.toList());
 	}
 
 	public List<UUID> getDeviceAnonymizedIds()
 	{
-		return Arrays.stream(deviceAnonymizedIds.split(SEPARATOR)).map(UUID::fromString).collect(Collectors.toList());
+		return splitString(deviceAnonymizedIds).map(UUID::fromString).collect(Collectors.toList());
 	}
 
 	public List<Boolean> getDeviceVpnConnectionStatuses()
 	{
-		return Arrays.stream(deviceVpnConnectionStatuses.split(SEPARATOR)).map(Boolean::parseBoolean)
-				.collect(Collectors.toList());
+		return splitString(deviceVpnConnectionStatuses).map(Boolean::parseBoolean).collect(Collectors.toList());
+	}
+
+	private static Stream<String> splitString(String value)
+	{
+		return StringUtils.isBlank(value) ? EMPTY_STRING_LIST.stream() : Arrays.stream(value.split(SEPARATOR));
 	}
 
 	@Override
