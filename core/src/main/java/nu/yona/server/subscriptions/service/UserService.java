@@ -289,7 +289,7 @@ public class UserService
 	private void addDevicesToEntity(UserDto userDto, User userEntity)
 	{
 		userDto.getOwnPrivateData().getDevices().orElse(Collections.emptySet()).stream().map(d -> (UserDeviceDto) d)
-				.map(d -> createUserDeviceEntity(d, 0)).forEach(d -> userEntity.addDevice(d));
+				.map(d -> createUserDeviceEntity(d, 0)).forEach(userEntity::addDevice);
 	}
 
 	private Set<Goal> buildGoalsSet(UserDto user, UserSignUp signUp)
