@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import groovy.json.*
 import nu.yona.server.test.AppService
 import nu.yona.server.test.Buddy
@@ -172,7 +174,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		Goal budgetGoalNewsBuddyBob = richard.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
 
 		def responseDayOverviewsBobAsBuddyAll = appService.getDayActivityOverviews(richard, richard.buddies[0])
-		assert responseDayOverviewsBobAsBuddyAll.status == 200
+		assertResponseStatusOk(responseDayOverviewsBobAsBuddyAll)
 
 		def responseDetailsBobAsBuddy = appService.getDayDetailsFromOverview(responseDayOverviewsBobAsBuddyAll, richard, budgetGoalNewsBuddyBob, 0, getCurrentShortDay(YonaServer.now))
 		assert responseDetailsBobAsBuddy.responseData._links."yona:addComment".href
@@ -183,7 +185,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def responseAddMessage = appService.yonaServer.createResourceWithPassword(responseDetailsBobAsBuddy.responseData._links."yona:addComment".href, message, richard.password)
 
 		then:
-		responseAddMessage.status == 200
+		assertResponseStatusOk(responseAddMessage)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -200,7 +202,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		Goal budgetGoalNewsBuddyBob = richard.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
 
 		def responseWeekOverviewsBobAsBuddyAll = appService.getWeekActivityOverviews(richard, richard.buddies[0])
-		assert responseWeekOverviewsBobAsBuddyAll.status == 200
+		assertResponseStatusOk(responseWeekOverviewsBobAsBuddyAll)
 
 		def responseDetailsBobAsBuddy = appService.getWeekDetailsFromOverview(responseWeekOverviewsBobAsBuddyAll, richard, budgetGoalNewsBuddyBob, 0)
 		assert responseDetailsBobAsBuddy.responseData._links."yona:addComment".href
@@ -211,7 +213,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def responseAddMessage = appService.yonaServer.createResourceWithPassword(responseDetailsBobAsBuddy.responseData._links."yona:addComment".href, message, richard.password)
 
 		then:
-		responseAddMessage.status == 200
+		assertResponseStatusOk(responseAddMessage)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -257,7 +259,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def response = appService.deleteResourceWithPassword(richardMessagesRevisited[0]._links.edit.href, richard.password)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		getActivityDetailMessages(richardResponseDetails, richard, [], 10)
 		getActivityDetailMessages(bobResponseDetailsRichardAsBuddy, bob, [], 10)
 
@@ -305,7 +307,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def response = appService.deleteResourceWithPassword(richardMessagesRevisited[1]._links.edit.href, richard.password)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		getActivityDetailMessages(richardResponseDetails, richard, expectedData1, 10)
 		getActivityDetailMessages(bobResponseDetailsRichardAsBuddy, bob, expectedData1, 10)
 
@@ -353,7 +355,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def response = appService.deleteResourceWithPassword(richardMessagesRevisited[2]._links.edit.href, richard.password)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 
 		getActivityDetailMessages(richardResponseDetails, richard, expectedData2, 10)
 		getActivityDetailMessages(bobResponseDetailsRichardAsBuddy, bob, expectedData2, 10)
@@ -382,7 +384,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		assert budgetGoalNewsBob
 
 		def responseOverviewsBobAsBuddyAll = buddyOverviewRetriever(richard)
-		assert responseOverviewsBobAsBuddyAll.status == 200
+		assertResponseStatusOk(responseOverviewsBobAsBuddyAll)
 
 		def responseDetailsBobAsBuddy = detailsRetriever(responseOverviewsBobAsBuddyAll, richard, budgetGoalNewsBuddyBob)
 		assert responseDetailsBobAsBuddy.responseData._links."yona:addComment".href
@@ -391,7 +393,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		def message = """{"message": "You're quiet!"}"""
 		def responseAddMessage = appService.yonaServer.createResourceWithPassword(responseDetailsBobAsBuddy.responseData._links."yona:addComment".href, message, richard.password)
 
-		assert responseAddMessage.status == 200
+		assertResponseStatusOk(responseAddMessage)
 		def addedMessage = responseAddMessage.responseData
 		assertCommentMessageDetails(addedMessage, richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "You're quiet!", addedMessage)
 
@@ -403,7 +405,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		assertCommentMessageDetails(initialMessagesSeenByRichard[0], richard, isWeek, richard, responseDetailsBobAsBuddy.responseData._links.self.href, "You're quiet!", initialMessagesSeenByRichard[0])
 
 		def responseOverviewsBobAll = userOverviewRetriever(bob)
-		assert responseOverviewsBobAll.status == 200
+		assertResponseStatusOk(responseOverviewsBobAll)
 
 		def responseDetailsBob = detailsRetriever(responseOverviewsBobAll, bob, budgetGoalNewsBob)
 		assert responseDetailsBob.responseData._links."yona:addComment" == null
@@ -471,7 +473,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 	private static void replyToMessage(AppService appService, messageToReply, User senderUser, messageToSend, boolean isWeek, responseGetActivityDetails, threadHeadMessage)
 	{
 		def responseReplyFromBob = appService.postMessageActionWithPassword(messageToReply._links."yona:reply".href, ["message" : messageToSend], senderUser.password)
-		assert responseReplyFromBob.status == 200
+		assertResponseStatusOk(responseReplyFromBob)
 		assert responseReplyFromBob.responseData.properties["status"] == "done"
 		assert responseReplyFromBob.responseData._embedded?."yona:affectedMessages"?.size() == 1
 		def replyMessage = responseReplyFromBob.responseData._embedded."yona:affectedMessages"[0]
@@ -484,7 +486,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		int expectedNumMessagesInPage = Math.min(expectedNumMessages, pageSize)
 		def response = appService.yonaServer.getResourceWithPassword(responseGetActivityDetails.responseData._links."yona:messages".href, user.password, ["size":pageSize])
 
-		assert response.status == 200
+		assertResponseStatusOk(response)
 		def messages = response.responseData?._embedded?."yona:messages"
 		if (expectedNumMessagesInPage == 0)
 		{
@@ -518,7 +520,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 		int defaultPageSize = 4
 		def response = appService.yonaServer.getResourceWithPassword(responseGetActivityDetails.responseData._links.next.href, user.password)
 
-		assert response.status == 200
+		assertResponseStatusOk(response)
 		assert response.responseData?._embedded?."yona:messages"?.size() == 1
 		assert response.responseData.page.size == defaultPageSize
 		assert response.responseData.page.totalElements == 5

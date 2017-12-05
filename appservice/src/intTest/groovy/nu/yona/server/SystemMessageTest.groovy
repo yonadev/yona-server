@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import groovy.json.*
 
 class SystemMessageTest extends AbstractAppServiceIntegrationTest
@@ -23,7 +25,7 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 		def messagesBob = appService.getMessages(bob)
 
 		then:
-		messagesRichard.status == 200
+		assertResponseStatusOk(messagesRichard)
 		def systemMessagesRichard = messagesRichard.responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}
 		systemMessagesRichard.size() == 1
 		systemMessagesRichard[0].message == "Hi there!"
@@ -59,7 +61,7 @@ class SystemMessageTest extends AbstractAppServiceIntegrationTest
 		def response = appService.deleteResourceWithPassword(messageDeleteUrl, bob.password)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		appService.getMessages(richard).responseData._embedded."yona:messages".findAll{ it."@type" == "SystemMessage"}.size() == 1
 		appService.getMessages(bob).responseData._embedded == null
 

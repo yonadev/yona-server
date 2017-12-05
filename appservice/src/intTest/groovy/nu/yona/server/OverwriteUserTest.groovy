@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import groovy.json.*
 import nu.yona.server.test.User
 
@@ -29,7 +31,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 
 	def userExistsAsserter(def response)
 	{
-		assert response.status == 400
+		assertResponseStatus(response, 400)
 		assert response.responseData.code == "error.user.exists"
 	}
 
@@ -42,7 +44,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def response = appService.requestOverwriteUser(richard.mobileNumber)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -72,7 +74,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		richardChanged.goals[0].activityCategoryUrl == GAMBLING_ACT_CAT_URL
 
 		def getMessagesResponse = appService.getMessages(bob)
-		getMessagesResponse.status == 200
+		assertResponseStatusOk(getMessagesResponse)
 		getMessagesResponse.responseData._embedded?."yona:messages"?.size() == 1
 		def buddyDisconnectMessages = getMessagesResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyDisconnectMessage"}
 		buddyDisconnectMessages.size() == 1
@@ -110,7 +112,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		richardChanged.firstName == "${richard.firstName}Changed"
 
 		def getMessagesBobResponse = appService.getMessages(bob)
-		getMessagesBobResponse.status == 200
+		assertResponseStatusOk(getMessagesBobResponse)
 		getMessagesBobResponse.responseData._embedded."yona:messages".size() == 1
 		def buddyConnectRequestMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectRequestMessage"}
 		buddyConnectRequestMessages.size() == 1
@@ -118,12 +120,12 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 
 		def acceptUrl = buddyConnectRequestMessages[0]._links?."yona:accept"?.href
 		def acceptBuddyRequestResponse = appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password)
-		acceptBuddyRequestResponse.status == 400
+		assertResponseStatus(acceptBuddyRequestResponse, 400)
 		acceptBuddyRequestResponse.responseData.code == "error.user.not.found.id"
 
 		def rejectUrl = buddyConnectRequestMessages[0]._links?."yona:reject"?.href
 		def rejectBuddyRequestResponse = appService.postMessageActionWithPassword(rejectUrl, ["message" : "Too bad!"], bob.password)
-		rejectBuddyRequestResponse.status == 200
+		assertResponseStatusOk(rejectBuddyRequestResponse)
 
 		def buddiesRichard = appService.getBuddies(richardChanged)
 		buddiesRichard.size() == 0
@@ -161,11 +163,11 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		buddiesBob.size() == 0
 
 		def getMessagesRichardResponse = appService.getMessages(richardChanged)
-		getMessagesRichardResponse.status == 200
+		assertResponseStatusOk(getMessagesRichardResponse)
 		getMessagesRichardResponse.responseData._embedded == null
 
 		def getMessagesBobResponse = appService.getMessages(bob)
-		getMessagesBobResponse.status == 200
+		assertResponseStatusOk(getMessagesBobResponse)
 		getMessagesBobResponse.responseData._embedded."yona:messages".size() == 1
 		def buddyConnectResponseMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "BuddyConnectResponseMessage"}
 		buddyConnectResponseMessages.size() == 1
@@ -201,11 +203,11 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		analysisService.postToAnalysisEngine(richardChanged, "news/media", "http://www.refdag.nl")
 
 		def getMessagesRichardResponse = appService.getMessages(richardChanged)
-		getMessagesRichardResponse.status == 200
+		assertResponseStatusOk(getMessagesRichardResponse)
 		getMessagesRichardResponse.responseData._embedded == null
 
 		def getMessagesBobResponse = appService.getMessages(bob)
-		getMessagesBobResponse.status == 200
+		assertResponseStatusOk(getMessagesBobResponse)
 		getMessagesBobResponse.responseData._embedded."yona:messages".size() == 2
 
 		def goalConflictMessages = getMessagesBobResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage"}
@@ -231,27 +233,26 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-
 	def 'Overwrite Richard while being a buddy of Bob and verify Richard does not receive Bob\'s goal conflicts anymore'()
 	{
 		given:
 		def richardAndBob = addRichardAndBobAsBuddies()
-		def richard = richardAndBob.richard
-		def bob = richardAndBob.bob
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
 		appService.requestOverwriteUser(richard.mobileNumber)
-		def richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.firstName}Changed",
+		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.firstName}Changed",
 				"${richard.lastName}Changed", "${richard.nickname}Changed", richard.mobileNumber,
 				["overwriteUserConfirmationCode": "1234"])
 
 		when:
 		def response = analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
 
-		def getMessagesResponse = appService.getMessages(richard)
-		getMessagesResponse.status == 200
+		def getMessagesResponse = appService.getMessages(richardChanged)
+		assertResponseStatusOk(getMessagesResponse)
 		getMessagesResponse.responseData._embedded == null
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 
 		cleanup:
 		appService.deleteUser(richardChanged)
@@ -263,8 +264,8 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		given:
 		def richard = addRichard()
 		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		assert appService.requestOverwriteUser(richard.mobileNumber).status == 200
-		assert appService.requestOverwriteUser(richard.mobileNumber).status == 200
+		assertResponseStatusOk(appService.requestOverwriteUser(richard.mobileNumber))
+		assertResponseStatusOk(appService.requestOverwriteUser(richard.mobileNumber))
 
 		when:
 		User richardChanged = appService.addUser(this.&assertUserOverwriteResponseDetails, "${richard.firstName}Changed",
@@ -309,21 +310,21 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		def response7thTimeRight = appService.addUser(userCreationJson, ["overwriteUserConfirmationCode": "1234"])
 
 		then:
-		userAddResponse.status == 201
+		assertResponseStatus(userAddResponse, 201)
 		userAddResponse.responseData._links."yona:confirmMobileNumber".href != null
-		response1TimeWrong.status == 400
+		assertResponseStatus(response1TimeWrong, 400)
 		response1TimeWrong.responseData.code == "error.user.overwrite.confirmation.code.mismatch"
 		response1TimeWrong.responseData.remainingAttempts == 4
-		response4TimesWrong.status == 400
+		assertResponseStatus(response4TimesWrong, 400)
 		response4TimesWrong.responseData.code == "error.user.overwrite.confirmation.code.mismatch"
 		response4TimesWrong.responseData.remainingAttempts == 1
-		response5TimesWrong.status == 400
+		assertResponseStatus(response5TimesWrong, 400)
 		response5TimesWrong.responseData.code == "error.user.overwrite.confirmation.code.mismatch"
 		response5TimesWrong.responseData.remainingAttempts == 0
-		response6TimesWrong.status == 400
+		assertResponseStatus(response6TimesWrong, 400)
 		response6TimesWrong.responseData.code == "error.user.overwrite.confirmation.code.too.many.failed.attempts"
 		response6TimesWrong.responseData.remainingAttempts == null
-		response7thTimeRight.status == 400
+		assertResponseStatus(response7thTimeRight, 400)
 		response7thTimeRight.responseData.code == "error.user.overwrite.confirmation.code.too.many.failed.attempts"
 
 		cleanup:
@@ -335,7 +336,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 
 	private def assertUserOverwriteResponseDetails(def response)
 	{
-		appService.assertResponseStatusCreated(response)
-		appService.assertUserWithPrivateData(response.responseData)
+		assertResponseStatusCreated(response)
+		assertUserWithPrivateData(response.responseData)
 	}
 }

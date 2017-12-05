@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import groovy.json.*
 
 class LocalizationTest extends AbstractAppServiceIntegrationTest
@@ -19,11 +21,11 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		def errorResponse = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", ["Yona-NewDeviceRequestPassword" : ""])
 
 		then:
-		successResponse.status == 200
+		assertResponseStatusOk(successResponse)
 		successResponse.responseData.name == "Gambling"
 		successResponse.responseData.description == "This challenge includes apps and sites like Poker and Blackjack"
 		successResponse.headers."Content-Language" == "en-US"
-		errorResponse.status == 400
+		assertResponseStatus(errorResponse, 400)
 		errorResponse.data.code == "error.user.mobile.number.invalid"
 		errorResponse.data.message == "The mobile number '$wrongNumber' is invalid. It must start with a + sign, with no spaces between the digits"
 		errorResponse.headers."Content-Language" == "en-US"
@@ -38,11 +40,11 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		def errorResponse = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", ["Accept-Language" : "nl-NL", "Yona-NewDeviceRequestPassword" : ""])
 
 		then:
-		successResponse.status == 200
+		assertResponseStatusOk(successResponse)
 		successResponse.responseData.name == "Gokken"
 		successResponse.responseData.description == "Deze challenge bevat apps en sites zoals Poker en Blackjack"
 		successResponse.headers."Content-Language" == "nl-NL"
-		errorResponse.status == 400
+		assertResponseStatus(errorResponse, 400)
 		errorResponse.data.code == "error.user.mobile.number.invalid"
 		errorResponse.data.message == "Het mobiele nummer '$wrongNumber' is ongeldig. Het moet beginnen met een +-teken, zonder spaties tussen de tekens"
 		errorResponse.headers."Content-Language" == "nl-NL"
@@ -57,11 +59,11 @@ class LocalizationTest extends AbstractAppServiceIntegrationTest
 		def errorResponse = appService.yonaServer.getResource("$appService.NEW_DEVICE_REQUESTS_PATH$wrongNumber", ["Accept-Language" : "la", "Yona-NewDeviceRequestPassword" : ""])
 
 		then:
-		successResponse.status == 200
+		assertResponseStatusOk(successResponse)
 		successResponse.responseData.name == "Gambling"
 		successResponse.responseData.description == "This challenge includes apps and sites like Poker and Blackjack"
 		successResponse.headers."Content-Language" == "en-US"
-		errorResponse.status == 400
+		assertResponseStatus(errorResponse, 400)
 		errorResponse.data.code == "error.user.mobile.number.invalid"
 		errorResponse.data.message == "The mobile number '$wrongNumber' is invalid. It must start with a + sign, with no spaces between the digits"
 		errorResponse.headers."Content-Language" == "en-US"

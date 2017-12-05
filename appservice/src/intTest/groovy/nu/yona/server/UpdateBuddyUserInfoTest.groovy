@@ -8,6 +8,8 @@ package nu.yona.server
 
 import groovy.json.*
 import nu.yona.server.test.User
+import static nu.yona.server.test.CommonAssertions.*
+import nu.yona.server.test.CommonAssertions
 
 class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 {
@@ -21,9 +23,9 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		when:
 		def updatedBobJson = bob.convertToJson()
 		updatedBobJson.nickname = "Bobby"
-		User bobAfterUpdate = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson))
+		User bobAfterUpdate = appService.updateUser(CommonAssertions.&assertUserUpdateResponseDetails, new User(updatedBobJson))
 		def richardMessagesAfterUpdate = appService.getMessages(richard)
-		assert richardMessagesAfterUpdate.status == 200
+		assertResponseStatusOk(richardMessagesAfterUpdate)
 		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
 
 		then:
@@ -57,9 +59,9 @@ class UpdateBuddyUserInfoTest extends AbstractAppServiceIntegrationTest
 		def updatedBobJson = bob.convertToJson()
 		updatedBobJson.firstName = "Robert"
 		updatedBobJson.lastName = "Dunstan"
-		User bobAfterUpdate = appService.updateUser(appService.&assertUserUpdateResponseDetails, new User(updatedBobJson))
+		User bobAfterUpdate = appService.updateUser(CommonAssertions.&assertUserUpdateResponseDetails, new User(updatedBobJson))
 		def richardMessagesAfterUpdate = appService.getMessages(richard)
-		assert richardMessagesAfterUpdate.status == 200
+		assertResponseStatusOk(richardMessagesAfterUpdate)
 		def buddyInfoUpdateMessages = richardMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyInfoChangeMessage"}
 
 		then:

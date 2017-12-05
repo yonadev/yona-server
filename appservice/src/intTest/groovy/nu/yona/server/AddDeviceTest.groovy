@@ -7,6 +7,8 @@
 package nu.yona.server
 
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import groovy.json.*
 import nu.yona.server.test.User
 
@@ -22,12 +24,12 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		def response = appService.setNewDeviceRequest(richard.mobileNumber, richard.password, newDeviceRequestPassword)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber)
-		getResponseAfter.status == 200
+		assertResponseStatusOk(getResponseAfter)
 
 		def getWithPasswordResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber, newDeviceRequestPassword)
-		getWithPasswordResponseAfter.status == 200
+		assertResponseStatusOk(getWithPasswordResponseAfter)
 		getWithPasswordResponseAfter.responseData.yonaPassword == richard.password
 		getWithPasswordResponseAfter.responseData._links.self.href == richard.newDeviceRequestUrl
 		getWithPasswordResponseAfter.responseData._links.edit.href == richard.newDeviceRequestUrl
@@ -53,13 +55,13 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		def responseNoNewDeviceRequestNoPassword = appService.getNewDeviceRequest(bob.mobileNumber)
 
 		then:
-		responseWrongNewDeviceRequestPassword.status == 400
+		assertResponseStatus(responseWrongNewDeviceRequestPassword, 400)
 		responseWrongNewDeviceRequestPassword.responseData.code == "error.device.request.invalid.password"
-		responseWrongMobileNumber.status == 400
+		assertResponseStatus(responseWrongMobileNumber, 400)
 		responseWrongMobileNumber.responseData.code == "error.no.device.request.present"
-		responseNoNewDeviceRequestWrongPassword.status == 400
+		assertResponseStatus(responseNoNewDeviceRequestWrongPassword, 400)
 		responseNoNewDeviceRequestWrongPassword.responseData.code == "error.no.device.request.present"
-		responseNoNewDeviceRequestNoPassword.status == 400
+		assertResponseStatus(responseNoNewDeviceRequestNoPassword, 400)
 		responseNoNewDeviceRequestNoPassword.responseData.code == "error.no.device.request.present"
 
 		cleanup:
@@ -74,19 +76,19 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		def newDeviceRequestPassword = "Temp password"
 		appService.setNewDeviceRequest(richard.mobileNumber, richard.password, newDeviceRequestPassword)
 		def getResponseImmmediately = appService.getNewDeviceRequest(richard.mobileNumber)
-		assert getResponseImmmediately.status == 200
+		assertResponseStatusOk(getResponseImmmediately)
 
 		when:
 		def responseWrongPassword = appService.setNewDeviceRequest(richard.mobileNumber, "foo", "Some password")
 		def responseWrongMobileNumber = appService.setNewDeviceRequest("+31610609189", "foo", "Some password")
 
 		then:
-		responseWrongPassword.status == 400
+		assertResponseStatus(responseWrongPassword, 400)
 		responseWrongPassword.responseData.code == "error.decrypting.data"
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber, newDeviceRequestPassword)
-		getResponseAfter.status == 200
+		assertResponseStatusOk(getResponseAfter)
 		getResponseAfter.responseData.yonaPassword == richard.password
-		responseWrongMobileNumber.status == 400
+		assertResponseStatus(responseWrongMobileNumber, 400)
 		responseWrongMobileNumber.responseData.code == "error.decrypting.data"
 
 		cleanup:
@@ -104,9 +106,9 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		def response = appService.setNewDeviceRequest(richard.mobileNumber, richard.password, newDeviceRequestPassword)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber, newDeviceRequestPassword)
-		getResponseAfter.status == 200
+		assertResponseStatusOk(getResponseAfter)
 		getResponseAfter.responseData.yonaPassword == richard.password
 
 		cleanup:
@@ -124,13 +126,13 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		def response = appService.clearNewDeviceRequest(richard.mobileNumber, richard.password)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber)
-		getResponseAfter.status == 400
+		assertResponseStatus(getResponseAfter, 400)
 		getResponseAfter.responseData.code == "error.no.device.request.present"
 
 		def getWithPasswordResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber, newDeviceRequestPassword)
-		getWithPasswordResponseAfter.status == 400
+		assertResponseStatus(getWithPasswordResponseAfter, 400)
 		getWithPasswordResponseAfter.responseData.code == "error.no.device.request.present"
 
 		cleanup:
@@ -149,12 +151,12 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		def responseWrongMobileNumber = appService.clearNewDeviceRequest("+31610609189", "foo")
 
 		then:
-		responseWrongPassword.status == 400
+		assertResponseStatus(responseWrongPassword, 400)
 		responseWrongPassword.responseData.code == "error.decrypting.data"
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber, newDeviceRequestPassword)
-		getResponseAfter.status == 200
+		assertResponseStatusOk(getResponseAfter)
 		getResponseAfter.responseData.yonaPassword == richard.password
-		responseWrongMobileNumber.status == 400
+		assertResponseStatus(responseWrongMobileNumber, 400)
 		responseWrongMobileNumber.responseData.code == "error.decrypting.data"
 
 		cleanup:

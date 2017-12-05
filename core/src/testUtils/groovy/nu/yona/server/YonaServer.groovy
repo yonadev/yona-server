@@ -142,31 +142,6 @@ class YonaServer
 		}
 	}
 
-	void setEnableStatistics(def enable)
-	{
-		def response = createResource("/hibernateStatistics/enable/", "{}", [:], ["enable" : enable])
-		assert response.status == 200 : "Ensure the server stats are enabled (run with -Dyona.enableHibernateStatsAllowed=true)"
-	}
-
-	void resetStatistics()
-	{
-		def response = getResource("/hibernateStatistics/", [:], ["reset" : "true"])
-		assert response.status == 200
-	}
-
-	void clearCaches()
-	{
-		def response = createResource("/hibernateStatistics/clearCaches/", "{}", [:], [:])
-		assert response.status == 200
-	}
-
-	def getStatistics()
-	{
-		def response = getResource("/hibernateStatistics/", [:], ["reset" : "false"])
-		assert response.status == 200
-		response.responseData
-	}
-
 	static void storeStatistics(def statistics, def heading)
 	{
 		def file = new File("build/reports/tests/intTest/" + heading + ".md")

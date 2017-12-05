@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import groovy.json.*
 
 class RejectBuddyTest extends AbstractAppServiceIntegrationTest
@@ -25,7 +27,7 @@ class RejectBuddyTest extends AbstractAppServiceIntegrationTest
 		def rejectResponse = appService.postMessageActionWithPassword(rejectUrl, ["message" : rejectMessage], bob.password)
 
 		then:
-		rejectResponse.status == 200
+		assertResponseStatusOk(rejectResponse)
 		rejectResponse.responseData._embedded."yona:affectedMessages".size() == 1
 		rejectResponse.responseData._embedded."yona:affectedMessages"[0]._links.self.href == connectRequestMessage.selfUrl
 		rejectResponse.responseData._embedded."yona:affectedMessages"[0].status == "REJECTED"

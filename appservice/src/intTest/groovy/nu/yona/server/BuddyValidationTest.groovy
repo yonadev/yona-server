@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import groovy.json.*
 import nu.yona.server.test.User
 
@@ -36,7 +38,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.sendBuddyConnectRequest(richard, object, false)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.user.firstname"
 
 		cleanup:
@@ -54,7 +56,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.sendBuddyConnectRequest(richard, object, false)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.user.lastname"
 
 		cleanup:
@@ -72,7 +74,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.sendBuddyConnectRequest(richard, object, false)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.user.mobile.number"
 
 		cleanup:
@@ -90,7 +92,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.sendBuddyConnectRequest(richard, object, false)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.user.mobile.number.invalid"
 
 		cleanup:
@@ -108,7 +110,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.sendBuddyConnectRequest(richard, object, false)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.user.email.address"
 
 		cleanup:
@@ -130,11 +132,11 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		def response3 = appService.sendBuddyConnectRequest(richard, object, false)
 
 		then:
-		response1.status == 400
+		assertResponseStatus(response1, 400)
 		response1.responseData.code == "error.user.email.address.invalid"
-		response2.status == 400
+		assertResponseStatus(response2, 400)
 		response2.responseData.code == "error.user.email.address.invalid"
-		response3.status == 400
+		assertResponseStatus(response3, 400)
 		response3.responseData.code == "error.user.email.address.invalid"
 
 		cleanup:
@@ -151,7 +153,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.sendBuddyConnectRequest(richard, richard, false)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.buddy.cannot.invite.self"
 
 		cleanup:
@@ -170,7 +172,7 @@ class BuddyValidationTest extends AbstractAppServiceIntegrationTest
 		def response = appService.sendBuddyConnectRequest(richard, bob, false)
 
 		then:
-		response.status == 400
+		assertResponseStatus(response, 400)
 		response.responseData.code == "error.buddy.cannot.invite.existing.buddy"
 
 		cleanup:

@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import java.time.DayOfWeek
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -59,14 +61,14 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		assert weekActivityForGoal?._links?."yona:weekDetails"?.href
 		def weekActivityDetailUrl = weekActivityForGoal?._links?."yona:weekDetails"?.href
 		def response = appService.getResourceWithPassword(weekActivityDetailUrl, richard.password)
-		assert response.status == 200
+		assertResponseStatusOk(response)
 
 		def dayActivityOverview = responseDayOverviews.responseData._embedded."yona:dayActivityOverviews"[0]
 		def dayActivityForGoal = dayActivityOverview.dayActivities.find{ it._links."yona:goal".href == goal.url}
 		assert dayActivityForGoal?._links?."yona:dayDetails"?.href
 		def dayActivityDetailUrl =  dayActivityForGoal?._links?."yona:dayDetails"?.href
 		def responseDayDetail = appService.getResourceWithPassword(dayActivityDetailUrl, richard.password)
-		assert responseDayDetail.status == 200
+		assertResponseStatusOk(responseDayDetail)
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -274,30 +276,30 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		// Assert self-links of day and week overviews
 		def weekOverviewLink = weekOverviewLastWeek._links.self.href
 		def weekOverviewResponse = appService.getResourceWithPassword(weekOverviewLink, richard.password)
-		assert weekOverviewResponse.status == 200
+		assertResponseStatusOk(weekOverviewResponse)
 		assert weekOverviewResponse.data.date == weekOverviewLastWeek.date
 
 		def dayOverviewOffset = YonaServer.relativeDateStringToDaysOffset(1, "Thu")
 		def dayOverviewLink = responseDayOverviewsAll.responseData._embedded."yona:dayActivityOverviews"[dayOverviewOffset]._links.self.href
 		def dayOverviewResponse = appService.getResourceWithPassword(dayOverviewLink, richard.password)
-		assert dayOverviewResponse.status == 200
+		assertResponseStatusOk(dayOverviewResponse)
 		assert dayOverviewResponse.data.date == responseDayOverviewsAll.responseData._embedded."yona:dayActivityOverviews"[dayOverviewOffset].date
 
 		def dayOverviewWithBuddiesOffset = YonaServer.relativeDateStringToDaysOffset(1, "Fri")
 		def dayOverviewWithBuddiesLink = responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[dayOverviewWithBuddiesOffset]._links.self.href
 		def dayOverviewWithBuddiesResponse = appService.getResourceWithPassword(dayOverviewWithBuddiesLink, richard.password)
-		assert dayOverviewWithBuddiesResponse.status == 200
+		assertResponseStatusOk(dayOverviewWithBuddiesResponse)
 		assert dayOverviewWithBuddiesResponse.data.date == responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[dayOverviewWithBuddiesOffset].date
 
 		def buddyWeekOverviewLink = buddyWeekOverviewLastWeek._links.self.href
 		def responseBuddyWeekOverview = appService.getResourceWithPassword(buddyWeekOverviewLink, richard.password)
-		assert responseBuddyWeekOverview.status == 200
+		assertResponseStatusOk(responseBuddyWeekOverview)
 		assert responseBuddyWeekOverview.data.date == buddyWeekOverviewLastWeek.date
 
 		def buddyDayOverviewOffset = YonaServer.relativeDateStringToDaysOffset(1, "Sat")
 		def buddyDayOverviewLink = responseBuddyDayOverviews.responseData._embedded."yona:dayActivityOverviews"[buddyDayOverviewOffset]._links.self.href
 		def responseBuddyDayOverview = appService.getResourceWithPassword(buddyDayOverviewLink, richard.password)
-		assert responseBuddyDayOverview.status == 200
+		assertResponseStatusOk(responseBuddyDayOverview)
 		assert responseBuddyDayOverview.data.date == responseBuddyDayOverviews.responseData._embedded."yona:dayActivityOverviews"[buddyDayOverviewOffset].date
 
 		cleanup:
@@ -359,7 +361,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 			(currentShortDay) : [[goal:budgetGoalNews, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:budgetGoalGambling, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
 		def initialResponseWeekOverviews = appService.getWeekActivityOverviews(richard)
 		def initialResponseDayOverviews = appService.getDayActivityOverviews(richard)
-		assert initialResponseWeekOverviews.status == 200
+		assertResponseStatusOk(initialResponseWeekOverviews)
 		def initialCurrentWeekOverview = initialResponseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0]
 		assertDayInWeekOverviewForGoal(initialCurrentWeekOverview, budgetGoalNews, initialExpectedValues, currentShortDay)
 		assertWeekDetailForGoal(richard, initialCurrentWeekOverview, budgetGoalNews, initialExpectedValues)
@@ -404,7 +406,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		]
 		def initialResponseWeekOverviews = appService.getWeekActivityOverviews(richard)
 		def initialResponseDayOverviews = appService.getDayActivityOverviews(richard, ["size": 14])
-		assert initialResponseWeekOverviews.status == 200
+		assertResponseStatusOk(initialResponseWeekOverviews)
 		def initialCurrentWeekOverviewLastWeek = initialResponseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
 		assertDayInWeekOverviewForGoal(initialCurrentWeekOverviewLastWeek, budgetGoalNews, initialExpectedValuesRichardLastWeek, "Wed")
 		assertWeekDetailForGoal(richard, initialCurrentWeekOverviewLastWeek, budgetGoalNews, initialExpectedValuesRichardLastWeek)
@@ -505,7 +507,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def response = appService.removeGoal(richard, budgetGoalNews)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		def expectedTotalDaysAfterDelete = expectedTotalDaysBeforeDelete - 2
 		def expectedTotalWeeksAfterDelete = expectedTotalWeeksBeforeDelete
 		def expectedValuesRichardLastWeekAfterDelete = [
@@ -555,14 +557,14 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		addTimeZoneGoal(richard, MULTIMEDIA_ACT_CAT_URL, ["11:00-12:00"])
-		assert appService.getDayActivityOverviews(richard).status == 200
-		assert appService.getWeekActivityOverviews(richard).status == 200
+		assertResponseStatusOk(appService.getDayActivityOverviews(richard))
+		assertResponseStatusOk(appService.getWeekActivityOverviews(richard))
 
 		when:
 		addBudgetGoal(richard, COMMUNICATION_ACT_CAT_URL, 60)
 		then:
-		appService.getDayActivityOverviews(richard).status == 200
-		appService.getWeekActivityOverviews(richard).status == 200
+		assertResponseStatusOk(appService.getDayActivityOverviews(richard))
+		assertResponseStatusOk(appService.getWeekActivityOverviews(richard))
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -573,15 +575,15 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		Goal timeZoneGoalMultimedia = addTimeZoneGoal(richard, MULTIMEDIA_ACT_CAT_URL, ["11:00-12:00"])
-		assert appService.getDayActivityOverviews(richard).status == 200
-		assert appService.getWeekActivityOverviews(richard).status == 200
+		assertResponseStatusOk(appService.getDayActivityOverviews(richard))
+		assertResponseStatusOk(appService.getWeekActivityOverviews(richard))
 
 		when:
 		updateTimeZoneGoal(richard, timeZoneGoalMultimedia, ["13:00-14:00"])
 
 		then:
-		appService.getDayActivityOverviews(richard).status == 200
-		appService.getWeekActivityOverviews(richard).status == 200
+		assertResponseStatusOk(appService.getDayActivityOverviews(richard))
+		assertResponseStatusOk(appService.getWeekActivityOverviews(richard))
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -592,15 +594,15 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		given:
 		User richard = addRichard()
 		Goal budgetGoalMultimedia = addBudgetGoal(richard, MULTIMEDIA_ACT_CAT_URL, 60)
-		assert appService.getDayActivityOverviews(richard).status == 200
-		assert appService.getWeekActivityOverviews(richard).status == 200
+		assertResponseStatusOk(appService.getDayActivityOverviews(richard))
+		assertResponseStatusOk(appService.getWeekActivityOverviews(richard))
 
 		when:
 		updateBudgetGoal(richard, budgetGoalMultimedia, 81)
 
 		then:
-		appService.getDayActivityOverviews(richard).status == 200
-		appService.getWeekActivityOverviews(richard).status == 200
+		assertResponseStatusOk(appService.getDayActivityOverviews(richard))
+		assertResponseStatusOk(appService.getWeekActivityOverviews(richard))
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -1019,7 +1021,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		updateBudgetGoal(bob, budgetGoalSocialBobBeforeUpdate, 120, "W-1 Sat 20:51")
 		reportAppActivity(bob, "Facebook", "W-1 Sat 20:55", "W-1 Sat 22:00")
 
-		assert appService.removeGoal(richard, budgetGoalNewsRichardAfterUpdate).status == 200
+		assertResponseStatusOk(appService.removeGoal(richard, budgetGoalNewsRichardAfterUpdate))
 
 		richard = appService.reloadUser(richard)
 		timeZoneGoalSocialRichardBeforeUpdate = richard.goals.find{ it.activityCategoryUrl == SOCIAL_ACT_CAT_URL && it.historyItem }
@@ -1184,7 +1186,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		richard.buddies[0].dailyActivityReportsUrl == null
 		richard.buddies[0].weeklyActivityReportsUrl == null
-		responseDayOverviewsWithBuddies.status == 200
+		assertResponseStatusOk(responseDayOverviewsWithBuddies)
 		responseDayOverviewsWithBuddies.responseData?._embedded == null // Richard doesn't know Bob's goals yet
 
 		cleanup:
@@ -1201,7 +1203,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.sendBuddyConnectRequest(richard, bob)
 		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
 		def acceptUrl = connectRequestMessage.acceptUrl
-		assert appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password).status == 200
+		assertResponseStatusOk(appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password))
 		richard = appService.reloadUser(richard)
 
 		when:
@@ -1210,7 +1212,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		then:
 		richard.buddies[0].dailyActivityReportsUrl == null
 		richard.buddies[0].weeklyActivityReportsUrl == null
-		responseDayOverviewsWithBuddies.status == 200
+		assertResponseStatusOk(responseDayOverviewsWithBuddies)
 		responseDayOverviewsWithBuddies.responseData?._embedded == null // Richard doesn't know Bob's goals yet
 
 		cleanup:
@@ -1227,7 +1229,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.sendBuddyConnectRequest(richard, bob)
 		def connectRequestMessage = appService.fetchBuddyConnectRequestMessage(bob)
 		def acceptUrl = connectRequestMessage.acceptUrl
-		assert appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password).status == 200
+		assertResponseStatusOk(appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], bob.password))
 		richard = appService.reloadUser(richard)
 		bob = appService.reloadUser(bob)
 		Goal budgetGoalGamblingRichard = bob.buddies[0].findActiveGoal(GAMBLING_ACT_CAT_URL)
@@ -1236,10 +1238,10 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(bob, ["size": 14])
 
 		then:
-		responseDayOverviewsWithBuddies.status == 200
+		assertResponseStatusOk(responseDayOverviewsWithBuddies)
 		responseDayOverviewsWithBuddies.responseData._embedded."yona:dayActivityOverviews"[0].dayActivities.find{ it._links."yona:activityCategory"?.href == GAMBLING_ACT_CAT_URL}.dayActivitiesForUsers.size() == 2
 		def responseWeekOverviews = appService.getWeekActivityOverviews(bob, bob.buddies[0])
-		responseWeekOverviews.status == 200
+		assertResponseStatusOk(responseWeekOverviews)
 		responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == budgetGoalGamblingRichard.url}
 		def weekActivityForGoal = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[0].weekActivities.find{ it._links."yona:goal".href == budgetGoalGamblingRichard.url}
 		def dayActivityInWeekForGoal = weekActivityForGoal.dayActivities[YonaServer.now.dayOfWeek.toString()]
@@ -1270,13 +1272,13 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		def goalId = richard.findActiveGoal(NEWS_ACT_CAT_URL).getId()
 		def lastWednesdayDate = YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Wed 09:00"))
 		def detailsUrl = YonaServer.stripQueryString(richard.url) + "/activity/days/$lastWednesdayDate/details/$goalId"
-		assert appService.getResourceWithPassword(detailsUrl, richard.password).status == 200
+		assertResponseStatusOk(appService.getResourceWithPassword(detailsUrl, richard.password))
 
 		when:
 		def response = appService.getResourceWithPassword(detailsUrl + "/raw/", richard.password)
 
 		then:
-		response.status == 200
+		assertResponseStatusOk(response)
 		response.responseData._embedded."yona:activities".size == 2
 		response.responseData._embedded."yona:activities"[0].startTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(appActStartTime))
 		response.responseData._embedded."yona:activities"[0].endTime == YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(appActEndTime))
@@ -1407,13 +1409,13 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
 		def responseRemoveBuddy = appService.removeBuddy(bob, appService.getBuddies(bob)[0], "Sorry, I regret having asked you")
-		assert responseRemoveBuddy.status == 200
+		assertResponseStatusOk(responseRemoveBuddy)
 
 		when:
 		def responseDayOverviewsWithBuddies = appService.getDayActivityOverviewsWithBuddies(richard, ["size": 14])
 
 		then:
-		responseDayOverviewsWithBuddies.status == 200
+		assertResponseStatusOk(responseDayOverviewsWithBuddies)
 		responseDayOverviewsWithBuddies.responseData?._embedded == null // Richard doesn't know Bob's goals anymore
 
 		cleanup:

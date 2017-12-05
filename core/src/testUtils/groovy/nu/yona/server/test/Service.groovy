@@ -6,6 +6,8 @@
  *******************************************************************************/
 package nu.yona.server.test
 
+import static nu.yona.server.test.CommonAssertions.*
+
 import nu.yona.server.YonaServer
 
 abstract class Service
@@ -48,19 +50,19 @@ abstract class Service
 	void resetStatistics()
 	{
 		def response = getResource("/hibernateStatistics/", [:], ["reset" : "true"])
-		assert response.status == 200
+		assertResponseStatusOk(response)
 	}
 
 	void clearCaches()
 	{
 		def response = yonaServer.createResource("/hibernateStatistics/clearCaches/", "{}", [:], [:])
-		assert response.status == 200
+		assertResponseStatusOk(response)
 	}
 
 	def getStatistics()
 	{
 		def response = getResource("/hibernateStatistics/", [:], ["reset" : "false"])
-		assert response.status == 200
+		assertResponseStatusOk(response)
 		response.responseData
 	}
 
