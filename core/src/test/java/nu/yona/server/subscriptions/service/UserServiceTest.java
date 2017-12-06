@@ -11,12 +11,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +35,6 @@ import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserAnonymizedRepository;
-import nu.yona.server.subscriptions.entities.UserPrivate;
 import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.subscriptions.service.UserService.UserPurpose;
 import nu.yona.server.test.util.JUnitUtil;
@@ -67,11 +65,11 @@ public class UserServiceTest
 	@Autowired
 	private UserService service;
 
-	private final String password = "password";
+	private static final String PASSWORD = "password";
 	private User john;
 
-	@Before
-	public void setUpForAll()
+	@BeforeClass
+	public static void setUpForAll()
 	{
 		LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
 	}
@@ -88,19 +86,9 @@ public class UserServiceTest
 		repositoriesMap.put(UserAnonymized.class, mockUserAnonymizedRepository);
 		JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);
 
-		MessageSource anonymousMessageSource = MessageSource.createInstance();
-		UserAnonymized johnAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(),
-				Collections.emptySet());
-		UserAnonymized.getRepository().save(johnAnonymized);
-
-		try (CryptoSession cryptoSession = CryptoSession.start(password))
+		try (CryptoSession cryptoSession = CryptoSession.start(PASSWORD))
 		{
-			byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
-			MessageSource namedMessageSource = MessageSource.createInstance();
-			UserPrivate userPrivate = UserPrivate.createInstance("jd", "topSecret", johnAnonymized.getId(),
-					anonymousMessageSource.getId(), namedMessageSource);
-			john = new User(UUID.randomUUID(), initializationVector, "John", "Doe", "+31612345678", userPrivate,
-					namedMessageSource.getDestination());
+			john = JUnitUtil.createUserEntity();
 		}
 
 		when(mockUserRepository.findOne(john.getId())).thenReturn(john);

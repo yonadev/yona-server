@@ -1,9 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.test.util;
 
@@ -11,7 +8,9 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
 
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -21,7 +20,12 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.support.Repositories;
 
+import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.RepositoryProvider;
+import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.entities.UserPrivate;
 
 public class JUnitUtil
 {
@@ -64,5 +68,27 @@ public class JUnitUtil
 		});
 		RepositoryProvider.setRepositories(mockRepositories);
 		return mockRepositories;
+	}
+
+	public static User createUserEntity()
+	{
+		return createUserEntity("John", "Doe", "+31612345678", "jd", "topSecret");
+	}
+
+	public static User createUserEntity(String firstName, String lastName, String mobileNumber, String nickname,
+			String vpnPassword)
+	{
+		MessageSource anonymousMessageSource = MessageSource.createInstance();
+		UserAnonymized johnAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(),
+				Collections.emptySet());
+		UserAnonymized.getRepository().save(johnAnonymized);
+
+		byte[] initializationVector = CryptoSession.getCurrent().generateInitializationVector();
+		MessageSource namedMessageSource = MessageSource.createInstance();
+		UserPrivate userPrivate = UserPrivate.createInstance(nickname, vpnPassword, johnAnonymized.getId(),
+				anonymousMessageSource.getId(), namedMessageSource);
+		return new User(UUID.randomUUID(), initializationVector, firstName, lastName, mobileNumber, userPrivate,
+				namedMessageSource.getDestination());
+
 	}
 }
