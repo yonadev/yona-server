@@ -214,6 +214,7 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 	{
 		devices.add(device);
 		device.setUserPrivateId(getId());
+		getUserAnonymized().addDeviceAnonymized(device.getDeviceAnonymized());
 	}
 
 	public void removeDevice(UserDevice device)

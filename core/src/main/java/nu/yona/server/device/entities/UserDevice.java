@@ -18,6 +18,7 @@ import org.hibernate.annotations.Type;
 
 import nu.yona.server.crypto.seckey.DateFieldEncryptor;
 import nu.yona.server.crypto.seckey.DateTimeFieldEncryptor;
+import nu.yona.server.util.TimeUtil;
 
 @Entity
 @Table(name = "USER_DEVICES")
@@ -41,8 +42,8 @@ public class UserDevice extends DeviceBase
 	public UserDevice(UUID id, String name, UUID deviceAnonymizedId)
 	{
 		super(id, name, deviceAnonymizedId, true); // Consider the VPN to be connected by default
-		this.registrationTime = LocalDateTime.now();
-		this.appLastOpenedDate = LocalDate.now(); // The user registers this device, so the app is open now
+		this.registrationTime = TimeUtil.utcNow();
+		this.appLastOpenedDate = TimeUtil.utcNow().toLocalDate(); // The user registers this device, so the app is open now
 	}
 
 	public UUID getUserPrivateId()
