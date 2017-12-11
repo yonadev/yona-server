@@ -23,6 +23,8 @@ import org.springframework.data.repository.support.Repositories;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.messaging.entities.MessageSource;
+import nu.yona.server.subscriptions.entities.Buddy;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized.Status;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserPrivate;
@@ -70,9 +72,14 @@ public class JUnitUtil
 		return mockRepositories;
 	}
 
-	public static User createUserEntity()
+	public static User createRichard()
 	{
-		return createUserEntity("John", "Doe", "+31612345678", "jd", "topSecret");
+		return createUserEntity("Richard", "Quinn", "+31610000000", "RQ", "topSecret");
+	}
+
+	public static User createBob()
+	{
+		return createUserEntity("Bob", "Dunn", "+31610000001", "BD", "heelGeheim");
 	}
 
 	public static User createUserEntity(String firstName, String lastName, String mobileNumber, String nickname,
@@ -89,6 +96,18 @@ public class JUnitUtil
 				anonymousMessageSource.getId(), namedMessageSource);
 		return new User(UUID.randomUUID(), initializationVector, firstName, lastName, mobileNumber, userPrivate,
 				namedMessageSource.getDestination());
+	}
 
+	public static void makeBuddies(User user, User buddyToBe)
+	{
+		addAsBuddy(user, buddyToBe);
+		addAsBuddy(buddyToBe, user);
+	}
+
+	private static void addAsBuddy(User user, User buddyToBe)
+	{
+		Buddy buddy = Buddy.createInstance(buddyToBe.getId(), buddyToBe.getNickname(), Status.ACCEPTED, Status.ACCEPTED);
+		buddy.setUserAnonymizedId(buddyToBe.getAnonymized().getId());
+		user.addBuddy(buddy);
 	}
 }

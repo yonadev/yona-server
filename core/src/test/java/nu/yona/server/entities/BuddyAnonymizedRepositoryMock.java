@@ -7,10 +7,10 @@
  *******************************************************************************/
 package nu.yona.server.entities;
 
-import nu.yona.server.device.entities.DeviceAnonymized;
-import nu.yona.server.device.entities.DeviceAnonymizedRepository;
+import nu.yona.server.subscriptions.entities.BuddyAnonymized;
+import nu.yona.server.subscriptions.entities.BuddyAnonymizedRepository;
 
-public class DeviceAnonymizedRepositoryMock extends MockJpaRepositoryEntityWithUuid<DeviceAnonymized>
-		implements DeviceAnonymizedRepository
+public class BuddyAnonymizedRepositoryMock extends MockJpaRepositoryEntityWithUuid<BuddyAnonymized>
+		implements BuddyAnonymizedRepository
 {
 }

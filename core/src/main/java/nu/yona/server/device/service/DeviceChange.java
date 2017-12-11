@@ -5,12 +5,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
-package nu.yona.server.entities;
+package nu.yona.server.device.service;
 
-import nu.yona.server.device.entities.DeviceAnonymized;
-import nu.yona.server.device.entities.DeviceAnonymizedRepository;
-
-public class DeviceAnonymizedRepositoryMock extends MockJpaRepositoryEntityWithUuid<DeviceAnonymized>
-		implements DeviceAnonymizedRepository
+public enum DeviceChange
 {
+	ADD, RENAME, DELETE
 }

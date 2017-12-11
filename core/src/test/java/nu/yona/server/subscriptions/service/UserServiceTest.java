@@ -66,7 +66,7 @@ public class UserServiceTest
 	private UserService service;
 
 	private static final String PASSWORD = "password";
-	private User john;
+	private User richard;
 
 	@BeforeClass
 	public static void setUpForAll()
@@ -88,29 +88,29 @@ public class UserServiceTest
 
 		try (CryptoSession cryptoSession = CryptoSession.start(PASSWORD))
 		{
-			john = JUnitUtil.createUserEntity();
+			richard = JUnitUtil.createRichard();
 		}
 
-		when(mockUserRepository.findOne(john.getId())).thenReturn(john);
+		when(mockUserRepository.findOne(richard.getId())).thenReturn(richard);
 	}
 
 	@Test
 	public void postOpenAppEvent_appLastOpenedDateOnEarlierDay_appLastOpenedDateUpdated()
 	{
-		john.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate().minusDays(1));
+		richard.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate().minusDays(1));
 
-		service.postOpenAppEvent(john.getId());
+		service.postOpenAppEvent(richard.getId());
 
-		assertThat(john.getAppLastOpenedDate().get(), equalTo(TimeUtil.utcNow().toLocalDate()));
+		assertThat(richard.getAppLastOpenedDate().get(), equalTo(TimeUtil.utcNow().toLocalDate()));
 		verify(mockUserRepository, times(1)).save(any(User.class));
 	}
 
 	@Test
 	public void postOpenAppEvent_appLastOpenedDateOnSameDay_notUpdated()
 	{
-		john.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
+		richard.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
 
-		service.postOpenAppEvent(john.getId());
+		service.postOpenAppEvent(richard.getId());
 
 		verify(mockUserRepository, times(0)).save(any(User.class));
 	}

@@ -43,11 +43,12 @@ import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
-import nu.yona.server.entities.DeviceAnonymizedRepositoryMock;
-import nu.yona.server.entities.UserAnonymizedRepositoryMock;
 import nu.yona.server.device.entities.DeviceAnonymizedRepository;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.device.entities.UserDeviceRepository;
+import nu.yona.server.entities.DeviceAnonymizedRepositoryMock;
+import nu.yona.server.entities.UserAnonymizedRepositoryMock;
+import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserAnonymizedRepository;
@@ -57,10 +58,11 @@ import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.TimeUtil;
 
 @Configuration
-@ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.device.service",
-		"nu.yona.server.properties" }, includeFilters = {
+@ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.device.service", "nu.yona.server.properties",
+		"nu.yona.server" }, includeFilters = {
 				@ComponentScan.Filter(pattern = "nu.yona.server.device.service.DeviceService", type = FilterType.REGEX),
-				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX) })
+				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
+				@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) })
 class DeviceServiceTestConfiguration
 {
 	@Bean
@@ -95,8 +97,11 @@ public class DeviceServiceTest
 	@MockBean
 	private UserRepository mockUserRepository;
 
+	@MockBean
+	private MessageService mockMessageService;
+
 	private static final String PASSWORD = "password";
-	private User john;
+	private User richard;
 
 	@Rule
 	public MethodRule cryptoSession = new CryptoSessionRule(PASSWORD);
@@ -125,10 +130,10 @@ public class DeviceServiceTest
 
 		try (CryptoSession cryptoSession = CryptoSession.start(PASSWORD))
 		{
-			john = JUnitUtil.createUserEntity();
+			richard = JUnitUtil.createRichard();
 		}
 
-		when(mockUserRepository.findOne(john.getId())).thenReturn(john);
+		when(mockUserRepository.findOne(richard.getId())).thenReturn(richard);
 	}
 
 	@Test
@@ -146,12 +151,12 @@ public class DeviceServiceTest
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
 		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem);
-		service.addDeviceToUser(john, deviceDto);
+		service.addDeviceToUser(richard, deviceDto);
 
 		verify(mockUserDeviceRepository, times(1)).save(any(UserDevice.class));
 		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
 
-		Set<UserDevice> devices = john.getDevices();
+		Set<UserDevice> devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(1));
 
 		UserDevice device = devices.iterator().next();
@@ -165,17 +170,17 @@ public class DeviceServiceTest
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
 		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1);
-		service.addDeviceToUser(john, deviceDto1);
+		service.addDeviceToUser(richard, deviceDto1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
 		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2);
-		service.addDeviceToUser(john, deviceDto2);
+		service.addDeviceToUser(richard, deviceDto2);
 
 		verify(mockUserDeviceRepository, times(2)).save(any(UserDevice.class));
 		assertThat(deviceAnonymizedRepository.count(), equalTo(2L));
 
-		Set<UserDevice> devices = john.getDevices();
+		Set<UserDevice> devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(2));
 
 		Optional<UserDevice> device1Optional = devices.stream().filter(d -> d.getName().equals(deviceName1)).findAny();
@@ -196,16 +201,16 @@ public class DeviceServiceTest
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
 		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1);
-		service.addDeviceToUser(john, deviceDto1);
+		service.addDeviceToUser(richard, deviceDto1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
 		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2);
-		service.addDeviceToUser(john, deviceDto2);
+		service.addDeviceToUser(richard, deviceDto2);
 
 		verify(mockUserDeviceRepository, times(2)).save(any(UserDevice.class));
 
-		Set<UserDevice> devices = john.getDevices();
+		Set<UserDevice> devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(2));
 
 		Optional<UserDevice> device1Optional = devices.stream().filter(d -> d.getName().equals(deviceName1)).findAny();
@@ -213,10 +218,10 @@ public class DeviceServiceTest
 		UserDevice device1 = device1Optional.get();
 		assertDevice(device1, startTime, deviceName1, operatingSystem1, 0);
 
-		service.deleteDevice(john, device1);
+		service.deleteDevice(richard, device1);
 		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
 
-		devices = john.getDevices();
+		devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(1));
 
 		UserDevice device2 = devices.iterator().next();
@@ -230,34 +235,34 @@ public class DeviceServiceTest
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
 		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1);
-		service.addDeviceToUser(john, deviceDto1);
+		service.addDeviceToUser(richard, deviceDto1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
 		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2);
-		service.addDeviceToUser(john, deviceDto2);
+		service.addDeviceToUser(richard, deviceDto2);
 
 		verify(mockUserDeviceRepository, times(2)).save(any(UserDevice.class));
 
-		Set<UserDevice> devices = john.getDevices();
+		Set<UserDevice> devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(2));
 
 		Optional<UserDevice> device1Optional = devices.stream().filter(d -> d.getName().equals(deviceName1)).findAny();
 		assertThat(device1Optional.isPresent(), equalTo(true));
 		UserDevice device1 = device1Optional.get();
 
-		service.deleteDevice(john, device1);
+		service.deleteDevice(richard, device1);
 		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
 
-		devices = john.getDevices();
+		devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(1));
 
 		String deviceName3 = "Third";
 		OperatingSystem operatingSystem3 = OperatingSystem.IOS;
 		UserDeviceDto deviceDto3 = new UserDeviceDto(deviceName3, operatingSystem3);
-		service.addDeviceToUser(john, deviceDto3);
+		service.addDeviceToUser(richard, deviceDto3);
 
-		devices = john.getDevices();
+		devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(2));
 
 		Optional<UserDevice> device2Optional = devices.stream().filter(d -> d.getName().equals(deviceName2)).findAny();
@@ -279,16 +284,16 @@ public class DeviceServiceTest
 		String deviceName = "Testing";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
 		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem);
-		service.addDeviceToUser(john, deviceDto);
+		service.addDeviceToUser(richard, deviceDto);
 
 		verify(mockUserDeviceRepository, times(1)).save(any(UserDevice.class));
 
-		Set<UserDevice> devices = john.getDevices();
+		Set<UserDevice> devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(1));
 
 		UserDevice device = devices.iterator().next();
 
-		service.deleteDevice(john, device);
+		service.deleteDevice(richard, device);
 	}
 
 	@Test
@@ -301,16 +306,16 @@ public class DeviceServiceTest
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
 		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1);
-		service.addDeviceToUser(john, deviceDto1);
+		service.addDeviceToUser(richard, deviceDto1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
 		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2);
-		service.addDeviceToUser(john, deviceDto2);
+		service.addDeviceToUser(richard, deviceDto2);
 
 		verify(mockUserDeviceRepository, times(2)).save(any(UserDevice.class));
 
-		Set<UserDevice> devices = john.getDevices();
+		Set<UserDevice> devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(2));
 
 		Optional<UserDevice> device1Optional = devices.stream().filter(d -> d.getName().equals(deviceName1)).findAny();
@@ -318,10 +323,10 @@ public class DeviceServiceTest
 		UserDevice device1 = device1Optional.get();
 		assertDevice(device1, startTime, deviceName1, operatingSystem1, 0);
 
-		service.deleteDevice(john, device1);
+		service.deleteDevice(richard, device1);
 		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
 
-		service.deleteDevice(john, device1);
+		service.deleteDevice(richard, device1);
 	}
 
 	private void assertDevice(UserDevice device, LocalDateTime startTime, String expectedDeviceName,
@@ -336,6 +341,6 @@ public class DeviceServiceTest
 		assertThat(deviceAnonymized.getOperatingSystem(), equalTo(expectedOperatingSystem));
 		assertThat(deviceAnonymized.getLastMonitoredActivityDate().isPresent(), equalTo(false));
 		assertThat(deviceAnonymized.getDeviceId(), equalTo(expectedDeviceId));
-		assertThat(deviceAnonymized.getUserAnonymized().getId(), equalTo(john.getAnonymized().getId()));
+		assertThat(deviceAnonymized.getUserAnonymized().getId(), equalTo(richard.getAnonymized().getId()));
 	}
 }

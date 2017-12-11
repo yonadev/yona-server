@@ -6,14 +6,23 @@ package nu.yona.server.subscriptions.service.migration;
 
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+
 import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.UserDevice;
+import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService.MigrationStep;
 
+@Component
+@Order(1) // Never change the order or remove a migration step. If the step is obsolete, make it empty
 public class AddFirstDevice implements MigrationStep
 {
+	@Autowired
+	private DeviceService deviceService;
 
 	@Override
 	public void upgrade(User user)
@@ -31,7 +40,7 @@ public class AddFirstDevice implements MigrationStep
 
 	private void createInitialDevice(User user)
 	{
-		// TODO Auto-generated method stub
+		deviceService.addDeviceToUser(user, deviceService.createDefaultUserDeviceDto());
 	}
 
 	private void addDevicesAnonymizedToUserAnonymizedIfNotDoneYet(User user)

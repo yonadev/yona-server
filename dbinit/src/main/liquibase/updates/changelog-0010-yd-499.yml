@@ -1,0 +1,41 @@
+databaseChangeLog:
+- changeSet:
+    id: 1513023183603-1
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: change_ciphertext
+            type: tinyblob
+        tableName: messages
+- changeSet:
+    id: 1513023183603-2
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: device_anonymized_id_ciphertext
+            type: tinyblob
+        tableName: messages
+- changeSet:
+    id: 1513023183603-3
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: new_name_ciphertext
+            type: tinyblob
+        tableName: messages
+- changeSet:
+    id: 1513023183603-4
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: old_name_ciphertext
+            type: tinyblob
+        tableName: messages

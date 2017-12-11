@@ -32,6 +32,7 @@ import nu.yona.server.rest.PolymorphicDto;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.BuddyConnectRequestMessageDto;
 import nu.yona.server.subscriptions.service.BuddyConnectResponseMessageDto;
+import nu.yona.server.subscriptions.service.BuddyDeviceChangeMessageDto;
 import nu.yona.server.subscriptions.service.BuddyDisconnectMessageDto;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDto;
@@ -44,6 +45,7 @@ import nu.yona.server.util.TimeUtil;
 		@Type(value = BuddyConnectResponseMessageDto.class, name = "BuddyConnectResponseMessage"),
 		@Type(value = BuddyDisconnectMessageDto.class, name = "BuddyDisconnectMessage"),
 		@Type(value = BuddyInfoChangeMessageDto.class, name = "BuddyInfoChangeMessage"),
+		@Type(value = BuddyDeviceChangeMessageDto.class, name = "BuddyDeviceChangeMessage"),
 		@Type(value = DisclosureRequestMessageDto.class, name = "DisclosureRequestMessage"),
 		@Type(value = DisclosureResponseMessageDto.class, name = "DisclosureResponseMessage"),
 		@Type(value = GoalConflictMessageDto.class, name = "GoalConflictMessage"),
