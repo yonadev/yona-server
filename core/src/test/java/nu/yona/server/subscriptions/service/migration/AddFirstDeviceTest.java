@@ -56,7 +56,6 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymizedRepository;
 import nu.yona.server.subscriptions.entities.BuddyDeviceChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService.MigrationStep;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
@@ -138,8 +137,6 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 	protected Map<Class<?>, Repository<?, ?>> getRepositories()
 	{
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
-		repositoriesMap.put(User.class, userRepository);
-		repositoriesMap.put(UserAnonymized.class, userAnonymizedRepository);
 		repositoriesMap.put(DeviceAnonymized.class, deviceAnonymizedRepository);
 		repositoriesMap.put(BuddyAnonymized.class, buddyAnonymizedRepository);
 		return repositoriesMap;
