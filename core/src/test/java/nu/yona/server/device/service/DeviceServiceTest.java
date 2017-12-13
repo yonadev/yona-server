@@ -124,6 +124,7 @@ public class DeviceServiceTest
 		JUnitUtil.setUpRepositoryMock(mockUserRepository);
 
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
+		repositoriesMap.put(User.class, mockUserRepository);
 		repositoriesMap.put(UserAnonymized.class, userAnonymizedRepository);
 		repositoriesMap.put(DeviceAnonymized.class, deviceAnonymizedRepository);
 		JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);

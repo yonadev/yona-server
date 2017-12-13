@@ -6,8 +6,8 @@ databaseChangeLog:
     - addColumn:
         columns:
         - column:
-            name: change_ciphertext
-            type: tinyblob
+            name: device_change
+            type: INT
         tableName: messages
 - changeSet:
     id: 1513023183603-2

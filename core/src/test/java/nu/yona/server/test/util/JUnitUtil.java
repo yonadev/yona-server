@@ -94,8 +94,9 @@ public class JUnitUtil
 		MessageSource namedMessageSource = MessageSource.createInstance();
 		UserPrivate userPrivate = UserPrivate.createInstance(nickname, vpnPassword, johnAnonymized.getId(),
 				anonymousMessageSource.getId(), namedMessageSource);
-		return new User(UUID.randomUUID(), initializationVector, firstName, lastName, mobileNumber, userPrivate,
-				namedMessageSource.getDestination());
+		User user = new User(UUID.randomUUID(), initializationVector, firstName, lastName, mobileNumber,
+				userPrivate, namedMessageSource.getDestination());
+		return User.getRepository().save(user);
 	}
 
 	public static void makeBuddies(User user, User buddyToBe)

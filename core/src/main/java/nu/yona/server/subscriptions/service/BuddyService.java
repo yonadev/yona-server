@@ -254,7 +254,7 @@ public class BuddyService
 	@Transactional
 	public void removeBuddyAfterConnectRejection(UUID idOfRequestingUser, UUID buddyId)
 	{
-		User user = userService.getValidatedUserbyId(idOfRequestingUser);
+		User user = userService.getValidatedUserById(idOfRequestingUser);
 		Buddy buddy = buddyRepository.findOne(buddyId);
 
 		if (buddy != null)
@@ -278,7 +278,7 @@ public class BuddyService
 	@Transactional
 	public void removeBuddy(UUID idOfRequestingUser, UUID buddyId, Optional<String> message)
 	{
-		User user = userService.getValidatedUserbyId(idOfRequestingUser);
+		User user = userService.getValidatedUserById(idOfRequestingUser);
 		Buddy buddy = getEntityById(buddyId);
 
 		if (buddy.getSendingStatus() == Status.REQUESTED || buddy.getReceivingStatus() == Status.REQUESTED)
@@ -407,7 +407,7 @@ public class BuddyService
 	@Transactional
 	public void removeBuddyAfterBuddyRemovedConnection(UUID idOfRequestingUser, UUID relatedUserId)
 	{
-		User user = userService.getValidatedUserbyId(idOfRequestingUser);
+		User user = userService.getValidatedUserById(idOfRequestingUser);
 		user.getBuddies().stream().filter(b -> b.getUserId().equals(relatedUserId)).findFirst()
 				.ifPresent(b -> removeBuddy(user, b));
 	}
@@ -692,7 +692,7 @@ public class BuddyService
 	public void updateBuddyUserInfo(UUID idOfRequestingUser, UUID relatedUserAnonymizedId, String buddyNickname,
 			Optional<UUID> buddyUserPhotoId)
 	{
-		User user = userService.getValidatedUserbyId(idOfRequestingUser);
+		User user = userService.getValidatedUserById(idOfRequestingUser);
 		Buddy buddy = user.getBuddyByUserAnonymizedId(relatedUserAnonymizedId);
 
 		buddy.setNickName(buddyNickname);
@@ -712,7 +712,7 @@ public class BuddyService
 	public void processDeviceChange(UUID idOfRequestingUser, UUID relatedUserAnonymizedId, DeviceChange change,
 			UUID deviceAnonymizedId, Optional<String> oldName, Optional<String> newName)
 	{
-		User user = userService.getValidatedUserbyId(idOfRequestingUser);
+		User user = userService.getValidatedUserById(idOfRequestingUser);
 		Buddy buddy = user.getBuddyByUserAnonymizedId(relatedUserAnonymizedId);
 
 		switch (change)

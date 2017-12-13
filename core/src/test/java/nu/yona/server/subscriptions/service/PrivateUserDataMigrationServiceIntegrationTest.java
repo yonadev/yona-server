@@ -6,9 +6,9 @@ package nu.yona.server.subscriptions.service;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +18,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
@@ -34,6 +35,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.entities.UserAnonymizedRepositoryMock;
+import nu.yona.server.entities.UserRepositoryMock;
 import nu.yona.server.messaging.entities.MessageSource;
 import nu.yona.server.messaging.entities.MessageSourceRepository;
 import nu.yona.server.subscriptions.entities.User;
@@ -53,6 +55,12 @@ import nu.yona.server.test.util.JUnitUtil;
 				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.MockMigrationStep2", type = FilterType.REGEX) })
 class PrivateUserDataMigrationServiceIntegrationTestConfiguration
 {
+	@Bean
+	UserRepository getMockUserRepository()
+	{
+		return Mockito.spy(new UserRepositoryMock());
+	}
+
 	@Bean
 	UserAnonymizedRepository getMockUserAnonymizedRepository()
 	{
@@ -89,8 +97,8 @@ public class PrivateUserDataMigrationServiceIntegrationTest
 	@MockBean
 	private BuddyService buddyService;
 
-	@MockBean
-	private UserRepository mockUserRepository;
+	@Autowired
+	private UserRepository userRepository;
 
 	@MockBean
 	private MessageSourceRepository mockMessageSourceRepository;
@@ -117,11 +125,11 @@ public class PrivateUserDataMigrationServiceIntegrationTest
 	public void setUpPerTest()
 	{
 		userAnonymizedRepository.deleteAll();
-		JUnitUtil.setUpRepositoryMock(mockUserRepository);
+		userRepository.deleteAll();
 		JUnitUtil.setUpRepositoryMock(mockMessageSourceRepository);
 
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
-		repositoriesMap.put(User.class, mockUserRepository);
+		repositoriesMap.put(User.class, userRepository);
 		repositoriesMap.put(MessageSource.class, mockMessageSourceRepository);
 		repositoriesMap.put(UserAnonymized.class, userAnonymizedRepository);
 		JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);
@@ -130,7 +138,7 @@ public class PrivateUserDataMigrationServiceIntegrationTest
 		{
 			richard = JUnitUtil.createRichard();
 		}
-		when(mockUserRepository.findOne(richard.getId())).thenReturn(richard);
+		reset(userRepository);
 	}
 
 	@Test
@@ -144,10 +152,9 @@ public class PrivateUserDataMigrationServiceIntegrationTest
 		}
 
 		ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-		verify(mockUserRepository, times(1)).save(userCaptor.capture());
+		verify(userRepository, times(1)).save(userCaptor.capture());
 		assertThat(userCaptor.getValue().getFirstName(), equalTo("Richardfoobar"));
-		assertThat(userCaptor.getValue().getPrivateDataMigrationVersion(),
-				equalTo(service.getCurrentVersion()));
+		assertThat(userCaptor.getValue().getPrivateDataMigrationVersion(), equalTo(service.getCurrentVersion()));
 	}
 
 	@Test
@@ -161,9 +168,8 @@ public class PrivateUserDataMigrationServiceIntegrationTest
 		}
 
 		ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-		verify(mockUserRepository, times(1)).save(userCaptor.capture());
+		verify(userRepository, times(1)).save(userCaptor.capture());
 		assertThat(userCaptor.getValue().getFirstName(), equalTo("Richardfoobar"));
-		assertThat(userCaptor.getValue().getPrivateDataMigrationVersion(),
-				equalTo(service.getCurrentVersion()));
+		assertThat(userCaptor.getValue().getPrivateDataMigrationVersion(), equalTo(service.getCurrentVersion()));
 	}
 }

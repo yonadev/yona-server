@@ -189,6 +189,7 @@ public class BuddyDeviceChangeMessageDtoTest
 		JUnitUtil.setUpRepositoryMock(mockMessageRepository);
 
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
+		repositoriesMap.put(User.class, userRepository);
 		repositoriesMap.put(UserAnonymized.class, userAnonymizedRepository);
 		repositoriesMap.put(DeviceAnonymized.class, deviceAnonymizedRepository);
 		repositoriesMap.put(BuddyAnonymized.class, buddyAnonymizedRepository);
@@ -200,8 +201,6 @@ public class BuddyDeviceChangeMessageDtoTest
 			richard = JUnitUtil.createRichard();
 			bob = JUnitUtil.createBob();
 			JUnitUtil.makeBuddies(richard, bob);
-			userRepository.save(richard);
-			userRepository.save(bob);
 		}
 	}
 

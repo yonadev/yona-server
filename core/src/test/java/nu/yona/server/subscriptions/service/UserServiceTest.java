@@ -7,6 +7,7 @@ package nu.yona.server.subscriptions.service;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -83,6 +84,7 @@ public class UserServiceTest
 
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
 		repositoriesMap.put(MessageSource.class, mockMessageSourceRepository);
+		repositoriesMap.put(User.class, mockUserRepository);
 		repositoriesMap.put(UserAnonymized.class, mockUserAnonymizedRepository);
 		JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);
 
@@ -90,7 +92,7 @@ public class UserServiceTest
 		{
 			richard = JUnitUtil.createRichard();
 		}
-
+		reset(mockUserRepository);
 		when(mockUserRepository.findOne(richard.getId())).thenReturn(richard);
 	}
 

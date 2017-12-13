@@ -46,14 +46,15 @@ import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
-import nu.yona.server.device.service.DeviceChange;
 import nu.yona.server.device.entities.DeviceAnonymizedRepository;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.device.entities.UserDeviceRepository;
+import nu.yona.server.device.service.DeviceChange;
 import nu.yona.server.entities.BuddyAnonymizedRepositoryMock;
 import nu.yona.server.entities.DeviceAnonymizedRepositoryMock;
 import nu.yona.server.entities.UserAnonymizedRepositoryMock;
 import nu.yona.server.entities.UserDeviceRepositoryMock;
+import nu.yona.server.entities.UserRepositoryMock;
 import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.BuddyAnonymized;
@@ -62,6 +63,7 @@ import nu.yona.server.subscriptions.entities.BuddyDeviceChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
 import nu.yona.server.subscriptions.entities.UserAnonymizedRepository;
+import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService.MigrationStep;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.test.util.CryptoSessionRule;
@@ -86,6 +88,12 @@ class AddFirstDeviceIntegrationTestConfiguration
 	UserAnonymizedRepository getMockUserAnonymizedRepository()
 	{
 		return new UserAnonymizedRepositoryMock();
+	}
+
+	@Bean
+	UserRepository getMockUserRepository()
+	{
+		return new UserRepositoryMock();
 	}
 
 	@Bean
@@ -114,6 +122,9 @@ public class AddFirstDeviceTest
 	private static final String PASSWORD = "password";
 	private User richard;
 	private User bob;
+
+	@Autowired
+	private UserRepository userRepository;
 
 	@Autowired
 	private UserAnonymizedRepository userAnonymizedRepository;
@@ -149,11 +160,13 @@ public class AddFirstDeviceTest
 	public void setUpPerTest() throws Exception
 	{
 		MockitoAnnotations.initMocks(this);
+		userRepository.deleteAll();
 		userAnonymizedRepository.deleteAll();
 		userDeviceRepository.deleteAll();
 		deviceAnonymizedRepository.deleteAll();
 		buddyAnonymizedRepository.deleteAll();
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
+		repositoriesMap.put(User.class, userRepository);
 		repositoriesMap.put(UserAnonymized.class, userAnonymizedRepository);
 		repositoriesMap.put(DeviceAnonymized.class, deviceAnonymizedRepository);
 		repositoriesMap.put(BuddyAnonymized.class, buddyAnonymizedRepository);

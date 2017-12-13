@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
- * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.service;
 
@@ -20,7 +20,7 @@ public class DeviceServiceException extends YonaException
 		super(messageId, parameters);
 	}
 
-	protected DeviceServiceException(HttpStatus statusCode, String messageId, Serializable... parameters)
+	private DeviceServiceException(HttpStatus statusCode, String messageId, Serializable... parameters)
 	{
 		super(statusCode, messageId, parameters);
 	}

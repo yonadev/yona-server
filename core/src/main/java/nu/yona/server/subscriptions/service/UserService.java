@@ -203,7 +203,7 @@ public class UserService
 	@Transactional
 	public UserDto getPrivateValidatedUser(UUID id)
 	{
-		User validatedUser = getValidatedUserbyId(id);
+		User validatedUser = getValidatedUserById(id);
 		User updatedUser = handlePrivateDataActions(validatedUser);
 		return createUserDtoWithPrivateData(updatedUser);
 	}
@@ -748,7 +748,7 @@ public class UserService
 	 * @param id The id of the user.
 	 * @return The validated user entity. An exception is thrown is something is missing.
 	 */
-	public User getValidatedUserbyId(UUID id)
+	public User getValidatedUserById(UUID id)
 	{
 		User retVal = getUserEntityById(id);
 		retVal.assertMobileNumberConfirmed();

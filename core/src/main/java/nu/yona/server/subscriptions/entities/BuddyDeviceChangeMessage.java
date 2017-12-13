@@ -7,6 +7,7 @@ package nu.yona.server.subscriptions.entities;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 
@@ -17,9 +18,8 @@ import nu.yona.server.messaging.entities.BuddyMessage;
 @Entity
 public class BuddyDeviceChangeMessage extends BuddyMessage
 {
-	@Transient
+	@Column(name = "device_change")
 	private DeviceChange change;
-	private byte[] changeCiphertext;
 
 	@Transient
 	private UUID deviceAnonymizedId;
@@ -91,7 +91,6 @@ public class BuddyDeviceChangeMessage extends BuddyMessage
 	public void encrypt()
 	{
 		super.encrypt();
-		changeCiphertext = SecretKeyUtil.encryptString(getChange().toString());
 		oldNameCiphertext = SecretKeyUtil.encryptString(getOldName().orElse(null));
 		newNameCiphertext = SecretKeyUtil.encryptString(getNewName().orElse(null));
 		deviceAnonymizedIdCiphertext = SecretKeyUtil.encryptUuid(getDeviceAnonymizedId());
@@ -101,7 +100,6 @@ public class BuddyDeviceChangeMessage extends BuddyMessage
 	public void decrypt()
 	{
 		super.decrypt();
-		this.change = DeviceChange.valueOf(SecretKeyUtil.decryptString(changeCiphertext));
 		this.oldName = Optional.ofNullable(SecretKeyUtil.decryptString(oldNameCiphertext));
 		this.newName = Optional.ofNullable(SecretKeyUtil.decryptString(newNameCiphertext));
 		this.deviceAnonymizedId = SecretKeyUtil.decryptUuid(deviceAnonymizedIdCiphertext);
