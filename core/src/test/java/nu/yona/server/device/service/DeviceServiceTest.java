@@ -10,9 +10,9 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -22,7 +22,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -34,12 +33,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
@@ -47,12 +44,10 @@ import nu.yona.server.device.entities.DeviceAnonymizedRepository;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.device.entities.UserDeviceRepository;
 import nu.yona.server.entities.DeviceAnonymizedRepositoryMock;
-import nu.yona.server.entities.UserAnonymizedRepositoryMock;
+import nu.yona.server.entities.UserRepositoriesConfiguration;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.User;
-import nu.yona.server.subscriptions.entities.UserAnonymized;
-import nu.yona.server.subscriptions.entities.UserAnonymizedRepository;
-import nu.yona.server.subscriptions.entities.UserRepository;
+import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.test.util.CryptoSessionRule;
 import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.TimeUtil;
@@ -63,24 +58,18 @@ import nu.yona.server.util.TimeUtil;
 				@ComponentScan.Filter(pattern = "nu.yona.server.device.service.DeviceService", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) })
-class DeviceServiceTestConfiguration
+class DeviceServiceTestConfiguration extends UserRepositoriesConfiguration
 {
 	@Bean
 	DeviceAnonymizedRepository getMockDeviceAnonymizedRepository()
 	{
 		return new DeviceAnonymizedRepositoryMock();
 	}
-
-	@Bean
-	UserAnonymizedRepository getMockUserAnonymizedRepository()
-	{
-		return new UserAnonymizedRepositoryMock();
-	}
 }
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { DeviceServiceTestConfiguration.class })
-public class DeviceServiceTest
+public class DeviceServiceTest extends BaseSpringIntegrationTest
 {
 	@MockBean
 	private UserDeviceRepository mockUserDeviceRepository;
@@ -90,12 +79,6 @@ public class DeviceServiceTest
 
 	@Autowired
 	private DeviceAnonymizedRepository deviceAnonymizedRepository;
-
-	@Autowired
-	private UserAnonymizedRepository userAnonymizedRepository;
-
-	@MockBean
-	private UserRepository mockUserRepository;
 
 	@MockBean
 	private MessageService mockMessageService;
@@ -109,32 +92,23 @@ public class DeviceServiceTest
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
 
-	@BeforeClass
-	public static void setUpForAll()
-	{
-		LocaleContextHolder.setLocale(Translator.EN_US_LOCALE);
-	}
-
 	@Before
 	public void setUpPerTest()
 	{
-		deviceAnonymizedRepository.deleteAll();
-		userAnonymizedRepository.deleteAll();
-		JUnitUtil.setUpRepositoryMock(mockUserDeviceRepository);
-		JUnitUtil.setUpRepositoryMock(mockUserRepository);
-
-		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
-		repositoriesMap.put(User.class, mockUserRepository);
-		repositoriesMap.put(UserAnonymized.class, userAnonymizedRepository);
-		repositoriesMap.put(DeviceAnonymized.class, deviceAnonymizedRepository);
-		JUnitUtil.setUpRepositoryProviderMock(repositoriesMap);
-
 		try (CryptoSession cryptoSession = CryptoSession.start(PASSWORD))
 		{
 			richard = JUnitUtil.createRichard();
 		}
+		reset(userRepository);
+	}
 
-		when(mockUserRepository.findOne(richard.getId())).thenReturn(richard);
+	@Override
+	protected Map<Class<?>, Repository<?, ?>> getRepositories()
+	{
+		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
+		repositoriesMap.put(DeviceAnonymized.class, deviceAnonymizedRepository);
+		repositoriesMap.put(UserDevice.class, mockUserDeviceRepository);
+		return repositoriesMap;
 	}
 
 	@Test
