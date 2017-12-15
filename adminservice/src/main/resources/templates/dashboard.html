@@ -153,7 +153,7 @@
 </head>
 <body>
 	<h1>User statistics</h1>
-	<p>
+	<p>Maximum number of users: <span th:text="${maxNumOfUsers}">100</span><br/>
 		Total number of users: <span th:text="${totalNumOfUsers}">1</span>
 	<ul>
 		<li>Users that confirmed their mobile number: <span th:text="${numOfUsersWithConfirmedNumbers}">1</span></li>
@@ -165,5 +165,6 @@
 		</li>
 	</ul></p>
 	<div id="chart" style="width: 320px; height: 600px"></div>
+	<p>Build number: <span th:text="${buildNumber}">123</span><br/>
 </body>
 </html>

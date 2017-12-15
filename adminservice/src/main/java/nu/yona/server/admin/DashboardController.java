@@ -13,11 +13,13 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.subscriptions.entities.UserAnonymizedRepository;
 import nu.yona.server.subscriptions.entities.UserRepository;
 
@@ -33,6 +35,12 @@ public class DashboardController
 	@Autowired
 	private UserAnonymizedRepository userAnonymizedRepository;
 
+	@Autowired
+	private YonaProperties yonaProperties;
+
+	@Autowired
+	private BuildProperties buildProperties;
+
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@Transactional
 	public String getIndexPage(Model model)
@@ -42,6 +50,7 @@ public class DashboardController
 
 		List<Integer> appOpenedCounts = calculateAppOpenedCounts(intervals);
 		List<Integer> lastMonitoredActivityCounts = calculateLastMonitoredActivityCounts(intervals);
+		model.addAttribute("maxNumOfUsers", yonaProperties.getMaxUsers());
 		model.addAttribute("totalNumOfUsers", userRepository.count());
 		model.addAttribute("numOfUsersWithConfirmedNumbers", userRepository.countByMobileNumberConfirmationCodeIsNull());
 		model.addAttribute("numOfUsersWithUnconfirmedNumbers", userRepository.countByMobileNumberConfirmationCodeIsNotNull());
@@ -53,6 +62,7 @@ public class DashboardController
 		model.addAttribute("appOpenedPercentages", absoluteValuesToPercentages(appOpenedCounts));
 		model.addAttribute("lastMonitoredActivityCounts", lastMonitoredActivityCounts);
 		model.addAttribute("lastMonitoredActivityPercentages", absoluteValuesToPercentages(lastMonitoredActivityCounts));
+		model.addAttribute("buildNumber", buildProperties.get("buildNumber"));
 
 		return "dashboard";
 	}
