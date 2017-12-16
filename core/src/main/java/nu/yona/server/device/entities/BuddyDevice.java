@@ -28,9 +28,14 @@ public class BuddyDevice extends DeviceBase
 	{
 	}
 
-	public BuddyDevice(UUID id, String name, UUID deviceAnonymizedId, Boolean isVpnConnected)
+	private BuddyDevice(UUID id, String name, UUID deviceAnonymizedId, Boolean isVpnConnected)
 	{
 		super(id, name, deviceAnonymizedId, isVpnConnected);
+	}
+
+	public static BuddyDevice createInstance(String name, UUID deviceAnonymizedId, Boolean isVpnConnected)
+	{
+		return new BuddyDevice(UUID.randomUUID(), name, deviceAnonymizedId, isVpnConnected);
 	}
 
 	public static BuddyDeviceRepository getRepository()

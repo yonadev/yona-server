@@ -4,16 +4,15 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.util.Arrays;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.subscriptions.entities.User;
-import nu.yona.server.subscriptions.service.migration.EncryptBuddyLastStatusChangeTime;
 
 @Service
 public class PrivateUserDataMigrationService
@@ -24,7 +23,14 @@ public class PrivateUserDataMigrationService
 		void upgrade(User userEntity);
 	}
 
-	private static List<Class<? extends MigrationStep>> migrationSteps = Arrays.asList(EncryptBuddyLastStatusChangeTime.class);
+	@Autowired
+	private List<MigrationStep> migrationSteps;
+
+	@PostConstruct
+	private void onAfterInit()
+	{
+		User.setCurrentPrivateDataMigrationVersion(migrationSteps.size());
+	}
 
 	@Transactional
 	void upgrade(User userEntity)
@@ -42,37 +48,13 @@ public class PrivateUserDataMigrationService
 		return userEntity.getPrivateDataMigrationVersion() == getCurrentVersion();
 	}
 
-	private static MigrationStep getMigrationStepInstance(int fromVersion)
+	private MigrationStep getMigrationStepInstance(int fromVersion)
 	{
-		Class<? extends MigrationStep> migrationStep = migrationSteps.get(fromVersion);
-		try
-		{
-			return migrationStep.newInstance();
-		}
-		catch (InstantiationException | IllegalAccessException e)
-		{
-			throw YonaException.unexpected(e);
-		}
+		return migrationSteps.get(fromVersion);
 	}
 
-	public static int getCurrentVersion()
+	public int getCurrentVersion()
 	{
 		return migrationSteps.size();
-	}
-
-	/*
-	 * For unit testing purposes only.
-	 */
-	public static List<Class<? extends MigrationStep>> getMigrationSteps()
-	{
-		return migrationSteps;
-	}
-
-	/*
-	 * For unit testing purposes only.
-	 */
-	public static void setMigrationSteps(List<Class<? extends MigrationStep>> value)
-	{
-		migrationSteps = value;
 	}
 }

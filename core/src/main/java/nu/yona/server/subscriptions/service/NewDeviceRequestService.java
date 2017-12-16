@@ -40,7 +40,7 @@ public class NewDeviceRequestService
 	@Transactional
 	public NewDeviceRequestDto setNewDeviceRequestForUser(UUID userId, String yonaPassword, String newDeviceRequestPassword)
 	{
-		User userEntity = userService.getValidatedUserbyId(userId);
+		User userEntity = userService.getValidatedUserById(userId);
 
 		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(yonaPassword);
 		newDeviceRequestEntity.encryptYonaPassword(newDeviceRequestPassword);
@@ -56,7 +56,7 @@ public class NewDeviceRequestService
 	@Transactional
 	public NewDeviceRequestDto getNewDeviceRequestForUser(UUID userId, Optional<String> newDeviceRequestPassword)
 	{
-		User userEntity = userService.getValidatedUserbyId(userId);
+		User userEntity = userService.getValidatedUserById(userId);
 		NewDeviceRequest newDeviceRequestEntity = userEntity.getNewDeviceRequest();
 
 		if (newDeviceRequestEntity == null)
@@ -87,7 +87,7 @@ public class NewDeviceRequestService
 	@Transactional
 	public void clearNewDeviceRequestForUser(UUID userId)
 	{
-		User user = userService.getValidatedUserbyId(userId);
+		User user = userService.getValidatedUserById(userId);
 
 		NewDeviceRequest existingNewDeviceRequestEntity = user.getNewDeviceRequest();
 		if (existingNewDeviceRequestEntity != null)

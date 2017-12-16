@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,10 +36,7 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberType;
 import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.CryptoSession;
-import nu.yona.server.device.entities.DeviceAnonymized;
-import nu.yona.server.device.entities.DeviceAnonymizedRepository;
-import nu.yona.server.device.entities.UserDevice;
-import nu.yona.server.device.entities.UserDeviceRepository;
+import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
@@ -106,12 +104,6 @@ public class UserService
 	private ActivityCategoryRepository activityCategoryRepository;
 
 	@Autowired(required = false)
-	private UserDeviceRepository userDeviceRepository;
-
-	@Autowired(required = false)
-	private DeviceAnonymizedRepository deviceAnonymizedRepository;
-
-	@Autowired(required = false)
 	private LDAPUserService ldapUserService;
 
 	@Autowired
@@ -122,6 +114,9 @@ public class UserService
 
 	@Autowired(required = false)
 	private BuddyService buddyService;
+
+	@Autowired(required = false)
+	private DeviceService deviceService;
 
 	@Autowired(required = false)
 	private TransactionHelper transactionHelper;
@@ -208,7 +203,7 @@ public class UserService
 	@Transactional
 	public UserDto getPrivateValidatedUser(UUID id)
 	{
-		User validatedUser = getValidatedUserbyId(id);
+		User validatedUser = getValidatedUserById(id);
 		User updatedUser = handlePrivateDataActions(validatedUser);
 		return createUserDtoWithPrivateData(updatedUser);
 	}
@@ -289,7 +284,7 @@ public class UserService
 	private void addDevicesToEntity(UserDto userDto, User userEntity)
 	{
 		userDto.getOwnPrivateData().getDevices().orElse(Collections.emptySet()).stream().map(d -> (UserDeviceDto) d)
-				.map(d -> createUserDeviceEntity(d, 0)).forEach(userEntity::addDevice);
+				.forEach(d -> deviceService.addDeviceToUser(userEntity, d));
 	}
 
 	private Set<Goal> buildGoalsSet(UserDto user, UserSignUp signUp)
@@ -305,13 +300,6 @@ public class UserService
 					.collect(Collectors.toSet());
 		}
 		return goals;
-	}
-
-	private UserDevice createUserDeviceEntity(UserDeviceDto deviceDto, int deviceId)
-	{
-		DeviceAnonymized deviceAnonymized = new DeviceAnonymized(UUID.randomUUID(), deviceId, deviceDto.getOperatingSystem());
-		deviceAnonymizedRepository.save(deviceAnonymized);
-		return userDeviceRepository.save(new UserDevice(UUID.randomUUID(), deviceDto.getName(), deviceAnonymized.getId()));
 	}
 
 	private Optional<ConfirmationCode> createConfirmationCodeIfNeeded(Optional<String> overwriteUserConfirmationCode,
@@ -635,7 +623,7 @@ public class UserService
 		allGoalsIncludingHistoryItems.forEach(Goal::removeAllWeekActivities);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 
-		deleteDevicesAnonymized(updatedUserEntity);
+		new ArrayList<>(userEntity.getDevices()).stream().forEach(d -> deviceService.deleteDeviceEvenIfLastOne(userEntity, d));
 
 		userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
 		userRepository.delete(updatedUserEntity);
@@ -660,11 +648,6 @@ public class UserService
 		List<IntervalActivity> allWeekActivities = allGoalsIncludingHistoryItems.stream()
 				.flatMap(g -> g.getWeekActivities().stream()).collect(Collectors.toList());
 		messageService.deleteMessagesForIntervalActivities(allWeekActivities);
-	}
-
-	private void deleteDevicesAnonymized(User userEntity)
-	{
-		userEntity.getDevices().stream().forEach(d -> deviceAnonymizedRepository.delete(d.getDeviceAnonymized()));
 	}
 
 	private Set<Goal> getAllGoalsIncludingHistoryItems(User userEntity)
@@ -765,7 +748,7 @@ public class UserService
 	 * @param id The id of the user.
 	 * @return The validated user entity. An exception is thrown is something is missing.
 	 */
-	public User getValidatedUserbyId(UUID id)
+	public User getValidatedUserById(UUID id)
 	{
 		User retVal = getUserEntityById(id);
 		retVal.assertMobileNumberConfirmed();

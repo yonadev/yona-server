@@ -25,7 +25,6 @@ import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.exceptions.MobileNumberConfirmationException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.messaging.entities.MessageDestination;
-import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
@@ -67,6 +66,8 @@ public class User extends EntityWithUuid
 	@OneToOne(fetch = FetchType.LAZY)
 	private MessageDestination messageDestination;
 
+	private static int currentPrivateDataMigrationVersion;
+
 	// Default constructor is required for JPA
 	public User()
 	{
@@ -84,12 +85,25 @@ public class User extends EntityWithUuid
 		this.mobileNumber = mobileNumber;
 		this.setUserPrivate(userPrivate);
 		this.messageDestination = messageDestination;
-		this.privateDataMigrationVersion = PrivateUserDataMigrationService.getCurrentVersion();
+		this.privateDataMigrationVersion = currentPrivateDataMigrationVersion;
 	}
 
 	public static UserRepository getRepository()
 	{
 		return (UserRepository) RepositoryProvider.getRepository(User.class, UUID.class);
+	}
+
+	public static void setCurrentPrivateDataMigrationVersion(int currentPrivateDataMigrationVersion)
+	{
+		User.currentPrivateDataMigrationVersion = currentPrivateDataMigrationVersion;
+	}
+
+	/**
+	 * For testing purposes only.
+	 */
+	static int getCurrentPrivateDataMigrationVersion()
+	{
+		return currentPrivateDataMigrationVersion;
 	}
 
 	public LocalDateTime getCreationTime()

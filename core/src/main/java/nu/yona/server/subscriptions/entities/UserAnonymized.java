@@ -64,6 +64,7 @@ public class UserAnonymized extends EntityWithUuid
 		this.anonymousDestination = anonymousDestination;
 		this.goals = new HashSet<>(goals);
 		this.buddiesAnonymized = new HashSet<>();
+		this.devicesAnonymized = new HashSet<>();
 	}
 
 	public static UserAnonymizedRepository getRepository()

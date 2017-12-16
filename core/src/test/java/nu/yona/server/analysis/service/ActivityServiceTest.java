@@ -152,9 +152,6 @@ public class ActivityServiceTest
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamingGoal.getId())).thenReturn(gamingGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, socialGoal.getId())).thenReturn(socialGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, shoppingGoal.getId())).thenReturn(shoppingGoal);
-
-		JUnitUtil.setUpRepositoryMock(mockDayActivityRepository);
-		JUnitUtil.setUpRepositoryMock(mockWeekActivityRepository);
 	}
 
 	private Map<Locale, String> usString(String string)
@@ -177,16 +174,15 @@ public class ActivityServiceTest
 				yesterday.plusHours(21).plusMinutes(00).toLocalDateTime(), Optional.empty());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
 		Set<UUID> relevantGoalIds = userAnonEntity.getGoals().stream().map(Goal::getId).collect(Collectors.toSet());
-		when(mockDayActivityRepository.findAll(userAnonId, relevantGoalIds,
-				today.minusDays(2).toLocalDate(), today.plusDays(1).toLocalDate()))
-						.thenReturn(Arrays.asList(yesterdayRecordedActivity));
+		when(mockDayActivityRepository.findAll(userAnonId, relevantGoalIds, today.minusDays(2).toLocalDate(),
+				today.plusDays(1).toLocalDate())).thenReturn(Arrays.asList(yesterdayRecordedActivity));
 
 		Page<DayActivityOverviewDto<DayActivityDto>> dayOverviews = service.getUserDayActivityOverviews(userId,
 				new PageRequest(0, 3));
 
 		// assert that the right retrieve from database was done
-		verify(mockDayActivityRepository, times(1)).findAll(userAnonId, relevantGoalIds,
-				today.minusDays(2).toLocalDate(), today.plusDays(1).toLocalDate());
+		verify(mockDayActivityRepository, times(1)).findAll(userAnonId, relevantGoalIds, today.minusDays(2).toLocalDate(),
+				today.plusDays(1).toLocalDate());
 
 		// because the gambling goal was added with creation date two weeks ago, there are multiple days, equal to the limit of
 		// our page request = 3

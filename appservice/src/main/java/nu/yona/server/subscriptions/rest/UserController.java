@@ -58,14 +58,13 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import nu.yona.server.DOSProtectionService;
-import nu.yona.server.Translator;
 import nu.yona.server.analysis.rest.AppActivityController;
 import nu.yona.server.analysis.rest.UserActivityController;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.crypto.seckey.SecretKeyUtil;
-import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.rest.DeviceController;
 import nu.yona.server.device.service.DeviceBaseDto;
+import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.exceptions.InvalidDataException;
@@ -115,6 +114,9 @@ public class UserController extends ControllerBase
 	private BuddyService buddyService;
 
 	@Autowired
+	private DeviceService deviceService;
+
+	@Autowired
 	private DOSProtectionService dosProtectionService;
 
 	@Autowired
@@ -139,9 +141,6 @@ public class UserController extends ControllerBase
 	@Autowired
 	@Qualifier("sslRootCertificate")
 	private X509Certificate sslRootCertificate;
-
-	@Autowired
-	private Translator translator;
 
 	@RequestMapping(value = "/{userId}", method = RequestMethod.GET)
 	@ResponseBody
@@ -296,7 +295,7 @@ public class UserController extends ControllerBase
 		Set<DeviceBaseDto> devices = user.getOwnPrivateData().getDevices().orElse(Collections.emptySet());
 		if (devices.isEmpty())
 		{
-			devices.add(new UserDeviceDto(translator.getLocalizedMessage("default.device.name"), OperatingSystem.UNKNOWN));
+			devices.add(deviceService.createDefaultUserDeviceDto());
 		}
 	}
 
@@ -526,7 +525,8 @@ public class UserController extends ControllerBase
 		final Function<UserDto, Boolean> includeOwnUserNumNotConfirmedContent;
 		final Function<UserDto, Boolean> includeOwnUserNumConfirmedContent;
 
-		UserResourceRepresentation(Function<UserDto, Boolean> includeGeneralContent, Function<UserDto, Boolean> includeOwnUserNumNotConfirmedContent,
+		UserResourceRepresentation(Function<UserDto, Boolean> includeGeneralContent,
+				Function<UserDto, Boolean> includeOwnUserNumNotConfirmedContent,
 				Function<UserDto, Boolean> includeOwnUserNumConfirmedContent)
 		{
 			this.includeGeneralContent = includeGeneralContent;
@@ -624,8 +624,8 @@ public class UserController extends ControllerBase
 		private final Optional<PinResetRequestController> pinResetRequestController;
 		private final UserResourceRepresentation representation;
 
-		private UserResourceAssembler(UserResourceRepresentation representation, CurieProvider curieProvider, Optional<UUID> requestingUserId,
-				Optional<PinResetRequestController> pinResetRequestController)
+		private UserResourceAssembler(UserResourceRepresentation representation, CurieProvider curieProvider,
+				Optional<UUID> requestingUserId, Optional<PinResetRequestController> pinResetRequestController)
 		{
 			super(UserController.class, UserResource.class);
 			this.representation = representation;
@@ -766,17 +766,20 @@ public class UserController extends ControllerBase
 
 		public static UserResourceAssembler createPublicUserInstance(CurieProvider curieProvider)
 		{
-			return new UserResourceAssembler(UserResourceRepresentation.MINIMAL, curieProvider, Optional.empty(), Optional.empty());
+			return new UserResourceAssembler(UserResourceRepresentation.MINIMAL, curieProvider, Optional.empty(),
+					Optional.empty());
 		}
 
 		public static UserResourceAssembler createMinimalInstance(CurieProvider curieProvider, UUID requestingUserId)
 		{
-			return new UserResourceAssembler(UserResourceRepresentation.MINIMAL, curieProvider, Optional.of(requestingUserId), Optional.empty());
+			return new UserResourceAssembler(UserResourceRepresentation.MINIMAL, curieProvider, Optional.of(requestingUserId),
+					Optional.empty());
 		}
 
 		public static UserResourceAssembler createInstanceForBuddy(CurieProvider curieProvider, UUID requestingUserId)
 		{
-			return new UserResourceAssembler(UserResourceRepresentation.BUDDY_USER, curieProvider, Optional.of(requestingUserId), Optional.empty());
+			return new UserResourceAssembler(UserResourceRepresentation.BUDDY_USER, curieProvider, Optional.of(requestingUserId),
+					Optional.empty());
 		}
 
 		public static UserResourceAssembler createInstanceForOwnUser(CurieProvider curieProvider, UUID requestingUserId,

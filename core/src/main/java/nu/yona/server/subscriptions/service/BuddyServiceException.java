@@ -5,6 +5,7 @@
 package nu.yona.server.subscriptions.service;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 import nu.yona.server.exceptions.YonaException;
 
@@ -65,5 +66,10 @@ public class BuddyServiceException extends YonaException
 	public static BuddyServiceException cannotInviteExistingBuddy()
 	{
 		return new BuddyServiceException("error.buddy.cannot.invite.existing.buddy");
+	}
+
+	public static BuddyServiceException deviceNotFoundByAnonymizedId(UUID buddyId, UUID deviceAnonymizedId)
+	{
+		return new BuddyServiceException("error.buddy.device.not.found.by.anonymized.id", buddyId, deviceAnonymizedId);
 	}
 }

@@ -14,7 +14,6 @@ import org.junit.Test;
 
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.messaging.entities.MessageSource;
-import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService;
 
 public class UserTest
 {
@@ -37,6 +36,6 @@ public class UserTest
 	@Test
 	public void getPrivateDataMigrationVersion_newUser_returnsCurrentVersion()
 	{
-		assertThat(john.getPrivateDataMigrationVersion(), equalTo(PrivateUserDataMigrationService.getCurrentVersion()));
+		assertThat(john.getPrivateDataMigrationVersion(), equalTo(User.getCurrentPrivateDataMigrationVersion()));
 	}
 }

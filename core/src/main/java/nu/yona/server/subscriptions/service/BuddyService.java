@@ -34,6 +34,7 @@ import nu.yona.server.Translator;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.entities.BuddyDevice;
 import nu.yona.server.device.entities.UserDevice;
+import nu.yona.server.device.service.DeviceChange;
 import nu.yona.server.email.EmailService;
 import nu.yona.server.exceptions.EmailException;
 import nu.yona.server.goals.service.GoalDto;
@@ -244,7 +245,7 @@ public class BuddyService
 		Set<BuddyDevice> devices = new HashSet<>();
 		for (int i = 0; (i < numDevices); i++)
 		{
-			devices.add(new BuddyDevice(UUID.randomUUID(), deviceNames.get(i), deviceAnonymizedIds.get(i),
+			devices.add(BuddyDevice.createInstance(deviceNames.get(i), deviceAnonymizedIds.get(i),
 					deviceVpnConnectionStatuses.get(i)));
 		}
 		return devices;
@@ -253,7 +254,7 @@ public class BuddyService
 	@Transactional
 	public void removeBuddyAfterConnectRejection(UUID idOfRequestingUser, UUID buddyId)
 	{
-		User user = userService.getValidatedUserbyId(idOfRequestingUser);
+		User user = userService.getValidatedUserById(idOfRequestingUser);
 		Buddy buddy = buddyRepository.findOne(buddyId);
 
 		if (buddy != null)
@@ -277,7 +278,7 @@ public class BuddyService
 	@Transactional
 	public void removeBuddy(UUID idOfRequestingUser, UUID buddyId, Optional<String> message)
 	{
-		User user = userService.getValidatedUserbyId(idOfRequestingUser);
+		User user = userService.getValidatedUserById(idOfRequestingUser);
 		Buddy buddy = getEntityById(buddyId);
 
 		if (buddy.getSendingStatus() == Status.REQUESTED || buddy.getReceivingStatus() == Status.REQUESTED)
@@ -406,7 +407,7 @@ public class BuddyService
 	@Transactional
 	public void removeBuddyAfterBuddyRemovedConnection(UUID idOfRequestingUser, UUID relatedUserId)
 	{
-		User user = userService.getValidatedUserbyId(idOfRequestingUser);
+		User user = userService.getValidatedUserById(idOfRequestingUser);
 		user.getBuddies().stream().filter(b -> b.getUserId().equals(relatedUserId)).findFirst()
 				.ifPresent(b -> removeBuddy(user, b));
 	}
@@ -679,10 +680,10 @@ public class BuddyService
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(updatedUserEntity.getAnonymized()),
 				() -> BuddyInfoChangeMessage.createInstance(
 						BuddyInfoParameters.createInstance(updatedUserEntity, originalUser.getOwnPrivateData().getNickname()),
-						getUserInfoChangeMessage(), updatedUserEntity.getNickname(), updatedUserEntity.getUserPhotoId()));
+						getUserInfoChangeMessageText(), updatedUserEntity.getNickname(), updatedUserEntity.getUserPhotoId()));
 	}
 
-	private String getUserInfoChangeMessage()
+	private String getUserInfoChangeMessageText()
 	{
 		return translator.getLocalizedMessage("message.buddy.user.info.changed");
 	}
@@ -691,9 +692,9 @@ public class BuddyService
 	public void updateBuddyUserInfo(UUID idOfRequestingUser, UUID relatedUserAnonymizedId, String buddyNickname,
 			Optional<UUID> buddyUserPhotoId)
 	{
-		User user = userService.getValidatedUserbyId(idOfRequestingUser);
-
+		User user = userService.getValidatedUserById(idOfRequestingUser);
 		Buddy buddy = user.getBuddyByUserAnonymizedId(relatedUserAnonymizedId);
+
 		buddy.setNickName(buddyNickname);
 		buddy.setUserPhotoId(buddyUserPhotoId);
 		buddyRepository.save(buddy);
@@ -705,5 +706,47 @@ public class BuddyService
 		Buddy buddy = userEntity.getBuddies().stream().filter(b -> b.getUserId().equals(buddyUserId)).findAny()
 				.orElseThrow(() -> BuddyNotFoundException.notFoundForUser(userId, buddyUserId));
 		return UserDto.createInstanceWithBuddyData(userEntity, BuddyUserPrivateDataDto.createInstance(buddy));
+	}
+
+	@Transactional
+	public void processDeviceChange(UUID idOfRequestingUser, UUID relatedUserAnonymizedId, DeviceChange change,
+			UUID deviceAnonymizedId, Optional<String> oldName, Optional<String> newName)
+	{
+		User user = userService.getValidatedUserById(idOfRequestingUser);
+		Buddy buddy = user.getBuddyByUserAnonymizedId(relatedUserAnonymizedId);
+
+		switch (change)
+		{
+			case ADD:
+				addDeviceToBuddy(buddy, deviceAnonymizedId, newName.get());
+				break;
+			case RENAME:
+				updateDeviceNameForToBuddy(buddy, deviceAnonymizedId, newName.get());
+				break;
+			case DELETE:
+				removeDeviceFromBuddy(buddy, deviceAnonymizedId);
+				break;
+			default:
+				throw new IllegalArgumentException("Change " + change + " is unknown");
+		}
+	}
+
+	private void addDeviceToBuddy(Buddy buddy, UUID deviceAnonymizedId, String name)
+	{
+		BuddyDevice device = BuddyDevice.createInstance(name, deviceAnonymizedId, true); // Assume VPN is connected
+		buddy.addDevice(device);
+	}
+
+	private void updateDeviceNameForToBuddy(Buddy buddy, UUID deviceAnonymizedId, String name)
+	{
+		BuddyDevice device = buddy.getDevices().stream().filter(d -> d.getDeviceAnonymizedId().equals(deviceAnonymizedId))
+				.findFirst()
+				.orElseThrow(() -> BuddyServiceException.deviceNotFoundByAnonymizedId(buddy.getId(), deviceAnonymizedId));
+		device.setName(name);
+	}
+
+	private void removeDeviceFromBuddy(Buddy buddy, UUID deviceAnonymizedId)
+	{
+		buddy.getDevices().removeIf(d -> d.getDeviceAnonymizedId().equals(deviceAnonymizedId));
 	}
 }
