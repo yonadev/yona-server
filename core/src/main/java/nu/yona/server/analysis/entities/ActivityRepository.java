@@ -5,6 +5,7 @@
 package nu.yona.server.analysis.entities;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.Query;
@@ -19,7 +20,9 @@ public interface ActivityRepository extends CrudRepository<Activity, Long>
 			+ " where a.dayActivity = :dayActivity and a.activityCategory.id = :activityCategoryId and a.app = :app and"
 			+ " ((:startTime >= a.startTime and :startTime <= a.endTime) or" // New activity started during existing activity
 			+ " (:endTime >= a.startTime and :endTime <= a.endTime) or" // New activity ended during existing activity
-			+ " (a.startTime >= :startTime and a.endTime <= :endTime))") // Existing activity occurred during new activity
-	Activity findOverlappingOfSameApp(@Param("dayActivity") DayActivity dayActivity, @Param("activityCategoryId") UUID activityCategoryId,
-			@Param("app") String app, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
+			+ " (a.startTime >= :startTime and a.endTime <= :endTime)) order by a.startTime asc") // Existing activity occurred
+																									// during new activity
+	List<Activity> findOverlappingOfSameApp(@Param("dayActivity") DayActivity dayActivity,
+			@Param("activityCategoryId") UUID activityCategoryId, @Param("app") String app,
+			@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 }
