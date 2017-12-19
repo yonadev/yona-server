@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.persistence.Convert;
@@ -17,6 +18,7 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.BatchSize;
 
+import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.entities.EntityWithId;
 import nu.yona.server.entities.ZoneIdAttributeConverter;
 import nu.yona.server.goals.entities.ActivityCategory;
@@ -33,6 +35,9 @@ public class Activity extends EntityWithId
 	private String app;
 
 	@ManyToOne
+	private DeviceAnonymized deviceAnonymized;
+
+	@ManyToOne
 	private DayActivity dayActivity;
 
 	@ManyToOne
@@ -43,17 +48,20 @@ public class Activity extends EntityWithId
 	{
 	}
 
-	public Activity(ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime, Optional<String> app)
+	private Activity(DeviceAnonymized deviceAnonymized, ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime,
+			Optional<String> app)
 	{
+		this.deviceAnonymized = deviceAnonymized;
 		this.timeZone = timeZone;
 		this.startTime = startTime;
 		this.endTime = endTime;
 		this.app = app.orElse(null);
 	}
 
-	public static Activity createInstance(ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime, Optional<String> app)
+	public static Activity createInstance(DeviceAnonymized deviceAnonymized, ZoneId timeZone, LocalDateTime startTime,
+			LocalDateTime endTime, Optional<String> app)
 	{
-		return new Activity(timeZone, startTime, endTime, app);
+		return new Activity(Objects.requireNonNull(deviceAnonymized), timeZone, startTime, endTime, app);
 	}
 
 	public DayActivity getDayActivity()
@@ -123,5 +131,10 @@ public class Activity extends EntityWithId
 	public Optional<String> getApp()
 	{
 		return Optional.ofNullable(app);
+	}
+
+	public DeviceAnonymized getDeviceAnonymized()
+	{
+		return deviceAnonymized;
 	}
 }

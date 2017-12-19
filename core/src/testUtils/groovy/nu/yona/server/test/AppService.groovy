@@ -60,7 +60,7 @@ class AppService extends Service
 		def response
 		if (includePrivateData)
 		{
-			response = yonaServer.getResourceWithPassword(YonaServer.stripQueryString(userUrl), password, yonaServer.getQueryParams(userUrl) + ["requestingUserId": User.getIdFromUrl(userUrl)])
+			response = yonaServer.getResourceWithPassword(userUrl, password, ["requestingUserId": User.getIdFromUrl(userUrl)])
 		}
 		else
 		{
@@ -75,7 +75,7 @@ class AppService extends Service
 	{
 		if (includePrivateData)
 		{
-			yonaServer.getResourceWithPassword(YonaServer.stripQueryString(userUrl), password, yonaServer.getQueryParams(userUrl) + ["requestingUserId": User.getIdFromUrl(userUrl)])
+			yonaServer.getResourceWithPassword(userUrl, password, ["requestingUserId": User.getIdFromUrl(userUrl)])
 		}
 		else
 		{
@@ -102,7 +102,7 @@ class AppService extends Service
 		def response
 		if (user.hasPrivateData)
 		{
-			response = yonaServer.getResourceWithPassword(YonaServer.stripQueryString(user.url), user.password, yonaServer.getQueryParams(user.url) + ["requestingUserId": user.getId()])
+			response = yonaServer.getResourceWithPassword(user.url, user.password, ["requestingUserId": user.getId()])
 			if (asserter)
 			{
 				asserter(response)
@@ -145,12 +145,12 @@ class AppService extends Service
 
 	def updateUser(userUrl, jsonString, password)
 	{
-		yonaServer.updateResourceWithPassword(YonaServer.stripQueryString(userUrl), jsonString, password, yonaServer.getQueryParams(userUrl))
+		yonaServer.updateResourceWithPassword(userUrl, jsonString, password, [:])
 	}
 
 	def updateUser(userUrl, jsonString)
 	{
-		yonaServer.updateResource(YonaServer.stripQueryString(userUrl), jsonString, [:], yonaServer.getQueryParams(userUrl))
+		yonaServer.updateResource(userUrl, jsonString, [:], [:])
 	}
 
 	def deleteUser(User user, message = "")
@@ -250,6 +250,7 @@ class AppService extends Service
 		def status = buddyConnectResponseMessages[0]?.status ?: null
 		def processUrl = buddyConnectResponseMessages[0]?._links?."yona:process"?.href
 		def buddyUrl = buddyConnectResponseMessages[0]?._links?."yona:buddy"?.href
+
 		def result = [ : ]
 		if (selfUrl)
 		{

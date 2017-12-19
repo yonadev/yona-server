@@ -29,7 +29,7 @@ public class DeviceAnonymized extends EntityWithUuid
 	@ManyToOne
 	private UserAnonymized userAnonymized;
 
-	private int deviceId;
+	private int deviceIndex;
 
 	private OperatingSystem operatingSystem;
 
@@ -41,11 +41,16 @@ public class DeviceAnonymized extends EntityWithUuid
 		super(null);
 	}
 
-	public DeviceAnonymized(UUID id, int deviceId, OperatingSystem operatingSystem)
+	private DeviceAnonymized(UUID id, int deviceIndex, OperatingSystem operatingSystem)
 	{
 		super(id);
-		this.deviceId = deviceId;
+		this.deviceIndex = deviceIndex;
 		this.operatingSystem = operatingSystem;
+	}
+
+	public static DeviceAnonymized createInstance(int deviceIndex, OperatingSystem operatingSystem)
+	{
+		return new DeviceAnonymized(UUID.randomUUID(), deviceIndex, operatingSystem);
 	}
 
 	public static DeviceAnonymizedRepository getRepository()
@@ -68,9 +73,9 @@ public class DeviceAnonymized extends EntityWithUuid
 		this.userAnonymized = null;
 	}
 
-	public int getDeviceId()
+	public int getDeviceIndex()
 	{
-		return deviceId;
+		return deviceIndex;
 	}
 
 	public OperatingSystem getOperatingSystem()
@@ -90,6 +95,6 @@ public class DeviceAnonymized extends EntityWithUuid
 
 	public String getVpnLoginId()
 	{
-		return userAnonymized.getId() + "-" + getDeviceId();
+		return userAnonymized.getId() + "-" + getDeviceIndex();
 	}
 }

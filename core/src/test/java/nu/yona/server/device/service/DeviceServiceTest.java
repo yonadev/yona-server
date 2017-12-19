@@ -9,17 +9,20 @@ import static nu.yona.server.test.util.Matchers.hasMessageId;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,6 +30,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.MethodRule;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
@@ -44,26 +48,37 @@ import nu.yona.server.device.entities.DeviceAnonymizedRepository;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.device.entities.UserDeviceRepository;
 import nu.yona.server.entities.DeviceAnonymizedRepositoryMock;
+import nu.yona.server.entities.UserDeviceRepositoryMock;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.subscriptions.service.UserAnonymizedDto;
+import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.test.util.CryptoSessionRule;
 import nu.yona.server.test.util.JUnitUtil;
 import nu.yona.server.util.TimeUtil;
 
 @Configuration
-@ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.device.service", "nu.yona.server.properties",
-		"nu.yona.server" }, includeFilters = {
+@ComponentScan(useDefaultFilters = false, basePackages = { "nu.yona.server.device.service",
+		"nu.yona.server.subscriptions.service", "nu.yona.server.properties", "nu.yona.server" }, includeFilters = {
+				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserService", type = FilterType.REGEX),
+				@ComponentScan.Filter(pattern = "nu.yona.server.subscriptions.service.UserAnonymizedService", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.device.service.DeviceService", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.properties.YonaProperties", type = FilterType.REGEX),
 				@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) })
 class DeviceServiceTestConfiguration extends UserRepositoriesConfiguration
 {
 	@Bean
+	UserDeviceRepository getMockDeviceRepository()
+	{
+		return Mockito.spy(new UserDeviceRepositoryMock());
+	}
+
+	@Bean
 	DeviceAnonymizedRepository getMockDeviceAnonymizedRepository()
 	{
-		return new DeviceAnonymizedRepositoryMock();
+		return Mockito.spy(new DeviceAnonymizedRepositoryMock());
 	}
 }
 
@@ -71,8 +86,8 @@ class DeviceServiceTestConfiguration extends UserRepositoriesConfiguration
 @ContextConfiguration(classes = { DeviceServiceTestConfiguration.class })
 public class DeviceServiceTest extends BaseSpringIntegrationTest
 {
-	@MockBean
-	private UserDeviceRepository mockUserDeviceRepository;
+	@Autowired
+	private UserDeviceRepository userDeviceRepository;
 
 	@Autowired
 	private DeviceService service;
@@ -100,6 +115,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 			richard = JUnitUtil.createRichard();
 		}
 		reset(userRepository);
+		reset(userDeviceRepository);
 	}
 
 	@Override
@@ -107,7 +123,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	{
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
 		repositoriesMap.put(DeviceAnonymized.class, deviceAnonymizedRepository);
-		repositoriesMap.put(UserDevice.class, mockUserDeviceRepository);
+		repositoriesMap.put(UserDevice.class, userDeviceRepository);
 		return repositoriesMap;
 	}
 
@@ -128,7 +144,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem);
 		service.addDeviceToUser(richard, deviceDto);
 
-		verify(mockUserDeviceRepository, times(1)).save(any(UserDevice.class));
+		verify(userDeviceRepository, times(1)).save(any(UserDevice.class));
 		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
 
 		Set<UserDevice> devices = richard.getDevices();
@@ -152,7 +168,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2);
 		service.addDeviceToUser(richard, deviceDto2);
 
-		verify(mockUserDeviceRepository, times(2)).save(any(UserDevice.class));
+		verify(userDeviceRepository, times(2)).save(any(UserDevice.class));
 		assertThat(deviceAnonymizedRepository.count(), equalTo(2L));
 
 		Set<UserDevice> devices = richard.getDevices();
@@ -183,7 +199,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2);
 		service.addDeviceToUser(richard, deviceDto2);
 
-		verify(mockUserDeviceRepository, times(2)).save(any(UserDevice.class));
+		verify(userDeviceRepository, times(2)).save(any(UserDevice.class));
 
 		Set<UserDevice> devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(2));
@@ -217,7 +233,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2);
 		service.addDeviceToUser(richard, deviceDto2);
 
-		verify(mockUserDeviceRepository, times(2)).save(any(UserDevice.class));
+		verify(userDeviceRepository, times(2)).save(any(UserDevice.class));
 
 		Set<UserDevice> devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(2));
@@ -261,7 +277,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem);
 		service.addDeviceToUser(richard, deviceDto);
 
-		verify(mockUserDeviceRepository, times(1)).save(any(UserDevice.class));
+		verify(userDeviceRepository, times(1)).save(any(UserDevice.class));
 
 		Set<UserDevice> devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(1));
@@ -288,7 +304,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2);
 		service.addDeviceToUser(richard, deviceDto2);
 
-		verify(mockUserDeviceRepository, times(2)).save(any(UserDevice.class));
+		verify(userDeviceRepository, times(2)).save(any(UserDevice.class));
 
 		Set<UserDevice> devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(2));
@@ -315,7 +331,172 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		DeviceAnonymized deviceAnonymized = device.getDeviceAnonymized();
 		assertThat(deviceAnonymized.getOperatingSystem(), equalTo(expectedOperatingSystem));
 		assertThat(deviceAnonymized.getLastMonitoredActivityDate().isPresent(), equalTo(false));
-		assertThat(deviceAnonymized.getDeviceId(), equalTo(expectedDeviceId));
+		assertThat(deviceAnonymized.getDeviceIndex(), equalTo(expectedDeviceId));
 		assertThat(deviceAnonymized.getUserAnonymized().getId(), equalTo(richard.getAnonymized().getId()));
+	}
+
+	@Test
+	public void getDefaultDeviceId_oneDevice_deviceReturned()
+	{
+		// Add device
+		String deviceName1 = "First";
+		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
+		UserDeviceDto deviceDto1 = addDeviceToRichard(deviceName1, operatingSystem1);
+
+		// Verify device is present
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()), containsInAnyOrder(deviceName1));
+
+		// Get the default device ID
+		UUID defaultDeviceId = service.getDefaultDeviceId(createRichardUserDto());
+
+		// Assert success
+		assertThat(defaultDeviceId, equalTo(deviceDto1.getId()));
+	}
+
+	@Test
+	public void getDefaultDeviceId_twoDevices_firstDeviceReturned()
+	{
+		// Add devices
+		String deviceName1 = "First";
+		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
+		UserDeviceDto deviceDto1 = addDeviceToRichard(deviceName1, operatingSystem1);
+
+		String deviceName2 = "Second";
+		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
+		addDeviceToRichard(deviceName2, operatingSystem2);
+
+		// Verify two devices are present
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
+				containsInAnyOrder(deviceName1, deviceName2));
+
+		// Get the default device ID
+		UUID defaultDeviceId = service.getDefaultDeviceId(createRichardUserDto());
+
+		// Assert success
+		assertThat(defaultDeviceId, equalTo(deviceDto1.getId()));
+	}
+
+	@Test
+	public void getDefaultDeviceId_tryNoDevices_exception() throws Exception
+	{
+		expectedException.expect(DeviceServiceException.class);
+		expectedException.expect(hasMessageId("error.device.collection.empty"));
+
+		// Get the default device ID
+		service.getDefaultDeviceId(createRichardUserDto());
+	}
+
+	@Test
+	public void getDeviceAnonymizedId_firstDevice_correctDevice()
+	{
+		// Add devices
+		String deviceName1 = "First";
+		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
+		UserDeviceDto deviceDto1 = addDeviceToRichard(deviceName1, operatingSystem1);
+
+		String deviceName2 = "Second";
+		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
+		addDeviceToRichard(deviceName2, operatingSystem2);
+
+		// Verify two devices are present
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
+				containsInAnyOrder(deviceName1, deviceName2));
+
+		// Get the anonymized ID for the first index
+		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardAnonymizedDto(), 0);
+
+		// Assert success
+		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(deviceDto1.getId()).getDeviceAnonymizedId()));
+	}
+
+	@Test
+	public void getDeviceAnonymizedId_secondDevice_correctDevice()
+	{
+		// Add devices
+		String deviceName1 = "First";
+		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
+		addDeviceToRichard(deviceName1, operatingSystem1);
+
+		String deviceName2 = "Second";
+		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
+		UserDeviceDto deviceDto2 = addDeviceToRichard(deviceName2, operatingSystem2);
+
+		// Verify two devices are present
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
+				containsInAnyOrder(deviceName1, deviceName2));
+
+		// Get the anonymized ID for the first index
+		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardAnonymizedDto(), 1);
+
+		// Assert success
+		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(deviceDto2.getId()).getDeviceAnonymizedId()));
+	}
+
+	@Test
+	public void getDeviceAnonymizedId_defaultDevice_correctDevice()
+	{
+		// Add devices
+		String deviceName1 = "First";
+		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
+		UserDeviceDto deviceDto1 = addDeviceToRichard(deviceName1, operatingSystem1);
+
+		String deviceName2 = "Second";
+		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
+		addDeviceToRichard(deviceName2, operatingSystem2);
+
+		// Verify two devices are present
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
+				containsInAnyOrder(deviceName1, deviceName2));
+
+		// Get the anonymized ID for the second index
+		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardAnonymizedDto(), -1);
+
+		// Assert success
+		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(deviceDto1.getId()).getDeviceAnonymizedId()));
+	}
+
+	@Test
+	public void getDeviceAnonymizedId_tryGetNonExistingIndex_exception()
+	{
+		expectedException.expect(DeviceServiceException.class);
+		expectedException.expect(hasMessageId("error.device.not.found.by.index"));
+
+		// Add devices
+		String deviceName1 = "First";
+		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
+		addDeviceToRichard(deviceName1, operatingSystem1);
+
+		String deviceName2 = "Second";
+		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
+		addDeviceToRichard(deviceName2, operatingSystem2);
+
+		// Verify two devices are present
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
+				containsInAnyOrder(deviceName1, deviceName2));
+
+		// Try to get the anonymized ID for a nonexisting index
+		service.getDeviceAnonymizedId(createRichardAnonymizedDto(), 2);
+	}
+
+	private UserDto createRichardUserDto()
+	{
+		return UserDto.createInstanceWithPrivateData(richard, Collections.emptySet());
+	}
+
+	private UserAnonymizedDto createRichardAnonymizedDto()
+	{
+		return UserAnonymizedDto.createInstance(richard.getAnonymized());
+	}
+
+	private UserDeviceDto addDeviceToRichard(String deviceName, OperatingSystem operatingSystem)
+	{
+		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName, operatingSystem);
+		return service.addDeviceToUser(richard, deviceDto1);
 	}
 }

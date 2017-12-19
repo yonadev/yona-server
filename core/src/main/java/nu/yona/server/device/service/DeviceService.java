@@ -26,6 +26,8 @@ import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.BuddyDeviceChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
+import nu.yona.server.subscriptions.service.UserAnonymizedService;
+import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Service
@@ -33,6 +35,9 @@ public class DeviceService
 {
 	@Autowired(required = false)
 	private UserService userService;
+
+	@Autowired(required = false)
+	private UserAnonymizedService userAnonymizedService;
 
 	@Autowired
 	private MessageService messageService;
@@ -56,7 +61,7 @@ public class DeviceService
 	@Transactional
 	public DeviceBaseDto getDevice(UUID deviceId)
 	{
-		UserDevice deviceEntity = userDeviceRepository.getOne(deviceId);
+		UserDevice deviceEntity = userDeviceRepository.findOne(deviceId);
 		if (deviceEntity == null)
 		{
 			throw DeviceServiceException.notFoundById(deviceId);
@@ -65,12 +70,14 @@ public class DeviceService
 	}
 
 	@Transactional
-	public void addDeviceToUser(User userEntity, UserDeviceDto deviceDto)
+	public UserDeviceDto addDeviceToUser(User userEntity, UserDeviceDto deviceDto)
 	{
-		DeviceAnonymized deviceAnonymized = new DeviceAnonymized(UUID.randomUUID(), findFirstFreeDeviceId(userEntity),
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(findFirstFreeDeviceIndex(userEntity),
 				deviceDto.getOperatingSystem());
 		deviceAnonymizedRepository.save(deviceAnonymized);
-		userEntity.addDevice(userDeviceRepository.save(UserDevice.createInstance(deviceDto.getName(), deviceAnonymized.getId())));
+		UserDevice deviceEntity = userDeviceRepository
+				.save(UserDevice.createInstance(deviceDto.getName(), deviceAnonymized.getId()));
+		userEntity.addDevice(deviceEntity);
 		DeviceChange change = DeviceChange.ADD;
 		Optional<String> oldName = Optional.empty();
 		Optional<String> newName = Optional.of(deviceDto.getName());
@@ -80,6 +87,8 @@ public class DeviceService
 						BuddyInfoParameters.createInstance(userEntity, userEntity.getNickname()),
 						getDeviceChangeMessageText(change, oldName, newName), change, deviceAnonymized.getId(), oldName,
 						newName));
+
+		return UserDeviceDto.createInstance(deviceEntity);
 	}
 
 	private String getDeviceChangeMessageText(DeviceChange change, Optional<String> oldName, Optional<String> newName)
@@ -102,12 +111,12 @@ public class DeviceService
 		return new UserDeviceDto(translator.getLocalizedMessage("default.device.name"), OperatingSystem.UNKNOWN);
 	}
 
-	private int findFirstFreeDeviceId(User userEntity)
+	private int findFirstFreeDeviceIndex(User userEntity)
 	{
-		Set<Integer> deviceIds = userEntity.getDevices().stream().map(UserDevice::getDeviceAnonymized)
-				.map(DeviceAnonymized::getDeviceId).collect(Collectors.toSet());
-		return IntStream.range(0, deviceIds.size() + 1).filter(i -> !deviceIds.contains(i)).findFirst()
-				.orElseThrow(() -> new IllegalStateException("Should always find a nonexisting ID"));
+		Set<Integer> deviceIndexes = userEntity.getDevices().stream().map(UserDevice::getDeviceAnonymized)
+				.map(DeviceAnonymized::getDeviceIndex).collect(Collectors.toSet());
+		return IntStream.range(0, deviceIndexes.size() + 1).filter(i -> !deviceIndexes.contains(i)).findFirst()
+				.orElseThrow(() -> new IllegalStateException("Should always find a nonexisting index"));
 	}
 
 	@Transactional
@@ -131,5 +140,38 @@ public class DeviceService
 		}
 		deviceAnonymizedRepository.delete(device.getDeviceAnonymized());
 		userEntity.removeDevice(device);
+	}
+
+	public UUID getDefaultDeviceId(UserDto userDto)
+	{
+		UserAnonymizedDto userAnonymized = userAnonymizedService
+				.getUserAnonymized(userDto.getOwnPrivateData().getUserAnonymizedId());
+		UUID defaultDeviceAnonymizedId = getDefaultDeviceAnonymizedId(userAnonymized);
+		return userDto.getOwnPrivateData().getDevices().get().stream()
+				.filter(d -> ((UserDeviceDto) d).getDeviceAnonymizedId().equals(defaultDeviceAnonymizedId))
+				.map(DeviceBaseDto::getId).findAny()
+				.orElseThrow(() -> DeviceServiceException.noDevicesFound(userAnonymized.getId()));
+	}
+
+	private UUID getDefaultDeviceAnonymizedId(UserAnonymizedDto userAnonymized)
+	{
+		return userAnonymized.getDevicesAnonymized().stream()
+				.sorted((d1, d2) -> Integer.compare(d1.getDeviceIndex(), d2.getDeviceIndex())).findFirst()
+				.map(DeviceAnonymizedDto::getId).orElseThrow(() -> DeviceServiceException.noDevicesFound(userAnonymized.getId()));
+	}
+
+	public UUID getDeviceAnonymizedId(UserDto userDto, UUID deviceId)
+	{
+		return userService.getUserEntityById(userDto.getId()).getDevices().stream().filter(d -> d.getId().equals(deviceId))
+				.findAny().map(UserDevice::getDeviceAnonymizedId)
+				.orElseThrow(() -> DeviceServiceException.notFoundById(deviceId));
+	}
+
+	public UUID getDeviceAnonymizedId(UserAnonymizedDto userAnonymized, int deviceIndex)
+	{
+		return deviceIndex < 0 ? getDefaultDeviceAnonymizedId(userAnonymized)
+				: userAnonymized.getDevicesAnonymized().stream().filter(d -> d.getDeviceIndex() == deviceIndex).findAny()
+						.map(DeviceAnonymizedDto::getId)
+						.orElseThrow(() -> DeviceServiceException.notFoundByIndex(userAnonymized.getId(), deviceIndex));
 	}
 }

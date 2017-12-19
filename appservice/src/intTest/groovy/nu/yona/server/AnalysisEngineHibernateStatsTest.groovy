@@ -59,7 +59,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		stats.entityDeleteCount == 0
 		stats.entityFetchCount == 1
 		stats.entityInsertCount == 0
-		stats.entityLoadCount == 9
+		stats.entityLoadCount == 10
 		stats.entityUpdateCount == 1 // TODO: Should be 0
 		stats.transactionCount == 2
 	}
@@ -100,7 +100,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		stats.entityDeleteCount == 0
 		stats.entityFetchCount == 1
 		stats.entityInsertCount == 3
-		stats.entityLoadCount == 9
+		stats.entityLoadCount == 10
 		stats.entityUpdateCount == 2
 		stats.transactionCount == 2
 	}
@@ -141,7 +141,7 @@ class AnalysisEngineHibernateStatsTest extends AbstractAppServiceIntegrationTest
 		stats.entityDeleteCount == 0
 		stats.entityFetchCount == 2
 		stats.entityInsertCount == 5
-		stats.entityLoadCount == 17
+		stats.entityLoadCount == 19
 		stats.entityUpdateCount == 4
 		stats.transactionCount == 2
 	}

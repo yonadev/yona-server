@@ -12,7 +12,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 import org.junit.Before;
@@ -299,7 +298,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 
 	private UserDevice addDevice(User user, String deviceName, OperatingSystem operatingSystem)
 	{
-		DeviceAnonymized deviceAnonymized = new DeviceAnonymized(UUID.randomUUID(), 0, operatingSystem);
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, operatingSystem);
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		UserDevice device = UserDevice.createInstance(deviceName, deviceAnonymized.getId());
 		user.addDevice(device);

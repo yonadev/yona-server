@@ -37,13 +37,18 @@ public class AnalysisEngineProxyService
 		restTemplate.postForEntity(buildBaseUrl(userAnonymizedId) + "/inactivity/", intervalInactivities, String.class);
 	}
 
-	public void analyzeAppActivity(UUID userAnonymizedId, AppActivityDto appActivities)
+	public void analyzeAppActivity(UUID userAnonymizedId, UUID deviceId, AppActivityDto appActivities)
 	{
-		restTemplate.postForEntity(buildBaseUrl(userAnonymizedId) + "/appActivity/", appActivities, String.class);
+		restTemplate.postForEntity(buildBaseUrl(userAnonymizedId, deviceId) + "/appActivity/", appActivities, String.class);
 	}
 
 	private String buildBaseUrl(UUID userAnonymizedId)
 	{
 		return analysisEngineUrl + "/userAnonymized/" + userAnonymizedId;
+	}
+
+	private String buildBaseUrl(UUID userAnonymizedId, UUID deviceId)
+	{
+		return analysisEngineUrl + "/userAnonymized/" + userAnonymizedId + "/" + deviceId;
 	}
 }

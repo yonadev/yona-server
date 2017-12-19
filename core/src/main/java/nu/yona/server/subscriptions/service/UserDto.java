@@ -222,7 +222,7 @@ public class UserDto
 				userEntity.isMobileNumberConfirmed());
 	}
 
-	static UserDto createInstanceWithPrivateData(User userEntity, Set<BuddyDto> buddies)
+	public static UserDto createInstanceWithPrivateData(User userEntity, Set<BuddyDto> buddies)
 	{
 		return new UserDto(userEntity.getId(), userEntity.getCreationTime(), userEntity.getAppLastOpenedDate(),
 				userEntity.getLastMonitoredActivityDate(), userEntity.getFirstName(), userEntity.getLastName(),

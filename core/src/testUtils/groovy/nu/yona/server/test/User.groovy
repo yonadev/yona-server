@@ -131,6 +131,11 @@ class User
 		getIdFromUrl(url)
 	}
 
+	def getRequestingDeviceId()
+	{
+		YonaServer.getQueryParams(url)["requestingDeviceId"]
+	}
+
 	static def getIdFromUrl(def url)
 	{
 		def queryStringStart = url.indexOf('?')

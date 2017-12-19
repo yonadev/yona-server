@@ -18,15 +18,26 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAccessor;
 import java.util.Optional;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import nu.yona.server.device.entities.DeviceAnonymized;
+import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 
 @RunWith(JUnitParamsRunner.class)
 public class ActivityTest
 {
+	private DeviceAnonymized deviceAnonEntity;
+
+	@Before
+	public void setUp()
+	{
+		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID);
+	}
+
 	@Test
 	public void setEndTime_afterComputeAggregates_resetsAreAggregatesComputed()
 	{
@@ -56,7 +67,7 @@ public class ActivityTest
 	public void getDurationMinutes_fullDay_returnsIncludingLastMinute()
 	{
 		ZonedDateTime startOfDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
-		Activity activity = Activity.createInstance(ZoneId.of("Europe/Amsterdam"), startOfDay.toLocalDateTime(),
+		Activity activity = Activity.createInstance(deviceAnonEntity, ZoneId.of("Europe/Amsterdam"), startOfDay.toLocalDateTime(),
 				startOfDay.plusDays(1).toLocalDateTime(), Optional.empty());
 
 		assertThat(activity.getDurationMinutes(), equalTo(1440));
@@ -64,8 +75,8 @@ public class ActivityTest
 
 	private Activity createActivity(String startTimeString, String endTimeString)
 	{
-		return Activity.createInstance(ZoneId.of("Europe/Amsterdam"), getTimeOnDay(startTimeString).toLocalDateTime(),
-				getTimeOnDay(endTimeString).toLocalDateTime(), Optional.empty());
+		return Activity.createInstance(deviceAnonEntity, ZoneId.of("Europe/Amsterdam"),
+				getTimeOnDay(startTimeString).toLocalDateTime(), getTimeOnDay(endTimeString).toLocalDateTime(), Optional.empty());
 	}
 
 	protected ZonedDateTime getTimeOnDay(String timeString)

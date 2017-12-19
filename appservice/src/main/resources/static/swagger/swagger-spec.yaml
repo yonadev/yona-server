@@ -24,6 +24,18 @@ parameters:
     description: The device password
     required: false
     type: string
+  requestingUserId:
+    name: requestingUserId
+    in: query
+    description: The user ID of the user GETting this user entity. Either equal to the ID of the user being fetched or the user ID of one of their buddies.
+    required: false
+    type: string
+  requestingDeviceId:
+    name: requestingDeviceId
+    in: query
+    description: The ID of the device from which the request originates.
+    required: false
+    type: string
   tempPassword:
     name: tempPassword
     in: query
@@ -102,11 +114,8 @@ paths:
         - $ref: "#/parameters/userID"
         - $ref: "#/parameters/yonaPasswordOptional"
         - $ref: "#/parameters/tempPassword"
-        - name: requestingUserId
-          in: query
-          description: The user ID of the user GETting this user entity. Either equal to the ID of the user being fetched or the user ID of one of their buddies.
-          required: false
-          type: string
+        - $ref: "#/parameters/requestingUserId"
+        - $ref: "#/parameters/requestingDeviceId"
       tags:
         - User
       responses:
@@ -123,6 +132,7 @@ paths:
       description: Fetches the user identified by the given ID
       parameters:
         - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/requestingDeviceId"
         - $ref: "#/parameters/yonaPasswordOptional"
         - $ref: "#/parameters/tempPassword"
         - in: body
@@ -168,6 +178,7 @@ paths:
       description: Post the code to confirm the mobile number of the user. This number is sent to the user by SMS.
       parameters:
         - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/requestingDeviceId"
         - $ref: "#/parameters/yonaPassword"
         - in: body
           name: body
@@ -634,6 +645,7 @@ paths:
       parameters:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/requestingDeviceId"
         - name: size
           in: query
           description: The number of elements to be fetched
@@ -660,6 +672,7 @@ paths:
       parameters:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/requestingDeviceId"
         - $ref: "#/parameters/date"
       tags:
         - Activity

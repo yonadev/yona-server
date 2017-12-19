@@ -26,21 +26,22 @@ public class ActivityCacheService
 {
 	@Cacheable(key = "{#userAnonymizedId,#goalId}")
 	@Transactional
-	public ActivityDto fetchLastActivityForUser(UUID userAnonymizedId, UUID goalId)
+	public ActivityDto fetchLastActivityForUser(UUID userAnonymizedId, UUID deviceAnonymizedId, UUID goalId)
 	{
-		List<DayActivity> lastDayActivityList = DayActivity.getRepository().findLast(userAnonymizedId, goalId, new PageRequest(0, 1))
-				.getContent();
+		List<DayActivity> lastDayActivityList = DayActivity.getRepository()
+				.findLast(userAnonymizedId, goalId, new PageRequest(0, 1)).getContent();
 		if (lastDayActivityList.isEmpty())
 		{
 			return null;
 		}
-		Activity lastActivity = lastDayActivityList.get(0).getLastActivity();
+		Activity lastActivity = lastDayActivityList.get(0).getLastActivity(deviceAnonymizedId);
 		// this can be the case when a DayActivity is created with inactivity
 		return lastActivity == null ? null : ActivityDto.createInstance(lastActivity);
 	}
 
 	@CachePut(key = "{#userAnonymizedId,#goalId}")
-	public ActivityDto updateLastActivityForUser(UUID userAnonymizedId, UUID goalId, ActivityDto activity)
+	public ActivityDto updateLastActivityForUser(UUID userAnonymizedId, UUID deviceAnonymizedId, UUID goalId,
+			ActivityDto activity)
 	{
 		// Nothing else to do. Just let Spring cache this new value.
 		return activity;

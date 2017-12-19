@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import nu.yona.server.device.service.DeviceAnonymizedDto;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.GoalDto;
@@ -24,6 +25,7 @@ import nu.yona.server.subscriptions.entities.UserAnonymized;
 public class UserAnonymizedDto implements Serializable
 {
 	private static final long serialVersionUID = 5569303515806259326L;
+	private static final ZoneId DEFAULT_TIME_ZONE = ZoneId.of("Europe/Amsterdam");
 
 	private final UUID id;
 
@@ -31,17 +33,18 @@ public class UserAnonymizedDto implements Serializable
 	private final Set<GoalDto> goals;
 	private final MessageDestinationDto anonymousMessageDestination;
 	private final Set<BuddyAnonymizedDto> buddiesAnonymized;
-
-	private static final ZoneId DEFAULT_TIME_ZONE = ZoneId.of("Europe/Amsterdam");
+	private final Set<DeviceAnonymizedDto> devicesAnonymized;
 
 	public UserAnonymizedDto(UUID id, Optional<LocalDate> lastMonitoredActivityDate, Set<GoalDto> goals,
-			MessageDestinationDto anonymousMessageDestination, Set<BuddyAnonymizedDto> buddiesAnonymized)
+			MessageDestinationDto anonymousMessageDestination, Set<BuddyAnonymizedDto> buddiesAnonymized,
+			Set<DeviceAnonymizedDto> devicesAnonymized)
 	{
 		this.id = id;
 		this.lastMonitoredActivityDate = lastMonitoredActivityDate.orElse(null);
 		this.goals = new HashSet<>(goals);
 		this.anonymousMessageDestination = anonymousMessageDestination;
 		this.buddiesAnonymized = buddiesAnonymized;
+		this.devicesAnonymized = devicesAnonymized;
 	}
 
 	public static UserAnonymizedDto createInstance(UserAnonymized entity)
@@ -49,7 +52,8 @@ public class UserAnonymizedDto implements Serializable
 		return new UserAnonymizedDto(entity.getId(), entity.getLastMonitoredActivityDate(), getGoalsIncludingHistoryItems(entity),
 				(entity.getAnonymousDestination() == null) ? null
 						: MessageDestinationDto.createInstance(entity.getAnonymousDestination()),
-				entity.getBuddiesAnonymized().stream().map(BuddyAnonymizedDto::createInstance).collect(Collectors.toSet()));
+				entity.getBuddiesAnonymized().stream().map(BuddyAnonymizedDto::createInstance).collect(Collectors.toSet()),
+				entity.getDevicesAnonymized().stream().map(DeviceAnonymizedDto::createInstance).collect(Collectors.toSet()));
 	}
 
 	public UUID getId()
@@ -94,6 +98,16 @@ public class UserAnonymizedDto implements Serializable
 				.findFirst();
 	}
 
+	public boolean hasAnyBuddies()
+	{
+		return !buddiesAnonymized.isEmpty();
+	}
+
+	public Set<DeviceAnonymizedDto> getDevicesAnonymized()
+	{
+		return Collections.unmodifiableSet(devicesAnonymized);
+	}
+
 	public Optional<LocalDateTime> getOldestGoalCreationTime()
 	{
 		return getGoals().stream().map(goal -> getOldestVersionOfGoal(goal).getCreationTime()).filter(Optional::isPresent)
@@ -126,10 +140,5 @@ public class UserAnonymizedDto implements Serializable
 			}
 		});
 		return historyItems;
-	}
-
-	public boolean hasAnyBuddies()
-	{
-		return !buddiesAnonymized.isEmpty();
 	}
 }

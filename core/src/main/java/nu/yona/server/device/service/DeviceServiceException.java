@@ -34,4 +34,14 @@ public class DeviceServiceException extends YonaException
 	{
 		return new DeviceServiceException("error.device.cannot.delete.last.one", id);
 	}
+
+	public static DeviceServiceException noDevicesFound(UUID userAnonymizedId)
+	{
+		return new DeviceServiceException("error.device.collection.empty", userAnonymizedId);
+	}
+
+	public static DeviceServiceException notFoundByIndex(UUID userAnonymizedId, int deviceIndex)
+	{
+		return new DeviceServiceException("error.device.not.found.by.index", userAnonymizedId, deviceIndex);
+	}
 }

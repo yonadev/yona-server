@@ -8,12 +8,20 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
+import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.hal.CurieProvider;
@@ -21,19 +29,27 @@ import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import nu.yona.server.analysis.service.AnalysisEngineProxyService;
+import nu.yona.server.analysis.service.AppActivityDto;
+import nu.yona.server.analysis.service.AppActivityDto.Activity;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.rest.DeviceController.DeviceResource;
 import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.device.service.DeviceService;
+import nu.yona.server.exceptions.YonaException;
+import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 
 @Controller
@@ -49,6 +65,19 @@ public class DeviceController extends ControllerBase
 
 	@Autowired
 	private UserService userService;
+
+	private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
+
+	@Autowired
+	private YonaProperties yonaProperties;
+
+	@Autowired
+	private AnalysisEngineProxyService analysisEngineProxyService;
+
+	private enum MessageType
+	{
+		ERROR, WARNING
+	}
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
@@ -70,6 +99,74 @@ public class DeviceController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			return createOkResponse(deviceService.getDevice(deviceId), createResourceAssembler(userId));
+		}
+	}
+
+	/*
+	 * Adds app activity registered by the Yona app. This request is delegated to the analysis engine service.
+	 * @param password User password, validated before adding the activity.
+	 * @param appActivities Because it may be that multiple app activities may have taken place during the time the network is
+	 * down, accept an array of activities.
+	 */
+	@RequestMapping(value = "/{deviceId}/appActivity/", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Void> addAppActivity(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody AppActivityDto appActivities)
+	{
+		if (appActivities.getActivities().length > yonaProperties.getAnalysisService().getAppActivityCountIgnoreThreshold())
+		{
+			logLongAppActivityBatch(MessageType.ERROR, userId, appActivities);
+			return createOkResponse();
+		}
+		if (appActivities.getActivities().length > yonaProperties.getAnalysisService().getAppActivityCountLoggingThreshold())
+		{
+			logLongAppActivityBatch(MessageType.WARNING, userId, appActivities);
+		}
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			UserDto userDto = userService.getPrivateUser(userId);
+			UUID userAnonymizedId = userDto.getOwnPrivateData().getUserAnonymizedId();
+			UUID deviceAnonymizedId = deviceService.getDeviceAnonymizedId(userDto, deviceId);
+			analysisEngineProxyService.analyzeAppActivity(userAnonymizedId, deviceAnonymizedId, appActivities);
+			return createOkResponse();
+		}
+	}
+
+	private void logLongAppActivityBatch(MessageType messageType, UUID userId, AppActivityDto appActivities)
+	{
+		int numAppActivities = appActivities.getActivities().length;
+		List<Activity> appActivityCollection = Arrays.asList(appActivities.getActivities());
+		Comparator<? super Activity> comparator = (a, b) -> a.getStartTime().compareTo(b.getStartTime());
+		ZonedDateTime minStartTime = Collections.min(appActivityCollection, comparator).getStartTime();
+		ZonedDateTime maxStartTime = Collections.max(appActivityCollection, comparator).getStartTime();
+		switch (messageType)
+		{
+			case ERROR:
+				logger.error(
+						"User with ID {} posts too many ({}) app activities, with start dates ranging from {} to {} (device time: {}). App activities ignored.",
+						userId, numAppActivities, minStartTime, maxStartTime, appActivities.getDeviceDateTime());
+				break;
+			case WARNING:
+				logger.warn(
+						"User with ID {} posts many ({}) app activities, with start dates ranging from {} to {} (device time: {})",
+						userId, numAppActivities, minStartTime, maxStartTime, appActivities.getDeviceDateTime());
+				break;
+			default:
+				throw new IllegalStateException("Unsupported message type: " + messageType);
+		}
+	}
+
+	public static Link getAppActivityLink(UUID userId, UUID deviceId)
+	{
+		try
+		{
+			ControllerLinkBuilder linkBuilder = linkTo(
+					methodOn(DeviceController.class).addAppActivity(Optional.empty(), userId, deviceId, null));
+			return linkBuilder.withRel("appActivity");
+		}
+		catch (SecurityException e)
+		{
+			throw YonaException.unexpected(e);
 		}
 	}
 

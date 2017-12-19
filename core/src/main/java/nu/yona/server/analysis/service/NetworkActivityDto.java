@@ -30,16 +30,23 @@ public class NetworkActivityDto
 	private final Set<String> categories;
 	private final String url;
 	private final Optional<ZonedDateTime> eventTime;
+	private final int deviceIndex;
 
 	@JsonCreator
-	public NetworkActivityDto(
+	public NetworkActivityDto(@JsonProperty(value = "deviceIndex", defaultValue = "-1") int deviceIdx,
 			@JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories,
 			@JsonProperty("url") String url,
 			@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("eventTime") Optional<ZonedDateTime> eventTime)
 	{
+		this.deviceIndex = deviceIdx;
 		this.categories = categories;
 		this.url = (url.length() > MAX_SUPPORTED_URL_LENGTH) ? url.substring(0, MAX_SUPPORTED_URL_LENGTH) : url;
 		this.eventTime = eventTime;
+	}
+
+	public int getDeviceIndex()
+	{
+		return deviceIndex;
 	}
 
 	public Set<String> getCategories()

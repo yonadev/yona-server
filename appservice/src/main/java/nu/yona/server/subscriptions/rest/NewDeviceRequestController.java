@@ -188,7 +188,8 @@ public class NewDeviceRequestController extends ControllerBase
 
 		private void addUserLink(Resource<NewDeviceRequestDto> newDeviceRequestResource)
 		{
-			newDeviceRequestResource.add(UserController.getPrivateUserLink(BuddyDto.USER_REL_NAME, user.getId()));
+			newDeviceRequestResource
+					.add(UserController.getPrivateUserLink(BuddyDto.USER_REL_NAME, user.getId(), Optional.empty()));
 		}
 	}
 }

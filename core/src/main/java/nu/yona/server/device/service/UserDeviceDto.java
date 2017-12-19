@@ -27,19 +27,21 @@ public class UserDeviceDto extends DeviceBaseDto
 	private final LocalDateTime registrationTime;
 	private final OperatingSystem operatingSystem;
 	private final LocalDate appLastOpenedDate;
+	private final UUID deviceAnonymizedId;
 
 	public UserDeviceDto(String name, OperatingSystem operatingSystem)
 	{
-		this(null, name, operatingSystem, true, LocalDateTime.now(), LocalDate.now());
+		this(null, name, operatingSystem, true, LocalDateTime.now(), LocalDate.now(), null);
 	}
 
 	private UserDeviceDto(UUID id, String name, OperatingSystem operatingSystem, boolean isVpnConnected,
-			LocalDateTime registrationTime, LocalDate appLastOpenedDate)
+			LocalDateTime registrationTime, LocalDate appLastOpenedDate, UUID deviceAnonymizedId)
 	{
 		super(id, name, isVpnConnected);
 		this.operatingSystem = operatingSystem;
 		this.registrationTime = registrationTime;
 		this.appLastOpenedDate = appLastOpenedDate;
+		this.deviceAnonymizedId = deviceAnonymizedId;
 	}
 
 	public OperatingSystem getOperatingSystem()
@@ -66,11 +68,17 @@ public class UserDeviceDto extends DeviceBaseDto
 		return appLastOpenedDate;
 	}
 
+	@JsonIgnore
+	public UUID getDeviceAnonymizedId()
+	{
+		return deviceAnonymizedId;
+	}
+
 	public static UserDeviceDto createInstance(UserDevice deviceEntity)
 	{
 		return new UserDeviceDto(deviceEntity.getId(), deviceEntity.getName(),
 				deviceEntity.getDeviceAnonymized().getOperatingSystem(), deviceEntity.isVpnConnected(),
-				deviceEntity.getRegistrationTime(), deviceEntity.getAppLastOpenedDate());
+				deviceEntity.getRegistrationTime(), deviceEntity.getAppLastOpenedDate(), deviceEntity.getDeviceAnonymizedId());
 	}
 
 	public static UserDeviceDto createPostPutInstance(String name, String operatingSystemStr)

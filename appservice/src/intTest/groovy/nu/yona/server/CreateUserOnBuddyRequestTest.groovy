@@ -298,8 +298,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		updatedBob = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, updatedBob)
 		def acceptUrl = appService.fetchBuddyConnectRequestMessage(updatedBob).acceptUrl
 		appService.postMessageActionWithPassword(acceptUrl, ["message" : "Yes, great idea!"], updatedBob.password)
-		def processUrl = appService.fetchBuddyConnectResponseMessage(richard).processUrl
-		appService.postMessageActionWithPassword(processUrl, [ : ], richard.password)
+		assert appService.fetchBuddyConnectResponseMessage(richard).processUrl == null // Processing happens automatically these days
 
 		when:
 		analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
@@ -409,9 +408,10 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		def mobileNumberBob = makeMobileNumber(timestamp)
 		def responseAddBuddy = sendBuddyRequestForBob(richard, mobileNumberBob)
 		def bobUrl = responseAddBuddy.responseData._embedded."yona:user"._links.self.href
+		def urlToTry = bobUrl.replaceAll(richard.getId(), User.getIdFromUrl(bobUrl)) // Correct requestingUserId
 
 		when:
-		def response = appService.getUser(bobUrl, true, dummyTempPassword)
+		def response = appService.getUser(urlToTry, true, dummyTempPassword)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -569,7 +569,6 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 
 	String buildInviteUrl(def response)
 	{
-		println "URL from response = " + response.responseData._embedded."yona:user"._links.self.href
 		YonaServer.stripQueryString(response.responseData._embedded."yona:user"._links.self.href) + "?tempPassword=" + dummyTempPassword
 	}
 }
