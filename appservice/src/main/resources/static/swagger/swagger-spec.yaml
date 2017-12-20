@@ -48,6 +48,12 @@ parameters:
     description: The temporary password that was included in the invitation e-mail when a user invited a non-Yona user as buddy
     required: false
     type: string
+  deviceID:
+    name: deviceID
+    in: path
+    description: The ID of the device
+    required: true
+    type: string
   goalID:
     name: goalID
     in: path
@@ -387,7 +393,7 @@ paths:
           description: Updated device
           required: true
           schema:
-            $ref: '#/definitions/PutDevice'
+            $ref: '#/definitions/PostPutDevice'
       tags:
         - Device
       responses:
@@ -1778,18 +1784,18 @@ definitions:
   DeviceRegistrationRequest:
     type: object
     properties:
-    name:
-      type: string
-      description: Name of the device running the Yona app. The name must be at most 20 characters and should not contain a colon
-      example: My S8
-    operatingSystem:
-      $ref: '#/definitions/DeviceOperatingSystem'
-      description: The operating system of the device running the Yona app
-      example: ANDROID
-    appVersion:
-      type: string
-      description: The version of the Yona app running on this device
-      example: 1.0
+      name:
+        type: string
+        description: Name of the device running the Yona app. The name must be at most 20 characters and should not contain a colon
+        example: My S8
+      operatingSystem:
+        $ref: '#/definitions/DeviceOperatingSystem'
+        description: The operating system of the device running the Yona app
+        example: ANDROID
+      appVersion:
+        type: string
+        description: The version of the Yona app running on this device
+        example: 1.0
     required:
       - name
       - operatingSystem
@@ -1797,10 +1803,10 @@ definitions:
   PostPutDevice:
     type: object
     properties:
-    name:
-      type: string
-      description: Name of the device running the Yona app. The name must be at most 20 characters and should not contain a colon
-      example: My S8
+      name:
+        type: string
+        description: Name of the device running the Yona app. The name must be at most 20 characters and should not contain a colon
+        example: My S8
     required:
       - name
   DeviceBase:
