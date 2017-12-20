@@ -10,10 +10,12 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +37,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+
 import nu.yona.server.analysis.entities.IntervalActivity;
 import nu.yona.server.analysis.service.ActivityCommentMessageDto;
 import nu.yona.server.analysis.service.ActivityDto;
@@ -45,6 +50,7 @@ import nu.yona.server.analysis.service.DayActivityWithBuddiesDto.ActivityForOneU
 import nu.yona.server.analysis.service.WeekActivityDto;
 import nu.yona.server.analysis.service.WeekActivityOverviewDto;
 import nu.yona.server.crypto.seckey.CryptoSession;
+import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.goals.rest.ActivityCategoryController;
 import nu.yona.server.goals.rest.GoalController;
 import nu.yona.server.messaging.service.MessageDto;
@@ -155,9 +161,16 @@ public class UserActivityController extends ActivityControllerBase
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
+			Map<UUID, String> deviceAnonymizedIdToDeviceName = buildDeviceAnonymizedIdToDeviceNameMap(userId);
 			return createOkResponse(activityService.getRawActivities(userId, DayActivityDto.parseDate(dateStr), goalId),
-					createRawActivitiesResourceAssembler(userId, dateStr, goalId));
+					createRawActivitiesResourceAssembler(userId, deviceAnonymizedIdToDeviceName, dateStr, goalId));
 		}
+	}
+
+	private Map<UUID, String> buildDeviceAnonymizedIdToDeviceNameMap(UUID userId)
+	{
+		return userService.getPrivateUser(userId).getOwnPrivateData().getDevices().get().stream().map(UserDeviceDto.class::cast)
+				.collect(Collectors.toMap(UserDeviceDto::getDeviceAnonymizedId, UserDeviceDto::getName));
 	}
 
 	/**
@@ -206,9 +219,10 @@ public class UserActivityController extends ActivityControllerBase
 		return new DayActivityOverviewWithBuddiesResourceAssembler(userId, requestingDeviceId, goalIdMapping);
 	}
 
-	private ActivitiesResourceAssembler createRawActivitiesResourceAssembler(UUID userId, String dateStr, UUID goalId)
+	private ActivitiesResourceAssembler createRawActivitiesResourceAssembler(UUID userId,
+			Map<UUID, String> deviceAnonymizedIdToDeviceName, String dateStr, UUID goalId)
 	{
-		return new ActivitiesResourceAssembler(userId, dateStr, goalId);
+		return new ActivitiesResourceAssembler(userId, deviceAnonymizedIdToDeviceName, dateStr, goalId);
 	}
 
 	/**
@@ -574,13 +588,45 @@ public class UserActivityController extends ActivityControllerBase
 		}
 	}
 
-	public static class ActivitiesResource extends Resources<ActivityDto>
+	@JsonRootName("activity")
+	private static class DeviceActivityDto
 	{
-		public ActivitiesResource(List<ActivityDto> rawActivities)
+		private final ActivityDto dto;
+		private final String deviceName;
+
+		private DeviceActivityDto(ActivityDto dto, String deviceName)
 		{
-			super(rawActivities);
+			this.dto = dto;
+			this.deviceName = deviceName;
 		}
 
+		@JsonUnwrapped
+		public ActivityDto getDto()
+		{
+			return dto;
+		}
+
+		@SuppressWarnings("unused") // Used as JSon property
+		public String getDeviceName()
+		{
+			return deviceName;
+		}
+	}
+
+	public static class ActivitiesResource extends Resources<DeviceActivityDto>
+	{
+		public ActivitiesResource(Map<UUID, String> deviceAnonymizedIdToDeviceName, List<ActivityDto> rawActivities)
+		{
+			super(wrapEnrichActivitiesWithDeviceName(deviceAnonymizedIdToDeviceName, rawActivities));
+		}
+
+		private static Iterable<DeviceActivityDto> wrapEnrichActivitiesWithDeviceName(
+				Map<UUID, String> deviceAnonymizedIdToDeviceName, List<ActivityDto> rawActivities)
+		{
+			return rawActivities.stream()
+					.map(dto -> new DeviceActivityDto(dto, deviceAnonymizedIdToDeviceName.get(dto.getDeviceAnonymizedId())))
+					.collect(Collectors.toList());
+		}
 	}
 
 	public static class ActivitiesResourceAssembler extends ResourceAssemblerSupport<List<ActivityDto>, ActivitiesResource>
@@ -588,11 +634,14 @@ public class UserActivityController extends ActivityControllerBase
 		private final UUID userId;
 		private final String dateStr;
 		private final UUID goalId;
+		private Map<UUID, String> deviceAnonymizedIdToDeviceName;
 
-		public ActivitiesResourceAssembler(UUID userId, String dateStr, UUID goalId)
+		public ActivitiesResourceAssembler(UUID userId, Map<UUID, String> deviceAnonymizedIdToDeviceName, String dateStr,
+				UUID goalId)
 		{
 			super(UserActivityController.class, ActivitiesResource.class);
 			this.userId = userId;
+			this.deviceAnonymizedIdToDeviceName = deviceAnonymizedIdToDeviceName;
 			this.dateStr = dateStr;
 			this.goalId = goalId;
 		}
@@ -608,7 +657,7 @@ public class UserActivityController extends ActivityControllerBase
 		@Override
 		protected ActivitiesResource instantiateResource(List<ActivityDto> rawActivities)
 		{
-			return new ActivitiesResource(rawActivities);
+			return new ActivitiesResource(deviceAnonymizedIdToDeviceName, rawActivities);
 		}
 
 		private void addSelfLink(ActivitiesResource resource)

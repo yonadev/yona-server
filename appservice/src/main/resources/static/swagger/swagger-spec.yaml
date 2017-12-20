@@ -421,6 +421,62 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  '/users/{userID}/devices/{deviceID}/appActivity/':
+    post:
+      summary: Register a new device
+      description: Register a new device for an existing user
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/deviceID"
+        - in: body
+          name: body
+          description: The app activity report
+          required: true
+          schema:
+            type: object
+            properties:
+              deviceDateTime:
+                type: string
+                format: dateTime
+                description: The actual time on the device
+                example: 2016-02-31T21:03:52.290+0000
+              activities:
+                type: array
+                description: A set of app activities
+                items:
+                  type: object
+                  properties:
+                    application:
+                      type: string
+                      description: The name of the app
+                      example: com.google.android.youtube
+                    startTime:
+                      type: string
+                      format: dateTime
+                      description: The time the app was activiated
+                      example: 2016-02-31T21:03:52.290+0000
+                    endTime:
+                      type: string
+                      format: dateTime
+                      description: The time the app was deactiviated
+                      example: 2016-02-31T21:28:02.290+0000
+                  required:
+                    - application
+                    - startTime
+                    - endTime
+            required:
+              - deviceDateTime
+              - activities
+      tags:
+        - Device
+      responses:
+        '200':
+          description: App activity reported correctly
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   '/users/{userID}/goals/':
     post:
       summary: Add a new goal
@@ -1888,6 +1944,10 @@ definitions:
             $ref: '#/definitions/DeviceOperatingSystem'
             description: The operating system of the device on which the user signs up for Yona. The value UNKNOWN is not supported in this context. Not supported for a regular user update.
             example: ANDROID
+          deviceAppVersion:
+            type: string
+            description: The version of the Yona app running on this device
+            example: 1.0
   UserWithPrivateData:
     allOf:
       - $ref: '#/definitions/BaseUser'

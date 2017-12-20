@@ -7,10 +7,10 @@ package nu.yona.server.analysis.service;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -23,22 +23,29 @@ import nu.yona.server.analysis.entities.Activity;
 @JsonRootName("activity")
 public class ActivityDto
 {
+	private final UUID deviceAnonymizedId;
 	private final ZonedDateTime startTime;
 	private final ZonedDateTime endTime;
 	private final Optional<String> app;
 
-	@JsonCreator
-	public ActivityDto(@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("startTime") ZonedDateTime startTime,
-			@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("endTime") ZonedDateTime endTime)
+	private ActivityDto(UUID deviceAnonymizedId, ZonedDateTime startTime, ZonedDateTime endTime, Optional<String> app)
 	{
-		this(startTime, endTime, Optional.empty());
-	}
-
-	private ActivityDto(ZonedDateTime startTime, ZonedDateTime endTime, Optional<String> app)
-	{
+		this.deviceAnonymizedId = deviceAnonymizedId;
 		this.startTime = startTime;
 		this.endTime = endTime;
 		this.app = app;
+	}
+
+	static ActivityDto createInstance(Activity activity)
+	{
+		return new ActivityDto(activity.getDeviceAnonymized().getId(), activity.getStartTimeAsZonedDateTime(),
+				activity.getEndTimeAsZonedDateTime(), activity.getApp());
+	}
+
+	@JsonIgnore
+	public UUID getDeviceAnonymizedId()
+	{
+		return deviceAnonymizedId;
 	}
 
 	@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN)
@@ -51,11 +58,6 @@ public class ActivityDto
 	public ZonedDateTime getEndTime()
 	{
 		return endTime;
-	}
-
-	static ActivityDto createInstance(Activity activity)
-	{
-		return new ActivityDto(activity.getStartTimeAsZonedDateTime(), activity.getEndTimeAsZonedDateTime(), activity.getApp());
 	}
 
 	@JsonSerialize(using = EmptyOptionalAsEmptyStringSerializer.class)
