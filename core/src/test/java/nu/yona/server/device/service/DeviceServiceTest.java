@@ -141,7 +141,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		String deviceName = "Testing";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
-		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem);
+		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem, "Unknown");
 		service.addDeviceToUser(richard, deviceDto);
 
 		verify(userDeviceRepository, times(1)).save(any(UserDevice.class));
@@ -160,12 +160,12 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
-		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1);
+		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1, "Unknown");
 		service.addDeviceToUser(richard, deviceDto1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2);
+		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2, "Unknown");
 		service.addDeviceToUser(richard, deviceDto2);
 
 		verify(userDeviceRepository, times(2)).save(any(UserDevice.class));
@@ -186,17 +186,41 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
+	public void addDeviceToUser_tryAddDuplicateName_exception()
+	{
+		expectedException.expect(DeviceServiceException.class);
+		expectedException.expect(hasMessageId("error.device.name.already.exists"));
+
+		// Create the first device
+		String deviceName1 = "First";
+		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
+		LocalDateTime startTime = TimeUtil.utcNow();
+		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1, "Unknown");
+		service.addDeviceToUser(richard, deviceDto1);
+
+		// Verify there is 1 device
+		verify(userDeviceRepository, times(1)).save(any(UserDevice.class));
+		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
+
+		// Try add another device with the same name, different OS
+		String deviceName2 = "First";
+		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
+		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2, "Unknown");
+		service.addDeviceToUser(richard, deviceDto2);
+	}
+
+	@Test
 	public void deleteDevice_deleteOneOfTwo_userHasOneDevice()
 	{
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
-		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1);
+		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1, "Unknown");
 		service.addDeviceToUser(richard, deviceDto1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2);
+		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2, "Unknown");
 		service.addDeviceToUser(richard, deviceDto2);
 
 		verify(userDeviceRepository, times(2)).save(any(UserDevice.class));
@@ -225,12 +249,12 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
-		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1);
+		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1, "Unknown");
 		service.addDeviceToUser(richard, deviceDto1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2);
+		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2, "Unknown");
 		service.addDeviceToUser(richard, deviceDto2);
 
 		verify(userDeviceRepository, times(2)).save(any(UserDevice.class));
@@ -250,7 +274,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		String deviceName3 = "Third";
 		OperatingSystem operatingSystem3 = OperatingSystem.IOS;
-		UserDeviceDto deviceDto3 = new UserDeviceDto(deviceName3, operatingSystem3);
+		UserDeviceDto deviceDto3 = new UserDeviceDto(deviceName3, operatingSystem3, "Unknown");
 		service.addDeviceToUser(richard, deviceDto3);
 
 		devices = richard.getDevices();
@@ -274,7 +298,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		expectedException.expect(hasMessageId("error.device.cannot.delete.last.one"));
 		String deviceName = "Testing";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
-		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem);
+		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem, "Unknown");
 		service.addDeviceToUser(richard, deviceDto);
 
 		verify(userDeviceRepository, times(1)).save(any(UserDevice.class));
@@ -296,12 +320,12 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
-		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1);
+		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1, "Unknown");
 		service.addDeviceToUser(richard, deviceDto1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2);
+		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2, "Unknown");
 		service.addDeviceToUser(richard, deviceDto2);
 
 		verify(userDeviceRepository, times(2)).save(any(UserDevice.class));
@@ -496,7 +520,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 	private UserDeviceDto addDeviceToRichard(String deviceName, OperatingSystem operatingSystem)
 	{
-		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName, operatingSystem);
+		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName, operatingSystem, "Unknown");
 		return service.addDeviceToUser(richard, deviceDto1);
 	}
 }

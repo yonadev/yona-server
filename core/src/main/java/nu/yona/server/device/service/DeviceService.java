@@ -72,23 +72,43 @@ public class DeviceService
 	@Transactional
 	public UserDeviceDto addDeviceToUser(User userEntity, UserDeviceDto deviceDto)
 	{
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(findFirstFreeDeviceIndex(userEntity),
-				deviceDto.getOperatingSystem());
+		return UserDeviceDto.createInstance(
+				addDeviceToUser(userEntity, deviceDto.getName(), deviceDto.getOperatingSystem(), deviceDto.getAppVersion()));
+	}
+
+	@Transactional
+	public UserDeviceDto registerNewDevice(UUID userId, String name, OperatingSystem operatingSystem, String appVersion)
+	{
+		User userEntity = userService.getUserEntityById(userId);
+		return UserDeviceDto.createInstance(addDeviceToUser(userEntity, name, operatingSystem, appVersion));
+	}
+
+	private UserDevice addDeviceToUser(User userEntity, String name, OperatingSystem operatingSystem, String appVersion)
+	{
+		assertDeviceNameDoesNotExist(userEntity, name);
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(findFirstFreeDeviceIndex(userEntity), operatingSystem,
+				appVersion);
 		deviceAnonymizedRepository.save(deviceAnonymized);
-		UserDevice deviceEntity = userDeviceRepository
-				.save(UserDevice.createInstance(deviceDto.getName(), deviceAnonymized.getId()));
+		UserDevice deviceEntity = userDeviceRepository.save(UserDevice.createInstance(name, deviceAnonymized.getId()));
 		userEntity.addDevice(deviceEntity);
 		DeviceChange change = DeviceChange.ADD;
 		Optional<String> oldName = Optional.empty();
-		Optional<String> newName = Optional.of(deviceDto.getName());
+		Optional<String> newName = Optional.of(name);
 
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
 				() -> BuddyDeviceChangeMessage.createInstance(
 						BuddyInfoParameters.createInstance(userEntity, userEntity.getNickname()),
 						getDeviceChangeMessageText(change, oldName, newName), change, deviceAnonymized.getId(), oldName,
 						newName));
+		return deviceEntity;
+	}
 
-		return UserDeviceDto.createInstance(deviceEntity);
+	private void assertDeviceNameDoesNotExist(User userEntity, String name)
+	{
+		if (userEntity.getDevices().stream().map(UserDevice::getName).anyMatch(n -> n.equals(name)))
+		{
+			throw DeviceServiceException.duplicateDeviceName(name);
+		}
 	}
 
 	private String getDeviceChangeMessageText(DeviceChange change, Optional<String> oldName, Optional<String> newName)
@@ -108,7 +128,7 @@ public class DeviceService
 
 	public UserDeviceDto createDefaultUserDeviceDto()
 	{
-		return new UserDeviceDto(translator.getLocalizedMessage("default.device.name"), OperatingSystem.UNKNOWN);
+		return new UserDeviceDto(translator.getLocalizedMessage("default.device.name"), OperatingSystem.UNKNOWN, "Unknown");
 	}
 
 	private int findFirstFreeDeviceIndex(User userEntity)

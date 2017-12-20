@@ -427,7 +427,7 @@ public class UserController extends ControllerBase
 		return Optional.empty();
 	}
 
-	private UserResourceAssembler createResourceAssemblerForOwnUser(UUID requestingUserId, Optional<UUID> requestingDeviceId)
+	public UserResourceAssembler createResourceAssemblerForOwnUser(UUID requestingUserId, Optional<UUID> requestingDeviceId)
 	{
 		return UserResourceAssembler.createInstanceForOwnUser(curieProvider, requestingUserId, requestingDeviceId,
 				pinResetRequestController);
@@ -515,12 +515,14 @@ public class UserController extends ControllerBase
 		private final String nickname;
 		private final String deviceName;
 		private final String deviceOperatingSystem;
+		private final String deviceAppVersion;
 
 		@JsonCreator
 		public PostPutUserDto(@JsonProperty("firstName") String firstName, @JsonProperty("lastName") String lastName,
 				@JsonProperty("mobileNumber") String mobileNumber, @JsonProperty("nickname") String nickname,
 				@JsonProperty(value = "deviceName", required = false) String deviceName,
 				@JsonProperty(value = "deviceOperatingSystem", required = false) String deviceOperatingSystem,
+				@JsonProperty(value = "deviceAppVersion", required = false) String deviceAppVersion,
 				@JsonProperty("_links") Object ignored1, @JsonProperty("yonaPassword") Object ignored2)
 		{
 			this.firstName = firstName;
@@ -529,12 +531,13 @@ public class UserController extends ControllerBase
 			this.nickname = nickname;
 			this.deviceName = deviceName;
 			this.deviceOperatingSystem = deviceOperatingSystem;
+			this.deviceAppVersion = deviceAppVersion;
 		}
 
 		Optional<UserDeviceDto> getDevice()
 		{
 			return (deviceName == null) ? Optional.empty()
-					: Optional.of(UserDeviceDto.createPostPutInstance(deviceName, deviceOperatingSystem));
+					: Optional.of(UserDeviceDto.createPostPutInstance(deviceName, deviceOperatingSystem, deviceAppVersion));
 		}
 	}
 
@@ -557,7 +560,7 @@ public class UserController extends ControllerBase
 		}
 	}
 
-	static class UserResource extends Resource<UserDto>
+	public static class UserResource extends Resource<UserDto>
 	{
 		private final CurieProvider curieProvider;
 		private static String sslRootCertificateCn;

@@ -35,22 +35,25 @@ public class DeviceAnonymized extends EntityWithUuid
 
 	private LocalDate lastMonitoredActivityDate;
 
+	private String appVersion;
+
 	// Default constructor is required for JPA
 	protected DeviceAnonymized()
 	{
 		super(null);
 	}
 
-	private DeviceAnonymized(UUID id, int deviceIndex, OperatingSystem operatingSystem)
+	private DeviceAnonymized(UUID id, int deviceIndex, OperatingSystem operatingSystem, String appVersion)
 	{
 		super(id);
 		this.deviceIndex = deviceIndex;
 		this.operatingSystem = operatingSystem;
+		this.appVersion = Objects.requireNonNull(appVersion);
 	}
 
-	public static DeviceAnonymized createInstance(int deviceIndex, OperatingSystem operatingSystem)
+	public static DeviceAnonymized createInstance(int deviceIndex, OperatingSystem operatingSystem, String appVersion)
 	{
-		return new DeviceAnonymized(UUID.randomUUID(), deviceIndex, operatingSystem);
+		return new DeviceAnonymized(UUID.randomUUID(), deviceIndex, operatingSystem, appVersion);
 	}
 
 	public static DeviceAnonymizedRepository getRepository()
@@ -91,6 +94,16 @@ public class DeviceAnonymized extends EntityWithUuid
 	public void setLastMonitoredActivityDate(LocalDate lastMonitoredActivityDate)
 	{
 		this.lastMonitoredActivityDate = Objects.requireNonNull(lastMonitoredActivityDate);
+	}
+
+	public String getAppVersion()
+	{
+		return appVersion;
+	}
+
+	public void setAppVersion(String appVersion)
+	{
+		this.appVersion = Objects.requireNonNull(appVersion);
 	}
 
 	public String getVpnLoginId()

@@ -431,6 +431,16 @@ class AppService extends Service
 		yonaServer.getResource("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", ["Yona-NewDeviceRequestPassword":newDeviceRequestPassword], [:])
 	}
 
+	def registerNewDevice(url, newDeviceRequestPassword, name, operatingSystem, appVersion)
+	{
+		def json = """{
+				"name": "$name",
+				"operatingSystem": "$operatingSystem",
+				"appVersion": "$appVersion"
+				}"""
+		yonaServer.postJson(url, json, ["Yona-NewDeviceRequestPassword":newDeviceRequestPassword], [:])
+	}
+
 	def clearNewDeviceRequest(mobileNumber, password)
 	{
 		yonaServer.deleteResourceWithPassword("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", password)

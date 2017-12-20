@@ -36,25 +36,25 @@ class CommonAssertions extends Service
 	static final BUDDY_USER_EMBEDDED = ["yona:goals", "yona:devices"] as Set
 	static final USER_LINKS_VARYING = ["yona:userPhoto"]
 
-	static def assertUserCreationResponseDetails(def response)
+	static void assertUserCreationResponseDetails(def response)
 	{
 		assertResponseStatusCreated(response)
 		assertUserWithPrivateData(response.responseData, false)
 	}
 
-	static def assertUserUpdateResponseDetails(def response)
+	static void assertUserUpdateResponseDetails(def response)
 	{
-		assert response.status == 200
+		assertResponseStatusOk(response)
 		assertUserWithPrivateData(response.responseData, false)
 	}
 
-	static def assertUserGetResponseDetailsWithPrivateData(def response)
+	static void assertUserGetResponseDetailsWithPrivateData(def response, assertDefaultDevice = true)
 	{
 		assertResponseStatusSuccess(response)
-		assertUserWithPrivateData(response.responseData, false)
+		assertUserWithPrivateData(response.responseData, false, false, assertDefaultDevice)
 	}
 
-	static def assertUserGetResponseDetailsWithPrivateDataPinResetRequestedNotGenerated(def response)
+	static void assertUserGetResponseDetailsWithPrivateDataPinResetRequestedNotGenerated(def response)
 	{
 		assertResponseStatusSuccess(response)
 		assertUserWithPrivateData(response.responseData, true)
@@ -63,7 +63,7 @@ class CommonAssertions extends Service
 		assert response.responseData._embedded.keySet() == PRIVATE_USER_EMBEDDED
 	}
 
-	static def assertUserGetResponseDetailsWithPrivateDataPinResetRequestedAndGenerated(def response)
+	static void assertUserGetResponseDetailsWithPrivateDataPinResetRequestedAndGenerated(def response)
 	{
 		assertResponseStatusSuccess(response)
 		assertUserWithPrivateData(response.responseData, true)
@@ -72,32 +72,32 @@ class CommonAssertions extends Service
 		assert response.responseData._embedded.keySet() == PRIVATE_USER_EMBEDDED
 	}
 
-	static def assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest(def response)
+	static void assertUserGetResponseDetailsWithPrivateDataCreatedOnBuddyRequest(def response)
 	{
 		assertResponseStatusSuccess(response)
 		assertUserWithPrivateData(response.responseData, true, true)
 		assert response.responseData.keySet() == PRIVATE_USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST
 	}
 
-	static def assertUserGetResponseDetailsWithoutPrivateData(def response)
+	static void assertUserGetResponseDetailsWithoutPrivateData(def response)
 	{
 		assertResponseStatusSuccess(response)
 		assertPublicUserData(response.responseData, false, false)
 	}
 
-	static def assertUserWithPrivateData(user, boolean skipPropertySetAssertion = true, boolean userCreatedOnBuddyRequest = false)
+	static void assertUserWithPrivateData(user, boolean skipPropertySetAssertion = true, boolean userCreatedOnBuddyRequest = false, assertDefaultDevice = true)
 	{
 		assertPublicUserData(user, true, userCreatedOnBuddyRequest)
-		assertPrivateUserData(user, skipPropertySetAssertion, userCreatedOnBuddyRequest)
+		assertPrivateUserData(user, skipPropertySetAssertion, userCreatedOnBuddyRequest, assertDefaultDevice)
 	}
 
-	static def assertUserGetResponseDetailsWithBuddyData(def response)
+	static void assertUserGetResponseDetailsWithBuddyData(def response)
 	{
 		assertResponseStatusSuccess(response)
 		assertBuddyUser(response.responseData)
 	}
 
-	static def assertPublicUserData(def user, boolean skipPropertySetAssertion = true, boolean userCreatedOnBuddyRequest)
+	static void assertPublicUserData(def user, boolean skipPropertySetAssertion = true, boolean userCreatedOnBuddyRequest)
 	{
 		if (user instanceof User)
 		{
@@ -115,7 +115,7 @@ class CommonAssertions extends Service
 		assert user.mobileNumber ==~/^\+[0-9]+$/
 	}
 
-	static def assertPrivateUserData(def user, boolean skipPropertySetAssertion = true, boolean userCreatedOnBuddyRequest)
+	static void assertPrivateUserData(def user, boolean skipPropertySetAssertion, boolean userCreatedOnBuddyRequest, boolean assertDefaultDevice)
 	{
 		assert userCreatedOnBuddyRequest || user.nickname != null
 		boolean mobileNumberToBeConfirmed
@@ -147,8 +147,9 @@ class CommonAssertions extends Service
 			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user._links.keySet() - USER_LINKS_VARYING == PRIVATE_USER_LINKS_NUM_TO_BE_CONFIRMED : user._links.keySet() - USER_LINKS_VARYING == PRIVATE_USER_LINKS_NUM_CONFIRMED_PIN_RESET_NOT_REQUESTED)
 			assert skipPropertySetAssertion || (mobileNumberToBeConfirmed ? user._embedded == null : user._embedded.keySet() == PRIVATE_USER_EMBEDDED)
 			assert skipPropertySetAssertion || user._links.self.href ==~/(?i)^.*\/$UUID_PATTERN\?requestingUserId=$UUID_PATTERN\&requestingDeviceId=$UUID_PATTERN$/
-			if (!mobileNumberToBeConfirmed)
+			if (!mobileNumberToBeConfirmed && assertDefaultDevice)
 			{
+				assert user._embedded."yona:devices"._embedded."yona:devices".size == 1
 				assertDefaultOwnDevice(user._embedded."yona:devices"._embedded."yona:devices"[0])
 			}
 		}
@@ -159,7 +160,7 @@ class CommonAssertions extends Service
 		}
 	}
 
-	static def assertVpnProfile(def user)
+	static void assertVpnProfile(def user)
 	{
 		if (user instanceof User)
 		{
@@ -263,7 +264,7 @@ class CommonAssertions extends Service
 		response.responseData._embedded?."yona:buddies"?._embedded?."yona:buddies".each{assertBuddyUser(it._embedded."yona:user")}
 	}
 
-	static def assertBuddyUser(def buddyUser)
+	static void assertBuddyUser(def buddyUser)
 	{
 		assert buddyUser.keySet() -BUDDY_USER_PROPERTIES_VARYING == BUDDY_USER_PROPERTIES
 		assert buddyUser._links.keySet() - USER_LINKS_VARYING == BUDDY_USER_LINKS

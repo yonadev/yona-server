@@ -26,6 +26,7 @@ class User
 	String emailAddress
 	String deviceName
 	String deviceOperatingSystem
+	String deviceAppVersion
 	final String mobileNumberConfirmationUrl
 	final String resendMobileNumberConfirmationCodeUrl
 	final String postOpenAppEventUrl
@@ -102,14 +103,14 @@ class User
 
 	def convertToJson()
 	{
-		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName, deviceOperatingSystem)
+		def jsonStr = makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName, deviceOperatingSystem, deviceAppVersion)
 
 		return new JsonSlurper().parseText(jsonStr)
 	}
 
-	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN")
+	private static String makeUserJsonStringInternal(url, firstName, lastName, password, nickname, mobileNumber, deviceName = null, deviceOperatingSystem = "UNKNOWN", deviceAppVersion = "UNKNOWN")
 	{
-		def devicePropertiesString = (deviceName) ? """"deviceName":"$deviceName", "deviceOperatingSystem":"$deviceOperatingSystem",""" : ""
+		def devicePropertiesString = (deviceName) ? """"deviceName":"$deviceName", "deviceOperatingSystem":"$deviceOperatingSystem", "deviceAppVersion":"$deviceAppVersion",""" : ""
 		def selfLinkString = (url) ? """"self":{"href":"$url"},""" : ""
 		def passwordString = (password) ? """"yonaPassword":"${password}",""" : ""
 		def json = """{

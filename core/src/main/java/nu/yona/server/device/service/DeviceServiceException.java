@@ -44,4 +44,9 @@ public class DeviceServiceException extends YonaException
 	{
 		return new DeviceServiceException("error.device.not.found.by.index", userAnonymizedId, deviceIndex);
 	}
+
+	public static DeviceServiceException duplicateDeviceName(String name)
+	{
+		return new DeviceServiceException("error.device.name.already.exists", name);
+	}
 }

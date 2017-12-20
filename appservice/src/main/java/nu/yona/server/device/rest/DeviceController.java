@@ -28,6 +28,7 @@ import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -38,17 +39,27 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import nu.yona.server.analysis.service.AnalysisEngineProxyService;
 import nu.yona.server.analysis.service.AppActivityDto;
 import nu.yona.server.analysis.service.AppActivityDto.Activity;
 import nu.yona.server.crypto.seckey.CryptoSession;
+import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.rest.DeviceController.DeviceResource;
 import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.device.service.DeviceService;
+import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.subscriptions.rest.NewDeviceRequestController;
+import nu.yona.server.subscriptions.rest.UserController;
+import nu.yona.server.subscriptions.rest.UserController.UserResource;
+import nu.yona.server.subscriptions.service.NewDeviceRequestDto;
+import nu.yona.server.subscriptions.service.NewDeviceRequestService;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 
@@ -57,6 +68,8 @@ import nu.yona.server.subscriptions.service.UserService;
 @RequestMapping(value = "/users/{userId}/devices", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class DeviceController extends ControllerBase
 {
+	private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
+
 	@Autowired
 	protected CurieProvider curieProvider;
 
@@ -66,7 +79,11 @@ public class DeviceController extends ControllerBase
 	@Autowired
 	private UserService userService;
 
-	private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
+	@Autowired
+	private UserController userController;
+
+	@Autowired
+	private NewDeviceRequestService newDeviceRequestService;
 
 	@Autowired
 	private YonaProperties yonaProperties;
@@ -99,6 +116,24 @@ public class DeviceController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			return createOkResponse(deviceService.getDevice(deviceId), createResourceAssembler(userId));
+		}
+	}
+
+	@RequestMapping(value = "/", method = RequestMethod.POST)
+	@ResponseBody
+	public HttpEntity<UserResource> registerDevice(
+			@RequestHeader(value = NewDeviceRequestController.NEW_DEVICE_REQUEST_PASSWORD_HEADER) String newDeviceRequestPassword,
+			@PathVariable UUID userId, @RequestBody DeviceRegistrationRequestDto request)
+	{
+		NewDeviceRequestDto newDeviceRequest = newDeviceRequestService.getNewDeviceRequestForUser(userId,
+				Optional.of(newDeviceRequestPassword));
+		try (CryptoSession cryptoSession = CryptoSession.start(newDeviceRequest.getYonaPassword(),
+				() -> userService.canAccessPrivateData(userId)))
+		{
+			OperatingSystem operatingSystem = UserDeviceDto.parsePostPutOperatingSystem(request.operatingSystemStr);
+			UserDeviceDto newDevice = deviceService.registerNewDevice(userId, request.name, operatingSystem, request.appVersion);
+			return createResponse(userService.getPrivateUser(userId, false), HttpStatus.CREATED,
+					userController.createResourceAssemblerForOwnUser(userId, Optional.of(newDevice.getId())));
 		}
 	}
 
@@ -187,11 +222,33 @@ public class DeviceController extends ControllerBase
 		return linkTo(methodOn.getDevice(Optional.empty(), userId, deviceId));
 	}
 
+	public static ControllerLinkBuilder getRegisterDeviceLinkBuilder(UUID userId)
+	{
+		DeviceController methodOn = methodOn(DeviceController.class);
+		return linkTo(methodOn.registerDevice(null, userId, null));
+	}
+
 	public static Resources<DeviceResource> createAllDevicesCollectionResource(CurieProvider curieProvider, UUID userId,
 			Set<DeviceBaseDto> devices)
 	{
 		return new Resources<>(new DeviceResourceAssembler(curieProvider, userId).toResources(devices),
 				DeviceController.getAllDevicesLinkBuilder(userId).withSelfRel());
+	}
+
+	static class DeviceRegistrationRequestDto
+	{
+		final String name;
+		final String operatingSystemStr;
+		final String appVersion;
+
+		@JsonCreator
+		public DeviceRegistrationRequestDto(@JsonProperty("name") String name,
+				@JsonProperty("operatingSystem") String operatingSystemStr, @JsonProperty("appVersion") String appVersion)
+		{
+			this.name = name;
+			this.operatingSystemStr = operatingSystemStr;
+			this.appVersion = appVersion;
+		}
 	}
 
 	public static class DeviceResource extends Resource<DeviceBaseDto>

@@ -26,19 +26,21 @@ public class UserDeviceDto extends DeviceBaseDto
 {
 	private final LocalDateTime registrationTime;
 	private final OperatingSystem operatingSystem;
+	private final String appVersion;
 	private final LocalDate appLastOpenedDate;
 	private final UUID deviceAnonymizedId;
 
-	public UserDeviceDto(String name, OperatingSystem operatingSystem)
+	public UserDeviceDto(String name, OperatingSystem operatingSystem, String appVersion)
 	{
-		this(null, name, operatingSystem, true, LocalDateTime.now(), LocalDate.now(), null);
+		this(null, name, operatingSystem, appVersion, true, LocalDateTime.now(), LocalDate.now(), null);
 	}
 
-	private UserDeviceDto(UUID id, String name, OperatingSystem operatingSystem, boolean isVpnConnected,
+	private UserDeviceDto(UUID id, String name, OperatingSystem operatingSystem, String appVersion, boolean isVpnConnected,
 			LocalDateTime registrationTime, LocalDate appLastOpenedDate, UUID deviceAnonymizedId)
 	{
 		super(id, name, isVpnConnected);
 		this.operatingSystem = operatingSystem;
+		this.appVersion = appVersion;
 		this.registrationTime = registrationTime;
 		this.appLastOpenedDate = appLastOpenedDate;
 		this.deviceAnonymizedId = deviceAnonymizedId;
@@ -47,6 +49,12 @@ public class UserDeviceDto extends DeviceBaseDto
 	public OperatingSystem getOperatingSystem()
 	{
 		return operatingSystem;
+	}
+
+	@JsonIgnore
+	public String getAppVersion()
+	{
+		return appVersion;
 	}
 
 	@JsonIgnore
@@ -77,14 +85,15 @@ public class UserDeviceDto extends DeviceBaseDto
 	public static UserDeviceDto createInstance(UserDevice deviceEntity)
 	{
 		return new UserDeviceDto(deviceEntity.getId(), deviceEntity.getName(),
-				deviceEntity.getDeviceAnonymized().getOperatingSystem(), deviceEntity.isVpnConnected(),
-				deviceEntity.getRegistrationTime(), deviceEntity.getAppLastOpenedDate(), deviceEntity.getDeviceAnonymizedId());
+				deviceEntity.getDeviceAnonymized().getOperatingSystem(), deviceEntity.getDeviceAnonymized().getAppVersion(),
+				deviceEntity.isVpnConnected(), deviceEntity.getRegistrationTime(), deviceEntity.getAppLastOpenedDate(),
+				deviceEntity.getDeviceAnonymizedId());
 	}
 
-	public static UserDeviceDto createPostPutInstance(String name, String operatingSystemStr)
+	public static UserDeviceDto createPostPutInstance(String name, String operatingSystemStr, String appVersion)
 	{
 		assertValidName(name);
-		return new UserDeviceDto(name, parsePostPutOperatingSystem(operatingSystemStr));
+		return new UserDeviceDto(name, parsePostPutOperatingSystem(operatingSystemStr), appVersion);
 	}
 
 	private static void assertValidName(String name)
@@ -95,7 +104,7 @@ public class UserDeviceDto extends DeviceBaseDto
 		}
 	}
 
-	private static OperatingSystem parsePostPutOperatingSystem(String operatingSystemStr)
+	public static OperatingSystem parsePostPutOperatingSystem(String operatingSystemStr)
 	{
 		try
 		{

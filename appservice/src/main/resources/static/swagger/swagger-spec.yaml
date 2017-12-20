@@ -24,6 +24,12 @@ parameters:
     description: The device password
     required: false
     type: string
+  newDeviceRequestPassword:
+    name: Yona-NewDeviceRequestPassword
+    in: header
+    description: The temporary password used to encrypt the device key
+    required: false
+    type: string
   requestingUserId:
     name: requestingUserId
     in: query
@@ -307,6 +313,108 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'           
+  '/users/{userID}/devices/':
+    post:
+      summary: Register a new device
+      description: Register a new device for an existing user
+      parameters:
+        - $ref: "#/parameters/newDeviceRequestPassword"
+        - $ref: "#/parameters/userID"
+        - in: body
+          name: body
+          description: New device
+          required: true
+          schema:
+            $ref: '#/definitions/DeviceRegistrationRequest'
+      tags:
+        - Device
+      responses:
+        '201':
+          description: The user profile, including the newly registered device
+          schema:
+            $ref: '#/definitions/UserWithPrivateData'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    get:
+      summary: Get all devices
+      description: Fetches all devices of the user with the given ID
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+      tags:
+        - Device
+      responses:
+        '200':
+          description: All devices of this user.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/UserDevice'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/devices/{deviceID}':
+    get:
+      summary: Get a device
+      description: Fetches the device identified by the given ID
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/deviceID"
+      tags:
+        - Device
+      responses:
+        '200':
+          description: The requested device.
+          schema:
+            $ref: '#/definitions/UserDevice'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      summary: Update a device
+      description: Update an existing device
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/deviceID"
+        - in: body
+          name: body
+          description: Updated device
+          required: true
+          schema:
+            $ref: '#/definitions/PutDevice'
+      tags:
+        - Device
+      responses:
+        '200':
+          description: The updated device
+          schema:
+            $ref: '#/definitions/UserDevice'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: Delete device
+      description: Deletes this device
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/deviceID"
+      tags:
+        - Device
+      responses:
+        '200':
+          description: The device is deleted.
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   '/users/{userID}/goals/':
     post:
       summary: Add a new goal
@@ -420,61 +528,6 @@ paths:
       responses:
         '200':
           description: The goal is deleted.
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
-  '/users/{userID}/appActivity/':
-    post:
-      summary: Report app activities
-      description: Reports the usage of apps on the device
-      parameters:
-        - $ref: "#/parameters/yonaPassword"
-        - $ref: "#/parameters/userID"
-        - in: body
-          name: body
-          description: The app activity report
-          required: true
-          schema:
-            type: object
-            properties:
-              deviceDateTime:
-                type: string
-                format: dateTime
-                description: The actual time on the device
-                example: 2016-02-31T21:03:52.290+0000
-              activities:
-                type: array
-                description: A set of app activities
-                items:
-                  type: object
-                  properties:
-                    application:
-                      type: string
-                      description: The name of the app
-                      example: com.google.android.youtube
-                    startTime:
-                      type: string
-                      format: dateTime
-                      description: The time the app was activiated
-                      example: 2016-02-31T21:03:52.290+0000
-                    endTime:
-                      type: string
-                      format: dateTime
-                      description: The time the app was deactiviated
-                      example: 2016-02-31T21:28:02.290+0000
-                  required:
-                    - application
-                    - startTime
-                    - endTime
-            required:
-              - deviceDateTime
-              - activities
-      tags:
-        - App activity
-      responses:
-        '200':
-          description: App activity reported correctly
         default:
           description: Unexpected error
           schema:
@@ -1256,11 +1309,7 @@ paths:
       description: If the new device request password is given, the returned resource contains the device password. The app can check the presence of a new device request by omitting the new device request password. In that case, a blank new device request is returned.
       parameters:
         - $ref: "#/parameters/mobileNumber"
-        - name: Yona-NewDeviceRequestPassword
-          in: header
-          description: The temporary password used to encrypt the device key
-          required: false
-          type: string
+        - $ref: "#/parameters/newDeviceRequestPassword"
       tags:
         - New device requests
       responses:
@@ -1726,17 +1775,43 @@ definitions:
     - ANDROID
     - IOS
     - UNKNOWN
-  DeviceBase:
+  DeviceRegistrationRequest:
     type: object
     properties:
-      name:
-        type: string
-        description: Name of the device running the Yona app. The name must be at most 20 characters and should not contain a colon
-        example: My S8
-      isVpnConnected:
-        type: boolean
-        description: True when the VPN is connected on this device; false otherwise
-        example: true
+    name:
+      type: string
+      description: Name of the device running the Yona app. The name must be at most 20 characters and should not contain a colon
+      example: My S8
+    operatingSystem:
+      $ref: '#/definitions/DeviceOperatingSystem'
+      description: The operating system of the device running the Yona app
+      example: ANDROID
+    appVersion:
+      type: string
+      description: The version of the Yona app running on this device
+      example: 1.0
+    required:
+      - name
+      - operatingSystem
+      - appVersion
+  PostPutDevice:
+    type: object
+    properties:
+    name:
+      type: string
+      description: Name of the device running the Yona app. The name must be at most 20 characters and should not contain a colon
+      example: My S8
+    required:
+      - name
+  DeviceBase:
+    allOf:
+      - $ref: '#/definitions/PostPutDevice'
+      - type: object
+        properties:
+          isVpnConnected:
+            type: boolean
+            description: True when the VPN is connected on this device; false otherwise
+            example: true
   UserDevice:
     allOf:
       - $ref: '#/definitions/DeviceBase'
@@ -2207,6 +2282,16 @@ definitions:
           - $ref: '#/definitions/SelfLink'
           - $ref: '#/definitions/EditLink'
           - $ref: '#/definitions/UserLink'
+          - type: object
+            properties:
+              "yona:registerDevice":
+                type: object
+                required:
+                  - href
+                properties:
+                  href:
+                    type: string
+                    description: To register a new device, post the information about that device to this URL
     required:
       - yonaPassword
       - _links
