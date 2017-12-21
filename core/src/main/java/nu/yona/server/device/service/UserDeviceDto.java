@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -90,10 +91,11 @@ public class UserDeviceDto extends DeviceBaseDto
 				deviceEntity.getDeviceAnonymizedId());
 	}
 
-	public static UserDeviceDto createPostPutInstance(String name, String operatingSystemStr, String appVersion)
+	public static UserDeviceDto createDeviceRegistrationInstance(DeviceRegistrationRequestDto deviceRegistration)
 	{
-		assertValidName(name);
-		return new UserDeviceDto(name, parsePostPutOperatingSystem(operatingSystemStr), appVersion);
+		assertValidName(deviceRegistration.name);
+		return new UserDeviceDto(deviceRegistration.name,
+				parseOperatingSystemOfRegistrationRequest(deviceRegistration.operatingSystemStr), deviceRegistration.appVersion);
 	}
 
 	private static void assertValidName(String name)
@@ -104,7 +106,7 @@ public class UserDeviceDto extends DeviceBaseDto
 		}
 	}
 
-	public static OperatingSystem parsePostPutOperatingSystem(String operatingSystemStr)
+	private static OperatingSystem parseOperatingSystemOfRegistrationRequest(String operatingSystemStr)
 	{
 		try
 		{
@@ -119,5 +121,21 @@ public class UserDeviceDto extends DeviceBaseDto
 			// Handle below
 		}
 		throw InvalidDataException.invalidOperatingSystem(operatingSystemStr);
+	}
+
+	public static class DeviceRegistrationRequestDto
+	{
+		final String name;
+		final String operatingSystemStr;
+		final String appVersion;
+
+		@JsonCreator
+		public DeviceRegistrationRequestDto(@JsonProperty("name") String name,
+				@JsonProperty("operatingSystem") String operatingSystemStr, @JsonProperty("appVersion") String appVersion)
+		{
+			this.name = name;
+			this.operatingSystemStr = operatingSystemStr;
+			this.appVersion = appVersion;
+		}
 	}
 }

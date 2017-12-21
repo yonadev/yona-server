@@ -42,7 +42,7 @@ public class DeviceServiceException extends YonaException
 
 	public static DeviceServiceException notFoundByIndex(UUID userAnonymizedId, int deviceIndex)
 	{
-		return new DeviceServiceException("error.device.not.found.by.index", userAnonymizedId, deviceIndex);
+		return new DeviceServiceException("error.device.not.found.index", userAnonymizedId, deviceIndex);
 	}
 
 	public static DeviceServiceException duplicateDeviceName(String name)

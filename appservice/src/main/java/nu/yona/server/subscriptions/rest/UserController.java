@@ -65,6 +65,7 @@ import nu.yona.server.device.rest.DeviceController;
 import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.device.service.UserDeviceDto;
+import nu.yona.server.device.service.UserDeviceDto.DeviceRegistrationRequestDto;
 import nu.yona.server.exceptions.ConfirmationException;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.exceptions.YonaException;
@@ -513,9 +514,7 @@ public class UserController extends ControllerBase
 		private final String lastName;
 		private final String mobileNumber;
 		private final String nickname;
-		private final String deviceName;
-		private final String deviceOperatingSystem;
-		private final String deviceAppVersion;
+		private final Optional<DeviceRegistrationRequestDto> deviceRegistration;
 
 		@JsonCreator
 		public PostPutUserDto(@JsonProperty("firstName") String firstName, @JsonProperty("lastName") String lastName,
@@ -529,15 +528,13 @@ public class UserController extends ControllerBase
 			this.lastName = lastName;
 			this.mobileNumber = mobileNumber;
 			this.nickname = nickname;
-			this.deviceName = deviceName;
-			this.deviceOperatingSystem = deviceOperatingSystem;
-			this.deviceAppVersion = deviceAppVersion;
+			this.deviceRegistration = deviceName == null ? Optional.empty()
+					: Optional.of(new DeviceRegistrationRequestDto(deviceName, deviceOperatingSystem, deviceAppVersion));
 		}
 
 		Optional<UserDeviceDto> getDevice()
 		{
-			return (deviceName == null) ? Optional.empty()
-					: Optional.of(UserDeviceDto.createPostPutInstance(deviceName, deviceOperatingSystem, deviceAppVersion));
+			return deviceRegistration.map(UserDeviceDto::createDeviceRegistrationInstance);
 		}
 	}
 

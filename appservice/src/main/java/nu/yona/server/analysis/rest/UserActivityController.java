@@ -589,12 +589,12 @@ public class UserActivityController extends ActivityControllerBase
 	}
 
 	@JsonRootName("activity")
-	private static class DeviceActivityDto
+	private static class ActivityWithDeviceDto
 	{
 		private final ActivityDto dto;
 		private final String deviceName;
 
-		private DeviceActivityDto(ActivityDto dto, String deviceName)
+		private ActivityWithDeviceDto(ActivityDto dto, String deviceName)
 		{
 			this.dto = dto;
 			this.deviceName = deviceName;
@@ -613,18 +613,18 @@ public class UserActivityController extends ActivityControllerBase
 		}
 	}
 
-	public static class ActivitiesResource extends Resources<DeviceActivityDto>
+	public static class ActivitiesResource extends Resources<ActivityWithDeviceDto>
 	{
 		public ActivitiesResource(Map<UUID, String> deviceAnonymizedIdToDeviceName, List<ActivityDto> rawActivities)
 		{
 			super(wrapEnrichActivitiesWithDeviceName(deviceAnonymizedIdToDeviceName, rawActivities));
 		}
 
-		private static Iterable<DeviceActivityDto> wrapEnrichActivitiesWithDeviceName(
+		private static Iterable<ActivityWithDeviceDto> wrapEnrichActivitiesWithDeviceName(
 				Map<UUID, String> deviceAnonymizedIdToDeviceName, List<ActivityDto> rawActivities)
 		{
 			return rawActivities.stream()
-					.map(dto -> new DeviceActivityDto(dto, deviceAnonymizedIdToDeviceName.get(dto.getDeviceAnonymizedId())))
+					.map(dto -> new ActivityWithDeviceDto(dto, deviceAnonymizedIdToDeviceName.get(dto.getDeviceAnonymizedId())))
 					.collect(Collectors.toList());
 		}
 	}

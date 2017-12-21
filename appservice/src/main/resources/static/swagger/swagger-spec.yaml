@@ -39,7 +39,7 @@ parameters:
   requestingDeviceId:
     name: requestingDeviceId
     in: query
-    description: The ID of the device from which the request originates.
+    description: The ID of the device from which the request originates. Several operations take this query parameter to enable returning a device-specific URL for the open-app event and to post the app activities 
     required: false
     type: string
   tempPassword:

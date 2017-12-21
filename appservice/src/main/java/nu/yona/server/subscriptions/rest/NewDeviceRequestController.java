@@ -49,8 +49,6 @@ import nu.yona.server.subscriptions.service.UserServiceException;
 @RequestMapping(value = "/newDeviceRequests", produces = { MediaType.APPLICATION_JSON_VALUE })
 public class NewDeviceRequestController extends ControllerBase
 {
-	public static final String NEW_DEVICE_REQUEST_PASSWORD_HEADER = "Yona-NewDeviceRequestPassword";
-
 	private static final Logger logger = LoggerFactory.getLogger(NewDeviceRequestController.class);
 
 	@Autowired
@@ -84,7 +82,7 @@ public class NewDeviceRequestController extends ControllerBase
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(
-			@RequestHeader(value = NEW_DEVICE_REQUEST_PASSWORD_HEADER) Optional<String> newDeviceRequestPassword,
+			@RequestHeader(value = Constants.NEW_DEVICE_REQUEST_PASSWORD_HEADER) Optional<String> newDeviceRequestPassword,
 			@PathVariable String mobileNumber)
 	{
 		try

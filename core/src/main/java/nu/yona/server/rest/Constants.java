@@ -7,6 +7,7 @@ package nu.yona.server.rest;
 public final class Constants
 {
 	public static final String PASSWORD_HEADER = "Yona-Password";
+	public static final String NEW_DEVICE_REQUEST_PASSWORD_HEADER = "Yona-NewDeviceRequestPassword";
 
 	private Constants()
 	{

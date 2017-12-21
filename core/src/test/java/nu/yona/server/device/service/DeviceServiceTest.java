@@ -160,8 +160,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
-		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1, "Unknown");
-		service.addDeviceToUser(richard, deviceDto1);
+		richard.addDevice(createDevice(0, deviceName1, operatingSystem1, "Unknown"));
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
@@ -191,52 +190,30 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		expectedException.expect(DeviceServiceException.class);
 		expectedException.expect(hasMessageId("error.device.name.already.exists"));
 
-		// Create the first device
-		String deviceName1 = "First";
-		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		LocalDateTime startTime = TimeUtil.utcNow();
-		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1, "Unknown");
-		service.addDeviceToUser(richard, deviceDto1);
+		String deviceName = "First";
+		richard.addDevice(createDevice(0, deviceName, OperatingSystem.ANDROID, "Unknown"));
 
-		// Verify there is 1 device
-		verify(userDeviceRepository, times(1)).save(any(UserDevice.class));
-		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
-
-		// Try add another device with the same name, different OS
-		String deviceName2 = "First";
-		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2, "Unknown");
+		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName, OperatingSystem.IOS, "Unknown");
 		service.addDeviceToUser(richard, deviceDto2);
 	}
 
 	@Test
 	public void deleteDevice_deleteOneOfTwo_userHasOneDevice()
 	{
-		String deviceName1 = "First";
-		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
-		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1, "Unknown");
-		service.addDeviceToUser(richard, deviceDto1);
+		UserDevice device1 = createDevice(0, "First", OperatingSystem.ANDROID, "Unknown");
+		richard.addDevice(device1);
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2, "Unknown");
-		service.addDeviceToUser(richard, deviceDto2);
+		richard.addDevice(createDevice(1, deviceName2, operatingSystem2, "Unknown"));
 
-		verify(userDeviceRepository, times(2)).save(any(UserDevice.class));
-
-		Set<UserDevice> devices = richard.getDevices();
-		assertThat(devices.size(), equalTo(2));
-
-		Optional<UserDevice> device1Optional = devices.stream().filter(d -> d.getName().equals(deviceName1)).findAny();
-		assertThat(device1Optional.isPresent(), equalTo(true));
-		UserDevice device1 = device1Optional.get();
-		assertDevice(device1, startTime, deviceName1, operatingSystem1, 0);
+		assertThat(richard.getDevices().size(), equalTo(2));
 
 		service.deleteDevice(richard, device1);
 		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
 
-		devices = richard.getDevices();
+		Set<UserDevice> devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(1));
 
 		UserDevice device2 = devices.iterator().next();
@@ -246,38 +223,19 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void addDeviceToUser_addAfterDelete_deviceIdReused()
 	{
-		String deviceName1 = "First";
-		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
 		LocalDateTime startTime = TimeUtil.utcNow();
-		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1, "Unknown");
-		service.addDeviceToUser(richard, deviceDto1);
-
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2, "Unknown");
-		service.addDeviceToUser(richard, deviceDto2);
+		richard.addDevice(createDevice(1, deviceName2, operatingSystem2, "Unknown"));
 
-		verify(userDeviceRepository, times(2)).save(any(UserDevice.class));
-
-		Set<UserDevice> devices = richard.getDevices();
-		assertThat(devices.size(), equalTo(2));
-
-		Optional<UserDevice> device1Optional = devices.stream().filter(d -> d.getName().equals(deviceName1)).findAny();
-		assertThat(device1Optional.isPresent(), equalTo(true));
-		UserDevice device1 = device1Optional.get();
-
-		service.deleteDevice(richard, device1);
-		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
-
-		devices = richard.getDevices();
-		assertThat(devices.size(), equalTo(1));
+		assertThat(richard.getDevices().size(), equalTo(1));
 
 		String deviceName3 = "Third";
 		OperatingSystem operatingSystem3 = OperatingSystem.IOS;
 		UserDeviceDto deviceDto3 = new UserDeviceDto(deviceName3, operatingSystem3, "Unknown");
 		service.addDeviceToUser(richard, deviceDto3);
 
-		devices = richard.getDevices();
+		Set<UserDevice> devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(2));
 
 		Optional<UserDevice> device2Optional = devices.stream().filter(d -> d.getName().equals(deviceName2)).findAny();
@@ -292,21 +250,35 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void deleteDevice_tryDeleteOneAndOnlyDevice_exception() throws Exception
+	public void addDeviceToUser_byId_addFirstDevice_userHasOneDevice()
 	{
-		expectedException.expect(DeviceServiceException.class);
-		expectedException.expect(hasMessageId("error.device.cannot.delete.last.one"));
 		String deviceName = "Testing";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
+		LocalDateTime startTime = TimeUtil.utcNow();
 		UserDeviceDto deviceDto = new UserDeviceDto(deviceName, operatingSystem, "Unknown");
-		service.addDeviceToUser(richard, deviceDto);
+		service.addDeviceToUser(richard.getId(), deviceDto);
 
 		verify(userDeviceRepository, times(1)).save(any(UserDevice.class));
+		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
 
 		Set<UserDevice> devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(1));
 
 		UserDevice device = devices.iterator().next();
+		assertDevice(device, startTime, deviceName, operatingSystem, 0);
+	}
+
+	@Test
+	public void deleteDevice_tryDeleteOneAndOnlyDevice_exception() throws Exception
+	{
+		expectedException.expect(DeviceServiceException.class);
+		expectedException.expect(hasMessageId("error.device.cannot.delete.last.one"));
+
+		richard.addDevice(createDevice(0, "Testing", OperatingSystem.ANDROID, "Unknown"));
+
+		assertThat(richard.getDevices().size(), equalTo(1));
+
+		UserDevice device = richard.getDevices().iterator().next();
 
 		service.deleteDevice(richard, device);
 	}
@@ -317,35 +289,16 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		expectedException.expect(DeviceServiceException.class);
 		expectedException.expect(hasMessageId("error.device.not.found.id"));
 
-		String deviceName1 = "First";
-		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		LocalDateTime startTime = TimeUtil.utcNow();
-		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName1, operatingSystem1, "Unknown");
-		service.addDeviceToUser(richard, deviceDto1);
+		richard.addDevice(createDevice(0, "First", OperatingSystem.ANDROID, "Unknown"));
+		UserDevice notAddedDevice = createDevice(1, "NotAddedDevice", OperatingSystem.IOS, "Unknown");
 
-		String deviceName2 = "Second";
-		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		UserDeviceDto deviceDto2 = new UserDeviceDto(deviceName2, operatingSystem2, "Unknown");
-		service.addDeviceToUser(richard, deviceDto2);
+		assertThat(richard.getDevices().size(), equalTo(1));
 
-		verify(userDeviceRepository, times(2)).save(any(UserDevice.class));
-
-		Set<UserDevice> devices = richard.getDevices();
-		assertThat(devices.size(), equalTo(2));
-
-		Optional<UserDevice> device1Optional = devices.stream().filter(d -> d.getName().equals(deviceName1)).findAny();
-		assertThat(device1Optional.isPresent(), equalTo(true));
-		UserDevice device1 = device1Optional.get();
-		assertDevice(device1, startTime, deviceName1, operatingSystem1, 0);
-
-		service.deleteDevice(richard, device1);
-		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
-
-		service.deleteDevice(richard, device1);
+		service.deleteDevice(richard, notAddedDevice);
 	}
 
 	private void assertDevice(UserDevice device, LocalDateTime startTime, String expectedDeviceName,
-			OperatingSystem expectedOperatingSystem, int expectedDeviceId)
+			OperatingSystem expectedOperatingSystem, int expectedDeviceIndex)
 	{
 		assertThat(device.getName(), equalTo(expectedDeviceName));
 		assertThat(device.getAppLastOpenedDate(), equalTo(TimeUtil.utcNow().toLocalDate()));
@@ -355,51 +308,32 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		DeviceAnonymized deviceAnonymized = device.getDeviceAnonymized();
 		assertThat(deviceAnonymized.getOperatingSystem(), equalTo(expectedOperatingSystem));
 		assertThat(deviceAnonymized.getLastMonitoredActivityDate().isPresent(), equalTo(false));
-		assertThat(deviceAnonymized.getDeviceIndex(), equalTo(expectedDeviceId));
+		assertThat(deviceAnonymized.getDeviceIndex(), equalTo(expectedDeviceIndex));
 		assertThat(deviceAnonymized.getUserAnonymized().getId(), equalTo(richard.getAnonymized().getId()));
 	}
 
 	@Test
 	public void getDefaultDeviceId_oneDevice_deviceReturned()
 	{
-		// Add device
-		String deviceName1 = "First";
-		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		UserDeviceDto deviceDto1 = addDeviceToRichard(deviceName1, operatingSystem1);
+		UserDevice device = createDevice(0, "First", OperatingSystem.ANDROID, "Unknown");
+		richard.addDevice(device);
 
-		// Verify device is present
-		Set<UserDevice> devices = richard.getDevices();
-		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()), containsInAnyOrder(deviceName1));
-
-		// Get the default device ID
 		UUID defaultDeviceId = service.getDefaultDeviceId(createRichardUserDto());
 
-		// Assert success
-		assertThat(defaultDeviceId, equalTo(deviceDto1.getId()));
+		assertThat(defaultDeviceId, equalTo(device.getId()));
 	}
 
 	@Test
 	public void getDefaultDeviceId_twoDevices_firstDeviceReturned()
 	{
-		// Add devices
-		String deviceName1 = "First";
-		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		UserDeviceDto deviceDto1 = addDeviceToRichard(deviceName1, operatingSystem1);
+		UserDevice device1 = createDevice(0, "First", OperatingSystem.ANDROID, "Unknown");
+		richard.addDevice(device1);
+		UserDevice device2 = createDevice(1, "Second", OperatingSystem.IOS, "Unknown");
+		richard.addDevice(device2);
 
-		String deviceName2 = "Second";
-		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		addDeviceToRichard(deviceName2, operatingSystem2);
-
-		// Verify two devices are present
-		Set<UserDevice> devices = richard.getDevices();
-		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
-				containsInAnyOrder(deviceName1, deviceName2));
-
-		// Get the default device ID
 		UUID defaultDeviceId = service.getDefaultDeviceId(createRichardUserDto());
 
-		// Assert success
-		assertThat(defaultDeviceId, equalTo(deviceDto1.getId()));
+		assertThat(defaultDeviceId, equalTo(device1.getId()));
 	}
 
 	@Test
@@ -408,21 +342,20 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		expectedException.expect(DeviceServiceException.class);
 		expectedException.expect(hasMessageId("error.device.collection.empty"));
 
-		// Get the default device ID
 		service.getDefaultDeviceId(createRichardUserDto());
 	}
 
 	@Test
-	public void getDeviceAnonymizedId_firstDevice_correctDevice()
+	public void getDeviceAnonymizedId_byIndex_firstDevice_correctDevice()
 	{
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		UserDeviceDto deviceDto1 = addDeviceToRichard(deviceName1, operatingSystem1);
+		UserDeviceDto deviceDto1 = addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		addDeviceToRichard(deviceName2, operatingSystem2);
+		addDeviceToRichard(1, deviceName2, operatingSystem2, "Unknown");
 
 		// Verify two devices are present
 		Set<UserDevice> devices = richard.getDevices();
@@ -437,40 +370,16 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDeviceAnonymizedId_secondDevice_correctDevice()
+	public void getDeviceAnonymizedId_byIndex_secondDevice_correctDevice()
 	{
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		addDeviceToRichard(deviceName1, operatingSystem1);
+		addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		UserDeviceDto deviceDto2 = addDeviceToRichard(deviceName2, operatingSystem2);
-
-		// Verify two devices are present
-		Set<UserDevice> devices = richard.getDevices();
-		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
-				containsInAnyOrder(deviceName1, deviceName2));
-
-		// Get the anonymized ID for the first index
-		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardAnonymizedDto(), 1);
-
-		// Assert success
-		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(deviceDto2.getId()).getDeviceAnonymizedId()));
-	}
-
-	@Test
-	public void getDeviceAnonymizedId_defaultDevice_correctDevice()
-	{
-		// Add devices
-		String deviceName1 = "First";
-		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		UserDeviceDto deviceDto1 = addDeviceToRichard(deviceName1, operatingSystem1);
-
-		String deviceName2 = "Second";
-		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		addDeviceToRichard(deviceName2, operatingSystem2);
+		UserDeviceDto deviceDto2 = addDeviceToRichard(1, deviceName2, operatingSystem2, "Unknown");
 
 		// Verify two devices are present
 		Set<UserDevice> devices = richard.getDevices();
@@ -478,6 +387,30 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 				containsInAnyOrder(deviceName1, deviceName2));
 
 		// Get the anonymized ID for the second index
+		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardAnonymizedDto(), 1);
+
+		// Assert success
+		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(deviceDto2.getId()).getDeviceAnonymizedId()));
+	}
+
+	@Test
+	public void getDeviceAnonymizedId_byIndex_defaultDevice_correctDevice()
+	{
+		// Add devices
+		String deviceName1 = "First";
+		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
+		UserDeviceDto deviceDto1 = addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
+
+		String deviceName2 = "Second";
+		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
+		addDeviceToRichard(1, deviceName2, operatingSystem2, "Unknown");
+
+		// Verify two devices are present
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
+				containsInAnyOrder(deviceName1, deviceName2));
+
+		// Get the anonymized ID for a negative index, implies fall back to default device
 		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardAnonymizedDto(), -1);
 
 		// Assert success
@@ -485,19 +418,19 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDeviceAnonymizedId_tryGetNonExistingIndex_exception()
+	public void getDeviceAnonymizedId_byIndex_tryGetNonExistingIndex_exception()
 	{
 		expectedException.expect(DeviceServiceException.class);
-		expectedException.expect(hasMessageId("error.device.not.found.by.index"));
+		expectedException.expect(hasMessageId("error.device.not.found.index"));
 
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		addDeviceToRichard(deviceName1, operatingSystem1);
+		addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		addDeviceToRichard(deviceName2, operatingSystem2);
+		addDeviceToRichard(1, deviceName2, operatingSystem2, "Unknown");
 
 		// Verify two devices are present
 		Set<UserDevice> devices = richard.getDevices();
@@ -506,6 +439,89 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		// Try to get the anonymized ID for a nonexisting index
 		service.getDeviceAnonymizedId(createRichardAnonymizedDto(), 2);
+	}
+
+	@Test
+	public void getDeviceAnonymizedId_byId_firstDevice_correctDevice()
+	{
+		// Add devices
+		String deviceName1 = "First";
+		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
+		UserDeviceDto deviceDto1 = addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
+
+		String deviceName2 = "Second";
+		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
+		addDeviceToRichard(1, deviceName2, operatingSystem2, "Unknown");
+
+		// Verify two devices are present
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
+				containsInAnyOrder(deviceName1, deviceName2));
+
+		// Get the anonymized ID for the first device ID
+		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardUserDto(), deviceDto1.getId());
+
+		// Assert success
+		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(deviceDto1.getId()).getDeviceAnonymizedId()));
+	}
+
+	@Test
+	public void getDeviceAnonymizedId_byId_secondDevice_correctDevice()
+	{
+		// Add devices
+		String deviceName1 = "First";
+		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
+		addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
+
+		String deviceName2 = "Second";
+		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
+		UserDeviceDto deviceDto2 = addDeviceToRichard(1, deviceName2, operatingSystem2, "Unknown");
+
+		// Verify two devices are present
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
+				containsInAnyOrder(deviceName1, deviceName2));
+
+		// Get the anonymized ID for the second device ID
+		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardUserDto(), deviceDto2.getId());
+
+		// Assert success
+		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(deviceDto2.getId()).getDeviceAnonymizedId()));
+	}
+
+	@Test
+	public void getDeviceAnonymizedId_byId_tryGetNonExistingId_exception()
+	{
+		expectedException.expect(DeviceServiceException.class);
+		expectedException.expect(hasMessageId("error.device.not.found.id"));
+
+		// Add device2
+		String deviceName1 = "First";
+		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
+		addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
+
+		String deviceName2 = "Second";
+		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
+		addDeviceToRichard(1, deviceName2, operatingSystem2, "Unknown");
+
+		UserDevice notAddedDevice = createDevice(2, "NotAddedDevice", OperatingSystem.IOS, "Unknown");
+
+		// Verify two devices are present
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
+				containsInAnyOrder(deviceName1, deviceName2));
+
+		// Try to get the anonymized ID for a nonexisting device ID
+		service.getDeviceAnonymizedId(createRichardUserDto(), notAddedDevice.getId());
+	}
+
+	private UserDevice createDevice(int deviceIndex, String deviceName, OperatingSystem operatingSystem, String appVersion)
+	{
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(deviceIndex, operatingSystem, appVersion);
+		UserDevice device = UserDevice.createInstance(deviceName, deviceAnonymized.getId());
+		deviceAnonymizedRepository.save(deviceAnonymized);
+		userDeviceRepository.save(device);
+		return device;
 	}
 
 	private UserDto createRichardUserDto()
@@ -518,9 +534,11 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		return UserAnonymizedDto.createInstance(richard.getAnonymized());
 	}
 
-	private UserDeviceDto addDeviceToRichard(String deviceName, OperatingSystem operatingSystem)
+	private UserDeviceDto addDeviceToRichard(int deviceIndex, String deviceName, OperatingSystem operatingSystem,
+			String appVersion)
 	{
-		UserDeviceDto deviceDto1 = new UserDeviceDto(deviceName, operatingSystem, "Unknown");
-		return service.addDeviceToUser(richard, deviceDto1);
+		UserDevice deviceEntity = createDevice(deviceIndex, deviceName, operatingSystem, appVersion);
+		richard.addDevice(deviceEntity);
+		return UserDeviceDto.createInstance(deviceEntity);
 	}
 }

@@ -51,7 +51,7 @@ public class Activity extends EntityWithId
 	private Activity(DeviceAnonymized deviceAnonymized, ZoneId timeZone, LocalDateTime startTime, LocalDateTime endTime,
 			Optional<String> app)
 	{
-		this.deviceAnonymized = deviceAnonymized;
+		this.deviceAnonymized = Objects.requireNonNull(deviceAnonymized);
 		this.timeZone = timeZone;
 		this.startTime = startTime;
 		this.endTime = endTime;
@@ -61,7 +61,7 @@ public class Activity extends EntityWithId
 	public static Activity createInstance(DeviceAnonymized deviceAnonymized, ZoneId timeZone, LocalDateTime startTime,
 			LocalDateTime endTime, Optional<String> app)
 	{
-		return new Activity(Objects.requireNonNull(deviceAnonymized), timeZone, startTime, endTime, app);
+		return new Activity(deviceAnonymized, timeZone, startTime, endTime, app);
 	}
 
 	public DayActivity getDayActivity()

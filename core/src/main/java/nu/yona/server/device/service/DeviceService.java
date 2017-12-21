@@ -72,35 +72,29 @@ public class DeviceService
 	@Transactional
 	public UserDeviceDto addDeviceToUser(User userEntity, UserDeviceDto deviceDto)
 	{
-		return UserDeviceDto.createInstance(
-				addDeviceToUser(userEntity, deviceDto.getName(), deviceDto.getOperatingSystem(), deviceDto.getAppVersion()));
-	}
-
-	@Transactional
-	public UserDeviceDto registerNewDevice(UUID userId, String name, OperatingSystem operatingSystem, String appVersion)
-	{
-		User userEntity = userService.getUserEntityById(userId);
-		return UserDeviceDto.createInstance(addDeviceToUser(userEntity, name, operatingSystem, appVersion));
-	}
-
-	private UserDevice addDeviceToUser(User userEntity, String name, OperatingSystem operatingSystem, String appVersion)
-	{
-		assertDeviceNameDoesNotExist(userEntity, name);
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(findFirstFreeDeviceIndex(userEntity), operatingSystem,
-				appVersion);
+		assertDeviceNameDoesNotExist(userEntity, deviceDto.getName());
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(findFirstFreeDeviceIndex(userEntity),
+				deviceDto.getOperatingSystem(), deviceDto.getAppVersion());
 		deviceAnonymizedRepository.save(deviceAnonymized);
-		UserDevice deviceEntity = userDeviceRepository.save(UserDevice.createInstance(name, deviceAnonymized.getId()));
+		UserDevice deviceEntity = userDeviceRepository
+				.save(UserDevice.createInstance(deviceDto.getName(), deviceAnonymized.getId()));
 		userEntity.addDevice(deviceEntity);
 		DeviceChange change = DeviceChange.ADD;
 		Optional<String> oldName = Optional.empty();
-		Optional<String> newName = Optional.of(name);
+		Optional<String> newName = Optional.of(deviceDto.getName());
 
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
 				() -> BuddyDeviceChangeMessage.createInstance(
 						BuddyInfoParameters.createInstance(userEntity, userEntity.getNickname()),
 						getDeviceChangeMessageText(change, oldName, newName), change, deviceAnonymized.getId(), oldName,
 						newName));
-		return deviceEntity;
+		return UserDeviceDto.createInstance(deviceEntity);
+	}
+
+	@Transactional
+	public UserDeviceDto addDeviceToUser(UUID userId, UserDeviceDto deviceDto)
+	{
+		return addDeviceToUser(userService.getUserEntityById(userId), deviceDto);
 	}
 
 	private void assertDeviceNameDoesNotExist(User userEntity, String name)
