@@ -446,6 +446,20 @@ class AppService extends Service
 		yonaServer.deleteResourceWithPassword("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", password)
 	}
 
+	User addDevice(User user, name, operatingSystem, appVersion)
+	{
+		def newDeviceRequestPassword = "Zomaar"
+		assertResponseStatusSuccess(setNewDeviceRequest(user.mobileNumber, user.password, newDeviceRequestPassword))
+
+		def getResponse = getNewDeviceRequest(user.mobileNumber, newDeviceRequestPassword)
+		assertResponseStatusSuccess(getResponse)
+
+		def registerResponse = registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, name, operatingSystem, appVersion)
+		assertResponseStatusSuccess(getResponse)
+
+		new User(registerResponse.responseData)
+	}
+
 	Goal addGoal(Closure asserter, User user, Goal goal, message = "")
 	{
 		def response = addGoal(user, goal, message)
