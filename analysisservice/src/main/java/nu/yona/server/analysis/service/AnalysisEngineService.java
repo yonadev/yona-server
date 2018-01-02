@@ -253,9 +253,9 @@ public class AnalysisEngineService
 			return Optional.empty();
 		}
 
-		List<Activity> overlappingOfSameApp = activityRepository.findOverlappingOfSameApp(dayActivity.get(), payload.deviceAnonymizedId,
-				matchingGoal.getActivityCategoryId(), payload.application.orElse(null), payload.startTime.toLocalDateTime(),
-				payload.endTime.toLocalDateTime());
+		List<Activity> overlappingOfSameApp = activityRepository.findOverlappingOfSameApp(dayActivity.get(),
+				payload.deviceAnonymizedId, matchingGoal.getActivityCategoryId(), payload.application.orElse(null),
+				payload.startTime.toLocalDateTime(), payload.endTime.toLocalDateTime());
 
 		// The prognosis is that there is no or one overlapping activity of the same app,
 		// because we don't expect the mobile app to post app activity that spans other existing same app activity
@@ -279,7 +279,7 @@ public class AnalysisEngineService
 			String overlappingActivities = overlappingOfSameApp.stream()
 					.map(overlappingActivity -> overlappingActivity.toString()).collect(Collectors.joining(", "));
 			logger.warn(
-					"Multiple overlapping activities of {0} found. The payload has start time {1} and end time {2}. The overlapping activities are: {3}. The day activity ID is {4} and the activity category ID is {5}.",
+					"Multiple overlapping activities of {} found. The payload has start time {} and end time {}. The overlapping activities are: {}. The day activity ID is {} and the activity category ID is {}.",
 					relatedTo, payload.startTime.toLocalDateTime(), payload.endTime.toLocalDateTime(), overlappingActivities,
 					dayActivity.get().getId(), matchingGoal.getActivityCategoryId());
 

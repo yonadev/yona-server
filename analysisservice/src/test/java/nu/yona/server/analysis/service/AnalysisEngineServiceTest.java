@@ -22,6 +22,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -50,7 +51,12 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
 import nu.yona.server.Translator;
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.ActivityRepository;
@@ -120,6 +126,8 @@ public class AnalysisEngineServiceTest
 	private DeviceService mockDeviceService;
 	@Mock
 	private DeviceAnonymizedRepository mockDeviceAnonymizedRepository;
+	@Mock
+	private Appender<ILoggingEvent> mockLogAppender;
 
 	@InjectMocks
 	private final AnalysisEngineService service = new AnalysisEngineService();
@@ -140,6 +148,9 @@ public class AnalysisEngineServiceTest
 	@Before
 	public void setUp()
 	{
+		Logger logger = (Logger) LoggerFactory.getLogger(AnalysisEngineService.class);
+		logger.addAppender(mockLogAppender);
+
 		LocalDateTime yesterday = TimeUtil.utcNow().minusDays(1);
 		gamblingGoal = BudgetGoal.createNoGoInstance(yesterday,
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
@@ -211,7 +222,6 @@ public class AnalysisEngineServiceTest
 
 		// Stub the GoalService to return our goals.
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamblingGoal.getId())).thenReturn(gamblingGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, newsGoal.getId())).thenReturn(newsGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamingGoal.getId())).thenReturn(gamingGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, socialGoal.getId())).thenReturn(socialGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, shoppingGoal.getId())).thenReturn(shoppingGoal);
@@ -299,9 +309,6 @@ public class AnalysisEngineServiceTest
 		service.analyze(userAnonId, createNetworkActivityForCategories("lotto"));
 
 		verifyGoalConflictMessageCreated(gamblingGoal);
-
-		// Restore default properties.
-		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 	}
 
 	@Test
@@ -381,9 +388,6 @@ public class AnalysisEngineServiceTest
 				equalTo(timeOfMockedExistingActivity.toLocalDateTime()));
 		assertThat("Expect end time updated at the last executed analysis matching the goals",
 				existingActivityEntity.getEndTimeAsZonedDateTime(), greaterThanOrEqualTo(justBeforeLastAnalyzeCall));
-
-		// Restore default properties.
-		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 	}
 
 	@Test
@@ -586,6 +590,12 @@ public class AnalysisEngineServiceTest
 						return existingDayActivity.getActivities().stream().collect(Collectors.toList());
 					}
 				});
+		String expectedWarnMessage = MessageFormat.format(
+				"Multiple overlapping activities of same app ''Lotto App'' activity found. The payload has start time {0} and end time {1}. The overlapping activities are: {2}, {3}, {4}. The day activity ID is {5} and the activity category ID is {6}.",
+				now.minusMinutes(9).toLocalDateTime(), now.minusMinutes(2).toLocalDateTime(),
+				existingDayActivity.getActivities().get(0), existingDayActivity.getActivities().get(1),
+				existingDayActivity.getActivities().get(2), existingDayActivity.getId(),
+				gamblingGoal.getActivityCategory().getId());
 
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Lotto App", now.minusMinutes(9), now.minusMinutes(2)));
 
@@ -601,6 +611,11 @@ public class AnalysisEngineServiceTest
 		assertThat(activities.get(2).getApp(), equalTo(Optional.of("Lotto App")));
 		assertThat(activities.get(2).getStartTimeAsZonedDateTime(), equalTo(now));
 		assertThat(activities.get(2).getEndTimeAsZonedDateTime(), equalTo(now));
+
+		ArgumentCaptor<ILoggingEvent> logEventCaptor = ArgumentCaptor.forClass(ILoggingEvent.class);
+		verify(mockLogAppender).doAppend(logEventCaptor.capture());
+		assertThat(logEventCaptor.getValue().getLevel(), equalTo(Level.WARN));
+		assertThat(logEventCaptor.getValue().getFormattedMessage(), equalTo(expectedWarnMessage));
 	}
 
 	@Test
