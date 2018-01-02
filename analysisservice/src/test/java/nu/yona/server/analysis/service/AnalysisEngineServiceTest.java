@@ -576,6 +576,44 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
+	public void analyze_networkActivityCompletelyPrecedingLastCachedActivityOverlappingMultipleExistingActivities_firstActivityRecordMergedAndNoNewGoalConflictMessageCreated()
+	{
+		ZonedDateTime now = now();
+		DayActivity existingDayActivity = mockExistingActivities(gamblingGoal,
+				createActivity(now.minusMinutes(10), now.minusMinutes(8)), createActivity(now.minusMinutes(1), now));
+		when(mockActivityRepository.findOverlappingOfSameApp(any(DayActivity.class), any(UUID.class), any(UUID.class),
+				any(String.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenAnswer(new Answer<List<Activity>>() {
+					@Override
+					public List<Activity> answer(InvocationOnMock invocation) throws Throwable
+					{
+						return existingDayActivity.getActivities().stream().collect(Collectors.toList());
+					}
+				});
+		String expectedWarnMessage = MessageFormat.format(
+				"Multiple overlapping network activities found. The payload has start time {0} and end time {1}. The day activity ID is {2} and the activity category ID is {3}. The overlapping activities are: {4}, {5}.",
+				now.minusMinutes(9).toLocalDateTime(), now.minusMinutes(9).toLocalDateTime(), existingDayActivity.getId(),
+				gamblingGoal.getActivityCategory().getId(), existingDayActivity.getActivities().get(0),
+				existingDayActivity.getActivities().get(1));
+
+		service.analyze(userAnonId, createNetworkActivityForCategories(now.minusMinutes(9), "poker"));
+
+		verifyNoGoalConflictMessagesCreated();
+		List<Activity> activities = existingDayActivity.getActivities();
+		assertThat(activities.size(), equalTo(2));
+		assertThat(activities.get(0).getApp(), equalTo(Optional.empty()));
+		assertThat(activities.get(0).getStartTimeAsZonedDateTime(), equalTo(now.minusMinutes(10)));
+		assertThat(activities.get(0).getEndTimeAsZonedDateTime(), equalTo(now.minusMinutes(8)));
+		assertThat(activities.get(1).getApp(), equalTo(Optional.empty()));
+		assertThat(activities.get(1).getStartTimeAsZonedDateTime(), equalTo(now.minusMinutes(1)));
+		assertThat(activities.get(1).getEndTimeAsZonedDateTime(), equalTo(now));
+
+		ArgumentCaptor<ILoggingEvent> logEventCaptor = ArgumentCaptor.forClass(ILoggingEvent.class);
+		verify(mockLogAppender).doAppend(logEventCaptor.capture());
+		assertThat(logEventCaptor.getValue().getLevel(), equalTo(Level.WARN));
+		assertThat(logEventCaptor.getValue().getFormattedMessage(), equalTo(expectedWarnMessage));
+	}
+
+	@Test
 	public void analyze_appActivityCompletelyPrecedingLastCachedActivityOverlappingMultipleExistingActivities_firstActivityRecordMergedAndNoNewGoalConflictMessageCreated()
 	{
 		ZonedDateTime now = now();
@@ -899,6 +937,12 @@ public class AnalysisEngineServiceTest
 	{
 		return new NetworkActivityDto(-1, new HashSet<>(Arrays.asList(conflictCategories)),
 				"http://localhost/test" + new Random().nextInt(), Optional.empty());
+	}
+
+	private NetworkActivityDto createNetworkActivityForCategories(ZonedDateTime time, String... conflictCategories)
+	{
+		return new NetworkActivityDto(-1, new HashSet<>(Arrays.asList(conflictCategories)),
+				"http://localhost/test" + new Random().nextInt(), Optional.of(time));
 	}
 
 	private void verifyGoalConflictMessageCreated(Goal... forGoals)
