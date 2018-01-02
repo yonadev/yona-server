@@ -59,7 +59,7 @@ public class DayActivityTest extends IntervalActivityTestBase
 	public void getSpreadGetTotalActivityDurationMinutes_endOfDayIncluded_includesEndOfDay()
 	{
 		DayActivity d = createDayActivity();
-		d.addActivity(Activity.createInstance(testZone, getTimeOnDay(d, "23:50").toLocalDateTime(),
+		d.addActivity(Activity.createInstance(deviceAnonEntity, testZone, getTimeOnDay(d, "23:50").toLocalDateTime(),
 				d.getStartTime().plusDays(1).toLocalDateTime(), Optional.empty()));
 
 		assertSpreadItemsAndTotal(d, "95=10", 10);

@@ -69,7 +69,7 @@ class YonaServer
 
 	def deleteResource(path, headers = [:], parameters = [:])
 	{
-		restClient.delete(path: path, headers: headers, query:parameters)
+		restClient.delete(path: stripQueryString(path), headers: headers, query:parameters + getQueryParams(path))
 	}
 
 	def getResourceWithPassword(path, password, parameters = [:])
@@ -79,16 +79,10 @@ class YonaServer
 
 	def getResource(path, headers = [:], parameters = [:])
 	{
-		def queryParametersOfUri = [ : ]
-		if (path ==~ /.*\?.*/)
-		{
-			queryParametersOfUri = getQueryParams(path)
-			path = path.substring(0, path.indexOf('?'))
-		}
-		restClient.get(path: path,
+		restClient.get(path: stripQueryString(path),
 		contentType:'application/json',
 		headers: headers,
-		query: queryParametersOfUri + parameters)
+		query: parameters + getQueryParams(path))
 	}
 
 	def postJson(path, jsonString, headers = [:], parameters = [:])
@@ -103,11 +97,11 @@ class YonaServer
 			object = jsonSlurper.parseText(jsonString)
 		}
 
-		restClient.post(path: path,
+		restClient.post(path: stripQueryString(path),
 		body: object,
 		contentType:'application/json',
 		headers: headers,
-		query: parameters)
+		query: parameters + getQueryParams(path))
 	}
 
 	def putJson(path, jsonString, headers = [:], parameters = [:])
@@ -122,14 +116,14 @@ class YonaServer
 			object = jsonSlurper.parseText(jsonString)
 		}
 
-		restClient.put(path: path,
+		restClient.put(path: stripQueryString(path),
 		body: object,
 		contentType:'application/json',
 		headers: headers,
-		query: parameters)
+		query: parameters + getQueryParams(path))
 	}
 
-	def getQueryParams(url)
+	static def getQueryParams(url)
 	{
 		def uriBuilder = new URIBuilder(url)
 		if(uriBuilder.query)

@@ -46,6 +46,8 @@ import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
 import nu.yona.server.crypto.pubkey.PublicKeyUtil;
+import nu.yona.server.device.entities.DeviceAnonymized;
+import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
@@ -95,6 +97,7 @@ public class ActivityServiceTest
 	private UUID userAnonId;
 	private UserAnonymized userAnonEntity;
 	private ZoneId userAnonZone;
+	private DeviceAnonymized deviceAnonEntity;
 
 	@Before
 	public void setUp()
@@ -132,7 +135,9 @@ public class ActivityServiceTest
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
+		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "Unknown");
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
+		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
 		UserAnonymizedDto userAnon = UserAnonymizedDto.createInstance(userAnonEntity);
 		userAnonZone = userAnon.getTimeZone();
 		userAnonId = userAnon.getId();
@@ -169,7 +174,7 @@ public class ActivityServiceTest
 		// mock some activity on yesterday 20:58-21:00
 		DayActivity yesterdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
 				yesterday.toLocalDate());
-		Activity recordedActivity = Activity.createInstance(userAnonZone,
+		Activity recordedActivity = Activity.createInstance(deviceAnonEntity, userAnonZone,
 				yesterday.plusHours(20).plusMinutes(58).toLocalDateTime(),
 				yesterday.plusHours(21).plusMinutes(00).toLocalDateTime(), Optional.empty());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
@@ -219,7 +224,7 @@ public class ActivityServiceTest
 		ZonedDateTime saturdayStartOfDay = getWeekStartTime(today).minusDays(1);
 		DayActivity previousWeekSaturdayRecordedActivity = DayActivity.createInstance(userAnonEntity, gamblingGoal, userAnonZone,
 				saturdayStartOfDay.toLocalDate());
-		Activity recordedActivity = Activity.createInstance(userAnonZone,
+		Activity recordedActivity = Activity.createInstance(deviceAnonEntity, userAnonZone,
 				saturdayStartOfDay.plusHours(19).plusMinutes(10).toLocalDateTime(),
 				saturdayStartOfDay.plusHours(19).plusMinutes(55).toLocalDateTime(), Optional.empty());
 		previousWeekSaturdayRecordedActivity.addActivity(recordedActivity);
@@ -378,7 +383,7 @@ public class ActivityServiceTest
 				.withMinute(activityStartTimeOnDay.getMinute()).withSecond(activityStartTimeOnDay.getSecond());
 		ZonedDateTime activityEndTime = yesterday.withHour(activityEndTimeOnDay.getHour())
 				.withMinute(activityEndTimeOnDay.getMinute()).withSecond(activityEndTimeOnDay.getSecond());
-		Activity recordedActivity = Activity.createInstance(userAnonZone, activityStartTime.toLocalDateTime(),
+		Activity recordedActivity = Activity.createInstance(deviceAnonEntity, userAnonZone, activityStartTime.toLocalDateTime(),
 				activityEndTime.toLocalDateTime(), Optional.empty());
 		yesterdayRecordedActivity.addActivity(recordedActivity);
 		when(mockDayActivityRepository.findOne(userAnonId, yesterday.toLocalDate(), gamblingGoal.getId()))

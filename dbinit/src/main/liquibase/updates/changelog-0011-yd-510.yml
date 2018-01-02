@@ -1,0 +1,32 @@
+databaseChangeLog:
+- changeSet:
+    id: 1513610034775-1
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: device_anonymized_id
+            type: varchar(255)
+        tableName: activities
+- changeSet:
+    id: 1513610034775-2
+    author: Bert (generated)
+    changes:
+    - renameColumn:
+        oldColumnName: device_id
+        newColumnName: device_index
+        columnDataType: integer 
+        tableName: devices_anonymized
+- changeSet:
+    id: 1513610034775-3
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: device_anonymized_id
+        baseTableName: activities
+        constraintName: FK4ffka0h8fl6po1qxmjb6rwbw0
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: devices_anonymized

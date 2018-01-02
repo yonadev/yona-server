@@ -25,8 +25,17 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assertResponseStatusOk(response)
+
 		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber)
 		assertResponseStatusOk(getResponseAfter)
+		getResponseAfter.responseData.yonaPassword == null
+		getResponseAfter.responseData._links.self.href == richard.newDeviceRequestUrl
+		getResponseAfter.responseData._links.edit.href == richard.newDeviceRequestUrl
+		getResponseAfter.responseData._links."yona:user".href
+		def baseUserUrl = YonaServer.stripQueryString(richard.url)
+		YonaServer.stripQueryString(getResponseAfter.responseData._links."yona:user".href) == baseUserUrl
+		// The below assert checks the path fragment. If it fails, the Swagger spec needs to be updated too
+		getResponseAfter.responseData._links."yona:registerDevice".href == baseUserUrl + "/devices/"
 
 		def getWithPasswordResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber, newDeviceRequestPassword)
 		assertResponseStatusOk(getWithPasswordResponseAfter)
@@ -35,6 +44,102 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		getWithPasswordResponseAfter.responseData._links.edit.href == richard.newDeviceRequestUrl
 		getWithPasswordResponseAfter.responseData._links."yona:user".href
 		YonaServer.stripQueryString(getWithPasswordResponseAfter.responseData._links."yona:user".href) == YonaServer.stripQueryString(richard.url)
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Register new device'()
+	{
+		given:
+		User richard = addRichard()
+
+		when:
+		def newDeviceRequestPassword = "Temp password"
+		def response = appService.setNewDeviceRequest(richard.mobileNumber, richard.password, newDeviceRequestPassword)
+
+		then:
+		assertResponseStatusOk(response)
+
+		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber)
+		assertResponseStatusOk(getResponseAfter)
+		getResponseAfter.responseData.yonaPassword == null
+		getResponseAfter.responseData._links.self.href == richard.newDeviceRequestUrl
+		getResponseAfter.responseData._links.edit.href == richard.newDeviceRequestUrl
+		getResponseAfter.responseData._links."yona:user".href
+		def baseUserUrl = YonaServer.stripQueryString(richard.url)
+		YonaServer.stripQueryString(getResponseAfter.responseData._links."yona:user".href) == baseUserUrl
+		def registerUrl = getResponseAfter.responseData._links."yona:registerDevice".href
+		// The below assert checks the path fragment. If it fails, the Swagger spec needs to be updated too
+		registerUrl == baseUserUrl + "/devices/"
+
+		def newDeviceName = "My iPhone"
+		def newDeviceOs = "ANDROID"
+		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs, "0.1")
+		assertResponseStatusCreated(registerResponse)
+		assertUserGetResponseDetailsWithPrivateData(registerResponse, false)
+
+		def devices = registerResponse.responseData._embedded."yona:devices"._embedded."yona:devices"
+		devices.size == 2
+
+		def defaultDevice = (devices[0].name == newDeviceName) ? devices[1] : devices[0]
+		def newDevice = (devices[0].name == newDeviceName) ? devices[0] : devices[1]
+
+		assertDefaultOwnDevice(defaultDevice)
+		assert newDevice.name == newDeviceName
+		assert newDevice.operatingSystem == newDeviceOs
+		assertDateTimeFormat(newDevice.registrationTime)
+		assertDateFormat(newDevice.appLastOpenedDate)
+
+		// User self-link uses the new device as "requestingDeviceId"
+		def idOfNewDevice = newDevice._links.self.href - ~/.*\//
+		registerResponse.responseData._links.self.href ==~ /.*requestingDeviceId=$idOfNewDevice.*/
+
+		// App activity URL is for the new device
+		registerResponse.responseData._links."yona:appActivity".href == newDevice._links.self.href + "/appActivity/"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Try register new device with wrong password'()
+	{
+		given:
+		User richard = addRichard()
+		def newDeviceRequestPassword = "Temp password"
+		def setResponse = appService.setNewDeviceRequest(richard.mobileNumber, richard.password, newDeviceRequestPassword)
+		assertResponseStatusOk(setResponse)
+		def getResponseAfter = appService.getNewDeviceRequest(richard.mobileNumber)
+		assertResponseStatusOk(getResponseAfter)
+		def registerUrl = getResponseAfter.responseData._links."yona:registerDevice".href
+
+		when:
+		def newDeviceName = "My iPhone"
+		def newDeviceOs = "ANDROID"
+		def response = appService.registerNewDevice(registerUrl, "Wrong password", newDeviceName, newDeviceOs, "0.1")
+
+		then:
+		assertResponseStatus(response, 400)
+		response.responseData.code == "error.device.request.invalid.password"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Try register new device while no new device request exists'()
+	{
+		given:
+		User richard = addRichard()
+		def registerUrl = YonaServer.stripQueryString(richard.url)+ "/devices/"
+
+		when:
+		def newDeviceName = "My iPhone"
+		def newDeviceOs = "ANDROID"
+		def response = appService.registerNewDevice(registerUrl, "Wrong password", newDeviceName, newDeviceOs, "0.1")
+
+		then:
+		assertResponseStatus(response, 400)
+		response.responseData.code == "error.no.device.request.present"
 
 		cleanup:
 		appService.deleteUser(richard)

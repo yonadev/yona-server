@@ -1423,6 +1423,158 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
+	def 'Richard works on two devices'()
+	{
+		given:
+		def defaultDeviceName = "First device"
+		User richardDefault = addRichard()
+		setCreationTimeOfMandatoryGoalsToNow(richardDefault)
+		setGoalCreationTime(richardDefault, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
+		addTimeZoneGoal(richardDefault, SOCIAL_ACT_CAT_URL, ["01:00-12:00"], "W-1 Mon 02:18")
+		richardDefault = appService.reloadUser(richardDefault)
+		Goal budgetGoalNewsRichard = richardDefault.findActiveGoal(NEWS_ACT_CAT_URL)
+		Goal timeZoneGoalSocialRichard = richardDefault.findActiveGoal(SOCIAL_ACT_CAT_URL)
+
+		def iphoneDeviceName = "My iPhone"
+		User richardIphone = appService.addDevice(richardDefault, iphoneDeviceName, "IOS", "1.0")
+
+		// Activities on default device
+		reportAppActivity(richardDefault, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")
+		reportNetworkActivity(richardDefault, ["News"], "http://www.nu.nl", "W-1 Mon 03:20") // Same device, within app activity
+		reportNetworkActivity(richardDefault, ["News"], "http://www.nu.nl", "W-1 Mon 03:40") // Same device, outside app activity
+		reportNetworkActivity(richardDefault, ["social"], "http://www.facebook.com", "W-1 Mon 03:20") // Same device, within app activity
+		reportNetworkActivity(richardDefault, ["social"], "http://www.facebook.com", "W-1 Mon 03:42") // Same device, outside app activity
+		reportAppActivity(richardDefault, "NU.nl", "W-1 Mon 04:15", "W-1 Mon 04:35")
+		reportAppActivity(richardDefault, "NU.nl", "W-1 Mon 05:15", "W-1 Mon 05:35")
+
+		// Activities on second device
+		reportAppActivity(richardIphone, "NU.nl", "W-1 Mon 04:10", "W-1 Mon 04:20") // Partial overlap
+		// TODO YD-522 reportAppActivity(richardIphone, "NU.nl", "W-1 Mon 05:20", "W-1 Mon 05:30") // Full overlap
+		reportAppActivity(richardIphone, "NU.nl", "W-1 Mon 06:15", "W-1 Mon 06:35") // No overlap at all
+
+		def expectedValuesRichardLastWeek = [
+			"Mon" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: false, minutesBeyondGoal: 86, spread: [13 : 15, 14 : 6, 15 : 0, 16 : 5, 17 : 15, 18 : 5, 19 : 0, 20 : 0, 21 : 15, 22 : 5, 23 : 0, 24 : 0, 25 : 15, 26 : 5]]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [13 : 1, 14 : 1]]]],
+			"Tue" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Wed" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Thu" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Fri" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Sat" : [[goal:budgetGoalNewsRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: []]], [goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
+
+		def expectedRawValuesNewsMon = [["startTime": "W-1 Mon 03:15",
+				"endTime": "W-1 Mon 03:35",
+				"app": "NU.nl",
+				"deviceName": defaultDeviceName
+			], [	"startTime": "W-1 Mon 03:20",
+				"endTime": "W-1 Mon 03:21",
+				"app": "",
+				"deviceName": defaultDeviceName
+			], [	"startTime": "W-1 Mon 03:40",
+				"endTime": "W-1 Mon 03:41",
+				"app": "",
+				"deviceName": defaultDeviceName
+			], [	"startTime": "W-1 Mon 04:15",
+				"endTime": "W-1 Mon 04:35",
+				"app": "NU.nl",
+				"deviceName": defaultDeviceName
+			], [	"startTime": "W-1 Mon 05:15",
+				"endTime": "W-1 Mon 05:35",
+				"app": "NU.nl",
+				"deviceName": defaultDeviceName
+			], [	"startTime": "W-1 Mon 04:10",
+				"endTime": "W-1 Mon 04:20",
+				"app": "NU.nl",
+				"deviceName": iphoneDeviceName
+			], /* TODO YD-522 [	"startTime": "W-1 Mon 05:20",
+			 "endTime": "W-1 Mon 05:30",
+			 "app": "NU.nl",
+			 "deviceName": iphoneDeviceName
+			 ],*/ [	"startTime": "W-1 Mon 06:15",
+				"endTime": "W-1 Mon 06:35",
+				"app": "NU.nl",
+				"deviceName": iphoneDeviceName
+			]]
+
+		def expectedRawValuesSocialMon = [[	"startTime": "W-1 Mon 03:20",
+				"endTime": "W-1 Mon 03:21",
+				"app": "",
+				"deviceName": defaultDeviceName
+			], [	"startTime": "W-1 Mon 03:42",
+				"endTime": "W-1 Mon 03:43",
+				"app": "",
+				"deviceName": defaultDeviceName
+			]]
+
+		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
+		def expectedTotalDays = 6 + currentDayOfWeek + 1
+		def expectedTotalWeeks = 2
+
+		when:
+		def responseWeekOverviews = appService.getWeekActivityOverviews(richardDefault)
+		//get all days at once (max 2 weeks) to make assertion easy
+		def responseDayOverviewsAll = appService.getDayActivityOverviews(richardDefault, ["size": 14])
+
+		then:
+		assertWeekOverviewBasics(responseWeekOverviews, [3, 2], expectedTotalWeeks)
+		assertWeekDateForCurrentWeek(responseWeekOverviews)
+
+		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, budgetGoalNewsRichard, 6)
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, timeZoneGoalSocialRichard, 6)
+
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, budgetGoalNewsRichard, expectedValuesRichardLastWeek, "Mon")
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialRichard, expectedValuesRichardLastWeek, "Mon")
+
+		assertWeekDetailForGoal(richardDefault, weekOverviewLastWeek, budgetGoalNewsRichard, expectedValuesRichardLastWeek)
+		assertWeekDetailForGoal(richardDefault, weekOverviewLastWeek, timeZoneGoalSocialRichard, expectedValuesRichardLastWeek)
+
+		assertDayOverviewBasics(responseDayOverviewsAll, expectedTotalDays, expectedTotalDays, 14)
+		assertDayOverviewForBudgetGoal(responseDayOverviewsAll, budgetGoalNewsRichard, expectedValuesRichardLastWeek, 1, "Mon")
+		assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, timeZoneGoalSocialRichard, expectedValuesRichardLastWeek, 1, "Mon")
+
+		assertDayDetail(richardDefault, responseDayOverviewsAll, budgetGoalNewsRichard, expectedValuesRichardLastWeek, 1, "Mon")
+		assertDayDetail(richardDefault, responseDayOverviewsAll, timeZoneGoalSocialRichard, expectedValuesRichardLastWeek, 1, "Mon")
+
+		def responseRawDataNews = getRawActivityData(richardDefault, "W-1 Mon 00:00", budgetGoalNewsRichard)
+		assertRawActivityData(responseRawDataNews.responseData._embedded."yona:activities", expectedRawValuesNewsMon)
+
+		def responseRawDataSocial = getRawActivityData(richardDefault, "W-1 Mon 00:00", timeZoneGoalSocialRichard)
+		assertRawActivityData(responseRawDataSocial.responseData._embedded."yona:activities", expectedRawValuesSocialMon)
+
+		cleanup:
+		appService.deleteUser(richardDefault)
+	}
+
+	private def getRawActivityData(User user, relativeDate, goal) {
+		def mondayDate = YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime(relativeDate))
+		def rawDataUrl = "${YonaServer.stripQueryString(user.url)}/activity/days/${mondayDate}/details/${goal.getId()}/raw/"
+		def responseRawData = appService.getResourceWithPassword(rawDataUrl, user.password)
+		assertResponseStatusOk(responseRawData)
+		return responseRawData
+	}
+
+	private void assertRawActivityData(actualData, expectedDataRelativeDates)
+	{
+		def expectedData = expectedDataRelativeDates.collect { activity ->
+			activity.startTime = YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(activity.startTime))
+			activity.endTime = YonaServer.toIsoDateTimeString(YonaServer.relativeDateTimeStringToZonedDateTime(activity.endTime))
+			activity  // Return activity object so new list contains activity objects
+		}
+
+		actualData.sort(this.&compareRawActivities)
+		expectedData.sort(this.&compareRawActivities)
+		assert actualData == expectedData
+	}
+
+	private int compareRawActivities(x, y)
+	{
+		if(x.startTime == y.startTime){
+			x.deviceName <=> y.deviceName
+		}else{
+			x.startTime <=> y.startTime
+		}
+	}
+
 	private void assertWeekDateForCurrentWeek(responseWeekOverviews)
 	{
 		// Java treats Sunday as last day of the week while Yona treats it as first.

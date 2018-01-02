@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.crypto.CryptoException;
 import nu.yona.server.crypto.seckey.CryptoSession;
+import nu.yona.server.device.rest.DeviceController;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
@@ -81,7 +82,7 @@ public class NewDeviceRequestController extends ControllerBase
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(
-			@RequestHeader(value = "Yona-NewDeviceRequestPassword") Optional<String> newDeviceRequestPassword,
+			@RequestHeader(value = Constants.NEW_DEVICE_REQUEST_PASSWORD_HEADER) Optional<String> newDeviceRequestPassword,
 			@PathVariable String mobileNumber)
 	{
 		try
@@ -165,6 +166,7 @@ public class NewDeviceRequestController extends ControllerBase
 			addSelfLink(newDeviceRequestResource);
 			addEditLink(newDeviceRequestResource);/* always editable */
 			addUserLink(newDeviceRequestResource);
+			addRegisterDeviceLink(newDeviceRequestResource);
 			return newDeviceRequestResource;
 		}
 
@@ -188,7 +190,13 @@ public class NewDeviceRequestController extends ControllerBase
 
 		private void addUserLink(Resource<NewDeviceRequestDto> newDeviceRequestResource)
 		{
-			newDeviceRequestResource.add(UserController.getPrivateUserLink(BuddyDto.USER_REL_NAME, user.getId()));
+			newDeviceRequestResource
+					.add(UserController.getPrivateUserLink(BuddyDto.USER_REL_NAME, user.getId(), Optional.empty()));
+		}
+
+		private void addRegisterDeviceLink(Resource<NewDeviceRequestDto> newDeviceRequestResource)
+		{
+			newDeviceRequestResource.add(DeviceController.getRegisterDeviceLinkBuilder(user.getId()).withRel("registerDevice"));
 		}
 	}
 }

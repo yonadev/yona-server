@@ -60,7 +60,7 @@ class AppService extends Service
 		def response
 		if (includePrivateData)
 		{
-			response = yonaServer.getResourceWithPassword(YonaServer.stripQueryString(userUrl), password, yonaServer.getQueryParams(userUrl) + ["requestingUserId": User.getIdFromUrl(userUrl)])
+			response = yonaServer.getResourceWithPassword(userUrl, password, ["requestingUserId": User.getIdFromUrl(userUrl)])
 		}
 		else
 		{
@@ -75,7 +75,7 @@ class AppService extends Service
 	{
 		if (includePrivateData)
 		{
-			yonaServer.getResourceWithPassword(YonaServer.stripQueryString(userUrl), password, yonaServer.getQueryParams(userUrl) + ["requestingUserId": User.getIdFromUrl(userUrl)])
+			yonaServer.getResourceWithPassword(userUrl, password, ["requestingUserId": User.getIdFromUrl(userUrl)])
 		}
 		else
 		{
@@ -102,7 +102,7 @@ class AppService extends Service
 		def response
 		if (user.hasPrivateData)
 		{
-			response = yonaServer.getResourceWithPassword(YonaServer.stripQueryString(user.url), user.password, yonaServer.getQueryParams(user.url) + ["requestingUserId": user.getId()])
+			response = yonaServer.getResourceWithPassword(user.url, user.password, ["requestingUserId": user.getId()])
 			if (asserter)
 			{
 				asserter(response)
@@ -145,12 +145,12 @@ class AppService extends Service
 
 	def updateUser(userUrl, jsonString, password)
 	{
-		yonaServer.updateResourceWithPassword(YonaServer.stripQueryString(userUrl), jsonString, password, yonaServer.getQueryParams(userUrl))
+		yonaServer.updateResourceWithPassword(userUrl, jsonString, password, [:])
 	}
 
 	def updateUser(userUrl, jsonString)
 	{
-		yonaServer.updateResource(YonaServer.stripQueryString(userUrl), jsonString, [:], yonaServer.getQueryParams(userUrl))
+		yonaServer.updateResource(userUrl, jsonString, [:], [:])
 	}
 
 	def deleteUser(User user, message = "")
@@ -250,6 +250,7 @@ class AppService extends Service
 		def status = buddyConnectResponseMessages[0]?.status ?: null
 		def processUrl = buddyConnectResponseMessages[0]?._links?."yona:process"?.href
 		def buddyUrl = buddyConnectResponseMessages[0]?._links?."yona:buddy"?.href
+
 		def result = [ : ]
 		if (selfUrl)
 		{
@@ -430,9 +431,33 @@ class AppService extends Service
 		yonaServer.getResource("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", ["Yona-NewDeviceRequestPassword":newDeviceRequestPassword], [:])
 	}
 
+	def registerNewDevice(url, newDeviceRequestPassword, name, operatingSystem, appVersion)
+	{
+		def json = """{
+				"name": "$name",
+				"operatingSystem": "$operatingSystem",
+				"appVersion": "$appVersion"
+				}"""
+		yonaServer.postJson(url, json, ["Yona-NewDeviceRequestPassword":newDeviceRequestPassword], [:])
+	}
+
 	def clearNewDeviceRequest(mobileNumber, password)
 	{
 		yonaServer.deleteResourceWithPassword("$NEW_DEVICE_REQUESTS_PATH$mobileNumber", password)
+	}
+
+	User addDevice(User user, name, operatingSystem, appVersion)
+	{
+		def newDeviceRequestPassword = "Zomaar"
+		assertResponseStatusSuccess(setNewDeviceRequest(user.mobileNumber, user.password, newDeviceRequestPassword))
+
+		def getResponse = getNewDeviceRequest(user.mobileNumber, newDeviceRequestPassword)
+		assertResponseStatusSuccess(getResponse)
+
+		def registerResponse = registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, name, operatingSystem, appVersion)
+		assertResponseStatusSuccess(getResponse)
+
+		new User(registerResponse.responseData)
 	}
 
 	Goal addGoal(Closure asserter, User user, Goal goal, message = "")
