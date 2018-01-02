@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -264,7 +265,7 @@ public class AnalysisEngineService
 		else
 		{
 			String relatedTo = payload.application.isPresent()
-					? String.format("same app '{0}' activity", payload.application.get()) : "network activity";
+					? MessageFormat.format("same app ''{0}'' activity", payload.application.get()) : "network activity";
 			String overlappingActivities = overlappingOfSameApp.stream()
 					.map(overlappingActivity -> overlappingActivity.toString()).collect(Collectors.joining(", "));
 			logger.warn(

@@ -565,7 +565,7 @@ public class AnalysisEngineServiceTest
 					@Override
 					public List<Activity> answer(InvocationOnMock invocation) throws Throwable
 					{
-						return existingDayActivity.getActivities().subList(0, 1);
+						return existingDayActivity.getActivities().stream().collect(Collectors.toList());
 					}
 				});
 

@@ -4,6 +4,7 @@
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
+import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -123,5 +124,13 @@ public class Activity extends EntityWithId
 	public Optional<String> getApp()
 	{
 		return Optional.ofNullable(app);
+	}
+
+	@Override
+	public String toString()
+	{
+		return MessageFormat.format(
+				"activity from {0} to {1} (timezone {2}) of activity category with id {3}/app ''{4}'' with id {5}", startTime,
+				endTime, timeZone, activityCategory.getId(), app, getId());
 	}
 }
