@@ -366,7 +366,7 @@ abstract class ActivityControllerBase extends ControllerBase
 		public WeekActivityResource toResource(WeekActivityDto weekActivity)
 		{
 			WeekActivityResource weekActivityResource = instantiateResource(weekActivity);
-			addWeekDetailsLink(weekActivityResource, (isWeekDetail) ? Link.REL_SELF : "weekDetails");
+			addWeekDetailsLink(weekActivityResource, (isWeekDetail) ? Link.REL_SELF : WEEK_DETAIL_LINK);
 			addGoalLink(weekActivityResource);
 			if (isWeekDetail)
 			{
@@ -444,7 +444,7 @@ abstract class ActivityControllerBase extends ControllerBase
 		public DayActivityResource toResource(DayActivityDto dayActivity)
 		{
 			DayActivityResource dayActivityResource = instantiateResource(dayActivity);
-			addDayDetailsLink(dayActivityResource, (isDayDetail) ? Link.REL_SELF : "dayDetails");
+			addDayDetailsLink(dayActivityResource, (isDayDetail) ? Link.REL_SELF : DAY_DETAIL_LINK);
 			if (addGoalLink)
 			{
 				addGoalLink(dayActivityResource);
