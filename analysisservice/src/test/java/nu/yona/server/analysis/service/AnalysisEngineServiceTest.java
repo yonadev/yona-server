@@ -572,7 +572,7 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivityCompletelyPrecedingLastActivityOverlappingMultipleExistingActivities_firstActivityRecordMergedAndNoNewGoalConflictMessageCreated()
+	public void analyze_appActivityCompletelyPrecedingLastCachedActivityOverlappingMultipleExistingActivities_firstActivityRecordMergedAndNoNewGoalConflictMessageCreated()
 	{
 		ZonedDateTime now = now();
 		DayActivity existingDayActivity = mockExistingActivities(gamblingGoal,
