@@ -30,6 +30,9 @@ import nu.yona.server.analysis.entities.DayActivityRepository;
 import nu.yona.server.analysis.entities.GoalConflictMessage;
 import nu.yona.server.analysis.entities.WeekActivity;
 import nu.yona.server.analysis.entities.WeekActivityRepository;
+import nu.yona.server.device.entities.DeviceAnonymized;
+import nu.yona.server.device.entities.DeviceAnonymizedRepository;
+import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.exceptions.AnalysisException;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.goals.service.ActivityCategoryDto;
@@ -64,9 +67,13 @@ public class AnalysisEngineService
 	@Autowired
 	private UserAnonymizedService userAnonymizedService;
 	@Autowired
+	private DeviceService deviceService;
+	@Autowired
 	private GoalService goalService;
 	@Autowired
 	private MessageService messageService;
+	@Autowired(required = false)
+	private DeviceAnonymizedRepository deviceAnonymizedRepository;
 	@Autowired(required = false)
 	private MessageRepository messageRepository;
 	@Autowired(required = false)
@@ -82,7 +89,7 @@ public class AnalysisEngineService
 
 	// This is intentionally not marked with @Transactional, as the transaction is explicitly started within the lock inside
 	// analyze(ActivityPayload, Set<ActivityCategoryDto>)
-	public void analyze(UUID userAnonymizedId, AppActivityDto appActivities)
+	public void analyze(UUID userAnonymizedId, UUID deviceAnonymizedId, AppActivityDto appActivities)
 	{
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		Duration deviceTimeOffset = determineDeviceTimeOffset(appActivities);
@@ -90,7 +97,8 @@ public class AnalysisEngineService
 		{
 			Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService
 					.getMatchingCategoriesForApp(appActivity.getApplication());
-			analyze(createActivityPayload(deviceTimeOffset, appActivity, userAnonymized), matchingActivityCategories);
+			analyze(createActivityPayload(deviceTimeOffset, appActivity, userAnonymized, deviceAnonymizedId),
+					matchingActivityCategories);
 		}
 	}
 
@@ -101,7 +109,8 @@ public class AnalysisEngineService
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
 		Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService
 				.getMatchingCategoriesForSmoothwallCategories(networkActivity.getCategories());
-		analyze(ActivityPayload.createInstance(userAnonymized, networkActivity), matchingActivityCategories);
+		UUID deviceAnonymizedId = deviceService.getDeviceAnonymizedId(userAnonymized, networkActivity.getDeviceIndex());
+		analyze(ActivityPayload.createInstance(userAnonymized, deviceAnonymizedId, networkActivity), matchingActivityCategories);
 	}
 
 	private Duration determineDeviceTimeOffset(AppActivityDto appActivities)
@@ -112,13 +121,14 @@ public class AnalysisEngineService
 	}
 
 	private ActivityPayload createActivityPayload(Duration deviceTimeOffset, AppActivityDto.Activity appActivity,
-			UserAnonymizedDto userAnonymized)
+			UserAnonymizedDto userAnonymized, UUID deviceAnonymizedId)
 	{
 		ZonedDateTime correctedStartTime = correctTime(deviceTimeOffset, appActivity.getStartTime());
 		ZonedDateTime correctedEndTime = correctTime(deviceTimeOffset, appActivity.getEndTime());
 		String application = appActivity.getApplication();
 		assertValidTimes(userAnonymized, application, correctedStartTime, correctedEndTime);
-		return ActivityPayload.createInstance(userAnonymized, correctedStartTime, correctedEndTime, application);
+		return ActivityPayload.createInstance(userAnonymized, deviceAnonymizedId, correctedStartTime, correctedEndTime,
+				application);
 	}
 
 	private void assertValidTimes(UserAnonymizedDto userAnonymized, String application, ZonedDateTime correctedStartTime,
@@ -243,7 +253,7 @@ public class AnalysisEngineService
 			return Optional.empty();
 		}
 
-		List<Activity> overlappingOfSameApp = activityRepository.findOverlappingOfSameApp(dayActivity.get(),
+		List<Activity> overlappingOfSameApp = activityRepository.findOverlappingOfSameApp(dayActivity.get(), payload.deviceAnonymizedId,
 				matchingGoal.getActivityCategoryId(), payload.application.orElse(null), payload.startTime.toLocalDateTime(),
 				payload.endTime.toLocalDateTime());
 
@@ -369,8 +379,8 @@ public class AnalysisEngineService
 
 	private Optional<ActivityDto> getLastRegisteredActivity(ActivityPayload payload, GoalDto matchingGoal)
 	{
-		return Optional
-				.ofNullable(cacheService.fetchLastActivityForUser(payload.userAnonymized.getId(), matchingGoal.getGoalId()));
+		return Optional.ofNullable(cacheService.fetchLastActivityForUser(payload.userAnonymized.getId(),
+				payload.deviceAnonymizedId, matchingGoal.getGoalId()));
 	}
 
 	private boolean isCrossDayActivity(ActivityPayload payload)
@@ -386,8 +396,8 @@ public class AnalysisEngineService
 		Activity addedActivity = createNewActivity(userAnonymizedHolder.getEntity(), payload, matchingGoalEntity);
 		if (shouldUpdateCache(lastRegisteredActivity, addedActivity))
 		{
-			cacheService.updateLastActivityForUser(payload.userAnonymized.getId(), matchingGoal.getGoalId(),
-					ActivityDto.createInstance(addedActivity));
+			cacheService.updateLastActivityForUser(payload.userAnonymized.getId(), payload.deviceAnonymizedId,
+					matchingGoal.getGoalId(), ActivityDto.createInstance(addedActivity));
 		}
 
 		// Save first, so the activity is available when saving the message
@@ -425,7 +435,7 @@ public class AnalysisEngineService
 				.orElseThrow(() -> AnalysisException.dayActivityNotFound(payload.userAnonymized.getId(), matchingGoal.getGoalId(),
 						payload.startTime, lastRegisteredActivity.getStartTime(), lastRegisteredActivity.getEndTime()));
 		// because of the lock further up in this class, we are sure that getLastActivity() gives the same activity
-		Activity activity = dayActivity.getLastActivity();
+		Activity activity = dayActivity.getLastActivity(payload.deviceAnonymizedId);
 		if (payload.startTime.isBefore(lastRegisteredActivity.getStartTime()))
 		{
 			activity.setStartTime(payload.startTime.toLocalDateTime());
@@ -436,8 +446,8 @@ public class AnalysisEngineService
 		}
 		if (shouldUpdateCache(Optional.of(lastRegisteredActivity), activity))
 		{
-			cacheService.updateLastActivityForUser(payload.userAnonymized.getId(), matchingGoal.getGoalId(),
-					ActivityDto.createInstance(activity));
+			cacheService.updateLastActivityForUser(payload.userAnonymized.getId(), payload.deviceAnonymizedId,
+					matchingGoal.getGoalId(), ActivityDto.createInstance(activity));
 		}
 
 		// Explicitly fetch the entity to indicate that the user entity is dirty
@@ -461,8 +471,9 @@ public class AnalysisEngineService
 				.orElseGet(() -> createNewDayActivity(userAnonymized, payload, matchingGoal));
 
 		ZonedDateTime endTime = ensureMinimumDurationOneMinute(payload);
-		Activity activity = Activity.createInstance(payload.startTime.getZone(), payload.startTime.toLocalDateTime(),
-				endTime.toLocalDateTime(), payload.application);
+		DeviceAnonymized deviceAnonymized = deviceAnonymizedRepository.getOne(payload.deviceAnonymizedId);
+		Activity activity = Activity.createInstance(deviceAnonymized, payload.startTime.getZone(),
+				payload.startTime.toLocalDateTime(), endTime.toLocalDateTime(), payload.application);
 		activity = activityRepository.save(activity);
 		dayActivity.addActivity(activity);
 		return activity;
@@ -552,11 +563,13 @@ public class AnalysisEngineService
 		public final ZonedDateTime startTime;
 		public final ZonedDateTime endTime;
 		public final Optional<String> application;
+		private UUID deviceAnonymizedId;
 
-		private ActivityPayload(UserAnonymizedDto userAnonymized, Optional<String> url, ZonedDateTime startTime,
-				ZonedDateTime endTime, Optional<String> application)
+		private ActivityPayload(UserAnonymizedDto userAnonymized, UUID deviceAnonymizedId, Optional<String> url,
+				ZonedDateTime startTime, ZonedDateTime endTime, Optional<String> application)
 		{
 			this.userAnonymized = userAnonymized;
+			this.deviceAnonymizedId = deviceAnonymizedId;
 			this.url = url;
 			this.startTime = startTime;
 			this.endTime = endTime;
@@ -565,28 +578,32 @@ public class AnalysisEngineService
 
 		static ActivityPayload copyTillEndTime(ActivityPayload payload, ZonedDateTime endTime)
 		{
-			return new ActivityPayload(payload.userAnonymized, payload.url, payload.startTime, endTime, payload.application);
+			return new ActivityPayload(payload.userAnonymized, payload.deviceAnonymizedId, payload.url, payload.startTime,
+					endTime, payload.application);
 		}
 
 		static ActivityPayload copyFromStartTime(ActivityPayload payload, ZonedDateTime startTime)
 		{
-			return new ActivityPayload(payload.userAnonymized, payload.url, startTime, payload.endTime, payload.application);
+			return new ActivityPayload(payload.userAnonymized, payload.deviceAnonymizedId, payload.url, startTime,
+					payload.endTime, payload.application);
 		}
 
-		static ActivityPayload createInstance(UserAnonymizedDto userAnonymized, NetworkActivityDto networkActivity)
+		static ActivityPayload createInstance(UserAnonymizedDto userAnonymized, UUID deviceAnonymizedId,
+				NetworkActivityDto networkActivity)
 		{
 			ZonedDateTime startTime = networkActivity.getEventTime().orElse(ZonedDateTime.now())
 					.withZoneSameInstant(userAnonymized.getTimeZone());
-			return new ActivityPayload(userAnonymized, Optional.of(networkActivity.getUrl()), startTime, startTime,
-					Optional.empty());
+			return new ActivityPayload(userAnonymized, deviceAnonymizedId, Optional.of(networkActivity.getUrl()), startTime,
+					startTime, Optional.empty());
 		}
 
-		static ActivityPayload createInstance(UserAnonymizedDto userAnonymized, ZonedDateTime startTime, ZonedDateTime endTime,
-				String application)
+		static ActivityPayload createInstance(UserAnonymizedDto userAnonymized, UUID deviceAnonymizedId, ZonedDateTime startTime,
+				ZonedDateTime endTime, String application)
 		{
 			ZoneId userTimeZone = userAnonymized.getTimeZone();
-			return new ActivityPayload(userAnonymized, Optional.empty(), startTime.withZoneSameInstant(userTimeZone),
-					endTime.withZoneSameInstant(userTimeZone), Optional.of(application));
+			return new ActivityPayload(userAnonymized, deviceAnonymizedId, Optional.empty(),
+					startTime.withZoneSameInstant(userTimeZone), endTime.withZoneSameInstant(userTimeZone),
+					Optional.of(application));
 		}
 	}
 
