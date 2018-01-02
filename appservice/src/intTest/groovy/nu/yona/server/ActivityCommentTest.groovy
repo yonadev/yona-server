@@ -561,7 +561,7 @@ class ActivityCommentTest extends AbstractAppServiceIntegrationTest
 			assert message._links?."yona:reply"?.href.startsWith(YonaServer.stripQueryString(user.url))
 		} else
 		{
-			assert message._links?."yona:user"?.href == sender.url
+			assert message._links?."yona:user"?.href == sender.url - ~/\&requestingDeviceId.*/
 			assert message._links?."yona:reply"?.href == null
 		}
 	}

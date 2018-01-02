@@ -15,11 +15,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ActivityRepository extends CrudRepository<Activity, Long>
 {
-	@Query("select a from Activity a"
-			+ " where a.dayActivity = :dayActivity and a.activityCategory.id = :activityCategoryId and a.app = :app and"
+	@Query("select a from Activity a" + " where a.dayActivity = :dayActivity and a.deviceAnonymized.id = :deviceAnonymizedId and"
+			+ " a.activityCategory.id = :activityCategoryId and a.app = :app and"
 			+ " ((:startTime >= a.startTime and :startTime <= a.endTime) or" // New activity started during existing activity
 			+ " (:endTime >= a.startTime and :endTime <= a.endTime) or" // New activity ended during existing activity
 			+ " (a.startTime >= :startTime and a.endTime <= :endTime))") // Existing activity occurred during new activity
-	Activity findOverlappingOfSameApp(@Param("dayActivity") DayActivity dayActivity, @Param("activityCategoryId") UUID activityCategoryId,
+	Activity findOverlappingOfSameApp(@Param("dayActivity") DayActivity dayActivity,
+			@Param("deviceAnonymizedId") UUID deviceAnonymizedId, @Param("activityCategoryId") UUID activityCategoryId,
 			@Param("app") String app, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 }

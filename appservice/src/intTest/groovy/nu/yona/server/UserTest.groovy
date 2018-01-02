@@ -30,7 +30,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		testUser(john, true, false, ts)
 		def baseUserUrl = YonaServer.stripQueryString(john.url)
 		// The below assert checks the path fragment. If it fails, the Swagger spec needs to be updated too
-		john.mobileNumberConfirmationUrl == baseUserUrl + "/confirmMobileNumber"
+		john.mobileNumberConfirmationUrl == baseUserUrl + "/confirmMobileNumber?requestingDeviceId=" + john.getRequestingDeviceId()
 		john.resendMobileNumberConfirmationCodeUrl == baseUserUrl + "/resendMobileNumberConfirmationCode"
 
 		def getMessagesResponse = appService.yonaServer.getResourceWithPassword(baseUserUrl + "/messages/", john.password)
@@ -62,10 +62,10 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		john.goalsUrl == baseUserUrl + "/goals/"
 		john.messagesUrl == baseUserUrl + "/messages/"
 		john.newDeviceRequestUrl == appService.url + "/newDeviceRequests/" + john.mobileNumber
-		john.appActivityUrl == baseUserUrl + "/appActivity/"
+		john.appActivityUrl == baseUserUrl + "/devices/" + john.getRequestingDeviceId() + "/appActivity/"
 		john.pinResetRequestUrl == baseUserUrl + "/pinResetRequest/request"
 		john.dailyActivityReportsUrl == baseUserUrl + "/activity/days/"
-		john.dailyActivityReportsWithBuddiesUrl == baseUserUrl + "/activity/withBuddies/days/"
+		john.dailyActivityReportsWithBuddiesUrl == baseUserUrl + "/activity/withBuddies/days/?requestingDeviceId=" + john.getRequestingDeviceId()
 		john.weeklyActivityReportsUrl == baseUserUrl + "/activity/weeks/"
 
 		cleanup:

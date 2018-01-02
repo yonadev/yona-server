@@ -25,6 +25,8 @@ import java.util.UUID;
 import org.junit.Before;
 
 import nu.yona.server.crypto.pubkey.PublicKeyUtil;
+import nu.yona.server.device.entities.DeviceAnonymized;
+import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
 import nu.yona.server.goals.entities.Goal;
@@ -41,6 +43,7 @@ public abstract class IntervalActivityTestBase
 	protected TimeZoneGoal timeZoneGoal;
 
 	protected UserAnonymized userAnonEntity;
+	protected DeviceAnonymized deviceAnonEntity;
 
 	@Before
 	public void setUp()
@@ -56,7 +59,9 @@ public abstract class IntervalActivityTestBase
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>(Arrays.asList(budgetGoal));
+		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "Unknown");
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
+		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
 	}
 
 	protected ZonedDateTime getTimeOnDay(DayActivity dayActivity, String timeString)
@@ -68,8 +73,9 @@ public abstract class IntervalActivityTestBase
 
 	protected void addActivity(DayActivity dayActivity, String startTimeString, String endTimeString)
 	{
-		dayActivity.addActivity(Activity.createInstance(testZone, getTimeOnDay(dayActivity, startTimeString).toLocalDateTime(),
-				getTimeOnDay(dayActivity, endTimeString).toLocalDateTime(), Optional.empty()));
+		dayActivity.addActivity(
+				Activity.createInstance(deviceAnonEntity, testZone, getTimeOnDay(dayActivity, startTimeString).toLocalDateTime(),
+						getTimeOnDay(dayActivity, endTimeString).toLocalDateTime(), Optional.empty()));
 	}
 
 	protected void assertSpreadItemsAndTotal(IntervalActivity intervalActivity, String expectedSpreadItems,

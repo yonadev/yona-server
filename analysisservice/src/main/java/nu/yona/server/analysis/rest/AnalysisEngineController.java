@@ -60,11 +60,12 @@ public class AnalysisEngineController
 	 * The app service receives the app activity monitored by the Yona app and sends that to the analysis engine through this
 	 * method.
 	 */
-	@RequestMapping(value = "/userAnonymized/{userAnonymizedId}/appActivity/", method = RequestMethod.POST)
+	@RequestMapping(value = "/userAnonymized/{userAnonymizedId}/{deviceAnonymizedId}/appActivity/", method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
-	public void analyzeAppActivity(@PathVariable UUID userAnonymizedId, @RequestBody AppActivityDto appActivities)
+	public void analyzeAppActivity(@PathVariable UUID userAnonymizedId, @PathVariable UUID deviceAnonymizedId,
+			@RequestBody AppActivityDto appActivities)
 	{
-		analysisEngineService.analyze(userAnonymizedId, appActivities);
+		analysisEngineService.analyze(userAnonymizedId, deviceAnonymizedId, appActivities);
 	}
 
 	@RequestMapping(value = "/relevantSmoothwallCategories/", method = RequestMethod.GET)
