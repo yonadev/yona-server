@@ -268,24 +268,22 @@ public class AnalysisEngineService
 		{
 			return Optional.empty();
 		}
-		else if (overlappingOfSameApp.size() == 1)
+		if (overlappingOfSameApp.size() == 1)
 		{
 			return Optional.of(overlappingOfSameApp.get(0));
 		}
-		else
-		{
-			String relatedTo = payload.application.isPresent()
-					? MessageFormat.format("same app ''{0}'' activity", payload.application.get()) : "network activity";
-			String overlappingActivities = overlappingOfSameApp.stream()
-					.map(overlappingActivity -> overlappingActivity.toString()).collect(Collectors.joining(", "));
-			logger.warn(
-					"Multiple overlapping activities of {} found. The payload has start time {} and end time {}. The overlapping activities are: {}. The day activity ID is {} and the activity category ID is {}.",
-					relatedTo, payload.startTime.toLocalDateTime(), payload.endTime.toLocalDateTime(), overlappingActivities,
-					dayActivity.get().getId(), matchingGoal.getActivityCategoryId());
 
-			// Pick the first, we can't resolve this
-			return Optional.of(overlappingOfSameApp.get(0));
-		}
+		String overlappingActivitiesKind = payload.application.isPresent()
+				? MessageFormat.format("app activities of ''{0}''", payload.application.get()) : "network activities";
+		String overlappingActivities = overlappingOfSameApp.stream().map(overlappingActivity -> overlappingActivity.toString())
+				.collect(Collectors.joining(", "));
+		logger.warn(
+				"Multiple overlapping {} found. The payload has start time {} and end time {}. The day activity ID is {} and the activity category ID is {}. The overlapping activities are: {}.",
+				overlappingActivitiesKind, payload.startTime.toLocalDateTime(), payload.endTime.toLocalDateTime(),
+				dayActivity.get().getId(), matchingGoal.getActivityCategoryId(), overlappingActivities);
+
+		// Pick the first, we can't resolve this
+		return Optional.of(overlappingOfSameApp.get(0));
 	}
 
 	private boolean isBeyondSkipWindowAfterLastRegisteredActivity(ActivityPayload payload, ActivityDto lastRegisteredActivity)

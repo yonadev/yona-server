@@ -11,6 +11,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -142,8 +143,9 @@ public class Activity extends EntityWithId
 	@Override
 	public String toString()
 	{
+		UUID deviceAnonymizedId = deviceAnonymized != null ? deviceAnonymized.getId() : null;
 		return MessageFormat.format(
 				"activity from {0} to {1} (timezone {2}) of activity category with id {3} and app ''{4}'' and device anonymized with id {5} (activity id {6})",
-				startTime, endTime, timeZone, activityCategory.getId(), app, deviceAnonymized.getId(), getId());
+				startTime, endTime, timeZone, activityCategory.getId(), app, deviceAnonymizedId, getId());
 	}
 }

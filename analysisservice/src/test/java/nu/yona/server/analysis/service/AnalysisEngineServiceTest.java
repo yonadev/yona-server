@@ -591,11 +591,10 @@ public class AnalysisEngineServiceTest
 					}
 				});
 		String expectedWarnMessage = MessageFormat.format(
-				"Multiple overlapping activities of same app ''Lotto App'' activity found. The payload has start time {0} and end time {1}. The overlapping activities are: {2}, {3}, {4}. The day activity ID is {5} and the activity category ID is {6}.",
-				now.minusMinutes(9).toLocalDateTime(), now.minusMinutes(2).toLocalDateTime(),
-				existingDayActivity.getActivities().get(0), existingDayActivity.getActivities().get(1),
-				existingDayActivity.getActivities().get(2), existingDayActivity.getId(),
-				gamblingGoal.getActivityCategory().getId());
+				"Multiple overlapping app activities of ''Lotto App'' found. The payload has start time {0} and end time {1}. The day activity ID is {2} and the activity category ID is {3}. The overlapping activities are: {4}, {5}, {6}.",
+				now.minusMinutes(9).toLocalDateTime(), now.minusMinutes(2).toLocalDateTime(), existingDayActivity.getId(),
+				gamblingGoal.getActivityCategory().getId(), existingDayActivity.getActivities().get(0),
+				existingDayActivity.getActivities().get(1), existingDayActivity.getActivities().get(2));
 
 		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Lotto App", now.minusMinutes(9), now.minusMinutes(2)));
 
