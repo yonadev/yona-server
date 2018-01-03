@@ -101,6 +101,12 @@ public class AnalysisEngineService
 	public void analyze(UUID userAnonymizedId, NetworkActivityDto networkActivity)
 	{
 		UserAnonymizedDto userAnonymized = userAnonymizedService.getUserAnonymized(userAnonymizedId);
+		if (userAnonymized.getDevicesAnonymized().isEmpty())
+		{
+			// User did not open the app yet, so the migration step did not add the default device
+			// Ignore the network activities till the user opened the app
+			return;
+		}
 		Set<ActivityCategoryDto> matchingActivityCategories = activityCategoryFilterService
 				.getMatchingCategoriesForSmoothwallCategories(networkActivity.getCategories());
 		UUID deviceAnonymizedId = deviceService.getDeviceAnonymizedId(userAnonymized, networkActivity.getDeviceIndex());
