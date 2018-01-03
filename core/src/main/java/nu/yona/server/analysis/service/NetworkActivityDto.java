@@ -30,15 +30,15 @@ public class NetworkActivityDto
 	private final Set<String> categories;
 	private final String url;
 	private final Optional<ZonedDateTime> eventTime;
-	private final int deviceIndex;
+	private int deviceIndex;
 
 	@JsonCreator
-	public NetworkActivityDto(@JsonProperty(value = "deviceIndex", defaultValue = "-1") int deviceIdx,
+	public NetworkActivityDto(
 			@JsonProperty("categories") @JsonDeserialize(as = TreeSet.class, contentAs = String.class) Set<String> categories,
 			@JsonProperty("url") String url,
 			@JsonFormat(pattern = Constants.ISO_DATE_TIME_PATTERN) @JsonProperty("eventTime") Optional<ZonedDateTime> eventTime)
 	{
-		this.deviceIndex = deviceIdx;
+		this.deviceIndex = -1;
 		this.categories = categories;
 		this.url = (url.length() > MAX_SUPPORTED_URL_LENGTH) ? url.substring(0, MAX_SUPPORTED_URL_LENGTH) : url;
 		this.eventTime = eventTime;
@@ -47,6 +47,14 @@ public class NetworkActivityDto
 	public int getDeviceIndex()
 	{
 		return deviceIndex;
+	}
+
+	/**
+	 * Till the Perl script passes a device index, this property is treated as optional and thus not set through the constructor.
+	 */
+	public void setDeviceIndex(int deviceIndex)
+	{
+		this.deviceIndex = deviceIndex;
 	}
 
 	public Set<String> getCategories()
