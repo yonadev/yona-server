@@ -22,6 +22,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -50,7 +51,12 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
 import nu.yona.server.Translator;
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.ActivityRepository;
@@ -120,6 +126,8 @@ public class AnalysisEngineServiceTest
 	private DeviceService mockDeviceService;
 	@Mock
 	private DeviceAnonymizedRepository mockDeviceAnonymizedRepository;
+	@Mock
+	private Appender<ILoggingEvent> mockLogAppender;
 
 	@InjectMocks
 	private final AnalysisEngineService service = new AnalysisEngineService();
@@ -140,6 +148,9 @@ public class AnalysisEngineServiceTest
 	@Before
 	public void setUp()
 	{
+		Logger logger = (Logger) LoggerFactory.getLogger(AnalysisEngineService.class);
+		logger.addAppender(mockLogAppender);
+
 		LocalDateTime yesterday = TimeUtil.utcNow().minusDays(1);
 		gamblingGoal = BudgetGoal.createNoGoInstance(yesterday,
 				ActivityCategory.createInstance(UUID.randomUUID(), usString("gambling"), false,
@@ -211,7 +222,6 @@ public class AnalysisEngineServiceTest
 
 		// Stub the GoalService to return our goals.
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamblingGoal.getId())).thenReturn(gamblingGoal);
-		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, newsGoal.getId())).thenReturn(newsGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, gamingGoal.getId())).thenReturn(gamingGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, socialGoal.getId())).thenReturn(socialGoal);
 		when(mockGoalService.getGoalEntityForUserAnonymizedId(userAnonId, shoppingGoal.getId())).thenReturn(shoppingGoal);
@@ -299,9 +309,6 @@ public class AnalysisEngineServiceTest
 		service.analyze(userAnonId, createNetworkActivityForCategories("lotto"));
 
 		verifyGoalConflictMessageCreated(gamblingGoal);
-
-		// Restore default properties.
-		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 	}
 
 	@Test
@@ -381,9 +388,6 @@ public class AnalysisEngineServiceTest
 				equalTo(timeOfMockedExistingActivity.toLocalDateTime()));
 		assertThat("Expect end time updated at the last executed analysis matching the goals",
 				existingActivityEntity.getEndTimeAsZonedDateTime(), greaterThanOrEqualTo(justBeforeLastAnalyzeCall));
-
-		// Restore default properties.
-		when(mockYonaProperties.getAnalysisService()).thenReturn(new AnalysisServiceProperties());
 	}
 
 	@Test
@@ -534,11 +538,11 @@ public class AnalysisEngineServiceTest
 		mockExistingActivities(gamblingGoal, existingActivityOne, existingActivityTwo);
 
 		when(mockActivityRepository.findOverlappingOfSameApp(any(DayActivity.class), any(UUID.class), any(UUID.class),
-				any(String.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenAnswer(new Answer<Activity>() {
+				any(String.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenAnswer(new Answer<List<Activity>>() {
 					@Override
-					public Activity answer(InvocationOnMock invocation) throws Throwable
+					public List<Activity> answer(InvocationOnMock invocation) throws Throwable
 					{
-						return existingActivityOne;
+						return Arrays.asList(existingActivityOne);
 					}
 				});
 
@@ -569,6 +573,86 @@ public class AnalysisEngineServiceTest
 		assertThat("Expect right activity start time", existingActivityOne.getStartTime(),
 				equalTo(existingActivityTimeStartTime.toLocalDateTime()));
 		assertThat("Expect right activity end time", existingActivityOne.getEndTime(), equalTo(endTime.toLocalDateTime()));
+	}
+
+	@Test
+	public void analyze_networkActivityCompletelyPrecedingLastCachedActivityOverlappingMultipleExistingActivities_firstActivityRecordMergedAndNoNewGoalConflictMessageCreated()
+	{
+		ZonedDateTime now = now();
+		DayActivity existingDayActivity = mockExistingActivities(gamblingGoal,
+				createActivity(now.minusMinutes(10), now.minusMinutes(8)), createActivity(now.minusMinutes(1), now));
+		when(mockActivityRepository.findOverlappingOfSameApp(any(DayActivity.class), any(UUID.class), any(UUID.class),
+				any(String.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenAnswer(new Answer<List<Activity>>() {
+					@Override
+					public List<Activity> answer(InvocationOnMock invocation) throws Throwable
+					{
+						return existingDayActivity.getActivities().stream().collect(Collectors.toList());
+					}
+				});
+		String expectedWarnMessage = MessageFormat.format(
+				"Multiple overlapping network activities found. The payload has start time {0} and end time {1}. The day activity ID is {2} and the activity category ID is {3}. The overlapping activities are: {4}, {5}.",
+				now.minusMinutes(9).toLocalDateTime(), now.minusMinutes(9).toLocalDateTime(), existingDayActivity.getId(),
+				gamblingGoal.getActivityCategory().getId(), existingDayActivity.getActivities().get(0),
+				existingDayActivity.getActivities().get(1));
+
+		service.analyze(userAnonId, createNetworkActivityForCategories(now.minusMinutes(9), "poker"));
+
+		verifyNoGoalConflictMessagesCreated();
+		List<Activity> activities = existingDayActivity.getActivities();
+		assertThat(activities.size(), equalTo(2));
+		assertThat(activities.get(0).getApp(), equalTo(Optional.empty()));
+		assertThat(activities.get(0).getStartTimeAsZonedDateTime(), equalTo(now.minusMinutes(10)));
+		assertThat(activities.get(0).getEndTimeAsZonedDateTime(), equalTo(now.minusMinutes(8)));
+		assertThat(activities.get(1).getApp(), equalTo(Optional.empty()));
+		assertThat(activities.get(1).getStartTimeAsZonedDateTime(), equalTo(now.minusMinutes(1)));
+		assertThat(activities.get(1).getEndTimeAsZonedDateTime(), equalTo(now));
+
+		ArgumentCaptor<ILoggingEvent> logEventCaptor = ArgumentCaptor.forClass(ILoggingEvent.class);
+		verify(mockLogAppender).doAppend(logEventCaptor.capture());
+		assertThat(logEventCaptor.getValue().getLevel(), equalTo(Level.WARN));
+		assertThat(logEventCaptor.getValue().getFormattedMessage(), equalTo(expectedWarnMessage));
+	}
+
+	@Test
+	public void analyze_appActivityCompletelyPrecedingLastCachedActivityOverlappingMultipleExistingActivities_firstActivityRecordMergedAndNoNewGoalConflictMessageCreated()
+	{
+		ZonedDateTime now = now();
+		DayActivity existingDayActivity = mockExistingActivities(gamblingGoal,
+				createActivity(now.minusMinutes(10), now.minusMinutes(8), "Lotto App"),
+				createActivity(now.minusMinutes(7), now.minusMinutes(5), "Lotto App"), createActivity(now, now, "Lotto App"));
+		when(mockActivityRepository.findOverlappingOfSameApp(any(DayActivity.class), any(UUID.class), any(UUID.class),
+				any(String.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenAnswer(new Answer<List<Activity>>() {
+					@Override
+					public List<Activity> answer(InvocationOnMock invocation) throws Throwable
+					{
+						return existingDayActivity.getActivities().stream().collect(Collectors.toList());
+					}
+				});
+		String expectedWarnMessage = MessageFormat.format(
+				"Multiple overlapping app activities of ''Lotto App'' found. The payload has start time {0} and end time {1}. The day activity ID is {2} and the activity category ID is {3}. The overlapping activities are: {4}, {5}, {6}.",
+				now.minusMinutes(9).toLocalDateTime(), now.minusMinutes(2).toLocalDateTime(), existingDayActivity.getId(),
+				gamblingGoal.getActivityCategory().getId(), existingDayActivity.getActivities().get(0),
+				existingDayActivity.getActivities().get(1), existingDayActivity.getActivities().get(2));
+
+		service.analyze(userAnonId, deviceAnonId, createSingleAppActivity("Lotto App", now.minusMinutes(9), now.minusMinutes(2)));
+
+		verifyNoGoalConflictMessagesCreated();
+		List<Activity> activities = existingDayActivity.getActivities();
+		assertThat(activities.size(), equalTo(3));
+		assertThat(activities.get(0).getApp(), equalTo(Optional.of("Lotto App")));
+		assertThat(activities.get(0).getStartTimeAsZonedDateTime(), equalTo(now.minusMinutes(10)));
+		assertThat(activities.get(0).getEndTimeAsZonedDateTime(), equalTo(now.minusMinutes(2)));
+		assertThat(activities.get(1).getApp(), equalTo(Optional.of("Lotto App")));
+		assertThat(activities.get(1).getStartTimeAsZonedDateTime(), equalTo(now.minusMinutes(7)));
+		assertThat(activities.get(1).getEndTimeAsZonedDateTime(), equalTo(now.minusMinutes(5)));
+		assertThat(activities.get(2).getApp(), equalTo(Optional.of("Lotto App")));
+		assertThat(activities.get(2).getStartTimeAsZonedDateTime(), equalTo(now));
+		assertThat(activities.get(2).getEndTimeAsZonedDateTime(), equalTo(now));
+
+		ArgumentCaptor<ILoggingEvent> logEventCaptor = ArgumentCaptor.forClass(ILoggingEvent.class);
+		verify(mockLogAppender).doAppend(logEventCaptor.capture());
+		assertThat(logEventCaptor.getValue().getLevel(), equalTo(Level.WARN));
+		assertThat(logEventCaptor.getValue().getFormattedMessage(), equalTo(expectedWarnMessage));
 	}
 
 	@Test
@@ -815,15 +899,14 @@ public class AnalysisEngineServiceTest
 	}
 
 	@Test
-	public void analyze_appActivityOverlappingSameApp_activityRecordMergedAndNoNewGoalConflictMessageCreated()
+	public void analyze_appActivitySameAppOverlappingLastCachedActivityEndTime_activityRecordMergedAndNoNewGoalConflictMessageCreated()
 	{
 		ZonedDateTime now = now();
-		ZonedDateTime existingActivityEndTime = now.minusMinutes(5);
-		DayActivity existingDayActivity = mockExistingActivity(gamblingGoal, now.minusMinutes(10), existingActivityEndTime,
+		DayActivity existingDayActivity = mockExistingActivity(gamblingGoal, now.minusMinutes(10), now.minusMinutes(5),
 				"Lotto App");
 
 		service.analyze(userAnonId, deviceAnonId,
-				createSingleAppActivity("Lotto App", existingActivityEndTime.minusSeconds(30), now.minusMinutes(2)));
+				createSingleAppActivity("Lotto App", now.minusMinutes(5).minusSeconds(30), now.minusMinutes(2)));
 
 		verifyNoGoalConflictMessagesCreated();
 		List<Activity> activities = existingDayActivity.getActivities();
@@ -854,6 +937,12 @@ public class AnalysisEngineServiceTest
 	{
 		return new NetworkActivityDto(new HashSet<>(Arrays.asList(conflictCategories)),
 				"http://localhost/test" + new Random().nextInt(), Optional.empty());
+	}
+
+	private NetworkActivityDto createNetworkActivityForCategories(ZonedDateTime time, String... conflictCategories)
+	{
+		return new NetworkActivityDto(-1, new HashSet<>(Arrays.asList(conflictCategories)),
+				"http://localhost/test" + new Random().nextInt(), Optional.of(time));
 	}
 
 	private void verifyGoalConflictMessageCreated(Goal... forGoals)

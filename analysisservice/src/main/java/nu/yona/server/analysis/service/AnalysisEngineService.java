@@ -4,11 +4,13 @@
  *******************************************************************************/
 package nu.yona.server.analysis.service;
 
+import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -48,6 +52,8 @@ import nu.yona.server.util.TransactionHelper;
 @Service
 public class AnalysisEngineService
 {
+	private static final Logger logger = LoggerFactory.getLogger(AnalysisEngineService.class);
+
 	private static final Duration DEVICE_TIME_INACCURACY_MARGIN = Duration.ofSeconds(10);
 	private static final Duration ONE_MINUTE = Duration.ofMinutes(1);
 	@Autowired
@@ -252,9 +258,38 @@ public class AnalysisEngineService
 		{
 			return Optional.empty();
 		}
-		return Optional.ofNullable(activityRepository.findOverlappingOfSameApp(dayActivity.get(), payload.deviceAnonymizedId,
-				matchingGoal.getActivityCategoryId(), payload.application.orElse(null), payload.startTime.toLocalDateTime(),
-				payload.endTime.toLocalDateTime()));
+
+		List<Activity> overlappingOfSameApp = activityRepository.findOverlappingOfSameApp(dayActivity.get(),
+				payload.deviceAnonymizedId, matchingGoal.getActivityCategoryId(), payload.application.orElse(null),
+				payload.startTime.toLocalDateTime(), payload.endTime.toLocalDateTime());
+
+		// The prognosis is that there is no or one overlapping activity of the same app,
+		// because we don't expect the mobile app to post app activity that spans other existing same app activity
+		// (that indicates that there is something wrong in the app activity bookkeeping).
+		// Network activity (having payload.application == null) also is not expected to exist and overlap, as network activity
+		// has a very short time span.
+		// So log if there are multiple overlaps.
+
+		if (overlappingOfSameApp.isEmpty())
+		{
+			return Optional.empty();
+		}
+		if (overlappingOfSameApp.size() == 1)
+		{
+			return Optional.of(overlappingOfSameApp.get(0));
+		}
+
+		String overlappingActivitiesKind = payload.application.isPresent()
+				? MessageFormat.format("app activities of ''{0}''", payload.application.get()) : "network activities";
+		String overlappingActivities = overlappingOfSameApp.stream().map(overlappingActivity -> overlappingActivity.toString())
+				.collect(Collectors.joining(", "));
+		logger.warn(
+				"Multiple overlapping {} found. The payload has start time {} and end time {}. The day activity ID is {} and the activity category ID is {}. The overlapping activities are: {}.",
+				overlappingActivitiesKind, payload.startTime.toLocalDateTime(), payload.endTime.toLocalDateTime(),
+				dayActivity.get().getId(), matchingGoal.getActivityCategoryId(), overlappingActivities);
+
+		// Pick the first, we can't resolve this
+		return Optional.of(overlappingOfSameApp.get(0));
 	}
 
 	private boolean isBeyondSkipWindowAfterLastRegisteredActivity(ActivityPayload payload, ActivityDto lastRegisteredActivity)
