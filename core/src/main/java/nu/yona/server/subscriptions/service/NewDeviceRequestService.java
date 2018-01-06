@@ -40,16 +40,17 @@ public class NewDeviceRequestService
 	@Transactional
 	public NewDeviceRequestDto setNewDeviceRequestForUser(UUID userId, String yonaPassword, String newDeviceRequestPassword)
 	{
-		User userEntity = userService.getValidatedUserById(userId);
+		userService.updateUser(userId, ue -> {
+			User userEntity = userService.getValidatedUserById(ue.getId());
 
-		NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(yonaPassword);
-		newDeviceRequestEntity.encryptYonaPassword(newDeviceRequestPassword);
+			NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(yonaPassword);
+			newDeviceRequestEntity.encryptYonaPassword(newDeviceRequestPassword);
 
-		userEntity.setNewDeviceRequest(newDeviceRequestEntity);
+			userEntity.setNewDeviceRequest(newDeviceRequestEntity);
 
-		logger.info("User with mobile number '{}' and ID '{}' set a new device request", userEntity.getMobileNumber(),
-				userEntity.getId());
-		User.getRepository().save(userEntity);
+			logger.info("User with mobile number '{}' and ID '{}' set a new device request", userEntity.getMobileNumber(),
+					userEntity.getId());
+		});
 		return NewDeviceRequestDto.createInstanceWithoutPassword();
 	}
 
@@ -92,7 +93,7 @@ public class NewDeviceRequestService
 		NewDeviceRequest existingNewDeviceRequestEntity = user.getNewDeviceRequest();
 		if (existingNewDeviceRequestEntity != null)
 		{
-			removeNewDeviceRequest(user, "User with mobile number '{}' and ID '{}' cleared the new device request");
+			removeNewDeviceRequest(userId, "User with mobile number '{}' and ID '{}' cleared the new device request");
 		}
 	}
 
@@ -100,16 +101,17 @@ public class NewDeviceRequestService
 	public int deleteAllExpiredRequests()
 	{
 		Set<User> users = userRepository.findAllWithExpiredNewDeviceRequests(TimeUtil.utcNow().minus(getExpirationTime()));
-		users.forEach(u -> removeNewDeviceRequest(u,
+		users.forEach(u -> removeNewDeviceRequest(u.getId(),
 				"New device request for user with mobile number '{}' and ID '{}' was cleared because it was expired"));
 		return users.size();
 	}
 
-	private void removeNewDeviceRequest(User user, String logMessage)
+	private void removeNewDeviceRequest(UUID userId, String logMessage)
 	{
-		logger.info(logMessage, user.getMobileNumber(), user.getId());
-		user.clearNewDeviceRequest();
-		userRepository.save(user);
+		userService.updateUser(userId, user -> {
+			logger.info(logMessage, user.getMobileNumber(), user.getId());
+			user.clearNewDeviceRequest();
+		});
 	}
 
 	private Duration getExpirationTime()
