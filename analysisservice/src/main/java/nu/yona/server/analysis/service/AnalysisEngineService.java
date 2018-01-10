@@ -280,9 +280,9 @@ public class AnalysisEngineService
 		}
 
 		String overlappingActivitiesKind = payload.application.isPresent()
-				? MessageFormat.format("app activities of ''{0}''", payload.application.get()) : "network activities";
-		String overlappingActivities = overlappingOfSameApp.stream().map(overlappingActivity -> overlappingActivity.toString())
-				.collect(Collectors.joining(", "));
+				? MessageFormat.format("app activities of ''{0}''", payload.application.get())
+				: "network activities";
+		String overlappingActivities = overlappingOfSameApp.stream().map(Activity::toString).collect(Collectors.joining(", "));
 		logger.warn(
 				"Multiple overlapping {} found. The payload has start time {} and end time {}. The day activity ID is {} and the activity category ID is {}. The overlapping activities are: {}.",
 				overlappingActivitiesKind, payload.startTime.toLocalDateTime(), payload.endTime.toLocalDateTime(),
