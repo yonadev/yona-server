@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
  * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.service;
@@ -8,6 +8,7 @@ import static com.spencerwi.hamcrestJDK8Time.matchers.IsBetween.between;
 import static nu.yona.server.test.util.Matchers.hasMessageId;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.Matchers.any;
@@ -16,8 +17,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -41,12 +45,15 @@ import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import nu.yona.server.analysis.entities.Activity;
+import nu.yona.server.analysis.entities.ActivityRepository;
 import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.entities.DeviceAnonymizedRepository;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.device.entities.UserDeviceRepository;
+import nu.yona.server.entities.ActivityRepositoryMock;
 import nu.yona.server.entities.DeviceAnonymizedRepositoryMock;
 import nu.yona.server.entities.UserDeviceRepositoryMock;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
@@ -80,6 +87,12 @@ class DeviceServiceTestConfiguration extends UserRepositoriesConfiguration
 	{
 		return Mockito.spy(new DeviceAnonymizedRepositoryMock());
 	}
+
+	@Bean
+	ActivityRepository getActivityRepository()
+	{
+		return new ActivityRepositoryMock();
+	}
 }
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -88,6 +101,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 {
 	@Autowired
 	private UserDeviceRepository userDeviceRepository;
+
+	@Autowired
+	private ActivityRepository activityRepository;
 
 	@Autowired
 	private DeviceService service;
@@ -124,6 +140,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		Map<Class<?>, Repository<?, ?>> repositoriesMap = new HashMap<>();
 		repositoriesMap.put(DeviceAnonymized.class, deviceAnonymizedRepository);
 		repositoriesMap.put(UserDevice.class, userDeviceRepository);
+		repositoriesMap.put(Activity.class, activityRepository);
 		return repositoriesMap;
 	}
 
@@ -351,7 +368,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		UserDeviceDto deviceDto1 = addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
+		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
@@ -366,7 +383,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardAnonymizedDto(), 0);
 
 		// Assert success
-		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(deviceDto1.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(device1.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -379,7 +396,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		UserDeviceDto deviceDto2 = addDeviceToRichard(1, deviceName2, operatingSystem2, "Unknown");
+		UserDevice device2 = addDeviceToRichard(1, deviceName2, operatingSystem2, "Unknown");
 
 		// Verify two devices are present
 		Set<UserDevice> devices = richard.getDevices();
@@ -390,7 +407,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardAnonymizedDto(), 1);
 
 		// Assert success
-		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(deviceDto2.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(device2.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -399,7 +416,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		UserDeviceDto deviceDto1 = addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
+		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
@@ -414,7 +431,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardAnonymizedDto(), -1);
 
 		// Assert success
-		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(deviceDto1.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(device1.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -447,7 +464,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
-		UserDeviceDto deviceDto1 = addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
+		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
@@ -459,10 +476,10 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 				containsInAnyOrder(deviceName1, deviceName2));
 
 		// Get the anonymized ID for the first device ID
-		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardUserDto(), deviceDto1.getId());
+		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardUserDto(), device1.getId());
 
 		// Assert success
-		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(deviceDto1.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(device1.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -475,7 +492,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		String deviceName2 = "Second";
 		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
-		UserDeviceDto deviceDto2 = addDeviceToRichard(1, deviceName2, operatingSystem2, "Unknown");
+		UserDevice device2 = addDeviceToRichard(1, deviceName2, operatingSystem2, "Unknown");
 
 		// Verify two devices are present
 		Set<UserDevice> devices = richard.getDevices();
@@ -483,10 +500,10 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 				containsInAnyOrder(deviceName1, deviceName2));
 
 		// Get the anonymized ID for the second device ID
-		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardUserDto(), deviceDto2.getId());
+		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardUserDto(), device2.getId());
 
 		// Assert success
-		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(deviceDto2.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(device2.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
@@ -515,6 +532,78 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		service.getDeviceAnonymizedId(createRichardUserDto(), notAddedDevice.getId());
 	}
 
+	@Test
+	public void removeDuplicateDefaultDevices_singleDevice_noChange()
+	{
+		// Add devices
+		String deviceName1 = "First";
+		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
+		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
+
+		// Verify two devices are present
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()), containsInAnyOrder(deviceName1));
+
+		service.removeDuplicateDefaultDevices(createRichardUserDto(), device1.getId());
+
+		// Assert success
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()), containsInAnyOrder(deviceName1));
+	}
+
+	@Test
+	public void removeDuplicateDefaultDevices_twoDevicesUseFirst_duplicateRemovedActivitiesMoved()
+	{
+		removeDuplicateDefaultDevicesFirstOrSecond(0);
+	}
+
+	@Test
+	public void removeDuplicateDefaultDevices_twoDevicesUseSecond_duplicateRemovedActivitiesMoved()
+	{
+		removeDuplicateDefaultDevicesFirstOrSecond(1);
+	}
+
+	private void removeDuplicateDefaultDevicesFirstOrSecond(int indexToRetain)
+	{
+		// Add devices
+		String deviceName1 = "First";
+		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
+		LocalDateTime startTime = TimeUtil.utcNow();
+		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
+		ActivityData activity1 = new ActivityData("WhatsApp", 10, 2);
+		ActivityData activity2 = new ActivityData("WhatsApp", 5, 1);
+		Set<Activity> device1Activities = addActivities(device1, startTime, activity1, activity2);
+
+		String deviceName2 = "Second";
+		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
+		ActivityData activity3 = new ActivityData("WhatsApp", 9, 2);
+		ActivityData activity4 = new ActivityData("WhatsApp", 3, 1);
+		UserDevice device2 = addDeviceToRichard(0, deviceName2, operatingSystem2, "Unknown");
+		Set<Activity> device2Activities = addActivities(device2, startTime, activity3, activity4);
+
+		List<UserDevice> createdDevices = Arrays.asList(device1, device2);
+
+		// Verify two devices are present
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
+				containsInAnyOrder(deviceName1, deviceName2));
+
+		service.removeDuplicateDefaultDevices(createRichardUserDto(), createdDevices.get(indexToRetain).getId());
+
+		// Assert success
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
+				containsInAnyOrder(createdDevices.get(indexToRetain).getName()));
+		device1Activities.forEach(
+				a -> assertThat(a.getDeviceAnonymized(), sameInstance(createdDevices.get(indexToRetain).getDeviceAnonymized())));
+		device2Activities.forEach(
+				a -> assertThat(a.getDeviceAnonymized(), sameInstance(createdDevices.get(indexToRetain).getDeviceAnonymized())));
+	}
+
+	private Set<Activity> addActivities(UserDevice deviceEntity, LocalDateTime startTime, ActivityData... activityData)
+	{
+		return Arrays.asList(activityData).stream().map(ad -> makeActivity(startTime, ad, deviceEntity))
+				.collect(Collectors.toSet());
+	}
+
 	private UserDevice createDevice(int deviceIndex, String deviceName, OperatingSystem operatingSystem, String appVersion)
 	{
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(deviceIndex, operatingSystem, appVersion);
@@ -534,11 +623,31 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		return UserAnonymizedDto.createInstance(richard.getAnonymized());
 	}
 
-	private UserDeviceDto addDeviceToRichard(int deviceIndex, String deviceName, OperatingSystem operatingSystem,
-			String appVersion)
+	private UserDevice addDeviceToRichard(int deviceIndex, String deviceName, OperatingSystem operatingSystem, String appVersion)
 	{
 		UserDevice deviceEntity = createDevice(deviceIndex, deviceName, operatingSystem, appVersion);
 		richard.addDevice(deviceEntity);
-		return UserDeviceDto.createInstance(deviceEntity);
+		return deviceEntity;
+	}
+
+	private Activity makeActivity(LocalDateTime startTime, ActivityData activityData, UserDevice device)
+	{
+		LocalDateTime activityStartTime = startTime.minusMinutes(activityData.minutesAgo);
+		return activityRepository.save(Activity.createInstance(device.getDeviceAnonymized(), ZoneId.of("Europe/Amsterdam"),
+				activityStartTime, activityStartTime.plusMinutes(activityData.durationMinutes), Optional.of(activityData.app)));
+	}
+
+	private static class ActivityData
+	{
+		final String app;
+		final int minutesAgo;
+		final int durationMinutes;
+
+		public ActivityData(String app, int minutesAgo, int durationMinutes)
+		{
+			this.app = app;
+			this.minutesAgo = minutesAgo;
+			this.durationMinutes = durationMinutes;
+		}
 	}
 }
