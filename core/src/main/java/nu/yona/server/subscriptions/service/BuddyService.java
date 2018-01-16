@@ -254,7 +254,7 @@ public class BuddyService
 	@Transactional
 	public void removeBuddyAfterConnectRejection(UUID idOfRequestingUser, UUID buddyId)
 	{
-		userService.getValidatedUserById(idOfRequestingUser);
+		userService.assertValidatedUser(userService.getUserEntityById(idOfRequestingUser));
 		Buddy buddy = buddyRepository.findOne(buddyId);
 
 		if (buddy != null)

@@ -492,6 +492,17 @@ public class UserService
 		return createUserDtoWithPrivateData(updatedUserEntity);
 	}
 
+	/**
+	 * Performs the given update action on the user with the specified ID, while holding a write-lock on the user. After the
+	 * update, the entity is saved to the repository.<br/>
+	 * We are using pessimistic locking because we generally do not have update concurrency, except when performing migration
+	 * steps. Migration steps are executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't
+	 * be an option here as that would cause the GETs to fail rather than to wait for the other one to complete.
+	 * 
+	 * @param id The ID of the user to update
+	 * @param updateAction The update action to perform
+	 * @return The updated and saved user
+	 */
 	@Transactional
 	public User updateUser(UUID id, Consumer<User> updateAction)
 	{
@@ -683,7 +694,7 @@ public class UserService
 		}
 
 		updateUser(user.getId(), userEntity -> {
-			userEntity.assertMobileNumberConfirmed();
+			assertValidatedUser(userEntity);
 
 			Buddy buddyEntity = buddyRepository.findOne(buddy.getId());
 			userEntity.addBuddy(buddyEntity);
@@ -783,9 +794,14 @@ public class UserService
 	public User getValidatedUserById(UUID id)
 	{
 		User retVal = getUserEntityById(id);
-		retVal.assertMobileNumberConfirmed();
+		assertValidatedUser(retVal);
 
 		return retVal;
+	}
+
+	public void assertValidatedUser(User user)
+	{
+		user.assertMobileNumberConfirmed();
 	}
 
 	private ConfirmationCode createConfirmationCode()

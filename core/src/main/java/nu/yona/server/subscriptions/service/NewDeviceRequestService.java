@@ -40,8 +40,8 @@ public class NewDeviceRequestService
 	@Transactional
 	public NewDeviceRequestDto setNewDeviceRequestForUser(UUID userId, String yonaPassword, String newDeviceRequestPassword)
 	{
-		userService.updateUser(userId, ue -> {
-			User userEntity = userService.getValidatedUserById(ue.getId());
+		userService.updateUser(userId, userEntity -> {
+			userService.assertValidatedUser(userEntity);
 
 			NewDeviceRequest newDeviceRequestEntity = NewDeviceRequest.createInstance(yonaPassword);
 			newDeviceRequestEntity.encryptYonaPassword(newDeviceRequestPassword);
