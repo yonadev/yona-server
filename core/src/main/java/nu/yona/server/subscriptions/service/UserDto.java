@@ -182,15 +182,13 @@ public class UserDto
 				+ ((privateData == null) ? "is null" : " is of type " + privateData.getClass().getName()));
 	}
 
-	User updateUser(User originalUserEntity)
+	void updateUser(User originalUserEntity)
 	{
 		originalUserEntity.setFirstName(firstName);
 		originalUserEntity.setLastName(lastName);
 		originalUserEntity.setMobileNumber(mobileNumber);
 		originalUserEntity.setNickname(privateData.getNickname());
 		originalUserEntity.setUserPhotoId(privateData.getUserPhotoId());
-
-		return originalUserEntity;
 	}
 
 	/**

@@ -5,12 +5,14 @@
 package nu.yona.server.subscriptions.service;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -90,11 +92,12 @@ public class UserServiceTest extends BaseSpringIntegrationTest
 	@Test
 	public void postOpenAppEvent_appLastOpenedDateOnSameDay_notUpdated()
 	{
-		richard.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
+		LocalDate originalDate = TimeUtil.utcNow().toLocalDate();
+		richard.setAppLastOpenedDate(originalDate);
 
 		service.postOpenAppEvent(richard.getId());
 
-		verify(userRepository, times(0)).save(any(User.class));
+		assertThat(richard.getAppLastOpenedDate().get(), sameInstance(originalDate));
 	}
 
 	@Test

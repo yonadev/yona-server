@@ -254,25 +254,26 @@ public class BuddyService
 	@Transactional
 	public void removeBuddyAfterConnectRejection(UUID idOfRequestingUser, UUID buddyId)
 	{
-		User user = userService.getValidatedUserById(idOfRequestingUser);
+		userService.assertValidatedUser(userService.getUserEntityById(idOfRequestingUser));
 		Buddy buddy = buddyRepository.findOne(buddyId);
 
 		if (buddy != null)
 		{
-			removeBuddy(user, buddy);
+			removeBuddy(idOfRequestingUser, buddy);
 		}
 		// else: buddy already removed, probably in response to removing the user
 	}
 
-	private void removeBuddy(User user, Buddy buddy)
+	private void removeBuddy(UUID userId, Buddy buddy)
 	{
-		user.removeBuddy(buddy);
-		User.getRepository().save(user);
-		buddyRepository.delete(buddy);
+		userService.updateUser(userId, user -> {
+			user.removeBuddy(buddy);
+			buddyRepository.delete(buddy);
 
-		UserAnonymized userAnonymizedEntity = user.getAnonymized();
-		userAnonymizedEntity.removeBuddyAnonymized(buddy.getBuddyAnonymized());
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+			UserAnonymized userAnonymizedEntity = user.getAnonymized();
+			userAnonymizedEntity.removeBuddyAnonymized(buddy.getBuddyAnonymized());
+			userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+		});
 	}
 
 	@Transactional
@@ -290,7 +291,7 @@ public class BuddyService
 		removeMessagesSentByBuddy(user, buddy);
 		removeBuddyInfoForBuddy(user, buddy, message, DropBuddyReason.USER_REMOVED_BUDDY);
 
-		removeBuddy(user, buddy);
+		removeBuddy(user.getId(), buddy);
 
 		User buddyUser = buddy.getUser();
 		if (buddyUser == null)
@@ -395,7 +396,7 @@ public class BuddyService
 					user.getUserAnonymizedId(), buddy.getId(), user.getDevices(), Status.REJECTED,
 					getDropBuddyMessage(DropBuddyReason.USER_ACCOUNT_DELETED, Optional.empty()));
 		}
-		removeBuddy(user, buddy);
+		removeBuddy(user.getId(), buddy);
 	}
 
 	private UUID getUserAnonymizedIdForBuddy(Buddy buddy)
@@ -409,7 +410,7 @@ public class BuddyService
 	{
 		User user = userService.getValidatedUserById(idOfRequestingUser);
 		user.getBuddies().stream().filter(b -> b.getUserId().equals(relatedUserId)).findFirst()
-				.ifPresent(b -> removeBuddy(user, b));
+				.ifPresent(b -> removeBuddy(user.getId(), b));
 	}
 
 	public void setBuddyAcceptedWithSecretUserInfo(UserDto actingUser, BuddyConnectResponseMessage connectResponseMessageEntity)

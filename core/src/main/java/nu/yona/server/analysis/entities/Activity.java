@@ -141,6 +141,11 @@ public class Activity extends EntityWithId
 		return Optional.ofNullable(deviceAnonymized);
 	}
 
+	public void setDeviceAnonymized(DeviceAnonymized deviceAnonymized)
+	{
+		this.deviceAnonymized = Objects.requireNonNull(deviceAnonymized);
+	}
+
 	@Override
 	public String toString()
 	{

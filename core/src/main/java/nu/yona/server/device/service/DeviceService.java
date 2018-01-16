@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.service;
 
@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import nu.yona.server.Translator;
+import nu.yona.server.analysis.entities.Activity;
+import nu.yona.server.analysis.entities.ActivityRepository;
 import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.entities.DeviceAnonymizedRepository;
@@ -50,6 +52,9 @@ public class DeviceService
 
 	@Autowired
 	private Translator translator;
+
+	@Autowired(required = false)
+	private ActivityRepository activityRepository;
 
 	@Transactional
 	public Set<DeviceBaseDto> getDevicesOfUser(UUID userId)
@@ -153,6 +158,7 @@ public class DeviceService
 			throw DeviceServiceException.notFoundById(device.getId());
 		}
 		deviceAnonymizedRepository.delete(device.getDeviceAnonymized());
+		deviceAnonymizedRepository.flush(); // Without this, the delete doesn't always occur
 		userEntity.removeDevice(device);
 	}
 
@@ -187,5 +193,35 @@ public class DeviceService
 				: userAnonymized.getDevicesAnonymized().stream().filter(d -> d.getDeviceIndex() == deviceIndex).findAny()
 						.map(DeviceAnonymizedDto::getId)
 						.orElseThrow(() -> DeviceServiceException.notFoundByIndex(userAnonymized.getId(), deviceIndex));
+	}
+
+	@Transactional
+	public void removeDuplicateDefaultDevices(UserDto userDto, UUID requestingDeviceId)
+	{
+		userService.updateUser(userDto.getId(), userEntity -> {
+			Set<UserDevice> defaultDevices = userEntity.getDevices().stream()
+					.filter(d -> d.getDeviceAnonymized().getDeviceIndex() == 0).collect(Collectors.toSet());
+			if (defaultDevices.isEmpty())
+			{
+				throw DeviceServiceException.noDevicesFound(userEntity.getUserAnonymizedId());
+			}
+			if (defaultDevices.size() == 1)
+			{
+				// User is in good shape
+				return;
+			}
+			UserDevice requestingDevice = userEntity.getDevices().stream().filter(d -> d.getId().equals(requestingDeviceId))
+					.findFirst().orElseThrow(() -> DeviceServiceException.notFoundById(requestingDeviceId));
+			defaultDevices.stream().filter(d -> d != requestingDevice)
+					.forEach(d -> removeDuplicateDefaultDevice(userEntity, requestingDevice, d));
+			userAnonymizedService.updateUserAnonymized(userEntity.getAnonymized().getId());
+		});
+	}
+
+	private void removeDuplicateDefaultDevice(User userEntity, UserDevice requestingDevice, UserDevice deviceToBeRemoved)
+	{
+		Set<Activity> activitiesOnDevice = activityRepository.findByDeviceAnonymized(deviceToBeRemoved.getDeviceAnonymized());
+		activitiesOnDevice.forEach(a -> a.setDeviceAnonymized(requestingDevice.getDeviceAnonymized()));
+		deleteDevice(userEntity, deviceToBeRemoved);
 	}
 }

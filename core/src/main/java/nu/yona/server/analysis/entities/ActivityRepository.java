@@ -1,17 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import nu.yona.server.device.entities.DeviceAnonymized;
 
 @Repository
 public interface ActivityRepository extends CrudRepository<Activity, Long>
@@ -24,4 +27,6 @@ public interface ActivityRepository extends CrudRepository<Activity, Long>
 	List<Activity> findOverlappingOfSameApp(@Param("dayActivity") DayActivity dayActivity,
 			@Param("deviceAnonymizedId") UUID deviceAnonymizedId, @Param("activityCategoryId") UUID activityCategoryId,
 			@Param("app") String app, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
+
+	Set<Activity> findByDeviceAnonymized(DeviceAnonymized deviceAnonymized);
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.rest;
@@ -185,6 +185,12 @@ public class UserController extends ControllerBase
 				UserDto user = userService.getPrivateUser(userId, isCreatedOnBuddyRequest);
 				Optional<UUID> requestingDeviceId = determineRequestingDeviceId(user, requestingDeviceIdStr,
 						isCreatedOnBuddyRequest);
+				if (requestingDeviceId.isPresent() && user.getOwnPrivateData().getDevices().map(d -> d.size() > 1).orElse(false))
+				{
+					// User has multiple devices
+					deviceService.removeDuplicateDefaultDevices(user, requestingDeviceId.get());
+					user = userService.getPrivateUser(userId, isCreatedOnBuddyRequest);
+				}
 				return createOkResponse(user, createResourceAssemblerForOwnUser(requestingUserId, requestingDeviceId));
 			}
 			return createOkResponse(buddyService.getUserOfBuddy(requestingUserId, userId),

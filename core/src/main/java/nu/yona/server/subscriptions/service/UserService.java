@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.LockModeType;
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang.StringUtils;
@@ -63,7 +64,6 @@ import nu.yona.server.subscriptions.entities.UserPrivate;
 import nu.yona.server.subscriptions.entities.UserRepository;
 import nu.yona.server.subscriptions.service.BuddyService.DropBuddyReason;
 import nu.yona.server.util.TimeUtil;
-import nu.yona.server.util.TransactionHelper;
 
 @Service
 public class UserService
@@ -117,9 +117,6 @@ public class UserService
 
 	@Autowired(required = false)
 	private DeviceService deviceService;
-
-	@Autowired(required = false)
-	private TransactionHelper transactionHelper;
 
 	@Autowired(required = false)
 	private UserAnonymizedService userAnonymizedService;
@@ -214,8 +211,7 @@ public class UserService
 
 		if (!privateUserDataMigrationService.isUpToDate(user))
 		{
-			privateUserDataMigrationService.upgrade(user);
-			return userRepository.save(user);
+			updateUser(user.getId(), privateUserDataMigrationService::upgrade);
 		}
 
 		return user;
@@ -224,24 +220,22 @@ public class UserService
 	@Transactional
 	public void setOverwriteUserConfirmationCode(String mobileNumber)
 	{
-		User existingUserEntity = findUserByMobileNumber(mobileNumber);
-		ConfirmationCode confirmationCode = createConfirmationCode();
-		existingUserEntity.setOverwriteUserConfirmationCode(confirmationCode);
-		userRepository.save(existingUserEntity);
-		sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsTemplate.OVERWRITE_USER_CONFIRMATION);
-		logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code",
-				existingUserEntity.getMobileNumber(), existingUserEntity.getId());
+		updateUser(findUserByMobileNumber(mobileNumber).getId(), existingUserEntity -> {
+			ConfirmationCode confirmationCode = createConfirmationCode();
+			existingUserEntity.setOverwriteUserConfirmationCode(confirmationCode);
+			sendConfirmationCodeTextMessage(mobileNumber, confirmationCode, SmsTemplate.OVERWRITE_USER_CONFIRMATION);
+			logger.info("User with mobile number '{}' and ID '{}' requested an account overwrite confirmation code",
+					existingUserEntity.getMobileNumber(), existingUserEntity.getId());
+		});
 	}
 
-	@Transactional
+	@Transactional(dontRollbackOn = UserOverwriteConfirmationException.class)
 	public UserDto addUser(UserDto user, Optional<String> overwriteUserConfirmationCode)
 	{
 		assert user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1;
 		assertValidUserFields(user, UserPurpose.USER);
 
-		// use a separate transaction because in the top transaction we insert a user with the same unique key
-		transactionHelper.executeInNewTransaction(
-				() -> handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode));
+		handleExistingUserForMobileNumber(user.getMobileNumber(), overwriteUserConfirmationCode);
 
 		User userEntity = createUserEntity(user, UserSignUp.FREE);
 		addDevicesToEntity(user, userEntity);
@@ -406,60 +400,61 @@ public class UserService
 		// because the anonymized data cannot be retrieved
 		// (the relation is encrypted, the password is not available)
 		userRepository.delete(existingUserEntity);
+		userRepository.flush(); // So we can insert another one
 		logger.info("User with mobile number '{}' and ID '{}' removed, to overwrite the account",
 				existingUserEntity.getMobileNumber(), existingUserEntity.getId());
 	}
 
-	@Transactional
+	@Transactional(dontRollbackOn = MobileNumberConfirmationException.class)
 	public UserDto confirmMobileNumber(UUID userId, String userProvidedConfirmationCode)
 	{
-		User userEntity = getUserEntityById(userId);
-		ConfirmationCode confirmationCode = userEntity.getMobileNumberConfirmationCode();
+		User updatedUserEntity = updateUser(userId, userEntity -> {
+			ConfirmationCode confirmationCode = userEntity.getMobileNumberConfirmationCode();
 
-		assertValidConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
-				() -> MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()),
-				r -> MobileNumberConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
-						userProvidedConfirmationCode, r),
-				() -> MobileNumberConfirmationException.tooManyAttempts(userEntity.getMobileNumber()));
+			assertValidConfirmationCode(userEntity, confirmationCode, userProvidedConfirmationCode,
+					() -> MobileNumberConfirmationException.confirmationCodeNotSet(userEntity.getMobileNumber()),
+					r -> MobileNumberConfirmationException.confirmationCodeMismatch(userEntity.getMobileNumber(),
+							userProvidedConfirmationCode, r),
+					() -> MobileNumberConfirmationException.tooManyAttempts(userEntity.getMobileNumber()));
 
-		if (userEntity.isMobileNumberConfirmed())
-		{
-			throw MobileNumberConfirmationException.mobileNumberAlreadyConfirmed(userEntity.getMobileNumber());
-		}
+			if (userEntity.isMobileNumberConfirmed())
+			{
+				throw MobileNumberConfirmationException.mobileNumberAlreadyConfirmed(userEntity.getMobileNumber());
+			}
 
-		userEntity.setMobileNumberConfirmationCode(null);
-		userEntity.markMobileNumberConfirmed();
-		userRepository.save(userEntity);
+			userEntity.setMobileNumberConfirmationCode(null);
+			userEntity.markMobileNumberConfirmed();
 
-		logger.info("User with mobile number '{}' and ID '{}' successfully confirmed their mobile number",
-				userEntity.getMobileNumber(), userEntity.getId());
-		return createUserDtoWithPrivateData(userEntity);
+			logger.info("User with mobile number '{}' and ID '{}' successfully confirmed their mobile number",
+					userEntity.getMobileNumber(), userEntity.getId());
+		});
+		return createUserDtoWithPrivateData(updatedUserEntity);
 	}
 
 	@Transactional
-	public Object resendMobileNumberConfirmationCode(UUID userId)
+	public void resendMobileNumberConfirmationCode(UUID userId)
 	{
-		User userEntity = getUserEntityById(userId);
-		logger.info("User with mobile number '{}' and ID '{}' requests to resend the mobile number confirmation code",
-				userEntity.getMobileNumber(), userEntity.getId());
-		ConfirmationCode confirmationCode = createConfirmationCode();
-		userEntity.setMobileNumberConfirmationCode(confirmationCode);
-		userRepository.save(userEntity);
-		sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode, SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
-		return null;
+		updateUser(userId, userEntity -> {
+			logger.info("User with mobile number '{}' and ID '{}' requests to resend the mobile number confirmation code",
+					userEntity.getMobileNumber(), userEntity.getId());
+			ConfirmationCode confirmationCode = createConfirmationCode();
+			userEntity.setMobileNumberConfirmationCode(confirmationCode);
+			sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode,
+					SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
+		});
 	}
 
 	@Transactional
 	public void postOpenAppEvent(UUID userId)
 	{
-		User userEntity = getUserEntityById(userId);
-		LocalDate now = TimeUtil.utcNow().toLocalDate();
-		Optional<LocalDate> appLastOpenedDate = userEntity.getAppLastOpenedDate();
-		if (!appLastOpenedDate.isPresent() || appLastOpenedDate.get().isBefore(now))
-		{
-			userEntity.setAppLastOpenedDate(now);
-			userRepository.save(userEntity);
-		}
+		updateUser(userId, userEntity -> {
+			LocalDate now = TimeUtil.utcNow().toLocalDate();
+			Optional<LocalDate> appLastOpenedDate = userEntity.getAppLastOpenedDate();
+			if (!appLastOpenedDate.isPresent() || appLastOpenedDate.get().isBefore(now))
+			{
+				userEntity.setAppLastOpenedDate(now);
+			}
+		});
 	}
 
 	@Transactional
@@ -479,45 +474,63 @@ public class UserService
 	@Transactional
 	public UserDto updateUser(UUID id, UserDto user)
 	{
-		User originalUserEntity = getUserEntityById(id);
-		UserDto originalUser = createUserDtoWithPrivateData(originalUserEntity);
-		assertValidUpdateRequest(user, originalUser, originalUserEntity);
+		User updatedUserEntity = updateUser(id, userEntity -> {
+			UserDto originalUser = createUserDtoWithPrivateData(userEntity);
+			assertValidUpdateRequest(user, originalUser, userEntity);
 
-		User updatedUserEntity = user.updateUser(originalUserEntity);
-		Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNumberUpdated(user, originalUser,
-				updatedUserEntity);
-		User savedUserEntity = userRepository.save(updatedUserEntity);
-		if (confirmationCode.isPresent())
-		{
-			sendConfirmationCodeTextMessage(updatedUserEntity.getMobileNumber(), confirmationCode.get(),
-					SmsTemplate.CHANGED_USER_NUMBER_CONFIRMATION);
-		}
-		UserDto userDto = createUserDtoWithPrivateData(savedUserEntity);
-		logger.info("Updated user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getId());
-		buddyService.broadcastUserInfoChangeToBuddies(savedUserEntity, originalUser);
-		return userDto;
+			user.updateUser(userEntity);
+			Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNumberUpdated(user, originalUser, userEntity);
+			if (confirmationCode.isPresent())
+			{
+				sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode.get(),
+						SmsTemplate.CHANGED_USER_NUMBER_CONFIRMATION);
+			}
+			UserDto userDto = createUserDtoWithPrivateData(userEntity);
+			logger.info("Updated user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(), userDto.getId());
+			buddyService.broadcastUserInfoChangeToBuddies(userEntity, originalUser);
+		});
+		return createUserDtoWithPrivateData(updatedUserEntity);
+	}
+
+	/**
+	 * Performs the given update action on the user with the specified ID, while holding a write-lock on the user. After the
+	 * update, the entity is saved to the repository.<br/>
+	 * We are using pessimistic locking because we generally do not have update concurrency, except when performing migration
+	 * steps. Migration steps are executed during GET-requests and GET-requests can come concurrently. Optimistic locking wouldn't
+	 * be an option here as that would cause the GETs to fail rather than to wait for the other one to complete.
+	 * 
+	 * @param id The ID of the user to update
+	 * @param updateAction The update action to perform
+	 * @return The updated and saved user
+	 */
+	@Transactional
+	public User updateUser(UUID id, Consumer<User> updateAction)
+	{
+		User user = getUserEntityByIdWithUpdateLock(id);
+		updateAction.accept(user);
+		return userRepository.save(user);
 	}
 
 	@Transactional
 	public UserDto updateUserPhoto(UUID id, Optional<UUID> userPhotoId)
 	{
-		User userEntity = getUserEntityById(id);
-		UserDto originalUser = createUserDtoWithPrivateData(userEntity);
-		userEntity.setUserPhotoId(userPhotoId);
-		User savedUserEntity = userRepository.save(userEntity);
-		UserDto userDto = createUserDtoWithPrivateData(savedUserEntity);
-		if (userPhotoId.isPresent())
-		{
-			logger.info("Updated user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
-					userDto.getId());
-		}
-		else
-		{
-			logger.info("Deleted user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
-					userDto.getId());
-		}
-		buddyService.broadcastUserInfoChangeToBuddies(savedUserEntity, originalUser);
-		return userDto;
+		User updatedUserEntity = updateUser(id, userEntity -> {
+			UserDto originalUser = createUserDtoWithPrivateData(userEntity);
+			userEntity.setUserPhotoId(userPhotoId);
+			UserDto userDto = createUserDtoWithPrivateData(userEntity);
+			if (userPhotoId.isPresent())
+			{
+				logger.info("Updated user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
+						userDto.getId());
+			}
+			else
+			{
+				logger.info("Deleted user photo for user with mobile number '{}' and ID '{}'", userDto.getMobileNumber(),
+						userDto.getId());
+			}
+			buddyService.broadcastUserInfoChangeToBuddies(userEntity, originalUser);
+		});
+		return createUserDtoWithPrivateData(updatedUserEntity);
 	}
 
 	private void assertValidUpdateRequest(UserDto user, UserDto originalUser, User originalUserEntity)
@@ -593,7 +606,7 @@ public class UserService
 	@Transactional
 	public void deleteUser(UUID id, Optional<String> message)
 	{
-		User userEntity = getUserEntityById(id);
+		User userEntity = getUserEntityByIdWithUpdateLock(id);
 		buddyService.processPossiblePendingBuddyResponseMessages(userEntity);
 
 		handleBuddyUsersRemovedWhileOffline(userEntity);
@@ -680,16 +693,16 @@ public class UserService
 			throw InvalidDataException.emptyBuddyId();
 		}
 
-		User userEntity = getUserEntityById(user.getId());
-		userEntity.assertMobileNumberConfirmed();
+		updateUser(user.getId(), userEntity -> {
+			assertValidatedUser(userEntity);
 
-		Buddy buddyEntity = buddyRepository.findOne(buddy.getId());
-		userEntity.addBuddy(buddyEntity);
-		userRepository.save(userEntity);
+			Buddy buddyEntity = buddyRepository.findOne(buddy.getId());
+			userEntity.addBuddy(buddyEntity);
 
-		UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
-		userAnonymizedEntity.addBuddyAnonymized(buddyEntity.getBuddyAnonymized());
-		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+			UserAnonymized userAnonymizedEntity = userEntity.getAnonymized();
+			userAnonymizedEntity.addBuddyAnonymized(buddyEntity.getBuddyAnonymized());
+			userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
+		});
 	}
 
 	public String generatePassword()
@@ -714,7 +727,7 @@ public class UserService
 
 	/**
 	 * This method returns a user entity. The passed on Id is checked whether or not it is set. it also checks that the return
-	 * value is always the user entity. If not an exception is thrown.
+	 * value is always the user entity. If not an exception is thrown. The entity is fetched without lock.
 	 * 
 	 * @param id the ID of the user
 	 * @return The user entity (never null)
@@ -722,12 +735,42 @@ public class UserService
 	@Transactional
 	public User getUserEntityById(UUID id)
 	{
+		return getUserEntityById(id, LockModeType.NONE);
+	}
+
+	/**
+	 * This method returns a user entity. The passed on Id is checked whether or not it is set. it also checks that the return
+	 * value is always the user entity. If not an exception is thrown. A pessimistic database write lock is claimed when fetching
+	 * the entity.
+	 * 
+	 * @param id the ID of the user
+	 * @return The user entity (never null)
+	 */
+	@Transactional
+	public User getUserEntityByIdWithUpdateLock(UUID id)
+	{
+		return getUserEntityById(id, LockModeType.PESSIMISTIC_WRITE);
+	}
+
+	private User getUserEntityById(UUID id, LockModeType lockModeType)
+	{
 		if (id == null)
 		{
 			throw InvalidDataException.emptyUserId();
 		}
 
-		User entity = userRepository.findOne(id);
+		User entity;
+		switch (lockModeType)
+		{
+			case NONE:
+				entity = userRepository.findOne(id);
+				break;
+			case PESSIMISTIC_WRITE:
+				entity = userRepository.findOneForUpdate(id);
+				break;
+			default:
+				throw new IllegalArgumentException("Lock mode type " + lockModeType + " is unsupported");
+		}
 
 		if (entity == null)
 		{
@@ -751,9 +794,14 @@ public class UserService
 	public User getValidatedUserById(UUID id)
 	{
 		User retVal = getUserEntityById(id);
-		retVal.assertMobileNumberConfirmed();
+		assertValidatedUser(retVal);
 
 		return retVal;
+	}
+
+	public void assertValidatedUser(User user)
+	{
+		user.assertMobileNumberConfirmed();
 	}
 
 	private ConfirmationCode createConfirmationCode()
@@ -806,27 +854,25 @@ public class UserService
 
 	public void registerFailedAttempt(User userEntity, ConfirmationCode confirmationCode)
 	{
-		transactionHelper.executeInNewTransaction(() -> {
-			confirmationCode.incrementAttempts();
-			userRepository.save(userEntity);
-		});
+		updateUser(userEntity.getId(), u -> confirmationCode.incrementAttempts());
 	}
 
 	private User saveUserEncryptedDataWithNewPassword(EncryptedUserData retrievedEntitySet, UserDto user)
 	{
-		assert user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1;
-		// touch and save all user related data containing encryption
-		// see architecture overview for which classes contain encrypted data
-		// (this could also be achieved with very complex reflection)
-		retrievedEntitySet.userEntity.getBuddies().forEach(buddy -> buddyRepository.save(buddy.touch()));
-		messageSourceRepository.save(retrievedEntitySet.namedMessageSource.touch());
-		messageSourceRepository.save(retrievedEntitySet.anonymousMessageSource.touch());
-		user.updateUser(retrievedEntitySet.userEntity);
-		retrievedEntitySet.userEntity.unsetIsCreatedOnBuddyRequest();
-		retrievedEntitySet.userEntity.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
-		addDevicesToEntity(user, retrievedEntitySet.userEntity);
-		retrievedEntitySet.userEntity.touch();
-		return userRepository.save(retrievedEntitySet.userEntity);
+		return updateUser(retrievedEntitySet.userEntity.getId(), userEntity -> {
+			assert user.getPrivateData().getDevices().orElse(Collections.emptySet()).size() == 1;
+			// touch and save all user related data containing encryption
+			// see architecture overview for which classes contain encrypted data
+			// (this could also be achieved with very complex reflection)
+			userEntity.getBuddies().forEach(buddy -> buddyRepository.save(buddy.touch()));
+			messageSourceRepository.save(retrievedEntitySet.namedMessageSource.touch());
+			messageSourceRepository.save(retrievedEntitySet.anonymousMessageSource.touch());
+			user.updateUser(userEntity);
+			userEntity.unsetIsCreatedOnBuddyRequest();
+			userEntity.setAppLastOpenedDate(TimeUtil.utcNow().toLocalDate());
+			addDevicesToEntity(user, userEntity);
+			userEntity.touch();
+		});
 	}
 
 	void assertValidUserFields(UserDto userResource, UserPurpose userPurpose)
