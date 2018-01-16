@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.service;
 
@@ -592,10 +592,10 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		// Assert success
 		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
 				containsInAnyOrder(createdDevices.get(indexToRetain).getName()));
-		device1Activities.forEach(
-				a -> assertThat(a.getDeviceAnonymized(), sameInstance(createdDevices.get(indexToRetain).getDeviceAnonymized())));
-		device2Activities.forEach(
-				a -> assertThat(a.getDeviceAnonymized(), sameInstance(createdDevices.get(indexToRetain).getDeviceAnonymized())));
+		device1Activities.forEach(a -> assertThat(a.getDeviceAnonymized().get(),
+				sameInstance(createdDevices.get(indexToRetain).getDeviceAnonymized())));
+		device2Activities.forEach(a -> assertThat(a.getDeviceAnonymized().get(),
+				sameInstance(createdDevices.get(indexToRetain).getDeviceAnonymized())));
 	}
 
 	private Set<Activity> addActivities(UserDevice deviceEntity, LocalDateTime startTime, ActivityData... activityData)
