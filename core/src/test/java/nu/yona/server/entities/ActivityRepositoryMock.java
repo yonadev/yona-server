@@ -32,6 +32,7 @@ public class ActivityRepositoryMock extends MockCrudRepositoryEntityWithId<Activ
 	public Set<Activity> findByDeviceAnonymized(DeviceAnonymized deviceAnonymized)
 	{
 		return StreamSupport.stream(findAll().spliterator(), false)
-				.filter(a -> a.getDeviceAnonymized().getId() == deviceAnonymized.getId()).collect(Collectors.toSet());
+				.filter(a -> a.getDeviceAnonymized().map(DeviceAnonymized::getId).orElse(null) == deviceAnonymized.getId())
+				.collect(Collectors.toSet());
 	}
 }
