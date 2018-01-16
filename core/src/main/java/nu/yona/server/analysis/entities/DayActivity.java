@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.analysis.entities;
@@ -27,6 +27,7 @@ import javax.persistence.Transient;
 
 import org.hibernate.annotations.BatchSize;
 
+import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.entities.RepositoryProvider;
 import nu.yona.server.goals.entities.Goal;
 import nu.yona.server.subscriptions.entities.UserAnonymized;
@@ -91,7 +92,8 @@ public class DayActivity extends IntervalActivity
 
 	public Activity getLastActivity(UUID deviceAnonymizedId)
 	{
-		return this.activities.stream().filter(a -> a.getDeviceAnonymized().getId().equals(deviceAnonymizedId))
+		return this.activities.stream().filter(
+				a -> a.getDeviceAnonymized().map(DeviceAnonymized::getId).map(id -> id.equals(deviceAnonymizedId)).orElse(false))
 				.max((a, b) -> a.getEndTime().compareTo(b.getEndTime())).orElse(null);
 	}
 
