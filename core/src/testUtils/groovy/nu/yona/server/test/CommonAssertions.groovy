@@ -195,7 +195,7 @@ class CommonAssertions extends Service
 			assert device.keySet() == ["name", "operatingSystem", "registrationTime", "appLastOpenedDate", "vpnConnected", "_links"] as Set
 			assert device._links.keySet() == ["self", "edit"] as Set
 			assert device.name == "First device"
-			assert device.operatingSystem == "UNKNOWN"
+			assert device.operatingSystem == "UNKNOWN" || device.operatingSystem == "ANDROID" // Android is autorecognized on app activity post
 			assertDateTimeFormat(device.registrationTime)
 			assertDateFormat(device.appLastOpenedDate)
 			assert device.vpnConnected == true || device.vpnConnected == false

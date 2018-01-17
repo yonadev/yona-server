@@ -100,4 +100,11 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 	{
 		return userAnonymizedId;
 	}
+
+	@JsonIgnore
+	public Set<UserDeviceDto> getOwnDevices()
+	{
+		return getDevices().orElseThrow(() -> new IllegalStateException("User must have devices")).stream()
+				.map(UserDeviceDto.class::cast).collect(Collectors.toSet());
+	}
 }

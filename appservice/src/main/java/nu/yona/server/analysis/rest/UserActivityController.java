@@ -169,7 +169,7 @@ public class UserActivityController extends ActivityControllerBase
 
 	private Map<UUID, String> buildDeviceAnonymizedIdToDeviceNameMap(UUID userId)
 	{
-		return userService.getPrivateUser(userId).getOwnPrivateData().getDevices().get().stream().map(UserDeviceDto.class::cast)
+		return userService.getPrivateUser(userId).getOwnPrivateData().getOwnDevices().stream()
 				.collect(Collectors.toMap(UserDeviceDto::getDeviceAnonymizedId, UserDeviceDto::getName));
 	}
 
