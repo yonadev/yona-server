@@ -81,6 +81,9 @@ public class PrivateUserDataMigrationServiceIntegrationTest extends BaseSpringIn
 	@MockBean
 	private MessageSourceRepository mockMessageSourceRepository;
 
+	@MockBean
+	private UserAnonymizedService mockUserAnonymizedService;
+
 	@Autowired
 	private PrivateUserDataMigrationService service;
 

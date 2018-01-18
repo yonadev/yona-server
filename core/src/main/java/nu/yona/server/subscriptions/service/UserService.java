@@ -508,6 +508,12 @@ public class UserService
 	{
 		User user = getUserEntityByIdWithUpdateLock(id);
 		updateAction.accept(user);
+		if (user.canAccessPrivateData())
+		{
+			// The private data is accessible and might be updated, including the UserAnonymized
+			// Let the UserAnonymizedService save that to the repository and cache it
+			userAnonymizedService.updateUserAnonymized(user.getAnonymized());
+		}
 		return userRepository.save(user);
 	}
 
