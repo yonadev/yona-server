@@ -510,7 +510,9 @@ public class UserService
 		updateAction.accept(user);
 		if (user.canAccessPrivateData())
 		{
-			userAnonymizedService.updateUserAnonymized(user.getAnonymized()); // Save and update cache
+			// The private data is accessible and might be updated
+			// Let the UserAnonymizedService save it to the repository and cache it
+			userAnonymizedService.updateUserAnonymized(user.getAnonymized());
 		}
 		return userRepository.save(user);
 	}
