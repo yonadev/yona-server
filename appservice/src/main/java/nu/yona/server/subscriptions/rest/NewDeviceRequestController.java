@@ -66,9 +66,12 @@ public class NewDeviceRequestController extends ControllerBase
 		{
 			userService.assertValidMobileNumber(mobileNumber);
 			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
-			checkPassword(Optional.of(password), userId);
-			newDeviceRequestService.setNewDeviceRequestForUser(userId, password,
-					newDeviceRequestCreation.getNewDeviceRequestPassword());
+			try (CryptoSession cryptoSession = CryptoSession.start(Optional.of(password),
+					() -> userService.canAccessPrivateData(userId)))
+			{
+				newDeviceRequestService.setNewDeviceRequestForUser(userId, password,
+						newDeviceRequestCreation.getNewDeviceRequestPassword());
+			}
 		}
 		catch (UserServiceException e)
 		{
@@ -110,22 +113,16 @@ public class NewDeviceRequestController extends ControllerBase
 		{
 			userService.assertValidMobileNumber(mobileNumber);
 			UUID userId = userService.getUserByMobileNumber(mobileNumber).getId();
-			checkPassword(password, userId);
-			newDeviceRequestService.clearNewDeviceRequestForUser(userId);
+			try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+			{
+				newDeviceRequestService.clearNewDeviceRequestForUser(userId);
+			}
 		}
 		catch (UserServiceException e)
 		{
 			// prevent detecting whether a mobile number exists by throwing the same exception
 			logger.error("Caught UserServiceException. Mapping it to CryptoException", e);
 			throw CryptoException.decryptingData();
-		}
-	}
-
-	private void checkPassword(Optional<String> password, UUID userId)
-	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
-		{
-			// Nothing to do here. The check is done in the above statement.
 		}
 	}
 

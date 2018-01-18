@@ -271,6 +271,10 @@ public class User extends EntityWithUuid
 
 	public boolean canAccessPrivateData()
 	{
+		if (!CryptoSession.isActive())
+		{
+			return false;
+		}
 		return getUserPrivate().isDecryptedProperly();
 	}
 
