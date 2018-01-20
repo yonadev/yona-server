@@ -118,6 +118,11 @@ public class CryptoSession implements AutoCloseable
 		return new CryptoSession(secretKey, threadLocal.get());
 	}
 
+	public static boolean isActive()
+	{
+		return threadLocal.get() != null;
+	}
+
 	public static CryptoSession getCurrent()
 	{
 		CryptoSession cryptoSession = threadLocal.get();
