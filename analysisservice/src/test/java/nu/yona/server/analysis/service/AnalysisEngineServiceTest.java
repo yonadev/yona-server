@@ -69,6 +69,7 @@ import nu.yona.server.crypto.pubkey.PublicKeyUtil;
 import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.entities.DeviceAnonymizedRepository;
+import nu.yona.server.device.service.DeviceAnonymizedDto;
 import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.goals.entities.ActivityCategory;
 import nu.yona.server.goals.entities.BudgetGoal;
@@ -142,8 +143,11 @@ public class AnalysisEngineServiceTest
 	private UUID deviceAnonId;
 	private DeviceAnonymized deviceAnonEntity;
 	private UserAnonymized userAnonEntity;
+	private UserAnonymizedDto userAnonDto;
 
 	private ZoneId userAnonZoneId;
+
+	private DeviceAnonymizedDto deviceAnonDto;
 
 	@Before
 	public void setUp()
@@ -207,17 +211,18 @@ public class AnalysisEngineServiceTest
 		MessageDestination anonMessageDestinationEntity = MessageDestination
 				.createInstance(PublicKeyUtil.generateKeyPair().getPublic());
 		Set<Goal> goals = new HashSet<>(Arrays.asList(gamblingGoal, gamingGoal, socialGoal, shoppingGoal));
-		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.ANDROID, "Unknown");
+		deviceAnonEntity = DeviceAnonymized.createInstance(0, OperatingSystem.IOS, "Unknown");
 		deviceAnonId = deviceAnonEntity.getId();
 		userAnonEntity = UserAnonymized.createInstance(anonMessageDestinationEntity, goals);
 		userAnonEntity.addDeviceAnonymized(deviceAnonEntity);
-		UserAnonymizedDto userAnon = UserAnonymizedDto.createInstance(userAnonEntity);
-		anonMessageDestination = userAnon.getAnonymousDestination();
-		userAnonId = userAnon.getId();
-		userAnonZoneId = userAnon.getTimeZone();
+		userAnonDto = UserAnonymizedDto.createInstance(userAnonEntity);
+		deviceAnonDto = DeviceAnonymizedDto.createInstance(deviceAnonEntity);
+		anonMessageDestination = userAnonDto.getAnonymousDestination();
+		userAnonId = userAnonDto.getId();
+		userAnonZoneId = userAnonDto.getTimeZone();
 
 		// Stub the UserAnonymizedService to return our user.
-		when(mockUserAnonymizedService.getUserAnonymized(userAnonId)).thenReturn(userAnon);
+		when(mockUserAnonymizedService.getUserAnonymized(userAnonId)).thenReturn(userAnonDto);
 		when(mockUserAnonymizedService.getUserAnonymizedEntity(userAnonId)).thenReturn(userAnonEntity);
 
 		// Stub the GoalService to return our goals.
@@ -255,7 +260,8 @@ public class AnalysisEngineServiceTest
 				});
 
 		// Mock device service and repo
-		when(mockDeviceService.getDeviceAnonymizedId(userAnon, -1)).thenReturn(deviceAnonId);
+		when(mockDeviceService.getDeviceAnonymized(userAnonDto, -1)).thenReturn(deviceAnonDto);
+		when(mockDeviceService.getDeviceAnonymized(userAnonDto, deviceAnonId)).thenReturn(deviceAnonDto);
 		when(mockDeviceAnonymizedRepository.getOne(deviceAnonId)).thenReturn(deviceAnonEntity);
 
 		// Set up the repository mocks

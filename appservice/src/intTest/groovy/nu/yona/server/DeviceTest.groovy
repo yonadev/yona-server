@@ -1,14 +1,15 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server
 
-import groovy.json.*
-import nu.yona.server.test.AppService
 import static nu.yona.server.test.CommonAssertions.*
+
+import groovy.json.*
+import nu.yona.server.test.AppActivity
 import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.User
 
@@ -47,6 +48,25 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		johnAfterNumberConfirmation.devices.size == 1
 		johnAfterNumberConfirmation.devices[0].name == "My iPhone X"
 		johnAfterNumberConfirmation.devices[0].operatingSystem == "IOS"
+
+		cleanup:
+		appService.deleteUser(johnAsCreated)
+	}
+
+	def 'Create John Doe without a device'()
+	{
+		given:
+		def ts = timestamp
+
+		when:
+		def johnAsCreated = createJohnDoe(ts)
+
+		then:
+		def johnAfterNumberConfirmation = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, johnAsCreated)
+
+		johnAfterNumberConfirmation.devices.size == 1
+		johnAfterNumberConfirmation.devices[0].name == "First device"
+		johnAfterNumberConfirmation.devices[0].operatingSystem == "UNKNOWN"
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)
@@ -122,6 +142,31 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		assert johnAsCreated == null // Creation failed
 	}
 
+	def 'John\'s device is autoregistered as Android upon reporting app activity'()
+	{
+		given:
+		def ts = timestamp
+		def john = createJohnDoe(ts)
+		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
+		assert john.devices.size == 1
+		assert john.devices[0].name == "First device"
+		assert john.devices[0].operatingSystem == "UNKNOWN"
+
+		when:
+		def response = appService.postAppActivityToAnalysisEngine(john, AppActivity.singleActivity("Poker App", YonaServer.now.minusHours(1), YonaServer.now))
+
+		then:
+		assertResponseStatusOk(response)
+
+		def johnAfterAppActivity = appService.reloadUser(john, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+		johnAfterAppActivity.devices.size == 1
+		johnAfterAppActivity.devices[0].name == "First device"
+		johnAfterAppActivity.devices[0].operatingSystem == "ANDROID"
+
+		cleanup:
+		appService.deleteUser(john)
+	}
+
 	def 'Try to create John Doe with device name that contains a colon'()
 	{
 		given:
@@ -143,5 +188,11 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 	{
 		appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "John", "Doe", "JD",
 				makeMobileNumber(ts), deviceName, deviceOperatingSystem)
+	}
+
+	private User createJohnDoe(ts)
+	{
+		appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "John", "Doe", "JD",
+				makeMobileNumber(ts))
 	}
 }

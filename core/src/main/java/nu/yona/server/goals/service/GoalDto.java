@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2016, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.goals.service;
 
@@ -59,6 +59,30 @@ public abstract class GoalDto extends PolymorphicDto implements Serializable
 	protected GoalDto(Optional<LocalDateTime> creationTime)
 	{
 		this(null, creationTime, Optional.empty(), null, false /* ignored */);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return id.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (getClass() != obj.getClass())
+			return false;
+		GoalDto other = (GoalDto) obj;
+		if (id == null)
+		{
+			if (other.id != null)
+				return false;
+		}
+		else if (!id.equals(other.id))
+			return false;
+		return true;
 	}
 
 	public abstract void validate();
