@@ -1546,7 +1546,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richardDefault)
 	}
 
-	def 'Richard\'s network activity is measured on iOS only'(def operatingSystem, def expectedValue)
+	def 'Richard\'s \'non-no-go\' network activity is measured on iOS only'(def operatingSystem, def expectedValue)
 	{
 		given:
 		User richard = addRichard(false, operatingSystem)

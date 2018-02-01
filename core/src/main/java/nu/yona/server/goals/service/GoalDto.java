@@ -64,25 +64,37 @@ public abstract class GoalDto extends PolymorphicDto implements Serializable
 	@Override
 	public int hashCode()
 	{
-		return id.hashCode();
+		return (id == null) ? super.hashCode() : id.hashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj)
 	{
 		if (this == obj)
-			return true;
-		if (getClass() != obj.getClass())
-			return false;
-		GoalDto other = (GoalDto) obj;
-		if (id == null)
 		{
-			if (other.id != null)
-				return false;
+			return true;
 		}
-		else if (!id.equals(other.id))
+		if (getClass() != obj.getClass())
+		{
 			return false;
-		return true;
+		}
+		GoalDto that = (GoalDto) obj;
+		if (this.id == that.id)
+		{
+			return true;
+		}
+		if (this.id == null)
+		{
+			// that.id isn't null, see previous if
+			return false;
+		}
+		return this.id.equals(that.id);
+	}
+
+	@Override
+	public String toString()
+	{
+		return this.getClass().getSimpleName() + " with ID " + id + " for activity category " + activityCategoryId;
 	}
 
 	public abstract void validate();

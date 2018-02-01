@@ -122,40 +122,37 @@ public class AnalysisEngineService_determineRelevantGoalsTest
 	}
 
 	@Test
-	public void determineRelevantGoals_appActategoryNotUserGoal_emptySet()
+	public void determineRelevantGoals_appActivityNotAUserGoal_emptySet()
 	{
 		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(makeAppPayload(), makeCategorySet(newsGoal));
 		assertThat(relevantGoals, empty());
 	}
 
 	@Test
-	public void determineRelevantGoals_appActOneUserGoal_userGoal()
+	public void determineRelevantGoals_appActivityOneUserGoal_userGoal()
 	{
 		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(makeAppPayload(), makeCategorySet(socialGoal));
 		assertThat(relevantGoals, containsInAnyOrder(GoalDto.createInstance(socialGoal)));
-		assertNoHistoryItems(relevantGoals);
 	}
 
 	@Test
-	public void determineRelevantGoals_appActTwoUserGoals_bothUserGoals()
+	public void determineRelevantGoals_appActivityTwoUserGoals_bothUserGoals()
 	{
 		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(makeAppPayload(),
 				makeCategorySet(socialGoal, gamblingGoal));
 		assertThat(relevantGoals, containsInAnyOrder(GoalDto.createInstance(socialGoal), GoalDto.createInstance(gamblingGoal)));
-		assertNoHistoryItems(relevantGoals);
 	}
 
 	@Test
-	public void determineRelevantGoals_appActTwoGoalsOneUserGoal_userGoal()
+	public void determineRelevantGoals_appActivityTwoGoalsOneUserGoal_userGoal()
 	{
 		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(makeAppPayload(),
 				makeCategorySet(newsGoal, gamblingGoal));
 		assertThat(relevantGoals, containsInAnyOrder(GoalDto.createInstance(gamblingGoal)));
-		assertNoHistoryItems(relevantGoals);
 	}
 
 	@Test
-	public void determineRelevantGoals_appActBeforeGoalStart_emptySet()
+	public void determineRelevantGoals_appActivityBeforeGoalStart_emptySet()
 	{
 		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(makeAppPayload(Duration.ofDays(3)),
 				makeCategorySet(socialGoal));
@@ -163,26 +160,26 @@ public class AnalysisEngineService_determineRelevantGoalsTest
 	}
 
 	@Test
-	public void determineRelevantGoals_appActOnGoalWithHistory_oneGoalReturned()
+	public void determineRelevantGoals_appActivityOnGoalWithHistory_oneGoalReturned()
 	{
 		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(makeAppPayload(Duration.ofDays(1)),
 				makeCategorySet(shoppingGoal));
 		assertThat(relevantGoals, containsInAnyOrder(GoalDto.createInstance(shoppingGoal)));
-		assertNoHistoryItems(relevantGoals);
 	}
 
 	@Test
-	public void determineRelevantGoals_netActNoGoOneUserGoal_userGoal()
+	public void determineRelevantGoals_networkActivityOneNoGoUserGoal_userGoal()
 	{
-		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(makeNetPayload(), makeCategorySet(gamingGoal));
+		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(makeNetworkPayload(),
+				makeCategorySet(gamingGoal));
 		assertThat(relevantGoals, containsInAnyOrder(GoalDto.createInstance(gamingGoal)));
-		assertNoHistoryItems(relevantGoals);
 	}
 
 	@Test
-	public void determineRelevantGoals_netActOptionalOneUserGoal_userGoalOnIOs()
+	public void determineRelevantGoals_networkActivityOneOptionalUserGoal_userGoalOnIOs()
 	{
-		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(makeNetPayload(), makeCategorySet(socialGoal));
+		Set<GoalDto> relevantGoals = AnalysisEngineService.determineRelevantGoals(makeNetworkPayload(),
+				makeCategorySet(socialGoal));
 		if (isIOs)
 		{
 			assertThat(relevantGoals, containsInAnyOrder(GoalDto.createInstance(socialGoal)));
@@ -211,21 +208,16 @@ public class AnalysisEngineService_determineRelevantGoalsTest
 		return ActivityPayload.createInstance(userAnonDto, deviceAnonDto, startTime, endTime, "n/a");
 	}
 
-	private ActivityPayload makeNetPayload()
+	private ActivityPayload makeNetworkPayload()
 	{
-		return makeNetPayload(Duration.ofDays(0));
+		return makeNetworkPayload(Duration.ofDays(0));
 	}
 
-	private ActivityPayload makeNetPayload(Duration timeAgo)
+	private ActivityPayload makeNetworkPayload(Duration timeAgo)
 	{
 		ZonedDateTime eventTime = now().minus(timeAgo);
 		NetworkActivityDto networkActivity = new NetworkActivityDto(Collections.singleton("n/a"), "n/a", Optional.of(eventTime));
 		return ActivityPayload.createInstance(userAnonDto, deviceAnonDto, networkActivity);
-	}
-
-	private void assertNoHistoryItems(Set<GoalDto> goals)
-	{
-		assertThat(goals.stream().map(GoalDto::isHistoryItem).collect(Collectors.toSet()), containsInAnyOrder(false));
 	}
 
 	private ZonedDateTime now()
