@@ -118,24 +118,48 @@ pipeline {
 				sh './refresh-build.sh ${BUILD_NUMBER_TO_DEPLOY} $YONA_DB_USR "$YONA_DB_PSW" jdbc:mariadb://yonadbserver:3306/yona /opt/ope-cloudbees/yona/application.properties /opt/ope-cloudbees/yona/resources /opt/ope-cloudbees/yona/backup'
 			}
 		}
-		stage('Decide deploy to beta server') {
+		stage('Decide deploy to beta test server') {
 			agent none
 			when {
 				environment name: 'DEPLOY_TO_ACC_TEST', value: 'yes'
-					 }
+			}
 			steps {
 				checkpoint 'Acceptance test server deployed'
 				script {
 					env.DEPLOY_TO_BETA = input message: 'User input required',
 					submitter: 'authenticated',
-					parameters: [choice(name: 'Deploy to Beta server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the beta server')]
+					parameters: [choice(name: 'Deploy to beta test server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the beta test server')]
 				}
 			}
 		}
-		stage('Deploy to Beta server') {
+		stage('Deploy to beta test server') {
 			agent { label 'beta' }
 			when {
 				environment name: 'DEPLOY_TO_BETA', value: 'yes'
+			}
+			steps {
+				sh 'helm repo add yona https://yonadev.github.io/helm-charts'
+				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
+			}
+		}
+		stage('Decide deploy to production server') {
+			agent none
+			when {
+				environment name: 'DEPLOY_TO_BETA', value: 'yes'
+			}
+			steps {
+				checkpoint 'Beta test server deployed'
+				script {
+					env.DEPLOY_TO_PRD = input message: 'User input required',
+					submitter: 'authenticated',
+					parameters: [choice(name: 'Deploy to production server', choices: 'no\nyes', description: 'Choose "yes" if you want to deploy the production server')]
+				}
+			}
+		}
+		stage('Deploy to production server') {
+			agent { label 'prd' }
+			when {
+				environment name: 'DEPLOY_TO_PRD', value: 'yes'
 			}
 			steps {
 				sh 'helm repo add yona https://yonadev.github.io/helm-charts'
