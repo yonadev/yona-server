@@ -66,12 +66,17 @@ public class DeviceService
 	@Transactional
 	public DeviceBaseDto getDevice(UUID deviceId)
 	{
+		return UserDeviceDto.createInstance(getDeviceEntity(deviceId));
+	}
+
+	private UserDevice getDeviceEntity(UUID deviceId)
+	{
 		UserDevice deviceEntity = userDeviceRepository.findOne(deviceId);
 		if (deviceEntity == null)
 		{
 			throw DeviceServiceException.notFoundById(deviceId);
 		}
-		return UserDeviceDto.createInstance(deviceEntity);
+		return deviceEntity;
 	}
 
 	@Transactional
@@ -166,18 +171,17 @@ public class DeviceService
 	{
 		UserAnonymizedDto userAnonymized = userAnonymizedService
 				.getUserAnonymized(userDto.getOwnPrivateData().getUserAnonymizedId());
-		UUID defaultDeviceAnonymizedId = getDefaultDeviceAnonymizedId(userAnonymized);
-		return userDto.getOwnPrivateData().getDevices().get().stream()
-				.filter(d -> ((UserDeviceDto) d).getDeviceAnonymizedId().equals(defaultDeviceAnonymizedId))
-				.map(DeviceBaseDto::getId).findAny()
+		UUID defaultDeviceAnonymizedId = getDefaultDeviceAnonymized(userAnonymized).getId();
+		return userDto.getOwnPrivateData().getOwnDevices().stream()
+				.filter(d -> d.getDeviceAnonymizedId().equals(defaultDeviceAnonymizedId)).map(DeviceBaseDto::getId).findAny()
 				.orElseThrow(() -> DeviceServiceException.noDevicesFound(userAnonymized.getId()));
 	}
 
-	private UUID getDefaultDeviceAnonymizedId(UserAnonymizedDto userAnonymized)
+	private DeviceAnonymizedDto getDefaultDeviceAnonymized(UserAnonymizedDto userAnonymized)
 	{
 		return userAnonymized.getDevicesAnonymized().stream()
 				.sorted((d1, d2) -> Integer.compare(d1.getDeviceIndex(), d2.getDeviceIndex())).findFirst()
-				.map(DeviceAnonymizedDto::getId).orElseThrow(() -> DeviceServiceException.noDevicesFound(userAnonymized.getId()));
+				.orElseThrow(() -> DeviceServiceException.noDevicesFound(userAnonymized.getId()));
 	}
 
 	public UUID getDeviceAnonymizedId(UserDto userDto, UUID deviceId)
@@ -187,12 +191,17 @@ public class DeviceService
 				.orElseThrow(() -> DeviceServiceException.notFoundById(deviceId));
 	}
 
-	public UUID getDeviceAnonymizedId(UserAnonymizedDto userAnonymized, int deviceIndex)
+	public DeviceAnonymizedDto getDeviceAnonymized(UserAnonymizedDto userAnonymized, int deviceIndex)
 	{
-		return deviceIndex < 0 ? getDefaultDeviceAnonymizedId(userAnonymized)
+		return deviceIndex < 0 ? getDefaultDeviceAnonymized(userAnonymized)
 				: userAnonymized.getDevicesAnonymized().stream().filter(d -> d.getDeviceIndex() == deviceIndex).findAny()
-						.map(DeviceAnonymizedDto::getId)
 						.orElseThrow(() -> DeviceServiceException.notFoundByIndex(userAnonymized.getId(), deviceIndex));
+	}
+
+	public DeviceAnonymizedDto getDeviceAnonymized(UserAnonymizedDto userAnonymized, UUID deviceAnonymizedId)
+	{
+		return userAnonymized.getDevicesAnonymized().stream().filter(d -> d.getId().equals(deviceAnonymizedId)).findAny()
+				.orElseThrow(() -> DeviceServiceException.notFoundByAnonymizedId(userAnonymized.getId(), deviceAnonymizedId));
 	}
 
 	@Transactional
@@ -223,5 +232,15 @@ public class DeviceService
 		Set<Activity> activitiesOnDevice = activityRepository.findByDeviceAnonymized(deviceToBeRemoved.getDeviceAnonymized());
 		activitiesOnDevice.forEach(a -> a.setDeviceAnonymized(requestingDevice.getDeviceAnonymized()));
 		deleteDevice(userEntity, deviceToBeRemoved);
+	}
+
+	@Transactional
+	public void updateOperatingSystem(UUID userId, UUID deviceId, OperatingSystem operatingSystem)
+	{
+		userService.updateUser(userId, userEntity -> {
+			DeviceAnonymized deviceAnonymized = getDeviceEntity(deviceId).getDeviceAnonymized();
+			deviceAnonymized.setOperatingSystem(operatingSystem);
+			deviceAnonymizedRepository.save(deviceAnonymized);
+		});
 	}
 }

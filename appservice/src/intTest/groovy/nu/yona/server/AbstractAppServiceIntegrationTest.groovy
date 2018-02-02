@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -68,32 +68,40 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	@Shared
 	private def fullDay = [ Sun: "SUNDAY", Mon : "MONDAY", Tue : "TUESDAY", Wed : "WEDNESDAY", Thu : "THURSDAY", Fri: "FRIDAY", Sat: "SATURDAY" ]
 
-	User addRichard(boolean reload = true)
+	User addRichard(boolean reload = true, def operatingSystem = "IOS")
 	{
+		def deviceName = makeDeviceName("Richard", operatingSystem)
 		User richard = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Richard", "Quinn", "RQ",
-				makeMobileNumber(timestamp))
+				makeMobileNumber(timestamp), deviceName, operatingSystem)
 		richard = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, richard)
 		def response = appService.addGoal(richard, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assertResponseStatusCreated(response)
 		return reload ? appService.reloadUser(richard) : richard
 	}
 
-	User addBob(boolean reload = true)
+	User addBob(boolean reload = true, def operatingSystem = "IOS")
 	{
+		def deviceName = makeDeviceName("Bob", operatingSystem)
 		User bob = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Bob", "Dunn", "BD",
-				makeMobileNumber(timestamp))
+				makeMobileNumber(timestamp), deviceName, "IOS")
 		bob = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, bob)
 		def response = appService.addGoal(bob, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assertResponseStatusCreated(response)
 		return reload? appService.reloadUser(bob) : bob
 	}
 
-	User addBea(boolean reload = true)
+	User addBea(boolean reload = true, def operatingSystem = "IOS")
 	{
+		def deviceName = makeDeviceName("Bea", operatingSystem)
 		User bea = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Bea", "Dundee", "BDD",
-				makeMobileNumber(timestamp))
+				makeMobileNumber(timestamp), deviceName, "IOS")
 		bea = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, bea)
 		return reload? appService.reloadUser(bea) : bea
+	}
+
+	def makeDeviceName(def userName, def operatingSystem)
+	{
+		(operatingSystem == "IOS") ? "$userName's iPhone" : "$userName's S8"
 	}
 
 	def addRichardAndBobAsBuddies()

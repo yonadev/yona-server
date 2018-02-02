@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.rest;
 
@@ -43,9 +43,11 @@ import nu.yona.server.analysis.service.AnalysisEngineProxyService;
 import nu.yona.server.analysis.service.AppActivityDto;
 import nu.yona.server.analysis.service.AppActivityDto.Activity;
 import nu.yona.server.crypto.seckey.CryptoSession;
+import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.rest.DeviceController.DeviceResource;
 import nu.yona.server.device.service.DeviceBaseDto;
 import nu.yona.server.device.service.DeviceService;
+import nu.yona.server.device.service.DeviceServiceException;
 import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.device.service.UserDeviceDto.DeviceRegistrationRequestDto;
 import nu.yona.server.exceptions.YonaException;
@@ -157,10 +159,31 @@ public class DeviceController extends ControllerBase
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
 			UserDto userDto = userService.getPrivateUser(userId);
+			autoregisterAndroid(userDto, deviceId);
 			UUID userAnonymizedId = userDto.getOwnPrivateData().getUserAnonymizedId();
 			UUID deviceAnonymizedId = deviceService.getDeviceAnonymizedId(userDto, deviceId);
 			analysisEngineProxyService.analyzeAppActivity(userAnonymizedId, deviceAnonymizedId, appActivities);
 			return createOkResponse();
+		}
+	}
+
+	/**
+	 * Autoregisters the given device as running Android. As of today, only the Android app is capable of sending app activities,
+	 * so if the operating system of the requesting device is marked as UNKNOWN, we can improve the registration and mark it as
+	 * ANDROID.
+	 * 
+	 * @param userDto The user sending the app activities
+	 * @param deviceId The ID of the device for which the app activities are being sent
+	 */
+	private void autoregisterAndroid(UserDto userDto, UUID deviceId)
+	{
+		UserDeviceDto device = userDto.getOwnPrivateData().getOwnDevices().stream().filter(d -> d.getId().equals(deviceId))
+				.findAny().orElseThrow(() -> DeviceServiceException.notFoundById(deviceId));
+		if (device.getOperatingSystem() == OperatingSystem.UNKNOWN)
+		{
+			// The device is registered as UNKNOWN, but given that it registers app activities, it's apparently ANDROID, so update
+			// the operating system
+			deviceService.updateOperatingSystem(userDto.getId(), deviceId, OperatingSystem.ANDROID);
 		}
 	}
 

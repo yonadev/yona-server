@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -46,6 +46,12 @@ class CommonAssertions extends Service
 	{
 		assertResponseStatusOk(response)
 		assertUserWithPrivateData(response.responseData, false)
+	}
+
+	static void assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice(def response)
+	{
+		assertResponseStatusSuccess(response)
+		assertUserWithPrivateData(response.responseData, false, false, false)
 	}
 
 	static void assertUserGetResponseDetailsWithPrivateData(def response, assertDefaultDevice = true)
@@ -194,8 +200,8 @@ class CommonAssertions extends Service
 		{
 			assert device.keySet() == ["name", "operatingSystem", "registrationTime", "appLastOpenedDate", "vpnConnected", "_links"] as Set
 			assert device._links.keySet() == ["self", "edit"] as Set
-			assert device.name == "First device"
-			assert device.operatingSystem == "UNKNOWN"
+			assert device.name == "First device" || device.name ==~ /.*'s iPhone/
+			assert device.operatingSystem == "UNKNOWN" || device.operatingSystem == "IOS"
 			assertDateTimeFormat(device.registrationTime)
 			assertDateFormat(device.appLastOpenedDate)
 			assert device.vpnConnected == true || device.vpnConnected == false

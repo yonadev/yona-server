@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -358,14 +358,16 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(bob)
 	}
 
-	def 'Goal conflict of Bob is reported to Richard and Bob'()
+	def 'Goal conflict of Bob (on iOS and Android) is reported to Richard and Bob'(def operatingSystem)
 	{
 		given:
-		def richardAndBob = addRichardAndBobAsBuddies()
-		User richard = richardAndBob.richard
-		User bob = richardAndBob.bob
+		User richard = addRichard(false)
+		User bob = addBob(false, operatingSystem)
+		bob.emailAddress = "bob@dunn.com"
+		appService.makeBuddies(richard, bob)
 		richard = appService.reloadUser(richard)
-		bob = appService.reloadUser(bob)
+		bob = appService.reloadUser(bob, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+
 		Goal goalBob = bob.findActiveGoal(GAMBLING_ACT_CAT_URL)
 		Goal goalBuddyBob = richard.buddies[0].findActiveGoal(GAMBLING_ACT_CAT_URL)
 		ZonedDateTime goalConflictTime = YonaServer.now
@@ -407,6 +409,11 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
+
+		where:
+		operatingSystem | _
+		"ANDROID" | _
+		"IOS" | _
 	}
 
 	def 'Goal conflict of Richard with an 2k long URL is reported to Richard and Bob'()

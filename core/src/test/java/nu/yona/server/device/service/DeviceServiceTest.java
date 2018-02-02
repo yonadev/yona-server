@@ -363,7 +363,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void getDeviceAnonymizedId_byIndex_firstDevice_correctDevice()
+	public void getDeviceAnonymized_byIndex_firstDevice_correctDevice()
 	{
 		// Add devices
 		String deviceName1 = "First";
@@ -379,15 +379,15 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
 				containsInAnyOrder(deviceName1, deviceName2));
 
-		// Get the anonymized ID for the first index
-		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardAnonymizedDto(), 0);
+		// Get the anonymized device for the first index
+		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), 0);
 
 		// Assert success
-		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(device1.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getOne(device1.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
-	public void getDeviceAnonymizedId_byIndex_secondDevice_correctDevice()
+	public void getDeviceAnonymized_byIndex_secondDevice_correctDevice()
 	{
 		// Add devices
 		String deviceName1 = "First";
@@ -403,15 +403,15 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
 				containsInAnyOrder(deviceName1, deviceName2));
 
-		// Get the anonymized ID for the second index
-		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardAnonymizedDto(), 1);
+		// Get the anonymized device for the second index
+		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), 1);
 
 		// Assert success
-		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(device2.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getOne(device2.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
-	public void getDeviceAnonymizedId_byIndex_defaultDevice_correctDevice()
+	public void getDeviceAnonymized_byIndex_defaultDevice_correctDevice()
 	{
 		// Add devices
 		String deviceName1 = "First";
@@ -427,15 +427,15 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
 				containsInAnyOrder(deviceName1, deviceName2));
 
-		// Get the anonymized ID for a negative index, implies fall back to default device
-		UUID deviceAnonymizedId = service.getDeviceAnonymizedId(createRichardAnonymizedDto(), -1);
+		// Get the anonymized device for a negative index, implies fall back to default device
+		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), -1);
 
 		// Assert success
-		assertThat(deviceAnonymizedId, equalTo(userDeviceRepository.getOne(device1.getId()).getDeviceAnonymizedId()));
+		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getOne(device1.getId()).getDeviceAnonymizedId()));
 	}
 
 	@Test
-	public void getDeviceAnonymizedId_byIndex_tryGetNonExistingIndex_exception()
+	public void getDeviceAnonymized_byIndex_tryGetNonExistingIndex_exception()
 	{
 		expectedException.expect(DeviceServiceException.class);
 		expectedException.expect(hasMessageId("error.device.not.found.index"));
@@ -455,7 +455,81 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 				containsInAnyOrder(deviceName1, deviceName2));
 
 		// Try to get the anonymized ID for a nonexisting index
-		service.getDeviceAnonymizedId(createRichardAnonymizedDto(), 2);
+		service.getDeviceAnonymized(createRichardAnonymizedDto(), 2);
+	}
+
+	@Test
+	public void getDeviceAnonymized_byId_firstDevice_correctDevice()
+	{
+		// Add devices
+		String deviceName1 = "First";
+		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
+		UserDevice device1 = addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
+		UUID deviceAnonymizedId1 = device1.getDeviceAnonymizedId();
+
+		String deviceName2 = "Second";
+		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
+		addDeviceToRichard(1, deviceName2, operatingSystem2, "Unknown");
+
+		// Verify two devices are present
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
+				containsInAnyOrder(deviceName1, deviceName2));
+
+		// Get the anonymized device for the first ID
+		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), deviceAnonymizedId1);
+
+		// Assert success
+		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getOne(device1.getId()).getDeviceAnonymizedId()));
+	}
+
+	@Test
+	public void getDeviceAnonymized_byId_secondDevice_correctDevice()
+	{
+		// Add devices
+		String deviceName1 = "First";
+		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
+		addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
+
+		String deviceName2 = "Second";
+		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
+		UserDevice device2 = addDeviceToRichard(1, deviceName2, operatingSystem2, "Unknown");
+		UUID deviceAnonymizedId2 = device2.getDeviceAnonymizedId();
+
+		// Verify two devices are present
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
+				containsInAnyOrder(deviceName1, deviceName2));
+
+		// Get the anonymized device for the second ID
+		DeviceAnonymizedDto deviceAnonymized = service.getDeviceAnonymized(createRichardAnonymizedDto(), deviceAnonymizedId2);
+
+		// Assert success
+		assertThat(deviceAnonymized.getId(), equalTo(userDeviceRepository.getOne(device2.getId()).getDeviceAnonymizedId()));
+	}
+
+	@Test
+	public void getDeviceAnonymized_byId_tryGetNonExistingId_exception()
+	{
+		expectedException.expect(DeviceServiceException.class);
+		expectedException.expect(hasMessageId("error.device.not.found.anonymized.id"));
+
+		// Add devices
+		String deviceName1 = "First";
+		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
+		addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
+
+		String deviceName2 = "Second";
+		OperatingSystem operatingSystem2 = OperatingSystem.IOS;
+		addDeviceToRichard(1, deviceName2, operatingSystem2, "Unknown");
+
+		// Verify two devices are present
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.stream().map(UserDevice::getName).collect(Collectors.toSet()),
+				containsInAnyOrder(deviceName1, deviceName2));
+
+		// Try to get the anonymized ID for a nonexisting ID
+		service.getDeviceAnonymized(createRichardAnonymizedDto(), UUID.randomUUID());
 	}
 
 	@Test

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -18,6 +18,7 @@ import java.time.temporal.IsoFields
 import groovy.json.*
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.BudgetGoal
+import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
 import nu.yona.server.test.User
@@ -1426,7 +1427,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 	def 'Richard works on two devices'()
 	{
 		given:
-		def defaultDeviceName = "First device"
+		def defaultDeviceName = "Richard's iPhone"
 		User richardDefault = addRichard()
 		setCreationTimeOfMandatoryGoalsToNow(richardDefault)
 		setGoalCreationTime(richardDefault, NEWS_ACT_CAT_URL, "W-1 Mon 02:18")
@@ -1543,6 +1544,61 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		cleanup:
 		appService.deleteUser(richardDefault)
+	}
+
+	def 'Richard\'s \'non-no-go\' network activity is measured on iOS only'(def operatingSystem, def expectedValue)
+	{
+		given:
+		User richard = addRichard(false, operatingSystem)
+		setCreationTimeOfMandatoryGoalsToNow(richard)
+		addTimeZoneGoal(richard, SOCIAL_ACT_CAT_URL, ["01:00-12:00"], "W-1 Mon 02:18")
+		richard = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+		Goal timeZoneGoalSocialRichard = richard.findActiveGoal(SOCIAL_ACT_CAT_URL)
+
+		// Activities on default device
+		reportNetworkActivity(richard, ["social"], "http://www.facebook.com", "W-1 Mon 03:20")
+
+		def expectedValuesRichardLastWeek = [
+			"Mon" : [[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: expectedValue]]],
+			"Tue" : [[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Wed" : [[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Thu" : [[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Fri" : [[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]],
+			"Sat" : [[goal:timeZoneGoalSocialRichard, data: [goalAccomplished: true, minutesBeyondGoal: 0, spread: [ : ]]]]]
+
+		def currentDayOfWeek = YonaServer.getCurrentDayOfWeek()
+		def expectedTotalDays = 6 + currentDayOfWeek + 1
+		def expectedTotalWeeks = 2
+
+		when:
+		def responseWeekOverviews = appService.getWeekActivityOverviews(richard)
+		//get all days at once (max 2 weeks) to make assertion easy
+		def responseDayOverviewsAll = appService.getDayActivityOverviews(richard, ["size": 14])
+
+		then:
+		assertWeekOverviewBasics(responseWeekOverviews, [3, 1], expectedTotalWeeks)
+		assertWeekDateForCurrentWeek(responseWeekOverviews)
+
+		def weekOverviewLastWeek = responseWeekOverviews.responseData._embedded."yona:weekActivityOverviews"[1]
+
+		assertNumberOfReportedDaysForGoalInWeekOverview(weekOverviewLastWeek, timeZoneGoalSocialRichard, 6)
+
+		assertDayInWeekOverviewForGoal(weekOverviewLastWeek, timeZoneGoalSocialRichard, expectedValuesRichardLastWeek, "Mon")
+
+		assertWeekDetailForGoal(richard, weekOverviewLastWeek, timeZoneGoalSocialRichard, expectedValuesRichardLastWeek)
+
+		assertDayOverviewBasics(responseDayOverviewsAll, expectedTotalDays, expectedTotalDays, 14)
+		assertDayOverviewForTimeZoneGoal(responseDayOverviewsAll, timeZoneGoalSocialRichard, expectedValuesRichardLastWeek, 1, "Mon")
+
+		assertDayDetail(richard, responseDayOverviewsAll, timeZoneGoalSocialRichard, expectedValuesRichardLastWeek, 1, "Mon")
+
+		cleanup:
+		appService.deleteUser(richard)
+
+		where:
+		operatingSystem | expectedValue
+		"ANDROID" | [ : ]
+		"IOS" | [13 : 1]
 	}
 
 	private def getRawActivityData(User user, relativeDate, goal) {
