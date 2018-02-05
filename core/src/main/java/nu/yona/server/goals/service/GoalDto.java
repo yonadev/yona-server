@@ -45,7 +45,7 @@ public abstract class GoalDto extends PolymorphicDto implements Serializable
 	protected GoalDto(UUID id, Optional<LocalDateTime> creationTime, Optional<LocalDateTime> endTime, UUID activityCategoryId,
 			boolean mandatory)
 	{
-		this.id = id;
+		this.id = (id == null) ? new UUID(0, 0) : id;
 		this.setActivityCategoryId(activityCategoryId);
 		this.mandatory = mandatory;
 
@@ -62,32 +62,23 @@ public abstract class GoalDto extends PolymorphicDto implements Serializable
 	}
 
 	@Override
-	public int hashCode()
+	public final int hashCode()
 	{
-		return (id == null) ? super.hashCode() : id.hashCode();
+		return id.hashCode();
 	}
 
 	@Override
-	public boolean equals(Object obj)
+	public final boolean equals(Object obj)
 	{
 		if (this == obj)
 		{
 			return true;
 		}
-		if (getClass() != obj.getClass())
+		if (!(obj instanceof GoalDto))
 		{
 			return false;
 		}
 		GoalDto that = (GoalDto) obj;
-		if (this.id == that.id)
-		{
-			return true;
-		}
-		if (this.id == null)
-		{
-			// that.id isn't null, see previous if
-			return false;
-		}
 		return this.id.equals(that.id);
 	}
 

@@ -46,6 +46,7 @@ dependencies {
 	testCompile "junit:junit:4.12"
 	testCompile "pl.pragmatists:JUnitParams:1.1.0"
 	testCompile "com.spencerwi:hamcrest-jdk8-time:0.7.1"
+	testCompile "nl.jqno.equalsverifier:equalsverifier:2.4.3"
 	testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
 	
 	testUtilsCompile "org.codehaus.groovy:groovy-all:2.4.6"
