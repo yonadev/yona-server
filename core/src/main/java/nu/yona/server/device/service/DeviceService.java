@@ -4,9 +4,11 @@
  *******************************************************************************/
 package nu.yona.server.device.service;
 
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -31,6 +33,7 @@ import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.util.TimeUtil;
 
 @Service
 public class DeviceService
@@ -242,5 +245,27 @@ public class DeviceService
 			deviceAnonymized.setOperatingSystem(operatingSystem);
 			deviceAnonymizedRepository.save(deviceAnonymized);
 		});
+	}
+
+	@Transactional
+	public void postOpenAppEvent(UUID userId, UUID deviceId)
+	{
+		userService.updateUser(userId, userEntity -> {
+			LocalDate now = TimeUtil.utcNow().toLocalDate();
+			UserDevice deviceEntity = getDeviceEntity(deviceId);
+			setAppLastOpenedDateIfNewer(now, userEntity::getAppLastOpenedDate, () -> userEntity.setAppLastOpenedDate(now));
+			setAppLastOpenedDateIfNewer(now, () -> Optional.of(deviceEntity.getAppLastOpenedDate()),
+					() -> deviceEntity.setAppLastOpenedDate(now));
+		});
+	}
+
+	private void setAppLastOpenedDateIfNewer(LocalDate now, Supplier<Optional<LocalDate>> currentDateSupplier,
+			Runnable dateSetter)
+	{
+		Optional<LocalDate> appLastOpenedDate = currentDateSupplier.get();
+		if (!appLastOpenedDate.isPresent() || appLastOpenedDate.get().isBefore(now))
+		{
+			dateSetter.run();
+		}
 	}
 }

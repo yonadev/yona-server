@@ -16,10 +16,12 @@ class Device
 	final String editUrl
 	final String name
 	final String operatingSystem
+	final String appLastOpenedDate
 	Device(def json)
 	{
 		this.name = json.name
 		this.operatingSystem = json.operatingSystem
+		this.appLastOpenedDate = json.appLastOpenedDate
 		this.url = json._links?.self?.href
 		this.editUrl = json._links?.edit?.href
 	}

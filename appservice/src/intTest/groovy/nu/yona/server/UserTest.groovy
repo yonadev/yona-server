@@ -57,7 +57,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 
 		def baseUserUrl = YonaServer.stripQueryString(john.url)
 		// The below asserts check the path fragments. If one of these asserts fails, the Swagger spec needs to be updated too
-		john.postOpenAppEventUrl == baseUserUrl + "/openApp"
+		john.postOpenAppEventUrl == baseUserUrl + "/devices/" + john.getRequestingDeviceId() + "/openApp"
 		john.buddiesUrl == baseUserUrl + "/buddies/"
 		john.goalsUrl == baseUserUrl + "/goals/"
 		john.messagesUrl == baseUserUrl + "/messages/"
@@ -419,6 +419,22 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 	}
+
+	def 'Richard posts empty app opened event'()
+	{
+		given:
+		def richard = addRichard()
+
+		when:
+		def response = appService.createResourceWithPassword(richard.postOpenAppEventUrl, "{}", richard.password)
+
+		then:
+		assertResponseStatusOk(response)
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 
 	private def confirmMobileNumber(User user, code)
 	{

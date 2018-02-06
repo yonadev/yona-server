@@ -136,6 +136,18 @@ public class DeviceController extends ControllerBase
 		}
 	}
 
+	@RequestMapping(value = "/{deviceId}/openApp", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Void> postOpenAppEvent(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userId, @PathVariable UUID deviceId)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			deviceService.postOpenAppEvent(userId, deviceId);
+			return createOkResponse();
+		}
+	}
+
 	/*
 	 * Adds app activity registered by the Yona app. This request is delegated to the analysis engine service.
 	 * @param password User password, validated before adding the activity.
@@ -208,6 +220,20 @@ public class DeviceController extends ControllerBase
 				break;
 			default:
 				throw new IllegalStateException("Unsupported message type: " + messageType);
+		}
+	}
+
+	public static Link getPostOpenAppEventLink(UUID userId, UUID deviceId)
+	{
+		try
+		{
+			ControllerLinkBuilder linkBuilder = linkTo(
+					methodOn(DeviceController.class).postOpenAppEvent(Optional.empty(), userId, deviceId));
+			return linkBuilder.withRel("postOpenAppEvent");
+		}
+		catch (SecurityException e)
+		{
+			throw YonaException.unexpected(e);
 		}
 	}
 

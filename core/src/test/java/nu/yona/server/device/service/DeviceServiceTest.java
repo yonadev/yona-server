@@ -16,6 +16,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
@@ -586,7 +587,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		expectedException.expect(DeviceServiceException.class);
 		expectedException.expect(hasMessageId("error.device.not.found.id"));
 
-		// Add device2
+		// Add devices
 		String deviceName1 = "First";
 		OperatingSystem operatingSystem1 = OperatingSystem.ANDROID;
 		addDeviceToRichard(0, deviceName1, operatingSystem1, "Unknown");
@@ -604,6 +605,35 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		// Try to get the anonymized ID for a nonexisting device ID
 		service.getDeviceAnonymizedId(createRichardUserDto(), notAddedDevice.getId());
+	}
+
+	@Test
+	public void postOpenAppEvent_appLastOpenedDateOnEarlierDay_appLastOpenedDateUpdated()
+	{
+		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID, "Unknown");
+		LocalDate originalDate = TimeUtil.utcNow().toLocalDate().minusDays(1);
+		richard.setAppLastOpenedDate(originalDate);
+		device.setAppLastOpenedDate(originalDate);
+
+		service.postOpenAppEvent(richard.getId(), device.getId());
+
+		assertThat(richard.getAppLastOpenedDate().get(), equalTo(TimeUtil.utcNow().toLocalDate()));
+		assertThat(device.getAppLastOpenedDate(), equalTo(TimeUtil.utcNow().toLocalDate()));
+		verify(userRepository, times(1)).save(any(User.class));
+	}
+
+	@Test
+	public void postOpenAppEvent_appLastOpenedDateOnSameDay_notUpdated()
+	{
+		UserDevice device = addDeviceToRichard(0, "First", OperatingSystem.ANDROID, "Unknown");
+		LocalDate originalDate = TimeUtil.utcNow().toLocalDate();
+		richard.setAppLastOpenedDate(originalDate);
+		device.setAppLastOpenedDate(originalDate);
+
+		service.postOpenAppEvent(richard.getId(), device.getId());
+
+		assertThat(richard.getAppLastOpenedDate().get(), sameInstance(originalDate));
+		assertThat(device.getAppLastOpenedDate(), sameInstance(originalDate));
 	}
 
 	@Test

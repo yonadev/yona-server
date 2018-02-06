@@ -29,6 +29,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		johnAfterNumberConfirmation.devices.size == 1
 		johnAfterNumberConfirmation.devices[0].name == "My S8"
 		johnAfterNumberConfirmation.devices[0].operatingSystem == "ANDROID"
+		assertEquals(johnAfterNumberConfirmation.devices[0].appLastOpenedDate, YonaServer.now.toLocalDate())
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)
@@ -48,6 +49,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		johnAfterNumberConfirmation.devices.size == 1
 		johnAfterNumberConfirmation.devices[0].name == "My iPhone X"
 		johnAfterNumberConfirmation.devices[0].operatingSystem == "IOS"
+		assertEquals(johnAfterNumberConfirmation.devices[0].appLastOpenedDate, YonaServer.now.toLocalDate())
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)
@@ -67,6 +69,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		johnAfterNumberConfirmation.devices.size == 1
 		johnAfterNumberConfirmation.devices[0].name == "First device"
 		johnAfterNumberConfirmation.devices[0].operatingSystem == "UNKNOWN"
+		assertEquals(johnAfterNumberConfirmation.devices[0].appLastOpenedDate, YonaServer.now.toLocalDate())
 
 		cleanup:
 		appService.deleteUser(johnAsCreated)
