@@ -24,7 +24,7 @@ import nu.yona.server.analysis.entities.DayActivity;
 @CacheConfig(cacheManager = "localCache", cacheNames = "lastActivity")
 public class ActivityCacheService
 {
-	@Cacheable(key = "{#userAnonymizedId,#goalId}")
+	@Cacheable(key = "{#userAnonymizedId,#deviceAnonymizedId,#goalId}")
 	@Transactional
 	public ActivityDto fetchLastActivityForUser(UUID userAnonymizedId, UUID deviceAnonymizedId, UUID goalId)
 	{
@@ -39,7 +39,7 @@ public class ActivityCacheService
 		return lastActivity == null ? null : ActivityDto.createInstance(lastActivity);
 	}
 
-	@CachePut(key = "{#userAnonymizedId,#goalId}")
+	@CachePut(key = "{#userAnonymizedId,#deviceAnonymizedId,#goalId}")
 	public ActivityDto updateLastActivityForUser(UUID userAnonymizedId, UUID deviceAnonymizedId, UUID goalId,
 			ActivityDto activity)
 	{
