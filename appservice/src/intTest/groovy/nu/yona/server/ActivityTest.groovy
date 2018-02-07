@@ -1450,7 +1450,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 
 		// Activities on second device
 		reportAppActivity(richardIphone, "NU.nl", "W-1 Mon 04:10", "W-1 Mon 04:20") // Partial overlap
-		// TODO YD-522 reportAppActivity(richardIphone, "NU.nl", "W-1 Mon 05:20", "W-1 Mon 05:30") // Full overlap
+		reportAppActivity(richardIphone, "NU.nl", "W-1 Mon 05:20", "W-1 Mon 05:30") // Full overlap
 		reportAppActivity(richardIphone, "NU.nl", "W-1 Mon 06:15", "W-1 Mon 06:35") // No overlap at all
 
 		def expectedValuesRichardLastWeek = [
@@ -1485,11 +1485,11 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 				"endTime": "W-1 Mon 04:20",
 				"app": "NU.nl",
 				"deviceName": iphoneDeviceName
-			], /* TODO YD-522 [	"startTime": "W-1 Mon 05:20",
-			 "endTime": "W-1 Mon 05:30",
-			 "app": "NU.nl",
-			 "deviceName": iphoneDeviceName
-			 ],*/ [	"startTime": "W-1 Mon 06:15",
+			], [	"startTime": "W-1 Mon 05:20",
+				"endTime": "W-1 Mon 05:30",
+				"app": "NU.nl",
+				"deviceName": iphoneDeviceName
+			], [	"startTime": "W-1 Mon 06:15",
 				"endTime": "W-1 Mon 06:35",
 				"app": "NU.nl",
 				"deviceName": iphoneDeviceName
