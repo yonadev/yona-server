@@ -420,22 +420,6 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Richard posts empty app opened event'()
-	{
-		given:
-		def richard = addRichard()
-
-		when:
-		def response = appService.createResourceWithPassword(richard.postOpenAppEventUrl, "{}", richard.password)
-
-		then:
-		assertResponseStatusOk(response)
-
-		cleanup:
-		appService.deleteUser(richard)
-	}
-
-
 	private def confirmMobileNumber(User user, code)
 	{
 		appService.confirmMobileNumber(user.mobileNumberConfirmationUrl, """{ "code":"${code}" } """, user.password)

@@ -11,6 +11,7 @@ import static nu.yona.server.test.CommonAssertions.*
 import groovy.json.*
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.CommonAssertions
+import nu.yona.server.test.Device
 import nu.yona.server.test.User
 
 class DeviceTest extends AbstractAppServiceIntegrationTest
@@ -105,7 +106,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 					assertResponseStatus(it, 400)
 					assert it.responseData.code == "error.device.unknown.operating.system"
 				}, "John", "Doe", "JD",
-				makeMobileNumber(ts), "My Raspberry", "RASPBIAN")
+				makeMobileNumber(ts), "My Raspberry", "RASPBIAN", Device.SUPPORTED_APP_VERSION)
 
 		then:
 		assert johnAsCreated == null // Creation failed
@@ -122,7 +123,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 					assertResponseStatus(it, 400)
 					assert it.responseData.code == "error.device.unknown.operating.system"
 				}, "John", "Doe", "JD",
-				makeMobileNumber(ts), "First device", "UNKNOWN")
+				makeMobileNumber(ts), "First device", "UNKNOWN", Device.SUPPORTED_APP_VERSION)
 
 		then:
 		assert johnAsCreated == null // Creation failed
@@ -139,7 +140,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 					assertResponseStatus(it, 400)
 					assert it.responseData.code == "error.device.invalid.device.name"
 				}, "John", "Doe", "JD",
-				makeMobileNumber(ts), "012345678901234567891", "IOS")
+				makeMobileNumber(ts), "012345678901234567891", "IOS", Device.SUPPORTED_APP_VERSION)
 
 		then:
 		assert johnAsCreated == null // Creation failed
@@ -181,16 +182,94 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 					assertResponseStatus(it, 400)
 					assert it.responseData.code == "error.device.invalid.device.name"
 				}, "John", "Doe", "JD",
-				makeMobileNumber(ts), "some:thing", "IOS")
+				makeMobileNumber(ts), "some:thing", "IOS", Device.SUPPORTED_APP_VERSION)
 
 		then:
 		assert johnAsCreated == null // Creation failed
 	}
 
+	def 'Richard posts empty app opened event'()
+	{
+		given:
+		def richard = addRichard()
+
+		when:
+		def response = appService.createResourceWithPassword(richard.postOpenAppEventUrl, "{}", richard.password)
+
+		then:
+		assertResponseStatusOk(response)
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Richard posts app opened event with a valid app version'()
+	{
+		given:
+		def richard = addRichard()
+
+		when:
+		def response = appService.createResourceWithPassword(richard.postOpenAppEventUrl, """{"operatingSystem":"IOS", "appVersion":"$Device.SUPPORTED_APP_VERSION"}""", richard.password)
+
+		then:
+		assertResponseStatusOk(response)
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Try to post app opened event with different operating system'()
+	{
+		given:
+		def richard = addRichard()
+
+		when:
+		def response = appService.createResourceWithPassword(richard.postOpenAppEventUrl, """{"operatingSystem":"ANDROID", "appVersion":"$Device.SUPPORTED_APP_VERSION"}""", richard.password)
+
+		then:
+		assertResponseStatus(response, 400)
+		assert response.responseData.code == "error.device.cannot.switch.operating.system"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Try to post app opened event for a too old app version'()
+	{
+		given:
+		def richard = addRichard()
+
+		when:
+		def response = appService.createResourceWithPassword(richard.postOpenAppEventUrl, """{"operatingSystem":"ANDROID", "appVersion":"0.0.1"}""", richard.password)
+
+		then:
+		assertResponseStatus(response, 400)
+		assert response.responseData.code == "error.device.app.version.not.supported"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Try to post app opened event with an invalid version string (not semver)'()
+	{
+		given:
+		def richard = addRichard()
+
+		when:
+		def response = appService.createResourceWithPassword(richard.postOpenAppEventUrl, """{"operatingSystem":"ANDROID", "appVersion":"1.0"}""", richard.password)
+
+		then:
+		assertResponseStatus(response, 400)
+		assert response.responseData.code == "error.device.invalid.version.string"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	private User createJohnDoe(ts, deviceName, deviceOperatingSystem)
 	{
 		appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "John", "Doe", "JD",
-				makeMobileNumber(ts), deviceName, deviceOperatingSystem)
+				makeMobileNumber(ts), deviceName, deviceOperatingSystem, Device.SUPPORTED_APP_VERSION)
 	}
 
 	private User createJohnDoe(ts)

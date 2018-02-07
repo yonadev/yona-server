@@ -10,6 +10,7 @@ import static nu.yona.server.test.CommonAssertions.*
 
 import groovy.json.*
 import nu.yona.server.test.CommonAssertions
+import nu.yona.server.test.Device
 import nu.yona.server.test.User
 
 class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
@@ -131,7 +132,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		User bobToBeUpdated = new User(updatedBobJson)
 		bobToBeUpdated.deviceName = "My S8"
 		bobToBeUpdated.deviceOperatingSystem = "ANDROID"
-		bobToBeUpdated.deviceAppVersion = "1.0"
+		bobToBeUpdated.deviceAppVersion = Device.SUPPORTED_APP_VERSION
 		User updatedBob = appService.updateUserCreatedOnBuddyRequest(CommonAssertions.&assertUserUpdateResponseDetails, bobToBeUpdated, inviteUrl)
 
 		then:

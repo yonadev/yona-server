@@ -12,6 +12,8 @@ import groovy.transform.ToString
 @ToString(includeNames=true)
 class Device
 {
+	private static final String SUPPORTED_APP_VERSION = "9.9.9"
+
 	final String url
 	final String editUrl
 	final String name

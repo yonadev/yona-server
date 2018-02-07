@@ -413,8 +413,26 @@ paths:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
         - $ref: "#/parameters/deviceID"
+        - in: body
+          name: body
+          description: The app open event
+          required: false
+          schema:
+            type: object
+            properties:
+              operatingSystem:
+                $ref: '#/definitions/DeviceOperatingSystem'
+                description: The operating system of the device running the Yona app
+                example: ANDROID
+              appVersion:
+                type: string
+                description: The version of the Yona app running on this device, in semver-compatible format
+                example: 1.0.0
+            required:
+              - operatingSystem
+              - appVersion
       tags:
-        - User
+        - Device
       responses:
         '200':
           description: The request is successfully handled
@@ -1851,8 +1869,8 @@ definitions:
         example: ANDROID
       appVersion:
         type: string
-        description: The version of the Yona app running on this device
-        example: 1.0
+        description: The version of the Yona app running on this device, in semver-compatible format
+        example: 1.0.0
     required:
       - name
       - operatingSystem
@@ -1947,8 +1965,8 @@ definitions:
             example: ANDROID
           deviceAppVersion:
             type: string
-            description: The version of the Yona app running on this device
-            example: 1.0
+            description: The version of the Yona app running on this device, in semver-compatible format
+            example: 1.0.0
   UserWithPrivateData:
     allOf:
       - $ref: '#/definitions/BaseUser'
