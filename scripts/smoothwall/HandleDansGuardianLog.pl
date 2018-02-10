@@ -57,12 +57,12 @@ sub transform_log_record ($) {
 		log_warning "No user name";
 		return undef;
 	}
-	if (!$log_message->{'requesttags'}->{'urlcategory'}) {
+	if (!$log_message->{'tagset'}->{'urlcategory'}) {
 		# Unclassified request. Probably an HTTPS site
 		return undef;
 	}
 
-	my @url_categories_logged = keys $log_message->{'requesttags'}->{'urlcategory'};
+	my @url_categories_logged = keys $log_message->{'tagset'}->{'urlcategory'};
 	my @relevant_url_categories_logged = filter_relevant_url_categories \@url_categories_logged;
 	if (!@relevant_url_categories_logged) {
 		# Categories are not relevant
