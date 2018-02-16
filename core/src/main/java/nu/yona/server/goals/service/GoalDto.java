@@ -29,6 +29,11 @@ import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.rest.PolymorphicDto;
 import nu.yona.server.util.TimeUtil;
 
+/**
+ * The base goal DTO class.<br/>
+ * NOTE: The ID is always available except when a new goal is POSTed. To keep the API simple, the DTO always has an ID. In case of
+ * a freshly posted goal, it is an all-zeros UUID.
+ */
 @JsonRootName("goal")
 @JsonSubTypes({ @Type(value = BudgetGoalDto.class, name = "BudgetGoal"),
 		@Type(value = TimeZoneGoalDto.class, name = "TimeZoneGoal") })
