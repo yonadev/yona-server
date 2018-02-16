@@ -8,9 +8,11 @@ import static com.spencerwi.hamcrestJDK8Time.matchers.IsBetween.between;
 import static nu.yona.server.test.util.Matchers.hasMessageId;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.isEmptyString;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -34,6 +36,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.MethodRule;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -59,6 +62,7 @@ import nu.yona.server.entities.UserDeviceRepositoryMock;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.subscriptions.service.LDAPUserService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
@@ -113,6 +117,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 	@MockBean
 	private MessageService mockMessageService;
+
+	@MockBean
+	private LDAPUserService mockLdapUserService;
 
 	private static final String PASSWORD = "password";
 	private User richard;
@@ -169,6 +176,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		UserDevice device = devices.iterator().next();
 		assertDevice(device, startTime, deviceName, operatingSystem, 0);
+
+		assertVpnAccountCreated(device);
 	}
 
 	@Test
@@ -199,6 +208,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		assertThat(device2Optional.isPresent(), equalTo(true));
 		UserDevice device2 = device2Optional.get();
 		assertDevice(device2, startTime, deviceName2, operatingSystem2, 1);
+
+		assertVpnAccountCreated(device2);
 	}
 
 	@Test
@@ -636,6 +647,16 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		removeDuplicateDefaultDevicesFirstOrSecond(1);
 	}
 
+	private void assertVpnAccountCreated(UserDevice device)
+	{
+		ArgumentCaptor<String> vpnLoginId = ArgumentCaptor.forClass(String.class);
+		ArgumentCaptor<String> vpnPassword = ArgumentCaptor.forClass(String.class);
+		verify(mockLdapUserService).createVpnAccount(vpnLoginId.capture(), vpnPassword.capture());
+		assertThat(vpnLoginId.getValue(),
+				equalTo(richard.getAnonymized().getId().toString() + "$" + device.getDeviceAnonymized().getDeviceIndex()));
+		assertThat(vpnPassword.getValue(), is(not(isEmptyString())));
+	}
+
 	private void removeDuplicateDefaultDevicesFirstOrSecond(int indexToRetain)
 	{
 		// Add devices
@@ -681,7 +702,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	private UserDevice createDevice(int deviceIndex, String deviceName, OperatingSystem operatingSystem, String appVersion)
 	{
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(deviceIndex, operatingSystem, appVersion);
-		UserDevice device = UserDevice.createInstance(deviceName, deviceAnonymized.getId());
+		UserDevice device = UserDevice.createInstance(deviceName, deviceAnonymized.getId(), "topSecret");
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		userDeviceRepository.save(device);
 		return device;

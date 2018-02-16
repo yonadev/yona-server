@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.subscriptions.service.migration;
 
@@ -9,8 +9,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,8 +58,10 @@ import nu.yona.server.subscriptions.entities.BuddyAnonymized;
 import nu.yona.server.subscriptions.entities.BuddyAnonymizedRepository;
 import nu.yona.server.subscriptions.entities.BuddyDeviceChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.subscriptions.service.LDAPUserService;
 import nu.yona.server.subscriptions.service.PrivateUserDataMigrationService.MigrationStep;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
+import nu.yona.server.subscriptions.service.UserService;
 import nu.yona.server.test.util.BaseSpringIntegrationTest;
 import nu.yona.server.test.util.CryptoSessionRule;
 import nu.yona.server.test.util.JUnitUtil;
@@ -110,10 +115,16 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 	private BuddyAnonymizedRepository buddyAnonymizedRepository;
 
 	@Autowired
-	private MigrationStep migrationStep = new AddFirstDevice();
+	private MigrationStep migrationStep;
 
 	@MockBean
 	private MessageService mockMessageService;
+
+	@MockBean
+	private UserService mockUserService;
+
+	@MockBean
+	private LDAPUserService mockLdapUserService;
 
 	@Captor
 	private ArgumentCaptor<Supplier<Message>> messageSupplierCaptor;
@@ -124,6 +135,7 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 	@Before
 	public void setUpPerTest() throws Exception
 	{
+		when(mockUserService.generatePassword()).thenReturn("topSecret");
 		try (CryptoSession cryptoSession = CryptoSession.start(PASSWORD))
 		{
 			richard = JUnitUtil.createRichard();
@@ -149,7 +161,7 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, operatingSystem, "Unknown");
 		deviceAnonymizedRepository.save(deviceAnonymized);
-		UserDevice device = UserDevice.createInstance(deviceName, deviceAnonymized.getId());
+		UserDevice device = UserDevice.createInstance(deviceName, deviceAnonymized.getId(), "topSecret");
 		richard.addDevice(device);
 
 		// Verify device is present
@@ -175,6 +187,8 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 		assertThat(deviceAsMigrated.getDeviceAnonymized().getUserAnonymized(), equalTo(richard.getAnonymized()));
 		assertThat(richard.getAnonymized().getDevicesAnonymized().size(), equalTo(1));
 		assertThat(richard.getAnonymized().getDevicesAnonymized().contains(deviceAnonymized), equalTo(true));
+		verify(mockLdapUserService, never()).createVpnAccount(any(), any()); // User has legacy VPN account
+
 	}
 
 	@Test

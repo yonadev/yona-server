@@ -300,25 +300,7 @@ paths:
         default:
           description: Unexpected error
           schema:
-            $ref: '#/definitions/Error' 
-  '/users/{userID}/apple.mobileconfig':
-    get:
-      summary: Get the Apple mobile config for this user
-      description: Fetches the user-specific .mobileconfig file needed for iOS devices. Notice this contains VPN username and password.
-      parameters:
-        - $ref: "#/parameters/userID"
-        - $ref: "#/parameters/yonaPassword"
-      tags:
-        - User
-      responses:
-        '200':
-          description: The config file
-          schema:
-            type: file
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'           
+            $ref: '#/definitions/Error'
   '/users/{userID}/devices/':
     post:
       summary: Register a new device
@@ -421,6 +403,25 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  '/users/{userID}/devices/{deviceID}/apple.mobileconfig':
+    get:
+      summary: Get the Apple configuration profile for this device
+      description: Fetches the device-specific .mobileconfig file needed for iOS devices. Notice this contains the VPN username and password.
+      parameters:
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/deviceID"
+      tags:
+        - Device
+      responses:
+        '200':
+          description: The config file
+          schema:
+            type: file
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'           
   '/users/{userID}/devices/{deviceID}/appActivity/':
     post:
       summary: Register a new device
@@ -1893,6 +1894,8 @@ definitions:
             format: date
             description: The date the Yona app was last opened on this device
             example: 2017-11-21
+          vpnProfile:
+            $ref: '#/definitions/VPNProfile'
           _links:
             allOf:
               - $ref: '#/definitions/Curies'
@@ -1929,7 +1932,7 @@ definitions:
         type: string
         description: The Yona password for subsequent requests
         example: AES:128:YXNkZnNhZGZnMnrp1ORubw==
-      vpnProfile:
+      vpnProfile: # YD-541 Remove the profile here
         $ref: '#/definitions/VPNProfile'
   PostPutUser:
     allOf:

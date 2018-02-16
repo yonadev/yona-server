@@ -14,13 +14,19 @@ class Device
 {
 	final String url
 	final String editUrl
+	final String ovpnProfileUrl
 	final String name
 	final String operatingSystem
+	final VPNProfile vpnProfile
+	final boolean vpnConnected
 	Device(def json)
 	{
 		this.name = json.name
 		this.operatingSystem = json.operatingSystem
 		this.url = json._links?.self?.href
 		this.editUrl = json._links?.edit?.href
+		this.ovpnProfileUrl = json._links?.ovpnProfile?.href
+		this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
+		this.vpnConnected = json.vpnConnected
 	}
 }

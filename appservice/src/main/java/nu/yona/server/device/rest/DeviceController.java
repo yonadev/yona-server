@@ -8,6 +8,7 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
+import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,6 +21,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
@@ -28,6 +30,7 @@ import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +41,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import nu.yona.server.analysis.service.AnalysisEngineProxyService;
 import nu.yona.server.analysis.service.AppActivityDto;
@@ -55,12 +64,15 @@ import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.subscriptions.rest.AppleMobileConfigSigner;
 import nu.yona.server.subscriptions.rest.UserController;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
 import nu.yona.server.subscriptions.service.NewDeviceRequestDto;
 import nu.yona.server.subscriptions.service.NewDeviceRequestService;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.subscriptions.service.VPNProfileDto;
+import nu.yona.server.util.ThymeleafUtil;
 
 @Controller
 @ExposesResourceFor(DeviceResource.class)
@@ -80,6 +92,13 @@ public class DeviceController extends ControllerBase
 
 	@Autowired
 	private UserController userController;
+
+	@Autowired
+	private AppleMobileConfigSigner appleMobileConfigSigner;
+
+	@Autowired
+	@Qualifier("appleMobileConfigTemplateEngine")
+	private TemplateEngine templateEngine;
 
 	@Autowired
 	private NewDeviceRequestService newDeviceRequestService;
@@ -134,6 +153,39 @@ public class DeviceController extends ControllerBase
 			return createResponse(userService.getPrivateUser(userId, false), HttpStatus.CREATED,
 					userController.createResourceAssemblerForOwnUser(userId, Optional.of(newDevice.getId())));
 		}
+	}
+
+	@RequestMapping(value = "/{deviceId}/apple.mobileconfig", method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<byte[]> getAppleMobileConfig(
+			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
+			@PathVariable UUID deviceId)
+	{
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(new MediaType("application", "x-apple-aspen-config"));
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return new ResponseEntity<>(getUserSpecificAppleMobileConfig(deviceService.getDevice(deviceId)), headers,
+					HttpStatus.OK);
+		}
+	}
+
+	private byte[] getUserSpecificAppleMobileConfig(UserDeviceDto device)
+	{
+		Context ctx = ThymeleafUtil.createContext();
+		ctx.setVariable("ldapUsername", device.getVpnProfile().getVpnLoginId());
+		ctx.setVariable("ldapPassword", device.getVpnProfile().getVpnPassword());
+
+		return signIfEnabled(templateEngine.process("apple.mobileconfig", ctx).getBytes(StandardCharsets.UTF_8));
+	}
+
+	private byte[] signIfEnabled(byte[] unsignedMobileconfig)
+	{
+		if (yonaProperties.getAppleMobileConfig().isSigningEnabled())
+		{
+			return appleMobileConfigSigner.sign(unsignedMobileconfig);
+		}
+		return unsignedMobileconfig;
 	}
 
 	/*
@@ -257,26 +309,43 @@ public class DeviceController extends ControllerBase
 
 	public static class DeviceResource extends Resource<DeviceBaseDto>
 	{
-		private final CurieProvider curieProvider;
-		private final UUID userId;
-
-		public DeviceResource(CurieProvider curieProvider, UUID userId, DeviceBaseDto device)
+		public DeviceResource(DeviceBaseDto device)
 		{
 			super(device);
-			this.curieProvider = curieProvider;
-			this.userId = userId;
+		}
+
+		@JsonInclude(Include.NON_EMPTY)
+		public Resource<VPNProfileDto> getVpnProfile()
+		{
+			if (getContent() instanceof UserDeviceDto)
+			{
+				return createVpnProfileResource(((UserDeviceDto) getContent()).getVpnProfile());
+			}
+			return null;
+		}
+
+		public static Resource<VPNProfileDto> createVpnProfileResource(VPNProfileDto vpnProfileDto)
+		{
+			Resource<VPNProfileDto> vpnProfileResource = new Resource<>(vpnProfileDto);
+			addOvpnProfileLink(vpnProfileResource);
+			return vpnProfileResource;
+		}
+
+		private static void addOvpnProfileLink(Resource<VPNProfileDto> vpnProfileResource)
+		{
+			vpnProfileResource.add(
+					new Link(ServletUriComponentsBuilder.fromCurrentContextPath().path("/vpn/profile.ovpn").build().toUriString(),
+							"ovpnProfile"));
 		}
 	}
 
 	public static class DeviceResourceAssembler extends ResourceAssemblerSupport<DeviceBaseDto, DeviceResource>
 	{
 		private final UUID userId;
-		private final CurieProvider curieProvider;
 
 		public DeviceResourceAssembler(CurieProvider curieProvider, UUID userId)
 		{
 			super(DeviceController.class, DeviceResource.class);
-			this.curieProvider = curieProvider;
 			this.userId = userId;
 		}
 
@@ -293,7 +362,7 @@ public class DeviceController extends ControllerBase
 		@Override
 		protected DeviceResource instantiateResource(DeviceBaseDto device)
 		{
-			return new DeviceResource(curieProvider, userId, device);
+			return new DeviceResource(device);
 		}
 
 		private ControllerLinkBuilder getSelfLinkBuilder(UUID deviceId)

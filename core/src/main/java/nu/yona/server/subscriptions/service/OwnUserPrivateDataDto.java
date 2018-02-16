@@ -26,7 +26,7 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 {
 	private final Optional<LocalDate> lastMonitoredActivityDate;
 	private final String yonaPassword;
-	private final VPNProfileDto vpnProfile;
+	private final Optional<VPNProfileDto> vpnProfile;
 	private final UUID userAnonymizedId;
 	private final UUID namedMessageSourceId;
 	private final UUID anonymousMessageSourceId;
@@ -35,12 +35,12 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 	OwnUserPrivateDataDto(String nickname, Set<UserDeviceDto> devices)
 	{
 		this(Optional.empty(), null, nickname, Optional.empty(), null, null, Collections.emptySet(), Collections.emptySet(), null,
-				new VPNProfileDto(null), devices);
+				Optional.empty(), devices);
 	}
 
 	OwnUserPrivateDataDto(Optional<LocalDate> lastMonitoredActivityDate, String yonaPassword, String nickname,
 			Optional<UUID> userPhotoId, UUID namedMessageSourceId, UUID anonymousMessageSourceId, Set<GoalDto> goals,
-			Set<BuddyDto> buddies, UUID userAnonymizedId, VPNProfileDto vpnProfile, Set<UserDeviceDto> devices)
+			Set<BuddyDto> buddies, UUID userAnonymizedId, Optional<VPNProfileDto> vpnProfile, Set<UserDeviceDto> devices)
 	{
 		super(nickname, userPhotoId, Optional.of(goals), Optional.of(new HashSet<>(devices)));
 
@@ -66,7 +66,7 @@ public class OwnUserPrivateDataDto extends UserPrivateDataBaseDto
 	}
 
 	@JsonIgnore
-	public VPNProfileDto getVpnProfile()
+	public Optional<VPNProfileDto> getVpnProfile()
 	{
 		return vpnProfile;
 	}

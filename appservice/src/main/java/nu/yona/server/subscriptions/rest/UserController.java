@@ -8,7 +8,6 @@ import static nu.yona.server.rest.Constants.PASSWORD_HEADER;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
-import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,7 +33,6 @@ import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -48,9 +46,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -86,7 +81,6 @@ import nu.yona.server.subscriptions.service.ConfirmationFailedResponseDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
 import nu.yona.server.subscriptions.service.VPNProfileDto;
-import nu.yona.server.util.ThymeleafUtil;
 
 @Controller
 @ExposesResourceFor(UserResource.class)
@@ -131,13 +125,6 @@ public class UserController extends ControllerBase
 
 	@Autowired
 	private PinResetRequestController pinResetRequestController;
-
-	@Autowired
-	@Qualifier("appleMobileConfigTemplateEngine")
-	private TemplateEngine templateEngine;
-
-	@Autowired
-	private AppleMobileConfigSigner appleMobileConfigSigner;
 
 	@Autowired
 	@Qualifier("sslRootCertificate")
@@ -209,38 +196,6 @@ public class UserController extends ControllerBase
 	private HttpEntity<UserResource> getPublicUser(UUID userId)
 	{
 		return createOkResponse(userService.getPublicUser(userId), createResourceAssemblerForPublicUser());
-	}
-
-	@RequestMapping(value = "/{userId}/apple.mobileconfig", method = RequestMethod.GET)
-	@ResponseBody
-	public ResponseEntity<byte[]> getAppleMobileConfig(
-			@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId)
-	{
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(new MediaType("application", "x-apple-aspen-config"));
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
-		{
-			return new ResponseEntity<>(getUserSpecificAppleMobileConfig(userService.getPrivateUser(userId)), headers,
-					HttpStatus.OK);
-		}
-	}
-
-	private byte[] getUserSpecificAppleMobileConfig(UserDto privateUser)
-	{
-		Context ctx = ThymeleafUtil.createContext();
-		ctx.setVariable("ldapUsername", privateUser.getOwnPrivateData().getVpnProfile().getVpnLoginId().toString());
-		ctx.setVariable("ldapPassword", privateUser.getOwnPrivateData().getVpnProfile().getVpnPassword());
-
-		return signIfEnabled(templateEngine.process("apple.mobileconfig", ctx).getBytes(StandardCharsets.UTF_8));
-	}
-
-	private byte[] signIfEnabled(byte[] unsignedMobileconfig)
-	{
-		if (yonaProperties.getAppleMobileConfig().isSigningEnabled())
-		{
-			return appleMobileConfigSigner.sign(unsignedMobileconfig);
-		}
-		return unsignedMobileconfig;
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)
@@ -619,23 +574,16 @@ public class UserController extends ControllerBase
 			return result;
 		}
 
+		// Remove this method as part of YD-541
 		@JsonInclude(Include.NON_EMPTY)
 		public Resource<VPNProfileDto> getVpnProfile()
 		{
 			if (representation.includeOwnUserNumConfirmedContent.apply(getContent()))
 			{
-				Resource<VPNProfileDto> vpnProfileResource = new Resource<>(getContent().getOwnPrivateData().getVpnProfile());
-				addOvpnProfileLink(vpnProfileResource);
-				return vpnProfileResource;
+				return getContent().getOwnPrivateData().getVpnProfile()
+						.map(DeviceController.DeviceResource::createVpnProfileResource).orElse(null);
 			}
 			return null;
-		}
-
-		private void addOvpnProfileLink(Resource<VPNProfileDto> vpnProfileResource)
-		{
-			vpnProfileResource.add(
-					new Link(ServletUriComponentsBuilder.fromCurrentContextPath().path("/vpn/profile.ovpn").build().toUriString(),
-							"ovpnProfile"));
 		}
 
 		static ControllerLinkBuilder getAllBuddiesLinkBuilder(UUID requestingUserId)
@@ -712,9 +660,8 @@ public class UserController extends ControllerBase
 
 		private void addAppleMobileConfigLink(UserResource userResource)
 		{
-			userResource.add(linkTo(
-					methodOn(UserController.class).getAppleMobileConfig(Optional.empty(), userResource.getContent().getId()))
-							.withRel("appleMobileConfig"));
+			userResource.add(linkTo(methodOn(DeviceController.class).getAppleMobileConfig(Optional.empty(),
+					userResource.getContent().getId(), requestingDeviceId.get())).withRel("appleMobileConfig"));
 		}
 
 		private void addSslRootCertificateLink(Resource<UserDto> userResource)
