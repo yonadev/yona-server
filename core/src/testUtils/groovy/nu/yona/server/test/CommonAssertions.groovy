@@ -249,6 +249,11 @@ class CommonAssertions extends Service
 		assertResponseStatus(response, 200)
 	}
 
+	static void assertResponseStatusNoContent(def response)
+	{
+		assertResponseStatus(response, 204)
+	}
+
 	static void assertResponseStatusCreated(def response)
 	{
 		assertResponseStatus(response, 201)

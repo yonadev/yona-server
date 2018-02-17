@@ -252,7 +252,7 @@ class OverwriteUserTest extends AbstractAppServiceIntegrationTest
 		getMessagesResponse.responseData._embedded == null
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 
 		cleanup:
 		appService.deleteUser(richardChanged)

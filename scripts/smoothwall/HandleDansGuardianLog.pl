@@ -135,7 +135,7 @@ sub handle_records_from_stream {
 				$verbose && print "POST to $user_anonymized_url, content: $analysis_event_json\n";
 				my $post_result = $ua->request(POST $user_anonymized_url, Content_Type => 'application/json', Content => $analysis_event_json);
 				my $status_code = $post_result->{'_rc'};
-				if ($status_code != 200) {
+				if ($status_code != 200 && $status_code != 204) {
 					log_error "POST to '$user_anonymized_url' returned status $status_code";
 				}
 			}

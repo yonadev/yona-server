@@ -267,7 +267,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def response = analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll
@@ -314,7 +314,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def response = analysisService.postToAnalysisEngine(bob, ["news/media"], "http://www.refdag.nl")
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll
@@ -429,7 +429,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def response = analysisService.postToAnalysisEngine(richard, ["news/media"], url)
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll
@@ -463,7 +463,7 @@ class BasicBuddyTest extends AbstractAppServiceIntegrationTest
 		def response = analysisService.postToAnalysisEngine(richard, ["news/media"], url)
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		def getMessagesRichardResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardResponse)
 		def richardGoalConflictMessages = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll
