@@ -83,7 +83,6 @@ public class NewDeviceRequestController extends ControllerBase
 
 	@RequestMapping(value = "/{mobileNumber}", method = RequestMethod.GET)
 	@ResponseBody
-	@ResponseStatus(HttpStatus.OK)
 	public HttpEntity<NewDeviceRequestResource> getNewDeviceRequestForUser(
 			@RequestHeader(value = Constants.NEW_DEVICE_REQUEST_PASSWORD_HEADER) Optional<String> newDeviceRequestPassword,
 			@PathVariable String mobileNumber)

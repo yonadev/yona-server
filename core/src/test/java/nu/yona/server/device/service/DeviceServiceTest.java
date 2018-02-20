@@ -8,10 +8,14 @@ import static com.spencerwi.hamcrestJDK8Time.matchers.IsBetween.between;
 import static nu.yona.server.test.util.Matchers.hasMessageId;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -26,6 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.junit.Before;
@@ -34,6 +39,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.MethodRule;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -41,10 +49,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.data.repository.Repository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import nu.yona.server.CoreConfiguration;
 import nu.yona.server.analysis.entities.Activity;
 import nu.yona.server.analysis.entities.ActivityRepository;
 import nu.yona.server.crypto.seckey.CryptoSession;
@@ -53,11 +63,14 @@ import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.entities.DeviceAnonymizedRepository;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.device.entities.UserDeviceRepository;
+import nu.yona.server.device.service.UserDeviceDto.DeviceUpdateRequestDto;
 import nu.yona.server.entities.ActivityRepositoryMock;
 import nu.yona.server.entities.DeviceAnonymizedRepositoryMock;
 import nu.yona.server.entities.UserDeviceRepositoryMock;
 import nu.yona.server.entities.UserRepositoriesConfiguration;
+import nu.yona.server.messaging.entities.Message;
 import nu.yona.server.messaging.service.MessageService;
+import nu.yona.server.subscriptions.entities.BuddyDeviceChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserDto;
@@ -76,6 +89,12 @@ import nu.yona.server.util.TimeUtil;
 				@ComponentScan.Filter(pattern = "nu.yona.server.Translator", type = FilterType.REGEX) })
 class DeviceServiceTestConfiguration extends UserRepositoriesConfiguration
 {
+	@Bean(name = "messageSource")
+	public ReloadableResourceBundleMessageSource messageSource()
+	{
+		return new CoreConfiguration().messageSource();
+	}
+
 	@Bean
 	UserDeviceRepository getMockDeviceRepository()
 	{
@@ -113,6 +132,9 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 	@MockBean
 	private MessageService mockMessageService;
+
+	@Captor
+	private ArgumentCaptor<Supplier<Message>> messageSupplierCaptor;
 
 	private static final String PASSWORD = "password";
 	private User richard;
@@ -218,7 +240,8 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	public void deleteDevice_deleteOneOfTwo_userHasOneDevice()
 	{
 		LocalDateTime startTime = TimeUtil.utcNow();
-		UserDevice device1 = createDevice(0, "First", OperatingSystem.ANDROID, "Unknown");
+		String deviceName = "First";
+		UserDevice device1 = createDevice(0, deviceName, OperatingSystem.ANDROID, "Unknown");
 		richard.addDevice(device1);
 
 		String deviceName2 = "Second";
@@ -227,14 +250,24 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		assertThat(richard.getDevices().size(), equalTo(2));
 
-		service.deleteDevice(richard, device1);
+		service.deleteDeviceAndNotifyBuddies(richard.getId(), device1.getId());
 		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
 
 		Set<UserDevice> devices = richard.getDevices();
 		assertThat(devices.size(), equalTo(1));
 
 		UserDevice device2 = devices.iterator().next();
+
 		assertDevice(device2, startTime, deviceName2, operatingSystem2, 1);
+
+		verify(mockMessageService, times(1)).broadcastMessageToBuddies(Matchers.<UserAnonymizedDto> any(),
+				messageSupplierCaptor.capture());
+		Message message = messageSupplierCaptor.getValue().get();
+		assertThat(message, instanceOf(BuddyDeviceChangeMessage.class));
+		BuddyDeviceChangeMessage buddyDeviceChangeMessage = (BuddyDeviceChangeMessage) message;
+		assertThat(buddyDeviceChangeMessage.getChange(), equalTo(DeviceChange.DELETE));
+		assertThat(buddyDeviceChangeMessage.getOldName().get(), equalTo(deviceName));
+		assertThat(buddyDeviceChangeMessage.getMessage(), containsString("User deleted device"));
 	}
 
 	@Test
@@ -297,7 +330,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		UserDevice device = richard.getDevices().iterator().next();
 
-		service.deleteDevice(richard, device);
+		service.deleteDeviceAndNotifyBuddies(richard.getId(), device.getId());
 	}
 
 	@Test
@@ -311,7 +344,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		assertThat(richard.getDevices().size(), equalTo(1));
 
-		service.deleteDevice(richard, notAddedDevice);
+		service.deleteDeviceAndNotifyBuddies(richard.getId(), notAddedDevice.getId());
 	}
 
 	private void assertDevice(UserDevice device, LocalDateTime startTime, String expectedDeviceName,
@@ -338,6 +371,84 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 		UUID defaultDeviceId = service.getDefaultDeviceId(createRichardUserDto());
 
 		assertThat(defaultDeviceId, equalTo(device.getId()));
+	}
+
+	@Test
+	public void updateDevice_rename_renamedBuddyInformed()
+	{
+		LocalDateTime startTime = TimeUtil.utcNow();
+		String oldName = "Original name";
+		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
+		UserDevice device = createDevice(0, oldName, operatingSystem, "1.0.0");
+		richard.addDevice(device);
+
+		assertThat(richard.getDevices().size(), equalTo(1));
+
+		String newName = "New name";
+		DeviceUpdateRequestDto changeRequest = new DeviceUpdateRequestDto(newName);
+		service.updateDevice(richard.getId(), device.getId(), changeRequest);
+		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
+
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.size(), equalTo(1));
+
+		assertDevice(device, startTime, newName, operatingSystem, 0);
+
+		verify(mockMessageService, times(1)).broadcastMessageToBuddies(Matchers.<UserAnonymizedDto> any(),
+				messageSupplierCaptor.capture());
+		Message message = messageSupplierCaptor.getValue().get();
+		assertThat(message, instanceOf(BuddyDeviceChangeMessage.class));
+		BuddyDeviceChangeMessage buddyDeviceChangeMessage = (BuddyDeviceChangeMessage) message;
+		assertThat(buddyDeviceChangeMessage.getChange(), equalTo(DeviceChange.RENAME));
+		assertThat(buddyDeviceChangeMessage.getOldName().get(), equalTo(oldName));
+		assertThat(buddyDeviceChangeMessage.getNewName().get(), equalTo(newName));
+		assertThat(buddyDeviceChangeMessage.getMessage(), containsString("User renamed device"));
+	}
+
+	@Test
+	public void updateDevice_unchangedName_noAction()
+	{
+		LocalDateTime startTime = TimeUtil.utcNow();
+		String oldName = "original";
+		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
+		UserDevice device = createDevice(0, oldName, operatingSystem, "1.0.0");
+		richard.addDevice(device);
+
+		assertThat(richard.getDevices().size(), equalTo(1));
+
+		String newName = "ORIGINAL".toLowerCase();
+		assertThat(oldName, not(sameInstance(newName)));
+		DeviceUpdateRequestDto changeRequest = new DeviceUpdateRequestDto(newName);
+		service.updateDevice(richard.getId(), device.getId(), changeRequest);
+		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
+
+		Set<UserDevice> devices = richard.getDevices();
+		assertThat(devices.size(), equalTo(1));
+
+		assertDevice(device, startTime, newName, operatingSystem, 0);
+
+		verify(mockMessageService, never()).broadcastMessageToBuddies(Matchers.<UserAnonymizedDto> any(), any());
+		assertThat(device.getName(), sameInstance(oldName));
+	}
+
+	@Test
+	public void updateDevice_tryDuplicateName_exception()
+	{
+		expectedException.expect(DeviceServiceException.class);
+		expectedException.expect(hasMessageId("error.device.name.already.exists"));
+
+		String firstDeviceName = "First";
+		UserDevice device1 = createDevice(0, firstDeviceName, OperatingSystem.ANDROID, "Unknown");
+		richard.addDevice(device1);
+
+		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
+		UserDevice device = createDevice(0, "Original name", operatingSystem, "1.0.0");
+		richard.addDevice(device);
+
+		assertThat(richard.getDevices().size(), equalTo(2));
+
+		DeviceUpdateRequestDto changeRequest = new DeviceUpdateRequestDto(firstDeviceName);
+		service.updateDevice(richard.getId(), device.getId(), changeRequest);
 	}
 
 	@Test

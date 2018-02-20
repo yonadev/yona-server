@@ -722,7 +722,7 @@ public class BuddyService
 				addDeviceToBuddy(buddy, deviceAnonymizedId, newName.get());
 				break;
 			case RENAME:
-				updateDeviceNameForToBuddy(buddy, deviceAnonymizedId, newName.get());
+				updateDeviceNameForBuddy(buddy, deviceAnonymizedId, newName.get());
 				break;
 			case DELETE:
 				removeDeviceFromBuddy(buddy, deviceAnonymizedId);
@@ -738,7 +738,7 @@ public class BuddyService
 		buddy.addDevice(device);
 	}
 
-	private void updateDeviceNameForToBuddy(Buddy buddy, UUID deviceAnonymizedId, String name)
+	private void updateDeviceNameForBuddy(Buddy buddy, UUID deviceAnonymizedId, String name)
 	{
 		BuddyDevice device = buddy.getDevices().stream().filter(d -> d.getDeviceAnonymizedId().equals(deviceAnonymizedId))
 				.findFirst()

@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import nu.yona.server.analysis.service.AnalysisEngineProxyService;
 import nu.yona.server.analysis.service.AppActivityDto;
@@ -50,6 +51,7 @@ import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.device.service.DeviceServiceException;
 import nu.yona.server.device.service.UserDeviceDto;
 import nu.yona.server.device.service.UserDeviceDto.DeviceRegistrationRequestDto;
+import nu.yona.server.device.service.UserDeviceDto.DeviceUpdateRequestDto;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
@@ -133,6 +135,29 @@ public class DeviceController extends ControllerBase
 					UserDeviceDto.createDeviceRegistrationInstance(request));
 			return createResponse(userService.getPrivateUser(userId, false), HttpStatus.CREATED,
 					userController.createResourceAssemblerForOwnUser(userId, Optional.of(newDevice.getId())));
+		}
+	}
+
+	@RequestMapping(value = "/{deviceId}", method = RequestMethod.PUT)
+	@ResponseBody
+	public HttpEntity<DeviceResource> updateDevice(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody DeviceUpdateRequestDto request)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return createOkResponse(deviceService.updateDevice(userId, deviceId, request), createResourceAssembler(userId));
+		}
+	}
+
+	@RequestMapping(value = "/{deviceId}", method = RequestMethod.DELETE)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void deleteDevice(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
+			@PathVariable UUID deviceId)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			deviceService.deleteDeviceAndNotifyBuddies(userId, deviceId);
 		}
 	}
 

@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.service;
 
@@ -17,7 +17,6 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.Constants;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
-import nu.yona.server.device.entities.DeviceBase;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.util.TimeUtil;
@@ -93,17 +92,8 @@ public class UserDeviceDto extends DeviceBaseDto
 
 	public static UserDeviceDto createDeviceRegistrationInstance(DeviceRegistrationRequestDto deviceRegistration)
 	{
-		assertValidName(deviceRegistration.name);
 		return new UserDeviceDto(deviceRegistration.name,
 				parseOperatingSystemOfRegistrationRequest(deviceRegistration.operatingSystemStr), deviceRegistration.appVersion);
-	}
-
-	private static void assertValidName(String name)
-	{
-		if (name.length() > DeviceBase.MAX_NAME_LENGTH || name.contains(DeviceBase.DEVICE_NAMES_SEPARATOR))
-		{
-			throw InvalidDataException.invalidDeviceName(name, DeviceBase.MAX_NAME_LENGTH, DeviceBase.DEVICE_NAMES_SEPARATOR);
-		}
 	}
 
 	private static OperatingSystem parseOperatingSystemOfRegistrationRequest(String operatingSystemStr)
@@ -136,6 +126,17 @@ public class UserDeviceDto extends DeviceBaseDto
 			this.name = name;
 			this.operatingSystemStr = operatingSystemStr;
 			this.appVersion = appVersion;
+		}
+	}
+
+	public static class DeviceUpdateRequestDto
+	{
+		final String name;
+
+		@JsonCreator
+		public DeviceUpdateRequestDto(@JsonProperty("name") String name)
+		{
+			this.name = name;
 		}
 	}
 }

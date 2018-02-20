@@ -95,4 +95,9 @@ abstract class Service
 	{
 		yonaServer.updateResource(path, jsonString, headers, parameters)
 	}
+
+	def deleteResource(path, headers = [:], parameters = [:])
+	{
+		yonaServer.deleteResource(path, headers, parameters)
+	}
 }

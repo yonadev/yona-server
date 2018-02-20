@@ -415,7 +415,7 @@ paths:
       tags:
         - Device
       responses:
-        '200':
+        '204':
           description: The device is deleted.
         default:
           description: Unexpected error

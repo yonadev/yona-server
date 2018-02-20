@@ -21,8 +21,11 @@ import nu.yona.server.analysis.entities.ActivityRepository;
 import nu.yona.server.device.entities.DeviceAnonymized;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.entities.DeviceAnonymizedRepository;
+import nu.yona.server.device.entities.DeviceBase;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.device.entities.UserDeviceRepository;
+import nu.yona.server.device.service.UserDeviceDto.DeviceUpdateRequestDto;
+import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.BuddyDeviceChangeMessage;
@@ -64,7 +67,7 @@ public class DeviceService
 	}
 
 	@Transactional
-	public DeviceBaseDto getDevice(UUID deviceId)
+	public UserDeviceDto getDevice(UUID deviceId)
 	{
 		return UserDeviceDto.createInstance(getDeviceEntity(deviceId));
 	}
@@ -82,23 +85,25 @@ public class DeviceService
 	@Transactional
 	public UserDeviceDto addDeviceToUser(User userEntity, UserDeviceDto deviceDto)
 	{
-		assertDeviceNameDoesNotExist(userEntity, deviceDto.getName());
+		assertAcceptableDeviceName(userEntity, deviceDto.getName());
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(findFirstFreeDeviceIndex(userEntity),
 				deviceDto.getOperatingSystem(), deviceDto.getAppVersion());
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		UserDevice deviceEntity = userDeviceRepository
 				.save(UserDevice.createInstance(deviceDto.getName(), deviceAnonymized.getId()));
 		userEntity.addDevice(deviceEntity);
-		DeviceChange change = DeviceChange.ADD;
-		Optional<String> oldName = Optional.empty();
-		Optional<String> newName = Optional.of(deviceDto.getName());
+		sendDeviceChangeMessageToBuddies(DeviceChange.ADD, userEntity, Optional.empty(), Optional.of(deviceDto.getName()),
+				deviceAnonymized.getId());
+		return UserDeviceDto.createInstance(deviceEntity);
+	}
 
+	private void sendDeviceChangeMessageToBuddies(DeviceChange change, User userEntity, Optional<String> oldName,
+			Optional<String> newName, UUID deviceAnonymizedId)
+	{
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
 				() -> BuddyDeviceChangeMessage.createInstance(
 						BuddyInfoParameters.createInstance(userEntity, userEntity.getNickname()),
-						getDeviceChangeMessageText(change, oldName, newName), change, deviceAnonymized.getId(), oldName,
-						newName));
-		return UserDeviceDto.createInstance(deviceEntity);
+						getDeviceChangeMessageText(change, oldName, newName), change, deviceAnonymizedId, oldName, newName));
 	}
 
 	@Transactional
@@ -107,7 +112,21 @@ public class DeviceService
 		return addDeviceToUser(userService.getUserEntityById(userId), deviceDto);
 	}
 
-	private void assertDeviceNameDoesNotExist(User userEntity, String name)
+	private static void assertAcceptableDeviceName(User userEntity, String deviceName)
+	{
+		assertValidDeviceName(deviceName);
+		assertDeviceNameDoesNotExist(userEntity, deviceName);
+	}
+
+	private static void assertValidDeviceName(String name)
+	{
+		if (name.length() > DeviceBase.MAX_NAME_LENGTH || name.contains(DeviceBase.DEVICE_NAMES_SEPARATOR))
+		{
+			throw InvalidDataException.invalidDeviceName(name, DeviceBase.MAX_NAME_LENGTH, DeviceBase.DEVICE_NAMES_SEPARATOR);
+		}
+	}
+
+	private static void assertDeviceNameDoesNotExist(User userEntity, String name)
 	{
 		if (userEntity.getDevices().stream().map(UserDevice::getName).anyMatch(n -> n.equals(name)))
 		{
@@ -130,6 +149,25 @@ public class DeviceService
 		}
 	}
 
+	@Transactional
+	public UserDeviceDto updateDevice(UUID userId, UUID deviceId, DeviceUpdateRequestDto changeRequest)
+	{
+		userService.updateUser(userId, userEntity -> {
+			UserDevice deviceEntity = getDeviceEntity(deviceId);
+			String oldName = deviceEntity.getName();
+			if (oldName.equals(changeRequest.name))
+			{
+				return;
+			}
+			assertAcceptableDeviceName(userEntity, changeRequest.name);
+			deviceEntity.setName(changeRequest.name);
+			userDeviceRepository.save(deviceEntity);
+			sendDeviceChangeMessageToBuddies(DeviceChange.RENAME, userEntity, Optional.of(oldName),
+					Optional.of(changeRequest.name), deviceEntity.getDeviceAnonymized().getId());
+		});
+		return getDevice(deviceId);
+	}
+
 	public UserDeviceDto createDefaultUserDeviceDto()
 	{
 		return new UserDeviceDto(translator.getLocalizedMessage("default.device.name"), OperatingSystem.UNKNOWN, "Unknown");
@@ -144,18 +182,28 @@ public class DeviceService
 	}
 
 	@Transactional
-	public void deleteDevice(User userEntity, UserDevice device)
+	public void deleteDeviceAndNotifyBuddies(UUID userId, UUID deviceId)
 	{
-		Set<UserDevice> devices = userEntity.getDevices();
-		if (((devices.size() == 1) && devices.contains(device)))
-		{
-			throw DeviceServiceException.cannotDeleteLastDevice(device.getId());
-		}
-		deleteDeviceEvenIfLastOne(userEntity, device);
+		userService.updateUser(userId, userEntity -> {
+			UserDevice deviceEntity = getDeviceEntity(deviceId);
+			Set<UserDevice> devices = userEntity.getDevices();
+			if (((devices.size() == 1) && devices.contains(deviceEntity)))
+			{
+				throw DeviceServiceException.cannotDeleteLastDevice(deviceEntity.getId());
+			}
+
+			String oldName = deviceEntity.getName();
+			UUID deviceAnonymizedId = deviceEntity.getDeviceAnonymized().getId();
+
+			deleteDevice(userEntity, deviceEntity);
+
+			sendDeviceChangeMessageToBuddies(DeviceChange.DELETE, userEntity, Optional.of(oldName), Optional.empty(),
+					deviceAnonymizedId);
+		});
 	}
 
 	@Transactional
-	public void deleteDeviceEvenIfLastOne(User userEntity, UserDevice device)
+	public void deleteDevice(User userEntity, UserDevice device)
 	{
 		Set<UserDevice> devices = userEntity.getDevices();
 		if (!devices.contains(device))
