@@ -10,6 +10,7 @@ package nu.yona.server
 import static nu.yona.server.test.CommonAssertions.*
 
 import groovy.json.*
+import nu.yona.server.test.Device
 import nu.yona.server.test.User
 
 class AddDeviceTest extends AbstractAppServiceIntegrationTest
@@ -75,7 +76,7 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 
 		def newDeviceName = "My iPhone"
 		def newDeviceOs = "ANDROID"
-		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs, "0.1")
+		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs, Device.SUPPORTED_APP_VERSION)
 		assertResponseStatusCreated(registerResponse)
 		assertUserGetResponseDetailsWithPrivateData(registerResponse, false)
 

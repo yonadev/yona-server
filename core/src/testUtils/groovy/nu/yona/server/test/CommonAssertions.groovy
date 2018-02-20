@@ -231,7 +231,7 @@ class CommonAssertions extends Service
 	static void assertEquals(String dateTimeString, LocalDate comparisonDate)
 	{
 		// Example date string: 2016-02-23
-		ZonedDateTime date = YonaServer.parseIsoDateString(dateTimeString)
+		LocalDate date = YonaServer.parseIsoDateString(dateTimeString)
 		assertEquals(date, comparisonDate)
 	}
 

@@ -4,7 +4,6 @@
  *******************************************************************************/
 package nu.yona.server.subscriptions.service;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -441,19 +440,6 @@ public class UserService
 			userEntity.setMobileNumberConfirmationCode(confirmationCode);
 			sendConfirmationCodeTextMessage(userEntity.getMobileNumber(), confirmationCode,
 					SmsTemplate.ADD_USER_NUMBER_CONFIRMATION);
-		});
-	}
-
-	@Transactional
-	public void postOpenAppEvent(UUID userId)
-	{
-		updateUser(userId, userEntity -> {
-			LocalDate now = TimeUtil.utcNow().toLocalDate();
-			Optional<LocalDate> appLastOpenedDate = userEntity.getAppLastOpenedDate();
-			if (!appLastOpenedDate.isPresent() || appLastOpenedDate.get().isBefore(now))
-			{
-				userEntity.setAppLastOpenedDate(now);
-			}
 		});
 	}
 

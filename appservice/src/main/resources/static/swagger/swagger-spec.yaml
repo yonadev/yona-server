@@ -225,22 +225,6 @@ paths:
           description: Confirmation failed
           schema:
             $ref: '#/definitions/Error'
-  '/users/{userID}/openApp':
-    post:
-      summary: Inform the server that the user just opened the Yona app
-      description: The server uses this to maintain the "last seen" information
-      parameters:
-        - $ref: "#/parameters/userID"
-        - $ref: "#/parameters/yonaPassword"
-      tags:
-        - User
-      responses:
-        '200':
-          description: The request is successfully handled
-        default:
-          description: Action failed
-          schema:
-            $ref: '#/definitions/Error'
   '/users/{userID}/photo':
     put:
       summary: Upload a user photo
@@ -419,6 +403,41 @@ paths:
           description: The device is deleted.
         default:
           description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/users/{userID}/devices/{deviceID}/openApp':
+    post:
+      summary: Inform the server that the user just opened the Yona app
+      description: The server uses this to maintain the "last seen" information and to inform the user about the usage of the Yona app on their various devices
+      parameters:
+        - $ref: "#/parameters/yonaPassword"
+        - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/deviceID"
+        - in: body
+          name: body
+          description: The app open event
+          required: false
+          schema:
+            type: object
+            properties:
+              operatingSystem:
+                $ref: '#/definitions/DeviceOperatingSystem'
+                description: The operating system of the device running the Yona app
+                example: ANDROID
+              appVersion:
+                type: string
+                description: The version of the Yona app running on this device, in semver-compatible format
+                example: 1.0.0
+            required:
+              - operatingSystem
+              - appVersion
+      tags:
+        - Device
+      responses:
+        '200':
+          description: The request is successfully handled
+        default:
+          description: Action failed
           schema:
             $ref: '#/definitions/Error'
   '/users/{userID}/devices/{deviceID}/appActivity/':
@@ -1850,8 +1869,8 @@ definitions:
         example: ANDROID
       appVersion:
         type: string
-        description: The version of the Yona app running on this device
-        example: 1.0
+        description: The version of the Yona app running on this device, in semver-compatible format
+        example: 1.0.0
     required:
       - name
       - operatingSystem
@@ -1946,8 +1965,8 @@ definitions:
             example: ANDROID
           deviceAppVersion:
             type: string
-            description: The version of the Yona app running on this device
-            example: 1.0
+            description: The version of the Yona app running on this device, in semver-compatible format
+            example: 1.0.0
   UserWithPrivateData:
     allOf:
       - $ref: '#/definitions/BaseUser'
