@@ -11,7 +11,6 @@ import static nu.yona.server.test.CommonAssertions.*
 import groovy.json.*
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.CommonAssertions
-import nu.yona.server.test.Device
 import nu.yona.server.test.User
 
 class DeviceTest extends AbstractAppServiceIntegrationTest
@@ -183,116 +182,6 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 
 		then:
 		assert johnAsCreated == null // Creation failed
-	}
-
-	def 'Update device name'()
-	{
-		given:
-		def ts = timestamp
-		User john = createJohnDoe(ts, "My S8", "ANDROID")
-		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
-		def updatedName = "Updated name"
-
-		when:
-		def response = appService.updateResource(john.devices[0].editUrl, """{"name":"$updatedName"}""", ["Yona-Password" : john.password])
-
-
-		then:
-		assertResponseStatusOk(response)
-		def johnAfterReload = appService.reloadUser(john, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
-
-		johnAfterReload.devices.size == 1
-		johnAfterReload.devices[0].name == updatedName
-		johnAfterReload.devices[0].operatingSystem == "ANDROID"
-
-		cleanup:
-		appService.deleteUser(john)
-	}
-
-	def 'Try update device name to device name containing a colon'()
-	{
-		given:
-		def ts = timestamp
-		User john = createJohnDoe(ts, "My S8", "ANDROID")
-		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
-		def updatedName = "Updated:name"
-
-		when:
-		def response = appService.updateResource(john.devices[0].editUrl, """{"name":"$updatedName"}""", ["Yona-Password" : john.password])
-
-		then:
-		assertResponseStatus(response, 400)
-		assert response.responseData.code == "error.device.invalid.device.name"
-
-		cleanup:
-		appService.deleteUser(john)
-	}
-
-	def 'Try update device name to existing name'()
-	{
-		given:
-		def ts = timestamp
-		User john = createJohnDoe(ts, "My S8", "ANDROID")
-		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
-		Device deviceToUpdate = john.devices[0]
-		def existingName = "Existing name"
-		appService.addDevice(john, existingName, "IOS", "1.0")
-
-		when:
-		def response = appService.updateResource(deviceToUpdate.editUrl, """{"name":"$existingName"}""", ["Yona-Password" : john.password])
-
-		then:
-		assertResponseStatus(response, 400)
-		assert response.responseData.code == "error.device.name.already.exists"
-
-		cleanup:
-		appService.deleteUser(john)
-	}
-
-	def 'Create John Doe with two devices and delete one'()
-	{
-		given:
-		def ts = timestamp
-		User john = createJohnDoe(ts, "My S8", "ANDROID")
-		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
-		Device deviceToDelete = john.devices[0]
-		def remainingDeviceName = "Second device"
-		def remainingOperatingSystem = "IOS"
-		appService.addDevice(john, remainingDeviceName, remainingOperatingSystem, "1.0")
-
-		when:
-		def response = appService.deleteResource(deviceToDelete.editUrl, ["Yona-Password" : john.password])
-
-
-		then:
-		assertResponseStatus(response, 204) // TODO: Make this assertResponseStatusNoContent
-		def johnAfterReload = appService.reloadUser(john, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
-
-		johnAfterReload.devices.size == 1
-		johnAfterReload.devices[0].name == remainingDeviceName
-		johnAfterReload.devices[0].operatingSystem == remainingOperatingSystem
-
-		cleanup:
-		appService.deleteUser(john)
-	}
-
-	def 'Try delete last device'()
-	{
-		given:
-		def ts = timestamp
-		User john = createJohnDoe(ts, "My S8", "ANDROID")
-		john = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, john)
-		Device deviceToDelete = john.devices[0]
-
-		when:
-		def response = appService.deleteResource(deviceToDelete.editUrl, ["Yona-Password" : john.password])
-
-		then:
-		assertResponseStatus(response, 400)
-		assert response.responseData.code == "error.device.cannot.delete.last.one"
-
-		cleanup:
-		appService.deleteUser(john)
 	}
 
 	private User createJohnDoe(ts, deviceName, deviceOperatingSystem)
