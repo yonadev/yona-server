@@ -322,10 +322,10 @@ public class DeviceService
 			default:
 				throw new IllegalArgumentException("Unknown operating system: " + operatingSystem);
 		}
-		assertNotOlderThan(operatingSystem, minAppVersion, parseVersionString(appVersionStr));
+		assertNotOlderThan(minAppVersion, parseVersionString(appVersionStr), operatingSystem);
 	}
 
-	private void assertNotOlderThan(OperatingSystem operatingSystem, String minAppVersionStr, Version appVersion)
+	private void assertNotOlderThan(String minAppVersionStr, Version appVersion, OperatingSystem operatingSystem)
 	{
 		Version minAppVersion = parseVersionString(minAppVersionStr);
 		if (appVersion.lessThan(minAppVersion))

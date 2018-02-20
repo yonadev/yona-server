@@ -203,7 +203,7 @@ class DeviceTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Richard posts app opened event with a valid app version'()
+	def 'Richard posts app opened event with a valid operating system and app version'()
 	{
 		given:
 		def richard = addRichard()

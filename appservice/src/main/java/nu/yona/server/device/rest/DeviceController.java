@@ -229,16 +229,9 @@ public class DeviceController extends ControllerBase
 
 	public static Link getPostOpenAppEventLink(UUID userId, UUID deviceId)
 	{
-		try
-		{
-			ControllerLinkBuilder linkBuilder = linkTo(
-					methodOn(DeviceController.class).postOpenAppEvent(Optional.empty(), userId, deviceId, null));
-			return linkBuilder.withRel("postOpenAppEvent");
-		}
-		catch (SecurityException e)
-		{
-			throw YonaException.unexpected(e);
-		}
+		ControllerLinkBuilder linkBuilder = linkTo(
+				methodOn(DeviceController.class).postOpenAppEvent(Optional.empty(), userId, deviceId, null));
+		return linkBuilder.withRel("postOpenAppEvent");
 	}
 
 	public static Link getAppActivityLink(UUID userId, UUID deviceId)
