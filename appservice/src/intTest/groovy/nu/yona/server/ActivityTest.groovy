@@ -19,6 +19,7 @@ import groovy.json.*
 import nu.yona.server.test.AppActivity
 import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.CommonAssertions
+import nu.yona.server.test.Device
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
 import nu.yona.server.test.User
@@ -1437,7 +1438,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal timeZoneGoalSocialRichard = richardDefault.findActiveGoal(SOCIAL_ACT_CAT_URL)
 
 		def iphoneDeviceName = "My iPhone"
-		User richardIphone = appService.addDevice(richardDefault, iphoneDeviceName, "IOS", "1.0")
+		User richardIphone = appService.addDevice(richardDefault, iphoneDeviceName, "IOS", Device.SUPPORTED_APP_VERSION)
 
 		// Activities on default device
 		reportAppActivity(richardDefault, "NU.nl", "W-1 Mon 03:15", "W-1 Mon 03:35")

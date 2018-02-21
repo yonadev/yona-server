@@ -21,6 +21,7 @@ import nu.yona.server.test.BatchService
 import nu.yona.server.test.Buddy
 import nu.yona.server.test.BudgetGoal
 import nu.yona.server.test.CommonAssertions
+import nu.yona.server.test.Device
 import nu.yona.server.test.Goal
 import nu.yona.server.test.TimeZoneGoal
 import nu.yona.server.test.User
@@ -72,7 +73,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def deviceName = makeDeviceName("Richard", operatingSystem)
 		User richard = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Richard", "Quinn", "RQ",
-				makeMobileNumber(timestamp), deviceName, operatingSystem)
+				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SUPPORTED_APP_VERSION)
 		richard = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, richard)
 		def response = appService.addGoal(richard, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assertResponseStatusCreated(response)
@@ -83,7 +84,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def deviceName = makeDeviceName("Bob", operatingSystem)
 		User bob = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Bob", "Dunn", "BD",
-				makeMobileNumber(timestamp), deviceName, "IOS")
+				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SUPPORTED_APP_VERSION)
 		bob = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, bob)
 		def response = appService.addGoal(bob, BudgetGoal.createNoGoInstance(NEWS_ACT_CAT_URL))
 		assertResponseStatusCreated(response)
@@ -94,7 +95,7 @@ abstract class AbstractAppServiceIntegrationTest extends Specification
 	{
 		def deviceName = makeDeviceName("Bea", operatingSystem)
 		User bea = appService.addUser(CommonAssertions.&assertUserCreationResponseDetails, "Bea", "Dundee", "BDD",
-				makeMobileNumber(timestamp), deviceName, "IOS")
+				makeMobileNumber(timestamp), deviceName, operatingSystem, Device.SUPPORTED_APP_VERSION)
 		bea = appService.confirmMobileNumber(CommonAssertions.&assertResponseStatusSuccess, bea)
 		return reload? appService.reloadUser(bea) : bea
 	}

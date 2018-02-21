@@ -109,7 +109,7 @@ public class UserDeviceDto extends DeviceBaseDto
 		}
 	}
 
-	private static OperatingSystem parseOperatingSystemOfRegistrationRequest(String operatingSystemStr)
+	public static OperatingSystem parseOperatingSystemOfRegistrationRequest(String operatingSystemStr)
 	{
 		try
 		{

@@ -12,17 +12,21 @@ import groovy.transform.ToString
 @ToString(includeNames=true)
 class Device
 {
+	private static final String SUPPORTED_APP_VERSION = "9.9.9"
+
 	final String url
 	final String editUrl
 	final String ovpnProfileUrl
 	final String name
 	final String operatingSystem
+	final String appLastOpenedDate
 	final VPNProfile vpnProfile
 	final boolean vpnConnected
 	Device(def json)
 	{
 		this.name = json.name
 		this.operatingSystem = json.operatingSystem
+		this.appLastOpenedDate = json.appLastOpenedDate
 		this.url = json._links?.self?.href
 		this.editUrl = json._links?.edit?.href
 		this.ovpnProfileUrl = json._links?.ovpnProfile?.href

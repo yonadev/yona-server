@@ -29,6 +29,11 @@ import nu.yona.server.goals.entities.TimeZoneGoal;
 import nu.yona.server.rest.PolymorphicDto;
 import nu.yona.server.util.TimeUtil;
 
+/**
+ * The base goal DTO class.<br/>
+ * NOTE: The ID is always available except when a new goal is POSTed. To keep the API simple, the DTO always has an ID. In case of
+ * a freshly posted goal, it is an all-zeros UUID.
+ */
 @JsonRootName("goal")
 @JsonSubTypes({ @Type(value = BudgetGoalDto.class, name = "BudgetGoal"),
 		@Type(value = TimeZoneGoalDto.class, name = "TimeZoneGoal") })
@@ -45,7 +50,7 @@ public abstract class GoalDto extends PolymorphicDto implements Serializable
 	protected GoalDto(UUID id, Optional<LocalDateTime> creationTime, Optional<LocalDateTime> endTime, UUID activityCategoryId,
 			boolean mandatory)
 	{
-		this.id = id;
+		this.id = (id == null) ? new UUID(0, 0) : id;
 		this.setActivityCategoryId(activityCategoryId);
 		this.mandatory = mandatory;
 
@@ -62,32 +67,23 @@ public abstract class GoalDto extends PolymorphicDto implements Serializable
 	}
 
 	@Override
-	public int hashCode()
+	public final int hashCode()
 	{
-		return (id == null) ? super.hashCode() : id.hashCode();
+		return id.hashCode();
 	}
 
 	@Override
-	public boolean equals(Object obj)
+	public final boolean equals(Object obj)
 	{
 		if (this == obj)
 		{
 			return true;
 		}
-		if (getClass() != obj.getClass())
+		if (!(obj instanceof GoalDto))
 		{
 			return false;
 		}
 		GoalDto that = (GoalDto) obj;
-		if (this.id == that.id)
-		{
-			return true;
-		}
-		if (this.id == null)
-		{
-			// that.id isn't null, see previous if
-			return false;
-		}
 		return this.id.equals(that.id);
 	}
 

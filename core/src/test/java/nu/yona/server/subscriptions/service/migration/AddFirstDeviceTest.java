@@ -104,6 +104,7 @@ class AddFirstDeviceIntegrationTestConfiguration extends UserRepositoriesConfigu
 @ContextConfiguration(classes = { AddFirstDeviceIntegrationTestConfiguration.class })
 public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 {
+	private static final String SUPPORTED_APP_VERSION = "9.9.9";
 	private static final String PASSWORD = "password";
 	private User richard;
 	private User bob;
@@ -159,7 +160,7 @@ public class AddFirstDeviceTest extends BaseSpringIntegrationTest
 		// Add device
 		String deviceName = "Testing";
 		OperatingSystem operatingSystem = OperatingSystem.ANDROID;
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, operatingSystem, "Unknown");
+		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(0, operatingSystem, SUPPORTED_APP_VERSION);
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		UserDevice device = UserDevice.createInstance(deviceName, deviceAnonymized.getId(), "topSecret");
 		richard.addDevice(device);
