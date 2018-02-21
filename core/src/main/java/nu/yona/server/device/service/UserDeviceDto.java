@@ -96,7 +96,7 @@ public class UserDeviceDto extends DeviceBaseDto
 				parseOperatingSystemOfRegistrationRequest(deviceRegistration.operatingSystemStr), deviceRegistration.appVersion);
 	}
 
-	private static OperatingSystem parseOperatingSystemOfRegistrationRequest(String operatingSystemStr)
+	public static OperatingSystem parseOperatingSystemOfRegistrationRequest(String operatingSystemStr)
 	{
 		try
 		{

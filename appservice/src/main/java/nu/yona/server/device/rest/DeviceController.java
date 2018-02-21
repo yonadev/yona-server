@@ -40,6 +40,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import nu.yona.server.analysis.service.AnalysisEngineProxyService;
 import nu.yona.server.analysis.service.AppActivityDto;
 import nu.yona.server.analysis.service.AppActivityDto.Activity;
@@ -135,6 +138,19 @@ public class DeviceController extends ControllerBase
 					UserDeviceDto.createDeviceRegistrationInstance(request));
 			return createResponse(userService.getPrivateUser(userId, false), HttpStatus.CREATED,
 					userController.createResourceAssemblerForOwnUser(userId, Optional.of(newDevice.getId())));
+		}
+	}
+
+	@RequestMapping(value = "/{deviceId}/openApp", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Void> postOpenAppEvent(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody AppOpenEventDto request)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			deviceService.postOpenAppEvent(userId, deviceId, request.getOperatingSystem(),
+					Optional.ofNullable(request.appVersion));
+			return createOkResponse();
 		}
 	}
 
@@ -236,6 +252,13 @@ public class DeviceController extends ControllerBase
 		}
 	}
 
+	public static Link getPostOpenAppEventLink(UUID userId, UUID deviceId)
+	{
+		ControllerLinkBuilder linkBuilder = linkTo(
+				methodOn(DeviceController.class).postOpenAppEvent(Optional.empty(), userId, deviceId, null));
+		return linkBuilder.withRel("postOpenAppEvent");
+	}
+
 	public static Link getAppActivityLink(UUID userId, UUID deviceId)
 	{
 		try
@@ -278,6 +301,25 @@ public class DeviceController extends ControllerBase
 	{
 		return new Resources<>(new DeviceResourceAssembler(curieProvider, userId).toResources(devices),
 				DeviceController.getAllDevicesLinkBuilder(userId).withSelfRel());
+	}
+
+	static class AppOpenEventDto
+	{
+		private final String operatingSystemStr;
+		private final String appVersion;
+
+		@JsonCreator
+		AppOpenEventDto(@JsonProperty("operatingSystem") String operatingSystemStr, @JsonProperty("appVersion") String appVersion)
+		{
+			this.operatingSystemStr = operatingSystemStr;
+			this.appVersion = appVersion;
+		}
+
+		Optional<OperatingSystem> getOperatingSystem()
+		{
+			return operatingSystemStr == null ? Optional.empty()
+					: Optional.of(UserDeviceDto.parseOperatingSystemOfRegistrationRequest(operatingSystemStr));
+		}
 	}
 
 	public static class DeviceResource extends Resource<DeviceBaseDto>

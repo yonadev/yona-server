@@ -10,6 +10,7 @@ import static nu.yona.server.test.CommonAssertions.*
 
 import groovy.json.*
 import nu.yona.server.test.CommonAssertions
+import nu.yona.server.test.Device
 import nu.yona.server.test.User
 
 class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
@@ -44,6 +45,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		then:
 		assertResponseStatus(response, 201)
 		response.responseData._embedded."yona:user".firstName == "Bob"
+		response.responseData._embedded."yona:user".appLastOpenedDate == null
 		response.responseData._links."yona:user" == null
 		response.responseData._links.self.href.startsWith(YonaServer.stripQueryString(richard.url))
 
@@ -130,7 +132,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		User bobToBeUpdated = new User(updatedBobJson)
 		bobToBeUpdated.deviceName = "My S8"
 		bobToBeUpdated.deviceOperatingSystem = "ANDROID"
-		bobToBeUpdated.deviceAppVersion = "1.0"
+		bobToBeUpdated.deviceAppVersion = Device.SUPPORTED_APP_VERSION
 		User updatedBob = appService.updateUserCreatedOnBuddyRequest(CommonAssertions.&assertUserUpdateResponseDetails, bobToBeUpdated, inviteUrl)
 
 		then:
@@ -275,6 +277,7 @@ class CreateUserOnBuddyRequestTest extends AbstractAppServiceIntegrationTest
 		richardWithBuddy.buddies != null
 		richardWithBuddy.buddies.size() == 1
 		richardWithBuddy.buddies[0].user.firstName == "Bob"
+		assertEquals(richardWithBuddy.buddies[0].user.appLastOpenedDate, YonaServer.now.toLocalDate())
 		richardWithBuddy.buddies[0].sendingStatus == "ACCEPTED"
 		richardWithBuddy.buddies[0].receivingStatus == "ACCEPTED"
 

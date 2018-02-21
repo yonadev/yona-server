@@ -80,7 +80,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 
 		def newDeviceName = "My iPhone"
 		def newDeviceOs = "ANDROID"
-		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs, "0.1")
+		def registerResponse = appService.registerNewDevice(registerUrl, newDeviceRequestPassword, newDeviceName, newDeviceOs, Device.SUPPORTED_APP_VERSION)
 		assertResponseStatusCreated(registerResponse)
 		assertUserGetResponseDetailsWithPrivateData(registerResponse, false)
 
@@ -360,7 +360,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		User richard = addRichard()
 		Device deviceToUpdate = richard.devices[0]
 		def existingName = "Existing name"
-		appService.addDevice(richard, existingName, "ANDROID", "1.0")
+		appService.addDevice(richard, existingName, "ANDROID", Device.SUPPORTED_APP_VERSION)
 
 		when:
 		def response = appService.updateResource(deviceToUpdate.editUrl, """{"name":"$existingName"}""", ["Yona-Password" : richard.password])
@@ -383,7 +383,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		Device deviceToDelete = richard.devices[0]
 		def remainingDeviceName = "Second device"
 		def remainingOperatingSystem = "ANDROID"
-		appService.addDevice(richard, remainingDeviceName, remainingOperatingSystem, "1.0")
+		appService.addDevice(richard, remainingDeviceName, remainingOperatingSystem, Device.SUPPORTED_APP_VERSION)
 
 		when:
 		def response = appService.deleteResource(deviceToDelete.editUrl, ["Yona-Password" : richard.password])

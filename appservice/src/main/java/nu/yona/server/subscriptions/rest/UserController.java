@@ -366,18 +366,6 @@ public class UserController extends ControllerBase
 		}
 	}
 
-	@RequestMapping(value = "/{userId}/openApp", method = RequestMethod.POST)
-	@ResponseBody
-	public ResponseEntity<Void> postOpenAppEvent(@RequestHeader(value = Constants.PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId)
-	{
-		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
-		{
-			userService.postOpenAppEvent(userId);
-			return createOkResponse();
-		}
-	}
-
 	@ExceptionHandler(ConfirmationException.class)
 	private ResponseEntity<ErrorResponseDto> handleException(ConfirmationException e, HttpServletRequest request)
 	{
@@ -469,12 +457,6 @@ public class UserController extends ControllerBase
 		ControllerLinkBuilder linkBuilder = linkTo(
 				methodOn(UserController.class).resendMobileNumberConfirmationCode(Optional.empty(), userId));
 		return linkBuilder.withRel("resendMobileNumberConfirmationCode");
-	}
-
-	public static Link getPostOpenAppEventLink(UUID userId)
-	{
-		ControllerLinkBuilder linkBuilder = linkTo(methodOn(UserController.class).postOpenAppEvent(Optional.empty(), userId));
-		return linkBuilder.withRel("postOpenAppEvent");
 	}
 
 	private static Link getUserLink(String rel, UUID userId, Optional<UUID> requestingUserId, Optional<UUID> requestingDeviceId)
@@ -756,9 +738,10 @@ public class UserController extends ControllerBase
 			userResource.add(UserController.getResendMobileNumberConfirmationLink(userResource.getContent().getId()));
 		}
 
-		private static void addPostOpenAppEventLink(Resource<UserDto> userResource)
+		private void addPostOpenAppEventLink(Resource<UserDto> userResource)
 		{
-			userResource.add(UserController.getPostOpenAppEventLink(userResource.getContent().getId()));
+			userResource
+					.add(DeviceController.getPostOpenAppEventLink(userResource.getContent().getId(), requestingDeviceId.get()));
 		}
 
 		private void addWeekActivityOverviewsLink(UserResource userResource)

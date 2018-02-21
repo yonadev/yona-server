@@ -4,9 +4,12 @@
  *******************************************************************************/
 package nu.yona.server.device.service;
 
+import java.time.LocalDate;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -14,6 +17,9 @@ import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.github.zafarkhaja.semver.ParseException;
+import com.github.zafarkhaja.semver.Version;
 
 import nu.yona.server.Translator;
 import nu.yona.server.analysis.entities.Activity;
@@ -34,10 +40,14 @@ import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.subscriptions.service.UserService;
+import nu.yona.server.util.TimeUtil;
 
 @Service
 public class DeviceService
 {
+	private static final String ANDROID_MIN_APP_VERSION = "1.0.0";
+	private static final String IOS_MIN_APP_VERSION = ANDROID_MIN_APP_VERSION;
+
 	@Autowired(required = false)
 	private UserService userService;
 
@@ -86,6 +96,7 @@ public class DeviceService
 	public UserDeviceDto addDeviceToUser(User userEntity, UserDeviceDto deviceDto)
 	{
 		assertAcceptableDeviceName(userEntity, deviceDto.getName());
+		assertValidAppVersion(deviceDto.getOperatingSystem(), deviceDto.getAppVersion());
 		DeviceAnonymized deviceAnonymized = DeviceAnonymized.createInstance(findFirstFreeDeviceIndex(userEntity),
 				deviceDto.getOperatingSystem(), deviceDto.getAppVersion());
 		deviceAnonymizedRepository.save(deviceAnonymized);
@@ -170,7 +181,8 @@ public class DeviceService
 
 	public UserDeviceDto createDefaultUserDeviceDto()
 	{
-		return new UserDeviceDto(translator.getLocalizedMessage("default.device.name"), OperatingSystem.UNKNOWN, "Unknown");
+		return new UserDeviceDto(translator.getLocalizedMessage("default.device.name"), OperatingSystem.UNKNOWN,
+				ANDROID_MIN_APP_VERSION);
 	}
 
 	private int findFirstFreeDeviceIndex(User userEntity)
@@ -290,5 +302,95 @@ public class DeviceService
 			deviceAnonymized.setOperatingSystem(operatingSystem);
 			deviceAnonymizedRepository.save(deviceAnonymized);
 		});
+	}
+
+	@Transactional
+	public void postOpenAppEvent(UUID userId, UUID deviceId, Optional<OperatingSystem> operatingSystem,
+			Optional<String> appVersion)
+	{
+		userService.updateUser(userId, userEntity -> {
+			operatingSystem.ifPresent(os -> assertValidAppVersion(os, appVersion.get()));
+
+			LocalDate now = TimeUtil.utcNow().toLocalDate();
+			UserDevice deviceEntity = getDeviceEntity(deviceId);
+			DeviceAnonymized deviceAnonymizedEntity = deviceEntity.getDeviceAnonymized();
+
+			setAppLastOpenedDateIfNewer(now, userEntity::getAppLastOpenedDate, () -> userEntity.setAppLastOpenedDate(now));
+			setAppLastOpenedDateIfNewer(now, () -> Optional.of(deviceEntity.getAppLastOpenedDate()),
+					() -> deviceEntity.setAppLastOpenedDate(now));
+			operatingSystem.ifPresent(os -> setOperatingSystemIfWasUnknown(deviceEntity, os));
+			appVersion.ifPresent(av -> setAppVersionIfDifferent(deviceAnonymizedEntity, av));
+		});
+	}
+
+	private void setAppLastOpenedDateIfNewer(LocalDate now, Supplier<Optional<LocalDate>> currentDateSupplier,
+			Runnable dateSetter)
+	{
+		Optional<LocalDate> appLastOpenedDate = currentDateSupplier.get();
+		if (!appLastOpenedDate.isPresent() || appLastOpenedDate.get().isBefore(now))
+		{
+			dateSetter.run();
+		}
+	}
+
+	private void setOperatingSystemIfWasUnknown(UserDevice deviceEntity, OperatingSystem currentOperatingSystem)
+	{
+		DeviceAnonymized deviceAnonymized = deviceEntity.getDeviceAnonymized();
+		OperatingSystem registeredOperatingSystem = deviceAnonymized.getOperatingSystem();
+		if (registeredOperatingSystem != currentOperatingSystem && registeredOperatingSystem != OperatingSystem.UNKNOWN)
+		{
+			throw DeviceServiceException.cannotSwitchDeviceOperatingSystem(registeredOperatingSystem, currentOperatingSystem,
+					deviceEntity.getId());
+		}
+		deviceAnonymized.setOperatingSystem(currentOperatingSystem);
+	}
+
+	private void setAppVersionIfDifferent(DeviceAnonymized deviceAnonymizedEntity, String appVersion)
+	{
+		if (!Objects.equals(deviceAnonymizedEntity.getAppVersion(), appVersion))
+		{
+			deviceAnonymizedEntity.setAppVersion(appVersion);
+		}
+	}
+
+	private void assertValidAppVersion(OperatingSystem operatingSystem, String appVersionStr)
+	{
+		String minAppVersion;
+		switch (operatingSystem)
+		{
+			case ANDROID:
+				minAppVersion = ANDROID_MIN_APP_VERSION;
+				break;
+			case IOS:
+				minAppVersion = IOS_MIN_APP_VERSION;
+				break;
+			case UNKNOWN:
+				// Everything is OK for as long as the app didn't confirm the operating system
+				return;
+			default:
+				throw new IllegalArgumentException("Unknown operating system: " + operatingSystem);
+		}
+		assertNotOlderThan(minAppVersion, parseVersionString(appVersionStr), operatingSystem);
+	}
+
+	private void assertNotOlderThan(String minAppVersionStr, Version appVersion, OperatingSystem operatingSystem)
+	{
+		Version minAppVersion = parseVersionString(minAppVersionStr);
+		if (appVersion.lessThan(minAppVersion))
+		{
+			throw DeviceServiceException.appVersionNotSupported(operatingSystem, minAppVersion, appVersion);
+		}
+	}
+
+	private Version parseVersionString(String versionStr)
+	{
+		try
+		{
+			return Version.valueOf(versionStr);
+		}
+		catch (ParseException e)
+		{
+			throw DeviceServiceException.invalidVersionString(versionStr);
+		}
 	}
 }
