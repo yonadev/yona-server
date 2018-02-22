@@ -21,11 +21,11 @@ public class MoveVpnPasswordToDevice implements MigrationStep
 	@Override
 	public void upgrade(User user)
 	{
-		Optional<String> vpnPassword = user.takeVpnPassword();
-		vpnPassword.ifPresent(p -> setPassworOnDefaultDevice(user, p));
+		Optional<String> vpnPassword = user.getAndClearVpnPassword();
+		vpnPassword.ifPresent(p -> setPasswordOnDefaultDevice(user, p));
 	}
 
-	private void setPassworOnDefaultDevice(User user, String password)
+	private void setPasswordOnDefaultDevice(User user, String password)
 	{
 		UserDevice defaultDevice = getDefaultDevice(user);
 		defaultDevice.setLegacyVpnAccountPassword(password);

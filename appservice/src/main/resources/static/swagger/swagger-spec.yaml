@@ -1960,7 +1960,7 @@ definitions:
         properties:
           deviceName:
             type: string
-            description: The name of the device on which the user signs up for Yona. Not supported for a regular user update.
+            description: The name of the device on which the user signs up for Yona.  The name must be at most 20 characters and should not contain a colon. Not supported for a regular user update.
             example: My S8
           deviceOperatingSystem:
             $ref: '#/definitions/DeviceOperatingSystem'

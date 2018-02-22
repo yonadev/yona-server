@@ -74,8 +74,7 @@ public class PrivateUserDataMigrationServiceIntegration_stepOrderTest extends Ba
 	}
 
 	@Test
-	public void getPrivateUser_twoVersionsBehind_migratesToCurrentVersion()
-			throws IllegalArgumentException, IllegalAccessException
+	public void getSteps_allSteps_stepsReturnedInOrder() throws IllegalArgumentException, IllegalAccessException
 	{
 		@SuppressWarnings("unchecked")
 		List<MigrationStep> migrationSteps = (List<MigrationStep>) migrationStepsField.get(service);

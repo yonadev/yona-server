@@ -180,12 +180,12 @@ public class DeviceController extends ControllerBase
 		headers.setContentType(new MediaType("application", "x-apple-aspen-config"));
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return new ResponseEntity<>(getUserSpecificAppleMobileConfig(deviceService.getDevice(deviceId)), headers,
+			return new ResponseEntity<>(getDeviceSpecificAppleMobileConfig(deviceService.getDevice(deviceId)), headers,
 					HttpStatus.OK);
 		}
 	}
 
-	private byte[] getUserSpecificAppleMobileConfig(UserDeviceDto device)
+	private byte[] getDeviceSpecificAppleMobileConfig(UserDeviceDto device)
 	{
 		Context ctx = ThymeleafUtil.createContext();
 		ctx.setVariable("ldapUsername", device.getVpnProfile().getVpnLoginId());

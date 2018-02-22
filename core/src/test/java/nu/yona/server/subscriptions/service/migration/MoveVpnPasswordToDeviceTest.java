@@ -119,13 +119,13 @@ public class MoveVpnPasswordToDeviceTest extends BaseSpringIntegrationTest
 	{
 		String vpnPassword = "upgrade_movePassword_passwordMoved";
 		vpnPasswordField.set(userPrivateField.get(richard), vpnPassword);
-
 		UserDevice device = createDevice();
 		richard.addDevice(device);
 
 		migrationStep.upgrade(richard);
+
 		assertThat(device.getVpnPassword(), equalTo(vpnPassword));
-		assertThat(richard.takeVpnPassword(), equalTo(Optional.empty()));
+		assertThat(richard.getAndClearVpnPassword(), equalTo(Optional.empty()));
 	}
 
 	@Test
@@ -133,17 +133,14 @@ public class MoveVpnPasswordToDeviceTest extends BaseSpringIntegrationTest
 	{
 		String vpnPassword = "upgrade_movePasswordTwice_idemPotent";
 		vpnPasswordField.set(userPrivateField.get(richard), vpnPassword);
-
 		UserDevice device = createDevice();
 		richard.addDevice(device);
 
 		migrationStep.upgrade(richard);
-		assertThat(device.getVpnPassword(), equalTo(vpnPassword));
-		assertThat(richard.takeVpnPassword(), equalTo(Optional.empty()));
-
 		migrationStep.upgrade(richard);
+
 		assertThat(device.getVpnPassword(), equalTo(vpnPassword));
-		assertThat(richard.takeVpnPassword(), equalTo(Optional.empty()));
+		assertThat(richard.getAndClearVpnPassword(), equalTo(Optional.empty()));
 	}
 
 	private UserDevice createDevice()

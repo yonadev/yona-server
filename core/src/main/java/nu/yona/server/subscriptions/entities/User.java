@@ -229,9 +229,9 @@ public class User extends EntityWithUuid
 		return getUserPrivate().getUserAnonymizedId();
 	}
 
-	public Optional<String> takeVpnPassword()
+	public Optional<String> getAndClearVpnPassword()
 	{
-		return userPrivate.takeVpnPassword();
+		return userPrivate.getAndClearVpnPassword();
 	}
 
 	public MessageDestination getNamedMessageDestination()

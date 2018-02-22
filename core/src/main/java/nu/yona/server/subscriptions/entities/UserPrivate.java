@@ -144,7 +144,7 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 		return namedMessageSourceId;
 	}
 
-	public Optional<String> takeVpnPassword()
+	public Optional<String> getAndClearVpnPassword()
 	{
 		if (vpnPassword == null)
 		{
