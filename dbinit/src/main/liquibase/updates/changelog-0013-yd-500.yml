@@ -6,8 +6,8 @@ databaseChangeLog:
     - addColumn:
         columns:
         - column:
-            name: vpn_account_type_marker
-            type: varchar(255)
+            name: is_legacy_vpn_account
+            type: BOOLEAN
         tableName: user_devices
 - changeSet:
     id: 1518549954060-2

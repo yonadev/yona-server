@@ -16,7 +16,6 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
 
-import nu.yona.server.crypto.CryptoUtil;
 import nu.yona.server.crypto.seckey.DateFieldEncryptor;
 import nu.yona.server.crypto.seckey.DateTimeFieldEncryptor;
 import nu.yona.server.crypto.seckey.StringFieldEncryptor;
@@ -26,17 +25,11 @@ import nu.yona.server.util.TimeUtil;
 @Table(name = "USER_DEVICES")
 public class UserDevice extends DeviceBase
 {
-	enum VpnAccountType
-	{
-		LEGACY, STANDARD
-	}
-
 	@Type(type = "uuid-char")
 	@Column(name = "user_private_id")
 	private UUID userPrivateId;
 
-	@Convert(converter = StringFieldEncryptor.class)
-	private String vpnAccountTypeMarker;
+	private boolean isLegacyVpnAccount;
 
 	@Convert(converter = StringFieldEncryptor.class)
 	private String vpnPassword;
@@ -55,15 +48,9 @@ public class UserDevice extends DeviceBase
 	private UserDevice(UUID id, String name, UUID deviceAnonymizedId, String vpnPassword)
 	{
 		super(id, name, deviceAnonymizedId, true); // Consider the VPN to be connected by default
-		this.vpnAccountTypeMarker = buildVpnAccountTypeMarker(VpnAccountType.STANDARD);
 		this.vpnPassword = Objects.requireNonNull(vpnPassword);
 		this.registrationTime = TimeUtil.utcNow();
 		this.appLastOpenedDate = TimeUtil.utcNow().toLocalDate(); // The user registers this device, so the app is open now
-	}
-
-	private String buildVpnAccountTypeMarker(VpnAccountType accountType)
-	{
-		return accountType + CryptoUtil.getRandomString(8);
 	}
 
 	public static UserDevice createInstance(String name, UUID deviceAnonymizedId, String vpnPassword)
@@ -88,7 +75,7 @@ public class UserDevice extends DeviceBase
 
 	public boolean isLegacyVpnAccount()
 	{
-		return vpnAccountTypeMarker.startsWith(VpnAccountType.LEGACY.toString());
+		return isLegacyVpnAccount;
 	}
 
 	public String getVpnPassword()
@@ -99,7 +86,7 @@ public class UserDevice extends DeviceBase
 	public void setLegacyVpnAccountPassword(String vpnPassword)
 	{
 		this.vpnPassword = vpnPassword;
-		this.vpnAccountTypeMarker = buildVpnAccountTypeMarker(VpnAccountType.LEGACY);
+		this.isLegacyVpnAccount = true;
 	}
 
 	public LocalDateTime getRegistrationTime()
