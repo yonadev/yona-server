@@ -30,7 +30,6 @@ import nu.yona.server.device.entities.DeviceAnonymizedRepository;
 import nu.yona.server.device.entities.DeviceBase;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.device.entities.UserDeviceRepository;
-import nu.yona.server.device.service.UserDeviceDto.DeviceUpdateRequestDto;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.service.MessageService;
@@ -212,12 +211,12 @@ public class DeviceService
 	}
 
 	@Transactional
-	public void deleteDeviceAndNotifyBuddies(UUID userId, UUID deviceId)
+	public void deleteDevice(UUID userId, UUID deviceId)
 	{
 		userService.updateUser(userId, userEntity -> {
 			UserDevice deviceEntity = getDeviceEntity(deviceId);
 			Set<UserDevice> devices = userEntity.getDevices();
-			if (((devices.size() == 1) && devices.contains(deviceEntity)))
+			if ((devices.size() == 1) && devices.contains(deviceEntity))
 			{
 				throw DeviceServiceException.cannotDeleteLastDevice(deviceEntity.getId());
 			}
@@ -225,7 +224,7 @@ public class DeviceService
 			String oldName = deviceEntity.getName();
 			UUID deviceAnonymizedId = deviceEntity.getDeviceAnonymized().getId();
 
-			deleteDevice(userEntity, deviceEntity);
+			deleteDeviceWithoutBuddyNotification(userEntity, deviceEntity);
 
 			sendDeviceChangeMessageToBuddies(DeviceChange.DELETE, userEntity, Optional.of(oldName), Optional.empty(),
 					deviceAnonymizedId);
@@ -233,7 +232,7 @@ public class DeviceService
 	}
 
 	@Transactional
-	public void deleteDevice(User userEntity, UserDevice device)
+	public void deleteDeviceWithoutBuddyNotification(User userEntity, UserDevice device)
 	{
 		Set<UserDevice> devices = userEntity.getDevices();
 		if (!devices.contains(device))
@@ -311,7 +310,7 @@ public class DeviceService
 	{
 		Set<Activity> activitiesOnDevice = activityRepository.findByDeviceAnonymized(deviceToBeRemoved.getDeviceAnonymized());
 		activitiesOnDevice.forEach(a -> a.setDeviceAnonymized(requestingDevice.getDeviceAnonymized()));
-		deleteDevice(userEntity, deviceToBeRemoved);
+		deleteDeviceWithoutBuddyNotification(userEntity, deviceToBeRemoved);
 	}
 
 	@Transactional

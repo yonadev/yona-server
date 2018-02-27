@@ -65,7 +65,6 @@ import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.entities.DeviceAnonymizedRepository;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.device.entities.UserDeviceRepository;
-import nu.yona.server.device.service.UserDeviceDto.DeviceUpdateRequestDto;
 import nu.yona.server.entities.ActivityRepositoryMock;
 import nu.yona.server.entities.DeviceAnonymizedRepositoryMock;
 import nu.yona.server.entities.UserDeviceRepositoryMock;
@@ -249,7 +248,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 	}
 
 	@Test
-	public void deleteDevice_deleteOneOfTwo_userHasOneDevice()
+	public void deleteDevice_deleteOneOfTwo_userHasOneDeviceBuddyInformed()
 	{
 		LocalDateTime startTime = TimeUtil.utcNow();
 		String deviceName = "First";
@@ -262,7 +261,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		assertThat(richard.getDevices().size(), equalTo(2));
 
-		service.deleteDeviceAndNotifyBuddies(richard.getId(), device1.getId());
+		service.deleteDevice(richard.getId(), device1.getId());
 		assertThat(deviceAnonymizedRepository.count(), equalTo(1L));
 
 		Set<UserDevice> devices = richard.getDevices();
@@ -342,7 +341,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		UserDevice device = richard.getDevices().iterator().next();
 
-		service.deleteDeviceAndNotifyBuddies(richard.getId(), device.getId());
+		service.deleteDevice(richard.getId(), device.getId());
 	}
 
 	@Test
@@ -356,7 +355,7 @@ public class DeviceServiceTest extends BaseSpringIntegrationTest
 
 		assertThat(richard.getDevices().size(), equalTo(1));
 
-		service.deleteDeviceAndNotifyBuddies(richard.getId(), notAddedDevice.getId());
+		service.deleteDevice(richard.getId(), notAddedDevice.getId());
 	}
 
 	private void assertDevice(UserDevice device, LocalDateTime startTime, String expectedDeviceName,

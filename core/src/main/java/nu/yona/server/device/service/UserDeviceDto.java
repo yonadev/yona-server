@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -116,35 +115,8 @@ public class UserDeviceDto extends DeviceBaseDto
 		throw InvalidDataException.invalidOperatingSystem(operatingSystemStr);
 	}
 
-	public static class DeviceRegistrationRequestDto
-	{
-		final String name;
-		final String operatingSystemStr;
-		final String appVersion;
-
-		@JsonCreator
-		public DeviceRegistrationRequestDto(@JsonProperty("name") String name,
-				@JsonProperty("operatingSystem") String operatingSystemStr, @JsonProperty("appVersion") String appVersion)
-		{
-			this.name = name;
-			this.operatingSystemStr = operatingSystemStr;
-			this.appVersion = appVersion;
-		}
-	}
-
 	public VPNProfileDto getVpnProfile()
 	{
 		return vpnProfile;
-	}
-
-	public static class DeviceUpdateRequestDto
-	{
-		final String name;
-
-		@JsonCreator
-		public DeviceUpdateRequestDto(@JsonProperty("name") String name)
-		{
-			this.name = name;
-		}
 	}
 }

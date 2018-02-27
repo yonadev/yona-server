@@ -114,16 +114,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		deviceChangeMessages[0].message == "User added a device named '$newDeviceName'"
 
 		User bobAfterReload = appService.reloadUser(bob)
-		bobAfterReload.buddies[0].user.devices.size == 2
-		if (bobAfterReload.buddies[0].user.devices[0].name == newDeviceName)
-		{
-			bobAfterReload.buddies[0].user.devices[1].name == firstDeviceName
-		}
-		else
-		{
-			bobAfterReload.buddies[0].user.devices[0].name == firstDeviceName
-			bobAfterReload.buddies[0].user.devices[1].name == newDeviceName
-		}
+		bobAfterReload.buddies[0].user.devices.collect { it.name } as Set == [firstDeviceName, newDeviceName] as Set
 
 		cleanup:
 		appService.deleteUser(richard)
@@ -306,7 +297,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def updatedName = "Updated name"
 
 		when:
-		def response = appService.updateResource(richard.devices[0].editUrl, """{"name":"$updatedName"}""", ["Yona-Password" : richard.password])
+		def response = appService.updateResourceWithPassword(richard.devices[0].editUrl, """{"name":"$updatedName"}""", richard.password)
 
 
 		then:
@@ -343,7 +334,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def updatedName = "Updated:name"
 
 		when:
-		def response = appService.updateResource(richard.devices[0].editUrl, """{"name":"$updatedName"}""", ["Yona-Password" : richard.password])
+		def response = appService.updateResourceWithPassword(richard.devices[0].editUrl, """{"name":"$updatedName"}""", richard.password)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -363,7 +354,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		appService.addDevice(richard, existingName, "ANDROID", Device.SUPPORTED_APP_VERSION)
 
 		when:
-		def response = appService.updateResource(deviceToUpdate.editUrl, """{"name":"$existingName"}""", ["Yona-Password" : richard.password])
+		def response = appService.updateResourceWithPassword(deviceToUpdate.editUrl, """{"name":"$existingName"}""", richard.password)
 
 		then:
 		assertResponseStatus(response, 400)
@@ -373,7 +364,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Richard registers two devices and delete one; Bob gets the update'()
+	def 'Richard deletes one of his devices; Bob gets the update'()
 	{
 		given:
 		def ts = timestamp
@@ -386,7 +377,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		Device deviceToDelete = richard.devices.find{ it.url != remainingDevice.url }
 
 		when:
-		def response = appService.deleteResource(deviceToDelete.editUrl, ["Yona-Password" : richard.password])
+		def response = appService.deleteResourceWithPassword(deviceToDelete.editUrl, richard.password)
 
 		then:
 		assertResponseStatusNoContent(response)
@@ -423,7 +414,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		Device deviceToDelete = richard.devices[0]
 
 		when:
-		def response = appService.deleteResource(deviceToDelete.editUrl, ["Yona-Password" : richard.password])
+		def response = appService.deleteResourceWithPassword(deviceToDelete.editUrl, richard.password)
 
 		then:
 		assertResponseStatus(response, 400)

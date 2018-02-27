@@ -621,7 +621,7 @@ public class UserService
 		allGoalsIncludingHistoryItems.forEach(Goal::removeAllWeekActivities);
 		userAnonymizedService.updateUserAnonymized(userAnonymizedEntity);
 
-		new ArrayList<>(userEntity.getDevices()).stream().forEach(d -> deviceService.deleteDevice(userEntity, d));
+		new ArrayList<>(userEntity.getDevices()).stream().forEach(d -> deviceService.deleteDeviceWithoutBuddyNotification(userEntity, d));
 
 		userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
 		userRepository.delete(updatedUserEntity);

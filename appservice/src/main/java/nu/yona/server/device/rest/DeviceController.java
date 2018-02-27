@@ -58,11 +58,11 @@ import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.rest.DeviceController.DeviceResource;
 import nu.yona.server.device.service.DeviceBaseDto;
+import nu.yona.server.device.service.DeviceRegistrationRequestDto;
 import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.device.service.DeviceServiceException;
+import nu.yona.server.device.service.DeviceUpdateRequestDto;
 import nu.yona.server.device.service.UserDeviceDto;
-import nu.yona.server.device.service.UserDeviceDto.DeviceRegistrationRequestDto;
-import nu.yona.server.device.service.UserDeviceDto.DeviceUpdateRequestDto;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
@@ -224,7 +224,7 @@ public class DeviceController extends ControllerBase
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			deviceService.deleteDeviceAndNotifyBuddies(userId, deviceId);
+			deviceService.deleteDevice(userId, deviceId);
 		}
 	}
 
