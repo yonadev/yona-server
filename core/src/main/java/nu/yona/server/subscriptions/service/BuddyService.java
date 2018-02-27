@@ -748,6 +748,9 @@ public class BuddyService
 
 	private void removeDeviceFromBuddy(Buddy buddy, UUID deviceAnonymizedId)
 	{
-		buddy.getDevices().removeIf(d -> d.getDeviceAnonymizedId().equals(deviceAnonymizedId));
+		if (!buddy.getDevices().removeIf(d -> d.getDeviceAnonymizedId().equals(deviceAnonymizedId)))
+		{
+			throw BuddyServiceException.deviceNotFoundByAnonymizedId(buddy.getId(), deviceAnonymizedId);
+		}
 	}
 }

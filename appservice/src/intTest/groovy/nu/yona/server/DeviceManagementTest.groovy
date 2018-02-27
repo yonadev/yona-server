@@ -380,21 +380,21 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		User richard = richardAndBob.richard
 		User bob = richardAndBob.bob
-		Device deviceToDelete = richard.devices[0]
-		def remainingDeviceName = "Second device"
-		def remainingOperatingSystem = "ANDROID"
-		appService.addDevice(richard, remainingDeviceName, remainingOperatingSystem, Device.SUPPORTED_APP_VERSION)
+		Device remainingDevice = richard.devices[0]
+		def deletedDeviceName = "Second device"
+		richard = appService.addDevice(richard, deletedDeviceName, "ANDROID", Device.SUPPORTED_APP_VERSION)
+		Device deviceToDelete = richard.devices.find{ it.url != remainingDevice.url }
 
 		when:
 		def response = appService.deleteResource(deviceToDelete.editUrl, ["Yona-Password" : richard.password])
 
 		then:
-		assertResponseStatus(response, 204) // TODO: Make this assertResponseStatusNoContent
+		assertResponseStatusNoContent(response)
 		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
 
 		richardAfterReload.devices.size == 1
-		richardAfterReload.devices[0].name == remainingDeviceName
-		richardAfterReload.devices[0].operatingSystem == remainingOperatingSystem
+		richardAfterReload.devices[0].name == remainingDevice.name
+		richardAfterReload.devices[0].operatingSystem == remainingDevice.operatingSystem
 
 		def bobMessagesAfterUpdate = appService.getMessages(bob)
 		assertResponseStatusOk(bobMessagesAfterUpdate)
@@ -404,11 +404,11 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		deviceChangeMessages[0]._links.self != null
 		deviceChangeMessages[0]._links."yona:process" == null // Processing happens automatically these days
 		deviceChangeMessages[0]._links."yona:user".href == bob.buddies[0].user.url
-		deviceChangeMessages[0].message == "User deleted device 'Richard's iPhone'"
+		deviceChangeMessages[0].message == "User deleted device '$deletedDeviceName'"
 
 		User bobAfterReload = appService.reloadUser(bob)
 		bobAfterReload.buddies[0].user.devices.size == 1
-		bobAfterReload.buddies[0].user.devices[0].name == remainingDeviceName
+		bobAfterReload.buddies[0].user.devices[0].name == remainingDevice.name
 
 		cleanup:
 		appService.deleteUser(richard)
