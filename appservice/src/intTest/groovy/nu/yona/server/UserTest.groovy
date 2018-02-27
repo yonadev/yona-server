@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -63,6 +63,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		john.messagesUrl == baseUserUrl + "/messages/"
 		john.newDeviceRequestUrl == appService.url + "/newDeviceRequests/" + john.mobileNumber
 		john.appActivityUrl == baseUserUrl + "/devices/" + john.getRequestingDeviceId() + "/appActivity/"
+		john.appleMobileConfig == baseUserUrl + "/devices/" + john.getRequestingDeviceId() + "/apple.mobileconfig"
 		john.pinResetRequestUrl == baseUserUrl + "/pinResetRequest/request"
 		john.dailyActivityReportsUrl == baseUserUrl + "/activity/days/"
 		john.dailyActivityReportsWithBuddiesUrl == baseUserUrl + "/activity/withBuddies/days/?requestingDeviceId=" + john.getRequestingDeviceId()
@@ -448,7 +449,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 			assert user.buddies.size() == 0
 			if (mobileNumberConfirmed)
 			{
-				assert user.vpnProfile.vpnLoginId ==~ /(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+				assert user.vpnProfile.vpnLoginId ==~ /$CommonAssertions.VPN_LOGIN_ID_PATTERN/
 				assert user.vpnProfile.vpnPassword.length() == 32
 				assert user.vpnProfile.ovpnProfileUrl
 

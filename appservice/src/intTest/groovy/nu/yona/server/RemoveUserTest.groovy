@@ -51,8 +51,8 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def richardAndBob = addRichardAndBobAsBuddies()
 		def richard = richardAndBob.richard
 		def bob = richardAndBob.bob
-		assertResponseStatusOk(analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com"))
-		assertResponseStatusOk(analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl"))
+		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com"))
+		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl"))
 
 		when:
 		def message = "Goodbye friends! I deinstalled the Internet"
@@ -167,7 +167,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		Goal budgetGoalNewsBuddyBob = richard.buddies[0].findActiveGoal(NEWS_ACT_CAT_URL)
 		//insert some messages
 		//goal conflict
-		assertResponseStatusOk(analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl"))
+		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl"))
 		//goal change
 		appService.addGoal(CommonAssertions.&assertResponseStatusCreated, richard, TimeZoneGoal.createInstance(SOCIAL_ACT_CAT_URL, ["11:00-12:00"].toArray()), "Going to restrict my social time!")
 		//activity comment at activity of Richard
@@ -186,7 +186,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard, message)
 
 		then:
-		assertResponseStatusOk(analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com"))
+		assertResponseStatusNoContent(analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com"))
 		assertResponseStatus(analysisService.postToAnalysisEngine(richard, "news/media", "http://www.refdag.nl"), 400) // User deleted
 
 		def getMessagesResponse = appService.getMessages(bob)
@@ -243,7 +243,7 @@ class RemoveUserTest extends AbstractAppServiceIntegrationTest
 		def response = analysisService.postToAnalysisEngine(bob, ["Gambling"], "http://www.poker.com")
 
 		then:
-		assertResponseStatusOk(response)
+		assertResponseStatusNoContent(response)
 		def getMessagesResponse = appService.getMessages(bob)
 		assertResponseStatusOk(getMessagesResponse)
 		getMessagesResponse.responseData._embedded

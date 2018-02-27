@@ -6,26 +6,19 @@ package nu.yona.server.entities;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.repository.CrudRepository;
 
+import nu.yona.server.test.util.JUnitUtil;
+
 public class MockCrudRepositoryEntityWithId<T extends EntityWithId> implements CrudRepository<T, Long>
 {
-	private static final Field idField = getIdField();
+	private static final Field idField = JUnitUtil.getAccessibleField(EntityWithId.class, "id");
 	private int nextId;
 	private Map<Long, T> entities = new HashMap<>();
-
-	private static Field getIdField()
-	{
-		Field field = Arrays.asList(EntityWithId.class.getDeclaredFields()).stream().filter(f -> f.getName().equals("id"))
-				.findAny().orElseThrow(() -> new IllegalStateException("Cannot find field 'id'"));
-		field.setAccessible(true);
-		return field;
-	}
 
 	@Override
 	public <S extends T> S save(S entity)

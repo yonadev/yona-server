@@ -941,13 +941,13 @@ public class AnalysisEngineServiceTest
 
 	private NetworkActivityDto createNetworkActivityForCategories(String... conflictCategories)
 	{
-		return new NetworkActivityDto(new HashSet<>(Arrays.asList(conflictCategories)),
+		return new NetworkActivityDto(-1, new HashSet<>(Arrays.asList(conflictCategories)),
 				"http://localhost/test" + new Random().nextInt(), Optional.empty());
 	}
 
 	private NetworkActivityDto createNetworkActivityForCategories(ZonedDateTime time, String... conflictCategories)
 	{
-		return new NetworkActivityDto(new HashSet<>(Arrays.asList(conflictCategories)),
+		return new NetworkActivityDto(-1, new HashSet<>(Arrays.asList(conflictCategories)),
 				"http://localhost/test" + new Random().nextInt(), Optional.of(time));
 	}
 

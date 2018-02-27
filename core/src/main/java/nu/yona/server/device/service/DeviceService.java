@@ -33,6 +33,8 @@ import nu.yona.server.messaging.entities.BuddyMessage.BuddyInfoParameters;
 import nu.yona.server.messaging.service.MessageService;
 import nu.yona.server.subscriptions.entities.BuddyDeviceChangeMessage;
 import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
+import nu.yona.server.subscriptions.service.LDAPUserService;
 import nu.yona.server.subscriptions.service.UserAnonymizedDto;
 import nu.yona.server.subscriptions.service.UserAnonymizedService;
 import nu.yona.server.subscriptions.service.UserDto;
@@ -51,7 +53,10 @@ public class DeviceService
 	@Autowired(required = false)
 	private UserAnonymizedService userAnonymizedService;
 
-	@Autowired
+	@Autowired(required = false)
+	private LDAPUserService ldapUserService;
+
+	@Autowired(required = false)
 	private MessageService messageService;
 
 	@Autowired(required = false)
@@ -74,7 +79,7 @@ public class DeviceService
 	}
 
 	@Transactional
-	public DeviceBaseDto getDevice(UUID deviceId)
+	public UserDeviceDto getDevice(UUID deviceId)
 	{
 		return UserDeviceDto.createInstance(getDeviceEntity(deviceId));
 	}
@@ -98,18 +103,36 @@ public class DeviceService
 				deviceDto.getOperatingSystem(), deviceDto.getAppVersion());
 		deviceAnonymizedRepository.save(deviceAnonymized);
 		UserDevice deviceEntity = userDeviceRepository
-				.save(UserDevice.createInstance(deviceDto.getName(), deviceAnonymized.getId()));
+				.save(UserDevice.createInstance(deviceDto.getName(), deviceAnonymized.getId(), userService.generatePassword()));
 		userEntity.addDevice(deviceEntity);
+
+		ldapUserService.createVpnAccount(buildVpnLoginId(userEntity.getAnonymized(), deviceEntity),
+				deviceEntity.getVpnPassword());
+		sendNewDeviceMessageToBuddies(userEntity, deviceDto, deviceAnonymized);
+
+		return UserDeviceDto.createInstance(deviceEntity);
+	}
+
+	public static String buildVpnLoginId(UserAnonymized userAnonymizedEntity, UserDevice deviceEntity)
+	{
+		String legacyVpnLoginId = userAnonymizedEntity.getId().toString();
+		if (deviceEntity.isLegacyVpnAccount())
+		{
+			return legacyVpnLoginId;
+		}
+		return legacyVpnLoginId + "$" + deviceEntity.getDeviceAnonymized().getDeviceIndex();
+	}
+
+	private void sendNewDeviceMessageToBuddies(User userEntity, UserDeviceDto deviceDto, DeviceAnonymized deviceAnonymized)
+	{
 		DeviceChange change = DeviceChange.ADD;
 		Optional<String> oldName = Optional.empty();
 		Optional<String> newName = Optional.of(deviceDto.getName());
-
 		messageService.broadcastMessageToBuddies(UserAnonymizedDto.createInstance(userEntity.getAnonymized()),
 				() -> BuddyDeviceChangeMessage.createInstance(
 						BuddyInfoParameters.createInstance(userEntity, userEntity.getNickname()),
 						getDeviceChangeMessageText(change, oldName, newName), change, deviceAnonymized.getId(), oldName,
 						newName));
-		return UserDeviceDto.createInstance(deviceEntity);
 	}
 
 	@Transactional
@@ -174,6 +197,8 @@ public class DeviceService
 		{
 			throw DeviceServiceException.notFoundById(device.getId());
 		}
+		ldapUserService.deleteVpnAccount(buildVpnLoginId(userEntity.getAnonymized(), device));
+
 		deviceAnonymizedRepository.delete(device.getDeviceAnonymized());
 		deviceAnonymizedRepository.flush(); // Without this, the delete doesn't always occur
 		userEntity.removeDevice(device);

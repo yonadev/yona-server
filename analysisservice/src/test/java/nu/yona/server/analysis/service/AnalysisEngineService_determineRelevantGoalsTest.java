@@ -216,7 +216,8 @@ public class AnalysisEngineService_determineRelevantGoalsTest
 	private ActivityPayload makeNetworkPayload(Duration timeAgo)
 	{
 		ZonedDateTime eventTime = now().minus(timeAgo);
-		NetworkActivityDto networkActivity = new NetworkActivityDto(Collections.singleton("n/a"), "n/a", Optional.of(eventTime));
+		NetworkActivityDto networkActivity = new NetworkActivityDto(-1, Collections.singleton("n/a"), "n/a",
+				Optional.of(eventTime));
 		return ActivityPayload.createInstance(userAnonDto, deviceAnonDto, networkActivity);
 	}
 

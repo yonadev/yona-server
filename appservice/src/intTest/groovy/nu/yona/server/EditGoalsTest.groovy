@@ -755,7 +755,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		User bob = richardAndBob.bob
 		ZonedDateTime now = YonaServer.now
 		def postToAeResponse = analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		assertResponseStatusOk(postToAeResponse)
+		assertResponseStatusNoContent(postToAeResponse)
 		def getMessagesRichardBeforeGoalDeleteResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardBeforeGoalDeleteResponse)
 		getMessagesRichardBeforeGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage" }.size() == 1
@@ -791,7 +791,7 @@ class EditGoalsTest extends AbstractAppServiceIntegrationTest
 		User bob = richardAndBob.bob
 		ZonedDateTime now = YonaServer.now
 		def postToAeResponse = analysisService.postToAnalysisEngine(richard, ["news/media"], "http://www.refdag.nl")
-		assertResponseStatusOk(postToAeResponse)
+		assertResponseStatusNoContent(postToAeResponse)
 		def getMessagesRichardBeforeGoalDeleteResponse = appService.getMessages(richard)
 		assertResponseStatusOk(getMessagesRichardBeforeGoalDeleteResponse)
 		getMessagesRichardBeforeGoalDeleteResponse.responseData._embedded."yona:messages".findAll{ it."@type" == "GoalConflictMessage" }.size() == 1

@@ -20,6 +20,7 @@ import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.entities.DeviceBase;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.exceptions.InvalidDataException;
+import nu.yona.server.subscriptions.service.VPNProfileDto;
 import nu.yona.server.util.TimeUtil;
 
 @JsonRootName("device")
@@ -30,14 +31,15 @@ public class UserDeviceDto extends DeviceBaseDto
 	private final String appVersion;
 	private final LocalDate appLastOpenedDate;
 	private final UUID deviceAnonymizedId;
+	private final VPNProfileDto vpnProfile;
 
 	public UserDeviceDto(String name, OperatingSystem operatingSystem, String appVersion)
 	{
-		this(null, name, operatingSystem, appVersion, true, LocalDateTime.now(), LocalDate.now(), null);
+		this(null, name, operatingSystem, appVersion, true, LocalDateTime.now(), LocalDate.now(), null, null);
 	}
 
 	private UserDeviceDto(UUID id, String name, OperatingSystem operatingSystem, String appVersion, boolean isVpnConnected,
-			LocalDateTime registrationTime, LocalDate appLastOpenedDate, UUID deviceAnonymizedId)
+			LocalDateTime registrationTime, LocalDate appLastOpenedDate, UUID deviceAnonymizedId, VPNProfileDto vpnProfile)
 	{
 		super(id, name, isVpnConnected);
 		this.operatingSystem = operatingSystem;
@@ -45,6 +47,7 @@ public class UserDeviceDto extends DeviceBaseDto
 		this.registrationTime = registrationTime;
 		this.appLastOpenedDate = appLastOpenedDate;
 		this.deviceAnonymizedId = deviceAnonymizedId;
+		this.vpnProfile = vpnProfile;
 	}
 
 	public OperatingSystem getOperatingSystem()
@@ -88,7 +91,7 @@ public class UserDeviceDto extends DeviceBaseDto
 		return new UserDeviceDto(deviceEntity.getId(), deviceEntity.getName(),
 				deviceEntity.getDeviceAnonymized().getOperatingSystem(), deviceEntity.getDeviceAnonymized().getAppVersion(),
 				deviceEntity.isVpnConnected(), deviceEntity.getRegistrationTime(), deviceEntity.getAppLastOpenedDate(),
-				deviceEntity.getDeviceAnonymizedId());
+				deviceEntity.getDeviceAnonymizedId(), VPNProfileDto.createInstance(deviceEntity));
 	}
 
 	public static UserDeviceDto createDeviceRegistrationInstance(DeviceRegistrationRequestDto deviceRegistration)
@@ -137,5 +140,10 @@ public class UserDeviceDto extends DeviceBaseDto
 			this.operatingSystemStr = operatingSystemStr;
 			this.appVersion = appVersion;
 		}
+	}
+
+	public VPNProfileDto getVpnProfile()
+	{
+		return vpnProfile;
 	}
 }

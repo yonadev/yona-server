@@ -16,6 +16,8 @@ import nu.yona.server.YonaServer
 class CommonAssertions extends Service
 {
 	static final UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}'
+	static final VPN_LOGIN_ID_PATTERN = "(?i)^$UUID_PATTERN\\\$[0-9]+\$"
+
 
 	static final PUBLIC_USER_PROPERTIES_APP_NOT_OPENED = ["firstName", "lastName", "mobileNumber", "creationTime", "_links"] as Set
 	static final PUBLIC_USER_PROPERTIES_APP_OPENED = PUBLIC_USER_PROPERTIES_APP_NOT_OPENED + ["appLastOpenedDate"] as Set
@@ -162,50 +164,47 @@ class CommonAssertions extends Service
 
 		if (!mobileNumberToBeConfirmed)
 		{
-			assertVpnProfile(user)
+			assertVpnProfile(user.vpnProfile)
 		}
 	}
 
-	static void assertVpnProfile(def user)
+	static void assertVpnProfile(def vpnProfile)
 	{
-		if (user instanceof User)
+		if (vpnProfile instanceof VPNProfile)
 		{
 			// The User Groovy object follows the new camel casing pattern: Id with lowercase d
-			assert user.vpnProfile.vpnLoginId ==~ /(?i)^$UUID_PATTERN$/
+			assert vpnProfile.vpnLoginId ==~ /$VPN_LOGIN_ID_PATTERN/
 		}
 		else
 		{
 			// For backward compatibility, the JSON still has the old camel casing pattern: ID with uppercase D
-			assert user.vpnProfile.vpnLoginID ==~ /(?i)^$UUID_PATTERN$/
+			assert vpnProfile.vpnLoginID ==~ /$VPN_LOGIN_ID_PATTERN/
 		}
-		assert user.vpnProfile.vpnPassword.length() == 32
-		if (user instanceof User)
+		assert vpnProfile.vpnPassword.length() == 32
+		if (vpnProfile instanceof VPNProfile)
 		{
-			assert user.vpnProfile.ovpnProfileUrl
+			assert vpnProfile.ovpnProfileUrl
 		}
 		else
 		{
-			assert user.vpnProfile._links."yona:ovpnProfile".href
+			assert vpnProfile._links."yona:ovpnProfile".href
 		}
 	}
 
 	static void assertDefaultOwnDevice(def device)
 	{
-		if (device instanceof Device)
+		if (!(device instanceof Device))
 		{
-			assert device.name == "First device"
-			assert device.operatingSystem == "UNKNOWN"
-		}
-		else
-		{
-			assert device.keySet() == ["name", "operatingSystem", "registrationTime", "appLastOpenedDate", "vpnConnected", "_links"] as Set
+			assert device.keySet() == ["name", "operatingSystem", "registrationTime", "appLastOpenedDate", "vpnProfile", "vpnConnected", "_links"] as Set
 			assert device._links.keySet() == ["self", "edit"] as Set
-			assert device.name == "First device" || device.name ==~ /.*'s iPhone/
-			assert device.operatingSystem == "UNKNOWN" || device.operatingSystem == "IOS"
-			assertDateTimeFormat(device.registrationTime)
-			assertDateFormat(device.appLastOpenedDate)
-			assert device.vpnConnected == true || device.vpnConnected == false
 		}
+		assert device.name == "First device" || device.name ==~ /.*'s iPhone/
+		assert device.operatingSystem == "UNKNOWN" || device.operatingSystem == "IOS"
+		assertDateTimeFormat(device.registrationTime)
+		assertDateFormat(device.appLastOpenedDate)
+		assert device.vpnConnected == true || device.vpnConnected == false
+
+		assertVpnProfile(device.vpnProfile)
 	}
 
 	static void assertEquals(String dateTimeString, ZonedDateTime comparisonDateTime, int epsilonSeconds = 10)
@@ -248,6 +247,11 @@ class CommonAssertions extends Service
 	static void assertResponseStatusOk(def response)
 	{
 		assertResponseStatus(response, 200)
+	}
+
+	static void assertResponseStatusNoContent(def response)
+	{
+		assertResponseStatus(response, 204)
 	}
 
 	static void assertResponseStatusCreated(def response)

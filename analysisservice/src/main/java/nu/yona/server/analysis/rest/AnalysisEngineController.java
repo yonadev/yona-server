@@ -33,7 +33,7 @@ public class AnalysisEngineController
 	private AnalysisEngineService analysisEngineService;
 
 	@RequestMapping(value = "/userAnonymized/{userAnonymizedId}/networkActivity/", method = RequestMethod.POST)
-	@ResponseStatus(value = HttpStatus.OK)
+	@ResponseStatus(value = HttpStatus.NO_CONTENT)
 	public void analyzeNetworkActivity(@PathVariable UUID userAnonymizedId,
 			@RequestParam(value = "preventParallelism", required = false, defaultValue = "false") String preventParallelismStr,
 			@RequestBody NetworkActivityDto potentialConflictPayload)
@@ -61,7 +61,7 @@ public class AnalysisEngineController
 	 * method.
 	 */
 	@RequestMapping(value = "/userAnonymized/{userAnonymizedId}/{deviceAnonymizedId}/appActivity/", method = RequestMethod.POST)
-	@ResponseStatus(value = HttpStatus.OK)
+	@ResponseStatus(value = HttpStatus.NO_CONTENT)
 	public void analyzeAppActivity(@PathVariable UUID userAnonymizedId, @PathVariable UUID deviceAnonymizedId,
 			@RequestBody AppActivityDto appActivities)
 	{
