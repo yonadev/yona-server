@@ -6,31 +6,26 @@ package nu.yona.server.subscriptions.service;
 
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
-import nu.yona.server.subscriptions.entities.User;
+import nu.yona.server.device.entities.UserDevice;
+import nu.yona.server.device.service.DeviceService;
+import nu.yona.server.subscriptions.entities.UserAnonymized;
 
 @JsonRootName("vpnProfile")
 public class VPNProfileDto
 {
 	private final UUID id;
-	private final UUID vpnLoginId;
+	private final String vpnLoginId;
 	private String vpnPassword;
 
-	public VPNProfileDto(UUID id, UUID vpnLoginId, String vpnPassword)
+	public VPNProfileDto(UUID id, String vpnLoginId, String vpnPassword)
 	{
 		this.id = id;
 		this.vpnLoginId = vpnLoginId;
 		this.vpnPassword = vpnPassword;
-	}
-
-	@JsonCreator
-	public VPNProfileDto(@JsonProperty("vpnLoginId") UUID vpnLoginId)
-	{
-		this(null, vpnLoginId, null);
 	}
 
 	@JsonIgnore
@@ -40,7 +35,7 @@ public class VPNProfileDto
 	}
 
 	@JsonProperty("vpnLoginID")
-	public UUID getVpnLoginId()
+	public String getVpnLoginId()
 	{
 		return vpnLoginId;
 	}
@@ -55,8 +50,10 @@ public class VPNProfileDto
 		this.vpnPassword = vpnPassword;
 	}
 
-	public static VPNProfileDto createInstance(User user)
+	public static VPNProfileDto createInstance(UserDevice device)
 	{
-		return new VPNProfileDto(user.getAnonymized().getId(), user.getVpnLoginId(), user.getVpnPassword());
+		UserAnonymized userAnonymized = device.getDeviceAnonymized().getUserAnonymized();
+		return new VPNProfileDto(userAnonymized.getId(), DeviceService.buildVpnLoginId(userAnonymized, device),
+				device.getVpnPassword());
 	}
 }

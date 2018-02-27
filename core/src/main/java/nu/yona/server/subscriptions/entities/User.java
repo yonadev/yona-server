@@ -229,9 +229,9 @@ public class User extends EntityWithUuid
 		return getUserPrivate().getUserAnonymizedId();
 	}
 
-	public String getVpnPassword()
+	public Optional<String> getAndClearVpnPassword()
 	{
-		return getUserPrivate().getVpnPassword();
+		return userPrivate.getAndClearVpnPassword();
 	}
 
 	public MessageDestination getNamedMessageDestination()
@@ -324,11 +324,6 @@ public class User extends EntityWithUuid
 	public ConfirmationCode getOverwriteUserConfirmationCode()
 	{
 		return overwriteUserConfirmationCode;
-	}
-
-	public UUID getVpnLoginId()
-	{
-		return getUserPrivate().getVpnLoginId();
 	}
 
 	public ConfirmationCode getPinResetConfirmationCode()

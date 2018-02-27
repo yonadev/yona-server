@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.entities;
 
@@ -18,6 +18,7 @@ import org.hibernate.annotations.Type;
 
 import nu.yona.server.crypto.seckey.DateFieldEncryptor;
 import nu.yona.server.crypto.seckey.DateTimeFieldEncryptor;
+import nu.yona.server.crypto.seckey.StringFieldEncryptor;
 import nu.yona.server.util.TimeUtil;
 
 @Entity
@@ -27,6 +28,11 @@ public class UserDevice extends DeviceBase
 	@Type(type = "uuid-char")
 	@Column(name = "user_private_id")
 	private UUID userPrivateId;
+
+	private boolean isLegacyVpnAccount;
+
+	@Convert(converter = StringFieldEncryptor.class)
+	private String vpnPassword;
 
 	@Convert(converter = DateTimeFieldEncryptor.class)
 	private LocalDateTime registrationTime;
@@ -39,16 +45,17 @@ public class UserDevice extends DeviceBase
 	{
 	}
 
-	private UserDevice(UUID id, String name, UUID deviceAnonymizedId)
+	private UserDevice(UUID id, String name, UUID deviceAnonymizedId, String vpnPassword)
 	{
 		super(id, name, deviceAnonymizedId, true); // Consider the VPN to be connected by default
+		this.vpnPassword = Objects.requireNonNull(vpnPassword);
 		this.registrationTime = TimeUtil.utcNow();
 		this.appLastOpenedDate = TimeUtil.utcNow().toLocalDate(); // The user registers this device, so the app is open now
 	}
 
-	public static UserDevice createInstance(String name, UUID deviceAnonymizedId)
+	public static UserDevice createInstance(String name, UUID deviceAnonymizedId, String vpnPassword)
 	{
-		return new UserDevice(UUID.randomUUID(), name, deviceAnonymizedId);
+		return new UserDevice(UUID.randomUUID(), name, deviceAnonymizedId, vpnPassword);
 	}
 
 	public UUID getUserPrivateId()
@@ -64,6 +71,22 @@ public class UserDevice extends DeviceBase
 	public void clearUserPrivateId()
 	{
 		userPrivateId = null;
+	}
+
+	public boolean isLegacyVpnAccount()
+	{
+		return isLegacyVpnAccount;
+	}
+
+	public String getVpnPassword()
+	{
+		return vpnPassword;
+	}
+
+	public void setLegacyVpnAccountPassword(String vpnPassword)
+	{
+		this.vpnPassword = vpnPassword;
+		this.isLegacyVpnAccount = true;
 	}
 
 	public LocalDateTime getRegistrationTime()

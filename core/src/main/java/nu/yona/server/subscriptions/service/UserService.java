@@ -102,9 +102,6 @@ public class UserService
 	@Autowired(required = false)
 	private ActivityCategoryRepository activityCategoryRepository;
 
-	@Autowired(required = false)
-	private LDAPUserService ldapUserService;
-
 	@Autowired
 	private YonaProperties yonaProperties;
 
@@ -240,8 +237,6 @@ public class UserService
 		addDevicesToEntity(user, userEntity);
 		Optional<ConfirmationCode> confirmationCode = createConfirmationCodeIfNeeded(overwriteUserConfirmationCode, userEntity);
 		userEntity = userRepository.save(userEntity);
-		ldapUserService.createVpnAccount(userEntity.getUserAnonymizedId().toString(), userEntity.getVpnPassword());
-
 		UserDto userDto = createUserDtoWithPrivateData(userEntity);
 		if (confirmationCode.isPresent())
 		{
@@ -261,8 +256,8 @@ public class UserService
 		Set<Goal> goals = buildGoalsSet(user, signUp);
 		UserAnonymized userAnonymized = UserAnonymized.createInstance(anonymousMessageSource.getDestination(), goals);
 		UserAnonymized.getRepository().save(userAnonymized);
-		UserPrivate userPrivate = UserPrivate.createInstance(user.getOwnPrivateData().getNickname(), generatePassword(),
-				userAnonymized.getId(), anonymousMessageSource.getId(), namedMessageSource);
+		UserPrivate userPrivate = UserPrivate.createInstance(user.getOwnPrivateData().getNickname(), userAnonymized.getId(),
+				anonymousMessageSource.getId(), namedMessageSource);
 		User userEntity = new User(UUID.randomUUID(), initializationVector, user.getFirstName(), user.getLastName(),
 				user.getMobileNumber(), userPrivate, namedMessageSource.getDestination());
 		addMandatoryGoals(userEntity);
@@ -451,7 +446,6 @@ public class UserService
 		newUser.setIsCreatedOnBuddyRequest();
 		newUser.setMobileNumberConfirmationCode(createConfirmationCode());
 		User savedUser = userRepository.save(newUser);
-		ldapUserService.createVpnAccount(savedUser.getUserAnonymizedId().toString(), savedUser.getVpnPassword());
 		logger.info("User with mobile number '{}' and ID '{}' created on buddy request", savedUser.getMobileNumber(),
 				savedUser.getId());
 		return savedUser;
@@ -606,7 +600,6 @@ public class UserService
 		userEntity.getBuddies().forEach(buddyEntity -> buddyService.removeBuddyInfoForBuddy(userEntity, buddyEntity, message,
 				DropBuddyReason.USER_ACCOUNT_DELETED));
 
-		UUID vpnLoginId = userEntity.getVpnLoginId();
 		UUID userAnonymizedId = userEntity.getUserAnonymizedId();
 		MessageSource namedMessageSource = messageSourceRepository.findOne(userEntity.getNamedMessageSourceId());
 		MessageSource anonymousMessageSource = messageSourceRepository.findOne(userEntity.getAnonymousMessageSourceId());
@@ -633,7 +626,6 @@ public class UserService
 		userAnonymizedService.deleteUserAnonymized(userAnonymizedId);
 		userRepository.delete(updatedUserEntity);
 
-		ldapUserService.deleteVpnAccount(vpnLoginId.toString());
 		logger.info("Deleted user with mobile number '{}' and ID '{}'", updatedUserEntity.getMobileNumber(),
 				updatedUserEntity.getId());
 	}

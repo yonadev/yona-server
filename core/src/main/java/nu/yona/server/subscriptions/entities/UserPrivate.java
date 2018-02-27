@@ -34,7 +34,6 @@ import nu.yona.server.messaging.entities.MessageSource;
 @Table(name = "USERS_PRIVATE")
 public class UserPrivate extends EntityWithUuidAndTouchVersion
 {
-
 	private static final String DECRYPTION_CHECK_STRING = "Decrypted properly#";
 
 	@Convert(converter = StringFieldEncryptor.class)
@@ -57,6 +56,7 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 	@Convert(converter = UUIDFieldEncryptor.class)
 	private UUID namedMessageSourceId;
 
+	// YD-542 Remove this property
 	@Convert(converter = StringFieldEncryptor.class)
 	private String vpnPassword;
 
@@ -74,24 +74,22 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 		super(null);
 	}
 
-	private UserPrivate(UUID id, String nickname, UUID userAnonymizedId, String vpnPassword, UUID anonymousMessageSourceId,
-			UUID namedMessageSourceId)
+	private UserPrivate(UUID id, String nickname, UUID userAnonymizedId, UUID anonymousMessageSourceId, UUID namedMessageSourceId)
 	{
 		super(id);
 		this.decryptionCheck = buildDecryptionCheck();
 		this.nickname = nickname;
 		this.userAnonymizedId = userAnonymizedId;
-		this.vpnPassword = vpnPassword;
 		this.buddies = new HashSet<>();
 		this.anonymousMessageSourceId = anonymousMessageSourceId;
 		this.namedMessageSourceId = namedMessageSourceId;
 		this.devices = new HashSet<>();
 	}
 
-	public static UserPrivate createInstance(String nickname, String vpnPassword, UUID userAnonymizedId,
-			UUID anonymousMessageSourceId, MessageSource namedMessageSource)
+	public static UserPrivate createInstance(String nickname, UUID userAnonymizedId, UUID anonymousMessageSourceId,
+			MessageSource namedMessageSource)
 	{
-		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymizedId, vpnPassword, anonymousMessageSourceId,
+		return new UserPrivate(UUID.randomUUID(), nickname, userAnonymizedId, anonymousMessageSourceId,
 				namedMessageSource.getId());
 	}
 
@@ -146,15 +144,15 @@ public class UserPrivate extends EntityWithUuidAndTouchVersion
 		return namedMessageSourceId;
 	}
 
-	public UUID getVpnLoginId()
+	public Optional<String> getAndClearVpnPassword()
 	{
-		// these are the same for performance
-		return userAnonymizedId;
-	}
-
-	public String getVpnPassword()
-	{
-		return vpnPassword;
+		if (vpnPassword == null)
+		{
+			return Optional.empty();
+		}
+		Optional<String> retVal = Optional.of(vpnPassword);
+		vpnPassword = null;
+		return retVal;
 	}
 
 	private boolean isDecrypted()

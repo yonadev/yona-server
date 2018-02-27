@@ -12,6 +12,7 @@ use LWP::UserAgent;
 use HTTP::Request::Common;
 use Getopt::Long;
 
+my $verbose = '';
 my $analysis_engine_url = 'http://localhost:8081/';
 my $categories_refresh_interval = 300;
 my $relevant_url_categories_load_time = 0;
@@ -59,6 +60,7 @@ sub transform_log_record ($) {
 	}
 	if (!$log_message->{'tagset'}->{'urlcategory'}) {
 		# Unclassified request. Probably an HTTPS site
+		$verbose && print "Request not classified; probably an HTTPS site\n";
 		return undef;
 	}
 
@@ -66,10 +68,18 @@ sub transform_log_record ($) {
 	my @relevant_url_categories_logged = filter_relevant_url_categories \@url_categories_logged;
 	if (!@relevant_url_categories_logged) {
 		# Categories are not relevant
+		$verbose && print "URL categories not relevant: @url_categories_logged\n";
 		return undef;
 	}
 
+	my $user_dn = (keys $log_message->{'tagset'}->{'username'}) [0];
+	my $dollar_pos = index($user_dn, '$');
+	my $comma_pos = index($user_dn, ',');
+	my $device_index = ($dollar_pos == -1) ? 0 : substr $user_dn, $dollar_pos + 1, $comma_pos - $dollar_pos - 1;
+	$device_index += 0;
+
 	my $analysis_event = {
+		'deviceIndex' => $device_index,
 		'categories' => [@relevant_url_categories_logged],
 		'url' => $url
 	};
@@ -120,11 +130,12 @@ sub handle_records_from_stream {
 
 			if ($analysis_event_json) {
 				my $user_dn = (keys $log_message->{'tagset'}->{'username'}) [0];
-				my $vpn_login_id = substr $user_dn, 3, 36;
-				my $user_anonymized_url = "${analysis_engine_url}userAnonymized/${vpn_login_id}/networkActivity/";
+				my $user_anonymized_id = substr $user_dn, 3, 36;
+				my $user_anonymized_url = "${analysis_engine_url}userAnonymized/${user_anonymized_id}/networkActivity/";
+				$verbose && print "POST to $user_anonymized_url, content: $analysis_event_json\n";
 				my $post_result = $ua->request(POST $user_anonymized_url, Content_Type => 'application/json', Content => $analysis_event_json);
 				my $status_code = $post_result->{'_rc'};
-				if ($status_code != 200) {
+				if ($status_code != 200 && $status_code != 204) {
 					log_error "POST to '$user_anonymized_url' returned status $status_code";
 				}
 			}
@@ -160,7 +171,8 @@ BEGIN {
 open STDOUT, '>', "/var/log/HandleDansGuardianLog.log";
 
 $| = 1; # Make STDOUT unbuffered
-GetOptions ('analysisEngineURL=s' => \$analysis_engine_url,
+GetOptions ('verbose!' => \$verbose,
+	'analysisEngineURL=s' => \$analysis_engine_url,
 	'categoriesRefreshInterval=i' => \$categories_refresh_interval)
 or die "Usage: $0 [--analysisEngineURL <URL>] [--categoriesRefreshInterval <interval in seconds>] [<input file>]";
 
