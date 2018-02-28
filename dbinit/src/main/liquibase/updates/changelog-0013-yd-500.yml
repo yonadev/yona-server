@@ -8,6 +8,7 @@ databaseChangeLog:
         - column:
             name: is_legacy_vpn_account
             type: BOOLEAN
+            defaultValueBoolean: false
         tableName: user_devices
 - changeSet:
     id: 1518549954060-2
