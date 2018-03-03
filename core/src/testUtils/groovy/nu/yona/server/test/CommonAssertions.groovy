@@ -18,7 +18,6 @@ class CommonAssertions extends Service
 	static final UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}'
 	static final VPN_LOGIN_ID_PATTERN = "(?i)^$UUID_PATTERN\\\$[0-9]+\$"
 
-
 	static final PUBLIC_USER_PROPERTIES_APP_NOT_OPENED = ["firstName", "lastName", "mobileNumber", "creationTime", "_links"] as Set
 	static final PUBLIC_USER_PROPERTIES_APP_OPENED = PUBLIC_USER_PROPERTIES_APP_NOT_OPENED + ["appLastOpenedDate"] as Set
 	static final PRIVATE_USER_PROPERTIES_CREATED_ON_BUDDY_REQUEST = PUBLIC_USER_PROPERTIES_APP_NOT_OPENED + ["nickname", "yonaPassword"] as Set
@@ -37,6 +36,11 @@ class CommonAssertions extends Service
 	static final PRIVATE_USER_EMBEDDED = ["yona:devices", "yona:goals", "yona:buddies"] as Set
 	static final BUDDY_USER_EMBEDDED = ["yona:goals", "yona:devices"] as Set
 	static final USER_LINKS_VARYING = ["yona:userPhoto"]
+
+	static final COMMON_DEVICE_PROPERTIES = ["name", "operatingSystem", "registrationTime", "appLastOpenedDate", "vpnProfile", "vpnConnected", "requestingDevice", "_links"] as Set
+	static final REQUESTING_DEVICE_PROPERTIES = COMMON_DEVICE_PROPERTIES + ["sslRootCertCN"] as Set
+	static final COMMON_DEVICE_LINKS = ["self", "edit"] as Set
+	static final REQUESTING_DEVICE_LINKS = COMMON_DEVICE_LINKS + ["yona:postOpenAppEvent", "yona:appActivity", "yona:sslRootCert", "yona:appleMobileConfig"] as Set
 
 	static void assertUserCreationResponseDetails(def response)
 	{
@@ -191,12 +195,12 @@ class CommonAssertions extends Service
 		}
 	}
 
-	static void assertDefaultOwnDevice(def device)
+	static void assertDefaultOwnDevice(device, isRequestingDevice = false)
 	{
 		if (!(device instanceof Device))
 		{
-			assert device.keySet() == ["name", "operatingSystem", "registrationTime", "appLastOpenedDate", "vpnProfile", "vpnConnected", "_links"] as Set
-			assert device._links.keySet() == ["self", "edit"] as Set
+			assert device.keySet() == (isRequestingDevice) ? REQUESTING_DEVICE_PROPERTIES : COMMON_DEVICE_PROPERTIES
+			assert device._links.keySet() == (isRequestingDevice) ? REQUESTING_DEVICE_LINKS : COMMON_DEVICE_LINKS
 		}
 		assert device.name == "First device" || device.name ==~ /.*'s iPhone/
 		assert device.operatingSystem == "UNKNOWN" || device.operatingSystem == "IOS"

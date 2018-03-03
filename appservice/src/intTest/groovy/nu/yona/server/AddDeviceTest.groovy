@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -86,18 +86,18 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		def defaultDevice = (devices[0].name == newDeviceName) ? devices[1] : devices[0]
 		def newDevice = (devices[0].name == newDeviceName) ? devices[0] : devices[1]
 
-		assertDefaultOwnDevice(defaultDevice)
+		assertDefaultOwnDevice(defaultDevice, false)
 		assert newDevice.name == newDeviceName
 		assert newDevice.operatingSystem == newDeviceOs
 		assertDateTimeFormat(newDevice.registrationTime)
 		assertDateFormat(newDevice.appLastOpenedDate)
 
 		// User self-link uses the new device as "requestingDeviceId"
-		def idOfNewDevice = newDevice._links.self.href - ~/.*\//
+		def idOfNewDevice = newDevice._links.self.href - ~/.*\// - ~/\?.*/
 		registerResponse.responseData._links.self.href ==~ /.*requestingDeviceId=$idOfNewDevice.*/
 
 		// App activity URL is for the new device
-		registerResponse.responseData._links."yona:appActivity".href == newDevice._links.self.href + "/appActivity/"
+		registerResponse.responseData._links."yona:appActivity".href == newDevice._links.self.href - ~/\?.*/ + "/appActivity/"
 
 		cleanup:
 		appService.deleteUser(richard)
