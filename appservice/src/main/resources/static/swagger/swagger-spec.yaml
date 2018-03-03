@@ -1529,7 +1529,7 @@ definitions:
   UserPhotoLink:
     type: object
     properties:
-      edit:
+      "yona:userPhoto":
         type: object
         required:
           - href
@@ -1540,7 +1540,7 @@ definitions:
   EditUserPhotoLink:
     type: object
     properties:
-      edit:
+      "yona:editUserPhoto":
         type: object
         required:
           - href
