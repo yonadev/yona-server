@@ -1915,6 +1915,11 @@ definitions:
             format: date
             description: The date the Yona app was last opened on this device
             example: 2017-11-21
+          requestingDevice:
+            type: string
+            format: boolean
+            description: Marks the active device that peformed this server request.
+            example: true
           sslRootCertCN:
             type: string
             description: The CN of the SSL root certificate. Not available for buddies.
