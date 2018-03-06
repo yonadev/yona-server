@@ -315,6 +315,7 @@ paths:
       parameters:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
+        - $ref: "#/parameters/requestingDeviceId"
       tags:
         - Device
       responses:
@@ -336,6 +337,7 @@ paths:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
         - $ref: "#/parameters/deviceID"
+        - $ref: "#/parameters/requestingDeviceId"
       tags:
         - Device
       responses:
@@ -354,6 +356,7 @@ paths:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
         - $ref: "#/parameters/deviceID"
+        - $ref: "#/parameters/requestingDeviceId"
         - in: body
           name: body
           description: Updated device
@@ -378,6 +381,7 @@ paths:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
         - $ref: "#/parameters/deviceID"
+        - $ref: "#/parameters/requestingDeviceId"
       tags:
         - Device
       responses:
@@ -1913,6 +1917,15 @@ definitions:
             format: date
             description: The date the Yona app was last opened on this device
             example: 2017-11-21
+          requestingDevice:
+            type: string
+            format: boolean
+            description: Marks the active device that peformed this server request.
+            example: true
+          sslRootCertCN:
+            type: string
+            description: The CN of the SSL root certificate. Not available for buddies.
+            example: "smoothwall003.yona"
           vpnProfile:
             $ref: '#/definitions/VPNProfile'
           _links:
@@ -1920,6 +1933,40 @@ definitions:
               - $ref: '#/definitions/Curies'
               - $ref: '#/definitions/SelfLink'
               - $ref: '#/definitions/EditLink'
+              - type: object
+                properties:
+                  "yona:postOpenAppEvent":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: This link allows posting to the server that the Yona app was opened.
+                  "yona:appActivity":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: Post new app activity data to this link
+                  "yona:sslRootCert":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: Link to SSL root certificate file (available after confirming mobile number)
+                  "yona:appleMobileConfig":
+                    type: object
+                    required:
+                      - href
+                    properties:
+                      href:
+                        type: string
+                        description: Link to user-specific Apple .mobileconfig file (available after confirming mobile number)
   BaseUser:
     type: object
     properties:
@@ -1976,10 +2023,6 @@ definitions:
       - $ref: '#/definitions/PrivateUserData'
       - type: object
         properties:
-          sslRootCertCN:
-            type: string
-            description: The CN of the SSL root certificate. Not available for buddies.
-            example: "smoothwall003.yona"
           creationTime:
             type: string
             format: dateTime
@@ -2072,14 +2115,6 @@ definitions:
                       href:
                         type: string
                         description: This link allows requesting a resend of the mobile number confirmation code.
-                  "yona:postOpenAppEvent":
-                    type: object
-                    required:
-                      - href
-                    properties:
-                      href:
-                        type: string
-                        description: This link allows posting to the server that the Yona app was opened.
                   "yona:requestPinReset":
                     type: object
                     required:
@@ -2120,30 +2155,6 @@ definitions:
                       href:
                         type: string
                         description: Create, get or delete a "new device request" through this link
-                  "yona:appActivity":
-                    type: object
-                    required:
-                      - href
-                    properties:
-                      href:
-                        type: string
-                        description: Post new app activity data to this link
-                  "yona:sslRootCert":
-                    type: object
-                    required:
-                      - href
-                    properties:
-                      href:
-                        type: string
-                        description: Link to SSL root certificate file (available after confirming mobile number)
-                  "yona:appleMobileConfig":
-                    type: object
-                    required:
-                      - href
-                    properties:
-                      href:
-                        type: string
-                        description: Link to user-specific Apple .mobileconfig file (available after confirming mobile number)
         required:
           - _embedded
           - _links
