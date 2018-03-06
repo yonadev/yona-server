@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -17,7 +16,6 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 import nu.yona.server.Constants;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
-import nu.yona.server.device.entities.DeviceBase;
 import nu.yona.server.device.entities.UserDevice;
 import nu.yona.server.exceptions.InvalidDataException;
 import nu.yona.server.subscriptions.service.VPNProfileDto;
@@ -96,17 +94,8 @@ public class UserDeviceDto extends DeviceBaseDto
 
 	public static UserDeviceDto createDeviceRegistrationInstance(DeviceRegistrationRequestDto deviceRegistration)
 	{
-		assertValidName(deviceRegistration.name);
 		return new UserDeviceDto(deviceRegistration.name,
 				parseOperatingSystemOfRegistrationRequest(deviceRegistration.operatingSystemStr), deviceRegistration.appVersion);
-	}
-
-	private static void assertValidName(String name)
-	{
-		if (name.length() > DeviceBase.MAX_NAME_LENGTH || name.contains(DeviceBase.DEVICE_NAMES_SEPARATOR))
-		{
-			throw InvalidDataException.invalidDeviceName(name, DeviceBase.MAX_NAME_LENGTH, DeviceBase.DEVICE_NAMES_SEPARATOR);
-		}
 	}
 
 	public static OperatingSystem parseOperatingSystemOfRegistrationRequest(String operatingSystemStr)
@@ -124,22 +113,6 @@ public class UserDeviceDto extends DeviceBaseDto
 			// Handle below
 		}
 		throw InvalidDataException.invalidOperatingSystem(operatingSystemStr);
-	}
-
-	public static class DeviceRegistrationRequestDto
-	{
-		final String name;
-		final String operatingSystemStr;
-		final String appVersion;
-
-		@JsonCreator
-		public DeviceRegistrationRequestDto(@JsonProperty("name") String name,
-				@JsonProperty("operatingSystem") String operatingSystemStr, @JsonProperty("appVersion") String appVersion)
-		{
-			this.name = name;
-			this.operatingSystemStr = operatingSystemStr;
-			this.appVersion = appVersion;
-		}
 	}
 
 	public VPNProfileDto getVpnProfile()

@@ -76,6 +76,11 @@ abstract class Service
 		yonaServer.createResource(path, jsonString, ["Yona-Password": password], parameters)
 	}
 
+	def updateResourceWithPassword(path, jsonString, password, parameters = [:])
+	{
+		yonaServer.updateResource(path, jsonString, ["Yona-Password": password], parameters)
+	}
+
 	def deleteResourceWithPassword(path, password, parameters = [:])
 	{
 		yonaServer.deleteResourceWithPassword(path, password, parameters)
@@ -94,5 +99,10 @@ abstract class Service
 	def updateResource(path, jsonString, headers = [:], parameters = [:])
 	{
 		yonaServer.updateResource(path, jsonString, headers, parameters)
+	}
+
+	def deleteResource(path, headers = [:], parameters = [:])
+	{
+		yonaServer.deleteResource(path, headers, parameters)
 	}
 }
