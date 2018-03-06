@@ -302,7 +302,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(john)
 	}
 
-	def 'Retrieve OVPN profile and SSL root certificate'()
+	def 'Retrieve OVPN profile and SSL root certificate (YD-541, YD-544)'()
 	{
 		given:
 		User richard = addRichard()
@@ -324,7 +324,7 @@ class UserTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Retrieve appleMobileConfig'()
+	def 'Retrieve appleMobileConfig (YD-544)'()
 	{
 		given:
 		User richard = addRichard()

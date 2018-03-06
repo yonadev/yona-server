@@ -9,6 +9,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,6 +19,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.annotation.PostConstruct;
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +31,6 @@ import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
-import org.springframework.hateoas.hal.CurieProvider;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpEntity;
@@ -40,11 +44,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -68,6 +73,7 @@ import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
 import nu.yona.server.rest.ControllerBase;
 import nu.yona.server.rest.JsonRootRelProvider;
+import nu.yona.server.rest.StandardResourcesController;
 import nu.yona.server.subscriptions.rest.AppleMobileConfigSigner;
 import nu.yona.server.subscriptions.rest.UserController;
 import nu.yona.server.subscriptions.rest.UserController.UserResource;
@@ -84,9 +90,6 @@ import nu.yona.server.util.ThymeleafUtil;
 public class DeviceController extends ControllerBase
 {
 	private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
-
-	@Autowired
-	protected CurieProvider curieProvider;
 
 	@Autowired
 	private DeviceService deviceService;
@@ -113,6 +116,10 @@ public class DeviceController extends ControllerBase
 	@Autowired
 	private AnalysisEngineProxyService analysisEngineProxyService;
 
+	@Autowired
+	@Qualifier("sslRootCertificate")
+	private X509Certificate sslRootCertificate;
+
 	private enum MessageType
 	{
 		ERROR, WARNING
@@ -121,23 +128,27 @@ public class DeviceController extends ControllerBase
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<Resources<DeviceResource>> getAllDevices(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId)
+			@PathVariable UUID userId,
+			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return createOkResponse(deviceService.getDevicesOfUser(userId), createResourceAssembler(userId),
-					getAllDevicesLinkBuilder(userId));
+			Optional<UUID> requestingDeviceId = nullableStringToOptionalUuid(requestingDeviceIdStr);
+			return createOkResponse(deviceService.getDevicesOfUser(userId), createResourceAssembler(userId, requestingDeviceId),
+					getAllDevicesLinkBuilder(userId, requestingDeviceId));
 		}
 	}
 
 	@RequestMapping(value = "/{deviceId}", method = RequestMethod.GET)
 	@ResponseBody
 	public HttpEntity<DeviceResource> getDevice(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId, @PathVariable UUID deviceId)
+			@PathVariable UUID userId, @PathVariable UUID deviceId,
+			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return createOkResponse(deviceService.getDevice(deviceId), createResourceAssembler(userId));
+			return createOkResponse(deviceService.getDevice(deviceId),
+					createResourceAssembler(userId, nullableStringToOptionalUuid(requestingDeviceIdStr)));
 		}
 	}
 
@@ -208,11 +219,14 @@ public class DeviceController extends ControllerBase
 	@RequestMapping(value = "/{deviceId}", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<DeviceResource> updateDevice(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody DeviceUpdateRequestDto request)
+			@PathVariable UUID userId, @PathVariable UUID deviceId,
+			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr,
+			@RequestBody DeviceUpdateRequestDto request)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return createOkResponse(deviceService.updateDevice(userId, deviceId, request), createResourceAssembler(userId));
+			return createOkResponse(deviceService.updateDevice(userId, deviceId, request),
+					createResourceAssembler(userId, nullableStringToOptionalUuid(requestingDeviceIdStr)));
 		}
 	}
 
@@ -220,7 +234,8 @@ public class DeviceController extends ControllerBase
 	@ResponseBody
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void deleteDevice(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
-			@PathVariable UUID deviceId)
+			@PathVariable UUID deviceId,
+			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
@@ -324,21 +339,31 @@ public class DeviceController extends ControllerBase
 		}
 	}
 
-	private DeviceResourceAssembler createResourceAssembler(UUID userId)
+	private DeviceResourceAssembler createResourceAssembler(UUID userId, Optional<UUID> requestingDeviceId)
 	{
-		return new DeviceResourceAssembler(curieProvider, userId);
+		return new DeviceResourceAssembler(userId, requestingDeviceId);
 	}
 
-	public static ControllerLinkBuilder getAllDevicesLinkBuilder(UUID userId)
+	public static ControllerLinkBuilder getAllDevicesLinkBuilder(UUID userId, Optional<UUID> requestingDeviceId)
 	{
 		DeviceController methodOn = methodOn(DeviceController.class);
-		return linkTo(methodOn.getAllDevices(null, userId));
+		return linkTo(methodOn.getAllDevices(null, userId, optionalUuidToNullableString(requestingDeviceId)));
 	}
 
-	public static ControllerLinkBuilder getDeviceLinkBuilder(UUID userId, UUID deviceId)
+	private static String optionalUuidToNullableString(Optional<UUID> optionalUuid)
+	{
+		return optionalUuid.map(UUID::toString).orElse(null);
+	}
+
+	private static Optional<UUID> nullableStringToOptionalUuid(String uuidStr)
+	{
+		return Optional.ofNullable(uuidStr).map(UUID::fromString);
+	}
+
+	public static ControllerLinkBuilder getDeviceLinkBuilder(UUID userId, UUID deviceId, Optional<UUID> requestingDeviceId)
 	{
 		DeviceController methodOn = methodOn(DeviceController.class);
-		return linkTo(methodOn.getDevice(Optional.empty(), userId, deviceId));
+		return linkTo(methodOn.getDevice(Optional.empty(), userId, deviceId, optionalUuidToNullableString(requestingDeviceId)));
 	}
 
 	public static ControllerLinkBuilder getRegisterDeviceLinkBuilder(UUID userId)
@@ -347,11 +372,25 @@ public class DeviceController extends ControllerBase
 		return linkTo(methodOn.registerDevice(null, userId, null));
 	}
 
-	public static Resources<DeviceResource> createAllDevicesCollectionResource(CurieProvider curieProvider, UUID userId,
-			Set<DeviceBaseDto> devices)
+	public static Resources<DeviceResource> createAllDevicesCollectionResource(UUID userId, Set<DeviceBaseDto> devices,
+			Optional<UUID> requestingDeviceId)
 	{
-		return new Resources<>(new DeviceResourceAssembler(curieProvider, userId).toResources(devices),
-				DeviceController.getAllDevicesLinkBuilder(userId).withSelfRel());
+		return new Resources<>(new DeviceResourceAssembler(userId, requestingDeviceId).toResources(devices),
+				DeviceController.getAllDevicesLinkBuilder(userId, requestingDeviceId).withSelfRel());
+	}
+
+	@PostConstruct
+	private void setSslRootCertificateCn()
+	{
+		try
+		{
+			LdapName name = new LdapName(sslRootCertificate.getIssuerX500Principal().getName());
+			DeviceResource.setSslRootCertificateCn(name.getRdn(0).getValue().toString());
+		}
+		catch (InvalidNameException e)
+		{
+			throw YonaException.unexpected(e);
+		}
 	}
 
 	static class AppOpenEventDto
@@ -375,9 +414,35 @@ public class DeviceController extends ControllerBase
 
 	public static class DeviceResource extends Resource<DeviceBaseDto>
 	{
-		public DeviceResource(DeviceBaseDto device)
+		private static String sslRootCertificateCn;
+		private final boolean isRequestingDevice;
+
+		public DeviceResource(DeviceBaseDto device, boolean isRequestingDevice)
 		{
 			super(device);
+			this.isRequestingDevice = isRequestingDevice;
+		}
+
+		public static void setSslRootCertificateCn(String sslRootCertificateCn)
+		{
+			DeviceResource.sslRootCertificateCn = sslRootCertificateCn;
+		}
+
+		public boolean isRequestingDevice()
+		{
+			return isRequestingDevice;
+		}
+
+		@JsonProperty("sslRootCertCN")
+		@JsonInclude(Include.NON_EMPTY)
+		public Optional<String> getSslRootCertCn()
+		{
+			if (isRequestingDevice)
+			{
+				return Optional.of(sslRootCertificateCn);
+			}
+			return Optional.empty();
+
 		}
 
 		@JsonInclude(Include.NON_EMPTY)
@@ -408,11 +473,13 @@ public class DeviceController extends ControllerBase
 	public static class DeviceResourceAssembler extends ResourceAssemblerSupport<DeviceBaseDto, DeviceResource>
 	{
 		private final UUID userId;
+		private Optional<UUID> requestingDeviceId;
 
-		public DeviceResourceAssembler(CurieProvider curieProvider, UUID userId)
+		public DeviceResourceAssembler(UUID userId, Optional<UUID> requestingDeviceId)
 		{
 			super(DeviceController.class, DeviceResource.class);
 			this.userId = userId;
+			this.requestingDeviceId = requestingDeviceId;
 		}
 
 		@Override
@@ -422,18 +489,30 @@ public class DeviceController extends ControllerBase
 			ControllerLinkBuilder selfLinkBuilder = getSelfLinkBuilder(device.getId());
 			addSelfLink(selfLinkBuilder, deviceResource);
 			addEditLink(selfLinkBuilder, deviceResource);
+			if (isRequestingDevice(device))
+			{
+				addPostOpenAppEventLink(deviceResource);
+				addAppActivityLink(deviceResource);
+				addSslRootCertificateLink(deviceResource);
+				addAppleMobileConfigLink(deviceResource);
+			}
 			return deviceResource;
 		}
 
 		@Override
 		protected DeviceResource instantiateResource(DeviceBaseDto device)
 		{
-			return new DeviceResource(device);
+			return new DeviceResource(device, isRequestingDevice(device));
+		}
+
+		private boolean isRequestingDevice(DeviceBaseDto device)
+		{
+			return device.getId().equals(requestingDeviceId.orElse(null));
 		}
 
 		private ControllerLinkBuilder getSelfLinkBuilder(UUID deviceId)
 		{
-			return getDeviceLinkBuilder(userId, deviceId);
+			return getDeviceLinkBuilder(userId, deviceId, requestingDeviceId);
 		}
 
 		private void addSelfLink(ControllerLinkBuilder selfLinkBuilder, DeviceResource deviceResource)
@@ -444,6 +523,27 @@ public class DeviceController extends ControllerBase
 		private void addEditLink(ControllerLinkBuilder selfLinkBuilder, DeviceResource deviceResource)
 		{
 			deviceResource.add(selfLinkBuilder.withRel(JsonRootRelProvider.EDIT_REL));
+		}
+
+		private void addPostOpenAppEventLink(DeviceResource deviceResource)
+		{
+			deviceResource.add(DeviceController.getPostOpenAppEventLink(userId, deviceResource.getContent().getId()));
+		}
+
+		private void addAppActivityLink(DeviceResource deviceResource)
+		{
+			deviceResource.add(DeviceController.getAppActivityLink(userId, deviceResource.getContent().getId()));
+		}
+
+		private void addSslRootCertificateLink(DeviceResource deviceResource)
+		{
+			deviceResource.add(linkTo(methodOn(StandardResourcesController.class).getSslRootCert()).withRel("sslRootCert"));
+		}
+
+		private void addAppleMobileConfigLink(DeviceResource deviceResource)
+		{
+			deviceResource.add(linkTo(methodOn(DeviceController.class).getAppleMobileConfig(Optional.empty(), userId,
+					deviceResource.getContent().getId())).withRel("appleMobileConfig"));
 		}
 	}
 }

@@ -174,7 +174,7 @@ $| = 1; # Make STDOUT unbuffered
 GetOptions ('verbose!' => \$verbose,
 	'analysisEngineURL=s' => \$analysis_engine_url,
 	'categoriesRefreshInterval=i' => \$categories_refresh_interval)
-or die "Usage: $0 [--analysisEngineURL <URL>] [--categoriesRefreshInterval <interval in seconds>] [<input file>]";
+or die "Usage: $0 [--verbose] [--analysisEngineURL <URL>] [--categoriesRefreshInterval <interval in seconds>] [<input file>]";
 
 my $input_file = $ARGV[0];
 if ($input_file) {

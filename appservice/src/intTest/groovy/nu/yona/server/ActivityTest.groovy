@@ -1437,7 +1437,7 @@ class ActivityTest extends AbstractAppServiceIntegrationTest
 		Goal budgetGoalNewsRichard = richardDefault.findActiveGoal(NEWS_ACT_CAT_URL)
 		Goal timeZoneGoalSocialRichard = richardDefault.findActiveGoal(SOCIAL_ACT_CAT_URL)
 
-		def iphoneDeviceName = "My iPhone"
+		def iphoneDeviceName = "My second iPhone"
 		User richardIphone = appService.addDevice(richardDefault, iphoneDeviceName, "IOS", Device.SUPPORTED_APP_VERSION)
 
 		// Activities on default device

@@ -516,7 +516,7 @@ class AppService extends Service
 
 	def postAppActivityToAnalysisEngine(User user, def appActivity)
 	{
-		yonaServer.createResourceWithPassword(user.appActivityUrl, appActivity.getJson(), user.password)
+		yonaServer.createResourceWithPassword(user.devices.find{ it.requestingDevice }.appActivityUrl, appActivity.getJson(), user.password)
 	}
 
 	def composeActivityCategoryUrl(def activityCategoryId) {

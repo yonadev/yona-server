@@ -128,7 +128,7 @@ public class UserController extends ControllerBase
 
 	@Autowired
 	@Qualifier("sslRootCertificate")
-	private X509Certificate sslRootCertificate;
+	private X509Certificate sslRootCertificate; // YD-544
 
 	@RequestMapping(value = "/{userId}", method = RequestMethod.GET)
 	@ResponseBody
@@ -438,7 +438,7 @@ public class UserController extends ControllerBase
 	}
 
 	@PostConstruct
-	private void setSslRootCertificateCn()
+	private void setSslRootCertificateCn() // YD-544
 	{
 		try
 		{
@@ -503,14 +503,17 @@ public class UserController extends ControllerBase
 	public static class UserResource extends Resource<UserDto>
 	{
 		private final CurieProvider curieProvider;
-		private static String sslRootCertificateCn;
+		private static String sslRootCertificateCn; // YD-544
 		private UserResourceRepresentation representation;
+		private Optional<UUID> requestingDeviceId;
 
-		public UserResource(CurieProvider curieProvider, UserResourceRepresentation representation, UserDto user)
+		public UserResource(CurieProvider curieProvider, UserResourceRepresentation representation, UserDto user,
+				Optional<UUID> requestingDeviceId)
 		{
 			super(user);
 			this.curieProvider = curieProvider;
 			this.representation = representation;
+			this.requestingDeviceId = requestingDeviceId;
 		}
 
 		public static void setSslRootCertificateCn(String sslRootCertificateCn)
@@ -520,7 +523,7 @@ public class UserController extends ControllerBase
 
 		@JsonProperty("sslRootCertCN")
 		@JsonInclude(Include.NON_EMPTY)
-		public Optional<String> getSslRootCertCn()
+		public Optional<String> getSslRootCertCn() // YD-544
 		{
 			if (representation.includeOwnUserNumConfirmedContent.apply(getContent()))
 			{
@@ -540,7 +543,7 @@ public class UserController extends ControllerBase
 			{
 				Optional<Set<DeviceBaseDto>> devices = getContent().getPrivateData().getDevices();
 				devices.ifPresent(d -> result.put(curieProvider.getNamespacedRelFor(UserDto.DEVICES_REL_NAME),
-						DeviceController.createAllDevicesCollectionResource(curieProvider, userId, d)));
+						DeviceController.createAllDevicesCollectionResource(userId, d, requestingDeviceId)));
 
 				Optional<Set<GoalDto>> goals = getContent().getPrivateData().getGoals();
 				goals.ifPresent(g -> result.put(curieProvider.getNamespacedRelFor(UserDto.GOALS_REL_NAME),
@@ -595,6 +598,31 @@ public class UserController extends ControllerBase
 			this.requestingDeviceId = requestingDeviceId;
 		}
 
+		public static UserResourceAssembler createPublicUserInstance(CurieProvider curieProvider)
+		{
+			return new UserResourceAssembler(UserResourceRepresentation.MINIMAL, curieProvider, Optional.empty(),
+					Optional.empty(), Optional.empty());
+		}
+
+		public static UserResourceAssembler createMinimalInstance(CurieProvider curieProvider, UUID requestingUserId)
+		{
+			return new UserResourceAssembler(UserResourceRepresentation.MINIMAL, curieProvider, Optional.of(requestingUserId),
+					Optional.empty(), Optional.empty());
+		}
+
+		public static UserResourceAssembler createInstanceForBuddy(CurieProvider curieProvider, UUID requestingUserId)
+		{
+			return new UserResourceAssembler(UserResourceRepresentation.BUDDY_USER, curieProvider, Optional.of(requestingUserId),
+					Optional.empty(), Optional.empty());
+		}
+
+		public static UserResourceAssembler createInstanceForOwnUser(CurieProvider curieProvider, UUID requestingUserId,
+				Optional<UUID> requestingDeviceId, PinResetRequestController pinResetRequestController)
+		{
+			return new UserResourceAssembler(UserResourceRepresentation.OWN_USER, curieProvider, Optional.of(requestingUserId),
+					requestingDeviceId, Optional.of(pinResetRequestController));
+		}
+
 		@Override
 		public UserResource toResource(UserDto user)
 		{
@@ -613,16 +641,16 @@ public class UserController extends ControllerBase
 			if (representation.includeOwnUserNumConfirmedContent.apply(user))
 			{
 				addEditLink(userResource);
-				addPostOpenAppEventLink(userResource);
+				addPostOpenAppEventLink(userResource); // YD-544
 				addMessagesLink(userResource);
 				addDayActivityOverviewsLink(userResource);
 				addWeekActivityOverviewsLink(userResource);
 				addDayActivityOverviewsWithBuddiesLink(userResource);
 				addNewDeviceRequestLink(userResource);
-				addAppActivityLink(userResource);
+				addAppActivityLink(userResource); // YD-544
 				pinResetRequestController.get().addLinks(userResource);
-				addSslRootCertificateLink(userResource);
-				addAppleMobileConfigLink(userResource);
+				addSslRootCertificateLink(userResource); // YD-544
+				addAppleMobileConfigLink(userResource); // YD-544
 				addEditUserPhotoLink(userResource);
 			}
 			return userResource;
@@ -654,7 +682,7 @@ public class UserController extends ControllerBase
 		@Override
 		protected UserResource instantiateResource(UserDto user)
 		{
-			return new UserResource(curieProvider, representation, user);
+			return new UserResource(curieProvider, representation, user, requestingDeviceId);
 		}
 
 		private void addSelfLink(Resource<UserDto> userResource)
@@ -725,31 +753,6 @@ public class UserController extends ControllerBase
 		{
 			// IDs are available when the app activity link is relevant, so directly call get on Optional
 			userResource.add(DeviceController.getAppActivityLink(requestingUserId.get(), requestingDeviceId.get()));
-		}
-
-		public static UserResourceAssembler createPublicUserInstance(CurieProvider curieProvider)
-		{
-			return new UserResourceAssembler(UserResourceRepresentation.MINIMAL, curieProvider, Optional.empty(),
-					Optional.empty(), Optional.empty());
-		}
-
-		public static UserResourceAssembler createMinimalInstance(CurieProvider curieProvider, UUID requestingUserId)
-		{
-			return new UserResourceAssembler(UserResourceRepresentation.MINIMAL, curieProvider, Optional.of(requestingUserId),
-					Optional.empty(), Optional.empty());
-		}
-
-		public static UserResourceAssembler createInstanceForBuddy(CurieProvider curieProvider, UUID requestingUserId)
-		{
-			return new UserResourceAssembler(UserResourceRepresentation.BUDDY_USER, curieProvider, Optional.of(requestingUserId),
-					Optional.empty(), Optional.empty());
-		}
-
-		public static UserResourceAssembler createInstanceForOwnUser(CurieProvider curieProvider, UUID requestingUserId,
-				Optional<UUID> requestingDeviceId, PinResetRequestController pinResetRequestController)
-		{
-			return new UserResourceAssembler(UserResourceRepresentation.OWN_USER, curieProvider, Optional.of(requestingUserId),
-					requestingDeviceId, Optional.of(pinResetRequestController));
 		}
 	}
 }

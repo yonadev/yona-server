@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -42,6 +42,48 @@ class AppActivityTest extends AbstractAppServiceIntegrationTest
 
 		cleanup:
 		appService.deleteUser(richard)
+	}
+
+	def 'Goal conflict of Richard is reported to Richard and Bob (post to legacy URL, YD-544)'()
+	{
+		given:
+		def richardAndBob = addRichardAndBobAsBuddies()
+		def richard = richardAndBob.richard
+		def bob = richardAndBob.bob
+		setGoalCreationTime(richard, GAMBLING_ACT_CAT_URL, "W-1 Mon 02:18")
+		ZonedDateTime testStartTime = YonaServer.now
+		ZonedDateTime startTime = testStartTime.minusHours(1)
+		ZonedDateTime endTime = testStartTime
+
+		when:
+		def response = appService.createResourceWithPassword(richard.appActivityUrl, AppActivity.singleActivity("Poker App", startTime, endTime).getJson(), richard.password)
+
+		then:
+		assertResponseStatusOk(response)
+		def getMessagesRichardResponse = appService.getMessages(richard)
+		assertResponseStatusOk(getMessagesRichardResponse)
+		ZonedDateTime goalConflictTime = YonaServer.now
+		def goalConflictMessagesRichard = getMessagesRichardResponse.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "GoalConflictMessage" }
+		goalConflictMessagesRichard.size() == 1
+		goalConflictMessagesRichard[0].nickname == "RQ (me)"
+		assertEquals(goalConflictMessagesRichard[0].creationTime, goalConflictTime)
+		goalConflictMessagesRichard[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
+
+		def getMessagesBobResponse = appService.getMessages(bob)
+		assertResponseStatusOk(getMessagesBobResponse)
+		def goalConflictMessagesBob = getMessagesBobResponse.responseData._embedded."yona:messages".findAll
+		{ it."@type" == "GoalConflictMessage" }
+		goalConflictMessagesBob.size() == 1
+		goalConflictMessagesBob[0].nickname == richard.nickname
+		assertEquals(goalConflictMessagesBob[0].creationTime, goalConflictTime)
+		assertEquals(goalConflictMessagesBob[0].activityStartTime, startTime)
+		assertEquals(goalConflictMessagesBob[0].activityEndTime, endTime)
+		goalConflictMessagesBob[0]._links."yona:activityCategory".href == GAMBLING_ACT_CAT_URL
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
 	def 'Goal conflict of Richard is reported to Richard and Bob'()
