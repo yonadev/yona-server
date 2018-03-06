@@ -397,10 +397,7 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		User richard = addRichard()
-		def multipartEntity = MultipartEntityBuilder.create()
-				.addPart("file", new InputStreamBody(new ByteArrayInputStream(Base64.getDecoder().decode(EXAMPLE_PNG_DATA_BASE64)), "image/png", "MyPhoto.png"))
-				.build()
-		assertResponseStatusOk(appService.yonaServer.restClient.put(path: richard.editUserPhotoUrl, requestContentType :"multipart/form-data", headers: ["Yona-Password": richard.password], body: multipartEntity))
+		uploadUserPhoto(richard)
 
 		when:
 		def newNickname = "NewNickName"
