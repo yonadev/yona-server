@@ -356,6 +356,7 @@ paths:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
         - $ref: "#/parameters/deviceID"
+        - $ref: "#/parameters/requestingDeviceId"
         - in: body
           name: body
           description: Updated device
@@ -380,6 +381,7 @@ paths:
         - $ref: "#/parameters/yonaPassword"
         - $ref: "#/parameters/userID"
         - $ref: "#/parameters/deviceID"
+        - $ref: "#/parameters/requestingDeviceId"
       tags:
         - Device
       responses:

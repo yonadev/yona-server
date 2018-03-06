@@ -46,10 +46,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -219,11 +219,14 @@ public class DeviceController extends ControllerBase
 	@RequestMapping(value = "/{deviceId}", method = RequestMethod.PUT)
 	@ResponseBody
 	public HttpEntity<DeviceResource> updateDevice(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
-			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody DeviceUpdateRequestDto request)
+			@PathVariable UUID userId, @PathVariable UUID deviceId,
+			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr,
+			@RequestBody DeviceUpdateRequestDto request)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
-			return createOkResponse(deviceService.updateDevice(userId, deviceId, request), createResourceAssembler(userId));
+			return createOkResponse(deviceService.updateDevice(userId, deviceId, request),
+					createResourceAssembler(userId, nullableStringToOptionalUuid(requestingDeviceIdStr)));
 		}
 	}
 
@@ -231,7 +234,8 @@ public class DeviceController extends ControllerBase
 	@ResponseBody
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void deleteDevice(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
-			@PathVariable UUID deviceId)
+			@PathVariable UUID deviceId,
+			@RequestParam(value = UserController.REQUESTING_DEVICE_ID_PARAM, required = false) String requestingDeviceIdStr)
 	{
 		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
 		{
