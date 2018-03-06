@@ -97,7 +97,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		assertDateFormat(newDevice.appLastOpenedDate)
 
 		// User self-link uses the new device as "requestingDeviceId"
-		def idOfNewDevice = newDevice._links.self.href - ~/.*\// - ~/\?.*/
+		def idOfNewDevice = extractDeviceId(newDevice._links.self.href)
 		registerResponse.responseData._links.self.href ==~ /.*requestingDeviceId=$idOfNewDevice.*/
 
 		// App activity URL is for the new device
@@ -119,6 +119,10 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		cleanup:
 		appService.deleteUser(richard)
 		appService.deleteUser(bob)
+	}
+
+	private static String extractDeviceId(String url) {
+		return url - ~/.*\// - ~/\?.*/
 	}
 
 	def 'Try register new device with wrong password'()
@@ -374,7 +378,7 @@ class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 		Device remainingDevice = richard.devices[0]
 		def deletedDeviceName = "Second device"
 		richard = appService.addDevice(richard, deletedDeviceName, "ANDROID", Device.SUPPORTED_APP_VERSION)
-		Device deviceToDelete = richard.devices.find{ it.url != remainingDevice.url }
+		Device deviceToDelete = richard.devices.find{ YonaServer.stripQueryString(it.url) != YonaServer.stripQueryString(remainingDevice.url) }
 
 		when:
 		def response = appService.deleteResourceWithPassword(deviceToDelete.editUrl, richard.password)
