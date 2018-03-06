@@ -28,7 +28,7 @@ public class InactivityManagementController
 	private InactivityManagementService inactivityManagementService;
 
 	@RequestMapping(value = "/{userAnonymizedId}/inactivity/", method = RequestMethod.POST)
-	@ResponseStatus(value = HttpStatus.OK)
+	@ResponseStatus(value = HttpStatus.NO_CONTENT)
 	public void createInactivityEntities(@PathVariable UUID userAnonymizedId,
 			@RequestBody Set<IntervalInactivityDto> intervalInactivities)
 	{

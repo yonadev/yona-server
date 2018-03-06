@@ -455,7 +455,7 @@ class AppService extends Service
 		assertResponseStatusSuccess(getResponse)
 
 		def registerResponse = registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, name, operatingSystem, appVersion)
-		assertResponseStatusSuccess(getResponse)
+		assertResponseStatusSuccess(registerResponse)
 
 		new User(registerResponse.responseData)
 	}

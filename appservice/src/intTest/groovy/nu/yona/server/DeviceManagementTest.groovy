@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Stichting Yona Foundation
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation
  * This Source Code Form is subject to the terms of the Mozilla Public License,
  * v.2.0. If a copy of the MPL was not distributed with this file, You can
  * obtain one at https://mozilla.org/MPL/2.0/.
@@ -10,10 +10,11 @@ package nu.yona.server
 import static nu.yona.server.test.CommonAssertions.*
 
 import groovy.json.*
+import nu.yona.server.test.CommonAssertions
 import nu.yona.server.test.Device
 import nu.yona.server.test.User
 
-class AddDeviceTest extends AbstractAppServiceIntegrationTest
+class DeviceManagementTest extends AbstractAppServiceIntegrationTest
 {
 	def 'Set and get new device request'()
 	{
@@ -50,10 +51,13 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
-	def 'Register new device'()
+	def 'Richard adds new device; Bob gets the update'()
 	{
 		given:
-		User richard = addRichard()
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		def firstDeviceName = richard.devices[0].name
 
 		when:
 		def newDeviceRequestPassword = "Temp password"
@@ -99,8 +103,22 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		// App activity URL is for the new device
 		registerResponse.responseData._links."yona:appActivity".href == newDevice._links.self.href + "/appActivity/"
 
+		def bobMessagesAfterUpdate = appService.getMessages(bob)
+		assertResponseStatusOk(bobMessagesAfterUpdate)
+		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyDeviceChangeMessage" }
+
+		deviceChangeMessages.size() == 1
+		deviceChangeMessages[0]._links.self != null
+		deviceChangeMessages[0]._links."yona:process" == null // Processing happens automatically these days
+		deviceChangeMessages[0]._links."yona:user".href == bob.buddies[0].user.url
+		deviceChangeMessages[0].message == "User added a device named '$newDeviceName'"
+
+		User bobAfterReload = appService.reloadUser(bob)
+		bobAfterReload.buddies[0].user.devices.collect { it.name } as Set == [firstDeviceName, newDeviceName] as Set
+
 		cleanup:
 		appService.deleteUser(richard)
+		appService.deleteUser(bob)
 	}
 
 	def 'Try register new device with wrong password'()
@@ -264,6 +282,143 @@ class AddDeviceTest extends AbstractAppServiceIntegrationTest
 		getResponseAfter.responseData.yonaPassword == richard.password
 		assertResponseStatus(responseWrongMobileNumber, 400)
 		responseWrongMobileNumber.responseData.code == "error.decrypting.data"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Richard updates his device name; Bob gets the update'()
+	{
+		given:
+		def ts = timestamp
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		def updatedName = "Updated name"
+
+		when:
+		def response = appService.updateResourceWithPassword(richard.devices[0].editUrl, """{"name":"$updatedName"}""", richard.password)
+
+
+		then:
+		assertResponseStatusOk(response)
+		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+
+		richardAfterReload.devices.size == 1
+		richardAfterReload.devices[0].name == updatedName
+		richardAfterReload.devices[0].operatingSystem == "IOS"
+
+		def bobMessagesAfterUpdate = appService.getMessages(bob)
+		assertResponseStatusOk(bobMessagesAfterUpdate)
+		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyDeviceChangeMessage"}
+
+		deviceChangeMessages.size() == 1
+		deviceChangeMessages[0]._links.self != null
+		deviceChangeMessages[0]._links."yona:process" == null // Processing happens automatically these days
+		deviceChangeMessages[0]._links."yona:user".href == bob.buddies[0].user.url
+		deviceChangeMessages[0].message == "User renamed device 'Richard's iPhone' into '$updatedName'"
+
+		User bobAfterReload = appService.reloadUser(bob)
+		bobAfterReload.buddies[0].user.devices[0].name == updatedName
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Try update device name to device name containing a colon'()
+	{
+		given:
+		def ts = timestamp
+		User richard = addRichard()
+		def updatedName = "Updated:name"
+
+		when:
+		def response = appService.updateResourceWithPassword(richard.devices[0].editUrl, """{"name":"$updatedName"}""", richard.password)
+
+		then:
+		assertResponseStatus(response, 400)
+		assert response.responseData.code == "error.device.invalid.device.name"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Try update device name to existing name'()
+	{
+		given:
+		def ts = timestamp
+		User richard = addRichard()
+		Device deviceToUpdate = richard.devices[0]
+		def existingName = "Existing name"
+		appService.addDevice(richard, existingName, "ANDROID", Device.SUPPORTED_APP_VERSION)
+
+		when:
+		def response = appService.updateResourceWithPassword(deviceToUpdate.editUrl, """{"name":"$existingName"}""", richard.password)
+
+		then:
+		assertResponseStatus(response, 400)
+		assert response.responseData.code == "error.device.name.already.exists"
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
+	def 'Richard deletes one of his devices; Bob gets the update'()
+	{
+		given:
+		def ts = timestamp
+		def richardAndBob = addRichardAndBobAsBuddies()
+		User richard = richardAndBob.richard
+		User bob = richardAndBob.bob
+		Device remainingDevice = richard.devices[0]
+		def deletedDeviceName = "Second device"
+		richard = appService.addDevice(richard, deletedDeviceName, "ANDROID", Device.SUPPORTED_APP_VERSION)
+		Device deviceToDelete = richard.devices.find{ it.url != remainingDevice.url }
+
+		when:
+		def response = appService.deleteResourceWithPassword(deviceToDelete.editUrl, richard.password)
+
+		then:
+		assertResponseStatusNoContent(response)
+		def richardAfterReload = appService.reloadUser(richard, CommonAssertions.&assertUserGetResponseDetailsWithPrivateDataIgnoreDefaultDevice)
+
+		richardAfterReload.devices.size == 1
+		richardAfterReload.devices[0].name == remainingDevice.name
+		richardAfterReload.devices[0].operatingSystem == remainingDevice.operatingSystem
+
+		def bobMessagesAfterUpdate = appService.getMessages(bob)
+		assertResponseStatusOk(bobMessagesAfterUpdate)
+		def deviceChangeMessages = bobMessagesAfterUpdate.responseData._embedded?."yona:messages".findAll{ it."@type" == "BuddyDeviceChangeMessage" && it.message ==~ /^User deleted.*/}
+
+		deviceChangeMessages.size() == 1
+		deviceChangeMessages[0]._links.self != null
+		deviceChangeMessages[0]._links."yona:process" == null // Processing happens automatically these days
+		deviceChangeMessages[0]._links."yona:user".href == bob.buddies[0].user.url
+		deviceChangeMessages[0].message == "User deleted device '$deletedDeviceName'"
+
+		User bobAfterReload = appService.reloadUser(bob)
+		bobAfterReload.buddies[0].user.devices.size == 1
+		bobAfterReload.buddies[0].user.devices[0].name == remainingDevice.name
+
+		cleanup:
+		appService.deleteUser(richard)
+		appService.deleteUser(bob)
+	}
+
+	def 'Try delete last device'()
+	{
+		given:
+		def ts = timestamp
+		User richard = addRichard()
+		Device deviceToDelete = richard.devices[0]
+
+		when:
+		def response = appService.deleteResourceWithPassword(deviceToDelete.editUrl, richard.password)
+
+		then:
+		assertResponseStatus(response, 400)
+		assert response.responseData.code == "error.device.cannot.delete.last.one"
 
 		cleanup:
 		appService.deleteUser(richard)

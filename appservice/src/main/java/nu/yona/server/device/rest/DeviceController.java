@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -57,10 +58,11 @@ import nu.yona.server.crypto.seckey.CryptoSession;
 import nu.yona.server.device.entities.DeviceAnonymized.OperatingSystem;
 import nu.yona.server.device.rest.DeviceController.DeviceResource;
 import nu.yona.server.device.service.DeviceBaseDto;
+import nu.yona.server.device.service.DeviceRegistrationRequestDto;
 import nu.yona.server.device.service.DeviceService;
 import nu.yona.server.device.service.DeviceServiceException;
+import nu.yona.server.device.service.DeviceUpdateRequestDto;
 import nu.yona.server.device.service.UserDeviceDto;
-import nu.yona.server.device.service.UserDeviceDto.DeviceRegistrationRequestDto;
 import nu.yona.server.exceptions.YonaException;
 import nu.yona.server.properties.YonaProperties;
 import nu.yona.server.rest.Constants;
@@ -201,6 +203,29 @@ public class DeviceController extends ControllerBase
 			return appleMobileConfigSigner.sign(unsignedMobileconfig);
 		}
 		return unsignedMobileconfig;
+	}
+
+	@RequestMapping(value = "/{deviceId}", method = RequestMethod.PUT)
+	@ResponseBody
+	public HttpEntity<DeviceResource> updateDevice(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password,
+			@PathVariable UUID userId, @PathVariable UUID deviceId, @RequestBody DeviceUpdateRequestDto request)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			return createOkResponse(deviceService.updateDevice(userId, deviceId, request), createResourceAssembler(userId));
+		}
+	}
+
+	@RequestMapping(value = "/{deviceId}", method = RequestMethod.DELETE)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void deleteDevice(@RequestHeader(value = PASSWORD_HEADER) Optional<String> password, @PathVariable UUID userId,
+			@PathVariable UUID deviceId)
+	{
+		try (CryptoSession cryptoSession = CryptoSession.start(password, () -> userService.canAccessPrivateData(userId)))
+		{
+			deviceService.deleteDevice(userId, deviceId);
+		}
 	}
 
 	/*

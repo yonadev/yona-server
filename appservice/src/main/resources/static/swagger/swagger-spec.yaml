@@ -381,7 +381,7 @@ paths:
       tags:
         - Device
       responses:
-        '200':
+        '204':
           description: The device is deleted.
         default:
           description: Unexpected error
@@ -2421,6 +2421,7 @@ definitions:
         - BuddyConnectResponseMessage
         - BuddyDisconnectMessage
         - BuddyInfoChangeMessage
+        - BuddyDeviceChangeMessage
         - GoalConflictMessage
         - GoalChangeMessage
         - DisclosureRequestMessage
@@ -2556,6 +2557,23 @@ definitions:
           - dropBuddyReason
           - _links
   BuddyInfoChangeMessage:
+    allOf:
+      - $ref: '#/definitions/BuddyMessage'
+      - type: object
+        properties:
+          _links:
+            allOf:
+              - $ref: '#/definitions/Curies'
+              - $ref: '#/definitions/SelfLink'
+              - $ref: '#/definitions/EditLink'
+              - $ref: '#/definitions/UserLink'
+              - $ref: '#/definitions/BuddyLink'
+              - $ref: '#/definitions/MarkReadLink'
+              - $ref: '#/definitions/MarkUnreadLink'
+              - $ref: '#/definitions/ProcessLink'
+        required:
+          - _links
+  BuddyDeviceChangeMessage:
     allOf:
       - $ref: '#/definitions/BuddyMessage'
       - type: object

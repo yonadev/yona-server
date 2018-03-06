@@ -41,7 +41,7 @@ public interface MessageRepository extends CrudRepository<Message, Long>
 	Page<Message> findReceivedMessagesFromDestinationSinceDate(@Param("destinationId") UUID destinationId,
 			@Param("earliestDateTime") LocalDateTime earliestDateTime, Pageable pageable);
 
-	@Query("select m.id from Message m, MessageDestination d where d.id = :destinationId and m.isProcessed = false and m member of d.messages order by m.id desc")
+	@Query("select m.id from Message m, MessageDestination d where d.id = :destinationId and m.isProcessed = false and m member of d.messages order by m.id asc")
 	List<Long> findUnprocessedMessagesFromDestination(@Param("destinationId") UUID destinationId);
 
 	@Modifying
