@@ -41,7 +41,7 @@ pipeline {
 			}
 			steps {
 				checkpoint 'Build done'
-				sh 'while ! $(curl -s -q -f -o /dev/null https://yonadev.github.io/helm-charts/yona-1.2.$BUILD_NUMBER_TO_DEPLOY.tgz) ;do echo Waiting for Helm chart to become available; sleep 5; done'
+				sh 'while ! $(curl -s -q -f -o /dev/null https://jump.ops.yona.nu/helm-charts/yona-1.2.$BUILD_NUMBER_TO_DEPLOY.tgz) ;do echo Waiting for Helm chart to become available; sleep 5; done'
 				sh script: 'helm delete yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all', returnStatus: true
 				sh 'helm repo update'
 				sh 'helm upgrade --install --namespace yona --values /opt/ope-cloudbees/yona/k8s/helm/values.yaml --version 1.2.$BUILD_NUMBER_TO_DEPLOY yona yona/yona'
@@ -140,7 +140,7 @@ pipeline {
 				environment name: 'DEPLOY_TO_BETA', value: 'yes'
 			}
 			steps {
-				sh 'helm repo add yona https://yonadev.github.io/helm-charts'
+				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
 				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
 			}
 		}
@@ -164,7 +164,7 @@ pipeline {
 				environment name: 'DEPLOY_TO_PRD', value: 'yes'
 			}
 			steps {
-				sh 'helm repo add yona https://yonadev.github.io/helm-charts'
+				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
 				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
 			}
 		}
