@@ -24,7 +24,7 @@ function waitTillGetWorks() {
 # Temporarily use a different approach for Kubernetes
 if [ "$1" == "k8s" ]
 then
-	duration=600
+	duration=1200
 	sleepTime=5
 	iterations=$[$duration / $sleepTime]
 	n=0
