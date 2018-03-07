@@ -33,5 +33,4 @@ export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME
 export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
 git commit -am "Package for build $BUILD_NUMBER"
 git push https://${GIT_USR}:${GIT_PSW}@github.com/yonadev/$HELM_REPO.git master
-while ! $(curl -s -q -f -o /dev/null https://yonadev.github.io/helm-charts/$CHART-$VERSION.tgz) ;do echo Waiting for Helm chart to become available; sleep 5; done
 popd
