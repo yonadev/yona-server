@@ -6,7 +6,7 @@ metadata:
   labels:
     type: local
 spec:
-  storageClassName: yona-default
+  storageClassName: default
   persistentVolumeReclaimPolicy: Recycle
   capacity:
     storage: 3Gi
@@ -22,7 +22,7 @@ metadata:
   labels:
     type: local
 spec:
-  storageClassName: yona-default
+  storageClassName: default
   persistentVolumeReclaimPolicy: Recycle
   capacity:
     storage: 3Gi
@@ -38,7 +38,7 @@ metadata:
   labels:
     type: local
 spec:
-  storageClassName: yona-default
+  storageClassName: default
   persistentVolumeReclaimPolicy: Recycle
   capacity:
     storage: 3Gi
