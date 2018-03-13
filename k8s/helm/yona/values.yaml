@@ -147,8 +147,8 @@ ldap:
   user_dn: "cn=admin,dc=example,dc=local"
   user_password: "ldappassword"
   config_password: "config"
-  storage_class_name_ldap: default
-  storage_class_name_sldap: default
+  storage_class_name_ldap: standard
+  storage_class_name_sldap: standard
 
 sms:
   enabled: false
@@ -174,7 +174,7 @@ mariadb:
   mariadbPassword: develop
   mariadbDatabase: yona
   persistence:
-    storageClass: default
+    storageClass: standard
     size: 2Gi
   user: develop
   password: develop

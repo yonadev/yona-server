@@ -7,13 +7,13 @@ metadata:
     type: local
 spec:
   storageClassName: default
-  persistentVolumeReclaimPolicy: Recycle
+  persistentVolumeReclaimPolicy: Delete
   capacity:
     storage: 3Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/data/yona-persistentvolumes/pv0001"
+    path: "/tmp/.yona-persistentvolumes/pv0001"
 ---
 kind: PersistentVolume
 apiVersion: v1
@@ -23,13 +23,13 @@ metadata:
     type: local
 spec:
   storageClassName: default
-  persistentVolumeReclaimPolicy: Recycle
+  persistentVolumeReclaimPolicy: Delete
   capacity:
     storage: 3Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/data/yona-persistentvolumes/pv0002"
+    path: "/tmp/.yona-persistentvolumes/pv0002"
 ---
 kind: PersistentVolume
 apiVersion: v1
@@ -39,10 +39,10 @@ metadata:
     type: local
 spec:
   storageClassName: default
-  persistentVolumeReclaimPolicy: Recycle
+  persistentVolumeReclaimPolicy: Delete
   capacity:
     storage: 3Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/data/yona-persistentvolumes/pv0003"
+    path: "/tmp/.yona-persistentvolumes/pv0003"
