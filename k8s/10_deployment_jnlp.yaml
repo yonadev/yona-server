@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: yona-ops-jnlp
+  labels:
+    app: jnlp
+    stage: ops
+spec:
+  replicas: 1
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: admin
+        stage: ops
+    spec:
+      containers:
+        - name: jnlp-slave
+          image: yonadev/jnlp-slave-k8s-helm:latest
+          imagePullPolicy: IfNotPresent
+          env:       
+            - name: JENKINS_URL
+              value: http://127.0.0.1:1234
+            - name: JENKINS_SECRET
+              value: deadb33f
+            - name: JENKINS_AGENT_NAME
+              value: Dev
