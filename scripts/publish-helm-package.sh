@@ -26,7 +26,7 @@ popd
 pushd $HELM_REPO_DIR
 git pull
 git add $PACKAGE_PATH
-helm repo index docs --url https://yonadev.github.io/$HELM_REPO
+helm repo index docs --url https://jump.ops.yona.nu/$HELM_REPO
 export GIT_AUTHOR_NAME="Yona build server"
 export GIT_AUTHOR_EMAIL=dev@yona.nu
 export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME

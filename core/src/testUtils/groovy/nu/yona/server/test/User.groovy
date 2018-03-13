@@ -29,7 +29,7 @@ class User
 	String deviceAppVersion
 	final String mobileNumberConfirmationUrl
 	final String resendMobileNumberConfirmationCodeUrl
-	final String postOpenAppEventUrl
+	final String postOpenAppEventUrl // YD-544
 	final boolean hasPrivateData
 	final String nickname
 	final String userPhotoUrl
@@ -37,7 +37,7 @@ class User
 	final List<Goal> goals
 	final List<Buddy> buddies
 	final List<Device> devices
-	final VPNProfile vpnProfile
+	final VPNProfile vpnProfile // YD-541
 	final String url
 	final String editUrl
 	final String buddiesUrl
@@ -47,14 +47,14 @@ class User
 	final String dailyActivityReportsWithBuddiesUrl
 	final String weeklyActivityReportsUrl
 	final String newDeviceRequestUrl
-	final String appActivityUrl
+	final String appActivityUrl // YD-544
 	final String pinResetRequestUrl
 	final String verifyPinResetUrl
 	final String resendPinResetConfirmationCodeUrl
 	final String clearPinResetUrl
-	final String sslRootCertUrl
-	final String appleMobileConfig
-	final String sslRootCertCn
+	final String sslRootCertUrl // YD-544
+	final String appleMobileConfig // YD-544
+	final String sslRootCertCn // YD-544
 	final String password
 
 	User(def json)

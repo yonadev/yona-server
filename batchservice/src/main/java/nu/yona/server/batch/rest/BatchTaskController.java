@@ -45,7 +45,6 @@ public class BatchTaskController
 
 	// NOTICE: For integration test purposes. It executes the job synchronously.
 	@RequestMapping(value = "/aggregateActivities/", method = RequestMethod.POST)
-	@ResponseStatus(HttpStatus.OK)
 	public HttpEntity<Resource<BatchJobResultDto>> aggregateActivities()
 	{
 		return new ResponseEntity<>(new Resource<>(batchTaskService.aggregateActivities()), HttpStatus.OK);

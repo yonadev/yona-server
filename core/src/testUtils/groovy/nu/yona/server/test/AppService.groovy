@@ -455,7 +455,7 @@ class AppService extends Service
 		assertResponseStatusSuccess(getResponse)
 
 		def registerResponse = registerNewDevice(getResponse.responseData._links."yona:registerDevice".href, newDeviceRequestPassword, name, operatingSystem, appVersion)
-		assertResponseStatusSuccess(getResponse)
+		assertResponseStatusSuccess(registerResponse)
 
 		new User(registerResponse.responseData)
 	}
@@ -516,7 +516,7 @@ class AppService extends Service
 
 	def postAppActivityToAnalysisEngine(User user, def appActivity)
 	{
-		yonaServer.createResourceWithPassword(user.appActivityUrl, appActivity.getJson(), user.password)
+		yonaServer.createResourceWithPassword(user.devices.find{ it.requestingDevice }.appActivityUrl, appActivity.getJson(), user.password)
 	}
 
 	def composeActivityCategoryUrl(def activityCategoryId) {

@@ -22,6 +22,12 @@ class Device
 	final String appLastOpenedDate
 	final VPNProfile vpnProfile
 	final boolean vpnConnected
+	final boolean requestingDevice
+	final String sslRootCertCn
+	final String postOpenAppEventUrl
+	final String appActivityUrl
+	final String sslRootCertUrl
+	final String appleMobileConfig
 	Device(def json)
 	{
 		this.name = json.name
@@ -32,5 +38,11 @@ class Device
 		this.ovpnProfileUrl = json._links?.ovpnProfile?.href
 		this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
 		this.vpnConnected = json.vpnConnected
+		this.requestingDevice = json.requestingDevice
+		this.sslRootCertCn = json.sslRootCertCN
+		this.postOpenAppEventUrl = json._links?."yona:postOpenAppEvent"?.href
+		this.appActivityUrl = json._links?."yona:appActivity"?.href
+		this.sslRootCertUrl = json._links?."yona:sslRootCert"?.href
+		this.appleMobileConfig = json._links?."yona:appleMobileConfig"?.href
 	}
 }

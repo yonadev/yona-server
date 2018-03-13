@@ -393,6 +393,33 @@ class UserPhotoTest extends AbstractAppServiceIntegrationTest
 		appService.deleteUser(richard)
 	}
 
+	def 'Richard\'s photo link is still available after he updated his nickname'()
+	{
+		given:
+		User richard = addRichard()
+		uploadUserPhoto(richard)
+
+		when:
+		def newNickname = "NewNickName"
+		def updatedRichard = richard.convertToJson()
+		updatedRichard.nickname = newNickname
+		def response = appService.updateUser(richard.url, updatedRichard, richard.password)
+
+		then:
+		assertResponseStatusOk(response)
+		response.contentType == "application/json"
+		def newUserPhotoUrl = response.responseData?._links?."yona:userPhoto"?.href
+		newUserPhotoUrl != null
+		response.responseData.nickname == newNickname
+
+		def richardAfterUpdate = appService.reloadUser(richard)
+		richardAfterUpdate.userPhotoUrl == newUserPhotoUrl
+		richardAfterUpdate.nickname == newNickname
+
+		cleanup:
+		appService.deleteUser(richard)
+	}
+
 	def uploadUserPhoto(User user)
 	{
 		def multipartEntity = MultipartEntityBuilder.create()

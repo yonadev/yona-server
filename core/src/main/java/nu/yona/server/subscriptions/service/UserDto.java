@@ -189,7 +189,6 @@ public class UserDto
 		originalUserEntity.setLastName(lastName);
 		originalUserEntity.setMobileNumber(mobileNumber);
 		originalUserEntity.setNickname(privateData.getNickname());
-		originalUserEntity.setUserPhotoId(privateData.getUserPhotoId());
 	}
 
 	/**
