@@ -45,7 +45,7 @@ pipeline {
 				sh script: 'helm delete yona; kubectl delete -n yona configmaps --all; kubectl delete -n yona job --all; kubectl delete -n yona secrets --all; kubectl delete pvc -n yona --all', returnStatus: true
 				sh 'helm repo update'
 				sh 'helm upgrade --install --namespace yona --values /opt/ope-cloudbees/yona/k8s/helm/values.yaml --version 1.2.$BUILD_NUMBER_TO_DEPLOY yona yona/yona'
-				sh 'scripts/wait-for-services.sh k8s'
+				sh 'scripts/wait-for-services.sh k8snew'
 			}
 		}
 		stage('Run integration tests') {
@@ -83,7 +83,7 @@ pipeline {
 			steps {
 				sh 'helm repo update'
 				sh 'helm upgrade --install --namespace yona --set mariadb.mariadbUser=$YONA_DB_USR --set mariadb.mariadbPassword="$YONA_DB_PSW" --values /opt/ope-cloudbees/yona/k8s/helm/values.yaml --version 1.2.$BUILD_NUMBER_TO_DEPLOY yona yona/yona'
-				sh 'scripts/wait-for-services.sh k8s'
+				sh 'scripts/wait-for-services.sh k8snew'
 			}
 		}
 		stage('Decide deploy to acceptance test server') {
@@ -142,6 +142,7 @@ pipeline {
 			steps {
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
 				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
+				sh 'scripts/wait-for-services.sh k8snew'
 			}
 		}
 		stage('Decide deploy to production server') {
@@ -166,6 +167,7 @@ pipeline {
 			steps {
 				sh 'helm repo add yona https://jump.ops.yona.nu/helm-charts'
 				sh 'helm upgrade --install -f /config/values.yaml --namespace yona --version 1.2.${BUILD_NUMBER_TO_DEPLOY} yona yona/yona'
+				sh 'scripts/wait-for-services.sh k8snew'
 			}
 		}
 	}
