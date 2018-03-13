@@ -12,8 +12,37 @@ metadata:
 spec:
   template:
     metadata:
+      labels:
+        app: liquibase
+        build: {{ .Chart.AppVersion | quote }}
+        stage: {{ .Values.global.stage | default "develop" }}
       name: {{ .Values.global.stage | default "develop" }}-yona-liquibase-update
     spec:
+      initContainers:
+        - name: validatedb
+          image: craftypenguins/k8s-init-mysql:latest
+          env:
+            - name: DBUSER
+              value: {{ .Values.mariadb.mariadbUser | default "develop" | quote }}
+            - name: DBPASSWORD
+              value: {{ .Values.mariadb.mariadbPassword | default "develop" | quote }}
+            - name: DBHOST
+              value: {{ .Values.mariadb.mariadbHostname | quote }}
+            - name: DBNAME
+              value: {{ .Values.mariadb.mariadbDatabase | quote }}
+            - name: TIMEOUT
+              value: "10s"
+        - name: validateldap
+          image: craftypenguins/k8s-init-ldap:latest
+          env:
+            - name: DN
+              value: {{ .Values.ldap.user_dn | default "cn=admin,dc=example,dc=local" | quote }}
+            - name: PASSWORD
+              value: {{ .Values.ldap.user_password | default "ldappassword" | quote }}
+            - name: LDAPHOST
+              value: "{{ .Values.ldap.hostname }}"
+            - name: LDAPPORT
+              value: "{{ .Values.ldap.port | default 389 }}"
       containers:
         - name: liquibase
           image: yonadev/yona-mariadb-liquibase-update:build-{{ .Chart.AppVersion }}
@@ -27,7 +56,7 @@ spec:
             {{- if .Values.mariadb.url_override}}
               value: {{ .Values.mariadb.url_override | quote }}
             {{- else }}
-              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.mariadbDatabase }}"
+              value: "jdbc:mariadb://{{ .Values.mariadb.mariadbHostname }}/{{ .Values.mariadb.mariadbDatabase }}"
             {{- end }}
             - name: RELEASE
               value: {{ .Chart.AppVersion | quote }}
@@ -38,7 +67,7 @@ spec:
               {{- if .Values.ldap.url_override}}
               value: {{ .Values.ldap.url_override | quote }}
               {{- else }}
-              value: "ldap://ldap.{{ .Release.Namespace }}.svc.cluster.local"
+              value: "ldap://{{ .Values.ldap.hostname }}:{{ .Values.ldap.port }}"
               {{- end }}
             - name: LDAP_DN
               value: {{ .Values.ldap.dn | default "DC=example,DC=local" | quote }}

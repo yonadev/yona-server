@@ -20,8 +20,23 @@ spec:
     metadata:
       labels:
         app: admin
+        build: {{ .Chart.AppVersion | quote }}
         stage: {{ .Values.global.stage | default "develop" }}
     spec:
+      initContainers:
+        - name: validatedb
+          image: craftypenguins/k8s-init-mysql:latest
+          env:
+            - name: DBUSER
+              value: {{ .Values.mariadb.mariadbUser | default "develop" | quote }}
+            - name: DBPASSWORD
+              value: {{ .Values.mariadb.mariadbPassword | default "develop" | quote }}
+            - name: DBHOST
+              value: {{ .Values.mariadb.mariadbHostname | quote }}
+            - name: DBNAME
+              value: {{ .Values.mariadb.mariadbDatabase | quote }}
+            - name: TIMEOUT
+              value: "10s"
       containers:
         - name: admin
           image: 'yonadev/adminservice:build-{{ .Chart.AppVersion }}'
@@ -35,7 +50,7 @@ spec:
             {{- if .Values.mariadb.url_override}}
               value: {{ .Values.mariadb.url_override | quote }}
             {{- else }}
-              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.mariadbDatabase }}"
+              value: "jdbc:mariadb://{{ .Values.mariadb.mariadbHostname }}/{{ .Values.mariadb.mariadbDatabase }}"
             {{- end }}
             - name: YONA_BATCH_SERVICE_SERVICE_URL
             {{- if .Values.batch.url_override }}
@@ -49,6 +64,14 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: /opt/app/config
+          livenessProbe:
+            httpGet:
+              path: /health/
+              port: 9080
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
       volumes:
         - name: config-volume
           configMap:
