@@ -19,7 +19,7 @@ mkdir build
 cp -r $CHART build
 pushd build
 sed --in-place s/_ReplaceWithBuildNumber_/$BUILD_NUMBER/ $CHART/Chart.yaml
-helm dependency update --verify $CHART
+helm dependency update $CHART
 helm package -d $PACKAGE_DIR --version $VERSION $CHART
 popd
 
