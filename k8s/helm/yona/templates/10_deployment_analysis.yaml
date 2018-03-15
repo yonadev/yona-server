@@ -20,13 +20,28 @@ spec:
     metadata:
       labels:
         app: analysis
+        build: {{ .Chart.AppVersion | quote }}
         stage: {{ .Values.global.stage | default "develop" }}
     spec:
+      initContainers:
+        - name: validatedb
+          image: craftypenguins/k8s-init-mysql:latest
+          env:
+            - name: DBUSER
+              value: {{ .Values.mariadb.mariadbUser | default "develop" | quote }}
+            - name: DBPASSWORD
+              value: {{ .Values.mariadb.mariadbPassword | default "develop" | quote }}
+            - name: DBHOST
+              value: {{ .Values.mariadb.mariadbHostname | quote }}
+            - name: DBNAME
+              value: {{ .Values.mariadb.mariadbDatabase | quote }}
+            - name: TIMEOUT
+              value: "10s"
       containers:
         - name: analysis
           image: 'yonadev/analysisservice:build-{{ .Chart.AppVersion }}'
           imagePullPolicy: Always
-          env:       
+          env:
             - name: YONA_DB_USER_NAME
               value: {{ .Values.mariadb.mariadbUser | default "develop" | quote }}
             - name: YONA_DB_PASSWORD
@@ -35,7 +50,7 @@ spec:
             {{- if .Values.mariadb.url_override}}
               value: {{ .Values.mariadb.url_override | quote }}
             {{- else }}
-              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.mariadbDatabase }}"
+              value: "jdbc:mariadb://{{ .Values.mariadb.mariadbHostname }}/{{ .Values.mariadb.mariadbDatabase }}"
             {{- end }}
           ports:
             - containerPort: 8080
@@ -43,6 +58,13 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: /opt/app/config
+          livenessProbe:
+            httpGet:
+              path: /health/
+              port: 9080
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            timeoutSeconds: 5
       volumes:
         - name: config-volume
           configMap:

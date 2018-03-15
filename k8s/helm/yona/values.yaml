@@ -141,10 +141,14 @@ ldap:
   org: "Yona Development"
   domain: "example.local"
   #url_override: "ldap://ldap.yona.svc.cluster.local:389"
+  hostname: ldap.yona.svc.cluster.local
+  port: 389
   dn: "dc=example,dc=local"
   user_dn: "cn=admin,dc=example,dc=local"
   user_password: "ldappassword"
   config_password: "config"
+  storage_class_name_ldap: standard
+  storage_class_name_sldap: standard
 
 sms:
   enabled: false
@@ -170,12 +174,12 @@ mariadb:
   mariadbPassword: develop
   mariadbDatabase: yona
   persistence:
-    storageClass: yona-default
+    storageClass: standard
     size: 2Gi
   user: develop
   password: develop
-  #nameOverride: develop
   #url_override: "jdbc:mariadb://db.default.svc.cluster.local/yona"
+  mariadbHostname: yona-mariadb.yona.svc.cluster.local
 
 admin:
   act_categories_json_file : productionActivityCategories.json
