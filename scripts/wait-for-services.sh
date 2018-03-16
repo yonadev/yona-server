@@ -31,7 +31,11 @@ function waitTillK8SInstanceWorks() {
   echo "Waiting for ${1}-${BUILD_NUMBER_TO_DEPLOY} to become ${2}"
 	until [ $n -ge $iterations ]
 	do
-    kubectl get pods -a --selector=app=${1},build=${BUILD_NUMBER_TO_DEPLOY} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}' | grep -q ${2} && echo -e "\n - Success\n" && break
+    if [ "$2" == "Succeeded" ]; then  #Hack because we can't have labels in deployments that change over releases
+      kubectl get pods -a --selector=app=${1},build=${BUILD_NUMBER_TO_DEPLOY} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}' | grep -q ${2} && echo -e "\n - Success\n" && break
+    else
+      kubectl get pods -a --selector=app=${1} -n ${_NAMESPACE} -o jsonpath='{.items[*].status.phase}' | grep -q ${2} && echo -e "\n - Success\n" && break
+    fi
     echo -n '.'
 		n=$[$n + 1]
 		sleep $sleepTime
