@@ -81,7 +81,7 @@ class User
 			this.vpnProfile = (json.vpnProfile) ? new VPNProfile(json.vpnProfile) : null
 		}
 		this.goals = (json._embedded?."yona:goals"?._embedded) ? json._embedded."yona:goals"._embedded."yona:goals".collect{Goal.fromJson(it)} : null
-		this.devices = (json._embedded?."yona:devices"?._embedded) ? json._embedded."yona:devices"._embedded."yona:devices".collect{new Device(it)} : null
+		this.devices = (json._embedded?."yona:devices"?._embedded) ? json._embedded."yona:devices"._embedded."yona:devices".collect{new Device(this.password, it)} : null
 		this.url = json._links.self.href
 		this.editUrl = json._links?.edit?.href
 		this.buddiesUrl = json._embedded?."yona:buddies"?._links?.self?.href

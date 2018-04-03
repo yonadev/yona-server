@@ -1,24 +1,23 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.entities;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
-import javax.persistence.Table;
 
 import nu.yona.server.crypto.seckey.StringFieldEncryptor;
 import nu.yona.server.crypto.seckey.UUIDFieldEncryptor;
 import nu.yona.server.subscriptions.entities.EntityWithUuidAndTouchVersion;
 
 @Entity
-@Table(name = "DEVICES")
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class DeviceBase extends EntityWithUuidAndTouchVersion
 {
@@ -27,9 +26,6 @@ public abstract class DeviceBase extends EntityWithUuidAndTouchVersion
 
 	@Convert(converter = StringFieldEncryptor.class)
 	private String name;
-
-	// Not encrypted, as it cannot be used to break anonymity
-	private boolean isVpnConnected;
 
 	@Convert(converter = UUIDFieldEncryptor.class)
 	private UUID deviceAnonymizedId;
@@ -40,12 +36,11 @@ public abstract class DeviceBase extends EntityWithUuidAndTouchVersion
 		super(null);
 	}
 
-	protected DeviceBase(UUID id, String name, UUID deviceAnonymizedId, boolean isVpnConnected)
+	protected DeviceBase(UUID id, String name, UUID deviceAnonymizedId)
 	{
 		super(id);
 		this.name = Objects.requireNonNull(name);
 		this.deviceAnonymizedId = Objects.requireNonNull(deviceAnonymizedId);
-		this.isVpnConnected = isVpnConnected;
 	}
 
 	public String getName()
@@ -60,12 +55,8 @@ public abstract class DeviceBase extends EntityWithUuidAndTouchVersion
 
 	public boolean isVpnConnected()
 	{
-		return isVpnConnected;
-	}
-
-	public void setVpnConnected(boolean isVpnConnected)
-	{
-		this.isVpnConnected = isVpnConnected;
+		return getDeviceAnonymizedIfExisting().flatMap(DeviceAnonymized::getLastVpnStatusChangeEvent)
+				.map(VpnStatusChangeEvent::isVpnConnected).orElse(false);
 	}
 
 	public UUID getDeviceAnonymizedId()
@@ -75,7 +66,12 @@ public abstract class DeviceBase extends EntityWithUuidAndTouchVersion
 
 	public DeviceAnonymized getDeviceAnonymized()
 	{
-		DeviceAnonymized deviceAnonymized = DeviceAnonymized.getRepository().findOne(deviceAnonymizedId);
-		return Objects.requireNonNull(deviceAnonymized, "DeviceAnonymized with ID " + deviceAnonymizedId + " not found");
+		return getDeviceAnonymizedIfExisting()
+				.orElseThrow(() -> new IllegalStateException("DeviceAnonymized with ID " + deviceAnonymizedId + " not found"));
+	}
+
+	private Optional<DeviceAnonymized> getDeviceAnonymizedIfExisting()
+	{
+		return Optional.ofNullable(DeviceAnonymized.getRepository().findOne(deviceAnonymizedId));
 	}
 }

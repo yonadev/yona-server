@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * Copyright (c) 2015, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
  * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.messaging.service;
@@ -37,6 +37,7 @@ import nu.yona.server.subscriptions.service.BuddyDisconnectMessageDto;
 import nu.yona.server.subscriptions.service.BuddyDto;
 import nu.yona.server.subscriptions.service.BuddyInfoChangeMessageDto;
 import nu.yona.server.subscriptions.service.BuddyService;
+import nu.yona.server.subscriptions.service.BuddyVpnConnectionStatusChangeMessageDto;
 import nu.yona.server.subscriptions.service.UserDto;
 import nu.yona.server.util.TimeUtil;
 
@@ -46,6 +47,7 @@ import nu.yona.server.util.TimeUtil;
 		@Type(value = BuddyDisconnectMessageDto.class, name = "BuddyDisconnectMessage"),
 		@Type(value = BuddyInfoChangeMessageDto.class, name = "BuddyInfoChangeMessage"),
 		@Type(value = BuddyDeviceChangeMessageDto.class, name = "BuddyDeviceChangeMessage"),
+		@Type(value = BuddyVpnConnectionStatusChangeMessageDto.class, name = "BuddyVpnConnectionStatusChangeMessage"),
 		@Type(value = DisclosureRequestMessageDto.class, name = "DisclosureRequestMessage"),
 		@Type(value = DisclosureResponseMessageDto.class, name = "DisclosureResponseMessage"),
 		@Type(value = GoalConflictMessageDto.class, name = "GoalConflictMessage"),

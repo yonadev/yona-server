@@ -291,7 +291,7 @@ public class BuddyDeviceChangeMessageDtoTest extends BaseSpringIntegrationTest
 
 	private BuddyDevice addDeviceToBuddy(Buddy buddy, UserDevice device)
 	{
-		BuddyDevice buddyDevice = BuddyDevice.createInstance(device.getName(), device.getDeviceAnonymizedId(), true);
+		BuddyDevice buddyDevice = BuddyDevice.createInstance(device.getName(), device.getDeviceAnonymizedId());
 		buddy.addDevice(buddyDevice);
 		return buddyDevice;
 	}

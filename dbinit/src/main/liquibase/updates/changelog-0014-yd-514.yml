@@ -1,0 +1,62 @@
+databaseChangeLog:
+- changeSet:
+    id: 1521298351864-1
+    author: Bert (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              primaryKey: true
+              primaryKeyName: vpn_status_change_eventsPK
+            name: id
+            type: BIGINT
+        - column:
+            name: event_time
+            type: datetime(6)
+        - column:
+            constraints:
+              nullable: false
+            name: is_vpn_connected
+            type: BIT
+        - column:
+            name: device_anonymized_id
+            type: VARCHAR(255)
+        tableName: vpn_status_change_events
+- changeSet:
+    id: 1521298351864-2
+    author: Bert (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: device_anonymized_id
+        baseTableName: vpn_status_change_events
+        constraintName: FK8uxpqc3d3utrwomxmwj0xf8jr
+        deferrable: false
+        initiallyDeferred: false
+        referencedColumnNames: id
+        referencedTableName: devices_anonymized
+- changeSet:
+    id: 1521298351864-3
+    author: Bert (Manually created)
+    changes:
+    - dropColumn:
+        columnName: is_vpn_connected
+        tableName: buddy_devices
+- changeSet:
+    id: 1521298351864-4
+    author: Bert (Manually created)
+    changes:
+    - dropColumn:
+        columnName: is_vpn_connected
+        tableName: user_devices
+- changeSet:
+    id: 1521746960512-1
+    author: Bert (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            name: is_vpn_connected
+            type: bit
+        tableName: messages

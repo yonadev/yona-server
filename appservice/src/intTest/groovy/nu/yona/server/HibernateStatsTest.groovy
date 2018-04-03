@@ -66,7 +66,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		appService.clearCaches()
 
 		when:
-		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, richard.url, false, null)
+		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, YonaServer.stripQueryString(richard.url), false, null)
 
 		then:
 		captureStatistics("GetUserWithoutPrivateDataFirst")
@@ -76,11 +76,11 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 	{
 		given:
 		appService.clearCaches()
-		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, richard.url, false, null)
+		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, YonaServer.stripQueryString(richard.url), false, null)
 		appService.resetStatistics()
 
 		when:
-		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, richard.url, false, null)
+		appService.getUser(CommonAssertions.&assertUserGetResponseDetailsWithoutPrivateData, YonaServer.stripQueryString(richard.url), false, null)
 
 		then:
 		captureStatistics("GetUserWithoutPrivateDataSecond")
@@ -247,7 +247,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		appService.resetStatistics()
 
 		when:
-		def response = appService.getResourceWithPassword(richard.url + "/activity/days/$lastFridayDate/details/$goalId", richard.password)
+		def response = appService.getResourceWithPassword(YonaServer.stripQueryString(richard.url) + "/activity/days/$lastFridayDate/details/$goalId", richard.password)
 
 		then:
 		assertResponseStatusOk(response)
@@ -261,11 +261,11 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		appService.reloadUser(richard)
 		def goalId = richard.findActiveGoal(GAMBLING_ACT_CAT_URL).getId()
 		def lastFridayDate = YonaServer.toIsoDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Fri 09:00"))
-		assertResponseStatusOk(appService.getResourceWithPassword(richard.url + "/activity/days/$lastFridayDate/details/$goalId", richard.password))
+		assertResponseStatusOk(appService.getResourceWithPassword(YonaServer.stripQueryString(richard.url) + "/activity/days/$lastFridayDate/details/$goalId", richard.password))
 		appService.resetStatistics()
 
 		when:
-		def response = appService.getResourceWithPassword(richard.url + "/activity/days/$lastFridayDate/details/$goalId", richard.password)
+		def response = appService.getResourceWithPassword(YonaServer.stripQueryString(richard.url) + "/activity/days/$lastFridayDate/details/$goalId", richard.password)
 
 		then:
 		assertResponseStatusOk(response)
@@ -282,7 +282,7 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		appService.resetStatistics()
 
 		when:
-		def response = appService.getResourceWithPassword(richard.url + "/activity/weeks/$lastWeek/details/$goalId", richard.password)
+		def response = appService.getResourceWithPassword(YonaServer.stripQueryString(richard.url) + "/activity/weeks/$lastWeek/details/$goalId", richard.password)
 
 		then:
 		assertResponseStatusOk(response)
@@ -296,11 +296,11 @@ class HibernateStatsTest extends AbstractAppServiceIntegrationTest
 		appService.reloadUser(richard)
 		def goalId = richard.findActiveGoal(GAMBLING_ACT_CAT_URL).getId()
 		def lastWeek = YonaServer.toIsoWeekDateString(YonaServer.relativeDateTimeStringToZonedDateTime("W-1 Fri 09:00"))
-		assertResponseStatusOk(appService.getResourceWithPassword(richard.url + "/activity/weeks/$lastWeek/details/$goalId", richard.password))
+		assertResponseStatusOk(appService.getResourceWithPassword(YonaServer.stripQueryString(richard.url) + "/activity/weeks/$lastWeek/details/$goalId", richard.password))
 		appService.resetStatistics()
 
 		when:
-		def response = appService.getResourceWithPassword(richard.url + "/activity/weeks/$lastWeek/details/$goalId", richard.password)
+		def response = appService.getResourceWithPassword(YonaServer.stripQueryString(richard.url) + "/activity/weeks/$lastWeek/details/$goalId", richard.password)
 
 		then:
 		assertResponseStatusOk(response)

@@ -1,6 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2017 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License, v.
- * 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ * Copyright (c) 2017, 2018 Stichting Yona Foundation This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *******************************************************************************/
 package nu.yona.server.device.entities;
 
@@ -28,14 +28,14 @@ public class BuddyDevice extends DeviceBase
 	{
 	}
 
-	private BuddyDevice(UUID id, String name, UUID deviceAnonymizedId, Boolean isVpnConnected)
+	private BuddyDevice(UUID id, String name, UUID deviceAnonymizedId)
 	{
-		super(id, name, deviceAnonymizedId, isVpnConnected);
+		super(id, name, deviceAnonymizedId);
 	}
 
-	public static BuddyDevice createInstance(String name, UUID deviceAnonymizedId, Boolean isVpnConnected)
+	public static BuddyDevice createInstance(String name, UUID deviceAnonymizedId)
 	{
-		return new BuddyDevice(UUID.randomUUID(), name, deviceAnonymizedId, isVpnConnected);
+		return new BuddyDevice(UUID.randomUUID(), name, deviceAnonymizedId);
 	}
 
 	public static BuddyDeviceRepository getRepository()
