@@ -17,6 +17,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
 import org.springframework.hateoas.hal.CurieProvider;
@@ -189,7 +190,19 @@ public class BuddyController extends ControllerBase
 
 	public String getInviteUrl(UUID newUserId, String tempPassword)
 	{
-		return UserController.getUserSelfLinkWithTempPassword(newUserId, tempPassword).getHref();
+		// getUserSelfLinkWithTempPassword should actually call expand, s we don't need to strip template parameters
+		// This is not being done because of https://github.com/spring-projects/spring-hateoas/issues/703
+		return stripTemplateParameters(UserController.getUserSelfLinkWithTempPassword(newUserId, tempPassword));
+	}
+
+	private String stripTemplateParameters(Link link)
+	{
+		String linkString = link.getHref();
+		if (link.isTemplated())
+		{
+			return linkString.substring(0, linkString.indexOf("{"));
+		}
+		return linkString;
 	}
 
 	private BuddyResourceAssembler createResourceAssembler(UUID userId)

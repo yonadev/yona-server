@@ -22,6 +22,20 @@ spec:
         app: app
         stage: {{ .Values.global.stage | default "develop" }}
     spec:
+      initContainers:
+        - name: validatedb
+          image: craftypenguins/k8s-init-mysql:latest
+          env:
+            - name: DBUSER
+              value: {{ .Values.mariadb.mariadbUser | default "develop" | quote }}
+            - name: DBPASSWORD
+              value: {{ .Values.mariadb.mariadbPassword | default "develop" | quote }}
+            - name: DBHOST
+              value: {{ .Values.mariadb.mariadbHostname | quote }}
+            - name: DBNAME
+              value: {{ .Values.mariadb.mariadbDatabase | quote }}
+            - name: TIMEOUT
+              value: "10s"
       containers:
         - name: app
           image: 'yonadev/appservice:build-{{ .Chart.AppVersion }}'
@@ -35,7 +49,7 @@ spec:
             {{- if .Values.mariadb.url_override}}
               value: {{ .Values.mariadb.url_override | quote }}
             {{- else }}
-              value: "jdbc:mariadb://{{ .Release.Name }}-mariadb.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.mariadb.mariadbDatabase }}"
+              value: "jdbc:mariadb://{{ .Values.mariadb.mariadbHostname }}/{{ .Values.mariadb.mariadbDatabase }}"
             {{- end }}
             - name: YONA_ANALYSIS_SERVICE_SERVICE_URL
             {{- if hasKey .Values.analysis "url_override" }}
@@ -59,6 +73,13 @@ spec:
               mountPath: /opt/app/resources
             - name: apple-resources
               mountPath: /opt/app/apple
+          livenessProbe:
+            httpGet:
+              path: /health/
+              port: 9080
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            timeoutSeconds: 5
       volumes:
         - name: config-volume
           configMap:
